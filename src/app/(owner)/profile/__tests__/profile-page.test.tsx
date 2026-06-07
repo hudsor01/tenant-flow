@@ -310,10 +310,13 @@ describe("Owner Profile Page", () => {
 				const changePasswordHeading = dialogHeadings.find(
 					(h) => h.textContent === "Change Password",
 				);
-				// Also try looking for dialog-specific elements
+				// Also try looking for dialog-specific elements. Use exact label
+				// text so the query targets the now-associated password input only
+				// (the show/hide toggle buttons also contain "current/new password"
+				// in their aria-labels, which would make a loose regex ambiguous).
 				const currentPasswordField =
-					screen.queryByLabelText(/current password/i);
-				const newPasswordField = screen.queryByLabelText(/new password/i);
+					screen.queryByLabelText("Current Password *");
+				const newPasswordField = screen.queryByLabelText("New Password *");
 
 				expect(
 					changePasswordHeading || currentPasswordField || newPasswordField,

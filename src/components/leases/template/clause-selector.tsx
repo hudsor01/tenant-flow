@@ -90,6 +90,7 @@ export function ClauseSelector({
 												<TooltipTrigger asChild>
 													<button
 														type="button"
+														aria-label="More information about this clause"
 														className="text-muted-foreground"
 													>
 														<Info className="size-4" />

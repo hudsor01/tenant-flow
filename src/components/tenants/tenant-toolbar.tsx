@@ -28,6 +28,7 @@ export function TenantToolbar({
 			<div className="relative w-64">
 				<input
 					type="text"
+					aria-label="Search tenants"
 					placeholder="Search tenants..."
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
@@ -36,6 +37,7 @@ export function TenantToolbar({
 			</div>
 
 			<select
+				aria-label="Filter by status"
 				value={statusFilter}
 				onChange={(e) =>
 					onStatusFilterChange(e.target.value as TenantStatusFilter)
