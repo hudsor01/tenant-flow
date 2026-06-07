@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff, Lock } from "lucide-react";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "#components/ui/button";
 import {
 	Dialog,
@@ -29,6 +29,10 @@ export function ChangePasswordDialog({
 	onOpenChange,
 }: ChangePasswordDialogProps) {
 	const changePassword = useChangePasswordMutation();
+
+	const currentPasswordId = useId();
+	const newPasswordId = useId();
+	const confirmPasswordId = useId();
 
 	const [formData, setFormData] = useState({
 		currentPassword: "",
@@ -176,9 +180,12 @@ export function ChangePasswordDialog({
 					<DialogBody>
 						{/* Current Password */}
 						<Field>
-							<FieldLabel>Current Password *</FieldLabel>
+							<FieldLabel htmlFor={currentPasswordId}>
+								Current Password *
+							</FieldLabel>
 							<div className="relative">
 								<input
+									id={currentPasswordId}
 									type={showPasswords.current ? "text" : "password"}
 									className="input w-full pr-[var(--spacing-10)]"
 									value={formData.currentPassword}
@@ -211,9 +218,10 @@ export function ChangePasswordDialog({
 
 						{/* New Password */}
 						<Field>
-							<FieldLabel>New Password *</FieldLabel>
+							<FieldLabel htmlFor={newPasswordId}>New Password *</FieldLabel>
 							<div className="relative">
 								<input
+									id={newPasswordId}
 									type={showPasswords.new ? "text" : "password"}
 									className="input w-full pr-[var(--spacing-10)]"
 									value={formData.newPassword}
@@ -249,9 +257,12 @@ export function ChangePasswordDialog({
 
 						{/* Confirm Password */}
 						<Field>
-							<FieldLabel>Confirm New Password *</FieldLabel>
+							<FieldLabel htmlFor={confirmPasswordId}>
+								Confirm New Password *
+							</FieldLabel>
 							<div className="relative">
 								<input
+									id={confirmPasswordId}
 									type={showPasswords.confirm ? "text" : "password"}
 									className="input w-full pr-[var(--spacing-10)]"
 									value={formData.confirmPassword}

@@ -2,7 +2,7 @@
 
 import { Phone } from "lucide-react";
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
@@ -29,6 +29,10 @@ export function OwnerEmergencyContactSection() {
 
 	const [isEditing, setIsEditing] = useState(false);
 	const [formData, setFormData] = useState<FormState>(EMPTY_FORM);
+
+	const nameId = useId();
+	const relationshipId = useId();
+	const phoneId = useId();
 
 	useEffect(() => {
 		// Guard against the global refetchOnWindowFocus + onMutate-driven cache
@@ -106,8 +110,9 @@ export function OwnerEmergencyContactSection() {
 			<form onSubmit={handleSave} className="space-y-6">
 				<div className="grid gap-6 md:grid-cols-2">
 					<Field>
-						<FieldLabel>Contact Name</FieldLabel>
+						<FieldLabel htmlFor={nameId}>Contact Name</FieldLabel>
 						<input
+							id={nameId}
 							type="text"
 							className="input w-full"
 							placeholder="Full name"
@@ -119,8 +124,9 @@ export function OwnerEmergencyContactSection() {
 					</Field>
 
 					<Field>
-						<FieldLabel>Relationship</FieldLabel>
+						<FieldLabel htmlFor={relationshipId}>Relationship</FieldLabel>
 						<input
+							id={relationshipId}
 							type="text"
 							className="input w-full"
 							placeholder="e.g., Spouse, Parent"
@@ -132,13 +138,14 @@ export function OwnerEmergencyContactSection() {
 				</div>
 
 				<Field>
-					<FieldLabel>
+					<FieldLabel htmlFor={phoneId}>
 						<div className="flex items-center gap-2">
 							<Phone className="size-4" />
 							<span>Phone Number</span>
 						</div>
 					</FieldLabel>
 					<input
+						id={phoneId}
 						type="tel"
 						className="input w-full"
 						placeholder="(555) 123-4567"

@@ -1,7 +1,7 @@
 "use client";
 
 import { Mail, Phone } from "lucide-react";
-import type { FormEvent } from "react";
+import { type FormEvent, useId } from "react";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { Field, FieldLabel } from "#components/ui/field";
@@ -32,6 +32,11 @@ export function PersonalInformationSection({
 	onSave,
 	onCancel,
 }: PersonalInformationSectionProps) {
+	const firstNameId = useId();
+	const lastNameId = useId();
+	const emailId = useId();
+	const phoneId = useId();
+
 	return (
 		<CardLayout
 			title="Personal Information"
@@ -40,8 +45,9 @@ export function PersonalInformationSection({
 			<form onSubmit={onSave} className="space-y-6">
 				<div className="grid gap-6 md:grid-cols-2">
 					<Field>
-						<FieldLabel>First Name *</FieldLabel>
+						<FieldLabel htmlFor={firstNameId}>First Name *</FieldLabel>
 						<input
+							id={firstNameId}
 							type="text"
 							className="input w-full"
 							value={formData.first_name}
@@ -52,8 +58,9 @@ export function PersonalInformationSection({
 					</Field>
 
 					<Field>
-						<FieldLabel>Last Name *</FieldLabel>
+						<FieldLabel htmlFor={lastNameId}>Last Name *</FieldLabel>
 						<input
+							id={lastNameId}
 							type="text"
 							className="input w-full"
 							value={formData.last_name}
@@ -65,13 +72,14 @@ export function PersonalInformationSection({
 				</div>
 
 				<Field>
-					<FieldLabel>
+					<FieldLabel htmlFor={emailId}>
 						<div className="flex items-center gap-2">
 							<Mail className="size-4" />
 							<span>Email Address *</span>
 						</div>
 					</FieldLabel>
 					<input
+						id={emailId}
 						type="email"
 						className="input w-full"
 						value={formData.email}
@@ -84,13 +92,14 @@ export function PersonalInformationSection({
 				</Field>
 
 				<Field>
-					<FieldLabel>
+					<FieldLabel htmlFor={phoneId}>
 						<div className="flex items-center gap-2">
 							<Phone className="size-4" />
 							<span>Phone Number</span>
 						</div>
 					</FieldLabel>
 					<input
+						id={phoneId}
 						type="tel"
 						className="input w-full"
 						placeholder="(555) 123-4567"

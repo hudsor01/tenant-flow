@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import type { FormEvent } from "react";
+import { type FormEvent, useId } from "react";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { Field, FieldLabel } from "#components/ui/field";
@@ -38,6 +38,9 @@ export function EmergencyContactSection({
 	onDelete,
 }: EmergencyContactSectionProps) {
 	const isDisabled = !isEditing || isLoading || isSaving;
+	const nameId = useId();
+	const relationshipId = useId();
+	const phoneId = useId();
 
 	return (
 		<CardLayout
@@ -47,8 +50,9 @@ export function EmergencyContactSection({
 			<form onSubmit={onSave} className="space-y-6">
 				<div className="grid gap-6 md:grid-cols-2">
 					<Field>
-						<FieldLabel>Contact Name *</FieldLabel>
+						<FieldLabel htmlFor={nameId}>Contact Name *</FieldLabel>
 						<input
+							id={nameId}
 							type="text"
 							className="input w-full"
 							placeholder="Full name"
@@ -60,8 +64,9 @@ export function EmergencyContactSection({
 					</Field>
 
 					<Field>
-						<FieldLabel>Relationship</FieldLabel>
+						<FieldLabel htmlFor={relationshipId}>Relationship</FieldLabel>
 						<input
+							id={relationshipId}
 							type="text"
 							className="input w-full"
 							placeholder="e.g., Spouse, Parent"
@@ -73,13 +78,14 @@ export function EmergencyContactSection({
 				</div>
 
 				<Field>
-					<FieldLabel>
+					<FieldLabel htmlFor={phoneId}>
 						<div className="flex items-center gap-2">
 							<Phone className="size-4" />
 							<span>Phone Number *</span>
 						</div>
 					</FieldLabel>
 					<input
+						id={phoneId}
 						type="tel"
 						className="input w-full"
 						placeholder="(555) 123-4567"
