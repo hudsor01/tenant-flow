@@ -82,7 +82,7 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 							An unexpected error occurred. Our team has been notified.
 						</p>
 						{message && (
-							<p className="text-muted font-mono bg-muted p-2 rounded">
+							<p className="text-muted-foreground font-mono bg-muted p-2 rounded">
 								{message}
 							</p>
 						)}
