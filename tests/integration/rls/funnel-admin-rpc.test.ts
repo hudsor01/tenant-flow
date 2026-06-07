@@ -29,6 +29,7 @@ import {
 	getAdminTestCredentials,
 	getTestCredentials,
 } from "../setup/supabase-client";
+import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 const adminCreds = getAdminTestCredentials();
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -78,7 +79,7 @@ describe("get_funnel_stats — non-admin callers rejected", () => {
 		// `IF NOT is_admin() THEN RAISE 'Unauthorized'` runs. The role-level revoke
 		// is the canonical lockdown (see tests/integration/rls/anon-rpc-grants.rls.test.ts
 		// for the full set); the in-body `is_admin()` gate is now defense-in-depth.
-		expect(["42501", "42883", "PGRST202"]).toContain(error?.code);
+		expect(REVOKED_CODES).toContain(error?.code);
 	});
 });
 

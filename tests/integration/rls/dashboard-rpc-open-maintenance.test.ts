@@ -232,7 +232,12 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 		// ownerA, the original P0 leak).
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
-		// Strict regex against the project-standard message
+		// PRIMARY pin: SQLSTATE. The guard is a bare `raise exception` (no
+		// `using errcode`, migration 20260524012602) → PostgreSQL default
+		// 'P0001' (raise_exception). The code is the drift-insulated pin; NOT
+		// '42501' (that is only for EXECUTE-revoke / grant denials).
+		expect(error?.code).toBe("P0001");
+		// Defense-in-depth: strict regex against the project-standard message
 		// "Access denied: cannot request data for another user" used by
 		// 20+ other stats RPCs and asserted by
 		// tests/integration/rls/rpc-auth.test.ts. Migration

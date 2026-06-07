@@ -168,15 +168,21 @@ describe("get_dashboard_data_v2 — monthly_revenue_6mo (Phase 4 CHART-01) RLS i
 		// migration `20260524001408` was added to prevent).
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
+		// PRIMARY pin: SQLSTATE. The guard is a bare `raise exception` (no
+		// `using errcode`, migration 20260524012602) → PostgreSQL default
+		// 'P0001' (raise_exception). Asserting the code insulates this test
+		// from chai-6 / message-string drift. NOT '42501' — that is only for
+		// EXECUTE-revoke / grant denials, which this is not.
+		expect(error?.code).toBe("P0001");
+		// Defense-in-depth: the message lines remain a semantic-change canary.
 		// Regex matches the SHIPPED project-standard message — used by 20+
 		// other stats RPCs and asserted by `rpc-auth.test.ts`. Do NOT use
 		// the older empty-array contract from the pre-cycle-10 Phase 2
 		// plan (RESEARCH.md Pitfall 1).
 		expect(error?.message).toMatch(/access denied/i);
-		// Defense-in-depth: pin the full cycle-10 message phrasing so a
-		// future refactor that swaps the wording to a different
-		// "access denied" phrase still passes the regex but flags here
-		// that something semantic changed.
+		// Pin the full cycle-10 message phrasing so a future refactor that
+		// swaps the wording to a different "access denied" phrase still passes
+		// the regex but flags here that something semantic changed.
 		expect(error?.message).toContain("cannot request data for another user");
 	});
 
@@ -194,6 +200,10 @@ describe("get_dashboard_data_v2 — monthly_revenue_6mo (Phase 4 CHART-01) RLS i
 		// test fails immediately.
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
+		// PRIMARY pin: SQLSTATE 'P0001' (bare `raise exception`, no `using
+		// errcode`). Same drift-insulated contract as the A→B block above.
+		expect(error?.code).toBe("P0001");
+		// Defense-in-depth: message lines as semantic-change canary.
 		expect(error?.message).toMatch(/access denied/i);
 		expect(error?.message).toContain("cannot request data for another user");
 	});

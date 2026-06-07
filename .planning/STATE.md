@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Hardening & Hygiene
-status: planning
-last_updated: "2026-06-05T21:43:54.948Z"
-last_activity: 2026-06-05 — executed Phase 2 plan 02-03 (TYPE-02 maintenance boundary → mapMaintenanceRow)
+status: executing
+last_updated: "2026-06-06T22:27:38.715Z"
+last_activity: 2026-06-06
 progress:
   total_phases: 8
-  completed_phases: 1
-  total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_phases: 5
+  total_plans: 15
+  completed_plans: 15
+  percent: 63
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-06-04 — v4.0 Hardening & Hygiene activ
 
 ## Current Position
 
-Phase: 2 of 8 (Typed RPC Boundaries) — v4.0
-Plan: 03 of 04 complete (02-04 pending)
-Status: 02-03 executed — TYPE-02 maintenance boundary routed through validated mapMaintenanceRow
-Progress: [█████████░] 88%
-Last activity: 2026-06-05 — executed Phase 2 plan 02-03 (TYPE-02 maintenance boundary → mapMaintenanceRow)
+Phase: 5 of 8 (Cross-Owner RLS Coverage) — v4.0
+Plan: 2 of 03 complete (05-02, 05-03 pending)
+Status: Ready to execute
+Progress: [██████████] 100%
+Last activity: 2026-06-06
 
 ## Roadmap Summary (v4.0)
 
@@ -56,13 +56,13 @@ None.
 
 ## Next Action
 
-**Roadmap created.** Plan the first phase:
+**Phase 5 plan 05-01 (TEST-01) complete.** Execute the remaining Phase 5 plans:
 
 ```
-/gsd-plan-phase 1
+/gsd-execute-phase 5
 ```
 
-Phase 1 (Security-CI Hardening) closes CISEC-01..04: edge-function/Stripe-webhook test gate in CI, CSP per-request nonce + `strict-dynamic` (drop `unsafe-inline`), constant-time secret compare in `auth-email-send`, and SHA-pinned GitHub Actions. (CodeQL + gitleaks gates already shipped via PR #781 — out of scope.)
+05-01 added three dual-client cross-owner RLS tests (`reports`, `document_template_definitions`, `expenses`) — commits `1ddb532ef`, `3a67ca52f`. Remaining: 05-02 (TEST-02, four join-policy child tables) and 05-03 (TEST-04, SQLSTATE assertions + shared `REVOKED_CODES` helper). 05-03 is independent of 05-01/02 and can parallelize.
 
 ## Overrides
 

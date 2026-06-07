@@ -27,6 +27,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 describe("admin RPC grants — authenticated cannot reach revoked admin functions", () => {
 	let clientA: SupabaseClient;
@@ -47,13 +48,13 @@ describe("admin RPC grants — authenticated cannot reach revoked admin function
 	it("check_stripe_sync_status: revoked from ownerA", async () => {
 		const { error } = await clientA.rpc("check_stripe_sync_status");
 		expect(error).not.toBeNull();
-		expect(["42501", "42883", "PGRST202"]).toContain(error!.code);
+		expect(REVOKED_CODES).toContain(error!.code);
 	});
 
 	it("check_stripe_sync_status: revoked from ownerB", async () => {
 		const { error } = await clientB.rpc("check_stripe_sync_status");
 		expect(error).not.toBeNull();
-		expect(["42501", "42883", "PGRST202"]).toContain(error!.code);
+		expect(REVOKED_CODES).toContain(error!.code);
 	});
 
 	it("get_user_id_by_stripe_customer: revoked from ownerA", async () => {
@@ -61,7 +62,7 @@ describe("admin RPC grants — authenticated cannot reach revoked admin function
 			p_stripe_customer_id: "cus_does_not_matter",
 		});
 		expect(error).not.toBeNull();
-		expect(["42501", "42883", "PGRST202"]).toContain(error!.code);
+		expect(REVOKED_CODES).toContain(error!.code);
 	});
 
 	it("get_user_id_by_stripe_customer: revoked from ownerB", async () => {
@@ -69,6 +70,6 @@ describe("admin RPC grants — authenticated cannot reach revoked admin function
 			p_stripe_customer_id: "cus_does_not_matter",
 		});
 		expect(error).not.toBeNull();
-		expect(["42501", "42883", "PGRST202"]).toContain(error!.code);
+		expect(REVOKED_CODES).toContain(error!.code);
 	});
 });

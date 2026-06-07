@@ -48,6 +48,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 const PROBE_PROPERTY_NAME_PREFIX = "RLS-probe-users-priv-";
 
@@ -311,7 +312,7 @@ describe("P0 security hardening — public.users + sign_lease + property-images 
 			// 42883 / PGRST202. Accept any of the three so the test pins
 			// "function is no longer reachable from authenticated", not a
 			// specific error-code string.
-			expect(["42501", "42883", "PGRST202"]).toContain(error!.code);
+			expect(REVOKED_CODES).toContain(error!.code);
 		});
 	});
 

@@ -29,10 +29,10 @@
 
 ### TEST — owner-isolation + auth coverage
 
-- [ ] **TEST-01**: Cross-owner RLS integration tests (dual-client ownerA/ownerB) cover `reports`, `expenses`, and `document_template_definitions`.
+- [x] **TEST-01**: Cross-owner RLS integration tests (dual-client ownerA/ownerB) cover `reports`, `expenses`, and `document_template_definitions`.
 - [ ] **TEST-02**: Cross-owner RLS tests cover the join-policy child tables `inspection_photos`, `inspection_rooms`, `maintenance_request_photos`, `property_images`.
 - [ ] **TEST-03**: Unit tests cover the auth-critical hooks `use-auth-mutations`, `use-mfa`, `use-sessions`, and the dollar-amount hooks `use-expense-mutations` / `use-report-mutations` / `use-reports`.
-- [ ] **TEST-04**: RLS-rejection tests assert SQLSTATE / `error.code` (not message strings), and the `REVOKED_CODES` literal is extracted to one shared test helper consumed by all 4 call sites.
+- [x] **TEST-04**: RLS-rejection tests assert SQLSTATE / `error.code` (not message strings), and the `REVOKED_CODES` literal is extracted to one shared test helper consumed by all 4 call sites.
 
 ### A11Y — programmatic labels
 
@@ -82,9 +82,9 @@ Deferred follow-ups (small, optional, non-blocking — fold into a later milesto
 | PERF-03 | Phase 3 — Stats RPC Consolidation | Pending |
 | PERF-01 | Phase 4 — Cron Stagger & Index Cleanup | Pending |
 | PERF-04 | Phase 4 — Cron Stagger & Index Cleanup | Pending |
-| TEST-01 | Phase 5 — Cross-Owner RLS Coverage | Pending |
+| TEST-01 | Phase 5 — Cross-Owner RLS Coverage | Complete |
 | TEST-02 | Phase 5 — Cross-Owner RLS Coverage | Pending |
-| TEST-04 | Phase 5 — Cross-Owner RLS Coverage | Pending |
+| TEST-04 | Phase 5 — Cross-Owner RLS Coverage | Complete |
 | TEST-03 | Phase 6 — Auth & Dollar-Hook Unit Tests | Pending |
 | A11Y-01 | Phase 7 — Accessibility Labels | Pending |
 | A11Y-02 | Phase 7 — Accessibility Labels | Pending |
