@@ -81,7 +81,7 @@ vi.mock("#components/seo/json-ld-script", () => ({
 }));
 
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
-import BlogCategoryPage from "./page";
+import BlogCategoryPage, { generateMetadata } from "./page";
 
 const mockCategories = [
 	{ name: "Software Comparisons", slug: "software-comparisons", post_count: 5 },
@@ -136,6 +136,15 @@ function makeClient({
 		chain.range = vi.fn(() =>
 			Promise.resolve({ data: posts, count: postsCount, error: null }),
 		);
+		// Awaiting the builder directly (the HEAD count path used by
+		// getCategoryPublishedCount) resolves to the same {count} shape.
+		chain.then = (
+			resolve: (v: {
+				data: BlogListItem[];
+				count: number | null;
+				error: null;
+			}) => unknown,
+		) => resolve({ data: posts, count: postsCount, error: null });
 		return chain;
 	});
 
@@ -227,5 +236,42 @@ describe("BlogCategoryPage (server component)", () => {
 	it("renders NewsletterSignup", async () => {
 		render(await renderPage("software-comparisons"));
 		expect(screen.getByTestId("newsletter-signup")).toBeInTheDocument();
+	});
+});
+
+describe("BlogCategoryPage generateMetadata (SEO-03 empty-category noindex)", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	async function metaFor(
+		categorySlug: string,
+		opts?: MockBuilderOpts,
+	): Promise<import("next").Metadata> {
+		mockCreateClient.mockResolvedValue(makeClient(opts));
+		return generateMetadata({
+			params: Promise.resolve({ category: categorySlug }),
+			searchParams: Promise.resolve({}),
+		});
+	}
+
+	it("noindexes an empty category (zero published posts) so it does not bleed crawl signal", async () => {
+		const meta = await metaFor("software-comparisons", { postsCount: 0 });
+		expect(meta.robots).toBe("noindex, follow");
+	});
+
+	it("leaves a non-empty category indexable (page 1)", async () => {
+		const meta = await metaFor("software-comparisons", { postsCount: 5 });
+		// createPageMetadata omits robots when indexable.
+		expect(meta.robots).toBeUndefined();
+	});
+
+	it("noindexes paginated pages regardless of count", async () => {
+		mockCreateClient.mockResolvedValue(makeClient({ postsCount: 5 }));
+		const meta = await generateMetadata({
+			params: Promise.resolve({ category: "software-comparisons" }),
+			searchParams: Promise.resolve({ page: "2" }),
+		});
+		expect(meta.robots).toBe("noindex, follow");
 	});
 });
