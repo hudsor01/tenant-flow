@@ -37,4 +37,24 @@ describe("TenantGrid accessibility (A11Y-02)", () => {
 		expect(checkbox).toBeInTheDocument();
 		expect(checkbox).toHaveAccessibleName("Select Jane Doe");
 	});
+
+	it("exposes an accessible name on the per-row status select", () => {
+		render(
+			<TenantGrid
+				tenants={[stubTenant]}
+				selectedIds={new Set<string>()}
+				onSelectChange={vi.fn()}
+				onView={vi.fn()}
+				onEdit={vi.fn()}
+				onDelete={vi.fn()}
+				onContact={vi.fn()}
+			/>,
+		);
+
+		// Resolves ONLY if the <select> carries aria-label="Lease status for Jane Doe".
+		const statusSelect = screen.getByRole("combobox", {
+			name: /lease status for jane doe/i,
+		});
+		expect(statusSelect).toBeInTheDocument();
+	});
 });

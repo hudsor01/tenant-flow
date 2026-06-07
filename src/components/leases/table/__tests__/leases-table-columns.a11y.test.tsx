@@ -56,4 +56,22 @@ describe("LeaseRow a11y (A11Y-02)", () => {
 			screen.getByRole("checkbox", { name: /select lease jane doe/i }),
 		).toBeInTheDocument();
 	});
+
+	test("icon-only action buttons expose aria-label accessible names", () => {
+		renderRow();
+		// status:"active" renders all four; each resolves ONLY via its aria-label
+		// (the lucide icons are aria-hidden, so title alone is not a reliable name).
+		expect(
+			screen.getByRole("button", { name: /view lease for jane doe/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /edit lease for jane doe/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /renew lease for jane doe/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /terminate lease for jane doe/i }),
+		).toBeInTheDocument();
+	});
 });

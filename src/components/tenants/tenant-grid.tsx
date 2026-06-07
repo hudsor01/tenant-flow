@@ -31,9 +31,10 @@ interface TenantGridProps {
 interface StatusDropdownProps {
 	value: LeaseStatus | undefined;
 	onChange: (value: LeaseStatus) => void;
+	ariaLabel: string;
 }
 
-function StatusDropdown({ value, onChange }: StatusDropdownProps) {
+function StatusDropdown({ value, onChange, ariaLabel }: StatusDropdownProps) {
 	const statusLabels: Record<LeaseStatus, string> = {
 		draft: "Draft",
 		pending_signature: "Pending",
@@ -47,6 +48,7 @@ function StatusDropdown({ value, onChange }: StatusDropdownProps) {
 			<select
 				value={value || "active"}
 				onChange={(e) => onChange(e.target.value as LeaseStatus)}
+				aria-label={ariaLabel}
 				className="appearance-none w-full px-2 py-1 text-xs bg-muted border border-transparent hover:border-border focus:border-primary rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer transition-all"
 			>
 				{Object.entries(statusLabels).map(([key, label]) => (
@@ -127,6 +129,7 @@ function TenantCard({
 					<div className="w-24">
 						<StatusDropdown
 							value={tenant.leaseStatus}
+							ariaLabel={`Lease status for ${tenant.fullName}`}
 							onChange={(value) =>
 								logger.info("Status change", {
 									tenantId: tenant.id,

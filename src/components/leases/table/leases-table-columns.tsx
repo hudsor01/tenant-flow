@@ -104,6 +104,7 @@ export function LeaseRow({
 						onClick={() => onView(lease.id)}
 						className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
 						title="View"
+						aria-label={`View lease for ${lease.tenantName}`}
 					>
 						<Eye className="w-4 h-4" />
 					</button>
@@ -111,6 +112,7 @@ export function LeaseRow({
 						onClick={() => onEdit(lease.id)}
 						className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
 						title="Edit"
+						aria-label={`Edit lease for ${lease.tenantName}`}
 					>
 						<Pencil className="w-4 h-4" />
 					</button>
@@ -120,6 +122,7 @@ export function LeaseRow({
 								onClick={() => onRenew(lease)}
 								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
 								title="Renew Lease"
+								aria-label={`Renew lease for ${lease.tenantName}`}
 							>
 								<RefreshCw className="w-4 h-4" />
 							</button>
@@ -127,6 +130,7 @@ export function LeaseRow({
 								onClick={() => onTerminate(lease)}
 								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
 								title="Terminate Lease"
+								aria-label={`Terminate lease for ${lease.tenantName}`}
 							>
 								<XCircle className="w-4 h-4" />
 							</button>
