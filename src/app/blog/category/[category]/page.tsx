@@ -48,6 +48,24 @@ const getValidCategory = cache(
 	},
 );
 
+/**
+ * Published-post count for a category — request-deduplicated via cache().
+ * Drives the SEO-03 empty-category noindex: a valid category with zero
+ * published posts (e.g. financial-management, maintenance) would otherwise
+ * serve an indexable thin page and bleed crawl signal. HEAD count only.
+ */
+const getCategoryPublishedCount = cache(
+	async (categoryName: string): Promise<number> => {
+		const supabase = await createClient();
+		const { count } = await supabase
+			.from("blogs")
+			.select("*", { count: "exact", head: true })
+			.eq("status", "published")
+			.eq("category", categoryName);
+		return count ?? 0;
+	},
+);
+
 export async function generateMetadata({
 	params,
 	searchParams,
@@ -61,11 +79,17 @@ export async function generateMetadata({
 		return { title: "Category Not Found | TenantFlow" };
 	}
 
+	// SEO-03: noindex paginated pages AND empty categories (zero published
+	// posts) so a thin/empty category page does not bleed crawl signal. The
+	// page stays reachable for users; Google just won't index it until it has
+	// content (the count is dynamic, so it self-heals once a post is published).
+	const publishedCount = await getCategoryPublishedCount(validCategory.name);
+
 	return createPageMetadata({
 		title: `${validCategory.name} Articles & Guides`,
 		description: `Browse TenantFlow blog posts about ${validCategory.name.toLowerCase()}. Expert insights and practical guides for landlords.`,
 		path: `/blog/category/${category}`,
-		noindex: page > 1,
+		noindex: page > 1 || publishedCount === 0,
 	});
 }
 
