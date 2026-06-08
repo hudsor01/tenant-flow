@@ -297,12 +297,7 @@ Deno.serve(async (req: Request) => {
 
 	try {
 		const env = validateEnv({
-			required: [
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"N8N_WEBHOOK_SECRET",
-				"NEXT_PUBLIC_APP_URL",
-			],
+			required: ["SUPABASE_URL", "N8N_WEBHOOK_SECRET", "NEXT_PUBLIC_APP_URL"],
 		});
 
 		// Read the raw body BEFORE parsing so HMAC verification operates on the
@@ -355,10 +350,18 @@ Deno.serve(async (req: Request) => {
 			});
 		}
 
-		const supabase = createClient(
-			env.SUPABASE_URL,
-			env.SUPABASE_SERVICE_ROLE_KEY,
-		);
+		// New Supabase API key model: prefer SUPABASE_SECRET_KEY (sb_secret). The
+		// legacy auto-injected SUPABASE_SERVICE_ROLE_KEY is invalid once legacy
+		// JWT keys are disabled (caused 500s on every insert). INGEST_DB_KEY is a
+		// settable (non-reserved) fallback for projects that disable legacy keys.
+		const dbKey =
+			Deno.env.get("SUPABASE_SECRET_KEY") ??
+			Deno.env.get("INGEST_DB_KEY") ??
+			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+		if (!dbKey) {
+			return jsonResponse(req, 500, { error: "An error occurred" });
+		}
+		const supabase = createClient(env.SUPABASE_URL, dbKey);
 
 		const insertRow: Record<string, unknown> = {
 			title: payload.title,
