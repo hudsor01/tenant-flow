@@ -42,7 +42,7 @@ Last activity: 2026-06-07
 
 ## Blockers
 
-- **BLOG-02 (owner action):** pull a general-instruct model into LM Studio (recommend `Qwen3-30B-A3B` general-instruct) — only the coder-instruct is installed.
+- **BLOG-02 (owner action):** pull a general-instruct model into LM Studio — recommend `Mistral-Small-3.2-24B-Instruct-2506` (`lmstudio-community/Mistral-Small-3.2-24B-Instruct-2506-MLX-6bit`, ~18-19GB, Apache 2.0; best for the JSON ingest contract). Only the coder-instruct is installed.
 
 ## Roadmap Evolution
 
@@ -60,7 +60,7 @@ Last activity: 2026-06-07
 /gsd-plan-phase 9
 ```
 
-In parallel (owner): pull `Qwen3-30B-A3B` general-instruct into LM Studio (BLOG-02).
+In parallel (owner): enable LM Studio "Serve on Local Network" + pull `Mistral-Small-3.2-24B-Instruct-2506` (`lmstudio-community/Mistral-Small-3.2-24B-Instruct-2506-MLX-6bit`) into LM Studio (BLOG-01/02).
 
 ## Overrides
 

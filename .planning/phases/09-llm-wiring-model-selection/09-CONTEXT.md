@@ -24,7 +24,7 @@ Make the local LLM reachable from the n8n container and have the right generatio
 - Verify: from the container, `curl <base>/v1/models` → 200 listing the models; a `/v1/chat/completions` call returns a completion; a `/v1/embeddings` call returns a vector.
 
 ### BLOG-02 — generation model
-- Only `qwen3-coder-30b-a3b-instruct` (code-tuned) is installed. **Owner action: pull a general-instruct model** into LM Studio — recommend `Qwen3-30B-A3B` general-instruct (same fast A3B MoE, general-purpose) or Qwen2.5-32B-Instruct. Document the choice; coder-instruct is the fallback.
+- Only `qwen3-coder-30b-a3b-instruct` (code-tuned) is installed. **Owner action: pull a general-instruct model** into LM Studio. **Recommended (HF research, 2026-06): `Mistral-Small-3.2-24B-Instruct-2506`** — download `lmstudio-community/Mistral-Small-3.2-24B-Instruct-2506-MLX-6bit` (~18-19GB, Apache 2.0). Chosen because the JSON ingest contract is the hard constraint and Mistral 3.2 was purpose-built for function-calling/structured-output + instruction-following reliability, with serviceable marketing prose in a single-pass pipeline. Runner-up for pure prose: `mlx-community/gemma-3-27b-it-qat-4bit` (weaker JSON discipline → only as a two-model styling pass). Fast-draft alternate: `lmstudio-community/Qwen3-30B-A3B-Instruct-2507-MLX-6bit` (MoE, faster + 262K ctx, but stiffer prose). Document the choice; coder-instruct is the last-resort fallback.
 - Smoke test: a marketing-style prompt ("write a 120-word intro for a landlord blog about tenant screening, brand: TenantFlow") returns coherent, on-brand prose.
 - Embeddings (`qwen3-embedding-0.6b`) + reranker (`qwen3-reranker-0.6b`) confirmed reachable for Phase 10 RAG.
 

@@ -27,7 +27,7 @@
 **Requirements**: BLOG-01, BLOG-02
 **Success Criteria**:
   1. From inside the `tenantflow-n8n` container, an HTTP call reaches LM Studio on the Mac host (host-gateway or LAN IP) and returns a completion + an embedding.
-  2. A general-instruct model (recommend `Qwen3-30B-A3B` general-instruct) is loaded in LM Studio and produces coherent marketing-grade prose on a test prompt; the coder-vs-general choice is documented.
+  2. A general-instruct model (recommend `Mistral-Small-3.2-24B-Instruct-2506` MLX-6bit — best for the JSON ingest contract; Gemma-3-27B prose runner-up, Qwen3-30B-A3B-2507 fast-draft alternate) is loaded in LM Studio and produces coherent marketing-grade prose on a test prompt; the model choice is documented.
   3. `qwen3-embedding-0.6b` + `qwen3-reranker-0.6b` are reachable for the RAG phase.
 **Plans:** 2 plans
 Plans:
