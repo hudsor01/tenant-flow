@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v5.0):** A local-LLM (LM Studio on the M5) + RAG n8n pipeline that drafts brand-positive, fact-grounded, E-E-A-T-credible blog posts into `n8n-blog-ingest` as `in-review` drafts for human approval — and uses it to execute the SEO-01 reclaim. Quality bar: genuinely helpful landlord content featuring TenantFlow naturally, never penalized AI spam.
-**Current focus:** Phase 9 COMPLETE (native n8n ↔ LM Studio wired + Mistral smoke-tested). Plan Phase 10 (RAG Knowledge Base) — `/gsd-plan-phase 10`.
+**Current focus:** Phase 10 CODE-COMPLETE — pgvector store live in prod + indexer/smoke-test written. One owner step (run the indexer) fully closes BLOG-03, then Phase 11.
 
 ## Current Position
 
-Phase: 9 of 14 COMPLETE → next is Phase 10 (RAG Knowledge Base) — v5.0
-Plan: Phase 9 plans 09-01 + 09-02 done (see 09-SUMMARY.md)
-Status: Phase 9 verified; ready to plan Phase 10
-Last activity: 2026-06-07
+Phase: 10 of 14 CODE-COMPLETE (corpus-load = owner step) → next is Phase 11 (Generation Pipeline) — v5.0
+Plan: 09 done; 10-01 (pgvector store) applied+verified in prod, 10-02 (indexer+smoke test) written (see 10-SUMMARY.md)
+Status: store live; corpus-load pending owner run of the indexer; then Phase 11
+Last activity: 2026-06-08
 
 **Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
 
@@ -44,7 +44,7 @@ Last activity: 2026-06-07
 
 ## Blockers
 
-None. (Phase 9 prereqs resolved: Mistral-Small-3.2-24B loaded in LM Studio; native n8n reaches it on localhost — no colima/network blocker anymore.)
+- **BLOG-03 corpus-load (owner step):** the agent's shell has prod DB/service-role creds scrubbed (deliberate boundary), so the corpus load runs with the owner's creds: `bun scripts/rag-index-blog-corpus.ts` (native n8n/LM Studio up) → loads 10 chunks. Phase 11 retrieval depends on this. The embed half is already verified (10 chunks embedded via LM Studio); only the DB write needs the owner.
 
 ## Roadmap Evolution
 
@@ -56,13 +56,13 @@ None. (Phase 9 prereqs resolved: Mistral-Small-3.2-24B loaded in LM Studio; nati
 
 ## Next Action
 
-**Phase 9 done (native n8n ↔ Mistral wired + verified).** Plan the next phase:
+**Phase 10 code-complete.** Owner step to fully close BLOG-03 (~10s):
 
 ```
-/gsd-plan-phase 10
+bun scripts/rag-index-blog-corpus.ts      # loads 10 corpus chunks into pgvector
 ```
 
-Phase 10 = RAG Knowledge Base (BLOG-03): TenantFlow fact corpus → `qwen3-embedding` → pgvector (Supabase) → retrieval+rerank smoke test. Embeddings (dim 1024) + reranker already confirmed reachable from n8n.
+Then plan Phase 11 (Generation Pipeline, BLOG-04/05) — `/gsd-plan-phase 11`. Phase 11's n8n workflow retrieves from `match_blog_rag_chunks`, so it needs the corpus loaded first.
 
 ## Overrides
 

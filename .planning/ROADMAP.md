@@ -83,7 +83,7 @@ Plans:
 | Phase | Status | Plans |
 |-------|--------|-------|
 | 9 — LLM Wiring & Model Selection | Complete | 2 plans (native n8n + Mistral verified) |
-| 10 — RAG Knowledge Base | Planned | 2 plans (pgvector store + corpus indexer/smoke test) |
+| 10 — RAG Knowledge Base | Code-complete | store live in prod; corpus-load = owner step (`bun scripts/rag-index-blog-corpus.ts`) |
 | 11 — Generation Pipeline | Not started | TBD |
 | 12 — Quality & Brand Guardrails | Not started | TBD |
 | 13 — SEO-01 Reclaim Integration | Not started | TBD |
