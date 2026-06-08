@@ -9,8 +9,8 @@
 
 ### BLOG — local-LLM blog content engine
 
-- [ ] **BLOG-01**: From inside the `tenantflow-n8n` container, n8n can reach LM Studio's OpenAI-compatible API on the Mac host (colima host-gateway or LAN IP) — `/v1/chat/completions` returns a completion and `/v1/embeddings` returns vectors.
-- [ ] **BLOG-02**: A general-instruct generation model is installed in LM Studio for marketing prose (recommend `Mistral-Small-3.2-24B-Instruct-2506` via `lmstudio-community/Mistral-Small-3.2-24B-Instruct-2506-MLX-6bit`, Apache 2.0 — best for the JSON ingest contract + serviceable prose; Gemma-3-27B runner-up for prose, Qwen3-30B-A3B-2507 fast-draft alternate, coder-instruct last-resort fallback) and produces coherent brand-grade copy on a test prompt.
+- [x] **BLOG-01**: n8n reaches LM Studio's OpenAI-compatible API — `/v1/chat/completions` + `/v1/embeddings` return 200. (Resolved by running n8n NATIVELY on the Mac via node@22 + `n8n/start-native.sh`, base URL `http://localhost:1234/v1`; colima's container→host network block made the Dockerized path unworkable.)
+- [x] **BLOG-02**: General-instruct model installed + smoke-tested — `mistral-small-3.2-24b-instruct-2506-mlx` (LM Studio MLX 8-bit, Apache 2.0) produces coherent on-brand TenantFlow prose; embeddings (`qwen3-embedding`, dim 1024) + reranker reachable for Phase 10.
 - [ ] **BLOG-03**: A curated TenantFlow fact corpus (features, pricing from `pricing.ts`, positioning, landlord-domain expertise) is embedded via `qwen3-embedding` into pgvector (Supabase, RLS-scoped); a topic query returns relevant, reranked context.
 - [ ] **BLOG-04**: The LLM emits structured output (title/slug/excerpt/markdown-body/category/canonical_url) that passes all 9 ingest gates + the `validate_blog_post` trigger, with a deterministic validate/repair step before send.
 - [ ] **BLOG-05**: The n8n workflow HMAC-signs (`x-n8n-signature`) and POSTs to `n8n-blog-ingest`; a real draft lands with `status='in-review'`; the Vercel deploy hook fires only on publish, not on draft.

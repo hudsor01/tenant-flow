@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: AI Blog Content Engine
-status: planning
-last_updated: "2026-06-07T22:10:00.000Z"
+status: executing
+last_updated: "2026-06-08T01:15:00.000Z"
 last_activity: 2026-06-07
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 17
 ---
 
 # Project State
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v5.0):** A local-LLM (LM Studio on the M5) + RAG n8n pipeline that drafts brand-positive, fact-grounded, E-E-A-T-credible blog posts into `n8n-blog-ingest` as `in-review` drafts for human approval — and uses it to execute the SEO-01 reclaim. Quality bar: genuinely helpful landlord content featuring TenantFlow naturally, never penalized AI spam.
-**Current focus:** Plan Phase 9 (LLM Wiring & Model Selection) — `/gsd-plan-phase 9`.
+**Current focus:** Phase 9 COMPLETE (native n8n ↔ LM Studio wired + Mistral smoke-tested). Plan Phase 10 (RAG Knowledge Base) — `/gsd-plan-phase 10`.
 
 ## Current Position
 
-Phase: 9 of 14 (LLM Wiring & Model Selection) — v5.0 (first v5.0 phase; numbering continues from v4.0)
-Plan: not yet planned
-Status: Ready to plan
+Phase: 9 of 14 COMPLETE → next is Phase 10 (RAG Knowledge Base) — v5.0
+Plan: Phase 9 plans 09-01 + 09-02 done (see 09-SUMMARY.md)
+Status: Phase 9 verified; ready to plan Phase 10
 Last activity: 2026-06-07
+
+**Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
 
 ## Roadmap Summary (v5.0)
 
@@ -42,7 +44,7 @@ Last activity: 2026-06-07
 
 ## Blockers
 
-- **BLOG-02 (owner action):** pull a general-instruct model into LM Studio — recommend `Mistral-Small-3.2-24B-Instruct-2506` (`lmstudio-community/Mistral-Small-3.2-24B-Instruct-2506-MLX-6bit`, ~18-19GB, Apache 2.0; best for the JSON ingest contract). Only the coder-instruct is installed.
+None. (Phase 9 prereqs resolved: Mistral-Small-3.2-24B loaded in LM Studio; native n8n reaches it on localhost — no colima/network blocker anymore.)
 
 ## Roadmap Evolution
 
@@ -54,13 +56,13 @@ Last activity: 2026-06-07
 
 ## Next Action
 
-**v4.0 archived; v5.0 roadmap live.** Plan the first phase:
+**Phase 9 done (native n8n ↔ Mistral wired + verified).** Plan the next phase:
 
 ```
-/gsd-plan-phase 9
+/gsd-plan-phase 10
 ```
 
-In parallel (owner): enable LM Studio "Serve on Local Network" + pull `Mistral-Small-3.2-24B-Instruct-2506` (`lmstudio-community/Mistral-Small-3.2-24B-Instruct-2506-MLX-6bit`) into LM Studio (BLOG-01/02).
+Phase 10 = RAG Knowledge Base (BLOG-03): TenantFlow fact corpus → `qwen3-embedding` → pgvector (Supabase) → retrieval+rerank smoke test. Embeddings (dim 1024) + reranker already confirmed reachable from n8n.
 
 ## Overrides
 
