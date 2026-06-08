@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: AI Blog Content Engine
 status: executing
-last_updated: "2026-06-08T01:15:00.000Z"
-last_activity: 2026-06-07
+last_updated: "2026-06-08T02:40:00.000Z"
+last_activity: 2026-06-08
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 17
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 33
 ---
 
 # Project State
@@ -20,13 +20,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v5.0):** A local-LLM (LM Studio on the M5) + RAG n8n pipeline that drafts brand-positive, fact-grounded, E-E-A-T-credible blog posts into `n8n-blog-ingest` as `in-review` drafts for human approval — and uses it to execute the SEO-01 reclaim. Quality bar: genuinely helpful landlord content featuring TenantFlow naturally, never penalized AI spam.
-**Current focus:** Phase 10 CODE-COMPLETE — pgvector store live in prod + indexer/smoke-test written. One owner step (run the indexer) fully closes BLOG-03, then Phase 11.
+**Current focus:** Phase 10 COMPLETE — pgvector store live + 10 corpus chunks loaded/verified. Plan Phase 11 (Generation Pipeline) — `/gsd-plan-phase 11`.
 
 ## Current Position
 
-Phase: 10 of 14 CODE-COMPLETE (corpus-load = owner step) → next is Phase 11 (Generation Pipeline) — v5.0
-Plan: 09 done; 10-01 (pgvector store) applied+verified in prod, 10-02 (indexer+smoke test) written (see 10-SUMMARY.md)
-Status: store live; corpus-load pending owner run of the indexer; then Phase 11
+Phase: 10 of 14 COMPLETE → next is Phase 11 (Generation Pipeline) — v5.0
+Plan: 09 + 10 done. Corpus loaded (owner ran `bun scripts/rag-index-blog-corpus.ts` → 10 rows, all dim-1024, verified via MCP).
+Status: RAG store live + populated; ready to plan Phase 11
 Last activity: 2026-06-08
 
 **Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
@@ -44,7 +44,7 @@ Last activity: 2026-06-08
 
 ## Blockers
 
-- **BLOG-03 corpus-load (owner step):** the agent's shell has prod DB/service-role creds scrubbed (deliberate boundary), so the corpus load runs with the owner's creds: `bun scripts/rag-index-blog-corpus.ts` (native n8n/LM Studio up) → loads 10 chunks. Phase 11 retrieval depends on this. The embed half is already verified (10 chunks embedded via LM Studio); only the DB write needs the owner.
+None. (BLOG-03 corpus loaded: 10 chunks, all dim-1024, verified. The indexer uses `SUPABASE_SECRET_KEY` — the new Supabase API key model; the legacy `SUPABASE_SERVICE_ROLE_KEY` is empty in .env.local. Owner runs the indexer since the agent's shell scrubs admin creds.)
 
 ## Roadmap Evolution
 
@@ -56,13 +56,13 @@ Last activity: 2026-06-08
 
 ## Next Action
 
-**Phase 10 code-complete.** Owner step to fully close BLOG-03 (~10s):
+**Phases 9 + 10 complete; RAG store live + populated.** Plan the generation pipeline:
 
 ```
-bun scripts/rag-index-blog-corpus.ts      # loads 10 corpus chunks into pgvector
+/gsd-plan-phase 11
 ```
 
-Then plan Phase 11 (Generation Pipeline, BLOG-04/05) — `/gsd-plan-phase 11`. Phase 11's n8n workflow retrieves from `match_blog_rag_chunks`, so it needs the corpus loaded first.
+Phase 11 = Generation Pipeline (BLOG-04/05): n8n workflow topic → retrieve (`match_blog_rag_chunks`) → Mistral draft → validate/repair → HMAC-sign → POST `n8n-blog-ingest` → `status='in-review'`. All upstream deps (LLM, RAG corpus, ingest EF) are live.
 
 ## Overrides
 

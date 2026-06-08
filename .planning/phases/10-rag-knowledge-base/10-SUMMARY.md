@@ -1,7 +1,9 @@
 # Phase 10 Summary — RAG Knowledge Base (BLOG-03)
 
-**Status:** Code-complete + verified; corpus-load is a one-command owner runtime step.
+**Status:** COMPLETE — store live + corpus loaded (10 chunks, all dim-1024, verified via MCP) on 2026-06-08.
 **Branch:** gsd/v5.0-milestone-setup (PR #792)
+
+> Corpus load: owner ran `bun scripts/rag-index-blog-corpus.ts` → "Indexed 10 chunks. Table now has 10 rows." The indexer reads `SUPABASE_SECRET_KEY` (new Supabase API key model; legacy `SUPABASE_SERVICE_ROLE_KEY` is empty locally) via a deterministic `.env.local` parser (bun auto-load + @next/env both failed under a standalone `bun scripts/...` run).
 
 ## Outcome
 The pgvector retrieval layer is live in prod and the indexer + smoke test are written. The corpus *load* runs with the owner's credentials (the harness scrubs the service-role/DB creds from the agent's shell — a deliberate boundary), exactly like "pull the model" in Phase 9.
