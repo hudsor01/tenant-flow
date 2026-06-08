@@ -237,20 +237,25 @@ async function generate(
 }
 
 async function main() {
+	const dryRun = process.argv.includes("--dry-run");
 	const topic = process.argv[2];
-	const category = (process.argv[3] ?? "tenant-screening") as Category;
+	const catArg = process.argv[3];
+	const category = (
+		catArg && !catArg.startsWith("--") ? catArg : "tenant-screening"
+	) as Category;
 	if (!topic)
-		fail('Usage: bun scripts/generate-blog-draft.ts "<topic>" [category]');
+		fail(
+			'Usage: bun scripts/generate-blog-draft.ts "<topic>" [category] [--dry-run]',
+		);
 	if (!VALID_CATEGORIES.includes(category))
 		fail(`category must be one of ${VALID_CATEGORIES.join(", ")}`);
-	const missing = [
+	const required: [string, string | undefined][] = [
 		["NEXT_PUBLIC_SUPABASE_URL", SUPABASE_URL],
 		["SUPABASE_SECRET_KEY", SERVICE_KEY],
-		["N8N_WEBHOOK_SECRET", HMAC_SECRET],
 		["a publishable key", PUBLISHABLE],
-	]
-		.filter(([, v]) => !v)
-		.map(([n]) => n);
+	];
+	if (!dryRun) required.push(["N8N_WEBHOOK_SECRET", HMAC_SECRET]);
+	const missing = required.filter(([, v]) => !v).map(([n]) => n);
 	if (missing.length)
 		fail(`Missing env: ${missing.join(", ")} (in .env.local)`);
 
@@ -306,6 +311,8 @@ STRICT requirements:
 	for (let attempt = 1; attempt <= MAX; attempt++) {
 		console.log(`Generating draft (attempt ${attempt}/${MAX})...`);
 		const d = await generate(messages, category);
+		// strip a leading H1 — the page renders its own title from `title`
+		d.content = d.content.replace(/^#\s+.*(?:\r?\n)+/, "");
 		const failures = runGates(d);
 		const wc = d.content.trim().split(/\s+/).filter(Boolean).length;
 		console.log(
@@ -329,6 +336,14 @@ STRICT requirements:
 		});
 	}
 	if (!draft) fail("no valid draft");
+
+	if (dryRun) {
+		const wc = draft.content.trim().split(/\s+/).filter(Boolean).length;
+		console.log(
+			`\nDRY RUN — all 9 gates passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${wc}\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
+		);
+		return;
+	}
 
 	// 4. HMAC-sign the exact body bytes + POST to the ingest EF
 	const payload = {
