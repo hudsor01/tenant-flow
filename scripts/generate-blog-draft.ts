@@ -121,7 +121,7 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 			message: `${wc} words`,
 			fix:
 				wc < 1200
-					? `The draft is only ${wc} words. Expand every section with specific, practical, example-rich detail to reach 1800-2400 words. Keep all existing sections and the JSON shape.`
+					? `The draft is only ${wc} words — too short. Rewrite with EXACTLY 7 "## " sections, each 230-330 words (1700-2200 total). Expand every section with concrete examples, checklists, and specifics. Do NOT stop early.`
 					: `The draft is ${wc} words; tighten it to under 3000.`,
 		});
 	const h2 = (p.content.match(/^## /gm) ?? []).length;
@@ -129,7 +129,7 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 		out.push({
 			gate: "h2_count",
 			message: `${h2} H2s`,
-			fix: `Use between 6 and 9 "## " section headings (currently ${h2}).`,
+			fix: `Use EXACTLY 7 "## " section headings (currently ${h2}).`,
 		});
 	if (!/landlord/i.test(p.content))
 		out.push({
@@ -184,6 +184,7 @@ async function embed(input: string): Promise<number[]> {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ model: EMBED_MODEL, input }),
+		signal: AbortSignal.timeout(120_000),
 	});
 	if (!r.ok) fail(`embeddings ${r.status}: ${await r.text()}`);
 	const j = (await r.json()) as { data: { embedding: number[] }[] };
@@ -230,6 +231,9 @@ async function generate(
 				},
 			},
 		}),
+		// long generations (1800+ words on a local 24B) can take minutes;
+		// bun's default fetch timeout was killing the expansion repair.
+		signal: AbortSignal.timeout(600_000),
 	});
 	if (!r.ok) fail(`chat/completions ${r.status}: ${await r.text()}`);
 	const j = (await r.json()) as { choices: { message: { content: string } }[] };
@@ -293,7 +297,7 @@ TenantFlow facts (ground claims in these; do not invent others):
 ${facts}
 
 STRICT requirements:
-- "content": markdown body, 1800-2400 words, with 6 to 9 "## " section headings (no H1). Must include the word "landlord". Specific, practical, genuinely useful.
+- "content": markdown body with EXACTLY 7 "## " section headings (no H1, no top-level title). Under EACH heading write 230-330 words of specific, practical, example-rich detail, so the full article totals 1700-2200 words. Do NOT stop early — keep writing until every one of the 7 sections is fully developed. Must include the word "landlord".
 - "title": compelling, under 65 characters.
 - "slug": lowercase words joined by single hyphens, ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, 20-70 chars.
 - "excerpt": 110-180 characters.
