@@ -5,8 +5,8 @@
  * local LM Studio embedding model (qwen3-embedding-0.6b, 1024-dim), and upserts
  * into public.blog_rag_chunks (re-runnable: a clean re-index per source).
  *
- * Prereqs (Phase 9): native n8n/LM Studio running at LM_BASE; SUPABASE_SERVICE_ROLE_KEY
- * + NEXT_PUBLIC_SUPABASE_URL in env (.env.local, auto-loaded by bun).
+ * Prereqs (Phase 9): native n8n/LM Studio running at LM_BASE; SUPABASE_SECRET_KEY
+ * (or legacy SUPABASE_SERVICE_ROLE_KEY) + NEXT_PUBLIC_SUPABASE_URL in .env.local.
  *
  * Run:  bun scripts/rag-index-blog-corpus.ts
  */
@@ -59,10 +59,14 @@ const EMBED_MODEL =
 const EXPECTED_DIM = 1024;
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// New Supabase API key model: SUPABASE_SECRET_KEY (sb_secret_*) replaces the
+// legacy service_role JWT. Prefer it; fall back to the legacy var. Either has
+// full, RLS-bypassing access (required to write the company-knowledge table).
+const SERVICE_KEY =
+	process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SERVICE_KEY) {
 	console.error(
-		`Missing required env.\n  cwd: ${process.cwd()}\n  dotenv files loaded: [${ENV_FILES.join(", ") || "NONE"}]\n  NEXT_PUBLIC_SUPABASE_URL set: ${!!SUPABASE_URL}\n  SUPABASE_SERVICE_ROLE_KEY set: ${!!SERVICE_KEY}\nRun from the repo root, or export the two vars before running.`,
+		`Missing required env.\n  cwd: ${process.cwd()}\n  dotenv files loaded: [${ENV_FILES.join(", ") || "NONE"}]\n  NEXT_PUBLIC_SUPABASE_URL set: ${!!SUPABASE_URL}\n  SUPABASE_SECRET_KEY set: ${!!process.env.SUPABASE_SECRET_KEY}\n  SUPABASE_SERVICE_ROLE_KEY set: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}\nNeed SUPABASE_SECRET_KEY (sb_secret_*) or SUPABASE_SERVICE_ROLE_KEY in .env.local.`,
 	);
 	process.exit(1);
 }
