@@ -53,6 +53,11 @@ Plans:
 **Success Criteria**:
   1. The LLM emits structured output (title/slug/excerpt/markdown-body/category/canonical_url) that passes all 9 ingest gates + the `validate_blog_post` trigger; a deterministic validate/repair step precedes send.
   2. The workflow HMAC-signs (`x-n8n-signature`) and POSTs to `n8n-blog-ingest`; a real draft appears with `status='in-review'`. Vercel deploy hook fires only on publish, not on draft.
+**Plans:** 3 plans
+Plans:
+- [ ] 11-01-PLAN.md — n8n credentials + [BLOCKING] HMAC-secret alignment + native-runtime check; workflow skeleton (topic→embed→match_blog_rag_chunks→HMAC→POST ingest) proven by a known-good 201 (BLOG-05)
+- [ ] 11-02-PLAN.md — Mistral generation prompt (landlord voice + 9 gates + RAG facts) + deterministic validate/repair Code node enforcing all 9 gates with bounded retry (BLOG-04)
+- [ ] 11-03-PLAN.md — [BLOCKING] end-to-end real-topic run → in-review draft (MCP-verified, no deploy); export wf-blog-generate.json + README; tracked-code scope check (BLOG-04, BLOG-05)
 
 ### Phase 12: Quality & Brand Guardrails
 **Goal**: Drafts are on-brand, factually grounded, and gated against thin/AI-spam content before reaching review.
@@ -84,7 +89,7 @@ Plans:
 |-------|--------|-------|
 | 9 — LLM Wiring & Model Selection | Complete | 2 plans (native n8n + Mistral verified) |
 | 10 — RAG Knowledge Base | Complete | store live + 10 chunks loaded/verified |
-| 11 — Generation Pipeline | Not started | TBD |
+| 11 — Generation Pipeline | Planned | 3 plans (skeleton+HMAC / prompt+validate-repair / e2e draft) |
 | 12 — Quality & Brand Guardrails | Not started | TBD |
 | 13 — SEO-01 Reclaim Integration | Not started | TBD |
 | 14 — Cadence, Dedupe & Monitoring | Not started | TBD |
