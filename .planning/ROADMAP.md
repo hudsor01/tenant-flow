@@ -29,6 +29,10 @@
   1. From inside the `tenantflow-n8n` container, an HTTP call reaches LM Studio on the Mac host (host-gateway or LAN IP) and returns a completion + an embedding.
   2. A general-instruct model (recommend `Qwen3-30B-A3B` general-instruct) is loaded in LM Studio and produces coherent marketing-grade prose on a test prompt; the coder-vs-general choice is documented.
   3. `qwen3-embedding-0.6b` + `qwen3-reranker-0.6b` are reachable for the RAG phase.
+**Plans:** 2 plans
+Plans:
+- [ ] 09-01-PLAN.md — Wire tenantflow-n8n container to LM Studio on the Mac host (host-gateway + LAN-IP fallback); verify /v1/{models,chat,embeddings} from inside the container + an n8n test workflow; record base URL as config (BLOG-01)
+- [ ] 09-02-PLAN.md — Pull + smoke-test a general-instruct generation model (marketing prose); confirm embedding + reranker reachable for Phase 10 RAG; document the model choice + fallback (BLOG-02)
 
 ### Phase 10: RAG Knowledge Base
 **Goal**: A retrievable corpus of real TenantFlow facts so generated posts are accurate, distinctive, and E-E-A-T-credible.
@@ -74,7 +78,7 @@
 
 | Phase | Status | Plans |
 |-------|--------|-------|
-| 9 — LLM Wiring & Model Selection | Not started | TBD |
+| 9 — LLM Wiring & Model Selection | Planned | 2 plans |
 | 10 — RAG Knowledge Base | Not started | TBD |
 | 11 — Generation Pipeline | Not started | TBD |
 | 12 — Quality & Brand Guardrails | Not started | TBD |
