@@ -12,14 +12,46 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadEnvConfig } from "@next/env";
 import { createClient } from "@supabase/supabase-js";
 
-// Load .env.local exactly like Next.js (bun's auto-load is unreliable for a
-// standalone `bun scripts/...` run). Must run before reading process.env.
-loadEnvConfig(process.cwd());
+// Deterministic dotenv loader: bun's auto-load and @next/env both proved
+// unreliable for a standalone `bun scripts/...` run. Read the project's env
+// files directly and merge KEY=VALUE into process.env (first file wins).
+function loadDotenv(root: string): string[] {
+	const loaded: string[] = [];
+	for (const f of [
+		".env.local",
+		".env.development.local",
+		".env",
+		".env.development",
+	]) {
+		const p = join(root, f);
+		if (!existsSync(p)) continue;
+		loaded.push(f);
+		for (const raw of readFileSync(p, "utf8").split("\n")) {
+			const line = raw.trim();
+			if (!line || line.startsWith("#")) continue;
+			const m = line.match(
+				/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/,
+			);
+			if (!m) continue;
+			let val = (m[2] ?? "").trim();
+			if (
+				(val.startsWith('"') && val.endsWith('"')) ||
+				(val.startsWith("'") && val.endsWith("'"))
+			) {
+				val = val.slice(1, -1);
+			}
+			if (process.env[m[1] as string] === undefined) {
+				process.env[m[1] as string] = val;
+			}
+		}
+	}
+	return loaded;
+}
+const ENV_FILES = loadDotenv(process.cwd());
 
 const LM_BASE = process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
 const EMBED_MODEL =
@@ -30,7 +62,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_URL || !SERVICE_KEY) {
 	console.error(
-		"Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in env.",
+		`Missing required env.\n  cwd: ${process.cwd()}\n  dotenv files loaded: [${ENV_FILES.join(", ") || "NONE"}]\n  NEXT_PUBLIC_SUPABASE_URL set: ${!!SUPABASE_URL}\n  SUPABASE_SERVICE_ROLE_KEY set: ${!!SERVICE_KEY}\nRun from the repo root, or export the two vars before running.`,
 	);
 	process.exit(1);
 }
