@@ -41,6 +41,10 @@ Plans:
 **Success Criteria**:
   1. A curated TenantFlow fact corpus (features, pricing from `pricing.ts`, positioning, landlord-domain expertise) is embedded via `qwen3-embedding` into pgvector (Supabase, RLS-scoped).
   2. A retrieval query for a sample topic returns relevant TenantFlow context (reranked), verified by a smoke test.
+**Plans:** 2 plans
+Plans:
+- [ ] 10-01-PLAN.md — pgvector install + blog_rag_chunks(vector(1024)) table + cosine index + RLS + match_blog_rag_chunks SECURITY DEFINER RPC ([BLOCKING] MCP apply) (BLOG-03)
+- [ ] 10-02-PLAN.md — re-runnable corpus indexer (llms-full.txt + pricing.ts + faq + positioning) → LM Studio embeddings → idempotent upsert; rerank verify-or-defer; retrieval smoke test (BLOG-03)
 
 ### Phase 11: Generation Pipeline
 **Goal**: An n8n workflow that turns a topic into a contract-conforming draft landing in `n8n-blog-ingest` as `status='in-review'`.
@@ -79,7 +83,7 @@ Plans:
 | Phase | Status | Plans |
 |-------|--------|-------|
 | 9 — LLM Wiring & Model Selection | Complete | 2 plans (native n8n + Mistral verified) |
-| 10 — RAG Knowledge Base | Not started | TBD |
+| 10 — RAG Knowledge Base | Planned | 2 plans (pgvector store + corpus indexer/smoke test) |
 | 11 — Generation Pipeline | Not started | TBD |
 | 12 — Quality & Brand Guardrails | Not started | TBD |
 | 13 — SEO-01 Reclaim Integration | Not started | TBD |
