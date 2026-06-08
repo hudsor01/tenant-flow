@@ -24,9 +24,9 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 10 of 14 COMPLETE → next is Phase 11 (Generation Pipeline) — v5.0
-Plan: 09 + 10 done. Corpus loaded (owner ran `bun scripts/rag-index-blog-corpus.ts` → 10 rows, all dim-1024, verified via MCP).
-Status: RAG store live + populated; ready to plan Phase 11
+Phase: 11 of 14 ENGINE BUILT (e2e draft = owner step) → then Phase 12 — v5.0
+Plan: 09 + 10 complete. 11 planned (3 plans) + engine built: `scripts/generate-blog-draft.ts` (RAG→Mistral→validate/repair 9 gates→HMAC→ingest). Prototype hit 7/9 first try.
+Status: generation engine ready; first in-review draft = owner runs the generator (needs N8N_WEBHOOK_SECRET in .env.local matching the EF)
 Last activity: 2026-06-08
 
 **Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
@@ -56,13 +56,13 @@ None. (BLOG-03 corpus loaded: 10 chunks, all dim-1024, verified. The indexer use
 
 ## Next Action
 
-**Phases 9 + 10 complete; RAG store live + populated.** Plan the generation pipeline:
+**Phase 11 engine built.** Owner step to produce the first draft + close BLOG-04/05 (~2-3 min, LM Studio running):
 
 ```
-/gsd-plan-phase 11
+bun scripts/generate-blog-draft.ts "tenant screening best practices for first-time landlords" tenant-screening
 ```
 
-Phase 11 = Generation Pipeline (BLOG-04/05): n8n workflow topic → retrieve (`match_blog_rag_chunks`) → Mistral draft → validate/repair → HMAC-sign → POST `n8n-blog-ingest` → `status='in-review'`. All upstream deps (LLM, RAG corpus, ingest EF) are live.
+Expect HTTP 201 → an `in-review` draft (401 = `N8N_WEBHOOK_SECRET` ≠ the EF's secret → align). Then `/gsd-plan-phase 12` (Quality & Brand Guardrails + human-approval surface, BLOG-06/07).
 
 ## Overrides
 

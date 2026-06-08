@@ -89,7 +89,7 @@ Plans:
 |-------|--------|-------|
 | 9 — LLM Wiring & Model Selection | Complete | 2 plans (native n8n + Mistral verified) |
 | 10 — RAG Knowledge Base | Complete | store live + 10 chunks loaded/verified |
-| 11 — Generation Pipeline | Planned | 3 plans (skeleton+HMAC / prompt+validate-repair / e2e draft) |
+| 11 — Generation Pipeline | Engine built | generate-blog-draft.ts (RAG→Mistral→validate/repair→HMAC→ingest); e2e = owner runs it (needs N8N_WEBHOOK_SECRET) |
 | 12 — Quality & Brand Guardrails | Not started | TBD |
 | 13 — SEO-01 Reclaim Integration | Not started | TBD |
 | 14 — Cadence, Dedupe & Monitoring | Not started | TBD |
