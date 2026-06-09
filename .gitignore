@@ -320,3 +320,5 @@ tenants-page
 .lefthook-local.yml
 docs/
 .env.example
+# Local self-hosted n8n instance for TenantFlow (laptop bridge while homelab is down)
+n8n/

@@ -61,7 +61,11 @@ interface GateFailure {
 //   - migration 20260510214935_phase_6_validation_triggers.sql (DB trigger)
 //   - 06-CONTEXT.md § "9 Validation Gates (LOCKED)"
 //   - 06-CONTEXT.md § "Slug Naming Pattern (LOCKED)"
-//   - src/components/__tests__/marketing-copy-landlord-only.test.ts (banlist source)
+//   - src/app/__tests__/marketing-copy-landlord-only.test.ts (banlist source)
+//   - src/lib/seo/__tests__/banlist-parity.test.ts (banlist drift guard: EF==script==trigger)
+// The numeric gate thresholds below (word 1200-3000, H2 4-10, meta 50-160,
+// excerpt 80-200, slug 3-120, DocuSeal <=1) are ALSO hand-duplicated in
+// scripts/generate-blog-draft.ts and the trigger — change all three together.
 // ---------------------------------------------------------------------------
 
 const VALID_CATEGORIES = [
@@ -150,7 +154,10 @@ async function verifyHmac(
 }
 
 function countWords(s: string): number {
-	return s.trim().split(/\s+/).filter(Boolean).length;
+	// MUST byte-match the DB trigger's count (validate_blog_post:
+	// array_length(regexp_split_to_array(content, '\s+'), 1)) so the preflight
+	// gate can't pass content the DB then rejects with 23514. No trim/filter.
+	return s.split(/\s+/).length;
 }
 
 function countH2(s: string): number {
@@ -297,12 +304,7 @@ Deno.serve(async (req: Request) => {
 
 	try {
 		const env = validateEnv({
-			required: [
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"N8N_WEBHOOK_SECRET",
-				"NEXT_PUBLIC_APP_URL",
-			],
+			required: ["SUPABASE_URL", "N8N_WEBHOOK_SECRET", "NEXT_PUBLIC_APP_URL"],
 		});
 
 		// Read the raw body BEFORE parsing so HMAC verification operates on the
@@ -355,10 +357,18 @@ Deno.serve(async (req: Request) => {
 			});
 		}
 
-		const supabase = createClient(
-			env.SUPABASE_URL,
-			env.SUPABASE_SERVICE_ROLE_KEY,
-		);
+		// New Supabase API key model: prefer SUPABASE_SECRET_KEY (sb_secret). The
+		// legacy auto-injected SUPABASE_SERVICE_ROLE_KEY is invalid once legacy
+		// JWT keys are disabled (caused 500s on every insert). INGEST_DB_KEY is a
+		// settable (non-reserved) fallback for projects that disable legacy keys.
+		const dbKey =
+			Deno.env.get("SUPABASE_SECRET_KEY") ??
+			Deno.env.get("INGEST_DB_KEY") ??
+			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+		if (!dbKey) {
+			return jsonResponse(req, 500, { error: "An error occurred" });
+		}
+		const supabase = createClient(env.SUPABASE_URL, dbKey);
 
 		const insertRow: Record<string, unknown> = {
 			title: payload.title,
