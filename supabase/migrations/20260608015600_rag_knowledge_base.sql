@@ -54,7 +54,9 @@ as $function$
   from public.blog_rag_chunks c
   where c.embedding is not null
   order by c.embedding OPERATOR(extensions.<=>) query_embedding
-  limit greatest(match_count, 1);
+  -- clamp the count: floor 1, ceiling 50 (prevents pulling the whole corpus
+  -- through the SECURITY DEFINER read — scrape/free-embedding-scan guard).
+  limit least(greatest(match_count, 1), 50);
 $function$;
 
 revoke all on function public.match_blog_rag_chunks(extensions.vector, int) from public;

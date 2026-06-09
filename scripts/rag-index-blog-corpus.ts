@@ -12,45 +12,11 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { loadDotenv } from "./_shared/load-dotenv";
 
-// Deterministic dotenv loader: bun's auto-load and @next/env both proved
-// unreliable for a standalone `bun scripts/...` run. Read the project's env
-// files directly and merge KEY=VALUE into process.env (first file wins).
-function loadDotenv(root: string): string[] {
-	const loaded: string[] = [];
-	for (const f of [
-		".env.local",
-		".env.development.local",
-		".env",
-		".env.development",
-	]) {
-		const p = join(root, f);
-		if (!existsSync(p)) continue;
-		loaded.push(f);
-		for (const raw of readFileSync(p, "utf8").split("\n")) {
-			const line = raw.trim();
-			if (!line || line.startsWith("#")) continue;
-			const m = line.match(
-				/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/,
-			);
-			if (!m) continue;
-			let val = (m[2] ?? "").trim();
-			if (
-				(val.startsWith('"') && val.endsWith('"')) ||
-				(val.startsWith("'") && val.endsWith("'"))
-			) {
-				val = val.slice(1, -1);
-			}
-			if (process.env[m[1] as string] === undefined) {
-				process.env[m[1] as string] = val;
-			}
-		}
-	}
-	return loaded;
-}
 const ENV_FILES = loadDotenv(process.cwd());
 
 const LM_BASE = process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
@@ -128,13 +94,9 @@ async function main() {
 		const chunks = chunkMarkdownBySection(text, source);
 		console.log(`${source}: ${chunks.length} chunks`);
 
-		// Clean re-index for this source (idempotent).
-		const del = await supabase
-			.from("blog_rag_chunks")
-			.delete()
-			.eq("source", source);
-		if (del.error) throw new Error(`delete ${source}: ${del.error.message}`);
-
+		// Embed ALL chunks FIRST, then delete+insert in a tight window — so a
+		// mid-run embed failure can't leave the corpus empty (the delete only
+		// commits once every embedding has succeeded).
 		const rows = [];
 		for (const c of chunks) {
 			const embedding = await embed(c.content);
@@ -152,6 +114,12 @@ async function main() {
 		}
 		process.stdout.write("\n");
 
+		// Clean re-index for this source (idempotent): delete then insert.
+		const del = await supabase
+			.from("blog_rag_chunks")
+			.delete()
+			.eq("source", source);
+		if (del.error) throw new Error(`delete ${source}: ${del.error.message}`);
 		const ins = await supabase.from("blog_rag_chunks").insert(rows);
 		if (ins.error) throw new Error(`insert ${source}: ${ins.error.message}`);
 		total += rows.length;

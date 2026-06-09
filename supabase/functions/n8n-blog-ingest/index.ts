@@ -61,7 +61,7 @@ interface GateFailure {
 //   - migration 20260510214935_phase_6_validation_triggers.sql (DB trigger)
 //   - 06-CONTEXT.md § "9 Validation Gates (LOCKED)"
 //   - 06-CONTEXT.md § "Slug Naming Pattern (LOCKED)"
-//   - src/components/__tests__/marketing-copy-landlord-only.test.ts (banlist source)
+//   - src/app/__tests__/marketing-copy-landlord-only.test.ts (banlist source)
 // ---------------------------------------------------------------------------
 
 const VALID_CATEGORIES = [
@@ -150,7 +150,10 @@ async function verifyHmac(
 }
 
 function countWords(s: string): number {
-	return s.trim().split(/\s+/).filter(Boolean).length;
+	// MUST byte-match the DB trigger's count (validate_blog_post:
+	// array_length(regexp_split_to_array(content, '\s+'), 1)) so the preflight
+	// gate can't pass content the DB then rejects with 23514. No trim/filter.
+	return s.split(/\s+/).length;
 }
 
 function countH2(s: string): number {

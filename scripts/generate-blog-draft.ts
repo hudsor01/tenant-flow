@@ -17,35 +17,9 @@
  * secret), and a publishable key.
  */
 import { createHmac } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { loadDotenv } from "./_shared/load-dotenv";
 
-// --- deterministic .env.local loader (bun/Next auto-load is unreliable here) ---
-function loadDotenv(root: string): void {
-	for (const f of [".env.local", ".env.development.local", ".env"]) {
-		const p = join(root, f);
-		if (!existsSync(p)) continue;
-		for (const raw of readFileSync(p, "utf8").split("\n")) {
-			const line = raw.trim();
-			if (!line || line.startsWith("#")) continue;
-			const m = line.match(
-				/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/,
-			);
-			if (!m) continue;
-			let val = (m[2] ?? "").trim();
-			if (
-				(val.startsWith('"') && val.endsWith('"')) ||
-				(val.startsWith("'") && val.endsWith("'"))
-			) {
-				val = val.slice(1, -1);
-			}
-			if (process.env[m[1] as string] === undefined) {
-				process.env[m[1] as string] = val;
-			}
-		}
-	}
-}
 loadDotenv(process.cwd());
 
 const LM_BASE = process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
@@ -111,10 +85,24 @@ function fail(msg: string): never {
 	process.exit(1);
 }
 
+// Byte-match the DB trigger + EF word count (no trim/filter) so a draft that
+// passes here can't be rejected by the DB's validate_blog_post (23514).
+function countWords(s: string): number {
+	return s.split(/\s+/).length;
+}
+
+// Typed mapper at the PostgREST RPC boundary (CLAUDE.md: no raw `as` casts).
+function mapChunk(raw: Record<string, unknown>): { content: string } {
+	if (typeof raw.content !== "string") {
+		throw new Error("match_blog_rag_chunks row missing string content");
+	}
+	return { content: raw.content };
+}
+
 // --- the 9 gates (mirror runGates() in the EF) -> structured fix hints ---
 function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 	const out: { gate: string; message: string; fix: string }[] = [];
-	const wc = p.content.trim().split(/\s+/).filter(Boolean).length;
+	const wc = countWords(p.content);
 	if (wc < 1200 || wc > 3000)
 		out.push({
 			gate: "word_count",
@@ -219,8 +207,10 @@ async function embed(input: string): Promise<number[]> {
 		signal: AbortSignal.timeout(120_000),
 	});
 	if (!r.ok) fail(`embeddings ${r.status}: ${await r.text()}`);
-	const j = (await r.json()) as { data: { embedding: number[] }[] };
-	return j.data[0]!.embedding;
+	const j = (await r.json()) as { data?: { embedding?: number[] }[] };
+	const vec = j.data?.[0]?.embedding;
+	if (!vec) fail("embeddings: no vector returned");
+	return vec;
 }
 
 async function generate(
@@ -267,9 +257,15 @@ async function generate(
 		// bun's default fetch timeout was killing the expansion repair.
 		signal: AbortSignal.timeout(600_000),
 	});
-	if (!r.ok) fail(`chat/completions ${r.status}: ${await r.text()}`);
-	const j = (await r.json()) as { choices: { message: { content: string } }[] };
-	return JSON.parse(j.choices[0]!.message.content) as Draft;
+	// Throw (don't fail/exit) so a truncated/non-JSON response is caught by the
+	// repair loop and consumes a retry instead of aborting the whole run.
+	if (!r.ok) throw new Error(`chat/completions ${r.status}: ${await r.text()}`);
+	const j = (await r.json()) as {
+		choices?: { message?: { content?: string } }[];
+	};
+	const content = j.choices?.[0]?.message?.content;
+	if (!content) throw new Error("chat/completions returned no message content");
+	return JSON.parse(content) as Draft;
 }
 
 async function main() {
@@ -308,11 +304,18 @@ async function main() {
 		match_count: 6,
 	});
 	if (error) fail(`match_blog_rag_chunks: ${error.message}`);
-	const facts = ((chunks ?? []) as { content: string }[])
+	const rows = (chunks ?? []) as Record<string, unknown>[];
+	if (rows.length === 0) {
+		fail(
+			"RAG corpus is empty — run `bun scripts/rag-index-blog-corpus.ts` first (generation must be grounded, not invented).",
+		);
+	}
+	const facts = rows
+		.map(mapChunk)
 		.map((c) => c.content)
 		.join("\n\n");
 	console.log(
-		`  retrieved ${(chunks ?? []).length} chunks (${facts.length} chars of grounding)\n`,
+		`  retrieved ${rows.length} chunks (${facts.length} chars of grounding)\n`,
 	);
 
 	// 2. build the prompt (prototype lessons: forbid banlist phrases + high word target)
@@ -336,26 +339,38 @@ STRICT requirements:
 - "meta_description": 115-155 characters.
 - "category": exactly "${category}".`;
 
-	const messages = [
+	const baseMessages = [
 		{ role: "system", content: system },
 		{ role: "user", content: user },
 	];
 
-	// 3. generate + deterministic validate/repair (bounded)
+	// 3. generate + deterministic validate/repair (bounded). Each repair REPLACES
+	// the prior turn (only the latest draft + fix) so the system prompt + RAG
+	// facts never get truncated out of the local model's finite context window.
 	let draft: Draft | null = null;
+	let repairTurn: { role: string; content: string }[] = [];
 	const MAX = 4;
 	for (let attempt = 1; attempt <= MAX; attempt++) {
 		console.log(`Generating draft (attempt ${attempt}/${MAX})...`);
-		const d = await generate(messages, category);
+		let d: Draft;
+		try {
+			d = await generate([...baseMessages, ...repairTurn], category);
+		} catch (e) {
+			// a truncated/non-JSON response consumes a retry instead of aborting
+			console.log(`  generation error: ${e instanceof Error ? e.message : e}`);
+			if (attempt === MAX) {
+				fail(`Gave up after ${MAX} attempts (last: generation error).`);
+			}
+			continue;
+		}
 		// strip a leading H1 — the page renders its own title from `title`
 		d.content = d.content.replace(/^#\s+.*(?:\r?\n)+/, "");
 		// deterministically neutralize any banlist phrases the model slips in
 		// (e.g. "paid rent" in a screening article) so that gate can't block us
 		d.content = sanitizeBanlist(d.content);
 		const failures = runGates(d);
-		const wc = d.content.trim().split(/\s+/).filter(Boolean).length;
 		console.log(
-			`  ${9 - failures.length}/9 gates  (${wc} words, "${d.title}")`,
+			`  ${9 - failures.length}/9 gates  (${countWords(d.content)} words, "${d.title}")`,
 		);
 		if (failures.length === 0) {
 			draft = d;
@@ -367,17 +382,18 @@ STRICT requirements:
 				`Gave up after ${MAX} attempts. Remaining: ${failures.map((f) => `${f.gate} (${f.message})`).join("; ")}`,
 			);
 		}
-		// repair: feed the prior draft back with specific fix instructions
-		messages.push({ role: "assistant", content: JSON.stringify(d) });
-		messages.push({
-			role: "user",
-			content: `Your draft failed these gates. Fix ALL of them and return the COMPLETE corrected JSON (same shape):\n${failures.map((f) => `- ${f.gate}: ${f.fix}`).join("\n")}`,
-		});
+		repairTurn = [
+			{ role: "assistant", content: JSON.stringify(d) },
+			{
+				role: "user",
+				content: `Your draft failed these gates. Fix ALL of them and return the COMPLETE corrected JSON (same shape):\n${failures.map((f) => `- ${f.gate}: ${f.fix}`).join("\n")}`,
+			},
+		];
 	}
 	if (!draft) fail("no valid draft");
 
 	if (dryRun) {
-		const wc = draft.content.trim().split(/\s+/).filter(Boolean).length;
+		const wc = countWords(draft.content);
 		console.log(
 			`\nDRY RUN — all 9 gates passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${wc}\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
 		);
