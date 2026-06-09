@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { critique, isCritiquePass, parseCritique } from "./generate-blog-draft";
+import {
+	critique,
+	gateOnCritique,
+	isCritiquePass,
+	parseCritique,
+} from "./generate-blog-draft";
 
 type Scores = {
 	brand_alignment: number;
@@ -128,6 +133,39 @@ describe("parseCritique", () => {
 	it("throws on an invalid verdict", () => {
 		expect(() =>
 			parseCritique({ scores: ALL_FIVE, issues: [], verdict: "maybe" }),
-		).toThrow();
+		).toThrow(/verdict/);
+	});
+});
+
+describe("gateOnCritique (fail-closed judge gate)", () => {
+	it("a persistently-rejecting judge THROWS after MAX_CRITIQUE rounds — never returns a draft to POST", async () => {
+		mockJudge(
+			critiqueBody(
+				{
+					brand_alignment: 1,
+					helpfulness_depth: 1,
+					factual_grounding: 1,
+					not_thin: 1,
+				},
+				"reject",
+				["thin and off-brand"],
+			),
+		);
+		const regenerate = vi.fn(async () => draft);
+		await expect(
+			gateOnCritique(draft, "facts", regenerate),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("Judge rejected"),
+		});
+		// bounded: MAX_CRITIQUE (2) regenerate attempts, then fail closed
+		expect(regenerate).toHaveBeenCalledTimes(2);
+	});
+
+	it("a passing judge returns the draft without regenerating", async () => {
+		mockJudge(critiqueBody(ALL_FIVE, "pass"));
+		const regenerate = vi.fn(async () => draft);
+		const result = await gateOnCritique(draft, "facts", regenerate);
+		expect(result).toBe(draft);
+		expect(regenerate).not.toHaveBeenCalled();
 	});
 });

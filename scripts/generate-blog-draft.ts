@@ -470,6 +470,33 @@ async function generateValidDraft(
 	fail("no valid draft");
 }
 
+// LLM-as-judge quality gate (BLOG-07a). Run the judge; on reject, regenerate via
+// the provided callback (bounded by MAX_CRITIQUE), then THROW — fail closed, so a
+// judge-rejected draft is NEVER returned to the POST path. Exported so the
+// fail-closed path is unit-testable without spawning the CLI.
+export async function gateOnCritique(
+	initial: Draft,
+	facts: string,
+	regenerate: (rejected: Draft, issues: string[]) => Promise<Draft>,
+): Promise<Draft> {
+	let draft = initial;
+	let crit = await critique(draft, facts);
+	for (let round = 0; !isCritiquePass(crit, CRITIQUE_THRESHOLD); round++) {
+		console.log(
+			`  judge: REJECT (${Object.values(crit.scores).join("/")}) — ${crit.issues.slice(0, 3).join("; ")}`,
+		);
+		if (round >= MAX_CRITIQUE) {
+			throw new Error(
+				`Judge rejected after ${MAX_CRITIQUE + 1} rounds — not published. Issues: ${crit.issues.join("; ")}`,
+			);
+		}
+		draft = await regenerate(draft, crit.issues);
+		crit = await critique(draft, facts);
+	}
+	console.log(`  judge: PASS (${Object.values(crit.scores).join("/")})`);
+	return draft;
+}
+
 async function main() {
 	const dryRun = process.argv.includes("--dry-run");
 	const topic = process.argv[2];
@@ -557,31 +584,23 @@ STRICT requirements:
 	// then fail closed — never POST a judge-rejected draft.
 	let draft = await generateValidDraft(baseMessages, category);
 
-	let crit = await critique(draft, facts);
-	for (let round = 0; !isCritiquePass(crit, CRITIQUE_THRESHOLD); round++) {
-		console.log(
-			`  judge: REJECT (${Object.values(crit.scores).join("/")}) — ${crit.issues.slice(0, 3).join("; ")}`,
-		);
-		if (round >= MAX_CRITIQUE) {
-			fail(
-				`Judge rejected after ${MAX_CRITIQUE + 1} rounds — not published. Issues: ${crit.issues.join("; ")}`,
-			);
-		}
-		const feedback = [
-			{ role: "assistant", content: JSON.stringify(draft) },
-			{
-				role: "user",
-				content: `An editorial judge REJECTED this draft on quality/brand/grounding. Fix these issues and return the COMPLETE corrected JSON (same shape), keeping every structural rule:\n${crit.issues.map((i) => `- ${i}`).join("\n")}`,
-			},
-		];
-		draft = await generateValidDraft([...baseMessages, ...feedback], category);
-		crit = await critique(draft, facts);
-	}
-	console.log(`  judge: PASS (${Object.values(crit.scores).join("/")})`);
+	draft = await gateOnCritique(draft, facts, (rejected, issues) =>
+		generateValidDraft(
+			[
+				...baseMessages,
+				{ role: "assistant", content: JSON.stringify(rejected) },
+				{
+					role: "user",
+					content: `An editorial judge REJECTED this draft on quality/brand/grounding. Fix these issues and return the COMPLETE corrected JSON (same shape), keeping every structural rule:\n${issues.map((i) => `- ${i}`).join("\n")}`,
+				},
+			],
+			category,
+		),
+	);
 
 	if (dryRun) {
 		console.log(
-			`\nDRY RUN — 9 gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: ${crit.verdict} (${Object.values(crit.scores).join("/")})\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
+			`\nDRY RUN — 9 gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
 		);
 		return;
 	}

@@ -376,10 +376,26 @@ describe.skipIf(skipReason)(
 			expect(data ?? []).toHaveLength(0);
 		});
 
-		// blogs_select_published_or_admin (migration 20260609194835): the policy
-		// exposes published rows to all + ALL rows to admins. A non-admin
-		// authenticated owner (is_admin() = false) must still be denied in-review
-		// rows — even though they clear the (admin) layout's getUser() check.
+		// 42501 regression guard (migration 20260609194835): anon MUST read
+		// published rows WITHOUT error. A combined `status='published' OR
+		// is_admin()` policy broke this — anon cannot EXECUTE is_admin() (revoked),
+		// so the function-privilege check raised 42501 on every anon blog read,
+		// breaking /blog, sitemap, and feed. The two-policy split (anon only
+		// evaluates the published predicate) keeps the public read working.
+		it("anon SELECT reads published rows without a 42501 error", async () => {
+			const { data, error: readErr } = await anon
+				.from("blogs")
+				.select("slug, status")
+				.eq("status", "published")
+				.limit(1);
+			expect(readErr).toBeNull();
+			expect(Array.isArray(data)).toBe(true);
+		});
+
+		// blogs_select_admin (migration 20260609194835): published to all + ALL
+		// rows to authenticated admins. A non-admin authenticated owner
+		// (is_admin() = false) must still be denied in-review rows — even though
+		// they clear the (admin) layout's getUser() check.
 		it.skipIf(!hasOwnerCreds)(
 			"authenticated non-admin owner SELECT excludes status='in-review' (RLS)",
 			async () => {
