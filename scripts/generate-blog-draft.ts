@@ -101,6 +101,8 @@ function mapChunk(raw: Record<string, unknown>): { content: string } {
 }
 
 // --- the 9 gates (mirror runGates() in the EF) -> structured fix hints ---
+// (the EF also runs a 10th conditional `canonical_url_format` gate, omitted here
+// because this generator never emits canonical_url in its payload.)
 // NOTE: the fix-hint + prompt ranges are deliberate GENERATION TARGETS that are
 // narrower than the actual rejection bounds checked below (e.g. excerpt aim
 // 110-180, gate 80-200) — the margin makes an obedient first draft clear the gate.
@@ -175,27 +177,27 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 // strings; these substitutions keep the meaning while clearing the gate). Ordered
 // longest-first so multi-word phrases resolve before their substrings.
 const BANLIST_REPLACEMENTS: [RegExp, string][] = [
-	[/paid rent on time/gi, "paid on time"],
-	[/pay rent on time/gi, "stay current on the lease"],
-	[/paid rent/gi, "paid on time"],
-	[/pay rent online/gi, "make payments"],
-	[/pay rent through/gi, "manage payments through"],
-	[/pay rent/gi, "make payments"],
-	[/online rent payment/gi, "rent"],
-	[/online rent/gi, "rent"],
-	[/rent collection software/gi, "property management software"],
-	[/rent collection/gi, "rent management"],
-	[/collect rent/gi, "receive rent"],
-	[/rent processing/gi, "rent management"],
-	[/rent tracking/gi, "rent records"],
-	[/record rent/gi, "record payments"],
-	[/tenants can pay/gi, "tenants can stay current"],
-	[/tenant portal/gi, "tenant records"],
-	[/auto-?pay/gi, "consistent payments"],
-	[/automated rent/gi, "consistent rent"],
-	[/automated workflow/gi, "streamlined process"],
-	[/online payments/gi, "payments"],
-	[/mobile app access/gi, "easy access"],
+	[/\bpaid rent on time\b/gi, "paid on time"],
+	[/\bpay rent on time\b/gi, "stay current on the lease"],
+	[/\bpaid rent\b/gi, "paid on time"],
+	[/\bpay rent online\b/gi, "make payments"],
+	[/\bpay rent through\b/gi, "manage payments through"],
+	[/\bpay rent\b/gi, "make payments"],
+	[/\bonline rent payment\b/gi, "rent"],
+	[/\bonline rent\b/gi, "rent"],
+	[/\brent collection software\b/gi, "property management software"],
+	[/\brent collection\b/gi, "rent management"],
+	[/\bcollect rent\b/gi, "receive rent"],
+	[/\brent processing\b/gi, "rent management"],
+	[/\brent tracking\b/gi, "rent records"],
+	[/\brecord rent\b/gi, "record payments"],
+	[/\btenants can pay\b/gi, "tenants can stay current"],
+	[/\btenant portal\b/gi, "tenant records"],
+	[/\bauto-?pay\b/gi, "consistent payments"],
+	[/\bautomated rent\b/gi, "consistent rent"],
+	[/\bautomated workflow\b/gi, "streamlined process"],
+	[/\bonline payments\b/gi, "payments"],
+	[/\bmobile app access\b/gi, "easy access"],
 ];
 function sanitizeBanlist(s: string): string {
 	let out = s;

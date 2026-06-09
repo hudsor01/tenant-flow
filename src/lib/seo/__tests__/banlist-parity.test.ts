@@ -73,3 +73,31 @@ describe("gate threshold parity (distinctive bounds in every layer)", () => {
 		});
 	}
 });
+
+/**
+ * The generator's `sanitizeBanlist` must neutralize EVERY `BANLIST` phrase, else
+ * a phrase added to the banlist can't self-heal and the generator burns its
+ * retries. Parse the BANLIST_REPLACEMENTS regexes and assert each phrase matches.
+ */
+function extractReplacementRegexes(file: string): RegExp[] {
+	const text = readFileSync(join(ROOT, file), "utf8");
+	const start = text.indexOf("BANLIST_REPLACEMENTS");
+	const block = text.slice(start, text.indexOf("];", start));
+	return [...block.matchAll(/\[\/(.+?)\/gi,/g)].map(
+		(m) => new RegExp(m[1] as string, "i"),
+	);
+}
+
+describe("sanitizer covers the banlist", () => {
+	const replacements = extractReplacementRegexes(
+		"scripts/generate-blog-draft.ts",
+	);
+	it("every BANLIST phrase is matched by a BANLIST_REPLACEMENTS regex", () => {
+		for (const phrase of script) {
+			expect(
+				replacements.some((re) => re.test(phrase)),
+				`no sanitizer replacement matches "${phrase}"`,
+			).toBe(true);
+		}
+	});
+});

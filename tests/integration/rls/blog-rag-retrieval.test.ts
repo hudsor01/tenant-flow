@@ -48,8 +48,8 @@ beforeAll(async () => {
 });
 
 describe("blog RAG retrieval (match_blog_rag_chunks)", () => {
-	it("returns relevant TenantFlow chunks for a topic query", async () => {
-		if (!lmUp) return; // skip when LM Studio is down (CI)
+	it("returns relevant TenantFlow chunks for a topic query", async (ctx) => {
+		if (!lmUp) ctx.skip(); // report SKIPPED (not a false pass) when LM down (CI)
 		expect(
 			SUPABASE_URL && ANON_KEY && OWNER_EMAIL && OWNER_PASSWORD,
 		).toBeTruthy();
@@ -91,7 +91,7 @@ describe("blog RAG retrieval (match_blog_rag_chunks)", () => {
 			console.warn(
 				"[blog-rag-retrieval] 0 rows — corpus not loaded? run `bun scripts/rag-index-blog-corpus.ts`. Skipping assertions.",
 			);
-			return;
+			ctx.skip();
 		}
 		expect(rows.length).toBeGreaterThanOrEqual(3);
 		// top result should be on-topic (screening / tenant / landlord / TenantFlow)

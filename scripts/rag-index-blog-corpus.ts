@@ -101,6 +101,11 @@ async function main() {
 		// commits once every embedding has succeeded).
 		const rows = [];
 		for (const c of chunks) {
+			if (c.content.length > 8000) {
+				console.warn(
+					`\n  [warn] chunk "${c.heading}" is ${c.content.length} chars — large sections risk a truncated (silently degraded) embedding; consider splitting the source.`,
+				);
+			}
 			const embedding = await embed(c.content);
 			rows.push({
 				content: c.content,
