@@ -162,7 +162,7 @@ export const blogQueries = {
 
 	// Admin-only review queue: drafts awaiting human approve/reject.
 	// Filters status='in-review' (NOT the public 'published' list). Reads via the
-	// authenticated browser client; the `blogs_select_published_or_admin` RLS
+	// authenticated browser client; the `blogs_select_admin` RLS
 	// policy (migration 20260609194835) lets is_admin() SELECT non-published rows.
 	reviewQueue: () =>
 		queryOptions({

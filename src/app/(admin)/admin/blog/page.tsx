@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 // (admin) layout already auth-walls is_admin — do NOT re-wall here. Admins can
-// SELECT in-review rows via the blogs_select_published_or_admin RLS policy.
+// SELECT in-review rows via the blogs_select_admin RLS policy.
 export default async function AdminBlogReviewPage() {
 	const supabase = await createClient();
 
