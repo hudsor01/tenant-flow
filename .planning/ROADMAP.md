@@ -14,7 +14,7 @@
 
 - [x] **Phase 9: LLM Wiring & Model Selection** — DONE: native n8n (node@22) reaches LM Studio at localhost:1234 (colima container→host was a dead end → went native); Mistral-Small-3.2-24B brand-prose smoke-tested; embeddings/reranker reachable (BLOG-01, BLOG-02)
 - [x] **Phase 10: RAG Knowledge Base** — DONE: pgvector `blog_rag_chunks` + `match_blog_rag_chunks` RPC live; 10 corpus chunks (llms-full.txt) embedded via qwen3-embedding (dim 1024) + verified (BLOG-03)
-- [ ] **Phase 11: Generation Pipeline** — n8n topic→retrieve→draft→validate→HMAC→ingest→in-review, end-to-end to a real draft (BLOG-04, BLOG-05)
+- [x] **Phase 11: Generation Pipeline** — DONE: generate-blog-draft.ts (topic→RAG→Mistral→validate/repair+banlist-sanitizer→HMAC→ingest) produced a real 1,410-word in-review draft (HTTP 201, MCP-verified). Fixed the ingest EF's dead legacy key (→INGEST_DB_KEY) + N8N_WEBHOOK_SECRET (BLOG-04, BLOG-05)
 - [ ] **Phase 12: Quality & Brand Guardrails** — brand voice, E-E-A-T, self-critique/reranker gate, human-approval surface (BLOG-06, BLOG-07)
 - [ ] **Phase 13: SEO-01 Reclaim Integration** — ghost-slug queue, generate-at-slug, auto-drop redirect on publish; closes SEO-01 (BLOG-08)
 - [ ] **Phase 14: Cadence, Dedupe & Monitoring** — schedule, dedupe, observability + failure alerts (BLOG-09)
@@ -89,7 +89,7 @@ Plans:
 |-------|--------|-------|
 | 9 — LLM Wiring & Model Selection | Complete | 2 plans (native n8n + Mistral verified) |
 | 10 — RAG Knowledge Base | Complete | store live + 10 chunks loaded/verified |
-| 11 — Generation Pipeline | Engine built | generate-blog-draft.ts (RAG→Mistral→validate/repair→HMAC→ingest); e2e = owner runs it (needs N8N_WEBHOOK_SECRET) |
+| 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
 | 12 — Quality & Brand Guardrails | Not started | TBD |
 | 13 — SEO-01 Reclaim Integration | Not started | TBD |
 | 14 — Cadence, Dedupe & Monitoring | Not started | TBD |

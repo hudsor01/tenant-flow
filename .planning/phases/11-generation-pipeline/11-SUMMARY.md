@@ -1,7 +1,9 @@
 # Phase 11 Summary — Generation Pipeline (BLOG-04, BLOG-05)
 
-**Status:** Engine built + validated up to the authenticated POST; the e2e in-review draft is a one-command owner run (needs `N8N_WEBHOOK_SECRET` in `.env.local`).
+**Status:** COMPLETE (2026-06-09) — real RAG-grounded draft `tenant-screening-tips-for-new-landlords` generated end-to-end → `blogs` status='in-review' (HTTP 201, MCP-verified: 1,410 words, 8 H2, mentions "landlord", banlist-clean).
 **Branch:** gsd/v5.0-milestone-setup (PR #792)
+
+> Ingest debugging (the long tail): the `n8n-blog-ingest` EF used the auto-injected legacy `SUPABASE_SERVICE_ROLE_KEY`, dead after the new-API-key migration → migrated to `Deno.env.get("SUPABASE_SECRET_KEY") ?? INGEST_DB_KEY ?? legacy` (owner set `INGEST_DB_KEY` = sb_secret). `N8N_WEBHOOK_SECRET` had never been set as an EF secret (only `N8N_WEBHOOK_URL` existed) — validateEnv threw before HMAC, hence generic 500s. Also: router DNS died (→1.1.1.1) and the `safe-chain` shim breaks bun's network (use `~/.bun/bin/bun`). Generation gate flakiness solved with a deterministic banlist sanitizer (model slips "paid rent" in screening content) + 8-9 section / ≥1500-word prompt + 4 repair attempts. EF redeployed clean (no debug) at v17 via MCP.
 
 ## Outcome
 The full generation pipeline exists as a tested script; producing the first real `in-review` draft is the owner's run (the HMAC + RPC creds are scrubbed from the agent's shell).
