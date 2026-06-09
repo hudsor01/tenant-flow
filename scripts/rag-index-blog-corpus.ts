@@ -67,6 +67,8 @@ async function embed(input: string): Promise<number[]> {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ model: EMBED_MODEL, input }),
+		// parity with generate-blog-draft.ts: don't hang forever on a stuck call
+		signal: AbortSignal.timeout(120_000),
 	});
 	if (!res.ok) {
 		throw new Error(`LM Studio embeddings ${res.status}: ${await res.text()}`);
@@ -121,7 +123,11 @@ async function main() {
 			.eq("source", source);
 		if (del.error) throw new Error(`delete ${source}: ${del.error.message}`);
 		const ins = await supabase.from("blog_rag_chunks").insert(rows);
-		if (ins.error) throw new Error(`insert ${source}: ${ins.error.message}`);
+		if (ins.error) {
+			throw new Error(
+				`insert ${source}: ${ins.error.message} — corpus for "${source}" may now be empty; re-run this script (it is idempotent).`,
+			);
+		}
 		total += rows.length;
 	}
 

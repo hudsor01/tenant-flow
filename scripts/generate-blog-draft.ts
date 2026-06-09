@@ -27,6 +27,7 @@ const GEN_MODEL =
 	process.env.LM_GEN_MODEL ?? "mistral-small-3.2-24b-instruct-2506-mlx";
 const EMBED_MODEL =
 	process.env.LM_EMBED_MODEL ?? "text-embedding-qwen3-embedding-0.6b";
+const EXPECTED_DIM = 1024;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY =
 	process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -198,7 +199,13 @@ const BANLIST_REPLACEMENTS: [RegExp, string][] = [
 ];
 function sanitizeBanlist(s: string): string {
 	let out = s;
-	for (const [re, rep] of BANLIST_REPLACEMENTS) out = out.replace(re, rep);
+	// Loop to a fixed point: a replacement can leave adjacent fragments that
+	// re-form a banned phrase (e.g. "online online rent" -> "online rent").
+	for (let pass = 0; pass < 5; pass++) {
+		const before = out;
+		for (const [re, rep] of BANLIST_REPLACEMENTS) out = out.replace(re, rep);
+		if (out === before) break;
+	}
 	return out;
 }
 
@@ -212,8 +219,10 @@ async function embed(input: string): Promise<number[]> {
 	if (!r.ok) fail(`embeddings ${r.status}: ${await r.text()}`);
 	const j = (await r.json()) as { data?: { embedding?: number[] }[] };
 	const vec = j.data?.[0]?.embedding;
-	if (!Array.isArray(vec) || vec.length !== 1024) {
-		fail(`embeddings: expected a 1024-dim vector, got length ${vec?.length}`);
+	if (!Array.isArray(vec) || vec.length !== EXPECTED_DIM) {
+		fail(
+			`embeddings: expected a ${EXPECTED_DIM}-dim vector, got ${vec?.length}`,
+		);
 	}
 	return vec;
 }
@@ -270,7 +279,29 @@ async function generate(
 	};
 	const content = j.choices?.[0]?.message?.content;
 	if (!content) throw new Error("chat/completions returned no message content");
-	return JSON.parse(content) as Draft;
+	// Validate the shape HERE (not at the call site) so a runtime that ignores
+	// json_schema `strict` produces a caught retry, never a TypeError-on-abort.
+	const p = JSON.parse(content) as Record<string, unknown>;
+	for (const k of [
+		"title",
+		"slug",
+		"excerpt",
+		"meta_description",
+		"category",
+		"content",
+	] as const) {
+		if (typeof p[k] !== "string") {
+			throw new Error(`draft JSON missing string field "${k}"`);
+		}
+	}
+	return {
+		title: String(p.title),
+		slug: String(p.slug),
+		excerpt: String(p.excerpt),
+		meta_description: String(p.meta_description),
+		category: String(p.category),
+		content: String(p.content),
+	};
 }
 
 async function main() {
