@@ -62,6 +62,10 @@ interface GateFailure {
 //   - 06-CONTEXT.md § "9 Validation Gates (LOCKED)"
 //   - 06-CONTEXT.md § "Slug Naming Pattern (LOCKED)"
 //   - src/app/__tests__/marketing-copy-landlord-only.test.ts (banlist source)
+//   - src/lib/seo/__tests__/banlist-parity.test.ts (banlist drift guard: EF==script==trigger)
+// The numeric gate thresholds below (word 1200-3000, H2 4-10, meta 50-160,
+// excerpt 80-200, slug 3-120, DocuSeal <=1) are ALSO hand-duplicated in
+// scripts/generate-blog-draft.ts and the trigger — change all three together.
 // ---------------------------------------------------------------------------
 
 const VALID_CATEGORIES = [

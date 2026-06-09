@@ -100,6 +100,9 @@ function mapChunk(raw: Record<string, unknown>): { content: string } {
 }
 
 // --- the 9 gates (mirror runGates() in the EF) -> structured fix hints ---
+// NOTE: the fix-hint + prompt ranges are deliberate GENERATION TARGETS that are
+// narrower than the actual rejection bounds checked below (e.g. excerpt aim
+// 110-180, gate 80-200) — the margin makes an obedient first draft clear the gate.
 function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 	const out: { gate: string; message: string; fix: string }[] = [];
 	const wc = countWords(p.content);
@@ -209,7 +212,9 @@ async function embed(input: string): Promise<number[]> {
 	if (!r.ok) fail(`embeddings ${r.status}: ${await r.text()}`);
 	const j = (await r.json()) as { data?: { embedding?: number[] }[] };
 	const vec = j.data?.[0]?.embedding;
-	if (!vec) fail("embeddings: no vector returned");
+	if (!Array.isArray(vec) || vec.length !== 1024) {
+		fail(`embeddings: expected a 1024-dim vector, got length ${vec?.length}`);
+	}
 	return vec;
 }
 
@@ -363,8 +368,9 @@ STRICT requirements:
 			}
 			continue;
 		}
-		// strip a leading H1 — the page renders its own title from `title`
-		d.content = d.content.replace(/^#\s+.*(?:\r?\n)+/, "");
+		// strip a leading H1 (the page renders its own title from `title`) —
+		// tolerate leading whitespace/blank lines; `#[^#]` avoids matching an H2
+		d.content = d.content.replace(/^\s*#[^#].*(?:\r?\n)+/, "");
 		// deterministically neutralize any banlist phrases the model slips in
 		// (e.g. "paid rent" in a screening article) so that gate can't block us
 		d.content = sanitizeBanlist(d.content);
