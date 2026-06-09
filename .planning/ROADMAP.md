@@ -66,6 +66,11 @@ Plans:
 **Success Criteria**:
   1. A brand-voice system prompt + E-E-A-T conventions (Organization author "TenantFlow Team") + RAG-grounded facts (no hallucinated specifics) are enforced.
   2. A self-critique / reranker pass rejects off-brand or thin drafts before in-review; a human approve/reject surface exists (nothing publishes without the owner).
+**Plans:** 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Harden the generator's brand/E-E-A-T/RAG-grounding system prompt + add the Mistral LLM-as-judge self-critique gate (score+verdict, regenerate-bounded, fail-closed) between the 9 gates and the HMAC POST (BLOG-06, BLOG-07)
+- [ ] 12-02-PLAN.md — Admin approve/reject surface at /admin/blog in the existing (admin) group: list in-review drafts + sanitized preview, Approve→published+revalidatePath / Reject→archived via blogs_update_admin RLS + TanStack mutations (BLOG-07)
+- [ ] 12-03-PLAN.md — Regression-lock the Organization "TenantFlow Team" byline for null-author posts (visible + Article JSON-LD) + E2E for non-admin redirect + admin approve flow (BLOG-06, BLOG-07)
 
 ### Phase 13: SEO-01 Reclaim Integration
 **Goal**: Use the engine to reclaim the deleted high-impression blog slugs, closing the open v4.0 SEO-01 item.
@@ -90,6 +95,6 @@ Plans:
 | 9 — LLM Wiring & Model Selection | Complete | 2 plans (native n8n + Mistral verified) |
 | 10 — RAG Knowledge Base | Complete | store live + 10 chunks loaded/verified |
 | 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
-| 12 — Quality & Brand Guardrails | Not started | TBD |
+| 12 — Quality & Brand Guardrails | Planned | 3 plans (generator judge gate + admin approve/reject + E-E-A-T byline lock) |
 | 13 — SEO-01 Reclaim Integration | Not started | TBD |
 | 14 — Cadence, Dedupe & Monitoring | Not started | TBD |
