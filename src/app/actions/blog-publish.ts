@@ -94,8 +94,15 @@ async function requireAdminClient(): Promise<
 
 /**
  * Approve a draft: flip status to 'published', stamp published_at, then
- * revalidate the public ISR pages so the post surfaces. Only runs after the
- * is_admin re-check and a successful RLS-gated update.
+ * revalidate the public blog list. Only runs after the is_admin re-check and a
+ * successful RLS-gated update.
+ *
+ * Note: /blog/[slug] is statically generated with dynamicParams=false (its
+ * generateStaticParams enumerates only published slugs at build time), so the
+ * approved post's OWN page builds on the next deploy — approve stages it; the
+ * deploy (or the blog-publish webhook) surfaces it. The /blog list revalidation
+ * is effective immediately; the per-slug revalidate becomes effective once that
+ * page exists post-deploy.
  */
 export async function publishBlogPost(
 	id: string,

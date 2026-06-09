@@ -1,19 +1,51 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import MarkdownContent from "#app/blog/[slug]/markdown-content";
 import { Button } from "#components/ui/button";
-import type { BlogReviewItem } from "#hooks/api/query-keys/blog-keys";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyTitle,
+} from "#components/ui/empty";
+import {
+	type BlogReviewItem,
+	blogQueries,
+} from "#hooks/api/query-keys/blog-keys";
 import {
 	useApproveBlogMutation,
 	useRejectBlogMutation,
 } from "#hooks/api/use-blog-admin-mutations";
 
 interface BlogReviewClientProps {
-	drafts: BlogReviewItem[];
+	initialDrafts: BlogReviewItem[];
 }
 
-export function BlogReviewClient({ drafts }: BlogReviewClientProps) {
+export function BlogReviewClient({ initialDrafts }: BlogReviewClientProps) {
+	// Seed from the server fetch, then keep fresh client-side — approve/reject
+	// invalidate blogQueries.all(), refetching this queue so the acted-on row
+	// disappears (the RSC props list could not refresh on its own).
+	const { data: drafts } = useQuery({
+		...blogQueries.reviewQueue(),
+		initialData: initialDrafts,
+	});
+
+	if (drafts.length === 0) {
+		return (
+			<Empty>
+				<EmptyHeader>
+					<EmptyTitle>No drafts to review</EmptyTitle>
+					<EmptyDescription>
+						There are no in-review drafts right now. New drafts appear here once
+						the generator submits them.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		);
+	}
+
 	return (
 		<div className="space-y-6">
 			{drafts.map((draft) => (

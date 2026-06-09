@@ -83,8 +83,33 @@ const BLOG_LIST_COLUMNS =
 const BLOG_DETAIL_COLUMNS =
 	"id, title, slug, excerpt, content, published_at, category, reading_time, featured_image, author_user_id, status, meta_description, tags, created_at, updated_at";
 
-const BLOG_REVIEW_COLUMNS =
+export const BLOG_REVIEW_COLUMNS =
 	"id, title, slug, content, excerpt, category, word_count, reading_time, created_at";
+
+/**
+ * Typed mapper at the PostgREST boundary for review-queue rows (CLAUDE.md: no
+ * raw `as` casts). NOT NULL fields throw; nullable columns normalize to null.
+ * Shared by reviewQueue() and the /admin/blog server-side fetch.
+ */
+export function mapBlogReviewRow(raw: Record<string, unknown>): BlogReviewItem {
+	const { id, title, slug, content } = raw;
+	if (typeof id !== "string") throw new Error("blog row missing id");
+	if (typeof title !== "string") throw new Error("blog row missing title");
+	if (typeof slug !== "string") throw new Error("blog row missing slug");
+	if (typeof content !== "string") throw new Error("blog row missing content");
+	return {
+		id,
+		title,
+		slug,
+		content,
+		excerpt: typeof raw.excerpt === "string" ? raw.excerpt : null,
+		category: typeof raw.category === "string" ? raw.category : null,
+		word_count: typeof raw.word_count === "number" ? raw.word_count : null,
+		reading_time:
+			typeof raw.reading_time === "number" ? raw.reading_time : null,
+		created_at: typeof raw.created_at === "string" ? raw.created_at : null,
+	};
+}
 
 export const blogQueries = {
 	all: () => ["blogs"] as const,
@@ -137,8 +162,8 @@ export const blogQueries = {
 
 	// Admin-only review queue: drafts awaiting human approve/reject.
 	// Filters status='in-review' (NOT the public 'published' list). Reads via the
-	// authenticated browser client; the blogs_select RLS policy lets is_admin see
-	// non-published rows.
+	// authenticated browser client; the `blogs_select_published_or_admin` RLS
+	// policy (migration 20260609194835) lets is_admin() SELECT non-published rows.
 	reviewQueue: () =>
 		queryOptions({
 			queryKey: [...blogQueries.all(), "review-queue"],
@@ -153,7 +178,9 @@ export const blogQueries = {
 
 				if (error) handlePostgrestError(error, "blog review queue");
 
-				return (data ?? []) as BlogReviewItem[];
+				return ((data ?? []) as Record<string, unknown>[]).map(
+					mapBlogReviewRow,
+				);
 			},
 			...QUERY_CACHE_TIMES.BLOG,
 		}),
