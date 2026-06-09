@@ -43,6 +43,19 @@ export type BlogDetail = Pick<
 	| "updated_at"
 >;
 
+export type BlogReviewItem = Pick<
+	Blog,
+	| "id"
+	| "title"
+	| "slug"
+	| "content"
+	| "excerpt"
+	| "category"
+	| "word_count"
+	| "reading_time"
+	| "created_at"
+>;
+
 export type BlogCategory =
 	Database["public"]["Functions"]["get_blog_categories"]["Returns"][number];
 
@@ -69,6 +82,9 @@ const BLOG_LIST_COLUMNS =
 
 const BLOG_DETAIL_COLUMNS =
 	"id, title, slug, excerpt, content, published_at, category, reading_time, featured_image, author_user_id, status, meta_description, tags, created_at, updated_at";
+
+const BLOG_REVIEW_COLUMNS =
+	"id, title, slug, content, excerpt, category, word_count, reading_time, created_at";
 
 export const blogQueries = {
 	all: () => ["blogs"] as const,
@@ -115,6 +131,29 @@ export const blogQueries = {
 						totalPages,
 					},
 				};
+			},
+			...QUERY_CACHE_TIMES.BLOG,
+		}),
+
+	// Admin-only review queue: drafts awaiting human approve/reject.
+	// Filters status='in-review' (NOT the public 'published' list). Reads via the
+	// authenticated browser client; the blogs_select RLS policy lets is_admin see
+	// non-published rows.
+	reviewQueue: () =>
+		queryOptions({
+			queryKey: [...blogQueries.all(), "review-queue"],
+			queryFn: async (): Promise<BlogReviewItem[]> => {
+				const supabase = createClient();
+
+				const { data, error } = await supabase
+					.from("blogs")
+					.select(BLOG_REVIEW_COLUMNS)
+					.eq("status", "in-review")
+					.order("created_at", { ascending: false });
+
+				if (error) handlePostgrestError(error, "blog review queue");
+
+				return (data ?? []) as BlogReviewItem[];
 			},
 			...QUERY_CACHE_TIMES.BLOG,
 		}),
