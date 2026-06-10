@@ -15,7 +15,9 @@
  * Usage: bun scripts/run-scheduled-blog.ts
  */
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { formatGenFailure } from "./generate-blog-draft";
 
@@ -76,7 +78,46 @@ export async function fetchAllSlugs(
 	}
 }
 
-async function main(): Promise<void> {
+// Overlap guard: a slow generation (judge regenerations can exceed the 30-min
+// schedule spacing) must not run concurrently with the next tick — n8n execs
+// 151+152 proved two simultaneous 24B generations halve decode speed and both
+// time out. PID lockfile with stale-takeover: a live holder skips the tick
+// cleanly (exit 0); a dead holder's lock is reclaimed.
+const DEFAULT_LOCK_PATH = join(tmpdir(), "tenantflow-blog-factory.lock");
+
+function isProcessAlive(pid: number): boolean {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+export function acquireLock(
+	pid: number,
+	lockPath: string = DEFAULT_LOCK_PATH,
+): boolean {
+	for (let attempt = 0; attempt < 2; attempt++) {
+		try {
+			writeFileSync(lockPath, String(pid), { flag: "wx" });
+			return true;
+		} catch {
+			const holder = Number.parseInt(readFileSync(lockPath, "utf8"), 10);
+			if (Number.isInteger(holder) && holder > 0 && isProcessAlive(holder)) {
+				return false;
+			}
+			rmSync(lockPath, { force: true }); // stale lock — reclaim and retry
+		}
+	}
+	return false;
+}
+
+export function releaseLock(lockPath: string = DEFAULT_LOCK_PATH): void {
+	rmSync(lockPath, { force: true });
+}
+
+async function main(): Promise<number> {
 	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const key =
 		process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -86,43 +127,59 @@ async function main(): Promise<void> {
 				"run-scheduled-blog: missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SECRET_KEY",
 			),
 		);
-		process.exit(1);
+		return 1;
 	}
 
-	const topics = loadTopics();
-	const supabase = createClient(url, key, { auth: { persistSession: false } });
-	const existing = await fetchAllSlugs((from, to) =>
-		supabase.from("blogs").select("slug").range(from, to),
-	);
-	const next = pickNextTopic(topics, existing);
-	if (!next) {
+	if (!acquireLock(process.pid)) {
 		console.log(
-			`topic bank exhausted — all ${topics.length} slugs already exist in public.blogs. Nothing to generate.`,
+			"previous blog-factory run still in progress — skipping this tick.",
 		);
-		return;
+		return 0;
 	}
+	try {
+		const topics = loadTopics();
+		const supabase = createClient(url, key, {
+			auth: { persistSession: false },
+		});
+		const existing = await fetchAllSlugs((from, to) =>
+			supabase.from("blogs").select("slug").range(from, to),
+		);
+		const next = pickNextTopic(topics, existing);
+		if (!next) {
+			console.log(
+				`topic bank exhausted — all ${topics.length} slugs already exist in public.blogs. Nothing to generate.`,
+			);
+			return 0;
+		}
 
-	console.log(
-		`[${existing.size} written / ${topics.length} banked] generating ${next.tier} topic: "${next.topic}" (${next.category}) --slug ${next.slug}`,
-	);
-	const child = spawnSync(
-		process.execPath,
-		[
-			new URL("./generate-blog-draft.ts", import.meta.url).pathname,
-			next.topic,
-			next.category,
-			"--slug",
-			next.slug,
-		],
-		{ stdio: "inherit" },
-	);
-	process.exit(child.status ?? 1);
+		console.log(
+			`[${existing.size} written / ${topics.length} banked] generating ${next.tier} topic: "${next.topic}" (${next.category}) --slug ${next.slug}`,
+		);
+		const child = spawnSync(
+			process.execPath,
+			[
+				new URL("./generate-blog-draft.ts", import.meta.url).pathname,
+				next.topic,
+				next.category,
+				"--slug",
+				next.slug,
+			],
+			{ stdio: "inherit" },
+		);
+		return child.status ?? 1;
+	} finally {
+		releaseLock();
+	}
 }
 
 // CLI guard — import-safe for unit tests (same pattern as generate-blog-draft).
 if (process.argv[1]?.endsWith("/run-scheduled-blog.ts")) {
-	main().catch((e: unknown) => {
-		console.error(formatGenFailure(e instanceof Error ? e.message : String(e)));
-		process.exit(1);
-	});
+	main()
+		.then((code) => process.exit(code))
+		.catch((e: unknown) => {
+			console.error(
+				formatGenFailure(e instanceof Error ? e.message : String(e)),
+			);
+			process.exit(1);
+		});
 }

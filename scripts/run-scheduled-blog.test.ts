@@ -1,9 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import type { BlogTopicEntry } from "./run-scheduled-blog";
 import {
+	acquireLock,
 	fetchAllSlugs,
 	mapTopicEntry,
 	pickNextTopic,
+	releaseLock,
 } from "./run-scheduled-blog";
 
 const entry = (
@@ -103,5 +108,43 @@ describe("fetchAllSlugs", () => {
 		).rejects.toMatchObject({
 			message: expect.stringContaining("permission denied"),
 		});
+	});
+});
+
+describe("overlap lock", () => {
+	const lockPath = join(tmpdir(), `tf-blog-lock-test-${process.pid}.lock`);
+
+	afterEach(() => {
+		releaseLock(lockPath);
+	});
+
+	it("acquires when no lock exists and records the pid", () => {
+		expect(acquireLock(process.pid, lockPath)).toBe(true);
+		expect(readFileSync(lockPath, "utf8")).toBe(String(process.pid));
+	});
+
+	it("refuses while the holder process is alive", () => {
+		expect(acquireLock(process.pid, lockPath)).toBe(true);
+		// process.pid is this very test process — definitely alive
+		expect(acquireLock(process.pid, lockPath)).toBe(false);
+	});
+
+	it("reclaims a stale lock left by a dead process", () => {
+		// PID 4194304 exceeds the macOS/Linux default pid_max — never alive.
+		writeFileSync(lockPath, "4194304");
+		expect(acquireLock(process.pid, lockPath)).toBe(true);
+		expect(readFileSync(lockPath, "utf8")).toBe(String(process.pid));
+	});
+
+	it("reclaims a corrupted lockfile", () => {
+		writeFileSync(lockPath, "not-a-pid");
+		expect(acquireLock(process.pid, lockPath)).toBe(true);
+	});
+
+	it("releaseLock removes the file and is idempotent", () => {
+		expect(acquireLock(process.pid, lockPath)).toBe(true);
+		releaseLock(lockPath);
+		expect(existsSync(lockPath)).toBe(false);
+		releaseLock(lockPath); // no throw on second call
 	});
 });
