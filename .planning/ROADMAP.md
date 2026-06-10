@@ -16,7 +16,7 @@
 - [x] **Phase 10: RAG Knowledge Base** — DONE: pgvector `blog_rag_chunks` + `match_blog_rag_chunks` RPC live; 10 corpus chunks (llms-full.txt) embedded via qwen3-embedding (dim 1024) + verified (BLOG-03)
 - [x] **Phase 11: Generation Pipeline** — DONE: generate-blog-draft.ts (topic→RAG→Mistral→validate/repair+banlist-sanitizer→HMAC→ingest) produced a real 1,410-word in-review draft (HTTP 201, MCP-verified). Fixed the ingest EF's dead legacy key (→INGEST_DB_KEY) + N8N_WEBHOOK_SECRET (BLOG-04, BLOG-05)
 - [x] **Phase 12: Quality & Brand Guardrails** — DONE: Mistral LLM-as-judge self-critique gate (4-dim score, regenerate/fail-closed) + E-E-A-T prompt hardening + /admin/blog approve-reject surface (is_admin-walled, RLS, revalidate) + Organization byline regression-lock + E2E. 30 unit tests (BLOG-06, BLOG-07)
-- [ ] **Phase 13: SEO-01 Reclaim Integration** — ghost-slug queue, generate-at-slug, auto-drop redirect on publish; closes SEO-01 (BLOG-08)
+- [x] **Phase 13: SEO-01 Reclaim Integration** — ghost-slug queue, generate-at-slug, auto-drop redirect on publish; closes SEO-01 (BLOG-08) (completed 2026-06-10)
 - [ ] **Phase 14: Cadence, Dedupe & Monitoring** — schedule, dedupe, observability + failure alerts (BLOG-09)
 
 ## Phase Details (v5.0 AI Blog Content Engine)
@@ -79,6 +79,10 @@ Plans:
 **Success Criteria**:
   1. A topic queue is seeded from the deleted high-impression ghost slugs (top-10 first) in `src/lib/seo/blog-redirects.ts`; drafts generate at the exact original slug.
   2. On publish of a reclaimed slug, its entry is removed from `blog-redirects.ts` and the collision-guard test stays green.
+**Plans:** 2/2 plans complete
+Plans:
+- [x] 13-01-PLAN.md — generator `--slug <ghost-slug>` override (pins + re-gates the draft slug) + seeded top-10 RECLAIM_QUEUE const + its DELETED_BLOG_REDIRECTS drift-guard test (BLOG-08)
+- [x] 13-02-PLAN.md — `scripts/reclaim-finalize.ts <slug>` (remove redirect entry + add slug to LIVE_PUBLISHED_SLUGS) + idempotent/validated edit unit tests keeping the collision guard green (BLOG-08)
 
 ### Phase 14: Cadence, Dedupe & Monitoring
 **Goal**: The engine runs on a sustainable schedule with dedupe and observability.
@@ -96,5 +100,5 @@ Plans:
 | 10 — RAG Knowledge Base | Complete | store live + 10 chunks loaded/verified |
 | 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
 | 12 — Quality & Brand Guardrails | Complete | judge gate + /admin/blog approve-reject + byline lock + E2E; 30 unit tests |
-| 13 — SEO-01 Reclaim Integration | Not started | TBD |
+| 13 — SEO-01 Reclaim Integration | Complete | 2 plans (--slug override + reclaim-queue; reclaim-finalize codemod + guard); 19+ unit tests |
 | 14 — Cadence, Dedupe & Monitoring | Not started | TBD |

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: AI Blog Content Engine
-status: executing
-last_updated: "2026-06-09T14:55:00.000Z"
-last_activity: 2026-06-09
+status: "Phases 9-11 MERGED (PR #792 → main). Phase 12 + Phase 13 (plans 01-02) built on branches, ready for PR + review."
+last_updated: "2026-06-10T02:32:00.000Z"
+last_activity: 2026-06-10 -- Phase 13 plan 02 executed (reclaim-finalize script + tests)
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 67
+  completed_phases: 1
+  total_plans: 12
+  completed_plans: 8
+  percent: 17
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 12 of 14 COMPLETE → next is Phase 13 (SEO-01 Reclaim Integration) — v5.0 (67% of milestone)
-Plan: 09-12 complete. Phase 12 (branch gsd/phase-12-quality-brand-guardrails): Mistral LLM-as-judge self-critique gate in the generator (4-dim score, regenerate/fail-closed before POST) + E-E-A-T prompt; /admin/blog approve-reject surface (is_admin-walled, blogs_update_admin RLS, revalidatePath); Organization byline regression-lock + E2E (non-admin redirect in CI, admin-approve skip-gated). 30 unit tests.
-Status: Phases 9-11 MERGED (PR #792 → main). Phase 12 built on its own branch, ready for PR + review.
-Last activity: 2026-06-09 -- Phase 12 executed
+Phase: 13 of 14 IN PROGRESS (plans 13-01, 13-02 complete; 13-03 remaining) — v5.0
+Plan: 09-12 + 13-01 + 13-02 complete. Phase 13 (branch gsd/phase-13-seo-01-reclaim-integration): 13-01 = generator `--slug <ghost-slug>` override + seeded top-10 RECLAIM_QUEUE (drift-guarded against DELETED_BLOG_REDIRECTS). 13-02 = `scripts/reclaim-finalize.ts <slug>` deterministic two-file codemod (removes the slug's DELETED_BLOG_REDIRECTS entry + adds it to LIVE_PUBLISHED_SLUGS) — idempotent, slug-validated, typo-guarded; 19 unit tests incl. a real-file round-trip net proving blog-redirects.test.ts stays green.
+Status: Phases 9-11 MERGED (PR #792 → main). Phase 12 + Phase 13 (plans 01-02) built on branches, ready for PR + review.
+Last activity: 2026-06-10 -- Phase 13 plan 02 executed (reclaim-finalize script + tests)
 
 **Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
 

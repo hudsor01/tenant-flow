@@ -9,8 +9,11 @@
  * The n8n workflow (Phase 14 cadence) wraps this via an Execute Command node;
  * for Phase 11 run it directly.
  *
- * Usage:  bun scripts/generate-blog-draft.ts "<topic>" [category]
+ * Usage:  bun scripts/generate-blog-draft.ts "<topic>" [category] [--slug <ghost-slug>] [--dry-run]
  *   category in: lease-law | tax-prep | tenant-screening | maintenance | software-vault
+ *   --slug <ghost-slug>: reclaim mode (BLOG-08a) — pin the draft to an EXACT deleted
+ *     ghost slug (see src/lib/seo/reclaim-queue.ts) instead of the model's slug; still
+ *     re-validated against the slug gate.
  *
  * Prereqs: LM Studio running (Mistral + qwen3-embedding loaded); .env.local has
  * NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, N8N_WEBHOOK_SECRET (== the EF's
@@ -497,16 +500,78 @@ export async function gateOnCritique(
 	return draft;
 }
 
+// --- `--slug <ghost-slug>` override (BLOG-08a). Lets a reclaim draft be produced
+// at the EXACT deleted ghost slug Google already ranked, instead of the model's
+// chosen slug. Exported (with parse + validate split) so both are unit-testable
+// without spawning the CLI; main() catches a thrown Error -> fail(). ---
+
+// Read the value following `--slug` in argv. Returns undefined when `--slug` is
+// absent. THROWS (never silently no-ops) when `--slug` is present but its value is
+// missing (end of argv) or is itself another flag (`--dry-run`, etc.).
+export function parseSlugOverride(argv: string[]): string | undefined {
+	const i = argv.indexOf("--slug");
+	if (i === -1) return undefined;
+	const value = argv[i + 1];
+	if (value === undefined || value.startsWith("--")) {
+		throw new Error(
+			"--slug requires a value, e.g. --slug top-3-property-management-apps-for-commercial-landlords",
+		);
+	}
+	return value;
+}
+
+// Pin the draft slug to the override. When override is undefined the draft is
+// returned unchanged. When set, the override is re-validated against the SAME
+// SLUG_REGEX + length 3-120 rule runGates() enforces (T-13-01): an invalid or
+// oversized override THROWS here, so it never reaches the dry-run print or the
+// HMAC POST.
+export function applySlugOverride(
+	draft: Draft,
+	override: string | undefined,
+): Draft {
+	if (override === undefined) return draft;
+	if (
+		!SLUG_REGEX.test(override) ||
+		override.length < 3 ||
+		override.length > 120
+	) {
+		throw new Error(
+			`--slug override "${override}" fails the slug gate (must match ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ and be 3-120 chars)`,
+		);
+	}
+	return { ...draft, slug: override };
+}
+
+// Extract the positional args (topic, category) from argv, skipping every flag
+// AND the `--slug <value>` flag+value pair, so a ghost slug is never mistaken for
+// the topic or category positional regardless of order (T-13-02). Works for both
+// `<topic> software-vault --slug <ghost>` and `--slug <ghost> <topic> software-vault`.
+export function parsePositionals(argv: string[]): {
+	topic: string | undefined;
+	category: string | undefined;
+} {
+	const positionals: string[] = [];
+	for (let i = 2; i < argv.length; i++) {
+		const tok = argv[i];
+		if (tok === undefined) continue;
+		if (tok === "--slug") {
+			i++; // skip the override value (parseSlugOverride validates it separately)
+			continue;
+		}
+		if (tok.startsWith("--")) continue;
+		positionals.push(tok);
+	}
+	return { topic: positionals[0], category: positionals[1] };
+}
+
 async function main() {
 	const dryRun = process.argv.includes("--dry-run");
-	const topic = process.argv[2];
-	const catArg = process.argv[3];
-	const category = (
-		catArg && !catArg.startsWith("--") ? catArg : "tenant-screening"
-	) as Category;
+	const slugOverride = parseSlugOverride(process.argv);
+	const { topic, category: catArg } = parsePositionals(process.argv);
+	const category = (catArg ?? "tenant-screening") as Category;
 	if (!topic)
 		fail(
-			'Usage: bun scripts/generate-blog-draft.ts "<topic>" [category] [--dry-run]',
+			'Usage: bun scripts/generate-blog-draft.ts "<topic>" [category] [--slug <ghost-slug>] [--dry-run]',
 		);
 	if (!VALID_CATEGORIES.includes(category))
 		fail(`category must be one of ${VALID_CATEGORIES.join(", ")}`);
@@ -598,6 +663,12 @@ STRICT requirements:
 		),
 	);
 
+	// BLOG-08a reclaim override: pin the slug to the exact ghost slug AFTER the
+	// gates + judge produced a draft, and BEFORE the dry-run print / POST, so the
+	// printed and posted slug is the override. The override is re-validated against
+	// the slug gate inside applySlugOverride (throws on a bad/oversized slug).
+	draft = applySlugOverride(draft, slugOverride);
+
 	if (dryRun) {
 		console.log(
 			`\nDRY RUN — 9 gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
@@ -649,6 +720,6 @@ export type { Critique, Draft };
 export { critique, isCritiquePass, parseCritique };
 
 // run the CLI only when executed directly (not when imported by the unit test)
-if (process.argv[1]?.endsWith("generate-blog-draft.ts")) {
+if (process.argv[1]?.endsWith("/generate-blog-draft.ts")) {
 	main().catch((e) => fail(e instanceof Error ? e.message : String(e)));
 }
