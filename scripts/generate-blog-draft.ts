@@ -472,10 +472,15 @@ async function generateValidDraft(
 		try {
 			d = await generate([...messages, ...repairTurn], category);
 		} catch (e) {
-			// a truncated/non-JSON response consumes a retry instead of aborting
-			console.log(`  generation error: ${e instanceof Error ? e.message : e}`);
+			// a truncated/non-JSON response consumes a retry instead of aborting.
+			// stderr, not stdout: n8n's Execute Command node only surfaces stderr
+			// when the command fails, so stdout-only detail vanished (exec 178).
+			const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+			console.error(`  generation error: ${detail}`);
 			if (attempt === MAX_REPAIR) {
-				fail(`Gave up after ${MAX_REPAIR} attempts (last: generation error).`);
+				fail(
+					`Gave up after ${MAX_REPAIR} attempts (last generation error: ${detail})`,
+				);
 			}
 			continue;
 		}
