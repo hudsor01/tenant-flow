@@ -17,7 +17,7 @@
 - [x] **BLOG-06**: Quality + brand guardrails — E-E-A-T-hardened system prompt (first-hand framing, specific depth, RAG-grounding-only), Organization "TenantFlow Team" byline (regression-locked in article-schema.test.ts), and a Mistral LLM-as-judge self-critique gate scoring 4 dimensions that regenerates/fails-closed on thin/off-brand drafts before in-review.
 - [x] **BLOG-07**: Human approve/reject surface at `/admin/blog` (is_admin-walled (admin) group): in-review list + sanitized preview → Approve (→published + revalidate) / Reject (→archived) via the authenticated admin client (blogs_update_admin RLS + defense-in-depth is_admin re-check). Nothing publishes without an explicit Approve.
 - [x] **BLOG-08**: SEO-01 reclaim — a topic queue seeded from the deleted high-impression ghost slugs (top-10 first) generates posts at the exact original slugs; on publish, the entry is removed from `src/lib/seo/blog-redirects.ts` and the collision-guard test stays green. (Closes the carried-over v4.0 SEO-01 item.)
-- [ ] **BLOG-09**: Cadence + observability — a sustainable schedule with slug dedupe, execution monitoring, and failure alerts (reuse the critical-error notify path); runaway/cost guards documented.
+- [x] **BLOG-09**: Cadence + observability — a pre-POST `public.blogs` slug-dedup check in the generator (existing slug → clean skip, exit 0, no 409 waste), greppable `BLOG-GEN-FAIL: <reason>` failure output, an `EVERGREEN_TOPICS` secondary topic source after `RECLAIM_QUEUE`, and the n8n/README.md documents the sustainable few-posts/week cadence + the Error-Trigger notify wiring (reusing the `app_config`/`notify_critical_error` path, no secret in source) + runaway/cost guards.
 
 ## Out of Scope
 
@@ -40,7 +40,7 @@
 | BLOG-06 | Phase 12 — Quality & Brand Guardrails | Done |
 | BLOG-07 | Phase 12 — Quality & Brand Guardrails | Done |
 | BLOG-08 | Phase 13 — SEO-01 Reclaim Integration | Complete |
-| BLOG-09 | Phase 14 — Cadence, Dedupe & Monitoring | Pending |
+| BLOG-09 | Phase 14 — Cadence, Dedupe & Monitoring | Done |
 
 **Coverage:** 9 requirements mapped to 6 phases (9-14), no orphans.
 

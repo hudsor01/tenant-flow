@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Draft } from "./generate-blog-draft";
 import {
 	applySlugOverride,
+	blogSlugExists,
 	critique,
+	formatGenFailure,
 	gateOnCritique,
 	isCritiquePass,
 	parseCritique,
@@ -314,5 +316,40 @@ describe("parsePositionals (topic/category parse is --slug-aware)", () => {
 			GHOST_SLUG,
 		]);
 		expect(category).toBeUndefined();
+	});
+});
+
+describe("blogSlugExists dedup probe (BLOG-09a)", () => {
+	it("resolves true when the blogs query returns a row", async () => {
+		const probe = async () => ({ data: [{ slug: "exists" }], error: null });
+		expect(await blogSlugExists(probe, "exists")).toBe(true);
+	});
+
+	it("resolves false when the blogs query returns no row (POST path reachable)", async () => {
+		const probe = async () => ({ data: [], error: null });
+		expect(await blogSlugExists(probe, "absent")).toBe(false);
+	});
+
+	it("resolves false when data is null (the ?? [] coalesce path)", async () => {
+		const probe = async () => ({ data: null, error: null });
+		expect(await blogSlugExists(probe, "absent")).toBe(false);
+	});
+
+	it("rejects on a PostgREST error — never silently false", async () => {
+		const probe = async () => ({
+			data: null,
+			error: { message: "permission denied" },
+		});
+		await expect(blogSlugExists(probe, "x")).rejects.toMatchObject({
+			message: expect.stringContaining("permission denied"),
+		});
+	});
+});
+
+describe("structured failure output (BLOG-09b)", () => {
+	it("formatGenFailure prefixes the reason with the greppable BLOG-GEN-FAIL token", () => {
+		const line = formatGenFailure("match_blog_rag_chunks: boom");
+		expect(line.startsWith("BLOG-GEN-FAIL: ")).toBe(true);
+		expect(line).toContain("match_blog_rag_chunks: boom");
 	});
 });

@@ -17,7 +17,7 @@
 - [x] **Phase 11: Generation Pipeline** — DONE: generate-blog-draft.ts (topic→RAG→Mistral→validate/repair+banlist-sanitizer→HMAC→ingest) produced a real 1,410-word in-review draft (HTTP 201, MCP-verified). Fixed the ingest EF's dead legacy key (→INGEST_DB_KEY) + N8N_WEBHOOK_SECRET (BLOG-04, BLOG-05)
 - [x] **Phase 12: Quality & Brand Guardrails** — DONE: Mistral LLM-as-judge self-critique gate (4-dim score, regenerate/fail-closed) + E-E-A-T prompt hardening + /admin/blog approve-reject surface (is_admin-walled, RLS, revalidate) + Organization byline regression-lock + E2E. 30 unit tests (BLOG-06, BLOG-07)
 - [x] **Phase 13: SEO-01 Reclaim Integration** — ghost-slug queue, generate-at-slug, auto-drop redirect on publish; closes SEO-01 (BLOG-08) (completed 2026-06-10)
-- [ ] **Phase 14: Cadence, Dedupe & Monitoring** — schedule, dedupe, observability + failure alerts (BLOG-09)
+- [x] **Phase 14: Cadence, Dedupe & Monitoring** — DONE: pre-POST slug dedup (clean-skip, no 409 waste) + greppable BLOG-GEN-FAIL output + EVERGREEN_TOPICS secondary source + n8n/README cadence/error-workflow/cost-guard docs. CLOSES v5.0 (BLOG-09)
 
 ## Phase Details (v5.0 AI Blog Content Engine)
 
@@ -91,6 +91,10 @@ Plans:
 **Success Criteria**:
   1. A schedule (e.g., a few posts/week) generates drafts without duplicating existing/published slugs.
   2. Execution monitoring + failure alerts are in place (reuse the critical-error notify path); runaway/cost guards documented.
+**Plans:** 2 plans
+Plans:
+- [ ] 14-01-PLAN.md — generator pre-POST slug-dedup check (existing slug → clean-skip exit 0, no 409 waste; 409 stays backstop) + structured `BLOG-GEN-FAIL: <reason>` failure output + unit tests for both dedup branches + the failure line (BLOG-09)
+- [ ] 14-02-PLAN.md — committed EVERGREEN_TOPICS const (secondary topic source after RECLAIM_QUEUE) + drift-guard test, and n8n/README.md refined cadence (few posts/week, reclaim-then-evergreen) + Error-Trigger notify wiring (app_config `blog_factory_alert_url`, no secret in source) + runaway/cost guard docs (BLOG-09)
 
 ## Progress
 
@@ -101,4 +105,4 @@ Plans:
 | 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
 | 12 — Quality & Brand Guardrails | Complete | judge gate + /admin/blog approve-reject + byline lock + E2E; 30 unit tests |
 | 13 — SEO-01 Reclaim Integration | Complete | 2 plans (--slug override + reclaim-queue; reclaim-finalize codemod + guard); 19+ unit tests |
-| 14 — Cadence, Dedupe & Monitoring | Not started | TBD |
+| 14 — Cadence, Dedupe & Monitoring | Complete | dedup skip + BLOG-GEN-FAIL output + EVERGREEN_TOPICS + n8n cadence/alert/guard docs |
