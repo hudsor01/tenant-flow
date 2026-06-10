@@ -79,6 +79,10 @@ Plans:
 **Success Criteria**:
   1. A topic queue is seeded from the deleted high-impression ghost slugs (top-10 first) in `src/lib/seo/blog-redirects.ts`; drafts generate at the exact original slug.
   2. On publish of a reclaimed slug, its entry is removed from `blog-redirects.ts` and the collision-guard test stays green.
+**Plans:** 2 plans
+Plans:
+- [ ] 13-01-PLAN.md — generator `--slug <ghost-slug>` override (pins + re-gates the draft slug) + seeded top-10 RECLAIM_QUEUE const + its DELETED_BLOG_REDIRECTS drift-guard test (BLOG-08)
+- [ ] 13-02-PLAN.md — `scripts/reclaim-finalize.ts <slug>` (remove redirect entry + add slug to LIVE_PUBLISHED_SLUGS) + idempotent/validated edit unit tests keeping the collision guard green (BLOG-08)
 
 ### Phase 14: Cadence, Dedupe & Monitoring
 **Goal**: The engine runs on a sustainable schedule with dedupe and observability.
@@ -96,5 +100,5 @@ Plans:
 | 10 — RAG Knowledge Base | Complete | store live + 10 chunks loaded/verified |
 | 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
 | 12 — Quality & Brand Guardrails | Complete | judge gate + /admin/blog approve-reject + byline lock + E2E; 30 unit tests |
-| 13 — SEO-01 Reclaim Integration | Not started | TBD |
+| 13 — SEO-01 Reclaim Integration | Planned | 2 plans (--slug override + reclaim-queue; reclaim-finalize + guard) |
 | 14 — Cadence, Dedupe & Monitoring | Not started | TBD |
