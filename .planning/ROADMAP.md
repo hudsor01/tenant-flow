@@ -91,6 +91,10 @@ Plans:
 **Success Criteria**:
   1. A schedule (e.g., a few posts/week) generates drafts without duplicating existing/published slugs.
   2. Execution monitoring + failure alerts are in place (reuse the critical-error notify path); runaway/cost guards documented.
+**Plans:** 2 plans
+Plans:
+- [ ] 14-01-PLAN.md — generator pre-POST slug-dedup check (existing slug → clean-skip exit 0, no 409 waste; 409 stays backstop) + structured `BLOG-GEN-FAIL: <reason>` failure output + unit tests for both dedup branches + the failure line (BLOG-09)
+- [ ] 14-02-PLAN.md — committed EVERGREEN_TOPICS const (secondary topic source after RECLAIM_QUEUE) + drift-guard test, and n8n/README.md refined cadence (few posts/week, reclaim-then-evergreen) + Error-Trigger notify wiring (app_config `blog_factory_alert_url`, no secret in source) + runaway/cost guard docs (BLOG-09)
 
 ## Progress
 
@@ -101,4 +105,4 @@ Plans:
 | 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
 | 12 — Quality & Brand Guardrails | Complete | judge gate + /admin/blog approve-reject + byline lock + E2E; 30 unit tests |
 | 13 — SEO-01 Reclaim Integration | Complete | 2 plans (--slug override + reclaim-queue; reclaim-finalize codemod + guard); 19+ unit tests |
-| 14 — Cadence, Dedupe & Monitoring | Not started | TBD |
+| 14 — Cadence, Dedupe & Monitoring | Planned | 2 plans (generator dedup + BLOG-GEN-FAIL output; evergreen const + n8n cadence/error-workflow/guard docs) |
