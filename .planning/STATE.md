@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: AI Blog Content Engine
-status: "v5.0 COMPLETE — all 6 phases (9-14) built. Phases 9-13 MERGED (PR #792, #796, #797 → main); Phase 14 built on gsd/phase-14-cadence-dedupe-monitoring, ready for PR."
-last_updated: "2026-06-10T03:30:00.000Z"
-last_activity: 2026-06-10 -- Phase 14 executed (slug dedup + BLOG-GEN-FAIL + EVERGREEN_TOPICS + n8n docs)
+status: "v5.0 SHIPPED + ARCHIVED (2026-06-10) — all 6 phases (9-14) merged (#792, #796, #797, #798). Milestone archived to milestones/v5.0-*; tag v5.0. No active milestone — run /gsd-new-milestone."
+last_updated: "2026-06-10T03:40:00.000Z"
+last_activity: 2026-06-10 -- v5.0 milestone completed + archived
 progress:
   total_phases: 6
   completed_phases: 6
