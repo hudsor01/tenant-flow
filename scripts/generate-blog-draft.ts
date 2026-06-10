@@ -84,9 +84,38 @@ interface Draft {
 	content: string;
 }
 
+// Greppable failure contract (BLOG-09b): every fail() writes a
+// `BLOG-GEN-FAIL: <reason>` line so an n8n Execute Command run log can be grepped
+// for the cause of a failed scheduled run.
+export function formatGenFailure(reason: string): string {
+	return `BLOG-GEN-FAIL: ${reason}`;
+}
+
 function fail(msg: string): never {
-	console.error(msg);
+	console.error(formatGenFailure(msg));
 	process.exit(1);
+}
+
+// The result shape of the slug-existence probe (a PostgREST select on the slug
+// column). Decoupled from the deeply-generic Supabase client type so the unit
+// test supplies a tiny fake without `as unknown as` and TS doesn't recurse into
+// the builder generics.
+type SlugProbeResult = { data: unknown; error: { message: string } | null };
+
+// Pre-POST dedup probe (BLOG-09a): true when public.blogs already has a row at
+// this slug (ANY status). `probe` runs a read-only SELECT of the slug column only
+// — never widened to a write or PII (threat T-14-01). Throws on a PostgREST error
+// (so main() routes it through fail()), never silently returns false. main()
+// passes a closure over the real service client.
+export async function blogSlugExists(
+	probe: (slug: string) => PromiseLike<SlugProbeResult>,
+	slug: string,
+): Promise<boolean> {
+	const { data, error } = await probe(slug);
+	if (error) {
+		throw new Error(`blogSlugExists: ${error.message}`);
+	}
+	return ((data ?? []) as { slug: string }[]).length > 0;
 }
 
 // Byte-match the DB trigger + EF word count (no trim/filter) so a draft that
@@ -672,6 +701,20 @@ STRICT requirements:
 	if (dryRun) {
 		console.log(
 			`\nDRY RUN — 9 gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
+		);
+		return;
+	}
+
+	// 3c. dedupe (BLOG-09a): skip cleanly if a post already exists at this slug
+	// (any status) — avoids burning a full local-LLM generation into the ingest
+	// EF's 409 backstop on a scheduled re-run. The 409 stays as defense-in-depth.
+	const slugExists = await blogSlugExists(
+		(s) => supabase.from("blogs").select("slug").eq("slug", s).limit(1),
+		draft.slug,
+	);
+	if (slugExists) {
+		console.log(
+			`slug "${draft.slug}" already exists in public.blogs — skipping (no POST).`,
 		);
 		return;
 	}
