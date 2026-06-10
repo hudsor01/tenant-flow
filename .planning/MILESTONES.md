@@ -1,5 +1,24 @@
 # Milestones
 
+## v5.0 AI Blog Content Engine (Shipped: 2026-06-10)
+
+**Phases:** 6 (9-14) | **Plans:** 14 | **Requirements:** 9/9 (BLOG-01..09)
+**Timeline:** 2026-06-07 → 2026-06-10 | **Git range:** `339d9e4bb..81a08d82b` (54 commits)
+**PRs:** #792 (foundation + Phases 9-11) · #796 (Phase 12) · #797 (Phase 13) · #798 (Phase 14)
+**Archive:** [`milestones/v5.0-ROADMAP.md`](milestones/v5.0-ROADMAP.md) · [`milestones/v5.0-REQUIREMENTS.md`](milestones/v5.0-REQUIREMENTS.md)
+
+### Delivered
+
+A local-LLM (LM Studio on the M5 Pro) + RAG n8n pipeline that drafts brand-positive, judge-gated, E-E-A-T-credible blog posts into `n8n-blog-ingest` as `status='in-review'` drafts for human approval at `/admin/blog`, executes the SEO-01 ghost-slug reclaim, and self-schedules with pre-POST dedup + `BLOG-GEN-FAIL` alerts + cost guards. Flow: local Mistral-Small-3.2-24B + RAG (pgvector) → 9 gates → LLM-as-judge (fail-closed) → in-review → approve → published → SEO reclaim → scheduled. Every phase passed multi-cycle adversarial perfect-PR review; cycle-2 of the Phase-12 review caught and fixed a **live prod incident** (an RLS policy referencing `is_admin()` raised 42501 on every anonymous `blogs` read, breaking `/blog`/sitemap/feed).
+
+### Key Accomplishments
+- **Local-LLM RAG generation** (Phases 9-11): native n8n → LM Studio (`mistral-small-3.2-24b`, Apache 2.0) + qwen3-embedding → pgvector; `generate-blog-draft.ts` produces 9-gate-passing drafts; first 1,410-word draft MCP-verified.
+- **Quality guardrails** (Phase 12): Mistral LLM-as-judge gate (4-dim, fail-closed — never POSTs a rejected draft) + `/admin/blog` approve/reject (RLS + defense-in-depth `is_admin` re-check) + E-E-A-T Organization byline.
+- **SEO-01 reclaim** (Phase 13): `--slug` regenerate-at-exact-ghost-URL + drift-guarded top-10 `RECLAIM_QUEUE` + a safe idempotent `reclaim-finalize` codemod. Closed the carried-over v4.0 SEO-01 item.
+- **Sustainability** (Phase 14): pre-POST slug dedup (clean-skip) + greppable `BLOG-GEN-FAIL` + `EVERGREEN_TOPICS` + documented few-posts/week cadence, Error-Trigger alerts, and runaway/cost guards.
+
+---
+
 ## v3.0 Security Hardening (Shipped: 2026-06-02)
 
 **Phases:** 3 (1-3) | **Plans:** 5 | **Requirements:** 12/12 satisfied
