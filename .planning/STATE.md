@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: AI Blog Content Engine
 status: executing
-last_updated: "2026-06-09T02:30:00.000Z"
+last_updated: "2026-06-09T14:55:00.000Z"
 last_activity: 2026-06-09
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 50
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
+  percent: 67
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v5.0):** A local-LLM (LM Studio on the M5) + RAG n8n pipeline that drafts brand-positive, fact-grounded, E-E-A-T-credible blog posts into `n8n-blog-ingest` as `in-review` drafts for human approval — and uses it to execute the SEO-01 reclaim. Quality bar: genuinely helpful landlord content featuring TenantFlow naturally, never penalized AI spam.
-**Current focus:** Phase 11 COMPLETE — full pipeline produced a real in-review draft end-to-end (HTTP 201, MCP-verified). Plan Phase 12 (Quality & Brand Guardrails) — `/gsd-plan-phase 12`.
+**Current focus:** Phase 12 COMPLETE — judge gate + /admin/blog approve-reject surface + E-E-A-T byline. Foundation (Phases 9-11) merged to main via PR #792. Next: Phase 13 (SEO-01 Reclaim) — `/gsd-plan-phase 13`.
 
 ## Current Position
 
-Phase: 11 of 14 COMPLETE → next is Phase 12 (Quality & Brand Guardrails) — v5.0 (50% of milestone)
-Plan: 09 + 10 + 11 complete. `scripts/generate-blog-draft.ts` (RAG→Mistral→validate/repair+banlist-sanitizer→HMAC→ingest) → real draft `tenant-screening-tips-for-new-landlords` in `blogs` status='in-review' (1,410 words, 8 H2, banlist-clean).
-Status: engine + ingest proven end-to-end; ready to plan Phase 12
-Last activity: 2026-06-09
+Phase: 12 of 14 COMPLETE → next is Phase 13 (SEO-01 Reclaim Integration) — v5.0 (67% of milestone)
+Plan: 09-12 complete. Phase 12 (branch gsd/phase-12-quality-brand-guardrails): Mistral LLM-as-judge self-critique gate in the generator (4-dim score, regenerate/fail-closed before POST) + E-E-A-T prompt; /admin/blog approve-reject surface (is_admin-walled, blogs_update_admin RLS, revalidatePath); Organization byline regression-lock + E2E (non-admin redirect in CI, admin-approve skip-gated). 30 unit tests.
+Status: Phases 9-11 MERGED (PR #792 → main). Phase 12 built on its own branch, ready for PR + review.
+Last activity: 2026-06-09 -- Phase 12 executed
 
 **Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
 

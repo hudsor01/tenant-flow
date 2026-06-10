@@ -14,8 +14,8 @@
 - [x] **BLOG-03**: A curated TenantFlow fact corpus (from `llms-full.txt` — positioning, capabilities, pricing, comparisons) is embedded via `qwen3-embedding` (dim 1024) into pgvector (`blog_rag_chunks`, RLS-on, reads via `match_blog_rag_chunks`); 10 chunks loaded + verified. Cosine retrieval RPC live.
 - [x] **BLOG-04**: `scripts/generate-blog-draft.ts` emits structured output (json_schema) passing all 9 ingest gates + the `validate_blog_post` trigger, via a deterministic validate/repair loop (+ banlist sanitizer). Verified: a real 1,410-word, 8-H2, banlist-clean draft generated end-to-end.
 - [x] **BLOG-05**: The generator HMAC-signs (`x-n8n-signature`) + POSTs to `n8n-blog-ingest` → real draft landed with `status='in-review'` (HTTP 201, MCP-verified); no deploy fires on a draft. (EF migrated off the dead legacy service-role key to `INGEST_DB_KEY`; required `N8N_WEBHOOK_SECRET` EF secret.)
-- [ ] **BLOG-06**: Quality + brand guardrails — brand-voice system prompt, E-E-A-T conventions (Organization author "TenantFlow Team"), RAG-grounded facts only (no hallucinated specifics), and a self-critique/reranker pass that rejects thin or off-brand drafts before in-review.
-- [ ] **BLOG-07**: A human approve/reject workflow (leveraging `in-review` status; dashboard or n8n surface) — nothing publishes without the owner.
+- [x] **BLOG-06**: Quality + brand guardrails — E-E-A-T-hardened system prompt (first-hand framing, specific depth, RAG-grounding-only), Organization "TenantFlow Team" byline (regression-locked in article-schema.test.ts), and a Mistral LLM-as-judge self-critique gate scoring 4 dimensions that regenerates/fails-closed on thin/off-brand drafts before in-review.
+- [x] **BLOG-07**: Human approve/reject surface at `/admin/blog` (is_admin-walled (admin) group): in-review list + sanitized preview → Approve (→published + revalidate) / Reject (→archived) via the authenticated admin client (blogs_update_admin RLS + defense-in-depth is_admin re-check). Nothing publishes without an explicit Approve.
 - [ ] **BLOG-08**: SEO-01 reclaim — a topic queue seeded from the deleted high-impression ghost slugs (top-10 first) generates posts at the exact original slugs; on publish, the entry is removed from `src/lib/seo/blog-redirects.ts` and the collision-guard test stays green. (Closes the carried-over v4.0 SEO-01 item.)
 - [ ] **BLOG-09**: Cadence + observability — a sustainable schedule with slug dedupe, execution monitoring, and failure alerts (reuse the critical-error notify path); runaway/cost guards documented.
 
@@ -37,8 +37,8 @@
 | BLOG-03 | Phase 10 — RAG Knowledge Base | Done |
 | BLOG-04 | Phase 11 — Generation Pipeline | Done |
 | BLOG-05 | Phase 11 — Generation Pipeline | Done |
-| BLOG-06 | Phase 12 — Quality & Brand Guardrails | Pending |
-| BLOG-07 | Phase 12 — Quality & Brand Guardrails | Pending |
+| BLOG-06 | Phase 12 — Quality & Brand Guardrails | Done |
+| BLOG-07 | Phase 12 — Quality & Brand Guardrails | Done |
 | BLOG-08 | Phase 13 — SEO-01 Reclaim Integration | Pending |
 | BLOG-09 | Phase 14 — Cadence, Dedupe & Monitoring | Pending |
 

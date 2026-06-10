@@ -306,6 +306,197 @@ async function generate(
 	};
 }
 
+// --- LLM-as-judge self-critique gate (BLOG-07a). The 9 deterministic gates
+// catch STRUCTURE (word count, H2s, banlist); they cannot judge whether the
+// prose is genuinely helpful, on-brand, or grounded. The judge is that gate. ---
+const CRITIQUE_THRESHOLD = 4;
+const MAX_CRITIQUE = 2;
+const MAX_REPAIR = 4;
+
+interface Critique {
+	scores: {
+		brand_alignment: number;
+		helpfulness_depth: number;
+		factual_grounding: number;
+		not_thin: number;
+	};
+	issues: string[];
+	verdict: "pass" | "reject";
+}
+
+const JUDGE_SYSTEM = `You are a strict editorial judge for TenantFlow's landlord-only blog. Score the draft 1-5 on each dimension and return JSON only.
+- brand_alignment: landlord-only and on-brand; never implies rent-payment facilitation or a tenant portal (5 = perfectly on-brand).
+- helpfulness_depth: genuinely useful, specific, actionable for an experienced landlord (5 = teaches something concrete).
+- factual_grounding: every TenantFlow-specific claim is supported by the provided facts; no hallucinated features or prices (5 = fully grounded).
+- not_thin: substantial real substance, not AI-spam filler or generic platitudes (5 = dense with specifics).
+Set verdict to "reject" if ANY dimension would score below 4, otherwise "pass". List concrete, actionable issues to fix.`;
+
+function parseCritique(raw: unknown): Critique {
+	const o = raw as Record<string, unknown>;
+	const s = (o.scores ?? {}) as Record<string, unknown>;
+	const num = (v: unknown, k: string): number => {
+		if (typeof v !== "number") {
+			throw new Error(`critique score "${k}" is not a number`);
+		}
+		return v;
+	};
+	const verdict = o.verdict;
+	if (verdict !== "pass" && verdict !== "reject") {
+		throw new Error(`critique verdict invalid: ${String(verdict)}`);
+	}
+	return {
+		scores: {
+			brand_alignment: num(s.brand_alignment, "brand_alignment"),
+			helpfulness_depth: num(s.helpfulness_depth, "helpfulness_depth"),
+			factual_grounding: num(s.factual_grounding, "factual_grounding"),
+			not_thin: num(s.not_thin, "not_thin"),
+		},
+		issues: Array.isArray(o.issues) ? o.issues.map((i) => String(i)) : [],
+		verdict,
+	};
+}
+
+function isCritiquePass(c: Critique, threshold: number): boolean {
+	if (c.verdict !== "pass") return false;
+	return Object.values(c.scores).every((score) => score >= threshold);
+}
+
+async function critique(draft: Draft, facts: string): Promise<Critique> {
+	const r = await fetch(`${LM_BASE}/chat/completions`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			model: GEN_MODEL,
+			temperature: 0.2,
+			max_tokens: 1500,
+			messages: [
+				{ role: "system", content: JUDGE_SYSTEM },
+				{
+					role: "user",
+					content: `TenantFlow facts (the ONLY allowed source of TenantFlow specifics):\n${facts}\n\nDraft to judge:\nTITLE: ${draft.title}\n\n${draft.content}`,
+				},
+			],
+			response_format: {
+				type: "json_schema",
+				json_schema: {
+					name: "critique",
+					strict: true,
+					schema: {
+						type: "object",
+						properties: {
+							scores: {
+								type: "object",
+								properties: {
+									brand_alignment: { type: "integer" },
+									helpfulness_depth: { type: "integer" },
+									factual_grounding: { type: "integer" },
+									not_thin: { type: "integer" },
+								},
+								required: [
+									"brand_alignment",
+									"helpfulness_depth",
+									"factual_grounding",
+									"not_thin",
+								],
+								additionalProperties: false,
+							},
+							issues: { type: "array", items: { type: "string" } },
+							verdict: { type: "string", enum: ["pass", "reject"] },
+						},
+						required: ["scores", "issues", "verdict"],
+						additionalProperties: false,
+					},
+				},
+			},
+		}),
+		signal: AbortSignal.timeout(600_000),
+	});
+	if (!r.ok) {
+		throw new Error(`critique chat/completions ${r.status}: ${await r.text()}`);
+	}
+	const j = (await r.json()) as {
+		choices?: { message?: { content?: string } }[];
+	};
+	const content = j.choices?.[0]?.message?.content;
+	if (!content) throw new Error("critique returned no message content");
+	return parseCritique(JSON.parse(content));
+}
+
+// Generate a draft that passes the 9 deterministic gates (bounded repair loop).
+// Each repair REPLACES the prior turn so the system prompt + RAG facts never get
+// truncated out of the local model's finite context window.
+async function generateValidDraft(
+	messages: { role: string; content: string }[],
+	category: Category,
+): Promise<Draft> {
+	let repairTurn: { role: string; content: string }[] = [];
+	for (let attempt = 1; attempt <= MAX_REPAIR; attempt++) {
+		console.log(`Generating draft (attempt ${attempt}/${MAX_REPAIR})...`);
+		let d: Draft;
+		try {
+			d = await generate([...messages, ...repairTurn], category);
+		} catch (e) {
+			// a truncated/non-JSON response consumes a retry instead of aborting
+			console.log(`  generation error: ${e instanceof Error ? e.message : e}`);
+			if (attempt === MAX_REPAIR) {
+				fail(`Gave up after ${MAX_REPAIR} attempts (last: generation error).`);
+			}
+			continue;
+		}
+		// strip a leading H1 (the page renders its own title from `title`) —
+		// tolerate leading whitespace/blank lines; `#[^#]` avoids matching an H2
+		d.content = d.content.replace(/^\s*#[^#].*(?:\r?\n)+/, "");
+		// deterministically neutralize any banlist phrases the model slips in
+		d.content = sanitizeBanlist(d.content);
+		const failures = runGates(d);
+		console.log(
+			`  ${9 - failures.length}/9 gates  (${countWords(d.content)} words, "${d.title}")`,
+		);
+		if (failures.length === 0) return d;
+		console.log(`  failures: ${failures.map((f) => f.gate).join(", ")}`);
+		if (attempt === MAX_REPAIR) {
+			fail(
+				`Gave up after ${MAX_REPAIR} attempts. Remaining: ${failures.map((f) => `${f.gate} (${f.message})`).join("; ")}`,
+			);
+		}
+		repairTurn = [
+			{ role: "assistant", content: JSON.stringify(d) },
+			{
+				role: "user",
+				content: `Your draft failed these gates. Fix ALL of them and return the COMPLETE corrected JSON (same shape):\n${failures.map((f) => `- ${f.gate}: ${f.fix}`).join("\n")}`,
+			},
+		];
+	}
+	fail("no valid draft");
+}
+
+// LLM-as-judge quality gate (BLOG-07a). Run the judge; on reject, regenerate via
+// the provided callback (bounded by MAX_CRITIQUE), then THROW — fail closed, so a
+// judge-rejected draft is NEVER returned to the POST path. Exported so the
+// fail-closed path is unit-testable without spawning the CLI.
+export async function gateOnCritique(
+	initial: Draft,
+	facts: string,
+	regenerate: (rejected: Draft, issues: string[]) => Promise<Draft>,
+): Promise<Draft> {
+	let draft = initial;
+	let crit = await critique(draft, facts);
+	for (let round = 0; !isCritiquePass(crit, CRITIQUE_THRESHOLD); round++) {
+		console.log(
+			`  judge: REJECT (${Object.values(crit.scores).join("/")}) — ${crit.issues.slice(0, 3).join("; ")}`,
+		);
+		if (round >= MAX_CRITIQUE) {
+			throw new Error(
+				`Judge rejected after ${MAX_CRITIQUE + 1} rounds — not published. Issues: ${crit.issues.join("; ")}`,
+			);
+		}
+		draft = await regenerate(draft, crit.issues);
+		crit = await critique(draft, facts);
+	}
+	console.log(`  judge: PASS (${Object.values(crit.scores).join("/")})`);
+	return draft;
+}
+
 async function main() {
 	const dryRun = process.argv.includes("--dry-run");
 	const topic = process.argv[2];
@@ -358,6 +549,11 @@ async function main() {
 
 	// 2. build the prompt (prototype lessons: forbid banlist phrases + high word target)
 	const system = `You are a senior content writer for TenantFlow, landlord-only property management software operated by Hudson Digital Solutions. Write genuinely helpful, accurate, E-E-A-T-credible long-form articles for independent landlords (1-20 units). Authoritative and natural; never hypey or AI-spam. Feature TenantFlow only where it genuinely fits, grounded in the provided facts — never fabricate features.
+E-E-A-T CONVENTIONS:
+- Write from first-hand landlord-operator experience — what an experienced landlord actually does, step by step.
+- Prioritize specific actionable depth over generalities: name the documents, give concrete steps, dollar figures, and timelines.
+- Be authoritative without hype; cite no statistic or external claim unless it is general domain knowledge or present in the provided facts.
+- Every TenantFlow-specific capability, price, or positioning claim MUST be grounded in the provided facts block. If a fact is not in that block, do not assert it about TenantFlow.
 HARD RULES (a single violation rejects the article):
 - TenantFlow does NOT facilitate rent payments and is NOT a tenant portal. NEVER use these literal phrases: ${BANLIST.join(", ")}. If you need the idea, rephrase: "pay rent on time" -> "stay current on their lease" / "meet their rent obligations".
 - Mention "DocuSeal" at most once, total.
@@ -366,7 +562,7 @@ HARD RULES (a single violation rejects the article):
 Topic: ${topic}
 Category: ${category}
 
-TenantFlow facts (ground claims in these; do not invent others):
+TenantFlow facts (every TenantFlow-specific claim must be grounded in these; do not invent others):
 ${facts}
 
 STRICT requirements:
@@ -382,59 +578,29 @@ STRICT requirements:
 		{ role: "user", content: user },
 	];
 
-	// 3. generate + deterministic validate/repair (bounded). Each repair REPLACES
-	// the prior turn (only the latest draft + fix) so the system prompt + RAG
-	// facts never get truncated out of the local model's finite context window.
-	let draft: Draft | null = null;
-	let repairTurn: { role: string; content: string }[] = [];
-	const MAX = 4;
-	for (let attempt = 1; attempt <= MAX; attempt++) {
-		console.log(`Generating draft (attempt ${attempt}/${MAX})...`);
-		let d: Draft;
-		try {
-			d = await generate([...baseMessages, ...repairTurn], category);
-		} catch (e) {
-			// a truncated/non-JSON response consumes a retry instead of aborting
-			console.log(`  generation error: ${e instanceof Error ? e.message : e}`);
-			if (attempt === MAX) {
-				fail(`Gave up after ${MAX} attempts (last: generation error).`);
-			}
-			continue;
-		}
-		// strip a leading H1 (the page renders its own title from `title`) —
-		// tolerate leading whitespace/blank lines; `#[^#]` avoids matching an H2
-		d.content = d.content.replace(/^\s*#[^#].*(?:\r?\n)+/, "");
-		// deterministically neutralize any banlist phrases the model slips in
-		// (e.g. "paid rent" in a screening article) so that gate can't block us
-		d.content = sanitizeBanlist(d.content);
-		const failures = runGates(d);
-		console.log(
-			`  ${9 - failures.length}/9 gates  (${countWords(d.content)} words, "${d.title}")`,
-		);
-		if (failures.length === 0) {
-			draft = d;
-			break;
-		}
-		console.log(`  failures: ${failures.map((f) => f.gate).join(", ")}`);
-		if (attempt === MAX) {
-			fail(
-				`Gave up after ${MAX} attempts. Remaining: ${failures.map((f) => `${f.gate} (${f.message})`).join("; ")}`,
-			);
-		}
-		repairTurn = [
-			{ role: "assistant", content: JSON.stringify(d) },
-			{
-				role: "user",
-				content: `Your draft failed these gates. Fix ALL of them and return the COMPLETE corrected JSON (same shape):\n${failures.map((f) => `- ${f.gate}: ${f.fix}`).join("\n")}`,
-			},
-		];
-	}
-	if (!draft) fail("no valid draft");
+	// 3. generate a structurally-valid draft (the 9 gates), then run the
+	// LLM-as-judge quality gate (BLOG-07a): the gates catch structure; the judge
+	// catches thin/off-brand/ungrounded prose. Reject -> regenerate (bounded),
+	// then fail closed — never POST a judge-rejected draft.
+	let draft = await generateValidDraft(baseMessages, category);
+
+	draft = await gateOnCritique(draft, facts, (rejected, issues) =>
+		generateValidDraft(
+			[
+				...baseMessages,
+				{ role: "assistant", content: JSON.stringify(rejected) },
+				{
+					role: "user",
+					content: `An editorial judge REJECTED this draft on quality/brand/grounding. Fix these issues and return the COMPLETE corrected JSON (same shape), keeping every structural rule:\n${issues.map((i) => `- ${i}`).join("\n")}`,
+				},
+			],
+			category,
+		),
+	);
 
 	if (dryRun) {
-		const wc = countWords(draft.content);
 		console.log(
-			`\nDRY RUN — all 9 gates passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${wc}\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
+			`\nDRY RUN — 9 gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
 		);
 		return;
 	}
@@ -479,4 +645,10 @@ STRICT requirements:
 	}
 }
 
-main().catch((e) => fail(e instanceof Error ? e.message : String(e)));
+export type { Critique, Draft };
+export { critique, isCritiquePass, parseCritique };
+
+// run the CLI only when executed directly (not when imported by the unit test)
+if (process.argv[1]?.endsWith("generate-blog-draft.ts")) {
+	main().catch((e) => fail(e instanceof Error ? e.message : String(e)));
+}

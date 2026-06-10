@@ -29,6 +29,9 @@ const SERVICE_ROLE_KEY =
 	process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
 	process.env["SUPABASE_SECRET_KEY"];
 const ANON_KEY = process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"];
+const OWNER_EMAIL = process.env["E2E_OWNER_EMAIL"];
+const OWNER_PASSWORD = process.env["E2E_OWNER_PASSWORD"];
+const hasOwnerCreds = Boolean(OWNER_EMAIL && OWNER_PASSWORD);
 
 const skipReason = !SUPABASE_URL
 	? "NEXT_PUBLIC_SUPABASE_URL not set"
@@ -88,6 +91,7 @@ describe.skipIf(skipReason)(
 	() => {
 		let service: SupabaseClient;
 		let anon: SupabaseClient;
+		let owner: SupabaseClient;
 		const insertedSlugs: string[] = [];
 
 		beforeAll(async () => {
@@ -97,6 +101,17 @@ describe.skipIf(skipReason)(
 			anon = createClient(SUPABASE_URL!, ANON_KEY!, {
 				auth: { persistSession: false, autoRefreshToken: false },
 			});
+			// Authenticated NON-admin owner — passes the (admin) layout's getUser
+			// but must still be denied in-review rows at the DB by the new policy.
+			owner = createClient(SUPABASE_URL!, ANON_KEY!, {
+				auth: { persistSession: false, autoRefreshToken: false },
+			});
+			if (hasOwnerCreds) {
+				await owner.auth.signInWithPassword({
+					email: OWNER_EMAIL!,
+					password: OWNER_PASSWORD!,
+				});
+			}
 
 			// Cleanup-on-rerun safeguard: clear any orphans from prior interrupted
 			// runs. Uses broad prefix `phase-6-rls-test-%` (no SLUG_SUFFIX) so the
@@ -360,5 +375,43 @@ describe.skipIf(skipReason)(
 			expect(readErr).toBeNull();
 			expect(data ?? []).toHaveLength(0);
 		});
+
+		// 42501 regression guard (migration 20260609194835): anon MUST read
+		// published rows WITHOUT error. A combined `status='published' OR
+		// is_admin()` policy broke this — anon cannot EXECUTE is_admin() (revoked),
+		// so the function-privilege check raised 42501 on every anon blog read,
+		// breaking /blog, sitemap, and feed. The two-policy split (anon only
+		// evaluates the published predicate) keeps the public read working.
+		it("anon SELECT reads published rows without a 42501 error", async () => {
+			const { data, error: readErr } = await anon
+				.from("blogs")
+				.select("slug, status")
+				.eq("status", "published")
+				.limit(1);
+			expect(readErr).toBeNull();
+			expect(Array.isArray(data)).toBe(true);
+		});
+
+		// blogs_select_admin (migration 20260609194835): published to all + ALL
+		// rows to authenticated admins. A non-admin authenticated owner
+		// (is_admin() = false) must still be denied in-review rows — even though
+		// they clear the (admin) layout's getUser() check.
+		it.skipIf(!hasOwnerCreds)(
+			"authenticated non-admin owner SELECT excludes status='in-review' (RLS)",
+			async () => {
+				const slug = `${SLUG_PREFIX}-owner-hidden`;
+				const body = validBody({ slug });
+				insertedSlugs.push(slug);
+				const { error: insertErr } = await service.from("blogs").insert(body);
+				expect(insertErr).toBeNull();
+
+				const { data, error: readErr } = await owner
+					.from("blogs")
+					.select("slug, status")
+					.eq("slug", slug);
+				expect(readErr).toBeNull();
+				expect(data ?? []).toHaveLength(0);
+			},
+		);
 	},
 );

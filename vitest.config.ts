@@ -77,7 +77,10 @@ export default defineConfig({
 						"./src/test/msw-polyfill.ts",
 						"./src/test/unit-setup.ts",
 					],
-					include: ["src/**/*.{test,spec}.{ts,tsx}"],
+					include: [
+						"src/**/*.{test,spec}.{ts,tsx}",
+						"scripts/**/*.{test,spec}.{ts,tsx}",
+					],
 					exclude: [
 						"node_modules",
 						"dist",
@@ -101,6 +104,7 @@ export default defineConfig({
 							"**/__mocks__/**",
 							"src/types/**",
 							"tests/**",
+							"scripts/**",
 						],
 						thresholds: {
 							lines: 80,
