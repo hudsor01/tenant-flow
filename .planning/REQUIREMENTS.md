@@ -16,7 +16,7 @@
 - [x] **BLOG-05**: The generator HMAC-signs (`x-n8n-signature`) + POSTs to `n8n-blog-ingest` → real draft landed with `status='in-review'` (HTTP 201, MCP-verified); no deploy fires on a draft. (EF migrated off the dead legacy service-role key to `INGEST_DB_KEY`; required `N8N_WEBHOOK_SECRET` EF secret.)
 - [x] **BLOG-06**: Quality + brand guardrails — E-E-A-T-hardened system prompt (first-hand framing, specific depth, RAG-grounding-only), Organization "TenantFlow Team" byline (regression-locked in article-schema.test.ts), and a Mistral LLM-as-judge self-critique gate scoring 4 dimensions that regenerates/fails-closed on thin/off-brand drafts before in-review.
 - [x] **BLOG-07**: Human approve/reject surface at `/admin/blog` (is_admin-walled (admin) group): in-review list + sanitized preview → Approve (→published + revalidate) / Reject (→archived) via the authenticated admin client (blogs_update_admin RLS + defense-in-depth is_admin re-check). Nothing publishes without an explicit Approve.
-- [ ] **BLOG-08**: SEO-01 reclaim — a topic queue seeded from the deleted high-impression ghost slugs (top-10 first) generates posts at the exact original slugs; on publish, the entry is removed from `src/lib/seo/blog-redirects.ts` and the collision-guard test stays green. (Closes the carried-over v4.0 SEO-01 item.)
+- [x] **BLOG-08**: SEO-01 reclaim — a topic queue seeded from the deleted high-impression ghost slugs (top-10 first) generates posts at the exact original slugs; on publish, the entry is removed from `src/lib/seo/blog-redirects.ts` and the collision-guard test stays green. (Closes the carried-over v4.0 SEO-01 item.)
 - [ ] **BLOG-09**: Cadence + observability — a sustainable schedule with slug dedupe, execution monitoring, and failure alerts (reuse the critical-error notify path); runaway/cost guards documented.
 
 ## Out of Scope
@@ -39,7 +39,7 @@
 | BLOG-05 | Phase 11 — Generation Pipeline | Done |
 | BLOG-06 | Phase 12 — Quality & Brand Guardrails | Done |
 | BLOG-07 | Phase 12 — Quality & Brand Guardrails | Done |
-| BLOG-08 | Phase 13 — SEO-01 Reclaim Integration | Pending |
+| BLOG-08 | Phase 13 — SEO-01 Reclaim Integration | Complete |
 | BLOG-09 | Phase 14 — Cadence, Dedupe & Monitoring | Pending |
 
 **Coverage:** 9 requirements mapped to 6 phases (9-14), no orphans.
