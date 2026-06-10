@@ -10,13 +10,28 @@
 // -> /compare; (4) generic guide -> /blog.
 // See .planning/seo-audit/ANALYSIS-2026-05-29.md.
 //
-// REPUBLISH-RECLAIM (Hybrid plan, top-10 first): when a quality replacement is
-// published at one of these slugs, DELETE that entry so the new post serves
-// instead of redirecting.
+// REPUBLISH-RECLAIM: next.config.ts filters this map AT BUILD TIME against the
+// published slug set (filterActiveRedirects below), so a reclaimed slug 301
+// drops automatically on the next deploy after its post publishes — no manual
+// entry deletion required. scripts/reclaim-finalize.ts remains as optional
+// hygiene to permanently delete stale entries.
 
 export interface BlogRedirect {
 	readonly source: string;
 	readonly destination: string;
+}
+
+// Build-time filter: keep a ghost 301 ONLY while no published post exists at its
+// slug. Pure + unit-tested; next.config.ts calls it with the slug set fetched
+// from Supabase at build (fail-open to the full map when the fetch fails, so a
+// Supabase blip can never break the build or strand a redirect).
+export function filterActiveRedirects(
+	redirects: readonly BlogRedirect[],
+	publishedSlugs: ReadonlySet<string>,
+): BlogRedirect[] {
+	return redirects.filter(
+		(r) => !publishedSlugs.has(r.source.replace("/blog/", "")),
+	);
 }
 
 export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [

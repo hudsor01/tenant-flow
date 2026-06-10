@@ -138,13 +138,13 @@ Deno.test("n8n-blog-ingest: _setup clears orphan phase-6-deno- rows", async () =
 
 // ---------------------------------------------------------------------------
 
-Deno.test("n8n-blog-ingest: valid HMAC + valid payload returns 201 in-review", async () => {
+Deno.test("n8n-blog-ingest: valid HMAC + valid payload returns 201 published (auto-publish)", async () => {
 	const body = validBody(`valid-${Date.now()}`);
 	insertedSlugs.add(body.slug);
 
 	const { status, data } = await postSigned(body);
 	assertEquals(status, 201);
-	assertEquals(data.status, "in-review");
+	assertEquals(data.status, "published");
 	assertEquals(data.slug, body.slug);
 	assertExists(data.id);
 	assertEquals(data.blog_url, `${APP_URL}/blog/${body.slug}`);

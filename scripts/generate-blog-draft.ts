@@ -360,7 +360,10 @@ async function generate(
 // prose is genuinely helpful, on-brand, or grounded. The judge is that gate. ---
 const CRITIQUE_THRESHOLD = 4;
 const MAX_CRITIQUE = 2;
-const MAX_REPAIR = 4;
+// 6 attempts: word_count undershoot is the one remaining stochastic gate flake
+// (exec 188 burned 4/4 with 990 words); two extra rolls at ~3-5 min each still
+// fit the 30-min schedule spacing + overlap lock.
+const MAX_REPAIR = 6;
 
 interface Critique {
 	scores: {
