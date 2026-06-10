@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { DELETED_BLOG_REDIRECTS } from "../blog-redirects";
+import {
+	DELETED_BLOG_REDIRECTS,
+	filterActiveRedirects,
+} from "../blog-redirects";
 
 // The 9 live published slugs (prod public.blogs WHERE status='published',
 // 2026-05-29). A redirect whose source matches one of these would SHADOW the
@@ -85,5 +88,20 @@ describe("DELETED_BLOG_REDIRECTS", () => {
 				expect(destination === "/compare" || okLiveBlog).toBe(true);
 			}
 		}
+	});
+});
+
+describe("filterActiveRedirects (build-time reclaim filter)", () => {
+	it("drops a redirect whose slug has a published post, keeps the rest", () => {
+		const sample = DELETED_BLOG_REDIRECTS.slice(0, 3);
+		const reclaimed = sample[0]?.source.replace("/blog/", "") ?? "";
+		const out = filterActiveRedirects(sample, new Set([reclaimed]));
+		expect(out.length).toBe(sample.length - 1);
+		expect(out.some((r) => r.source === sample[0]?.source)).toBe(false);
+	});
+
+	it("keeps the full map when nothing is published (fail-open input)", () => {
+		const out = filterActiveRedirects(DELETED_BLOG_REDIRECTS, new Set());
+		expect(out.length).toBe(DELETED_BLOG_REDIRECTS.length);
 	});
 });

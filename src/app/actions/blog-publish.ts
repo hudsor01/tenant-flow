@@ -16,8 +16,11 @@ import type { Database } from "#types/supabase";
  * UPDATE at the DB. The service role is NEVER imported here — every write
  * crosses RLS as the signed-in admin.
  *
- * Nothing publishes without an explicit admin Approve click: status='published'
- * is set in exactly one place (publishBlogPost).
+ * Role note: the blog factory AUTO-PUBLISHES via the n8n-blog-ingest Edge
+ * Function (the 9 gates + the generator's fail-closed LLM-as-judge are the
+ * review). This surface is the manual OVERRIDE: approve any row parked
+ * in-review and, more importantly, reject/archive a published post after the
+ * fact.
  */
 
 export type BlogActionResult = { ok: true } | { ok: false; error: string };

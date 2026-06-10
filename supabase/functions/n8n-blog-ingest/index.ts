@@ -8,14 +8,15 @@
 // preflight gates only exist to fail fast with structured error responses and to
 // keep load off the DB on obviously-broken payloads).
 //
-// On success: INSERT into `public.blogs` with `status='in-review'` (service-role
-// client; this endpoint bypasses RLS — HMAC is the auth boundary). Optional
+// On success: INSERT into `public.blogs` with `status='published'` + a
+// `published_at` stamp (service-role client; this endpoint bypasses RLS — HMAC is
+// the auth boundary; the gates + the generator's judge are the review). Optional
 // `canonical_url` from the payload threads into the new row's `canonical_url`
 // column (Blocker-#1 wiring; Plan 06-02's generateMetadata emits
 // <link rel="canonical"> when the column is non-null).
 //
 // Response shapes:
-//   201 — { id, slug, status: 'in-review', canonical_url, blog_url }
+//   201 — { id, slug, status: 'published', canonical_url, blog_url }
 //   400 — { error: 'malformed_json' | 'validation_failed', gate_failures?: [...] }
 //   401 — { error: 'unauthorized' }
 //   405 — { error: 'method_not_allowed' }
@@ -378,7 +379,7 @@ Deno.serve(async (req: Request) => {
 			category: payload.category,
 			meta_description: payload.meta_description,
 			featured_image: payload.og_image_url ?? null,
-			status: "in-review",
+			status: "published", published_at: new Date().toISOString(),
 		};
 		// Thread canonical_url into INSERT only when provided. Otherwise rely on
 		// the column DEFAULT (NULL) so generateMetadata() in Plan 06-02 omits the

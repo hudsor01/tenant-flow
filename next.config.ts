@@ -11,7 +11,37 @@ import type { NextConfig } from "next";
  */
 import "./src/env";
 // 301 map for the deleted Phase-1 blog catalogue (SEO ranking-equity recovery).
-import { DELETED_BLOG_REDIRECTS } from "./src/lib/seo/blog-redirects";
+import {
+	DELETED_BLOG_REDIRECTS,
+	filterActiveRedirects,
+} from "./src/lib/seo/blog-redirects";
+
+// Build-time fetch of the published blog slug set (anon PostgREST read — RLS
+// exposes only status=published). Used to drop ghost 301s whose slug has been
+// republished by the blog factory, so a reclaimed URL serves its new post on
+// the very next deploy with zero manual edits. FAIL-OPEN: any error returns
+// null and redirects() keeps the FULL map — a Supabase blip can never break
+// the build, worst case a reclaimed slug keeps 301ing until the next deploy.
+async function fetchPublishedBlogSlugs(): Promise<Set<string> | null> {
+	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+	if (!url || !key || url.includes("placeholder")) return null;
+	try {
+		const res = await fetch(
+			`${url}/rest/v1/blogs?select=slug&status=eq.published&limit=2000`,
+			{ headers: { apikey: key, Authorization: `Bearer ${key}` } },
+		);
+		if (!res.ok) return null;
+		const rows = (await res.json()) as { slug?: unknown }[];
+		return new Set(
+			rows
+				.map((r) => r.slug)
+				.filter((slug): slug is string => typeof slug === "string"),
+		);
+	} catch {
+		return null;
+	}
+}
 
 const nextConfig: NextConfig = {
 	output: "standalone",
@@ -110,7 +140,12 @@ const nextConfig: NextConfig = {
 			// accumulated Google ranking signal transfers instead of decaying on
 			// a bare 404. permanent: true emits 308 (Google treats as 301).
 			// See src/lib/seo/blog-redirects.ts for the map + reclaim notes.
-			...DELETED_BLOG_REDIRECTS.map((r) => ({
+			// Filtered at build time against the published slug set: a ghost slug
+			// whose post has been republished serves the post, not the 301.
+			...filterActiveRedirects(
+				DELETED_BLOG_REDIRECTS,
+				(await fetchPublishedBlogSlugs()) ?? new Set<string>(),
+			).map((r) => ({
 				source: r.source,
 				destination: r.destination,
 				permanent: true,
