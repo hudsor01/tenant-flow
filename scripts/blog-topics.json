@@ -1,560 +1,8 @@
 [
 	{
-		"topic": "Apartments.com vs RentRedi: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "apartments-com-vs-rentredi-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "AppFolio alternatives under $20/month for rental property management",
-		"category": "software-vault",
-		"slug": "appfolio-alternatives-under-20-month-for-rental-property-management",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "AppFolio alternatives under $25/month for first-time landlords",
-		"category": "software-vault",
-		"slug": "appfolio-alternatives-under-25-month-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "AppFolio vs Hemlane: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "appfolio-vs-hemlane-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Best property management software for commercial landlords",
-		"category": "software-vault",
-		"slug": "best-property-management-software-for-commercial-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Best property management software for remote landlords",
-		"category": "software-vault",
-		"slug": "best-property-management-software-for-remote-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Blockchain in real estate explained: a level-headed landlord's overview",
-		"category": "software-vault",
-		"slug": "blockchain-in-real-estate-explained-a-landlord-s-guide-to-the-future",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "The BRRRR method explained for multi-family property investors",
-		"category": "software-vault",
-		"slug": "brrrr-method-explained-for-property-investors-a-multi-family-investor-s-guide",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "The BRRRR method explained for remote landlords",
-		"category": "software-vault",
-		"slug": "brrrr-method-explained-for-remote-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Buildium alternatives under $40/month for first-time landlords",
-		"category": "software-vault",
-		"slug": "buildium-alternatives-under-40-month-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Buildium vs Landlord Studio: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "buildium-vs-landlord-studio-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Communication tools for long-distance landlords",
-		"category": "software-vault",
-		"slug": "communication-tools-for-distant-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to document property condition properly: a landlord's guide",
-		"category": "maintenance",
-		"slug": "documenting-property-condition-properly-a-landlord-s-guide-to-smart-rental-management",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "DoorLoop alternatives under $40/month for single-property owners",
-		"category": "software-vault",
-		"slug": "doorloop-alternatives-under-40-month-for-single-property-owners",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "DoorLoop review: is it worth the price for professional landlords?",
-		"category": "software-vault",
-		"slug": "doorloop-review-is-it-worth-the-price-for-professional-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Essential property management tips for small landlords",
-		"category": "software-vault",
-		"slug": "essential-property-management-tips-for-small-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Financial reports every landlord needs",
-		"category": "tax-prep",
-		"slug": "financial-reports-every-landlord-needs",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Free property management software options in 2025",
-		"category": "software-vault",
-		"slug": "free-property-management-software-options-in-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Handling inspection disputes with tenants: a landlord's guide",
-		"category": "maintenance",
-		"slug": "handling-inspection-disputes-with-tenants",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Hemlane alternatives under $25/month: property management software for landlords",
-		"category": "software-vault",
-		"slug": "hemlane-alternatives-under-25-month-best-property-management-software-for-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Hemlane review: is it worth the price for tech-savvy landlords?",
-		"category": "software-vault",
-		"slug": "hemlane-review-is-it-worth-the-price-for-tech-savvy-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to increase rental income by 5% as a single-property owner",
-		"category": "software-vault",
-		"slug": "how-to-increase-rental-income-by-5-as-a-single-property-owner",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to increase rental income by 50%: a realistic look at what it takes",
-		"category": "software-vault",
-		"slug": "how-to-increase-rental-income-by-50-without-losing-your-sanity",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to manage one rental property without expensive software",
-		"category": "software-vault",
-		"slug": "how-to-manage-1-rental-property-without-expensive-software",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to manage three rental properties without expensive property software",
-		"category": "software-vault",
-		"slug": "how-to-manage-3-rental-properties-without-expensive-property-software",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to manage 50 rental properties without expensive software",
-		"category": "software-vault",
-		"slug": "how-to-manage-50-rental-properties-without-expensive-software",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to scale from 10 to 20 rental properties: a commercial landlord's guide",
-		"category": "software-vault",
-		"slug": "how-to-scale-from-10-to-20-rental-properties-a-commercial-landlord-s-guide",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "How to scale from 3 to 6 rental properties",
-		"category": "software-vault",
-		"slug": "how-to-scale-from-3-to-6-rental-properties",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Scaling from 50 to 500 rental properties: what actually has to change",
-		"category": "software-vault",
-		"slug": "how-to-scale-from-50-to-500-rental-properties-without-losing-your-mind",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Innago vs Buildium: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "innago-vs-buildium-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Landlord Studio review: is it worth the price for first-time landlords?",
-		"category": "software-vault",
-		"slug": "landlord-studio-review-is-it-worth-the-price-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Landlord Studio vs ResMan: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "landlord-studio-vs-resman-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Landlord Studio vs SimplifyEm: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "landlord-studio-vs-simplifyem-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Managing contractors from a distance",
-		"category": "maintenance",
-		"slug": "managing-contractors-from-a-distance",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Photography tips for rental listings",
-		"category": "software-vault",
-		"slug": "photography-tips-for-rental-listings",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Property management for out-of-state landlords",
-		"category": "software-vault",
-		"slug": "property-management-for-out-of-state-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Propertyware vs ResMan: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "propertyware-vs-resman-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Propertyware vs SimplifyEm: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "propertyware-vs-simplifyem-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Propertyware vs Zillow Rental Manager: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "propertyware-vs-zillow-rental-manager-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Rent Manager alternatives under $100/month",
-		"category": "software-vault",
-		"slug": "rent-manager-alternatives-under-100-month",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Rent Manager pricing breakdown and hidden fees: what to know before you subscribe",
-		"category": "software-vault",
-		"slug": "rent-manager-pricing-breakdown-and-hidden-fees-what-you-need-to-know-before-you-subscribe",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Rent Manager vs ResMan: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "rent-manager-vs-resman-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Rentec Direct alternatives under $75/month for tech-savvy landlords",
-		"category": "software-vault",
-		"slug": "rentec-direct-alternatives-under-75-month-for-tech-savvy-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Rentec Direct vs Apartments.com: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "rentec-direct-vs-apartments-com-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Rentec Direct vs Avail: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "rentec-direct-vs-avail-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "RentRedi alternatives under $30/month for budget-conscious landlords",
-		"category": "software-vault",
-		"slug": "rentredi-alternatives-under-30-month-for-budget-conscious-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "RentRedi pricing breakdown and hidden fees: what every small landlord needs to know",
-		"category": "software-vault",
-		"slug": "rentredi-pricing-breakdown-and-hidden-fees-what-every-small-landlord-needs-to-know",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "ResMan vs Rent Manager: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "resman-vs-rent-manager-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Scaling from 10 to 100 rental properties: a landlord's growth blueprint",
-		"category": "software-vault",
-		"slug": "scaling-from-10-to-100-rental-properties-a-landlord-s-growth-blueprint",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Scaling from 10 to 20 rental properties: a self-managing landlord's guide",
-		"category": "software-vault",
-		"slug": "scaling-from-10-to-20-rental-properties-a-self-managing-landlord-s-guide",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Scaling from 5 to 15 rental properties: landlord tips for growth without burning out",
-		"category": "software-vault",
-		"slug": "scaling-from-5-to-15-rental-properties-landlord-tips-for-growth-without-burning-out",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Security systems for remote monitoring: essential tips for self-managing landlords",
-		"category": "maintenance",
-		"slug": "security-systems-for-remote-monitoring-essential-tips-for-self-managing-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "SimplifyEm pricing breakdown and hidden fees: what every property investor needs to know",
-		"category": "software-vault",
-		"slug": "simplifyem-pricing-breakdown-and-hidden-fees-what-every-property-investor-needs-to-know",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "SimplifyEm vs Avail: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "simplifyem-vs-avail-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Stessa vs AppFolio: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "stessa-vs-appfolio-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Stessa vs RentRedi: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "stessa-vs-rentredi-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Stessa vs SimplifyEm: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "stessa-vs-simplifyem-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Stessa vs TurboTenant: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "stessa-vs-turbotenant-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Tenant screening checklist for multi-family investors",
-		"category": "tenant-screening",
-		"slug": "tenant-screening-checklist-for-multi-family-investors",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TenantCloud alternatives under $40/month",
-		"category": "software-vault",
-		"slug": "tenantcloud-alternatives-under-40-month",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TenantCloud vs Stessa: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "tenantcloud-vs-stessa-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
 		"topic": "Coverage gaps landlords often miss and how to fix them with organized property management",
 		"category": "software-vault",
 		"slug": "tenantflow-coverage-gaps-landlords-often-miss-and-how-to-fix-them-with-smart-property-management",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TenantFlow pricing vs competitors: a beginner landlord's guide",
-		"category": "software-vault",
-		"slug": "tenantflow-pricing-vs-competitors-a-landlord-s-guide-for-beginners",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TenantFlow vs DoorLoop: a complete comparison for first-time landlords",
-		"category": "software-vault",
-		"slug": "tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TenantFlow vs Hemlane: a complete comparison for commercial landlords",
-		"category": "software-vault",
-		"slug": "tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TenantFlow vs Hemlane for commercial landlords: 2025 comparison",
-		"category": "software-vault",
-		"slug": "tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords-in-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Picking the one property management app you need as a first-time landlord",
-		"category": "software-vault",
-		"slug": "top-1-property-management-app-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Picking the one property management app you need as a single-property owner",
-		"category": "software-vault",
-		"slug": "top-1-property-management-app-for-single-property-owners",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 10 budget-friendly property management apps for multi-family investors",
-		"category": "software-vault",
-		"slug": "top-10-property-management-apps-for-multi-family-investors-budget-friendly-options",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 10 property management apps for single-property owners",
-		"category": "software-vault",
-		"slug": "top-10-property-management-apps-for-single-property-owners",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "100 property management apps for first-time landlords: the complete list",
-		"category": "software-vault",
-		"slug": "top-100-property-management-apps-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "100 property management apps for real estate beginners: the complete list",
-		"category": "software-vault",
-		"slug": "top-100-property-management-apps-for-real-estate-beginners",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "100 property management apps for self-managing landlords: the complete list",
-		"category": "software-vault",
-		"slug": "top-100-property-management-apps-for-self-managing-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 20 property management apps for DIY landlords",
-		"category": "software-vault",
-		"slug": "top-20-property-management-apps-for-diy-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 3 property management apps for commercial landlords",
-		"category": "software-vault",
-		"slug": "top-3-property-management-apps-for-commercial-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 3 property management apps for professional landlords",
-		"category": "software-vault",
-		"slug": "top-3-property-management-apps-for-professional-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 5 property management apps for DIY landlords",
-		"category": "software-vault",
-		"slug": "top-5-property-management-apps-for-diy-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 5 property management apps for first-time landlords",
-		"category": "software-vault",
-		"slug": "top-5-property-management-apps-for-first-time-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 5 remote-friendly property management apps for first-time landlords",
-		"category": "software-vault",
-		"slug": "top-5-property-management-apps-for-first-time-landlords-remote-friendly",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Top 5 property management apps for small landlords",
-		"category": "software-vault",
-		"slug": "top-5-property-management-apps-for-small-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "50 property management apps for small landlords: the complete list",
-		"category": "software-vault",
-		"slug": "top-50-property-management-apps-for-small-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "50 budget-friendly, easy-to-use property management apps for small landlords",
-		"category": "software-vault",
-		"slug": "top-50-property-management-apps-for-small-landlords-budget-friendly-easy-to-use",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "TurboTenant vs Apartments.com: a complete comparison for 2025",
-		"category": "software-vault",
-		"slug": "turbotenant-vs-apartments-com-complete-comparison-for-2025",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Using Zapier for property management",
-		"category": "software-vault",
-		"slug": "using-zapier-for-property-management",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Vendor management for property owners: a beginner's guide",
-		"category": "maintenance",
-		"slug": "vendor-management-for-property-owners-a-beginner-s-guide",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Why DIY landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
-		"category": "software-vault",
-		"slug": "why-tenantflow-is-the-best-choice-for-diy-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Why small landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
-		"category": "software-vault",
-		"slug": "why-tenantflow-is-the-best-choice-for-small-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Why tech-savvy landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
-		"category": "software-vault",
-		"slug": "why-tenantflow-is-the-best-choice-for-tech-savvy-landlords",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Yardi Breeze alternatives under $100/month for multi-family investors",
-		"category": "software-vault",
-		"slug": "yardi-breeze-alternatives-under-100-month-for-multi-family-investors",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Yardi Breeze vs AppFolio: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "yardi-breeze-vs-appfolio-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Yardi Breeze vs Zillow Rental Manager: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "yardi-breeze-vs-zillow-rental-manager-complete-comparison-for-2026",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Zillow Rental Manager alternatives under $50/month",
-		"category": "software-vault",
-		"slug": "zillow-rental-manager-alternatives-under-50-month",
-		"tier": "reclaim"
-	},
-	{
-		"topic": "Zillow Rental Manager vs TenantCloud: a complete comparison for 2026",
-		"category": "software-vault",
-		"slug": "zillow-rental-manager-vs-tenantcloud-complete-comparison-for-2026",
 		"tier": "reclaim"
 	},
 	{
@@ -570,6 +18,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "TenantFlow pricing vs competitors: a beginner landlord's guide",
+		"category": "software-vault",
+		"slug": "tenantflow-pricing-vs-competitors-a-landlord-s-guide-for-beginners",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "How to read credit utilization on a tenant credit report (and what high balances really signal)",
 		"category": "tenant-screening",
 		"slug": "reading-credit-utilization-on-tenant-credit-reports",
@@ -580,6 +34,12 @@
 		"category": "maintenance",
 		"slug": "spring-rental-maintenance-checklist",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "TenantFlow vs DoorLoop: a complete comparison for first-time landlords",
+		"category": "software-vault",
+		"slug": "tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Buildium vs AppFolio in 2026: which is overkill for landlords under 50 units?",
@@ -594,6 +54,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "TenantFlow vs Hemlane: a complete comparison for commercial landlords",
+		"category": "software-vault",
+		"slug": "tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Deducting property taxes on a rental: why Schedule E escapes the SALT cap",
 		"category": "tax-prep",
 		"slug": "rental-property-tax-deduction-schedule-e-salt-cap",
@@ -604,6 +70,12 @@
 		"category": "tenant-screening",
 		"slug": "collections-accounts-on-rental-applications-which-matter",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "TenantFlow vs Hemlane for commercial landlords: 2025 comparison",
+		"category": "software-vault",
+		"slug": "tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords-in-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Summer maintenance checklist for rentals: cooling systems, pests, and exterior upkeep",
@@ -618,6 +90,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Why DIY landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
+		"category": "software-vault",
+		"slug": "why-tenantflow-is-the-best-choice-for-diy-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Arizona security deposit law: the 1.5-month cap and the 14-business-day return rule for landlords",
 		"category": "lease-law",
 		"slug": "arizona-security-deposit-law-cap-and-14-business-day-return",
@@ -628,6 +106,12 @@
 		"category": "tax-prep",
 		"slug": "landlord-insurance-premium-deduction-schedule-e",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Why small landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
+		"category": "software-vault",
+		"slug": "why-tenantflow-is-the-best-choice-for-small-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Medical debt on a tenant credit report: why it should not sink an otherwise strong applicant",
@@ -642,6 +126,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Why tech-savvy landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
+		"category": "software-vault",
+		"slug": "why-tenantflow-is-the-best-choice-for-tech-savvy-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Hemlane vs DoorLoop for 2026: remote management support vs all-in-one depth",
 		"category": "software-vault",
 		"slug": "hemlane-vs-doorloop-2026-comparison",
@@ -652,6 +142,12 @@
 		"category": "lease-law",
 		"slug": "arkansas-security-deposit-law-two-month-cap-60-day-returns",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Apartments.com vs RentRedi: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "apartments-com-vs-rentredi-complete-comparison-for-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Is PMI deductible on a rental property? How mortgage insurance works on Schedule E",
@@ -666,6 +162,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "AppFolio alternatives under $20/month for rental property management",
+		"category": "software-vault",
+		"slug": "appfolio-alternatives-under-20-month-for-rental-property-management",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Winter maintenance checklist for rental properties: pipes, heat, and ice management",
 		"category": "maintenance",
 		"slug": "winter-rental-maintenance-checklist",
@@ -676,6 +178,12 @@
 		"category": "software-vault",
 		"slug": "innago-vs-tenantcloud-2026-comparison",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "AppFolio alternatives under $25/month for first-time landlords",
+		"category": "software-vault",
+		"slug": "appfolio-alternatives-under-25-month-for-first-time-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "California security deposit law: the new one-month cap under AB 12 and the 21-day return rule",
@@ -690,6 +198,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "AppFolio vs Hemlane: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "appfolio-vs-hemlane-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Chapter 7 vs Chapter 13 bankruptcy on a tenant credit report: timelines, signals, and screening responses",
 		"category": "tenant-screening",
 		"slug": "chapter-7-vs-chapter-13-bankruptcy-tenant-screening",
@@ -700,6 +214,12 @@
 		"category": "maintenance",
 		"slug": "freeze-prone-climate-rental-winterization-checklist",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Best property management software for commercial landlords",
+		"category": "software-vault",
+		"slug": "best-property-management-software-for-commercial-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Stessa vs Landlord Studio for 2026: finance-first tools compared for small landlords",
@@ -714,6 +234,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Best property management software for remote landlords",
+		"category": "software-vault",
+		"slug": "best-property-management-software-for-remote-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Deducting landlord-supplied utilities: gas, water, trash, and shared meters on Schedule E",
 		"category": "tax-prep",
 		"slug": "landlord-utilities-deduction-schedule-e",
@@ -724,6 +250,12 @@
 		"category": "tenant-screening",
 		"slug": "charge-offs-on-tenant-credit-reports",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Blockchain in real estate explained: a level-headed landlord's overview",
+		"category": "software-vault",
+		"slug": "blockchain-in-real-estate-explained-a-landlord-s-guide-to-the-future",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Hurricane season prep for rental properties: a landlord's pre-storm maintenance checklist",
@@ -738,6 +270,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "The BRRRR method explained for multi-family property investors",
+		"category": "software-vault",
+		"slug": "brrrr-method-explained-for-property-investors-a-multi-family-investor-s-guide",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Connecticut security deposit law: the two-month cap, senior tenant exception, and interest requirements",
 		"category": "lease-law",
 		"slug": "connecticut-security-deposit-law-two-month-cap-interest",
@@ -748,6 +286,12 @@
 		"category": "tax-prep",
 		"slug": "legal-accounting-fees-landlord-deduction",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "The BRRRR method explained for remote landlords",
+		"category": "software-vault",
+		"slug": "brrrr-method-explained-for-remote-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Reading late-payment patterns on a credit report: isolated slip vs chronic delinquency",
@@ -762,6 +306,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Buildium alternatives under $40/month for first-time landlords",
+		"category": "software-vault",
+		"slug": "buildium-alternatives-under-40-month-for-first-time-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Rentec Direct vs Yardi Breeze for 2026: legacy depth against modern simplicity",
 		"category": "software-vault",
 		"slug": "rentec-direct-vs-yardi-breeze-2026",
@@ -772,6 +322,12 @@
 		"category": "lease-law",
 		"slug": "delaware-security-deposit-law-one-month-cap-20-day-return",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Buildium vs Landlord Studio: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "buildium-vs-landlord-studio-complete-comparison-for-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Are eviction legal fees and court costs tax deductible for landlords?",
@@ -786,6 +342,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Communication tools for long-distance landlords",
+		"category": "software-vault",
+		"slug": "communication-tools-for-distant-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Humid-South rental maintenance: controlling mold, moisture, and termites year-round",
 		"category": "maintenance",
 		"slug": "humid-south-rental-mold-moisture-maintenance",
@@ -796,6 +358,12 @@
 		"category": "software-vault",
 		"slug": "rent-manager-vs-propertyware-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "How to document property condition properly: a landlord's guide",
+		"category": "maintenance",
+		"slug": "documenting-property-condition-properly-a-landlord-s-guide-to-smart-rental-management",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Florida security deposit law: no cap, the 15/30-day return rules, and the claim notice landlords must send",
@@ -810,6 +378,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "DoorLoop alternatives under $40/month for single-property owners",
+		"category": "software-vault",
+		"slug": "doorloop-alternatives-under-40-month-for-single-property-owners",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Why the credit score alone misleads landlords: reading the full report behind the number",
 		"category": "tenant-screening",
 		"slug": "why-credit-score-alone-misleads-landlords",
@@ -820,6 +394,12 @@
 		"category": "maintenance",
 		"slug": "rental-water-heater-maintenance-guide",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "DoorLoop review: is it worth the price for professional landlords?",
+		"category": "software-vault",
+		"slug": "doorloop-review-is-it-worth-the-price-for-professional-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "SimplifyEm vs Rentec Direct for 2026: which suits hands-on small landlords?",
@@ -834,6 +414,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Essential property management tips for small landlords",
+		"category": "software-vault",
+		"slug": "essential-property-management-tips-for-small-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Standard mileage vs actual expenses for landlord vehicle deductions, with log requirements",
 		"category": "tax-prep",
 		"slug": "standard-mileage-vs-actual-expenses-landlord-vehicle",
@@ -844,6 +430,12 @@
 		"category": "tenant-screening",
 		"slug": "student-loan-debt-on-rental-applications",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Financial reports every landlord needs",
+		"category": "tax-prep",
+		"slug": "financial-reports-every-landlord-needs",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Furnace maintenance for rentals: the pre-season tune-up that prevents winter no-heat calls",
@@ -858,6 +450,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Free property management software options in 2025",
+		"category": "software-vault",
+		"slug": "free-property-management-software-options-in-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Hawaii security deposit law: the one-month cap, pet deposit rules, and the 14-day return deadline",
 		"category": "lease-law",
 		"slug": "hawaii-security-deposit-law-one-month-cap-14-day-return",
@@ -868,6 +466,12 @@
 		"category": "tax-prep",
 		"slug": "home-office-deduction-landlords-exclusive-use",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Handling inspection disputes with tenants: a landlord's guide",
+		"category": "maintenance",
+		"slug": "handling-inspection-disputes-with-tenants",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Authorized user accounts: how they inflate an applicant credit profile and how to spot them",
@@ -882,6 +486,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Hemlane alternatives under $25/month: property management software for landlords",
+		"category": "software-vault",
+		"slug": "hemlane-alternatives-under-25-month-best-property-management-software-for-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "AppFolio vs Yardi Breeze for 2026: minimums, onboarding, and who they really serve",
 		"category": "software-vault",
 		"slug": "appfolio-vs-yardi-breeze-2026",
@@ -892,6 +502,12 @@
 		"category": "lease-law",
 		"slug": "idaho-security-deposit-law-21-day-return-deadline",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Hemlane review: is it worth the price for tech-savvy landlords?",
+		"category": "software-vault",
+		"slug": "hemlane-review-is-it-worth-the-price-for-tech-savvy-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Deducting advertising and listing costs when filling a rental vacancy",
@@ -906,6 +522,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "How to increase rental income by 5% as a single-property owner",
+		"category": "software-vault",
+		"slug": "how-to-increase-rental-income-by-5-as-a-single-property-owner",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Rental roof inspections: what to check twice a year and when to call a roofer",
 		"category": "maintenance",
 		"slug": "rental-roof-inspection-what-to-check",
@@ -916,6 +538,12 @@
 		"category": "software-vault",
 		"slug": "turbotenant-vs-zillow-rental-manager-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "How to increase rental income by 50%: a realistic look at what it takes",
+		"category": "software-vault",
+		"slug": "how-to-increase-rental-income-by-50-without-losing-your-sanity",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Illinois security deposit law: the Return Act's 30/45-day deadlines and when Chicago's RLTO applies",
@@ -930,6 +558,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "How to manage one rental property without expensive software",
+		"category": "software-vault",
+		"slug": "how-to-manage-1-rental-property-without-expensive-software",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Auto repossessions on a tenant credit report: severity, recency, and what to ask the applicant",
 		"category": "tenant-screening",
 		"slug": "auto-repossessions-on-tenant-credit-reports",
@@ -940,6 +574,12 @@
 		"category": "maintenance",
 		"slug": "rental-gutter-maintenance-ice-dams-foundation",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "How to manage three rental properties without expensive property software",
+		"category": "software-vault",
+		"slug": "how-to-manage-3-rental-properties-without-expensive-property-software",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Innago vs Avail for 2026: free landlord platforms compared feature by feature",
@@ -954,6 +594,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "How to manage 50 rental properties without expensive software",
+		"category": "software-vault",
+		"slug": "how-to-manage-50-rental-properties-without-expensive-software",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Can landlords deduct property management software and other subscriptions? Here's how",
 		"category": "tax-prep",
 		"slug": "property-management-software-subscription-deduction",
@@ -964,6 +610,12 @@
 		"category": "tenant-screening",
 		"slug": "foreclosure-on-rental-applicant-credit-report",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "How to scale from 10 to 20 rental properties: a commercial landlord's guide",
+		"category": "software-vault",
+		"slug": "how-to-scale-from-10-to-20-rental-properties-a-commercial-landlord-s-guide",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Sump pump maintenance for rentals: testing routines, battery backups, and flood prevention",
@@ -978,6 +630,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "How to scale from 3 to 6 rental properties",
+		"category": "software-vault",
+		"slug": "how-to-scale-from-3-to-6-rental-properties",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Iowa security deposit law: the two-month cap, 30-day return deadline, and allowable deductions",
 		"category": "lease-law",
 		"slug": "iowa-security-deposit-law-two-month-cap-30-day-return",
@@ -988,6 +646,12 @@
 		"category": "tax-prep",
 		"slug": "supplies-small-tools-landlord-deduction",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Scaling from 50 to 500 rental properties: what actually has to change",
+		"category": "software-vault",
+		"slug": "how-to-scale-from-50-to-500-rental-properties-without-losing-your-mind",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Disputed accounts and consumer statements on credit reports: how landlords should weigh them",
@@ -1002,6 +666,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Innago vs Buildium: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "innago-vs-buildium-complete-comparison-for-2026",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Landlord Studio vs TenantCloud for 2026: mobile-first vs browser-first management",
 		"category": "software-vault",
 		"slug": "landlord-studio-vs-tenantcloud-2026",
@@ -1012,6 +682,12 @@
 		"category": "lease-law",
 		"slug": "kansas-security-deposit-law-one-month-cap-30-day-return",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Landlord Studio review: is it worth the price for first-time landlords?",
+		"category": "software-vault",
+		"slug": "landlord-studio-review-is-it-worth-the-price-for-first-time-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Deducting part of your cell phone and internet as a landlord: the business-use split",
@@ -1026,6 +702,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Landlord Studio vs ResMan: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "landlord-studio-vs-resman-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Smoke and CO detector maintenance in rentals: testing schedules, placement, and expiration dates",
 		"category": "maintenance",
 		"slug": "rental-smoke-co-detector-maintenance-schedule",
@@ -1036,6 +718,12 @@
 		"category": "software-vault",
 		"slug": "stessa-vs-turbotenant-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Landlord Studio vs SimplifyEm: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "landlord-studio-vs-simplifyem-complete-comparison-for-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Kentucky security deposit law: URLTA jurisdictions, separate account rules, and return deadlines",
@@ -1050,6 +738,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Managing contractors from a distance",
+		"category": "maintenance",
+		"slug": "managing-contractors-from-a-distance",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "VantageScore vs FICO vs ResidentScore: which number your tenant screening report actually shows",
 		"category": "tenant-screening",
 		"slug": "vantagescore-vs-fico-vs-residentscore-screening-reports",
@@ -1060,6 +754,12 @@
 		"category": "maintenance",
 		"slug": "rental-garbage-disposal-maintenance-tenant-education",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Photography tips for rental listings",
+		"category": "software-vault",
+		"slug": "photography-tips-for-rental-listings",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "DoorLoop vs TenantCloud for 2026: comparing real value at the 10-unit mark",
@@ -1074,6 +774,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Property management for out-of-state landlords",
+		"category": "software-vault",
+		"slug": "property-management-for-out-of-state-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Amortizing loan points on a rental mortgage: deducting costs over the loan term",
 		"category": "tax-prep",
 		"slug": "amortizing-loan-points-rental-mortgage",
@@ -1084,6 +790,12 @@
 		"category": "tenant-screening",
 		"slug": "soft-pull-vs-hard-pull-tenant-screening",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Propertyware vs ResMan: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "propertyware-vs-resman-complete-comparison-for-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Window maintenance for rental properties: seals, screens, weep holes, and condensation",
@@ -1098,6 +810,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Propertyware vs SimplifyEm: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "propertyware-vs-simplifyem-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Maine security deposit law: the two-month cap and the 30-day return deadline (21 for tenancies at will)",
 		"category": "lease-law",
 		"slug": "maine-security-deposit-law-two-month-cap-return-deadlines",
@@ -1108,6 +826,12 @@
 		"category": "tax-prep",
 		"slug": "rental-closing-costs-deductible-amortized-basis",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Propertyware vs Zillow Rental Manager: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "propertyware-vs-zillow-rental-manager-complete-comparison-for-2026",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "A landlord walkthrough of credit report tradelines: account types, status codes, and account age",
@@ -1122,6 +846,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Rent Manager alternatives under $100/month",
+		"category": "software-vault",
+		"slug": "rent-manager-alternatives-under-100-month",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "AppFolio vs Rent Manager for 2026: an honest look for landlords who feel out-priced",
 		"category": "software-vault",
 		"slug": "appfolio-vs-rent-manager-2026",
@@ -1132,6 +862,12 @@
 		"category": "lease-law",
 		"slug": "maryland-security-deposit-law-45-day-return-interest",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Rent Manager pricing breakdown and hidden fees: what to know before you subscribe",
+		"category": "software-vault",
+		"slug": "rent-manager-pricing-breakdown-and-hidden-fees-what-you-need-to-know-before-you-subscribe",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Deducting repairs on Schedule E line 14: what qualifies as an ordinary repair",
@@ -1146,6 +882,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Rent Manager vs ResMan: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "rent-manager-vs-resman-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Driveway and walkway maintenance for rentals: sealing, crack repair, and trip-hazard liability",
 		"category": "maintenance",
 		"slug": "rental-driveway-walkway-maintenance-liability",
@@ -1156,6 +898,12 @@
 		"category": "software-vault",
 		"slug": "rentredi-vs-innago-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Rentec Direct alternatives under $75/month for tech-savvy landlords",
+		"category": "software-vault",
+		"slug": "rentec-direct-alternatives-under-75-month-for-tech-savvy-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Massachusetts security deposit law: the one-month cap, interest, receipts, and the strict 30-day return rule",
@@ -1170,6 +918,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Rentec Direct vs Apartments.com: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "rentec-direct-vs-apartments-com-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "What income documents to request with every application: building a standardized verification packet",
 		"category": "tenant-screening",
 		"slug": "standardized-income-verification-document-packet",
@@ -1180,6 +934,12 @@
 		"category": "maintenance",
 		"slug": "rental-irrigation-system-maintenance-guide",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Rentec Direct vs Avail: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "rentec-direct-vs-avail-complete-comparison-for-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Avail vs TenantCloud for 2026: which handles leases and documents better?",
@@ -1194,6 +954,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "RentRedi alternatives under $30/month for budget-conscious landlords",
+		"category": "software-vault",
+		"slug": "rentredi-alternatives-under-30-month-for-budget-conscious-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Schedule E line 19 'other expenses': legitimate write-offs landlords overlook",
 		"category": "tax-prep",
 		"slug": "schedule-e-line-19-other-expenses-examples",
@@ -1204,6 +970,12 @@
 		"category": "tenant-screening",
 		"slug": "spotting-fake-paystubs-rental-applications",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "RentRedi pricing breakdown and hidden fees: what every small landlord needs to know",
+		"category": "software-vault",
+		"slug": "rentredi-pricing-breakdown-and-hidden-fees-what-every-small-landlord-needs-to-know",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Sewer line maintenance for rental properties: camera inspections, root intrusion, and backups",
@@ -1218,6 +990,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "ResMan vs Rent Manager: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "resman-vs-rent-manager-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Minnesota security deposit law: the 21-day return deadline, required interest, and itemization rules",
 		"category": "lease-law",
 		"slug": "minnesota-security-deposit-law-21-day-return-interest",
@@ -1228,6 +1006,12 @@
 		"category": "tax-prep",
 		"slug": "rental-depreciation-27-5-year-straight-line",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Scaling from 10 to 100 rental properties: a landlord's growth blueprint",
+		"category": "software-vault",
+		"slug": "scaling-from-10-to-100-rental-properties-a-landlord-s-growth-blueprint",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Using bank statements to verify applicant income: deposit patterns, averaging, and privacy boundaries",
@@ -1242,6 +1026,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Scaling from 10 to 20 rental properties: a self-managing landlord's guide",
+		"category": "software-vault",
+		"slug": "scaling-from-10-to-20-rental-properties-a-self-managing-landlord-s-guide",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Yardi Breeze vs Rent Manager for 2026: two heavyweights small landlords should question",
 		"category": "software-vault",
 		"slug": "yardi-breeze-vs-rent-manager-2026",
@@ -1252,6 +1042,12 @@
 		"category": "lease-law",
 		"slug": "mississippi-security-deposit-law-45-day-return-deadline",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Scaling from 5 to 15 rental properties: landlord tips for growth without burning out",
+		"category": "software-vault",
+		"slug": "scaling-from-5-to-15-rental-properties-landlord-tips-for-growth-without-burning-out",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "How to split land vs building value for depreciation (and defend it in an audit)",
@@ -1266,6 +1062,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Security systems for remote monitoring: essential tips for self-managing landlords",
+		"category": "maintenance",
+		"slug": "security-systems-for-remote-monitoring-essential-tips-for-self-managing-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "The real cost of skipping HVAC filter changes in your rental, plus a schedule that sticks",
 		"category": "maintenance",
 		"slug": "cost-of-skipping-hvac-filter-changes-rental",
@@ -1276,6 +1078,12 @@
 		"category": "software-vault",
 		"slug": "propertyware-vs-buildium-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "SimplifyEm pricing breakdown and hidden fees: what every property investor needs to know",
+		"category": "software-vault",
+		"slug": "simplifyem-pricing-breakdown-and-hidden-fees-what-every-property-investor-needs-to-know",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Missouri security deposit law: the two-month cap, 30-day return rule, and the final inspection right",
@@ -1290,6 +1098,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "SimplifyEm vs Avail: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "simplifyem-vs-avail-complete-comparison-for-2026",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Verifying self-employed applicant income: tax returns, 1099s, and profit-and-loss statements",
 		"category": "tenant-screening",
 		"slug": "verifying-self-employed-applicant-income",
@@ -1300,6 +1114,12 @@
 		"category": "maintenance",
 		"slug": "rental-caulk-grout-maintenance-schedule",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Stessa vs AppFolio: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "stessa-vs-appfolio-complete-comparison-for-2026",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "SimplifyEm vs Landlord Studio for 2026: lightweight tools for landlords under 10 units",
@@ -1314,6 +1134,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Stessa vs RentRedi: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "stessa-vs-rentredi-complete-comparison-for-2026",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Section 179 vs bonus depreciation for rental owners: the eligibility traps",
 		"category": "tax-prep",
 		"slug": "section-179-vs-bonus-depreciation-rentals",
@@ -1324,6 +1150,12 @@
 		"category": "tenant-screening",
 		"slug": "offer-letters-as-income-proof",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Stessa vs SimplifyEm: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "stessa-vs-simplifyem-complete-comparison-for-2026",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Roof lifespan by material: how maintenance stretches asphalt, metal, and tile on rentals",
@@ -1338,6 +1170,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Stessa vs TurboTenant: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "stessa-vs-turbotenant-complete-comparison-for-2026",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Nebraska security deposit law: the one-month cap, pet deposit allowance, and 14-day return deadline",
 		"category": "lease-law",
 		"slug": "nebraska-security-deposit-law-one-month-cap-14-day-return",
@@ -1348,6 +1186,12 @@
 		"category": "tax-prep",
 		"slug": "cost-segregation-small-landlords-when-worth-it",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Tenant screening checklist for multi-family investors",
+		"category": "tenant-screening",
+		"slug": "tenant-screening-checklist-for-multi-family-investors",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Screening gig workers: verifying rideshare and delivery income that changes every week",
@@ -1362,6 +1206,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "TenantCloud alternatives under $40/month",
+		"category": "software-vault",
+		"slug": "tenantcloud-alternatives-under-40-month",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Stessa vs Avail for 2026: which gap does each one leave in your landlord stack?",
 		"category": "software-vault",
 		"slug": "stessa-vs-avail-2026",
@@ -1372,6 +1222,12 @@
 		"category": "lease-law",
 		"slug": "nevada-security-deposit-law-three-month-cap-30-day-return",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "TenantCloud vs Stessa: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "tenantcloud-vs-stessa-complete-comparison-for-2025",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Depreciation recapture explained: the Section 1250 tax bill waiting when you sell",
@@ -1386,6 +1242,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Picking the one property management app you need as a first-time landlord",
+		"category": "software-vault",
+		"slug": "top-1-property-management-app-for-first-time-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Braided supply lines and angle stops: the quiet leak sources to replace on a schedule",
 		"category": "maintenance",
 		"slug": "braided-supply-lines-angle-stops-replacement-rentals",
@@ -1396,6 +1258,12 @@
 		"category": "software-vault",
 		"slug": "turbotenant-vs-avail-first-time-landlords-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Picking the one property management app you need as a single-property owner",
+		"category": "software-vault",
+		"slug": "top-1-property-management-app-for-single-property-owners",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "New Hampshire security deposit law: the one-month-or-100-dollar cap and the 30-day return deadline",
@@ -1410,6 +1278,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Top 10 budget-friendly property management apps for multi-family investors",
+		"category": "software-vault",
+		"slug": "top-10-property-management-apps-for-multi-family-investors-budget-friendly-options",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Qualifying applicants with seasonal or variable income: averaging methods that hold up",
 		"category": "tenant-screening",
 		"slug": "qualifying-applicants-with-seasonal-variable-income",
@@ -1420,6 +1294,12 @@
 		"category": "maintenance",
 		"slug": "ac-condensate-line-clog-prevention-rentals",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Top 10 property management apps for single-property owners",
+		"category": "software-vault",
+		"slug": "top-10-property-management-apps-for-single-property-owners",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "DoorLoop vs Innago for 2026: revisiting the matchup now that both have matured",
@@ -1434,6 +1314,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "100 property management apps for first-time landlords: the complete list",
+		"category": "software-vault",
+		"slug": "top-100-property-management-apps-for-first-time-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "The mid-month convention: how first-year and final-year rental depreciation is prorated",
 		"category": "tax-prep",
 		"slug": "mid-month-convention-rental-depreciation-proration",
@@ -1444,6 +1330,12 @@
 		"category": "tenant-screening",
 		"slug": "verifying-retirement-income-rental-applicants",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "100 property management apps for real estate beginners: the complete list",
+		"category": "software-vault",
+		"slug": "top-100-property-management-apps-for-real-estate-beginners",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Refrigerator coil cleaning and door gaskets: extending appliance life in rental units",
@@ -1458,6 +1350,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "100 property management apps for self-managing landlords: the complete list",
+		"category": "software-vault",
+		"slug": "top-100-property-management-apps-for-self-managing-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "New Mexico security deposit law: deposit limits on short leases, interest rules, and 30-day returns",
 		"category": "lease-law",
 		"slug": "new-mexico-security-deposit-law-limits-interest-30-day-return",
@@ -1468,6 +1366,12 @@
 		"category": "tax-prep",
 		"slug": "missed-depreciation-form-3115-fix",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Top 20 property management apps for DIY landlords",
+		"category": "software-vault",
+		"slug": "top-20-property-management-apps-for-diy-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Screening housing voucher applicants legally: source-of-income laws and the payment standard",
@@ -1482,6 +1386,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Top 3 property management apps for commercial landlords",
+		"category": "software-vault",
+		"slug": "top-3-property-management-apps-for-commercial-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "RentRedi vs DoorLoop for 2026: monthly cost, contracts, and feature overlap",
 		"category": "software-vault",
 		"slug": "rentredi-vs-doorloop-2026",
@@ -1492,6 +1402,12 @@
 		"category": "lease-law",
 		"slug": "new-york-security-deposit-law-hstpa-one-month-cap-14-day-return",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Top 3 property management apps for professional landlords",
+		"category": "software-vault",
+		"slug": "top-3-property-management-apps-for-professional-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Depreciating capital improvements separately from the building: a worked example",
@@ -1506,6 +1422,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Top 5 property management apps for DIY landlords",
+		"category": "software-vault",
+		"slug": "top-5-property-management-apps-for-diy-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Chimney and fireplace maintenance for rentals: sweep schedules, liners, and liability",
 		"category": "maintenance",
 		"slug": "rental-chimney-fireplace-maintenance-schedule",
@@ -1516,6 +1438,12 @@
 		"category": "software-vault",
 		"slug": "hemlane-vs-tenantcloud-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Top 5 property management apps for first-time landlords",
+		"category": "software-vault",
+		"slug": "top-5-property-management-apps-for-first-time-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "North Carolina security deposit law: tiered caps by tenancy length and the 30/60-day return rules",
@@ -1530,6 +1458,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Top 5 remote-friendly property management apps for first-time landlords",
+		"category": "software-vault",
+		"slug": "top-5-property-management-apps-for-first-time-landlords-remote-friendly",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "The 3x rent-to-income rule: where it came from, when it fails, and defensible alternatives",
 		"category": "tenant-screening",
 		"slug": "the-3x-rent-to-income-rule-and-alternatives",
@@ -1540,6 +1474,12 @@
 		"category": "maintenance",
 		"slug": "rental-tree-trimming-schedule-roof-sewer-storm",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Top 5 property management apps for small landlords",
+		"category": "software-vault",
+		"slug": "top-5-property-management-apps-for-small-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "TurboTenant vs RentRedi vs TenantFlow: which fits a 5-unit landlord in 2026?",
@@ -1554,6 +1494,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "50 property management apps for small landlords: the complete list",
+		"category": "software-vault",
+		"slug": "top-50-property-management-apps-for-small-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Form 4562 for landlords: when you must file it and how it ties to Schedule E",
 		"category": "tax-prep",
 		"slug": "form-4562-landlords-schedule-e",
@@ -1564,6 +1510,12 @@
 		"category": "tenant-screening",
 		"slug": "verifying-commission-based-income",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "50 budget-friendly, easy-to-use property management apps for small landlords",
+		"category": "software-vault",
+		"slug": "top-50-property-management-apps-for-small-landlords-budget-friendly-easy-to-use",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "A 12-month preventive maintenance calendar for single-family rental properties",
@@ -1578,6 +1530,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "TurboTenant vs Apartments.com: a complete comparison for 2025",
+		"category": "software-vault",
+		"slug": "turbotenant-vs-apartments-com-complete-comparison-for-2025",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Ohio security deposit law: 30-day returns, interest on large deposits, and double-damages risk",
 		"category": "lease-law",
 		"slug": "ohio-security-deposit-law-30-day-return-interest-damages",
@@ -1588,6 +1546,12 @@
 		"category": "tax-prep",
 		"slug": "inherited-rental-stepped-up-basis-depreciation",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Using Zapier for property management",
+		"category": "software-vault",
+		"slug": "using-zapier-for-property-management",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Income verification for applicants who earn in cash: bank deposits, tax returns, and employer letters",
@@ -1602,6 +1566,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Vendor management for property owners: a beginner's guide",
+		"category": "maintenance",
+		"slug": "vendor-management-for-property-owners-a-beginner-s-guide",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Stessa vs Landlord Studio vs TenantFlow: documents, leases, and reporting compared",
 		"category": "software-vault",
 		"slug": "stessa-vs-landlord-studio-vs-tenantflow",
@@ -1612,6 +1582,12 @@
 		"category": "lease-law",
 		"slug": "oklahoma-security-deposit-law-escrow-45-day-return",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Yardi Breeze alternatives under $100/month for multi-family investors",
+		"category": "software-vault",
+		"slug": "yardi-breeze-alternatives-under-100-month-for-multi-family-investors",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "What happens to depreciation when a rental sits idle or you stop renting it",
@@ -1626,6 +1602,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Yardi Breeze vs AppFolio: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "yardi-breeze-vs-appfolio-complete-comparison-for-2026",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Bathroom exhaust fan maintenance: the mold-prevention fix landlords keep ignoring",
 		"category": "maintenance",
 		"slug": "bathroom-exhaust-fan-maintenance-mold-prevention",
@@ -1636,6 +1618,12 @@
 		"category": "software-vault",
 		"slug": "avail-vs-innago-vs-tenantflow-2026",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Yardi Breeze vs Zillow Rental Manager: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "yardi-breeze-vs-zillow-rental-manager-complete-comparison-for-2026",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Oregon security deposit law: the 31-day return deadline and what counts as a lawful deduction",
@@ -1650,6 +1638,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Zillow Rental Manager alternatives under $50/month",
+		"category": "software-vault",
+		"slug": "zillow-rental-manager-alternatives-under-50-month",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Verifying military income: LES statements, BAH allowances, and what changes with PCS orders",
 		"category": "tenant-screening",
 		"slug": "verifying-military-income-les-bah",
@@ -1660,6 +1654,12 @@
 		"category": "maintenance",
 		"slug": "winterize-vacant-rental-property-checklist",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Zillow Rental Manager vs TenantCloud: a complete comparison for 2026",
+		"category": "software-vault",
+		"slug": "zillow-rental-manager-vs-tenantcloud-complete-comparison-for-2026",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Best Buildium alternatives for landlords with fewer than 20 units in 2026",

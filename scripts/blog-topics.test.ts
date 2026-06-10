@@ -147,10 +147,29 @@ describe("blog-topics.json bank", () => {
 		}
 	});
 
-	it("reclaim entries lead the bank (highest SEO value first)", () => {
-		const firstEvergreen = bank.findIndex((t) => t.tier === "evergreen");
-		const lastReclaim = bank.map((t) => t.tier).lastIndexOf("reclaim");
-		expect(firstEvergreen).toBeGreaterThan(0);
-		expect(lastReclaim).toBeLessThan(firstEvergreen);
+	// Ordering strategy: ~1 reclaim : 2 evergreen interleave so the blog grows as
+	// an expert landlord resource (not a comparison farm) while still working
+	// through the ranked ghost slugs early; TenantFlow-explicit reclaims lead for
+	// brand visibility from day one.
+	it("opens with a TenantFlow-explicit reclaim entry", () => {
+		const first = bank[0];
+		expect(first?.tier).toBe("reclaim");
+		expect(first?.slug).toContain("tenantflow");
+	});
+
+	it("keeps every reclaim entry (93) and finishes them within the first 300 posts", () => {
+		const reclaimCount = bank.filter((t) => t.tier === "reclaim").length;
+		expect(reclaimCount).toBe(93);
+		expect(bank.map((t) => t.tier).lastIndexOf("reclaim")).toBeLessThan(300);
+	});
+
+	it("interleaves reclaim with evergreen (never three reclaim in a row)", () => {
+		for (let i = 2; i < bank.length; i++) {
+			const run =
+				bank[i]?.tier === "reclaim" &&
+				bank[i - 1]?.tier === "reclaim" &&
+				bank[i - 2]?.tier === "reclaim";
+			expect(run, `reclaim run at index ${i}`).toBe(false);
+		}
 	});
 });
