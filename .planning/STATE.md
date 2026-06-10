@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: AI Blog Content Engine
-status: "Phases 9-11 MERGED (PR #792 → main). Phase 12 + Phase 13 (plans 01-02) built on branches, ready for PR + review."
-last_updated: "2026-06-10T02:32:00.000Z"
-last_activity: 2026-06-10 -- Phase 13 plan 02 executed (reclaim-finalize script + tests)
+status: "v5.0 COMPLETE — all 6 phases (9-14) built. Phases 9-13 MERGED (PR #792, #796, #797 → main); Phase 14 built on gsd/phase-14-cadence-dedupe-monitoring, ready for PR."
+last_updated: "2026-06-10T03:30:00.000Z"
+last_activity: 2026-06-10 -- Phase 14 executed (slug dedup + BLOG-GEN-FAIL + EVERGREEN_TOPICS + n8n docs)
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 12
-  completed_plans: 8
-  percent: 17
+  completed_phases: 6
+  total_plans: 14
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v5.0):** A local-LLM (LM Studio on the M5) + RAG n8n pipeline that drafts brand-positive, fact-grounded, E-E-A-T-credible blog posts into `n8n-blog-ingest` as `in-review` drafts for human approval — and uses it to execute the SEO-01 reclaim. Quality bar: genuinely helpful landlord content featuring TenantFlow naturally, never penalized AI spam.
-**Current focus:** Phase 12 COMPLETE — judge gate + /admin/blog approve-reject surface + E-E-A-T byline. Foundation (Phases 9-11) merged to main via PR #792. Next: Phase 13 (SEO-01 Reclaim) — `/gsd-plan-phase 13`.
+**Current focus:** v5.0 COMPLETE — all 6 phases (9-14) built. Phases 9-13 merged (#792, #796, #797). Phase 14 on gsd/phase-14-cadence-dedupe-monitoring, ready for PR. Next: merge Phase 14 → `/gsd-complete-milestone v5.0`.
 
 ## Current Position
 
-Phase: 13 of 14 IN PROGRESS (plans 13-01, 13-02 complete; 13-03 remaining) — v5.0
-Plan: 09-12 + 13-01 + 13-02 complete. Phase 13 (branch gsd/phase-13-seo-01-reclaim-integration): 13-01 = generator `--slug <ghost-slug>` override + seeded top-10 RECLAIM_QUEUE (drift-guarded against DELETED_BLOG_REDIRECTS). 13-02 = `scripts/reclaim-finalize.ts <slug>` deterministic two-file codemod (removes the slug's DELETED_BLOG_REDIRECTS entry + adds it to LIVE_PUBLISHED_SLUGS) — idempotent, slug-validated, typo-guarded; 19 unit tests incl. a real-file round-trip net proving blog-redirects.test.ts stays green.
-Status: Phases 9-11 MERGED (PR #792 → main). Phase 12 + Phase 13 (plans 01-02) built on branches, ready for PR + review.
-Last activity: 2026-06-10 -- Phase 13 plan 02 executed (reclaim-finalize script + tests)
+Phase: 14 of 14 COMPLETE — v5.0 (100%, all BLOG-01..09 done)
+Plan: 09-14 complete. Phase 14 (branch gsd/phase-14-cadence-dedupe-monitoring): 14-01 = pre-POST `blogSlugExists` dedup (existing slug → clean skip exit 0, no 409 waste; probe-closure decoupled from the deep SupabaseClient type) + greppable `BLOG-GEN-FAIL: <reason>` output via exported `formatGenFailure`. 14-02 = `EVERGREEN_TOPICS` secondary topic source (drift-guarded) + n8n/README.md refined cadence (few/week, reclaim-then-evergreen) + Error-Trigger notify wiring (`app_config` key `n8n.webhook.blog_factory_alert_url`) + runaway/cost guards.
+Status: Phases 9-13 MERGED → main. Phase 14 built on its branch, ready for PR + review. The full engine: local-LLM RAG → judge-gated draft → in-review → /admin/blog approve → published → SEO reclaim → self-scheduled with dedup + alerts.
+Last activity: 2026-06-10 -- Phase 14 executed (slug dedup + BLOG-GEN-FAIL + EVERGREEN_TOPICS + n8n docs)
 
 **Runtime fact:** n8n runs NATIVELY (node@22, `bash n8n/start-native.sh`, reuses n8n/data) — NOT Docker. colima's network blocks container→host, so Docker/colima were abandoned + stopped. LLM base URL `http://localhost:1234/v1`, model `mistral-small-3.2-24b-instruct-2506-mlx`.
 

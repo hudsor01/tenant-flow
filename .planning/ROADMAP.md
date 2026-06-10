@@ -17,7 +17,7 @@
 - [x] **Phase 11: Generation Pipeline** — DONE: generate-blog-draft.ts (topic→RAG→Mistral→validate/repair+banlist-sanitizer→HMAC→ingest) produced a real 1,410-word in-review draft (HTTP 201, MCP-verified). Fixed the ingest EF's dead legacy key (→INGEST_DB_KEY) + N8N_WEBHOOK_SECRET (BLOG-04, BLOG-05)
 - [x] **Phase 12: Quality & Brand Guardrails** — DONE: Mistral LLM-as-judge self-critique gate (4-dim score, regenerate/fail-closed) + E-E-A-T prompt hardening + /admin/blog approve-reject surface (is_admin-walled, RLS, revalidate) + Organization byline regression-lock + E2E. 30 unit tests (BLOG-06, BLOG-07)
 - [x] **Phase 13: SEO-01 Reclaim Integration** — ghost-slug queue, generate-at-slug, auto-drop redirect on publish; closes SEO-01 (BLOG-08) (completed 2026-06-10)
-- [ ] **Phase 14: Cadence, Dedupe & Monitoring** — schedule, dedupe, observability + failure alerts (BLOG-09)
+- [x] **Phase 14: Cadence, Dedupe & Monitoring** — DONE: pre-POST slug dedup (clean-skip, no 409 waste) + greppable BLOG-GEN-FAIL output + EVERGREEN_TOPICS secondary source + n8n/README cadence/error-workflow/cost-guard docs. CLOSES v5.0 (BLOG-09)
 
 ## Phase Details (v5.0 AI Blog Content Engine)
 
@@ -105,4 +105,4 @@ Plans:
 | 11 — Generation Pipeline | Complete | real in-review draft produced e2e (201, MCP-verified); ingest EF fixed |
 | 12 — Quality & Brand Guardrails | Complete | judge gate + /admin/blog approve-reject + byline lock + E2E; 30 unit tests |
 | 13 — SEO-01 Reclaim Integration | Complete | 2 plans (--slug override + reclaim-queue; reclaim-finalize codemod + guard); 19+ unit tests |
-| 14 — Cadence, Dedupe & Monitoring | Planned | 2 plans (generator dedup + BLOG-GEN-FAIL output; evergreen const + n8n cadence/error-workflow/guard docs) |
+| 14 — Cadence, Dedupe & Monitoring | Complete | dedup skip + BLOG-GEN-FAIL output + EVERGREEN_TOPICS + n8n cadence/alert/guard docs |

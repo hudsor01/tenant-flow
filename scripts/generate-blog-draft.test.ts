@@ -330,6 +330,11 @@ describe("blogSlugExists dedup probe (BLOG-09a)", () => {
 		expect(await blogSlugExists(probe, "absent")).toBe(false);
 	});
 
+	it("resolves false when data is null (the ?? [] coalesce path)", async () => {
+		const probe = async () => ({ data: null, error: null });
+		expect(await blogSlugExists(probe, "absent")).toBe(false);
+	});
+
 	it("rejects on a PostgREST error — never silently false", async () => {
 		const probe = async () => ({
 			data: null,
