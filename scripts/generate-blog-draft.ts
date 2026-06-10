@@ -243,6 +243,19 @@ function sanitizeBanlist(s: string): string {
 	return out;
 }
 
+// The docuseal_mention gate allows AT MOST one "DocuSeal" (Phase 4 COPY-04); the
+// model reliably over-mentions it in e-sign-adjacent topics and burns all 4
+// repair attempts failing to fix itself (n8n exec 183). Deterministic cure, same
+// philosophy as sanitizeBanlist: keep the first mention, generify the rest.
+export function capDocusealMentions(s: string): string {
+	let seen = 0;
+	return s.replace(/DocuSeal(['’]s)?/gi, (match, poss: string | undefined) => {
+		seen++;
+		if (seen <= 1) return match; // first mention stays exactly as written
+		return poss ? "your e-signature tool's" : "your e-signature tool";
+	});
+}
+
 async function embed(input: string): Promise<number[]> {
 	const r = await fetch(`${LM_BASE}/embeddings`, {
 		method: "POST",
@@ -489,6 +502,8 @@ async function generateValidDraft(
 		d.content = d.content.replace(/^\s*#[^#].*(?:\r?\n)+/, "");
 		// deterministically neutralize any banlist phrases the model slips in
 		d.content = sanitizeBanlist(d.content);
+		// cap DocuSeal at one mention (docuseal_mention gate, max 1)
+		d.content = capDocusealMentions(d.content);
 		const failures = runGates(d);
 		console.log(
 			`  ${9 - failures.length}/9 gates  (${countWords(d.content)} words, "${d.title}")`,
