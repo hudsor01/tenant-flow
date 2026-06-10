@@ -720,6 +720,6 @@ export type { Critique, Draft };
 export { critique, isCritiquePass, parseCritique };
 
 // run the CLI only when executed directly (not when imported by the unit test)
-if (process.argv[1]?.endsWith("generate-blog-draft.ts")) {
+if (process.argv[1]?.endsWith("/generate-blog-draft.ts")) {
 	main().catch((e) => fail(e instanceof Error ? e.message : String(e)));
 }

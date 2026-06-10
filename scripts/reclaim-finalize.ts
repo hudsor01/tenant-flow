@@ -260,6 +260,6 @@ function main(): void {
 }
 
 // Run the CLI only when executed directly (not when imported by the unit test).
-if (process.argv[1]?.endsWith("reclaim-finalize.ts")) {
+if (process.argv[1]?.endsWith("/reclaim-finalize.ts")) {
 	main();
 }

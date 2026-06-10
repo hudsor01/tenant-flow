@@ -105,6 +105,20 @@ describe("removeRedirectEntry", () => {
 			/slug gate/,
 		);
 	});
+
+	it("throws 'could not isolate' (never a partial edit) when the source is present but the object literal can't be bounded", () => {
+		// hasRedirectSource matches the source line, but the object contains a nested
+		// brace ({ ... }) the [^{}]-bounded extractor cannot span — removeRedirectEntry
+		// must fail loudly rather than make a corrupting partial edit.
+		const weird = `export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
+	{ source: "/blog/weird-shape", destination: "/blog", meta: { nested: 1 } },
+];
+`;
+		expect(hasRedirectSource(weird, "weird-shape")).toBe(true);
+		expect(() => removeRedirectEntry(weird, "weird-shape")).toThrow(
+			/could not isolate/,
+		);
+	});
 });
 
 describe("addLivePublishedSlug", () => {
@@ -263,6 +277,18 @@ describe("real-file round-trip (Task 2 regression net)", () => {
 		// the slug now appears inside the edited LIVE_PUBLISHED_SLUGS block
 		expect(isLivePublishedSlug(result.testText, REPRESENTATIVE_SLUG)).toBe(
 			true,
+		);
+
+		// structural validity (not just the lax isLivePublishedSlug scan): exactly
+		// one live slug was added, and it sits INSIDE the Set literal with the proper
+		// tab indent + trailing comma — guards against a broken/misindented insertion
+		expect(liveSlugsIn(result.testText)).toHaveLength(
+			liveSlugsIn(REAL_TEST).length + 1,
+		);
+		expect(result.testText).toMatch(
+			new RegExp(
+				`new Set\\(\\[[\\s\\S]*?\\n\\t"${REPRESENTATIVE_SLUG}",[\\s\\S]*?\\n\\]\\)`,
+			),
 		);
 
 		// the count of `source:` occurrences dropped by exactly 1

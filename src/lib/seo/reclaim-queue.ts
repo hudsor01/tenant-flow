@@ -11,9 +11,11 @@
 // on publish. A queue entry whose slug stopped being a redirect source would point
 // the owner at a non-reclaimable (no-longer-301'd) URL — the test fails loud first.
 //
-// `category` is the closest of the five valid generator categories
-// (lease-law | tax-prep | tenant-screening | maintenance | software-vault). The
-// top-10 are all competitor/pricing/listicle ghosts, so all map to software-vault.
+// `category` is a BEST-EFFORT default — the closest of the five valid generator
+// categories (lease-law | tax-prep | tenant-screening | maintenance | software-vault).
+// Most top-10 ghosts are competitor/pricing/listicle topics (software-vault); a few
+// (e.g. listing photography) have no clean fit. The owner passes the final category to
+// the generator at run time, so this is guidance, not a binding contract.
 
 export interface ReclaimQueueItem {
 	readonly slug: string;
