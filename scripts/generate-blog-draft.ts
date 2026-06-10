@@ -303,7 +303,11 @@ async function generate(
 		}),
 		// long generations (1800+ words on a local 24B) can take minutes;
 		// bun's default fetch timeout was killing the expansion repair.
-		signal: AbortSignal.timeout(600_000),
+		// 30 min: at the measured ~11 tok/s (MLX 8-bit + json_schema constrained
+		// decoding) a 3,500-4,500-token draft needs 8-12+ min — the previous 600s
+		// timed out at the finish line on all 4 attempts (n8n exec 151). The
+		// schedule spaces runs 30 min apart, so this headroom is free.
+		signal: AbortSignal.timeout(1_800_000),
 	});
 	// Throw (don't fail/exit) so a truncated/non-JSON response is caught by the
 	// repair loop and consumes a retry instead of aborting the whole run.
