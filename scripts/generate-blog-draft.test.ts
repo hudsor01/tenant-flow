@@ -3,6 +3,7 @@ import type { Draft } from "./generate-blog-draft";
 import {
 	applySlugOverride,
 	blogSlugExists,
+	capDocusealMentions,
 	critique,
 	formatGenFailure,
 	gateOnCritique,
@@ -351,5 +352,30 @@ describe("structured failure output (BLOG-09b)", () => {
 		const line = formatGenFailure("match_blog_rag_chunks: boom");
 		expect(line.startsWith("BLOG-GEN-FAIL: ")).toBe(true);
 		expect(line).toContain("match_blog_rag_chunks: boom");
+	});
+});
+
+describe("capDocusealMentions (docuseal_mention gate, max 1)", () => {
+	it("keeps a single mention untouched", () => {
+		expect(capDocusealMentions("Sign it with DocuSeal today.")).toBe(
+			"Sign it with DocuSeal today.",
+		);
+	});
+
+	it("generifies the second and later mentions, preserving possessives", () => {
+		const input =
+			"DocuSeal handles e-signing. Later, DocuSeal's audit trail helps, and DocuSeal stores copies.";
+		expect(capDocusealMentions(input)).toBe(
+			"DocuSeal handles e-signing. Later, your e-signature tool's audit trail helps, and your e-signature tool stores copies.",
+		);
+	});
+
+	it("is case-insensitive and leaves zero-mention content unchanged", () => {
+		expect(capDocusealMentions("docuseal then DOCUSEAL")).toBe(
+			"docuseal then your e-signature tool",
+		);
+		expect(capDocusealMentions("No e-sign tools here.")).toBe(
+			"No e-sign tools here.",
+		);
 	});
 });
