@@ -93,7 +93,10 @@ describe("BlogCard", () => {
 		// Unique on-brand cover art from /api/og/blog/[slug] (category palette +
 		// slug-hashed composition) — never a shared placeholder.
 		const img = screen.getByTestId("next-image");
-		expect(img).toHaveAttribute("src", "/api/og/blog/manage-rental-properties");
+		expect(img).toHaveAttribute(
+			"src",
+			"/api/og/blog/manage-rental-properties?v=2",
+		);
 	});
 
 	it("renders excerpt text", () => {
