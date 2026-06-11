@@ -265,9 +265,9 @@ const BANLIST_REPLACEMENTS: [RegExp, string][] = [
 	[/\bpaid rent\b/gi, "paid on time"],
 	// literal catch-all (no word boundaries) — mirrors the EF's substring match
 	[/paid rent/gi, "paid on time"],
-	[/\bpay rent online\b/gi, "make payments"],
-	[/\bpay rent through\b/gi, "manage payments through"],
-	[/\bpay rent\b/gi, "make payments"],
+	[/\bpay rent online\b/gi, "stay current on rent"],
+	[/\bpay rent through\b/gi, "stay current on rent with"],
+	[/\bpay rent\b/gi, "stay current on rent"],
 	[/\bonline rent payment\b/gi, "rent"],
 	[/\bonline rent\b/gi, "rent"],
 	[/\brent collection software\b/gi, "property management software"],
@@ -453,7 +453,11 @@ const JUDGE_SYSTEM = `You are a strict editorial judge for TenantFlow's landlord
 - helpfulness_depth: genuinely useful, specific, actionable for an experienced landlord (5 = teaches something concrete).
 - factual_grounding: every TenantFlow-specific claim is supported by the provided facts; no hallucinated features or prices (5 = fully grounded).
 - not_thin: substantial real substance, not AI-spam filler or generic platitudes (5 = dense with specifics).
-Set verdict to "reject" if ANY dimension would score below 4, otherwise "pass". List concrete, actionable issues to fix.`;
+CALIBRATION — what counts as a violation:
+- A TenantFlow-specific claim is a grounding issue ONLY if it CONTRADICTS the provided facts or INVENTS something not in them. A statement that is true but less detailed than the facts (e.g. "a 14-day trial" without the word "free", "plans start at $19/month" without the annual price, a feature named without its quota) is CORRECT — do NOT flag it and do NOT demand more detail.
+- A payment-facilitation issue exists ONLY if the draft says tenants pay/submit/process payments THROUGH TenantFlow. Generic landlord guidance about rent, deposits, or staying current is fine.
+- Do not list nice-to-haves, style preferences, or suggestions for additional content as issues.
+Set verdict to "reject" if ANY dimension would score below 4, otherwise "pass". List only concrete VIOLATIONS as issues.`;
 
 function parseCritique(raw: unknown): Critique {
 	const o = raw as Record<string, unknown>;
@@ -772,7 +776,7 @@ TenantFlow facts (every TenantFlow-specific claim must be grounded in these; do 
 ${facts}
 
 STRICT requirements:
-- "content": markdown body with 8 or 9 "## " section headings (no H1, no top-level title). Under EACH heading write 220-300 words of specific, practical, example-rich detail (steps, checklists, examples, common mistakes), so the full article is AT LEAST 1500 words (aim 1800-2300). Do NOT write a conclusion or stop before 1500 words. Must include the word "landlord". The audience word is "landlord"/"landlords" — NEVER "property owner(s)" or "real estate investor(s)". NEVER write the literal phrases "paid rent", "pay rent", "rent collection", "collect rent", "tenant portal", "autopay", or "online payments" — to discuss payment history use "paid on time" / "payment record" / "met their rent obligations".
+- "content": markdown body with 8 or 9 "## " section headings (no H1, no top-level title). Under EACH heading write 220-300 words of specific, practical, example-rich detail (steps, checklists, examples, common mistakes), so the full article is AT LEAST 1500 words (aim 1800-2300). Do NOT write a conclusion or stop before 1500 words. Must include the word "landlord". When TenantFlow appears, describe ORGANIZING records, leases, documents, and maintenance — never payment handling, processing, or collection of any kind. The audience word is "landlord"/"landlords" — NEVER "property owner(s)" or "real estate investor(s)". NEVER write the literal phrases "paid rent", "pay rent", "rent collection", "collect rent", "tenant portal", "autopay", or "online payments" — to discuss payment history use "paid on time" / "payment record" / "met their rent obligations".
 - "title": compelling, under 65 characters.
 - "slug": lowercase words joined by single hyphens, ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, 20-70 chars.
 - "excerpt": 110-180 characters.
