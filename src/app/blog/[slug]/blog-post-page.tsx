@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Clock, User } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -15,7 +15,7 @@ import { Button } from "#components/ui/button";
 import { useRelatedPosts } from "#hooks/api/use-blogs";
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import { cn } from "#lib/utils";
-import MarkdownContent from "./markdown-content";
+import MarkdownContent, { headingId } from "./markdown-content";
 
 /**
  * Subset of `BlogDetail` actually rendered by this page. Defining the prop
@@ -71,6 +71,16 @@ const LEAD_MAGNETS: Record<
 	},
 };
 
+/** Extract `## ` section headings for the "On this page" nav — ids built with
+ *  the SAME headingId() the renderer uses, so anchors can never drift. */
+function extractToc(content: string): { id: string; text: string }[] {
+	const matches = content.match(/^## .+$/gm) ?? [];
+	return matches.map((line) => {
+		const text = line.replace(/^## /, "").trim();
+		return { id: headingId(text), text };
+	});
+}
+
 function splitContentForCta(content: string): [string, string] {
 	const lines = content.split("\n");
 	const totalLength = content.length;
@@ -110,96 +120,126 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	const postCategory = post.category ?? "";
 	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, "-");
 
+	const toc = extractToc(markdownContent);
+
 	return (
 		<PageLayout>
 			<BlogPostBreadcrumb title={post.title} category={post.category} />
 
-			{/* Back to Blog */}
-			<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
-				<Link
-					href="/blog"
-					className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-200"
-				>
-					<ArrowLeft className="size-4 mr-2" />
-					Back to Blog
-				</Link>
-			</div>
-
-			{/* Featured image — curated when present, otherwise the generated
-			    per-post cover (/api/og/blog/[slug]; category palette + slug-hashed
-			    composition) so every post has unique on-brand hero art. */}
-			<div className="relative aspect-video max-w-4xl mx-auto overflow-hidden rounded-lg mb-8">
-				<Image
-					src={post.featured_image ?? `/api/og/blog/${slug}?v=4`}
-					alt={post.title}
-					fill
-					sizes="(max-width: 768px) 100vw, 896px"
-					priority
-					className={cn(
-						"object-cover transition-all duration-700 ease-out",
-						imageLoaded
-							? "blur-0 opacity-100 scale-100"
-							: "blur-sm opacity-0 scale-105",
-					)}
-					onLoad={() => setImageLoaded(true)}
-				/>
-			</div>
-
-			{/* Article */}
+			{/* Article — outer column 4xl; text content reads at 3xl (~75ch)
+			    while the hero spans the full 4xl for editorial contrast. */}
 			<article className="container mx-auto px-6 pb-16 max-w-4xl">
-				<header className="mb-12">
-					<h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-						{post.title}
-					</h1>
-
-					<p className="text-xl text-muted-foreground leading-relaxed mb-8">
-						{post.excerpt}
-					</p>
-
-					<div className="flex flex-wrap items-center gap-6 text-muted-foreground border-t border-b border-border py-4">
-						<div className="flex items-center gap-2">
-							<User className="size-4" />
-							<span>TenantFlow Team</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<Clock className="size-4" />
-							<span>{post.reading_time} min read</span>
-						</div>
-						<div>
-							{post.published_at
-								? new Date(post.published_at).toLocaleDateString("en-US", {
-										month: "long",
-										day: "numeric",
-										year: "numeric",
-									})
-								: ""}
-						</div>
+				{/* Header BEFORE the hero: the generated cover already carries the
+				    title, so leading with it stacked two titles back-to-back. */}
+				<header className="mx-auto max-w-3xl pt-10 mb-10">
+					<div className="flex flex-wrap items-center gap-3 mb-6">
 						{postCategory && (
 							<Link
 								href={`/blog/category/${categorySlug}`}
-								className="text-primary-text hover:text-primary/80 transition-colors"
+								className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary-text transition-colors hover:bg-primary/15"
 							>
 								{postCategory}
 							</Link>
 						)}
+						<span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+							<Clock className="size-3.5" aria-hidden="true" />
+							{post.reading_time} min read
+						</span>
+					</div>
+
+					<h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-5 leading-[1.1]">
+						{post.title}
+					</h1>
+
+					<p className="text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8">
+						{post.excerpt}
+					</p>
+
+					<div className="flex items-center gap-3">
+						<span
+							aria-hidden="true"
+							className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+						>
+							TF
+						</span>
+						<div>
+							<div className="text-sm font-semibold text-foreground">
+								TenantFlow Team
+							</div>
+							<div className="text-xs text-muted-foreground">
+								{post.published_at
+									? new Date(post.published_at).toLocaleDateString("en-US", {
+											month: "long",
+											day: "numeric",
+											year: "numeric",
+										})
+									: ""}
+							</div>
+						</div>
 					</div>
 				</header>
 
-				{/* Article Content with inline CTA */}
-				<div className="prose prose-lg dark:prose-invert max-w-none prose-blockquote:border-primary">
-					<MarkdownContent content={firstHalf} />
-					{secondHalf &&
-						(leadMagnet ? (
-							<LeadMagnetCta
-								title={leadMagnet.title}
-								description={leadMagnet.description}
-								resourceType={leadMagnet.resourceType}
-								downloadUrl={leadMagnet.downloadUrl}
-							/>
-						) : (
-							<BlogInlineCta />
-						))}
-					{secondHalf && <MarkdownContent content={secondHalf} />}
+				{/* Featured image — curated when present, otherwise the generated
+				    per-post cover (/api/og/blog/[slug]; category palette +
+				    slug-hashed composition) so every post has unique on-brand art. */}
+				<div className="relative aspect-video overflow-hidden rounded-xl border border-border mb-12">
+					<Image
+						src={post.featured_image ?? `/api/og/blog/${slug}?v=4`}
+						alt={post.title}
+						fill
+						sizes="(max-width: 768px) 100vw, 896px"
+						priority
+						className={cn(
+							"object-cover transition-all duration-700 ease-out",
+							imageLoaded
+								? "blur-0 opacity-100 scale-100"
+								: "blur-sm opacity-0 scale-105",
+						)}
+						onLoad={() => setImageLoaded(true)}
+					/>
+				</div>
+
+				<div className="mx-auto max-w-3xl">
+					{/* On this page — anchored to the ids MarkdownContent renders */}
+					{toc.length >= 3 && (
+						<nav
+							aria-label="Table of contents"
+							className="mb-10 rounded-xl border border-border bg-muted/40 p-5"
+						>
+							<p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+								On this page
+							</p>
+							<ol className="space-y-2">
+								{toc.map((item) => (
+									<li key={item.id}>
+										<a
+											href={`#${item.id}`}
+											className="text-sm text-muted-foreground transition-colors hover:text-primary-text"
+										>
+											{item.text}
+										</a>
+									</li>
+								))}
+							</ol>
+						</nav>
+					)}
+
+					{/* Article Content with inline CTA */}
+					<div className="prose prose-lg dark:prose-invert max-w-none prose-blockquote:border-primary prose-headings:tracking-tight prose-a:text-primary-text">
+						<MarkdownContent content={firstHalf} />
+						{secondHalf &&
+							(leadMagnet ? (
+								<LeadMagnetCta
+									title={leadMagnet.title}
+									description={leadMagnet.description}
+									resourceType={leadMagnet.resourceType}
+									downloadUrl={leadMagnet.downloadUrl}
+								/>
+							) : (
+								<BlogInlineCta />
+							))}
+						{secondHalf && <MarkdownContent content={secondHalf} />}
+					</div>
 				</div>
 
 				{competitorSlug && (

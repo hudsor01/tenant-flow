@@ -312,9 +312,15 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		// Close the menu so the next interactions are unobstructed.
 		await page.keyboard.press("Escape");
 
-		// Clear the filter and confirm the param is gone.
-		await search.fill("");
-		await expect(page).not.toHaveURL(/[?&]property=/);
+		// Clear the filter and confirm the param is gone. The preset-save Zustand
+		// write can re-render/remount the toolbar right as fill() lands, dropping
+		// the clear on a dead node (observed on CI: property=a survived 5s of URL
+		// polling). toPass re-fills on every attempt, so a remount race or a slow
+		// shared runner cannot strand the stale param.
+		await expect(async () => {
+			await search.fill("");
+			await expect(page).not.toHaveURL(/[?&]property=/, { timeout: 1500 });
+		}).toPass({ timeout: 15000 });
 
 		// Re-open Presets and apply the saved preset — the filter must restore.
 		await page.getByRole("button", { name: "Presets" }).click();
