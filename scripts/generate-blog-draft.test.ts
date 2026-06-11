@@ -4,6 +4,7 @@ import {
 	applySlugOverride,
 	blogSlugExists,
 	capDocusealMentions,
+	capH2Count,
 	critique,
 	formatGenFailure,
 	gateOnCritique,
@@ -489,5 +490,32 @@ describe("pickLoadedModel (LM Studio loaded-instance resolution)", () => {
 		expect(
 			pickLoadedModel([{ id: "qwen3-reranker-0.6b", state: "loaded" }], BASE),
 		).toBe(BASE);
+	});
+});
+
+describe("capH2Count (h2_count gate, max 10 — keep 9, demote the rest)", () => {
+	const h2s = (s: string) => (s.match(/^## /gm) ?? []).length;
+	const h3s = (s: string) => (s.match(/^### /gm) ?? []).length;
+
+	it("demotes H2s beyond the 9th to H3, preserving every line", () => {
+		const content = Array.from(
+			{ length: 12 },
+			(_, i) => `## Section ${i + 1}\n\nBody ${i + 1}.`,
+		).join("\n\n");
+		const out = capH2Count(content);
+		expect(h2s(out)).toBe(9);
+		expect(h3s(out)).toBe(3);
+		expect(out.split("\n").length).toBe(content.split("\n").length);
+		expect(out).toContain("### Section 12");
+	});
+
+	it("leaves compliant content (<=9 H2s) untouched", () => {
+		const content = "## One\n\nBody.\n\n## Two\n\nBody.";
+		expect(capH2Count(content)).toBe(content);
+	});
+
+	it("does not touch existing H3s while counting H2s", () => {
+		const content = "## A\n\n### A.1\n\n## B\n\nBody.";
+		expect(capH2Count(content)).toBe(content);
 	});
 });

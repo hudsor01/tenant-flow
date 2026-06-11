@@ -191,7 +191,7 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 		out.push({
 			gate: "h2_count",
 			message: `${h2} H2s`,
-			fix: `Use EXACTLY 7 "## " section headings (currently ${h2}).`,
+			fix: `Use 8 or 9 "## " section headings (currently ${h2}); surplus sections become "### " subsections instead of new H2s.`,
 		});
 	if (!/landlord/i.test(p.content))
 		out.push({
@@ -294,6 +294,25 @@ export function sanitizeBanlist(s: string): string {
 		if (out === before) break;
 	}
 	return out;
+}
+
+// The h2_count gate allows 4-10 "## " sections, but the word_count repair
+// hint tells the model to ADD sections — the two hints ping-pong (add
+// sections -> 12 H2s -> trim sections -> short again; exec 313 burned 6
+// attempts). Deterministic cure: keep the first 9 H2s and demote the rest
+// to H3 subsections — every word survives, the gate passes, no ping-pong.
+export function capH2Count(content: string, max = 9): string {
+	let seen = 0;
+	return content
+		.split("\n")
+		.map((line) => {
+			if (line.startsWith("## ")) {
+				seen++;
+				if (seen > max) return `#${line}`; // "## " -> "### "
+			}
+			return line;
+		})
+		.join("\n");
 }
 
 // The docuseal_mention gate allows AT MOST one "DocuSeal" (Phase 4 COPY-04); the
@@ -566,6 +585,8 @@ async function generateValidDraft(
 		d.meta_description = sanitizeBanlist(d.meta_description);
 		// cap DocuSeal at one mention (docuseal_mention gate, max 1)
 		d.content = capDocusealMentions(d.content);
+		// demote surplus H2s (h2_count gate max 10; keep 9 for margin)
+		d.content = capH2Count(d.content);
 		const failures = runGates(d);
 		console.log(
 			`  ${9 - failures.length}/9 gates  (${countWords(d.content)} words, "${d.title}")`,
