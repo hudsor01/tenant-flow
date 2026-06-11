@@ -11,6 +11,7 @@ import {
 	parseCritique,
 	parsePositionals,
 	parseSlugOverride,
+	pickLoadedModel,
 	sanitizeBanlist,
 } from "./generate-blog-draft";
 
@@ -459,5 +460,34 @@ describe("sanitizeBanlist persona purity (persona-consistency e2e words)", () =>
 			"Real estate investors and any real estate investor benefit.",
 		);
 		expect(out.toLowerCase()).not.toContain("real estate investor");
+	});
+});
+
+describe("pickLoadedModel (LM Studio loaded-instance resolution)", () => {
+	const BASE = "mistral-small-3.2-24b-instruct-2506-mlx";
+
+	it("prefers the LOADED instance even when its identifier carries a suffix", () => {
+		expect(
+			pickLoadedModel(
+				[
+					{ id: `${BASE}@6bit`, state: "loaded" },
+					{ id: BASE, state: "not-loaded" },
+				],
+				BASE,
+			),
+		).toBe(`${BASE}@6bit`);
+	});
+
+	it("falls back to the base id when nothing matching is loaded", () => {
+		expect(pickLoadedModel([{ id: BASE, state: "not-loaded" }], BASE)).toBe(
+			BASE,
+		);
+		expect(pickLoadedModel([], BASE)).toBe(BASE);
+	});
+
+	it("ignores loaded models that do not contain the base id", () => {
+		expect(
+			pickLoadedModel([{ id: "qwen3-reranker-0.6b", state: "loaded" }], BASE),
+		).toBe(BASE);
 	});
 });
