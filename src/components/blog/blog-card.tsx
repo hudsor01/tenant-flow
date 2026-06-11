@@ -1,4 +1,3 @@
-import { Newspaper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
@@ -19,25 +18,17 @@ export function BlogCard({ post, className }: BlogCardProps) {
 			)}
 		>
 			<div className="relative aspect-[16/10] overflow-hidden">
-				{post.featured_image ? (
-					<Image
-						src={post.featured_image}
-						alt={post.title}
-						fill
-						sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-						className="object-cover transition-transform duration-300 group-hover:scale-105"
-					/>
-				) : (
-					<div
-						data-slot="blog-card-placeholder"
-						className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/10 via-muted to-accent/10"
-					>
-						<Newspaper
-							className="size-10 text-muted-foreground/40"
-							aria-hidden="true"
-						/>
-					</div>
-				)}
+				{/* Posts without a curated featured_image fall back to the generated
+				    per-post cover (/api/og/blog/[slug]): category-themed palette +
+				    slug-hashed composition — unique, on-brand art for every post
+				    with zero manual curation. */}
+				<Image
+					src={post.featured_image ?? `/api/og/blog/${post.slug}`}
+					alt={post.title}
+					fill
+					sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+					className="object-cover transition-transform duration-300 group-hover:scale-105"
+				/>
 			</div>
 
 			<div className="flex flex-1 flex-col gap-2 p-4">

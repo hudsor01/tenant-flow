@@ -193,9 +193,12 @@ describe("BlogArticlePage", () => {
 		);
 	});
 
-	it("does NOT render featured image when post.featured_image is null", () => {
+	it("falls back to the generated per-post cover when featured_image is null", () => {
 		render(<BlogArticlePage post={mockPostNoImage} slug="test-post" />);
-		expect(screen.queryByTestId("featured-image")).not.toBeInTheDocument();
+		// Unique on-brand cover from /api/og/blog/[slug] — every post gets hero
+		// art, never a bare header.
+		const image = screen.getByTestId("featured-image");
+		expect(image).toHaveAttribute("src", "/api/og/blog/test-post");
 	});
 
 	it("renders category name in meta bar linked to /blog/category/[slug]", () => {
