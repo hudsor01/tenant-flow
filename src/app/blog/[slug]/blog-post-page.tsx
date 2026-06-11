@@ -122,25 +122,25 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 				</Link>
 			</div>
 
-			{/* Featured Image */}
-			{post.featured_image && (
-				<div className="relative aspect-video max-w-4xl mx-auto overflow-hidden rounded-lg mb-8">
-					<Image
-						src={post.featured_image}
-						alt={post.title}
-						fill
-						sizes="(max-width: 768px) 100vw, 896px"
-						priority
-						className={cn(
-							"object-cover transition-all duration-700 ease-out",
-							imageLoaded
-								? "blur-0 opacity-100 scale-100"
-								: "blur-sm opacity-0 scale-105",
-						)}
-						onLoad={() => setImageLoaded(true)}
-					/>
-				</div>
-			)}
+			{/* Featured image — curated when present, otherwise the generated
+			    per-post cover (/api/og/blog/[slug]; category palette + slug-hashed
+			    composition) so every post has unique on-brand hero art. */}
+			<div className="relative aspect-video max-w-4xl mx-auto overflow-hidden rounded-lg mb-8">
+				<Image
+					src={post.featured_image ?? `/api/og/blog/${slug}`}
+					alt={post.title}
+					fill
+					sizes="(max-width: 768px) 100vw, 896px"
+					priority
+					className={cn(
+						"object-cover transition-all duration-700 ease-out",
+						imageLoaded
+							? "blur-0 opacity-100 scale-100"
+							: "blur-sm opacity-0 scale-105",
+					)}
+					onLoad={() => setImageLoaded(true)}
+				/>
+			</div>
 
 			{/* Article */}
 			<article className="container mx-auto px-6 pb-16 max-w-4xl">

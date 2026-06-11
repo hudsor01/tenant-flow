@@ -84,19 +84,16 @@ describe("BlogCard", () => {
 		);
 	});
 
-	it("renders placeholder when featured_image is null", () => {
+	it("falls back to the generated per-post cover when featured_image is null", () => {
 		const postWithoutImage: BlogListItem = {
 			...mockPost,
 			featured_image: null,
 		};
-		const { container } = render(<BlogCard post={postWithoutImage} />);
-		expect(screen.queryByTestId("next-image")).not.toBeInTheDocument();
-		// Branded placeholder (gradient + Newspaper glyph), not a flat gray box.
-		const placeholder = container.querySelector(
-			"[data-slot='blog-card-placeholder']",
-		);
-		expect(placeholder).toBeInTheDocument();
-		expect(placeholder?.querySelector("svg")).toBeInTheDocument();
+		render(<BlogCard post={postWithoutImage} />);
+		// Unique on-brand cover art from /api/og/blog/[slug] (category palette +
+		// slug-hashed composition) — never a shared placeholder.
+		const img = screen.getByTestId("next-image");
+		expect(img).toHaveAttribute("src", "/api/og/blog/manage-rental-properties");
 	});
 
 	it("renders excerpt text", () => {
