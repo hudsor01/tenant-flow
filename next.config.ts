@@ -59,6 +59,14 @@ const nextConfig: NextConfig = {
 	images: {
 		// Cache optimized images for 7 days before re-fetching from origin
 		minimumCacheTTL: 60 * 60 * 24 * 7,
+		// next/image local sources with a query string must be allowlisted.
+		// First entry keeps ALL query-less local images working (defining
+		// localPatterns is restrictive); second allows the generated blog
+		// covers' ?v=2 cache-buster (poisoned-optimizer-cache recovery).
+		localPatterns: [
+			{ pathname: "/**", search: "" },
+			{ pathname: "/api/og/blog/**", search: "?v=2" },
+		],
 		remotePatterns: [
 			{ protocol: "https", hostname: "*.supabase.co" },
 			{ protocol: "https", hostname: "images.unsplash.com" },
