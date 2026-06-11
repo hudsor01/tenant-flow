@@ -124,7 +124,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 				justifyContent: "space-between",
 				padding: "72px 80px",
 				background: `linear-gradient(${angle}deg, ${palette.from} 0%, ${palette.to} 100%)`,
-				color: "oklch(1 0 0)",
+				color: "white",
 				fontFamily: "sans-serif",
 				position: "relative",
 				overflow: "hidden",
@@ -139,8 +139,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 					width: 560,
 					height: 560,
 					borderRadius: 9999,
-					background:
-						"radial-gradient(circle, oklch(1 0 0 / 0.22) 0%, oklch(1 0 0 / 0) 65%)",
+					opacity: 0.22,
+					background: "radial-gradient(circle, white 0%, transparent 65%)",
 				}}
 			/>
 			<div
@@ -151,7 +151,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 					width: ringSize,
 					height: ringSize,
 					borderRadius: 9999,
-					border: "3px solid oklch(1 0 0 / 0.18)",
+					border: "3px solid white",
+					opacity: 0.18,
 				}}
 			/>
 			<div
@@ -162,7 +163,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 					width: 420,
 					height: 420,
 					borderRadius: 9999,
-					border: "2px solid oklch(1 0 0 / 0.10)",
+					border: "2px solid white",
+					opacity: 0.1,
 				}}
 			/>
 
@@ -182,7 +184,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 						width: 14,
 						height: 14,
 						borderRadius: 4,
-						background: "oklch(1 0 0 / 0.9)",
+						background: "white",
 					}}
 				/>
 				{post.category ?? "TenantFlow Blog"}
@@ -194,7 +196,6 @@ export async function GET(_req: Request, { params }: RouteParams) {
 					lineHeight: 1.15,
 					maxWidth: "84%",
 					display: "flex",
-					textWrap: "balance",
 				}}
 			>
 				{post.title}
