@@ -138,7 +138,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/blog")} />
 
-			<div className="container mx-auto max-w-6xl px-6 lg:px-8 pt-8">
+			<div className="container mx-auto max-w-6xl px-6 lg:px-8 pt-12">
 				<Breadcrumb>
 					<BreadcrumbList>
 						<BreadcrumbItem>

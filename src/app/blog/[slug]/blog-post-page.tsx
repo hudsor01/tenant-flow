@@ -7,6 +7,7 @@ import { useState } from "react";
 import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 import { BlogCard } from "#components/blog/blog-card";
 import { BlogInlineCta } from "#components/blog/blog-inline-cta";
+import { BlogPostBreadcrumb } from "#components/blog/blog-post-breadcrumb";
 import { LeadMagnetCta } from "#components/blog/lead-magnet-cta";
 import { NewsletterSignup } from "#components/blog/newsletter-signup";
 import { PageLayout } from "#components/layout/page-layout";
@@ -111,6 +112,8 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 
 	return (
 		<PageLayout>
+			<BlogPostBreadcrumb title={post.title} category={post.category} />
+
 			{/* Back to Blog */}
 			<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
 				<Link
@@ -127,7 +130,7 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 			    composition) so every post has unique on-brand hero art. */}
 			<div className="relative aspect-video max-w-4xl mx-auto overflow-hidden rounded-lg mb-8">
 				<Image
-					src={post.featured_image ?? `/api/og/blog/${slug}?v=3`}
+					src={post.featured_image ?? `/api/og/blog/${slug}?v=4`}
 					alt={post.title}
 					fill
 					sizes="(max-width: 768px) 100vw, 896px"

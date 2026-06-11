@@ -2,7 +2,6 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { BlogPostBreadcrumb } from "#components/blog/blog-post-breadcrumb";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { env } from "#env";
 import { createLogger } from "#lib/frontend-logger";
@@ -300,7 +299,9 @@ export default async function Page({ params }: Props) {
 		<>
 			{breadcrumbSchema && <JsonLdScript schema={breadcrumbSchema} />}
 			{articleSchema && <JsonLdScript schema={articleSchema} />}
-			<BlogPostBreadcrumb title={post.title} category={post.category} />
+			{/* The visible breadcrumb renders INSIDE BlogPostPage's PageLayout so
+			    it sits below the fixed navbar (page-offset-navbar). Rendering it
+			    here put it underneath the navbar. */}
 			<BlogPostPage post={post} slug={slug} />
 		</>
 	);

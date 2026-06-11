@@ -13,15 +13,16 @@ import { ImageResponse } from "@vercel/og";
 // hero fall back to it whenever `featured_image` is null (every factory
 // post), so each post gets a unique, on-brand, high-res cover with zero
 // manual curation — category picks the palette, the slug hash drives the
-// composition, the title is the artwork.
+// composition, the title is the artwork, and the real logo (white badge,
+// bottom center) carries the brand.
 //
 // COLOR FORMAT: hsl() ONLY. satori does NOT support oklch — it silently
 // renders oklch gradients as BLACK (shipped that once; never again), and
-// the design-token drift guard bans hex/rgb in src/app. This design was
-// pixel-verified locally via an ImageResponse harness before deploying.
-// Layout is CENTER-SAFE: BlogCard crops 1200x630 to 16:10 with
-// object-cover (~9% trimmed each side), so all text stays within the
-// central ~64% width.
+// the design-token drift guard bans hex/rgb in src/app. Every palette
+// below is the EXACT oklch->hsl conversion of an official globals.css
+// chart token (OKLab math, not eyeballed). Pixel-verified locally via an
+// ImageResponse harness before deploying. Layout is CENTER-SAFE: BlogCard
+// crops 1200x630 to 16:10 with object-cover (~9% trimmed each side).
 export const runtime = "edge";
 export const revalidate = 3600;
 
@@ -34,38 +35,41 @@ interface BlogRow {
 	category: string | null;
 }
 
-// Brand-family category palettes (hsl; satori-safe, drift-guard-allowed).
-// software-vault ~ the brand blue-violet; the others are hue-shifted
-// siblings at matched saturation/lightness so the catalogue reads as one
-// family without ever repeating a card.
+// Official brand palette — exact conversions from src/app/globals.css:
+//   software-vault    --color-chart-1: oklch(0.63 0.22 259)
+//   tax-prep          --color-chart-2: oklch(0.70 0.18 180)
+//   maintenance       --color-chart-3: oklch(0.72 0.16 85)
+//   tenant-screening  --color-chart-4: oklch(0.65 0.18 20)
+//   lease-law         --color-chart-5: oklch(0.55 0.12 250)
+// `to` = same token at L-0.17 (darker companion); `glow` = L+0.14 sibling.
 const CATEGORY_PALETTES: Record<
 	string,
 	{ from: string; to: string; glow: string }
 > = {
 	"software-vault": {
-		from: "hsl(228 72% 56%)",
-		to: "hsl(262 68% 38%)",
-		glow: "hsl(210 90% 70%)",
-	},
-	"lease-law": {
-		from: "hsl(248 62% 54%)",
-		to: "hsl(270 65% 34%)",
-		glow: "hsl(235 85% 72%)",
+		from: "hsl(214 100% 57%)",
+		to: "hsl(229 69% 47%)",
+		glow: "hsl(206 100% 66%)",
 	},
 	"tax-prep": {
-		from: "hsl(168 58% 42%)",
-		to: "hsl(192 64% 26%)",
-		glow: "hsl(155 70% 62%)",
-	},
-	"tenant-screening": {
-		from: "hsl(316 58% 50%)",
-		to: "hsl(338 64% 32%)",
-		glow: "hsl(300 75% 68%)",
+		from: "hsl(171 100% 38%)",
+		to: "hsl(176 100% 27%)",
+		glow: "hsl(169 83% 53%)",
 	},
 	maintenance: {
-		from: "hsl(34 88% 54%)",
-		to: "hsl(16 78% 38%)",
-		glow: "hsl(45 95% 65%)",
+		from: "hsl(44 100% 41%)",
+		to: "hsl(45 100% 28%)",
+		glow: "hsl(39 100% 69%)",
+	},
+	"tenant-screening": {
+		from: "hsl(356 76% 62%)",
+		to: "hsl(2 70% 39%)",
+		glow: "hsl(353 100% 78%)",
+	},
+	"lease-law": {
+		from: "hsl(209 56% 45%)",
+		to: "hsl(215 71% 29%)",
+		glow: "hsl(207 59% 61%)",
 	},
 };
 const DEFAULT_PALETTE = CATEGORY_PALETTES["software-vault"] as {
@@ -84,7 +88,32 @@ function hashSlug(slug: string): number {
 	return Math.abs(h);
 }
 
-export async function GET(_req: Request, { params }: RouteParams) {
+// The real logo (public/tenant-flow-logo.png, 936x873) inlined as a data
+// URI for satori. Fetched once per edge isolate from this deployment's own
+// origin and cached; FAIL-OPEN to null (the badge is simply omitted) so a
+// blip can never break cover rendering.
+let logoDataUri: string | null = null;
+let logoFetched = false;
+async function getLogo(origin: string): Promise<string | null> {
+	if (logoFetched) return logoDataUri;
+	try {
+		const res = await fetch(`${origin}/tenant-flow-logo.png`);
+		if (res.ok) {
+			const bytes = new Uint8Array(await res.arrayBuffer());
+			let bin = "";
+			for (let i = 0; i < bytes.length; i += 0x8000) {
+				bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+			}
+			logoDataUri = `data:image/png;base64,${btoa(bin)}`;
+		}
+	} catch {
+		logoDataUri = null;
+	}
+	logoFetched = true;
+	return logoDataUri;
+}
+
+export async function GET(req: Request, { params }: RouteParams) {
 	const { slug } = await params;
 	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -123,6 +152,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 	const angle = 120 + (h % 50); // 120-169deg
 	const glowX = 18 + (h % 64); // glow drifts across the top per slug
 	const ringRight = -12 + ((h >> 4) % 18); // bottom-right ring offset
+	const logo = await getLogo(new URL(req.url).origin);
 
 	return new ImageResponse(
 		<div
@@ -150,7 +180,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 					height: 700,
 					borderRadius: 9999,
 					background: `radial-gradient(circle, ${palette.glow} 0%, transparent 60%)`,
-					opacity: 0.45,
+					opacity: 0.4,
 				}}
 			/>
 			<div
@@ -175,7 +205,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
 					textTransform: "uppercase",
 					letterSpacing: "0.18em",
 					opacity: 0.92,
-					marginBottom: 34,
+					marginBottom: 30,
 				}}
 			>
 				<div
@@ -191,28 +221,41 @@ export async function GET(_req: Request, { params }: RouteParams) {
 			<div
 				style={{
 					display: "flex",
-					fontSize: 60,
+					fontSize: 58,
 					fontWeight: 800,
-					lineHeight: 1.18,
+					lineHeight: 1.16,
 					maxWidth: 760,
 					justifyContent: "center",
 				}}
 			>
 				{post.title}
 			</div>
-			<div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					gap: 10,
-					marginTop: 38,
-					fontSize: 26,
-					fontWeight: 700,
-					opacity: 0.95,
-				}}
-			>
-				TenantFlow
-			</div>
+			{logo ? (
+				<div
+					style={{
+						display: "flex",
+						alignItems: "center",
+						marginTop: 34,
+						backgroundColor: "white",
+						borderRadius: 18,
+						padding: "2px 12px",
+					}}
+				>
+					<img src={logo} width={154} height={144} alt="" />
+				</div>
+			) : (
+				<div
+					style={{
+						display: "flex",
+						marginTop: 38,
+						fontSize: 26,
+						fontWeight: 700,
+						opacity: 0.95,
+					}}
+				>
+					TenantFlow
+				</div>
+			)}
 		</div>,
 		{
 			width: 1200,
