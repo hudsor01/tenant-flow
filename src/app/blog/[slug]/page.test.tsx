@@ -61,6 +61,13 @@ vi.mock("./markdown-content", () => ({
 	default: (props: { content: string }) => (
 		<div data-testid="markdown-content">{props.content}</div>
 	),
+	// Mirrors the real headingId transform (ToC anchor ids).
+	headingId: (text: string) =>
+		text
+			.toLowerCase()
+			.replace(/[^a-z0-9\s-]/g, "")
+			.trim()
+			.replace(/\s+/g, "-"),
 }));
 
 vi.mock("#components/blog/blog-card", () => ({
@@ -529,4 +536,31 @@ describe("generateStaticParams (retry + fail-safe)", () => {
 			message: expect.stringContaining("failed after 3 attempts"),
 		});
 	}, 10000);
+});
+
+describe("On this page (table of contents)", () => {
+	it("renders anchored ToC links when the article has 3+ H2 sections", () => {
+		const post = {
+			...mockPost,
+			content:
+				"## Understanding the SALT Cap\n\nBody.\n\n## Schedule E Basics\n\nBody.\n\n## Common Mistakes & Fixes\n\nBody.",
+		};
+		render(<BlogArticlePage post={post} slug="test-post" />);
+		const nav = screen.getByRole("navigation", { name: "Table of contents" });
+		expect(nav).toBeInTheDocument();
+		const link = screen.getByRole("link", {
+			name: "Understanding the SALT Cap",
+		});
+		expect(link).toHaveAttribute("href", "#understanding-the-salt-cap");
+		expect(
+			screen.getByRole("link", { name: "Common Mistakes & Fixes" }),
+		).toHaveAttribute("href", "#common-mistakes-fixes");
+	});
+
+	it("omits the ToC for short articles (under 3 H2s)", () => {
+		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		expect(
+			screen.queryByRole("navigation", { name: "Table of contents" }),
+		).not.toBeInTheDocument();
+	});
 });
