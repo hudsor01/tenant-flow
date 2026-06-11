@@ -90,12 +90,6 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "Why DIY landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
-		"category": "software-vault",
-		"slug": "why-tenantflow-is-the-best-choice-for-diy-landlords",
-		"tier": "reclaim"
-	},
-	{
 		"topic": "Arizona security deposit law: the 1.5-month cap and the 14-business-day return rule for landlords",
 		"category": "lease-law",
 		"slug": "arizona-security-deposit-law-cap-and-14-business-day-return",
@@ -108,12 +102,6 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "Why small landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
-		"category": "software-vault",
-		"slug": "why-tenantflow-is-the-best-choice-for-small-landlords",
-		"tier": "reclaim"
-	},
-	{
 		"topic": "Medical debt on a tenant credit report: why it should not sink an otherwise strong applicant",
 		"category": "tenant-screening",
 		"slug": "medical-debt-on-tenant-credit-reports",
@@ -124,12 +112,6 @@
 		"category": "maintenance",
 		"slug": "fall-rental-maintenance-checklist",
 		"tier": "evergreen"
-	},
-	{
-		"topic": "Why tech-savvy landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
-		"category": "software-vault",
-		"slug": "why-tenantflow-is-the-best-choice-for-tech-savvy-landlords",
-		"tier": "reclaim"
 	},
 	{
 		"topic": "Hemlane vs DoorLoop for 2026: remote management support vs all-in-one depth",
@@ -918,6 +900,12 @@
 		"tier": "evergreen"
 	},
 	{
+		"topic": "Why DIY landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
+		"category": "software-vault",
+		"slug": "why-tenantflow-is-the-best-choice-for-diy-landlords",
+		"tier": "reclaim"
+	},
+	{
 		"topic": "Rentec Direct vs Apartments.com: a complete comparison for 2025",
 		"category": "software-vault",
 		"slug": "rentec-direct-vs-apartments-com-complete-comparison-for-2025",
@@ -1209,6 +1197,12 @@
 		"topic": "TenantCloud alternatives under $40/month",
 		"category": "software-vault",
 		"slug": "tenantcloud-alternatives-under-40-month",
+		"tier": "reclaim"
+	},
+	{
+		"topic": "Why small landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
+		"category": "software-vault",
+		"slug": "why-tenantflow-is-the-best-choice-for-small-landlords",
 		"tier": "reclaim"
 	},
 	{
@@ -1504,6 +1498,12 @@
 		"category": "tax-prep",
 		"slug": "form-4562-landlords-schedule-e",
 		"tier": "evergreen"
+	},
+	{
+		"topic": "Why tech-savvy landlords pick TenantFlow: an honest look at fit, price, and tradeoffs",
+		"category": "software-vault",
+		"slug": "why-tenantflow-is-the-best-choice-for-tech-savvy-landlords",
+		"tier": "reclaim"
 	},
 	{
 		"topic": "Verifying commission-based income: W-2s, year-to-date paystubs, and a two-year earnings view",
