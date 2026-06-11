@@ -11,6 +11,7 @@ import {
 	parseCritique,
 	parsePositionals,
 	parseSlugOverride,
+	sanitizeBanlist,
 } from "./generate-blog-draft";
 
 type Scores = {
@@ -377,5 +378,69 @@ describe("capDocusealMentions (docuseal_mention gate, max 1)", () => {
 		expect(capDocusealMentions("No e-sign tools here.")).toBe(
 			"No e-sign tools here.",
 		);
+	});
+});
+
+describe("sanitizeBanlist substring safety (EF gate matches substrings)", () => {
+	// Mirror of the EF/generator BANLIST — the gate uses lc.includes(phrase),
+	// so NO output may contain any of these as a substring.
+	const BANLIST_MIRROR = [
+		"rent collection",
+		"online rent",
+		"autopay",
+		"auto-pay",
+		"tenant portal",
+		"automated rent",
+		"collect rent",
+		"rent processing",
+		"pay rent online",
+		"online payments",
+		"online rent payment",
+		"rent collection software",
+		"tenants can pay",
+		"pay rent through",
+		"automated workflow",
+		"rent tracking",
+		"mobile app access",
+		"record rent",
+		"paid rent",
+		"pay rent",
+	];
+
+	const expectGateClean = (output: string) => {
+		const lc = output.toLowerCase();
+		for (const phrase of BANLIST_MIRROR) {
+			expect(lc.includes(phrase), `survived: "${phrase}" in "${output}"`).toBe(
+				false,
+			);
+		}
+	};
+
+	it('neutralizes "unpaid rent" (contains the "paid rent" substring — exec 282/283 failure)', () => {
+		const out = sanitizeBanlist(
+			"Send collections notices for unpaid rent promptly.",
+		);
+		expect(out).toContain("overdue rent");
+		expectGateClean(out);
+	});
+
+	it('neutralizes "prepaid rent"', () => {
+		const out = sanitizeBanlist("Prepaid rent counts as income when received.");
+		expect(out.toLowerCase()).toContain("rent paid in advance");
+		expectGateClean(out);
+	});
+
+	it("keeps the plain-phrase rewrites working", () => {
+		const out = sanitizeBanlist(
+			"Tenants who paid rent late should pay rent on time next month.",
+		);
+		expectGateClean(out);
+	});
+
+	it("clears every banned phrase from a worst-case paragraph", () => {
+		const out = sanitizeBanlist(
+			"Use rent collection software with autopay and a tenant portal so tenants can pay rent online; unpaid rent and prepaid rent need rent tracking.",
+		);
+		expectGateClean(out);
 	});
 });

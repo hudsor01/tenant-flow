@@ -208,10 +208,21 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 // Neutralize banlist phrases the model slips in (the EF gate bans the literal
 // strings; these substitutions keep the meaning while clearing the gate). Ordered
 // longest-first so multi-word phrases resolve before their substrings.
+//
+// CRITICAL: the EF gate matches SUBSTRINGS (`lc.includes(phrase)`), so compound
+// words that CONTAIN a banned phrase trip it even though a \b-anchored rule
+// can't see them — "unpaid rent" and "prepaid rent" both contain "paid rent"
+// (n8n execs 282/283 burned 6 attempts each on exactly this in collections
+// content). Specific compound rewrites run FIRST, then a literal no-boundary
+// catch-all guarantees the substring cannot survive.
 const BANLIST_REPLACEMENTS: [RegExp, string][] = [
+	[/\bunpaid rent\b/gi, "overdue rent"],
+	[/\bprepaid rent\b/gi, "rent paid in advance"],
 	[/\bpaid rent on time\b/gi, "paid on time"],
 	[/\bpay rent on time\b/gi, "stay current on the lease"],
 	[/\bpaid rent\b/gi, "paid on time"],
+	// literal catch-all (no word boundaries) — mirrors the EF's substring match
+	[/paid rent/gi, "paid on time"],
 	[/\bpay rent online\b/gi, "make payments"],
 	[/\bpay rent through\b/gi, "manage payments through"],
 	[/\bpay rent\b/gi, "make payments"],
@@ -231,7 +242,7 @@ const BANLIST_REPLACEMENTS: [RegExp, string][] = [
 	[/\bonline payments\b/gi, "payments"],
 	[/\bmobile app access\b/gi, "easy access"],
 ];
-function sanitizeBanlist(s: string): string {
+export function sanitizeBanlist(s: string): string {
 	let out = s;
 	// Loop to a fixed point: a replacement can leave adjacent fragments that
 	// re-form a banned phrase (e.g. "online online rent" -> "online rent").
