@@ -95,7 +95,7 @@ describe("BlogCard", () => {
 		const img = screen.getByTestId("next-image");
 		expect(img).toHaveAttribute(
 			"src",
-			"/api/og/blog/manage-rental-properties?v=2",
+			"/api/og/blog/manage-rental-properties?v=3",
 		);
 	});
 

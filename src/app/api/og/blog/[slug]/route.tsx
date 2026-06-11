@@ -7,15 +7,21 @@ import { ImageResponse } from "@vercel/og";
 // and the next request re-renders).
 //
 // We hit PostgREST directly with `fetch` instead of @supabase/ssr to keep
-// the edge bundle under Vercel's 1 MB plan limit. @supabase/ssr +
-// @t3-oss/env-nextjs + zod were pushing this route to 1.05 MB and failing
-// to deploy.
+// the edge bundle under Vercel's 1 MB plan limit.
 //
 // This route doubles as the blog COVER ART system: BlogCard and the post
 // hero fall back to it whenever `featured_image` is null (every factory
 // post), so each post gets a unique, on-brand, high-res cover with zero
 // manual curation — category picks the palette, the slug hash drives the
 // composition, the title is the artwork.
+//
+// COLOR FORMAT: hsl() ONLY. satori does NOT support oklch — it silently
+// renders oklch gradients as BLACK (shipped that once; never again), and
+// the design-token drift guard bans hex/rgb in src/app. This design was
+// pixel-verified locally via an ImageResponse harness before deploying.
+// Layout is CENTER-SAFE: BlogCard crops 1200x630 to 16:10 with
+// object-cover (~9% trimmed each side), so all text stays within the
+// central ~64% width.
 export const runtime = "edge";
 export const revalidate = 3600;
 
@@ -28,37 +34,44 @@ interface BlogRow {
 	category: string | null;
 }
 
-// Brand-derived category palettes (oklch). `@vercel/og` requires inline CSS
-// values so canonical token literals are duplicated here — this is the ONE
-// permitted exception to the no-hex/no-inline-color rule (Phase 6
-// CONTEXT.md § Design Token). software-vault keeps the original brand
-// gradient; the other four are hue-shifted siblings at matched lightness/
-// chroma so the catalogue reads as one family, never one repeated card.
-const CATEGORY_PALETTES: Record<string, { from: string; to: string }> = {
+// Brand-family category palettes (hsl; satori-safe, drift-guard-allowed).
+// software-vault ~ the brand blue-violet; the others are hue-shifted
+// siblings at matched saturation/lightness so the catalogue reads as one
+// family without ever repeating a card.
+const CATEGORY_PALETTES: Record<
+	string,
+	{ from: string; to: string; glow: string }
+> = {
 	"software-vault": {
-		from: "oklch(0.62 0.18 250)",
-		to: "oklch(0.45 0.20 270)",
+		from: "hsl(228 72% 56%)",
+		to: "hsl(262 68% 38%)",
+		glow: "hsl(210 90% 70%)",
 	},
 	"lease-law": {
-		from: "oklch(0.55 0.16 285)",
-		to: "oklch(0.38 0.16 300)",
+		from: "hsl(248 62% 54%)",
+		to: "hsl(270 65% 34%)",
+		glow: "hsl(235 85% 72%)",
 	},
 	"tax-prep": {
-		from: "oklch(0.58 0.14 175)",
-		to: "oklch(0.40 0.13 195)",
+		from: "hsl(168 58% 42%)",
+		to: "hsl(192 64% 26%)",
+		glow: "hsl(155 70% 62%)",
 	},
 	"tenant-screening": {
-		from: "oklch(0.56 0.17 320)",
-		to: "oklch(0.40 0.16 335)",
+		from: "hsl(316 58% 50%)",
+		to: "hsl(338 64% 32%)",
+		glow: "hsl(300 75% 68%)",
 	},
 	maintenance: {
-		from: "oklch(0.64 0.14 70)",
-		to: "oklch(0.46 0.13 45)",
+		from: "hsl(34 88% 54%)",
+		to: "hsl(16 78% 38%)",
+		glow: "hsl(45 95% 65%)",
 	},
 };
 const DEFAULT_PALETTE = CATEGORY_PALETTES["software-vault"] as {
 	from: string;
 	to: string;
+	glow: string;
 };
 
 // Deterministic djb2 hash — per-slug composition variety (gradient angle +
@@ -107,12 +120,9 @@ export async function GET(_req: Request, { params }: RouteParams) {
 
 	const palette = CATEGORY_PALETTES[post.category ?? ""] ?? DEFAULT_PALETTE;
 	const h = hashSlug(slug);
-	const angle = 115 + (h % 60); // 115-174deg
-	const glowX = 55 + (h % 35); // accent glow: right half, varies per slug
-	const glowY = (h >> 3) % 70; // 0-69% from top
-	const ringX = (h >> 5) % 30; // outline ring: left third
-	const ringY = 40 + ((h >> 7) % 50);
-	const ringSize = 220 + ((h >> 9) % 160);
+	const angle = 120 + (h % 50); // 120-169deg
+	const glowX = 18 + (h % 64); // glow drifts across the top per slug
+	const ringRight = -12 + ((h >> 4) % 18); // bottom-right ring offset
 
 	return new ImageResponse(
 		<div
@@ -121,69 +131,58 @@ export async function GET(_req: Request, { params }: RouteParams) {
 				width: "100%",
 				display: "flex",
 				flexDirection: "column",
-				justifyContent: "space-between",
-				padding: "72px 80px",
+				alignItems: "center",
+				justifyContent: "center",
 				background: `linear-gradient(${angle}deg, ${palette.from} 0%, ${palette.to} 100%)`,
 				color: "white",
 				fontFamily: "sans-serif",
 				position: "relative",
 				overflow: "hidden",
+				textAlign: "center",
 			}}
 		>
-			{/* per-slug accent geometry — soft glow + outline ring */}
 			<div
 				style={{
 					position: "absolute",
-					top: `${glowY - 25}%`,
+					top: "-30%",
 					left: `${glowX}%`,
-					width: 560,
-					height: 560,
+					width: 700,
+					height: 700,
 					borderRadius: 9999,
-					opacity: 0.22,
-					background: "radial-gradient(circle, white 0%, transparent 65%)",
+					background: `radial-gradient(circle, ${palette.glow} 0%, transparent 60%)`,
+					opacity: 0.45,
 				}}
 			/>
 			<div
 				style={{
 					position: "absolute",
-					top: `${ringY}%`,
-					left: `${ringX - 8}%`,
-					width: ringSize,
-					height: ringSize,
+					bottom: "-32%",
+					right: `${ringRight}%`,
+					width: 520,
+					height: 520,
 					borderRadius: 9999,
 					border: "3px solid white",
-					opacity: 0.18,
+					opacity: 0.14,
 				}}
 			/>
-			<div
-				style={{
-					position: "absolute",
-					bottom: "-18%",
-					right: "-6%",
-					width: 420,
-					height: 420,
-					borderRadius: 9999,
-					border: "2px solid white",
-					opacity: 0.1,
-				}}
-			/>
-
 			<div
 				style={{
 					display: "flex",
 					alignItems: "center",
-					gap: 14,
-					fontSize: 24,
+					gap: 12,
+					fontSize: 22,
+					fontWeight: 700,
 					textTransform: "uppercase",
-					letterSpacing: "0.12em",
-					opacity: 0.9,
+					letterSpacing: "0.18em",
+					opacity: 0.92,
+					marginBottom: 34,
 				}}
 			>
 				<div
 					style={{
-						width: 14,
-						height: 14,
-						borderRadius: 4,
+						width: 10,
+						height: 10,
+						borderRadius: 9999,
 						background: "white",
 					}}
 				/>
@@ -191,11 +190,12 @@ export async function GET(_req: Request, { params }: RouteParams) {
 			</div>
 			<div
 				style={{
-					fontSize: 58,
-					fontWeight: 800,
-					lineHeight: 1.15,
-					maxWidth: "84%",
 					display: "flex",
+					fontSize: 60,
+					fontWeight: 800,
+					lineHeight: 1.18,
+					maxWidth: 760,
+					justifyContent: "center",
 				}}
 			>
 				{post.title}
@@ -204,23 +204,14 @@ export async function GET(_req: Request, { params }: RouteParams) {
 				style={{
 					display: "flex",
 					alignItems: "center",
-					justifyContent: "space-between",
-					fontSize: 28,
+					gap: 10,
+					marginTop: 38,
+					fontSize: 26,
 					fontWeight: 700,
-					opacity: 0.92,
+					opacity: 0.95,
 				}}
 			>
-				<div style={{ display: "flex" }}>TenantFlow</div>
-				<div
-					style={{
-						display: "flex",
-						fontSize: 22,
-						fontWeight: 500,
-						opacity: 0.75,
-					}}
-				>
-					tenantflow.app/blog
-				</div>
+				TenantFlow
 			</div>
 		</div>,
 		{
