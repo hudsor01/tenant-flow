@@ -216,6 +216,12 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 // content). Specific compound rewrites run FIRST, then a literal no-boundary
 // catch-all guarantees the substring cannot survive.
 const BANLIST_REPLACEMENTS: [RegExp, string][] = [
+	// Persona purity (persona-consistency e2e bans these on every public page):
+	// the audience is "landlords" — never "property owners" / "real estate investors".
+	[/\bproperty owners\b/gi, "landlords"],
+	[/\bproperty owner\b/gi, "landlord"],
+	[/\breal estate investors\b/gi, "landlords"],
+	[/\breal estate investor\b/gi, "landlord"],
 	[/\bunpaid rent\b/gi, "overdue rent"],
 	[/\bprepaid rent\b/gi, "rent paid in advance"],
 	[/\bpaid rent on time\b/gi, "paid on time"],
@@ -516,6 +522,12 @@ async function generateValidDraft(
 		d.content = d.content.replace(/^\s*#[^#].*(?:\r?\n)+/, "");
 		// deterministically neutralize any banlist phrases the model slips in
 		d.content = sanitizeBanlist(d.content);
+		// excerpt/title/meta render on public surfaces (blog index cards, meta
+		// tags) that the persona e2e scans — sanitize them too. Length gates
+		// re-run below, so a shrunk excerpt re-enters the repair loop.
+		d.title = sanitizeBanlist(d.title);
+		d.excerpt = sanitizeBanlist(d.excerpt);
+		d.meta_description = sanitizeBanlist(d.meta_description);
 		// cap DocuSeal at one mention (docuseal_mention gate, max 1)
 		d.content = capDocusealMentions(d.content);
 		const failures = runGates(d);
@@ -698,7 +710,7 @@ TenantFlow facts (every TenantFlow-specific claim must be grounded in these; do 
 ${facts}
 
 STRICT requirements:
-- "content": markdown body with 8 or 9 "## " section headings (no H1, no top-level title). Under EACH heading write 220-300 words of specific, practical, example-rich detail (steps, checklists, examples, common mistakes), so the full article is AT LEAST 1500 words (aim 1800-2300). Do NOT write a conclusion or stop before 1500 words. Must include the word "landlord". NEVER write the literal phrases "paid rent", "pay rent", "rent collection", "collect rent", "tenant portal", "autopay", or "online payments" — to discuss payment history use "paid on time" / "payment record" / "met their rent obligations".
+- "content": markdown body with 8 or 9 "## " section headings (no H1, no top-level title). Under EACH heading write 220-300 words of specific, practical, example-rich detail (steps, checklists, examples, common mistakes), so the full article is AT LEAST 1500 words (aim 1800-2300). Do NOT write a conclusion or stop before 1500 words. Must include the word "landlord". The audience word is "landlord"/"landlords" — NEVER "property owner(s)" or "real estate investor(s)". NEVER write the literal phrases "paid rent", "pay rent", "rent collection", "collect rent", "tenant portal", "autopay", or "online payments" — to discuss payment history use "paid on time" / "payment record" / "met their rent obligations".
 - "title": compelling, under 65 characters.
 - "slug": lowercase words joined by single hyphens, ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, 20-70 chars.
 - "excerpt": 110-180 characters.

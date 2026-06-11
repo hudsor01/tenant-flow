@@ -444,3 +444,20 @@ describe("sanitizeBanlist substring safety (EF gate matches substrings)", () => 
 		expectGateClean(out);
 	});
 });
+
+describe("sanitizeBanlist persona purity (persona-consistency e2e words)", () => {
+	it('rewrites "property owner(s)" to landlord(s), preserving case lead', () => {
+		const out = sanitizeBanlist(
+			"Property owners juggle many tasks; a property owner needs systems.",
+		);
+		expect(out.toLowerCase()).not.toContain("property owner");
+		expect(out.toLowerCase()).toContain("landlords");
+	});
+
+	it('rewrites "real estate investor(s)"', () => {
+		const out = sanitizeBanlist(
+			"Real estate investors and any real estate investor benefit.",
+		);
+		expect(out.toLowerCase()).not.toContain("real estate investor");
+	});
+});
