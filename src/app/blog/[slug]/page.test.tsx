@@ -198,18 +198,23 @@ describe("BlogArticlePage", () => {
 		// Unique on-brand cover from /api/og/blog/[slug] — every post gets hero
 		// art, never a bare header.
 		const image = screen.getByTestId("featured-image");
-		expect(image).toHaveAttribute("src", "/api/og/blog/test-post?v=3");
+		expect(image).toHaveAttribute("src", "/api/og/blog/test-post?v=4");
 	});
 
-	it("renders category name in meta bar linked to /blog/category/[slug]", () => {
+	it("renders category links (breadcrumb + meta bar) to /blog/category/[slug]", () => {
 		render(<BlogArticlePage post={mockPost} slug="test-post" />);
-		const categoryLink = screen.getByRole("link", {
+		// Two by design: the breadcrumb (inside PageLayout so it clears the
+		// fixed navbar) and the meta bar both link the category.
+		const categoryLinks = screen.getAllByRole("link", {
 			name: "Property Management",
 		});
-		expect(categoryLink).toHaveAttribute(
-			"href",
-			"/blog/category/property-management",
-		);
+		expect(categoryLinks.length).toBe(2);
+		for (const link of categoryLinks) {
+			expect(link).toHaveAttribute(
+				"href",
+				"/blog/category/property-management",
+			);
+		}
 	});
 
 	it("renders author name and reading time in meta bar", () => {

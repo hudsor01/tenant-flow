@@ -32,7 +32,7 @@ export function BlogPostBreadcrumb({
 		: null;
 
 	return (
-		<div className="max-w-4xl mx-auto px-6 lg:px-8 pt-6">
+		<div className="max-w-4xl mx-auto px-6 lg:px-8 pt-12">
 			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>
