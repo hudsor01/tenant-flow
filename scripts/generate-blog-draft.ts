@@ -26,7 +26,11 @@ import { loadDotenv } from "./_shared/load-dotenv";
 loadDotenv(process.cwd());
 
 const LM_BASE = process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
-const GEN_MODEL =
+// Mutable: main() resolves this against LM Studio's LOADED instance at
+// startup (see pickLoadedModel) — requesting a non-loaded identifier makes
+// LM Studio JIT-load a DUPLICATE 20GB copy (e.g. plain id vs "...@6bit"),
+// and two resident 24B copies crawl decode into the timeout (exec 151/311).
+let GEN_MODEL =
 	process.env.LM_GEN_MODEL ?? "mistral-small-3.2-24b-instruct-2506-mlx";
 const EMBED_MODEL =
 	process.env.LM_EMBED_MODEL ?? "text-embedding-qwen3-embedding-0.6b";
@@ -74,6 +78,38 @@ const BANLIST = [
 	"pay rent",
 ] as const;
 const SLUG_REGEX = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+
+// Pick the LM Studio model id to request: prefer a LOADED instance whose id
+// contains the configured base id (handles "...@6bit"-style load identifiers),
+// else fall back to the base id (JIT load). Pure — unit-tested.
+export function pickLoadedModel(
+	entries: { id?: unknown; state?: unknown }[],
+	base: string,
+): string {
+	const loaded = entries.find(
+		(m) =>
+			typeof m.id === "string" && m.id.includes(base) && m.state === "loaded",
+	);
+	return typeof loaded?.id === "string" ? loaded.id : base;
+}
+
+// Resolve once at startup. LM_GEN_MODEL env explicitly overrides; any API
+// failure falls back to the base id (JIT load — original behavior).
+async function resolveGenModel(): Promise<void> {
+	if (process.env.LM_GEN_MODEL) return; // explicit override wins
+	try {
+		const r = await fetch(`${LM_BASE.replace(/\/v1$/, "")}/api/v0/models`, {
+			signal: AbortSignal.timeout(10_000),
+		});
+		if (!r.ok) return;
+		const j = (await r.json()) as {
+			data?: { id?: unknown; state?: unknown }[];
+		};
+		GEN_MODEL = pickLoadedModel(j.data ?? [], GEN_MODEL);
+	} catch {
+		// fall through — base id JIT-loads
+	}
+}
 
 interface Draft {
 	title: string;
@@ -665,6 +701,11 @@ async function main() {
 		fail(`Missing env: ${missing.join(", ")} (in .env.local)`);
 
 	console.log(`Topic: ${topic}\nCategory: ${category}\n`);
+
+	// 0. resolve the LOADED generation model (avoids JIT-loading a duplicate
+	// 24B copy when the loaded identifier differs, e.g. "...@6bit")
+	await resolveGenModel();
+	console.log(`Model: ${GEN_MODEL}`);
 
 	// 1. retrieve RAG grounding
 	console.log("Embedding topic + retrieving RAG context...");
