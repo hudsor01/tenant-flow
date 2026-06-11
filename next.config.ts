@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
 		// covers' ?v=2 cache-buster (poisoned-optimizer-cache recovery).
 		localPatterns: [
 			{ pathname: "/**", search: "" },
-			{ pathname: "/api/og/blog/**", search: "?v=2" },
+			{ pathname: "/api/og/blog/**" },
 		],
 		remotePatterns: [
 			{ protocol: "https", hostname: "*.supabase.co" },

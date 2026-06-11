@@ -23,7 +23,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
 				    slug-hashed composition — unique, on-brand art for every post
 				    with zero manual curation. */}
 				<Image
-					src={post.featured_image ?? `/api/og/blog/${post.slug}?v=2`}
+					src={post.featured_image ?? `/api/og/blog/${post.slug}?v=3`}
 					alt={post.title}
 					fill
 					sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
