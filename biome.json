@@ -17,7 +17,8 @@
 			"!**/node_modules/**",
 			"!**/.vercel/**",
 			"!playwright-report/**",
-			"!test-results/**"
+			"!test-results/**",
+			"!.planning/**"
 		]
 	},
 	"formatter": { "enabled": true, "indentStyle": "tab" },

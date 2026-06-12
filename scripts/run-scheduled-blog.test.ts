@@ -5,10 +5,12 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { BlogTopicEntry } from "./run-scheduled-blog";
 import {
 	acquireLock,
+	buildFbTriggerArgv,
 	fetchAllSlugs,
 	mapTopicEntry,
 	pickNextTopic,
 	releaseLock,
+	triggerFbPostSession,
 } from "./run-scheduled-blog";
 
 const entry = (
@@ -146,5 +148,45 @@ describe("overlap lock", () => {
 		releaseLock(lockPath);
 		expect(existsSync(lockPath)).toBe(false);
 		releaseLock(lockPath); // no throw on second call
+	});
+});
+
+describe("buildFbTriggerArgv", () => {
+	it("builds a headless prompt pinned to the slug with a strict tool allowlist", () => {
+		const argv = buildFbTriggerArgv("my-new-post");
+		expect(argv[0]).toBe("-p");
+		expect(argv[1]).toContain('"my-new-post"');
+		expect(argv[1]).toContain("scripts/fb-post-voice-guide.md");
+		const allowed = argv[argv.indexOf("--allowedTools") + 1];
+		expect(allowed).toBe("Read,Write,Bash(bun:*)");
+		expect(argv).toContain("--max-turns");
+	});
+});
+
+describe("triggerFbPostSession", () => {
+	it("is a no-op when FB_POST_TRIGGER=0", () => {
+		const prev = process.env.FB_POST_TRIGGER;
+		process.env.FB_POST_TRIGGER = "0";
+		try {
+			// Would throw on spawn of a nonexistent binary if the guard failed.
+			process.env.CLAUDE_BIN = "/nonexistent/claude-binary";
+			expect(() => triggerFbPostSession("any-slug")).not.toThrow();
+		} finally {
+			if (prev === undefined) delete process.env.FB_POST_TRIGGER;
+			else process.env.FB_POST_TRIGGER = prev;
+			delete process.env.CLAUDE_BIN;
+		}
+	});
+
+	it("never throws even when the binary is missing (fail-open)", () => {
+		const prev = process.env.FB_POST_TRIGGER;
+		delete process.env.FB_POST_TRIGGER;
+		process.env.CLAUDE_BIN = "/nonexistent/claude-binary";
+		try {
+			expect(() => triggerFbPostSession("any-slug")).not.toThrow();
+		} finally {
+			if (prev !== undefined) process.env.FB_POST_TRIGGER = prev;
+			delete process.env.CLAUDE_BIN;
+		}
 	});
 });

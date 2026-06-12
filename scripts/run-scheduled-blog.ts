@@ -14,9 +14,9 @@
  *
  * Usage: bun scripts/run-scheduled-blog.ts
  */
-import { spawnSync } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { spawn, spawnSync } from "node:child_process";
+import { openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { formatGenFailure } from "./generate-blog-draft";
@@ -115,6 +115,58 @@ export function acquireLock(
 
 export function releaseLock(lockPath: string = DEFAULT_LOCK_PATH): void {
 	rmSync(lockPath, { force: true });
+}
+
+/**
+ * Headless Claude Code argv for the FB-post-on-publish step. Pure — unit-tested.
+ * The spawned session reads scripts/fb-post-voice-guide.md and appends one
+ * voice-written Facebook post to .planning/social/fb-staging/ for the slug.
+ * Tool allowlist is the minimum the guide's procedure needs.
+ */
+export function buildFbTriggerArgv(slug: string): string[] {
+	return [
+		"-p",
+		`A TenantFlow blog post was just published with slug "${slug}". Read scripts/fb-post-voice-guide.md and follow its procedure exactly for this slug.`,
+		"--allowedTools",
+		"Read,Write,Bash(bun:*)",
+		"--output-format",
+		"text",
+		"--max-turns",
+		"40",
+	];
+}
+
+/**
+ * Fire-and-forget: spawn a detached headless Claude session that drafts the
+ * Facebook post for a freshly published blog. Strictly non-fatal — the blog
+ * factory must never fail because the social step did. Opt out with
+ * FB_POST_TRIGGER=0; override the binary with CLAUDE_BIN.
+ */
+export function triggerFbPostSession(slug: string): void {
+	if (process.env.FB_POST_TRIGGER === "0") return;
+	try {
+		const bin = process.env.CLAUDE_BIN ?? join(homedir(), ".local/bin/claude");
+		const logPath = join(tmpdir(), `fb-post-${slug}.log`);
+		const log = openSync(logPath, "a");
+		const child = spawn(bin, buildFbTriggerArgv(slug), {
+			cwd: new URL("..", import.meta.url).pathname,
+			detached: true,
+			stdio: ["ignore", log, log],
+		});
+		// spawn() reports a missing binary asynchronously — swallow it so the
+		// blog factory never crashes on the social step (fail-open).
+		child.on("error", (e) => {
+			console.warn(`fb-post trigger spawn error (non-fatal): ${e.message}`);
+		});
+		child.unref();
+		console.log(
+			`fb-post trigger spawned for "${slug}" (pid ${child.pid ?? "?"}) — log: ${logPath}`,
+		);
+	} catch (e) {
+		console.warn(
+			`fb-post trigger failed (non-fatal): ${e instanceof Error ? e.message : String(e)}`,
+		);
+	}
 }
 
 async function main(): Promise<number> {
