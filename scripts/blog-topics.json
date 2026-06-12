@@ -6,6 +6,12 @@
 		"tier": "reclaim"
 	},
 	{
+		"topic": "Security deposit return deadlines and caps in all 50 states: the complete landlord reference",
+		"category": "lease-law",
+		"slug": "security-deposit-deadlines-and-caps-all-50-states",
+		"tier": "evergreen"
+	},
+	{
 		"topic": "Alabama security deposit law: the one-month cap and 60-day return deadline explained for landlords",
 		"category": "lease-law",
 		"slug": "alabama-security-deposit-law-one-month-cap-60-day-return",
@@ -5991,12 +5997,6 @@
 		"topic": "Familial status rules: occupancy limits, adults-only mistakes, and HUD's two-per-bedroom guidance",
 		"category": "lease-law",
 		"slug": "familial-status-occupancy-limits-hud-guidance",
-		"tier": "evergreen"
-	},
-	{
-		"topic": "Rent control and rent stabilization basics: which states and cities have it, and what small landlords need to know",
-		"category": "lease-law",
-		"slug": "rent-control-rent-stabilization-basics-for-landlords",
 		"tier": "evergreen"
 	}
 ]
