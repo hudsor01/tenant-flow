@@ -221,7 +221,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 - `NotFoundPage` from `#components/shared/not-found-page` for all 404s
 - `ErrorPage` from `#components/shared/error-page` for all error boundaries
 - `Empty` compound component from `#components/ui/empty` for list-page empty states
-- **Blog covers are generated brand art, permanently** — `/api/og/blog/[slug]` (category-themed hsl palettes + slug-hashed composition) serves card thumbnail, post hero, and social OG. Never add stock photos or image APIs; `blogs.featured_image` stays NULL. satori does NOT support oklch (renders it black) — hsl() only in OG routes, and pixel-verify any OG change with a local ImageResponse harness before deploying.
+- **Blog covers are generated brand art, permanently** — rendered ONCE at publish (`scripts/render-blog-cover.tsx`, category-themed hsl palettes + slug-hashed composition + logo badge) and stored as a static file in the public `blog-covers` Storage bucket; `blogs.featured_image` holds that CDN URL. `/api/og/blog/[slug]` (same design) remains the social-OG card + the fallback for rows without a stored cover. Never add stock photos or image APIs. satori does NOT support oklch (renders it black) — hsl() only in cover/OG renderers, and pixel-verify any change with a local ImageResponse harness before deploying.
 
 ## Marketing Pages
 - `src/components/layout/page-layout.tsx` wraps all marketing pages (navbar + footer + grid pattern + `page-offset-navbar`). Never re-add `page-offset-navbar` to children.
