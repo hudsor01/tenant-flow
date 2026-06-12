@@ -835,6 +835,34 @@ STRICT requirements:
 		return;
 	}
 
+	// 3d. render the branded cover ONCE and ship it as a static CDN file —
+	// thumbnails then never pay the on-demand edge render (the /api/og/blog
+	// route stays as fallback for rows without a stored cover). FAIL-OPEN:
+	// any render/upload error leaves og_image_url unset.
+	let ogImageUrl: string | undefined;
+	try {
+		const { renderBlogCoverPng } = await import("./render-blog-cover");
+		const png = await renderBlogCoverPng({
+			title: draft.title,
+			category: draft.category,
+			slug: draft.slug,
+		});
+		const { error: coverErr } = await supabase.storage
+			.from("blog-covers")
+			.upload(`${draft.slug}.png`, png, {
+				contentType: "image/png",
+				upsert: true,
+				cacheControl: "31536000",
+			});
+		if (coverErr) throw new Error(coverErr.message);
+		ogImageUrl = `${SUPABASE_URL}/storage/v1/object/public/blog-covers/${draft.slug}.png`;
+		console.log(`  cover uploaded: ${ogImageUrl}`);
+	} catch (e) {
+		console.error(
+			`  cover upload failed (edge-render fallback stays): ${e instanceof Error ? e.message : e}`,
+		);
+	}
+
 	// 4. HMAC-sign the exact body bytes + POST to the ingest EF
 	const payload = {
 		title: draft.title,
@@ -843,6 +871,7 @@ STRICT requirements:
 		content: draft.content,
 		category: draft.category,
 		meta_description: draft.meta_description,
+		og_image_url: ogImageUrl,
 	};
 	const body = JSON.stringify(payload);
 	const signature = createHmac("sha256", HMAC_SECRET as string)
