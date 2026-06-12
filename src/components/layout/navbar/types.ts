@@ -29,17 +29,15 @@ export const DEFAULT_NAV_ITEMS = [
 	{ name: "Features", href: "/features" },
 	{ name: "Pricing", href: "/pricing" },
 	{ name: "Compare", href: "/compare" },
+	// Blog promoted to the global nav 2026-06-11: the AUDIT-2 deferral
+	// ("hide until the first cohort of articles publishes") is satisfied —
+	// the content factory has 25+ published articles and adds more daily.
+	{ name: "Blog", href: "/blog" },
 	{ name: "About", href: "/about" },
 	{
 		name: "Resources",
 		href: "/resources",
 		hasDropdown: true,
-		// Blog deferred from the global nav until the first cohort of
-		// articles publishes (AUDIT-2, 2026-05-18). The empty-state
-		// placeholder was leaking through to paid-ad traffic via this
-		// dropdown + the footer. The /blog URL remains accessible for
-		// direct visits, RSS, and crawlers; it just isn't promoted
-		// anywhere in chrome until content lands.
 		dropdownItems: [
 			{ name: "Free Resources", href: "/resources" },
 			{ name: "Help Center", href: "/help" },

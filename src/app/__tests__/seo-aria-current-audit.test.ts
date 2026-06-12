@@ -88,6 +88,7 @@ const ROUTES = [
 	"/features",
 	"/compare/buildium",
 	"/resources",
+	"/blog",
 ] as const;
 type Route = (typeof ROUTES)[number];
 
@@ -100,6 +101,7 @@ const EXPECTED_ACTIVE: Readonly<Record<Route, NavHref | null>> = {
 	"/features": "/features",
 	"/compare/buildium": "/compare",
 	"/resources": "/resources",
+	"/blog": "/blog",
 };
 
 describe("SEO-07 aria-current audit — marketing nav", () => {
