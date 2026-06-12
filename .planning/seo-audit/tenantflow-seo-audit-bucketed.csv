@@ -1,0 +1,143 @@
+URL,Clicks (3mo),Impressions (3mo),Avg Position,Index Status / Problem,Recommended Codebase Fix
+https://tenantflow.app/blog/rentredi-pricing-breakdown-and-hidden-fees-what-every-small-landlord-needs-to-know,3,927,8,"Noindex tag (live, fetch OK)",Remove noindex meta tag
+https://tenantflow.app/blog/yardi-breeze-vs-appfolio-complete-comparison-for-2026,1,742,7,404 Not Found (live-tested),Restore content OR 301-redirect to live equivalent (or 410 if intentionally gone)
+https://tenantflow.app/blog/stessa-vs-rentredi-complete-comparison-for-2026,0,596,10.7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/,34,476,6.1,Indexed (healthy),None - healthy
+https://tenantflow.app/blog/photography-tips-for-rental-listings,0,428,12.9,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-50-property-management-apps-for-small-landlords,0,414,9.5,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/rentec-direct-vs-avail-complete-comparison-for-2025,0,385,6,Indexed (healthy),None - healthy
+https://tenantflow.app/blog/top-3-property-management-apps-for-commercial-landlords,1,375,8.4,"Noindex tag (live, fetch OK)",Remove noindex meta tag
+https://tenantflow.app/blog/top-5-property-management-apps-for-first-time-landlords-remote-friendly,0,372,8.7,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/stessa-vs-turbotenant-complete-comparison-for-2026,1,325,8.4,"Noindex tag (live, fetch OK)",Remove noindex meta tag
+https://tenantflow.app/blog/rent-manager-pricing-breakdown-and-hidden-fees-what-you-need-to-know-before-you-subscribe,2,303,12.9,"Noindex tag (live, fetch OK)",Remove noindex meta tag
+https://tenantflow.app/blog/top-5-property-management-apps-for-first-time-landlords,0,297,13.3,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/automated-rent-collection-complete-setup-guide-for-real-estate-beginners,0,283,14.5,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/landlord-studio-review-is-it-worth-the-price-for-first-time-landlords,0,276,19.2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/zillow-rental-manager-alternatives-under-50-month,0,270,10.3,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/stessa-vs-appfolio-complete-comparison-for-2026,1,264,9.6,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-5-property-management-apps-for-diy-landlords,1,217,24.7,"Noindex tag (live, fetch OK)",Remove noindex meta tag
+https://tenantflow.app/blog/doorloop-alternatives-under-40-month-for-single-property-owners,0,211,12.4,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/top-10-property-management-apps-for-multi-family-investors-budget-friendly-options,0,205,10.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/communication-tools-for-distant-landlords,0,204,31,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/resman-vs-rent-manager-complete-comparison-for-2025,0,198,7.3,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/rent-manager-alternatives-under-100-month,1,197,11.7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-5-property-management-apps-for-small-landlords,0,194,19.2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025,2,186,6.4,404 Not Found (live-tested),Restore content OR 301-redirect to live equivalent (or 410 if intentionally gone)
+https://tenantflow.app/blog/rentec-direct-alternatives-under-75-month-for-tech-savvy-landlords,0,171,9.2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-50-property-management-apps-for-vacation-rental-owners,0,171,39.4,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/simplifyem-pricing-breakdown-and-hidden-fees-what-every-property-investor-needs-to-know,0,151,7.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/best-property-management-software-for-remote-landlords,0,151,9.2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-100-property-management-apps-for-real-estate-beginners,0,149,17.6,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/appfolio-alternatives-under-25-month-for-first-time-landlords,0,145,21.8,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/appfolio-alternatives-under-20-month-for-rental-property-management,0,143,25.8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/tenantcloud-vs-stessa-complete-comparison-for-2025,0,142,8.5,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/pricing,1,135,19.5,Indexed - structured-data error (Merchant listings: 1 invalid item),Fix invalid Merchant listing structured data
+https://tenantflow.app/blog/stessa-vs-simplifyem-complete-comparison-for-2026,0,134,9.8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/about,3,133,8.5,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/propertyware-vs-zillow-rental-manager-complete-comparison-for-2026,0,128,8.9,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/yardi-breeze-vs-zillow-rental-manager-complete-comparison-for-2026,1,124,7.6,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/rentec-direct-vs-apartments-com-complete-comparison-for-2025,0,113,8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-10-property-management-apps-for-single-property-owners,0,90,23.3,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/contact,1,89,7.3,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/tenantflow-pricing-vs-competitors-a-landlord-s-guide-for-beginners,0,86,6.1,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-1-property-management-app-for-first-time-landlords,0,86,7.3,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-50-property-management-apps-for-small-landlords-budget-friendly-easy-to-use,0,78,8.8,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/how-to-manage-1-rental-property-without-expensive-software,0,70,7.9,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/innago-vs-buildium-complete-comparison-for-2026,0,69,8.5,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/hemlane-alternatives-under-25-month-best-property-management-software-for-landlords,0,67,14.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/scaling-from-10-to-20-rental-properties-a-self-managing-landlord-s-guide,0,55,6.7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/why-tenantflow-is-the-best-choice-for-diy-landlords,0,45,7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/how-to-scale-from-50-to-500-rental-properties-without-losing-your-mind,0,45,15.8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/financial-reports-every-landlord-needs,0,44,11.6,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/help,0,43,8,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/yardi-breeze-alternatives-under-100-month-for-multi-family-investors,0,42,8.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/privacy,0,39,6.8,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/brrrr-method-explained-for-property-investors-a-multi-family-investor-s-guide,0,37,7.8,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/how-to-manage-50-rental-properties-without-expensive-software,0,35,7.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/brrrr-method-explained-for-remote-landlords,0,35,7.7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/terms,0,34,5.9,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/propertyware-vs-resman-complete-comparison-for-2025,0,32,9.8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/landlord-studio-vs-resman-complete-comparison-for-2025,0,28,6.2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/faq,0,26,5.5,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/resman-alternatives-under-25-month-for-vacation-rental-owners,0,25,7.9,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/security-systems-for-remote-monitoring-essential-tips-for-self-managing-landlords,0,25,19.6,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/top-100-property-management-apps-for-first-time-landlords,0,23,27,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/top-10-property-management-apps-for-vacation-rental-owners,0,21,72.6,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/turbotenant-alternatives-under-25-month-best-rental-management-software-for-vacation-rental-owners,0,20,7,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/the-essential-tenant-screening-checklist-for-first-time-landlords,0,20,31,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/buildium-alternatives-under-40-month-for-first-time-landlords,0,19,8.1,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/security-deposit-laws-by-state-your-rent-collection-property-management-guide-for-diy-landlords,0,19,22.6,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/essential-property-management-tips-for-small-landlords,0,18,8.1,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords,0,18,9.9,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/scaling-from-3-to-30-rental-properties-a-vacation-rental-owner-s-guide,0,17,6.4,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/why-tenantflow-is-the-best-choice-for-small-landlords,0,16,5.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/propertyware-vs-simplifyem-complete-comparison-for-2025,0,16,7.2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/scaling-from-5-to-15-rental-properties-landlord-tips-for-growth-without-burning-out,0,16,7.8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/tenantflow-success-stories-from-self-managing-landlords,0,16,8.8,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/free-property-management-software-options-in-2025,0,16,38.9,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/features,0,15,2.9,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/managing-contractors-from-a-distance,0,14,4.7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/propertyware-vs-innago-vs-tenantflow-the-definitive-guide-for-small-landlords-in-2025,1,11,7.6,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/handling-inspection-disputes-with-tenants,0,10,26.1,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/landlord-studio-vs-simplifyem-complete-comparison-for-2025,0,9,13.3,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/tenant-screening-checklist-for-multi-family-investors,0,7,6,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/how-to-manage-3-rental-properties-without-expensive-property-software,0,7,7.6,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/tenantflow-coverage-gaps-landlords-often-miss-and-how-to-fix-them-with-smart-property-management,0,6,8.7,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/category/financial-management,0,4,7.2,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/compare,0,3,2,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/how-to-increase-rental-income-by-5-as-a-single-property-owner,0,3,7.7,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/how-to-increase-rental-income-by-50-without-losing-your-sanity,0,1,2,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/login,0,1,8,Core page - likely indexed (verify),"Verify status, then index if eligible"
+https://tenantflow.app/compare/appfolio,0,1,53,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/top-3-property-management-apps-for-professional-landlords,0,1,75,Not in noindex bucket - likely indexed or 404 (verify),"Verify status, then index if eligible"
+https://tenantflow.app/blog/error-1773509442122,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/tenantflow-success-stories-from-remote-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1775703682122,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1774345515152,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/top-1-property-management-app-for-single-property-owners,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/doorloop-review-is-it-worth-the-price-for-professional-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/scaling-from-10-to-100-rental-properties-a-landlord-s-growth-blueprint,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773387042170,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/cozy-alternatives-under-20-month-for-vacation-rental-owners,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773361842137,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/simplifyem-vs-avail-complete-comparison-for-2026,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/chatbots-for-tenant-communication-a-smart-solution-for-vacation-rental-owners,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/apartments-com-vs-rentredi-complete-comparison-for-2025,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/using-zapier-for-property-management,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/why-tenantflow-is-the-best-choice-for-tech-savvy-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/appfolio-vs-hemlane-complete-comparison-for-2025,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1774389661320,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1773455442145,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1773404142143,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1773377142161,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/top-20-property-management-apps-for-diy-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/how-to-scale-from-10-to-20-rental-properties-a-commercial-landlord-s-guide,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/rent-manager-vs-resman-complete-comparison-for-2025,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/how-to-scale-from-3-to-6-rental-properties,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773381642106,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1775948458122,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/buildium-vs-landlord-studio-complete-comparison-for-2025,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/vendor-management-for-property-owners-a-beginner-s-guide,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1775646172238,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/category/maintenance,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/blockchain-in-real-estate-explained-a-landlord-s-guide-to-the-future,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/rentredi-alternatives-under-30-month-for-budget-conscious-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773542742136,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords-in-2025,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/documenting-property-condition-properly-a-landlord-s-guide-to-smart-rental-management,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/tenantcloud-alternatives-under-40-month,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/zillow-rental-manager-vs-tenantcloud-complete-comparison-for-2026,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/best-property-management-software-for-commercial-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/top-100-property-management-apps-for-self-managing-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/hemlane-review-is-it-worth-the-price-for-tech-savvy-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773435642141,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/property-management-for-out-of-state-landlords,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773415842160,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/example-blog-post,,,,Noindex tag (suspected),Remove noindex meta tag
+https://tenantflow.app/blog/error-1773480642166,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1775358164015,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1775833212132,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1774403161350,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1774355415169,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
+https://tenantflow.app/blog/error-1775084406050,,,,Auto-generated junk + noindex (DELETE),Stop generating + return 404/410 and remove from sitemap
