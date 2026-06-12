@@ -864,7 +864,7 @@ STRICT requirements:
 	console.log(`  -> HTTP ${res.status}: ${text}`);
 	if (res.status === 201) {
 		console.log(
-			`\nSUCCESS: draft "${draft.slug}" is now status='in-review'. Review + publish in the dashboard.`,
+			`\nSUCCESS: "${draft.slug}" is PUBLISHED — live on /blog now; its own page builds on the next deploy. Unpublish anytime at /admin/blog.`,
 		);
 	} else if (res.status === 401) {
 		fail(
