@@ -218,6 +218,8 @@ async function main(): Promise<number> {
 			],
 			{ stdio: "inherit" },
 		);
+		// Publish succeeded -> draft its Facebook post (detached, fail-open).
+		if (child.status === 0) triggerFbPostSession(next.slug);
 		return child.status ?? 1;
 	} finally {
 		releaseLock();
