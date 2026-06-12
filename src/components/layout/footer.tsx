@@ -34,6 +34,7 @@ const FOOTER_SECTIONS: ReadonlyArray<{
 	{
 		heading: "Resources",
 		links: [
+			{ label: "Blog", href: "/blog" },
 			{ label: "Help Center", href: "/help" },
 			{ label: "FAQ", href: "/faq" },
 			{ label: "RSS Feed", href: "/feed.xml", external: true },
