@@ -959,6 +959,7 @@ const JUDGE_SYSTEM = `You are a strict editorial judge for TenantFlow's landlord
 CALIBRATION — what counts as a violation:
 - A TenantFlow-specific claim is a grounding issue ONLY if it CONTRADICTS the provided facts or INVENTS something not in them. A statement that is true but less detailed than the facts (e.g. "a 14-day trial" without the word "free", "plans start at $19/month" without the annual price, a feature named without its quota) is CORRECT — do NOT flag it and do NOT demand more detail.
 - A payment-facilitation issue exists ONLY if the draft says tenants pay/submit/process payments THROUGH TenantFlow. Generic landlord guidance about rent, deposits, or staying current is fine.
+- Internal links or references to OTHER TenantFlow blog posts — including a "Related reading" footer and any "[Title](/blog/...)" links — are legitimate site navigation, NOT grounding violations. Never flag them as invented or unsupported, and never penalize the draft for naming another article's title.
 - Do not list nice-to-haves, style preferences, or suggestions for additional content as issues.
 Set verdict to "reject" if ANY dimension would score below 4, otherwise "pass". List only concrete VIOLATIONS as issues.`;
 
