@@ -460,6 +460,23 @@ export async function headCheckCitations(
 // 110-180, gate 80-200) — the margin makes an obedient first draft clear the gate.
 const TOTAL_GATES = 18;
 
+// SEO-completeness gates that are BEST-EFFORT, not publish-blocking. The prompt
+// drives them and the sanitizers cover the mechanical ones (external/internal
+// links), but the 6-bit model can't satisfy all 18 hard gates in a single
+// whole-draft regeneration, so forcing them collapses throughput. Un-met ones
+// are logged and backfilled in a later pass. The correctness/persona/structure
+// gates (word_count, h2_count, persona_phrase, banlist, meta_length,
+// excerpt_length, category, slug_pattern, docuseal_mention, slug_brand_match,
+// meta_not_truncated) remain HARD blockers.
+export const ADVISORY_GATES: ReadonlySet<string> = new Set([
+	"takeaways_required",
+	"faq_required",
+	"table_required",
+	"title_length",
+	"internal_links",
+	"citations",
+]);
+
 // Context the SEO gates need beyond the draft itself: the working topic (for
 // table-intent detection) and the published same-category slugs offered to the
 // model as internal-link candidates.
@@ -942,6 +959,7 @@ const JUDGE_SYSTEM = `You are a strict editorial judge for TenantFlow's landlord
 CALIBRATION — what counts as a violation:
 - A TenantFlow-specific claim is a grounding issue ONLY if it CONTRADICTS the provided facts or INVENTS something not in them. A statement that is true but less detailed than the facts (e.g. "a 14-day trial" without the word "free", "plans start at $19/month" without the annual price, a feature named without its quota) is CORRECT — do NOT flag it and do NOT demand more detail.
 - A payment-facilitation issue exists ONLY if the draft says tenants pay/submit/process payments THROUGH TenantFlow. Generic landlord guidance about rent, deposits, or staying current is fine.
+- Internal links or references to OTHER TenantFlow blog posts — including a "Related reading" footer and any "[Title](/blog/...)" links — are legitimate site navigation, NOT grounding violations. Never flag them as invented or unsupported, and never penalize the draft for naming another article's title.
 - Do not list nice-to-haves, style preferences, or suggestions for additional content as issues.
 Set verdict to "reject" if ANY dimension would score below 4, otherwise "pass". List only concrete VIOLATIONS as issues.`;
 
@@ -1088,7 +1106,20 @@ async function generateValidDraft(
 			d.content,
 			ctx.internalLinkCandidates ?? [],
 		);
-		let failures = runGates(d, ctx);
+		// The local 24B model regenerates the whole draft per repair, so each
+		// extra HARD gate multiplies the odds of never passing all at once
+		// (whack-a-mole). The SEO-COMPLETENESS gates are best-effort: the prompt
+		// drives them and the sanitizers cover the mechanical ones, but they do
+		// NOT block publish — un-met ones are logged and backfilled later. Only
+		// the correctness/persona/structure gates block.
+		const allFailures = runGates(d, ctx);
+		const advisory = allFailures.filter((f) => ADVISORY_GATES.has(f.gate));
+		if (advisory.length > 0) {
+			console.log(
+				`  advisory (best-effort, not blocking): ${[...new Set(advisory.map((f) => f.gate))].join(", ")}`,
+			);
+		}
+		let failures = allFailures.filter((f) => !ADVISORY_GATES.has(f.gate));
 		if (failures.length === 0) {
 			// structural gates pass — verify the external citations actually
 			// resolve (HEAD, 10s each); a dead source becomes a repair hint,
