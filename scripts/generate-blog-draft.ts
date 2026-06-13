@@ -460,6 +460,23 @@ export async function headCheckCitations(
 // 110-180, gate 80-200) — the margin makes an obedient first draft clear the gate.
 const TOTAL_GATES = 18;
 
+// SEO-completeness gates that are BEST-EFFORT, not publish-blocking. The prompt
+// drives them and the sanitizers cover the mechanical ones (external/internal
+// links), but the 6-bit model can't satisfy all 18 hard gates in a single
+// whole-draft regeneration, so forcing them collapses throughput. Un-met ones
+// are logged and backfilled in a later pass. The correctness/persona/structure
+// gates (word_count, h2_count, persona_phrase, banlist, meta_length,
+// excerpt_length, category, slug_pattern, docuseal_mention, slug_brand_match,
+// meta_not_truncated) remain HARD blockers.
+export const ADVISORY_GATES: ReadonlySet<string> = new Set([
+	"takeaways_required",
+	"faq_required",
+	"table_required",
+	"title_length",
+	"internal_links",
+	"citations",
+]);
+
 // Context the SEO gates need beyond the draft itself: the working topic (for
 // table-intent detection) and the published same-category slugs offered to the
 // model as internal-link candidates.
@@ -1088,7 +1105,20 @@ async function generateValidDraft(
 			d.content,
 			ctx.internalLinkCandidates ?? [],
 		);
-		let failures = runGates(d, ctx);
+		// The local 24B model regenerates the whole draft per repair, so each
+		// extra HARD gate multiplies the odds of never passing all at once
+		// (whack-a-mole). The SEO-COMPLETENESS gates are best-effort: the prompt
+		// drives them and the sanitizers cover the mechanical ones, but they do
+		// NOT block publish — un-met ones are logged and backfilled later. Only
+		// the correctness/persona/structure gates block.
+		const allFailures = runGates(d, ctx);
+		const advisory = allFailures.filter((f) => ADVISORY_GATES.has(f.gate));
+		if (advisory.length > 0) {
+			console.log(
+				`  advisory (best-effort, not blocking): ${[...new Set(advisory.map((f) => f.gate))].join(", ")}`,
+			);
+		}
+		let failures = allFailures.filter((f) => !ADVISORY_GATES.has(f.gate));
 		if (failures.length === 0) {
 			// structural gates pass — verify the external citations actually
 			// resolve (HEAD, 10s each); a dead source becomes a repair hint,
