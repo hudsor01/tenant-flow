@@ -742,6 +742,78 @@ export function capDocusealMentions(s: string): string {
 	});
 }
 
+// Deterministic cure for the `citations` offlist failure (the model habitually
+// links to manufacturer/how-to sites). Same philosophy as sanitizeBanlist: keep
+// the anchor TEXT, drop the disallowed href, so the post loses a junk link, not
+// content. Allowlisted (.gov / law.cornell.edu) links are preserved verbatim.
+// Pure — unit-tested.
+export function stripNonAllowlistedExternalLinks(content: string): string {
+	// markdown links to a non-allowlisted external URL -> plain anchor text
+	let out = content.replace(
+		/\[([^\]]*)\]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/g,
+		(match, text: string, url: string) =>
+			isAllowlistedCitation(url) ? match : text,
+	);
+	// bare non-allowlisted external URLs -> removed (rare; the model occasionally
+	// drops a raw link). Allowlisted bare URLs are left intact.
+	out = out.replace(/https?:\/\/[^\s)\]>"']+/g, (url) =>
+		isAllowlistedCitation(url.replace(/[.,;:!?]+$/, "")) ? url : "",
+	);
+	return out;
+}
+
+function humanizeSlug(slug: string): string {
+	return slug
+		.split("-")
+		.map((w) => (w.length > 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+		.join(" ");
+}
+
+// Deterministic cure for the `internal_links` failure: (1) strip internal links
+// to unknown slugs or dead "#" hrefs down to plain text, then (2) if fewer than
+// two valid candidate links remain, append a "Related reading" line wiring in
+// fresh candidates. A related-reading footer of same-category siblings is a
+// legitimate internal-linking pattern, not gate-gaming. No-op when fewer than
+// two candidates exist (the gate passes vacuously there). Pure — unit-tested.
+export function ensureInternalLinks(
+	content: string,
+	candidateSlugs: readonly string[],
+): string {
+	const candidates = new Set(candidateSlugs);
+	// 1. strip unknown-slug internal links + dead "#" links to plain text
+	const out = content.replace(
+		/\[([^\]]*)\]\((\/blog\/[^)\s]+|#)(?:\s+"[^"]*")?\)/g,
+		(match, text: string, href: string) => {
+			if (href === "#") return text;
+			return candidates.has(href.slice("/blog/".length)) ? match : text;
+		},
+	);
+	if (candidateSlugs.length < 2) return out;
+
+	// 2. count valid candidate links already present
+	const linked = new Set<string>();
+	for (const m of out.matchAll(/\]\(\/blog\/([^)\s]+)\)/g)) {
+		const slug = m[1];
+		if (slug !== undefined && candidates.has(slug)) linked.add(slug);
+	}
+	if (linked.size >= 2) return out;
+
+	const need = 2 - linked.size;
+	const pick = candidateSlugs.filter((s) => !linked.has(s)).slice(0, need);
+	if (pick.length < need) return out; // not enough distinct candidates
+	const line = `Related reading: ${pick
+		.map((s) => `[${humanizeSlug(s)}](/blog/${s})`)
+		.join(" and ")}.`;
+
+	// insert just before the FAQ section if present (keeps FAQ near the end for
+	// the faq_required position check), otherwise append at the end.
+	const faq = out.match(/^##\s+(?:faq|frequently asked questions)\s*$/im);
+	if (faq?.index !== undefined) {
+		return `${out.slice(0, faq.index)}${line}\n\n${out.slice(faq.index)}`;
+	}
+	return `${out.trimEnd()}\n\n${line}\n`;
+}
+
 async function embed(input: string): Promise<number[]> {
 	const r = await fetch(`${LM_BASE}/embeddings`, {
 		method: "POST",
@@ -1008,6 +1080,14 @@ async function generateValidDraft(
 		d.content = capDocusealMentions(d.content);
 		// demote surplus H2s (h2_count gate max 10; keep 9 for margin)
 		d.content = capH2Count(d.content);
+		// deterministically clear the two gates the local model rarely lands on
+		// its own: strip non-allowlisted external links (citations offlist) and
+		// guarantee >=2 valid same-category internal links (internal_links).
+		d.content = stripNonAllowlistedExternalLinks(d.content);
+		d.content = ensureInternalLinks(
+			d.content,
+			ctx.internalLinkCandidates ?? [],
+		);
 		let failures = runGates(d, ctx);
 		if (failures.length === 0) {
 			// structural gates pass — verify the external citations actually
