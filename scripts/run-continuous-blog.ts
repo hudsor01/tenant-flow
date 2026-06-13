@@ -39,6 +39,15 @@ const MAX_ATTEMPTS = Math.max(
 	Number(process.env.CONTINUOUS_MAX_ATTEMPTS ?? "2"),
 );
 const TRANSIENT_RETRY_MS = 30_000;
+// Wait out an in-flight n8n tick (a tick holds the lock for one generation,
+// then releases — up to the 30-min generation timeout) so the runner can be
+// launched at any moment without timing the n8n cycle. Past this window,
+// assume another continuous runner is active and bail.
+const ACQUIRE_WAIT_MS = Math.max(
+	0,
+	Number(process.env.CONTINUOUS_ACQUIRE_WAIT_MS ?? String(40 * 60_000)),
+);
+const ACQUIRE_POLL_MS = 15_000;
 
 const sleep = (ms: number): Promise<void> =>
 	new Promise((resolve) => setTimeout(resolve, ms));
@@ -89,12 +98,22 @@ async function main(): Promise<number> {
 	}
 
 	// Hold the shared factory lock for the whole run so concurrent n8n ticks
-	// (and a second continuous runner) cleanly no-op.
-	if (!acquireLock(process.pid)) {
+	// (and a second continuous runner) cleanly no-op. Wait out an in-flight n8n
+	// generation rather than exiting immediately, so launch timing never matters.
+	const deadline = Date.now() + ACQUIRE_WAIT_MS;
+	let acquired = acquireLock(process.pid);
+	while (!acquired && Date.now() < deadline) {
 		console.log(
-			"another blog-factory run holds the lock — exiting (continuous runner already active?).",
+			"factory lock held by another run (n8n tick mid-generation?) — waiting 15s to take over...",
 		);
-		return 0;
+		await sleep(ACQUIRE_POLL_MS);
+		acquired = acquireLock(process.pid);
+	}
+	if (!acquired) {
+		console.error(
+			"could not acquire the factory lock within the wait window — is another continuous runner already active? Exiting.",
+		);
+		return 1;
 	}
 
 	try {
