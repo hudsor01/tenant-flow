@@ -88,16 +88,24 @@ function hashSlug(slug: string): number {
 	return Math.abs(h);
 }
 
+// Trusted origin for the static logo asset. NEVER the request origin — the
+// Host header is attacker-controllable, so `fetch(new URL(req.url).origin + ...)`
+// is a server-side request forgery sink (CodeQL js/request-forgery). A fixed
+// configured origin keeps the destination off user input; production assets are
+// always reachable from the canonical app URL.
+const ASSET_ORIGIN =
+	process.env.NEXT_PUBLIC_APP_URL ?? "https://tenantflow.app";
+
 // The real logo (public/tenant-flow-logo.png, 936x873) inlined as a data
-// URI for satori. Fetched once per edge isolate from this deployment's own
-// origin and cached; FAIL-OPEN to null (the badge is simply omitted) so a
-// blip can never break cover rendering.
+// URI for satori. Fetched once per edge isolate from the trusted asset origin
+// and cached; FAIL-OPEN to null (the badge is simply omitted) so a blip can
+// never break cover rendering.
 let logoDataUri: string | null = null;
 let logoFetched = false;
-async function getLogo(origin: string): Promise<string | null> {
+async function getLogo(): Promise<string | null> {
 	if (logoFetched) return logoDataUri;
 	try {
-		const res = await fetch(`${origin}/tenant-flow-logo.png`);
+		const res = await fetch(`${ASSET_ORIGIN}/tenant-flow-logo.png`);
 		if (res.ok) {
 			const bytes = new Uint8Array(await res.arrayBuffer());
 			let bin = "";
@@ -113,7 +121,7 @@ async function getLogo(origin: string): Promise<string | null> {
 	return logoDataUri;
 }
 
-export async function GET(req: Request, { params }: RouteParams) {
+export async function GET(_req: Request, { params }: RouteParams) {
 	const { slug } = await params;
 	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -152,7 +160,7 @@ export async function GET(req: Request, { params }: RouteParams) {
 	const angle = 120 + (h % 50); // 120-169deg
 	const glowX = 18 + (h % 64); // glow drifts across the top per slug
 	const ringRight = -12 + ((h >> 4) % 18); // bottom-right ring offset
-	const logo = await getLogo(new URL(req.url).origin);
+	const logo = await getLogo();
 
 	return new ImageResponse(
 		<div
