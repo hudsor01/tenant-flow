@@ -149,4 +149,13 @@ describe("createBlogPostBreadcrumbJsonLd", () => {
 		const items = postItems("maintenance", "<b>Bold</b> Title");
 		expect(items[3]?.name).toBe("Bold Title");
 	});
+
+	it("strips nested/obfuscated tags to a fixpoint (no reconstructable tag survives)", () => {
+		const items = postItems(
+			"maintenance",
+			"<scr<script>ipt>alert(1)</script> Title",
+		);
+		expect(items[3]?.name).not.toMatch(/<\s*script/i);
+		expect(items[3]?.name).not.toContain("<");
+	});
 });

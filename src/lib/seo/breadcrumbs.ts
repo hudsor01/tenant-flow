@@ -29,7 +29,7 @@ export function createBreadcrumbJsonLd(
 		currentPath += `/${segment}`;
 		const isLast = index === segments.length - 1;
 		const rawName = overrides?.[segment] ?? formatSegment(segment);
-		const name = rawName.replace(/<[^>]*>/g, "");
+		const name = stripHtmlTags(rawName);
 
 		const listItem: ListItem = {
 			"@type": "ListItem" as const,
@@ -86,13 +86,31 @@ export function createBlogPostBreadcrumbJsonLd(
 	items.push({
 		"@type": "ListItem" as const,
 		position,
-		name: postTitle.replace(/<[^>]*>/g, ""),
+		name: stripHtmlTags(postTitle),
 	});
 
 	return {
 		"@type": "BreadcrumbList" as const,
 		itemListElement: items,
 	};
+}
+
+/**
+ * Strip HTML tags from a breadcrumb display name. Loops to a fixpoint so a
+ * single pass cannot leave a reconstructable tag (e.g. `<scr<script>ipt>`) —
+ * a plain one-shot `.replace(/<[^>]*>/g, "")` is an incomplete multi-character
+ * sanitizer (CodeQL js/incomplete-multi-character-sanitization). The JSON-LD
+ * renderers additionally escape "<" to its unicode form at serialization, so
+ * this is defense-in-depth for the plain-text `name` field.
+ */
+function stripHtmlTags(input: string): string {
+	let out = input;
+	let prev: string;
+	do {
+		prev = out;
+		out = out.replace(/<[^>]*>/g, "");
+	} while (out !== prev);
+	return out;
 }
 
 /** Capitalize first letter of each word and replace hyphens with spaces */
