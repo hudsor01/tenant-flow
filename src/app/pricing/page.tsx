@@ -1,11 +1,13 @@
 import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
+import type { SoftwareApplication, WithContext } from "schema-dts";
 import { PageLayout } from "#components/layout/page-layout";
 import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
 import { TestimonialsSection } from "#components/sections/testimonials-section";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Badge } from "#components/ui/badge";
+import { getSoftwareApplicationJsonLd } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
@@ -35,16 +37,19 @@ export default async function PricingPage() {
 		pricingFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
 	);
 	const breadcrumbJsonLd = createBreadcrumbJsonLd("/pricing");
-	// No page-level commercial schema here. A Product schema pulled the page into
-	// Google's Merchant-listings validation — which requires shippingDetails +
-	// hasMerchantReturnPolicy, meaningless for SaaS — producing the GSC "Merchant
-	// listings: invalid item" error. The software entity + pricing AggregateOffer
-	// are emitted on the marketing homepage (MarketingJsonLd / getSoftwareApplicationJsonLd),
-	// so a page-level SoftwareApplication here would only add a redundant,
-	// rating-less (rich-result-ineligible) duplicate node. FAQ + Breadcrumb stay.
+	// SoftwareApplication + AggregateOffer — the commercial product entity, the
+	// correct schema for a SaaS pricing page. Emitted explicitly here (and on the
+	// homepage) since it was scoped out of the site-wide SeoJsonLd to keep it off
+	// `/blog/*`, where it would dilute the Article schema. NOTE: this is NOT a
+	// Product schema — a Product node pulled the page into Google's Merchant-
+	// listings validation (shippingDetails / hasMerchantReturnPolicy, meaningless
+	// for SaaS); SoftwareApplication is the rich-result-eligible alternative.
+	const softwareJsonLd =
+		getSoftwareApplicationJsonLd() as WithContext<SoftwareApplication>;
 
 	return (
 		<PageLayout>
+			<JsonLdScript schema={softwareJsonLd} />
 			<JsonLdScript schema={faqJsonLd} />
 			<JsonLdScript schema={breadcrumbJsonLd} />
 			{/* Minimal Hero with Pricing Above the Fold */}

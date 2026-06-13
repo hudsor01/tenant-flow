@@ -94,17 +94,22 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 		expect(desc).toContain("Growth ($49/mo, 20 properties)");
 	});
 
-	it("emits exactly FAQ + Breadcrumb JSON-LD and NO Product/SoftwareApplication node (Merchant-listings fix)", async () => {
-		// The page must not emit a page-level commercial schema: Product forced
-		// Google's Merchant-listings validation (the GSC "invalid item" error), and
-		// the software entity is already covered sitewide by SeoJsonLd. Re-adding a
-		// Product/SoftwareApplication <JsonLdScript> here must fail this test.
+	it("emits SoftwareApplication + FAQ + Breadcrumb JSON-LD and NEVER a Product node (Merchant-listings fix)", async () => {
+		// SoftwareApplication is now emitted per-page (homepage + /pricing +
+		// /features) because it was scoped OUT of the sitewide SeoJsonLd to keep
+		// it off /blog/* Article pages. The Merchant-listings guard is specific to
+		// PRODUCT: a Product node forced Google's Merchant validation (the GSC
+		// "invalid item" error). SoftwareApplication is the rich-result-eligible
+		// commercial entity and must be present; Product must never appear.
 		const tree = await PricingPage();
 		const schemaTypes = collectSchemaTypes(tree);
 
-		expect(schemaTypes).toEqual(["FAQPage", "BreadcrumbList"]);
+		expect(schemaTypes).toEqual([
+			"SoftwareApplication",
+			"FAQPage",
+			"BreadcrumbList",
+		]);
 		expect(schemaTypes).not.toContain("Product");
-		expect(schemaTypes).not.toContain("SoftwareApplication");
 	});
 
 	it("FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)", async () => {

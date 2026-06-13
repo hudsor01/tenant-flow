@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import type { SoftwareApplication, WithContext } from "schema-dts";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
 import { JsonLdScript } from "#components/seo/json-ld-script";
+import { getSoftwareApplicationJsonLd } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 import FeaturesClient from "./features-client";
@@ -19,8 +21,14 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function FeaturesPage() {
+	// SoftwareApplication — the product entity, scoped to commercial pages
+	// (homepage + /pricing + /features) and kept off /blog/* so it doesn't
+	// dilute the Article schema there.
+	const softwareJsonLd =
+		getSoftwareApplicationJsonLd() as WithContext<SoftwareApplication>;
 	return (
 		<>
+			<JsonLdScript schema={softwareJsonLd} />
 			<JsonLdScript schema={createBreadcrumbJsonLd("/features")} />
 			<FeaturesClient />
 			<StickyConversionCta />
