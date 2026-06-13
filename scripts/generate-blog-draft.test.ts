@@ -1,19 +1,28 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Draft } from "./generate-blog-draft";
+import type { Draft, GateContext } from "./generate-blog-draft";
 import {
 	applySlugOverride,
 	blogSlugExists,
 	capDocusealMentions,
 	capH2Count,
 	critique,
+	deriveTags,
+	extractComparisonBrands,
+	extractExternalUrls,
+	findDuplicateComparison,
 	formatGenFailure,
 	gateOnCritique,
+	headCheckCitations,
+	isAllowlistedCitation,
 	isCritiquePass,
+	normalizeComparisonPair,
 	parseCritique,
 	parsePositionals,
 	parseSlugOverride,
 	pickLoadedModel,
+	runGates,
 	sanitizeBanlist,
+	validateInternalLinks,
 } from "./generate-blog-draft";
 
 type Scores = {
@@ -517,5 +526,624 @@ describe("capH2Count (h2_count gate, max 10 — keep 9, demote the rest)", () =>
 	it("does not touch existing H3s while counting H2s", () => {
 		const content = "## A\n\n### A.1\n\n## B\n\nBody.";
 		expect(capH2Count(content)).toBe(content);
+	});
+
+	it("never demotes the FAQ heading (faq_required needs it as an H2)", () => {
+		const sections = Array.from(
+			{ length: 11 },
+			(_, i) => `## Section ${i + 1}\n\nBody.`,
+		).join("\n\n");
+		const out = capH2Count(`${sections}\n\n## FAQ\n\n### Q?\n\nA.`);
+		expect(out).toContain("\n## FAQ");
+		expect(h2s(out)).toBe(10); // first 9 kept + the protected FAQ
+		expect(out).toContain("### Section 11");
+	});
+});
+
+// --- SEO gate fixtures: a draft that passes ALL 18 deterministic gates, then
+// targeted perturbations per gate. ---
+
+const CANDIDATE_SLUGS = [
+	"how-to-verify-tenant-income-documents",
+	"rental-application-fraud-detection-guide",
+];
+const HUD_LINK =
+	", plus [HUD's screening guidance](https://www.hud.gov/program_offices/fair_housing_equal_opp)";
+
+function seoSection(title: string, seed: string): string {
+	const sentences = Array.from(
+		{ length: 18 },
+		(_, i) =>
+			`${seed} helps a landlord document lease files, screening notes, and maintenance records with concrete steps and clear timelines (${i + 1}).`,
+	);
+	return `## ${title}\n\n${sentences.join(" ")}`;
+}
+
+function buildSeoContent(): string {
+	const takeaways = [
+		"## Key Takeaways",
+		"",
+		"- Verified income should be at least three times the monthly rate before an application advances.",
+		"- A written screening standard applied to every applicant is the strongest fair-housing defense.",
+		"- Document every screening decision the day it happens, not at month end.",
+	].join("\n");
+	const body = [
+		seoSection("Setting Written Screening Criteria", "A written standard"),
+		seoSection("Verifying Income Documents", "Income verification"),
+		`See [How to Verify Tenant Income Documents](/blog/${CANDIDATE_SLUGS[0]}) and [Rental Application Fraud Detection Guide](/blog/${CANDIDATE_SLUGS[1]}) for deeper dives${HUD_LINK}.`,
+		seoSection("Reading Credit Reports Line by Line", "Credit review"),
+		seoSection("Calling References the Right Way", "Reference calling"),
+		seoSection("Documenting Every Decision", "Decision logging"),
+	].join("\n\n");
+	const faq = [
+		"## FAQ",
+		"",
+		"### How long should a landlord keep screening records?",
+		"Keep them for at least two years after the decision.",
+		"### What income multiple should a landlord require?",
+		"Three times the monthly rate is the common written standard.",
+		"### Can a landlord reject an incomplete application?",
+		"Yes, when the written criteria say complete applications only.",
+	].join("\n");
+	return `${takeaways}\n\n${body}\n\n${faq}`;
+}
+
+const seoCtx: GateContext = {
+	topic: "How to screen tenants with written criteria",
+	internalLinkCandidates: CANDIDATE_SLUGS,
+};
+
+const seoDraft: Draft = {
+	title: "Tenant Screening Tips for New Landlords", // 40 chars
+	slug: "tenant-screening-tips-for-new-landlords",
+	excerpt:
+		"A practical screening walkthrough for landlords: written criteria, income checks, credit review, and documentation habits.",
+	meta_description:
+		"Learn the screening workflow experienced landlords use: written criteria, income verification, credit review, and records.",
+	category: "tenant-screening",
+	content: buildSeoContent(),
+};
+
+const gateNames = (d: Draft, ctx: GateContext = seoCtx): string[] =>
+	runGates(d, ctx).map((f) => f.gate);
+
+describe("runGates SEO baseline", () => {
+	it("a fully compliant draft passes all 18 gates", () => {
+		expect(runGates(seoDraft, seoCtx)).toEqual([]);
+	});
+});
+
+describe("extractComparisonBrands", () => {
+	it("extracts a multi-word brand from the right segment", () => {
+		expect(
+			extractComparisonBrands(
+				"buildium-vs-landlord-studio-complete-comparison-for-first-time-landlords",
+			),
+		).toEqual(["buildium", "landlord studio"]);
+	});
+
+	it("cuts the right brand at a year token", () => {
+		expect(
+			extractComparisonBrands(
+				"buildium-vs-appfolio-2026-small-landlord-comparison",
+			),
+		).toEqual(["buildium", "appfolio"]);
+	});
+
+	it("keeps a bare pair intact", () => {
+		expect(extractComparisonBrands("tenantflow-vs-doorloop")).toEqual([
+			"tenantflow",
+			"doorloop",
+		]);
+	});
+
+	it("keeps a multi-word LEADING brand whole", () => {
+		expect(
+			extractComparisonBrands(
+				"landlord-studio-vs-buildium-complete-comparison",
+			),
+		).toEqual(["landlord studio", "buildium"]);
+	});
+
+	it("returns [] for non-comparison slugs", () => {
+		expect(extractComparisonBrands("texas-security-deposit-law-guide")).toEqual(
+			[],
+		);
+	});
+});
+
+describe("normalizeComparisonPair / findDuplicateComparison", () => {
+	it("normalizes either brand order to the same pair key", () => {
+		expect(
+			normalizeComparisonPair(
+				"tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
+			),
+		).toBe(normalizeComparisonPair("doorloop-vs-tenantflow-2026-guide"));
+	});
+
+	it("returns null for non-comparison slugs", () => {
+		expect(
+			normalizeComparisonPair("spring-rental-maintenance-checklist"),
+		).toBeNull();
+	});
+
+	it("finds a published slug covering the same pair under different wording", () => {
+		expect(
+			findDuplicateComparison("doorloop-vs-tenantflow-2026-guide", [
+				"innago-vs-stessa-complete-comparison",
+				"tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
+			]),
+		).toBe(
+			"tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
+		);
+	});
+
+	it("returns null when no published pair matches", () => {
+		expect(
+			findDuplicateComparison("buildium-vs-appfolio-2026", [
+				"tenantflow-vs-doorloop-guide",
+			]),
+		).toBeNull();
+	});
+
+	it("ignores the identical slug (the slug-exists probe owns that path)", () => {
+		expect(
+			findDuplicateComparison("tenantflow-vs-doorloop-guide", [
+				"tenantflow-vs-doorloop-guide",
+			]),
+		).toBeNull();
+	});
+});
+
+describe("deriveTags", () => {
+	it("tags a comparison post with category + comparison", () => {
+		expect(
+			deriveTags(
+				"buildium-vs-appfolio-2026",
+				"Buildium vs AppFolio",
+				"software-vault",
+			),
+		).toEqual(["software-vault", "comparison"]);
+	});
+
+	it("tags an alternatives roundup with comparison", () => {
+		expect(
+			deriveTags(
+				"appfolio-alternatives-under-25-month-for-first-time-landlords",
+				"Best AppFolio Alternatives for Landlords",
+				"software-vault",
+			),
+		).toEqual(["software-vault", "comparison"]);
+	});
+
+	it("tags a plain post with the category only", () => {
+		expect(
+			deriveTags(
+				"winter-rental-maintenance-checklist",
+				"Winter Checklist",
+				"maintenance",
+			),
+		).toEqual(["maintenance"]);
+	});
+});
+
+describe("slug_brand_match gate", () => {
+	const vsDraft: Draft = {
+		...seoDraft,
+		slug: "tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
+	};
+
+	it("fails when the title omits a compared brand", () => {
+		expect(
+			gateNames({
+				...vsDraft,
+				title: "Property Software Review for Landlords",
+			}),
+		).toContain("slug_brand_match");
+	});
+
+	it("passes when the title names both brands (any case)", () => {
+		expect(
+			gateNames({
+				...vsDraft,
+				title: "TenantFlow vs DoorLoop: Honest Landlord Review",
+			}),
+		).not.toContain("slug_brand_match");
+	});
+
+	it("never fires for non-comparison slugs", () => {
+		expect(gateNames(seoDraft)).not.toContain("slug_brand_match");
+	});
+});
+
+describe("title_length gate", () => {
+	it("fails under 25 characters", () => {
+		expect(gateNames({ ...seoDraft, title: "Screening Tips" })).toContain(
+			"title_length",
+		);
+	});
+
+	it("fails over 55 characters", () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				title:
+					"The Complete and Exhaustive Tenant Screening Handbook for Landlords",
+			}),
+		).toContain("title_length");
+	});
+
+	it("passes the 25-55 inclusive bounds", () => {
+		expect(gateNames({ ...seoDraft, title: "x".repeat(25) })).not.toContain(
+			"title_length",
+		);
+		expect(gateNames({ ...seoDraft, title: "x".repeat(55) })).not.toContain(
+			"title_length",
+		);
+	});
+});
+
+describe("meta_not_truncated gate", () => {
+	it('fails when meta_description ends with "..."', () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				meta_description:
+					"Learn the screening workflow experienced landlords use: written criteria, income verification, credit checks...",
+			}),
+		).toContain("meta_not_truncated");
+	});
+
+	it("fails when the excerpt ends with a unicode ellipsis", () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				excerpt:
+					"A practical screening walkthrough for landlords: written criteria, income checks, and documentation habits…",
+			}),
+		).toContain("meta_not_truncated");
+	});
+
+	it("fails when meta_description copies the content opening verbatim", () => {
+		const copied = seoDraft.content.replace(/\s+/g, " ").trim().slice(0, 130);
+		expect(gateNames({ ...seoDraft, meta_description: copied })).toContain(
+			"meta_not_truncated",
+		);
+	});
+
+	it("passes a standalone value-proposition meta + excerpt", () => {
+		expect(gateNames(seoDraft)).not.toContain("meta_not_truncated");
+	});
+});
+
+describe("boilerplate_h2 gate", () => {
+	it("rejects a banned generic H2 (case-insensitive)", () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				content: seoDraft.content.replace(
+					"## Reading Credit Reports Line by Line",
+					"## red flags to watch for",
+				),
+			}),
+		).toContain("boilerplate_h2");
+	});
+
+	it("rejects the banned heading as an H3 too", () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				content: `${seoDraft.content}\n\n### Questions to Ask Previous Landlords\n\nGeneric block.`,
+			}),
+		).toContain("boilerplate_h2");
+	});
+
+	it("passes topic-specific headings", () => {
+		expect(gateNames(seoDraft)).not.toContain("boilerplate_h2");
+	});
+});
+
+const GFM_TABLE =
+	"\n\n| Feature | TenantFlow | DoorLoop |\n| --- | --- | --- |\n| Lease vault | Yes | Yes |\n";
+
+describe("table_required gate", () => {
+	const vsSlugDraft: Draft = {
+		...seoDraft,
+		slug: "tenantflow-vs-doorloop-for-landlords",
+		title: "TenantFlow vs DoorLoop: a Landlord Comparison",
+	};
+
+	it("fails a comparison slug without a GFM table", () => {
+		expect(gateNames(vsSlugDraft)).toContain("table_required");
+	});
+
+	it("passes once a GFM table is present", () => {
+		expect(
+			gateNames({ ...vsSlugDraft, content: vsSlugDraft.content + GFM_TABLE }),
+		).not.toContain("table_required");
+	});
+
+	it("triggers on an alternatives topic without a comparison slug", () => {
+		expect(
+			gateNames(seoDraft, {
+				...seoCtx,
+				topic: "Best Buildium alternatives for small landlords",
+			}),
+		).toContain("table_required");
+	});
+
+	it('triggers on multi-state intent ("all 50 states")', () => {
+		expect(
+			gateNames(seoDraft, {
+				...seoCtx,
+				topic: "Security deposit caps in all 50 states",
+			}),
+		).toContain("table_required");
+	});
+
+	it("does not trigger for a single-topic article", () => {
+		expect(gateNames(seoDraft)).not.toContain("table_required");
+	});
+});
+
+describe("takeaways_required gate", () => {
+	it("fails when the Key Takeaways section is missing", () => {
+		const without = seoDraft.content.replace(
+			/## Key Takeaways[\s\S]*?(?=## )/,
+			"",
+		);
+		expect(gateNames({ ...seoDraft, content: without })).toContain(
+			"takeaways_required",
+		);
+	});
+
+	it("fails when the section opens beyond the first 1500 characters", () => {
+		const pushed = `${"Intro filler about screening basics for landlords. ".repeat(40)}\n\n${seoDraft.content}`;
+		expect(gateNames({ ...seoDraft, content: pushed })).toContain(
+			"takeaways_required",
+		);
+	});
+
+	it("fails with fewer than 3 bullets", () => {
+		const twoBullets = seoDraft.content.replace(
+			"\n- Document every screening decision the day it happens, not at month end.",
+			"",
+		);
+		expect(gateNames({ ...seoDraft, content: twoBullets })).toContain(
+			"takeaways_required",
+		);
+	});
+
+	it("fails with more than 5 bullets", () => {
+		const sixBullets = seoDraft.content.replace(
+			"- Document every screening decision the day it happens, not at month end.",
+			[
+				"- Document every screening decision the day it happens, not at month end.",
+				"- Keep applicant files in one place from day one.",
+				"- Apply the same written criteria to every applicant.",
+				"- Retain screening records for at least two years.",
+			].join("\n"),
+		);
+		expect(gateNames({ ...seoDraft, content: sixBullets })).toContain(
+			"takeaways_required",
+		);
+	});
+
+	it("passes 3-5 standalone bullets at the top", () => {
+		expect(gateNames(seoDraft)).not.toContain("takeaways_required");
+	});
+});
+
+describe("faq_required gate", () => {
+	it("fails when the FAQ section is missing", () => {
+		const without = seoDraft.content.replace(/## FAQ[\s\S]*$/, "");
+		expect(gateNames({ ...seoDraft, content: without })).toContain(
+			"faq_required",
+		);
+	});
+
+	it("fails with fewer than 3 question sub-headings", () => {
+		const two = seoDraft.content.replace(
+			"### Can a landlord reject an incomplete application?\nYes, when the written criteria say complete applications only.",
+			"",
+		);
+		expect(gateNames({ ...seoDraft, content: two })).toContain("faq_required");
+	});
+
+	it("fails when the FAQ is buried before the final 2500 characters", () => {
+		const buried = `${seoDraft.content}\n\n${"Trailing appendix paragraph for landlords. ".repeat(70)}`;
+		expect(gateNames({ ...seoDraft, content: buried })).toContain(
+			"faq_required",
+		);
+	});
+
+	it('accepts the "## Frequently Asked Questions" variant', () => {
+		const variant = seoDraft.content.replace(
+			"## FAQ",
+			"## Frequently Asked Questions",
+		);
+		expect(gateNames({ ...seoDraft, content: variant })).not.toContain(
+			"faq_required",
+		);
+	});
+});
+
+describe("internal_links gate", () => {
+	it("fails when fewer than 2 candidate links are woven in", () => {
+		const oneLink = seoDraft.content.replace(
+			`[Rental Application Fraud Detection Guide](/blog/${CANDIDATE_SLUGS[1]})`,
+			"the fraud guide",
+		);
+		expect(gateNames({ ...seoDraft, content: oneLink })).toContain(
+			"internal_links",
+		);
+	});
+
+	it("fails on an internal link to a slug outside the candidate set", () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				content: `${seoDraft.content}\n\nSee [more](/blog/hallucinated-post).`,
+			}),
+		).toContain("internal_links");
+	});
+
+	it('fails on an href="#" link', () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				content: `${seoDraft.content}\n\n[click here](#).`,
+			}),
+		).toContain("internal_links");
+	});
+
+	it("passes vacuously when fewer than 2 candidates exist (early catalogue)", () => {
+		const noLinks = seoDraft.content
+			.replace(
+				`[How to Verify Tenant Income Documents](/blog/${CANDIDATE_SLUGS[0]})`,
+				"our income guide",
+			)
+			.replace(
+				`[Rental Application Fraud Detection Guide](/blog/${CANDIDATE_SLUGS[1]})`,
+				"the fraud guide",
+			);
+		expect(
+			gateNames(
+				{ ...seoDraft, content: noLinks },
+				{ ...seoCtx, internalLinkCandidates: [] },
+			),
+		).not.toContain("internal_links");
+	});
+});
+
+describe("validateInternalLinks", () => {
+	it("ok with 2 candidate links and no strays", () => {
+		expect(
+			validateInternalLinks("[a](/blog/a) and [b](/blog/b)", ["a", "b", "c"]),
+		).toEqual({ ok: true });
+	});
+
+	it("rejects unknown internal slugs even with fewer than 2 candidates", () => {
+		expect(
+			validateInternalLinks("[x](/blog/unknown-post)", ["only-one"]).ok,
+		).toBe(false);
+	});
+
+	it('rejects "#" hrefs', () => {
+		expect(validateInternalLinks("[x](#)", ["a", "b"]).ok).toBe(false);
+	});
+
+	it("passes vacuously with fewer than 2 candidates and no internal links", () => {
+		expect(
+			validateInternalLinks("plain prose, no links", ["only-one"]),
+		).toEqual({ ok: true });
+	});
+
+	it("requires at least 2 candidate links when 2+ candidates exist", () => {
+		expect(validateInternalLinks("[a](/blog/a)", ["a", "b"]).ok).toBe(false);
+	});
+});
+
+describe("citations gate", () => {
+	it("rejects a non-allowlisted external link in any category", () => {
+		expect(
+			gateNames({
+				...seoDraft,
+				content: `${seoDraft.content}\n\nPer [this blog](https://medium.com/some-post).`,
+			}),
+		).toContain("citations");
+	});
+
+	it("requires 1-3 allowlisted citations for tenant-screening", () => {
+		const uncited = seoDraft.content.replace(HUD_LINK, "");
+		expect(gateNames({ ...seoDraft, content: uncited })).toContain("citations");
+	});
+
+	it("rejects more than 3 allowlisted citations in a required category", () => {
+		const four = `${seoDraft.content}\n\n[1](https://www.irs.gov/a) [2](https://www.cfpb.gov/b) [3](https://www.usa.gov/c)`;
+		expect(gateNames({ ...seoDraft, content: four })).toContain("citations");
+	});
+
+	it("allows zero citations for non-required categories", () => {
+		const uncited = seoDraft.content.replace(HUD_LINK, "");
+		expect(
+			gateNames({ ...seoDraft, category: "software-vault", content: uncited }),
+		).not.toContain("citations");
+	});
+
+	it("passes 1-3 allowlisted citations", () => {
+		expect(gateNames(seoDraft)).not.toContain("citations");
+	});
+});
+
+describe("isAllowlistedCitation", () => {
+	it("allows any .gov domain (federal and state)", () => {
+		expect(isAllowlistedCitation("https://www.hud.gov/x")).toBe(true);
+		expect(isAllowlistedCitation("https://comptroller.texas.gov/taxes")).toBe(
+			true,
+		);
+	});
+
+	it("allows law.cornell.edu (and subdomains of it)", () => {
+		expect(isAllowlistedCitation("https://law.cornell.edu/ucc")).toBe(true);
+		expect(isAllowlistedCitation("https://www.law.cornell.edu/uscode")).toBe(
+			true,
+		);
+	});
+
+	it("rejects everything else, lookalikes included", () => {
+		expect(isAllowlistedCitation("https://medium.com/post")).toBe(false);
+		expect(isAllowlistedCitation("https://hud.gov.phish.com/x")).toBe(false);
+		expect(isAllowlistedCitation("https://cornell.edu/page")).toBe(false);
+		expect(isAllowlistedCitation("not a url")).toBe(false);
+	});
+});
+
+describe("extractExternalUrls", () => {
+	it("dedupes and strips trailing prose punctuation", () => {
+		expect(
+			extractExternalUrls(
+				"See https://www.irs.gov/pub. Again: [x](https://www.irs.gov/pub) and [y](https://www.hud.gov/z),",
+			),
+		).toEqual(["https://www.irs.gov/pub", "https://www.hud.gov/z"]);
+	});
+
+	it("ignores internal links", () => {
+		expect(extractExternalUrls("[a](/blog/a-post)")).toEqual([]);
+	});
+});
+
+describe("headCheckCitations (HEAD liveness probe)", () => {
+	it("returns no problems when every citation resolves", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => ({ status: 200 })),
+		);
+		expect(await headCheckCitations(["https://www.hud.gov/a"])).toEqual([]);
+	});
+
+	it("flags >=400 statuses with the status code", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => ({ status: 404 })),
+		);
+		expect(await headCheckCitations(["https://www.hud.gov/dead"])).toEqual([
+			{ url: "https://www.hud.gov/dead", status: "404" },
+		]);
+	});
+
+	it("flags network errors with the error message", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => {
+				throw new Error("getaddrinfo ENOTFOUND");
+			}),
+		);
+		expect(await headCheckCitations(["https://invalid.gov/x"])).toEqual([
+			{
+				url: "https://invalid.gov/x",
+				status: expect.stringContaining("ENOTFOUND"),
+			},
+		]);
 	});
 });

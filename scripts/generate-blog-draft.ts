@@ -4,7 +4,8 @@
  *
  * Pipeline: topic -> embed (LM Studio qwen3) -> retrieve (match_blog_rag_chunks,
  * top-6) -> Mistral structured draft (json_schema) -> deterministic validate/repair
- * against the 9 ingest gates (bounded retries) -> HMAC-SHA256 sign -> POST.
+ * against the 9 ingest gates + 9 generator-side SEO gates (bounded retries) ->
+ * HMAC-SHA256 sign -> POST.
  *
  * The n8n workflow (Phase 14 cadence) wraps this via an Execute Command node;
  * for Phase 11 run it directly.
@@ -168,13 +169,309 @@ function mapChunk(raw: Record<string, unknown>): { content: string } {
 	return { content: raw.content };
 }
 
-// --- the 9 gates (mirror runGates() in the EF) -> structured fix hints ---
-// (the EF also runs a 10th conditional `canonical_url_format` gate, omitted here
+// Typed mapper at the PostgREST boundary for slug-only reads.
+function mapSlugRow(raw: Record<string, unknown>): string {
+	if (typeof raw.slug !== "string") {
+		throw new Error("blogs row missing string slug");
+	}
+	return raw.slug;
+}
+
+// Typed mapper at the PostgREST boundary for the internal-link candidate read.
+function mapLinkCandidate(raw: Record<string, unknown>): {
+	slug: string;
+	title: string;
+} {
+	if (typeof raw.slug !== "string" || typeof raw.title !== "string") {
+		throw new Error("blogs candidate row missing string slug/title");
+	}
+	return { slug: raw.slug, title: raw.title };
+}
+
+// --- SEO guards (2026-06 audit of the 63 published posts found these flaws
+// systematically: titles missing the compared brands, truncated body-prefix
+// metas, four headings duplicated verbatim across 25-31 posts, comparison
+// posts without tables, no key-takeaways/FAQ blocks, hallucinated internal
+// links, and uncited or junk-cited legal claims). ---
+
+// Headings duplicated verbatim across 25-31 published posts — generic reusable
+// blocks that read as template spam. Banned as H2/H3 headings.
+const BOILERPLATE_HEADINGS: readonly string[] = [
+	"a step-by-step screening checklist",
+	"common mistakes first-time landlords make",
+	"red flags to watch for",
+	"questions to ask previous landlords",
+];
+
+// Filler tokens that trail a brand in a comparison slug ("-complete-comparison-
+// for-first-time-landlords", "-2026-small-landlord-comparison", ...). Used to
+// cut the brand out of a "-vs-" slug segment.
+const COMPARISON_FILLER = new Set([
+	"a",
+	"an",
+	"and",
+	"the",
+	"is",
+	"in",
+	"for",
+	"of",
+	"which",
+	"what",
+	"vs",
+	"versus",
+	"compared",
+	"comparison",
+	"comparisons",
+	"complete",
+	"guide",
+	"review",
+	"reviews",
+	"alternative",
+	"alternatives",
+	"best",
+	"better",
+	"top",
+	"overkill",
+	"small",
+	"first",
+	"time",
+]);
+const YEAR_TOKEN = /^(19|20)\d{2}$/;
+
+// slug_brand_match: pull the compared brand tokens out of a "-vs-" slug. The
+// leading segment is the whole first brand (minus leading filler/years); each
+// later segment is cut at the first filler/year token ("doorloop-complete-
+// comparison-..." -> "doorloop"). Multi-word brands stay space-joined
+// ("landlord-studio" -> "landlord studio"). Returns [] for non-comparison
+// slugs. Pure — unit-tested.
+export function extractComparisonBrands(slug: string): string[] {
+	if (!slug.includes("-vs-")) return [];
+	const isFiller = (t: string): boolean =>
+		COMPARISON_FILLER.has(t) || YEAR_TOKEN.test(t);
+	const brands: string[] = [];
+	slug
+		.toLowerCase()
+		.split("-vs-")
+		.forEach((segment, i) => {
+			let tokens = segment.split("-").filter((t) => t.length > 0);
+			if (i === 0) {
+				// leading segment: strip leading filler/years ("best-", "2026-")
+				while (tokens.length > 1) {
+					const head = tokens[0];
+					if (head === undefined || !isFiller(head)) break;
+					tokens = tokens.slice(1);
+				}
+			} else {
+				// trailing segment: the brand runs until the first filler/year token
+				const cut = tokens.findIndex(isFiller);
+				if (cut > 0) tokens = tokens.slice(0, cut);
+				else if (cut === 0) tokens = tokens.slice(0, 1); // filler-shaped brand — keep one token
+			}
+			if (tokens.length > 0) brands.push(tokens.join(" "));
+		});
+	return brands;
+}
+
+// Order-insensitive identity for a comparison pairing — "a-vs-b-..." and
+// "b-vs-a-..." normalize to the same key. null when the slug is not a
+// comparison (or yields fewer than two brands). Pure — unit-tested.
+export function normalizeComparisonPair(slug: string): string | null {
+	const brands = extractComparisonBrands(slug);
+	if (brands.length < 2) return null;
+	return [...brands].sort().join(" vs ");
+}
+
+// Deterministic tag set for a post: always the category, plus "comparison" for
+// vs-posts and alternatives roundups. The EF insert allowlists columns and drops
+// unknown payload fields, so tags are applied by a post-publish UPDATE rather
+// than threaded through the ingest body. Pure — unit-tested.
+export function deriveTags(
+	slug: string,
+	title: string,
+	category: string,
+): string[] {
+	const tags = [category];
+	const isComparison = slug.includes("-vs-") || /\balternatives\b/i.test(title);
+	if (isComparison) tags.push("comparison");
+	return tags;
+}
+
+// First PUBLISHED slug covering the same comparison pair as the candidate. The
+// identical slug is excluded — the existing slug-exists probe owns that path
+// with a clean skip, not a failure. Pure — unit-tested.
+export function findDuplicateComparison(
+	candidateSlug: string,
+	publishedSlugs: readonly string[],
+): string | null {
+	const pair = normalizeComparisonPair(candidateSlug);
+	if (pair === null) return null;
+	for (const slug of publishedSlugs) {
+		if (slug === candidateSlug) continue;
+		if (normalizeComparisonPair(slug) === pair) return slug;
+	}
+	return null;
+}
+
+const normalizeWhitespace = (s: string): string =>
+	s.replace(/\s+/g, " ").trim();
+
+// meta_not_truncated: a meta/excerpt that ends in an ellipsis or verbatim-
+// copies the article opening is a truncated body prefix, not a written value
+// proposition (the audit found both patterns across the published posts).
+function metaTruncationIssue(
+	field: "meta_description" | "excerpt",
+	value: string,
+	content: string,
+): string | null {
+	const v = normalizeWhitespace(value);
+	if (v.endsWith("...") || v.endsWith("…")) {
+		return `${field} ends with an ellipsis`;
+	}
+	const n = Math.min(120, v.length);
+	if (n > 0 && normalizeWhitespace(content).slice(0, n) === v.slice(0, n)) {
+		return `${field} is a verbatim prefix of the content`;
+	}
+	return null;
+}
+
+// table_required: comparison/alternatives/multi-state posts must present the
+// data as a GFM table (a header row plus a |---| separator row).
+function hasGfmTable(content: string): boolean {
+	return /^\|.+\|$/m.test(content) && /^\|[\s:-]+\|/m.test(content);
+}
+
+function needsComparisonTable(slug: string, titleAndTopic: string): boolean {
+	if (slug.includes("-vs-")) return true;
+	const hay = titleAndTopic.toLowerCase();
+	if (hay.includes("alternatives") || hay.includes("comparison")) return true;
+	// multi-state intent ("all 50 states", "state-by-state", "every state")
+	return /\ball 50 states\b|\b50 states\b|\bstate[- ]by[- ]state\b|\bevery state\b|\ball states\b/.test(
+		hay,
+	);
+}
+
+const TAKEAWAYS_HEADING = /^##\s+key takeaways\s*$/im;
+const FAQ_HEADING = /^##\s+(?:faq|frequently asked questions)\s*$/im;
+
+// internal_links: markdown-link hrefs in the body. Every internal /blog/...
+// href must be one of the supplied candidates (a hallucinated slug is a
+// guaranteed 404) and "#" hrefs are dead weight; when 2+ candidates were
+// offered the body must actually weave in at least 2 (fewer candidates = the
+// >=2 requirement passes vacuously — early catalogue). Pure — unit-tested.
+export function validateInternalLinks(
+	content: string,
+	candidateSlugs: readonly string[],
+): { ok: true } | { ok: false; reason: string } {
+	const hrefs: string[] = [];
+	for (const m of content.matchAll(/\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+		const href = m[1];
+		if (href !== undefined) hrefs.push(href);
+	}
+	if (hrefs.includes("#")) {
+		return { ok: false, reason: 'contains a dead link href "#"' };
+	}
+	const candidates = new Set(candidateSlugs);
+	const internal = hrefs.filter((h) => h.startsWith("/blog/"));
+	const unknown = internal.filter(
+		(h) => !candidates.has(h.slice("/blog/".length)),
+	);
+	if (unknown.length > 0) {
+		return {
+			ok: false,
+			reason: `links to unknown internal slug(s): ${unknown.join(", ")}`,
+		};
+	}
+	if (candidates.size < 2) return { ok: true }; // early catalogue — vacuous pass
+	const matched = internal.filter((h) =>
+		candidates.has(h.slice("/blog/".length)),
+	);
+	if (matched.length < 2) {
+		return {
+			ok: false,
+			reason: `only ${matched.length} internal link(s) to the supplied candidates (need 2+)`,
+		};
+	}
+	return { ok: true };
+}
+
+// citations: external sources must be authoritative — any .gov domain or
+// Cornell's Legal Information Institute. Pure — unit-tested.
+export function isAllowlistedCitation(url: string): boolean {
+	let hostname: string;
+	try {
+		hostname = new URL(url).hostname.toLowerCase();
+	} catch {
+		return false;
+	}
+	if (hostname.endsWith(".gov")) return true;
+	return (
+		hostname === "law.cornell.edu" || hostname.endsWith(".law.cornell.edu")
+	);
+}
+
+// Distinct http(s) URLs in the body (markdown hrefs and bare URLs), with
+// trailing prose punctuation stripped. Pure — unit-tested.
+export function extractExternalUrls(content: string): string[] {
+	const matches = content.match(/https?:\/\/[^\s)\]>"']+/g) ?? [];
+	return [...new Set(matches.map((u) => u.replace(/[.,;:!?]+$/, "")))];
+}
+
+// Categories where legal/tax claims REQUIRE 1-3 allowlisted citations; other
+// categories may cite (the allowlist still applies) but are not forced to.
+const CITATION_REQUIRED_CATEGORIES: readonly string[] = [
+	"lease-law",
+	"tax-prep",
+	"tenant-screening",
+];
+
+// Post-gate liveness probe: HEAD each external citation (10s timeout, follow
+// redirects); any >=400 status or network error becomes a repair hint (replace
+// or drop the citation). Exported for unit tests (fetch is stubbed there).
+export async function headCheckCitations(
+	urls: readonly string[],
+): Promise<{ url: string; status: string }[]> {
+	const results = await Promise.all(
+		urls.map(async (url) => {
+			try {
+				const r = await fetch(url, {
+					method: "HEAD",
+					redirect: "follow",
+					signal: AbortSignal.timeout(10_000),
+				});
+				return r.status >= 400 ? { url, status: String(r.status) } : null;
+			} catch (e) {
+				return { url, status: e instanceof Error ? e.message : String(e) };
+			}
+		}),
+	);
+	return results.filter(
+		(r): r is { url: string; status: string } => r !== null,
+	);
+}
+
+// --- the 18 gates: 9 mirror runGates() in the EF, 9 are generator-side SEO
+// guards (slug_brand_match, title_length, meta_not_truncated, boilerplate_h2,
+// table_required, takeaways_required, faq_required, internal_links, citations)
+// the EF does not re-check -> structured fix hints. ---
+// (the EF also runs a conditional `canonical_url_format` gate, omitted here
 // because this generator never emits canonical_url in its payload.)
 // NOTE: the fix-hint + prompt ranges are deliberate GENERATION TARGETS that are
 // narrower than the actual rejection bounds checked below (e.g. excerpt aim
 // 110-180, gate 80-200) — the margin makes an obedient first draft clear the gate.
-function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
+const TOTAL_GATES = 18;
+
+// Context the SEO gates need beyond the draft itself: the working topic (for
+// table-intent detection) and the published same-category slugs offered to the
+// model as internal-link candidates.
+export interface GateContext {
+	topic?: string;
+	internalLinkCandidates?: string[];
+}
+
+export function runGates(
+	p: Draft,
+	ctx: GateContext = {},
+): { gate: string; message: string; fix: string }[] {
 	const out: { gate: string; message: string; fix: string }[] = [];
 	const wc = countWords(p.content);
 	if (wc < 1200 || wc > 3000)
@@ -183,7 +480,7 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 			message: `${wc} words`,
 			fix:
 				wc < 1200
-					? `The draft is only ${wc} words — under the 1200 minimum. Add MORE "## " sections (e.g. "Red Flags to Watch For", "A Step-by-Step Screening Checklist", "Common Mistakes First-Time Landlords Make", "Questions to Ask Previous Landlords") and expand every section with concrete examples and specifics until the article is AT LEAST 1600 words. Return the COMPLETE longer article.`
+					? `The draft is only ${wc} words — under the 1200 minimum. Expand every substantive section with concrete examples, steps, dollar figures, and timelines, and add MORE topic-specific "## " sections if needed (never generic reusable headings), until the article is AT LEAST 1600 words. Return the COMPLETE longer article.`
 					: `The draft is ${wc} words; tighten it to under 3000.`,
 		});
 	const h2 = (p.content.match(/^## /gm) ?? []).length;
@@ -238,6 +535,119 @@ function runGates(p: Draft): { gate: string; message: string; fix: string }[] {
 			message: `${docuseal}x`,
 			fix: "Mention DocuSeal at most once.",
 		});
+
+	// --- SEO gates (generator-side only; the EF does not re-check these) ---
+	if (p.slug.includes("-vs-")) {
+		const brands = extractComparisonBrands(p.slug);
+		const titleLc = p.title.toLowerCase();
+		const missing = brands.filter((b) => !titleLc.includes(b));
+		if (missing.length > 0)
+			out.push({
+				gate: "slug_brand_match",
+				message: `title missing ${missing.map((b) => `"${b}"`).join(", ")}`,
+				fix: `The title must name BOTH compared products from the slug — include ${brands.map((b) => `"${b}"`).join(" and ")} (any capitalization) in the title.`,
+			});
+	}
+	if (p.title.length < 25 || p.title.length > 55)
+		out.push({
+			gate: "title_length",
+			message: `${p.title.length} chars`,
+			fix: `title must be 25-55 characters — the rendered template appends " | TenantFlow Blog", so 55 keeps the visible SERP title intact. Compliant example: "Texas Security Deposit Law: A Landlord's Guide" (46 chars).`,
+		});
+	const metaIssues = [
+		metaTruncationIssue("meta_description", p.meta_description, p.content),
+		metaTruncationIssue("excerpt", p.excerpt, p.content),
+	].filter((i): i is string => i !== null);
+	if (metaIssues.length > 0)
+		out.push({
+			gate: "meta_not_truncated",
+			message: metaIssues.join("; "),
+			fix: "Write the meta_description and excerpt as standalone value propositions — never copy the article's opening text and never end them with an ellipsis.",
+		});
+	const headings = p.content.match(/^#{2,3}\s+.+$/gm) ?? [];
+	const boiler = headings
+		.map((h) => normalizeWhitespace(h.replace(/^#{2,3}\s+/, "")))
+		.filter((h) => BOILERPLATE_HEADINGS.includes(h.toLowerCase()));
+	if (boiler.length > 0)
+		out.push({
+			gate: "boilerplate_h2",
+			message: boiler.join("; "),
+			fix: `Replace the generic heading(s) ${boiler.map((h) => `"${h}"`).join(", ")} — every section heading must be specific to THIS post's topic; never reuse generic blocks that could appear in any article.`,
+		});
+	if (
+		needsComparisonTable(p.slug, `${p.title} ${ctx.topic ?? ""}`) &&
+		!hasGfmTable(p.content)
+	)
+		out.push({
+			gate: "table_required",
+			message: "no GFM table",
+			fix: "This is comparative content — present the comparative data as a markdown table (header row, |---| separator row, one row per product/state).",
+		});
+	const takeaways = TAKEAWAYS_HEADING.exec(p.content);
+	let takeawaysIssue: string | null = null;
+	if (!takeaways) takeawaysIssue = 'no "## Key Takeaways" section';
+	else if (takeaways.index > 1500)
+		takeawaysIssue = `"## Key Takeaways" starts at char ${takeaways.index} (must be within the first 1500)`;
+	else {
+		const after = p.content.slice(takeaways.index + takeaways[0].length);
+		const nextH2 = after.search(/^##\s/m);
+		const section = nextH2 === -1 ? after : after.slice(0, nextH2);
+		const bullets = section.split("\n").filter((l) => /^\s*[-*]\s+\S/.test(l));
+		if (bullets.length < 3 || bullets.length > 5)
+			takeawaysIssue = `${bullets.length} bullet(s) (need 3-5)`;
+	}
+	if (takeawaysIssue !== null)
+		out.push({
+			gate: "takeaways_required",
+			message: takeawaysIssue,
+			fix: 'Open the article with a "## Key Takeaways" section (the FIRST section, within the first 1500 characters) containing 3-5 "- " bullet lines, each a standalone factual sentence a reader could quote on its own.',
+		});
+	const faq = FAQ_HEADING.exec(p.content);
+	let faqIssue: string | null = null;
+	if (!faq) faqIssue = 'no "## FAQ" section';
+	else if (faq.index < p.content.length - 2500)
+		faqIssue =
+			'"## FAQ" is not at the end of the article (must start within the last 2500 characters)';
+	else {
+		const questions =
+			p.content.slice(faq.index).match(/^###\s+.+\?\s*$/gm) ?? [];
+		if (questions.length < 3)
+			faqIssue = `${questions.length} "### ...?" question heading(s) (need 3+)`;
+	}
+	if (faqIssue !== null)
+		out.push({
+			gate: "faq_required",
+			message: faqIssue,
+			fix: 'End the article with a "## FAQ" (or "## Frequently Asked Questions") section containing at least 3 "### " sub-headings, each a real landlord question ending with "?", each answered in 2-4 sentences.',
+		});
+	const candidates = ctx.internalLinkCandidates ?? [];
+	const links = validateInternalLinks(p.content, candidates);
+	if (!links.ok)
+		out.push({
+			gate: "internal_links",
+			message: links.reason,
+			fix:
+				candidates.length > 0
+					? `Weave 2-4 of the supplied candidate posts into the body as markdown links with descriptive anchor text — every internal href must be EXACTLY one of: ${candidates.map((s) => `/blog/${s}`).join(", ")}. Never link any other internal URL and never use "#" as an href.`
+					: 'Remove every internal "/blog/..." link and every "#" href — no candidate posts were supplied for internal linking.',
+		});
+	const externalUrls = extractExternalUrls(p.content);
+	const offlist = externalUrls.filter((u) => !isAllowlistedCitation(u));
+	if (offlist.length > 0)
+		out.push({
+			gate: "citations",
+			message: `non-allowlisted external link(s): ${offlist.join(", ")}`,
+			fix: "External links may ONLY point to official .gov sites (e.g. hud.gov, irs.gov, cfpb.gov, your state's .gov) or law.cornell.edu. Remove or replace every other external link.",
+		});
+	if (CITATION_REQUIRED_CATEGORIES.includes(p.category)) {
+		const cited = externalUrls.filter(isAllowlistedCitation);
+		if (cited.length < 1 || cited.length > 3)
+			out.push({
+				gate: "citations",
+				message: `${cited.length} allowlisted citation(s) (need 1-3)`,
+				fix: `${p.category} articles must cite 1-3 authoritative sources as markdown links — official .gov pages or law.cornell.edu only. Cite only URLs you are CERTAIN exist; never invent one.`,
+			});
+	}
 	return out;
 }
 
@@ -307,6 +717,10 @@ export function capH2Count(content: string, max = 9): string {
 		.split("\n")
 		.map((line) => {
 			if (line.startsWith("## ")) {
+				// never demote the FAQ heading — faq_required needs it as an H2,
+				// and 9 kept + FAQ = 10 still satisfies the h2_count gate (max 10).
+				if (/^##\s+(faq|frequently asked questions)\s*$/i.test(line))
+					return line;
 				seen++;
 				if (seen > max) return `#${line}`; // "## " -> "### "
 			}
@@ -550,12 +964,15 @@ async function critique(draft: Draft, facts: string): Promise<Critique> {
 	return parseCritique(JSON.parse(content));
 }
 
-// Generate a draft that passes the 9 deterministic gates (bounded repair loop).
-// Each repair REPLACES the prior turn so the system prompt + RAG facts never get
-// truncated out of the local model's finite context window.
+// Generate a draft that passes the 18 deterministic gates (bounded repair
+// loop), then HEAD-verifies the external citations (a dead source consumes a
+// repair attempt too). Each repair REPLACES the prior turn so the system
+// prompt + RAG facts never get truncated out of the local model's finite
+// context window.
 async function generateValidDraft(
 	messages: { role: string; content: string }[],
 	category: Category,
+	ctx: GateContext = {},
 ): Promise<Draft> {
 	let repairTurn: { role: string; content: string }[] = [];
 	for (let attempt = 1; attempt <= MAX_REPAIR; attempt++) {
@@ -591,9 +1008,21 @@ async function generateValidDraft(
 		d.content = capDocusealMentions(d.content);
 		// demote surplus H2s (h2_count gate max 10; keep 9 for margin)
 		d.content = capH2Count(d.content);
-		const failures = runGates(d);
+		let failures = runGates(d, ctx);
+		if (failures.length === 0) {
+			// structural gates pass — verify the external citations actually
+			// resolve (HEAD, 10s each); a dead source becomes a repair hint,
+			// never a published 404 reference.
+			failures = (await headCheckCitations(extractExternalUrls(d.content))).map(
+				(c) => ({
+					gate: "citation_liveness",
+					message: `${c.url} -> ${c.status}`,
+					fix: `The external link ${c.url} is dead (${c.status}). Replace it with a working .gov or law.cornell.edu URL you are CERTAIN exists, or remove the link and keep the claim general.`,
+				}),
+			);
+		}
 		console.log(
-			`  ${9 - failures.length}/9 gates  (${countWords(d.content)} words, "${d.title}")`,
+			`  ${TOTAL_GATES - new Set(failures.map((f) => f.gate)).size}/${TOTAL_GATES} gates  (${countWords(d.content)} words, "${d.title}")`,
 		);
 		if (failures.length === 0) return d;
 		console.log(`  failures: ${failures.map((f) => f.gate).join(", ")}`);
@@ -732,12 +1161,38 @@ async function main() {
 	await resolveGenModel();
 	console.log(`Model: ${GEN_MODEL}`);
 
-	// 1. retrieve RAG grounding
-	console.log("Embedding topic + retrieving RAG context...");
-	const qvec = await embed(topic);
 	const supabase = createClient(SUPABASE_URL as string, SERVICE_KEY as string, {
 		auth: { persistSession: false },
 	});
+
+	// 0b. duplicate-comparison guard (pre-generation): a second post covering
+	// the same brand pair (in either order) cannibalizes the first — fail
+	// BEFORE burning a local-LLM generation. Only reachable with --slug (the
+	// scheduled runner always pins one); model-chosen slugs are constrained by
+	// the prompt + slug_brand_match gate instead.
+	if (slugOverride !== undefined && slugOverride.includes("-vs-")) {
+		const { data: vsRows, error: vsErr } = await supabase
+			.from("blogs")
+			.select("slug")
+			.eq("status", "published")
+			.like("slug", "%-vs-%")
+			.limit(500);
+		if (vsErr) fail(`duplicate-comparison probe: ${vsErr.message}`);
+		const dup = findDuplicateComparison(
+			slugOverride,
+			((vsRows ?? []) as Record<string, unknown>[]).map(mapSlugRow),
+		);
+		if (dup !== null) {
+			const [a, b] = extractComparisonBrands(slugOverride);
+			fail(
+				`duplicate comparison pair ${a} vs ${b} already published as ${dup} — remove this topic from blog-topics.json`,
+			);
+		}
+	}
+
+	// 1. retrieve RAG grounding
+	console.log("Embedding topic + retrieving RAG context...");
+	const qvec = await embed(topic);
 	const { data: chunks, error } = await supabase.rpc("match_blog_rag_chunks", {
 		query_embedding: `[${qvec.join(",")}]`,
 		match_count: 6,
@@ -757,6 +1212,27 @@ async function main() {
 		`  retrieved ${rows.length} chunks (${facts.length} chars of grounding)\n`,
 	);
 
+	// 1b. internal-link candidates (internal_links gate): up to 5 freshest
+	// published posts in the same category — the prompt asks the model to weave
+	// 2-4 in, and the gate rejects any OTHER internal href (hallucinated slugs
+	// are guaranteed 404s).
+	const { data: candRows, error: candErr } = await supabase
+		.from("blogs")
+		.select("slug, title")
+		.eq("status", "published")
+		.eq("category", category)
+		.neq("slug", slugOverride ?? "")
+		.order("published_at", { ascending: false })
+		.limit(5);
+	if (candErr) fail(`internal-link candidates: ${candErr.message}`);
+	const linkCandidates = ((candRows ?? []) as Record<string, unknown>[]).map(
+		mapLinkCandidate,
+	);
+	const gateCtx: GateContext = {
+		topic,
+		internalLinkCandidates: linkCandidates.map((c) => c.slug),
+	};
+
 	// 2. build the prompt (prototype lessons: forbid banlist phrases + high word target)
 	const system = `You are a senior content writer for TenantFlow, landlord-only property management software operated by Hudson Digital Solutions. Write genuinely helpful, accurate, E-E-A-T-credible long-form articles for independent landlords (1-20 units). Authoritative and natural; never hypey or AI-spam. Feature TenantFlow only where it genuinely fits, grounded in the provided facts — never fabricate features.
 E-E-A-T CONVENTIONS:
@@ -768,6 +1244,14 @@ HARD RULES (a single violation rejects the article):
 - TenantFlow does NOT facilitate rent payments and is NOT a tenant portal. NEVER use these literal phrases: ${BANLIST.join(", ")}. If you need the idea, rephrase: "pay rent on time" -> "stay current on their lease" / "meet their rent obligations".
 - Mention "DocuSeal" at most once, total.
 - Output ONLY one valid JSON object.`;
+	const comparisonBrands = extractComparisonBrands(slugOverride ?? "");
+	const internalLinkBlock =
+		linkCandidates.length > 0
+			? `\n- Internal links: weave ${linkCandidates.length >= 2 ? "2-4" : "1"} of these published TenantFlow posts naturally into the body as markdown links with DESCRIPTIVE anchor text (copy each href EXACTLY; never link any other internal URL; never use "#" as an href):\n${linkCandidates.map((c) => `  - [${c.title}](/blog/${c.slug})`).join("\n")}`
+			: "";
+	const citationRule = CITATION_REQUIRED_CATEGORIES.includes(category)
+		? `\n- Citations: cite 1-3 authoritative sources for legal/tax claims as markdown links — ONLY official .gov pages (hud.gov, irs.gov, cfpb.gov, your state's .gov) or law.cornell.edu. Cite ONLY URLs you are certain exist — NEVER invent or guess a URL. No other external links.`
+		: `\n- External links are optional; when used they may ONLY point to official .gov pages or law.cornell.edu, and ONLY to URLs you are certain exist — NEVER invent or guess a URL.`;
 	const user = `Write a complete blog article.
 Topic: ${topic}
 Category: ${category}
@@ -776,11 +1260,14 @@ TenantFlow facts (every TenantFlow-specific claim must be grounded in these; do 
 ${facts}
 
 STRICT requirements:
-- "content": markdown body with 8 or 9 "## " section headings (no H1, no top-level title). Under EACH heading write 220-300 words of specific, practical, example-rich detail (steps, checklists, examples, common mistakes), so the full article is AT LEAST 1500 words (aim 1800-2300). Do NOT write a conclusion or stop before 1500 words. Must include the word "landlord". When TenantFlow appears, describe ORGANIZING records, leases, documents, and maintenance — never payment handling, processing, or collection of any kind. The audience word is "landlord"/"landlords" — NEVER "property owner(s)" or "real estate investor(s)". NEVER write the literal phrases "paid rent", "pay rent", "rent collection", "collect rent", "tenant portal", "autopay", or "online payments" — to discuss payment history use "paid on time" / "payment record" / "met their rent obligations".
-- "title": compelling, under 65 characters.
+- "content": markdown body with 8 or 9 "## " section headings (no H1, no top-level title), INCLUDING "## Key Takeaways" as the FIRST section and "## FAQ" as the LAST section. Under EACH substantive heading (not Key Takeaways or FAQ) write 220-300 words of specific, practical, example-rich detail (steps, checklists, examples, common mistakes), so the full article is AT LEAST 1500 words (aim 1800-2300). Do NOT write a conclusion or stop before 1500 words. Must include the word "landlord". When TenantFlow appears, describe ORGANIZING records, leases, documents, and maintenance — never payment handling, processing, or collection of any kind. The audience word is "landlord"/"landlords" — NEVER "property owner(s)" or "real estate investor(s)". NEVER write the literal phrases "paid rent", "pay rent", "rent collection", "collect rent", "tenant portal", "autopay", or "online payments" — to discuss payment history use "paid on time" / "payment record" / "met their rent obligations".
+- "## Key Takeaways": 3-5 "- " bullet lines, each a standalone factual sentence a reader could quote on its own.
+- "## FAQ": at least 3 "### " sub-headings, each a real landlord question ending with "?", each answered in 2-4 sentences.
+- Every OTHER section heading must be specific to THIS topic — never generic reusable headings (e.g. NOT "Red Flags to Watch For", "Common Mistakes First-Time Landlords Make", "A Step-by-Step Screening Checklist", "Questions to Ask Previous Landlords").${needsComparisonTable(slugOverride ?? "", topic) ? '\n- Include at least one GFM markdown table (header row, "|---|" separator row) presenting the comparative data.' : ""}${internalLinkBlock}${citationRule}
+- "title": compelling, 25-55 characters (the page template appends " | TenantFlow Blog").${comparisonBrands.length >= 2 ? ` The title MUST name both compared products: ${comparisonBrands.map((b) => `"${b}"`).join(" and ")}.` : ' If the slug contains "-vs-", the title must name BOTH compared products from the slug.'}
 - "slug": lowercase words joined by single hyphens, ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, 20-70 chars.
-- "excerpt": 110-180 characters.
-- "meta_description": 115-155 characters.
+- "excerpt": 110-180 characters, a standalone summary in your own words — never copy the article's opening text and never end with "...".
+- "meta_description": 115-155 characters, a standalone value proposition — never copy the article's opening text and never end with "...".
 - "category": exactly "${category}".`;
 
 	const baseMessages = [
@@ -788,11 +1275,11 @@ STRICT requirements:
 		{ role: "user", content: user },
 	];
 
-	// 3. generate a structurally-valid draft (the 9 gates), then run the
+	// 3. generate a structurally-valid draft (the 18 gates), then run the
 	// LLM-as-judge quality gate (BLOG-07a): the gates catch structure; the judge
 	// catches thin/off-brand/ungrounded prose. Reject -> regenerate (bounded),
 	// then fail closed — never POST a judge-rejected draft.
-	let draft = await generateValidDraft(baseMessages, category);
+	let draft = await generateValidDraft(baseMessages, category, gateCtx);
 
 	draft = await gateOnCritique(draft, facts, (rejected, issues) =>
 		generateValidDraft(
@@ -805,6 +1292,7 @@ STRICT requirements:
 				},
 			],
 			category,
+			gateCtx,
 		),
 	);
 
@@ -816,7 +1304,7 @@ STRICT requirements:
 
 	if (dryRun) {
 		console.log(
-			`\nDRY RUN — 9 gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
+			`\nDRY RUN — ${TOTAL_GATES} gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
 		);
 		return;
 	}
@@ -892,6 +1380,22 @@ STRICT requirements:
 	const text = await res.text();
 	console.log(`  -> HTTP ${res.status}: ${text}`);
 	if (res.status === 201) {
+		// Tags aren't accepted by the ingest EF (it allowlists insert columns), so
+		// set them in a follow-up UPDATE. FAIL-OPEN: the post is already published;
+		// a tagging miss only costs the comparison rail + JSON-LD keywords.
+		try {
+			const tags = deriveTags(draft.slug, draft.title, draft.category);
+			const { error: tagErr } = await supabase
+				.from("blogs")
+				.update({ tags })
+				.eq("slug", draft.slug);
+			if (tagErr) throw new Error(tagErr.message);
+			console.log(`  tags set: [${tags.join(", ")}]`);
+		} catch (e) {
+			console.error(
+				`  tag update failed (non-fatal): ${e instanceof Error ? e.message : e}`,
+			);
+		}
 		console.log(
 			`\nSUCCESS: "${draft.slug}" is PUBLISHED — live on /blog now; its own page builds on the next deploy. Unpublish anytime at /admin/blog.`,
 		);
@@ -906,6 +1410,10 @@ STRICT requirements:
 
 export type { Critique, Draft };
 export { critique, isCritiquePass, parseCritique };
+
+// (GateContext, runGates, extractComparisonBrands, normalizeComparisonPair,
+// findDuplicateComparison, validateInternalLinks, isAllowlistedCitation,
+// extractExternalUrls, headCheckCitations are exported inline above.)
 
 // run the CLI only when executed directly (not when imported by the unit test)
 if (process.argv[1]?.endsWith("/generate-blog-draft.ts")) {
