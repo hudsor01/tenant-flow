@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { BlogCard } from "#components/blog/blog-card";
 import { BlogPagination } from "#components/blog/blog-pagination";
 import { NewsletterSignup } from "#components/blog/newsletter-signup";
@@ -109,6 +110,20 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 					.limit(6),
 			]);
 
+		// An out-of-range ?page=N (offset past the last row) makes PostgREST
+		// return 416 "Requested range not satisfiable" (code PGRST103). That's
+		// not a server error — the pagination URL points beyond the last page
+		// (e.g. a crawler probing ?page=11 of a 10-page blog). Return a real 404
+		// so crawlers drop the URL, instead of logging noise + soft-rendering an
+		// empty page. notFound() throws NEXT_NOT_FOUND, which the catch re-raises.
+		const rangeCode = (postsResult.error as { code?: string } | null)?.code;
+		if (
+			rangeCode === "PGRST103" ||
+			/range not satisfiable/i.test(postsResult.error?.message ?? "")
+		) {
+			notFound();
+		}
+
 		if (
 			postsResult.error ||
 			categoriesResult.error ||
@@ -127,6 +142,18 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 		comparisons = (comparisonsResult.data ?? []) as BlogListItem[];
 		totalPages = Math.max(1, Math.ceil((postsResult.count ?? 0) / PAGE_LIMIT));
 	} catch (err) {
+		// notFound() (and redirect()) signal via a thrown error carrying a
+		// `digest` — re-raise it so Next can render the 404, instead of
+		// swallowing it into the empty-state + a bogus Sentry "error".
+		if (
+			err &&
+			typeof err === "object" &&
+			"digest" in err &&
+			(err.digest === "NEXT_NOT_FOUND" ||
+				String(err.digest).startsWith("NEXT_REDIRECT"))
+		) {
+			throw err;
+		}
 		Sentry.captureException(err, {
 			tags: { surface: "blog-index" },
 			extra: { page },
