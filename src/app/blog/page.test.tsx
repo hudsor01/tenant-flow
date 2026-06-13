@@ -22,6 +22,14 @@ vi.mock("@sentry/nextjs", () => ({
 	captureException: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({
+	notFound: () => {
+		const err = new Error("NEXT_NOT_FOUND") as Error & { digest: string };
+		err.digest = "NEXT_NOT_FOUND";
+		throw err;
+	},
+}));
+
 vi.mock("next/link", () => ({
 	default: ({
 		children,
@@ -174,7 +182,7 @@ interface MockBuilderOpts {
 	posts?: BlogListItem[];
 	postsCount?: number | null;
 	comparisons?: BlogListItem[];
-	postsError?: { message: string } | null;
+	postsError?: { message: string; code?: string } | null;
 	categoriesError?: { message: string } | null;
 	comparisonsError?: { message: string } | null;
 	rejectPosts?: boolean;
@@ -286,6 +294,22 @@ describe("BlogPage (server component)", () => {
 	it("does NOT render pagination when totalPages = 1", async () => {
 		render(await renderPage({ postsCount: 3 }));
 		expect(screen.queryByTestId("blog-pagination")).not.toBeInTheDocument();
+	});
+
+	it("returns a 404 (notFound) for an out-of-range ?page — PostgREST 416 — without logging a Sentry error", async () => {
+		mockCreateClient.mockResolvedValue(
+			makeFromBuilder({
+				postsError: {
+					code: "PGRST103",
+					message: "Requested range not satisfiable",
+				},
+			}),
+		);
+		await expect(
+			BlogPage({ searchParams: Promise.resolve({ page: "11" }) }),
+		).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
+		// the 416 is expected control flow, not a server error to report
+		expect(Sentry.captureException).not.toHaveBeenCalled();
 	});
 
 	it("renders empty-state branch when zero posts", async () => {
