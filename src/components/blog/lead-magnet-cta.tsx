@@ -58,7 +58,10 @@ export function LeadMagnetCta({
 						Free {resourceType}
 					</p>
 				</div>
-				<h3 className="text-2xl font-bold text-foreground">{title}</h3>
+				{/* Styled as a heading but rendered as <p>: this lead-magnet CTA is
+				    injected into post bodies, so an <h3> here pollutes each post's
+				    heading outline with non-content marketing copy. */}
+				<p className="text-2xl font-bold text-foreground">{title}</p>
 				<p className="text-muted-foreground leading-relaxed">{description}</p>
 
 				{unlocked ? (

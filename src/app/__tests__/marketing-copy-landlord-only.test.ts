@@ -209,11 +209,11 @@ const BANNED_NUMERIC_CLAIMS = [
 
 // Explicit marketing surfaces (kept as a stable allowlist — catches files that
 // might not match the components walker, e.g. /app/pages, config, SEO helpers).
-// Includes `public/llms.txt`, `public/llms-full.txt`, and `public/manifest.json`
-// because AI crawlers + PWA install prompts fetch them directly; AUDIT-1
-// cycle-2 found stale pricing ($29/$79/$199 vs canonical $19/$49/$149) and a
-// reference to the deleted "team behind TenantFlow" section in llms.txt that
-// the previous .ts-only walker couldn't see.
+// Includes `public/manifest.json` because PWA install prompts fetch it
+// directly. The former static `public/llms.txt` / `public/llms-full.txt`
+// entries were removed: those files are now DB-driven route handlers at
+// `src/app/llms.txt/route.ts` + `src/app/llms-full.txt/route.ts`, which the
+// "App routes" walkers below already scan for banned copy.
 const MARKETING_FILES = [
 	"src/app/page.tsx",
 	"src/app/marketing-home.tsx",
@@ -236,8 +236,6 @@ const MARKETING_FILES = [
 	"src/data/testimonials.ts",
 	"src/config/pricing.ts",
 	"src/lib/generate-metadata.ts",
-	"public/llms.txt",
-	"public/llms-full.txt",
 	"public/manifest.json",
 ] as const;
 
@@ -281,6 +279,12 @@ const BANLIST_EXEMPTIONS: Record<string, readonly BanlistKind[]> = {
 		"feature",
 	],
 	"src/lib/templates/lease-template.ts": ["feature"],
+	// blog-categories.ts maps the editorial blog category slug
+	// `tenant-screening` to its display label "Tenant Screening"
+	// (BANNED_FEATURE_CLAIMS). This is a content taxonomy label for blog
+	// articles ABOUT screening third-party tenants — not a TenantFlow product
+	// feature claim (the product ships no tenant-screening tooling).
+	"src/lib/seo/blog-categories.ts": ["feature"],
 	// security-policy is a documented vulnerability disclosure timeline
 	// ("acknowledge within 24 hours", "assess within 72 hours", "90-day
 	// coordinated disclosure"), not a marketing claim. The SLAs map to a

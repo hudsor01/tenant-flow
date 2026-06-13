@@ -133,11 +133,15 @@ export const defaultMetadata: Metadata = new Proxy({} as Metadata, {
 	},
 });
 
-export function getJsonLd() {
+/**
+ * Organization JSON-LD — emitted site-wide (every route) via `SeoJsonLd` in
+ * the root layout. The Organization entity is route-neutral brand identity
+ * and is correct on every page, including `/blog/*`.
+ */
+export function getOrganizationJsonLd() {
 	const SITE_URL = getSiteUrl();
 
-	// Organization schema for global presence
-	const organization = {
+	return {
 		"@context": "https://schema.org",
 		"@type": "Organization",
 		name: "TenantFlow",
@@ -163,9 +167,21 @@ export function getJsonLd() {
 			"https://facebook.com/tenantflow",
 		],
 	};
+}
 
-	// SoftwareApplication schema
-	const software = {
+/**
+ * SoftwareApplication + AggregateOffer JSON-LD — the commercial product
+ * entity. Emitted ONLY on the marketing homepage (`MarketingJsonLd`), NOT
+ * site-wide. On `/blog/*` a site-wide SoftwareApplication node competes with
+ * each post's `Article` schema for the page's primary-entity signal and
+ * dilutes it — the same reason PR 674 dropped SoftwareApplication from the
+ * compare pages. Scoping it to the homepage keeps the product entity where
+ * it belongs without polluting editorial pages.
+ */
+export function getSoftwareApplicationJsonLd() {
+	const SITE_URL = getSiteUrl();
+
+	return {
 		"@context": "https://schema.org",
 		"@type": "SoftwareApplication",
 		name: "TenantFlow",
@@ -203,8 +219,16 @@ export function getJsonLd() {
 			"DocuSeal Lease E-Signing",
 		],
 	};
+}
 
-	return [organization, software];
+/**
+ * Both global brand entities, in render order. Retained for the SEO-03
+ * regression test that pins the combined shape; production code uses the
+ * granular getters so `SeoJsonLd` can keep SoftwareApplication off blog
+ * pages.
+ */
+export function getJsonLd() {
+	return [getOrganizationJsonLd(), getSoftwareApplicationJsonLd()];
 }
 
 export async function generateSiteMetadata(): Promise<Metadata> {

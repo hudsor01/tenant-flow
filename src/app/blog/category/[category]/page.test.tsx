@@ -86,6 +86,10 @@ import BlogCategoryPage, { generateMetadata } from "./page";
 const mockCategories = [
 	{ name: "Software Comparisons", slug: "software-comparisons", post_count: 5 },
 	{ name: "Property Management", slug: "property-management", post_count: 12 },
+	// Real production shape: the `category` column stores the kebab slug, so
+	// `name === slug` for in-map categories. The page humanizes the slug for
+	// display via categoryLabel().
+	{ name: "lease-law", slug: "lease-law", post_count: 9 },
 ];
 
 const mockPosts: BlogListItem[] = [
@@ -188,6 +192,29 @@ describe("BlogCategoryPage (server component)", () => {
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
 			"Software Comparisons",
 		);
+	});
+
+	it("humanizes the kebab category slug into a label for the h1 + breadcrumb", async () => {
+		// `lease-law` is the raw column value; the page must render "Lease Law".
+		render(await renderPage("lease-law"));
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"Lease Law",
+		);
+		const nav = screen.getByRole("navigation", { name: /breadcrumb/i });
+		expect(nav).toHaveTextContent("Lease Law");
+		// The raw kebab slug must NOT appear as the visible heading text.
+		expect(screen.getByRole("heading", { level: 1 })).not.toHaveTextContent(
+			"lease-law",
+		);
+	});
+
+	it("generateMetadata humanizes the category slug in the title", async () => {
+		mockCreateClient.mockResolvedValue(makeClient({ postsCount: 9 }));
+		const meta = await generateMetadata({
+			params: Promise.resolve({ category: "lease-law" }),
+			searchParams: Promise.resolve({}),
+		});
+		expect(meta.title).toBe("Lease Law Articles & Guides");
 	});
 
 	it("renders BlogCard for each post in the category", async () => {

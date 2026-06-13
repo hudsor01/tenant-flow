@@ -30,8 +30,10 @@ vi.mock("next/link", () => ({
 import { BlogPostBreadcrumb } from "#components/blog/blog-post-breadcrumb";
 
 describe("BlogPostBreadcrumb", () => {
-	it("renders 4 segments (Home > Blog > Category > Title) when category is present", () => {
-		render(<BlogPostBreadcrumb title="The Test Post" category="Lease Law" />);
+	it("renders 4 segments and humanizes the kebab category slug into a label", () => {
+		// `category` is the raw `blogs.category` value — the kebab SLUG. The
+		// node links to the slug verbatim and renders the human label.
+		render(<BlogPostBreadcrumb title="The Test Post" category="lease-law" />);
 
 		expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
 			"href",
@@ -66,30 +68,21 @@ describe("BlogPostBreadcrumb", () => {
 		expect(screen.getByText("Uncategorized Post")).toBeInTheDocument();
 	});
 
-	it("lowercase-dasherizes the category slug to match createBreadcrumbJsonLd", () => {
-		// `createBreadcrumbJsonLd` does NOT lower-and-dasherize itself; the
-		// caller-supplied path is used verbatim. But the post page derives
-		// the same slug from the visible category via the same regex used
-		// here, so by pinning this transform we guarantee no drift.
-		render(
-			<BlogPostBreadcrumb
-				title="Multi-Word Category Post"
-				category="Property Management"
-			/>,
-		);
+	it("links the category node to the slug verbatim and shows the mapped label", () => {
+		render(<BlogPostBreadcrumb title="Vault Post" category="software-vault" />);
 		expect(
-			screen.getByRole("link", { name: "Property Management" }),
-		).toHaveAttribute("href", "/blog/category/property-management");
+			screen.getByRole("link", { name: "Software Vault" }),
+		).toHaveAttribute("href", "/blog/category/software-vault");
 	});
 
 	it('uses aria-current="page" on the title segment', () => {
-		render(<BlogPostBreadcrumb title="Active Post" category="Maintenance" />);
+		render(<BlogPostBreadcrumb title="Active Post" category="maintenance" />);
 		const current = screen.getByText("Active Post");
 		expect(current).toHaveAttribute("aria-current", "page");
 	});
 
 	it('renders inside a nav landmark with aria-label="breadcrumb"', () => {
-		render(<BlogPostBreadcrumb title="Some Post" category="Some Category" />);
+		render(<BlogPostBreadcrumb title="Some Post" category="tax-prep" />);
 		const nav = screen.getByRole("navigation", { name: /breadcrumb/i });
 		expect(nav).toBeInTheDocument();
 	});

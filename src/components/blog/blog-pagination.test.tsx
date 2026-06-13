@@ -1,15 +1,17 @@
 /**
  * BlogPagination Component Tests
  *
- * Tests for the URL-driven pagination component using nuqs
- * for blog list navigation.
+ * The pagination controls are REAL `<Link>` anchors carrying `?page=N`
+ * hrefs so the paginated URLs exist in the SSR HTML and are crawlable
+ * (page 2+ posts were crawl orphans when these were hrefless `<button>`s).
+ * The onClick still drives the instant nuqs client-side swap.
  *
  * @vitest-environment jsdom
  */
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockSetPage = vi.hoisted(() => vi.fn());
 const mockPage = vi.hoisted(() => ({ value: 1 }));
@@ -21,6 +23,28 @@ vi.mock("nuqs", () => ({
 		}),
 	},
 	useQueryState: () => [mockPage.value, mockSetPage] as const,
+}));
+
+vi.mock("next/navigation", () => ({
+	usePathname: () => "/blog",
+}));
+
+vi.mock("next/link", () => ({
+	default: ({
+		children,
+		href,
+		onClick,
+		...props
+	}: {
+		children: React.ReactNode;
+		href: string;
+		onClick?: (e: React.MouseEvent) => void;
+		className?: string;
+	}) => (
+		<a href={href} onClick={onClick} {...props}>
+			{children}
+		</a>
+	),
 }));
 
 import { BlogPagination } from "./blog-pagination";
@@ -36,30 +60,41 @@ describe("BlogPagination", () => {
 		expect(screen.getByText("Page 1 of 5")).toBeInTheDocument();
 	});
 
-	it("previous button is disabled on page 1", () => {
+	it("next link carries a crawlable ?page=2 href on page 1", () => {
 		render(<BlogPagination totalPages={5} />);
-		const prevButton = screen.getByRole("button", {
-			name: "Previous page",
-		});
-		expect(prevButton).toBeDisabled();
+		const next = screen.getByRole("link", { name: "Next page" });
+		expect(next).toHaveAttribute("href", "/blog?page=2");
 	});
 
-	it("next button is disabled on last page", () => {
+	it("prev link points back to the bare path (no ?page=1) from page 2", () => {
+		mockPage.value = 2;
+		render(<BlogPagination totalPages={5} />);
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		expect(prev).toHaveAttribute("href", "/blog");
+		const next = screen.getByRole("link", { name: "Next page" });
+		expect(next).toHaveAttribute("href", "/blog?page=3");
+	});
+
+	it("previous link is aria-disabled on page 1", () => {
+		render(<BlogPagination totalPages={5} />);
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		expect(prev).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("next link is aria-disabled on the last page", () => {
 		mockPage.value = 5;
 		render(<BlogPagination totalPages={5} />);
-		const nextButton = screen.getByRole("button", { name: "Next page" });
-		expect(nextButton).toBeDisabled();
+		const next = screen.getByRole("link", { name: "Next page" });
+		expect(next).toHaveAttribute("aria-disabled", "true");
 	});
 
-	it("both buttons are enabled on middle page", () => {
+	it("both links are enabled on a middle page", () => {
 		mockPage.value = 3;
 		render(<BlogPagination totalPages={5} />);
-		const prevButton = screen.getByRole("button", {
-			name: "Previous page",
-		});
-		const nextButton = screen.getByRole("button", { name: "Next page" });
-		expect(prevButton).not.toBeDisabled();
-		expect(nextButton).not.toBeDisabled();
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		const next = screen.getByRole("link", { name: "Next page" });
+		expect(prev).toHaveAttribute("aria-disabled", "false");
+		expect(next).toHaveAttribute("aria-disabled", "false");
 	});
 
 	it("returns null when totalPages is 0", () => {
@@ -83,20 +118,26 @@ describe("BlogPagination", () => {
 	it("calls setPage with next value on next click", async () => {
 		const user = userEvent.setup();
 		render(<BlogPagination totalPages={5} />);
-		const nextButton = screen.getByRole("button", { name: "Next page" });
-		await user.click(nextButton);
+		const next = screen.getByRole("link", { name: "Next page" });
+		await user.click(next);
 		expect(mockSetPage).toHaveBeenCalledWith(2);
 	});
 
-	it("calls setPage with null when going back to page 1", async () => {
+	it("calls setPage with null when navigating back to page 1", async () => {
 		mockPage.value = 2;
 		const user = userEvent.setup();
 		render(<BlogPagination totalPages={5} />);
-		const prevButton = screen.getByRole("button", {
-			name: "Previous page",
-		});
-		await user.click(prevButton);
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		await user.click(prev);
 		expect(mockSetPage).toHaveBeenCalledWith(null);
+	});
+
+	it("does not call setPage when clicking a disabled boundary link", async () => {
+		const user = userEvent.setup();
+		render(<BlogPagination totalPages={5} />);
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		await user.click(prev);
+		expect(mockSetPage).not.toHaveBeenCalled();
 	});
 
 	it("applies custom className", () => {

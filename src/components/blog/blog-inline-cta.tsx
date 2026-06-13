@@ -15,9 +15,12 @@ export function BlogInlineCta() {
 				<p className="text-sm font-semibold uppercase tracking-wider text-primary-text">
 					TenantFlow
 				</p>
-				<h3 className="text-2xl font-bold text-foreground">
+				{/* Styled as a heading but rendered as <p>: this CTA is repeated
+				    inside every post body, so an <h3> here pollutes each post's
+				    heading outline with non-content marketing copy. */}
+				<p className="text-2xl font-bold text-foreground">
 					Managing rentals shouldn&apos;t be this hard
-				</h3>
+				</p>
 				<p className="text-muted-foreground leading-relaxed">
 					Track leases, maintenance, and tenants in one platform. Replace your
 					spreadsheets and Dropbox folders with a single document vault.

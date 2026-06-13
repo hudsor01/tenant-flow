@@ -17,6 +17,7 @@ import {
 	BreadcrumbSeparator,
 } from "#components/ui/breadcrumb";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { categoryLabel } from "#lib/seo/blog-categories";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 import { createClient } from "#lib/supabase/server";
@@ -79,6 +80,11 @@ export async function generateMetadata({
 		return { title: "Category Not Found | TenantFlow" };
 	}
 
+	// `validCategory.name`/`.slug` are the kebab category value (the column
+	// stores the slug, not a human label) — humanize for display so the
+	// <title> and meta description read "Lease Law", not "lease-law".
+	const label = categoryLabel(validCategory.slug);
+
 	// SEO-03: noindex paginated pages AND empty categories (zero published
 	// posts) so a thin/empty category page does not bleed crawl signal. The
 	// page stays reachable for users; Google just won't index it until it has
@@ -86,8 +92,8 @@ export async function generateMetadata({
 	const publishedCount = await getCategoryPublishedCount(validCategory.name);
 
 	return createPageMetadata({
-		title: `${validCategory.name} Articles & Guides`,
-		description: `Browse TenantFlow blog posts about ${validCategory.name.toLowerCase()}. Expert insights and practical guides for landlords.`,
+		title: `${label} Articles & Guides`,
+		description: `Browse TenantFlow blog posts about ${label.toLowerCase()}. Expert insights and practical guides for landlords.`,
 		path: `/blog/category/${category}`,
 		noindex: page > 1 || publishedCount === 0,
 	});
@@ -119,12 +125,13 @@ export default async function BlogCategoryPage({
 	const posts = (postsResult.data ?? []) as BlogListItem[];
 	const total = postsResult.count ?? 0;
 	const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
+	const label = categoryLabel(validCategory.slug);
 
 	return (
 		<PageLayout>
 			<JsonLdScript
 				schema={createBreadcrumbJsonLd(`/blog/category/${category}`, {
-					[category]: validCategory.name,
+					[category]: label,
 				})}
 			/>
 
@@ -144,7 +151,7 @@ export default async function BlogCategoryPage({
 						</BreadcrumbItem>
 						<BreadcrumbSeparator />
 						<BreadcrumbItem>
-							<BreadcrumbPage>{validCategory.name}</BreadcrumbPage>
+							<BreadcrumbPage>{label}</BreadcrumbPage>
 						</BreadcrumbItem>
 					</BreadcrumbList>
 				</Breadcrumb>
@@ -153,11 +160,10 @@ export default async function BlogCategoryPage({
 			<section className="section-spacing">
 				<div className="mx-auto max-w-4xl px-6 text-center lg:px-8">
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
-						{validCategory.name}
+						{label}
 					</h1>
 					<p className="mt-4 text-lg text-muted-foreground">
-						{total} article{total === 1 ? "" : "s"} on{" "}
-						{validCategory.name.toLowerCase()}.
+						{total} article{total === 1 ? "" : "s"} on {label.toLowerCase()}.
 					</p>
 				</div>
 			</section>

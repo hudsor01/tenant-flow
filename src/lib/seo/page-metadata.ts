@@ -93,10 +93,20 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 		},
 		twitter: {
 			card: "summary_large_image",
+			// Next.js replaces the parent `twitter` object wholesale (no deep
+			// merge per nested field), so a page built via this helper would
+			// otherwise drop the root layout's `twitter:site` / `twitter:creator`.
+			// Emit them here so every helper-built page has the same
+			// `@tenantflow` site/creator parity the post pages set by hand.
+			site: "@tenantflow",
+			creator: "@tenantflow",
 			title: suffixed,
 			description,
 			images: [imageUrl],
 		},
+		// `noindex` here means "index:false, follow:true" — the paginated /blog
+		// and /blog/category pages stay out of the index but still pass link
+		// equity through to the post URLs they link to.
 		...(noindex ? { robots: "noindex, follow" } : {}),
 	};
 }

@@ -19,7 +19,11 @@ vi.mock("#env", () => ({
 	},
 }));
 
-import { getJsonLd } from "#lib/generate-metadata";
+import {
+	getJsonLd,
+	getOrganizationJsonLd,
+	getSoftwareApplicationJsonLd,
+} from "#lib/generate-metadata";
 
 /** schema-dts readonly result -> plain JSON for assertions */
 function toPlain(value: unknown): Record<string, unknown> {
@@ -74,5 +78,32 @@ describe("getJsonLd", () => {
 		expect(Array.isArray(software.featureList)).toBe(true);
 		const featureList = software.featureList as unknown[];
 		expect(featureList.length).toBeGreaterThan(0);
+	});
+});
+
+describe("granular JSON-LD getters", () => {
+	it("getOrganizationJsonLd returns only the Organization entity", () => {
+		const org = toPlain(getOrganizationJsonLd());
+		expect(org["@type"]).toBe("Organization");
+		expect(org["@context"]).toBe("https://schema.org");
+		const contactPointRaw = org.contactPoint;
+		const contactPoint = Array.isArray(contactPointRaw)
+			? asRecord(contactPointRaw[0])
+			: asRecord(contactPointRaw);
+		expect(contactPoint.telephone).toBe("+1-214-843-0779");
+	});
+
+	it("getSoftwareApplicationJsonLd returns only the SoftwareApplication entity", () => {
+		const software = toPlain(getSoftwareApplicationJsonLd());
+		expect(software["@type"]).toBe("SoftwareApplication");
+		expect(software["@context"]).toBe("https://schema.org");
+		const offers = asRecord(software.offers);
+		expect(offers["@type"]).toBe("AggregateOffer");
+	});
+
+	it("getJsonLd composes the two granular getters in [org, software] order", () => {
+		const [org, software] = getJsonLd();
+		expect(toPlain(org)["@type"]).toBe("Organization");
+		expect(toPlain(software)["@type"]).toBe("SoftwareApplication");
 	});
 });

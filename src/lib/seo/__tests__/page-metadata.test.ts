@@ -94,6 +94,21 @@ describe("createPageMetadata", () => {
 		expect(twitter.card).toBe("summary_large_image");
 	});
 
+	it("emits twitter:site and twitter:creator parity (@tenantflow)", () => {
+		// Next.js replaces the parent twitter object wholesale, so the helper
+		// must carry site/creator or helper-built pages (e.g. /blog) drop the
+		// root layout's @tenantflow attribution that the post pages set by hand.
+		const result = createPageMetadata({
+			title: "Blog",
+			description: "desc",
+			path: "/blog",
+		});
+
+		const twitter = result.twitter as Record<string, unknown>;
+		expect(twitter.site).toBe("@tenantflow");
+		expect(twitter.creator).toBe("@tenantflow");
+	});
+
 	it("noindex option sets robots to noindex, follow", () => {
 		const result = createPageMetadata({
 			title: "Private",
