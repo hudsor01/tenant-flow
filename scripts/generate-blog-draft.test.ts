@@ -7,6 +7,7 @@ import {
 	capH2Count,
 	critique,
 	deriveTags,
+	ensureInternalLinks,
 	extractComparisonBrands,
 	extractExternalUrls,
 	findDuplicateComparison,
@@ -22,6 +23,7 @@ import {
 	pickLoadedModel,
 	runGates,
 	sanitizeBanlist,
+	stripNonAllowlistedExternalLinks,
 	validateInternalLinks,
 } from "./generate-blog-draft";
 
@@ -537,6 +539,88 @@ describe("capH2Count (h2_count gate, max 10 — keep 9, demote the rest)", () =>
 		expect(out).toContain("\n## FAQ");
 		expect(h2s(out)).toBe(10); // first 9 kept + the protected FAQ
 		expect(out).toContain("### Section 11");
+	});
+});
+
+describe("stripNonAllowlistedExternalLinks (citations offlist auto-cure)", () => {
+	it("drops a non-allowlisted markdown link to its anchor text", () => {
+		const out = stripNonAllowlistedExternalLinks(
+			"See [the manual](https://manufacturer.com/guide) for details.",
+		);
+		expect(out).toBe("See the manual for details.");
+	});
+
+	it("preserves a .gov citation verbatim", () => {
+		const src = "Per [IRS Schedule E](https://www.irs.gov/forms-pubs).";
+		expect(stripNonAllowlistedExternalLinks(src)).toBe(src);
+	});
+
+	it("preserves a law.cornell.edu citation verbatim", () => {
+		const src =
+			"See [the FCRA](https://www.law.cornell.edu/uscode/text/15/1681).";
+		expect(stripNonAllowlistedExternalLinks(src)).toBe(src);
+	});
+
+	it("removes a bare non-allowlisted URL", () => {
+		const out = stripNonAllowlistedExternalLinks(
+			"ref https://doorloop.com here",
+		);
+		expect(out).not.toContain("doorloop.com");
+	});
+
+	it("leaves internal /blog links untouched", () => {
+		const src =
+			"Read [the winter guide](/blog/winter-rental-maintenance-checklist).";
+		expect(stripNonAllowlistedExternalLinks(src)).toBe(src);
+	});
+});
+
+describe("ensureInternalLinks (internal_links auto-cure)", () => {
+	const cands = [
+		"winter-rental-maintenance-checklist",
+		"fall-rental-maintenance-checklist",
+		"spring-rental-maintenance-checklist",
+	];
+
+	it("appends a Related reading line when no internal links are present", () => {
+		const out = ensureInternalLinks("Body text only.", cands);
+		const links = [...out.matchAll(/\]\(\/blog\/([^)]+)\)/g)].map((m) => m[1]);
+		expect(links.length).toBe(2);
+		expect(out).toContain("Related reading:");
+		// both appended links are real candidates
+		for (const l of links) expect(cands).toContain(l);
+	});
+
+	it("strips a link to an unknown slug down to its text", () => {
+		const out = ensureInternalLinks(
+			"See [the made-up post](/blog/not-a-real-slug) and [winter](/blog/winter-rental-maintenance-checklist) and [fall](/blog/fall-rental-maintenance-checklist).",
+			cands,
+		);
+		expect(out).not.toContain("/blog/not-a-real-slug");
+		expect(out).toContain("the made-up post"); // text kept
+	});
+
+	it("strips a dead # link and tops up to two valid links", () => {
+		const out = ensureInternalLinks("Body with [dead](#) link.", cands);
+		expect(out).not.toContain("](#)");
+		const links = [...out.matchAll(/\]\(\/blog\/([^)]+)\)/g)].map((m) => m[1]);
+		expect(links.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it("leaves content with two valid links unchanged (no append)", () => {
+		const src =
+			"A [winter](/blog/winter-rental-maintenance-checklist) and [fall](/blog/fall-rental-maintenance-checklist) post.";
+		expect(ensureInternalLinks(src, cands)).toBe(src);
+	});
+
+	it("inserts the line before the FAQ section", () => {
+		const out = ensureInternalLinks("Intro.\n\n## FAQ\n\n### Q?\n\nA.", cands);
+		expect(out.indexOf("Related reading:")).toBeLessThan(out.indexOf("## FAQ"));
+	});
+
+	it("is a no-op when fewer than two candidates exist", () => {
+		const src = "Body text only.";
+		expect(ensureInternalLinks(src, ["only-one"])).toBe(src);
 	});
 });
 
