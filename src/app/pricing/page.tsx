@@ -39,8 +39,8 @@ export default async function PricingPage() {
 	// Google's Merchant-listings validation — which requires shippingDetails +
 	// hasMerchantReturnPolicy, meaningless for SaaS — producing the GSC "Merchant
 	// listings: invalid item" error. The software entity + pricing AggregateOffer
-	// are already emitted sitewide by SeoJsonLd (generate-metadata.ts) on every
-	// page, so a page-level SoftwareApplication would only add a redundant,
+	// are emitted on the marketing homepage (MarketingJsonLd / getSoftwareApplicationJsonLd),
+	// so a page-level SoftwareApplication here would only add a redundant,
 	// rating-less (rich-result-ineligible) duplicate node. FAQ + Breadcrumb stay.
 
 	return (

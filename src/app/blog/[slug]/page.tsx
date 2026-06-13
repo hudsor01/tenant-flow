@@ -6,7 +6,8 @@ import { JsonLdScript } from "#components/seo/json-ld-script";
 import { env } from "#env";
 import { createLogger } from "#lib/frontend-logger";
 import { createArticleJsonLd } from "#lib/seo/article-schema";
-import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createBlogPostBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createFaqJsonLd, parseFaqSection } from "#lib/seo/faq-schema";
 import BlogPostPage from "./blog-post-page";
 
 // Phase 6 (BLOG-02): ISR with `generateStaticParams` enumerating the
@@ -254,16 +255,21 @@ export default async function Page({ params }: Props) {
 		? post.content.trim().split(/\s+/).length
 		: undefined;
 
-	const categorySlug = post?.category
-		? post.category.toLowerCase().replace(/\s+/g, "-")
-		: "";
+	// `post.category` is the raw `blogs.category` value — the kebab SLUG
+	// (e.g. `lease-law`), not a human label. Use it verbatim as the
+	// category-page slug; the breadcrumb builder humanizes it for display.
+	const categorySlug = post?.category ?? "";
 
 	const breadcrumbSchema = post
-		? createBreadcrumbJsonLd(`/blog/category/${categorySlug}/${slug}`, {
-				[categorySlug]: post.category ?? categorySlug,
-				[slug]: post.title ?? slug,
-			})
+		? createBlogPostBreadcrumbJsonLd(categorySlug, post.title ?? slug)
 		: null;
+
+	// FAQPage rich result: parse a trailing `## FAQ` /
+	// `## Frequently Asked Questions` section from the post body. Google
+	// requires >= 1 pair but treats sparse FAQs as low-value, so we only
+	// emit when >= 3 genuine question/answer pairs exist.
+	const faqItems = post ? parseFaqSection(post.content) : [];
+	const faqSchema = faqItems.length >= 3 ? createFaqJsonLd(faqItems) : null;
 
 	// Article schema only emits when we have a real published_at — Google's
 	// Article rich-result eligibility requires datePublished, and faking
@@ -299,6 +305,7 @@ export default async function Page({ params }: Props) {
 		<>
 			{breadcrumbSchema && <JsonLdScript schema={breadcrumbSchema} />}
 			{articleSchema && <JsonLdScript schema={articleSchema} />}
+			{faqSchema && <JsonLdScript schema={faqSchema} />}
 			{/* The visible breadcrumb renders INSIDE BlogPostPage's PageLayout so
 			    it sits below the fixed navbar (page-offset-navbar). Rendering it
 			    here put it underneath the navbar. */}

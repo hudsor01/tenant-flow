@@ -3,7 +3,7 @@
 import { ArrowRight, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 import { BlogCard } from "#components/blog/blog-card";
 import { BlogInlineCta } from "#components/blog/blog-inline-cta";
@@ -14,6 +14,7 @@ import { PageLayout } from "#components/layout/page-layout";
 import { Button } from "#components/ui/button";
 import { useRelatedPosts } from "#hooks/api/use-blogs";
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
+import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
 import MarkdownContent, { headingId } from "./markdown-content";
 
@@ -99,7 +100,20 @@ function splitContentForCta(content: string): [string, string] {
 }
 
 export default function BlogPostPage({ post, slug }: BlogPostProps) {
+	// Hero LCP: the image must be VISIBLE in the no-JS / pre-hydration render
+	// (social scrapers, non-JS crawlers, and the LCP measurement all see the
+	// server HTML). `jsReady` is false during SSR + first paint, so the image
+	// renders fully visible. Once the client effect runs we enable the
+	// blur-up polish: if the bytes haven't decoded yet (`!imageLoaded`) the
+	// blurred placeholder shows and the `onLoad` transition resolves it. If
+	// they're already loaded (cached), nothing visually changes.
 	const [imageLoaded, setImageLoaded] = useState(false);
+	const [jsReady, setJsReady] = useState(false);
+	useEffect(() => {
+		setJsReady(true);
+	}, []);
+
+	const heroBlurUp = jsReady && !imageLoaded;
 
 	// Related-posts is the only remaining client fetch. `useBlogCategories`
 	// was dropped — its only consumer was a category-name → slug lookup
@@ -114,11 +128,13 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	const competitorSlug = BLOG_TO_COMPETITOR[slug];
 	const resourceSlug = BLOG_TO_RESOURCE[slug];
 
-	// Category slug is deterministic from the visible category name —
-	// same lower-and-dasherize transform the sitemap uses to build the
-	// `/blog/category/<slug>` URLs. No DB round-trip needed here.
+	// `post.category` is the raw `blogs.category` value — the kebab SLUG.
+	// Use it verbatim as the category-page slug (the lower-and-dasherize is a
+	// harmless no-op on an already-kebab value) and humanize it for the
+	// visible chip label so it reads "Software Vault", not "software-vault".
 	const postCategory = post.category ?? "";
 	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, "-");
+	const categoryDisplayLabel = postCategory ? categoryLabel(categorySlug) : "";
 
 	const toc = extractToc(markdownContent);
 
@@ -138,7 +154,7 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 								href={`/blog/category/${categorySlug}`}
 								className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary-text transition-colors hover:bg-primary/15"
 							>
-								{postCategory}
+								{categoryDisplayLabel}
 							</Link>
 						)}
 						<span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -191,9 +207,9 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 						priority
 						className={cn(
 							"object-cover transition-all duration-700 ease-out",
-							imageLoaded
-								? "blur-0 opacity-100 scale-100"
-								: "blur-sm opacity-0 scale-105",
+							heroBlurUp
+								? "blur-sm opacity-0 scale-105"
+								: "blur-0 opacity-100 scale-100",
 						)}
 						onLoad={() => setImageLoaded(true)}
 					/>
@@ -275,9 +291,12 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 
 				{/* Bottom CTA Section */}
 				<div className="mt-16 p-8 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
-					<h3 className="typography-h3 text-foreground mb-4">
+					{/* Styled as a heading but rendered as <p>: this bottom CTA repeats
+					    on every post, so an <h3> here pollutes the heading outline
+					    with non-content marketing copy. */}
+					<p className="typography-h3 text-foreground mb-4">
 						Ready to transform your property management?
-					</h3>
+					</p>
 					<p className="text-muted-foreground mb-6">
 						Centralize your portfolio with the document vault, lease e-sign, and
 						tax-ready reports.

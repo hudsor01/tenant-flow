@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import type { SoftwareApplication, WithContext } from "schema-dts";
 import { JsonLdScript } from "#components/seo/json-ld-script";
-import { getSiteUrl } from "#lib/generate-metadata";
+import {
+	getSiteUrl,
+	getSoftwareApplicationJsonLd,
+} from "#lib/generate-metadata";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 import MarketingHomePage from "./marketing-home";
@@ -50,6 +54,12 @@ export default function RootPage() {
 		},
 	} satisfies Record<string, unknown>;
 
+	// SoftwareApplication + AggregateOffer — the commercial product entity.
+	// Scoped to the homepage (NOT site-wide) so it doesn't dilute the Article
+	// schema on `/blog/*` posts. See getSoftwareApplicationJsonLd().
+	const softwareSchema =
+		getSoftwareApplicationJsonLd() as WithContext<SoftwareApplication>;
+
 	return (
 		<>
 			<JsonLdScript
@@ -59,6 +69,7 @@ export default function RootPage() {
 					>
 				}
 			/>
+			<JsonLdScript schema={softwareSchema} />
 			<MarketingHomePage />
 		</>
 	);

@@ -105,7 +105,7 @@ vi.mock("#components/seo/json-ld-script", () => ({
 }));
 
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
-import BlogPage from "./page";
+import BlogPage, { generateMetadata } from "./page";
 
 const mockPosts: BlogListItem[] = [
 	{
@@ -388,5 +388,43 @@ describe("BlogPage (server component)", () => {
 				extra: { page: 3 },
 			}),
 		);
+	});
+});
+
+describe("BlogPage generateMetadata", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	async function metaFor(
+		searchParams: Record<string, string | string[] | undefined>,
+		opts?: MockBuilderOpts,
+	): Promise<import("next").Metadata> {
+		mockCreateClient.mockResolvedValue(makeFromBuilder(opts));
+		return generateMetadata({ searchParams: Promise.resolve(searchParams) });
+	}
+
+	it("paginated page (page>1) is index:false, follow:true so links still pass equity", async () => {
+		// `noindex, follow` === index:false, follow:true — keeps the paginated
+		// page out of the index while passing equity to the post URLs it links.
+		const meta = await metaFor({ page: "2" }, { postsCount: 18 });
+		expect(meta.robots).toBe("noindex, follow");
+	});
+
+	it("page 1 with published posts is indexable", async () => {
+		const meta = await metaFor({}, { postsCount: 18 });
+		expect(meta.robots).toBeUndefined();
+	});
+
+	it("noindexes the empty blog (zero published posts)", async () => {
+		const meta = await metaFor({}, { postsCount: 0 });
+		expect(meta.robots).toBe("noindex, follow");
+	});
+
+	it("emits twitter:site and twitter:creator parity with the post pages", async () => {
+		const meta = await metaFor({}, { postsCount: 18 });
+		const twitter = meta.twitter as Record<string, unknown>;
+		expect(twitter.site).toBe("@tenantflow");
+		expect(twitter.creator).toBe("@tenantflow");
 	});
 });
