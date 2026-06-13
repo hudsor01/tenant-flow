@@ -60,7 +60,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "TenantFlow vs Hemlane: a complete comparison for commercial landlords",
+		"topic": "TenantFlow vs Hemlane for commercial landlords: leases, maintenance and documents for commercial rentals",
 		"category": "software-vault",
 		"slug": "tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords",
 		"tier": "reclaim"
@@ -76,12 +76,6 @@
 		"category": "tenant-screening",
 		"slug": "collections-accounts-on-rental-applications-which-matter",
 		"tier": "evergreen"
-	},
-	{
-		"topic": "TenantFlow vs Hemlane for commercial landlords: 2025 comparison",
-		"category": "software-vault",
-		"slug": "tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords-in-2025",
-		"tier": "reclaim"
 	},
 	{
 		"topic": "Summer maintenance checklist for rentals: cooling systems, pests, and exterior upkeep",
@@ -148,12 +142,6 @@
 		"category": "tenant-screening",
 		"slug": "screening-applicants-with-thin-credit-files",
 		"tier": "evergreen"
-	},
-	{
-		"topic": "AppFolio alternatives under $20/month for rental property management",
-		"category": "software-vault",
-		"slug": "appfolio-alternatives-under-20-month-for-rental-property-management",
-		"tier": "reclaim"
 	},
 	{
 		"topic": "Winter maintenance checklist for rental properties: pipes, heat, and ice management",
@@ -5997,6 +5985,18 @@
 		"topic": "Familial status rules: occupancy limits, adults-only mistakes, and HUD's two-per-bedroom guidance",
 		"category": "lease-law",
 		"slug": "familial-status-occupancy-limits-hud-guidance",
+		"tier": "evergreen"
+	},
+	{
+		"topic": "Security deposit vs last month's rent: why landlords should never mix them",
+		"category": "lease-law",
+		"slug": "security-deposit-vs-last-months-rent-difference",
+		"tier": "evergreen"
+	},
+	{
+		"topic": "Depreciation recapture when selling a rental property: what landlords owe",
+		"category": "tax-prep",
+		"slug": "depreciation-recapture-selling-rental-property",
 		"tier": "evergreen"
 	}
 ]

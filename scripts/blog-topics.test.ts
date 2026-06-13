@@ -157,9 +157,13 @@ describe("blog-topics.json bank", () => {
 		expect(first?.slug).toContain("tenantflow");
 	});
 
-	it("keeps every reclaim entry (93) and finishes them within the first 300 posts", () => {
+	it("keeps every reclaim entry (91) and finishes them within the first 300 posts", () => {
+		// 93 -> 91 on 2026-06-12: two reclaim slugs were retired as keyword-cannibalizing
+		// duplicates (appfolio-alternatives-under-20, tenantflow-vs-hemlane-...-in-2025);
+		// their ghost 301s in blog-redirects.ts now point at the surviving siblings.
+		// See .planning/seo-audit/deleted-dupes/2026-06-12-dupe-deletions.md.
 		const reclaimCount = bank.filter((t) => t.tier === "reclaim").length;
-		expect(reclaimCount).toBe(93);
+		expect(reclaimCount).toBe(91);
 		expect(bank.map((t) => t.tier).lastIndexOf("reclaim")).toBeLessThan(300);
 	});
 
