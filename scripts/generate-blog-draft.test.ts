@@ -5,6 +5,7 @@ import {
 	blogSlugExists,
 	capDocusealMentions,
 	capH2Count,
+	clampToLength,
 	critique,
 	deriveTags,
 	ensureInternalLinks,
@@ -539,6 +540,34 @@ describe("capH2Count (h2_count gate, max 10 — keep 9, demote the rest)", () =>
 		expect(out).toContain("\n## FAQ");
 		expect(h2s(out)).toBe(10); // first 9 kept + the protected FAQ
 		expect(out).toContain("### Section 11");
+	});
+});
+
+describe("clampToLength (meta/excerpt over-length auto-cure)", () => {
+	it("returns a within-length string untouched", () => {
+		expect(clampToLength("A concise meta description.", 155)).toBe(
+			"A concise meta description.",
+		);
+	});
+
+	it("trims an over-long string to <= max at a word boundary", () => {
+		const long = `${"word ".repeat(50)}end`; // 254 chars
+		const out = clampToLength(long, 155);
+		expect(out.length).toBeLessThanOrEqual(155);
+		expect(out.endsWith(" ")).toBe(false); // no mid-word / trailing space
+		expect(out).not.toMatch(/\bwor$/); // not cut mid-word
+	});
+
+	it("never leaves a trailing ellipsis or punctuation (meta_not_truncated-safe)", () => {
+		const out = clampToLength(`${"alpha beta gamma ".repeat(20)}...`, 100);
+		expect(out).not.toMatch(/[.…,;:!?-]\s*$/u);
+	});
+
+	it("clamps a 165-char meta into the 50-160 gate range", () => {
+		const meta = "x".repeat(80) + " " + "y".repeat(84); // 165 chars, one space
+		const out = clampToLength(meta, 155);
+		expect(out.length).toBeGreaterThanOrEqual(50);
+		expect(out.length).toBeLessThanOrEqual(160);
 	});
 });
 
