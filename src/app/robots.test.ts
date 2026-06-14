@@ -9,7 +9,11 @@ vi.mock("#lib/generate-metadata", () => ({
 // below. A previous version of this file duplicated the lists, which
 // only caught one drift direction (test missing an entry the source
 // added) — this version catches both.
-import robots, { AI_USER_AGENTS, PRIVATE_PATHS } from "./robots";
+import robots, {
+	AI_USER_AGENTS,
+	CRAWLABLE_API_PATHS,
+	PRIVATE_PATHS,
+} from "./robots";
 
 const ROUTE = robots();
 
@@ -35,6 +39,26 @@ describe("robots()", () => {
 		const disallow = asArray(wildcard!.disallow);
 		for (const path of PRIVATE_PATHS) {
 			expect(disallow).toContain(path);
+		}
+	});
+
+	it("allows /api/og/ (OG images) while keeping /api disallowed wholesale", () => {
+		const rules = Array.isArray(ROUTE.rules) ? ROUTE.rules : [ROUTE.rules];
+		// Both the wildcard and every AI bot must carry the override so Google
+		// and answer engines can fetch og:image / twitter:image thumbnails.
+		const carriers = rules.filter(
+			(r) =>
+				r.userAgent === "*" || AI_USER_AGENTS.includes(r.userAgent as never),
+		);
+		expect(carriers.length).toBe(AI_USER_AGENTS.length + 1);
+		for (const rule of carriers) {
+			const allow = asArray(rule.allow);
+			const disallow = asArray(rule.disallow);
+			for (const p of CRAWLABLE_API_PATHS) {
+				expect(allow, `${rule.userAgent} should allow ${p}`).toContain(p);
+			}
+			// the broad /api block must remain — only /api/og/ is the exception
+			expect(disallow).toContain("/api");
 		}
 	});
 
@@ -66,6 +90,7 @@ describe("robots()", () => {
 			"/feed.xml",
 			"/sitemap.xml",
 			"/.well-known/security.txt",
+			...CRAWLABLE_API_PATHS,
 		];
 
 		for (const ua of AI_USER_AGENTS) {
