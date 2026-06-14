@@ -779,6 +779,20 @@ export function stripNonAllowlistedExternalLinks(content: string): string {
 	return out;
 }
 
+// Trim an over-long meta_description/excerpt to <= max at a word boundary,
+// stripping any trailing punctuation/ellipsis so it reads as a clean phrase
+// (never ends in "..." — that would trip meta_not_truncated). Strings already
+// within length are returned untouched. Zero content cost: the article body is
+// not involved. Pure — unit-tested.
+export function clampToLength(s: string, max: number): string {
+	const t = s.trim();
+	if (t.length <= max) return t;
+	let cut = t.slice(0, max);
+	const lastSpace = cut.lastIndexOf(" ");
+	if (lastSpace > max * 0.6) cut = cut.slice(0, lastSpace);
+	return cut.replace(/[\s.,;:!?…-]+$/u, "").trim();
+}
+
 function humanizeSlug(slug: string): string {
 	return slug
 		.split("-")
@@ -1096,6 +1110,13 @@ async function generateValidDraft(
 		d.title = sanitizeBanlist(d.title);
 		d.excerpt = sanitizeBanlist(d.excerpt);
 		d.meta_description = sanitizeBanlist(d.meta_description);
+		// Deterministically trim an OVER-long meta/excerpt to a clean boundary
+		// rather than throwing away a good article and regenerating all ~2000
+		// words just to reshape a ~150-char blurb (pure waste — the Buildium
+		// topic burned 3 full regenerations on excerpt_length alone). A too-SHORT
+		// meta/excerpt still re-enters the loop (needs the model to write more).
+		d.meta_description = clampToLength(d.meta_description, 155); // gate <= 160
+		d.excerpt = clampToLength(d.excerpt, 180); // gate <= 200
 		// cap DocuSeal at one mention (docuseal_mention gate, max 1)
 		d.content = capDocusealMentions(d.content);
 		// demote surplus H2s (h2_count gate max 10; keep 9 for margin)
