@@ -32,6 +32,19 @@ export const PRIVATE_PATHS = [
 	"/pricing/complete",
 ] as const satisfies readonly string[];
 
+// Paths UNDER a disallowed prefix that must stay crawlable. `/api` is blocked
+// wholesale (auth, webhooks, internal endpoints), but `/api/og/*` renders the
+// social/OG card images referenced as `og:image`/`twitter:image` on every
+// marketing and blog page. Blocking them made Google report the images as
+// "Blocked by robots.txt" (GSC indexing alert) AND suppressed rich-result +
+// social-preview thumbnails. A more-specific `Allow:` overrides the broad
+// `Disallow:` under longest-match precedence (Google, Bing, the major bots).
+//
+// Exported so `robots.test.ts` pins it in the drift guard.
+export const CRAWLABLE_API_PATHS = [
+	"/api/og/",
+] as const satisfies readonly string[];
+
 // AI-content user agents listed in the canonical vendor docs. Per the
 // best-practices brief (May 2026): the marketing surface is intentionally
 // crawlable by training and answer engines so the brand can be cited in
@@ -82,6 +95,9 @@ export default function robots(): MetadataRoute.Robots {
 		"/feed.xml",
 		"/sitemap.xml",
 		"/.well-known/security.txt",
+		// Override the `/api` disallow for the OG-image routes so crawlers can
+		// fetch social/rich-result thumbnails (longest-match precedence).
+		...CRAWLABLE_API_PATHS,
 	];
 
 	const aiBotRules = AI_USER_AGENTS.map((userAgent) => ({
