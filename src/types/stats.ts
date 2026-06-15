@@ -26,22 +26,10 @@ export interface TenantStats {
 	// Additional fields used by frontend
 	totalTenants?: number;
 	activeTenants?: number;
-	currentPayments?: number;
-	latePayments?: number;
 	totalRent?: number;
 	avgRent?: number;
 	recentAdditions?: number;
 	withContactInfo?: number;
-}
-
-// Tenant monetary summary exposed to frontend (amounts in cents)
-export interface TenantSummary {
-	total: number;
-	invited: number;
-	active: number;
-	overdueBalanceCents: number;
-	upcomingDueCents: number;
-	timestamp: string; // ISO date
 }
 
 // Unit statistics

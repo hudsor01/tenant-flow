@@ -173,9 +173,6 @@ describe("Query Hooks", () => {
 					data: { email: true, sms: false, maintenance: true, general: true },
 				});
 			}
-			if (table === "rent_payments") {
-				return createQueryChain({ data: [], count: 0 });
-			}
 			if (table === "lease_tenants") {
 				return createQueryChain({ data: [] });
 			}

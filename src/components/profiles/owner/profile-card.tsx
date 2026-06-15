@@ -12,7 +12,6 @@ import { getInitials } from "#lib/formatters/text";
 interface OwnerProfile {
 	properties_count: number;
 	units_count: number;
-	stripe_connected: boolean;
 }
 
 interface ProfileData {

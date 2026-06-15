@@ -6,7 +6,6 @@ import {
 	Receipt,
 	TrendingDown,
 	TrendingUp,
-	Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import type { ElementType } from "react";
@@ -96,12 +95,6 @@ export function FinancialsQuickLinks({
 					icon={Building2}
 					title="Balance Sheet"
 					description="Assets, liabilities, and equity snapshot"
-				/>
-				<QuickLinkCard
-					href="/financials/payouts"
-					icon={Wallet}
-					title="Payouts"
-					description="Stripe Connect payout history and balance"
 				/>
 				<QuickLinkCard
 					href="/financials/expenses"
