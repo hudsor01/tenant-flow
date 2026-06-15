@@ -67,6 +67,3 @@ export const signupFormSchema = z
 		message: "Passwords don't match",
 		path: ["confirmPassword"],
 	});
-
-// NOTE: Contact form validation is in contact.ts (contactFormSchema)
-// Do not duplicate here - import from '#lib/validation/contact' instead
