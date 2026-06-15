@@ -1,26 +1,6 @@
 import type { LeaseStatus, TenantWithLeaseInfo } from "#types/core";
 import type { TenantItem, TenantSectionDetail } from "#types/sections/tenants";
 
-type TenantPaymentStatus = NonNullable<
-	TenantSectionDetail["paymentHistory"]
->[number]["status"];
-
-export function normalizePaymentStatus(
-	status: string | null | undefined,
-): TenantPaymentStatus {
-	const normalized = status?.toLowerCase();
-	if (
-		normalized === "pending" ||
-		normalized === "processing" ||
-		normalized === "succeeded" ||
-		normalized === "failed" ||
-		normalized === "cancelled"
-	) {
-		return normalized;
-	}
-	return "processing";
-}
-
 /**
  * Transform API tenant data to design-os TenantItem format
  */
@@ -67,7 +47,6 @@ export function transformToTenantItem(
 export function transformToTenantSectionDetail(
 	tenant: TenantWithLeaseInfo,
 	totalPaidByTenant?: Map<string, number>,
-	paymentHistory?: TenantSectionDetail["paymentHistory"],
 ): TenantSectionDetail {
 	const base = transformToTenantItem(tenant, totalPaidByTenant);
 
@@ -85,7 +64,6 @@ export function transformToTenantSectionDetail(
 		identityVerified: tenant.identity_verified ?? false,
 		createdAt: tenant.created_at ?? new Date().toISOString(),
 		updatedAt: tenant.updated_at ?? new Date().toISOString(),
-		...(paymentHistory ? { paymentHistory } : {}),
 		...(tenant.currentLease
 			? {
 					currentLease: {

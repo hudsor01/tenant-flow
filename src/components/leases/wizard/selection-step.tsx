@@ -40,7 +40,7 @@ import type {
 	Property as SharedProperty,
 	Unit as SharedUnit,
 } from "#types/core";
-import { InlineTenantInvite, TenantModeToggle } from "./selection-step-filters";
+import { InlineTenantCreate, TenantModeToggle } from "./selection-step-filters";
 
 interface SelectionStepProps {
 	data: Partial<SelectionStepData>;
@@ -257,7 +257,7 @@ export function SelectionStep({
 					</div>
 
 					{inviteMode ? (
-						<InlineTenantInvite
+						<InlineTenantCreate
 							propertyId={data.property_id}
 							onToggleMode={() => setInviteMode(false)}
 						/>
@@ -277,8 +277,8 @@ export function SelectionStep({
 								<EmptyTitle>No Tenants Available</EmptyTitle>
 								<EmptyDescription>
 									{data.property_id
-										? 'No tenants have been invited to this property yet. Use "Invite New Tenant" above to get started.'
-										: 'No tenants found. Use "Invite New Tenant" above to get started.'}
+										? 'No tenants added to this property yet. Use "Add Tenant" above to get started.'
+										: 'No tenants found. Use "Add Tenant" above to get started.'}
 								</EmptyDescription>
 							</EmptyHeader>
 						</Empty>

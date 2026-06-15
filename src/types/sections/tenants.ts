@@ -1,5 +1,5 @@
 // Tenants Section Types
-import type { LeaseStatus, PaymentStatus } from "../core";
+import type { LeaseStatus } from "../core";
 
 export interface TenantsProps {
 	tenants: TenantItem[];
@@ -10,7 +10,6 @@ export interface TenantsProps {
 	onEditTenant: (tenantId: string) => void;
 	onContactTenant: (tenantId: string, method: "email" | "phone") => void;
 	onViewLease: (leaseId: string) => void;
-	onViewPaymentHistory?: (tenantId: string) => void;
 }
 
 export interface TenantItem {
@@ -41,7 +40,6 @@ export interface TenantSectionDetail extends TenantItem {
 	stripeCustomerId?: string;
 	currentLease?: CurrentLeaseInfo;
 	leaseHistory?: LeaseHistoryItem[];
-	paymentHistory?: TenantPaymentHistoryItem[];
 	createdAt?: string;
 	updatedAt?: string;
 }
@@ -64,16 +62,6 @@ export interface LeaseHistoryItem {
 	endDate: string;
 	rentAmount: number;
 	status: LeaseStatus;
-}
-
-export interface TenantPaymentHistoryItem {
-	id: string;
-	amount: number;
-	status: PaymentStatus;
-	paidDate?: string;
-	dueDate: string;
-	periodStart?: string;
-	periodEnd?: string;
 }
 
 export type UserStatus = "active" | "inactive" | "suspended";

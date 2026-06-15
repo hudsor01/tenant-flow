@@ -10,7 +10,6 @@ import {
 	ContactSection,
 	CurrentLeaseSection,
 	LeaseHistorySection,
-	RecentPaymentsSection,
 } from "./tenant-detail-sheet-tabs";
 
 interface TenantDetailSheetProps {
@@ -20,7 +19,6 @@ interface TenantDetailSheetProps {
 	onEdit: (tenantId: string) => void;
 	onContact: (tenantId: string, method: "email" | "phone") => void;
 	onViewLease: (leaseId: string) => void;
-	onViewPaymentHistory?: (tenantId: string) => void;
 }
 
 export function TenantDetailSheet({
@@ -30,7 +28,6 @@ export function TenantDetailSheet({
 	onEdit,
 	onContact,
 	onViewLease,
-	onViewPaymentHistory,
 }: TenantDetailSheetProps) {
 	useEffect(() => {
 		if (isOpen) {
@@ -107,12 +104,6 @@ export function TenantDetailSheet({
 								)}
 							</div>
 						</section>
-					)}
-					{onViewPaymentHistory && (
-						<RecentPaymentsSection
-							tenant={tenant}
-							onViewPaymentHistory={onViewPaymentHistory}
-						/>
 					)}
 					<LeaseHistorySection tenant={tenant} onViewLease={onViewLease} />
 					<AccountInfoSection tenant={tenant} />

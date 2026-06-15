@@ -354,70 +354,6 @@ export interface SubscriptionStatusResponse {
 	trialEndsAt: string | null;
 }
 
-export interface TenantMaintenanceRequest {
-	id: string;
-	title: string;
-	description: string;
-	status: string;
-	priority: string;
-	created_at: string;
-	completed_at: string | null;
-	property_id: string;
-	property_name: string;
-	unit_id: string;
-	unit_number: string;
-	assigned_to: string | null;
-	assigned_to_name: string | null;
-}
-
-export interface TenantMaintenanceStats {
-	total: number;
-	open: number;
-	in_progress: number;
-	completed: number;
-	emergency: number;
-}
-
-export interface TenantLease {
-	id: string;
-	start_date: string;
-	end_date: string;
-	rent_amount: number;
-	security_deposit: number;
-	status: string;
-	property_name: string;
-	unit_number: string;
-	property_address: string;
-}
-
-export interface TenantDocument {
-	id: string;
-	name: string;
-	type: string;
-	created_at: string;
-	file_size: number;
-	storage_url: string;
-	entity_id: string;
-	entity_type: string;
-}
-
-export interface TenantProfile {
-	id: string;
-	first_name: string | null;
-	last_name: string | null;
-	email: string;
-	phone: string | null;
-	date_of_birth: string | null;
-	emergency_contact_name: string | null;
-	emergency_contact_phone: string | null;
-	emergency_contact_relationship: string | null;
-}
-
-export interface TenantSettings {
-	profile: TenantProfile;
-	notification_preferences: TenantNotificationSettingsResponse;
-}
-
 export interface CreateMaintenanceRequestInput {
 	title: string;
 	description: string;
@@ -442,18 +378,6 @@ export interface UpdateMaintenanceRequestInput {
 	scheduledDate?: string;
 	completedDate?: string | null;
 	estimated_cost?: number;
-}
-
-/**
- * Tenant Notification Settings Response
- * API response format for tenant notification settings in TenantSettings
- * Note: Different from TenantNotificationPreferences in core.ts which is more extensive
- */
-export interface TenantNotificationSettingsResponse {
-	emailNotifications: boolean;
-	smsNotifications: boolean;
-	maintenanceUpdates: boolean;
-	paymentReminders: boolean;
 }
 
 export interface EmergencyContact {
