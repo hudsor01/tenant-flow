@@ -4,7 +4,6 @@ import {
 	addTenantSchema,
 	bulkDeleteTenantsSchema,
 	emergencyContactSchema,
-	inviteToSignLeaseSchema,
 	tenantFormSchema,
 	tenantInputSchema,
 	tenantQuerySchema,
@@ -185,40 +184,6 @@ describe("addTenantRequestSchema", () => {
 		expect(
 			addTenantRequestSchema.safeParse({
 				tenantData: { first_name: "John", last_name: "Doe" },
-			}).success,
-		).toBe(false);
-	});
-});
-describe("inviteToSignLeaseSchema", () => {
-	it("accepts valid lease invitation", () => {
-		expect(
-			inviteToSignLeaseSchema.safeParse({
-				lease_id: VALID_UUID,
-				email: "tenant@example.com",
-			}).success,
-		).toBe(true);
-	});
-	it("rejects missing lease_id", () => {
-		expect(
-			inviteToSignLeaseSchema.safeParse({ email: "tenant@example.com" })
-				.success,
-		).toBe(false);
-	});
-	it("accepts optional message", () => {
-		expect(
-			inviteToSignLeaseSchema.safeParse({
-				lease_id: VALID_UUID,
-				email: "tenant@example.com",
-				message: "Please sign",
-			}).success,
-		).toBe(true);
-	});
-	it("rejects message exceeding 1000 chars", () => {
-		expect(
-			inviteToSignLeaseSchema.safeParse({
-				lease_id: VALID_UUID,
-				email: "tenant@example.com",
-				message: "x".repeat(1001),
 			}).success,
 		).toBe(false);
 	});

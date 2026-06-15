@@ -239,19 +239,8 @@ export const addTenantRequestSchema = z.object({
 		.optional(),
 });
 
-// Schema for inviting tenant to sign a specific lease
-export const inviteToSignLeaseSchema = z.object({
-	lease_id: uuidSchema,
-	email: z.email({ message: "Valid email is required" }),
-	message: z
-		.string()
-		.max(1000, "Message cannot exceed 1000 characters")
-		.optional(),
-});
-
 export type AddTenant = z.infer<typeof addTenantSchema>;
 export type AddTenantRequest = z.infer<typeof addTenantRequestSchema>;
-export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>;
 
 // Bulk operation schemas
 export const bulkDeleteTenantsSchema = z.object({
