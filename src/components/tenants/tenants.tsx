@@ -25,7 +25,6 @@ export function Tenants({
 	onEditTenant,
 	onContactTenant,
 	onViewLease,
-	onViewPaymentHistory,
 }: TenantsProps) {
 	const router = useRouter();
 
@@ -248,7 +247,6 @@ export function Tenants({
 				onEdit={onEditTenant}
 				onContact={onContactTenant}
 				onViewLease={onViewLease}
-				{...(onViewPaymentHistory ? { onViewPaymentHistory } : {})}
 			/>
 		</div>
 	);

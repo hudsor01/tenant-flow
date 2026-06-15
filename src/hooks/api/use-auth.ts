@@ -10,7 +10,7 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { logger } from "#lib/frontend-logger";
@@ -209,29 +209,6 @@ export function useAuthCacheUtils() {
 				queryClient.invalidateQueries({ queryKey: authKeys.user() }),
 			]);
 		},
-	};
-}
-
-/**
- * Get current user from React Query cache (from AuthProvider)
- * Lightweight hook that doesn't trigger additional requests
- */
-export function useCurrentUser() {
-	const queryClient = useQueryClient();
-	const sessionData = queryClient.getQueryData(authKeys.session()) as
-		| Session
-		| null
-		| undefined;
-	const userData = queryClient.getQueryData(authKeys.user()) as
-		| SupabaseUser
-		| null
-		| undefined;
-
-	return {
-		user: userData || sessionData?.user || null,
-		user_id: userData?.id || sessionData?.user?.id || null,
-		session: sessionData,
-		isAuthenticated: !!(userData || sessionData?.user),
 	};
 }
 

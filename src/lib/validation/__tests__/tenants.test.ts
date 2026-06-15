@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-	activateTenantSchema,
 	addTenantRequestSchema,
 	addTenantSchema,
 	bulkDeleteTenantsSchema,
@@ -293,21 +292,6 @@ describe("bulkDeleteTenantsSchema", () => {
 			bulkDeleteTenantsSchema.safeParse({
 				ids: Array.from({ length: 101 }, () => VALID_UUID),
 			}).success,
-		).toBe(false);
-	});
-});
-describe("activateTenantSchema", () => {
-	it("accepts valid authuser_id", () => {
-		expect(
-			activateTenantSchema.safeParse({ authuser_id: VALID_UUID }).success,
-		).toBe(true);
-	});
-	it("rejects missing authuser_id", () => {
-		expect(activateTenantSchema.safeParse({}).success).toBe(false);
-	});
-	it("rejects invalid UUID", () => {
-		expect(
-			activateTenantSchema.safeParse({ authuser_id: "not-uuid" }).success,
 		).toBe(false);
 	});
 });

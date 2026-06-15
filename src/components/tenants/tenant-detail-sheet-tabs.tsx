@@ -1,37 +1,7 @@
-import {
-	AlertTriangle,
-	Check,
-	ChevronRight,
-	Clock,
-	Mail,
-	MapPin,
-	Phone,
-} from "lucide-react";
+import { Check, ChevronRight, Mail, MapPin, Phone } from "lucide-react";
 import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
-import type {
-	TenantPaymentHistoryItem,
-	TenantSectionDetail,
-} from "#types/sections/tenants";
-
-function PaymentStatusIcon({
-	status,
-}: {
-	status: TenantPaymentHistoryItem["status"];
-}) {
-	switch (status) {
-		case "succeeded":
-			return <Check className="w-4 h-4 text-emerald-500" />;
-		case "pending":
-		case "processing":
-			return <Clock className="w-4 h-4 text-amber-500" />;
-		case "failed":
-		case "cancelled":
-			return <AlertTriangle className="w-4 h-4 text-red-500" />;
-		default:
-			return null;
-	}
-}
+import type { TenantSectionDetail } from "#types/sections/tenants";
 
 export function ContactSection({
 	tenant,
@@ -122,54 +92,6 @@ export function CurrentLeaseSection({
 					</span>
 				</div>
 			</button>
-		</section>
-	);
-}
-
-export function RecentPaymentsSection({
-	tenant,
-	onViewPaymentHistory,
-}: {
-	tenant: TenantSectionDetail;
-	onViewPaymentHistory: (tenantId: string) => void;
-}) {
-	if (!tenant.paymentHistory || tenant.paymentHistory.length === 0) return null;
-	return (
-		<section>
-			<div className="flex items-center justify-between mb-3">
-				<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-					Recent Payments
-				</h3>
-				<button
-					onClick={() => onViewPaymentHistory(tenant.id)}
-					className="text-xs text-primary-text hover:underline"
-				>
-					View all
-				</button>
-			</div>
-			<div className="space-y-2">
-				{tenant.paymentHistory.slice(0, 3).map((payment) => (
-					<div
-						key={payment.id}
-						className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-					>
-						<div className="flex items-center gap-3">
-							<PaymentStatusIcon status={payment.status} />
-							<div>
-								<p className="text-sm font-medium text-foreground">
-									{formatCurrency(payment.amount)}
-								</p>
-								<p className="text-xs text-muted-foreground">
-									{formatDate(payment.dueDate)}
-								</p>
-							</div>
-						</div>
-						<span className="text-xs text-muted-foreground capitalize">
-							{payment.status}
-						</span>
-					</div>
-				))}
-			</div>
 		</section>
 	);
 }

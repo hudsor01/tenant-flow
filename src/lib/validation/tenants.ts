@@ -221,7 +221,7 @@ export const addTenantSchema = z.object({
 	unit_id: uuidSchema.optional(),
 });
 
-// Nested structure - matches backend DTO (InviteWithLeaseDto)
+// Nested structure for creating a tenant record (with an optional lease)
 // Used for API requests
 export const addTenantRequestSchema = z.object({
 	tenantData: z.object({
@@ -273,11 +273,5 @@ export const bulkUpdateTenantsSchema = z.object({
 		.max(100, "Cannot update more than 100 tenants at once"),
 });
 
-// Tenant activation schema (used by public invitation acceptance endpoints)
-export const activateTenantSchema = z.object({
-	authuser_id: uuidSchema,
-});
-
 export type BulkDeleteTenants = z.infer<typeof bulkDeleteTenantsSchema>;
 export type BulkUpdateTenants = z.infer<typeof bulkUpdateTenantsSchema>;
-export type ActivateTenant = z.infer<typeof activateTenantSchema>;

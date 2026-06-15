@@ -221,7 +221,7 @@ describe("SelectionStep - Tenant Filtering", () => {
 		// Wait for empty state to appear
 		await waitFor(() => {
 			expect(
-				screen.getByText(/No tenants have been invited to this property yet/),
+				screen.getByText(/No tenants added to this property yet/),
 			).toBeInTheDocument();
 		});
 

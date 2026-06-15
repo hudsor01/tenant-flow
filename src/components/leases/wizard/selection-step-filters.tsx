@@ -17,7 +17,7 @@ interface InlineFormData {
 	phone: string;
 }
 
-interface InlineTenantInviteProps {
+interface InlineTenantCreateProps {
 	propertyId: string | undefined;
 	onToggleMode: () => void;
 }
@@ -26,10 +26,10 @@ interface InlineTenantInviteProps {
  * Inline "add tenant" sub-form for the lease selection step.
  * Lets the landlord quickly create a tenant record without leaving the wizard.
  */
-export function InlineTenantInvite({
+export function InlineTenantCreate({
 	propertyId: _propertyId,
 	onToggleMode,
-}: InlineTenantInviteProps) {
+}: InlineTenantCreateProps) {
 	const [form, setForm] = useState<InlineFormData>({
 		first_name: "",
 		last_name: "",

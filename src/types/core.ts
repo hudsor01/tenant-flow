@@ -481,18 +481,6 @@ export type SubscriptionStatus =
 	| "unpaid"
 	| "paused";
 
-export interface TenantNotificationPreferences {
-	pushNotifications?: boolean;
-	emailNotifications?: boolean;
-	smsNotifications?: boolean;
-	leaseNotifications?: boolean;
-	maintenanceNotifications?: boolean;
-	paymentReminders?: boolean;
-	rentalApplications?: boolean;
-	propertyNotices?: boolean;
-	[key: string]: boolean | undefined;
-}
-
 // WithVersion types for optimistic locking
 export type LeaseWithVersion = Lease & { version?: number };
 export type MaintenanceRequestWithVersion = MaintenanceRequest & {

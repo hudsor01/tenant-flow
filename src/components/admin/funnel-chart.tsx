@@ -23,7 +23,7 @@ const FunnelRenderer = dynamic(
 const STEP_LABELS: Record<FunnelStepName, string> = {
 	signup: "Signed Up",
 	first_property: "Added Property",
-	first_tenant: "Invited Tenant",
+	first_tenant: "Added Tenant",
 };
 
 // Below this threshold a step is flagged destructive. 0.5 matches the

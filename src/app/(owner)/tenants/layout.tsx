@@ -3,7 +3,7 @@ import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
 export const metadata = ownerPageMetadata(
 	"Tenants",
-	"Manage tenants, invitations, and tenant details",
+	"Manage tenants and tenant details",
 );
 
 export default function Layout({ children }: { children: ReactNode }) {

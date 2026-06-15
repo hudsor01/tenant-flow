@@ -109,7 +109,7 @@ export function RentalApplicationTemplate() {
 			section: "Screening",
 			fullWidth: true,
 			description:
-				"Include authorization for a third-party screening provider.",
+				"Include the applicant's authorization for the landlord to obtain a background/credit report from a third-party screening service.",
 		},
 		{
 			name: "notes",
@@ -173,7 +173,6 @@ export function RentalApplicationTemplate() {
 				references: values.references ?? [],
 				backgroundCheck: {
 					consent: values.backgroundCheck,
-					provider: "TransUnion SmartMove",
 				},
 				notes: values.notes,
 				dynamicFields,
