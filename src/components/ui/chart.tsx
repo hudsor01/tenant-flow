@@ -6,14 +6,6 @@ import * as RechartsPrimitive from "recharts";
 
 import { cn } from "#lib/utils";
 
-// Re-export tooltip/legend from chart-tooltip for backward compatibility
-export {
-	ChartLegend,
-	ChartLegendContent,
-	ChartTooltip,
-	ChartTooltipContent,
-} from "#components/ui/chart-tooltip";
-
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 

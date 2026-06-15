@@ -13,11 +13,8 @@ import {
 	YAxis,
 } from "recharts";
 
-import {
-	type ChartConfig,
-	ChartContainer,
-	ChartTooltipContent,
-} from "#components/ui/chart";
+import { type ChartConfig, ChartContainer } from "#components/ui/chart";
+import { ChartTooltipContent } from "#components/ui/chart-tooltip";
 import {
 	Empty,
 	EmptyDescription,

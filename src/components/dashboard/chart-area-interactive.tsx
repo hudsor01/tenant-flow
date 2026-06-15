@@ -11,11 +11,11 @@ import {
 	CardTitle,
 } from "#components/ui/card";
 import type { ChartConfig } from "#components/ui/chart";
+import { ChartContainer } from "#components/ui/chart";
 import {
-	ChartContainer,
 	ChartTooltip,
 	ChartTooltipContent,
-} from "#components/ui/chart";
+} from "#components/ui/chart-tooltip";
 import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty";
 import {
 	Select,
