@@ -1,10 +1,6 @@
 "use client";
 
-import { cva, type VariantProps } from "class-variance-authority";
-import { Toggle as TogglePrimitive } from "radix-ui";
-import type { ComponentProps } from "react";
-
-import { cn } from "#lib/utils";
+import { cva } from "class-variance-authority";
 
 const toggleVariants = cva(
 	"inline-flex-center gap-2 rounded-md typography-small transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap hover:bg-muted hover:text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-md data-[state=on]:font-semibold data-[state=on]:hover:bg-primary/90",
@@ -28,20 +24,4 @@ const toggleVariants = cva(
 	},
 );
 
-function Toggle({
-	className,
-	variant,
-	size,
-	...props
-}: ComponentProps<typeof TogglePrimitive.Root> &
-	VariantProps<typeof toggleVariants>) {
-	return (
-		<TogglePrimitive.Root
-			data-slot="toggle"
-			className={cn(toggleVariants({ variant, size, className }))}
-			{...props}
-		/>
-	);
-}
-
-export { Toggle, toggleVariants };
+export { toggleVariants };

@@ -64,4 +64,4 @@ function Progress({
 	);
 }
 
-export { Progress, progressVariants };
+export { Progress };

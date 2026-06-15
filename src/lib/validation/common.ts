@@ -124,69 +124,6 @@ export const phoneSchema = z
 export const stringBoolSchema = z.stringbool();
 
 /**
- * Optional string boolean with default false
- * Useful for query params and form checkboxes
- */
-export const optionalStringBool = z.stringbool().optional().default(false);
-
-/**
- * Base file schema for file uploads
- * Use .min(), .max() for size limits and .mime() for type restrictions
- */
-export const fileSchema = z.file();
-
-/**
- * Image file validation schema
- * Accepts common image formats up to 5MB
- */
-export const imageFileSchema = z
-	.file()
-	.max(5 * 1024 * 1024, "Image must be less than 5MB")
-	.mime(["image/jpeg", "image/png", "image/gif", "image/webp"], {
-		message: "File must be an image (JPEG, PNG, GIF, or WebP)",
-	})
-	.meta({
-		description: "Image file upload (JPEG, PNG, GIF, WebP)",
-		contentMediaType: "image/*",
-		maxSize: 5242880, // 5MB in bytes
-	});
-
-/**
- * Document file validation schema
- * Accepts PDF and common document formats up to 10MB
- */
-export const documentFileSchema = z
-	.file()
-	.max(10 * 1024 * 1024, "Document must be less than 10MB")
-	.mime(
-		[
-			"application/pdf",
-			"application/msword",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-		],
-		{ message: "File must be a document (PDF or Word)" },
-	)
-	.meta({
-		description: "Document file upload (PDF, Word)",
-		contentMediaType: "application/pdf",
-		maxSize: 10485760, // 10MB in bytes
-	});
-
-/**
- * Lease document file validation schema
- * Accepts PDF only, up to 20MB for signed lease agreements
- */
-export const leaseDocumentSchema = z
-	.file()
-	.max(20 * 1024 * 1024, "Lease document must be less than 20MB")
-	.mime(["application/pdf"], { message: "Lease must be a PDF document" })
-	.meta({
-		description: "Lease agreement PDF upload",
-		contentMediaType: "application/pdf",
-		maxSize: 20971520, // 20MB in bytes
-	});
-
-/**
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {
@@ -228,13 +165,3 @@ export function isValidUUID(uuid: string): boolean {
 		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 	return uuidRegex.test(uuid);
 }
-
-/**
- * Convert a Zod schema to JSON Schema format
- * Useful for API documentation and OpenAPI specs
- *
- * @example
- * const jsonSchema = toJSONSchema(userSchema)
- * // Use in OpenAPI/Swagger documentation
- */
-export const toJSONSchema = z.toJSONSchema;

@@ -254,5 +254,3 @@ function SignatureRow({
 		</div>
 	);
 }
-
-export { SignatureBadge, SignatureRow };

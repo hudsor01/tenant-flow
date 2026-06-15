@@ -9,9 +9,6 @@
  * by `_shared/tier-gate.ts` on every 402) against `stripe.subscriptions`
  * metadata.source to compute per-feature conversion rates.
  */
-import { queryOptions } from "@tanstack/react-query";
-import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { createClient } from "#lib/supabase/client";
 import type { GateConversionStats } from "#types/analytics";
 
 export function mapGateConversionRow(
@@ -29,30 +26,3 @@ export function mapGateConversionRow(
 				: Number(raw.conversion_rate),
 	};
 }
-
-export const gateConversionKeys = {
-	all: ["gate-conversion"] as const,
-	stats: (days: number) => [...gateConversionKeys.all, "stats", days] as const,
-};
-
-export const gateConversionQueries = {
-	stats: (days: number = 30) =>
-		queryOptions({
-			queryKey: gateConversionKeys.stats(days),
-			queryFn: async (): Promise<GateConversionStats[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase.rpc(
-					"get_gate_conversion_stats",
-					{ p_days: days },
-				);
-				if (error) handlePostgrestError(error, "gate-conversion-stats");
-				if (!Array.isArray(data)) return [];
-				return data.map((row) =>
-					mapGateConversionRow(row as Record<string, unknown>),
-				);
-			},
-			staleTime: 5 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			retry: false,
-		}),
-};

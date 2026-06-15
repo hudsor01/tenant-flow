@@ -16,10 +16,6 @@ function SheetTrigger({
 	return <SheetPrimitive.Trigger {...props} />;
 }
 
-function SheetClose({ ...props }: ComponentProps<typeof SheetPrimitive.Close>) {
-	return <SheetPrimitive.Close {...props} />;
-}
-
 function SheetPortal({
 	...props
 }: ComponentProps<typeof SheetPrimitive.Portal>) {
@@ -121,7 +117,6 @@ function SheetDescription({
 
 export {
 	Sheet,
-	SheetClose,
 	SheetContent,
 	SheetDescription,
 	SheetFooter,

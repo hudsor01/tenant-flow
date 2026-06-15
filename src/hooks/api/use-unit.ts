@@ -11,14 +11,8 @@
  * This file spreads factories and adds onSuccess/onError/onSettled callbacks.
  */
 
-import {
-	useMutation,
-	usePrefetchQuery,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
-import { useEntityDetail } from "#hooks/use-entity-detail";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Unit } from "#types/core";
@@ -34,18 +28,6 @@ import { unitMutations, unitQueries } from "./query-keys/unit-keys";
  */
 const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] =>
 	response.data;
-
-/**
- * Hook to fetch unit by ID
- * Uses placeholderData from list cache for instant detail view
- */
-export function useUnit(id: string) {
-	return useEntityDetail<Unit>({
-		queryOptions: unitQueries.detail(id),
-		listQueryKey: unitQueries.lists(),
-		id,
-	});
-}
 
 /**
  * Hook to fetch units by property ID
@@ -84,40 +66,6 @@ export function useUnitList(filters?: Parameters<typeof unitQueries.list>[0]) {
 		// Only re-render when these properties change
 		notifyOnChangeProps: ["data", "error", "isPending", "isFetching"],
 	});
-}
-
-/**
- * Hook to fetch unit statistics
- */
-export function useUnitStats() {
-	return useQuery(unitQueries.stats());
-}
-
-/**
- * Hook to fetch vacant units only
- * Convenience hook for lease/maintenance forms
- */
-export function useVacantUnits() {
-	return useUnitList({ status: "available" });
-}
-
-/**
- * Hook to fetch all units (no filtering)
- * Convenience hook for general dropdowns/selects
- */
-export function useAllUnits() {
-	return useUnitList();
-}
-
-/**
- * Declarative prefetch hook for unit detail
- * Prefetches when component mounts (route-level prefetching)
- *
- * For imperative prefetching (e.g., on hover), use:
- * queryClient.prefetchQuery(unitQueries.detail(id))
- */
-export function usePrefetchUnitDetail(id: string) {
-	usePrefetchQuery(unitQueries.detail(id));
 }
 
 /**

@@ -22,7 +22,7 @@ import {
 
 // Lease status enum validation
 // Workflow: draft -> pending_signature -> active -> ended/terminated
-export const lease_statusSchema = z.enum([
+const lease_statusSchema = z.enum([
 	"draft", // Owner creating/editing terms
 	"pending_signature", // Sent to tenant for signing
 	"active", // Both parties signed, billing active
@@ -31,7 +31,7 @@ export const lease_statusSchema = z.enum([
 ]);
 
 // Lease payment day validation (1-31 for day of month)
-export const paymentDaySchema = z
+const paymentDaySchema = z
 	.number()
 	.int("Payment day must be a whole number")
 	.min(1, "Payment day must be between 1 and 31")
@@ -88,20 +88,20 @@ export const leaseInputSchema = z.object({
 });
 
 // Full lease schema (includes server-generated fields)
-export const leaseSchema = leaseInputSchema.extend({
+const leaseSchema = leaseInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
 	updated_at: z.string(),
 });
 
 // Lease update schema (partial input)
-export const leaseUpdateSchema = leaseInputSchema.partial().extend({
+const leaseUpdateSchema = leaseInputSchema.partial().extend({
 	id: uuidSchema.optional(),
 	lease_status: lease_statusSchema.optional(),
 });
 
 // Lease query schema (for search/filtering)
-export const leaseQuerySchema = z.object({
+const leaseQuerySchema = z.object({
 	search: z.string().optional(),
 	unit_id: uuidSchema.optional(),
 	primary_tenant_id: uuidSchema.optional(),
@@ -135,7 +135,7 @@ export const leaseQuerySchema = z.object({
 // Lease creation schema (for API requests)
 // New leases start in 'draft' status until sent for signature
 // Note: Only omit fields that exist in leaseInputSchema (Zod 4 throws for non-existent keys)
-export const leaseCreateSchema = leaseInputSchema
+const leaseCreateSchema = leaseInputSchema
 	.omit({
 		lease_status: true,
 	})
@@ -145,7 +145,7 @@ export const leaseCreateSchema = leaseInputSchema
 	});
 
 // Lease termination schema
-export const leaseTerminationSchema = z.object({
+const leaseTerminationSchema = z.object({
 	termination_date: z.string().min(1, "Termination date is required"),
 	termination_reason: z
 		.string()
@@ -160,7 +160,7 @@ export const leaseTerminationSchema = z.object({
 });
 
 // Lease renewal schema
-export const leaseRenewalSchema = z.object({
+const leaseRenewalSchema = z.object({
 	new_end_date: z.string().min(1, "New end date is required"),
 	new_rent_amount: positiveNumberSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
@@ -173,14 +173,14 @@ export const leaseRenewalSchema = z.object({
 });
 
 // Lease payment schedule schema
-export const leasePaymentScheduleSchema = z.object({
+const leasePaymentScheduleSchema = z.object({
 	frequency: z.enum(["monthly", "quarterly", "annually"]),
 	next_payment_date: z.string().min(1, "Next payment date is required"),
 	is_active: z.boolean().default(true),
 });
 
 // Schema for sending lease for signature
-export const sendForSignatureSchema = z.object({
+const sendForSignatureSchema = z.object({
 	lease_id: uuidSchema,
 	message: z
 		.string()
@@ -189,14 +189,14 @@ export const sendForSignatureSchema = z.object({
 });
 
 // Schema for signing a lease
-export const signLeaseSchema = z.object({
+const signLeaseSchema = z.object({
 	lease_id: uuidSchema,
 	signature_ip: z.string().optional(), // Captured server-side
 	agreed_to_terms: z.literal(true, "You must agree to the lease terms"),
 });
 
 // Schema for lease with signature info (response)
-export const leaseWithSignatureSchema = leaseInputSchema.extend({
+const leaseWithSignatureSchema = leaseInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
 	updated_at: z.string(),
@@ -224,7 +224,7 @@ export type LeaseRenewal = z.infer<typeof leaseRenewalSchema>;
 export type LeasePaymentSchedule = z.infer<typeof leasePaymentScheduleSchema>;
 
 // Frontend-specific form schemas
-export const leaseFormSchema = z.object({
+const leaseFormSchema = z.object({
 	unit_id: requiredString,
 	primary_tenant_id: requiredString,
 	start_date: requiredString,
@@ -237,12 +237,12 @@ export const leaseFormSchema = z.object({
 	late_fee_days: z.string().optional(),
 });
 
-export const leaseCreateFormSchema = leaseFormSchema.extend({
+const leaseCreateFormSchema = leaseFormSchema.extend({
 	tenant_ids: z.array(uuidSchema).min(1, "At least one tenant is required"),
 });
 
 // Transform functions for form data
-export const transformLeaseFormData = (data: LeaseFormData) => ({
+const transformLeaseFormData = (data: LeaseFormData) => ({
 	unit_id: data.unit_id,
 	primary_tenant_id: data.primary_tenant_id,
 	start_date: data.start_date,
@@ -268,7 +268,7 @@ export type LeaseCreateFormData = z.infer<typeof leaseCreateFormSchema>;
 export type TransformedLeaseData = ReturnType<typeof transformLeaseFormData>;
 
 // Schema for rejecting/declining a lease signature request
-export const rejectLeaseSchema = z.object({
+const rejectLeaseSchema = z.object({
 	message: z
 		.string()
 		.max(1000, "Rejection message cannot exceed 1000 characters")

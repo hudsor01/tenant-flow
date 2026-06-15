@@ -11,9 +11,6 @@
  * Admin-only RPC — non-admin callers receive an 'Unauthorized' PostgREST
  * error, never stats.
  */
-import { queryOptions } from "@tanstack/react-query";
-import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { createClient } from "#lib/supabase/client";
 import type { FunnelStats, FunnelStep, FunnelStepName } from "#types/analytics";
 
 // Matches the CHECK constraint in 20260415193247_onboarding_funnel_events_schema.sql.
@@ -72,35 +69,3 @@ export function mapFunnelStats(raw: Record<string, unknown>): FunnelStats {
 		steps,
 	};
 }
-
-export const funnelKeys = {
-	all: ["funnel"] as const,
-	stats: (from: string, to: string) =>
-		[...funnelKeys.all, "stats", from, to] as const,
-};
-
-export const funnelQueries = {
-	/**
-	 * Admin-only: signup-cohort funnel stats for [from, to].
-	 * Callers compute the window (default: today-90d .. today).
-	 */
-	stats: (from: string, to: string) =>
-		queryOptions({
-			queryKey: funnelKeys.stats(from, to),
-			queryFn: async (): Promise<FunnelStats | null> => {
-				const supabase = createClient();
-				const { data, error } = await supabase.rpc("get_funnel_stats", {
-					p_from: from,
-					p_to: to,
-				});
-				if (error) handlePostgrestError(error, "funnel-stats");
-				if (!data || typeof data !== "object" || Array.isArray(data)) {
-					return null;
-				}
-				return mapFunnelStats(data as Record<string, unknown>);
-			},
-			staleTime: 5 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			retry: false,
-		}),
-};

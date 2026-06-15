@@ -45,7 +45,7 @@ export function mapUserProfile(row: {
 	} satisfies UserProfile;
 }
 
-export const profileQueries = {
+const profileQueries = {
 	all: () => ["profile"] as const,
 	detail: () =>
 		queryOptions({

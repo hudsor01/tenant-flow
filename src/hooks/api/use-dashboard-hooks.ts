@@ -11,11 +11,10 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { PropertyPerformance } from "#types/core";
 import {
 	DASHBOARD_BASE_QUERY_OPTIONS,
-	type DashboardActivityData,
 	type DashboardChartsData,
 	type DashboardStatsData,
 	type OwnerDashboardData,
@@ -42,20 +41,9 @@ const selectCharts = (data: OwnerDashboardData): DashboardChartsData => ({
 	timeSeries: data.timeSeries,
 });
 
-const selectActivity = (data: OwnerDashboardData): DashboardActivityData => ({
-	activities: data.activity,
-});
-
 const selectPropertyPerformance = (
 	data: OwnerDashboardData,
 ): PropertyPerformance[] => data.propertyPerformance;
-
-export function useDashboardStatsSuspense() {
-	return useSuspenseQuery({
-		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectStats,
-	});
-}
 
 export function useDashboardStats() {
 	return useQuery({
@@ -64,41 +52,10 @@ export function useDashboardStats() {
 	});
 }
 
-export function useDashboardChartsSuspense() {
-	return useSuspenseQuery({
-		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectCharts,
-	});
-}
-
 export function useDashboardCharts() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
 		select: selectCharts,
-	});
-}
-
-export function useDashboardActivitySuspense() {
-	return useSuspenseQuery({
-		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectActivity,
-	});
-}
-
-export function useDashboardActivity() {
-	return useQuery({
-		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectActivity,
-	});
-}
-
-/**
- * Property performance — derives from unified dashboard cache via select
- */
-export function usePropertyPerformanceSuspense() {
-	return useSuspenseQuery({
-		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectPropertyPerformance,
 	});
 }
 

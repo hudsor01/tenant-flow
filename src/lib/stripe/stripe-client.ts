@@ -87,38 +87,6 @@ export async function createCheckoutSession(
 }
 
 /**
- * Check if user is authenticated with Supabase
- * SECURITY: Uses getUser() to validate authentication
- */
-export async function isUserAuthenticated(): Promise<boolean> {
-	const supabase = createClient();
-
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
-	return !error && !!user;
-}
-
-/**
- * Get authenticated user info
- */
-export async function getCurrentUser() {
-	const supabase = createClient();
-
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
-
-	if (error || !user) {
-		throw new Error(ERROR_MESSAGES.USER_NOT_AUTHENTICATED);
-	}
-
-	return user;
-}
-
-/**
  * Create a Stripe Customer Portal session for subscription management
  * Official Stripe pattern: customer self-service portal
  */

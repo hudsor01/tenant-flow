@@ -16,7 +16,7 @@ import {
 /**
  * US State codes for governing law selection
  */
-export const usStateSchema = z.enum([
+const usStateSchema = z.enum([
 	"AL",
 	"AK",
 	"AZ",
@@ -68,22 +68,6 @@ export const usStateSchema = z.enum([
 	"WI",
 	"WY",
 	"DC",
-]);
-
-/**
- * Common utility types for lease agreements
- */
-export const utilityTypeSchema = z.enum([
-	"electricity",
-	"gas",
-	"water",
-	"sewer",
-	"trash",
-	"internet",
-	"cable",
-	"lawn_care",
-	"pest_control",
-	"hoa_fees",
 ]);
 
 /**
@@ -170,17 +154,6 @@ export const termsStepSchema = z
 	);
 
 export type TermsStepData = z.infer<typeof termsStepSchema>;
-
-/**
- * Validates start date is not in the past (for new leases)
- * Property 5: Start date validation
- */
-export const validateStartDateNotInPast = (startDate: string): boolean => {
-	const today = new Date();
-	today.setUTCHours(0, 0, 0, 0);
-	const start = new Date(`${startDate}T00:00:00.000Z`);
-	return start >= today;
-};
 
 /**
  * Step 3: Lease Details (occupancy, pets, utilities, disclosures)
@@ -298,7 +271,7 @@ const leaseWizardBaseSchema = z.object({
  * Complete lease creation wizard data with validation refinements
  * Combines all steps for final submission
  */
-export const leaseWizardSchema = leaseWizardBaseSchema
+const leaseWizardSchema = leaseWizardBaseSchema
 	.refine(
 		(data) => {
 			const start = new Date(`${data.start_date}T00:00:00.000Z`);
@@ -333,7 +306,7 @@ export type LeaseWizardData = z.infer<typeof leaseWizardSchema>;
  * Note: Uses base schema (before refinements) to allow .omit()
  * Zod v4 doesn't allow .omit() on schemas with refinements
  */
-export const createLeaseWizardRequestSchema = leaseWizardBaseSchema
+const createLeaseWizardRequestSchema = leaseWizardBaseSchema
 	.omit({
 		lease_status: true,
 	})
@@ -348,7 +321,7 @@ export type CreateLeaseWizardRequest = z.infer<
 /**
  * Signature status response schema
  */
-export const signatureStatusResponseSchema = z.object({
+const signatureStatusResponseSchema = z.object({
 	lease_id: uuidSchema,
 	status: z.enum([
 		"draft",
@@ -386,25 +359,3 @@ export interface WizardFormState {
 	isSubmitting: boolean;
 	error: string | null;
 }
-
-/**
- * Initial wizard state
- */
-export const initialWizardState: WizardFormState = {
-	currentStep: "selection",
-	selection: {},
-	terms: {
-		payment_day: 1,
-		grace_period_days: 3,
-		late_fee_amount: 0,
-	},
-	details: {
-		pets_allowed: false,
-		utilities_included: [],
-		tenant_responsible_utilities: [],
-		property_built_before_1978: false,
-		governing_state: "TX",
-	},
-	isSubmitting: false,
-	error: null,
-};

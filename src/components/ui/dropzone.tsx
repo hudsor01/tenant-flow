@@ -247,4 +247,4 @@ const useDropzoneContext = () => {
 	return context;
 };
 
-export { Dropzone, DropzoneContent, DropzoneEmptyState, useDropzoneContext };
+export { Dropzone, DropzoneContent, DropzoneEmptyState };

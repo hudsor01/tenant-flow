@@ -152,40 +152,12 @@ function ItemActions({ className, ...props }: ComponentProps<"div">) {
 	);
 }
 
-function ItemHeader({ className, ...props }: ComponentProps<"div">) {
-	return (
-		<div
-			data-slot="item-header"
-			className={cn(
-				"flex basis-full items-center justify-between gap-2",
-				className,
-			)}
-			{...props}
-		/>
-	);
-}
-
-function ItemFooter({ className, ...props }: ComponentProps<"div">) {
-	return (
-		<div
-			data-slot="item-footer"
-			className={cn(
-				"flex basis-full items-center justify-between gap-2",
-				className,
-			)}
-			{...props}
-		/>
-	);
-}
-
 export {
 	Item,
 	ItemActions,
 	ItemContent,
 	ItemDescription,
-	ItemFooter,
 	ItemGroup,
-	ItemHeader,
 	ItemMedia,
 	ItemSeparator,
 	ItemTitle,

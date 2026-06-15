@@ -1,8 +1,6 @@
 "use client";
 
-import { HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "#components/ui/button";
 import {
 	Tour,
 	TourArrow,
@@ -21,7 +19,6 @@ import {
 } from "#components/ui/tour";
 import {
 	getTourProgress,
-	resetTourProgress,
 	type TourKey,
 	updateTourProgress,
 } from "#hooks/api/use-tour-progress";
@@ -266,28 +263,5 @@ export function OwnerOnboardingTour({
 				</TourStep>
 			</TourPortal>
 		</Tour>
-	);
-}
-
-/** Button to restart the tour manually */
-export function OwnerTourTrigger() {
-	const [open, setOpen] = useState(false);
-
-	const startTour = () => {
-		void resetTourProgress(TOUR_KEY).catch((error) => {
-			logger.error("Failed to reset tour progress", { error });
-		});
-		setOpen(true);
-	};
-
-	return (
-		<>
-			<Button variant="ghost" size="sm" onClick={startTour} className="gap-2">
-				<HelpCircle className="size-4" />
-				Take a Tour
-			</Button>
-
-			{open && <OwnerOnboardingTour forceShow />}
-		</>
 	);
 }

@@ -27,12 +27,12 @@ export interface OwnerEmergencyContactInput {
 	relationship?: string | null;
 }
 
-export const ownerEmergencyContactKeys = {
+const ownerEmergencyContactKeys = {
 	all: ["owner-emergency-contact"] as const,
 	detail: () => [...ownerEmergencyContactKeys.all, "detail"] as const,
 };
 
-export const ownerEmergencyContactQueries = {
+const ownerEmergencyContactQueries = {
 	all: () => ownerEmergencyContactKeys.all,
 	detail: () =>
 		queryOptions({

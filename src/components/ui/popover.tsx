@@ -36,10 +36,4 @@ function PopoverContent({
 	);
 }
 
-function PopoverAnchor({
-	...props
-}: ComponentProps<typeof PopoverPrimitive.Anchor>) {
-	return <PopoverPrimitive.Anchor {...props} />;
-}
-
-export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };
+export { Popover, PopoverContent, PopoverTrigger };

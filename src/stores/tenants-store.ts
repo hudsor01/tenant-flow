@@ -103,37 +103,3 @@ export const useTenantsStore = create<TenantsState & TenantsActions>(
 		reset: () => set(initialState),
 	}),
 );
-
-/**
- * Selector hooks for optimized re-renders
- */
-export const useTenantsView = () =>
-	useTenantsStore((state) => ({
-		viewMode: state.viewMode,
-		setViewMode: state.setViewMode,
-	}));
-
-export const useTenantsFilters = () =>
-	useTenantsStore((state) => ({
-		searchQuery: state.searchQuery,
-		statusFilter: state.statusFilter,
-		setSearchQuery: state.setSearchQuery,
-		setStatusFilter: state.setStatusFilter,
-		clearFilters: state.clearFilters,
-	}));
-
-export const useTenantsSelection = () =>
-	useTenantsStore((state) => ({
-		selectedIds: state.selectedIds,
-		setSelectedIds: state.setSelectedIds,
-		selectAll: state.selectAll,
-		clearSelection: state.clearSelection,
-	}));
-
-export const useTenantsModals = () =>
-	useTenantsStore((state) => ({
-		isDetailSheetOpen: state.isDetailSheetOpen,
-		openDetailSheet: state.openDetailSheet,
-		closeDetailSheet: state.closeDetailSheet,
-		setDetailSheetOpen: state.setDetailSheetOpen,
-	}));

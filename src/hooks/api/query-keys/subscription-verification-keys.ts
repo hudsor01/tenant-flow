@@ -6,7 +6,7 @@ import { createClient } from "#lib/supabase/client";
 import type { StripeSessionStatusResponse } from "#types/core";
 import type { SubscriptionData } from "#types/stripe";
 
-export const subscriptionVerificationKeys = {
+const subscriptionVerificationKeys = {
 	verifySession: (sessionId: string) =>
 		["subscription", "verify", sessionId] as const,
 	sessionStatus: (sessionId: string) =>

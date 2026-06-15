@@ -16,8 +16,8 @@ export const ACCEPTED_MIME_TYPES = [
 	"image/png",
 	"image/webp",
 ];
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB — matches bucket limit
-export const MAX_FAILURES_IN_TOAST = 5;
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB — matches bucket limit
+const MAX_FAILURES_IN_TOAST = 5;
 
 export interface UploadSummary {
 	uploaded: number;

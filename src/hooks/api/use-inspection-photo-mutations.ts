@@ -6,10 +6,7 @@
  */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-	handleMutationError,
-	handleMutationSuccess,
-} from "#lib/mutation-error-handler";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { inspectionQueries } from "./query-keys/inspection-keys";
 import { inspectionMutations } from "./query-keys/inspection-mutation-options";
 
@@ -31,28 +28,6 @@ export function useRecordInspectionPhoto(inspectionId: string) {
 		},
 		onError: (error) => {
 			handleMutationError(error, "Record inspection photo");
-		},
-	});
-}
-
-/**
- * Delete a photo from an inspection room.
- * Deletes from DB first, then removes from inspection-photos storage bucket (non-blocking).
- * Pattern matches useDeletePropertyImageMutation in use-property-mutations.ts.
- */
-export function useDeleteInspectionPhoto(inspectionId: string) {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...inspectionMutations.deletePhoto(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey,
-			});
-			handleMutationSuccess("Delete photo", "Photo deleted");
-		},
-		onError: (error) => {
-			handleMutationError(error, "Delete inspection photo");
 		},
 	});
 }

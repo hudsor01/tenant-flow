@@ -8,13 +8,7 @@
  * Query hooks and authKeys remain in use-auth.ts per CLAUDE.md rule.
  */
 
-import {
-	mutationOptions,
-	useMutation,
-	useQueryClient,
-} from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import { logger } from "#lib/frontend-logger";
 import {
 	handleMutationError,
@@ -22,9 +16,8 @@ import {
 } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type { LoginCredentials, SignupFormData } from "#types/auth";
 import { mutationKeys } from "./mutation-keys";
-import { authKeys, useAuthCacheUtils } from "./use-auth";
+import { useAuthCacheUtils } from "./use-auth";
 
 const authMutationFactories = {
 	logout: () =>
@@ -37,42 +30,6 @@ const authMutationFactories = {
 			},
 		}),
 
-	login: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.auth.login,
-			mutationFn: async (credentials: LoginCredentials) => {
-				const supabase = createClient();
-				const { data, error } = await supabase.auth.signInWithPassword({
-					email: credentials.email,
-					password: credentials.password,
-				});
-				if (error) throw error;
-				return data;
-			},
-		}),
-
-	signup: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.auth.signup,
-			mutationFn: async (data: SignupFormData) => {
-				const supabase = createClient();
-				const { email, password, firstName, lastName, company } = data;
-				const { data: authData, error } = await supabase.auth.signUp({
-					email,
-					password,
-					options: {
-						data: {
-							first_name: firstName,
-							last_name: lastName,
-							company: company || null,
-						},
-					},
-				});
-				if (error) throw error;
-				return authData;
-			},
-		}),
-
 	resetPassword: () =>
 		mutationOptions<void, unknown, string>({
 			mutationKey: mutationKeys.auth.resetPassword,
@@ -82,24 +39,6 @@ const authMutationFactories = {
 					redirectTo: `${window.location.origin}/auth/update-password`,
 				});
 				if (error) throw error;
-			},
-		}),
-
-	updateProfile: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.auth.updateProfile,
-			mutationFn: async (updates: {
-				first_name?: string;
-				last_name?: string;
-				phone?: string;
-				company?: string;
-			}) => {
-				const supabase = createClient();
-				const { data, error } = await supabase.auth.updateUser({
-					data: updates,
-				});
-				if (error) throw error;
-				return data;
 			},
 		}),
 
@@ -162,52 +101,6 @@ export function useSignOutMutation() {
 }
 
 /**
- * Login mutation
- */
-export function useSupabaseLoginMutation() {
-	const queryClient = useQueryClient();
-	const router = useRouter();
-
-	return useMutation({
-		...authMutationFactories.login(),
-		onSuccess: (data) => {
-			queryClient.invalidateQueries({ queryKey: authKeys.supabase.all });
-			handleMutationSuccess("Login", `Logged in as ${data.user.email}`);
-			router.push("/");
-		},
-		onError: (error) => handleMutationError(error, "Login"),
-	});
-}
-
-/**
- * Signup mutation
- */
-export function useSupabaseSignupMutation() {
-	const queryClient = useQueryClient();
-	const router = useRouter();
-
-	return useMutation({
-		...authMutationFactories.signup(),
-		onSuccess: (data) => {
-			queryClient.invalidateQueries({ queryKey: authKeys.supabase.all });
-
-			if (!data.user?.confirmed_at) {
-				toast.success("Account created!", {
-					description: "Please check your email to confirm your account.",
-				});
-				router.push("/auth/confirm-email");
-			} else {
-				toast.success("Welcome to TenantFlow!", {
-					description: "Your account has been created successfully.",
-				});
-				router.push("/");
-			}
-		},
-		onError: (error) => handleMutationError(error, "Signup"),
-	});
-}
-
-/**
  * Password reset request mutation
  */
 export function useSupabasePasswordResetMutation() {
@@ -219,22 +112,6 @@ export function useSupabasePasswordResetMutation() {
 				"Please check your email for instructions",
 			),
 		onError: (error) => handleMutationError(error, "Password reset"),
-	});
-}
-
-/**
- * Update user profile mutation
- */
-export function useSupabaseUpdateProfileMutation() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...authMutationFactories.updateProfile(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: authKeys.supabase.user() });
-			handleMutationSuccess("Update profile");
-		},
-		onError: (error) => handleMutationError(error, "Update profile"),
 	});
 }
 

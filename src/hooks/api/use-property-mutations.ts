@@ -30,14 +30,6 @@ export function usePrefetchPropertyDetail(id: string) {
 }
 
 /**
- * Declarative prefetch hook for property with related units
- */
-export function usePrefetchPropertyWithUnits(id: string) {
-	usePrefetchQuery(propertyQueries.detail(id));
-	usePrefetchQuery(unitQueries.byProperty(id));
-}
-
-/**
  * Mark property as sold (7-year retention compliance)
  */
 export function useMarkPropertySoldMutation() {

@@ -7,15 +7,11 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
-import { useEntityDetail } from "#hooks/use-entity-detail";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { sanitizeSearchInput } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import type { Vendor, VendorFilters } from "#types/domain";
-import {
-	maintenanceQueries,
-	vendorMutations,
-} from "./query-keys/maintenance-keys";
+import { vendorMutations } from "./query-keys/maintenance-keys";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 interface VendorListResponse {
@@ -28,7 +24,7 @@ interface VendorListResponse {
 const VENDOR_SELECT_COLUMNS =
 	"id, owner_user_id, name, email, phone, trade, hourly_rate, status, notes, created_at, updated_at";
 
-export const vendorKeys = {
+const vendorKeys = {
 	all: ["vendors"] as const,
 	lists: () => [...vendorKeys.all, "list"] as const,
 	list: (filters?: VendorFilters) =>
@@ -95,13 +91,6 @@ export function useVendors(filters?: VendorFilters) {
 	return useQuery(vendorKeys.list(filters));
 }
 
-export function useVendor(id: string) {
-	return useEntityDetail<Vendor>({
-		queryOptions: vendorKeys.detail(id),
-		id,
-	});
-}
-
 export function useCreateVendorMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
@@ -138,38 +127,6 @@ export function useDeleteVendorMutation() {
 			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
 			successMessage: "Vendor removed",
 			errorContext: "Remove vendor",
-		}),
-	});
-}
-
-export function useAssignVendorMutation() {
-	const queryClient = useQueryClient();
-	return useMutation({
-		...vendorMutations.assign(),
-		...createMutationCallbacks<
-			void,
-			{ vendorId: string; maintenanceId: string }
-		>(queryClient, {
-			invalidate: (vars) => [
-				maintenanceQueries.detail(vars.maintenanceId).queryKey,
-			],
-			successMessage: "Vendor assigned to request",
-			errorContext: "Assign vendor",
-		}),
-	});
-}
-
-// Sets vendor_id to null and transitions to 'needs_reassignment' (not 'open') to preserve audit trail.
-export function useUnassignVendorMutation() {
-	const queryClient = useQueryClient();
-	return useMutation({
-		...vendorMutations.unassign(),
-		...createMutationCallbacks<void, string>(queryClient, {
-			invalidate: (maintenanceId) => [
-				maintenanceQueries.detail(maintenanceId).queryKey,
-			],
-			successMessage: "Vendor unassigned",
-			errorContext: "Unassign vendor",
 		}),
 	});
 }

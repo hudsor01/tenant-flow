@@ -55,7 +55,7 @@ export const authKeys = {
 /**
  * Auth query factory
  */
-export const authQueries = {
+const authQueries = {
 	/**
 	 * Base key for all auth queries
 	 */

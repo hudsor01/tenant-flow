@@ -28,7 +28,7 @@ export type ViewPreferences = {
 	maintenance: "kanban" | "table";
 };
 
-export const DEFAULT_VIEW_PREFERENCES: ViewPreferences = {
+const DEFAULT_VIEW_PREFERENCES: ViewPreferences = {
 	properties: "grid", // Visual-first per UX research
 	maintenance: "kanban", // Workflow-driven per UX research
 };

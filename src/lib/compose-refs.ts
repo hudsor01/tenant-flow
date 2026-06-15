@@ -67,4 +67,4 @@ function useComposedRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
 	return (node: T) => composeRefs(...refsRef.current)(node);
 }
 
-export { composeRefs, useComposedRefs };
+export { useComposedRefs };

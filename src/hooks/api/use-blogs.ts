@@ -6,7 +6,7 @@
  * Blogs are public content -- no auth dependency.
  */
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { blogQueries } from "./query-keys/blog-keys";
 
 export type {
@@ -16,38 +16,10 @@ export type {
 	BlogListItem,
 } from "./query-keys/blog-keys";
 
-/**
- * Fetch paginated published blogs
- * Returns PaginatedResponse with page math and keepPreviousData for flash-free pagination
- */
-export function useBlogs(page: number = 1, limit: number = 9) {
-	const offset = (page - 1) * limit;
-	return useQuery({
-		...blogQueries.list({ limit, offset }),
-		placeholderData: keepPreviousData,
-	});
-}
-
 // `useBlogBySlug` was removed when the blog post page was refactored to
 // receive `post` as a server-rendered prop (closes a soft-404 risk where
 // the body shipped only after hydration). The `blogQueries.detail()`
 // factory it wrapped is still useful for prefetching from the hub list.
-
-/**
- * Fetch paginated blogs by category
- * Returns PaginatedResponse with keepPreviousData for flash-free pagination
- */
-export function useBlogsByCategory(
-	category: string,
-	page: number = 1,
-	limit: number = 9,
-) {
-	const offset = (page - 1) * limit;
-	return useQuery({
-		...blogQueries.list({ category, limit, offset }),
-		placeholderData: keepPreviousData,
-	});
-}
 
 /**
  * Fetch blog categories from RPC
@@ -70,18 +42,5 @@ export function useRelatedPosts(
 ) {
 	return useQuery({
 		...blogQueries.related({ category, excludeSlug, limit }),
-	});
-}
-
-/**
- * Fetch comparison posts filtered by tag
- * Uses .contains() on the tags array column
- */
-export function useComparisonPosts(
-	tag: string = "comparison",
-	limit: number = 6,
-) {
-	return useQuery({
-		...blogQueries.comparisons({ tag, limit }),
 	});
 }

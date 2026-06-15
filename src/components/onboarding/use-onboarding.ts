@@ -14,7 +14,7 @@ interface OnboardingStatusResult {
 	onboarding_status: string | null;
 }
 
-export const onboardingKeys = {
+const onboardingKeys = {
 	all: ["onboarding"] as const,
 	status: () => [...onboardingKeys.all, "status"] as const,
 };

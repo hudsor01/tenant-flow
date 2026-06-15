@@ -83,14 +83,14 @@ export const propertyInputSchema = z.object({
 });
 
 // Full property schema (includes server-generated fields)
-export const propertySchema = propertyInputSchema.extend({
+const propertySchema = propertyInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
 	updated_at: z.string(),
 });
 
 // Property update schema (partial input)
-export const propertyUpdateSchema = propertyInputSchema.partial().extend({
+const propertyUpdateSchema = propertyInputSchema.partial().extend({
 	id: uuidSchema.optional(),
 	status: propertyStatusSchema.optional(),
 	owner_user_id: uuidSchema.optional(),
@@ -211,10 +211,10 @@ export const propertyFormSchema = z.object({
 	acquisition_date: z.string().optional().nullable(),
 });
 
-export const propertyUpdateFormSchema = propertyFormSchema.partial();
+const propertyUpdateFormSchema = propertyFormSchema.partial();
 
 // Transform functions for form data
-export const transformPropertyFormData = (data: PropertyFormData) => ({
+const transformPropertyFormData = (data: PropertyFormData) => ({
 	name: data.name,
 	address_line1: data.address_line1,
 	address_line2: data.address_line2 || undefined,

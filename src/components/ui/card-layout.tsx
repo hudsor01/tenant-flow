@@ -87,4 +87,4 @@ const CardLayout = ({
 	);
 };
 
-export { CardLayout, CardLayoutError, CardLayoutSection, CardLayoutSkeleton };
+export { CardLayout };

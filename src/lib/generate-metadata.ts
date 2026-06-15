@@ -119,7 +119,7 @@ function createDefaultMetadata(): Metadata {
 }
 
 // Getter for lazy initialization
-export function getDefaultMetadata(): Metadata {
+function getDefaultMetadata(): Metadata {
 	if (!_defaultMetadata) {
 		_defaultMetadata = createDefaultMetadata();
 	}
@@ -127,7 +127,7 @@ export function getDefaultMetadata(): Metadata {
 }
 
 // For backward compatibility - uses getter
-export const defaultMetadata: Metadata = new Proxy({} as Metadata, {
+const defaultMetadata: Metadata = new Proxy({} as Metadata, {
 	get(_, prop) {
 		return getDefaultMetadata()[prop as keyof Metadata];
 	},

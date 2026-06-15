@@ -1,7 +1,6 @@
-import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Slot } from "radix-ui";
 import type { ComponentProps } from "react";
-import { Fragment } from "react";
 
 import { cn } from "#lib/utils";
 
@@ -77,52 +76,13 @@ function BreadcrumbSeparator({
 	);
 }
 
-function BreadcrumbEllipsis({ className, ...props }: ComponentProps<"span">) {
-	return (
-		<span
-			aria-hidden="true"
-			className={cn("flex size-9 items-center justify-center", className)}
-			{...props}
-		>
-			<MoreHorizontal className="size-4" />
-			<span className="sr-only">More</span>
-		</span>
-	);
-}
-
 export type BreadcrumbItem = {
 	href: string;
 	label: string;
 };
 
-export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
-	return (
-		<Breadcrumb>
-			<BreadcrumbList>
-				{items.map((item, index) => {
-					const isLast = index === items.length - 1;
-
-					return (
-						<Fragment key={`breadcrumb-${index}`}>
-							<BreadcrumbItem>
-								{isLast ? (
-									<BreadcrumbPage>{item.label}</BreadcrumbPage>
-								) : (
-									<BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
-								)}
-							</BreadcrumbItem>
-							{!isLast && <BreadcrumbSeparator />}
-						</Fragment>
-					);
-				})}
-			</BreadcrumbList>
-		</Breadcrumb>
-	);
-}
-
 export {
 	Breadcrumb,
-	BreadcrumbEllipsis,
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
