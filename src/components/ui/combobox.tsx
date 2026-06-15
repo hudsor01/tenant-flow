@@ -1,5 +1,5 @@
 import * as ComboboxPrimitive from "@diceui/combobox";
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import type { ComponentProps } from "react";
 
 import { cn } from "#lib/utils";
@@ -16,19 +16,6 @@ const Combobox = (({
 		/>
 	);
 }) as ComboboxPrimitive.ComboboxRootComponentProps;
-
-function ComboboxLabel({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.Label>) {
-	return (
-		<ComboboxPrimitive.Label
-			data-slot="combobox-label"
-			className={cn("px-0.5 py-1.5 font-semibold text-sm", className)}
-			{...props}
-		/>
-	);
-}
 
 function ComboboxAnchor({
 	className,
@@ -81,62 +68,6 @@ function ComboboxTrigger({
 	);
 }
 
-function ComboboxCancel({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.Cancel>) {
-	return (
-		<ComboboxPrimitive.Cancel
-			data-slot="combobox-cancel"
-			className={cn(
-				"absolute top-1/2 right-1 flex size-6 -translate-y-1/2 items-center justify-center rounded-sm bg-background opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none",
-				className,
-			)}
-			{...props}
-		/>
-	);
-}
-
-function ComboboxBadgeList({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.BadgeList>) {
-	return (
-		<ComboboxPrimitive.BadgeList
-			data-slot="combobox-badge-list"
-			className={cn("flex flex-wrap items-center gap-1.5", className)}
-			{...props}
-		/>
-	);
-}
-
-function ComboboxBadgeItem({
-	className,
-	children,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.BadgeItem>) {
-	return (
-		<ComboboxPrimitive.BadgeItem
-			data-slot="combobox-badge-item"
-			className={cn(
-				"inline-flex items-center justify-between gap-1 rounded-sm bg-secondary px-2 py-0.5",
-				className,
-			)}
-			{...props}
-		>
-			<span className="truncate text-[13px] text-secondary-foreground">
-				{children}
-			</span>
-			<ComboboxPrimitive.BadgeItemDelete
-				data-slot="combobox-badge-item-delete"
-				className="shrink-0 rounded p-0.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring data-highlighted:bg-destructive"
-			>
-				<X className="size-3" />
-			</ComboboxPrimitive.BadgeItemDelete>
-		</ComboboxPrimitive.BadgeItem>
-	);
-}
-
 function ComboboxContent({
 	sideOffset = 6,
 	className,
@@ -160,21 +91,6 @@ function ComboboxContent({
 	);
 }
 
-function ComboboxLoading({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.Loading>) {
-	return (
-		<ComboboxPrimitive.Loading
-			data-slot="combobox-loading"
-			className={cn("py-6 text-center text-sm", className)}
-			{...props}
-		>
-			Loading...
-		</ComboboxPrimitive.Loading>
-	);
-}
-
 function ComboboxEmpty({
 	className,
 	...props
@@ -183,35 +99,6 @@ function ComboboxEmpty({
 		<ComboboxPrimitive.Empty
 			data-slot="combobox-empty"
 			className={cn("py-6 text-center text-sm", className)}
-			{...props}
-		/>
-	);
-}
-
-function ComboboxGroup({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.Group>) {
-	return (
-		<ComboboxPrimitive.Group
-			data-slot="combobox-group"
-			className={cn("overflow-hidden", className)}
-			{...props}
-		/>
-	);
-}
-
-function ComboboxGroupLabel({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.GroupLabel>) {
-	return (
-		<ComboboxPrimitive.GroupLabel
-			data-slot="combobox-group-label"
-			className={cn(
-				"px-2 py-1.5 font-semibold text-muted-foreground text-xs",
-				className,
-			)}
 			{...props}
 		/>
 	);
@@ -248,33 +135,12 @@ function ComboboxItem({
 	);
 }
 
-function ComboboxSeparator({
-	className,
-	...props
-}: ComponentProps<typeof ComboboxPrimitive.Separator>) {
-	return (
-		<ComboboxPrimitive.Separator
-			data-slot="combobox-separator"
-			className={cn("-mx-1 my-1 h-px bg-muted", className)}
-			{...props}
-		/>
-	);
-}
-
 export {
 	Combobox,
 	ComboboxAnchor,
-	ComboboxBadgeItem,
-	ComboboxBadgeList,
-	ComboboxCancel,
 	ComboboxContent,
 	ComboboxEmpty,
-	ComboboxGroup,
-	ComboboxGroupLabel,
 	ComboboxInput,
 	ComboboxItem,
-	ComboboxLabel,
-	ComboboxLoading,
-	ComboboxSeparator,
 	ComboboxTrigger,
 };

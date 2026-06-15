@@ -12,7 +12,7 @@ import {
 } from "#components/ui/select";
 import { useCreateInspectionRoom } from "#hooks/api/use-inspection-room-mutations";
 
-export const ROOM_TYPES = [
+const ROOM_TYPES = [
 	{ value: "bedroom", label: "Bedroom" },
 	{ value: "bathroom", label: "Bathroom" },
 	{ value: "kitchen", label: "Kitchen" },

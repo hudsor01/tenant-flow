@@ -75,5 +75,3 @@ export function SectionSkeleton({
 		/>
 	);
 }
-
-export { sectionSkeletonVariants };

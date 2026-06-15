@@ -100,50 +100,6 @@ export function usePrefetchTenantDetail(id: string) {
 	usePrefetchQuery(tenantQueries.detail(id));
 }
 
-export function usePrefetchTenantWithLease(id: string) {
-	usePrefetchQuery(tenantQueries.withLease(id));
-}
-
-// Returns a rollback closure for optimistic writes.
-export function useOptimisticTenantUpdate() {
-	const queryClient = useQueryClient();
-
-	return {
-		updateOptimistically: async (
-			id: string,
-			updates: Partial<TenantWithLeaseInfo>,
-		) => {
-			await queryClient.cancelQueries({
-				queryKey: tenantQueries.detail(id).queryKey,
-			});
-
-			const previous = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey,
-			);
-
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey,
-				(old) => {
-					if (!old) return old;
-					return { ...old, ...updates };
-				},
-			);
-
-			return {
-				previous,
-				rollback: () => {
-					if (previous) {
-						queryClient.setQueryData(
-							tenantQueries.detail(id).queryKey,
-							previous,
-						);
-					}
-				},
-			};
-		},
-	};
-}
-
 export function useNotificationPreferences(tenant_id: string) {
 	return useQuery(tenantQueries.notificationPreferences(tenant_id));
 }

@@ -6,12 +6,11 @@ import { TooltipProvider } from "#components/ui/tooltip";
 import { useMediaQuery } from "#hooks/use-media-query";
 import { cn } from "#lib/utils";
 
-export const SIDEBAR_COOKIE_NAME = "sidebar_state";
-export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-export const SIDEBAR_WIDTH = "16rem";
-export const SIDEBAR_WIDTH_MOBILE = "18rem";
-export const SIDEBAR_WIDTH_ICON = "3rem";
-export const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+const SIDEBAR_COOKIE_NAME = "sidebar_state";
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const SIDEBAR_WIDTH = "16rem";
+const SIDEBAR_WIDTH_ICON = "3rem";
+const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 export interface SidebarContextProps {
 	state: "expanded" | "collapsed";
@@ -23,7 +22,7 @@ export interface SidebarContextProps {
 	toggleSidebar: () => void;
 }
 
-export const SidebarContext = createContext<SidebarContextProps | null>(null);
+const SidebarContext = createContext<SidebarContextProps | null>(null);
 
 export function useSidebar(): SidebarContextProps {
 	const context = useContext(SidebarContext);

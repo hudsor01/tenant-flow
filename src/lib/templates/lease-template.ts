@@ -1,5 +1,5 @@
 import { formatDate } from "#lib/formatters/date";
-import type { LeaseFormData, USState } from "#types/lease-generator.types";
+import type { USState } from "#types/lease-generator.types";
 import { formatCurrency } from "../../lib/utils/currency";
 
 export interface LeaseTemplateClause {
@@ -578,88 +578,6 @@ export function renderLeaseHtmlBody(
 </div>`;
 }
 
-export function renderLeaseHtmlDocument(
-	schema: LeaseTemplateSchema,
-	selections: LeaseTemplateSelections,
-	context: LeaseTemplateContext,
-) {
-	const body = renderLeaseHtmlBody(schema, selections, context);
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<title>Lease Agreement</title>
-	<style>
-		body {
-			font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-			color: #1e293b;
-			line-height: 1.6;
-			margin: 0;
-			padding: 32px;
-			background: #f8fafc;
-		}
-		.lease-document {
-			background: white;
-			border-radius: 12px;
-			padding: 40px;
-			box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
-			max-width: 900px;
-			margin: 0 auto;
-		}
-		.lease-header {
-			text-align: center;
-			margin-bottom: 40px;
-		}
-		.lease-header h1 {
-			font-size: 28px;
-			margin-bottom: 8px;
-			color: #0f172a;
-		}
-		.lease-section {
-			margin-bottom: 36px;
-			padding-bottom: 24px;
-			border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-		}
-		.lease-section:last-of-type {
-			border-bottom: none;
-		}
-		.lease-section-header h2 {
-			font-size: 20px;
-			margin-bottom: 4px;
-			color: #0f172a;
-		}
-		.lease-section-header p {
-			margin: 0 0 16px;
-			color: #475569;
-			font-size: 15px;
-		}
-		.lease-clause {
-			margin-bottom: 18px;
-		}
-		.lease-clause h3 {
-			margin-bottom: 6px;
-			font-size: 17px;
-			color: #0f172a;
-		}
-		.lease-clause p {
-			margin: 0;
-			font-size: 15px;
-		}
-		.legal-list {
-			padding-left: 18px;
-		}
-		.legal-list li {
-			margin-bottom: 8px;
-			font-size: 15px;
-		}
-	</style>
-</head>
-<body>
-	${body}
-</body>
-</html>`;
-}
-
 export function getDefaultSelections(
 	schema: LeaseTemplateSchema,
 	state: USState,
@@ -706,41 +624,4 @@ export function createDefaultContext(
 				0,
 		),
 	};
-}
-
-export function createContextFromLeaseData(
-	leaseData: LeaseFormData,
-): LeaseTemplateContext {
-	const tenantNames = leaseData.tenants.map((tenant) => tenant.name).join("; ");
-	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.postal_code}`;
-	const propertyAddress = `${leaseData.property.address.street}${
-		leaseData.property.address.unit
-			? `, ${leaseData.property.address.unit}`
-			: ""
-	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.postal_code}`;
-
-	const overrides: Partial<LeaseTemplateContext> = {
-		ownerName: leaseData.owner.name,
-		ownerAddress,
-		tenantNames,
-		propertyAddress,
-		propertyState: leaseData.property.address.state,
-		rent_amountCents: leaseData.leaseTerms.rent_amount,
-		security_depositCents: leaseData.leaseTerms.security_deposit.amount,
-		rentDueDay: leaseData.leaseTerms.dueDate,
-		leasestart_dateISO: leaseData.leaseTerms.start_date,
-		formattedDateGenerated: formatDate(new Date().toISOString()),
-	};
-
-	if (leaseData.leaseTerms.end_date) {
-		overrides.leaseEndDateISO = leaseData.leaseTerms.end_date;
-	}
-	if (leaseData.leaseTerms.lateFee?.amount) {
-		overrides.late_fee_amountCents = leaseData.leaseTerms.lateFee.amount;
-	}
-	if (leaseData.leaseTerms.lateFee?.gracePeriod) {
-		overrides.gracePeriodDays = leaseData.leaseTerms.lateFee.gracePeriod;
-	}
-
-	return createDefaultContext(overrides);
 }

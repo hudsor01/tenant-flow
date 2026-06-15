@@ -35,7 +35,7 @@ const DURATION_PRESETS: {
  * Calculate lease end date from start date + N months.
  * Advances by N months, then subtracts 1 day (e.g. Jan 1 + 12 months = Dec 31).
  */
-export function calculateEndDate(startDate: string, months: number): string {
+function calculateEndDate(startDate: string, months: number): string {
 	const date = new Date(startDate);
 	date.setMonth(date.getMonth() + months);
 	date.setDate(date.getDate() - 1);

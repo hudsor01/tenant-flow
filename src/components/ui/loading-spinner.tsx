@@ -4,7 +4,6 @@ import type {
 	ButtonHTMLAttributes,
 	ComponentProps,
 	HTMLAttributes,
-	ReactNode,
 } from "react";
 
 import { Button } from "#components/ui/button";
@@ -149,51 +148,6 @@ function ButtonLoader({
 	);
 }
 
-// Card/Section loading overlay with glass morphism
-function SectionLoader({
-	text,
-	className,
-	children,
-	...props
-}: {
-	text?: string;
-	children?: ReactNode;
-} & HTMLAttributes<HTMLDivElement>) {
-	return (
-		<div className={cn("relative", className)} {...props}>
-			{/* Glass Backdrop */}
-			<div className="absolute inset-0 glass z-10 flex-center rounded-[var(--radius-lg)]">
-				<div className="shadow-md bg-card/50 border border-border backdrop-blur-sm p-6">
-					<LoadingSpinner
-						size="lg"
-						variant="primary"
-						{...(text ? { text } : {})}
-					/>
-				</div>
-			</div>
-
-			{/* Content (blurred with motion) */}
-			<div className="opacity-50 pointer-events-none transition-all [transition-duration:var(--duration-medium)] [transition-timing-function:var(--ease-out-expo)]">
-				{children}
-			</div>
-		</div>
-	);
-}
-
-// Inline loading for tables/lists
-function InlineLoader({
-	size = "sm",
-	className,
-	...props
-}: LoadingSpinnerProps & HTMLAttributes<HTMLDivElement>) {
-	return (
-		<div className={cn("inline-flex items-center gap-2", className)} {...props}>
-			<LoadingSpinner size={size} variant="muted" />
-			<span className="text-sm text-(--color-label-tertiary)">Loading...</span>
-		</div>
-	);
-}
-
 // CVA for loading dots
 const dotsVariants = cva("rounded-full animate-bounce bg-current", {
 	variants: {
@@ -275,15 +229,4 @@ function LoadingDots({
 	return <div className={className}>{dots}</div>;
 }
 
-export {
-	ButtonLoader,
-	dotsVariants,
-	InlineLoader,
-	LoadingDots,
-	LoadingSpinner,
-	PageLoader,
-	SectionLoader,
-	Spinner,
-	spinnerTextVariants,
-	spinnerVariants,
-};
+export { ButtonLoader, LoadingDots, LoadingSpinner, PageLoader, Spinner };

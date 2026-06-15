@@ -164,4 +164,4 @@ export function getPayloadConfigFromPayload(
 		: config[key as keyof typeof config];
 }
 
-export { ChartContainer, ChartStyle };
+export { ChartContainer };

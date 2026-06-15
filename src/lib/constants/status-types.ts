@@ -12,7 +12,7 @@
 /**
  * USER ROLES - App-level user type classification
  */
-export const USER_ROLES = {
+const USER_ROLES = {
 	OWNER: "OWNER",
 	MANAGER: "MANAGER",
 	TENANT: "TENANT",
@@ -50,7 +50,7 @@ export const SINGLE_UNIT_PROPERTY_TYPES: readonly PropertyType[] = [
 /**
  * MAINTENANCE CATEGORY ENUMERATION - App-level categorization
  */
-export const MAINTENANCE_CATEGORIES = {
+const MAINTENANCE_CATEGORIES = {
 	GENERAL: "GENERAL",
 	PLUMBING: "PLUMBING",
 	ELECTRICAL: "ELECTRICAL",
@@ -66,7 +66,7 @@ export type MaintenanceCategory =
 /**
  * SUBSCRIPTION STATUS ENUMERATION - Stripe subscription states
  */
-export const SUBSCRIPTION_STATUS = {
+const SUBSCRIPTION_STATUS = {
 	INCOMPLETE: "incomplete",
 	INCOMPLETE_EXPIRED: "incomplete_expired",
 	TRIALING: "trialing",
@@ -83,7 +83,7 @@ export type SubscriptionStatus =
 /**
  * TENANT STATUS ENUMERATION - App-level tenant state
  */
-export const TENANT_STATUS = {
+const TENANT_STATUS = {
 	ACTIVE: "active",
 	INACTIVE: "inactive",
 	EVICTED: "EVICTED",
@@ -100,7 +100,7 @@ export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS];
 /**
  * DOCUMENT TYPE ENUMERATION - App-level document classification
  */
-export const DOCUMENT_TYPES = {
+const DOCUMENT_TYPES = {
 	LEASE: "LEASE",
 	INVOICE: "INVOICE",
 	RECEIPT: "RECEIPT",
@@ -115,7 +115,7 @@ export type DocumentType = (typeof DOCUMENT_TYPES)[keyof typeof DOCUMENT_TYPES];
 /**
  * REQUEST/ACTION STATUS ENUMERATION - App-level request states
  */
-export const REQUEST_STATUS = {
+const REQUEST_STATUS = {
 	OPEN: "OPEN",
 	IN_PROGRESS: "IN_PROGRESS",
 	COMPLETED: "COMPLETED",
@@ -130,7 +130,7 @@ export type RequestStatus =
 /**
  * LEASE TYPE ENUMERATION - App-level lease classification
  */
-export const LEASE_TYPES = {
+const LEASE_TYPES = {
 	FIXED_TERM: "FIXED_TERM",
 	MONTH_TO_MONTH: "MONTH_TO_MONTH",
 	WEEK_TO_WEEK: "WEEK_TO_WEEK",
@@ -141,7 +141,7 @@ export type LeaseType = (typeof LEASE_TYPES)[keyof typeof LEASE_TYPES];
 /**
  * LATE FEE TYPE ENUMERATION
  */
-export const LATE_FEE_TYPES = {
+const LATE_FEE_TYPES = {
 	FIXED: "FIXED",
 	PERCENTAGE: "PERCENTAGE",
 } as const;
@@ -151,7 +151,7 @@ export type LateFeeType = (typeof LATE_FEE_TYPES)[keyof typeof LATE_FEE_TYPES];
 /**
  * REMINDER TYPES ENUMERATION
  */
-export const REMINDER_TYPES = {
+const REMINDER_TYPES = {
 	RENT_REMINDER: "RENT_REMINDER",
 	LEASE_EXPIRATION: "LEASE_EXPIRATION",
 	MAINTENANCE_DUE: "MAINTENANCE_DUE",
@@ -163,7 +163,7 @@ export type ReminderType = (typeof REMINDER_TYPES)[keyof typeof REMINDER_TYPES];
 /**
  * REMINDER STATUS ENUMERATION
  */
-export const REMINDER_STATUS = {
+const REMINDER_STATUS = {
 	PENDING: "pending",
 	SENT: "SENT",
 	FAILED: "FAILED",
@@ -177,7 +177,7 @@ export type ReminderStatus =
 /**
  * CUSTOMER INVOICE STATUS ENUMERATION
  */
-export const CUSTOMER_INVOICE_STATUS = {
+const CUSTOMER_INVOICE_STATUS = {
 	DRAFT: "draft",
 	SENT: "SENT",
 	VIEWED: "VIEWED",
@@ -192,7 +192,7 @@ export type CustomerInvoiceStatus =
 /**
  * PLAN TYPE ENUMERATION
  */
-export const PLAN_TYPES = {
+const PLAN_TYPES = {
 	FREETRIAL: "FREETRIAL",
 	STARTER: "STARTER",
 	GROWTH: "GROWTH",
@@ -204,7 +204,7 @@ export type PlanType = (typeof PLAN_TYPES)[keyof typeof PLAN_TYPES];
 /**
  * ACTIVITY ENTITY TYPE ENUMERATION
  */
-export const ACTIVITY_ENTITY_TYPES = {
+const ACTIVITY_ENTITY_TYPES = {
 	PROPERTY: "PROPERTY",
 	TENANT: "TENANT",
 	MAINTENANCE: "maintenance",
@@ -219,7 +219,7 @@ export type ActivityEntityType =
 /**
  * PERMISSION TYPES ENUMERATION
  */
-export const PERMISSION_TYPES = {
+const PERMISSION_TYPES = {
 	CREATE: "create",
 	READ: "read",
 	UPDATE: "update",
@@ -232,7 +232,7 @@ export type PermissionType =
 /**
  * ENTITY TYPES ENUMERATION
  */
-export const ENTITY_TYPES = {
+const ENTITY_TYPES = {
 	PROPERTY: "properties",
 	UNIT: "units",
 	TENANT: "tenants",
@@ -245,7 +245,7 @@ export type EntityType = (typeof ENTITY_TYPES)[keyof typeof ENTITY_TYPES];
 /**
  * ACTION TYPES ENUMERATION
  */
-export const ACTION_TYPES = {
+const ACTION_TYPES = {
 	CREATE: "create",
 	UPDATE: "update",
 	DELETE: "delete",
@@ -277,7 +277,7 @@ export type ProcessStatus = "pending" | "processing" | "completed" | "failed";
 /**
  * TIME PERIOD ENUMERATION
  */
-export const TIME_PERIODS = {
+const TIME_PERIODS = {
 	TODAY: "today",
 	YESTERDAY: "yesterday",
 	LAST7DAYS: "last7days",
@@ -294,7 +294,7 @@ export type TimePeriod = (typeof TIME_PERIODS)[keyof typeof TIME_PERIODS];
 /**
  * SORT DIRECTIONS ENUMERATION
  */
-export const SORT_DIRECTIONS = {
+const SORT_DIRECTIONS = {
 	ASC: "asc",
 	DESC: "desc",
 } as const;
@@ -303,22 +303,9 @@ export type SortDirection =
 	(typeof SORT_DIRECTIONS)[keyof typeof SORT_DIRECTIONS];
 
 /**
- * HTTP METHODS ENUMERATION
- */
-export const HTTP_METHODS = {
-	GET: "GET",
-	POST: "POST",
-	PUT: "PUT",
-	PATCH: "PATCH",
-	DELETE: "DELETE",
-	HEAD: "HEAD",
-	OPTIONS: "OPTIONS",
-} as const;
-
-/**
  * CACHE INVALIDATION REASONS ENUMERATION
  */
-export const CACHE_INVALIDATION_REASONS = {
+const CACHE_INVALIDATION_REASONS = {
 	TTL_EXPIRED: "ttl_expired",
 	MANUAL: "manual",
 	CIRCUIT_BREAKER_OPENED: "circuit_breaker_opened",
@@ -332,7 +319,7 @@ export type CacheInvalidationReason =
 /**
  * CACHEABLE ENTITY TYPES ENUMERATION
  */
-export const CACHEABLE_ENTITY_TYPES = {
+const CACHEABLE_ENTITY_TYPES = {
 	PROPERTY: "properties",
 	UNIT: "units",
 	TENANT: "tenants",
@@ -346,7 +333,7 @@ export type CacheableEntityType =
 /**
  * ERROR SEVERITY ENUMERATION
  */
-export const ERROR_SEVERITIES = {
+const ERROR_SEVERITIES = {
 	LOW: "low",
 	MEDIUM: "medium",
 	HIGH: "high",
@@ -370,7 +357,7 @@ export const MAINTENANCE_PRIORITY_OPTIONS = [
 /**
  * SECURITY EVENT TYPES ENUMERATION
  */
-export const SECURITY_EVENT_TYPES = {
+const SECURITY_EVENT_TYPES = {
 	UNAUTHORIZED_ACCESS: "unauthorized_access",
 	RATE_LIMIT_EXCEEDED: "rate_limit_exceeded",
 	SUSPICIOUS_PATTERN: "suspicious_pattern",

@@ -8,9 +8,6 @@
  * function will raise 'Unauthorized'. Drives the admin analytics page
  * deliverability table.
  */
-import { queryOptions } from "@tanstack/react-query";
-import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { createClient } from "#lib/supabase/client";
 import type { DeliverabilityStats } from "#types/analytics";
 
 /**
@@ -33,33 +30,3 @@ export function mapDeliverabilityRow(
 		complaintPercent: Number(raw.complaint_rate ?? 0),
 	};
 }
-
-export const deliverabilityKeys = {
-	all: ["deliverability"] as const,
-	stats: (days: number) => [...deliverabilityKeys.all, "stats", days] as const,
-};
-
-export const deliverabilityQueries = {
-	/**
-	 * Admin-only: per-template deliverability aggregates over the trailing
-	 * p_days window (default 30, range 1..365).
-	 */
-	stats: (days: number = 30) =>
-		queryOptions({
-			queryKey: deliverabilityKeys.stats(days),
-			queryFn: async (): Promise<DeliverabilityStats[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase.rpc("get_deliverability_stats", {
-					p_days: days,
-				});
-				if (error) handlePostgrestError(error, "deliverability-stats");
-				if (!Array.isArray(data)) return [];
-				return data.map((row) =>
-					mapDeliverabilityRow(row as Record<string, unknown>),
-				);
-			},
-			staleTime: 5 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			retry: false,
-		}),
-};

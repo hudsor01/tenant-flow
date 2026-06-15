@@ -46,4 +46,4 @@ function Skeleton({
 	);
 }
 
-export { Skeleton, skeletonVariants };
+export { Skeleton };

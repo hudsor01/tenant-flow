@@ -1,7 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 
-import { Separator } from "#components/ui/separator";
 import { cn } from "#lib/utils";
 
 function Stat({ className, ...props }: ComponentProps<"div">) {
@@ -115,10 +114,6 @@ function StatTrend({
 	);
 }
 
-function StatSeparator({ ...props }: ComponentProps<typeof Separator>) {
-	return <Separator data-slot="stat-separator" className="my-2" {...props} />;
-}
-
 function StatDescription({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
@@ -134,7 +129,6 @@ export {
 	StatDescription,
 	StatIndicator,
 	StatLabel,
-	StatSeparator,
 	StatTrend,
 	StatValue,
 };

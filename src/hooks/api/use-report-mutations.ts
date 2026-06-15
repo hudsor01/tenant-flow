@@ -10,10 +10,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-	handleMutationError,
-	handleMutationSuccess,
-} from "#lib/mutation-error-handler";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { PaywallError, reportMutations } from "./query-keys/report-keys";
 
@@ -79,28 +76,6 @@ export async function callGeneratePdfFromHtml(
 	link.click();
 	document.body.removeChild(link);
 	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-}
-
-/**
- * Mutation hook to download year-end summary as CSV
- */
-export function useDownloadYearEndCsv() {
-	return useMutation({
-		...reportMutations.downloadYearEndCsv(),
-		onSuccess: () => handleMutationSuccess("Download year-end CSV"),
-		onError: (err) => handleReportMutationError(err, "Download year-end CSV"),
-	});
-}
-
-/**
- * Mutation hook to download 1099-NEC vendor data as CSV
- */
-export function useDownload1099Csv() {
-	return useMutation({
-		...reportMutations.download1099Csv(),
-		onSuccess: () => handleMutationSuccess("Download 1099 CSV"),
-		onError: (err) => handleReportMutationError(err, "Download 1099 CSV"),
-	});
 }
 
 /**

@@ -12,7 +12,7 @@ import type { z } from "zod";
 import type { BulkImportParseResult } from "./types";
 
 export const CSV_MAX_ROWS = 100;
-export const CSV_ACCEPTED_MIME_TYPES = ["text/csv", "application/csv"];
+const CSV_ACCEPTED_MIME_TYPES = ["text/csv", "application/csv"];
 export const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 // CSV RFC 4180: fields containing quotes, commas, CR, or LF must be

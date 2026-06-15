@@ -10,12 +10,6 @@ function Select({ ...props }: ComponentProps<typeof SelectPrimitive.Root>) {
 	return <SelectPrimitive.Root {...props} />;
 }
 
-function SelectGroup({
-	...props
-}: ComponentProps<typeof SelectPrimitive.Group>) {
-	return <SelectPrimitive.Group {...props} />;
-}
-
 function SelectValue({
 	...props
 }: ComponentProps<typeof SelectPrimitive.Value>) {
@@ -83,18 +77,6 @@ function SelectContent({
 	);
 }
 
-function SelectLabel({
-	className,
-	...props
-}: ComponentProps<typeof SelectPrimitive.Label>) {
-	return (
-		<SelectPrimitive.Label
-			className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
-			{...props}
-		/>
-	);
-}
-
 function SelectItem({
 	className,
 	children,
@@ -115,18 +97,6 @@ function SelectItem({
 			</span>
 			<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
 		</SelectPrimitive.Item>
-	);
-}
-
-function SelectSeparator({
-	className,
-	...props
-}: ComponentProps<typeof SelectPrimitive.Separator>) {
-	return (
-		<SelectPrimitive.Separator
-			className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
-			{...props}
-		/>
 	);
 }
 
@@ -164,15 +134,4 @@ function SelectScrollDownButton({
 	);
 }
 
-export {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectScrollDownButton,
-	SelectScrollUpButton,
-	SelectSeparator,
-	SelectTrigger,
-	SelectValue,
-};
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };

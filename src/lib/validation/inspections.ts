@@ -7,9 +7,9 @@
 
 import { z } from "zod";
 
-export const inspectionTypeSchema = z.enum(["move_in", "move_out"]);
+const inspectionTypeSchema = z.enum(["move_in", "move_out"]);
 
-export const inspectionStatusSchema = z.enum([
+const inspectionStatusSchema = z.enum([
 	"pending",
 	"in_progress",
 	"completed",
@@ -17,7 +17,7 @@ export const inspectionStatusSchema = z.enum([
 	"finalized",
 ]);
 
-export const roomTypeSchema = z.enum([
+const roomTypeSchema = z.enum([
 	"bedroom",
 	"bathroom",
 	"kitchen",
@@ -28,7 +28,7 @@ export const roomTypeSchema = z.enum([
 	"other",
 ]);
 
-export const conditionRatingSchema = z.enum([
+const conditionRatingSchema = z.enum([
 	"excellent",
 	"good",
 	"fair",
@@ -36,7 +36,7 @@ export const conditionRatingSchema = z.enum([
 	"damaged",
 ]);
 
-export const createInspectionSchema = z.object({
+const createInspectionSchema = z.object({
 	lease_id: z.string().uuid(),
 	property_id: z.string().uuid(),
 	unit_id: z.string().uuid().optional().nullable(),
@@ -44,7 +44,7 @@ export const createInspectionSchema = z.object({
 	scheduled_date: z.string().optional().nullable(),
 });
 
-export const updateInspectionSchema = z.object({
+const updateInspectionSchema = z.object({
 	status: inspectionStatusSchema.optional(),
 	scheduled_date: z.string().optional().nullable(),
 	completed_at: z.string().optional().nullable(),
@@ -55,7 +55,7 @@ export const updateInspectionSchema = z.object({
 	tenant_signature_data: z.string().optional().nullable(),
 });
 
-export const createInspectionRoomSchema = z.object({
+const createInspectionRoomSchema = z.object({
 	inspection_id: z.string().uuid(),
 	room_name: z.string().min(1).max(100),
 	room_type: roomTypeSchema,
@@ -63,14 +63,14 @@ export const createInspectionRoomSchema = z.object({
 	notes: z.string().max(2000).optional().nullable(),
 });
 
-export const updateInspectionRoomSchema = z.object({
+const updateInspectionRoomSchema = z.object({
 	room_name: z.string().min(1).max(100).optional(),
 	room_type: roomTypeSchema.optional(),
 	condition_rating: conditionRatingSchema.optional(),
 	notes: z.string().max(2000).optional().nullable(),
 });
 
-export const createInspectionPhotoSchema = z.object({
+const createInspectionPhotoSchema = z.object({
 	inspection_room_id: z.string().uuid(),
 	inspection_id: z.string().uuid(),
 	storage_path: z.string().min(1),
@@ -80,7 +80,7 @@ export const createInspectionPhotoSchema = z.object({
 	caption: z.string().max(500).optional().nullable(),
 });
 
-export const tenantReviewSchema = z.object({
+const tenantReviewSchema = z.object({
 	tenant_notes: z.string().max(5000).optional().nullable(),
 	tenant_signature_data: z.string().min(1, "Signature is required"),
 });

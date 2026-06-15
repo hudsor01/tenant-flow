@@ -12,7 +12,7 @@ import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 
-export const analyticsKeys = {
+const analyticsKeys = {
 	all: ["analytics"] as const,
 	revenueTrends: (months: number) =>
 		[...analyticsKeys.all, "revenue-trends", months] as const,

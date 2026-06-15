@@ -1,22 +1,9 @@
 import type { ThemeMode } from "#types/domain";
-import type { TailwindColorName, TailwindRadiusValue } from "#types/frontend";
 import { secureCookie } from "./dom-utils";
 
-export function getSavedThemeColor(): TailwindColorName {
-	if (typeof window === "undefined") return "blue";
-	return (localStorage.getItem("themeColor") as TailwindColorName) || "blue";
-}
-
-export function getSavedThemeRadius(): TailwindRadiusValue {
-	if (typeof window === "undefined") return 0.65;
-	return parseFloat(
-		localStorage.getItem("themeRadius") || "0.65",
-	) as TailwindRadiusValue;
-}
-
 export const THEME_MODE_STORAGE_KEY = "tenantflow-theme-mode" as const;
-export const THEME_MODE_COOKIE_NAME = "tenantflow_theme_mode" as const;
-export const THEME_MODE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+const THEME_MODE_COOKIE_NAME = "tenantflow_theme_mode" as const;
+const THEME_MODE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 export const DEFAULT_THEME_MODE: ThemeMode = "light";
 
 const VALID_THEME_MODES: ThemeMode[] = ["light", "dark", "system"];
@@ -24,7 +11,7 @@ const VALID_THEME_MODES: ThemeMode[] = ["light", "dark", "system"];
 const isThemeMode = (value: unknown): value is ThemeMode =>
 	typeof value === "string" && VALID_THEME_MODES.includes(value as ThemeMode);
 
-export function parseThemeMode(value?: string | null): ThemeMode | null {
+function parseThemeMode(value?: string | null): ThemeMode | null {
 	if (!value) {
 		return null;
 	}

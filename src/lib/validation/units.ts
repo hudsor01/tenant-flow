@@ -76,17 +76,17 @@ export const unitInputSchema = z.object({
 });
 
 // Full unit schema (includes server-generated fields)
-export const unitSchema = unitInputSchema.extend({
+const unitSchema = unitInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
 	updated_at: z.string(),
 });
 
 // Unit update schema (partial input)
-export const unitUpdateSchema = unitInputSchema.partial();
+const unitUpdateSchema = unitInputSchema.partial();
 
 // Unit query schema (for search/filtering)
-export const unitQuerySchema = z.object({
+const unitQuerySchema = z.object({
 	search: z.string().optional(),
 	property_id: uuidSchema.optional(),
 	status: unitStatusSchema.optional(),
@@ -121,7 +121,7 @@ export const unitQuerySchema = z.object({
 });
 
 // Unit statistics schema
-export const unitStatsSchema = z.object({
+const unitStatsSchema = z.object({
 	total: z.number().nonnegative(),
 	vacant: z.number().nonnegative(),
 	occupied: z.number().nonnegative(),
@@ -140,7 +140,7 @@ export type UnitQuery = z.infer<typeof unitQuerySchema>;
 export type UnitStats = z.infer<typeof unitStatsSchema>;
 
 // Frontend-specific form schema (handles string inputs from HTML forms) - matches database exactly
-export const unitFormSchema = z.object({
+const unitFormSchema = z.object({
 	property_id: requiredString,
 	unit_number: requiredString,
 	bedrooms: z.string().optional(),
@@ -151,7 +151,7 @@ export const unitFormSchema = z.object({
 });
 
 // Transform function for converting form data to API format - matches database exactly
-export const transformUnitFormData = (data: UnitFormData) => ({
+const transformUnitFormData = (data: UnitFormData) => ({
 	property_id: data.property_id,
 	unit_number: data.unit_number,
 	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : 1,

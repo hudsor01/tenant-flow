@@ -86,7 +86,7 @@ export const tenantInputSchema = z.object({
 });
 
 // Full tenant schema (includes server-generated fields)
-export const tenantSchema = tenantInputSchema.extend({
+const tenantSchema = tenantInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
 	updated_at: z.string(),
@@ -119,10 +119,6 @@ export const tenantQuerySchema = z.object({
 // stripe_customer_id is optional/nullable to match DB (set by Stripe integration, not user)
 export const tenantCreateSchema = tenantInputSchema;
 
-// Aliases for request schemas (used in DTOs)
-export const createTenantRequestSchema = tenantCreateSchema;
-export const updateTenantRequestSchema = tenantUpdateSchema;
-
 // Emergency contact validation schema (single source of truth)
 export const emergencyContactSchema = z.object({
 	name: z
@@ -135,9 +131,6 @@ export const emergencyContactSchema = z.object({
 		.min(1, "Emergency contact relationship is required")
 		.max(50, "Emergency contact relationship cannot exceed 50 characters"),
 });
-
-// Alias for user profile updates (same structure)
-export const updateEmergencyContactSchema = emergencyContactSchema;
 
 // Tenant verification schema
 export const tenantVerificationSchema = z.object({
@@ -174,22 +167,8 @@ export const tenantFormSchema = z.object({
 		.optional(),
 });
 
-// Frontend-specific form schema for tenant updates (user_id not required)
-export const tenantFormUpdateSchema = z.object({
-	user_id: requiredString.optional().nullable(),
-	date_of_birth: z.string().optional(),
-	emergency_contact_name: z.string().max(100).optional(),
-	emergency_contact_phone: phoneSchema.optional(),
-	emergency_contact_relationship: z.string().max(50).optional(),
-	identity_verified: z.boolean().optional(),
-	ssn_last_four: z
-		.string()
-		.regex(/^\d{4}$/)
-		.optional(),
-});
-
 // Transform functions for form data
-export const transformTenantFormData = (data: TenantFormData) => ({
+const transformTenantFormData = (data: TenantFormData) => ({
 	user_id: data.user_id || undefined,
 	first_name: data.first_name || undefined,
 	last_name: data.last_name || undefined,
@@ -250,7 +229,7 @@ export const bulkDeleteTenantsSchema = z.object({
 		.max(100, "Cannot delete more than 100 tenants at once"),
 });
 
-export const bulkUpdateTenantsSchema = z.object({
+const bulkUpdateTenantsSchema = z.object({
 	updates: z
 		.array(
 			z.object({

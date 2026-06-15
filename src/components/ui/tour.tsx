@@ -1324,41 +1324,6 @@ function TourSpotlight(props: TourSpotlightProps) {
 	);
 }
 
-interface TourSpotlightRingProps extends DivProps {
-	forceMount?: boolean;
-}
-
-function TourSpotlightRing(props: TourSpotlightRingProps) {
-	const { asChild, className, style, forceMount = false, ...ringProps } = props;
-
-	const open = useStore((state) => state.open);
-	const spotlightRect = useStore((state) => state.spotlightRect);
-
-	if (!open && !forceMount) return null;
-	if (!spotlightRect) return null;
-
-	const RingPrimitive = asChild ? Slot.Slot : "div";
-
-	return (
-		<RingPrimitive
-			data-slot="tour-spotlight-ring"
-			data-state={getDataState(open)}
-			{...ringProps}
-			className={cn(
-				"pointer-events-none fixed z-50 border-ring ring-[3px] ring-ring/50",
-				className,
-			)}
-			style={{
-				left: spotlightRect.x,
-				top: spotlightRect.y,
-				width: spotlightRect.width,
-				height: spotlightRect.height,
-				...style,
-			}}
-		/>
-	);
-}
-
 interface TourPortalProps {
 	children?: ReactNode;
 	container?: HTMLElement | null;
@@ -1725,7 +1690,6 @@ export {
 	type TourProps,
 	TourSkip,
 	TourSpotlight,
-	TourSpotlightRing,
 	TourStep,
 	TourStepCounter,
 	TourTitle,

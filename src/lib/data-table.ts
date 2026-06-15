@@ -1,11 +1,5 @@
 import type { Column } from "@tanstack/react-table";
 import type { CSSProperties } from "react";
-import { dataTableConfig } from "#config/data-table";
-import type {
-	ExtendedColumnFilter,
-	FilterOperator,
-	FilterVariant,
-} from "#types/data-table";
 
 /**
  * Generates CSS styles for pinned table columns
@@ -43,61 +37,4 @@ export function getCommonPinningStyles<TData>({
 		width: column.getSize(),
 		zIndex: isPinned ? 1 : undefined,
 	};
-}
-
-/**
- * Gets available filter operators for a given filter variant
- *
- * @param filterVariant - The type of filter (text, number, date, etc.)
- * @returns Array of operator options with label and value
- */
-export function getFilterOperators(filterVariant: FilterVariant) {
-	const operatorMap: Record<
-		FilterVariant,
-		{ label: string; value: FilterOperator }[]
-	> = {
-		text: dataTableConfig.textOperators,
-		number: dataTableConfig.numericOperators,
-		range: dataTableConfig.numericOperators,
-		date: dataTableConfig.dateOperators,
-		dateRange: dataTableConfig.dateOperators,
-		boolean: dataTableConfig.booleanOperators,
-		select: dataTableConfig.selectOperators,
-		multiSelect: dataTableConfig.multiSelectOperators,
-	};
-
-	return operatorMap[filterVariant] ?? dataTableConfig.textOperators;
-}
-
-/**
- * Gets the default filter operator for a given filter variant
- *
- * @param filterVariant - The type of filter (text, number, date, etc.)
- * @returns Default operator value for the variant
- */
-export function getDefaultFilterOperator(filterVariant: FilterVariant) {
-	const operators = getFilterOperators(filterVariant);
-
-	return operators[0]?.value ?? (filterVariant === "text" ? "iLike" : "eq");
-}
-
-/**
- * Filters out invalid/empty filter entries
- *
- * @param filters - Array of column filters to validate
- * @returns Only filters with valid values (non-empty, or isEmpty/isNotEmpty operators)
- */
-export function getValidFilters<TData>(
-	filters: ExtendedColumnFilter<TData>[],
-): ExtendedColumnFilter<TData>[] {
-	return filters.filter(
-		(filter) =>
-			filter.operator === "isEmpty" ||
-			filter.operator === "isNotEmpty" ||
-			(Array.isArray(filter.value)
-				? filter.value.length > 0
-				: filter.value !== "" &&
-					filter.value !== null &&
-					filter.value !== undefined),
-	);
 }

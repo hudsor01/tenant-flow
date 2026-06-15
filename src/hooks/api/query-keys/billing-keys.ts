@@ -4,7 +4,7 @@ import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { BillingHistoryItem } from "#types/api-contracts";
 
-export const billingKeys = {
+const billingKeys = {
 	all: ["billing"] as const,
 	history: () => [...billingKeys.all, "history"] as const,
 };

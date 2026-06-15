@@ -4,9 +4,8 @@ import { Slot } from "radix-ui";
 import type { MouseEvent } from "react";
 import { useAsRef } from "#hooks/use-as-ref";
 import { useFileUploadContext } from "./context";
-import { useStore, useStoreContext } from "./store";
-import type { FileUploadClearProps, FileUploadTriggerProps } from "./types";
-import { CLEAR_NAME, TRIGGER_NAME } from "./types";
+import type { FileUploadTriggerProps } from "./types";
+import { TRIGGER_NAME } from "./types";
 
 export function FileUploadTrigger(props: FileUploadTriggerProps) {
 	const { asChild, onClick: onClickProp, ...triggerProps } = props;
@@ -35,48 +34,6 @@ export function FileUploadTrigger(props: FileUploadTriggerProps) {
 			data-slot="file-upload-trigger"
 			{...triggerProps}
 			disabled={context.disabled}
-			onClick={onClick}
-		/>
-	);
-}
-
-export function FileUploadClear(props: FileUploadClearProps) {
-	const {
-		asChild,
-		forceMount,
-		disabled,
-		onClick: onClickProp,
-		...clearProps
-	} = props;
-
-	const context = useFileUploadContext(CLEAR_NAME);
-	const store = useStoreContext(CLEAR_NAME);
-	const fileCount = useStore((state) => state.files.size);
-
-	const isDisabled = disabled || context.disabled;
-
-	const onClick = (event: MouseEvent<HTMLButtonElement>) => {
-		onClickProp?.(event);
-
-		if (event.defaultPrevented) return;
-
-		store.dispatch({ type: "CLEAR" });
-	};
-
-	const shouldRender = forceMount || fileCount > 0;
-
-	if (!shouldRender) return null;
-
-	const ClearPrimitive = asChild ? Slot.Slot : "button";
-
-	return (
-		<ClearPrimitive
-			type="button"
-			aria-controls={context.listId}
-			data-slot="file-upload-clear"
-			data-disabled={isDisabled ? "" : undefined}
-			{...clearProps}
-			disabled={isDisabled}
 			onClick={onClick}
 		/>
 	);

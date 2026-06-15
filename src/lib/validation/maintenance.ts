@@ -236,7 +236,7 @@ export const maintenanceRequestFormSchema = z.object({
 	scheduled_date: z.string().optional(),
 });
 
-export const maintenanceAssignmentFormSchema = z.object({
+const maintenanceAssignmentFormSchema = z.object({
 	assigned_to: requiredString,
 	scheduled_date: z.string().optional(),
 });
