@@ -4,7 +4,7 @@
 
 **Latest shipped milestone:** v5.0 AI Blog Content Engine (shipped 2026-06-10, 6 phases / 14 plans / 9/9 requirements). A local-LLM (LM Studio on the M5 Pro) + RAG n8n pipeline that drafts brand-positive, judge-gated, E-E-A-T-credible blog posts into the `n8n-blog-ingest` Edge Function as `status='in-review'` drafts for human approval at `/admin/blog`, executes the SEO-01 ghost-slug reclaim (republish at the exact deleted high-impression URLs), and self-schedules with pre-POST slug dedup + `BLOG-GEN-FAIL` alerts + documented runaway/cost guards. The perfect-PR gate caught and fixed a live prod incident along the way (an RLS policy referencing `is_admin()` raised 42501 on every anonymous `blogs` read). Archive: [milestones/v5.0-ROADMAP.md](milestones/v5.0-ROADMAP.md).
 
-**Active milestone:** none — v5.0 shipped. Start the next with `/gsd-new-milestone`.
+**Active milestone:** v6.0 Final Canonical Cleanup (started 2026-06-14) — remove every orphaned remnant of the demolished offerings (tenant-as-user/portal, rent-payment facilitation, Stripe Connect/payouts, automated screening) and finish the deferred dead-code trim. Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 15-19 in [ROADMAP.md](ROADMAP.md). The last milestone before the project is considered fully complete.
 
 ### Recently shipped
 
@@ -15,11 +15,19 @@
 - **v2.0 Dashboard Command Center** (2026-06-02, 34/34) — `/dashboard` redesign.
 - **v1.0 Marketing Surface Honesty** (2026-05-22, 56/56 audit findings).
 
-## Current Milestone
+## Current Milestone: v6.0 Final Canonical Cleanup
 
-**None active** — v5.0 AI Blog Content Engine shipped 2026-06-10 (closing v4.0's carried-over SEO-01 reclaim). Run `/gsd-new-milestone` to start the next.
+**Goal:** Make the codebase canonical to the current product — remove every orphaned remnant of the demolished offerings and finish the deferred dead-code trim, so no surface promises a feature TenantFlow does not have.
 
-Roadmaps + requirements for v1.0–v5.0 are archived in `.planning/milestones/`.
+**Target areas:**
+- Stripe Connect/payout surfaces + types — 3 live customer-facing surfaces still promise demolished features (`/profile` "receive payments from tenants" card, `/financials` "Payouts" dead-link, onboarding "payouts / invite your first tenant" copy)
+- Rent-payment facilitation type/config remnants (tables already demolished 2026-04-18)
+- Tenant-as-user / portal / invite-auth schemas + "invite"→"add" relabels
+- Never-built automated-screening provider strip (hardcoded TransUnion)
+- The one missed dead DB column (`properties.stripe_connected_account_id`) + lockstep readers
+- Deferred fallow dead-code sweep (~553 internal exports + `fast-check` dep)
+
+Grounded in `.planning/repo-audit/v6.0-LEGACY-AUDIT.md` (7-finder forensic audit). Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 15-19 in [ROADMAP.md](ROADMAP.md). Roadmaps + requirements for v1.0–v5.0 are archived in `.planning/milestones/`.
 
 ## What This Is
 
@@ -56,10 +64,12 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 
 ### Active
 
-<!-- v4.0 Hardening & Hygiene active (started 2026-06-04). Requirements
-     defined in REQUIREMENTS.md across CISEC/TYPE/PERF/TEST/A11Y/SEO. -->
+<!-- v6.0 Final Canonical Cleanup active (started 2026-06-14). Requirements
+     defined in REQUIREMENTS.md across LEGACY-CONNECT/LEGACY-RENT/LEGACY-TENANT/
+     LEGACY-SCREENING/DEADDB/DEADCODE. -->
 
-- **v4.0 Hardening & Hygiene** — 6 categories (CISEC, TYPE, PERF, TEST, A11Y, SEO). Full requirement set with REQ-IDs in [REQUIREMENTS.md](REQUIREMENTS.md); phase mapping in [ROADMAP.md](ROADMAP.md).
+- **v6.0 Final Canonical Cleanup** — 6 categories (LEGACY-CONNECT, LEGACY-RENT, LEGACY-TENANT, LEGACY-SCREENING, DEADDB, DEADCODE). 24 requirements with REQ-IDs in [REQUIREMENTS.md](REQUIREMENTS.md); phases 15-19 in [ROADMAP.md](ROADMAP.md). Grounded in `.planning/repo-audit/v6.0-LEGACY-AUDIT.md`.
+- _v4.0 Hardening & Hygiene shipped 2026-06-07 (20/21) and v5.0 AI Blog Content Engine shipped 2026-06-10 (9/9) — both archived in `.planning/milestones/`._
 
 ### Out of Scope
 
@@ -152,4 +162,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-04 — started v4.0 "Hardening & Hygiene" milestone (6 categories: CISEC/TYPE/PERF/TEST/A11Y/SEO), scoped from the verified 2026-05-29 repo + SEO audits (re-verified against live prod 2026-06-03). CI security gates (CodeQL + gitleaks) shipped ahead via PR #781. v3.0 "Security Hardening" (12/12, advisor 44/0/1), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*
+*Last updated: 2026-06-14 — started v6.0 "Final Canonical Cleanup" (6 categories: LEGACY-CONNECT/RENT/TENANT/SCREENING + DEADDB + DEADCODE; phases 15-19, 24 requirements), grounded in the 7-finder forensic legacy audit (`.planning/repo-audit/v6.0-LEGACY-AUDIT.md`). v5.0 "AI Blog Content Engine" (9/9), v4.0 "Hardening & Hygiene" (20/21, advisor 44/0/1 via v3.0), v3.0 "Security Hardening" (12/12), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*
