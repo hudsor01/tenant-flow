@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -7,9 +7,11 @@ import {
 	acquireLock,
 	buildFbTriggerArgv,
 	fetchAllSlugs,
+	isFactoryStopped,
 	mapTopicEntry,
 	pickNextTopic,
 	releaseLock,
+	STOP_SENTINEL_PATH,
 	triggerFbPostSession,
 } from "./run-scheduled-blog";
 
@@ -148,6 +150,38 @@ describe("overlap lock", () => {
 		releaseLock(lockPath);
 		expect(existsSync(lockPath)).toBe(false);
 		releaseLock(lockPath); // no throw on second call
+	});
+});
+
+describe("isFactoryStopped (kill-switch)", () => {
+	const sentinel = join(tmpdir(), `tf-blog-off-test-${process.pid}`);
+
+	afterEach(() => {
+		if (existsSync(sentinel)) rmSync(sentinel);
+	});
+
+	it("is false when neither the env flag nor the sentinel is present", () => {
+		expect(isFactoryStopped({}, sentinel)).toBe(false);
+	});
+
+	it("is true when BLOG_FACTORY_OFF=1 (sentinel absent)", () => {
+		expect(isFactoryStopped({ BLOG_FACTORY_OFF: "1" }, sentinel)).toBe(true);
+	});
+
+	it("ignores BLOG_FACTORY_OFF values other than '1'", () => {
+		expect(isFactoryStopped({ BLOG_FACTORY_OFF: "0" }, sentinel)).toBe(false);
+		expect(isFactoryStopped({ BLOG_FACTORY_OFF: "true" }, sentinel)).toBe(
+			false,
+		);
+	});
+
+	it("is true when the sentinel file exists (env flag absent)", () => {
+		writeFileSync(sentinel, "paused");
+		expect(isFactoryStopped({}, sentinel)).toBe(true);
+	});
+
+	it("defaults the sentinel path to a persistent home dotfile", () => {
+		expect(STOP_SENTINEL_PATH).toMatch(/\.tenantflow-blog-factory\.off$/);
 	});
 });
 

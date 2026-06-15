@@ -15,7 +15,13 @@
  * Usage: bun scripts/run-scheduled-blog.ts
  */
 import { spawn, spawnSync } from "node:child_process";
-import { openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	openSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
@@ -84,6 +90,26 @@ export async function fetchAllSlugs(
 // time out. PID lockfile with stale-takeover: a live holder skips the tick
 // cleanly (exit 0); a dead holder's lock is reclaimed.
 const DEFAULT_LOCK_PATH = join(tmpdir(), "tenantflow-blog-factory.lock");
+
+// Operational kill-switch. The n8n "tfBlogGenerate" schedule keeps firing every
+// 30 min, but when the factory is intentionally paused (e.g. the topic bank has
+// outrun any downstream use) this makes each tick a clean no-op (exit 0) instead
+// of generating — WITHOUT deactivating the n8n workflow (which needs an n8n
+// restart that would briefly drop the sibling error-alert / lease-reminder /
+// maintenance-notify workflows). Re-arm by deleting the sentinel file or
+// unsetting BLOG_FACTORY_OFF. Persistent path (survives reboot), outside the
+// repo so it is never committed or scanned.
+export const STOP_SENTINEL_PATH = join(
+	homedir(),
+	".tenantflow-blog-factory.off",
+);
+
+export function isFactoryStopped(
+	env: Record<string, string | undefined> = process.env,
+	sentinelPath: string = STOP_SENTINEL_PATH,
+): boolean {
+	return env.BLOG_FACTORY_OFF === "1" || existsSync(sentinelPath);
+}
 
 function isProcessAlive(pid: number): boolean {
 	try {
@@ -170,6 +196,13 @@ export function triggerFbPostSession(slug: string): void {
 }
 
 async function main(): Promise<number> {
+	if (isFactoryStopped()) {
+		console.log(
+			`blog factory paused — skipping this tick (re-arm: rm ${STOP_SENTINEL_PATH} or unset BLOG_FACTORY_OFF).`,
+		);
+		return 0;
+	}
+
 	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const key =
 		process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
