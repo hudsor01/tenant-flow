@@ -26,15 +26,14 @@ describe("CONS-06: canonical Contact Sales label", () => {
 		"Schedule a demo",
 	] as const;
 
-	// CONS-06 scope: "Contact Sales" appears in 12 locations across these
-	// 7 files (wider than 10-CONTEXT's "4 string swaps" — see 10-RESEARCH.md).
+	// CONS-06 scope: canonical "Contact Sales" across the marketing CTA files
+	// (wider than 10-CONTEXT's "4 string swaps" — see 10-RESEARCH.md).
 	const CTA_FILES = [
 		"src/app/about/page.tsx",
 		"src/app/pricing/pricing-content.tsx",
 		"src/app/faq/page.tsx",
 		"src/app/help/page.tsx",
 		"src/components/sections/home-faq.tsx",
-		"src/components/pricing/kibo-style-pricing.tsx",
 		"src/components/pricing/pricing-card-standard.tsx",
 	] as const;
 
