@@ -146,11 +146,6 @@ export const mutationKeys = {
 		delete: ["mutations", "expenses", "delete"] as const,
 	},
 
-	// Identity Verification
-	identityVerification: {
-		start: ["mutations", "identityVerification", "start"] as const,
-	},
-
 	// Reports
 	reports: {
 		delete: ["mutations", "reports", "delete"] as const,
