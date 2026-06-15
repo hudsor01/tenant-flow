@@ -1,4 +1,4 @@
--- v6.0 Phase 18 — drop the last dead Stripe-Connect + tenant-as-user DB remnants.
+-- v6.0 Phase 18 — drop dead Stripe-Connect DB remnants + orphan rent-webhook config.
 --
 -- ⚠ LOCKSTEP: apply this ONLY AFTER the code that stops selecting
 -- properties.stripe_connected_account_id (PROPERTY_SELECT_COLUMNS, same PR) is
@@ -10,16 +10,20 @@
 --   • properties.stripe_connected_account_id: uuid, 0 non-null rows, NO view/index/FK
 --     dependency, no RPC reader; the 2026-04-18 demolish migration dropped the leases
 --     twin but missed this one.
---   • tenants.user_id: tenant-as-USER auth FK; public.tenants RLS policies key on
---     owner_user_id, and NO function references tenants.user_id (0 readers).
+--   • tenants.user_id is NOT dropped here (LEGACY-TENANT-06 deferred): it has 0
+--     SQL readers + 0 populated rows, BUT the frontend tenant query layer still
+--     reads it live — TENANT_BASE_SELECT lists user_id, TENANT_WITH_LEASE_SELECT
+--     uses the users!tenants_user_id_fkey embed, and the notification lookup
+--     selects it (src/hooks/api/query-keys/tenant-keys.ts). Dropping it would 400
+--     every tenant query. Deferred until that query layer is refactored off the
+--     user_id FK (review #847 caught this; the Phase-17 "0 readers" check was
+--     DB-side only).
 --   • app_config rows: orphan webhook URLs for the already-dropped
 --     notify_n8n_rent_payment() / queue_payment_reminders() jobs.
 --   • get_user_profile(): hardcodes 'stripe_connected', false (no column dependency);
 --     the key is dropped, properties_count/units_count are kept.
 
 alter table public.properties drop column if exists stripe_connected_account_id;
-
-alter table public.tenants drop column if exists user_id;
 
 delete from public.app_config
 where key in ('n8n.webhook.rent_payment_url', 'n8n.webhook.payment_reminder_url');
