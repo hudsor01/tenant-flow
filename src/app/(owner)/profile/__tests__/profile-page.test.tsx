@@ -71,7 +71,6 @@ const mockOwnerProfile = {
 	created_at: "2024-01-15T00:00:00Z",
 	updated_at: "2024-12-01T00:00:00Z",
 	owner_profile: {
-		stripe_connected: true,
 		properties_count: 5,
 		units_count: 20,
 	},
@@ -216,22 +215,6 @@ describe("Owner Profile Page", () => {
 		});
 
 		expect(screen.getByText("Units")).toBeInTheDocument();
-	});
-
-	it("shows Stripe connected status for owners", async () => {
-		render(
-			<TestWrapper>
-				<OwnerProfilePage />
-			</TestWrapper>,
-		);
-
-		await waitFor(() => {
-			expect(screen.getByText("Stripe Connected")).toBeInTheDocument();
-		});
-
-		expect(
-			screen.getByText("You can receive payments from tenants"),
-		).toBeInTheDocument();
 	});
 
 	it("shows edit form when Edit button is clicked", async () => {

@@ -146,12 +146,6 @@ export const mutationKeys = {
 		delete: ["mutations", "expenses", "delete"] as const,
 	},
 
-	// Stripe Connect
-	stripeConnect: {
-		createAccount: ["mutations", "stripeConnect", "createAccount"] as const,
-		dashboardLink: ["mutations", "stripeConnect", "dashboardLink"] as const,
-	},
-
 	// Identity Verification
 	identityVerification: {
 		start: ["mutations", "identityVerification", "start"] as const,

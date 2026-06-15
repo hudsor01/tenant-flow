@@ -5,7 +5,7 @@
  * - View and update their profile information
  * - Upload/remove avatar
  * - Change password
- * - View account statistics (properties, units, Stripe status)
+ * - View account statistics (properties, units)
  */
 
 "use client";
@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import { type ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChangePasswordDialog } from "#components/auth/change-password-dialog";
-import { PaymentSettingsSection } from "#components/profiles/owner/payment-settings-section";
 import { PersonalInfoSection } from "#components/profiles/owner/personal-info-section";
 import { ProfileCard } from "#components/profiles/owner/profile-card";
 // Components
@@ -240,12 +239,6 @@ export default function OwnerProfilePage() {
 							setFormData((prev) => ({ ...prev, ...data }))
 						}
 					/>
-
-					{profile.owner_profile && (
-						<PaymentSettingsSection
-							stripeConnected={profile.owner_profile.stripe_connected}
-						/>
-					)}
 
 					<SecuritySection
 						onChangePassword={() => setShowChangePasswordDialog(true)}

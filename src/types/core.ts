@@ -105,15 +105,6 @@ export interface CreateCheckoutSessionRequest {
 	customerEmail?: string;
 }
 
-export interface CreateConnectedPaymentRequest {
-	amount: number;
-	tenantId: string;
-	connectedAccountId: string;
-	platformFee?: number;
-	propertyOwnerAccount?: string;
-	propertyId?: string;
-}
-
 export interface Pagination {
 	page?: number;
 	limit?: number;

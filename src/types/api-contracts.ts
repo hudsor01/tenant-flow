@@ -21,7 +21,6 @@ import type { PropertyCreate } from "#lib/validation/properties";
 import type { TenantCreate, TenantUpdate } from "#lib/validation/tenants";
 
 export interface UserProfileOwnerData {
-	stripe_connected: boolean;
 	properties_count: number;
 	units_count: number;
 }
@@ -301,20 +300,6 @@ export interface UnitFilters {
 	offset?: number;
 }
 
-export interface PaymentHistoryItem {
-	id: string;
-	amount: number;
-	status: string;
-	paid_date: string | null;
-	due_date: string;
-	created_at: string;
-	lease_id: string;
-	tenant_id: string;
-	payment_method_type: string;
-	period_start: string;
-	period_end: string;
-}
-
 /**
  * Invoice response from Stripe API
  */
@@ -367,38 +352,6 @@ export interface SubscriptionStatusResponse {
 	currentPeriodEnd: string | null;
 	cancelAtPeriodEnd: boolean;
 	trialEndsAt: string | null;
-}
-
-/**
- * Failed payment attempt response from rent-payments API
- * Shape matches the API response from /api/v1/rent-payments/failed-attempts
- */
-export interface FailedPaymentAttempt {
-	id: string;
-	subscriptionId: string;
-	tenant_id: string;
-	amount: number;
-	failureReason: string | null;
-	stripePaymentIntentId?: string;
-	created_at: string;
-	/** Optional: attempt number for retry tracking (may not be provided by API) */
-	attemptNumber?: number;
-	/** Optional: next retry date for failed payments (may not be provided by API) */
-	nextRetryDate?: string;
-}
-
-export interface TenantPayment {
-	id: string;
-	amount: number;
-	status: string;
-	due_date: string;
-	paid_date: string | null;
-	lease_id: string;
-	rent_amount: number;
-	late_fee_amount: number;
-	application_fee_amount: number;
-	period_start: string;
-	period_end: string;
 }
 
 export interface TenantMaintenanceRequest {
@@ -491,26 +444,6 @@ export interface UpdateMaintenanceRequestInput {
 	estimated_cost?: number;
 }
 
-export interface AmountDueResponse {
-	base_rent_cents: number;
-	other_charges_cents: number;
-	total_due_cents: number;
-	next_payment_date: string;
-}
-
-export interface PayRentRequest {
-	payment_method_id: string;
-	lease_id: string;
-	amount: number;
-}
-
-export interface PayRentResponse {
-	success: boolean;
-	payment_id: string;
-	status: string;
-	message?: string;
-}
-
 /**
  * Tenant Notification Settings Response
  * API response format for tenant notification settings in TenantSettings
@@ -521,37 +454,6 @@ export interface TenantNotificationSettingsResponse {
 	smsNotifications: boolean;
 	maintenanceUpdates: boolean;
 	paymentReminders: boolean;
-}
-
-export interface LateFeeConfig {
-	lease_id: string;
-	late_fee_amount: number;
-	late_fee_days: number;
-	grace_period_days: number;
-}
-
-export interface ApiOverduePayment {
-	id: string;
-	lease_id: string;
-	tenant_id: string;
-	amount: number;
-	due_date: string;
-	late_fee_amount: number;
-	status: string;
-}
-
-export interface ProcessLateFeesResult {
-	processed: number;
-	failed: number;
-	total_amount: number;
-	errors: string[];
-}
-
-export interface ApplyLateFeeResult {
-	invoiceItemId: string;
-	amount: number;
-	success: boolean;
-	message?: string;
 }
 
 export interface EmergencyContact {
@@ -601,25 +503,6 @@ export const EMPTY_PAYMENT_SUMMARY: OwnerPaymentSummaryResponse = {
 	unpaidCount: 0,
 	tenantCount: 0,
 } as const;
-
-export interface TenantPaymentRecord {
-	id: string;
-	amount: number;
-	currency?: string;
-	status: string;
-	paid_date: string | null;
-	due_date: string;
-	created_at: string;
-	lease_id: string;
-	tenant_id: string;
-	payment_method_type: string;
-	period_start: string;
-	period_end: string;
-	description?: string;
-	metadata?: Record<string, unknown> | null;
-	receipt_email?: string | null;
-	receiptEmail?: string | null;
-}
 
 export interface CreateLeaseInput {
 	// Selection (Step 1)
@@ -762,29 +645,6 @@ export interface ApiResponse<T = unknown> {
 	success: boolean;
 	message?: string;
 	error?: string;
-}
-
-// Tenant payment history response
-export interface TenantPaymentHistoryResponse {
-	payments: PaymentHistoryItem[];
-	pagination: {
-		page: number;
-		limit: number;
-		total: number;
-	};
-}
-
-// Payment reminder types
-export interface SendPaymentReminderRequest {
-	tenant_id: string;
-	lease_id?: string;
-	payment_id?: string;
-}
-
-export interface SendPaymentReminderResponse {
-	success: boolean;
-	message: string;
-	reminder_sent_at: string;
 }
 
 // Request/Response aliases for consistency

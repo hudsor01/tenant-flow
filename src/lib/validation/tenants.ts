@@ -123,12 +123,6 @@ export const tenantCreateSchema = tenantInputSchema;
 export const createTenantRequestSchema = tenantCreateSchema;
 export const updateTenantRequestSchema = tenantUpdateSchema;
 
-// Payment reminder schema
-export const sendPaymentReminderSchema = z.object({
-	tenant_id: uuidSchema,
-	lease_id: uuidSchema.optional(),
-});
-
 // Emergency contact validation schema (single source of truth)
 export const emergencyContactSchema = z.object({
 	name: z

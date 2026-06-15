@@ -90,24 +90,6 @@ begin
       raw_user_meta_data = excluded.raw_user_meta_data,
       updated_at = now();
 
-  -- Create Stripe connected account for test owner (required for RLS)
-  insert into public.stripe_connected_accounts (
-    user_id,
-    stripe_account_id,
-    business_type,
-    onboarding_status,
-    charges_enabled,
-    payouts_enabled
-  ) values (
-    v_owner_test_user_id,
-    'acct_test_e2e_owner',
-    'individual',
-    'completed',
-    true,
-    true
-  )
-  on conflict (user_id) do nothing;
-
   raise notice '✓ E2E test owner created: test-admin@tenantflow.app';
 end $$;
 

@@ -24,8 +24,8 @@ export function OnboardingStepWelcome({
 			<div className="space-y-2">
 				<h2 className="text-xl font-semibold">Let&apos;s get you set up</h2>
 				<p className="text-sm text-muted-foreground max-w-sm">
-					We&apos;ll walk through adding your first property, connecting Stripe
-					for payouts, and inviting your first tenant — about two minutes.
+					We&apos;ll walk through adding your first property, recording a
+					tenant, and tracking leases and maintenance — about two minutes.
 				</p>
 			</div>
 

@@ -190,20 +190,6 @@ export type CustomerInvoiceStatus =
 	(typeof CUSTOMER_INVOICE_STATUS)[keyof typeof CUSTOMER_INVOICE_STATUS];
 
 /**
- * RENT CHARGE STATUS ENUMERATION
- */
-export const RENT_CHARGE_STATUS = {
-	PENDING: "pending",
-	PAID: "paid",
-	PARTIAL: "PARTIAL",
-	OVERDUE: "OVERDUE",
-	CANCELLED: "CANCELLED",
-} as const;
-
-export type RentChargeStatus =
-	(typeof RENT_CHARGE_STATUS)[keyof typeof RENT_CHARGE_STATUS];
-
-/**
  * PLAN TYPE ENUMERATION
  */
 export const PLAN_TYPES = {
