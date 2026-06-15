@@ -39,12 +39,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
-	type ChartConfig,
-	ChartContainer,
 	ChartTooltip,
 	ChartTooltipContent,
-} from "#components/ui/chart";
+} from "#components/ui/chart-tooltip";
 import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
 import { formatCurrency } from "#lib/utils/currency";

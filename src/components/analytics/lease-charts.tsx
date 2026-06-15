@@ -10,11 +10,8 @@ import {
 } from "recharts";
 import { Badge } from "#components/ui/badge";
 
-import {
-	type ChartConfig,
-	ChartContainer,
-	ChartTooltipContent,
-} from "#components/ui/chart";
+import { type ChartConfig, ChartContainer } from "#components/ui/chart";
+import { ChartTooltipContent } from "#components/ui/chart-tooltip";
 import { Empty, EmptyDescription, EmptyHeader } from "#components/ui/empty";
 import type {
 	LeaseLifecyclePoint,
