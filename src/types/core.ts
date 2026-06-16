@@ -141,7 +141,6 @@ export type LeaseWithExtras = Lease & {
 	};
 	tenant?: {
 		id: string;
-		user_id: string;
 		name?: string;
 		email?: string;
 	};
@@ -252,7 +251,6 @@ export interface LeaseStatsResponse {
 
 export interface TenantWithLeaseInfo {
 	id: string;
-	user_id: string | null;
 	owner_user_id: string | null;
 	status: string;
 	created_at: string | null;

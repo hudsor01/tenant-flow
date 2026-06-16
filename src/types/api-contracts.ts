@@ -117,16 +117,8 @@ export type UnitDetail = Tables<"units"> & {
 	>;
 };
 
-/** Tenant list item - combines tenant and user info for list views */
-export type TenantListItem = Pick<
-	Tables<"tenants">,
-	"id" | "user_id" | "created_at"
-> & {
-	user: Pick<
-		Tables<"users">,
-		"id" | "email" | "first_name" | "last_name" | "phone" | "status"
-	>;
-};
+/** Tenant list item - minimal fields for list views */
+export type TenantListItem = Pick<Tables<"tenants">, "id" | "created_at">;
 
 /** Tenant detail - full tenant with user and lease info */
 export type TenantDetail = Tables<"tenants"> & {
