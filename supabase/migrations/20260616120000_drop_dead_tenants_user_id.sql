@@ -52,17 +52,17 @@ create or replace function public.log_lease_signature_activity()
  set search_path to 'public'
 as $function$
 begin
-  -- Log owner signature
+  -- Log owner signature (activity.title + user_id + activity_type are NOT NULL).
   if new.owner_signed_at is not null and (old is null or old.owner_signed_at is null) then
-    insert into activity (user_id, activity_type, entity_type, entity_id, description, created_at)
-    values (new.owner_user_id, 'lease_signed', 'lease', new.id, 'Owner signed lease agreement', now());
+    insert into activity (user_id, activity_type, entity_type, entity_id, title, description, created_at)
+    values (new.owner_user_id, 'lease_signed', 'lease', new.id, 'Lease signed', 'Owner signed lease agreement', now());
   end if;
 
   -- Log tenant signature against the owner's activity feed (tenants are records,
   -- not auth users — there is no tenant user_id to attribute the event to).
   if new.tenant_signed_at is not null and (old is null or old.tenant_signed_at is null) then
-    insert into activity (user_id, activity_type, entity_type, entity_id, description, created_at)
-    values (new.owner_user_id, 'lease_signed', 'lease', new.id, 'Tenant signed lease agreement', now());
+    insert into activity (user_id, activity_type, entity_type, entity_id, title, description, created_at)
+    values (new.owner_user_id, 'lease_signed', 'lease', new.id, 'Lease signed', 'Tenant signed lease agreement', now());
   end if;
 
   return new;

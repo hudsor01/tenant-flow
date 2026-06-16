@@ -82,6 +82,9 @@ export function mapTenantBaseRow(raw: unknown): Tenant {
 	return {
 		id: requireString(row, "id", "mapTenantBaseRow"),
 		status: requireTenantStatus(row.status, "mapTenantBaseRow"),
+		// LEGACY-TENANT-06 lockstep: Tenant = Tables<"tenants"> still types user_id
+		// until the column drops in prod + db:types regen. No query selects it, so
+		// this resolves to null; this line is stripped in the post-deploy cleanup.
 		user_id: (row.user_id as string | null) ?? null,
 		owner_user_id: (row.owner_user_id as string | null) ?? null,
 		first_name: (row.first_name as string | null) ?? null,
@@ -201,6 +204,8 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 	// Build base fields (required fields only, no optional undefined assignments)
 	const base = {
 		id,
+		// LEGACY-TENANT-06 lockstep: kept until the column drops + db:types regen
+		// (TenantWithLeaseInfo still types user_id). Stripped post-deploy.
 		user_id: row.user_id,
 		owner_user_id: row.owner_user_id,
 		status,
