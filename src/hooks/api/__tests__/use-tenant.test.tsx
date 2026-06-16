@@ -167,11 +167,6 @@ describe("Query Hooks", () => {
 			if (table === "tenants") {
 				return createQueryChain({ data: mockTenant, count: 1 });
 			}
-			if (table === "notification_settings") {
-				return createQueryChain({
-					data: { email: true, sms: false, maintenance: true, general: true },
-				});
-			}
 			if (table === "lease_tenants") {
 				return createQueryChain({ data: [] });
 			}

@@ -23,7 +23,8 @@ import { tenantMutations } from "./query-keys/tenant-mutation-options";
 
 /**
  * Create tenant mutation
- * Note: tenants table requires user_id FK to auth.users.
+ * Landlord-managed tenants are records; create writes owner_user_id + contact
+ * fields, never user_id (tenants are not auth users).
  */
 export function useCreateTenantMutation() {
 	const queryClient = useQueryClient();

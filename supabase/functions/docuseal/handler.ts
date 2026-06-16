@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
 						.single(),
 					supabase
 						.from("tenants")
-						.select("user_id, users!inner(first_name, last_name, email)")
+						.select("first_name, last_name, name, email")
 						.eq("id", lease.primary_tenant_id)
 						.single(),
 					supabase
@@ -140,15 +140,17 @@ Deno.serve(async (req: Request) => {
 				(ownerProfile?.full_name as string | null) ?? "Property Owner";
 			const ownerEmail = (ownerProfile?.email as string | null) ?? "";
 
-			const tenantUser = tenantRow?.users as unknown as {
-				first_name: string | null;
-				last_name: string | null;
-				email: string;
-			} | null;
-			const tenantName = tenantUser
-				? `${tenantUser.first_name ?? ""} ${tenantUser.last_name ?? ""}`.trim()
-				: "Tenant";
-			const tenantEmail = tenantUser?.email ?? "";
+			// Landlord-managed tenants are records, never auth users — read the
+			// tenant's own columns directly (the dead user_id FK embed was removed
+			// in LEGACY-TENANT-06; user_id was 0-populated so the old !inner embed
+			// always returned null, leaving tenantEmail empty).
+			const tenantFirstName = (tenantRow?.first_name as string | null) ?? "";
+			const tenantLastName = (tenantRow?.last_name as string | null) ?? "";
+			const tenantName =
+				(tenantRow?.name as string | null) ||
+				`${tenantFirstName} ${tenantLastName}`.trim() ||
+				"Tenant";
+			const tenantEmail = (tenantRow?.email as string | null) ?? "";
 
 			const property = unitRow
 				? (unitRow.properties as unknown as {
