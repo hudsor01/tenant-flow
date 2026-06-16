@@ -11,7 +11,8 @@ import { createTestClient, getTestCredentials } from "../setup/supabase-client";
  * dropped in LEGACY-TENANT-06 (migration 20260616161248).
  *
  * RLS must allow owners to INSERT tenants they manage and isolate them across
- * owners via the lease_tenants linkage.
+ * owners via direct owner_user_id = auth.uid() scoping (the four tenants
+ * policies are pure owner_user_id checks; no lease_tenants join).
  */
 describe("Tenants landlord-only CRUD (RLS)", () => {
 	let clientA: SupabaseClient;
@@ -110,9 +111,9 @@ describe("Tenants landlord-only CRUD (RLS)", () => {
 			.eq("id", tenantId)
 			.maybeSingle();
 
-		// Owner B must not see owner A's landlord-managed tenant.
-		// If RLS allows cross-owner read via lease_tenants linkage, that's OK,
-		// but this tenant has no lease linkage, so must be invisible to owner B.
+		// Owner B must not see owner A's landlord-managed tenant: the tenants
+		// SELECT policy scopes rows to owner_user_id = auth.uid(), so a tenant
+		// owned by owner A is invisible to owner B.
 		expect(error).toBeNull();
 		expect(data).toBeNull();
 	});

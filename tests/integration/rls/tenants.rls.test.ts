@@ -30,7 +30,7 @@ describe("Tenants RLS — cross-tenant isolation", () => {
 		const { data, error } = await clientA.from("tenants").select("id");
 		expect(error).toBeNull();
 		expect(data).not.toBeNull();
-		// RLS enforces isolation via lease_tenants -> leases -> owner_user_id chain
+		// RLS enforces isolation via the tenants SELECT policy: owner_user_id = auth.uid()
 	});
 
 	it("owner B can only read their own tenants", async () => {
