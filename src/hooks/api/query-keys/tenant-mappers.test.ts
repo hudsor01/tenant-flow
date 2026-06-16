@@ -24,7 +24,6 @@ import {
 
 const validBaseRow = {
 	id: "00000000-0000-0000-0000-000000000001",
-	user_id: null,
 	owner_user_id: "00000000-0000-0000-0000-0000000000ff",
 	first_name: "Jordan",
 	last_name: "Lee",
@@ -44,7 +43,6 @@ const validBaseRow = {
 
 const minimalNestedRow: TenantPostgrestRow = {
 	id: "00000000-0000-0000-0000-000000000002",
-	user_id: null,
 	owner_user_id: "00000000-0000-0000-0000-0000000000ff",
 	first_name: "Sam",
 	last_name: "Rivera",
@@ -69,7 +67,6 @@ describe("mapTenantBaseRow", () => {
 		expect(mapped.status).toBe("active");
 		expect(mapped.email).toBe("jordan@example.com");
 		// Nullable-in-DB fields stay nullable, not over-validated into throws.
-		expect(mapped.user_id).toBeNull();
 		expect(mapped.phone).toBeNull();
 		expect(mapped.identity_verified).toBeNull();
 	});

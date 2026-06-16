@@ -112,7 +112,6 @@ function createWrapper() {
 // mapTenantBaseRow (TYPE-02), so the fixture must carry a valid status.
 const mockTenant = {
 	id: "tenant-123",
-	user_id: "user-123",
 	owner_user_id: "owner-user-123",
 	first_name: "John",
 	last_name: "Doe",

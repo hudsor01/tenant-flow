@@ -65,6 +65,36 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			blog_rag_chunks: {
+				Row: {
+					content: string;
+					created_at: string;
+					embedding: string | null;
+					id: string;
+					metadata: Json;
+					source: string | null;
+					updated_at: string;
+				};
+				Insert: {
+					content: string;
+					created_at?: string;
+					embedding?: string | null;
+					id?: string;
+					metadata?: Json;
+					source?: string | null;
+					updated_at?: string;
+				};
+				Update: {
+					content?: string;
+					created_at?: string;
+					embedding?: string | null;
+					id?: string;
+					metadata?: Json;
+					source?: string | null;
+					updated_at?: string;
+				};
+				Relationships: [];
+			};
 			blogs: {
 				Row: {
 					author_user_id: string | null;
@@ -1606,7 +1636,6 @@ export type Database = {
 					ssn_last_four: string | null;
 					status: string;
 					updated_at: string | null;
-					user_id: string | null;
 				};
 				Insert: {
 					created_at?: string | null;
@@ -1625,7 +1654,6 @@ export type Database = {
 					ssn_last_four?: string | null;
 					status?: string;
 					updated_at?: string | null;
-					user_id?: string | null;
 				};
 				Update: {
 					created_at?: string | null;
@@ -1644,20 +1672,12 @@ export type Database = {
 					ssn_last_four?: string | null;
 					status?: string;
 					updated_at?: string | null;
-					user_id?: string | null;
 				};
 				Relationships: [
 					{
 						foreignKeyName: "tenants_owner_user_id_fkey";
 						columns: ["owner_user_id"];
 						isOneToOne: false;
-						referencedRelation: "users";
-						referencedColumns: ["id"];
-					},
-					{
-						foreignKeyName: "tenants_user_id_fkey";
-						columns: ["user_id"];
-						isOneToOne: true;
 						referencedRelation: "users";
 						referencedColumns: ["id"];
 					},
@@ -2259,10 +2279,6 @@ export type Database = {
 				Args: { p_user_id: string };
 				Returns: undefined;
 			};
-			assert_can_create_lease: {
-				Args: { p_primary_tenant_id: string; p_unit_id: string };
-				Returns: boolean;
-			};
 			audit_for_all_policies: {
 				Args: { p_role: string };
 				Returns: {
@@ -2564,6 +2580,10 @@ export type Database = {
 			};
 			health_check: { Args: never; Returns: Json };
 			is_admin: { Args: never; Returns: boolean };
+			is_notification_suppressed: {
+				Args: { p_email: string };
+				Returns: boolean;
+			};
 			link_stripe_customer_to_user: {
 				Args: { p_email: string; p_stripe_customer_id: string };
 				Returns: string;
@@ -2579,6 +2599,16 @@ export type Database = {
 					p_user_agent?: string;
 				};
 				Returns: string;
+			};
+			match_blog_rag_chunks: {
+				Args: { match_count?: number; query_embedding: string };
+				Returns: {
+					content: string;
+					id: string;
+					metadata: Json;
+					similarity: number;
+					source: string;
+				}[];
 			};
 			process_account_deletions: { Args: never; Returns: undefined };
 			process_subscription_status_change: {

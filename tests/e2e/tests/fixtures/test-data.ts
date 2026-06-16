@@ -17,7 +17,6 @@ export interface TenantInput {
 	phone: string;
 	emergency_contact: string;
 	avatarUrl: string | null;
-	user_id: string | null;
 }
 
 export interface PropertyInput {
@@ -63,7 +62,6 @@ export const createTenant = (overrides?: Partial<TenantInput>): TenantInput => {
 		phone: faker.phone.number(),
 		emergency_contact: `${faker.person.fullName()} - ${faker.phone.number()}`,
 		avatarUrl: null,
-		user_id: null,
 		...overrides,
 	};
 };

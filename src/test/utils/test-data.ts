@@ -28,7 +28,6 @@ import type { Lease, Property, Tenant, User } from "#types/core";
  */
 export const DEFAULT_TENANT: Tenant = {
 	id: "tenant-1",
-	user_id: "user-1",
 	owner_user_id: "user-1",
 	first_name: "Test",
 	last_name: "Tenant",
