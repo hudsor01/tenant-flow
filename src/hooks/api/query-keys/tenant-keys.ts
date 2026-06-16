@@ -43,7 +43,8 @@ export const tenantQueries = {
 
 	/**
 	 * Paginated tenant list with optional filters.
-	 * Joins users table to populate name/email/phone on TenantWithLeaseInfo.
+	 * name/email/phone come from the tenant's own columns (landlord-managed
+	 * tenants are records, not auth users — no users join).
 	 * Joins lease_tenants -> leases for current lease context.
 	 */
 	list: (filters?: TenantFilters) =>

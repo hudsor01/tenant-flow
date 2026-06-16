@@ -58,7 +58,8 @@ type Unit = Pick<
 	"id" | "unit_number" | "property_id" | "rent_amount"
 >;
 
-// Tenant API response - the API returns tenant with user info joined
+// Tenant API response shape — flat tenant columns (landlord-managed tenants are
+// records, not auth users; LEGACY-TENANT-06 removed the users join).
 // This is the shape of the API response, not a duplicate of shared types
 interface Tenant {
 	id: string;

@@ -3,7 +3,7 @@
  *
  * `mapTenantBaseRow` maps a flat `tenants` insert/update return
  * (`.select().single()`); `mapTenantRow` maps the nested-join read shape
- * (with user + lease_tenants joins) to `TenantWithLeaseInfo`.
+ * (with lease_tenants joins) to `TenantWithLeaseInfo`.
  *
  * Both field-validate at the boundary, mirroring `mapDocumentRow` in
  * `document-keys.ts` (CLAUDE.md's cited reference for the "RPC / PostgREST
