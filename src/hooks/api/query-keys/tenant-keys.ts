@@ -26,10 +26,13 @@ import { mapTenantRow } from "./tenant-mappers";
 import { mapTenantStats } from "./tenant-stats-mapper";
 
 const TENANT_BASE_SELECT =
-	"id, user_id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four";
+	"id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four";
 
+// Landlord-managed tenants are records, never auth users, so the dead
+// tenants.user_id FK embed was removed (LEGACY-TENANT-06). Display fields come
+// from the tenant's own first_name/last_name/email/phone columns.
 const TENANT_WITH_LEASE_SELECT =
-	"*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))";
+	"*, lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))";
 
 /**
  * Tenant query factory
@@ -211,64 +214,5 @@ export const tenantQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,
 			structuralSharing: true,
-		}),
-
-	/**
-	 * Notification preferences for a tenant
-	 * Read from notification_settings table (keyed by user_id)
-	 */
-	notificationPreferences: (tenant_id: string) =>
-		queryOptions({
-			queryKey: [
-				...tenantQueries.details(),
-				tenant_id,
-				"notification-preferences",
-			],
-			queryFn: async (): Promise<{
-				emailNotifications: boolean;
-				smsNotifications: boolean;
-				maintenanceUpdates: boolean;
-				paymentReminders: boolean;
-			}> => {
-				const supabase = createClient();
-
-				const { data: tenantRow, error: tenantError } = await supabase
-					.from("tenants")
-					.select("user_id")
-					.eq("id", tenant_id)
-					.single();
-
-				if (tenantError) handlePostgrestError(tenantError, "tenants");
-				// tenants.user_id is nullable -- a tenant record can exist without
-				// a linked auth user. Return defaults rather than querying with
-				// null (which PostgREST would reject as `eq.null` -- pointless).
-				const tenantUserId = tenantRow?.user_id;
-				if (!tenantUserId) {
-					return {
-						emailNotifications: true,
-						smsNotifications: false,
-						maintenanceUpdates: true,
-						paymentReminders: true,
-					};
-				}
-
-				const { data, error } = await supabase
-					.from("notification_settings")
-					.select("email, sms, maintenance, general")
-					.eq("user_id", tenantUserId)
-					.single();
-
-				if (error) handlePostgrestError(error, "notification_settings");
-
-				return {
-					emailNotifications: data?.email ?? true,
-					smsNotifications: data?.sms ?? false,
-					maintenanceUpdates: data?.maintenance ?? true,
-					paymentReminders: data?.general ?? true,
-				};
-			},
-			enabled: !!tenant_id,
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 10 * 60 * 1000,
 		}),
 };

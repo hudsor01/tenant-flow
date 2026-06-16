@@ -99,7 +99,3 @@ export function useTenantStats() {
 export function usePrefetchTenantDetail(id: string) {
 	usePrefetchQuery(tenantQueries.detail(id));
 }
-
-export function useNotificationPreferences(tenant_id: string) {
-	return useQuery(tenantQueries.notificationPreferences(tenant_id));
-}

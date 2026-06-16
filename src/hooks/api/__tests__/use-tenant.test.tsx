@@ -19,7 +19,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import {
 	useAllTenants,
-	useNotificationPreferences,
 	usePrefetchTenantDetail,
 	useTenant,
 	useTenantList,
@@ -302,44 +301,6 @@ describe("Query Hooks", () => {
 			});
 		});
 	});
-
-	describe("useNotificationPreferences", () => {
-		it("should query notification_settings via user_id", async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "tenants") {
-					return createQueryChain({ data: { user_id: "user-123" } });
-				}
-				if (table === "notification_settings") {
-					return createQueryChain({
-						data: { email: true, sms: false, maintenance: true, general: true },
-					});
-				}
-				return createQueryChain({ data: null });
-			});
-
-			const { result } = renderHook(
-				() => useNotificationPreferences("tenant-123"),
-				{
-					wrapper: createWrapper(),
-				},
-			);
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("tenants");
-			expect(supabaseFromMock).toHaveBeenCalledWith("notification_settings");
-		});
-
-		it("should not fetch when tenant_id is empty", () => {
-			const { result } = renderHook(() => useNotificationPreferences(""), {
-				wrapper: createWrapper(),
-			});
-
-			expect(result.current.isFetching).toBe(false);
-		});
-	});
 });
 
 describe("Mutation Hooks", () => {
@@ -421,12 +382,12 @@ describe("Mutation Hooks", () => {
 			});
 
 			await result.current.mutateAsync({
-				user_id: "user-123",
+				first_name: "Jane",
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("tenants");
 			expect(supabaseInsertMock).toHaveBeenCalledWith(
-				expect.objectContaining({ user_id: "user-123" }),
+				expect.objectContaining({ first_name: "Jane" }),
 			);
 		});
 	});
@@ -610,7 +571,7 @@ describe("Error Handling", () => {
 		});
 
 		await expect(
-			result.current.mutateAsync({ user_id: "user-123" }),
+			result.current.mutateAsync({ first_name: "Jane" }),
 		).rejects.toThrow();
 	});
 });

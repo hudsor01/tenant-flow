@@ -121,15 +121,6 @@ export interface TenantPostgrestRow {
 	emergency_contact_relationship: string | null;
 	identity_verified: boolean | null;
 	ssn_last_four: string | null;
-	users?: {
-		id: string;
-		email: string;
-		first_name: string | null;
-		last_name: string | null;
-		full_name: string;
-		phone: string | null;
-		status: string;
-	} | null;
 	lease_tenants?: Array<{
 		lease_id: string;
 		is_primary: boolean | null;
@@ -185,7 +176,6 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 			? "active"
 			: requireTenantStatus(row.status, "mapTenantRow");
 
-	const user = row.users ?? null;
 	const leaseRows = row.lease_tenants ?? [];
 
 	// Find the primary/active lease (prefer active, fallback to first)
@@ -195,15 +185,15 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 	const activeUnit = activeLease?.units ?? null;
 	const activeProperty = activeUnit?.properties ?? null;
 
-	// Prefer tenant's own contact fields; fall back to linked user's fields
-	// (landlord-managed tenants have no user_id, so user will be null).
-	const displayFirstName = row.first_name ?? user?.first_name ?? null;
-	const displayLastName = row.last_name ?? user?.last_name ?? null;
-	const displayPhone = row.phone ?? user?.phone ?? null;
-	const displayEmail = row.email ?? user?.email ?? null;
+	// Display fields come straight from the tenant's own columns. Landlord-
+	// managed tenants are records, never auth users, so there is no linked
+	// user to fall back to (LEGACY-TENANT-06 removed the dead user_id embed).
+	const displayFirstName = row.first_name ?? null;
+	const displayLastName = row.last_name ?? null;
+	const displayPhone = row.phone ?? null;
+	const displayEmail = row.email ?? null;
 	const displayName =
 		row.name ??
-		user?.full_name ??
 		(displayFirstName || displayLastName
 			? `${displayFirstName ?? ""} ${displayLastName ?? ""}`.trim()
 			: null);

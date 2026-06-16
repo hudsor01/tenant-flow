@@ -1,0 +1,35 @@
+-- v6.0 LEGACY-TENANT-06 — drop the dead tenants.user_id column.
+--
+-- Landlord-managed tenants are records, never auth users (CLAUDE.md). The
+-- user_id FK to public.users is a pre-pivot remnant from the abandoned
+-- tenant-portal/tenant-auth model: 0 populated rows, never written by the app.
+--
+-- ⚠ LOCKSTEP: apply this ONLY AFTER the code that stops selecting
+-- tenants.user_id is deployed to prod (same PR — chore/v6.0-canonical-followups).
+-- That PR removes every live reader:
+--   • TENANT_BASE_SELECT no longer lists user_id, TENANT_WITH_LEASE_SELECT and
+--     markMovedOut drop the users!tenants_user_id_fkey embed
+--     (src/hooks/api/query-keys/tenant-keys.ts, tenant-mutation-options.ts)
+--   • the notificationPreferences factory + useNotificationPreferences hook
+--     (the only user_id->notification_settings lookup) are deleted
+--   • lease list/detail embeds drop tenants:primary_tenant_id(... user_id ...)
+--     (src/hooks/api/query-keys/lease-keys.ts)
+--   • the lease-creation wizard tenant selects drop the FK embed
+--   • tenantInputSchema / tenantFormSchema / tenantQuerySchema drop user_id
+--     (src/lib/validation/tenants.ts) so no create/update writes it
+-- Dropping the column before that deploy would 400 every tenant + lease query.
+-- After applying, run `bun run db:types` to regenerate src/types/supabase.ts and
+-- strip the now-orphaned user_id from the manual mappers/types/fixtures (the
+-- generated Tenant = Tables<"tenants"> still carries user_id until that regen).
+--
+-- Safety (verified against prod via MCP, 2026-06-15):
+--   • tenants.user_id: uuid, 0 of 3 rows non-null; NO RLS policy (all 4 gate on
+--     owner_user_id), NO function/RPC body, NO view depends on it.
+--   • Only dependents are tenants_user_id_fkey (FK -> users.id) and
+--     tenants_user_id_key (UNIQUE constraint + backing index), both single-column
+--     on user_id and auto-dropped by DROP COLUMN.
+--   • Supersedes the LEGACY-TENANT-06 deferral documented in
+--     20260616040851_drop_dead_stripe_connect_and_tenant_user_columns.sql
+--     (review #847 required the query layer to be refactored off the FK first).
+
+alter table public.tenants drop column if exists user_id;
