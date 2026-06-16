@@ -94,7 +94,6 @@ const DEFAULT_PROPERTY: Property = {
 	country: "US",
 	property_type: "multi_family",
 	status: "active",
-	stripe_connected_account_id: null,
 	date_sold: null,
 	sale_price: null,
 	acquisition_cost: null,

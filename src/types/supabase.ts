@@ -1210,7 +1210,6 @@ export type Database = {
 					search_vector: unknown;
 					state: string;
 					status: string;
-					stripe_connected_account_id: string | null;
 					updated_at: string | null;
 				};
 				Insert: {
@@ -1231,7 +1230,6 @@ export type Database = {
 					search_vector?: unknown;
 					state: string;
 					status?: string;
-					stripe_connected_account_id?: string | null;
 					updated_at?: string | null;
 				};
 				Update: {
@@ -1252,7 +1250,6 @@ export type Database = {
 					search_vector?: unknown;
 					state?: string;
 					status?: string;
-					stripe_connected_account_id?: string | null;
 					updated_at?: string | null;
 				};
 				Relationships: [

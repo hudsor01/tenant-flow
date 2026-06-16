@@ -104,7 +104,6 @@ export const DEFAULT_PROPERTY: Property = {
 	status: "active",
 	date_sold: null,
 	sale_price: null,
-	stripe_connected_account_id: null,
 	acquisition_cost: null,
 	acquisition_date: null,
 	created_at: "2024-01-01T00:00:00Z",

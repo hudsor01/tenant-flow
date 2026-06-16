@@ -129,7 +129,6 @@ const mockProperty = {
 	country: "US",
 	property_type: "SINGLE_FAMILY",
 	status: "active",
-	stripe_connected_account_id: null,
 	date_sold: null,
 	sale_price: null,
 	created_at: "2024-01-01T00:00:00Z",
