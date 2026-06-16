@@ -25,7 +25,7 @@ describe("tenantStatusSchema", () => {
 	});
 });
 describe("tenantInputSchema", () => {
-	// Landlord-only mode: tenants are data records, user_id is optional
+	// Landlord-only mode: tenants are data records, never auth users
 	const v = { first_name: "Jane", last_name: "Doe", email: "jane@example.com" };
 	it("accepts minimal valid input", () => {
 		expect(tenantInputSchema.safeParse(v).success).toBe(true);
@@ -37,7 +37,6 @@ describe("tenantInputSchema", () => {
 		expect(
 			tenantInputSchema.safeParse({
 				...v,
-				user_id: VALID_UUID,
 				owner_user_id: VALID_UUID,
 				phone: "5551234567",
 				status: "active",
@@ -49,11 +48,6 @@ describe("tenantInputSchema", () => {
 				ssn_last_four: "1234",
 			}).success,
 		).toBe(true);
-	});
-	it("rejects invalid user_id", () => {
-		expect(tenantInputSchema.safeParse({ user_id: "not-uuid" }).success).toBe(
-			false,
-		);
 	});
 	it("rejects ssn_last_four with wrong format", () => {
 		expect(
@@ -261,12 +255,7 @@ describe("bulkDeleteTenantsSchema", () => {
 	});
 });
 describe("tenantFormSchema", () => {
-	it("accepts valid form data with user_id", () => {
-		expect(tenantFormSchema.safeParse({ user_id: VALID_UUID }).success).toBe(
-			true,
-		);
-	});
-	it("accepts landlord-managed form data with no user_id", () => {
+	it("accepts landlord-managed form data (tenants are records, not users)", () => {
 		expect(
 			tenantFormSchema.safeParse({
 				first_name: "Jane",

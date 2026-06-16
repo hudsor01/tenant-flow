@@ -13,7 +13,7 @@
 
 import { z } from "zod";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
-import { phoneSchema, requiredString, uuidSchema } from "./common";
+import { phoneSchema, uuidSchema } from "./common";
 
 // Tenant status enum validation
 export const tenantStatusSchema = z.enum([
@@ -38,12 +38,10 @@ export const TENANT_ACTIVE_STATUSES = [
 export type TenantActiveStatus = (typeof TENANT_ACTIVE_STATUSES)[number];
 
 // Base tenant input schema (matches landlord-managed tenants table).
-// Contact fields live directly on the row; user_id is optional because
-// tenants may have no auth account in landlord-only mode.
+// Contact fields live directly on the row. Tenants are records, never auth
+// users, so there is no user_id (LEGACY-TENANT-06).
 export const tenantInputSchema = z.object({
 	owner_user_id: uuidSchema.optional(),
-
-	user_id: uuidSchema.nullable().optional(),
 
 	first_name: z
 		.string()
@@ -100,11 +98,10 @@ export const tenantUpdateSchema = tenantInputSchema.partial().extend({
 // Tenant query schema (for search/filtering)
 export const tenantQuerySchema = z.object({
 	search: z.string().optional(),
-	user_id: uuidSchema.optional(),
 	identity_verified: z.boolean().optional(),
 	created_after: z.string().optional(),
 	created_before: z.string().optional(),
-	sort_by: z.enum(["created_at", "user_id", "identity_verified"]).optional(),
+	sort_by: z.enum(["created_at", "identity_verified"]).optional(),
 	sort_order: z.enum(["asc", "desc"]).optional().default("asc"),
 	page: z.coerce.number().int().positive().default(1),
 	limit: z.coerce
@@ -150,7 +147,6 @@ export type TenantVerification = z.infer<typeof tenantVerificationSchema>;
 
 // Frontend-specific form schemas
 export const tenantFormSchema = z.object({
-	user_id: requiredString.optional().nullable(),
 	first_name: z.string().max(100).optional(),
 	last_name: z.string().max(100).optional(),
 	name: z.string().max(200).optional(),
@@ -169,7 +165,6 @@ export const tenantFormSchema = z.object({
 
 // Transform functions for form data
 const transformTenantFormData = (data: TenantFormData) => ({
-	user_id: data.user_id || undefined,
 	first_name: data.first_name || undefined,
 	last_name: data.last_name || undefined,
 	name: data.name || undefined,

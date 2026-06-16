@@ -58,7 +58,8 @@ type Unit = Pick<
 	"id" | "unit_number" | "property_id" | "rent_amount"
 >;
 
-// Tenant API response - the API returns tenant with user info joined
+// Tenant API response shape — flat tenant columns (landlord-managed tenants are
+// records, not auth users; LEGACY-TENANT-06 removed the users join).
 // This is the shape of the API response, not a duplicate of shared types
 interface Tenant {
 	id: string;
@@ -127,21 +128,19 @@ export function SelectionStep({
 			const supabase = createClient();
 			const { data: rows, error } = await supabase
 				.from("tenants")
-				.select(
-					"id, first_name, last_name, email, users!tenants_user_id_fkey(first_name, last_name, email)",
-				)
+				.select("id, first_name, last_name, email")
 				.neq("status", "inactive");
 			if (error) throw error;
 			return (rows ?? [])
-				.map((row) => {
-					const user = row.users;
-					return {
-						id: row.id,
-						first_name: row.first_name ?? user?.first_name ?? "",
-						last_name: row.last_name ?? user?.last_name ?? "",
-						email: row.email ?? user?.email ?? "",
-					} satisfies Tenant;
-				})
+				.map(
+					(row) =>
+						({
+							id: row.id,
+							first_name: row.first_name ?? "",
+							last_name: row.last_name ?? "",
+							email: row.email ?? "",
+						}) satisfies Tenant,
+				)
 				.sort((a, b) => a.last_name.localeCompare(b.last_name));
 		},
 	});

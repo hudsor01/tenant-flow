@@ -59,29 +59,28 @@ describe("SelectionStep - Tenant Filtering", () => {
 		{ id: "unit-2", unit_number: "102", property_id: "prop-123" },
 	];
 
-	// Tenants returned from PostgREST join: tenants with users!inner(...)
+	// Landlord-managed tenant rows: flat id/first_name/last_name/email columns
+	// (tenants are records, not auth users — no users join).
 	const mockInvitedTenants = [
 		{
 			id: "tenant-1",
-			users: {
-				first_name: "John",
-				last_name: "Doe",
-				email: "john@example.com",
-			},
+			first_name: "John",
+			last_name: "Doe",
+			email: "john@example.com",
 		},
 		{
 			id: "tenant-2",
-			users: {
-				first_name: "Jane",
-				last_name: "Smith",
-				email: "jane@example.com",
-			},
+			first_name: "Jane",
+			last_name: "Smith",
+			email: "jane@example.com",
 		},
 	];
 
 	const mockUninvitedTenant = {
 		id: "tenant-3",
-		users: { first_name: "Bob", last_name: "Wilson", email: "bob@example.com" },
+		first_name: "Bob",
+		last_name: "Wilson",
+		email: "bob@example.com",
 	};
 
 	let queryClient: QueryClient;
@@ -92,7 +91,9 @@ describe("SelectionStep - Tenant Filtering", () => {
 		units?: typeof mockUnits;
 		tenants?: Array<{
 			id: string;
-			users: { first_name: string; last_name: string; email: string };
+			first_name: string;
+			last_name: string;
+			email: string;
 		}>;
 	}) {
 		mockFrom.mockImplementation((table: string) => {
@@ -165,15 +166,15 @@ describe("SelectionStep - Tenant Filtering", () => {
 
 		// Verify the tenant data returned contains only invited tenants (not uninvited tenant Bob Wilson)
 		expect(mockInvitedTenants).toHaveLength(2);
-		expect(
-			mockInvitedTenants.some((t) => t.users.email === "john@example.com"),
-		).toBe(true);
-		expect(
-			mockInvitedTenants.some((t) => t.users.email === "jane@example.com"),
-		).toBe(true);
-		expect(
-			mockInvitedTenants.some((t) => t.users.email === "bob@example.com"),
-		).toBe(false);
+		expect(mockInvitedTenants.some((t) => t.email === "john@example.com")).toBe(
+			true,
+		);
+		expect(mockInvitedTenants.some((t) => t.email === "jane@example.com")).toBe(
+			true,
+		);
+		expect(mockInvitedTenants.some((t) => t.email === "bob@example.com")).toBe(
+			false,
+		);
 	});
 
 	it("should fetch all tenants when no property is selected", async () => {
@@ -253,7 +254,7 @@ describe("SelectionStep - Tenant Filtering", () => {
 		).length;
 
 		// Change property selection — tenant query should NOT re-fetch
-		// because tenant list is property-independent (joined via users table)
+		// because the tenant list is property-independent
 		const updatedData = { ...mockData, property_id: "prop-456" };
 
 		rerender(
