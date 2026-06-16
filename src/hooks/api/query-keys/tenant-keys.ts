@@ -121,7 +121,7 @@ export const tenantQueries = {
 
 	/**
 	 * Single tenant with embedded lease information
-	 * Joins users + lease_tenants -> leases -> units -> properties
+	 * Joins lease_tenants -> leases -> units -> properties
 	 */
 	withLease: (id: string) =>
 		queryOptions({

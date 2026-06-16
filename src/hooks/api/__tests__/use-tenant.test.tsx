@@ -132,15 +132,6 @@ const mockTenant = {
 
 const mockTenantWithLease = {
 	...mockTenant,
-	users: {
-		id: "user-123",
-		email: "john@example.com",
-		first_name: "John",
-		last_name: "Doe",
-		full_name: "John Doe",
-		phone: "555-1234",
-		status: "active",
-	},
 	lease_tenants: [],
 };
 
