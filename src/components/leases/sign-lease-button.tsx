@@ -17,17 +17,11 @@ import {
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Label } from "#components/ui/label";
-import {
-	useSignLeaseAsOwnerMutation,
-	useSignLeaseAsTenantMutation,
-} from "#hooks/api/use-lease-signature-mutations";
+import { useSignLeaseAsOwnerMutation } from "#hooks/api/use-lease-signature-mutations";
 import { cn } from "#lib/utils";
-
-type SignerRole = "owner" | "tenant";
 
 interface SignLeaseButtonProps {
 	leaseId: string;
-	role: SignerRole;
 	disabled?: boolean;
 	alreadySigned?: boolean;
 	className?: string;
@@ -36,12 +30,12 @@ interface SignLeaseButtonProps {
 }
 
 /**
- * Button component for signing a lease as owner or tenant
- * Shows a confirmation dialog with legal acknowledgment
+ * Button for the OWNER to sign a lease in-app (direct signature with IP capture).
+ * Shows a confirmation dialog with legal acknowledgment. Tenants sign via the
+ * separate DocuSeal email flow (tenants are records, not auth users).
  */
 export function SignLeaseButton({
 	leaseId,
-	role,
 	disabled = false,
 	alreadySigned = false,
 	className,
@@ -50,10 +44,7 @@ export function SignLeaseButton({
 }: SignLeaseButtonProps) {
 	const [agreed, setAgreed] = useState(false);
 	const [open, setOpen] = useState(false);
-	const signAsOwner = useSignLeaseAsOwnerMutation();
-	const signAsTenant = useSignLeaseAsTenantMutation();
-
-	const mutation = role === "owner" ? signAsOwner : signAsTenant;
+	const mutation = useSignLeaseAsOwnerMutation();
 
 	const handleSign = async () => {
 		if (!agreed) {
@@ -92,8 +83,6 @@ export function SignLeaseButton({
 		);
 	}
 
-	const roleLabel = role === "owner" ? "Owner" : "Tenant";
-
 	return (
 		<AlertDialog open={open} onOpenChange={setOpen}>
 			<AlertDialogTrigger asChild>
@@ -102,7 +91,7 @@ export function SignLeaseButton({
 					size={size}
 					disabled={disabled}
 					className={cn("gap-2", className)}
-					data-testid={`sign-lease-${role}-button`}
+					data-testid="sign-lease-owner-button"
 				>
 					<PenLine className="h-4 w-4" />
 					Sign Lease
@@ -114,7 +103,7 @@ export function SignLeaseButton({
 					<AlertDialogDescription className="space-y-3">
 						<p>
 							You are about to electronically sign this lease agreement as the{" "}
-							<strong>{roleLabel.toLowerCase()}</strong>.
+							<strong>owner</strong>.
 						</p>
 						<p>
 							By signing, you acknowledge that you have read and agree to all
@@ -158,7 +147,7 @@ export function SignLeaseButton({
 						) : (
 							<>
 								<PenLine className="h-4 w-4" />
-								Sign as {roleLabel}
+								Sign as Owner
 							</>
 						)}
 					</AlertDialogAction>

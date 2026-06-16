@@ -121,7 +121,6 @@ export function LeaseHeader({
 					<>
 						<SignLeaseButton
 							leaseId={lease.id}
-							role="owner"
 							alreadySigned={!!lease.owner_signed_at}
 							size="sm"
 						/>

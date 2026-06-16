@@ -351,6 +351,9 @@ Deno.serve(async (req: Request) => {
 				.update({
 					docuseal_submission_id: String(submission.id),
 					sent_for_signature_at: new Date().toISOString(),
+					// Move draft -> pending_signature so the in-app "Sign as Owner" UI
+					// (gated on lease_status='pending_signature') becomes reachable.
+					lease_status: "pending_signature",
 				})
 				.eq("id", leaseId);
 

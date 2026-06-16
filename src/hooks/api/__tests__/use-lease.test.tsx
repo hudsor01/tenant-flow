@@ -42,7 +42,6 @@ import {
 	useCancelSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
-	useSignLeaseAsTenantMutation,
 } from "../use-lease-signature-mutations";
 
 // Mock logger
@@ -573,24 +572,6 @@ describe("Mutation Hooks", () => {
 				expect.objectContaining({
 					method: "POST",
 					body: expect.stringContaining('"action":"sign-owner"'),
-				}),
-			);
-		});
-	});
-
-	describe("useSignLeaseAsTenantMutation", () => {
-		it("should call docuseal Edge Function with sign-tenant action", async () => {
-			const { result } = renderHook(() => useSignLeaseAsTenantMutation(), {
-				wrapper: createWrapper(),
-			});
-
-			await result.current.mutateAsync("lease-123");
-
-			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
-				expect.objectContaining({
-					method: "POST",
-					body: expect.stringContaining('"action":"sign-tenant"'),
 				}),
 			);
 		});

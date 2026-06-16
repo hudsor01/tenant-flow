@@ -213,13 +213,6 @@ export const leaseMutations = {
 				callDocuSealEdgeFunction("sign-owner", { leaseId }),
 		}),
 
-	signAsTenant: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.leases.sign,
-			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction("sign-tenant", { leaseId }),
-		}),
-
 	cancelSignature: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.cancelSignature,
