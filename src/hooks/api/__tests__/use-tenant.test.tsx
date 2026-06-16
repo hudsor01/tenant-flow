@@ -188,7 +188,7 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useTenantWithLease", () => {
-		it("should query tenants table with user and lease join", async () => {
+		it("should query tenants table with lease join", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "tenants") {
 					return createQueryChain({ data: mockTenantWithLease });
@@ -238,7 +238,7 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useAllTenants", () => {
-		it("should query all tenants with user and lease join", async () => {
+		it("should query all tenants with lease join", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "tenants") {
 					return createQueryChain({ data: [mockTenantWithLease] });
