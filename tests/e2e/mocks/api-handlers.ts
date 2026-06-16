@@ -53,7 +53,6 @@ const mockData = {
 	tenants: () => [
 		{
 			id: "tenant-1",
-			user_id: "user-1",
 			created_at: new Date().toISOString(),
 		},
 	],

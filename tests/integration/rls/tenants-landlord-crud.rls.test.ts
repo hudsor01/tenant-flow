@@ -5,12 +5,13 @@ import { createTestClient, getTestCredentials } from "../setup/supabase-client";
  * Landlord-only tenant CRUD integration tests.
  *
  * After migration 20260418150000_tenants_contact_columns, the tenants table
- * becomes self-contained: owners can INSERT/SELECT/UPDATE tenant records with
- * contact fields (first_name, last_name, email, phone) directly on the row,
- * with user_id nullable (tenant may or may not have an auth account).
+ * becomes self-contained: owners INSERT/SELECT/UPDATE tenant records with
+ * contact fields (first_name, last_name, email, phone) directly on the row.
+ * Tenants are records, never auth users — the legacy user_id column was
+ * dropped in LEGACY-TENANT-06 (migration 20260616161248).
  *
- * RLS must allow owners to INSERT tenants they manage (user_id NULL) and
- * isolate them across owners via the lease_tenants linkage.
+ * RLS must allow owners to INSERT tenants they manage and isolate them across
+ * owners via the lease_tenants linkage.
  */
 describe("Tenants landlord-only CRUD (RLS)", () => {
 	let clientA: SupabaseClient;
@@ -40,7 +41,7 @@ describe("Tenants landlord-only CRUD (RLS)", () => {
 		}
 	});
 
-	it("owner A can INSERT a landlord-managed tenant (no user_id)", async () => {
+	it("owner A can INSERT a landlord-managed tenant (record, not a user)", async () => {
 		const { data, error } = await clientA
 			.from("tenants")
 			.insert({
@@ -51,7 +52,7 @@ describe("Tenants landlord-only CRUD (RLS)", () => {
 				email: `jane-${Date.now()}@test.tenantflow.invalid`,
 				phone: "555-1234",
 			})
-			.select("id, first_name, last_name, name, email, phone, user_id, status")
+			.select("id, first_name, last_name, name, email, phone, status")
 			.single();
 
 		expect(error).toBeNull();
@@ -61,7 +62,6 @@ describe("Tenants landlord-only CRUD (RLS)", () => {
 		expect(data!.name).toBe("Jane Doe");
 		expect(data!.email).toMatch(/^jane-/);
 		expect(data!.phone).toBe("555-1234");
-		expect(data!.user_id).toBeNull();
 		expect(data!.status).toBe("active");
 
 		createdTenantIds.push(data!.id as string);

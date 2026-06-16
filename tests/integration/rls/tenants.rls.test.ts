@@ -53,34 +53,38 @@ describe("Tenants RLS — cross-tenant isolation", () => {
 
 	// ---------------------------------------------------------------------------
 	// INSERT isolation
-	// Tenants INSERT policy: user_id = auth.uid()
-	// Only a user can create their own tenant profile.
+	// Tenants INSERT policy (landlord-only era): WITH CHECK owner_user_id = auth.uid().
+	// Owners create tenant RECORDS they manage (tenants are not users); cross-owner
+	// INSERT is what RLS blocks. (The legacy user_id column was dropped in
+	// LEGACY-TENANT-06.)
 	// ---------------------------------------------------------------------------
 
-	it("owner A cannot insert a tenant record with owner B user_id", async () => {
+	it("owner A cannot insert a tenant record owned by owner B", async () => {
 		const { data, error } = await clientA
 			.from("tenants")
 			.insert({
-				user_id: ownerBId,
+				owner_user_id: ownerBId,
+				first_name: "RLS Probe",
 			})
 			.select("id")
 			.single();
 
-		// RLS WITH CHECK blocks: user_id must equal auth.uid() (ownerAId)
+		// RLS WITH CHECK blocks: owner_user_id must equal auth.uid() (ownerAId).
 		expect(error).not.toBeNull();
 		expect(data).toBeNull();
 	});
 
-	it("owner B cannot insert a tenant record with owner A user_id", async () => {
+	it("owner B cannot insert a tenant record owned by owner A", async () => {
 		const { data, error } = await clientB
 			.from("tenants")
 			.insert({
-				user_id: ownerAId,
+				owner_user_id: ownerAId,
+				first_name: "RLS Probe",
 			})
 			.select("id")
 			.single();
 
-		// RLS WITH CHECK blocks: user_id must equal auth.uid() (ownerBId)
+		// RLS WITH CHECK blocks: owner_user_id must equal auth.uid() (ownerBId).
 		expect(error).not.toBeNull();
 		expect(data).toBeNull();
 	});
