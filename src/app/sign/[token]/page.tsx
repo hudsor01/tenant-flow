@@ -1,4 +1,4 @@
-import { AlertCircle, FileText } from "lucide-react";
+import { AlertCircle, CheckCircle2, FileText } from "lucide-react";
 import type { Metadata } from "next";
 import { SignLeaseForm } from "#components/leases/sign-lease-form";
 import {
@@ -82,6 +82,11 @@ function formatRent(value: number | null): string {
 	return `$${value.toLocaleString("en-US")}/month`;
 }
 
+/** Non-error terminal reasons — the lease is already signed/active, not broken. */
+function isCompletedState(reason: string | null): boolean {
+	return reason === "tenant_already_signed" || reason === "lease_active";
+}
+
 export default async function SignLeasePage({
 	params,
 }: {
@@ -140,6 +145,23 @@ export default async function SignLeasePage({
 								token={token}
 								tenantName={context.lease.tenant_name ?? ""}
 							/>
+						</CardContent>
+					</Card>
+				) : isCompletedState(context.reason) ? (
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<CheckCircle2 className="h-5 w-5 text-success" />
+								{context.reason === "lease_active"
+									? "Lease is active"
+									: "Already signed"}
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-muted-foreground">
+								{REASON_MESSAGE[context.reason ?? "invalid_token"] ??
+									REASON_MESSAGE.invalid_token}
+							</p>
 						</CardContent>
 					</Card>
 				) : (

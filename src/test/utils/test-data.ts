@@ -146,6 +146,7 @@ export const DEFAULT_LEASE: Lease = {
 	tenant_signature_ip: null,
 	tenant_signature_method: null,
 	tenant_signature_user_agent: null,
+	tenant_signature_name: null,
 	sent_for_signature_at: null,
 	signed_document_path: null,
 	signed_document_hash: null,

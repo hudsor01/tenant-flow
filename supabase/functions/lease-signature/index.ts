@@ -352,6 +352,18 @@ Deno.serve(async (req: Request) => {
 
 		// ── cancel ─────────────────────────────────────────────────────────────
 		if (action === "cancel") {
+			// Only a lease still awaiting signature may be cancelled. Never allow an
+			// already-active (legally executed) lease to be reset to draft — that
+			// would destroy its signature audit trail. Active leases use terminate.
+			if (lease.lease_status !== "pending_signature") {
+				return new Response(
+					JSON.stringify({
+						error: "Only leases pending signature can be cancelled",
+					}),
+					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
+
 			await supabase
 				.from("lease_signing_tokens")
 				.update({ revoked_at: new Date().toISOString() })

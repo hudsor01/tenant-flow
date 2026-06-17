@@ -800,6 +800,7 @@ export type Database = {
 					tenant_responsible_utilities: string[] | null;
 					tenant_signature_ip: string | null;
 					tenant_signature_method: string | null;
+					tenant_signature_name: string | null;
 					tenant_signature_user_agent: string | null;
 					tenant_signed_at: string | null;
 					unit_id: string;
@@ -841,6 +842,7 @@ export type Database = {
 					tenant_responsible_utilities?: string[] | null;
 					tenant_signature_ip?: string | null;
 					tenant_signature_method?: string | null;
+					tenant_signature_name?: string | null;
 					tenant_signature_user_agent?: string | null;
 					tenant_signed_at?: string | null;
 					unit_id: string;
@@ -882,6 +884,7 @@ export type Database = {
 					tenant_responsible_utilities?: string[] | null;
 					tenant_signature_ip?: string | null;
 					tenant_signature_method?: string | null;
+					tenant_signature_name?: string | null;
 					tenant_signature_user_agent?: string | null;
 					tenant_signed_at?: string | null;
 					unit_id?: string;
@@ -2776,6 +2779,7 @@ export type Database = {
 					p_signature_ip: string;
 					p_signature_user_agent: string;
 					p_signed_at: string;
+					p_signer_name?: string;
 					p_token_hash: string;
 				};
 				Returns: {

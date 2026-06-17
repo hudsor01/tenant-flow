@@ -66,8 +66,8 @@ export function useLeaseSignatureStatus(leaseId: string) {
 	return useQuery(leaseQueries.signatureStatus(leaseId));
 }
 
-// Returns a `pending:` prefix URL when both parties have signed but the webhook-driven URL
-// hasn't been wired up yet.
+// Returns a short-lived signed URL minted from the tenant-documents bucket for
+// the finalized signed PDF, or null when no signed document has been stored yet.
 export function useSignedDocumentUrl(leaseId: string, enabled = true) {
 	return useQuery(leaseQueries.signedDocument(leaseId, enabled));
 }

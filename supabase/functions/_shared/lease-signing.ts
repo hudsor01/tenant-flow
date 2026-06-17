@@ -77,6 +77,7 @@ export interface LeaseSigningRecord {
 	landlordNoticeAddress: string | null;
 	immediateFamilyMembers: string | null;
 	leaseStatus: string;
+	signedDocumentPath: string | null;
 	ownerSignedAt: string | null;
 	ownerSignatureIp: string | null;
 	ownerSignatureUserAgent: string | null;
@@ -85,6 +86,7 @@ export interface LeaseSigningRecord {
 	tenantSignatureIp: string | null;
 	tenantSignatureUserAgent: string | null;
 	tenantSignatureMethod: string | null;
+	tenantSignatureName: string | null;
 }
 
 function formatDate(value: unknown): string {
@@ -120,9 +122,10 @@ export async function fetchLeaseSigningData(
 			`
       id, owner_user_id, primary_tenant_id, unit_id,
       start_date, end_date, rent_amount, security_deposit, governing_state,
-      landlord_notice_address, immediate_family_members, lease_status,
+      landlord_notice_address, immediate_family_members, lease_status, signed_document_path,
       owner_signed_at, owner_signature_ip, owner_signature_user_agent, owner_signature_method,
       tenant_signed_at, tenant_signature_ip, tenant_signature_user_agent, tenant_signature_method,
+      tenant_signature_name,
       units ( unit_number, properties ( name, address_line1, city, state, postal_code ) ),
       tenants:primary_tenant_id ( first_name, last_name, name, email )
     `,
@@ -177,6 +180,7 @@ export async function fetchLeaseSigningData(
 		immediateFamilyMembers:
 			(lease.immediate_family_members as string | null) ?? null,
 		leaseStatus: lease.lease_status,
+		signedDocumentPath: lease.signed_document_path,
 		ownerSignedAt: lease.owner_signed_at,
 		ownerSignatureIp: lease.owner_signature_ip,
 		ownerSignatureUserAgent: lease.owner_signature_user_agent,
@@ -185,6 +189,7 @@ export async function fetchLeaseSigningData(
 		tenantSignatureIp: lease.tenant_signature_ip,
 		tenantSignatureUserAgent: lease.tenant_signature_user_agent,
 		tenantSignatureMethod: lease.tenant_signature_method,
+		tenantSignatureName: lease.tenant_signature_name,
 	};
 }
 
@@ -216,7 +221,9 @@ export function buildLeasePdfData(
 		},
 		tenant: {
 			label: "Tenant",
-			name: record.tenantName,
+			// The tenant's typed legal name IS their signature; prefer it over the
+			// landlord-entered record name when present.
+			name: record.tenantSignatureName ?? record.tenantName,
 			email: record.tenantEmail,
 			signedAt: opts.signed ? record.tenantSignedAt : null,
 			ip: record.tenantSignatureIp,
@@ -227,86 +234,50 @@ export function buildLeasePdfData(
 }
 
 /**
- * Finalize a fully-signed lease: render the signed PDF, store it, atomically
- * flip the lease to active, and notify the owner. Idempotent and race-safe —
- * the activation flip is gated on both signatures + not-already-active, so only
- * one caller activates and notifies. Returns whether THIS call activated.
+ * Render + store the finalized signed PDF. Activation (lease_status -> active)
+ * and the owner notification happen atomically INSIDE the signing RPCs, so this
+ * step is best-effort and idempotent: it is a no-op once the PDF pointer is set,
+ * and a failure here never affects the already-durable activation. The PDF can
+ * be regenerated later (the lease data + signatures fully determine it).
  */
 export async function finalizeSignedLease(
 	supabase: SupabaseClient,
 	leaseId: string,
-): Promise<{ activated: boolean }> {
+): Promise<void> {
 	const record = await fetchLeaseSigningData(supabase, leaseId);
-	if (!record || !record.ownerSignedAt || !record.tenantSignedAt) {
-		return { activated: false };
+	if (
+		!record ||
+		!record.ownerSignedAt ||
+		!record.tenantSignedAt ||
+		record.signedDocumentPath
+	) {
+		return;
 	}
 
-	let path: string | null = null;
-	let hash: string | null = null;
 	try {
-		const bytes = await renderLeasePdf(buildLeasePdfData(record, { signed: true }));
-		hash = await sha256Hex(bytes);
-		const candidatePath = signedLeasePath(leaseId);
+		const bytes = await renderLeasePdf(
+			buildLeasePdfData(record, { signed: true }),
+		);
+		const hash = await sha256Hex(bytes);
+		const path = signedLeasePath(leaseId);
 		const { error: uploadError } = await supabase.storage
 			.from(SIGNED_LEASE_BUCKET)
-			.upload(candidatePath, bytes, {
-				contentType: "application/pdf",
-				upsert: true,
-			});
+			.upload(path, bytes, { contentType: "application/pdf", upsert: true });
 		if (uploadError) {
 			captureWebhookError(new Error("Signed lease PDF upload failed"), {
 				message: uploadError.message,
 				action: "finalize_upload",
 				lease_id: leaseId,
 			});
-			hash = null;
-		} else {
-			path = candidatePath;
+			return;
 		}
+		// Only the first finalize writes the pointer (idempotent under retries).
+		await supabase
+			.from("leases")
+			.update({ signed_document_path: path, signed_document_hash: hash })
+			.eq("id", leaseId)
+			.is("signed_document_path", null);
 	} catch (err) {
-		// PDF render failure must not block activation — the signatures are
-		// already recorded; the document can be regenerated later.
 		captureWebhookError(err, { action: "finalize_render", lease_id: leaseId });
 	}
-
-	const { data: flipped, error: flipError } = await supabase
-		.from("leases")
-		.update({
-			lease_status: "active",
-			signed_document_path: path,
-			signed_document_hash: hash,
-		})
-		.eq("id", leaseId)
-		.neq("lease_status", "active")
-		.not("owner_signed_at", "is", null)
-		.not("tenant_signed_at", "is", null)
-		.select("id");
-
-	if (flipError) {
-		captureWebhookError(flipError, {
-			action: "finalize_activate",
-			lease_id: leaseId,
-		});
-		return { activated: false };
-	}
-
-	if (!flipped || flipped.length === 0) return { activated: false };
-
-	const { error: notifError } = await supabase.from("notifications").insert({
-		user_id: record.ownerUserId,
-		title: "Lease fully signed",
-		message: "Your lease has been signed by all parties and is now active.",
-		notification_type: "lease",
-		entity_type: "lease",
-		entity_id: leaseId,
-	});
-	if (notifError) {
-		captureWebhookError(new Error("Lease activation notification failed"), {
-			message: notifError.message,
-			action: "finalize_notify",
-			lease_id: leaseId,
-		});
-	}
-
-	return { activated: true };
 }

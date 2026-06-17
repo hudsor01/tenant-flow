@@ -80,6 +80,8 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 			<div
 				className="flex flex-col items-center gap-3 rounded-lg border border-success/30 bg-success/5 p-6 text-center"
 				data-testid="sign-lease-success"
+				role="status"
+				aria-live="polite"
 			>
 				<CheckCircle2 className="h-10 w-10 text-success" />
 				<p className="text-base font-semibold text-foreground">

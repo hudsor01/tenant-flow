@@ -41,13 +41,6 @@ Deno.serve(async (req: Request) => {
 	if (optionsResponse) return optionsResponse;
 
 	try {
-		const limited = await rateLimit(req, {
-			maxRequests: 20,
-			windowMs: 60_000,
-			prefix: "lease-sign",
-		});
-		if (limited) return limited;
-
 		const env = validateEnv({
 			required: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
 		});
@@ -111,6 +104,16 @@ Deno.serve(async (req: Request) => {
 
 		// ── sign ───────────────────────────────────────────────────────────────
 		if (action === "sign") {
+			// Rate-limit only the write action: it is called from the tenant's
+			// browser (real per-IP), unlike `context` which is fetched server-side
+			// from a shared egress IP and must not share one bucket across tenants.
+			const limited = await rateLimit(req, {
+				maxRequests: 10,
+				windowMs: 60_000,
+				prefix: "lease-sign",
+			});
+			if (limited) return limited;
+
 			const consent = body.consent === true;
 			const signerName =
 				typeof body.signerName === "string" ? body.signerName.trim() : "";
@@ -129,6 +132,7 @@ Deno.serve(async (req: Request) => {
 				p_signature_ip: clientIp(req),
 				p_signature_user_agent: clientUserAgent(req),
 				p_signed_at: new Date().toISOString(),
+				p_signer_name: signerName,
 			});
 			if (error) {
 				return errorResponse(req, 500, error, { action: "sign" });

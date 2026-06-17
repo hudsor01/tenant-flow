@@ -1,7 +1,7 @@
 {
 	"name": "TenantFlow - Property Management Software",
 	"short_name": "TenantFlow",
-	"description": "Property management software for independent landlords. Track leases, maintenance, and a per-entity document vault with global search and DocuSeal e-signing.",
+	"description": "Property management software for independent landlords. Track leases, maintenance, and a per-entity document vault with global search and built-in lease e-signing.",
 	"start_url": "/?utm_source=pwa",
 	"display": "standalone",
 	"background_color": "#ffffff",
