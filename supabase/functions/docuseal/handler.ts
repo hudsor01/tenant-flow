@@ -339,9 +339,13 @@ Deno.serve(async (req: Request) => {
 				// DocuSeal — but the owner signs in-app, so the tenant would never be
 				// emailed and the lease would never activate.
 				order: "random",
-				metadata: {
+				// lease_id is sent as a top-level submission `variable` (which
+				// /api/submissions/pdf accepts and round-trips to
+				// data.submission.variables in the webhook). It is only a FALLBACK —
+				// the webhook's primary join is docuseal_submission_id, written
+				// in-request below. (DocuSeal drops a top-level `metadata` param.)
+				variables: {
 					lease_id: leaseId,
-					source: "tenantflow",
 				},
 			};
 
@@ -415,9 +419,7 @@ Deno.serve(async (req: Request) => {
 
 			const { data: lease, error: leaseError } = await supabase
 				.from("leases")
-				.select(
-					"id, owner_user_id, docuseal_submission_id, owner_signed_at, tenant_signed_at",
-				)
+				.select("id, owner_user_id, owner_signed_at")
 				.eq("id", leaseId)
 				.single();
 
@@ -444,29 +446,42 @@ Deno.serve(async (req: Request) => {
 				});
 			}
 
-			// In-app owner signature (direct, IP-captured) -> method 'in_app'
-			// (the DocuSeal webhook records 'docuseal' for email-signed parties).
-			const ownerActivates = Boolean(lease.tenant_signed_at);
-			const updatePayload: Record<string, unknown> = {
-				owner_signed_at: new Date().toISOString(),
-				owner_signature_method: "in_app",
-			};
-			if (ownerActivates) {
-				updatePayload.lease_status = "active";
-			}
-
+			// In-app owner signature (direct) -> method 'in_app' (the DocuSeal
+			// webhook records 'docuseal' for email-signed parties).
 			const { error: updateError } = await supabase
 				.from("leases")
-				.update(updatePayload)
-				.eq("id", leaseId);
+				.update({
+					owner_signed_at: new Date().toISOString(),
+					owner_signature_method: "in_app",
+				})
+				.eq("id", leaseId)
+				.is("owner_signed_at", null);
 
 			if (updateError) {
 				return errorResponse(req, 500, updateError, { action: "sign_owner" });
 			}
 
-			// If this completed the lease, notify the owner (parity with the webhook
-			// activation path). Best-effort — never fail the signature on notify error.
-			if (ownerActivates) {
+			// Activate iff BOTH parties have now signed — decided atomically inside
+			// the UPDATE (re-checks both signed_at at flip time), so it is race-safe
+			// against a concurrent tenant webhook, and only the flipping request
+			// notifies (no double-activate / double-notify vs the webhook path).
+			const { data: flipped, error: flipError } = await supabase
+				.from("leases")
+				.update({ lease_status: "active" })
+				.eq("id", leaseId)
+				.neq("lease_status", "active")
+				.not("owner_signed_at", "is", null)
+				.not("tenant_signed_at", "is", null)
+				.select("id");
+
+			if (flipError) {
+				return errorResponse(req, 500, flipError, {
+					action: "sign_owner_activate",
+				});
+			}
+
+			// Best-effort notify — never fail the signature on a notify error.
+			if (flipped && flipped.length > 0) {
 				const { error: notifError } = await supabase
 					.from("notifications")
 					.insert({
@@ -477,11 +492,14 @@ Deno.serve(async (req: Request) => {
 						notification_type: "lease",
 					});
 				if (notifError) {
-					captureWebhookError(new Error("Owner activation notification failed"), {
-						message: notifError.message,
-						action: "sign_owner_notify",
-						lease_id: leaseId,
-					});
+					captureWebhookError(
+						new Error("Owner activation notification failed"),
+						{
+							message: notifError.message,
+							action: "sign_owner_notify",
+							lease_id: leaseId,
+						},
+					);
 				}
 			}
 

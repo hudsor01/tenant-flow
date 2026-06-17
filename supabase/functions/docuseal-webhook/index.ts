@@ -28,8 +28,9 @@ interface SubmissionRef {
 	status?: string;
 	combined_document_url?: string;
 	documents?: Array<{ name: string; url: string }>;
-	// Create-time submission metadata re-surfaces under `variables` in current
-	// DocuSeal webhook payloads; `metadata` is kept for older builds.
+	// lease_id is sent as a top-level submission `variable` on create, which
+	// round-trips here as data.submission.variables. `metadata` is a harmless
+	// secondary fallback (the primary join is docuseal_submission_id).
 	variables?: { lease_id?: string };
 	metadata?: { lease_id?: string };
 }
@@ -52,10 +53,14 @@ const leaseIdFrom = (
 ): string | undefined => s?.variables?.lease_id ?? s?.metadata?.lease_id;
 
 /**
- * Activate the lease + notify the owner, exactly once. The conditional UPDATE
- * (`.neq lease_status active`) makes activation idempotent, and the notification
- * is inserted only when this call is the one that flipped the row — so repeated
- * form.completed/submission.completed deliveries never double-notify.
+ * Activate the lease + notify the owner, exactly once — IFF both parties have
+ * signed. The decision is made atomically inside the UPDATE (re-checking
+ * owner_signed_at + tenant_signed_at at flip time, not from a stale pre-read),
+ * so it is race-safe: whichever signature path runs LAST sees both timestamps
+ * set and flips the row. The conditional `.neq lease_status active` + the
+ * flipped-row gate make it idempotent — repeated deliveries / the parallel
+ * in-app path never double-activate or double-notify. Safe to call after any
+ * signature write (it no-ops when only one party has signed).
  */
 async function activateLease(
 	supabase: SupabaseClient,
@@ -67,9 +72,11 @@ async function activateLease(
 		.update({ lease_status: "active" })
 		.eq("id", leaseId)
 		.neq("lease_status", "active")
+		.not("owner_signed_at", "is", null)
+		.not("tenant_signed_at", "is", null)
 		.select("id");
 	if (error) throw new Error(`Failed to activate lease: ${error.message}`);
-	if (!flipped || flipped.length === 0) return; // already active — no duplicate notify
+	if (!flipped || flipped.length === 0) return; // not both-signed yet, or already active
 
 	// notification_type must be 'lease' per notifications_notification_type_check.
 	const { error: notifError } = await supabase.from("notifications").insert({
@@ -129,7 +136,7 @@ async function handleFormCompleted(
 
 	const lease = (await lookupLease(
 		supabase,
-		"id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id",
+		"id, owner_signed_at, tenant_signed_at, owner_user_id",
 		submissionId,
 		leaseId,
 	)) as {
@@ -169,12 +176,10 @@ async function handleFormCompleted(
 		if (updateError)
 			throw new Error(`Failed to update owner signature: ${updateError.message}`);
 		logEvent("Owner signature recorded", { lease_id: lease.id });
-		// If the tenant had already signed, both parties are done -> activate.
-		// (submission.completed won't fire when the owner signs in-app, so order-
-		// independent activation has to happen here too.)
-		if (lease.tenant_signed_at) {
-			await activateLease(supabase, lease.id, lease.owner_user_id);
-		}
+		// Activate iff both parties have now signed (activateLease re-checks
+		// atomically). submission.completed won't fire when the owner signs
+		// in-app, so order-independent activation must happen here too.
+		await activateLease(supabase, lease.id, lease.owner_user_id);
 	} else if (isTenant) {
 		if (lease.tenant_signed_at) {
 			logEvent("tenant_signed_at already set — duplicate delivery, skipping", {
@@ -194,9 +199,7 @@ async function handleFormCompleted(
 				`Failed to update tenant signature: ${updateError.message}`,
 			);
 		logEvent("Tenant signature recorded", { lease_id: lease.id });
-		if (lease.owner_signed_at) {
-			await activateLease(supabase, lease.id, lease.owner_user_id);
-		}
+		await activateLease(supabase, lease.id, lease.owner_user_id);
 	} else {
 		logEvent("Unrecognised role — no signature update performed", {
 			role,
@@ -214,12 +217,11 @@ async function handleSubmissionCompleted(
 
 	const lease = (await lookupLease(
 		supabase,
-		"id, lease_status, owner_user_id, docuseal_document_url",
+		"id, owner_user_id, docuseal_document_url",
 		submissionId,
 		leaseId,
 	)) as {
 		id: string;
-		lease_status: string;
 		owner_user_id: string;
 		docuseal_document_url: string | null;
 	} | null;
