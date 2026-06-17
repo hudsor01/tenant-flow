@@ -18,6 +18,7 @@
  * ownerA / ownerB authenticated clients assert RLS + the grant lockdown.
  */
 
+import { createHash } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
@@ -25,6 +26,31 @@ const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SERVICE_ROLE_KEY =
 	process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
 	process.env["SUPABASE_SECRET_KEY"];
+
+function sha256Hex(input: string): string {
+	return createHash("sha256").update(input).digest("hex");
+}
+
+/** Probe whether the public sign-lease-token Edge Function is deployed (it is
+ *  deployed out-of-band after merge). A gateway 404 with code NOT_FOUND means
+ *  not deployed → the finalize test skips cleanly instead of false-failing. */
+async function isSignFunctionDeployed(): Promise<boolean> {
+	if (!SUPABASE_URL) return false;
+	try {
+		const probe = await fetch(`${SUPABASE_URL}/functions/v1/sign-lease-token`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: "{}",
+		});
+		if (probe.status === 404) {
+			const body = (await probe.json().catch(() => ({}))) as { code?: string };
+			return body.code !== "NOT_FOUND";
+		}
+		return true;
+	} catch {
+		return true;
+	}
+}
 
 const skipReason = !SUPABASE_URL
 	? "NEXT_PUBLIC_SUPABASE_URL not set"
@@ -66,8 +92,13 @@ describe.skipIf(skipReason)(
 		let ownerSecondLeaseId: string | undefined; // pending, tenant pre-signed
 		let draftLeaseId: string | undefined; // draft
 		let tenantSignedLeaseId: string | undefined; // pending, tenant pre-signed
+		let tenantFirstLeaseId: string | undefined; // pending, no signatures
+		let ownerFirstLeaseId: string | undefined; // pending, no signatures
+		let ownerSignedLeaseId: string | undefined; // pending, owner pre-signed
+		let finalizeLeaseId: string | undefined; // pending, owner pre-signed
 		// Any owned lease for the token-table RLS assertions.
 		let leaseAId: string | undefined;
+		let signFnDeployed = false;
 
 		let unitCounter = 0;
 		async function makeLease(
@@ -183,7 +214,24 @@ describe.skipIf(skipReason)(
 				tenant_signed_at: now,
 				tenant_signature_method: "in_app",
 			});
+			tenantFirstLeaseId = await makeLease({
+				lease_status: "pending_signature",
+			});
+			ownerFirstLeaseId = await makeLease({
+				lease_status: "pending_signature",
+			});
+			ownerSignedLeaseId = await makeLease({
+				lease_status: "pending_signature",
+				owner_signed_at: now,
+				owner_signature_method: "in_app",
+			});
+			finalizeLeaseId = await makeLease({
+				lease_status: "pending_signature",
+				owner_signed_at: now,
+				owner_signature_method: "in_app",
+			});
 			leaseAId = tenantSecondLeaseId;
+			signFnDeployed = await isSignFunctionDeployed();
 
 			// Fixtures are required — fail loudly rather than letting RLS/rejection
 			// assertions pass vacuously on a missing fixture.
@@ -198,6 +246,11 @@ describe.skipIf(skipReason)(
 					.from("lease_signing_tokens")
 					.delete()
 					.in("id", insertedTokenIds);
+			}
+			if (finalizeLeaseId) {
+				await service.storage
+					.from("tenant-documents")
+					.remove([`lease/${finalizeLeaseId}/signed-lease.pdf`]);
 			}
 			if (leaseIds.length > 0) {
 				await service.from("notifications").delete().in("entity_id", leaseIds);
@@ -369,6 +422,148 @@ describe.skipIf(skipReason)(
 				.eq("user_id", ownerAId);
 			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
 				true,
+			);
+		});
+
+		// ── finalize (render -> upload -> signed_document pointer) ───────────────
+		// Drives the full tenant-sign path through the DEPLOYED Edge Function, which
+		// runs finalizeSignedLease + renderLeasePdf inline. Skips cleanly until the
+		// function is deployed (out-of-band, post-merge).
+
+		it("tenant sign through the deployed function finalizes the signed PDF", async (ctx) => {
+			if (!signFnDeployed || !finalizeLeaseId) ctx.skip();
+			const rawToken = `${RUN_TAG}-finalize-raw`;
+			const { data: tok } = await service
+				.from("lease_signing_tokens")
+				.insert({
+					lease_id: finalizeLeaseId!,
+					tenant_email: "finalize@example.com",
+					token_hash: sha256Hex(rawToken),
+					expires_at: new Date(Date.now() + 864e5).toISOString(),
+					created_by: ownerAId,
+				})
+				.select("id")
+				.single();
+			if (tok?.id) insertedTokenIds.push(tok.id);
+
+			const res = await fetch(`${SUPABASE_URL}/functions/v1/sign-lease-token`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					action: "sign",
+					token: rawToken,
+					signerName: "Finalize Tenant",
+					consent: true,
+				}),
+			});
+			expect(res.status).toBe(200);
+			const json = (await res.json()) as {
+				success?: boolean;
+				both_signed?: boolean;
+			};
+			expect(json.success).toBe(true);
+			expect(json.both_signed).toBe(true);
+
+			const { data: leaseRow } = await service
+				.from("leases")
+				.select("lease_status, signed_document_path, signed_document_hash")
+				.eq("id", finalizeLeaseId!)
+				.single();
+			expect(leaseRow?.lease_status).toBe("active");
+			expect(leaseRow?.signed_document_path).toBe(
+				`lease/${finalizeLeaseId}/signed-lease.pdf`,
+			);
+			expect(leaseRow?.signed_document_hash).toBeTruthy();
+
+			const { data: dl, error: dlErr } = await service.storage
+				.from("tenant-documents")
+				.download(leaseRow!.signed_document_path!);
+			expect(dlErr).toBeNull();
+			expect(dl).toBeTruthy();
+		});
+
+		// ── first-signer paths (no premature activation) ─────────────────────────
+
+		it("tenant signs first: both_signed=false, lease stays pending, no notification", async () => {
+			const hash = await seedToken(tenantFirstLeaseId!);
+			const { data } = await service.rpc("sign_lease_with_token", {
+				p_token_hash: hash,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+				p_signer_name: "First Tenant",
+			});
+			expect(data?.[0]?.success).toBe(true);
+			expect(data?.[0]?.both_signed).toBe(false);
+
+			const { data: leaseRow } = await service
+				.from("leases")
+				.select("lease_status")
+				.eq("id", tenantFirstLeaseId!)
+				.single();
+			expect(leaseRow?.lease_status).toBe("pending_signature");
+
+			const { data: notifs } = await service
+				.from("notifications")
+				.select("id")
+				.eq("entity_id", tenantFirstLeaseId!);
+			expect(notifs ?? []).toHaveLength(0);
+		});
+
+		it("owner signs first: both_signed=false, lease stays pending, no notification", async () => {
+			const { data } = await service.rpc("record_lease_signature", {
+				p_lease_id: ownerFirstLeaseId!,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+				p_method: "in_app",
+			});
+			expect(data?.[0]?.success).toBe(true);
+			expect(data?.[0]?.both_signed).toBe(false);
+
+			const { data: leaseRow } = await service
+				.from("leases")
+				.select("lease_status")
+				.eq("id", ownerFirstLeaseId!)
+				.single();
+			expect(leaseRow?.lease_status).toBe("pending_signature");
+
+			const { data: notifs } = await service
+				.from("notifications")
+				.select("id")
+				.eq("entity_id", ownerFirstLeaseId!);
+			expect(notifs ?? []).toHaveLength(0);
+		});
+
+		// ── record_lease_signature rejections ────────────────────────────────────
+
+		it("record_lease_signature rejects a lease that is not pending signature", async () => {
+			const { data } = await service.rpc("record_lease_signature", {
+				p_lease_id: draftLeaseId!,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+				p_method: "in_app",
+			});
+			expect(data?.[0]?.success).toBe(false);
+			expect(data?.[0]?.error_message).toBe(
+				"Lease must be pending signature to sign",
+			);
+		});
+
+		it("record_lease_signature is idempotent on the owner-already-signed string", async () => {
+			const { data } = await service.rpc("record_lease_signature", {
+				p_lease_id: ownerSignedLeaseId!,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+				p_method: "in_app",
+			});
+			expect(data?.[0]?.success).toBe(false);
+			// The lease-signature Edge Function treats this EXACT string as an
+			// idempotent no-op success; pin it so wording drift can't break that.
+			expect(data?.[0]?.error_message).toBe(
+				"Owner has already signed this lease",
 			);
 		});
 

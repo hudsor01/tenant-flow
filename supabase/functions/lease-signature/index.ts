@@ -400,6 +400,18 @@ Deno.serve(async (req: Request) => {
 
 		// ── sign-owner ─────────────────────────────────────────────────────────
 		if (action === "sign-owner") {
+			// Only sign a lease that has been sent (pending_signature), so the
+			// owner's signature is bound to the same finalized terms the tenant
+			// signs — never a still-editable draft.
+			if (lease.lease_status !== "pending_signature") {
+				return new Response(
+					JSON.stringify({
+						error: "Lease must be sent for signature before signing",
+					}),
+					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
+
 			const { data: rpcRows, error: rpcError } = await supabase.rpc(
 				"record_lease_signature",
 				{

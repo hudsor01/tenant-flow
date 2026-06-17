@@ -17,12 +17,12 @@ Property management platform for independent landlords and small property manage
 | Backend | Supabase (PostgREST + RPCs + Edge Functions) |
 | Database | Postgres 17 with RLS on every table |
 | Payments | Stripe (Checkout + Subscriptions) |
-| Document signing | DocuSeal |
+| Document signing | Built-in (Supabase token flow) |
 | Monitoring | Sentry (Next.js SDK + source maps + tunnel route) |
 | Hosting | Vercel (frontend), Supabase (backend), deploys from `main` only |
 | Package manager | bun 1.3.x, Node 24.x |
 
-Architecture is intentionally backend-light: the Next.js app talks to Supabase directly via PostgREST. There is no custom API server. Edge Functions (Deno) handle webhooks (Stripe, DocuSeal, Resend) and operations that need privileged access.
+Architecture is intentionally backend-light: the Next.js app talks to Supabase directly via PostgREST. There is no custom API server. Edge Functions (Deno) handle webhooks (Stripe, Resend) and operations that need privileged access.
 
 ---
 

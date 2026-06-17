@@ -64,7 +64,7 @@ Every storage bucket policy enforces folder-uuid → owner ID via `storage.folde
 - **CORS**: fail-closed when `NEXT_PUBLIC_APP_URL` is unset.
 - **Errors**: generic `{ error: 'An error occurred' }` to clients; full detail to Sentry + structured console.
 - **Rate limiting**: Upstash sliding window. IP extraction prefers `cf-connecting-ip`, falls back to the *last* trusted `x-forwarded-for` segment (the first segment is attacker-controlled).
-- **HMAC** verification on webhooks (Stripe + DocuSeal) using `crypto.subtle.timingSafeEqual` with length pre-check.
+- **HMAC** verification on webhooks (Stripe, Resend, n8n) using `crypto.subtle.timingSafeEqual` with length pre-check.
 - **Stripe Checkout** validates `price_id` against an allowlist; arbitrary-price + promo-code bypass is closed.
 
 ### Build, CI, and Dependency Hygiene

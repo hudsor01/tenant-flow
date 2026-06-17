@@ -178,9 +178,12 @@ export const leaseQueries = {
 				if (!path) return { document_url: null };
 				// The finalized signed PDF lives in the private tenant-documents
 				// bucket (owner-scoped RLS); mint a short-lived signed URL on demand.
-				const { data: signed } = await supabase.storage
+				// Surface a storage failure (vs. a missing document) so the download
+				// button can distinguish "failing" from "not available yet".
+				const { data: signed, error: signError } = await supabase.storage
 					.from("tenant-documents")
 					.createSignedUrl(path, 60 * 60);
+				if (signError) throw signError;
 				return { document_url: signed?.signedUrl ?? null };
 			},
 			enabled: enabled && !!leaseId,

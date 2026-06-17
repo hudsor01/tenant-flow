@@ -138,9 +138,10 @@ Deno.serve(async (req: Request) => {
 				return errorResponse(req, 500, error, { action: "document" });
 			}
 			const row = (data as SigningContextRow[] | null)?.[0];
-			// Render only for a token that resolves to a lease and was not revoked
-			// (an owner-cancelled link must not keep serving the document).
-			if (!row || !row.lease_id || row.reason === "revoked_token") {
+			// Render only for a currently-valid signing token (mirrors `context`):
+			// a used / expired / revoked / already-signed link must not keep
+			// serving the lease PDF (tenant PII) to a direct caller.
+			if (!row || !row.valid || !row.lease_id) {
 				return new Response(JSON.stringify({ error: "Not found" }), {
 					status: 404,
 					headers: getJsonHeaders(req),

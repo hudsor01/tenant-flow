@@ -35,6 +35,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 	const [consent, setConsent] = useState(false);
 	const [viewed, setViewed] = useState(false);
 	const [viewing, setViewing] = useState(false);
+	const [docFallbackUrl, setDocFallbackUrl] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [signed, setSigned] = useState(false);
 	const [bothSigned, setBothSigned] = useState(false);
@@ -58,8 +59,15 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 			if (!res.ok) throw new Error("Unable to load the lease document");
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
-			window.open(url, "_blank", "noopener,noreferrer");
-			setTimeout(() => URL.revokeObjectURL(url), 60_000);
+			const win = window.open(url, "_blank", "noopener,noreferrer");
+			if (win) {
+				setDocFallbackUrl(null);
+				setTimeout(() => URL.revokeObjectURL(url), 60_000);
+			} else {
+				// The async open lost the click's user-gesture, so the popup was
+				// blocked. Surface a link the tenant can open within a fresh click.
+				setDocFallbackUrl(url);
+			}
 		} catch {
 			setError(
 				"We couldn't open the lease document. Please try again or contact the landlord.",
@@ -92,11 +100,15 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 			if (data.success) {
 				setBothSigned(data.both_signed === true);
 				setSigned(true);
-			} else {
+			} else if (data.reason) {
+				// Map only an explicit reason; a server error carries none and must
+				// not be reported as a permanently-invalid link.
 				setError(
-					SIGN_ERROR_MESSAGE[data.reason ?? "invalid_token"] ??
+					SIGN_ERROR_MESSAGE[data.reason] ??
 						"We couldn't record your signature. Please try again.",
 				);
+			} else {
+				setError("We couldn't record your signature. Please try again.");
 			}
 		} catch {
 			setError("Something went wrong. Please try again.");
@@ -157,6 +169,18 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				)}
 				{viewed ? "Reopen the full lease" : "Read the full lease"}
 			</Button>
+
+			{docFallbackUrl ? (
+				<a
+					href={docFallbackUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="block text-center text-sm text-primary underline"
+					data-testid="view-lease-fallback-link"
+				>
+					Your browser blocked the document window — open the lease here
+				</a>
+			) : null}
 
 			<div className="space-y-2">
 				<Label htmlFor="signer-name">Type your full legal name</Label>
