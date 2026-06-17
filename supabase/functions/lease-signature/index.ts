@@ -403,6 +403,14 @@ Deno.serve(async (req: Request) => {
 
 		// ── sign-owner ─────────────────────────────────────────────────────────
 		if (action === "sign-owner") {
+			// Enforce affirmative ESIGN consent server-side (mirrors the tenant
+			// path), so the persisted owner_signature_consent_at is real.
+			if (body.consent !== true) {
+				return new Response(
+					JSON.stringify({ error: "Consent is required to sign" }),
+					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
 			// Only sign a lease that has been sent (pending_signature), so the
 			// owner's signature is bound to the same finalized terms the tenant
 			// signs — never a still-editable draft.

@@ -380,12 +380,15 @@ describe.skipIf(skipReason)(
 
 			const { data: leaseRow } = await service
 				.from("leases")
-				.select("lease_status, tenant_signed_at, tenant_signature_name")
+				.select(
+					"lease_status, tenant_signed_at, tenant_signature_name, tenant_signature_consent_at",
+				)
 				.eq("id", tenantSecondLeaseId!)
 				.single();
 			expect(leaseRow?.lease_status).toBe("active");
 			expect(leaseRow?.tenant_signed_at).not.toBeNull();
 			expect(leaseRow?.tenant_signature_name).toBe("Jane Q Tenant");
+			expect(leaseRow?.tenant_signature_consent_at).not.toBeNull();
 
 			const { data: notifs } = await service
 				.from("notifications")
@@ -411,11 +414,12 @@ describe.skipIf(skipReason)(
 
 			const { data: leaseRow } = await service
 				.from("leases")
-				.select("lease_status, owner_signed_at")
+				.select("lease_status, owner_signed_at, owner_signature_consent_at")
 				.eq("id", ownerSecondLeaseId!)
 				.single();
 			expect(leaseRow?.lease_status).toBe("active");
 			expect(leaseRow?.owner_signed_at).not.toBeNull();
+			expect(leaseRow?.owner_signature_consent_at).not.toBeNull();
 
 			const { data: notifs } = await service
 				.from("notifications")
@@ -664,6 +668,48 @@ describe.skipIf(skipReason)(
 			expect(row?.tenant_name).toBe("Happy Path Tenant");
 			expect(row?.property_label).toContain("property");
 			expect(Number(row?.rent_amount)).toBe(1500);
+		});
+
+		it("get_lease_signing_context reports a revoked token", async () => {
+			const hash = await seedToken(contextLeaseId!, {
+				revoked_at: new Date().toISOString(),
+			});
+			const { data } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(data?.[0]?.valid).toBe(false);
+			expect(data?.[0]?.reason).toBe("revoked_token");
+		});
+
+		it("get_lease_signing_context reports a used token", async () => {
+			const hash = await seedToken(contextLeaseId!, {
+				used_at: new Date().toISOString(),
+			});
+			const { data } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(data?.[0]?.valid).toBe(false);
+			expect(data?.[0]?.reason).toBe("used_token");
+		});
+
+		it("get_lease_signing_context reports an expired token", async () => {
+			const hash = await seedToken(contextLeaseId!, {
+				expires_at: new Date(Date.now() - 1000).toISOString(),
+			});
+			const { data } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(data?.[0]?.valid).toBe(false);
+			expect(data?.[0]?.reason).toBe("expired_token");
+		});
+
+		it("get_lease_signing_context reports tenant_already_signed", async () => {
+			const hash = await seedToken(tenantSignedLeaseId!);
+			const { data } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(data?.[0]?.valid).toBe(false);
+			expect(data?.[0]?.reason).toBe("tenant_already_signed");
 		});
 
 		it("get_lease_signing_context reports an unknown token as invalid", async () => {

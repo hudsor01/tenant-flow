@@ -209,8 +209,13 @@ export const leaseMutations = {
 	signAsOwner: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.sign,
+			// The owner agrees to the terms (checkbox) before this fires, so the
+			// consent is transmitted + enforced server-side, matching the tenant path.
 			mutationFn: (leaseId: string) =>
-				callLeaseSignatureEdgeFunction("sign-owner", { leaseId }),
+				callLeaseSignatureEdgeFunction("sign-owner", {
+					leaseId,
+					consent: true,
+				}),
 		}),
 
 	cancelSignature: () =>
