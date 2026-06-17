@@ -122,6 +122,8 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	owner_signature_user_agent: null,
 	tenant_signature_user_agent: null,
 	tenant_signature_name: null,
+	owner_signature_consent_at: null,
+	tenant_signature_consent_at: null,
 	signed_document_path: null,
 	signed_document_hash: null,
 	landlord_notice_address: null,

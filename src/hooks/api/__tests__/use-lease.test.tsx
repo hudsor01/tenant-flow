@@ -381,6 +381,50 @@ describe("Query Hooks", () => {
 			);
 		});
 
+		it("returns null without touching Storage when no document is stored", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({ data: { signed_document_path: null } });
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({ createSignedUrl: vi.fn() });
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data?.document_url).toBeNull();
+			expect(supabaseStorageFromMock).not.toHaveBeenCalled();
+		});
+
+		it("errors when the Storage signed-URL mint fails", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: { signed_document_path: "lease/lease-123/signed-lease.pdf" },
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({
+				createSignedUrl: vi
+					.fn()
+					.mockResolvedValue({ data: null, error: { message: "boom" } }),
+			});
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isError).toBe(true);
+			});
+		});
+
 		it("should not fetch when disabled", () => {
 			const { result } = renderHook(
 				() => useSignedDocumentUrl("lease-123", false),

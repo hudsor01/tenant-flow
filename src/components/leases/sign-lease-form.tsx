@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, FileText, Loader2, PenLine } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Input } from "#components/ui/input";
@@ -40,8 +40,17 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 	const [signed, setSigned] = useState(false);
 	const [bothSigned, setBothSigned] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const fallbackUrlRef = useRef<string | null>(null);
 
 	const canSubmit = name.trim().length > 0 && viewed && consent && !submitting;
+
+	// Revoke any outstanding fallback blob URL on unmount.
+	useEffect(
+		() => () => {
+			if (fallbackUrlRef.current) URL.revokeObjectURL(fallbackUrlRef.current);
+		},
+		[],
+	);
 
 	const handleViewLease = async () => {
 		setError(null);
@@ -59,6 +68,12 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 			if (!res.ok) throw new Error("Unable to load the lease document");
 			const blob = await res.blob();
 			const url = URL.createObjectURL(blob);
+			// Revoke a prior fallback blob before replacing it (repeated blocked
+			// clicks would otherwise orphan blobs).
+			if (fallbackUrlRef.current) {
+				URL.revokeObjectURL(fallbackUrlRef.current);
+				fallbackUrlRef.current = null;
+			}
 			const win = window.open(url, "_blank", "noopener,noreferrer");
 			if (win) {
 				setDocFallbackUrl(null);
@@ -66,6 +81,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 			} else {
 				// The async open lost the click's user-gesture, so the popup was
 				// blocked. Surface a link the tenant can open within a fresh click.
+				fallbackUrlRef.current = url;
 				setDocFallbackUrl(url);
 			}
 		} catch {

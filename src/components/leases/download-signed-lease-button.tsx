@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Loader2 } from "lucide-react";
+import { AlertCircle, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { useSignedDocumentUrl } from "#hooks/api/use-lease";
@@ -25,7 +25,7 @@ export function DownloadSignedLeaseButton({
 	variant = "outline",
 	size = "default",
 }: DownloadSignedLeaseButtonProps) {
-	const { data, isLoading, error } = useSignedDocumentUrl(leaseId);
+	const { data, isLoading, error, refetch } = useSignedDocumentUrl(leaseId);
 
 	const handleDownload = () => {
 		if (!data?.document_url) {
@@ -38,7 +38,26 @@ export function DownloadSignedLeaseButton({
 	};
 
 	if (error) {
-		return null; // Don't show button if there's an error
+		// The signed PDF exists but its URL couldn't be minted (transient storage
+		// failure) — surface a retry rather than hiding it as "not available".
+		return (
+			<Button
+				variant="outline"
+				size={size}
+				onClick={() => {
+					toast.error("Signed lease temporarily unavailable. Retrying…");
+					refetch();
+				}}
+				className={cn(
+					"gap-2 text-destructive-text border-destructive/30",
+					className,
+				)}
+				data-testid="download-signed-lease-error"
+			>
+				<AlertCircle className="h-4 w-4" />
+				Retry download
+			</Button>
+		);
 	}
 
 	if (isLoading) {

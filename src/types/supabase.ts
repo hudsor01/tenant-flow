@@ -778,6 +778,7 @@ export type Database = {
 					lead_paint_disclosure_acknowledged: boolean | null;
 					lease_status: string;
 					max_occupants: number | null;
+					owner_signature_consent_at: string | null;
 					owner_signature_ip: string | null;
 					owner_signature_method: string | null;
 					owner_signature_user_agent: string | null;
@@ -798,6 +799,7 @@ export type Database = {
 					signed_document_path: string | null;
 					start_date: string;
 					tenant_responsible_utilities: string[] | null;
+					tenant_signature_consent_at: string | null;
 					tenant_signature_ip: string | null;
 					tenant_signature_method: string | null;
 					tenant_signature_name: string | null;
@@ -820,6 +822,7 @@ export type Database = {
 					lead_paint_disclosure_acknowledged?: boolean | null;
 					lease_status?: string;
 					max_occupants?: number | null;
+					owner_signature_consent_at?: string | null;
 					owner_signature_ip?: string | null;
 					owner_signature_method?: string | null;
 					owner_signature_user_agent?: string | null;
@@ -840,6 +843,7 @@ export type Database = {
 					signed_document_path?: string | null;
 					start_date: string;
 					tenant_responsible_utilities?: string[] | null;
+					tenant_signature_consent_at?: string | null;
 					tenant_signature_ip?: string | null;
 					tenant_signature_method?: string | null;
 					tenant_signature_name?: string | null;
@@ -862,6 +866,7 @@ export type Database = {
 					lead_paint_disclosure_acknowledged?: boolean | null;
 					lease_status?: string;
 					max_occupants?: number | null;
+					owner_signature_consent_at?: string | null;
 					owner_signature_ip?: string | null;
 					owner_signature_method?: string | null;
 					owner_signature_user_agent?: string | null;
@@ -882,6 +887,7 @@ export type Database = {
 					signed_document_path?: string | null;
 					start_date?: string;
 					tenant_responsible_utilities?: string[] | null;
+					tenant_signature_consent_at?: string | null;
 					tenant_signature_ip?: string | null;
 					tenant_signature_method?: string | null;
 					tenant_signature_name?: string | null;

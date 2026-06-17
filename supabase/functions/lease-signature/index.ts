@@ -380,10 +380,13 @@ Deno.serve(async (req: Request) => {
 					owner_signature_ip: null,
 					owner_signature_user_agent: null,
 					owner_signature_method: null,
+					owner_signature_consent_at: null,
 					tenant_signed_at: null,
 					tenant_signature_ip: null,
 					tenant_signature_user_agent: null,
 					tenant_signature_method: null,
+					tenant_signature_name: null,
+					tenant_signature_consent_at: null,
 					signed_document_path: null,
 					signed_document_hash: null,
 				})
