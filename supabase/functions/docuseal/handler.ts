@@ -334,7 +334,11 @@ Deno.serve(async (req: Request) => {
 				],
 				submitters: [ownerSubmitter, tenantSubmitter],
 				send_email: true,
-				order: "preserved",
+				// "random" = email both parties immediately so they sign independently.
+				// "preserved" would email the tenant only AFTER the owner signs in
+				// DocuSeal — but the owner signs in-app, so the tenant would never be
+				// emailed and the lease would never activate.
+				order: "random",
 				metadata: {
 					lease_id: leaseId,
 					source: "tenantflow",

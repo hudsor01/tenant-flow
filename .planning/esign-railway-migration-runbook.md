@@ -81,9 +81,9 @@ supabase functions deploy docuseal docuseal-webhook generate-pdf --project-ref b
 
 1. Create a **draft** lease for a unit, with a tenant that has a **real email**.
 2. Click **Send for Signature** (fill the landlord notice address).
-   - ✅ no 502; the lease moves to **Pending Signature**; owner + tenant receive DocuSeal emails.
-3. Open the **tenant** email → sign. Then the **owner** email (or in-app "Sign as Owner") → sign.
-   - ✅ after the second signature, the webhook flips the lease to **Active** and the owner gets a "Lease fully signed" notification.
+   - ✅ no 502; the lease moves to **Pending Signature**; **both** owner + tenant receive DocuSeal emails immediately (the submission uses `order:"random"`, so they can sign in any order).
+3. Sign as **both** parties, in either order: the **tenant** via their DocuSeal email; the **owner** via the in-app **"Sign as Owner"** button (or their DocuSeal email).
+   - ✅ once **both** `owner_signed_at` and `tenant_signed_at` are set, the lease flips to **Active** and the owner gets a "Lease fully signed" notification — whether the last signature came from the in-app owner path or a DocuSeal webhook.
 4. ✅ the signed PDF is downloadable from the active lease.
 5. If the webhook seems to not fire: check the `docuseal-webhook` logs for `401 Unauthorized` (→ `DOCUSEAL_WEBHOOK_SECRET` mismatch) or "Lease not found" (→ submission/metadata lookup).
 

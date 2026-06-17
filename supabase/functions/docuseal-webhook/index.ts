@@ -28,6 +28,9 @@ interface SubmissionRef {
 	status?: string;
 	combined_document_url?: string;
 	documents?: Array<{ name: string; url: string }>;
+	// Create-time submission metadata re-surfaces under `variables` in current
+	// DocuSeal webhook payloads; `metadata` is kept for older builds.
+	variables?: { lease_id?: string };
 	metadata?: { lease_id?: string };
 }
 
@@ -37,11 +40,48 @@ interface FormCompletedData {
 	external_id?: string | null;
 	email?: string;
 	completed_at?: string;
+	variables?: { lease_id?: string };
 	metadata?: { lease_id?: string };
 	submission?: SubmissionRef;
 }
 
 type SubmissionCompletedData = SubmissionRef;
+
+const leaseIdFrom = (
+	s: { variables?: { lease_id?: string }; metadata?: { lease_id?: string } } | undefined,
+): string | undefined => s?.variables?.lease_id ?? s?.metadata?.lease_id;
+
+/**
+ * Activate the lease + notify the owner, exactly once. The conditional UPDATE
+ * (`.neq lease_status active`) makes activation idempotent, and the notification
+ * is inserted only when this call is the one that flipped the row — so repeated
+ * form.completed/submission.completed deliveries never double-notify.
+ */
+async function activateLease(
+	supabase: SupabaseClient,
+	leaseId: string,
+	ownerUserId: string,
+): Promise<void> {
+	const { data: flipped, error } = await supabase
+		.from("leases")
+		.update({ lease_status: "active" })
+		.eq("id", leaseId)
+		.neq("lease_status", "active")
+		.select("id");
+	if (error) throw new Error(`Failed to activate lease: ${error.message}`);
+	if (!flipped || flipped.length === 0) return; // already active — no duplicate notify
+
+	// notification_type must be 'lease' per notifications_notification_type_check.
+	const { error: notifError } = await supabase.from("notifications").insert({
+		user_id: ownerUserId,
+		title: "Lease fully signed",
+		message: "Your lease has been signed by all parties and is now active.",
+		notification_type: "lease",
+	});
+	if (notifError)
+		throw new Error(`Failed to insert owner notification: ${notifError.message}`);
+	logEvent("Lease activated + owner notified", { lease_id: leaseId });
+}
 
 async function lookupLease(
 	supabase: SupabaseClient,
@@ -82,7 +122,7 @@ async function handleFormCompleted(
 	data: FormCompletedData,
 ): Promise<void> {
 	const submissionId = data.submission?.id;
-	const leaseId = data.submission?.metadata?.lease_id ?? data.metadata?.lease_id;
+	const leaseId = leaseIdFrom(data.submission) ?? leaseIdFrom(data);
 	const role = data.role ?? "";
 	const externalId = data.external_id ?? "";
 	const completed_at = data.completed_at;
@@ -96,6 +136,7 @@ async function handleFormCompleted(
 		id: string;
 		owner_signed_at: string | null;
 		tenant_signed_at: string | null;
+		owner_user_id: string;
 	} | null;
 
 	// Not our document; ignore gracefully (no 500 so DocuSeal stops retrying).
@@ -128,6 +169,12 @@ async function handleFormCompleted(
 		if (updateError)
 			throw new Error(`Failed to update owner signature: ${updateError.message}`);
 		logEvent("Owner signature recorded", { lease_id: lease.id });
+		// If the tenant had already signed, both parties are done -> activate.
+		// (submission.completed won't fire when the owner signs in-app, so order-
+		// independent activation has to happen here too.)
+		if (lease.tenant_signed_at) {
+			await activateLease(supabase, lease.id, lease.owner_user_id);
+		}
 	} else if (isTenant) {
 		if (lease.tenant_signed_at) {
 			logEvent("tenant_signed_at already set — duplicate delivery, skipping", {
@@ -147,6 +194,9 @@ async function handleFormCompleted(
 				`Failed to update tenant signature: ${updateError.message}`,
 			);
 		logEvent("Tenant signature recorded", { lease_id: lease.id });
+		if (lease.owner_signed_at) {
+			await activateLease(supabase, lease.id, lease.owner_user_id);
+		}
 	} else {
 		logEvent("Unrecognised role — no signature update performed", {
 			role,
@@ -160,7 +210,7 @@ async function handleSubmissionCompleted(
 	data: SubmissionCompletedData,
 ): Promise<void> {
 	const submissionId = data.id;
-	const leaseId = data.metadata?.lease_id;
+	const leaseId = leaseIdFrom(data);
 
 	const lease = (await lookupLease(
 		supabase,
@@ -182,12 +232,10 @@ async function handleSubmissionCompleted(
 		return;
 	}
 
-	// Activation is idempotent: only flip lease_status if not already active.
-	// URL persistence heals on redelivery: if the signed URL is missing on the
-	// existing row, write it even when lease_status is already 'active'.
-	// NOTE: combined_document_url is a (possibly short-lived) DocuSeal blob URL —
-	// the canonical reference is docuseal_submission_id; consumers should refresh
-	// the URL via the API rather than trusting this one long-term.
+	// Persist the signed-document URL if missing (heals on redelivery). NOTE:
+	// combined_document_url is a possibly short-lived DocuSeal blob URL — the
+	// canonical reference is docuseal_submission_id; refresh via the API rather
+	// than trusting this long-term.
 	const signedDocUrl =
 		(typeof data.combined_document_url === "string"
 			? data.combined_document_url
@@ -195,61 +243,20 @@ async function handleSubmissionCompleted(
 		(typeof data.documents?.[0]?.url === "string"
 			? data.documents[0].url
 			: null);
-	const updatePayload: {
-		lease_status?: "active";
-		docuseal_document_url?: string;
-	} = {};
-
-	if (lease.lease_status !== "active") {
-		updatePayload.lease_status = "active";
-	}
 	if (signedDocUrl && !lease.docuseal_document_url) {
-		updatePayload.docuseal_document_url = signedDocUrl;
-	}
-
-	if (Object.keys(updatePayload).length === 0) {
-		logEvent(
-			"Lease already active and signed URL already persisted — skipping",
-			{ lease_id: lease.id },
-		);
-		return;
-	}
-
-	const { error: leaseUpdateError } = await supabase
-		.from("leases")
-		.update(updatePayload)
-		.eq("id", lease.id);
-
-	if (leaseUpdateError) {
-		throw new Error(`Failed to update lease: ${leaseUpdateError.message}`);
-	}
-
-	logEvent("Lease updated", {
-		lease_id: lease.id,
-		activated: updatePayload.lease_status === "active",
-		persisted_signed_url: Boolean(updatePayload.docuseal_document_url),
-	});
-
-	// Only insert the activation notification when we actually just activated
-	// (not on URL-heal-only redeliveries).
-	if (updatePayload.lease_status === "active") {
-		// notification_type must be 'lease' per notifications_notification_type_check constraint
-		// (allowed: 'maintenance', 'lease', 'payment', 'system').
-		const { error: notifError } = await supabase.from("notifications").insert({
-			user_id: lease.owner_user_id,
-			title: "Lease fully signed",
-			message: "Your lease has been signed by all parties and is now active.",
-			notification_type: "lease",
-		});
-
-		if (notifError) {
+		const { error: urlError } = await supabase
+			.from("leases")
+			.update({ docuseal_document_url: signedDocUrl })
+			.eq("id", lease.id);
+		if (urlError)
 			throw new Error(
-				`Failed to insert owner notification: ${notifError.message}`,
+				`Failed to persist signed document URL: ${urlError.message}`,
 			);
-		}
-
-		logEvent("Owner notification inserted", { lease_id: lease.id });
 	}
+
+	// submission.completed means every DocuSeal submitter finished. Activate +
+	// notify exactly once (idempotent on redelivery and vs the form.completed path).
+	await activateLease(supabase, lease.id, lease.owner_user_id);
 }
 
 const toHex = (buf: ArrayBuffer): string =>
@@ -278,6 +285,15 @@ async function verifySignature(
 		["sign"],
 	);
 	const dotIdx = header.indexOf(".");
+	if (dotIdx > 0) {
+		// New scheme: reject a stale/non-numeric timestamp (±5 min) BEFORE the HMAC
+		// check — replay hardening per the DocuSeal webhook spec. A non-finite ts
+		// fails closed (Math.abs(NaN) > 300 is false, so guard it explicitly).
+		const ts = Number(header.slice(0, dotIdx));
+		if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 300) {
+			return false;
+		}
+	}
 	// New scheme: `<timestamp>.<signature>` — sign `<timestamp>.<raw_body>`.
 	// Legacy scheme: header is plain hex of the raw body.
 	const candidates: Array<{ provided: string; signed: string }> =
