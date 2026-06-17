@@ -180,8 +180,12 @@ Deno.serve(async (req: Request) => {
 			if (limited) return limited;
 
 			const consent = body.consent === true;
+			// Cap the public-endpoint name (mirrors clientUserAgent's slice) so an
+			// arbitrarily large string can't be persisted + re-rendered into the PDF.
 			const signerName =
-				typeof body.signerName === "string" ? body.signerName.trim() : "";
+				typeof body.signerName === "string"
+					? body.signerName.trim().slice(0, 200)
+					: "";
 			if (!consent || !signerName) {
 				return new Response(
 					JSON.stringify({

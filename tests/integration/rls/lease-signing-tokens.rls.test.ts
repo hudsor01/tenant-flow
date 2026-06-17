@@ -96,6 +96,7 @@ describe.skipIf(skipReason)(
 		let ownerFirstLeaseId: string | undefined; // pending, no signatures
 		let ownerSignedLeaseId: string | undefined; // pending, owner pre-signed
 		let finalizeLeaseId: string | undefined; // pending, owner pre-signed
+		let contextLeaseId: string | undefined; // pending, no signatures
 		// Any owned lease for the token-table RLS assertions.
 		let leaseAId: string | undefined;
 		let signFnDeployed = false;
@@ -230,6 +231,7 @@ describe.skipIf(skipReason)(
 				owner_signed_at: now,
 				owner_signature_method: "in_app",
 			});
+			contextLeaseId = await makeLease({ lease_status: "pending_signature" });
 			leaseAId = tenantSecondLeaseId;
 			signFnDeployed = await isSignFunctionDeployed();
 
@@ -647,6 +649,21 @@ describe.skipIf(skipReason)(
 			});
 			expect(data?.[0]?.success).toBe(false);
 			expect(data?.[0]?.error_message).toBe("tenant_already_signed");
+		});
+
+		it("get_lease_signing_context returns the render context for a valid token", async () => {
+			const hash = await seedToken(contextLeaseId!);
+			const { data, error } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(error).toBeNull();
+			const row = data?.[0];
+			expect(row?.valid).toBe(true);
+			expect(row?.reason).toBeNull();
+			expect(row?.lease_id).toBe(contextLeaseId);
+			expect(row?.tenant_name).toBe("Happy Path Tenant");
+			expect(row?.property_label).toContain("property");
+			expect(Number(row?.rent_amount)).toBe(1500);
 		});
 
 		it("get_lease_signing_context reports an unknown token as invalid", async () => {
