@@ -20,6 +20,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import {
 	useExpiringLeases,
 	useLease,
@@ -425,6 +426,58 @@ describe("Query Hooks", () => {
 			});
 		});
 
+		it("flags finalizing when both parties signed but no document path yet", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							signed_document_path: null,
+							owner_signed_at: "2026-01-01T00:00:00Z",
+							tenant_signed_at: "2026-01-02T00:00:00Z",
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({ createSignedUrl: vi.fn() });
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data?.finalizing).toBe(true);
+			expect(result.current.data?.document_url).toBeNull();
+			expect(supabaseStorageFromMock).not.toHaveBeenCalled();
+		});
+
+		it("does not flag finalizing when only one party has signed", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							signed_document_path: null,
+							owner_signed_at: "2026-01-01T00:00:00Z",
+							tenant_signed_at: null,
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({ createSignedUrl: vi.fn() });
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data?.finalizing).toBe(false);
+		});
+
 		it("should not fetch when disabled", () => {
 			const { result } = renderHook(
 				() => useSignedDocumentUrl("lease-123", false),
@@ -630,6 +683,30 @@ describe("Mutation Hooks", () => {
 					method: "POST",
 					body: expect.stringContaining('"action":"sign-owner"'),
 				}),
+			);
+		});
+
+		it("invalidates the owner dashboard after a successful sign", async () => {
+			const queryClient = new QueryClient({
+				defaultOptions: {
+					queries: { retry: false },
+					mutations: { retry: false },
+				},
+			});
+			const spy = vi.spyOn(queryClient, "invalidateQueries");
+			const wrapper = ({ children }: { children: ReactNode }) => (
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
+			);
+			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
+				wrapper,
+			});
+
+			await result.current.mutateAsync("lease-123");
+
+			expect(spy).toHaveBeenCalledWith(
+				expect.objectContaining({ queryKey: ownerDashboardKeys.all }),
 			);
 		});
 	});
