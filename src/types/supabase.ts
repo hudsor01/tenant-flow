@@ -671,6 +671,57 @@ export type Database = {
 					},
 				];
 			};
+			lease_signing_tokens: {
+				Row: {
+					created_at: string;
+					created_by: string;
+					expires_at: string;
+					id: string;
+					lease_id: string;
+					revoked_at: string | null;
+					tenant_email: string;
+					token_hash: string;
+					used_at: string | null;
+				};
+				Insert: {
+					created_at?: string;
+					created_by: string;
+					expires_at: string;
+					id?: string;
+					lease_id: string;
+					revoked_at?: string | null;
+					tenant_email: string;
+					token_hash: string;
+					used_at?: string | null;
+				};
+				Update: {
+					created_at?: string;
+					created_by?: string;
+					expires_at?: string;
+					id?: string;
+					lease_id?: string;
+					revoked_at?: string | null;
+					tenant_email?: string;
+					token_hash?: string;
+					used_at?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "lease_signing_tokens_created_by_fkey";
+						columns: ["created_by"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "lease_signing_tokens_lease_id_fkey";
+						columns: ["lease_id"];
+						isOneToOne: false;
+						referencedRelation: "leases";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			lease_tenants: {
 				Row: {
 					created_at: string | null;
@@ -716,12 +767,12 @@ export type Database = {
 			leases: {
 				Row: {
 					created_at: string | null;
-					docuseal_document_url: string | null;
-					docuseal_submission_id: string | null;
 					end_date: string;
 					governing_state: string | null;
 					grace_period_days: number | null;
 					id: string;
+					immediate_family_members: string | null;
+					landlord_notice_address: string | null;
 					late_fee_amount: number | null;
 					late_fee_days: number | null;
 					lead_paint_disclosure_acknowledged: boolean | null;
@@ -729,6 +780,7 @@ export type Database = {
 					max_occupants: number | null;
 					owner_signature_ip: string | null;
 					owner_signature_method: string | null;
+					owner_signature_user_agent: string | null;
 					owner_signed_at: string | null;
 					owner_user_id: string;
 					payment_day: number;
@@ -742,10 +794,13 @@ export type Database = {
 					rent_currency: string;
 					security_deposit: number;
 					sent_for_signature_at: string | null;
+					signed_document_hash: string | null;
+					signed_document_path: string | null;
 					start_date: string;
 					tenant_responsible_utilities: string[] | null;
 					tenant_signature_ip: string | null;
 					tenant_signature_method: string | null;
+					tenant_signature_user_agent: string | null;
 					tenant_signed_at: string | null;
 					unit_id: string;
 					updated_at: string | null;
@@ -753,12 +808,12 @@ export type Database = {
 				};
 				Insert: {
 					created_at?: string | null;
-					docuseal_document_url?: string | null;
-					docuseal_submission_id?: string | null;
 					end_date: string;
 					governing_state?: string | null;
 					grace_period_days?: number | null;
 					id?: string;
+					immediate_family_members?: string | null;
+					landlord_notice_address?: string | null;
 					late_fee_amount?: number | null;
 					late_fee_days?: number | null;
 					lead_paint_disclosure_acknowledged?: boolean | null;
@@ -766,6 +821,7 @@ export type Database = {
 					max_occupants?: number | null;
 					owner_signature_ip?: string | null;
 					owner_signature_method?: string | null;
+					owner_signature_user_agent?: string | null;
 					owner_signed_at?: string | null;
 					owner_user_id: string;
 					payment_day?: number;
@@ -779,10 +835,13 @@ export type Database = {
 					rent_currency?: string;
 					security_deposit: number;
 					sent_for_signature_at?: string | null;
+					signed_document_hash?: string | null;
+					signed_document_path?: string | null;
 					start_date: string;
 					tenant_responsible_utilities?: string[] | null;
 					tenant_signature_ip?: string | null;
 					tenant_signature_method?: string | null;
+					tenant_signature_user_agent?: string | null;
 					tenant_signed_at?: string | null;
 					unit_id: string;
 					updated_at?: string | null;
@@ -790,12 +849,12 @@ export type Database = {
 				};
 				Update: {
 					created_at?: string | null;
-					docuseal_document_url?: string | null;
-					docuseal_submission_id?: string | null;
 					end_date?: string;
 					governing_state?: string | null;
 					grace_period_days?: number | null;
 					id?: string;
+					immediate_family_members?: string | null;
+					landlord_notice_address?: string | null;
 					late_fee_amount?: number | null;
 					late_fee_days?: number | null;
 					lead_paint_disclosure_acknowledged?: boolean | null;
@@ -803,6 +862,7 @@ export type Database = {
 					max_occupants?: number | null;
 					owner_signature_ip?: string | null;
 					owner_signature_method?: string | null;
+					owner_signature_user_agent?: string | null;
 					owner_signed_at?: string | null;
 					owner_user_id?: string;
 					payment_day?: number;
@@ -816,10 +876,13 @@ export type Database = {
 					rent_currency?: string;
 					security_deposit?: number;
 					sent_for_signature_at?: string | null;
+					signed_document_hash?: string | null;
+					signed_document_path?: string | null;
 					start_date?: string;
 					tenant_responsible_utilities?: string[] | null;
 					tenant_signature_ip?: string | null;
 					tenant_signature_method?: string | null;
+					tenant_signature_user_agent?: string | null;
 					tenant_signed_at?: string | null;
 					unit_id?: string;
 					updated_at?: string | null;
@@ -2451,6 +2514,24 @@ export type Database = {
 					total_pre_1978_leases: number;
 				}[];
 			};
+			get_lease_signing_context: {
+				Args: { p_token_hash: string };
+				Returns: {
+					end_date: string;
+					lease_id: string;
+					lease_status: string;
+					owner_name: string;
+					owner_signed: boolean;
+					property_label: string;
+					reason: string;
+					rent_amount: number;
+					start_date: string;
+					tenant_name: string;
+					tenant_signed: boolean;
+					unit_number: string;
+					valid: boolean;
+				}[];
+			};
 			get_lease_stats: { Args: { p_user_id: string }; Returns: Json };
 			get_maintenance_analytics: { Args: { user_id: string }; Returns: Json };
 			get_maintenance_stats: { Args: { p_user_id: string }; Returns: Json };
@@ -2624,6 +2705,20 @@ export type Database = {
 				Args: { p_from_id: string; p_to_id: string };
 				Returns: undefined;
 			};
+			record_lease_signature: {
+				Args: {
+					p_lease_id: string;
+					p_method?: string;
+					p_signature_ip: string;
+					p_signature_user_agent: string;
+					p_signed_at: string;
+				};
+				Returns: {
+					both_signed: boolean;
+					error_message: string;
+					success: boolean;
+				}[];
+			};
 			reorder_document_categories: {
 				Args: { p_orders: Json };
 				Returns: undefined;
@@ -2676,17 +2771,17 @@ export type Database = {
 				Args: { p_owner_user_id: string };
 				Returns: undefined;
 			};
-			sign_lease_and_check_activation: {
+			sign_lease_with_token: {
 				Args: {
-					p_lease_id: string;
 					p_signature_ip: string;
-					p_signature_method?: string;
+					p_signature_user_agent: string;
 					p_signed_at: string;
-					p_signer_type: string;
+					p_token_hash: string;
 				};
 				Returns: {
 					both_signed: boolean;
 					error_message: string;
+					lease_id: string;
 					success: boolean;
 				}[];
 			};

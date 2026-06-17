@@ -6,7 +6,7 @@
  * onSuccess/onError/onSettled callbacks stay in hook files.
  *
  * Covers CRUD + lifecycle (terminate, renew) + signature mutations.
- * Signature mutations call the docuseal Edge Function.
+ * Signature mutations call the lease-signature Edge Function.
  */
 
 import { mutationOptions } from "@tanstack/react-query";
@@ -20,10 +20,10 @@ import type { Lease } from "#types/core";
 import { mutationKeys } from "../mutation-keys";
 
 /**
- * Calls the docuseal Edge Function with an action payload.
+ * Calls the lease-signature Edge Function with an action payload.
  * Reads the caller's JWT from the current Supabase session.
  */
-async function callDocuSealEdgeFunction(
+async function callLeaseSignatureEdgeFunction(
 	action: string,
 	payload: Record<string, unknown>,
 ): Promise<{ success: boolean }> {
@@ -33,7 +33,7 @@ async function callDocuSealEdgeFunction(
 	if (!token) throw new Error("Not authenticated");
 
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	const response = await fetch(`${baseUrl}/functions/v1/docuseal`, {
+	const response = await fetch(`${baseUrl}/functions/v1/lease-signature`, {
 		method: "POST",
 		headers: {
 			Authorization: `Bearer ${token}`,
@@ -47,7 +47,7 @@ async function callDocuSealEdgeFunction(
 			.json()
 			.catch(() => ({ error: response.statusText }));
 		throw new Error(
-			(error as { error?: string }).error ?? "DocuSeal request failed",
+			(error as { error?: string }).error ?? "Signature request failed",
 		);
 	}
 
@@ -183,7 +183,7 @@ export const leaseMutations = {
 			},
 		}),
 
-	// Signature mutations (DocuSeal Edge Function)
+	// Signature mutations (lease-signature Edge Function)
 	sendForSignature: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.sendForSignature,
@@ -199,7 +199,7 @@ export const leaseMutations = {
 					landlord_notice_address: string;
 				};
 			}) =>
-				callDocuSealEdgeFunction("send-for-signature", {
+				callLeaseSignatureEdgeFunction("send", {
 					leaseId,
 					message,
 					missingFields,
@@ -210,21 +210,14 @@ export const leaseMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.leases.sign,
 			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction("sign-owner", { leaseId }),
-		}),
-
-	signAsTenant: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.leases.sign,
-			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction("sign-tenant", { leaseId }),
+				callLeaseSignatureEdgeFunction("sign-owner", { leaseId }),
 		}),
 
 	cancelSignature: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.cancelSignature,
 			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction("cancel", { leaseId }),
+				callLeaseSignatureEdgeFunction("cancel", { leaseId }),
 		}),
 
 	resendSignature: () =>
@@ -236,6 +229,6 @@ export const leaseMutations = {
 			}: {
 				leaseId: string;
 				message?: string;
-			}) => callDocuSealEdgeFunction("resend", { leaseId, message }),
+			}) => callLeaseSignatureEdgeFunction("resend", { leaseId, message }),
 		}),
 };

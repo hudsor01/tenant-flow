@@ -32,12 +32,12 @@ const STATIC_HEAD = `# TenantFlow — Full Marketing Surface (for LLM ingestion)
 
 TenantFlow is property management software for independent landlords. It is intentionally landlord-only — tenants don't log in, there is no tenant authentication, and the product does not facilitate rent payments. Tenants exist as records owned by the landlord, not as users.
 
-The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Supabase. Lease e-signing is powered by DocuSeal on the Growth and Max tiers.
+The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Supabase. Lease e-signing is built in on the Growth and Max tiers.
 
 ## Core capabilities
 
 - **Property and unit management.** Track buildings, individual units, occupancy state, rent amounts, and turnover.
-- **Lease lifecycle.** Drafts, e-signed leases (DocuSeal), renewals, terminations, lease document vault.
+- **Lease lifecycle.** Drafts, e-signed leases, renewals, terminations, lease document vault.
 - **Tenant records.** Contact info, lease history, emergency contact, and document attachments. Tenants are records, not users — they do not log in.
 - **Maintenance request tracking.** Submission, vendor assignment, status, photos, completion timestamps.
 - **Document vault.** Global search across leases, tenant docs, inspections, maintenance records, with custom categories per owner.
@@ -50,8 +50,8 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 |---|---|---|---|---|---|---|
 | Trial | $0 (14d) | — | 1 | 5 | — | basic |
 | Starter | $19 | $190 | 5 | 25 | — | basic |
-| Growth | $49 | $490 | 20 | 100 | DocuSeal (25/mo) | premium |
-| Max | $149 | $1,490 | unlimited | unlimited | DocuSeal (unlimited) | premium |
+| Growth | $49 | $490 | 20 | 100 | 25/mo | premium |
+| Max | $149 | $1,490 | unlimited | unlimited | unlimited | premium |
 
 All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
 

@@ -127,16 +127,13 @@ export function SendForSignatureButton({
 			if (!session?.access_token) throw new Error("Not authenticated");
 
 			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-			const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
+			const response = await fetch(`${baseUrl}/functions/v1/lease-signature`, {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${session.access_token}`,
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					leaseId,
-					filename: `lease-preview-${leaseId}.pdf`,
-				}),
+				body: JSON.stringify({ action: "preview", leaseId }),
 			});
 
 			if (!response.ok) {

@@ -205,7 +205,6 @@ const leaseWithSignatureSchema = leaseInputSchema.extend({
 	tenant_signed_at: z.string().nullable().optional(),
 	tenant_signature_ip: z.string().nullable().optional(),
 	sent_for_signature_at: z.string().nullable().optional(),
-	docuseal_submission_id: z.string().nullable().optional(),
 });
 
 // Export types

@@ -7,10 +7,10 @@
  * - Error handling
  * - Disabled state when ID is empty
  *
- * Updated for DocuSeal Edge Function migration (Phase 55):
+ * Updated for the token-based lease e-signature migration:
  * - CRUD mutations use supabase-js PostgREST directly
- * - Signature mutations call callDocuSealEdgeFunction() via fetch to /functions/v1/docuseal
- * - useSignedDocumentUrl reads from supabase.from('leases') PostgREST
+ * - Signature mutations call the lease-signature Edge Function via fetch
+ * - useSignedDocumentUrl reads signed_document_path then mints a Storage signed URL
  *
  * @vitest-environment jsdom
  */
@@ -42,7 +42,6 @@ import {
 	useCancelSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
-	useSignLeaseAsTenantMutation,
 } from "../use-lease-signature-mutations";
 
 // Mock logger
@@ -86,6 +85,7 @@ vi.mock("#hooks/api/use-auth", () => ({
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn();
 const supabaseRpcMock = vi.fn();
+const supabaseStorageFromMock = vi.fn();
 const supabaseAuthGetUserMock = vi.fn();
 const supabaseAuthGetSessionMock = vi.fn();
 
@@ -93,6 +93,7 @@ vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
 		rpc: supabaseRpcMock,
+		storage: { from: supabaseStorageFromMock },
 		auth: {
 			getUser: supabaseAuthGetUserMock,
 			getSession: supabaseAuthGetSessionMock,
@@ -344,18 +345,21 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useSignedDocumentUrl", () => {
-		it("should query docuseal_submission_id from leases table via PostgREST", async () => {
+		it("reads signed_document_path then mints a Storage signed URL", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "leases") {
 					return createQueryChain({
-						data: {
-							docuseal_submission_id: "sub-999",
-							owner_signed_at: "2024-01-15T10:00:00Z",
-							tenant_signed_at: "2024-01-16T10:00:00Z",
-						},
+						data: { signed_document_path: "lease/lease-123/signed-lease.pdf" },
 					});
 				}
 				return createQueryChain({ data: null });
+			});
+			const createSignedUrlMock = vi.fn().mockResolvedValue({
+				data: { signedUrl: "https://storage.example/signed.pdf" },
+				error: null,
+			});
+			supabaseStorageFromMock.mockReturnValue({
+				createSignedUrl: createSignedUrlMock,
 			});
 
 			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
@@ -363,10 +367,18 @@ describe("Query Hooks", () => {
 			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
+				expect(result.current.isSuccess).toBe(true);
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+			expect(supabaseStorageFromMock).toHaveBeenCalledWith("tenant-documents");
+			expect(createSignedUrlMock).toHaveBeenCalledWith(
+				"lease/lease-123/signed-lease.pdf",
+				60 * 60,
+			);
+			expect(result.current.data?.document_url).toBe(
+				"https://storage.example/signed.pdf",
+			);
 		});
 
 		it("should not fetch when disabled", () => {
@@ -530,7 +542,7 @@ describe("Mutation Hooks", () => {
 	});
 
 	describe("useSendLeaseForSignatureMutation", () => {
-		it("should call docuseal Edge Function with send-for-signature action", async () => {
+		it("should call lease-signature Edge Function with send action", async () => {
 			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
 				wrapper: createWrapper(),
 			});
@@ -545,10 +557,10 @@ describe("Mutation Hooks", () => {
 			});
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
+				expect.stringContaining("/functions/v1/lease-signature"),
 				expect.objectContaining({
 					method: "POST",
-					body: expect.stringContaining('"action":"send-for-signature"'),
+					body: expect.stringContaining('"action":"send"'),
 				}),
 			);
 			expect(fetchMock).toHaveBeenCalledWith(
@@ -561,7 +573,7 @@ describe("Mutation Hooks", () => {
 	});
 
 	describe("useSignLeaseAsOwnerMutation", () => {
-		it("should call docuseal Edge Function with sign-owner action", async () => {
+		it("should call lease-signature Edge Function with sign-owner action", async () => {
 			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
 				wrapper: createWrapper(),
 			});
@@ -569,7 +581,7 @@ describe("Mutation Hooks", () => {
 			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
+				expect.stringContaining("/functions/v1/lease-signature"),
 				expect.objectContaining({
 					method: "POST",
 					body: expect.stringContaining('"action":"sign-owner"'),
@@ -578,26 +590,8 @@ describe("Mutation Hooks", () => {
 		});
 	});
 
-	describe("useSignLeaseAsTenantMutation", () => {
-		it("should call docuseal Edge Function with sign-tenant action", async () => {
-			const { result } = renderHook(() => useSignLeaseAsTenantMutation(), {
-				wrapper: createWrapper(),
-			});
-
-			await result.current.mutateAsync("lease-123");
-
-			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
-				expect.objectContaining({
-					method: "POST",
-					body: expect.stringContaining('"action":"sign-tenant"'),
-				}),
-			);
-		});
-	});
-
 	describe("useCancelSignatureRequestMutation", () => {
-		it("should call docuseal Edge Function with cancel action", async () => {
+		it("should call lease-signature Edge Function with cancel action", async () => {
 			const { result } = renderHook(() => useCancelSignatureRequestMutation(), {
 				wrapper: createWrapper(),
 			});
@@ -605,7 +599,7 @@ describe("Mutation Hooks", () => {
 			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
+				expect.stringContaining("/functions/v1/lease-signature"),
 				expect.objectContaining({
 					method: "POST",
 					body: expect.stringContaining('"action":"cancel"'),

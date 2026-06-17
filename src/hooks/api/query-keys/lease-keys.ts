@@ -170,31 +170,18 @@ export const leaseQueries = {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("leases")
-					.select(
-						"docuseal_document_url, docuseal_submission_id, owner_signed_at, tenant_signed_at",
-					)
+					.select("signed_document_path")
 					.eq("id", leaseId)
 					.single();
 				if (error) handlePostgrestError(error, "leases");
-				const row = data as {
-					docuseal_document_url: string | null;
-					docuseal_submission_id: string | null;
-					owner_signed_at: string | null;
-					tenant_signed_at: string | null;
-				};
-				// Prefer the persisted signed-PDF URL written by the docuseal-webhook
-				// submission.completed handler (F-8). Fall back to the legacy
-				// `pending:<submission_id>` placeholder for leases that finished
-				// signing before the docuseal_document_url column existed.
-				return {
-					document_url:
-						row?.docuseal_document_url ??
-						(row?.docuseal_submission_id &&
-						row.owner_signed_at &&
-						row.tenant_signed_at
-							? `pending:${row.docuseal_submission_id}`
-							: null),
-				};
+				const path = data?.signed_document_path ?? null;
+				if (!path) return { document_url: null };
+				// The finalized signed PDF lives in the private tenant-documents
+				// bucket (owner-scoped RLS); mint a short-lived signed URL on demand.
+				const { data: signed } = await supabase.storage
+					.from("tenant-documents")
+					.createSignedUrl(path, 60 * 60);
+				return { document_url: signed?.signedUrl ?? null };
 			},
 			enabled: enabled && !!leaseId,
 			staleTime: 5 * 60 * 1000,

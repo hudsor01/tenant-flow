@@ -75,7 +75,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Do you integrate with my existing systems?",
 				answer:
-					"API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. DocuSeal e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
+					"API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. Lease e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
 			},
 		],
 	},

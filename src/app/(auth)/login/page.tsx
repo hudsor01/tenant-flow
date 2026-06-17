@@ -18,7 +18,6 @@ const logger = createLogger({ component: "LoginPage" });
 
 const HERO_STATS = [
 	{ value: "Vault", lines: ["Document", "Storage"] },
-	{ value: "DocuSeal", lines: ["Lease", "E-sign"] },
 	{ value: "Reports", lines: ["Tax-ready", "Exports"] },
 ];
 

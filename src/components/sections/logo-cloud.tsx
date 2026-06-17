@@ -36,12 +36,6 @@ export function LogoCloud({
 			width: "w-24",
 		},
 		{
-			name: "DocuSeal",
-			description: "E-Signatures",
-			logo: DocuSealLogo,
-			width: "w-24",
-		},
-		{
 			name: "Resend",
 			description: "Email",
 			logo: ResendLogo,
@@ -187,28 +181,6 @@ function VercelWordmark({ className }: { className?: string }) {
 				fill="currentColor"
 			>
 				Vercel
-			</text>
-		</svg>
-	);
-}
-
-function DocuSealLogo({ className }: { className?: string }) {
-	return (
-		<svg
-			className={className}
-			viewBox="0 0 120 30"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<text
-				x="0"
-				y="22"
-				fontFamily="system-ui, -apple-system, sans-serif"
-				fontSize="20"
-				fontWeight="700"
-				fill="#4F46E5"
-			>
-				DocuSeal
 			</text>
 		</svg>
 	);

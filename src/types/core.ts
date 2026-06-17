@@ -48,7 +48,7 @@ export type NotificationType = "maintenance" | "lease" | "payment" | "system";
 
 export type StripeSubscriptionStatus = "none" | "pending" | "active" | "failed";
 
-export type SignatureMethod = "in_app" | "docuseal";
+export type SignatureMethod = "in_app";
 
 export type SecurityEventSeverity =
 	| "debug"

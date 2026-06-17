@@ -15,7 +15,7 @@ interface DownloadSignedLeaseButtonProps {
 }
 
 /**
- * Button to download the signed lease document from DocuSeal
+ * Button to download the finalized signed lease PDF from storage
  * Only shows for active leases with completed signatures
  */
 export function DownloadSignedLeaseButton({

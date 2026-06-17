@@ -6,7 +6,7 @@
 // On signature failure / malformed body: 400. On DB error: 500 (Resend retries).
 //
 // Algorithm reference: docs.svix.com/receiving/verifying-payloads/how-manual
-// Template reference: supabase/functions/docuseal-webhook/index.ts (canonical
+// Template reference: supabase/functions/stripe-webhooks/index.ts (canonical
 // HMAC webhook skeleton — Resend differs in header names, HMAC input shape,
 // secret encoding, and uses defensive tag parsing per 44-RESEARCH.md Pitfall 1).
 

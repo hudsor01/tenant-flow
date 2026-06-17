@@ -47,28 +47,7 @@ export function useSignLeaseAsOwnerMutation() {
 	});
 }
 
-export function useSignLeaseAsTenantMutation() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...leaseMutations.signAsTenant(),
-		onSuccess: (_result, leaseId) => {
-			queryClient.invalidateQueries({
-				queryKey: leaseQueries.detail(leaseId).queryKey,
-			});
-			queryClient.invalidateQueries({
-				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
-			});
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
-			logger.info("Lease signed by tenant", { leaseId });
-		},
-		onError: (err) => {
-			handleMutationError(err, "Sign lease");
-		},
-	});
-}
-
-// Archives DocuSeal submission and reverts lease to draft.
+// Revokes the tenant signing token and reverts the lease to draft.
 export function useCancelSignatureRequestMutation() {
 	const queryClient = useQueryClient();
 

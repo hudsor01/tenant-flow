@@ -544,7 +544,7 @@ The `stripe` schema contains tables synced from Stripe via webhooks. **Do not wr
 
 | Enum | Values |
 |------|--------|
-| `signature_method` | `in_app`, `docuseal` |
+| `signature_method` | `in_app` |
 
 ---
 

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { ROUTES } from "../constants/routes";
 
 /**
- * v2.0 Phase 45 — DocuSeal e-sign paywall (REQ-45-04)
+ * v2.0 Phase 45 — e-sign paywall (REQ-45-04)
  *
  * Verifies the wire-up: Free-tier owners hitting send-for-signature get a 402
  * with an `upgrade_url` body that deep-links to `/billing/plans?source=esign_gate`,
@@ -15,7 +15,7 @@ import { ROUTES } from "../constants/routes";
  * Uses owner.json storageState. Skips cleanly if the seeded owner is on Growth
  * or Max (the gate should be 200/403, not 402 — that path is proven elsewhere).
  */
-test.describe("v2.0 Phase 45 — DocuSeal paywall wire-up", () => {
+test.describe("v2.0 Phase 45 — e-sign paywall wire-up", () => {
 	test("send-for-signature returns 402 with upgrade_url when owner is on Free tier", async ({
 		page,
 		request,
@@ -55,21 +55,23 @@ test.describe("v2.0 Phase 45 — DocuSeal paywall wire-up", () => {
 		const accessToken = decoded.access_token;
 		test.skip(!accessToken, "Could not extract access_token from storageState");
 
-		// Fire a send-for-signature request with a bogus leaseId. The tier gate
-		// runs BEFORE the leaseId is validated against the DB, so we get either:
+		// Fire a send request with a bogus leaseId. The tier gate runs BEFORE the
+		// leaseId/ownership is validated, so we get either:
 		//   402 → Free tier (what this test proves)
-		//   500 → env gap (DOCUSEAL_URL missing)
 		//   403 → Growth+/lease-not-owned (skip: can't exercise the paywall)
-		const resp = await request.post(`${supabaseUrl}/functions/v1/docuseal`, {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				"Content-Type": "application/json",
+		const resp = await request.post(
+			`${supabaseUrl}/functions/v1/lease-signature`,
+			{
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					"Content-Type": "application/json",
+				},
+				data: {
+					action: "send",
+					leaseId: "00000000-0000-0000-0000-000000000000",
+				},
 			},
-			data: {
-				action: "send-for-signature",
-				leaseId: "00000000-0000-0000-0000-000000000000",
-			},
-		});
+		);
 
 		test.skip(
 			resp.status() === 403,
