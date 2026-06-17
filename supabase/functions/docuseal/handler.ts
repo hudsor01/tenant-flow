@@ -415,7 +415,9 @@ Deno.serve(async (req: Request) => {
 
 			const { data: lease, error: leaseError } = await supabase
 				.from("leases")
-				.select("id, owner_user_id, docuseal_submission_id, tenant_signed_at")
+				.select(
+					"id, owner_user_id, docuseal_submission_id, owner_signed_at, tenant_signed_at",
+				)
 				.eq("id", leaseId)
 				.single();
 
@@ -434,13 +436,22 @@ Deno.serve(async (req: Request) => {
 				});
 			}
 
+			// Idempotent: already signed -> no-op success.
+			if (lease.owner_signed_at) {
+				return new Response(JSON.stringify({ success: true }), {
+					status: 200,
+					headers: getJsonHeaders(req),
+				});
+			}
+
+			// In-app owner signature (direct, IP-captured) -> method 'in_app'
+			// (the DocuSeal webhook records 'docuseal' for email-signed parties).
+			const ownerActivates = Boolean(lease.tenant_signed_at);
 			const updatePayload: Record<string, unknown> = {
 				owner_signed_at: new Date().toISOString(),
-				owner_signature_method: "docuseal",
+				owner_signature_method: "in_app",
 			};
-
-			// If tenant already signed, flip lease to active
-			if (lease.tenant_signed_at) {
+			if (ownerActivates) {
 				updatePayload.lease_status = "active";
 			}
 
@@ -451,6 +462,27 @@ Deno.serve(async (req: Request) => {
 
 			if (updateError) {
 				return errorResponse(req, 500, updateError, { action: "sign_owner" });
+			}
+
+			// If this completed the lease, notify the owner (parity with the webhook
+			// activation path). Best-effort — never fail the signature on notify error.
+			if (ownerActivates) {
+				const { error: notifError } = await supabase
+					.from("notifications")
+					.insert({
+						user_id: lease.owner_user_id,
+						title: "Lease fully signed",
+						message:
+							"Your lease has been signed by all parties and is now active.",
+						notification_type: "lease",
+					});
+				if (notifError) {
+					captureWebhookError(new Error("Owner activation notification failed"), {
+						message: notifError.message,
+						action: "sign_owner_notify",
+						lease_id: leaseId,
+					});
+				}
 			}
 
 			return new Response(JSON.stringify({ success: true }), {
