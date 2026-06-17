@@ -10,9 +10,10 @@
 //
 // Payload shape (current DocuSeal): { event_type, timestamp, data: {...} }.
 //   form.completed       -> data = the submitter: { role, external_id, completed_at,
-//                            submission: { id, metadata, combined_document_url } }
-//   submission.completed -> data = the submission: { id, status, metadata,
+//                            submission: { id, variables, combined_document_url } }
+//   submission.completed -> data = the submission: { id, status, variables,
 //                            combined_document_url, documents: [{ name, url }] }
+//   (lease_id is carried in submission.variables — see leaseIdFrom.)
 //
 // Signature (current DocuSeal): X-Docuseal-Signature: `<timestamp>.<hex_hmac>` where the
 //   HMAC-SHA256 is computed over `<timestamp>.<raw_body>` with the raw `whsec_...` secret.
