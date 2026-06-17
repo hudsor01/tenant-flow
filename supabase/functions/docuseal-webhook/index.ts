@@ -7,83 +7,111 @@
 // Events handled:
 //   form.completed       — individual party has signed (updates owner_signed_at or tenant_signed_at)
 //   submission.completed — all parties signed (flips lease_status to active + inserts notification)
+//
+// Payload shape (current DocuSeal): { event_type, timestamp, data: {...} }.
+//   form.completed       -> data = the submitter: { role, external_id, completed_at,
+//                            submission: { id, metadata, combined_document_url } }
+//   submission.completed -> data = the submission: { id, status, metadata,
+//                            combined_document_url, documents: [{ name, url }] }
+//
+// Signature (current DocuSeal): X-Docuseal-Signature: `<timestamp>.<hex_hmac>` where the
+//   HMAC-SHA256 is computed over `<timestamp>.<raw_body>` with the raw `whsec_...` secret.
+//   Legacy self-hosted builds sign plain hex of the raw body — both are accepted below.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse, logEvent } from "../_shared/errors.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
-interface FormCompletedPayload {
-	event_type: string;
-	id: number;
-	submission_id: number;
-	role: string;
-	email: string;
-	completed_at?: string;
+interface SubmissionRef {
+	id?: number;
+	status?: string;
+	combined_document_url?: string;
+	documents?: Array<{ name: string; url: string }>;
 	metadata?: { lease_id?: string };
 }
 
-interface SubmissionCompletedPayload {
-	event_type: string;
-	id: number;
-	status: string;
-	documents?: Array<{ name: string; url: string }>;
+interface FormCompletedData {
+	id?: number;
+	role?: string;
+	external_id?: string | null;
+	email?: string;
 	completed_at?: string;
 	metadata?: { lease_id?: string };
+	submission?: SubmissionRef;
+}
+
+type SubmissionCompletedData = SubmissionRef;
+
+async function lookupLease(
+	supabase: SupabaseClient,
+	columns: string,
+	submissionId: number | undefined,
+	leaseId: string | undefined,
+): Promise<unknown> {
+	if (submissionId != null) {
+		const { data, error } = await supabase
+			.from("leases")
+			.select(columns)
+			.eq("docuseal_submission_id", String(submissionId))
+			.maybeSingle();
+		if (error)
+			throw new Error(
+				`Database error querying lease by submission_id: ${error.message}`,
+			);
+		if (data) return data;
+	}
+	// Fall back to metadata.lease_id for submissions created without/before the id write.
+	if (leaseId) {
+		const { data, error } = await supabase
+			.from("leases")
+			.select(columns)
+			.eq("id", leaseId)
+			.maybeSingle();
+		if (error)
+			throw new Error(
+				`Database error querying lease by metadata.lease_id: ${error.message}`,
+			);
+		if (data) return data;
+	}
+	return null;
 }
 
 async function handleFormCompleted(
 	supabase: SupabaseClient,
-	body: FormCompletedPayload,
+	data: FormCompletedData,
 ): Promise<void> {
-	const { submission_id, role, completed_at, metadata } = body;
+	const submissionId = data.submission?.id;
+	const leaseId = data.submission?.metadata?.lease_id ?? data.metadata?.lease_id;
+	const role = data.role ?? "";
+	const externalId = data.external_id ?? "";
+	const completed_at = data.completed_at;
 
-	// Lookup by docuseal_submission_id; fall back to metadata.lease_id for older submissions.
-	const { data: leaseBySubmission, error: submissionError } = await supabase
-		.from("leases")
-		.select(
-			"id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id",
-		)
-		.eq("docuseal_submission_id", String(submission_id))
-		.maybeSingle();
-
-	if (submissionError) {
-		throw new Error(
-			`Database error querying lease by submission_id: ${submissionError.message}`,
-		);
-	}
-
-	let lease = leaseBySubmission;
-
-	if (!lease && metadata?.lease_id) {
-		const { data: leaseById, error: leaseIdError } = await supabase
-			.from("leases")
-			.select(
-				"id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id",
-			)
-			.eq("id", metadata.lease_id)
-			.maybeSingle();
-
-		if (leaseIdError) {
-			throw new Error(
-				`Database error querying lease by metadata.lease_id: ${leaseIdError.message}`,
-			);
-		}
-
-		lease = leaseById;
-	}
+	const lease = (await lookupLease(
+		supabase,
+		"id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id",
+		submissionId,
+		leaseId,
+	)) as {
+		id: string;
+		owner_signed_at: string | null;
+		tenant_signed_at: string | null;
+	} | null;
 
 	// Not our document; ignore gracefully (no 500 so DocuSeal stops retrying).
 	if (!lease) {
 		logEvent("Lease not found for form.completed event — ignoring", {
-			submission_id,
-			metadata_lease_id: metadata?.lease_id ?? null,
+			submission_id: submissionId ?? null,
+			metadata_lease_id: leaseId ?? null,
 		});
 		return;
 	}
 
-	const isOwner = role.toLowerCase().includes("owner");
-	const isTenant = role.toLowerCase().includes("tenant");
+	// Prefer the stable external_id ('owner'/'tenant' set on submission create);
+	// fall back to the role label for submissions created before external_id.
+	const roleLower = role.toLowerCase();
+	const isOwner = externalId === "owner" || roleLower.includes("owner");
+	const isTenant = externalId === "tenant" || roleLower.includes("tenant");
 	const signedAt = completed_at ?? new Date().toISOString();
 
 	if (isOwner) {
@@ -93,21 +121,12 @@ async function handleFormCompleted(
 			});
 			return;
 		}
-
 		const { error: updateError } = await supabase
 			.from("leases")
-			.update({
-				owner_signed_at: signedAt,
-				owner_signature_method: "docuseal",
-			})
+			.update({ owner_signed_at: signedAt, owner_signature_method: "docuseal" })
 			.eq("id", lease.id);
-
-		if (updateError) {
-			throw new Error(
-				`Failed to update owner signature: ${updateError.message}`,
-			);
-		}
-
+		if (updateError)
+			throw new Error(`Failed to update owner signature: ${updateError.message}`);
 		logEvent("Owner signature recorded", { lease_id: lease.id });
 	} else if (isTenant) {
 		if (lease.tenant_signed_at) {
@@ -116,7 +135,6 @@ async function handleFormCompleted(
 			});
 			return;
 		}
-
 		const { error: updateError } = await supabase
 			.from("leases")
 			.update({
@@ -124,59 +142,42 @@ async function handleFormCompleted(
 				tenant_signature_method: "docuseal",
 			})
 			.eq("id", lease.id);
-
-		if (updateError) {
+		if (updateError)
 			throw new Error(
 				`Failed to update tenant signature: ${updateError.message}`,
 			);
-		}
-
 		logEvent("Tenant signature recorded", { lease_id: lease.id });
 	} else {
-		logEvent("Unrecognised role — no signature update performed", { role });
+		logEvent("Unrecognised role — no signature update performed", {
+			role,
+			external_id: externalId,
+		});
 	}
 }
 
 async function handleSubmissionCompleted(
 	supabase: SupabaseClient,
-	body: SubmissionCompletedPayload,
+	data: SubmissionCompletedData,
 ): Promise<void> {
-	const { id: submissionId, documents, metadata } = body;
+	const submissionId = data.id;
+	const leaseId = data.metadata?.lease_id;
 
-	const { data: leaseBySubmission, error: submissionError } = await supabase
-		.from("leases")
-		.select("id, lease_status, owner_user_id, docuseal_document_url")
-		.eq("docuseal_submission_id", String(submissionId))
-		.maybeSingle();
-
-	if (submissionError) {
-		throw new Error(
-			`Database error querying lease by submission_id: ${submissionError.message}`,
-		);
-	}
-
-	let lease = leaseBySubmission;
-
-	if (!lease && metadata?.lease_id) {
-		const { data: leaseById, error: leaseIdError } = await supabase
-			.from("leases")
-			.select("id, lease_status, owner_user_id, docuseal_document_url")
-			.eq("id", metadata.lease_id)
-			.maybeSingle();
-
-		if (leaseIdError) {
-			throw new Error(
-				`Database error querying lease by metadata.lease_id: ${leaseIdError.message}`,
-			);
-		}
-
-		lease = leaseById;
-	}
+	const lease = (await lookupLease(
+		supabase,
+		"id, lease_status, owner_user_id, docuseal_document_url",
+		submissionId,
+		leaseId,
+	)) as {
+		id: string;
+		lease_status: string;
+		owner_user_id: string;
+		docuseal_document_url: string | null;
+	} | null;
 
 	if (!lease) {
 		logEvent("Lease not found for submission.completed event — ignoring", {
-			submission_id: submissionId,
-			metadata_lease_id: metadata?.lease_id ?? null,
+			submission_id: submissionId ?? null,
+			metadata_lease_id: leaseId ?? null,
 		});
 		return;
 	}
@@ -184,8 +185,16 @@ async function handleSubmissionCompleted(
 	// Activation is idempotent: only flip lease_status if not already active.
 	// URL persistence heals on redelivery: if the signed URL is missing on the
 	// existing row, write it even when lease_status is already 'active'.
+	// NOTE: combined_document_url is a (possibly short-lived) DocuSeal blob URL —
+	// the canonical reference is docuseal_submission_id; consumers should refresh
+	// the URL via the API rather than trusting this one long-term.
 	const signedDocUrl =
-		typeof documents?.[0]?.url === "string" ? documents[0].url : null;
+		(typeof data.combined_document_url === "string"
+			? data.combined_document_url
+			: null) ??
+		(typeof data.documents?.[0]?.url === "string"
+			? data.documents[0].url
+			: null);
 	const updatePayload: {
 		lease_status?: "active";
 		docuseal_document_url?: string;
@@ -243,6 +252,59 @@ async function handleSubmissionCompleted(
 	}
 }
 
+const toHex = (buf: ArrayBuffer): string =>
+	Array.from(new Uint8Array(buf))
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
+
+/**
+ * Verify the DocuSeal webhook HMAC. Current DocuSeal sends
+ * `X-Docuseal-Signature: <timestamp>.<hex>` and signs `<timestamp>.<raw_body>`
+ * with the raw `whsec_...` secret. Older self-hosted builds sign plain hex of
+ * the raw body. Both schemes are accepted (the signed payload differs only by
+ * the `<timestamp>.` prefix). Returns true on a valid signature.
+ */
+async function verifySignature(
+	header: string,
+	rawBody: string,
+	secret: string,
+): Promise<boolean> {
+	const encoder = new TextEncoder();
+	const key = await crypto.subtle.importKey(
+		"raw",
+		encoder.encode(secret),
+		{ name: "HMAC", hash: "SHA-256" },
+		false,
+		["sign"],
+	);
+	const dotIdx = header.indexOf(".");
+	// New scheme: `<timestamp>.<signature>` — sign `<timestamp>.<raw_body>`.
+	// Legacy scheme: header is plain hex of the raw body.
+	const candidates: Array<{ provided: string; signed: string }> =
+		dotIdx > 0
+			? [
+					{
+						provided: header.slice(dotIdx + 1),
+						signed: `${header.slice(0, dotIdx)}.${rawBody}`,
+					},
+				]
+			: [{ provided: header, signed: rawBody }];
+
+	for (const { provided, signed } of candidates) {
+		const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(signed));
+		const expected = toHex(sig);
+		const providedBytes = encoder.encode(provided);
+		const expectedBytes = encoder.encode(expected);
+		if (
+			providedBytes.byteLength === expectedBytes.byteLength &&
+			crypto.subtle.timingSafeEqual(providedBytes, expectedBytes)
+		) {
+			return true;
+		}
+	}
+	return false;
+}
+
 Deno.serve(async (req: Request) => {
 	try {
 		const env = validateEnv({
@@ -275,31 +337,7 @@ Deno.serve(async (req: Request) => {
 			});
 		}
 
-		// HMAC-SHA256 verification using Web Crypto API
-		const encoder = new TextEncoder();
-		const key = await crypto.subtle.importKey(
-			"raw",
-			encoder.encode(webhookSecret),
-			{ name: "HMAC", hash: "SHA-256" },
-			false,
-			["sign"],
-		);
-		const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
-		const expectedSignature = Array.from(new Uint8Array(sig))
-			.map((b) => b.toString(16).padStart(2, "0"))
-			.join("");
-
-		// Constant-time comparison to prevent timing attacks
-		const sigBytes = encoder.encode(signature);
-		const expectedBytes = encoder.encode(expectedSignature);
-		if (sigBytes.byteLength !== expectedBytes.byteLength) {
-			return new Response(JSON.stringify({ error: "Unauthorized" }), {
-				status: 401,
-				headers: { "Content-Type": "application/json" },
-			});
-		}
-		const match = crypto.subtle.timingSafeEqual(sigBytes, expectedBytes);
-		if (!match) {
+		if (!(await verifySignature(signature, rawBody, webhookSecret))) {
 			return new Response(JSON.stringify({ error: "Unauthorized" }), {
 				status: 401,
 				headers: { "Content-Type": "application/json" },
@@ -311,9 +349,12 @@ Deno.serve(async (req: Request) => {
 			env["SUPABASE_SERVICE_ROLE_KEY"],
 		);
 
-		let body: Record<string, unknown>;
+		let body: { event_type?: string; data?: Record<string, unknown> };
 		try {
-			body = JSON.parse(rawBody) as Record<string, unknown>;
+			body = JSON.parse(rawBody) as {
+				event_type?: string;
+				data?: Record<string, unknown>;
+			};
 		} catch {
 			return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
 				status: 400,
@@ -321,18 +362,13 @@ Deno.serve(async (req: Request) => {
 			});
 		}
 
-		const eventType = body.event_type as string;
+		const eventType = body.event_type;
+		const data = body.data ?? {};
 
 		if (eventType === "form.completed") {
-			await handleFormCompleted(
-				supabase,
-				body as unknown as FormCompletedPayload,
-			);
+			await handleFormCompleted(supabase, data as FormCompletedData);
 		} else if (eventType === "submission.completed") {
-			await handleSubmissionCompleted(
-				supabase,
-				body as unknown as SubmissionCompletedPayload,
-			);
+			await handleSubmissionCompleted(supabase, data as SubmissionCompletedData);
 		} else {
 			logEvent("Unhandled DocuSeal event", { event_type: eventType });
 		}

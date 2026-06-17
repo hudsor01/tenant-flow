@@ -152,6 +152,27 @@ Deno.serve(async (req: Request) => {
 				"Tenant";
 			const tenantEmail = (tenantRow?.email as string | null) ?? "";
 
+			// DocuSeal emails the signing links, so both parties need a deliverable
+			// email. Tenant records are landlord-managed and may lack one — fail fast
+			// with a clear 400 instead of an opaque DocuSeal rejection.
+			const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			if (!EMAIL_RE.test(ownerEmail)) {
+				return new Response(
+					JSON.stringify({
+						error: "Your account email is required to send for signature",
+					}),
+					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
+			if (!EMAIL_RE.test(tenantEmail)) {
+				return new Response(
+					JSON.stringify({
+						error: "Tenant email is required to send for signature",
+					}),
+					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
+
 			const property = unitRow
 				? (unitRow.properties as unknown as {
 						name: string | null;
@@ -286,12 +307,14 @@ Deno.serve(async (req: Request) => {
 
 			const ownerSubmitter: Record<string, unknown> = {
 				role: "Property Owner",
+				external_id: "owner",
 				email: ownerEmail,
 				name: ownerName,
 				order: 1,
 			};
 			const tenantSubmitter: Record<string, unknown> = {
 				role: "Tenant",
+				external_id: "tenant",
 				email: tenantEmail,
 				name: tenantName,
 				order: 2,
@@ -305,7 +328,8 @@ Deno.serve(async (req: Request) => {
 				documents: [
 					{
 						name: "Lease Agreement",
-						file: `data:application/pdf;base64,${base64Pdf}`,
+						// DocuSeal expects RAW base64 (no data: URI prefix).
+						file: base64Pdf,
 					},
 				],
 				submitters: [ownerSubmitter, tenantSubmitter],
@@ -317,14 +341,19 @@ Deno.serve(async (req: Request) => {
 				},
 			};
 
-			const submissionResponse = await fetch(`${docusealUrl}/api/submissions`, {
-				method: "POST",
-				headers: {
-					"X-Auth-Token": docusealApiKey,
-					"Content-Type": "application/json",
+			// /api/submissions/pdf is the inline-document endpoint (/api/submissions
+			// requires a template_id and rejects inline documents).
+			const submissionResponse = await fetch(
+				`${docusealUrl}/api/submissions/pdf`,
+				{
+					method: "POST",
+					headers: {
+						"X-Auth-Token": docusealApiKey,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(docusealPayload),
 				},
-				body: JSON.stringify(docusealPayload),
-			});
+			);
 
 			if (!submissionResponse.ok) {
 				const errBody = await submissionResponse
@@ -464,10 +493,11 @@ Deno.serve(async (req: Request) => {
 
 			// Archive DocuSeal submission if one exists
 			if (submissionId) {
+				// Archive = DELETE /api/submissions/{id} (soft-archive) in current DocuSeal.
 				const archiveResponse = await fetch(
-					`${docusealUrl}/api/submissions/${submissionId}/archive`,
+					`${docusealUrl}/api/submissions/${submissionId}`,
 					{
-						method: "POST",
+						method: "DELETE",
 						headers: {
 							"X-Auth-Token": docusealApiKey,
 							"Content-Type": "application/json",
@@ -498,6 +528,13 @@ Deno.serve(async (req: Request) => {
 					docuseal_submission_id: null,
 					sent_for_signature_at: null,
 					lease_status: "draft",
+					// Clear signature state from the discarded submission so a later
+					// resend can't activate the lease against a stale signature.
+					owner_signed_at: null,
+					tenant_signed_at: null,
+					owner_signature_method: null,
+					tenant_signature_method: null,
+					docuseal_document_url: null,
 				})
 				.eq("id", leaseId);
 
@@ -578,10 +615,20 @@ Deno.serve(async (req: Request) => {
 			}
 
 			const submittersData = (await submittersResponse.json()) as {
-				data: Array<{ id: number; status: string }>;
+				data?: Array<{ id: number; status: string }>;
 			};
 
-			const submitters = submittersData.data ?? [];
+			// A misconfigured base URL can return a non-array body — fail loudly
+			// instead of silently "succeeding" with zero emails resent.
+			if (!Array.isArray(submittersData.data)) {
+				return errorResponse(
+					req,
+					502,
+					new Error("Unexpected submitters response from DocuSeal"),
+					{ action: "resend" },
+				);
+			}
+			const submitters = submittersData.data;
 			const pendingSubmitters = submitters.filter(
 				(s: { id: number; status: string }) => s.status !== "completed",
 			);
