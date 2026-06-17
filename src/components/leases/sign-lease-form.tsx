@@ -85,6 +85,10 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				setDocFallbackUrl(url);
 			}
 		} catch {
+			// The document genuinely never displayed (no popup, no fallback link) —
+			// re-lock the consent gate so the tenant can't attest to having read a
+			// lease they could not retrieve.
+			setViewed(false);
 			setError(
 				"We couldn't open the lease document. Please try again or contact the landlord.",
 			);

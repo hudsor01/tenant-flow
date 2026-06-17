@@ -120,4 +120,49 @@ describe("SignLeaseForm", () => {
 		});
 		expect(screen.queryByTestId("sign-lease-success")).not.toBeInTheDocument();
 	});
+
+	it("re-locks consent and shows an error when the lease document fails to load", async () => {
+		fetchMock.mockResolvedValue({
+			ok: false,
+			json: async () => ({}),
+			blob: async () => new Blob(),
+		});
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		fireEvent.click(screen.getByTestId("view-lease-button"));
+		await waitFor(() => {
+			expect(screen.getByRole("alert")).toHaveTextContent(
+				/couldn't open the lease/i,
+			);
+		});
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeDisabled();
+	});
+
+	it("shows a fallback link when the document popup is blocked", async () => {
+		// window.open is a vi.fn() (returns undefined) => the blocked branch runs.
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		fireEvent.click(screen.getByTestId("view-lease-button"));
+		await waitFor(() => {
+			expect(
+				screen.getByTestId("view-lease-fallback-link"),
+			).toBeInTheDocument();
+		});
+	});
+
+	it("submits the edited, trimmed signer name", async () => {
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		fireEvent.change(screen.getByTestId("signer-name-input"), {
+			target: { value: "  John Q Renter  " },
+		});
+		await viewLease();
+		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
+		fireEvent.click(screen.getByTestId("sign-lease-submit"));
+
+		await waitFor(() => {
+			expect(screen.getByTestId("sign-lease-success")).toBeInTheDocument();
+		});
+		expect(fetchBodyFor("sign")?.signerName).toBe("John Q Renter");
+	});
 });

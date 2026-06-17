@@ -74,6 +74,22 @@ export function DownloadSignedLeaseButton({
 		);
 	}
 
+	if (data?.finalizing) {
+		// Both parties signed; the signed PDF is still being written out-of-band.
+		return (
+			<Button
+				variant={variant}
+				size={size}
+				disabled
+				className={cn("gap-2", className)}
+				data-testid="download-signed-lease-finalizing"
+			>
+				<Loader2 className="h-4 w-4 animate-spin" />
+				Finalizing signed document…
+			</Button>
+		);
+	}
+
 	if (!data?.document_url) {
 		return null; // Don't show button if no document available
 	}
