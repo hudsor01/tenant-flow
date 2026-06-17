@@ -12,10 +12,27 @@ import { SignLeaseForm } from "../sign-lease-form";
 
 const fetchMock = vi.fn();
 vi.stubGlobal("fetch", fetchMock);
+vi.stubGlobal("open", vi.fn());
+if (!URL.createObjectURL) {
+	URL.createObjectURL = vi.fn(() => "blob:mock");
+	URL.revokeObjectURL = vi.fn();
+}
 
-function lastFetchBody(): Record<string, unknown> {
-	const call = fetchMock.mock.calls.at(-1);
-	return JSON.parse((call?.[1] as { body: string }).body);
+/** Find the fetch call whose body has the given action. */
+function fetchBodyFor(action: string): Record<string, unknown> | undefined {
+	for (const call of fetchMock.mock.calls) {
+		const body = JSON.parse((call?.[1] as { body: string }).body);
+		if (body.action === action) return body;
+	}
+	return undefined;
+}
+
+/** Read the lease (required before consent is enabled). */
+async function viewLease() {
+	fireEvent.click(screen.getByTestId("view-lease-button"));
+	await waitFor(() =>
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeEnabled(),
+	);
 }
 
 describe("SignLeaseForm", () => {
@@ -24,19 +41,34 @@ describe("SignLeaseForm", () => {
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true, both_signed: false }),
+			blob: async () => new Blob(["%PDF"], { type: "application/pdf" }),
 		});
 	});
 
-	it("prefills the tenant name and keeps the button disabled until consent", () => {
+	it("prefills the tenant name and keeps the button disabled until viewed + consent", () => {
 		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
 
 		expect(screen.getByTestId("signer-name-input")).toHaveValue("Jane Doe");
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeDisabled();
 		expect(screen.getByTestId("sign-lease-submit")).toBeDisabled();
 	});
 
-	it("enables and submits once name + consent are provided", async () => {
+	it("requires reading the lease before consent can be given", async () => {
 		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
 
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeDisabled();
+		await viewLease();
+		expect(fetchBodyFor("document")).toMatchObject({
+			action: "document",
+			token: "tok-1",
+		});
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeEnabled();
+	});
+
+	it("enables and submits once viewed + name + consent are provided", async () => {
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		await viewLease();
 		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
 		const submit = screen.getByTestId("sign-lease-submit");
 		expect(submit).toBeEnabled();
@@ -46,12 +78,7 @@ describe("SignLeaseForm", () => {
 		await waitFor(() => {
 			expect(screen.getByTestId("sign-lease-success")).toBeInTheDocument();
 		});
-		expect(fetchMock).toHaveBeenCalledWith(
-			expect.stringContaining("/functions/v1/sign-lease-token"),
-			expect.objectContaining({ method: "POST" }),
-		);
-		const body = lastFetchBody();
-		expect(body).toMatchObject({
+		expect(fetchBodyFor("sign")).toMatchObject({
 			action: "sign",
 			token: "tok-1",
 			signerName: "Jane Doe",
@@ -63,9 +90,11 @@ describe("SignLeaseForm", () => {
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true, both_signed: true }),
+			blob: async () => new Blob(["%PDF"], { type: "application/pdf" }),
 		});
 		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
 
+		await viewLease();
 		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
 		fireEvent.click(screen.getByTestId("sign-lease-submit"));
 
@@ -78,9 +107,11 @@ describe("SignLeaseForm", () => {
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: false, reason: "expired_token" }),
+			blob: async () => new Blob(["%PDF"], { type: "application/pdf" }),
 		});
 		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
 
+		await viewLease();
 		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
 		fireEvent.click(screen.getByTestId("sign-lease-submit"));
 

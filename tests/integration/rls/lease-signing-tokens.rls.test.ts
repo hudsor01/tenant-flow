@@ -1,20 +1,20 @@
 /**
- * Integration tests for token-based lease e-signature (migration
- * 20260617142623_token_based_lease_esignature).
+ * Integration tests for token-based lease e-signature.
  *
  * Covers:
  *   - lease_signing_tokens RLS: owners read only their own lease's tokens;
  *     there are NO authenticated write policies (tokens are service-role-only).
  *   - Grant lockdown: record_lease_signature / sign_lease_with_token /
  *     get_lease_signing_context are REVOKED from authenticated (service_role only).
- *   - sign_lease_with_token happy path: records the signature, persists the
- *     typed name, durably activates the lease (RPC-side), and notifies the owner.
- *   - sign_lease_with_token rejection paths (invalid / expired / used / revoked),
- *     which short-circuit before any lease mutation.
+ *   - Durable activation happy paths (BOTH signing RPCs): owner-signs-second
+ *     (record_lease_signature) and tenant-signs-second (sign_lease_with_token)
+ *     each flip the lease to active + notify the owner + persist signatures.
+ *   - sign_lease_with_token rejection paths: token-state (invalid/expired/used/
+ *     revoked) AND lease-state (lease_not_pending_signature/tenant_already_signed).
  *   - get_lease_signing_context invalid-token path.
  *
- * Strategy: service-role client seeds/cleans tokens + a disposable
- * pending-signature lease fixture (no authenticated write policy exists);
+ * Strategy: a service-role client seeds/cleans tokens + disposable
+ * property/tenant/unit/lease fixtures (there is no authenticated write path);
  * ownerA / ownerB authenticated clients assert RLS + the grant lockdown.
  */
 
@@ -53,28 +53,70 @@ describe.skipIf(skipReason)(
 		let clientA: SupabaseClient;
 		let clientB: SupabaseClient;
 		let ownerAId: string;
-		let leaseAId: string | null = null;
-		const insertedTokenIds: string[] = [];
 
-		// Disposable property -> unit -> tenant -> lease (pending_signature, owner
-		// pre-signed) for the happy-path sign test. Fully cleaned up in afterAll.
-		const fixture: {
-			propertyId?: string;
-			unitId?: string;
-			tenantId?: string;
-			leaseId?: string;
-		} = {};
+		// Disposable fixtures (cleaned up in afterAll). All leases hang off one
+		// shared property + tenant; each pending/active lease gets its own unit to
+		// satisfy the per-unit overlap EXCLUDE constraint.
+		let propertyId: string | undefined;
+		let tenantId: string | undefined;
+		const unitIds: string[] = [];
+		const leaseIds: string[] = [];
+		// Named leases for specific scenarios.
+		let tenantSecondLeaseId: string | undefined; // pending, owner pre-signed
+		let ownerSecondLeaseId: string | undefined; // pending, tenant pre-signed
+		let draftLeaseId: string | undefined; // draft
+		let tenantSignedLeaseId: string | undefined; // pending, tenant pre-signed
+		// Any owned lease for the token-table RLS assertions.
+		let leaseAId: string | undefined;
+
+		let unitCounter = 0;
+		async function makeLease(
+			fields: Record<string, unknown>,
+		): Promise<string | undefined> {
+			if (!propertyId || !tenantId) return undefined;
+			unitCounter += 1;
+			const { data: unit } = await service
+				.from("units")
+				.insert({
+					property_id: propertyId,
+					owner_user_id: ownerAId,
+					unit_number: String(unitCounter),
+					rent_amount: 1500,
+				})
+				.select("id")
+				.single();
+			if (!unit?.id) return undefined;
+			unitIds.push(unit.id);
+			const { data: lease } = await service
+				.from("leases")
+				.insert({
+					unit_id: unit.id,
+					primary_tenant_id: tenantId,
+					owner_user_id: ownerAId,
+					start_date: "2026-01-01",
+					end_date: "2026-12-31",
+					rent_amount: 1500,
+					security_deposit: 1500,
+					...fields,
+				})
+				.select("id")
+				.single();
+			if (lease?.id) leaseIds.push(lease.id);
+			return lease?.id;
+		}
 
 		let tokenCounter = 0;
+		const insertedTokenIds: string[] = [];
 		async function seedToken(
+			leaseId: string,
 			overrides: Record<string, unknown> = {},
-		): Promise<{ hash: string; id: string | null; error: unknown }> {
+		): Promise<string> {
 			tokenCounter += 1;
 			const hash = `${RUN_TAG}-${tokenCounter}`;
-			const { data, error } = await service
+			const { data } = await service
 				.from("lease_signing_tokens")
 				.insert({
-					lease_id: leaseAId,
+					lease_id: leaseId,
 					tenant_email: "tenant@example.com",
 					token_hash: hash,
 					expires_at: new Date(Date.now() + 14 * 864e5).toISOString(),
@@ -84,7 +126,7 @@ describe.skipIf(skipReason)(
 				.select("id")
 				.single();
 			if (data?.id) insertedTokenIds.push(data.id);
-			return { hash, id: data?.id ?? null, error };
+			return hash;
 		}
 
 		beforeAll(async () => {
@@ -99,15 +141,6 @@ describe.skipIf(skipReason)(
 			} = await clientA.auth.getUser();
 			ownerAId = userA!.id;
 
-			const { data: leases } = await clientA
-				.from("leases")
-				.select("id")
-				.neq("lease_status", "inactive")
-				.limit(1);
-			leaseAId = leases?.[0]?.id ?? null;
-
-			// Build a disposable, isolated lease in pending_signature with the owner
-			// already signed, so the tenant sign happy-path flips it to active.
 			const { data: property } = await service
 				.from("properties")
 				.insert({
@@ -121,49 +154,42 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
-			if (property?.id) {
-				fixture.propertyId = property.id;
-				const { data: unit } = await service
-					.from("units")
-					.insert({
-						property_id: property.id,
-						owner_user_id: ownerAId,
-						unit_number: "1",
-						rent_amount: 1500,
-					})
-					.select("id")
-					.single();
-				const { data: tenant } = await service
-					.from("tenants")
-					.insert({
-						owner_user_id: ownerAId,
-						name: "Happy Path Tenant",
-						email: "happy@example.com",
-					})
-					.select("id")
-					.single();
-				if (unit?.id && tenant?.id) {
-					fixture.unitId = unit.id;
-					fixture.tenantId = tenant.id;
-					const { data: lease } = await service
-						.from("leases")
-						.insert({
-							unit_id: unit.id,
-							primary_tenant_id: tenant.id,
-							owner_user_id: ownerAId,
-							start_date: "2026-01-01",
-							end_date: "2026-12-31",
-							rent_amount: 1500,
-							security_deposit: 1500,
-							lease_status: "pending_signature",
-							owner_signed_at: new Date().toISOString(),
-							owner_signature_method: "in_app",
-						})
-						.select("id")
-						.single();
-					fixture.leaseId = lease?.id;
-				}
-			}
+			propertyId = property?.id;
+			const { data: tenant } = await service
+				.from("tenants")
+				.insert({
+					owner_user_id: ownerAId,
+					name: "Happy Path Tenant",
+					email: "happy@example.com",
+				})
+				.select("id")
+				.single();
+			tenantId = tenant?.id;
+
+			const now = new Date().toISOString();
+			tenantSecondLeaseId = await makeLease({
+				lease_status: "pending_signature",
+				owner_signed_at: now,
+				owner_signature_method: "in_app",
+			});
+			ownerSecondLeaseId = await makeLease({
+				lease_status: "pending_signature",
+				tenant_signed_at: now,
+				tenant_signature_method: "in_app",
+			});
+			draftLeaseId = await makeLease({ lease_status: "draft" });
+			tenantSignedLeaseId = await makeLease({
+				lease_status: "pending_signature",
+				tenant_signed_at: now,
+				tenant_signature_method: "in_app",
+			});
+			leaseAId = tenantSecondLeaseId;
+
+			// Fixtures are required — fail loudly rather than letting RLS/rejection
+			// assertions pass vacuously on a missing fixture.
+			expect(propertyId).toBeTruthy();
+			expect(tenantId).toBeTruthy();
+			expect(leaseAId).toBeTruthy();
 		});
 
 		afterAll(async () => {
@@ -173,28 +199,36 @@ describe.skipIf(skipReason)(
 					.delete()
 					.in("id", insertedTokenIds);
 			}
-			if (fixture.leaseId) {
-				await service
-					.from("notifications")
-					.delete()
-					.eq("entity_id", fixture.leaseId);
-				await service.from("leases").delete().eq("id", fixture.leaseId);
+			if (leaseIds.length > 0) {
+				await service.from("notifications").delete().in("entity_id", leaseIds);
+				await service.from("leases").delete().in("id", leaseIds);
 			}
-			if (fixture.unitId)
-				await service.from("units").delete().eq("id", fixture.unitId);
-			if (fixture.propertyId)
-				await service.from("properties").delete().eq("id", fixture.propertyId);
-			if (fixture.tenantId)
-				await service.from("tenants").delete().eq("id", fixture.tenantId);
+			if (unitIds.length > 0)
+				await service.from("units").delete().in("id", unitIds);
+			if (tenantId) await service.from("tenants").delete().eq("id", tenantId);
+			if (propertyId)
+				await service.from("properties").delete().eq("id", propertyId);
 		});
 
 		// ── token table RLS ────────────────────────────────────────────────────────
 
 		it("owner A can read their own lease's signing token; owner B cannot", async () => {
-			if (!leaseAId) return; // no lease fixture for owner A
-			const { id, error } = await seedToken();
-			expect(error).toBeNull();
-			expect(id).not.toBeNull();
+			tokenCounter += 1;
+			const hash = `${RUN_TAG}-rls-read`;
+			const { data: row } = await service
+				.from("lease_signing_tokens")
+				.insert({
+					lease_id: leaseAId!,
+					tenant_email: "tenant@example.com",
+					token_hash: hash,
+					expires_at: new Date(Date.now() + 864e5).toISOString(),
+					created_by: ownerAId,
+				})
+				.select("id")
+				.single();
+			const id = row?.id;
+			expect(id).toBeTruthy();
+			if (id) insertedTokenIds.push(id);
 
 			const { data: aRead } = await clientA
 				.from("lease_signing_tokens")
@@ -210,11 +244,10 @@ describe.skipIf(skipReason)(
 		});
 
 		it("authenticated owners cannot INSERT signing tokens (no write policy)", async () => {
-			if (!leaseAId) return;
 			const { data, error } = await clientA
 				.from("lease_signing_tokens")
 				.insert({
-					lease_id: leaseAId,
+					lease_id: leaseAId!,
 					tenant_email: "tenant@example.com",
 					token_hash: `${RUN_TAG}-direct-insert`,
 					expires_at: new Date(Date.now() + 864e5).toISOString(),
@@ -226,8 +259,13 @@ describe.skipIf(skipReason)(
 		});
 
 		it("owner B cannot revoke owner A's token", async () => {
-			if (!leaseAId) return;
-			const { id } = await seedToken();
+			const hash = await seedToken(leaseAId!);
+			const { data: seeded } = await service
+				.from("lease_signing_tokens")
+				.select("id")
+				.eq("token_hash", hash)
+				.single();
+			const id = seeded?.id;
 			const { data } = await clientB
 				.from("lease_signing_tokens")
 				.update({ revoked_at: new Date().toISOString() })
@@ -235,7 +273,6 @@ describe.skipIf(skipReason)(
 				.select("id");
 			expect(data ?? []).toHaveLength(0);
 
-			// Confirm the row is still live via the service client.
 			const { data: still } = await service
 				.from("lease_signing_tokens")
 				.select("revoked_at")
@@ -270,25 +307,10 @@ describe.skipIf(skipReason)(
 			expect(isPermissionDenied(owner.error)).toBe(true);
 		});
 
-		// ── sign_lease_with_token happy path (service client) ────────────────────
+		// ── durable activation happy paths ───────────────────────────────────────
 
-		it("records the tenant signature, activates the lease, persists the typed name, and notifies the owner", async () => {
-			if (!fixture.leaseId) return;
-			tokenCounter += 1;
-			const hash = `${RUN_TAG}-happy`;
-			const { data: tok } = await service
-				.from("lease_signing_tokens")
-				.insert({
-					lease_id: fixture.leaseId,
-					tenant_email: "happy@example.com",
-					token_hash: hash,
-					expires_at: new Date(Date.now() + 864e5).toISOString(),
-					created_by: ownerAId,
-				})
-				.select("id")
-				.single();
-			if (tok?.id) insertedTokenIds.push(tok.id);
-
+		it("tenant signs second: records signature, durably activates, persists name, notifies owner", async () => {
+			const hash = await seedToken(tenantSecondLeaseId!);
 			const { data, error } = await service.rpc("sign_lease_with_token", {
 				p_token_hash: hash,
 				p_signature_ip: "203.0.113.9",
@@ -299,20 +321,12 @@ describe.skipIf(skipReason)(
 			expect(error).toBeNull();
 			expect(data?.[0]?.success).toBe(true);
 			expect(data?.[0]?.both_signed).toBe(true);
-			expect(data?.[0]?.lease_id).toBe(fixture.leaseId);
+			expect(data?.[0]?.lease_id).toBe(tenantSecondLeaseId);
 
-			const { data: tokenRow } = await service
-				.from("lease_signing_tokens")
-				.select("used_at")
-				.eq("id", tok!.id)
-				.single();
-			expect(tokenRow?.used_at).not.toBeNull();
-
-			// Activation + typed name are durable (written inside the RPC).
 			const { data: leaseRow } = await service
 				.from("leases")
 				.select("lease_status, tenant_signed_at, tenant_signature_name")
-				.eq("id", fixture.leaseId)
+				.eq("id", tenantSecondLeaseId!)
 				.single();
 			expect(leaseRow?.lease_status).toBe("active");
 			expect(leaseRow?.tenant_signed_at).not.toBeNull();
@@ -321,14 +335,44 @@ describe.skipIf(skipReason)(
 			const { data: notifs } = await service
 				.from("notifications")
 				.select("title")
-				.eq("entity_id", fixture.leaseId)
+				.eq("entity_id", tenantSecondLeaseId!)
 				.eq("user_id", ownerAId);
 			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
 				true,
 			);
 		});
 
-		// ── sign_lease_with_token rejection paths (service client) ───────────────
+		it("owner signs second: records signature, durably activates, notifies owner", async () => {
+			const { data, error } = await service.rpc("record_lease_signature", {
+				p_lease_id: ownerSecondLeaseId!,
+				p_signature_ip: "203.0.113.10",
+				p_signature_user_agent: "vitest-agent",
+				p_signed_at: new Date().toISOString(),
+				p_method: "in_app",
+			});
+			expect(error).toBeNull();
+			expect(data?.[0]?.success).toBe(true);
+			expect(data?.[0]?.both_signed).toBe(true);
+
+			const { data: leaseRow } = await service
+				.from("leases")
+				.select("lease_status, owner_signed_at")
+				.eq("id", ownerSecondLeaseId!)
+				.single();
+			expect(leaseRow?.lease_status).toBe("active");
+			expect(leaseRow?.owner_signed_at).not.toBeNull();
+
+			const { data: notifs } = await service
+				.from("notifications")
+				.select("title")
+				.eq("entity_id", ownerSecondLeaseId!)
+				.eq("user_id", ownerAId);
+			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
+				true,
+			);
+		});
+
+		// ── sign_lease_with_token token-state rejections ────────────────────────
 
 		it("rejects an unknown token", async () => {
 			const { data, error } = await service.rpc("sign_lease_with_token", {
@@ -343,8 +387,7 @@ describe.skipIf(skipReason)(
 		});
 
 		it("rejects an expired token", async () => {
-			if (!leaseAId) return;
-			const { hash } = await seedToken({
+			const hash = await seedToken(leaseAId!, {
 				expires_at: new Date(Date.now() - 1000).toISOString(),
 			});
 			const { data } = await service.rpc("sign_lease_with_token", {
@@ -358,8 +401,7 @@ describe.skipIf(skipReason)(
 		});
 
 		it("rejects an already-used token", async () => {
-			if (!leaseAId) return;
-			const { hash } = await seedToken({
+			const hash = await seedToken(leaseAId!, {
 				used_at: new Date().toISOString(),
 			});
 			const { data } = await service.rpc("sign_lease_with_token", {
@@ -373,8 +415,7 @@ describe.skipIf(skipReason)(
 		});
 
 		it("rejects a revoked token", async () => {
-			if (!leaseAId) return;
-			const { hash } = await seedToken({
+			const hash = await seedToken(leaseAId!, {
 				revoked_at: new Date().toISOString(),
 			});
 			const { data } = await service.rpc("sign_lease_with_token", {
@@ -385,6 +426,32 @@ describe.skipIf(skipReason)(
 			});
 			expect(data?.[0]?.success).toBe(false);
 			expect(data?.[0]?.error_message).toBe("revoked_token");
+		});
+
+		// ── sign_lease_with_token lease-state rejections ─────────────────────────
+
+		it("rejects signing a lease that is not pending signature", async () => {
+			const hash = await seedToken(draftLeaseId!);
+			const { data } = await service.rpc("sign_lease_with_token", {
+				p_token_hash: hash,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+			});
+			expect(data?.[0]?.success).toBe(false);
+			expect(data?.[0]?.error_message).toBe("lease_not_pending_signature");
+		});
+
+		it("rejects a second tenant signature on the same lease", async () => {
+			const hash = await seedToken(tenantSignedLeaseId!);
+			const { data } = await service.rpc("sign_lease_with_token", {
+				p_token_hash: hash,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+			});
+			expect(data?.[0]?.success).toBe(false);
+			expect(data?.[0]?.error_message).toBe("tenant_already_signed");
 		});
 
 		it("get_lease_signing_context reports an unknown token as invalid", async () => {

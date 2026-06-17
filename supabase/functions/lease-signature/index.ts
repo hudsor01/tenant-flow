@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
 		}
 		const { user } = auth;
 
-		const body = (await req.json()) as Record<string, unknown>;
+		const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 		const action = body.action as string;
 		const leaseId = body.leaseId as string;
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { CheckCircle2, Loader2, PenLine } from "lucide-react";
+import { CheckCircle2, FileText, Loader2, PenLine } from "lucide-react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
+import { cn } from "#lib/utils";
 
 interface SignLeaseFormProps {
 	token: string;
@@ -32,12 +33,41 @@ const SIGN_ERROR_MESSAGE: Record<string, string> = {
 export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 	const [name, setName] = useState(tenantName);
 	const [consent, setConsent] = useState(false);
+	const [viewed, setViewed] = useState(false);
+	const [viewing, setViewing] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 	const [signed, setSigned] = useState(false);
 	const [bothSigned, setBothSigned] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const canSubmit = name.trim().length > 0 && consent && !submitting;
+	const canSubmit = name.trim().length > 0 && viewed && consent && !submitting;
+
+	const handleViewLease = async () => {
+		setError(null);
+		setViewing(true);
+		// Opening the document is what the tenant attests to; capture intent on the
+		// action itself so a slow/blocked render can't deadlock the consent gate.
+		setViewed(true);
+		try {
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+			const res = await fetch(`${baseUrl}/functions/v1/sign-lease-token`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ action: "document", token }),
+			});
+			if (!res.ok) throw new Error("Unable to load the lease document");
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			window.open(url, "_blank", "noopener,noreferrer");
+			setTimeout(() => URL.revokeObjectURL(url), 60_000);
+		} catch {
+			setError(
+				"We couldn't open the lease document. Please try again or contact the landlord.",
+			);
+		} finally {
+			setViewing(false);
+		}
+	};
 
 	const handleSign = async () => {
 		setError(null);
@@ -112,6 +142,22 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				</p>
 			</div>
 
+			<Button
+				type="button"
+				variant="outline"
+				onClick={handleViewLease}
+				disabled={viewing}
+				className="w-full gap-2"
+				data-testid="view-lease-button"
+			>
+				{viewing ? (
+					<Loader2 className="h-4 w-4 animate-spin" />
+				) : (
+					<FileText className="h-4 w-4" />
+				)}
+				{viewed ? "Reopen the full lease" : "Read the full lease"}
+			</Button>
+
 			<div className="space-y-2">
 				<Label htmlFor="signer-name">Type your full legal name</Label>
 				<Input
@@ -125,10 +171,11 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				/>
 			</div>
 
-			<div className="flex items-start gap-3">
+			<div className={cn("flex items-start gap-3", !viewed && "opacity-60")}>
 				<Checkbox
 					id="sign-consent"
 					checked={consent}
+					disabled={!viewed}
 					onCheckedChange={(checked) => setConsent(checked === true)}
 					data-testid="sign-consent-checkbox"
 				/>

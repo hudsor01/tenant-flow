@@ -8,12 +8,19 @@
 // hash; this function looks the lease up BY that hash via SECURITY DEFINER RPCs.
 // Rate-limited per IP. No raw error details are leaked to the client.
 
-import { getJsonHeaders, handleCorsOptions } from "../_shared/cors.ts";
+import {
+	getCorsHeaders,
+	getJsonHeaders,
+	handleCorsOptions,
+} from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
+import { renderLeasePdf } from "../_shared/lease-pdf.ts";
 import {
+	buildLeasePdfData,
 	clientIp,
 	clientUserAgent,
+	fetchLeaseSigningData,
 	finalizeSignedLease,
 	sha256Hex,
 } from "../_shared/lease-signing.ts";
@@ -63,6 +70,17 @@ Deno.serve(async (req: Request) => {
 
 		// ── context ──────────────────────────────────────────────────────────────
 		if (action === "context") {
+			// A higher per-IP ceiling than `sign`: legitimate context fetches come
+			// from the Next.js server (one shared egress IP), so they must not share
+			// the strict sign bucket — but the public endpoint still needs a bound
+			// against direct abuse of the multi-table-join RPC.
+			const limited = await rateLimit(req, {
+				maxRequests: 60,
+				windowMs: 60_000,
+				prefix: "lease-context",
+			});
+			if (limited) return limited;
+
 			const { data, error } = await supabase.rpc("get_lease_signing_context", {
 				p_token_hash: tokenHash,
 			});
@@ -100,6 +118,52 @@ Deno.serve(async (req: Request) => {
 				}),
 				{ status: 200, headers: getJsonHeaders(req) },
 			);
+		}
+
+		// ── document ─────────────────────────────────────────────────────────────
+		// Renders the unsigned lease PDF so the tenant can READ the full terms
+		// before consenting. Token-authenticated, read-only, rate-limited.
+		if (action === "document") {
+			const limited = await rateLimit(req, {
+				maxRequests: 30,
+				windowMs: 60_000,
+				prefix: "lease-document",
+			});
+			if (limited) return limited;
+
+			const { data, error } = await supabase.rpc("get_lease_signing_context", {
+				p_token_hash: tokenHash,
+			});
+			if (error) {
+				return errorResponse(req, 500, error, { action: "document" });
+			}
+			const row = (data as SigningContextRow[] | null)?.[0];
+			// Render only for a token that resolves to a lease and was not revoked
+			// (an owner-cancelled link must not keep serving the document).
+			if (!row || !row.lease_id || row.reason === "revoked_token") {
+				return new Response(JSON.stringify({ error: "Not found" }), {
+					status: 404,
+					headers: getJsonHeaders(req),
+				});
+			}
+			const record = await fetchLeaseSigningData(supabase, row.lease_id);
+			if (!record) {
+				return new Response(JSON.stringify({ error: "Not found" }), {
+					status: 404,
+					headers: getJsonHeaders(req),
+				});
+			}
+			const bytes = await renderLeasePdf(
+				buildLeasePdfData(record, { signed: false }),
+			);
+			return new Response(bytes, {
+				status: 200,
+				headers: {
+					...getCorsHeaders(req),
+					"Content-Type": "application/pdf",
+					"Content-Disposition": `inline; filename="lease-${row.lease_id}.pdf"`,
+				},
+			});
 		}
 
 		// ── sign ───────────────────────────────────────────────────────────────
