@@ -137,8 +137,15 @@ export function SendForSignatureButton({
 			});
 
 			if (!response.ok) {
-				const errText = await response.text().catch(() => response.statusText);
-				throw new Error(errText);
+				// The function returns JSON error bodies; surface the friendly
+				// `.error` message, not the raw blob.
+				const body = (await response.json().catch(() => null)) as {
+					error?: string;
+				} | null;
+				throw new Error(
+					body?.error ??
+						"Could not generate the lease preview. Please try again.",
+				);
 			}
 
 			const blob = await response.blob();

@@ -76,11 +76,13 @@ export function DownloadSignedLeaseButton({
 
 	if (data?.finalizing) {
 		// Both parties signed; the signed PDF is still being written out-of-band.
+		// Clickable (not disabled) so that if the bounded auto-poll gives up on a
+		// stuck finalize, the owner can still manually re-check — no dead-end.
 		return (
 			<Button
 				variant={variant}
 				size={size}
-				disabled
+				onClick={() => refetch()}
 				className={cn("gap-2", className)}
 				data-testid="download-signed-lease-finalizing"
 			>

@@ -1,8 +1,10 @@
 // Supabase Edge Function: sign-lease-token
 // PUBLIC (verify_jwt = false) — the tenant has no account. The single-use token
-// in the /sign/<token> URL IS the credential. Two actions:
-//   context — read-only render context for the signing page (does not consume)
-//   sign    — record the tenant signature; finalize the lease if both signed
+// in the /sign/<token> URL IS the credential. Three actions:
+//   context  — read-only render context for the signing page (does not consume)
+//   document — render the unsigned lease PDF (tenant PII) for a CURRENTLY-VALID
+//              token only (same validity gate as context); rate-limited
+//   sign     — record the tenant signature; finalize the lease if both signed
 //
 // Auth model: the token is high-entropy (256-bit) and stored only as a SHA-256
 // hash; this function looks the lease up BY that hash via SECURITY DEFINER RPCs.

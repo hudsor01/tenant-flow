@@ -198,8 +198,13 @@ export const leaseQueries = {
 			enabled: enabled && !!leaseId,
 			staleTime: 5 * 60 * 1000,
 			// Poll while the signed PDF is still being finalized so the download
-			// surfaces without a manual reload; stop once the URL (or no-doc) settles.
-			refetchInterval: (query) => (query.state.data?.finalizing ? 4000 : false),
+			// surfaces without a manual reload. Bounded (~2 min / 30 polls) so a
+			// permanently-stuck finalize doesn't spin forever — the button then
+			// offers a manual re-check. Stops once the URL (or no-doc) settles.
+			refetchInterval: (query) =>
+				query.state.data?.finalizing && query.state.dataUpdateCount < 30
+					? 4000
+					: false,
 		}),
 
 	signatureStatus: (id: string) =>

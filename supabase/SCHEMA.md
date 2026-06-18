@@ -542,11 +542,14 @@ The `stripe` schema contains tables synced from Stripe via webhooks. **Do not wr
 
 ---
 
-## Enums
+## CHECK-Constrained Text Values
 
-| Enum | Values |
-|------|--------|
-| `signature_method` | `in_app` |
+Per the "No PostgreSQL ENUMs" rule, value sets are enforced via `CHECK`
+constraints on `text` columns (not enum types).
+
+| Column | Allowed values |
+|--------|----------------|
+| `leases.owner_signature_method` / `leases.tenant_signature_method` | `in_app` |
 
 ---
 

@@ -41,6 +41,7 @@ import {
 } from "../use-lease-mutations";
 import {
 	useCancelSignatureRequestMutation,
+	useResendSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
 } from "../use-lease-signature-mutations";
@@ -733,6 +734,48 @@ describe("Mutation Hooks", () => {
 					body: expect.stringContaining('"action":"cancel"'),
 				}),
 			);
+		});
+	});
+
+	describe("useResendSignatureRequestMutation", () => {
+		it("should call lease-signature Edge Function with resend action", async () => {
+			const { result } = renderHook(() => useResendSignatureRequestMutation(), {
+				wrapper: createWrapper(),
+			});
+
+			await result.current.mutateAsync({ leaseId: "lease-123" });
+
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining("/functions/v1/lease-signature"),
+				expect.objectContaining({
+					method: "POST",
+					body: expect.stringContaining('"action":"resend"'),
+				}),
+			);
+		});
+	});
+
+	describe("signature mutation error handling", () => {
+		it("surfaces the Edge Function error message on a non-ok response", async () => {
+			fetchMock.mockResolvedValueOnce({
+				ok: false,
+				json: async () => ({ error: "Tenant email is required" }),
+			});
+			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
+				wrapper: createWrapper(),
+			});
+
+			await expect(
+				result.current.mutateAsync({
+					leaseId: "lease-123",
+					missingFields: {
+						immediate_family_members: "",
+						landlord_notice_address: "123 Main St",
+					},
+				}),
+			).rejects.toMatchObject({
+				message: expect.stringContaining("Tenant email is required"),
+			});
 		});
 	});
 });

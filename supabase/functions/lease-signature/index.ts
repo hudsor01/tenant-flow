@@ -241,6 +241,18 @@ Deno.serve(async (req: Request) => {
 				.is("used_at", null)
 				.is("revoked_at", null);
 
+			// Revert the just-applied draft -> pending_signature transition so a
+			// failed send never strands the lease in pending_signature with no
+			// deliverable token (send is gated on 'draft', so it would otherwise be
+			// unrecoverable via send).
+			async function revertSendToDraft(): Promise<void> {
+				await supabase
+					.from("leases")
+					.update({ lease_status: "draft", sent_for_signature_at: null })
+					.eq("id", leaseId)
+					.eq("lease_status", "pending_signature");
+			}
+
 			const { raw, hash } = await generateSigningToken();
 			const { error: tokenError } = await supabase
 				.from("lease_signing_tokens")
@@ -252,6 +264,7 @@ Deno.serve(async (req: Request) => {
 					created_by: user.id,
 				});
 			if (tokenError) {
+				await revertSendToDraft();
 				return errorResponse(req, 500, tokenError, { action: "send_token" });
 			}
 
@@ -269,6 +282,13 @@ Deno.serve(async (req: Request) => {
 				tags: [{ name: "type", value: "lease_signature" }],
 			});
 			if (!emailResult.success) {
+				// Roll back: revoke the undelivered token and return to draft so the
+				// owner can cleanly re-send.
+				await supabase
+					.from("lease_signing_tokens")
+					.update({ revoked_at: new Date().toISOString() })
+					.eq("token_hash", hash);
+				await revertSendToDraft();
 				return errorResponse(
 					req,
 					502,
@@ -336,6 +356,12 @@ Deno.serve(async (req: Request) => {
 				tags: [{ name: "type", value: "lease_signature_resend" }],
 			});
 			if (!emailResult.success) {
+				// Revoke the undelivered token (the lease correctly stays
+				// pending_signature — it already was before this resend).
+				await supabase
+					.from("lease_signing_tokens")
+					.update({ revoked_at: new Date().toISOString() })
+					.eq("token_hash", hash);
 				return errorResponse(
 					req,
 					502,

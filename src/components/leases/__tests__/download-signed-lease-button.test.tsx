@@ -60,7 +60,7 @@ describe("DownloadSignedLeaseButton", () => {
 		openSpy.mockRestore();
 	});
 
-	it("shows a Finalizing state while the signed PDF is being written", () => {
+	it("shows a Finalizing state that can be manually re-checked", () => {
 		mockUseSignedDocumentUrl.mockReturnValue({
 			data: { document_url: null, finalizing: true },
 			isLoading: false,
@@ -69,9 +69,10 @@ describe("DownloadSignedLeaseButton", () => {
 		});
 		render(<DownloadSignedLeaseButton leaseId="l1" />);
 
-		expect(
-			screen.getByTestId("download-signed-lease-finalizing"),
-		).toBeInTheDocument();
+		const btn = screen.getByTestId("download-signed-lease-finalizing");
+		expect(btn).toBeInTheDocument();
+		fireEvent.click(btn);
+		expect(refetch).toHaveBeenCalled();
 	});
 
 	it("renders nothing when no document is available yet", () => {
