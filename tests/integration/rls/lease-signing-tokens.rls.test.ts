@@ -138,7 +138,9 @@ describe.skipIf(skipReason)(
 				.from("lease_signing_tokens")
 				.insert({
 					lease_id: leaseId,
-					tenant_email: "tenant@example.com",
+					// Matches the disposable fixture tenant's email so the RPC's
+					// tenant-rebind check passes; the tenant_changed test overrides it.
+					tenant_email: "happy@example.com",
 					token_hash: hash,
 					expires_at: new Date(Date.now() + 14 * 864e5).toISOString(),
 					created_by: ownerAId,
@@ -434,7 +436,7 @@ describe.skipIf(skipReason)(
 				.from("lease_signing_tokens")
 				.insert({
 					lease_id: finalizeLeaseId!,
-					tenant_email: "finalize@example.com",
+					tenant_email: "happy@example.com",
 					token_hash: sha256Hex(rawToken),
 					expires_at: new Date(Date.now() + 864e5).toISOString(),
 					created_by: ownerAId,
@@ -621,6 +623,28 @@ describe.skipIf(skipReason)(
 		});
 
 		// ── sign_lease_with_token lease-state rejections ─────────────────────────
+
+		it("rejects a token whose email no longer matches the lease's primary tenant", async () => {
+			// Issued to a different tenant than the lease's current primary tenant
+			// (simulates the owner reassigning primary_tenant_id mid-flight).
+			const hash = await seedToken(contextLeaseId!, {
+				tenant_email: "someone-else@example.com",
+			});
+			const sign = await service.rpc("sign_lease_with_token", {
+				p_token_hash: hash,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: new Date().toISOString(),
+			});
+			expect(sign.data?.[0]?.success).toBe(false);
+			expect(sign.data?.[0]?.error_message).toBe("tenant_changed");
+
+			const ctx = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(ctx.data?.[0]?.valid).toBe(false);
+			expect(ctx.data?.[0]?.reason).toBe("tenant_changed");
+		});
 
 		it("rejects signing a lease that is not pending signature", async () => {
 			const hash = await seedToken(draftLeaseId!);

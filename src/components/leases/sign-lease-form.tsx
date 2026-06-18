@@ -24,6 +24,8 @@ const SIGN_ERROR_MESSAGE: Record<string, string> = {
 	lease_not_pending_signature:
 		"This lease is no longer awaiting your signature.",
 	tenant_already_signed: "You have already signed this lease.",
+	tenant_changed:
+		"This signing link is no longer valid for the current tenant. Ask the landlord for a new one.",
 };
 
 /**

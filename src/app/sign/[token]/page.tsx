@@ -46,6 +46,8 @@ const REASON_MESSAGE: Record<string, string> = {
 		"You have already signed this lease. No further action is needed.",
 	lease_active: "This lease has already been fully signed and is active.",
 	lease_not_pending: "This lease is not currently awaiting your signature.",
+	tenant_changed:
+		"This signing link is no longer valid for the current tenant. Ask the landlord for a new one.",
 };
 
 async function fetchContext(token: string): Promise<ContextResponse> {

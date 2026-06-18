@@ -684,6 +684,13 @@ describe("Mutation Hooks", () => {
 					body: expect.stringContaining('"action":"sign-owner"'),
 				}),
 			);
+			// The endpoint hard-requires affirmative consent (400 otherwise) — pin it.
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.objectContaining({
+					body: expect.stringContaining('"consent":true'),
+				}),
+			);
 		});
 
 		it("invalidates the owner dashboard after a successful sign", async () => {
