@@ -48,11 +48,14 @@ const REASON_MESSAGE: Record<string, string> = {
 	lease_not_pending: "This lease is not currently awaiting your signature.",
 	tenant_changed:
 		"This signing link is no longer valid for the current tenant. Ask the landlord for a new one.",
+	// Transient server/DB fault — recoverable, NOT a broken link.
+	context_error:
+		"We couldn't load this lease right now. Please refresh the page and try again.",
 };
 
 async function fetchContext(token: string): Promise<ContextResponse> {
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	if (!baseUrl) return { valid: false, reason: "invalid_token" };
+	if (!baseUrl) return { valid: false, reason: "context_error" };
 	try {
 		const res = await fetch(`${baseUrl}/functions/v1/sign-lease-token`, {
 			method: "POST",
@@ -60,10 +63,12 @@ async function fetchContext(token: string): Promise<ContextResponse> {
 			body: JSON.stringify({ action: "context", token }),
 			cache: "no-store",
 		});
-		if (!res.ok) return { valid: false, reason: "invalid_token" };
+		// All genuine token states arrive as 200 + reason; a non-2xx here is a
+		// server fault, so show recoverable copy rather than "invalid link".
+		if (!res.ok) return { valid: false, reason: "context_error" };
 		return (await res.json()) as ContextResponse;
 	} catch {
-		return { valid: false, reason: "invalid_token" };
+		return { valid: false, reason: "context_error" };
 	}
 }
 

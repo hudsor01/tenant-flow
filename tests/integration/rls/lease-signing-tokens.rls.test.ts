@@ -86,6 +86,7 @@ describe.skipIf(skipReason)(
 		let ownerSignedLeaseId: string | undefined; // pending, owner pre-signed
 		let finalizeLeaseId: string | undefined; // pending, owner pre-signed
 		let contextLeaseId: string | undefined; // pending, no signatures
+		let activeLeaseId: string | undefined; // active, no tenant signature
 		// Any owned lease for the token-table RLS assertions.
 		let leaseAId: string | undefined;
 		let signFnDeployed = false;
@@ -223,6 +224,11 @@ describe.skipIf(skipReason)(
 				owner_signature_method: "in_app",
 			});
 			contextLeaseId = await makeLease({ lease_status: "pending_signature" });
+			// An active lease with NO tenant signature is reachable when a lease is
+			// activated by another path (e.g. activate_lease_with_pending_subscription)
+			// while a live token still exists — the only way to reach 'lease_active'
+			// in get_lease_signing_context (tenant_already_signed precedes it).
+			activeLeaseId = await makeLease({ lease_status: "active" });
 			leaseAId = tenantSecondLeaseId;
 			signFnDeployed = await isSignFunctionDeployed();
 
@@ -725,6 +731,46 @@ describe.skipIf(skipReason)(
 			});
 			expect(data?.[0]?.valid).toBe(false);
 			expect(data?.[0]?.reason).toBe("tenant_already_signed");
+		});
+
+		it("get_lease_signing_context reports an active lease", async () => {
+			const hash = await seedToken(activeLeaseId!);
+			const { data } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(data?.[0]?.valid).toBe(false);
+			expect(data?.[0]?.reason).toBe("lease_active");
+		});
+
+		it("get_lease_signing_context reports a non-pending (draft) lease", async () => {
+			const hash = await seedToken(draftLeaseId!);
+			const { data } = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(data?.[0]?.valid).toBe(false);
+			expect(data?.[0]?.reason).toBe("lease_not_pending");
+		});
+
+		it("token-state rejection precedence: revoked wins over used + expired", async () => {
+			// All three flags set at once — the RPC must report the highest-priority
+			// reason (revoked > used > expired), pinning the CASE ordering.
+			const now = new Date();
+			const hash = await seedToken(leaseAId!, {
+				revoked_at: now.toISOString(),
+				used_at: now.toISOString(),
+				expires_at: new Date(now.getTime() - 1000).toISOString(),
+			});
+			const sign = await service.rpc("sign_lease_with_token", {
+				p_token_hash: hash,
+				p_signature_ip: "1.1.1.1",
+				p_signature_user_agent: "ua",
+				p_signed_at: now.toISOString(),
+			});
+			expect(sign.data?.[0]?.error_message).toBe("revoked_token");
+			const ctx = await service.rpc("get_lease_signing_context", {
+				p_token_hash: hash,
+			});
+			expect(ctx.data?.[0]?.reason).toBe("revoked_token");
 		});
 
 		it("get_lease_signing_context reports an unknown token as invalid", async () => {
