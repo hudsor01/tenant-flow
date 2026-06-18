@@ -72,14 +72,15 @@ Deno.serve(async (req: Request) => {
 
 		// ── context ──────────────────────────────────────────────────────────────
 		if (action === "context") {
-			// A higher per-IP ceiling than `sign`: legitimate context fetches come
-			// from the Next.js server (one shared egress IP), so they must not share
-			// the strict sign bucket — but the public endpoint still needs a bound
-			// against direct abuse of the multi-table-join RPC.
+			// Keyed by the token hash, not IP: legitimate context fetches come from
+			// the Next.js server (one shared egress IP), so one tenant's loads must
+			// not exhaust another's bucket. Per-session 60/min still bounds repeated
+			// hits on any single token against the multi-table-join RPC.
 			const limited = await rateLimit(req, {
 				maxRequests: 60,
 				windowMs: 60_000,
 				prefix: "lease-context",
+				identifier: tokenHash,
 			});
 			if (limited) return limited;
 

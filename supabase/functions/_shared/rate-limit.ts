@@ -16,6 +16,13 @@ interface RateLimitOptions {
 	windowMs: number;
 	/** Key prefix for namespace isolation (e.g., 'invite-validate') */
 	prefix?: string;
+	/**
+	 * Override the per-request bucket key. Defaults to the client IP. Pass a
+	 * stable per-session value (e.g. a token hash) when the caller's IP is a
+	 * shared egress address — keeping one session from exhausting another's
+	 * bucket.
+	 */
+	identifier?: string;
 }
 
 /**
@@ -112,8 +119,8 @@ export async function rateLimit(
 		const windowStr = `${windowSec} s`;
 		const limiter = getLimiter(options.maxRequests, windowStr);
 
-		const ip = getClientIp(req);
-		const identifier = options.prefix ? `${options.prefix}:${ip}` : ip;
+		const key = options.identifier ?? getClientIp(req);
+		const identifier = options.prefix ? `${options.prefix}:${key}` : key;
 
 		const { success, limit, remaining, reset } =
 			await limiter.limit(identifier);
@@ -125,7 +132,7 @@ export async function rateLimit(
 				JSON.stringify({
 					level: "warn",
 					event: "rate_limit_hit",
-					ip,
+					key,
 					prefix: options.prefix,
 					url: req.url,
 					limit,
