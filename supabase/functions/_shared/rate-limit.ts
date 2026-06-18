@@ -18,11 +18,19 @@ interface RateLimitOptions {
 	prefix?: string;
 }
 
-/** Lazy-initialized Ratelimit instance (cached across requests in warm isolate) */
-let cachedLimiter: Ratelimit | null = null;
+/**
+ * Lazy-initialized Ratelimit instances, cached per (maxRequests, window) pair
+ * across requests in a warm isolate. A single function can request several
+ * distinct limits (e.g. sign-lease-token's context/document/sign actions), so
+ * keying by the config — not a single shared instance — is required; a shared
+ * singleton would freeze every later call to whichever limit warmed the isolate.
+ */
+const cachedLimiters = new Map<string, Ratelimit>();
 
 function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
-	if (cachedLimiter) return cachedLimiter;
+	const key = `${maxRequests}:${windowMs}`;
+	const existing = cachedLimiters.get(key);
+	if (existing) return existing;
 
 	const url = Deno.env.get("UPSTASH_REDIS_REST_URL");
 	const token = Deno.env.get("UPSTASH_REDIS_REST_TOKEN");
@@ -33,14 +41,15 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
 		);
 	}
 
-	cachedLimiter = new Ratelimit({
+	const limiter = new Ratelimit({
 		redis: new Redis({ url, token }),
 		limiter: Ratelimit.slidingWindow(maxRequests, windowMs),
 		analytics: false,
 		prefix: "@upstash/ratelimit",
 	});
 
-	return cachedLimiter;
+	cachedLimiters.set(key, limiter);
+	return limiter;
 }
 
 /**

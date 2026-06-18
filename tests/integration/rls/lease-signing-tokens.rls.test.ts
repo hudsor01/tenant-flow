@@ -21,6 +21,7 @@
 import { createHash } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SERVICE_ROLE_KEY =
@@ -59,18 +60,6 @@ const skipReason = !SUPABASE_URL
 		: null;
 
 const RUN_TAG = `rls-sign-test-${Date.now()}`;
-
-/** A PostgREST/Postgres permission-denied error (42501), as opposed to a
- *  function-not-found (PGRST202) — so the grant-lockdown guard can't pass on a
- *  signature-drift regression that merely makes the function unresolvable. */
-function isPermissionDenied(
-	error: { code?: string; message?: string } | null,
-): boolean {
-	if (!error) return false;
-	return (
-		error.code === "42501" || /permission denied/i.test(error.message ?? "")
-	);
-}
 
 describe.skipIf(skipReason)(
 	"lease_signing_tokens RLS + signing RPC grants",
@@ -338,11 +327,13 @@ describe.skipIf(skipReason)(
 
 		// ── grant lockdown ───────────────────────────────────────────────────────
 
-		it("signing RPCs are permission-denied for authenticated users", async () => {
+		it("signing RPCs are revoked from authenticated users", async () => {
+			// A revoked EXECUTE surfaces as 42501 / 42883 / PGRST202 depending on
+			// the PostgREST version — accept any (shared REVOKED_CODES standard).
 			const ctx = await clientA.rpc("get_lease_signing_context", {
 				p_token_hash: "x",
 			});
-			expect(isPermissionDenied(ctx.error)).toBe(true);
+			expect(REVOKED_CODES).toContain(ctx.error?.code);
 
 			const sign = await clientA.rpc("sign_lease_with_token", {
 				p_token_hash: "x",
@@ -350,7 +341,7 @@ describe.skipIf(skipReason)(
 				p_signature_user_agent: "ua",
 				p_signed_at: new Date().toISOString(),
 			});
-			expect(isPermissionDenied(sign.error)).toBe(true);
+			expect(REVOKED_CODES).toContain(sign.error?.code);
 
 			const owner = await clientA.rpc("record_lease_signature", {
 				p_lease_id: leaseAId ?? "00000000-0000-0000-0000-000000000000",
@@ -359,7 +350,7 @@ describe.skipIf(skipReason)(
 				p_signed_at: new Date().toISOString(),
 				p_method: "in_app",
 			});
-			expect(isPermissionDenied(owner.error)).toBe(true);
+			expect(REVOKED_CODES).toContain(owner.error?.code);
 		});
 
 		// ── durable activation happy paths ───────────────────────────────────────
