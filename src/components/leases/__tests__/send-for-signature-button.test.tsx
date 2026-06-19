@@ -5,6 +5,7 @@
  */
 
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "#test/utils/test-render";
 import { SendForSignatureButton } from "../send-for-signature-button";
@@ -37,13 +38,17 @@ vi.stubGlobal("open", openSpy);
 URL.createObjectURL = vi.fn(() => "blob:mock");
 URL.revokeObjectURL = vi.fn();
 
-/** A promise plus its resolver, so the test controls when the fetch settles. */
+/** A promise plus its settlers, so the test controls when the fetch settles. */
 function deferred<T>() {
 	let resolve!: (v: T) => void;
-	const promise = new Promise<T>((r) => {
-		resolve = r;
+	let reject!: (e: unknown) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
 	});
-	return { promise, resolve };
+	// Swallow the default unhandled-rejection if a test only rejects.
+	promise.catch(() => {});
+	return { promise, resolve, reject };
 }
 
 const pdfResponse = {
@@ -89,5 +94,20 @@ describe("SendForSignatureButton preview", () => {
 		// Give the resolved chain a tick; window.open must stay un-called.
 		await new Promise((r) => setTimeout(r, 0));
 		expect(openSpy).not.toHaveBeenCalled();
+	});
+
+	it("stays silent (no error toast) when the aborted fetch rejects with AbortError", async () => {
+		const d = deferred<typeof pdfResponse>();
+		fetchMock.mockReturnValue(d.promise);
+		await openDialogAndPreview();
+
+		// Close mid-fetch (aborts the controller), then reject the in-flight fetch
+		// the way a real aborted fetch does — the catch-path guard must stay silent.
+		fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+		d.reject(new DOMException("aborted", "AbortError"));
+
+		await new Promise((r) => setTimeout(r, 0));
+		expect(openSpy).not.toHaveBeenCalled();
+		expect(toast.error).not.toHaveBeenCalled();
 	});
 });
