@@ -173,6 +173,8 @@ Deno.serve(async (req: Request) => {
 					...getCorsHeaders(req),
 					"Content-Type": "application/pdf",
 					"Content-Disposition": `attachment; filename="lease-preview-${leaseId}.pdf"`,
+					// PII-bearing lease PDF — never retained by any cache.
+					"Cache-Control": "no-store",
 				},
 			});
 		}
