@@ -117,8 +117,8 @@ export function OwnerSubscribeDialog({
 						Join TenantFlow {planName ? `· ${planName}` : ""}
 					</DialogTitle>
 					<DialogDescription>
-						Create your account to kick off checkout. You&apos;ll be redirected
-						to Stripe to securely complete your subscription.
+						Create your account to start your 14-day free trial. No credit card
+						required.
 					</DialogDescription>
 				</DialogHeader>
 				<form

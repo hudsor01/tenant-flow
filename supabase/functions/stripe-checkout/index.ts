@@ -11,6 +11,10 @@ import { ALLOWED_CHECKOUT_PRICE_IDS } from "../_shared/plan-tier.ts";
 import { getStripeClient } from "../_shared/stripe-client.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
+// 14-day free trial with NO card up front — matches the "free trial, no credit
+// card required" promise across the marketing surface.
+const TRIAL_PERIOD_DAYS = 14;
+
 Deno.serve(async (req: Request) => {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
@@ -119,7 +123,20 @@ Deno.serve(async (req: Request) => {
 			success_url: `${frontendUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${frontendUrl}/settings/billing?checkout=cancelled`,
 			metadata: sessionMetadata,
-			subscription_data: { metadata: sessionMetadata },
+			// Start a 14-day trial with no card. `if_required` skips card
+			// collection because a pure trial owes nothing at checkout, so the
+			// hosted page never shows a card form. `trial_settings` is mandatory
+			// in that combination: if no card is added by the time the trial ends
+			// the subscription cancels (the proxy already gates dashboard access
+			// on subscription_status IN ('active','trialing')).
+			subscription_data: {
+				metadata: sessionMetadata,
+				trial_period_days: TRIAL_PERIOD_DAYS,
+				trial_settings: {
+					end_behavior: { missing_payment_method: "cancel" },
+				},
+			},
+			payment_method_collection: "if_required",
 			allow_promotion_codes: true,
 		});
 
