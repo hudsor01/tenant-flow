@@ -123,10 +123,8 @@ describe("signupFormSchema", () => {
 	const validData = {
 		first_name: "John",
 		last_name: "Doe",
-		company: "Acme Corp",
 		email: "john@example.com",
 		password: "Password1!aa",
-		confirmPassword: "Password1!aa",
 	};
 	it("accepts valid signup data", () => {
 		expect(signupFormSchema.safeParse(validData).success).toBe(true);
@@ -144,24 +142,11 @@ describe("signupFormSchema", () => {
 		const { last_name: _, ...rest } = validData;
 		expect(signupFormSchema.safeParse(rest).success).toBe(false);
 	});
-	it("rejects missing company", () => {
-		const { company: _, ...rest } = validData;
-		expect(signupFormSchema.safeParse(rest).success).toBe(false);
-	});
-	it("rejects mismatched passwords", () => {
-		expect(
-			signupFormSchema.safeParse({
-				...validData,
-				confirmPassword: "DifferentPass1",
-			}).success,
-		).toBe(false);
-	});
 	it("rejects weak password (no uppercase)", () => {
 		expect(
 			signupFormSchema.safeParse({
 				...validData,
 				password: "password1",
-				confirmPassword: "password1",
 			}).success,
 		).toBe(false);
 	});

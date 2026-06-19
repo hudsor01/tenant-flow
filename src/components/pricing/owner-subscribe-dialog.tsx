@@ -42,20 +42,18 @@ export function OwnerSubscribeDialog({
 		defaultValues: {
 			first_name: "",
 			last_name: "",
-			company: "",
 			email: "",
 			password: "",
-			confirmPassword: "",
 		},
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true);
 			try {
-				const { first_name, last_name, company, email, password } = value;
+				const { first_name, last_name, email, password } = value;
 				const { data, error } = await supabase.auth.signUp({
 					email,
 					password,
 					options: {
-						data: { first_name, last_name, company, planIntent: planName },
+						data: { first_name, last_name, planIntent: planName },
 						emailRedirectTo: `${window.location.origin}/auth/confirm`,
 					},
 				});
