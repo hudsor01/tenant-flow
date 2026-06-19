@@ -20,6 +20,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { leaseQueries } from "../query-keys/lease-keys";
 import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import {
 	useExpiringLeases,
@@ -486,6 +487,20 @@ describe("Query Hooks", () => {
 			);
 
 			expect(result.current.isFetching).toBe(false);
+		});
+
+		it("polls while finalizing but stops after the bound is reached", () => {
+			const opts = leaseQueries.signedDocument("lease-123");
+			const interval = opts.refetchInterval as (q: unknown) => number | false;
+			const q = (finalizing: boolean, dataUpdateCount: number) => ({
+				state: { data: { finalizing }, dataUpdateCount },
+			});
+			// Finalizing and under the cap → keep polling.
+			expect(interval(q(true, 5))).toBe(4000);
+			// Finalizing but past the cap → stop (manual re-check takes over).
+			expect(interval(q(true, 30))).toBe(false);
+			// Settled (not finalizing) → stop immediately.
+			expect(interval(q(false, 1))).toBe(false);
 		});
 	});
 });

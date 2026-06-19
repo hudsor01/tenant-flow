@@ -8,6 +8,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import {
+	fetchContext,
+	formatDate,
+	formatRent,
+	isCompletedState,
+	reasonMessage,
+} from "./sign-context";
 
 export const metadata: Metadata = {
 	title: "Sign Your Lease",
@@ -19,80 +26,6 @@ export const metadata: Metadata = {
 // The signing token is the credential and the page must always reflect live
 // token/lease state — never cache.
 export const dynamic = "force-dynamic";
-
-interface SigningLease {
-	tenant_name: string | null;
-	owner_name: string | null;
-	property_label: string | null;
-	unit_number: string | null;
-	start_date: string | null;
-	end_date: string | null;
-	rent_amount: number | null;
-}
-
-type ContextResponse =
-	| { valid: true; reason: null; lease: SigningLease }
-	| { valid: false; reason: string | null };
-
-const REASON_MESSAGE: Record<string, string> = {
-	invalid_token:
-		"This signing link is invalid. Please check the link the landlord sent you.",
-	expired_token:
-		"This signing link has expired. Ask the landlord to resend it.",
-	revoked_token:
-		"This signing link is no longer valid. Ask the landlord for a new one.",
-	used_token: "This signing link has already been used.",
-	tenant_already_signed:
-		"You have already signed this lease. No further action is needed.",
-	lease_active: "This lease has already been fully signed and is active.",
-	lease_not_pending: "This lease is not currently awaiting your signature.",
-	tenant_changed:
-		"This signing link is no longer valid for the current tenant. Ask the landlord for a new one.",
-	// Transient server/DB fault — recoverable, NOT a broken link.
-	context_error:
-		"We couldn't load this lease right now. Please refresh the page and try again.",
-};
-
-async function fetchContext(token: string): Promise<ContextResponse> {
-	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	if (!baseUrl) return { valid: false, reason: "context_error" };
-	try {
-		const res = await fetch(`${baseUrl}/functions/v1/sign-lease-token`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ action: "context", token }),
-			cache: "no-store",
-		});
-		// All genuine token states arrive as 200 + reason; a non-2xx here is a
-		// server fault, so show recoverable copy rather than "invalid link".
-		if (!res.ok) return { valid: false, reason: "context_error" };
-		return (await res.json()) as ContextResponse;
-	} catch {
-		return { valid: false, reason: "context_error" };
-	}
-}
-
-function formatDate(value: string | null): string {
-	if (!value) return "N/A";
-	const d = new Date(`${value}T00:00:00Z`);
-	if (Number.isNaN(d.getTime())) return "N/A";
-	return d.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		timeZone: "UTC",
-	});
-}
-
-function formatRent(value: number | null): string {
-	if (value == null) return "N/A";
-	return `$${value.toLocaleString("en-US")}/month`;
-}
-
-/** Non-error terminal reasons — the lease is already signed/active, not broken. */
-function isCompletedState(reason: string | null): boolean {
-	return reason === "tenant_already_signed" || reason === "lease_active";
-}
 
 export default async function SignLeasePage({
 	params,
@@ -167,8 +100,7 @@ export default async function SignLeasePage({
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-muted-foreground">
-								{REASON_MESSAGE[context.reason ?? "invalid_token"] ??
-									REASON_MESSAGE.invalid_token}
+								{reasonMessage(context.reason)}
 							</p>
 						</CardContent>
 					</Card>
@@ -182,8 +114,7 @@ export default async function SignLeasePage({
 						</CardHeader>
 						<CardContent>
 							<p className="text-sm text-muted-foreground">
-								{REASON_MESSAGE[context.reason ?? "invalid_token"] ??
-									REASON_MESSAGE.invalid_token}
+								{reasonMessage(context.reason)}
 							</p>
 						</CardContent>
 					</Card>

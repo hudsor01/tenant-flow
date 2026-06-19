@@ -56,6 +56,7 @@ describe("DownloadSignedLeaseButton", () => {
 		expect(openSpy).toHaveBeenCalledWith(
 			"https://storage.example/doc.pdf",
 			"_blank",
+			"noopener,noreferrer",
 		);
 		openSpy.mockRestore();
 	});

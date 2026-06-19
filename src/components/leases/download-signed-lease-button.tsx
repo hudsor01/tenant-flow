@@ -34,7 +34,7 @@ export function DownloadSignedLeaseButton({
 		}
 
 		// Open the document URL in a new tab for download
-		window.open(data.document_url, "_blank");
+		window.open(data.document_url, "_blank", "noopener,noreferrer");
 	};
 
 	if (error) {

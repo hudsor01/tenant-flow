@@ -162,8 +162,19 @@ export function SendForSignatureButton({
 		}
 	};
 
+	const handleOpenChange = (next: boolean) => {
+		setOpen(next);
+		// Reset typed fields when the dialog closes without a successful send so a
+		// later open (possibly on a different lease) doesn't show stale input.
+		if (!next) {
+			setMessage("");
+			setImmediateFamilyMembers("");
+			setLandlordNoticeAddress("");
+		}
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button
 					variant={variant}
