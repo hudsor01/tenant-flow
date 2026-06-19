@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import {
@@ -51,10 +51,14 @@ export function SendForSignatureButton({
 	const [immediateFamilyMembers, setImmediateFamilyMembers] = useState("");
 	const [landlordNoticeAddress, setLandlordNoticeAddress] = useState("");
 	const [isPreviewing, setIsPreviewing] = useState(false);
+	const previewAbortRef = useRef<AbortController | null>(null);
 	const sendForSignature = useSendLeaseForSignatureMutation();
 	const resendSignature = useResendSignatureRequestMutation();
 
 	const isResend = action === "resend";
+
+	// Abort any in-flight preview on unmount.
+	useEffect(() => () => previewAbortRef.current?.abort(), []);
 
 	const handleSend = async () => {
 		try {
@@ -100,10 +104,8 @@ export function SendForSignatureButton({
 						: "The tenant will receive a notification to sign the lease.",
 				},
 			);
-			setOpen(false);
-			setMessage("");
-			setImmediateFamilyMembers("");
-			setLandlordNoticeAddress("");
+			// Close + reset + abort any in-flight preview via the shared handler.
+			handleOpenChange(false);
 		} catch (error) {
 			toast.error(
 				isResend
@@ -118,6 +120,9 @@ export function SendForSignatureButton({
 	};
 
 	const handlePreview = async () => {
+		previewAbortRef.current?.abort();
+		const controller = new AbortController();
+		previewAbortRef.current = controller;
 		try {
 			setIsPreviewing(true);
 			const supabase = createClient();
@@ -134,6 +139,7 @@ export function SendForSignatureButton({
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({ action: "preview", leaseId }),
+				signal: controller.signal,
 			});
 
 			if (!response.ok) {
@@ -149,16 +155,23 @@ export function SendForSignatureButton({
 			}
 
 			const blob = await response.blob();
+			// Don't surface a tab if the dialog was closed mid-fetch.
+			if (controller.signal.aborted) return;
 			const url = URL.createObjectURL(blob);
 			window.open(url, "_blank", "noopener,noreferrer");
 			setTimeout(() => URL.revokeObjectURL(url), 60_000);
 		} catch (error) {
+			// An aborted preview (dialog closed) is expected — stay silent.
+			if (controller.signal.aborted) return;
 			toast.error("Failed to preview PDF", {
 				description:
 					error instanceof Error ? error.message : "Please try again.",
 			});
 		} finally {
-			setIsPreviewing(false);
+			if (previewAbortRef.current === controller) {
+				setIsPreviewing(false);
+				previewAbortRef.current = null;
+			}
 		}
 	};
 
@@ -167,6 +180,9 @@ export function SendForSignatureButton({
 		// Reset typed fields when the dialog closes without a successful send so a
 		// later open (possibly on a different lease) doesn't show stale input.
 		if (!next) {
+			// Abort an in-flight preview so its window.open can't surface a stray
+			// PDF tab over the now-dismissed dialog.
+			previewAbortRef.current?.abort();
 			setMessage("");
 			setImmediateFamilyMembers("");
 			setLandlordNoticeAddress("");
@@ -266,7 +282,7 @@ export function SendForSignatureButton({
 					)}
 					<Button
 						variant="outline"
-						onClick={() => setOpen(false)}
+						onClick={() => handleOpenChange(false)}
 						disabled={sendForSignature.isPending || resendSignature.isPending}
 					>
 						Cancel
