@@ -92,8 +92,13 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 		} catch {
 			// Re-lock the consent gate ONLY if the lease was never successfully
 			// opened — so a tenant can't attest to a lease they never retrieved, but
-			// a failed *reopen* doesn't downgrade an already-passed gate.
-			if (!hasViewedOnceRef.current) setViewed(false);
+			// a failed *reopen* doesn't downgrade an already-passed gate. Also clear
+			// any consent ticked during the in-flight first attempt so the checkbox
+			// returns to unchecked+disabled (no checked-but-disabled state).
+			if (!hasViewedOnceRef.current) {
+				setViewed(false);
+				setConsent(false);
+			}
 			setError(
 				"We couldn't open the lease document. Please try again or contact the landlord.",
 			);

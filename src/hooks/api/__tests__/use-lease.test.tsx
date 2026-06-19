@@ -318,7 +318,7 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useLeaseSignatureStatus", () => {
-		it("should query signature status columns from leases table", async () => {
+		it("derives owner/tenant/both-signed booleans from the raw timestamps", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "leases") {
 					return createQueryChain({ data: mockSignatureStatus });
@@ -332,10 +332,46 @@ describe("Query Hooks", () => {
 			);
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
+				expect(result.current.isSuccess).toBe(true);
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+			// owner_signed_at set, tenant_signed_at null → owner signed, not both.
+			expect(result.current.data).toMatchObject({
+				owner_signed: true,
+				tenant_signed: false,
+				both_signed: false,
+				sent_for_signature_at: "2024-01-14T10:00:00Z",
+			});
+		});
+
+		it("derives both_signed=true when both timestamps are set", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							...mockSignatureStatus,
+							lease_status: "active",
+							tenant_signed_at: "2024-01-16T10:00:00Z",
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+
+			const { result } = renderHook(
+				() => useLeaseSignatureStatus("lease-123"),
+				{ wrapper: createWrapper() },
+			);
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data).toMatchObject({
+				owner_signed: true,
+				tenant_signed: true,
+				both_signed: true,
+			});
 		});
 
 		it("should not fetch when lease ID is empty", () => {
