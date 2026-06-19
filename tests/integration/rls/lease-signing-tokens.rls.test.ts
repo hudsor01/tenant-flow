@@ -49,7 +49,10 @@ async function isSignFunctionDeployed(): Promise<boolean> {
 		}
 		return true;
 	} catch {
-		return true;
+		// Fail CLOSED for a deploy-gated test: a probe that throws (DNS/timeout/
+		// network flake, or genuinely unreachable function) should SKIP the
+		// finalize test, never false-fail it on a transient blip.
+		return false;
 	}
 }
 

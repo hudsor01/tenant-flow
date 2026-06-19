@@ -150,6 +150,44 @@ describe("SignLeaseForm", () => {
 		});
 	});
 
+	it("shows generic retry copy (not invalid/expired) on a no-reason server error", async () => {
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		await viewLease();
+		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
+		// success:false with NO reason — a transient server fault, not a bad link.
+		fetchMock.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({ success: false }),
+		});
+		fireEvent.click(screen.getByTestId("sign-lease-submit"));
+
+		await waitFor(() => {
+			expect(screen.getByRole("alert")).toHaveTextContent(
+				/couldn't record your signature/i,
+			);
+		});
+		const alertText = screen.getByRole("alert").textContent ?? "";
+		expect(alertText).not.toMatch(/invalid|expired/i);
+		expect(screen.queryByTestId("sign-lease-success")).not.toBeInTheDocument();
+	});
+
+	it("shows a generic error when the sign request throws", async () => {
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		await viewLease();
+		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
+		fetchMock.mockRejectedValueOnce(new Error("network"));
+		fireEvent.click(screen.getByTestId("sign-lease-submit"));
+
+		await waitFor(() => {
+			expect(screen.getByRole("alert")).toHaveTextContent(
+				/something went wrong/i,
+			);
+		});
+		expect(screen.queryByTestId("sign-lease-success")).not.toBeInTheDocument();
+	});
+
 	it("submits the edited, trimmed signer name", async () => {
 		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
 

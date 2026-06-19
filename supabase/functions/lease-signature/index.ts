@@ -31,6 +31,7 @@ import {
 	generateSigningToken,
 } from "../_shared/lease-signing.ts";
 import { renderLeasePdf } from "../_shared/lease-pdf.ts";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { sendEmail } from "../_shared/resend.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
@@ -178,6 +179,17 @@ Deno.serve(async (req: Request) => {
 
 		// ── send ─────────────────────────────────────────────────────────────────
 		if (action === "send") {
+			// Per-owner cap on outbound signing emails (shared with resend) so an
+			// authenticated owner can't loop send/resend to email-bomb a tenant
+			// address or burn Resend quota.
+			const limited = await rateLimit(req, {
+				maxRequests: 10,
+				windowMs: 60_000,
+				prefix: "lease-esign-email",
+				identifier: user.id,
+			});
+			if (limited) return limited;
+
 			if (lease.lease_status !== "draft") {
 				return new Response(
 					JSON.stringify({
@@ -305,6 +317,15 @@ Deno.serve(async (req: Request) => {
 
 		// ── resend ─────────────────────────────────────────────────────────────
 		if (action === "resend") {
+			// Same per-owner outbound-email cap as send (shared bucket).
+			const limited = await rateLimit(req, {
+				maxRequests: 10,
+				windowMs: 60_000,
+				prefix: "lease-esign-email",
+				identifier: user.id,
+			});
+			if (limited) return limited;
+
 			if (lease.lease_status !== "pending_signature") {
 				return new Response(
 					JSON.stringify({

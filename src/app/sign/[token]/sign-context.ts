@@ -1,6 +1,8 @@
 // Pure logic for the public /sign/[token] page, extracted so it is unit-testable
 // independent of the Server Component render.
 
+import { formatCurrency } from "#lib/utils/currency";
+
 export interface SigningLease {
 	tenant_name: string | null;
 	owner_name: string | null;
@@ -68,7 +70,9 @@ export function formatDate(value: string | null): string {
 
 export function formatRent(value: number | null): string {
 	if (value == null) return "N/A";
-	return `$${value.toLocaleString("en-US")}/month`;
+	// Use the canonical formatter (always 2 decimals) so the legally-binding rent
+	// on the signing page matches the rest of the app.
+	return `${formatCurrency(value)}/month`;
 }
 
 /** Non-error terminal reasons — the lease is already signed/active, not broken. */

@@ -21,8 +21,9 @@ describe("sign-context helpers", () => {
 		expect(formatDate("not-a-date")).toBe("N/A");
 	});
 
-	it("formatRent formats money and guards null", () => {
-		expect(formatRent(1500)).toBe("$1,500/month");
+	it("formatRent formats money with 2 decimals and guards null", () => {
+		expect(formatRent(1500)).toBe("$1,500.00/month");
+		expect(formatRent(1500.5)).toBe("$1,500.50/month");
 		expect(formatRent(null)).toBe("N/A");
 	});
 
