@@ -25,7 +25,7 @@ import type { GateConversionStats } from "#types/analytics";
 const LOW_CONVERSION_THRESHOLD = 0.1;
 
 const FEATURE_LABELS: Record<string, string> = {
-	esign: "E-signature (DocuSeal)",
+	esign: "E-signature",
 	premium_reports: "Premium reports",
 };
 

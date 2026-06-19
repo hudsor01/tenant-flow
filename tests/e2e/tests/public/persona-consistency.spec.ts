@@ -197,16 +197,15 @@ test.describe("Persona consistency — compare pages (CONS-01)", () => {
 	});
 });
 
-test.describe("Persona consistency — DocuSeal de-amp (COPY-04, Wave 2)", () => {
+test.describe("Persona consistency — DocuSeal fully removed (COPY-04)", () => {
 	// 16 sequential page.goto() in the site-wide mention-count test. Same
 	// 60s bump the sitewide + bulk-zip describes apply.
 	test.setTimeout(60_000);
 
-	// COPY-04 audits VISIBLE marketing copy, not the SoftwareApplication
-	// JSON-LD `featureList` (KEEP-AS-INFRASTRUCTURE per 04-RESEARCH.md) and
-	// not the Next.js RSC streaming payload — both are <script> content. Use
-	// innerText (visible text only) to count user-facing mentions.
-	test("Site-wide DocuSeal mention count ≤ 15 across all public marketing pages combined", async ({
+	// DocuSeal was retired as the e-sign vendor (replaced by built-in token
+	// signing); no visible marketing copy should name it anymore. Use innerText
+	// (visible text only) so JSON-LD / RSC payloads don't false-positive.
+	test("no public marketing page renders a visible DocuSeal mention", async ({
 		page,
 	}) => {
 		let totalMentions = 0;
@@ -215,11 +214,7 @@ test.describe("Persona consistency — DocuSeal de-amp (COPY-04, Wave 2)", () =>
 			const visible = await page.locator("body").innerText();
 			totalMentions += (visible.match(/DocuSeal/g) ?? []).length;
 		}
-		// Threshold accounts for: pricing.ts feature lists × 2 plans, comparison-table row,
-		// /faq strategic entry, logo-cloud wordmark (renders on / and /features),
-		// features-client.tsx integrations subtitle, login + confirm-email HERO_STATS.
-		// Calibrate down after first run if budget allows.
-		expect(totalMentions).toBeLessThanOrEqual(15);
+		expect(totalMentions).toBe(0);
 	});
 
 	test("/about renders zero visible DocuSeal mentions", async ({ page }) => {
@@ -228,12 +223,10 @@ test.describe("Persona consistency — DocuSeal de-amp (COPY-04, Wave 2)", () =>
 		expect((visible.match(/DocuSeal/g) ?? []).length).toBe(0);
 	});
 
-	test("/pricing renders ≤ 3 visible DocuSeal mentions (strategic surfaces only)", async ({
-		page,
-	}) => {
+	test("/pricing renders zero visible DocuSeal mentions", async ({ page }) => {
 		await page.goto("/pricing");
 		const visible = await page.locator("body").innerText();
-		expect((visible.match(/DocuSeal/g) ?? []).length).toBeLessThanOrEqual(3);
+		expect((visible.match(/DocuSeal/g) ?? []).length).toBe(0);
 	});
 });
 

@@ -30,15 +30,15 @@ const FUNCTIONS: Array<{
 	verify_jwt: boolean;
 }> = [
 	{ slug: "auth-email-send", entrypoint: "index.ts", verify_jwt: false },
-	{ slug: "docuseal", entrypoint: "handler.ts", verify_jwt: false },
-	{ slug: "docuseal-webhook", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "download-documents-zip", entrypoint: "index.ts", verify_jwt: true },
 	{ slug: "export-report", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "export-user-data", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "generate-pdf", entrypoint: "index.ts", verify_jwt: false },
+	{ slug: "lease-signature", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "n8n-blog-ingest", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "newsletter-subscribe", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "resend-webhook", entrypoint: "index.ts", verify_jwt: false },
+	{ slug: "sign-lease-token", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "stripe-billing-portal", entrypoint: "index.ts", verify_jwt: false },
 	{
 		slug: "stripe-cancel-subscription",

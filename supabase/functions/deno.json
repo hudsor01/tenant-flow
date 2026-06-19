@@ -5,6 +5,7 @@
 		"stripe": "npm:stripe@20",
 		"@upstash/ratelimit": "npm:@upstash/ratelimit",
 		"@upstash/redis": "npm:@upstash/redis",
-		"@zip.js/zip.js": "https://esm.sh/@zip.js/zip.js@2.7.45"
+		"@zip.js/zip.js": "https://esm.sh/@zip.js/zip.js@2.7.45",
+		"pdf-lib": "https://esm.sh/pdf-lib@1.17.1"
 	}
 }

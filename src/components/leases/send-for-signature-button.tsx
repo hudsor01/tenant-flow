@@ -127,21 +127,25 @@ export function SendForSignatureButton({
 			if (!session?.access_token) throw new Error("Not authenticated");
 
 			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-			const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
+			const response = await fetch(`${baseUrl}/functions/v1/lease-signature`, {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${session.access_token}`,
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					leaseId,
-					filename: `lease-preview-${leaseId}.pdf`,
-				}),
+				body: JSON.stringify({ action: "preview", leaseId }),
 			});
 
 			if (!response.ok) {
-				const errText = await response.text().catch(() => response.statusText);
-				throw new Error(errText);
+				// The function returns JSON error bodies; surface the friendly
+				// `.error` message, not the raw blob.
+				const body = (await response.json().catch(() => null)) as {
+					error?: string;
+				} | null;
+				throw new Error(
+					body?.error ??
+						"Could not generate the lease preview. Please try again.",
+				);
 			}
 
 			const blob = await response.blob();
@@ -158,8 +162,19 @@ export function SendForSignatureButton({
 		}
 	};
 
+	const handleOpenChange = (next: boolean) => {
+		setOpen(next);
+		// Reset typed fields when the dialog closes without a successful send so a
+		// later open (possibly on a different lease) doesn't show stale input.
+		if (!next) {
+			setMessage("");
+			setImmediateFamilyMembers("");
+			setLandlordNoticeAddress("");
+		}
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button
 					variant={variant}

@@ -336,7 +336,6 @@ const signatureStatusResponseSchema = z.object({
 	tenant_signed_at: z.string().nullable(),
 	sent_for_signature_at: z.string().nullable(),
 	both_signed: z.boolean(),
-	docuseal_submission_id: z.string().nullable(),
 });
 
 export type SignatureStatusResponse = z.infer<

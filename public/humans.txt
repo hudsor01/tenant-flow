@@ -13,7 +13,7 @@ Hosting: Vercel
 Backend: Supabase (Postgres + Auth + Storage + Edge Functions)
 Auth: Supabase SSR
 Email: Resend
-Lease e-sign: DocuSeal
+Lease e-sign: Built-in (Supabase token flow)
 
 /* See also */
 - /sitemap.xml — fresh URL inventory with real lastmod values

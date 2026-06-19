@@ -263,7 +263,6 @@ export interface SignatureStatusResponse {
 	tenant_signed_at: string | null;
 	sent_for_signature_at: string | null;
 	both_signed: boolean;
-	docuseal_submission_id: string | null;
 }
 
 export interface PropertyApiFilters {

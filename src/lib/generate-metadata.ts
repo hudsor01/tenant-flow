@@ -216,7 +216,7 @@ export function getSoftwareApplicationJsonLd() {
 			"Maintenance Tracking",
 			"Financial Reporting",
 			"Document Vault",
-			"DocuSeal Lease E-Signing",
+			"Lease E-Signing",
 		],
 	};
 }

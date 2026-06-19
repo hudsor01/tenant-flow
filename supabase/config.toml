@@ -380,12 +380,12 @@ allow_dynamic_registration = false
 verify_jwt = false
 import_map = "./functions/deno.json"
 
-# DocuSeal — uses handler.ts as entrypoint (not index.ts). Tier-gate + action
-# dispatch live in handler.ts. Function calls `validateBearerAuth()`
-# internally; gateway gate stays off so it can do its own auth.
-[functions.docuseal]
+# Lease signature (owner) — owner-authenticated e-signature actions
+# (preview / send / resend / cancel / sign-owner). Function calls
+# `validateBearerAuth()` internally; gateway gate stays off so it can do its
+# own auth (and serve the preview PDF without a gateway 401).
+[functions.lease-signature]
 verify_jwt = false
-entrypoint = "./functions/docuseal/handler.ts"
 import_map = "./functions/deno.json"
 
 # n8n content-factory blog ingest — public endpoint, authenticated via
@@ -395,9 +395,11 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
-# DocuSeal webhook — public, authenticated via DocuSeal HMAC signature in
-# `X-DocuSeal-Signature` header, NOT Supabase JWT.
-[functions.docuseal-webhook]
+# Sign lease token — PUBLIC: the tenant has no account; the single-use signing
+# token in the /sign/<token> URL is the credential. Authenticated by the token
+# (SHA-256-hashed lookup via SECURITY DEFINER RPCs), rate-limited per IP. NOT
+# Supabase JWT.
+[functions.sign-lease-token]
 verify_jwt = false
 import_map = "./functions/deno.json"
 

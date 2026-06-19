@@ -166,38 +166,45 @@ export const leaseQueries = {
 	signedDocument: (leaseId: string, enabled = true) =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), leaseId, "signed-document"],
-			queryFn: async (): Promise<{ document_url: string | null }> => {
+			queryFn: async (): Promise<{
+				document_url: string | null;
+				finalizing: boolean;
+			}> => {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("leases")
-					.select(
-						"docuseal_document_url, docuseal_submission_id, owner_signed_at, tenant_signed_at",
-					)
+					.select("signed_document_path, owner_signed_at, tenant_signed_at")
 					.eq("id", leaseId)
 					.single();
 				if (error) handlePostgrestError(error, "leases");
-				const row = data as {
-					docuseal_document_url: string | null;
-					docuseal_submission_id: string | null;
-					owner_signed_at: string | null;
-					tenant_signed_at: string | null;
-				};
-				// Prefer the persisted signed-PDF URL written by the docuseal-webhook
-				// submission.completed handler (F-8). Fall back to the legacy
-				// `pending:<submission_id>` placeholder for leases that finished
-				// signing before the docuseal_document_url column existed.
-				return {
-					document_url:
-						row?.docuseal_document_url ??
-						(row?.docuseal_submission_id &&
-						row.owner_signed_at &&
-						row.tenant_signed_at
-							? `pending:${row.docuseal_submission_id}`
-							: null),
-				};
+				const path = data?.signed_document_path ?? null;
+				if (!path) {
+					// Both parties signed but the PDF pointer isn't written yet — the
+					// out-of-band finalize step is still running (or briefly retrying).
+					const finalizing =
+						!!data?.owner_signed_at && !!data?.tenant_signed_at;
+					return { document_url: null, finalizing };
+				}
+				// The finalized signed PDF lives in the private tenant-documents
+				// bucket (owner-scoped RLS); mint a short-lived signed URL on demand.
+				// Surface a storage failure (vs. a missing document) so the download
+				// button can distinguish "failing" from "not available yet".
+				const { data: signed, error: signError } = await supabase.storage
+					.from("tenant-documents")
+					.createSignedUrl(path, 60 * 60);
+				if (signError) throw signError;
+				return { document_url: signed?.signedUrl ?? null, finalizing: false };
 			},
 			enabled: enabled && !!leaseId,
 			staleTime: 5 * 60 * 1000,
+			// Poll while the signed PDF is still being finalized so the download
+			// surfaces without a manual reload. Bounded (~2 min / 30 polls) so a
+			// permanently-stuck finalize doesn't spin forever — the button then
+			// offers a manual re-check. Stops once the URL (or no-doc) settles.
+			refetchInterval: (query) =>
+				query.state.data?.finalizing && query.state.dataUpdateCount < 30
+					? 4000
+					: false,
 		}),
 
 	signatureStatus: (id: string) =>

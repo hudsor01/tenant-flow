@@ -16,13 +16,28 @@ interface RateLimitOptions {
 	windowMs: number;
 	/** Key prefix for namespace isolation (e.g., 'invite-validate') */
 	prefix?: string;
+	/**
+	 * Override the per-request bucket key. Defaults to the client IP. Pass a
+	 * stable per-session value (e.g. a token hash) when the caller's IP is a
+	 * shared egress address — keeping one session from exhausting another's
+	 * bucket.
+	 */
+	identifier?: string;
 }
 
-/** Lazy-initialized Ratelimit instance (cached across requests in warm isolate) */
-let cachedLimiter: Ratelimit | null = null;
+/**
+ * Lazy-initialized Ratelimit instances, cached per (maxRequests, window) pair
+ * across requests in a warm isolate. A single function can request several
+ * distinct limits (e.g. sign-lease-token's context/document/sign actions), so
+ * keying by the config — not a single shared instance — is required; a shared
+ * singleton would freeze every later call to whichever limit warmed the isolate.
+ */
+const cachedLimiters = new Map<string, Ratelimit>();
 
 function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
-	if (cachedLimiter) return cachedLimiter;
+	const key = `${maxRequests}:${windowMs}`;
+	const existing = cachedLimiters.get(key);
+	if (existing) return existing;
 
 	const url = Deno.env.get("UPSTASH_REDIS_REST_URL");
 	const token = Deno.env.get("UPSTASH_REDIS_REST_TOKEN");
@@ -33,14 +48,15 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
 		);
 	}
 
-	cachedLimiter = new Ratelimit({
+	const limiter = new Ratelimit({
 		redis: new Redis({ url, token }),
 		limiter: Ratelimit.slidingWindow(maxRequests, windowMs),
 		analytics: false,
 		prefix: "@upstash/ratelimit",
 	});
 
-	return cachedLimiter;
+	cachedLimiters.set(key, limiter);
+	return limiter;
 }
 
 /**
@@ -103,8 +119,8 @@ export async function rateLimit(
 		const windowStr = `${windowSec} s`;
 		const limiter = getLimiter(options.maxRequests, windowStr);
 
-		const ip = getClientIp(req);
-		const identifier = options.prefix ? `${options.prefix}:${ip}` : ip;
+		const key = options.identifier ?? getClientIp(req);
+		const identifier = options.prefix ? `${options.prefix}:${key}` : key;
 
 		const { success, limit, remaining, reset } =
 			await limiter.limit(identifier);
@@ -116,7 +132,7 @@ export async function rateLimit(
 				JSON.stringify({
 					level: "warn",
 					event: "rate_limit_hit",
-					ip,
+					key,
 					prefix: options.prefix,
 					url: req.url,
 					limit,

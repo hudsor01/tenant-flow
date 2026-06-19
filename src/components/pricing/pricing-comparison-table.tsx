@@ -86,7 +86,7 @@ const comparisonData: FeatureCategory[] = [
 		category: "Leases",
 		features: [
 			{
-				name: "E-sign leases (DocuSeal)",
+				name: "E-sign leases",
 				starter: false,
 				growth: "25 / mo",
 				max: "Unlimited",

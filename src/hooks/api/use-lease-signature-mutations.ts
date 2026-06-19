@@ -4,6 +4,7 @@ import { handleMutationError } from "#lib/mutation-error-handler";
 
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 export function useSendLeaseForSignatureMutation() {
 	const queryClient = useQueryClient();
@@ -18,6 +19,7 @@ export function useSendLeaseForSignatureMutation() {
 				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
 			});
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 			logger.info("Lease sent for signature", { leaseId });
 		},
 		onError: (err) => {
@@ -39,6 +41,7 @@ export function useSignLeaseAsOwnerMutation() {
 				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
 			});
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 			logger.info("Lease signed by owner", { leaseId });
 		},
 		onError: (err) => {
@@ -47,28 +50,7 @@ export function useSignLeaseAsOwnerMutation() {
 	});
 }
 
-export function useSignLeaseAsTenantMutation() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...leaseMutations.signAsTenant(),
-		onSuccess: (_result, leaseId) => {
-			queryClient.invalidateQueries({
-				queryKey: leaseQueries.detail(leaseId).queryKey,
-			});
-			queryClient.invalidateQueries({
-				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
-			});
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
-			logger.info("Lease signed by tenant", { leaseId });
-		},
-		onError: (err) => {
-			handleMutationError(err, "Sign lease");
-		},
-	});
-}
-
-// Archives DocuSeal submission and reverts lease to draft.
+// Revokes the tenant signing token and reverts the lease to draft.
 export function useCancelSignatureRequestMutation() {
 	const queryClient = useQueryClient();
 
@@ -82,6 +64,7 @@ export function useCancelSignatureRequestMutation() {
 				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
 			});
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 			logger.info("Signature request cancelled", { leaseId });
 		},
 		onError: (err) => {
@@ -103,6 +86,7 @@ export function useResendSignatureRequestMutation() {
 				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
 			});
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 			logger.info("Signature request resent", { leaseId });
 		},
 		onError: (err) => {

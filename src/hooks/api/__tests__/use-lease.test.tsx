@@ -7,10 +7,10 @@
  * - Error handling
  * - Disabled state when ID is empty
  *
- * Updated for DocuSeal Edge Function migration (Phase 55):
+ * Updated for the token-based lease e-signature migration:
  * - CRUD mutations use supabase-js PostgREST directly
- * - Signature mutations call callDocuSealEdgeFunction() via fetch to /functions/v1/docuseal
- * - useSignedDocumentUrl reads from supabase.from('leases') PostgREST
+ * - Signature mutations call the lease-signature Edge Function via fetch
+ * - useSignedDocumentUrl reads signed_document_path then mints a Storage signed URL
  *
  * @vitest-environment jsdom
  */
@@ -20,6 +20,8 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { leaseQueries } from "../query-keys/lease-keys";
+import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import {
 	useExpiringLeases,
 	useLease,
@@ -40,9 +42,9 @@ import {
 } from "../use-lease-mutations";
 import {
 	useCancelSignatureRequestMutation,
+	useResendSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
-	useSignLeaseAsTenantMutation,
 } from "../use-lease-signature-mutations";
 
 // Mock logger
@@ -86,6 +88,7 @@ vi.mock("#hooks/api/use-auth", () => ({
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn();
 const supabaseRpcMock = vi.fn();
+const supabaseStorageFromMock = vi.fn();
 const supabaseAuthGetUserMock = vi.fn();
 const supabaseAuthGetSessionMock = vi.fn();
 
@@ -93,6 +96,7 @@ vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
 		rpc: supabaseRpcMock,
+		storage: { from: supabaseStorageFromMock },
 		auth: {
 			getUser: supabaseAuthGetUserMock,
 			getSession: supabaseAuthGetSessionMock,
@@ -314,7 +318,7 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useLeaseSignatureStatus", () => {
-		it("should query signature status columns from leases table", async () => {
+		it("derives owner/tenant/both-signed booleans from the raw timestamps", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "leases") {
 					return createQueryChain({ data: mockSignatureStatus });
@@ -328,10 +332,46 @@ describe("Query Hooks", () => {
 			);
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
+				expect(result.current.isSuccess).toBe(true);
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+			// owner_signed_at set, tenant_signed_at null → owner signed, not both.
+			expect(result.current.data).toMatchObject({
+				owner_signed: true,
+				tenant_signed: false,
+				both_signed: false,
+				sent_for_signature_at: "2024-01-14T10:00:00Z",
+			});
+		});
+
+		it("derives both_signed=true when both timestamps are set", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							...mockSignatureStatus,
+							lease_status: "active",
+							tenant_signed_at: "2024-01-16T10:00:00Z",
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+
+			const { result } = renderHook(
+				() => useLeaseSignatureStatus("lease-123"),
+				{ wrapper: createWrapper() },
+			);
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data).toMatchObject({
+				owner_signed: true,
+				tenant_signed: true,
+				both_signed: true,
+			});
 		});
 
 		it("should not fetch when lease ID is empty", () => {
@@ -344,18 +384,21 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useSignedDocumentUrl", () => {
-		it("should query docuseal_submission_id from leases table via PostgREST", async () => {
+		it("reads signed_document_path then mints a Storage signed URL", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "leases") {
 					return createQueryChain({
-						data: {
-							docuseal_submission_id: "sub-999",
-							owner_signed_at: "2024-01-15T10:00:00Z",
-							tenant_signed_at: "2024-01-16T10:00:00Z",
-						},
+						data: { signed_document_path: "lease/lease-123/signed-lease.pdf" },
 					});
 				}
 				return createQueryChain({ data: null });
+			});
+			const createSignedUrlMock = vi.fn().mockResolvedValue({
+				data: { signedUrl: "https://storage.example/signed.pdf" },
+				error: null,
+			});
+			supabaseStorageFromMock.mockReturnValue({
+				createSignedUrl: createSignedUrlMock,
 			});
 
 			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
@@ -363,10 +406,114 @@ describe("Query Hooks", () => {
 			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
+				expect(result.current.isSuccess).toBe(true);
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+			expect(supabaseStorageFromMock).toHaveBeenCalledWith("tenant-documents");
+			expect(createSignedUrlMock).toHaveBeenCalledWith(
+				"lease/lease-123/signed-lease.pdf",
+				60 * 60,
+			);
+			expect(result.current.data?.document_url).toBe(
+				"https://storage.example/signed.pdf",
+			);
+		});
+
+		it("returns null without touching Storage when no document is stored", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({ data: { signed_document_path: null } });
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({ createSignedUrl: vi.fn() });
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data?.document_url).toBeNull();
+			expect(supabaseStorageFromMock).not.toHaveBeenCalled();
+		});
+
+		it("errors when the Storage signed-URL mint fails", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: { signed_document_path: "lease/lease-123/signed-lease.pdf" },
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({
+				createSignedUrl: vi
+					.fn()
+					.mockResolvedValue({ data: null, error: { message: "boom" } }),
+			});
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isError).toBe(true);
+			});
+		});
+
+		it("flags finalizing when both parties signed but no document path yet", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							signed_document_path: null,
+							owner_signed_at: "2026-01-01T00:00:00Z",
+							tenant_signed_at: "2026-01-02T00:00:00Z",
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({ createSignedUrl: vi.fn() });
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data?.finalizing).toBe(true);
+			expect(result.current.data?.document_url).toBeNull();
+			expect(supabaseStorageFromMock).not.toHaveBeenCalled();
+		});
+
+		it("does not flag finalizing when only one party has signed", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							signed_document_path: null,
+							owner_signed_at: "2026-01-01T00:00:00Z",
+							tenant_signed_at: null,
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			supabaseStorageFromMock.mockReturnValue({ createSignedUrl: vi.fn() });
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data?.finalizing).toBe(false);
 		});
 
 		it("should not fetch when disabled", () => {
@@ -376,6 +523,20 @@ describe("Query Hooks", () => {
 			);
 
 			expect(result.current.isFetching).toBe(false);
+		});
+
+		it("polls while finalizing but stops after the bound is reached", () => {
+			const opts = leaseQueries.signedDocument("lease-123");
+			const interval = opts.refetchInterval as (q: unknown) => number | false;
+			const q = (finalizing: boolean, dataUpdateCount: number) => ({
+				state: { data: { finalizing }, dataUpdateCount },
+			});
+			// Finalizing and under the cap → keep polling.
+			expect(interval(q(true, 5))).toBe(4000);
+			// Finalizing but past the cap → stop (manual re-check takes over).
+			expect(interval(q(true, 30))).toBe(false);
+			// Settled (not finalizing) → stop immediately.
+			expect(interval(q(false, 1))).toBe(false);
 		});
 	});
 });
@@ -530,7 +691,7 @@ describe("Mutation Hooks", () => {
 	});
 
 	describe("useSendLeaseForSignatureMutation", () => {
-		it("should call docuseal Edge Function with send-for-signature action", async () => {
+		it("should call lease-signature Edge Function with send action", async () => {
 			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
 				wrapper: createWrapper(),
 			});
@@ -545,10 +706,10 @@ describe("Mutation Hooks", () => {
 			});
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
+				expect.stringContaining("/functions/v1/lease-signature"),
 				expect.objectContaining({
 					method: "POST",
-					body: expect.stringContaining('"action":"send-for-signature"'),
+					body: expect.stringContaining('"action":"send"'),
 				}),
 			);
 			expect(fetchMock).toHaveBeenCalledWith(
@@ -561,7 +722,7 @@ describe("Mutation Hooks", () => {
 	});
 
 	describe("useSignLeaseAsOwnerMutation", () => {
-		it("should call docuseal Edge Function with sign-owner action", async () => {
+		it("should call lease-signature Edge Function with sign-owner action", async () => {
 			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
 				wrapper: createWrapper(),
 			});
@@ -569,35 +730,48 @@ describe("Mutation Hooks", () => {
 			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
+				expect.stringContaining("/functions/v1/lease-signature"),
 				expect.objectContaining({
 					method: "POST",
 					body: expect.stringContaining('"action":"sign-owner"'),
 				}),
 			);
+			// The endpoint hard-requires affirmative consent (400 otherwise) — pin it.
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.objectContaining({
+					body: expect.stringContaining('"consent":true'),
+				}),
+			);
 		});
-	});
 
-	describe("useSignLeaseAsTenantMutation", () => {
-		it("should call docuseal Edge Function with sign-tenant action", async () => {
-			const { result } = renderHook(() => useSignLeaseAsTenantMutation(), {
-				wrapper: createWrapper(),
+		it("invalidates the owner dashboard after a successful sign", async () => {
+			const queryClient = new QueryClient({
+				defaultOptions: {
+					queries: { retry: false },
+					mutations: { retry: false },
+				},
+			});
+			const spy = vi.spyOn(queryClient, "invalidateQueries");
+			const wrapper = ({ children }: { children: ReactNode }) => (
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
+			);
+			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
+				wrapper,
 			});
 
 			await result.current.mutateAsync("lease-123");
 
-			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
-				expect.objectContaining({
-					method: "POST",
-					body: expect.stringContaining('"action":"sign-tenant"'),
-				}),
+			expect(spy).toHaveBeenCalledWith(
+				expect.objectContaining({ queryKey: ownerDashboardKeys.all }),
 			);
 		});
 	});
 
 	describe("useCancelSignatureRequestMutation", () => {
-		it("should call docuseal Edge Function with cancel action", async () => {
+		it("should call lease-signature Edge Function with cancel action", async () => {
 			const { result } = renderHook(() => useCancelSignatureRequestMutation(), {
 				wrapper: createWrapper(),
 			});
@@ -605,12 +779,54 @@ describe("Mutation Hooks", () => {
 			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining("/functions/v1/docuseal"),
+				expect.stringContaining("/functions/v1/lease-signature"),
 				expect.objectContaining({
 					method: "POST",
 					body: expect.stringContaining('"action":"cancel"'),
 				}),
 			);
+		});
+	});
+
+	describe("useResendSignatureRequestMutation", () => {
+		it("should call lease-signature Edge Function with resend action", async () => {
+			const { result } = renderHook(() => useResendSignatureRequestMutation(), {
+				wrapper: createWrapper(),
+			});
+
+			await result.current.mutateAsync({ leaseId: "lease-123" });
+
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining("/functions/v1/lease-signature"),
+				expect.objectContaining({
+					method: "POST",
+					body: expect.stringContaining('"action":"resend"'),
+				}),
+			);
+		});
+	});
+
+	describe("signature mutation error handling", () => {
+		it("surfaces the Edge Function error message on a non-ok response", async () => {
+			fetchMock.mockResolvedValueOnce({
+				ok: false,
+				json: async () => ({ error: "Tenant email is required" }),
+			});
+			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
+				wrapper: createWrapper(),
+			});
+
+			await expect(
+				result.current.mutateAsync({
+					leaseId: "lease-123",
+					missingFields: {
+						immediate_family_members: "",
+						landlord_notice_address: "123 Main St",
+					},
+				}),
+			).rejects.toMatchObject({
+				message: expect.stringContaining("Tenant email is required"),
+			});
 		});
 	});
 });

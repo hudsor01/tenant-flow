@@ -489,7 +489,9 @@ The `stripe` schema contains tables synced from Stripe via webhooks. **Do not wr
 
 | Function | Parameters | Returns | Description |
 |----------|------------|---------|-------------|
-| `sign_lease_and_check_activation` | `p_lease_id uuid, p_signer_type text, p_signature_ip text, p_signed_at timestamptz, p_signature_method signature_method` | `TABLE(success bool, both_signed bool, error_message text)` | Atomic lease signing with race condition prevention |
+| `record_lease_signature` | `p_lease_id uuid, p_signature_ip text, p_signature_user_agent text, p_signed_at timestamptz, p_method text` | `TABLE(success bool, both_signed bool, error_message text)` | Owner in-app signature; durably flips to active + notifies when both signed (service_role only) |
+| `sign_lease_with_token` | `p_token_hash text, p_signature_ip text, p_signature_user_agent text, p_signed_at timestamptz, p_signer_name text` | `TABLE(success bool, both_signed bool, lease_id uuid, error_message text)` | Tenant token-based signature; durably flips to active + notifies when both signed (service_role only) |
+| `get_lease_signing_context` | `p_token_hash text` | `TABLE(valid bool, reason text, lease_id uuid, ...)` | Read-only render context for the public /sign/[token] page (service_role only) |
 | `activate_lease_with_pending_subscription` | `p_lease_id uuid` | `TABLE(success bool, error_message text)` | Activate lease after both parties sign |
 | `assert_can_create_lease` | `p_unit_id uuid, p_start_date date, p_end_date date` | `void` | Validate lease creation (throws on conflict) |
 
@@ -540,11 +542,14 @@ The `stripe` schema contains tables synced from Stripe via webhooks. **Do not wr
 
 ---
 
-## Enums
+## CHECK-Constrained Text Values
 
-| Enum | Values |
-|------|--------|
-| `signature_method` | `in_app`, `docuseal` |
+Per the "No PostgreSQL ENUMs" rule, value sets are enforced via `CHECK`
+constraints on `text` columns (not enum types).
+
+| Column | Allowed values |
+|--------|----------------|
+| `leases.owner_signature_method` / `leases.tenant_signature_method` | `in_app` |
 
 ---
 

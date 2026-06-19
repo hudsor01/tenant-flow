@@ -7,7 +7,7 @@
 // IMPORTANT: this compares RAW secret strings directly (no HMAC). It is for
 // callers that hold a shared secret and need a constant-time equality check —
 // e.g. auth-email-send comparing the Authorization Bearer token against
-// SUPABASE_AUTH_HOOK_SECRET. The other webhooks (resend/docuseal/n8n) compare an
+// SUPABASE_AUTH_HOOK_SECRET. The other webhooks (resend/n8n) compare an
 // HMAC digest against a computed digest; those keep their own HMAC machinery.
 //
 // The `crypto.subtle as unknown as { ... }` below is a runtime feature-detection
