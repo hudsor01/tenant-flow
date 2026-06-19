@@ -90,8 +90,10 @@ describe.skipIf(skipReason)(
 		let finalizeLeaseId: string | undefined; // pending, owner pre-signed
 		let contextLeaseId: string | undefined; // pending, no signatures
 		let activeLeaseId: string | undefined; // active, no tenant signature
+		let ownerFinalizeLeaseId: string | undefined; // pending, tenant pre-signed
 		// Any owned lease for the token-table RLS assertions.
 		let leaseAId: string | undefined;
+		let ownerAToken: string | undefined;
 		let signFnDeployed = false;
 
 		let unitCounter = 0;
@@ -167,6 +169,10 @@ describe.skipIf(skipReason)(
 				data: { user: userA },
 			} = await clientA.auth.getUser();
 			ownerAId = userA!.id;
+			const {
+				data: { session: sessionA },
+			} = await clientA.auth.getSession();
+			ownerAToken = sessionA?.access_token;
 
 			const { data: property } = await service
 				.from("properties")
@@ -232,6 +238,11 @@ describe.skipIf(skipReason)(
 			// while a live token still exists — the only way to reach 'lease_active'
 			// in get_lease_signing_context (tenant_already_signed precedes it).
 			activeLeaseId = await makeLease({ lease_status: "active" });
+			ownerFinalizeLeaseId = await makeLease({
+				lease_status: "pending_signature",
+				tenant_signed_at: new Date().toISOString(),
+				tenant_signature_method: "in_app",
+			});
 			leaseAId = tenantSecondLeaseId;
 			signFnDeployed = await isSignFunctionDeployed();
 
@@ -249,10 +260,12 @@ describe.skipIf(skipReason)(
 					.delete()
 					.in("id", insertedTokenIds);
 			}
-			if (finalizeLeaseId) {
-				await service.storage
-					.from("tenant-documents")
-					.remove([`lease/${finalizeLeaseId}/signed-lease.pdf`]);
+			for (const id of [finalizeLeaseId, ownerFinalizeLeaseId]) {
+				if (id) {
+					await service.storage
+						.from("tenant-documents")
+						.remove([`lease/${id}/signed-lease.pdf`]);
+				}
 			}
 			if (leaseIds.length > 0) {
 				await service.from("notifications").delete().in("entity_id", leaseIds);
@@ -488,6 +501,34 @@ describe.skipIf(skipReason)(
 				.download(leaseRow!.signed_document_path!);
 			expect(dlErr).toBeNull();
 			expect(dl).toBeTruthy();
+		});
+
+		it("owner sign-owner through the deployed function activates + finalizes", async (ctx) => {
+			if (!signFnDeployed || !ownerFinalizeLeaseId || !ownerAToken) ctx.skip();
+			const res = await fetch(`${SUPABASE_URL}/functions/v1/lease-signature`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${ownerAToken}`,
+				},
+				body: JSON.stringify({
+					action: "sign-owner",
+					leaseId: ownerFinalizeLeaseId,
+					consent: true,
+				}),
+			});
+			expect(res.status).toBe(200);
+
+			const { data: leaseRow } = await service
+				.from("leases")
+				.select("lease_status, owner_signed_at, signed_document_path")
+				.eq("id", ownerFinalizeLeaseId!)
+				.single();
+			expect(leaseRow?.lease_status).toBe("active");
+			expect(leaseRow?.owner_signed_at).not.toBeNull();
+			expect(leaseRow?.signed_document_path).toBe(
+				`lease/${ownerFinalizeLeaseId}/signed-lease.pdf`,
+			);
 		});
 
 		// ── first-signer paths (no premature activation) ─────────────────────────

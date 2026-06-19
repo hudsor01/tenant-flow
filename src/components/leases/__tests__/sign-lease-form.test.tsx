@@ -138,6 +138,23 @@ describe("SignLeaseForm", () => {
 		expect(screen.getByTestId("sign-consent-checkbox")).toBeDisabled();
 	});
 
+	it("a failed reopen does not re-lock an already-passed consent gate", async () => {
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		await viewLease(); // first view succeeds -> consent enabled
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeEnabled();
+
+		// A reopen that fails must NOT re-disable the already-unlocked checkbox.
+		fetchMock.mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+		fireEvent.click(screen.getByTestId("view-lease-button"));
+		await waitFor(() => {
+			expect(screen.getByRole("alert")).toHaveTextContent(
+				/couldn't open the lease/i,
+			);
+		});
+		expect(screen.getByTestId("sign-consent-checkbox")).toBeEnabled();
+	});
+
 	it("shows a fallback link when the document popup is blocked", async () => {
 		// window.open is a vi.fn() (returns undefined) => the blocked branch runs.
 		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);

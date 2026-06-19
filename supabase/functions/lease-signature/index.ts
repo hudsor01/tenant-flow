@@ -265,54 +265,61 @@ Deno.serve(async (req: Request) => {
 					.eq("lease_status", "pending_signature");
 			}
 
-			const { raw, hash } = await generateSigningToken();
-			const { error: tokenError } = await supabase
-				.from("lease_signing_tokens")
-				.insert({
-					lease_id: leaseId,
-					tenant_email: record.tenantEmail,
-					token_hash: hash,
-					expires_at: new Date(Date.now() + TOKEN_TTL_MS).toISOString(),
-					created_by: user.id,
-				});
-			if (tokenError) {
-				await revertSendToDraft();
-				return errorResponse(req, 500, tokenError, { action: "send_token" });
-			}
-
-			const message = (body.message as string | undefined)?.trim();
-			const emailResult = await sendEmail({
-				to: [record.tenantEmail],
-				subject: "Please sign your lease agreement",
-				html: buildSigningEmail({
-					tenantName: record.tenantName,
-					ownerName: record.ownerName,
-					propertyLabel: record.propertyLabel,
-					signUrl: `${appUrl}/sign/${raw}`,
-					...(message ? { message } : {}),
-				}),
-				tags: [{ name: "type", value: "lease_signature" }],
-			});
-			if (!emailResult.success) {
-				// Roll back: revoke the undelivered token and return to draft so the
-				// owner can cleanly re-send.
-				await supabase
+			// Any throw after the draft -> pending_signature flip must revert it, so
+			// the lease never strands in pending_signature (send is gated on draft).
+			try {
+				const { raw, hash } = await generateSigningToken();
+				const { error: tokenError } = await supabase
 					.from("lease_signing_tokens")
-					.update({ revoked_at: new Date().toISOString() })
-					.eq("token_hash", hash);
-				await revertSendToDraft();
-				return errorResponse(
-					req,
-					502,
-					new Error("Failed to email the signing link"),
-					{ action: "send_email" },
-				);
-			}
+					.insert({
+						lease_id: leaseId,
+						tenant_email: record.tenantEmail,
+						token_hash: hash,
+						expires_at: new Date(Date.now() + TOKEN_TTL_MS).toISOString(),
+						created_by: user.id,
+					});
+				if (tokenError) {
+					await revertSendToDraft();
+					return errorResponse(req, 500, tokenError, { action: "send_token" });
+				}
 
-			return new Response(JSON.stringify({ success: true }), {
-				status: 200,
-				headers: getJsonHeaders(req),
-			});
+				const message = (body.message as string | undefined)?.trim();
+				const emailResult = await sendEmail({
+					to: [record.tenantEmail],
+					subject: "Please sign your lease agreement",
+					html: buildSigningEmail({
+						tenantName: record.tenantName,
+						ownerName: record.ownerName,
+						propertyLabel: record.propertyLabel,
+						signUrl: `${appUrl}/sign/${raw}`,
+						...(message ? { message } : {}),
+					}),
+					tags: [{ name: "type", value: "lease_signature" }],
+				});
+				if (!emailResult.success) {
+					// Roll back: revoke the undelivered token and return to draft so the
+					// owner can cleanly re-send.
+					await supabase
+						.from("lease_signing_tokens")
+						.update({ revoked_at: new Date().toISOString() })
+						.eq("token_hash", hash);
+					await revertSendToDraft();
+					return errorResponse(
+						req,
+						502,
+						new Error("Failed to email the signing link"),
+						{ action: "send_email" },
+					);
+				}
+
+				return new Response(JSON.stringify({ success: true }), {
+					status: 200,
+					headers: getJsonHeaders(req),
+				});
+			} catch (sendErr) {
+				await revertSendToDraft();
+				throw sendErr;
+			}
 		}
 
 		// ── resend ─────────────────────────────────────────────────────────────

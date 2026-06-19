@@ -43,6 +43,8 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 	const [bothSigned, setBothSigned] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const fallbackUrlRef = useRef<string | null>(null);
+	// Whether the lease has been successfully opened at least once.
+	const hasViewedOnceRef = useRef(false);
 
 	const canSubmit = name.trim().length > 0 && viewed && consent && !submitting;
 
@@ -77,6 +79,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				fallbackUrlRef.current = null;
 			}
 			const win = window.open(url, "_blank", "noopener,noreferrer");
+			hasViewedOnceRef.current = true;
 			if (win) {
 				setDocFallbackUrl(null);
 				setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -87,10 +90,10 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				setDocFallbackUrl(url);
 			}
 		} catch {
-			// The document genuinely never displayed (no popup, no fallback link) —
-			// re-lock the consent gate so the tenant can't attest to having read a
-			// lease they could not retrieve.
-			setViewed(false);
+			// Re-lock the consent gate ONLY if the lease was never successfully
+			// opened — so a tenant can't attest to a lease they never retrieved, but
+			// a failed *reopen* doesn't downgrade an already-passed gate.
+			if (!hasViewedOnceRef.current) setViewed(false);
 			setError(
 				"We couldn't open the lease document. Please try again or contact the landlord.",
 			);
