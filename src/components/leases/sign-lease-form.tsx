@@ -226,15 +226,23 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 					checked={consent}
 					disabled={!viewed}
 					onCheckedChange={(checked) => setConsent(checked === true)}
+					aria-describedby={!viewed ? "sign-consent-hint" : undefined}
 					data-testid="sign-consent-checkbox"
 				/>
-				<Label
-					htmlFor="sign-consent"
-					className="text-sm font-normal leading-relaxed cursor-pointer"
-				>
-					I have read the lease, consent to sign electronically, and agree to be
-					legally bound by its terms.
-				</Label>
+				<div className="space-y-1">
+					<Label
+						htmlFor="sign-consent"
+						className="text-sm font-normal leading-relaxed cursor-pointer"
+					>
+						I have read the lease, consent to sign electronically, and agree to
+						be legally bound by its terms.
+					</Label>
+					{!viewed ? (
+						<p id="sign-consent-hint" className="text-xs text-muted-foreground">
+							Open the lease above to enable this checkbox.
+						</p>
+					) : null}
+				</div>
 			</div>
 
 			{error ? (

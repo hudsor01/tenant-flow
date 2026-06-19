@@ -60,6 +60,7 @@ export function ConfirmEmailImagePanel() {
 						<div className="grid grid-cols-3 gap-6 pt-6">
 							{[
 								{ value: "Vault", label: ["Document", "Storage"] },
+								{ value: "E-Sign", label: ["Built-in", "Signing"] },
 								{ value: "Reports", label: ["Tax-ready", "Exports"] },
 							].map((stat) => (
 								<div key={stat.value} className="text-center group">
