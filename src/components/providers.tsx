@@ -1,6 +1,5 @@
 "use client";
 
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
 import { GlobalLoadingIndicator } from "#components/ui/global-loading-indicator";
 import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from "#lib/theme-utils";
@@ -39,12 +38,22 @@ export function Providers({
 		>
 			<PreferencesStoreProvider themeMode={initialThemeMode}>
 				<QueryProvider>
-					<NuqsAdapter>
-						<AuthStoreProvider>
-							{children}
-							<GlobalLoadingIndicator />
-						</AuthStoreProvider>
-					</NuqsAdapter>
+					{/*
+					 * NuqsAdapter is intentionally NOT at the root. It calls
+					 * useSearchParams() internally, which — wrapping the whole
+					 * app from the shared root layout — forces EVERY static
+					 * marketing/auth page to defer its content to the client
+					 * (the page renders behind the root `app/loading.tsx`
+					 * "Loading TenantFlow…" Suspense fallback until hydration).
+					 * Any JS hiccup (slow network, a 503'd chunk, an ad-blocker)
+					 * then leaves the user stuck on the spinner. The adapter is
+					 * scoped to the only subtrees that use nuqs query state:
+					 * `app/(owner)/layout.tsx` and `app/blog/layout.tsx`.
+					 */}
+					<AuthStoreProvider>
+						{children}
+						<GlobalLoadingIndicator />
+					</AuthStoreProvider>
 				</QueryProvider>
 			</PreferencesStoreProvider>
 		</ThemeProvider>

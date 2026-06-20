@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
 import ModalLayout from "#components/layout/modal-layout";
 import { OwnerDashboardLayout } from "./owner-dashboard-layout";
@@ -62,9 +63,16 @@ export default function OwnerLayout({
 	children: ReactNode;
 	modal?: ReactNode;
 }) {
+	// NuqsAdapter is scoped here (not the root layout) so it does not force
+	// static marketing/auth pages to client-defer their content. The (owner)
+	// segment is already `force-dynamic`, so useSearchParams() renders
+	// server-side here with no CSR bailout. Covers the dashboard data tables,
+	// document vault, preset menu, and property image lightbox.
 	return (
-		<OwnerDashboardLayout>
-			<ModalLayout modal={modal}>{children}</ModalLayout>
-		</OwnerDashboardLayout>
+		<NuqsAdapter>
+			<OwnerDashboardLayout>
+				<ModalLayout modal={modal}>{children}</ModalLayout>
+			</OwnerDashboardLayout>
+		</NuqsAdapter>
 	);
 }

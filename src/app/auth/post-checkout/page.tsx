@@ -3,12 +3,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { Mail, RefreshCw } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
-import { Spinner } from "#components/ui/loading-spinner";
+import { PageLoader, Spinner } from "#components/ui/loading-spinner";
 import { createClient } from "#lib/supabase/client";
 
 /**
@@ -22,7 +22,7 @@ import { createClient } from "#lib/supabase/client";
  * 3. User sees "Check your email" message
  * 4. User can explicitly click "Resend" to trigger a magic link if needed
  */
-export default function PostCheckoutPage() {
+function PostCheckoutContent() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const [email, setEmail] = useState<string>("");
@@ -206,5 +206,16 @@ export default function PostCheckoutPage() {
 				</div>
 			</CardLayout>
 		</div>
+	);
+}
+
+// useSearchParams() inside PostCheckoutContent forces a client bailout; this
+// own Suspense boundary keeps it scoped here instead of relying on a root
+// loading.tsx (which previously made every static page wait on hydration).
+export default function PostCheckoutPage() {
+	return (
+		<Suspense fallback={<PageLoader text="Setting up your account..." />}>
+			<PostCheckoutContent />
+		</Suspense>
 	);
 }
