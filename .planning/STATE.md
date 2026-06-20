@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Final Canonical Cleanup
-status: planning
-last_updated: "2026-06-15T03:31:09.911Z"
-last_activity: 2026-06-15
+status: verifying
+last_updated: "2026-06-19T00:00:00.000Z"
+last_activity: 2026-06-19
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 5
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 100
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v6.0):** The codebase is canonical to the current product — every surface, type, and DB object maps to what TenantFlow actually does (landlord-only; tenants are records, not users; billing is the landlord Stripe subscription). No surface promises a demolished feature. The last milestone before the project is considered fully complete.
-**Current focus:** v6.0 roadmap created (phases 15-19, 24 requirements). Next: `/gsd-plan-phase 15`. Grounded in `.planning/repo-audit/v6.0-LEGACY-AUDIT.md`.
+**Current focus:** v6.0 findings RESOLVED. A 2026-06-19 verification pass confirmed every audit finding (Connect UI/types, rent-facilitation types, tenant-as-user schemas, screening provider, dead DB column/RPC/config, `tenants.user_id`) was already implemented — folded into PR #841 + the e-sign rebuild + migrations `20260616040851`/`20260616161248`. The exhaustive re-sweep surfaced 4 residuals the audit missed (broken RLS pgTAP test, stale `SCHEMA.md`, unindexed `lease_signing_tokens.created_by` FK, stale test wording) — fixed on branch `chore/v6.0-canonical-cleanup`.
 
 ## Current Position
 
-Phase: Not started (roadmap defined — ready to plan Phase 15)
+Phase: All audit findings resolved (phases 15-18 work shipped in prior PRs; phase 19 fallow trim deferred/opt-in)
 Plan: —
-Status: Roadmap created (5 phases / 24 requirements)
-Last activity: 2026-06-15 — Milestone v6.0 started; forensic legacy audit + requirements + roadmap authored
+Status: Verifying — canonical-cleanup PR open
+Last activity: 2026-06-19 — Verified the full v6.0 legacy audit is already implemented; fixed 4 missed residuals (RLS test, SCHEMA.md, FK index, test wording). Remaining: opt-in fallow trim (~415 exports, mostly KEEP-CONTRACT) is explicitly deferred.
 
 ## Roadmap Summary (v6.0)
 
@@ -54,13 +54,9 @@ None. 5 INVESTIGATE items (lease-activation Connect gating RPC, `get_user_profil
 
 ## Next Action
 
-**v6.0 roadmap defined.** Plan the first phase:
+**v6.0 audit findings are resolved.** The product-boundary cleanup (Connect surfaces, rent/Connect/tenant-portal types, screening provider, dead DB column/RPC/`tenants.user_id`/app_config rows) was already implemented and verified against prod + the codebase on 2026-06-19; the 4 missed residuals are fixed in the open `chore/v6.0-canonical-cleanup` PR.
 
-```
-/gsd-plan-phase 15
-```
-
-Phase 15 = Connect + Rent-Facilitation Surface & Type Removal — the highest-value cluster: remove the 3 live customer-facing surfaces that promise demolished features (the `/profile` "receive payments from tenants" card, the `/financials` "Payouts" dead-link, the onboarding "payouts / invite tenant" copy) + every zero-consumer Connect/rent contract type.
+Optional remaining work (was Phase 19, explicitly deferred/opt-in): the fallow dead-code trim — currently ~415 unused exports/types, but ~111 are intentional KEEP-CONTRACT surface and many are framework/Deno false-positives, so a blind `fallow fix` is unsafe. Run as a separate, gated, per-item sweep if desired; otherwise close the milestone via `/gsd-complete-milestone v6.0`.
 
 ## Overrides
 
