@@ -34,8 +34,8 @@ test.describe("Mobile nav at 375px viewport", () => {
 		expect(overflow.htmlScrollWidth).toBeLessThanOrEqual(overflow.viewport + 1);
 	});
 
-	test('"Start Managing Properties" CTA is fully visible', async ({ page }) => {
-		const cta = page.getByRole("link", { name: /Start Managing Properties/i });
+	test('"Start free" hero CTA is fully visible', async ({ page }) => {
+		const cta = page.getByRole("link", { name: /Start free/i });
 		await expect(cta).toBeVisible();
 		const box = await cta.boundingBox();
 		expect(box).not.toBeNull();
