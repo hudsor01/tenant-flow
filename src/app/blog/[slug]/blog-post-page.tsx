@@ -302,8 +302,8 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 						tax-ready reports.
 					</p>
 					<Button size="lg" className="px-8" asChild>
-						<Link href="/login">
-							Start Free Trial
+						<Link href="/pricing">
+							Start free — no card
 							<ArrowRight className="size-5 ml-2" />
 						</Link>
 					</Button>

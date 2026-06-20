@@ -17,10 +17,10 @@ import {
 	BreadcrumbSeparator,
 } from "#components/ui/breadcrumb";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { blogAnonClient, getBlogCategories } from "#lib/blog/blog-queries";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { createClient } from "#lib/supabase/server";
 
 const PAGE_LIMIT = 9;
 
@@ -41,11 +41,8 @@ interface ValidCategory {
 /** Deduplicated category validation — shared by generateMetadata and Page */
 const getValidCategory = cache(
 	async (slug: string): Promise<ValidCategory | null> => {
-		const supabase = await createClient();
-		const { data } = await supabase.rpc("get_blog_categories");
-		return (
-			((data ?? []) as ValidCategory[]).find((c) => c.slug === slug) ?? null
-		);
+		const cats = await getBlogCategories();
+		return cats.find((c) => c.slug === slug) ?? null;
 	},
 );
 
@@ -57,7 +54,7 @@ const getValidCategory = cache(
  */
 const getCategoryPublishedCount = cache(
 	async (categoryName: string): Promise<number> => {
-		const supabase = await createClient();
+		const supabase = blogAnonClient();
 		const { count } = await supabase
 			.from("blogs")
 			.select("*", { count: "exact", head: true })
@@ -113,7 +110,7 @@ export default async function BlogCategoryPage({
 		notFound();
 	}
 
-	const supabase = await createClient();
+	const supabase = blogAnonClient();
 	const postsResult = await supabase
 		.from("blogs")
 		.select(BLOG_LIST_COLUMNS, { count: "exact" })

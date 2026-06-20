@@ -11,15 +11,17 @@ import { render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockCreateClient = vi.hoisted(() => vi.fn());
+const mockBlogAnonClient = vi.hoisted(() => vi.fn());
+const mockGetBlogCategories = vi.hoisted(() => vi.fn());
 const mockNotFound = vi.hoisted(() =>
 	vi.fn(() => {
 		throw new Error("NEXT_NOT_FOUND");
 	}),
 );
 
-vi.mock("#lib/supabase/server", () => ({
-	createClient: mockCreateClient,
+vi.mock("#lib/blog/blog-queries", () => ({
+	blogAnonClient: mockBlogAnonClient,
+	getBlogCategories: mockGetBlogCategories,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -166,7 +168,8 @@ async function renderPage(
 	categorySlug: string,
 	opts?: MockBuilderOpts,
 ): Promise<ReactElement> {
-	mockCreateClient.mockResolvedValue(makeClient(opts));
+	mockBlogAnonClient.mockReturnValue(makeClient(opts));
+	mockGetBlogCategories.mockResolvedValue(opts?.categories ?? mockCategories);
 	const ui = await BlogCategoryPage({
 		params: Promise.resolve({ category: categorySlug }),
 		searchParams: Promise.resolve({}),
@@ -209,7 +212,8 @@ describe("BlogCategoryPage (server component)", () => {
 	});
 
 	it("generateMetadata humanizes the category slug in the title", async () => {
-		mockCreateClient.mockResolvedValue(makeClient({ postsCount: 9 }));
+		mockBlogAnonClient.mockReturnValue(makeClient({ postsCount: 9 }));
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		const meta = await generateMetadata({
 			params: Promise.resolve({ category: "lease-law" }),
 			searchParams: Promise.resolve({}),
@@ -248,7 +252,8 @@ describe("BlogCategoryPage (server component)", () => {
 	});
 
 	it("calls notFound() when slug not in categories", async () => {
-		mockCreateClient.mockResolvedValue(makeClient());
+		mockBlogAnonClient.mockReturnValue(makeClient());
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await expect(
 			BlogCategoryPage({
 				params: Promise.resolve({ category: "does-not-exist" }),
@@ -275,7 +280,8 @@ describe("BlogCategoryPage generateMetadata (SEO-03 empty-category noindex)", ()
 		categorySlug: string,
 		opts?: MockBuilderOpts,
 	): Promise<import("next").Metadata> {
-		mockCreateClient.mockResolvedValue(makeClient(opts));
+		mockBlogAnonClient.mockReturnValue(makeClient(opts));
+		mockGetBlogCategories.mockResolvedValue(opts?.categories ?? mockCategories);
 		return generateMetadata({
 			params: Promise.resolve({ category: categorySlug }),
 			searchParams: Promise.resolve({}),
@@ -294,7 +300,8 @@ describe("BlogCategoryPage generateMetadata (SEO-03 empty-category noindex)", ()
 	});
 
 	it("noindexes paginated pages regardless of count", async () => {
-		mockCreateClient.mockResolvedValue(makeClient({ postsCount: 5 }));
+		mockBlogAnonClient.mockReturnValue(makeClient({ postsCount: 5 }));
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		const meta = await generateMetadata({
 			params: Promise.resolve({ category: "software-comparisons" }),
 			searchParams: Promise.resolve({ page: "2" }),

@@ -12,10 +12,12 @@ import { render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockCreateClient = vi.hoisted(() => vi.fn());
+const mockBlogAnonClient = vi.hoisted(() => vi.fn());
+const mockGetBlogCategories = vi.hoisted(() => vi.fn());
 
-vi.mock("#lib/supabase/server", () => ({
-	createClient: mockCreateClient,
+vi.mock("#lib/blog/blog-queries", () => ({
+	blogAnonClient: mockBlogAnonClient,
+	getBlogCategories: mockGetBlogCategories,
 }));
 
 vi.mock("@sentry/nextjs", () => ({
@@ -257,7 +259,10 @@ function makeFromBuilder({
 }
 
 async function renderPage(opts?: MockBuilderOpts): Promise<ReactElement> {
-	mockCreateClient.mockResolvedValue(makeFromBuilder(opts));
+	mockBlogAnonClient.mockReturnValue(makeFromBuilder(opts));
+	mockGetBlogCategories.mockResolvedValue(
+		opts?.categoriesError ? [] : mockCategories,
+	);
 	const ui = await BlogPage({ searchParams: Promise.resolve({}) });
 	return ui;
 }
@@ -297,7 +302,7 @@ describe("BlogPage (server component)", () => {
 	});
 
 	it("returns a 404 (notFound) for an out-of-range ?page — PostgREST 416 — without logging a Sentry error", async () => {
-		mockCreateClient.mockResolvedValue(
+		mockBlogAnonClient.mockReturnValue(
 			makeFromBuilder({
 				postsError: {
 					code: "PGRST103",
@@ -305,6 +310,7 @@ describe("BlogPage (server component)", () => {
 				},
 			}),
 		);
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await expect(
 			BlogPage({ searchParams: Promise.resolve({ page: "11" }) }),
 		).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
@@ -384,26 +390,24 @@ describe("BlogPage (server component)", () => {
 		);
 	});
 
-	it("routes categoriesResult.error to Sentry and degrades to empty state", async () => {
-		render(
-			await renderPage({
-				categoriesError: { message: "RPC failure" },
-			}),
-		);
-		expect(screen.getByTestId("blog-empty-state")).toBeInTheDocument();
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledTimes(1);
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				tags: { surface: "blog-index" },
-			}),
-		);
+	it("degrades gracefully when categories are unavailable: posts still render, no category pills, no Sentry error", async () => {
+		// getBlogCategories() fails soft (returns []), so a categories outage just
+		// hides the category nav — the post grid still renders and nothing is
+		// reported as a blog-index error.
+		render(await renderPage({ categoriesError: { message: "RPC failure" } }));
+		expect(screen.getAllByTestId("blog-card").length).toBeGreaterThan(0);
+		const categoryLinks = screen
+			.queryAllByRole("link")
+			.filter((l) => l.getAttribute("href")?.startsWith("/blog/category/"));
+		expect(categoryLinks).toHaveLength(0);
+		expect(vi.mocked(Sentry.captureException)).not.toHaveBeenCalled();
 	});
 
 	it("passes extra.page to Sentry matching the requested pagination cursor", async () => {
-		mockCreateClient.mockResolvedValue(
+		mockBlogAnonClient.mockReturnValue(
 			makeFromBuilder({ postsError: { message: "fail" } }),
 		);
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await BlogPage({ searchParams: Promise.resolve({ page: "3" }) });
 		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
 			expect.anything(),
@@ -424,7 +428,7 @@ describe("BlogPage generateMetadata", () => {
 		searchParams: Record<string, string | string[] | undefined>,
 		opts?: MockBuilderOpts,
 	): Promise<import("next").Metadata> {
-		mockCreateClient.mockResolvedValue(makeFromBuilder(opts));
+		mockBlogAnonClient.mockReturnValue(makeFromBuilder(opts));
 		return generateMetadata({ searchParams: Promise.resolve(searchParams) });
 	}
 

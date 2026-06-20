@@ -19,7 +19,7 @@ export function Navbar({
 	className,
 	logo = "TenantFlow",
 	navItems = DEFAULT_NAV_ITEMS,
-	ctaText = "Get Started",
+	ctaText = "Start free",
 	ctaHref = "/pricing",
 	ref,
 	...props

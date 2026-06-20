@@ -150,8 +150,6 @@ describe("proxy routing", () => {
 		it.each([
 			"/login",
 			"/pricing",
-			"/blog",
-			"/blog/some-post",
 			"/",
 		])("bypasses auth check for %s", async (route) => {
 			const supabaseResponse = makeSupabaseResponse();
@@ -164,6 +162,21 @@ describe("proxy routing", () => {
 
 			expect(result).toBe(supabaseResponse);
 			expect(NextResponse.redirect).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			"/blog",
+			"/blog/some-post",
+		])("skips updateSession entirely for %s (F2: public, never reads the session)", async (route) => {
+			const result = await proxy(buildRequest(route));
+
+			// /blog/* returns NextResponse.next() WITHOUT the per-request
+			// Supabase session-refresh round-trip — that round-trip saturated
+			// Supabase under prefetch/crawler bursts (the F2 intermittent 503).
+			expect(mockUpdateSession).not.toHaveBeenCalled();
+			expect(NextResponse.next).toHaveBeenCalled();
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBeDefined();
 		});
 	});
 

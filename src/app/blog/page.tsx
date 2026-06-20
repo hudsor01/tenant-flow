@@ -17,9 +17,9 @@ import {
 	BreadcrumbSeparator,
 } from "#components/ui/breadcrumb";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { blogAnonClient, getBlogCategories } from "#lib/blog/blog-queries";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { createClient } from "#lib/supabase/server";
 
 const PAGE_LIMIT = 9;
 
@@ -57,7 +57,7 @@ export async function generateMetadata({
 	// hoisting a shared `cache()`-wrapped count, which trades clarity
 	// for the saved round-trip. Accepted as-is until the count is
 	// measured as actually expensive.
-	const supabase = await createClient();
+	const supabase = blogAnonClient();
 	const { count, error: countError } = await supabase
 		.from("blogs")
 		.select("id", { count: "exact", head: true })
@@ -84,7 +84,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 	const params = await searchParams;
 	const page = Math.max(1, Number(params.page) || 1);
 	const offset = (page - 1) * PAGE_LIMIT;
-	const supabase = await createClient();
+	const supabase = blogAnonClient();
 
 	let posts: BlogListItem[] = [];
 	let categories: CategoryRow[] = [];
@@ -92,23 +92,22 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 	let totalPages = 1;
 
 	try {
-		const [postsResult, categoriesResult, comparisonsResult] =
-			await Promise.all([
-				supabase
-					.from("blogs")
-					.select(BLOG_LIST_COLUMNS, { count: "exact" })
-					.eq("status", "published")
-					.order("published_at", { ascending: false })
-					.range(offset, offset + PAGE_LIMIT - 1),
-				supabase.rpc("get_blog_categories"),
-				supabase
-					.from("blogs")
-					.select(BLOG_LIST_COLUMNS)
-					.eq("status", "published")
-					.contains("tags", ["comparison"])
-					.order("published_at", { ascending: false })
-					.limit(6),
-			]);
+		const [postsResult, categoriesData, comparisonsResult] = await Promise.all([
+			supabase
+				.from("blogs")
+				.select(BLOG_LIST_COLUMNS, { count: "exact" })
+				.eq("status", "published")
+				.order("published_at", { ascending: false })
+				.range(offset, offset + PAGE_LIMIT - 1),
+			getBlogCategories(),
+			supabase
+				.from("blogs")
+				.select(BLOG_LIST_COLUMNS)
+				.eq("status", "published")
+				.contains("tags", ["comparison"])
+				.order("published_at", { ascending: false })
+				.limit(6),
+		]);
 
 		// An out-of-range ?page=N (offset past the last row) makes PostgREST
 		// return 416 "Requested range not satisfiable" (code PGRST103). That's
@@ -124,21 +123,16 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 			notFound();
 		}
 
-		if (
-			postsResult.error ||
-			categoriesResult.error ||
-			comparisonsResult.error
-		) {
+		if (postsResult.error || comparisonsResult.error) {
 			throw new Error(
 				postsResult.error?.message ??
-					categoriesResult.error?.message ??
 					comparisonsResult.error?.message ??
 					"Unknown Supabase error",
 			);
 		}
 
 		posts = (postsResult.data ?? []) as BlogListItem[];
-		categories = (categoriesResult.data ?? []) as CategoryRow[];
+		categories = categoriesData;
 		comparisons = (comparisonsResult.data ?? []) as BlogListItem[];
 		totalPages = Math.max(1, Math.ceil((postsResult.count ?? 0) / PAGE_LIMIT));
 	} catch (err) {

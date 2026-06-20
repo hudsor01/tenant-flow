@@ -30,7 +30,7 @@ const DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
  */
 export function StickyConversionCta({
 	primaryHref = "/pricing",
-	primaryLabel = "Start free trial",
+	primaryLabel = "Start free",
 	secondaryHref,
 	secondaryLabel,
 	scrollThresholdPx = 600,

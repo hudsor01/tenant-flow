@@ -61,10 +61,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									className="relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
 									asChild
 								>
-									<Link href="/pricing" aria-label="Start free trial">
+									<Link href="/pricing" aria-label="Start free — no card">
 										<div className="absolute inset-0 bg-linear-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 										<span className="relative z-10 flex items-center">
-											Start Free Trial
+											Start free — no card
 											<ArrowRight className="size-6 ml-3 transition-transform group-hover:translate-x-2 duration-500" />
 										</span>
 									</Link>
