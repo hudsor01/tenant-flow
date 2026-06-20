@@ -36,7 +36,7 @@ export function BlogInlineCta() {
 				<div className="mt-2">
 					<Button asChild>
 						<Link href="/pricing">
-							Start Free Trial
+							Start free
 							<ArrowRight className="size-4 ml-2" />
 						</Link>
 					</Button>

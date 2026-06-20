@@ -175,7 +175,7 @@ export function PricingCtaSection() {
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<Button size="lg" className="px-8" asChild>
 								<Link href="#plans">
-									Start your free trial
+									Start free — no card
 									<ArrowRight className="ml-2 h-4 w-4" />
 								</Link>
 							</Button>

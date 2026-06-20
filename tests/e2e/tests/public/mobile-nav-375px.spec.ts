@@ -75,7 +75,7 @@ test.describe("Mobile nav at 375px viewport", () => {
 		).toBeVisible();
 		await expect(drawer.getByRole("link", { name: /^Sign In$/ })).toBeVisible();
 		await expect(
-			drawer.getByRole("link", { name: /Get Started/i }),
+			drawer.getByRole("link", { name: /Start free/i }),
 		).toBeVisible();
 	});
 

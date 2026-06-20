@@ -276,7 +276,7 @@ export function PricingCardStandard({
 						</>
 					) : (
 						<>
-							Start Free
+							Start free
 							<ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
 						</>
 					)}

@@ -693,7 +693,7 @@ export default function SecurityDepositReferenceCardPage() {
 						TenantFlow
 					</p>
 					<Button asChild>
-						<Link href="/pricing">Start Free Trial</Link>
+						<Link href="/pricing">Start free — no card</Link>
 					</Button>
 				</div>
 			</div>

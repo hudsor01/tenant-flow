@@ -216,7 +216,7 @@ export function BottomCta() {
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" className="px-8" asChild>
 							<Link href="/pricing">
-								Start Free Trial
+								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
 							</Link>
 						</Button>

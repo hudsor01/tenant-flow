@@ -245,7 +245,7 @@ export function PricingCardFeatured({
 								</>
 							) : (
 								<>
-									Start 14-Day Free Trial
+									Start free
 									<ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
 								</>
 							)}

@@ -46,7 +46,7 @@ export default function FeaturesClient() {
 					asChild
 				>
 					<Link href="/pricing" aria-label="Get started free">
-						Start Free Trial
+						Start free — no card
 						<ArrowRight className="size-4 ml-2" />
 					</Link>
 				</Button>

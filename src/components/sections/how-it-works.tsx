@@ -105,7 +105,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 							asChild
 						>
 							<Link href="/pricing">
-								Start Your Free Trial
+								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
 							</Link>
 						</Button>

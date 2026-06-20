@@ -212,7 +212,7 @@ export default function TaxDeductionTrackerPage() {
 						Track expenses automatically with TenantFlow financial reporting
 					</p>
 					<Button asChild>
-						<Link href="/pricing">Start Free Trial</Link>
+						<Link href="/pricing">Start free — no card</Link>
 					</Button>
 				</div>
 			</div>

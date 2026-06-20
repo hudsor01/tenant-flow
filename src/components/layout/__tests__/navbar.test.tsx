@@ -1,6 +1,6 @@
 /**
  * Battle-test Session 6 P1 regression guard: the marketing navbar must
- * render the signed-out CTA pair ("Sign In" + "Get Started") synchronously
+ * render the signed-out CTA pair ("Sign In" + "Start free") synchronously
  * when no auth cookie is present, regardless of the supabase-session
  * query's pending state. Pre-fix, a stuck `isPending: true` on cold-start
  * (PersistQueryClientProvider restoration race) left the CTA slot empty.
@@ -69,7 +69,7 @@ describe("Navbar — auth CTA branch", () => {
 		clearAuthCookie();
 	});
 
-	it("renders Sign In + Get Started synchronously when no auth cookie (cold-start fast-path)", async () => {
+	it("renders Sign In + Start free synchronously when no auth cookie (cold-start fast-path)", async () => {
 		clearAuthCookie();
 		// Simulate the PersistQueryClient restoration race that pre-fix
 		// left isPending stuck: the query never settles.
@@ -82,7 +82,7 @@ describe("Navbar — auth CTA branch", () => {
 
 		expect(screen.getByRole("link", { name: /Sign In/i })).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Get Started/i }),
+			screen.getByRole("link", { name: /Start free/i }),
 		).toBeInTheDocument();
 		expect(screen.queryByRole("link", { name: /Dashboard/i })).toBeNull();
 	});
@@ -123,7 +123,7 @@ describe("Navbar — auth CTA branch", () => {
 
 		expect(screen.getByRole("link", { name: /Sign In/i })).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: /Get Started/i }),
+			screen.getByRole("link", { name: /Start free/i }),
 		).toBeInTheDocument();
 		expect(screen.queryByRole("link", { name: /Dashboard/i })).toBeNull();
 	});
