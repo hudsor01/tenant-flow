@@ -1,11 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Building2, Home, Lock, Smartphone, Zap } from "lucide-react";
+import { Home, Lock, Smartphone, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
 import { authKeys } from "#hooks/api/use-auth";
@@ -42,17 +42,19 @@ function LoginPageContent() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const router = useRouter();
-	const searchParams = useSearchParams();
 	const queryClient = useQueryClient();
 
-	// Handle OAuth error from URL params
+	// F1: read URL params lazily from window.location instead of
+	// useSearchParams(). useSearchParams() forces a prerender bailout that ships
+	// only the "Loading..." Suspense fallback in the initial HTML (no form). The
+	// params are only needed in this client-only effect + the submit handler, so
+	// reading them lazily lets the whole form render server-side into the HTML.
 	useEffect(() => {
-		if (!searchParams) return;
-		const error = searchParams.get("error");
+		const error = new URLSearchParams(window.location.search).get("error");
 		if (error === "oauth_failed") {
 			router.replace("/login");
 		}
-	}, [searchParams, router]);
+	}, [router]);
 
 	const handleCredentialSubmit = async (value: {
 		email: string;
@@ -88,7 +90,9 @@ function LoginPageContent() {
 				queryClient.setQueryData(authKeys.session(), data.session);
 				queryClient.setQueryData(authKeys.user(), data.session.user);
 
-				const redirectTo = searchParams?.get("redirect");
+				const redirectTo = new URLSearchParams(window.location.search).get(
+					"redirect",
+				);
 				let destination = "/dashboard";
 
 				if (redirectTo && isValidRedirect(redirectTo)) {
@@ -286,25 +290,6 @@ function LoginPageContent() {
 	);
 }
 
-function LoginFallback() {
-	return (
-		<div className="flex min-h-screen items-center justify-center bg-background">
-			<div className="flex flex-col items-center gap-4">
-				<div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary animate-pulse">
-					<Building2 className="w-6 h-6 text-primary-foreground" />
-				</div>
-				<span className="text-sm text-muted-foreground animate-pulse">
-					Loading...
-				</span>
-			</div>
-		</div>
-	);
-}
-
 export default function LoginPage() {
-	return (
-		<Suspense fallback={<LoginFallback />}>
-			<LoginPageContent />
-		</Suspense>
-	);
+	return <LoginPageContent />;
 }
