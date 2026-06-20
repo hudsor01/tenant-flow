@@ -42,20 +42,18 @@ export function OwnerSubscribeDialog({
 		defaultValues: {
 			first_name: "",
 			last_name: "",
-			company: "",
 			email: "",
 			password: "",
-			confirmPassword: "",
 		},
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true);
 			try {
-				const { first_name, last_name, company, email, password } = value;
+				const { first_name, last_name, email, password } = value;
 				const { data, error } = await supabase.auth.signUp({
 					email,
 					password,
 					options: {
-						data: { first_name, last_name, company, planIntent: planName },
+						data: { first_name, last_name, planIntent: planName },
 						emailRedirectTo: `${window.location.origin}/auth/confirm`,
 					},
 				});
@@ -117,8 +115,8 @@ export function OwnerSubscribeDialog({
 						Join TenantFlow {planName ? `· ${planName}` : ""}
 					</DialogTitle>
 					<DialogDescription>
-						Create your account to kick off checkout. You&apos;ll be redirected
-						to Stripe to securely complete your subscription.
+						Create your account to start your 14-day free trial. No credit card
+						required.
 					</DialogDescription>
 				</DialogHeader>
 				<form

@@ -25,7 +25,12 @@ const BANNED_PHRASES = [
 	"online rent",
 	"autopay",
 	"auto-pay",
-	"tenant portal",
+	// NOTE: "tenant portal" is intentionally NOT banned. It is now the brand
+	// WEDGE, used negatively across the marketing surface ("Skip the tenant
+	// portal", "no tenant portal", "tenants never log in") to contrast with the
+	// all-in-one competitors. The product still ships no tenant portal — the
+	// copy says exactly that. A bare substring ban can't tell the differentiator
+	// from a false feature claim, so it's dropped here.
 	"automated rent",
 	"collect rent",
 	"rent processing",

@@ -1,4 +1,4 @@
-import { Building2, Lock, Mail, User } from "lucide-react";
+import { Lock, Mail, User } from "lucide-react";
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import {
 	InputGroup,
@@ -72,29 +72,6 @@ export function SubscribeFormFields({
 					)}
 				</form.Field>
 			</div>
-			<form.Field name="company">
-				{(field: StringFieldApi) => (
-					<Field>
-						<FieldLabel htmlFor="company">Company</FieldLabel>
-						<InputGroup>
-							<InputGroupAddon align="inline-start">
-								<Building2 />
-							</InputGroupAddon>
-							<InputGroupInput
-								id="company"
-								placeholder="Rivera Property Group"
-								value={field.state.value}
-								onChange={(event) => field.handleChange(event.target.value)}
-								onBlur={field.handleBlur}
-								disabled={isSubmitting}
-							/>
-						</InputGroup>
-						<FieldError>
-							{String(field.state.meta.errors?.[0] ?? "")}
-						</FieldError>
-					</Field>
-				)}
-			</form.Field>
 			<form.Field name="email">
 				{(field: StringFieldApi) => (
 					<Field>
@@ -119,60 +96,31 @@ export function SubscribeFormFields({
 					</Field>
 				)}
 			</form.Field>
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<form.Field name="password">
-					{(field: StringFieldApi) => (
-						<Field>
-							<FieldLabel htmlFor="password">Password</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<Lock />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="password"
-									type="password"
-									placeholder="Create a password"
-									autoComplete="new-password"
-									value={field.state.value}
-									onChange={(event) => field.handleChange(event.target.value)}
-									onBlur={field.handleBlur}
-									disabled={isSubmitting}
-								/>
-							</InputGroup>
-							<FieldError>
-								{String(field.state.meta.errors?.[0] ?? "")}
-							</FieldError>
-						</Field>
-					)}
-				</form.Field>
-				<form.Field name="confirmPassword">
-					{(field: StringFieldApi) => (
-						<Field>
-							<FieldLabel htmlFor="confirmPassword">
-								Confirm password
-							</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<Lock />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="confirmPassword"
-									type="password"
-									placeholder="Repeat password"
-									autoComplete="new-password"
-									value={field.state.value}
-									onChange={(event) => field.handleChange(event.target.value)}
-									onBlur={field.handleBlur}
-									disabled={isSubmitting}
-								/>
-							</InputGroup>
-							<FieldError>
-								{String(field.state.meta.errors?.[0] ?? "")}
-							</FieldError>
-						</Field>
-					)}
-				</form.Field>
-			</div>
+			<form.Field name="password">
+				{(field: StringFieldApi) => (
+					<Field>
+						<FieldLabel htmlFor="password">Password</FieldLabel>
+						<InputGroup>
+							<InputGroupAddon align="inline-start">
+								<Lock />
+							</InputGroupAddon>
+							<InputGroupInput
+								id="password"
+								type="password"
+								placeholder="Create a password"
+								autoComplete="new-password"
+								value={field.state.value}
+								onChange={(event) => field.handleChange(event.target.value)}
+								onBlur={field.handleBlur}
+								disabled={isSubmitting}
+							/>
+						</InputGroup>
+						<FieldError>
+							{String(field.state.meta.errors?.[0] ?? "")}
+						</FieldError>
+					</Field>
+				)}
+			</form.Field>
 		</>
 	);
 }

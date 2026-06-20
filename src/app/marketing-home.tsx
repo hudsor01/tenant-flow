@@ -46,13 +46,14 @@ export default function MarketingHomePage() {
 										Landlord-only · Tenants never log in
 									</Badge>
 									<h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05] text-balance">
-										Ditch the{" "}
-										<span className="hero-highlight">spreadsheet</span>
+										Skip the{" "}
+										<span className="hero-highlight">tenant portal</span>.
 									</h1>
 
 									<p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
 										The operations tool for landlords with small portfolios.
-										Track properties, leases, and maintenance in one place —
+										Track properties, leases, and maintenance in one place — no
+										tenant logins, no rent routed through a middleman, and
 										tenants stay off the platform.
 									</p>
 								</div>
@@ -60,7 +61,7 @@ export default function MarketingHomePage() {
 								<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
 									<Button asChild size="lg" className="w-full sm:w-auto">
 										<Link href="/pricing">
-											Start Managing Properties
+											Start free — no card
 											<ArrowRight className="ml-2 size-4" />
 										</Link>
 									</Button>
