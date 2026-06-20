@@ -155,6 +155,18 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		requestHeaders.set("x-nonce", nonce);
 	}
 
+	// F2: /blog and /blog/* are public and never read the session, so the
+	// per-request Supabase session-refresh in updateSession is pure waste here.
+	// Running it on every (heavily prefetched + crawler-hit) request is what
+	// saturated Supabase and produced the intermittent 503s on the dynamic blog
+	// list routes. Skip it; the pages use the cookie-less anon client, the
+	// browser Supabase client refreshes the token client-side, and every private
+	// route below still runs updateSession + the auth gates. /blog is never
+	// private- or auth-gated, so nothing here depends on the refreshed session.
+	if (pathname === "/blog" || pathname.startsWith("/blog/")) {
+		return NextResponse.next();
+	}
+
 	const { user, supabaseResponse } = await updateSession(
 		request,
 		requestHeaders,
