@@ -85,7 +85,7 @@ function KpiNumberTicker({
 function KpiSkeletonTile({ hasSparkline }: { hasSparkline: boolean }) {
 	return (
 		<div
-			className="rounded-lg border bg-card p-4 shadow-sm @4xl/kpi-bento:p-6"
+			className="h-full rounded-lg border bg-card p-4 shadow-sm @4xl/kpi-bento:p-6"
 			role="presentation"
 		>
 			<div className="grid gap-2">
@@ -296,7 +296,7 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 	) : null;
 	return (
 		<Stat
-			className="@4xl/kpi-bento:p-6 transition-colors duration-200"
+			className="h-full @4xl/kpi-bento:p-6 transition-colors duration-200"
 			aria-label={ariaLabel}
 		>
 			<StatLabel>{tile.label}</StatLabel>
@@ -350,11 +350,15 @@ export function KpiBentoRow({
 					// between the list and the listitem, which breaks WAI-ARIA list
 					// semantics on the non-reduced-motion path. Now the listitem
 					// wraps both branches (BlurFade or raw KpiTile) symmetrically.
-					<div role="listitem" key={tile.id}>
+					<div role="listitem" key={tile.id} className="h-full">
 						{reducedMotion ? (
 							<KpiTile tile={tile} />
 						) : (
-							<BlurFade delay={tile.waveDelay} duration={500}>
+							<BlurFade
+								delay={tile.waveDelay}
+								duration={500}
+								className="h-full"
+							>
 								<KpiTile tile={tile} />
 							</BlurFade>
 						)}
