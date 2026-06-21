@@ -134,7 +134,7 @@ const getBlogPost = cache(async (slug: string) => {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const timeout = new Promise<never>((_, reject) => {
 		timer = setTimeout(
-			() => reject(new Error("Blog post query timed out")),
+			() => reject(new Error(`Blog post query timed out (slug: "${slug}")`)),
 			5000,
 		);
 	});
@@ -151,27 +151,18 @@ const getBlogPost = cache(async (slug: string) => {
 		const { data, error } = await Promise.race([query, timeout]);
 		if (error) {
 			// PGRST116 = "Results contain 0 rows" from .single() — genuine miss.
-			// Any other code is a real DB problem; throw so Next.js error boundary
-			// surfaces a 500 instead of a misleading 404.
 			if (error.code === "PGRST116") return null;
-			logger.error("Blog post query failed", {
-				action: "getBlogPost",
-				route: `/blog/${slug}`,
-				metadata: { error: error.message, code: error.code },
-			});
-			throw new Error("Blog post query failed");
+			// Any other code is a real DB problem. Throw with slug/code context so
+			// the Next.js error boundary surfaces a 500 AND Sentry captures it
+			// exactly once. A separate logger.error here previously double-reported
+			// every failure as both a Sentry message and an exception (the
+			// duplicate timeout issues TENANT-FLOW-P/Q); the thrown error now
+			// carries the context that logger.error used to add.
+			throw new Error(
+				`Blog post query failed (slug: "${slug}", code: ${error.code}): ${error.message}`,
+			);
 		}
 		return data;
-	} catch (err) {
-		// Re-log timeout errors with context before bubbling to error boundary.
-		if (err instanceof Error && err.message === "Blog post query timed out") {
-			logger.error("Blog post query timed out", {
-				action: "getBlogPost",
-				route: `/blog/${slug}`,
-				metadata: {},
-			});
-		}
-		throw err;
 	} finally {
 		if (timer) clearTimeout(timer);
 	}
