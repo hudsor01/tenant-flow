@@ -98,9 +98,28 @@ function needsNonceCsp(pathname: string): boolean {
  * directive set otherwise mirrors `vercel.json` so private routes lose
  * nothing except `script-src 'unsafe-inline'`.
  */
+/**
+ * next-themes injects a deterministic inline no-flash <script> (it sets the
+ * theme class on <html> before paint) that it does NOT nonce. On nonce-CSP
+ * routes 'strict-dynamic' makes the browser ignore 'unsafe-inline', so that
+ * script is blocked — a console CSP error plus a one-paint theme flash. The
+ * script body is stable (derived from the fixed ThemeProvider props in
+ * providers.tsx), so we allow exactly it by hash. 'strict-dynamic' still
+ * honors hashes for top-level scripts, and this script loads nothing else, so
+ * there's no trust-propagation risk. If the next-themes version or the
+ * ThemeProvider config (providers.tsx) changes, the script body changes and
+ * this hash must be updated. The drift signal is explicit: the exact CSP
+ * console error on /login + /auth/* names the new required hash
+ * ("a hash ('sha256-...') ... is required"), so recompute it from there.
+ * (A render-based unit guard is unreliable — renderToStaticMarkup does not
+ * reproduce Next's SSR-serialized next-themes script byte-for-byte.)
+ */
+const THEME_NO_FLASH_SCRIPT_HASH =
+	"'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='";
+
 function buildNonceCsp(nonce: string): string {
 	const isDev = process.env.NODE_ENV === "development";
-	const scriptSrc = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${
+	const scriptSrc = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${THEME_NO_FLASH_SCRIPT_HASH}${
 		isDev ? " 'unsafe-eval'" : ""
 	}`;
 	return [
