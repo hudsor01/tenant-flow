@@ -7,103 +7,90 @@
 - ✅ **v3.0 Security Hardening** — Phases 1-3 (shipped 2026-06-02, 12/12 requirements) — see [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 - ✅ **v4.0 Hardening & Hygiene** — Phases 1-8 (shipped 2026-06-07, 20/21 requirements; SEO-01 carried to v5.0) — see [milestones/v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md)
 - ✅ **v5.0 AI Blog Content Engine** — Phases 9-14 (shipped 2026-06-10, 9/9 requirements) — see [milestones/v5.0-ROADMAP.md](milestones/v5.0-ROADMAP.md)
-- 🔨 **v6.0 Final Canonical Cleanup** — Phases 15-19 (active, started 2026-06-14, 24 requirements) — this file
+- ✅ **v6.0 Final Canonical Cleanup** — Phases 15-19 (resolved/verified 2026-06-19, 24 requirements) — see [milestones/v6.0-ROADMAP.md](milestones/v6.0-ROADMAP.md)
+- 🔨 **v7.0 TanStack Form Composition Migration** — Phases 20-24 (active, started 2026-06-25, 13 requirements) — this file
 
 ---
 
-## v6.0 Final Canonical Cleanup
+## v7.0 TanStack Form Composition Migration
 
-**Goal:** Make the codebase canonical to the current product — remove every orphaned remnant of the demolished offerings (tenant-as-user/portal, rent-payment facilitation, Stripe Connect/payouts, automated screening) and finish the deferred dead-code trim, so no surface promises a feature TenantFlow does not have. The last milestone before the project is considered fully complete.
+**Goal:** Adopt TanStack Form's built-in composition API (`createFormHook` / `useAppForm` / `withForm` / `withFieldGroup` / `formOptions`) so the codebase never hand-rolls a form-instance type again — delete all 5 hand-rolled 12-generic `ReactFormExtendedApi` aliases, the 10 `*FormApi`-prop section signatures, and the 123 per-field annotations, replacing them with one shared form-hook module + a typed field-component library. Built on `@tanstack/react-form@1.32` (already installed). Zero runtime/behavior change.
 
-**Grounded in:** `.planning/repo-audit/v6.0-LEGACY-AUDIT.md`. Sequencing rule: zero-runtime-risk surface/type deletes first, INVESTIGATE resolution next, the one coordinated DB migration last (it must ship lockstep), the opt-in dead-code sweep last of all.
+**Sequencing rule:** foundation first (pure addition, nothing migrated), then migrate forms in increasing complexity (single-section → multi-section/tenant → multi-step wizard + standalone), then a final drift-guard + verification phase. Every phase is an independently shippable PR under the perfect-PR gate; each migrated form's behavior is pinned by its existing (or extended) tests so "zero functional change" is observable, not asserted.
 
-**5 phases** | **24 requirements mapped** | All covered ✓
+**5 phases** | **13 requirements mapped** | All covered ✓
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 15 | Connect + Rent-Facilitation Surface & Type Removal | Kill the 3 customer-facing Connect surfaces + all dead Connect/rent contract types | LEGACY-CONNECT-01..04, LEGACY-RENT-01..04 | 4 |
-| 16 | Tenant-as-User & Screening Cleanup | Remove tenant-portal/invite-auth schemas+types, relabel "invite"→"add", strip the never-built screening provider | LEGACY-TENANT-01..04, LEGACY-SCREENING-01..02 | 4 |
-| 17 | Legacy-Remnant Investigation & Resolution | Resolve the 5 INVESTIGATE open questions against the live DB/RPCs, then remove what's confirmed dead | LEGACY-CONNECT-05..06, LEGACY-TENANT-05 | 4 |
-| 18 | Dead-DB Coordinated Cleanup Migration | Drop the one missed column + orphan config rows + RPC key in one lockstep PR; no prod 400s | DEADDB-01..03, LEGACY-RENT-05, LEGACY-TENANT-06 | 4 |
-| 19 | Deferred Dead-Code Sweep | Opt-in fallow trim of the ~553 internal SAFE-TRIM exports + `fast-check` dep, behind validate:quick | DEADCODE-01..02 | 4 |
+| 20 | Form Foundation | One shared `form-hook` module + typed field-component library + SubmitButton + `formOptions` convention — zero hand-rolled generics | FORM-01, FORM-02, FORM-03, FORM-11 | 4 |
+| 21 | Single-Section Forms | Migrate property / subscribe / unit forms + sections to `useAppForm`/`withForm`; delete 3 type aliases | FORM-04, FORM-05, FORM-08 | 4 |
+| 22 | Multi-Section & Tenant Forms | Migrate lease + tenant (+ tenant-edit) forms + their sections; delete 2 type aliases | FORM-06, FORM-07 | 4 |
+| 23 | Wizard & Standalone Forms | Lease wizard via `withFieldGroup`; login + maintenance hook + 4 document-template forms | FORM-09, FORM-10 | 4 |
+| 24 | Cleanup, Drift Guard & Verify | Delete residual type files; drift-guard test; behavior preservation pinned; full verify | FORM-12, FORM-13 | 4 |
 
 ### Phase Details
 
-**Phase 15: Connect + Rent-Facilitation Surface & Type Removal**
-Goal: Remove the highest-value cluster — the 3 live customer-facing surfaces that promise demolished features (the `/profile` "receive payments from tenants" Connect card, the `/financials` "Payouts" 404 dead-link, the onboarding "payouts / invite your first tenant" copy) plus every zero-consumer Connect and rent-facilitation contract type. All zero-runtime-risk once `owner_profile` is confirmed to never render.
-Requirements: LEGACY-CONNECT-01, LEGACY-CONNECT-02, LEGACY-CONNECT-03, LEGACY-CONNECT-04, LEGACY-RENT-01, LEGACY-RENT-02, LEGACY-RENT-03, LEGACY-RENT-04
+**Phase 20: Form Foundation**
+Goal: Build the single shared foundation — `src/lib/forms/form-hook.tsx` (`createFormHookContexts()` + `createFormHook()` → `useAppForm`/`withForm`/`withFieldGroup`) plus the typed field-component library wrapping the existing shadcn primitives (`TextField`, `NumberField` with null coercion, `TextareaField`, `SelectField`, `SwitchField`, `IconInputField`, `DateField`) and a `SubmitButton` form component, plus the `formOptions()` convention. Pure addition: no existing form is migrated yet, so nothing can regress.
+Requirements: FORM-01, FORM-02, FORM-03, FORM-11
 Success criteria:
-1. `/profile` and `/financials` render with no Connect/payout UI; onboarding copy mentions no payouts or tenant invites; grep for the removed surfaces returns zero
-2. `stripeConnect.*` mutation keys, `CreateConnectedPaymentRequest`, all `PayRent*`/late-fee/`TenantPayment` types, `RENT_CHARGE_STATUS`, `sendPaymentReminderSchema`, `TenantSummary`, and the broken `seed.sql` insert are deleted
-3. `tsc --noEmit` + `biome check` + `next build` clean; full unit suite green (drift-guard tests updated, not skipped)
+1. `form-hook.tsx` exports `useAppForm`/`withForm`/`withFieldGroup` with zero hand-rolled `ReactFormExtendedApi` generics; field components render through field context
+2. Each field component matches the visual + behavioral output of its current ad-hoc equivalent (number/null coercion, leading-icon input, disabled state) — covered by new unit tests
+3. The foundation is unused by production forms this phase (no behavior change anywhere); `tsc` + `lint` + unit suite green
 4. Two consecutive zero-finding review cycles (perfect-PR gate)
 
-**Phase 16: Tenant-as-User & Screening Cleanup**
-Goal: Remove tenant-as-user activation/portal schemas + types, de-duplicate `useCurrentUser`, relabel all "invite/invited" tenant wording to record-create framing (behavior unchanged), and strip the hardcoded TransUnion screening provider while keeping the legitimate landlord rental-application form.
-Requirements: LEGACY-TENANT-01, LEGACY-TENANT-02, LEGACY-TENANT-03, LEGACY-TENANT-04, LEGACY-SCREENING-01, LEGACY-SCREENING-02
+**Phase 21: Single-Section Forms**
+Goal: Migrate the three lowest-complexity typed forms — property (3 sections), owner-subscribe (1 section), unit (1 section incl. add/edit panels) — onto `useAppForm` + `withForm` + `formOptions`, converting their `form.Field` render-props to `form.AppField` + shared field components, and delete `property-form-types.ts`, `owner-subscribe-form-types.ts`, and `unit-form-types.ts`.
+Requirements: FORM-04, FORM-05, FORM-08
 Success criteria:
-1. `activateTenantSchema` + tenant-portal types + the duplicate `useCurrentUser` export are gone; their tests removed/updated
-2. No UI label or metadata says "invite/invited tenant"; the lease-wizard still creates tenant records (behavior pinned by test); `provider: "TransUnion SmartMove"` is gone and the screening-authorization copy reads as third-party landlord paperwork
-3. `tsc` + lint + `next build` clean; unit suite green
+1. Property / subscribe / unit forms create + edit exactly as before (validation, defaults, image upload, signup flow all unchanged) — pinned by existing/extended tests
+2. `PropertyFormApi`, `SubscribeFormApi`, `UnitFormApi` and their 3 `*-form-types.ts` files are deleted; no `*FormApi` prop remains on their sections
+3. `tsc` + `lint` + `next build` + full unit suite green; zero new `any` / `as unknown as`
 4. Two consecutive zero-finding review cycles
 
-**Phase 17: Legacy-Remnant Investigation & Resolution**
-Goal: Resolve the audit's 5 INVESTIGATE open questions against the live database/RPCs with evidence, then remove what is confirmed dead. Introspect the `activate_lease`/lease-sign RPC for `STRIPE_CONNECT_NOT_SETUP`/`STRIPE_VERIFICATION_INCOMPLETE` emission; confirm `get_user_profile()`'s `stripe_connected` source; trace whether `inviteToSignLeaseSchema` backs a DocuSeal send path; confirm `identityVerification` + Identity types have no consumer; map `tenants.user_id` readers ahead of Phase 18.
-Requirements: LEGACY-CONNECT-05, LEGACY-CONNECT-06, LEGACY-TENANT-05
+**Phase 22: Multi-Section & Tenant Forms**
+Goal: Migrate the lease form (financial / tenant-date / property-unit sections) and the tenant forms (add-tenant info/property sections + tenant-edit) onto `useAppForm`/`withForm`, and delete `lease-form-types.ts` + `add-tenant-form-types.ts`.
+Requirements: FORM-06, FORM-07
 Success criteria:
-1. Each INVESTIGATE item has a recorded prod-introspection verdict (REMOVE-safe or KEEP-with-reason) before any deletion
-2. Lease-signature Connect gating codes removed iff the RPC no longer emits them (else a coordinated RPC+constant change is scheduled into Phase 18); `identityVerification` key + Identity types removed iff zero consumer; `inviteToSignLeaseSchema` kept-or-removed per the DocuSeal trace
-3. A documented `tenants.user_id` reader map handed to Phase 18; `tsc` + lint + build + tests green
+1. Lease create and tenant record create/edit behave identically (validation, defaults, submit) — pinned by existing/extended tests
+2. `LeaseFormApi`, `AddTenantFormApi` and their 2 `*-form-types.ts` files are deleted; no `*FormApi` prop remains on their sections
+3. `tsc` + `lint` + `next build` + full unit suite green
 4. Two consecutive zero-finding review cycles
 
-**Phase 18: Dead-DB Coordinated Cleanup Migration**
-Goal: Ship the one and only DB cleanup as a single lockstep PR — drop `properties.stripe_connected_account_id`, delete the 2 orphan `app_config` webhook rows, adjust the `get_user_profile()` jsonb, and (if Phase 17 cleared it) drop `tenants.user_id` — together with `PROPERTY_SELECT_COLUMNS`, the 6 test fixtures, and a regenerated `supabase.ts`, so no deploy window 400s.
-Requirements: DEADDB-01, DEADDB-02, DEADDB-03, LEGACY-RENT-05, LEGACY-TENANT-06
+**Phase 23: Wizard & Standalone Forms**
+Goal: Type the multi-step lease-creation wizard via `withFieldGroup` (per-step field groups sharing `formOptions`), and migrate the remaining standalone forms — `login-form`, the `use-maintenance-form` hook, and the 4 document-template forms — onto `useAppForm` + the shared field components.
+Requirements: FORM-09, FORM-10
 Success criteria:
-1. New cleanup migration drops the column(s) + config rows + RPC key; `PROPERTY_SELECT_COLUMNS` + fixtures + `supabase.ts` updated in the same PR (no select-after-drop mismatch)
-2. Migration reconciled via `mcp__supabase__list_migrations` after apply (prod timestamp drift); no historical migration edited
-3. Property list/detail + profile + settings queries verified against prod (no 400s); `rls-security` + `e2e-smoke` + unit suite green
+1. The lease wizard's step validation, navigation, rent-autofill, and unsaved-changes guard are unchanged; no hand-rolled per-step form type remains
+2. Login, maintenance-form, and the 4 document-template forms keep their current validation + submit behavior on the shared foundation
+3. `tsc` + `lint` + `next build` + `e2e-smoke` + full unit suite green
 4. Two consecutive zero-finding review cycles
 
-**Phase 19: Deferred Dead-Code Sweep**
-Goal: Finish the dead-code trim deferred from PR #841 — remove the `fast-check` unused dev-dep and run an opt-in fallow sweep on the ~553 internal SAFE-TRIM dead exports, gated behind `bun run validate:quick`, without touching the 111 contract types or 28 intentional Zod↔type duplicates.
-Requirements: DEADCODE-01, DEADCODE-02
+**Phase 24: Cleanup, Drift Guard & Verify**
+Goal: Remove any residual hand-rolled form typing, add a drift guard so it can't return, and do the milestone-wide behavior-preservation verification.
+Requirements: FORM-12, FORM-13
 Success criteria:
-1. `fast-check` removed (no e2e spec imports it); lockfile + lockfile-verify hook green
-2. The ~553 SAFE-TRIM exports trimmed in reviewable batches, each batch `validate:quick`-clean; KEEP-CONTRACT + intentional-duplicate items untouched; confirmed false-positives added to fallow ignore config so `fallow dead-code` runs clean
-3. `tsc` + lint + `next build` + full unit suite green
+1. `rg "ReactFormExtendedApi" src/` and `rg "React.ComponentType<any>" src/` both return zero; all 5 `*-form-types.ts` files are gone
+2. A drift-guard test (CI-enforced) fails the build if a hand-rolled `ReactFormExtendedApi` alias or a form-field `any` is reintroduced
+3. Full verification: `bun run typecheck` + `bun run lint` + the full unit suite green; every pre-existing form test passes unchanged or extended (none skipped); shared field components covered
 4. Two consecutive zero-finding review cycles
 
-### Traceability
+## Requirement Coverage (Traceability)
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| LEGACY-CONNECT-01 | 15 | Pending |
-| LEGACY-CONNECT-02 | 15 | Pending |
-| LEGACY-CONNECT-03 | 15 | Pending |
-| LEGACY-CONNECT-04 | 15 | Pending |
-| LEGACY-RENT-01 | 15 | Pending |
-| LEGACY-RENT-02 | 15 | Pending |
-| LEGACY-RENT-03 | 15 | Pending |
-| LEGACY-RENT-04 | 15 | Pending |
-| LEGACY-TENANT-01 | 16 | Pending |
-| LEGACY-TENANT-02 | 16 | Pending |
-| LEGACY-TENANT-03 | 16 | Pending |
-| LEGACY-TENANT-04 | 16 | Pending |
-| LEGACY-SCREENING-01 | 16 | Pending |
-| LEGACY-SCREENING-02 | 16 | Pending |
-| LEGACY-CONNECT-05 | 17 | Pending |
-| LEGACY-CONNECT-06 | 17 | Pending |
-| LEGACY-TENANT-05 | 17 | Pending |
-| DEADDB-01 | 18 | Pending |
-| DEADDB-02 | 18 | Pending |
-| DEADDB-03 | 18 | Pending |
-| LEGACY-RENT-05 | 18 | Pending |
-| LEGACY-TENANT-06 | 18 | Pending |
-| DEADCODE-01 | 19 | Pending |
-| DEADCODE-02 | 19 | Pending |
+| Requirement | Phase |
+|-------------|-------|
+| FORM-01 | 20 |
+| FORM-02 | 20 |
+| FORM-03 | 20 |
+| FORM-11 | 20 |
+| FORM-04 | 21 |
+| FORM-05 | 21 |
+| FORM-08 | 21 |
+| FORM-06 | 22 |
+| FORM-07 | 22 |
+| FORM-09 | 23 |
+| FORM-10 | 23 |
+| FORM-12 | 24 |
+| FORM-13 | 24 |
 
-**Coverage:** 24 requirements · 24 mapped · 0 unmapped ✓
-
----
-*v6.0 roadmap created 2026-06-14 — 5 phases (15-19), grounded in `.planning/repo-audit/v6.0-LEGACY-AUDIT.md`. Phase numbering continues from v5.0 (ended at 14).*
+**Coverage:** 13/13 requirements mapped to exactly one phase ✓
