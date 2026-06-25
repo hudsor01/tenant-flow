@@ -6,35 +6,20 @@
  */
 
 import { z } from "zod";
+import {
+	CONDITION_RATINGS,
+	INSPECTION_STATUSES,
+	INSPECTION_TYPES,
+	ROOM_TYPES,
+} from "#types/sections/inspections";
 
-const inspectionTypeSchema = z.enum(["move_in", "move_out"]);
-
-const inspectionStatusSchema = z.enum([
-	"pending",
-	"in_progress",
-	"completed",
-	"tenant_reviewing",
-	"finalized",
-]);
-
-const roomTypeSchema = z.enum([
-	"bedroom",
-	"bathroom",
-	"kitchen",
-	"living_room",
-	"dining_room",
-	"garage",
-	"outdoor",
-	"other",
-]);
-
-const conditionRatingSchema = z.enum([
-	"excellent",
-	"good",
-	"fair",
-	"poor",
-	"damaged",
-]);
+// Derive Zod enums from the single source-of-truth const arrays in
+// #types/sections/inspections so the validation layer and the runtime type
+// guards / narrowers can never drift apart.
+const inspectionTypeSchema = z.enum(INSPECTION_TYPES);
+const inspectionStatusSchema = z.enum(INSPECTION_STATUSES);
+const roomTypeSchema = z.enum(ROOM_TYPES);
+const conditionRatingSchema = z.enum(CONDITION_RATINGS);
 
 const createInspectionSchema = z.object({
 	lease_id: z.string().uuid(),
@@ -85,10 +70,9 @@ const tenantReviewSchema = z.object({
 	tenant_signature_data: z.string().min(1, "Signature is required"),
 });
 
-export type InspectionType = z.infer<typeof inspectionTypeSchema>;
-export type InspectionStatus = z.infer<typeof inspectionStatusSchema>;
-export type RoomType = z.infer<typeof roomTypeSchema>;
-export type ConditionRating = z.infer<typeof conditionRatingSchema>;
+// Scalar enum types (InspectionType/InspectionStatus/RoomType/ConditionRating)
+// are the single source-of-truth exports in #types/sections/inspections — do
+// not re-declare them here.
 export type CreateInspectionInput = z.infer<typeof createInspectionSchema>;
 export type UpdateInspectionInput = z.infer<typeof updateInspectionSchema>;
 export type CreateInspectionRoomInput = z.infer<

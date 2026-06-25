@@ -15,27 +15,16 @@ import {
 	useSubmitForTenantReview,
 	useUpdateInspection,
 } from "#hooks/api/use-inspection-mutations";
+import { assertNever } from "#lib/assert-never";
 import { formatDate } from "#lib/formatters/date";
+import type { InspectionStatus } from "#types/sections/inspections";
 import { AddRoomForm } from "./inspection-detail-sections";
+import { INSPECTION_STATUS_LABELS } from "./inspection-labels";
 import { InspectionRoomCard } from "./inspection-room-card";
 
-const STATUS_LABELS: Record<string, string> = {
-	pending: "Pending",
-	in_progress: "In Progress",
-	completed: "Completed",
-	tenant_reviewing: "Tenant Reviewing",
-	finalized: "Finalized",
-};
+type StatusVariant = "secondary" | "default" | "success" | "info" | "warning";
 
-type StatusVariant =
-	| "secondary"
-	| "default"
-	| "success"
-	| "info"
-	| "warning"
-	| "outline";
-
-function statusVariant(status: string): StatusVariant {
+function statusVariant(status: InspectionStatus): StatusVariant {
 	switch (status) {
 		case "pending":
 			return "secondary";
@@ -48,7 +37,7 @@ function statusVariant(status: string): StatusVariant {
 		case "finalized":
 			return "info";
 		default:
-			return "outline";
+			return assertNever(status, "statusVariant");
 	}
 }
 
@@ -109,7 +98,7 @@ export function InspectionDetailClient({ id }: { id: string }) {
 					<div className="flex items-center gap-3 flex-wrap">
 						<h1 className="text-xl font-semibold">{typeLabel} Inspection</h1>
 						<Badge variant={statusVariant(inspection.status)}>
-							{STATUS_LABELS[inspection.status] ?? inspection.status}
+							{INSPECTION_STATUS_LABELS[inspection.status]}
 						</Badge>
 					</div>
 					<div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">

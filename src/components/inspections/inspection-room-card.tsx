@@ -17,7 +17,13 @@ import {
 	useDeleteInspectionRoom,
 	useUpdateInspectionRoom,
 } from "#hooks/api/use-inspection-room-mutations";
-import type { InspectionRoom } from "#types/sections/inspections";
+import { assertNever } from "#lib/assert-never";
+import {
+	type ConditionRating,
+	type InspectionRoom,
+	isConditionRating,
+} from "#types/sections/inspections";
+import { CONDITION_RATING_LABELS, ROOM_TYPE_LABELS } from "./inspection-labels";
 import { InspectionPhotoUpload } from "./inspection-photo-upload";
 
 interface InspectionRoomCardProps {
@@ -25,28 +31,9 @@ interface InspectionRoomCardProps {
 	inspectionId: string;
 }
 
-const CONDITION_LABELS: Record<string, string> = {
-	excellent: "Excellent",
-	good: "Good",
-	fair: "Fair",
-	poor: "Poor",
-	damaged: "Damaged",
-};
-
-const ROOM_TYPE_LABELS: Record<string, string> = {
-	bedroom: "Bedroom",
-	bathroom: "Bathroom",
-	kitchen: "Kitchen",
-	living_room: "Living Room",
-	dining_room: "Dining Room",
-	garage: "Garage",
-	outdoor: "Outdoor",
-	other: "Other",
-};
-
 function conditionVariant(
-	rating: string,
-): "success" | "info" | "warning" | "destructive" | "outline" {
+	rating: ConditionRating,
+): "success" | "info" | "warning" | "destructive" {
 	switch (rating) {
 		case "excellent":
 			return "success";
@@ -59,7 +46,7 @@ function conditionVariant(
 		case "damaged":
 			return "destructive";
 		default:
-			return "outline";
+			return assertNever(rating, "conditionVariant");
 	}
 }
 
@@ -76,17 +63,13 @@ export function InspectionRoomCard({
 	const deleteRoom = useDeleteInspectionRoom(inspectionId);
 
 	function handleConditionChange(value: string) {
+		// Select options are statically the five ratings; the guard narrows the
+		// `string` event payload to ConditionRating without an `as` cast.
+		if (!isConditionRating(value)) return;
 		setConditionRating(value);
 		updateRoom.mutate({
 			roomId: room.id,
-			dto: {
-				condition_rating: value as
-					| "excellent"
-					| "good"
-					| "fair"
-					| "poor"
-					| "damaged",
-			},
+			dto: { condition_rating: value },
 		});
 	}
 
@@ -130,12 +113,12 @@ export function InspectionRoomCard({
 								{room.room_name}
 							</span>
 							<span className="text-xs text-muted-foreground">
-								{ROOM_TYPE_LABELS[room.room_type] ?? room.room_type}
+								{ROOM_TYPE_LABELS[room.room_type]}
 							</span>
 						</div>
 						<div className="flex items-center gap-2 mt-1">
 							<Badge variant={conditionVariant(conditionRating)} size="sm">
-								{CONDITION_LABELS[conditionRating] ?? conditionRating}
+								{CONDITION_RATING_LABELS[conditionRating]}
 							</Badge>
 							{photos.length > 0 && (
 								<span className="text-xs text-muted-foreground flex items-center gap-1">

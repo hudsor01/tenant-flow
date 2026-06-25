@@ -16,6 +16,7 @@ import {
 	type Inspection,
 	type InspectionListItem,
 	narrowInspectionEnums,
+	narrowInspectionRoomEnums,
 } from "#types/sections/inspections";
 
 const INSPECTION_SELECT_COLUMNS =
@@ -121,7 +122,7 @@ export const inspectionQueries = {
 				// (photos resolved to publicUrl) instead.
 				const { inspection_rooms, ...rest } = data;
 				const rooms = (inspection_rooms ?? []).map((room) => ({
-					...room,
+					...narrowInspectionRoomEnums(room),
 					photos: (room.inspection_photos ?? []).map((photo) => {
 						const { data: urlData } = supabase.storage
 							.from("inspection-photos")
