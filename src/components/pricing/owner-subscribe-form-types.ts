@@ -14,12 +14,12 @@ import type { signupFormSchema } from "#lib/validation/auth";
 export type SubscribeFormValues = z.infer<typeof signupFormSchema>;
 
 /**
- * Typed form instance for the subscribe dialog, shared between
- * owner-subscribe-dialog.tsx and its extracted SubscribeFormFields section
- * (mirrors PropertyFormApi). Unused validator slots are widened to accept
- * either an unset validator or one added later; the onSubmit slot is pinned to
- * the schema the form is actually configured with (`validators.onSubmit`) so
- * the concrete `useForm` instance stays assignable to this type.
+ * Typed form instance for the subscribe dialog (mirrors PropertyFormApi).
+ * Consumed by the extracted SubscribeFormFields section; the dialog's own
+ * `useForm` instance is inferred structurally and must stay assignable to this
+ * type. Unused validator slots are widened to accept either an unset validator
+ * or one added later; the onSubmit slot is pinned to the schema the form is
+ * actually configured with (`validators.onSubmit`) so that assignment holds.
  */
 export type SubscribeFormApi = ReactFormExtendedApi<
 	SubscribeFormValues, // TFormData
