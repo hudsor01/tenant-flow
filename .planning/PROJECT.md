@@ -15,19 +15,19 @@
 - **v2.0 Dashboard Command Center** (2026-06-02, 34/34) — `/dashboard` redesign.
 - **v1.0 Marketing Surface Honesty** (2026-05-22, 56/56 audit findings).
 
-## Current Milestone: v6.0 Final Canonical Cleanup
+## Current Milestone: v7.0 TanStack Form Composition Migration
 
-**Goal:** Make the codebase canonical to the current product — remove every orphaned remnant of the demolished offerings and finish the deferred dead-code trim, so no surface promises a feature TenantFlow does not have.
+**Goal:** Adopt TanStack Form's built-in composition API (`createFormHook` / `useAppForm` / `withForm` / `withFieldGroup` / `formOptions`) so the codebase never hand-rolls a form-instance type again — replacing 5 hand-rolled 12-generic `ReactFormExtendedApi` aliases, 10 `*FormApi`-prop sections, 14 raw `useForm` sites, and 123 per-field annotations with one shared form-hook module + a typed field-component library. Zero runtime/behavior change.
 
 **Target areas:**
-- Stripe Connect/payout surfaces + types — 3 live customer-facing surfaces still promise demolished features (`/profile` "receive payments from tenants" card, `/financials` "Payouts" dead-link, onboarding "payouts / invite your first tenant" copy)
-- Rent-payment facilitation type/config remnants (tables already demolished 2026-04-18)
-- Tenant-as-user / portal / invite-auth schemas + "invite"→"add" relabels
-- Never-built automated-screening provider strip (hardcoded TransUnion)
-- The one missed dead DB column (`properties.stripe_connected_account_id`) + lockstep readers
-- Deferred fallow dead-code sweep (~553 internal exports + `fast-check` dep)
+- One shared `form-hook` foundation (`createFormHook` → `useAppForm`/`withForm`/`withFieldGroup`) + a `formOptions()` convention — no hand-rolled generics anywhere
+- Typed field-component library wrapping the existing shadcn primitives (TextField/NumberField/TextareaField/SelectField/SwitchField/IconInputField/DateField) + a shared SubmitButton
+- Migrate all 5 typed forms (property, subscribe, lease, tenant, unit) + their 10 sections to `withForm`; delete the 5 `*-form-types.ts` aliases
+- Multi-step lease-creation wizard typed via `withFieldGroup`
+- Remaining standalone forms (login, maintenance-form hook, 4 document-template forms) on `useAppForm` + shared fields
+- Drift guard: zero `ReactFormExtendedApi` aliases remain in `src/`
 
-Grounded in `.planning/repo-audit/v6.0-LEGACY-AUDIT.md` (7-finder forensic audit). Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 15-19 in [ROADMAP.md](ROADMAP.md). Roadmaps + requirements for v1.0–v5.0 are archived in `.planning/milestones/`.
+Built on the framework already installed (`@tanstack/react-form@1.32`) — no new dependency. Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 20-24 in [ROADMAP.md](ROADMAP.md). Roadmaps + requirements for v1.0–v6.0 are archived in `.planning/milestones/`.
 
 ## What This Is
 
@@ -162,4 +162,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 — started v6.0 "Final Canonical Cleanup" (6 categories: LEGACY-CONNECT/RENT/TENANT/SCREENING + DEADDB + DEADCODE; phases 15-19, 24 requirements), grounded in the 7-finder forensic legacy audit (`.planning/repo-audit/v6.0-LEGACY-AUDIT.md`). v5.0 "AI Blog Content Engine" (9/9), v4.0 "Hardening & Hygiene" (20/21, advisor 44/0/1 via v3.0), v3.0 "Security Hardening" (12/12), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*
+*Last updated: 2026-06-25 — started v7.0 "TanStack Form Composition Migration" (FORM-01..13; phases 20-24), adopting the framework's `createFormHook`/`useAppForm`/`withForm`/`withFieldGroup`/`formOptions` composition API to delete all 5 hand-rolled `ReactFormExtendedApi` aliases. v6.0 "Final Canonical Cleanup" (24 reqs, phases 15-19) shipped + archived. v5.0 "AI Blog Content Engine" (9/9), v4.0 "Hardening & Hygiene" (20/21, advisor 44/0/1 via v3.0), v3.0 "Security Hardening" (12/12), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*
