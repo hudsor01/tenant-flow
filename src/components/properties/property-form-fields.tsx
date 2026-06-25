@@ -1,9 +1,9 @@
 import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
+import type { PropertyFormApi } from "./property-form-types";
 
 interface AcquisitionDetailsSectionProps {
-	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's FieldComponent has 12 generic parameters (TFormData, TOnMount, TOnChange, TOnChangeAsync, TOnBlur, TOnBlurAsync, TOnSubmit, TOnSubmitAsync, TOnDynamic, TOnDynamicAsync, TOnServer, TSubmitMeta) — propagating those through every extracted form section would explode the API surface. The actual field shape is type-checked inside each form.Field callback below.
-	form: { Field: React.ComponentType<any> };
+	form: PropertyFormApi;
 }
 
 export function AcquisitionDetailsSection({
@@ -20,11 +20,7 @@ export function AcquisitionDetailsSection({
 			</div>
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<form.Field name="acquisition_cost">
-					{(field: {
-						state: { value: number | null; meta: { errors: unknown[] } };
-						handleChange: (v: number | null) => void;
-						handleBlur: () => void;
-					}) => (
+					{(field) => (
 						<div className="space-y-2">
 							<Label htmlFor="acquisition_cost">Purchase Price</Label>
 							<Input
@@ -49,11 +45,7 @@ export function AcquisitionDetailsSection({
 					)}
 				</form.Field>
 				<form.Field name="acquisition_date">
-					{(field: {
-						state: { value: string; meta: { errors: unknown[] } };
-						handleChange: (v: string) => void;
-						handleBlur: () => void;
-					}) => (
+					{(field) => (
 						<div className="space-y-2">
 							<Label htmlFor="acquisition_date">Purchase Date</Label>
 							<Input

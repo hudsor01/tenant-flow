@@ -5,16 +5,10 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from "#components/ui/input-group";
-
-interface StringFieldApi {
-	state: { value: string; meta: { errors?: unknown[] } };
-	handleChange: (v: string) => void;
-	handleBlur: () => void;
-}
+import type { SubscribeFormApi } from "./owner-subscribe-form-types";
 
 interface SubscribeFormFieldsProps {
-	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's FieldComponent has 12 generic parameters; propagating them through extracted form sections would explode the API surface. Field shape is type-checked inside each callback.
-	form: { Field: React.ComponentType<any> };
+	form: SubscribeFormApi;
 	isSubmitting: boolean;
 }
 
@@ -26,7 +20,7 @@ export function SubscribeFormFields({
 		<>
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<form.Field name="first_name">
-					{(field: StringFieldApi) => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="first_name">First name</FieldLabel>
 							<InputGroup>
@@ -49,7 +43,7 @@ export function SubscribeFormFields({
 					)}
 				</form.Field>
 				<form.Field name="last_name">
-					{(field: StringFieldApi) => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="last_name">Last name</FieldLabel>
 							<InputGroup>
@@ -73,7 +67,7 @@ export function SubscribeFormFields({
 				</form.Field>
 			</div>
 			<form.Field name="email">
-				{(field: StringFieldApi) => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="email">Work email</FieldLabel>
 						<InputGroup>
@@ -97,7 +91,7 @@ export function SubscribeFormFields({
 				)}
 			</form.Field>
 			<form.Field name="password">
-				{(field: StringFieldApi) => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="password">Password</FieldLabel>
 						<InputGroup>
