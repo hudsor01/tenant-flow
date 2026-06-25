@@ -16,7 +16,7 @@ import { INSPECTION_STATUS_LABELS } from "./inspection-labels";
 
 function statusBadgeVariant(
 	status: InspectionStatus,
-): "default" | "secondary" | "outline" | "destructive" {
+): "default" | "secondary" | "outline" {
 	switch (status) {
 		case "pending":
 			return "secondary";

@@ -22,13 +22,7 @@ import { AddRoomForm } from "./inspection-detail-sections";
 import { INSPECTION_STATUS_LABELS } from "./inspection-labels";
 import { InspectionRoomCard } from "./inspection-room-card";
 
-type StatusVariant =
-	| "secondary"
-	| "default"
-	| "success"
-	| "info"
-	| "warning"
-	| "outline";
+type StatusVariant = "secondary" | "default" | "success" | "info" | "warning";
 
 function statusVariant(status: InspectionStatus): StatusVariant {
 	switch (status) {

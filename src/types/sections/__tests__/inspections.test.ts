@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
 	CONDITION_RATINGS,
@@ -19,6 +20,23 @@ function thrownMessage(fn: () => unknown): string {
 		return (err as Error).message;
 	}
 	throw new Error("expected fn to throw");
+}
+
+/**
+ * Pulls the value list out of a `check (<column> in ('a', 'b', ...))` clause in
+ * a migration so the union arrays can be pinned to the DB CHECK constraints.
+ */
+function checkConstraintMembers(sql: string, column: string): string[] {
+	const clause = sql.match(
+		new RegExp(`check\\s*\\(\\s*${column}\\s+in\\s*\\(([^)]*)\\)`, "i"),
+	);
+	const inner = clause?.[1];
+	if (inner === undefined) {
+		throw new Error(`CHECK constraint for "${column}" not found in migration`);
+	}
+	return Array.from(inner.matchAll(/'([a-z_]+)'/g))
+		.map((m) => m[1])
+		.filter((v): v is string => v !== undefined);
 }
 
 describe("inspection enum type guards", () => {
@@ -101,5 +119,41 @@ describe("narrowInspectionRoomEnums", () => {
 				}),
 			),
 		).toContain('Unexpected condition_rating "ruined"');
+	});
+});
+
+describe("union arrays are in lockstep with the DB CHECK constraints", () => {
+	// The fail-loud narrowers (narrowInspectionEnums / narrowInspectionRoomEnums)
+	// throw on any value outside these arrays, so a migration that widens a CHECK
+	// without updating the union would crash the whole inspection list/detail
+	// query on real rows. This pins the arrays to the create-table migration —
+	// drift becomes a build failure instead of a runtime crash.
+	const migrationSql = readFileSync(
+		"supabase/migrations/20260220110000_create_inspections_tables.sql",
+		"utf8",
+	);
+
+	it("INSPECTION_TYPES matches the inspection_type CHECK", () => {
+		expect(
+			checkConstraintMembers(migrationSql, "inspection_type").sort(),
+		).toEqual([...INSPECTION_TYPES].sort());
+	});
+
+	it("INSPECTION_STATUSES matches the status CHECK", () => {
+		expect(checkConstraintMembers(migrationSql, "status").sort()).toEqual(
+			[...INSPECTION_STATUSES].sort(),
+		);
+	});
+
+	it("ROOM_TYPES matches the room_type CHECK", () => {
+		expect(checkConstraintMembers(migrationSql, "room_type").sort()).toEqual(
+			[...ROOM_TYPES].sort(),
+		);
+	});
+
+	it("CONDITION_RATINGS matches the condition_rating CHECK", () => {
+		expect(
+			checkConstraintMembers(migrationSql, "condition_rating").sort(),
+		).toEqual([...CONDITION_RATINGS].sort());
 	});
 });
