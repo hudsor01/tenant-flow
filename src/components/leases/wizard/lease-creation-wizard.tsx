@@ -18,6 +18,7 @@ import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { assertNever } from "#lib/assert-never";
 import { omitUndefined } from "#lib/db-insert";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
@@ -220,7 +221,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			case "review":
 				return true;
 			default:
-				return false;
+				return assertNever(step, "validateStep");
 		}
 	};
 

@@ -3,6 +3,8 @@
  * Consolidates multiple formatPrice implementations into a single shared utility
  */
 
+import { assertNever } from "#lib/assert-never";
+
 export type BillingInterval = "monthly" | "annual" | "month" | "year";
 export type CurrencyCode = "USD" | "EUR" | "GBP" | "CAD" | "AUD";
 
@@ -123,7 +125,7 @@ export const getIntervalSuffix = (interval: BillingInterval): string => {
 		case "year":
 			return "/yr";
 		default:
-			return "";
+			return assertNever(interval, "getIntervalSuffix");
 	}
 };
 

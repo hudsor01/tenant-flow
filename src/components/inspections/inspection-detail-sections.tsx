@@ -11,17 +11,15 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { useCreateInspectionRoom } from "#hooks/api/use-inspection-room-mutations";
-
-const ROOM_TYPES = [
-	{ value: "bedroom", label: "Bedroom" },
-	{ value: "bathroom", label: "Bathroom" },
-	{ value: "kitchen", label: "Kitchen" },
-	{ value: "living_room", label: "Living Room" },
-	{ value: "dining_room", label: "Dining Room" },
-	{ value: "garage", label: "Garage" },
-	{ value: "outdoor", label: "Outdoor" },
-	{ value: "other", label: "Other" },
-];
+import {
+	CONDITION_RATINGS,
+	type ConditionRating,
+	isConditionRating,
+	isRoomType,
+	ROOM_TYPES,
+	type RoomType,
+} from "#types/sections/inspections";
+import { CONDITION_RATING_LABELS, ROOM_TYPE_LABELS } from "./inspection-labels";
 
 interface AddRoomFormProps {
 	inspectionId: string;
@@ -30,30 +28,27 @@ interface AddRoomFormProps {
 
 export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 	const [roomName, setRoomName] = useState("");
-	const [roomType, setRoomType] = useState("other");
-	const [conditionRating, setConditionRating] = useState("good");
+	const [roomType, setRoomType] = useState<RoomType>("other");
+	const [conditionRating, setConditionRating] =
+		useState<ConditionRating>("good");
 	const createRoom = useCreateInspectionRoom();
+
+	// Select options are statically the union members; the guards narrow the
+	// `string` event payload back to the union without an `as` cast.
+	function handleRoomTypeChange(value: string) {
+		if (isRoomType(value)) setRoomType(value);
+	}
+	function handleConditionChange(value: string) {
+		if (isConditionRating(value)) setConditionRating(value);
+	}
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		await createRoom.mutateAsync({
 			inspection_id: inspectionId,
 			room_name: roomName,
-			room_type: roomType as
-				| "bedroom"
-				| "bathroom"
-				| "kitchen"
-				| "living_room"
-				| "dining_room"
-				| "garage"
-				| "outdoor"
-				| "other",
-			condition_rating: conditionRating as
-				| "excellent"
-				| "good"
-				| "fair"
-				| "poor"
-				| "damaged",
+			room_type: roomType,
+			condition_rating: conditionRating,
 		});
 		onCancel();
 	}
@@ -81,14 +76,14 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 
 				<div className="space-y-2">
 					<Label htmlFor="room-type">Room type</Label>
-					<Select value={roomType} onValueChange={setRoomType}>
+					<Select value={roomType} onValueChange={handleRoomTypeChange}>
 						<SelectTrigger id="room-type">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							{ROOM_TYPES.map((t) => (
-								<SelectItem key={t.value} value={t.value}>
-									{t.label}
+							{ROOM_TYPES.map((value) => (
+								<SelectItem key={value} value={value}>
+									{ROOM_TYPE_LABELS[value]}
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -97,16 +92,16 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 
 				<div className="space-y-2">
 					<Label htmlFor="room-condition">Initial condition</Label>
-					<Select value={conditionRating} onValueChange={setConditionRating}>
+					<Select value={conditionRating} onValueChange={handleConditionChange}>
 						<SelectTrigger id="room-condition">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="excellent">Excellent</SelectItem>
-							<SelectItem value="good">Good</SelectItem>
-							<SelectItem value="fair">Fair</SelectItem>
-							<SelectItem value="poor">Poor</SelectItem>
-							<SelectItem value="damaged">Damaged</SelectItem>
+							{CONDITION_RATINGS.map((value) => (
+								<SelectItem key={value} value={value}>
+									{CONDITION_RATING_LABELS[value]}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 				</div>

@@ -6,11 +6,16 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { useInspections } from "#hooks/api/use-inspections";
+import { assertNever } from "#lib/assert-never";
 import { formatDate } from "#lib/formatters/date";
-import type { InspectionListItem } from "#types/sections/inspections";
+import type {
+	InspectionListItem,
+	InspectionStatus,
+} from "#types/sections/inspections";
+import { INSPECTION_STATUS_LABELS } from "./inspection-labels";
 
 function statusBadgeVariant(
-	status: string,
+	status: InspectionStatus,
 ): "default" | "secondary" | "outline" | "destructive" {
 	switch (status) {
 		case "pending":
@@ -24,24 +29,7 @@ function statusBadgeVariant(
 		case "finalized":
 			return "outline";
 		default:
-			return "secondary";
-	}
-}
-
-function statusLabel(status: string): string {
-	switch (status) {
-		case "pending":
-			return "Pending";
-		case "in_progress":
-			return "In Progress";
-		case "completed":
-			return "Completed";
-		case "tenant_reviewing":
-			return "Tenant Reviewing";
-		case "finalized":
-			return "Finalized";
-		default:
-			return status;
+			return assertNever(status, "statusBadgeVariant");
 	}
 }
 
@@ -84,7 +72,7 @@ function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 					{formatDate(inspection.created_at, { relative: true })}
 				</span>
 				<Badge variant={statusBadgeVariant(inspection.status)}>
-					{statusLabel(inspection.status)}
+					{INSPECTION_STATUS_LABELS[inspection.status]}
 				</Badge>
 			</div>
 		</Link>

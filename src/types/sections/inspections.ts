@@ -13,9 +13,45 @@ export const INSPECTION_STATUSES = [
 	"tenant_reviewing",
 	"finalized",
 ] as const;
+export const ROOM_TYPES = [
+	"bedroom",
+	"bathroom",
+	"kitchen",
+	"living_room",
+	"dining_room",
+	"garage",
+	"outdoor",
+	"other",
+] as const;
+export const CONDITION_RATINGS = [
+	"excellent",
+	"good",
+	"fair",
+	"poor",
+	"damaged",
+] as const;
 
 export type InspectionType = (typeof INSPECTION_TYPES)[number];
 export type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
+export type RoomType = (typeof ROOM_TYPES)[number];
+export type ConditionRating = (typeof CONDITION_RATINGS)[number];
+
+/**
+ * Runtime type guards for the DB CHECK-constrained inspection enums. Each
+ * narrows a raw `string` to its literal union so callers avoid `as` casts.
+ */
+export function isInspectionType(value: string): value is InspectionType {
+	return (INSPECTION_TYPES as readonly string[]).includes(value);
+}
+export function isInspectionStatus(value: string): value is InspectionStatus {
+	return (INSPECTION_STATUSES as readonly string[]).includes(value);
+}
+export function isRoomType(value: string): value is RoomType {
+	return (ROOM_TYPES as readonly string[]).includes(value);
+}
+export function isConditionRating(value: string): value is ConditionRating {
+	return (CONDITION_RATINGS as readonly string[]).includes(value);
+}
 
 /**
  * Narrows the DB row's `inspection_type` / `status: string` columns to the
@@ -27,20 +63,46 @@ export type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
 export function narrowInspectionEnums<
 	T extends { id: string; inspection_type: string; status: string },
 >(row: T): T & { inspection_type: InspectionType; status: InspectionStatus } {
-	if (!INSPECTION_TYPES.includes(row.inspection_type as InspectionType)) {
+	if (!isInspectionType(row.inspection_type)) {
 		throw new Error(
 			`Unexpected inspection_type "${row.inspection_type}" on inspection ${row.id}`,
 		);
 	}
-	if (!INSPECTION_STATUSES.includes(row.status as InspectionStatus)) {
+	if (!isInspectionStatus(row.status)) {
 		throw new Error(
 			`Unexpected status "${row.status}" on inspection ${row.id}`,
 		);
 	}
 	return {
 		...row,
-		inspection_type: row.inspection_type as InspectionType,
-		status: row.status as InspectionStatus,
+		inspection_type: row.inspection_type,
+		status: row.status,
+	};
+}
+
+/**
+ * Narrows an inspection_rooms row's `room_type` / `condition_rating: string`
+ * columns to their literal unions. Both columns are DB CHECK-constrained, so
+ * reject drift loudly rather than silently passing an out-of-union value to
+ * the UI exhaustiveness switches.
+ */
+export function narrowInspectionRoomEnums<
+	T extends { id: string; room_type: string; condition_rating: string },
+>(room: T): T & { room_type: RoomType; condition_rating: ConditionRating } {
+	if (!isRoomType(room.room_type)) {
+		throw new Error(
+			`Unexpected room_type "${room.room_type}" on inspection room ${room.id}`,
+		);
+	}
+	if (!isConditionRating(room.condition_rating)) {
+		throw new Error(
+			`Unexpected condition_rating "${room.condition_rating}" on inspection room ${room.id}`,
+		);
+	}
+	return {
+		...room,
+		room_type: room.room_type,
+		condition_rating: room.condition_rating,
 	};
 }
 
@@ -62,8 +124,8 @@ export interface InspectionRoom {
 	id: string;
 	inspection_id: string;
 	room_name: string;
-	room_type: string;
-	condition_rating: string;
+	room_type: RoomType;
+	condition_rating: ConditionRating;
 	notes: string | null;
 	created_at: string;
 	updated_at: string;
@@ -97,7 +159,7 @@ export interface InspectionListItem {
 	lease_id: string;
 	property_id: string;
 	inspection_type: InspectionType;
-	status: string;
+	status: InspectionStatus;
 	scheduled_date: string | null;
 	completed_at: string | null;
 	created_at: string;
