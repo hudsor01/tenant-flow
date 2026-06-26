@@ -1,6 +1,5 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -13,6 +12,7 @@ import {
 } from "#hooks/api/use-unit";
 import { useCurrentUser } from "#hooks/use-current-user";
 import { ERROR_MESSAGES } from "#lib/constants/error-messages";
+import { useAppForm } from "#lib/forms/form-hook";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import {
 	handleConflictError,
@@ -20,6 +20,7 @@ import {
 } from "#lib/utils/optimistic-locking";
 import type { Unit } from "#types/core";
 import { UnitFormFields } from "./unit-form-fields";
+import { unitFormOptions } from "./unit-form-options";
 
 interface UnitFormProps {
 	mode: "create" | "edit";
@@ -68,7 +69,8 @@ export function UnitForm({
 		}
 	}, [mode, unit, unit?.id, queryClient]);
 
-	const form = useForm({
+	const form = useAppForm({
+		...unitFormOptions,
 		defaultValues: {
 			property_id: unit?.property_id ?? "",
 			unit_number: unit?.unit_number ?? "",
