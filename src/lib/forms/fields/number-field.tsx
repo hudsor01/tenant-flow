@@ -29,7 +29,13 @@ export function NumberField({ label, id, ...inputProps }: NumberFieldProps) {
 				value={field.state.value ?? ""}
 				onChange={(event) => {
 					const raw = event.target.value;
-					field.handleChange(raw === "" ? null : Number.parseFloat(raw));
+					// `<input type="number">` sanitizes invalid/partial input to "",
+					// so parseFloat only sees "" or a valid float; guard NaN anyway so
+					// the field never holds NaN if the input type ever changes.
+					const parsed = Number.parseFloat(raw);
+					field.handleChange(
+						raw === "" || Number.isNaN(parsed) ? null : parsed,
+					);
 				}}
 				onBlur={field.handleBlur}
 				{...inputProps}

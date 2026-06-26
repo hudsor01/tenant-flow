@@ -32,7 +32,7 @@ export function SwitchField({
 				id={fieldId}
 				checked={field.state.value}
 				onCheckedChange={(checked) => field.handleChange(checked)}
-				disabled={disabled}
+				disabled={disabled ?? false}
 			/>
 			{description ? <FieldDescription>{description}</FieldDescription> : null}
 			<FieldError errors={field.state.meta.errors} />

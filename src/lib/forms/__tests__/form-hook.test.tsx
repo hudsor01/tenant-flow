@@ -57,6 +57,25 @@ function Harness() {
 	);
 }
 
+function ValidatedHarness() {
+	const form = useAppForm({ defaultValues: { name: "" } });
+	return (
+		<form aria-label="validated">
+			<form.AppField
+				name="name"
+				validators={{
+					onChange: ({ value }) => (value.length < 2 ? "Too short" : undefined),
+				}}
+			>
+				{(field) => <field.TextField label="Name" />}
+			</form.AppField>
+			<form.AppForm>
+				<form.SubmitButton label="Save" />
+			</form.AppForm>
+		</form>
+	);
+}
+
 describe("shared form field components", () => {
 	it("renders every registered field component plus the submit button", () => {
 		render(<Harness />);
@@ -95,5 +114,33 @@ describe("shared form field components", () => {
 		expect(toggle).toHaveAttribute("aria-checked", "false");
 		await user.click(toggle);
 		expect(toggle).toHaveAttribute("aria-checked", "true");
+	});
+
+	it("forwards the selected option to the field (SelectField)", async () => {
+		const user = userEvent.setup();
+		render(<Harness />);
+		const select = screen.getByRole("combobox", { name: "Color" });
+		expect(select).toHaveTextContent("Red");
+		await user.click(select);
+		await user.click(await screen.findByRole("option", { name: "Blue" }));
+		expect(select).toHaveTextContent("Blue");
+	});
+
+	it("renders a field validation error through FieldError", async () => {
+		const user = userEvent.setup();
+		render(<ValidatedHarness />);
+		await user.type(screen.getByLabelText("Name"), "a");
+		expect(await screen.findByRole("alert")).toHaveTextContent("Too short");
+	});
+
+	it("disables the submit button while the form cannot submit", async () => {
+		const user = userEvent.setup();
+		render(<ValidatedHarness />);
+		const submit = screen.getByRole("button", { name: "Save" });
+		const name = screen.getByLabelText("Name");
+		await user.type(name, "a");
+		expect(submit).toBeDisabled();
+		await user.type(name, "bc");
+		expect(submit).toBeEnabled();
 	});
 });

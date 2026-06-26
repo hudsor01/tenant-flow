@@ -26,6 +26,16 @@ import { fieldContext, formContext } from "./form-contexts";
  *
  * Define each form's options once with `formOptions({ defaultValues, validators })`
  * from `@tanstack/react-form` and spread into both `useAppForm` and `withForm`.
+ *
+ * CAVEAT — field component ↔ field value type: each field component asserts the
+ * value type it binds (`useFieldContext<string>()`, `<number | null>()`,
+ * `<boolean>()`). TanStack's `fieldComponents` registry does NOT cross-check that
+ * assertion against the field's real type, so mounting e.g. `<field.NumberField>`
+ * on a `string` field compiles clean and silently writes the wrong type.
+ * Convention: mount each field component only on a field of its asserted value
+ * type — TextField / SelectField / IconInputField / DateField → `string`,
+ * NumberField → `number | null`, SwitchField → `boolean` — and let each form's
+ * own tests pin the binding.
  */
 export const { useAppForm, withForm, withFieldGroup } = createFormHook({
 	fieldContext,
