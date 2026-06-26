@@ -1,6 +1,5 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
@@ -12,8 +11,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#components/ui/dialog";
+import { useAppForm } from "#lib/forms/form-hook";
 import { createClient } from "#lib/supabase/client";
-import { signupFormSchema } from "#lib/validation/auth";
+import { subscribeFormOptions } from "./owner-subscribe-form-options";
 import { SubscribeFormFields } from "./owner-subscribe-plan-selector";
 
 interface OwnerSubscribeDialogProps {
@@ -38,13 +38,8 @@ export function OwnerSubscribeDialog({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const supabase = createClient();
 
-	const form = useForm({
-		defaultValues: {
-			first_name: "",
-			last_name: "",
-			email: "",
-			password: "",
-		},
+	const form = useAppForm({
+		...subscribeFormOptions,
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true);
 			try {
@@ -97,7 +92,6 @@ export function OwnerSubscribeDialog({
 				setIsSubmitting(false);
 			}
 		},
-		validators: { onSubmit: signupFormSchema },
 	});
 
 	const handleCancel = () => {
