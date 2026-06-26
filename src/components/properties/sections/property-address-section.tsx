@@ -65,7 +65,9 @@ export const PropertyAddressSection = withForm({
 									}
 									onBlur={field.handleBlur}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								{field.state.meta.isTouched ? (
+									<FieldError errors={field.state.meta.errors} />
+								) : null}
 							</Field>
 						)}
 					</form.AppField>

@@ -35,7 +35,9 @@ export function SwitchField({
 				disabled={disabled ?? false}
 			/>
 			{description ? <FieldDescription>{description}</FieldDescription> : null}
-			<FieldError errors={field.state.meta.errors} />
+			<FieldError
+				errors={field.state.meta.isTouched ? field.state.meta.errors : []}
+			/>
 		</Field>
 	);
 }
