@@ -30,7 +30,9 @@ export function TextField({ label, id, ...inputProps }: TextFieldProps) {
 				onBlur={field.handleBlur}
 				{...inputProps}
 			/>
-			<FieldError errors={field.state.meta.errors} />
+			<FieldError
+				errors={field.state.meta.isTouched ? field.state.meta.errors : []}
+			/>
 		</Field>
 	);
 }

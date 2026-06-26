@@ -1,11 +1,9 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { useSupabaseUser } from "#hooks/api/use-auth";
 import {
@@ -14,13 +12,14 @@ import {
 } from "#hooks/api/use-property-mutations";
 import { useCurrentUser } from "#hooks/use-current-user";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
-import { propertyFormSchema } from "#lib/validation/properties";
 import type { Property, PropertyType } from "#types/core";
 import { AcquisitionDetailsSection } from "./property-form-fields";
+import { propertyFormOptions } from "./property-form-options";
 import { PropertyFormSuccessState } from "./property-form-success-state";
 import { uploadPropertyImages } from "./property-form-upload";
 import { PropertyAddressSection } from "./sections/property-address-section";
@@ -78,15 +77,6 @@ export function PropertyForm({
 			setFilesWithStatus,
 		});
 
-	const validationSchema = propertyFormSchema.pick({
-		name: true,
-		property_type: true,
-		address_line1: true,
-		city: true,
-		state: true,
-		postal_code: true,
-	});
-
 	useEffect(() => {
 		if (mode === "edit" && property) {
 			queryClient.setQueryData(
@@ -106,7 +96,8 @@ export function PropertyForm({
 		};
 	}, []);
 
-	const form = useForm({
+	const form = useAppForm({
+		...propertyFormOptions,
 		defaultValues: {
 			name: property?.name ?? "",
 			property_type: (property?.property_type ??
@@ -137,22 +128,6 @@ export function PropertyForm({
 					`${mode === "create" ? "Create" : "Update"} property`,
 				);
 			}
-		},
-		validators: {
-			onBlur: ({ value }) => {
-				const result = validationSchema.safeParse(value);
-				if (!result.success) {
-					return z.treeifyError(result.error);
-				}
-				return undefined;
-			},
-			onSubmitAsync: ({ value }) => {
-				const result = validationSchema.safeParse(value);
-				if (!result.success) {
-					return z.treeifyError(result.error);
-				}
-				return undefined;
-			},
 		},
 	});
 

@@ -1,78 +1,44 @@
 "use client";
 
-import { type ChangeEvent } from "react";
-import { Field, FieldError, FieldLabel } from "#components/ui/field";
-import { Input } from "#components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
-import type { PropertyType } from "#types/core";
-import type { PropertyFormApi } from "../property-form-types";
+import { withForm } from "#lib/forms/form-hook";
+import { propertyFormOptions } from "../property-form-options";
 
-interface PropertyInfoSectionProps {
-	form: PropertyFormApi;
-}
+const PROPERTY_TYPE_OPTIONS = [
+	{ value: "SINGLE_FAMILY", label: "Single Family" },
+	{ value: "MULTI_UNIT", label: "Multi Family" },
+	{ value: "APARTMENT", label: "Apartment" },
+	{ value: "COMMERCIAL", label: "Commercial" },
+	{ value: "CONDO", label: "Condo" },
+	{ value: "TOWNHOUSE", label: "Townhouse" },
+	{ value: "OTHER", label: "Other" },
+];
 
-export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
-	return (
-		<>
-			<form.Field name="name">
-				{(field) => (
-					<Field>
-						<FieldLabel htmlFor="name">Property Name *</FieldLabel>
-						<Input
-							id="name"
-							name="name"
+export const PropertyInfoSection = withForm({
+	...propertyFormOptions,
+	render: function PropertyInfoSection({ form }) {
+		return (
+			<>
+				<form.AppField name="name">
+					{(field) => (
+						<field.TextField
+							label="Property Name *"
 							autoComplete="organization"
 							autoFocus
 							placeholder="e.g. Sunset Apartments"
-							value={field.state.value}
-							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								field.handleChange(e.target.value)
-							}
-							onBlur={field.handleBlur}
 						/>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
-					</Field>
-				)}
-			</form.Field>
+					)}
+				</form.AppField>
 
-			<form.Field name="property_type">
-				{(field) => (
-					<Field>
-						<FieldLabel htmlFor="property_type">Property Type *</FieldLabel>
-						{/* Session 11 P2 #19: dropped redundant <input type="hidden">.
-						    Submission goes through form.handleSubmit() (TanStack
-						    Form holds the value); the hidden input duplicated
-						    the field in the DOM with no consumer. */}
-						<Select
-							value={field.state.value}
-							onValueChange={(value: string) =>
-								field.handleChange(value as PropertyType)
-							}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select property type" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
-								<SelectItem value="MULTI_UNIT">Multi Family</SelectItem>
-								<SelectItem value="APARTMENT">Apartment</SelectItem>
-								<SelectItem value="COMMERCIAL">Commercial</SelectItem>
-								<SelectItem value="CONDO">Condo</SelectItem>
-								<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-								<SelectItem value="OTHER">Other</SelectItem>
-							</SelectContent>
-						</Select>
-					</Field>
-				)}
-			</form.Field>
-		</>
-	);
-}
+				<form.AppField name="property_type">
+					{(field) => (
+						<field.SelectField
+							label="Property Type *"
+							placeholder="Select property type"
+							options={PROPERTY_TYPE_OPTIONS}
+						/>
+					)}
+				</form.AppField>
+			</>
+		);
+	},
+});

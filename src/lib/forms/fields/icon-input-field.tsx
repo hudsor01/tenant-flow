@@ -46,7 +46,9 @@ export function IconInputField({
 					{...inputProps}
 				/>
 			</InputGroup>
-			<FieldError errors={field.state.meta.errors} />
+			<FieldError
+				errors={field.state.meta.isTouched ? field.state.meta.errors : []}
+			/>
 		</Field>
 	);
 }

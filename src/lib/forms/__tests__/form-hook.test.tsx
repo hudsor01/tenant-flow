@@ -5,6 +5,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Mail } from "lucide-react";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { useAppForm } from "#lib/forms/form-hook";
 
 function Harness() {
@@ -76,6 +77,22 @@ function ValidatedHarness() {
 	);
 }
 
+// Invalid on mount but never interacted — used to prove error display is gated
+// on `isTouched` (the field has an error in state, but it must not render).
+function MountInvalidHarness() {
+	const form = useAppForm({
+		defaultValues: { name: "" },
+		validators: { onMount: z.object({ name: z.string().min(2, "Too short") }) },
+	});
+	return (
+		<form aria-label="mount-invalid">
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Name" />}
+			</form.AppField>
+		</form>
+	);
+}
+
 describe("shared form field components", () => {
 	it("renders every registered field component plus the submit button", () => {
 		render(<Harness />);
@@ -126,11 +143,20 @@ describe("shared form field components", () => {
 		expect(select).toHaveTextContent("Blue");
 	});
 
-	it("renders a field validation error through FieldError", async () => {
+	it("renders a field validation error through FieldError once touched", async () => {
 		const user = userEvent.setup();
 		render(<ValidatedHarness />);
 		await user.type(screen.getByLabelText("Name"), "a");
+		// Errors are gated on `isTouched` — blur the field to surface it.
+		await user.tab();
 		expect(await screen.findByRole("alert")).toHaveTextContent("Too short");
+	});
+
+	it("hides errors on an untouched field (gated on isTouched)", () => {
+		// Field is invalid on mount but never interacted — the error exists in
+		// state yet must not render until the field is touched.
+		render(<MountInvalidHarness />);
+		expect(screen.queryByRole("alert")).toBeNull();
 	});
 
 	it("disables the submit button while the form cannot submit", async () => {

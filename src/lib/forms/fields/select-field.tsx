@@ -54,7 +54,9 @@ export function SelectField({
 					))}
 				</SelectContent>
 			</Select>
-			<FieldError errors={field.state.meta.errors} />
+			<FieldError
+				errors={field.state.meta.isTouched ? field.state.meta.errors : []}
+			/>
 		</Field>
 	);
 }

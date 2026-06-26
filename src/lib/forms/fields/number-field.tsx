@@ -40,7 +40,9 @@ export function NumberField({ label, id, ...inputProps }: NumberFieldProps) {
 				onBlur={field.handleBlur}
 				{...inputProps}
 			/>
-			<FieldError errors={field.state.meta.errors} />
+			<FieldError
+				errors={field.state.meta.isTouched ? field.state.meta.errors : []}
+			/>
 		</Field>
 	);
 }
