@@ -1,6 +1,5 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,10 +7,12 @@ import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import type { TenantCreate } from "#lib/validation/tenants";
 import type { Property, Unit } from "#types/core";
+import { addTenantFormOptions } from "./add-tenant-form-options";
 import { AddTenantInfoFields } from "./add-tenant-info-fields";
 import { AddTenantPropertyFields } from "./add-tenant-property-fields";
 
@@ -48,15 +49,8 @@ export function AddTenantForm({
 	const createTenant = useCreateTenantMutation();
 	const isSubmitting = createTenant.isPending;
 
-	const form = useForm({
-		defaultValues: {
-			email: "",
-			first_name: "",
-			last_name: "",
-			phone: "",
-			property_id: "",
-			unit_id: "",
-		},
+	const form = useAppForm({
+		...addTenantFormOptions,
 		onSubmit: async ({ value }) => {
 			try {
 				// Landlord-managed tenant record — contact info lives on the tenants row.

@@ -2,7 +2,12 @@
 
 import type { LucideIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+} from "#components/ui/field";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -16,6 +21,7 @@ type IconInputFieldProps = Omit<
 > & {
 	label: string;
 	icon: LucideIcon;
+	description?: string;
 };
 
 /**
@@ -25,6 +31,7 @@ type IconInputFieldProps = Omit<
 export function IconInputField({
 	label,
 	icon: Icon,
+	description,
 	id,
 	...inputProps
 }: IconInputFieldProps) {
@@ -46,6 +53,7 @@ export function IconInputField({
 					{...inputProps}
 				/>
 			</InputGroup>
+			{description ? <FieldDescription>{description}</FieldDescription> : null}
 			<FieldError
 				errors={field.state.meta.isTouched ? field.state.meta.errors : []}
 			/>
