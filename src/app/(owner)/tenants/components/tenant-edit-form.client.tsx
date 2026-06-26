@@ -1,35 +1,46 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, Save, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#components/ui/input-group";
+import { InputGroup, InputGroupInput } from "#components/ui/input-group";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useUpdateTenantMutation } from "#hooks/api/use-tenant-mutations";
+import { useAppForm } from "#lib/forms/form-hook";
 import { handleMutationError } from "#lib/mutation-error-handler";
-import { tenantUpdateSchema } from "#lib/validation/tenants";
+import { tenantInputSchema } from "#lib/validation/tenants";
 
 export interface TenantEditFormProps {
 	id: string;
 }
+
+/**
+ * Validates the 3 emergency-contact fields on change. Form-level (like the
+ * form it replaces) so any change re-validates the whole form's `canSubmit` —
+ * matching the prior `tenantUpdateSchema` gate. `.required()` lifts the
+ * `tenantInputSchema` `.optional()` fields to the form's always-present string
+ * shape; passed directly as a Standard Schema (no safeParse / treeifyError),
+ * which — unlike the old treeify path — actually surfaces per-field errors.
+ */
+const emergencyContactSchema = tenantInputSchema
+	.pick({
+		emergency_contact_name: true,
+		emergency_contact_phone: true,
+		emergency_contact_relationship: true,
+	})
+	.required();
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
 	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id));
 	const router = useRouter();
 	const updateMutation = useUpdateTenantMutation();
 
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			emergency_contact_name: tenant?.emergency_contact_name || "",
 			emergency_contact_phone: tenant?.emergency_contact_phone || "",
@@ -50,15 +61,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 				handleMutationError(error, "Update tenant");
 			}
 		},
-		validators: {
-			onChange: ({ value }) => {
-				const result = tenantUpdateSchema.safeParse(value);
-				if (!result.success) {
-					return z.treeifyError(result.error);
-				}
-				return undefined;
-			},
-		},
+		validators: { onChange: emergencyContactSchema },
 	});
 
 	const handleSubmit = (e: FormEvent) => {
@@ -89,65 +92,29 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 			footer={footer}
 		>
 			<form onSubmit={handleSubmit} className="space-y-6">
-				{/* Emergency Contact Name */}
-				<form.Field name="emergency_contact_name">
+				<form.AppField name="emergency_contact_name">
 					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="emergency_contact_name">
-								Emergency Contact Name
-							</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<User className="size-4" />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="emergency_contact_name"
-									value={field.state.value}
-									onChange={(e: ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-									placeholder="John Doe"
-								/>
-							</InputGroup>
-							{field.state.meta.errors?.length > 0 && (
-								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-							)}
-						</Field>
+						<field.IconInputField
+							label="Emergency Contact Name"
+							icon={User}
+							placeholder="John Doe"
+						/>
 					)}
-				</form.Field>
+				</form.AppField>
 
-				{/* Emergency Contact Phone */}
-				<form.Field name="emergency_contact_phone">
+				<form.AppField name="emergency_contact_phone">
 					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="emergency_contact_phone">
-								Emergency Contact Phone
-							</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<Phone className="size-4" />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="emergency_contact_phone"
-									type="tel"
-									value={field.state.value}
-									onChange={(e: ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-									placeholder="(555) 123-4567"
-								/>
-							</InputGroup>
-							{field.state.meta.errors?.length > 0 && (
-								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-							)}
-						</Field>
+						<field.IconInputField
+							label="Emergency Contact Phone"
+							icon={Phone}
+							type="tel"
+							placeholder="(555) 123-4567"
+						/>
 					)}
-				</form.Field>
+				</form.AppField>
 
-				{/* Emergency Contact Relationship */}
-				<form.Field name="emergency_contact_relationship">
+				{/* Relationship has no leading icon — InputGroup kept inline. */}
+				<form.AppField name="emergency_contact_relationship">
 					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="emergency_contact_relationship">
@@ -164,12 +131,12 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 									placeholder="e.g., Mother, Spouse, Friend"
 								/>
 							</InputGroup>
-							{field.state.meta.errors?.length > 0 && (
-								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-							)}
+							{field.state.meta.isTouched ? (
+								<FieldError errors={field.state.meta.errors} />
+							) : null}
 						</Field>
 					)}
-				</form.Field>
+				</form.AppField>
 			</form>
 		</CardLayout>
 	);
