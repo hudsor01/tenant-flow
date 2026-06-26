@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: TanStack Form Composition Migration
-status: planning
+status: executing
 last_updated: "2026-06-25T00:00:00.000Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 20
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-25 — Milestone v7.0 started
+Phase: 20 — Form Foundation (built + verified; PR open for review)
+Plan: shared form-hook + 7 field components + SubmitButton + tests
+Status: Executing — phase 20 shipped to PR; phase 21 next (gated on phase 20 merge)
+Last activity: 2026-06-25 — Phase 20 foundation built: `src/lib/forms/{form-contexts,form-hook,fields/*,form-components/submit-button}`; 4 field-component tests; typecheck + lint + 101,910 unit tests green; zero existing forms touched
 
 ## Roadmap Summary (v7.0)
 
@@ -55,7 +55,7 @@ None.
 
 ## Next Action
 
-Plan Phase 20 (Form Foundation): `/gsd-plan-phase 20`. Build the shared `src/lib/forms/form-hook.tsx` (`createFormHookContexts` + `createFormHook` → `useAppForm`/`withForm`/`withFieldGroup`) + the field-component library (TextField/NumberField/TextareaField/SelectField/SwitchField/IconInputField/DateField) + SubmitButton, wrapping the existing shadcn primitives. Pure addition — no form migrated yet, no behavior change.
+Phase 20 (Form Foundation) is built + verified and open as a PR. On merge, start **Phase 21** (single-section forms: property / subscribe / unit) — migrate each onto `useAppForm`/`withForm` + the shared field components and delete `property-form-types.ts`, `owner-subscribe-form-types.ts`, `unit-form-types.ts`. Phases 21-24 each build on the prior, so they ship sequentially under the perfect-PR gate.
 
 ## Overrides
 
