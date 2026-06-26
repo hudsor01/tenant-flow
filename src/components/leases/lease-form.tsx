@@ -1,11 +1,9 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
 import { Button } from "#components/ui/button";
 import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
@@ -17,36 +15,21 @@ import {
 	useUpdateLeaseMutation,
 } from "#hooks/api/use-lease-mutations";
 import { useCurrentUser } from "#hooks/use-current-user";
+import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { cn } from "#lib/utils";
 import type { LeaseStatus, LeaseWithExtras } from "#types/core";
 import { LeaseFormFinancialFields } from "./lease-form-financial-fields";
+import { leaseFormOptions } from "./lease-form-options";
 import { LeaseFormPropertyUnitFields } from "./lease-form-property-unit-fields";
 import { LeaseFormTenantDateFields } from "./lease-form-tenant-date-fields";
-
-// LeaseFormValues is defined in lease-form-types.ts and used by sub-components
 
 interface LeaseFormProps {
 	mode: "create" | "edit";
 	lease?: LeaseWithExtras;
 	onSuccess?: () => void;
 }
-
-const validationSchema = z.object({
-	unit_id: z.string().min(1, "Unit is required"),
-	primary_tenant_id: z.string().min(1, "Primary tenant is required"),
-	start_date: z.string().min(1, "Start date is required"),
-	end_date: z.string().min(1, "End date is required"),
-	rent_amount: z.number().min(0, "Rent amount must be positive"),
-	security_deposit: z.number().min(0, "Security deposit must be positive"),
-	rent_currency: z.string().min(1, "Currency is required"),
-	payment_day: z
-		.number()
-		.min(1)
-		.max(31, "Payment day must be between 1 and 31"),
-	lease_status: z.string().min(1, "Lease status is required"),
-});
 
 export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const router = useRouter();
@@ -75,7 +58,8 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		}
 	}, [mode, lease, queryClient]);
 
-	const form = useForm({
+	const form = useAppForm({
+		...leaseFormOptions,
 		defaultValues: {
 			unit_id: lease?.unit_id ?? "",
 			primary_tenant_id: lease?.primary_tenant_id ?? "",
@@ -126,22 +110,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					`${mode === "create" ? "Create" : "Update"} lease`,
 				);
 			}
-		},
-		validators: {
-			onBlur: ({ value }) => {
-				const result = validationSchema.safeParse(value);
-				if (!result.success) {
-					return z.treeifyError(result.error);
-				}
-				return undefined;
-			},
-			onSubmitAsync: ({ value }) => {
-				const result = validationSchema.safeParse(value);
-				if (!result.success) {
-					return z.treeifyError(result.error);
-				}
-				return undefined;
-			},
 		},
 	});
 
