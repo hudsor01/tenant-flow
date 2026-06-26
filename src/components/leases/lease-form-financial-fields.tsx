@@ -2,148 +2,120 @@
 
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
-import type { LeaseFormApi } from "./lease-form-types";
+import { withForm } from "#lib/forms/form-hook";
+import { leaseFormOptions } from "./lease-form-options";
 
-interface LeaseFormFinancialFieldsProps {
-	form: LeaseFormApi;
-}
+const STATUS_OPTIONS = [
+	{ value: "draft", label: "Draft" },
+	{ value: "active", label: "Active" },
+	{ value: "ended", label: "Ended" },
+	{ value: "terminated", label: "Terminated" },
+];
 
-export function LeaseFormFinancialFields({
-	form,
-}: LeaseFormFinancialFieldsProps) {
-	return (
-		<>
-			{/* Rent Amount and Security Deposit */}
-			<div className="grid gap-4 md:grid-cols-2">
-				<form.Field name="rent_amount">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="rent_amount">Monthly Rent *</FieldLabel>
-							<Input
-								id="rent_amount"
-								type="number"
-								min="0"
-								step="0.01"
-								value={field.state.value}
-								onChange={(e) => {
-									const v = e.target.value;
-									field.handleChange(v === "" ? 0 : parseFloat(v));
-								}}
-							/>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
-					)}
-				</form.Field>
+const CURRENCY_OPTIONS = [
+	{ value: "USD", label: "USD ($)" },
+	{ value: "EUR", label: "EUR (€)" },
+	{ value: "GBP", label: "GBP (£)" },
+	{ value: "CAD", label: "CAD (C$)" },
+];
 
-				<form.Field name="security_deposit">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="security_deposit">
-								Security Deposit *
-							</FieldLabel>
-							<Input
-								id="security_deposit"
-								type="number"
-								min="0"
-								step="0.01"
-								value={field.state.value}
-								onChange={(e) => {
-									const v = e.target.value;
-									field.handleChange(v === "" ? 0 : parseFloat(v));
-								}}
-							/>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
-					)}
-				</form.Field>
-			</div>
-
-			{/* Lease Status */}
-			<form.Field name="lease_status">
-				{(field) => (
-					<Field>
-						<FieldLabel htmlFor="lease_status">Status *</FieldLabel>
-						<Select
-							value={field.state.value}
-							onValueChange={field.handleChange}
-						>
-							<SelectTrigger id="lease_status">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="draft">Draft</SelectItem>
-								<SelectItem value="active">Active</SelectItem>
-								<SelectItem value="ended">Ended</SelectItem>
-								<SelectItem value="terminated">Terminated</SelectItem>
-							</SelectContent>
-						</Select>
-						{field.state.meta.errors.length > 0 && (
-							<FieldError>{field.state.meta.errors[0]}</FieldError>
+export const LeaseFormFinancialFields = withForm({
+	...leaseFormOptions,
+	render: function LeaseFormFinancialFields({ form }) {
+		return (
+			<>
+				{/* Rent Amount and Security Deposit — number fields with non-null
+				    defaults (empty -> 0) kept inline; NumberField is for number|null. */}
+				<div className="grid gap-4 md:grid-cols-2">
+					<form.AppField name="rent_amount">
+						{(field) => (
+							<Field>
+								<FieldLabel htmlFor="rent_amount">Monthly Rent *</FieldLabel>
+								<Input
+									id="rent_amount"
+									type="number"
+									min="0"
+									step="0.01"
+									value={field.state.value}
+									onChange={(event) => {
+										const v = event.target.value;
+										field.handleChange(v === "" ? 0 : Number.parseFloat(v));
+									}}
+									onBlur={field.handleBlur}
+								/>
+								{field.state.meta.isTouched ? (
+									<FieldError errors={field.state.meta.errors} />
+								) : null}
+							</Field>
 						)}
-					</Field>
-				)}
-			</form.Field>
+					</form.AppField>
 
-			{/* Currency and Payment Day */}
-			<div className="grid gap-4 md:grid-cols-2">
-				<form.Field name="rent_currency">
+					<form.AppField name="security_deposit">
+						{(field) => (
+							<Field>
+								<FieldLabel htmlFor="security_deposit">
+									Security Deposit *
+								</FieldLabel>
+								<Input
+									id="security_deposit"
+									type="number"
+									min="0"
+									step="0.01"
+									value={field.state.value}
+									onChange={(event) => {
+										const v = event.target.value;
+										field.handleChange(v === "" ? 0 : Number.parseFloat(v));
+									}}
+									onBlur={field.handleBlur}
+								/>
+								{field.state.meta.isTouched ? (
+									<FieldError errors={field.state.meta.errors} />
+								) : null}
+							</Field>
+						)}
+					</form.AppField>
+				</div>
+
+				<form.AppField name="lease_status">
 					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="rent_currency">Currency *</FieldLabel>
-							<Select
-								value={field.state.value}
-								onValueChange={field.handleChange}
-							>
-								<SelectTrigger id="rent_currency">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="USD">USD ($)</SelectItem>
-									<SelectItem value="EUR">EUR (€)</SelectItem>
-									<SelectItem value="GBP">GBP (£)</SelectItem>
-									<SelectItem value="CAD">CAD (C$)</SelectItem>
-								</SelectContent>
-							</Select>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
+						<field.SelectField label="Status *" options={STATUS_OPTIONS} />
 					)}
-				</form.Field>
+				</form.AppField>
 
-				<form.Field name="payment_day">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="payment_day">Payment Day *</FieldLabel>
-							<Input
-								id="payment_day"
-								type="number"
-								min="1"
-								max="31"
-								value={field.state.value}
-								onChange={(e) => {
-									const v = e.target.value;
-									field.handleChange(v === "" ? 1 : parseInt(v, 10));
-								}}
+				<div className="grid gap-4 md:grid-cols-2">
+					<form.AppField name="rent_currency">
+						{(field) => (
+							<field.SelectField
+								label="Currency *"
+								options={CURRENCY_OPTIONS}
 							/>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
-					)}
-				</form.Field>
-			</div>
-		</>
-	);
-}
+						)}
+					</form.AppField>
+
+					<form.AppField name="payment_day">
+						{(field) => (
+							<Field>
+								<FieldLabel htmlFor="payment_day">Payment Day *</FieldLabel>
+								<Input
+									id="payment_day"
+									type="number"
+									min="1"
+									max="31"
+									value={field.state.value}
+									onChange={(event) => {
+										const v = event.target.value;
+										field.handleChange(v === "" ? 1 : Number.parseInt(v, 10));
+									}}
+									onBlur={field.handleBlur}
+								/>
+								{field.state.meta.isTouched ? (
+									<FieldError errors={field.state.meta.errors} />
+								) : null}
+							</Field>
+						)}
+					</form.AppField>
+				</div>
+			</>
+		);
+	},
+});

@@ -1,0 +1,46 @@
+import { formOptions } from "@tanstack/react-form";
+import { z } from "zod";
+
+/**
+ * Validates the full lease form on blur + submit. Passed as a Standard Schema
+ * directly (no `safeParse` / `z.treeifyError`) — its shape already matches the
+ * form values, so TanStack runs it and maps issues to fields.
+ */
+const validationSchema = z.object({
+	unit_id: z.string().min(1, "Unit is required"),
+	primary_tenant_id: z.string().min(1, "Primary tenant is required"),
+	start_date: z.string().min(1, "Start date is required"),
+	end_date: z.string().min(1, "End date is required"),
+	rent_amount: z.number().min(0, "Rent amount must be positive"),
+	security_deposit: z.number().min(0, "Security deposit must be positive"),
+	rent_currency: z.string().min(1, "Currency is required"),
+	payment_day: z
+		.number()
+		.min(1)
+		.max(31, "Payment day must be between 1 and 31"),
+	lease_status: z.string().min(1, "Lease status is required"),
+});
+
+/**
+ * Shared options for the lease create/edit form — spread into both `useAppForm`
+ * (lease-form) and the section `withForm` components. The static `defaultValues`
+ * fix the value types; `useAppForm` overrides them with the runtime (edit-mode)
+ * values.
+ */
+export const leaseFormOptions = formOptions({
+	defaultValues: {
+		unit_id: "",
+		primary_tenant_id: "",
+		start_date: "",
+		end_date: "",
+		rent_amount: 0,
+		security_deposit: 0,
+		rent_currency: "USD",
+		payment_day: 1,
+		lease_status: "draft",
+	},
+	validators: {
+		onBlur: validationSchema,
+		onSubmit: validationSchema,
+	},
+});
