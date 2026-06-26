@@ -1,17 +1,10 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { DollarSign, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
-import { Field, FieldError, FieldLabel } from "#components/ui/field";
-import { Input } from "#components/ui/input";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#components/ui/input-group";
+import { Field, FieldLabel } from "#components/ui/field";
 import {
 	Select,
 	SelectContent,
@@ -29,6 +22,7 @@ import {
 } from "#components/ui/sheet";
 import { useCreateUnitMutation } from "#hooks/api/use-unit";
 import { useCurrentUser } from "#hooks/use-current-user";
+import { useAppForm } from "#lib/forms/form-hook";
 import { cn } from "#lib/utils";
 
 interface AddUnitPanelProps {
@@ -56,7 +50,7 @@ export function AddUnitPanel({
 	const { isLoading: isAuthLoading } = useCurrentUser();
 	const createUnitMutation = useCreateUnitMutation();
 
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			unit_number: "",
 			bedrooms: "1",
@@ -145,115 +139,72 @@ export function AddUnitPanel({
 					}}
 					className="flex flex-col gap-6 p-4"
 				>
-					{/* Unit Number */}
-					<form.Field name="unit_number">
+					<form.AppField name="unit_number">
 						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="unit_number">
-									Unit Number/Identifier *
-								</FieldLabel>
-								<Input
-									id="unit_number"
-									placeholder="e.g., 101, A1, Suite 200"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-									autoFocus
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
+							<field.TextField
+								label="Unit Number/Identifier *"
+								placeholder="e.g., 101, A1, Suite 200"
+								autoFocus
+							/>
 						)}
-					</form.Field>
+					</form.AppField>
 
-					{/* Bedrooms and Bathrooms */}
 					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="bedrooms">
+						<form.AppField name="bedrooms">
 							{(field) => (
-								<Field>
-									<FieldLabel htmlFor="bedrooms">Bedrooms *</FieldLabel>
-									<Input
-										id="bedrooms"
-										type="number"
-										min="0"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</Field>
+								<field.TextField label="Bedrooms *" type="number" min="0" />
 							)}
-						</form.Field>
+						</form.AppField>
 
-						<form.Field name="bathrooms">
+						<form.AppField name="bathrooms">
 							{(field) => (
-								<Field>
-									<FieldLabel htmlFor="bathrooms">Bathrooms *</FieldLabel>
-									<Input
-										id="bathrooms"
-										type="number"
-										min="0"
-										step="0.5"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</Field>
-							)}
-						</form.Field>
-					</div>
-
-					{/* Square Feet */}
-					<form.Field name="square_feet">
-						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="square_feet">
-									Square Feet (Optional)
-								</FieldLabel>
-								<Input
-									id="square_feet"
+								<field.TextField
+									label="Bathrooms *"
 									type="number"
 									min="0"
-									placeholder="e.g., 850"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
+									step="0.5"
 								/>
-							</Field>
-						)}
-					</form.Field>
+							)}
+						</form.AppField>
+					</div>
 
-					{/* Monthly Rent */}
-					<form.Field name="rent_amount">
+					<form.AppField name="square_feet">
 						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="rent_amount">Monthly Rent *</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon>
-										<DollarSign className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="rent_amount"
-										type="number"
-										min="0"
-										step="0.01"
-										placeholder="0.00"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</InputGroup>
-							</Field>
+							<field.TextField
+								label="Square Feet (Optional)"
+								type="number"
+								min="0"
+								placeholder="e.g., 850"
+							/>
 						)}
-					</form.Field>
+					</form.AppField>
 
-					{/* Initial Status */}
-					<form.Field name="status">
+					<form.AppField name="rent_amount">
+						{(field) => (
+							<field.IconInputField
+								label="Monthly Rent *"
+								icon={DollarSign}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="0.00"
+							/>
+						)}
+					</form.AppField>
+
+					<form.AppField name="status">
 						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="status">Initial Status *</FieldLabel>
 								<Select
 									value={field.state.value}
-									onValueChange={(value) =>
-										field.handleChange(value as "available" | "maintenance")
-									}
+									onValueChange={(value) => {
+										if (value === "available" || value === "maintenance") {
+											field.handleChange(value);
+										}
+									}}
 								>
-									<SelectTrigger>
+									<SelectTrigger id="status">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
@@ -266,7 +217,7 @@ export function AddUnitPanel({
 								</p>
 							</Field>
 						)}
-					</form.Field>
+					</form.AppField>
 
 					<SheetFooter className="mt-4 p-0">
 						<Button
