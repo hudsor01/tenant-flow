@@ -3,218 +3,141 @@
 import { DollarSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "#components/ui/button";
-import { Field, FieldError, FieldLabel } from "#components/ui/field";
-import { Input } from "#components/ui/input";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#components/ui/input-group";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
+import { withForm } from "#lib/forms/form-hook";
 import { cn } from "#lib/utils";
-import type { UnitFormApi } from "./unit-form-types";
+import { unitFormOptions } from "./unit-form-options";
 
 interface Property {
 	id: string;
 	name: string;
 }
 
-interface UnitFormFieldsProps {
-	form: UnitFormApi;
-	properties: Property[] | undefined;
-	mode: "create" | "edit";
-	isSubmitting: boolean;
-	isAuthLoading?: boolean;
-}
+const STATUS_OPTIONS = [
+	{ value: "available", label: "Vacant" },
+	{ value: "occupied", label: "Occupied" },
+	{ value: "maintenance", label: "Maintenance" },
+	{ value: "reserved", label: "Reserved" },
+];
 
-export function UnitFormFields({
-	form,
-	properties,
-	mode,
-	isSubmitting,
-	isAuthLoading,
-}: UnitFormFieldsProps) {
-	const router = useRouter();
+export const UnitFormFields = withForm({
+	...unitFormOptions,
+	props: {
+		properties: undefined as Property[] | undefined,
+		mode: "create" as "create" | "edit",
+		isSubmitting: false,
+		isAuthLoading: false,
+	},
+	render: function UnitFormFields({
+		form,
+		properties,
+		mode,
+		isSubmitting,
+		isAuthLoading,
+	}) {
+		const router = useRouter();
+		const propertyOptions =
+			properties?.map((property) => ({
+				value: property.id,
+				label: property.name,
+			})) ?? [];
+		return (
+			<>
+				<div className="grid gap-4 md:grid-cols-2">
+					<form.AppField name="property_id">
+						{(field) => (
+							<field.SelectField
+								label="Property *"
+								placeholder="Select a property"
+								options={propertyOptions}
+							/>
+						)}
+					</form.AppField>
 
-	return (
-		<>
-			<div className="grid gap-4 md:grid-cols-2">
-				<form.Field name="property_id">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="property_id">Property *</FieldLabel>
-							<Select
-								value={field.state.value}
-								onValueChange={field.handleChange}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="Select a property" />
-								</SelectTrigger>
-								<SelectContent>
-									{properties?.map((property) => (
-										<SelectItem key={property.id} value={property.id}>
-											{property.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
-					)}
-				</form.Field>
-
-				<form.Field name="unit_number">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="unit_number">Unit Number *</FieldLabel>
-							<Input
-								id="unit_number"
+					<form.AppField name="unit_number">
+						{(field) => (
+							<field.TextField
+								label="Unit Number *"
 								placeholder="e.g., 101, A1"
-								value={field.state.value}
-								onChange={(e) => field.handleChange(e.target.value)}
 							/>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
-					)}
-				</form.Field>
-			</div>
+						)}
+					</form.AppField>
+				</div>
 
-			<div className="grid gap-4 md:grid-cols-3">
-				<form.Field name="bedrooms">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="bedrooms">Bedrooms *</FieldLabel>
-							<Input
-								id="bedrooms"
-								type="number"
-								min="0"
-								value={field.state.value}
-								onChange={(e) => field.handleChange(e.target.value)}
-							/>
-						</Field>
-					)}
-				</form.Field>
+				<div className="grid gap-4 md:grid-cols-3">
+					<form.AppField name="bedrooms">
+						{(field) => (
+							<field.TextField label="Bedrooms *" type="number" min="0" />
+						)}
+					</form.AppField>
 
-				<form.Field name="bathrooms">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="bathrooms">Bathrooms *</FieldLabel>
-							<Input
-								id="bathrooms"
+					<form.AppField name="bathrooms">
+						{(field) => (
+							<field.TextField
+								label="Bathrooms *"
 								type="number"
 								min="0"
 								step="0.5"
-								value={field.state.value}
-								onChange={(e) => field.handleChange(e.target.value)}
 							/>
-						</Field>
-					)}
-				</form.Field>
+						)}
+					</form.AppField>
 
-				<form.Field name="square_feet">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="square_feet">Square Feet</FieldLabel>
-							<Input
-								id="square_feet"
+					<form.AppField name="square_feet">
+						{(field) => (
+							<field.TextField
+								label="Square Feet"
 								type="number"
 								min="0"
 								placeholder="Optional"
-								value={field.state.value}
-								onChange={(e) => field.handleChange(e.target.value)}
 							/>
-						</Field>
-					)}
-				</form.Field>
-			</div>
+						)}
+					</form.AppField>
+				</div>
 
-			<div className="grid gap-4 md:grid-cols-2">
-				<form.Field name="rent_amount">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="rent">Monthly Rent *</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon>
-									<DollarSign className="size-4" />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="rent"
-									type="number"
-									min="0"
-									step="0.01"
-									placeholder="0.00"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-							</InputGroup>
-						</Field>
-					)}
-				</form.Field>
+				<div className="grid gap-4 md:grid-cols-2">
+					<form.AppField name="rent_amount">
+						{(field) => (
+							<field.IconInputField
+								label="Monthly Rent *"
+								icon={DollarSign}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="0.00"
+							/>
+						)}
+					</form.AppField>
 
-				<form.Field name="status">
-					{(field) => (
-						<Field>
-							<FieldLabel htmlFor="status">Status *</FieldLabel>
-							<Select
-								value={field.state.value}
-								onValueChange={(value) => {
-									field.handleChange(
-										value as
-											| "available"
-											| "occupied"
-											| "maintenance"
-											| "reserved",
-									);
-								}}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="available">Vacant</SelectItem>
-									<SelectItem value="occupied">Occupied</SelectItem>
-									<SelectItem value="maintenance">Maintenance</SelectItem>
-									<SelectItem value="reserved">Reserved</SelectItem>
-								</SelectContent>
-							</Select>
-						</Field>
-					)}
-				</form.Field>
-			</div>
+					<form.AppField name="status">
+						{(field) => (
+							<field.SelectField label="Status *" options={STATUS_OPTIONS} />
+						)}
+					</form.AppField>
+				</div>
 
-			<div className="flex justify-end gap-3">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => router.back()}
-					disabled={isSubmitting}
-				>
-					Cancel
-				</Button>
-				<Button
-					type="submit"
-					disabled={isSubmitting || isAuthLoading}
-					className={cn(isAuthLoading && "animate-pulse")}
-				>
-					{isSubmitting
-						? mode === "create"
-							? "Creating..."
-							: "Saving..."
-						: mode === "create"
-							? "Create Unit"
-							: "Save Changes"}
-				</Button>
-			</div>
-		</>
-	);
-}
+				<div className="flex justify-end gap-3">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => router.back()}
+						disabled={isSubmitting}
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						disabled={isSubmitting || isAuthLoading}
+						className={cn(isAuthLoading && "animate-pulse")}
+					>
+						{isSubmitting
+							? mode === "create"
+								? "Creating..."
+								: "Saving..."
+							: mode === "create"
+								? "Create Unit"
+								: "Save Changes"}
+					</Button>
+				</div>
+			</>
+		);
+	},
+});

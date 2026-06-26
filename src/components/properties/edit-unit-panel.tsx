@@ -1,24 +1,9 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
 import { DollarSign, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
-import { Field, FieldError, FieldLabel } from "#components/ui/field";
-import { Input } from "#components/ui/input";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "#components/ui/input-group";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
 import {
 	Sheet,
 	SheetContent,
@@ -28,6 +13,7 @@ import {
 	SheetTitle,
 } from "#components/ui/sheet";
 import { useUpdateUnitMutation } from "#hooks/api/use-unit";
+import { useAppForm } from "#lib/forms/form-hook";
 import type { Unit } from "#types/core";
 
 interface EditUnitPanelProps {
@@ -37,6 +23,13 @@ interface EditUnitPanelProps {
 	onOpenChange: (open: boolean) => void;
 	onSuccess?: () => void;
 }
+
+const STATUS_OPTIONS = [
+	{ value: "available", label: "Vacant" },
+	{ value: "occupied", label: "Occupied" },
+	{ value: "maintenance", label: "Maintenance" },
+	{ value: "reserved", label: "Reserved" },
+];
 
 export function EditUnitPanel({
 	unit,
@@ -48,7 +41,7 @@ export function EditUnitPanel({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const updateUnitMutation = useUpdateUnitMutation();
 
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			unit_number: unit.unit_number ?? "",
 			bedrooms: unit.bedrooms?.toString() ?? "1",
@@ -149,129 +142,63 @@ export function EditUnitPanel({
 					}}
 					className="flex flex-col gap-6 p-4"
 				>
-					<form.Field name="unit_number">
+					<form.AppField name="unit_number">
 						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="edit_unit_number">
-									Unit Number/Identifier *
-								</FieldLabel>
-								<Input
-									id="edit_unit_number"
-									placeholder="e.g., 101, A1, Suite 200"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
+							<field.TextField
+								label="Unit Number/Identifier *"
+								placeholder="e.g., 101, A1, Suite 200"
+							/>
 						)}
-					</form.Field>
+					</form.AppField>
 
 					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="bedrooms">
+						<form.AppField name="bedrooms">
 							{(field) => (
-								<Field>
-									<FieldLabel htmlFor="edit_bedrooms">Bedrooms *</FieldLabel>
-									<Input
-										id="edit_bedrooms"
-										type="number"
-										min="0"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</Field>
+								<field.TextField label="Bedrooms *" type="number" min="0" />
 							)}
-						</form.Field>
+						</form.AppField>
 
-						<form.Field name="bathrooms">
+						<form.AppField name="bathrooms">
 							{(field) => (
-								<Field>
-									<FieldLabel htmlFor="edit_bathrooms">Bathrooms *</FieldLabel>
-									<Input
-										id="edit_bathrooms"
-										type="number"
-										min="0"
-										step="0.5"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</Field>
-							)}
-						</form.Field>
-					</div>
-
-					<form.Field name="square_feet">
-						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="edit_square_feet">
-									Square Feet (Optional)
-								</FieldLabel>
-								<Input
-									id="edit_square_feet"
+								<field.TextField
+									label="Bathrooms *"
 									type="number"
 									min="0"
-									placeholder="e.g., 850"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
+									step="0.5"
 								/>
-							</Field>
-						)}
-					</form.Field>
+							)}
+						</form.AppField>
+					</div>
 
-					<form.Field name="rent_amount">
+					<form.AppField name="square_feet">
 						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="edit_rent_amount">
-									Monthly Rent *
-								</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon>
-										<DollarSign className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="edit_rent_amount"
-										type="number"
-										min="0"
-										step="0.01"
-										placeholder="0.00"
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-									/>
-								</InputGroup>
-							</Field>
+							<field.TextField
+								label="Square Feet (Optional)"
+								type="number"
+								min="0"
+								placeholder="e.g., 850"
+							/>
 						)}
-					</form.Field>
+					</form.AppField>
 
-					<form.Field name="status">
+					<form.AppField name="rent_amount">
 						{(field) => (
-							<Field>
-								<FieldLabel htmlFor="edit_status">Status *</FieldLabel>
-								<Select
-									value={field.state.value}
-									onValueChange={(value) =>
-										field.handleChange(
-											value as
-												| "available"
-												| "occupied"
-												| "maintenance"
-												| "reserved",
-										)
-									}
-								>
-									<SelectTrigger>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="available">Vacant</SelectItem>
-										<SelectItem value="occupied">Occupied</SelectItem>
-										<SelectItem value="maintenance">Maintenance</SelectItem>
-										<SelectItem value="reserved">Reserved</SelectItem>
-									</SelectContent>
-								</Select>
-							</Field>
+							<field.IconInputField
+								label="Monthly Rent *"
+								icon={DollarSign}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="0.00"
+							/>
 						)}
-					</form.Field>
+					</form.AppField>
+
+					<form.AppField name="status">
+						{(field) => (
+							<field.SelectField label="Status *" options={STATUS_OPTIONS} />
+						)}
+					</form.AppField>
 
 					<SheetFooter className="mt-4 p-0">
 						<Button
