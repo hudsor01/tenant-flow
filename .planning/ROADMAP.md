@@ -25,7 +25,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 25 | Critical: Corruption & Broken Deletes | Stop 100× money corruption on lease create + the document template; restore unit + lease delete | CRIT-01, CRIT-02, CRIT-03, CRIT-04 | 4 |
+| 25 | Critical: Corruption & Broken Deletes | 5/5 | Complete   | 2026-07-02 |
 | 26 | Lease Domain Correctness | Leases list/renew/sign/status/pagination show and persist correct data | LEASE-01..08 | 5 |
 | 27 | Maintenance & Inspections | Kanban drag/search, list actions/delete/pagination, inspection photos + upload | MAINT-01..08, INSP-01, INSP-02 | 5 |
 | 28 | Tenant Domain | Real deletes, correct lease navigation, status persistence, current-lease selection | TEN-01..06 | 4 |
@@ -48,12 +48,12 @@ Requirements: CRIT-01, CRIT-02, CRIT-03, CRIT-04
 3. Deleting a unit and deleting a lease both succeed (verified against the live `units_status_check` / `leases_lease_status_check`) and the row disappears from its list
 4. `tsc` + `lint` + unit suite green; two consecutive zero-finding review cycles
 
-**Plans:** 5 plans
-- [ ] 25-01-PLAN.md — CRIT-01: lease wizard money → dollars end-to-end
-- [ ] 25-02-PLAN.md — CRIT-02: lease-template formatter → face value (keep cents)
-- [ ] 25-03-PLAN.md — CRIT-03: unit soft-delete migration + unit filter audit
-- [ ] 25-04-PLAN.md — CRIT-04: lease soft-delete migration + lease filter audit
-- [ ] 25-05-PLAN.md — Phase verification (all four flows end-to-end)
+**Plans:** 5/5 plans complete
+- [x] 25-01-PLAN.md — CRIT-01: lease wizard money → dollars end-to-end
+- [x] 25-02-PLAN.md — CRIT-02: lease-template formatter → face value (keep cents)
+- [x] 25-03-PLAN.md — CRIT-03: unit soft-delete migration + unit filter audit
+- [x] 25-04-PLAN.md — CRIT-04: lease soft-delete migration + lease filter audit
+- [x] 25-05-PLAN.md — Phase verification (all four flows end-to-end)
 
 ### Phase 26: Lease Domain Correctness
 **Goal:** Make the leases surface trustworthy — the list table shows real tenant/property/unit and search works, UI-created leases write the `lease_tenants` join row, renew applies the rent change, terms lock after signing, the status select is complete, pagination reaches all leases, and the signed-PDF money format matches the app.

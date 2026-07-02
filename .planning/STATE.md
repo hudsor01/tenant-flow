@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Correctness Restoration
-status: planning
-last_updated: "2026-07-02T20:27:19.776Z"
-last_activity: 2026-07-02
+status: executing
+last_updated: "2026-07-02T21:15:46.837Z"
+last_activity: 2026-07-02 -- Phase 25 execution started
 progress:
   total_phases: 11
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v8.0):** Every core operation an owner performs — create a lease, delete a unit, view the leases list, sign a document, pay an invoice, upload a photo, run a report — produces correct data and correct behavior. This milestone eradicates the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 and every cross-owner/DB claim verified against source + the live Supabase DB). Nothing new is built; every requirement restores an existing feature to correct behavior.
-**Current focus:** Milestone defined — REQUIREMENTS (56 reqs) + ROADMAP (11 phases, 25-35) authored. Next: plan Phase 25 (Critical — Corruption & Broken Deletes). v7.0 (form-typing migration, phases 20-24) is paused mid-flight; its plan is archived.
+**Current focus:** Phase 25 — critical-corruption-broken-deletes
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-02 — Milestone v8.0 started
+Phase: 25 (critical-corruption-broken-deletes) — EXECUTED & VERIFIED
+Plan: 5 of 5 complete
+Status: Phase 25 done (typecheck/lint/101,918 unit tests green; 3 migrations applied to prod + verified live); ready for review + PR
+Last activity: 2026-07-02 -- Phase 25 verified (CRIT-01..04)
 
 ## Roadmap Summary (v8.0)
 
@@ -62,7 +62,7 @@ None.
 
 ## Next Action
 
-Plan **Phase 25** (Critical — Corruption & Broken Deletes): the 3 P0s (lease-wizard 100× money CRIT-01, unit-delete CRIT-03, lease-delete CRIT-04) + the sibling lease-template money bug (CRIT-02). Run `/gsd-discuss-phase 25` or `/gsd-plan-phase 25`. Phases are grouped by domain and each ships as an independent PR under the perfect-PR gate; 25 is the highest-impact (active silent money corruption + two fully-broken delete operations verified against the live DB).
+Phase 25 (CRIT-01..04) is executed + verified on branch `milestone/v8.0-correctness`. Residual: manual UI eyeball of the two money-display flows (`/leases/new` wizard, `/documents/lease-template`) — code + tests already assert correct behavior. Then open the PR (perfect-PR gate: two zero-finding review cycles). Migrations are ALREADY applied to prod (additive CHECK values + RPC filters), so the PR carries the migration files for repo↔prod parity. After merge/review, plan **Phase 26** (Lease Domain Correctness) via `/gsd-plan-phase 26`.
 
 ## Overrides
 
