@@ -1,6 +1,6 @@
 import { formatDate } from "#lib/formatters/date";
 import type { USState } from "#types/lease-generator.types";
-import { formatCurrency } from "../../lib/utils/currency";
+import { formatCents } from "../../lib/utils/currency";
 
 export interface LeaseTemplateClause {
 	id: string;
@@ -156,15 +156,15 @@ const DEFAULT_CONTEXT: LeaseTemplateContext = {
 	propertyAddress: "456 Elm Street, Austin, TX 78701",
 	propertyState: "TX",
 	rent_amountCents: 180000,
-	rent_amountFormatted: formatCurrency(180000),
+	rent_amountFormatted: formatCents(180000),
 	rentDueDay: 1,
 	rentDueDayOrdinal: formatOrdinal(1),
 	security_depositCents: 180000,
-	security_depositFormatted: formatCurrency(180000),
+	security_depositFormatted: formatCents(180000),
 	leasestart_dateISO: new Date().toISOString(),
 	leasestart_dateFormatted: formatDate(new Date().toISOString()),
 	late_fee_amountCents: 5000,
-	late_fee_amountFormatted: formatCurrency(5000),
+	late_fee_amountFormatted: formatCents(5000),
 	gracePeriodDays: 5,
 	formattedDateGenerated: formatDate(new Date().toISOString()),
 };
@@ -603,10 +603,10 @@ export function createDefaultContext(
 	return {
 		...DEFAULT_CONTEXT,
 		...overrides,
-		rent_amountFormatted: formatCurrency(
+		rent_amountFormatted: formatCents(
 			overrides?.rent_amountCents ?? DEFAULT_CONTEXT.rent_amountCents,
 		),
-		security_depositFormatted: formatCurrency(
+		security_depositFormatted: formatCents(
 			overrides?.security_depositCents ?? DEFAULT_CONTEXT.security_depositCents,
 		),
 		rentDueDayOrdinal: formatOrdinal(
@@ -618,7 +618,7 @@ export function createDefaultContext(
 		...(overrides?.leaseEndDateISO
 			? { leaseEndDateFormatted: formatDate(overrides.leaseEndDateISO) }
 			: {}),
-		late_fee_amountFormatted: formatCurrency(
+		late_fee_amountFormatted: formatCents(
 			overrides?.late_fee_amountCents ??
 				DEFAULT_CONTEXT.late_fee_amountCents ??
 				0,
