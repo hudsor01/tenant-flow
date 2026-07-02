@@ -48,6 +48,13 @@ Requirements: CRIT-01, CRIT-02, CRIT-03, CRIT-04
 3. Deleting a unit and deleting a lease both succeed (verified against the live `units_status_check` / `leases_lease_status_check`) and the row disappears from its list
 4. `tsc` + `lint` + unit suite green; two consecutive zero-finding review cycles
 
+**Plans:** 5 plans
+- [ ] 25-01-PLAN.md — CRIT-01: lease wizard money → dollars end-to-end
+- [ ] 25-02-PLAN.md — CRIT-02: lease-template formatter → face value (keep cents)
+- [ ] 25-03-PLAN.md — CRIT-03: unit soft-delete migration + unit filter audit
+- [ ] 25-04-PLAN.md — CRIT-04: lease soft-delete migration + lease filter audit
+- [ ] 25-05-PLAN.md — Phase verification (all four flows end-to-end)
+
 ### Phase 26: Lease Domain Correctness
 **Goal:** Make the leases surface trustworthy — the list table shows real tenant/property/unit and search works, UI-created leases write the `lease_tenants` join row, renew applies the rent change, terms lock after signing, the status select is complete, pagination reaches all leases, and the signed-PDF money format matches the app.
 Requirements: LEASE-01, LEASE-02, LEASE-03, LEASE-04, LEASE-05, LEASE-06, LEASE-07, LEASE-08
