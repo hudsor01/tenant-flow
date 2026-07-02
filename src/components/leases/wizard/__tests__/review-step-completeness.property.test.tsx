@@ -82,9 +82,9 @@ describe("Property 9: ReviewStep Data Completeness", () => {
 		await fc.assert(
 			fc.asyncProperty(
 				fc.record({
-					rent_amount: fc.integer({ min: 10000, max: 1000000 }), // $100 - $10,000
-					security_deposit: fc.integer({ min: 0, max: 1000000 }),
-					late_fee_amount: fc.option(fc.integer({ min: 100, max: 50000 })),
+					rent_amount: fc.integer({ min: 100, max: 10000 }), // $100 - $10,000 (dollars)
+					security_deposit: fc.integer({ min: 0, max: 10000 }),
+					late_fee_amount: fc.option(fc.integer({ min: 1, max: 500 })),
 				}),
 				async ({ rent_amount, security_deposit, late_fee_amount }) => {
 					const data: Partial<LeaseWizardData> = {
@@ -97,12 +97,12 @@ describe("Property 9: ReviewStep Data Completeness", () => {
 
 					render(<ReviewStep data={data} />);
 
-					// Format expected values
-					const formatCurrency = (cents: number) =>
+					// Format expected values (amounts are dollars, formatted at face value)
+					const formatCurrency = (amount: number) =>
 						new Intl.NumberFormat("en-US", {
 							style: "currency",
 							currency: "USD",
-						}).format(cents / 100);
+						}).format(amount);
 
 					// Use within to scope queries to Financial Terms section
 					// This avoids "multiple elements found" errors when same values appear elsewhere

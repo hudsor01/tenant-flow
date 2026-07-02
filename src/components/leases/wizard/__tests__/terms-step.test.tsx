@@ -75,22 +75,22 @@ describe("TermsStep", () => {
 			expect(onChange).toHaveBeenCalled();
 		});
 
-		it("should display cents as dollars", () => {
-			renderTermsStep({ rent_amount: 150000 }); // 1500.00 in cents
+		it("should display rent amount in dollars", () => {
+			renderTermsStep({ rent_amount: 1500 }); // $1,500 stored as dollars
 
 			const input = screen.getByLabelText(/monthly rent/i);
 			expect(input).toHaveValue("1500");
 		});
 
 		it("should display security deposit in dollars", () => {
-			renderTermsStep({ security_deposit: 200000 }); // 2000.00 in cents
+			renderTermsStep({ security_deposit: 2000 }); // $2,000 stored as dollars
 
 			const input = screen.getByLabelText(/security deposit/i);
 			expect(input).toHaveValue("2000");
 		});
 
 		it("should display late fee in dollars", () => {
-			renderTermsStep({ late_fee_amount: 5000 }); // 50.00 in cents
+			renderTermsStep({ late_fee_amount: 50 }); // $50 stored as dollars
 
 			const input = screen.getByLabelText(/late fee/i);
 			expect(input).toHaveValue("50");

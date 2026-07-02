@@ -112,13 +112,13 @@ export const termsStepSchema = z
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Rent amount seems unrealistic",
 			)
-			.describe("Monthly rent in cents"),
+			.describe("Monthly rent in dollars"),
 		security_deposit: nonNegativeNumberSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Security deposit seems unrealistic",
 			)
-			.describe("Security deposit in cents"),
+			.describe("Security deposit in dollars"),
 		payment_day: z
 			.number()
 			.int("Payment day must be a whole number")
@@ -139,7 +139,7 @@ export const termsStepSchema = z
 				"Late fee amount seems unrealistic",
 			)
 			.default(0)
-			.describe("Late fee amount in cents"),
+			.describe("Late fee amount in dollars"),
 	})
 	.refine(
 		(data) => {
@@ -178,11 +178,11 @@ export const leaseDetailsStepSchema = z
 				"Pet deposit seems unrealistic",
 			)
 			.optional()
-			.describe("One-time pet deposit in cents"),
+			.describe("One-time pet deposit in dollars"),
 		pet_rent: nonNegativeNumberSchema
 			.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, "Pet rent seems unrealistic")
 			.optional()
-			.describe("Monthly pet rent in cents"),
+			.describe("Monthly pet rent in dollars"),
 		utilities_included: z
 			.array(z.string())
 			.default([])
