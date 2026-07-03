@@ -191,6 +191,7 @@ export default function UnitsPage() {
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
+								disabled={unit.status === "occupied"}
 								onClick={() => handleDeleteClick(unit.id)}
 								className="text-destructive-text focus:text-destructive-text"
 							>
