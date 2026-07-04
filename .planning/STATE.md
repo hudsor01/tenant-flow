@@ -24,10 +24,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 25 (critical-corruption-broken-deletes) — EXECUTED & VERIFIED
+Phase: 25 (critical-corruption-broken-deletes) — REVIEW-PASSED (perfect-PR gate met)
 Plan: 5 of 5 complete
-Status: Phase 25 done (typecheck/lint/101,918 unit tests green; 3 migrations applied to prod + verified live); ready for review + PR
-Last activity: 2026-07-02 -- Phase 25 verified (CRIT-01..04)
+Status: Phase 25 done + reviewed. typecheck/lint/101,918 unit tests green; 9 migrations applied to prod + verified live; perfect-PR gate MET (cycles 8+9 zero-finding, complementary SQL + frontend/RLS surfaces). The soft-delete filter-audit grew the migration set 3→9 as review cycles surfaced latent inactive-inclusion gaps (5 occupancy RPCs, plan-quota trigger, get_user_profile, get_lead_paint, the lease→unit sync trigger). Ready for PR + merge.
+Last activity: 2026-07-04 -- Phase 25 review passed (9 review cycles)
 
 ## Roadmap Summary (v8.0)
 
@@ -62,7 +62,7 @@ None.
 
 ## Next Action
 
-Phase 25 (CRIT-01..04) is executed + verified on branch `milestone/v8.0-correctness`. Residual: manual UI eyeball of the two money-display flows (`/leases/new` wizard, `/documents/lease-template`) — code + tests already assert correct behavior. Then open the PR (perfect-PR gate: two zero-finding review cycles). Migrations are ALREADY applied to prod (additive CHECK values + RPC filters), so the PR carries the migration files for repo↔prod parity. After merge/review, plan **Phase 26** (Lease Domain Correctness) via `/gsd-plan-phase 26`.
+Phase 25 (CRIT-01..04) is executed, verified, and REVIEW-PASSED (perfect-PR gate met — cycles 8+9 zero-finding) on branch `milestone/v8.0-correctness`. 9 migrations are applied to prod (additive CHECK values + RPC/trigger inactive-exclusion); the PR carries the migration files for repo↔prod parity. Residual (non-gating): manual UI eyeball of the two money-display flows (`/leases/new`, `/documents/lease-template`). Next: user reviews + merges the PR, then plan **Phase 26** (Lease Domain Correctness) via `/gsd-plan-phase 26`. Note: PROP-01 (Phase 30) already tracks the pre-existing `unitQueries.byProperty` invalidation gap surfaced during review.
 
 ## Overrides
 
