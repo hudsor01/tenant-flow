@@ -65,6 +65,17 @@ Requirements: LEASE-01, LEASE-02, LEASE-03, LEASE-04, LEASE-05, LEASE-06, LEASE-
 4. All leases are reachable via pagination; the status select offers `pending_signature`; the signed PDF money matches the signing page
 5. Two consecutive zero-finding review cycles
 
+**Plans:** 9 plans
+- [ ] 26-01-PLAN.md — LEASE-01: expand leases list embed + align transformLease (real tenant/property/unit + search)
+- [ ] 26-02-PLAN.md — LEASE-03: renew dialog persists the rent adjustment
+- [ ] 26-03-PLAN.md — LEASE-05: add pending_signature to the edit-form status select
+- [ ] 26-04-PLAN.md — LEASE-07: signed-PDF money → 2 decimals (+ out-of-band Edge deploy)
+- [ ] 26-05-PLAN.md — LEASE-02: AFTER INSERT lease_tenants trigger + ON CONFLICT-safe bulk_import (migration)
+- [ ] 26-06-PLAN.md — LEASE-04 (server): BEFORE UPDATE term-lock trigger on signed/pending leases (migration)
+- [ ] 26-07-PLAN.md — LEASE-04 (UI) + LEASE-08: edit-gate on signed leases + property address on rent-increase notice
+- [ ] 26-08-PLAN.md — LEASE-06: server-side pagination + accurate stats (get_lease_stats pendingLeases)
+- [ ] 26-09-PLAN.md — Phase verification (all 8 flows + typecheck/lint/unit)
+
 ### Phase 27: Maintenance & Inspections
 **Goal:** Restore the maintenance board and list and the inspection photo flow — kanban drag changes status and reflects search, the list has one working actions column with a persistent delete and correct pagination, all valid statuses render, expense descriptions save, and inspection photos display and upload correctly.
 Requirements: MAINT-01, MAINT-02, MAINT-03, MAINT-04, MAINT-05, MAINT-06, MAINT-07, MAINT-08, INSP-01, INSP-02
