@@ -72,8 +72,8 @@ Requirements: LEASE-01, LEASE-02, LEASE-03, LEASE-04, LEASE-05, LEASE-06, LEASE-
 - [ ] 26-04-PLAN.md — LEASE-07: signed-PDF money → 2 decimals (+ out-of-band Edge deploy)
 - [ ] 26-05-PLAN.md — LEASE-02: AFTER INSERT lease_tenants trigger + ON CONFLICT-safe bulk_import (migration)
 - [ ] 26-06-PLAN.md — LEASE-04 (server): BEFORE UPDATE term-lock trigger on signed/pending leases (migration)
-- [ ] 26-07-PLAN.md — LEASE-04 (UI) + LEASE-08: edit-gate on signed leases + property address on rent-increase notice
-- [ ] 26-08-PLAN.md — LEASE-06: server-side pagination + accurate stats (get_lease_stats pendingLeases)
+- [ ] 26-07-PLAN.md — LEASE-04 (UI) + LEASE-08: edit-gate on signed leases (header + edit-route) + property address on rent-increase notice
+- [ ] 26-08-PLAN.md — LEASE-06: raise fetch bound + count-based Total (client-side search retained; >1000 leases = documented limit)
 - [ ] 26-09-PLAN.md — Phase verification (all 8 flows + typecheck/lint/unit)
 
 ### Phase 27: Maintenance & Inspections
