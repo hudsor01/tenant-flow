@@ -7,7 +7,9 @@ import { leaseFormOptions } from "./lease-form-options";
 
 const STATUS_OPTIONS = [
 	{ value: "draft", label: "Draft" },
+	{ value: "pending_signature", label: "Pending" },
 	{ value: "active", label: "Active" },
+	{ value: "expired", label: "Expired" },
 	{ value: "ended", label: "Ended" },
 	{ value: "terminated", label: "Terminated" },
 ];
