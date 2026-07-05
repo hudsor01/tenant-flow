@@ -167,12 +167,24 @@ export const leaseMutations = {
 				data,
 			}: {
 				id: string;
-				data: { end_date: string };
+				// rent_amount is an optional whole-dollar integer — persisted only
+				// when the owner adjusted the rent on an unsigned lease (26-02).
+				data: { end_date: string; rent_amount?: number };
 			}): Promise<Lease> => {
 				const supabase = createClient();
+				// Only overwrite the stored rent when a positive, finite adjustment
+				// was supplied; an absent/zero/NaN value must never clobber it.
+				const hasRentAdjustment =
+					typeof data.rent_amount === "number" &&
+					Number.isFinite(data.rent_amount) &&
+					data.rent_amount > 0;
 				const { data: updated, error } = await supabase
 					.from("leases")
-					.update({ end_date: data.end_date, lease_status: "active" })
+					.update({
+						end_date: data.end_date,
+						lease_status: "active",
+						...(hasRentAdjustment ? { rent_amount: data.rent_amount } : {}),
+					})
 					.eq("id", id)
 					.select()
 					.single();
