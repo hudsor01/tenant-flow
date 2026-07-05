@@ -23,6 +23,7 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
 import type { Lease } from "#types/core";
+import { isLeaseTermsLocked } from "../lease-terms-lock";
 import { getDaysUntilExpiry, getStatusConfig } from "./lease-detail-utils";
 
 interface TenantInfo {
@@ -35,6 +36,8 @@ interface LeaseHeaderProps {
 	lease: Lease;
 	tenant: TenantInfo | null | undefined;
 	unitName?: string | null;
+	/** The unit's property street address, for the rent-increase notice. */
+	propertyAddress?: string | null;
 	onCancelSignature: () => Promise<void>;
 	isCancelling: boolean;
 }
@@ -42,7 +45,7 @@ interface LeaseHeaderProps {
 export function LeaseHeader({
 	lease,
 	tenant,
-	unitName,
+	propertyAddress,
 	onCancelSignature,
 	isCancelling,
 }: LeaseHeaderProps) {
@@ -51,6 +54,10 @@ export function LeaseHeader({
 	const isDraft = lease.lease_status === "draft";
 	const isPendingSignature = lease.lease_status === "pending_signature";
 	const isActive = lease.lease_status === "active";
+	// Terms are locked (edit disabled) once the lease is pending_signature or
+	// tenant_signed_at is set — the exact 26-06 server-trigger condition, via the
+	// shared isLeaseTermsLocked helper so header, edit route, and renew stay in sync.
+	const termsLocked = isLeaseTermsLocked(lease);
 
 	const daysUntilExpiry = getDaysUntilExpiry(lease.end_date);
 	const isExpiringSoon =
@@ -171,12 +178,24 @@ export function LeaseHeader({
 					<RentIncreaseNoticeDialog
 						lease={lease}
 						tenantName={tenantFullName ?? null}
-						propertyAddress={unitName ?? null}
+						propertyAddress={propertyAddress ?? null}
 					/>
 				)}
-				<Button asChild variant="outline" size="sm">
-					<Link href={`/leases/${lease.id}/edit`}>Edit Lease</Link>
-				</Button>
+				{termsLocked ? (
+					<Button
+						variant="outline"
+						size="sm"
+						disabled
+						aria-label="Editing is locked because this lease has been sent for signature or signed"
+						title="Editing is locked because this lease has been sent for signature or signed"
+					>
+						Edit Lease
+					</Button>
+				) : (
+					<Button asChild variant="outline" size="sm">
+						<Link href={`/leases/${lease.id}/edit`}>Edit Lease</Link>
+					</Button>
+				)}
 			</div>
 		</div>
 	);
