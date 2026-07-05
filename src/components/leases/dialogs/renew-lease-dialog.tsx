@@ -24,6 +24,7 @@ import {
 import { useRenewLeaseMutation } from "#hooks/api/use-lease-lifecycle-mutations";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import type { Lease } from "#types/core";
+import { isLeaseTermsLocked } from "../lease-terms-lock";
 import {
 	CurrentLeaseInfo,
 	DateSelector,
@@ -53,6 +54,10 @@ export function RenewLeaseDialog({
 	const [showRentIncrease, setShowRentIncrease] = useState(false);
 
 	const currentRent = lease.rent_amount || 0;
+	// Financial terms are locked once the lease is signed / pending signature —
+	// the 26-06 server trigger rejects any rent change, so the UI never offers or
+	// sends one. Extending end_date (the renew) still succeeds.
+	const termsLocked = isLeaseTermsLocked(lease);
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -67,17 +72,23 @@ export function RenewLeaseDialog({
 			toast.error("New end date must be after current end date");
 			return;
 		}
-		if (showRentIncrease) {
+		const adjustRent = showRentIncrease && !termsLocked;
+		let rentAmount: number | undefined;
+		if (adjustRent) {
 			const rentValue = Number(newRentAmount);
 			if (!rentValue || rentValue <= 0) {
 				toast.error("Please enter a valid rent amount");
 				return;
 			}
+			rentAmount = rentValue;
 		}
 		try {
 			await renewLease.mutateAsync({
 				id: lease.id,
-				data: { end_date: newEndDate },
+				data: {
+					end_date: newEndDate,
+					...(rentAmount !== undefined ? { rent_amount: rentAmount } : {}),
+				},
 			});
 			toast.success("Lease renewed successfully");
 			onSuccess?.();
@@ -133,11 +144,12 @@ export function RenewLeaseDialog({
 								onQuickDate={handleQuickDate}
 							/>
 							<RentAdjustment
-								showRentIncrease={showRentIncrease}
+								showRentIncrease={termsLocked ? false : showRentIncrease}
 								currentRent={currentRent}
 								newRentAmount={newRentAmount}
 								onToggle={handleRentToggle}
 								onRentChange={setNewRentAmount}
+								disabled={termsLocked}
 							/>
 						</div>
 					</DialogBody>

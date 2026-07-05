@@ -113,6 +113,8 @@ interface RentAdjustmentProps {
 	newRentAmount: string;
 	onToggle: () => void;
 	onRentChange: (value: string) => void;
+	/** Terms locked (signed / pending signature) — rent cannot be adjusted. */
+	disabled?: boolean;
 }
 
 export function RentAdjustment({
@@ -121,11 +123,40 @@ export function RentAdjustment({
 	newRentAmount,
 	onToggle,
 	onRentChange,
+	disabled = false,
 }: RentAdjustmentProps) {
 	const newRent = newRentAmount ? Number(newRentAmount) : currentRent;
 	const rentIncreaseAmount = newRent - currentRent;
 	const rentIncreasePercent =
 		currentRent > 0 ? (rentIncreaseAmount / currentRent) * 100 : 0;
+
+	if (disabled) {
+		return (
+			<div className="space-y-3">
+				<div className="flex-between">
+					<Label className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]">
+						Rent Adjustment
+					</Label>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled
+						aria-label="Rent is locked and cannot be adjusted after the lease has been sent for signature or signed"
+					>
+						Adjust Rent
+					</Button>
+				</div>
+				<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
+					<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
+					<p className="text-xs text-label-secondary">
+						Rent cannot be changed after a lease has been sent for signature or
+						signed. You can still extend the end date.
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-3">
