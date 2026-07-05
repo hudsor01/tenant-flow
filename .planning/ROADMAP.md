@@ -33,7 +33,7 @@
 | 30 | Analytics & Data-Layer Correctness | Occupancy analytics, soft-delete filtering, stale-cache invalidation, virtualizer | DATA-01..03, PROP-01..03 | 5 |
 | 31 | Forms Behavior Correctness | Unsaved-guard, contact send, no render loop, saved fields, validators, single toast | FORMFIX-01..08 | 5 |
 | 32 | Shared UI, Data-Table & Uploads | Working filters/pagination, single-upload, search sanitize, error messages, taxonomy | UIX-01..05, PROP-04, PROP-05 | 5 |
-| 33 | Security & Delivery Config | Server-side MFA, CSP image allowance, remove public cache on auth routes | SEC-01..03 | 4 |
+| 33 | Security & Delivery Config | Server-side MFA, CSP image allowance, remove public cache on auth routes | SEC-01..05 | 4 |
 | 34 | Marketing, Blog & SEO Surface | OG images, blog pagination, 404 honesty, search contract, cross-links | MKT-01..05 | 4 |
 | 35 | TZ Sweep, Bulk-Import, Scripts & Hygiene | Local-zone dates everywhere, currency/status import, script + migration hygiene | MISC-01..04, TZ-01..03 | 5 |
 
@@ -137,7 +137,7 @@ Requirements: UIX-01, UIX-02, UIX-03, UIX-04, UIX-05, PROP-04, PROP-05
 
 ### Phase 33: Security & Delivery Config
 **Goal:** Close the security/config gaps — enforce MFA server-side, allow Supabase storage images through the CSP on private routes, and remove the public shared-cache header from the auth-walled `/properties` route.
-Requirements: SEC-01, SEC-02, SEC-03
+Requirements: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05
 **Success Criteria**:
 1. A password-only (aal1) session for an MFA-enrolled user cannot reach private routes; dismissing the OTP dialog signs the session out
 2. Maintenance photos, document-vault previews, and inspection photos render on private routes (no CSP block)
