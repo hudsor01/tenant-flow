@@ -26,7 +26,7 @@
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 25 | Critical: Corruption & Broken Deletes | 5/5 | Complete   | 2026-07-02 |
-| 26 | Lease Domain Correctness | Leases list/renew/sign/status/pagination show and persist correct data | LEASE-01..08 | 5 |
+| 26 | Lease Domain Correctness | 9/9 | Complete   | 2026-07-05 |
 | 27 | Maintenance & Inspections | Kanban drag/search, list actions/delete/pagination, inspection photos + upload | MAINT-01..08, INSP-01, INSP-02 | 5 |
 | 28 | Tenant Domain | Real deletes, correct lease navigation, status persistence, current-lease selection | TEN-01..06 | 4 |
 | 29 | Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..05 | 5 |
@@ -65,16 +65,16 @@ Requirements: LEASE-01, LEASE-02, LEASE-03, LEASE-04, LEASE-05, LEASE-06, LEASE-
 4. All leases are reachable via pagination; the status select offers `pending_signature`; the signed PDF money matches the signing page
 5. Two consecutive zero-finding review cycles
 
-**Plans:** 9 plans
-- [ ] 26-01-PLAN.md — LEASE-01: expand leases list embed + align transformLease (real tenant/property/unit + search)
-- [ ] 26-02-PLAN.md — LEASE-03: renew dialog persists the rent adjustment
-- [ ] 26-03-PLAN.md — LEASE-05: add pending_signature to the edit-form status select
-- [ ] 26-04-PLAN.md — LEASE-07: signed-PDF money → 2 decimals (+ out-of-band Edge deploy)
-- [ ] 26-05-PLAN.md — LEASE-02: AFTER INSERT lease_tenants trigger + ON CONFLICT-safe bulk_import (migration)
-- [ ] 26-06-PLAN.md — LEASE-04 (server): BEFORE UPDATE term-lock trigger on signed/pending leases (migration)
-- [ ] 26-07-PLAN.md — LEASE-04 (UI) + LEASE-08: edit-gate on signed leases (header + edit-route) + property address on rent-increase notice
-- [ ] 26-08-PLAN.md — LEASE-06: raise fetch bound + count-based Total (client-side search retained; >1000 leases = documented limit)
-- [ ] 26-09-PLAN.md — Phase verification (all 8 flows + typecheck/lint/unit)
+**Plans:** 9/9 plans complete
+- [x] 26-01-PLAN.md — LEASE-01: expand leases list embed + align transformLease (real tenant/property/unit + search)
+- [x] 26-02-PLAN.md — LEASE-03: renew dialog persists the rent adjustment
+- [x] 26-03-PLAN.md — LEASE-05: add pending_signature to the edit-form status select
+- [x] 26-04-PLAN.md — LEASE-07: signed-PDF money → 2 decimals (+ out-of-band Edge deploy)
+- [x] 26-05-PLAN.md — LEASE-02: AFTER INSERT lease_tenants trigger + ON CONFLICT-safe bulk_import (migration)
+- [x] 26-06-PLAN.md — LEASE-04 (server): BEFORE UPDATE term-lock trigger on signed/pending leases (migration)
+- [x] 26-07-PLAN.md — LEASE-04 (UI) + LEASE-08: edit-gate on signed leases (header + edit-route) + property address on rent-increase notice
+- [x] 26-08-PLAN.md — LEASE-06: raise fetch bound + count-based Total (client-side search retained; >1000 leases = documented limit)
+- [x] 26-09-PLAN.md — Phase verification (all 8 flows + typecheck/lint/unit)
 
 ### Phase 27: Maintenance & Inspections
 **Goal:** Restore the maintenance board and list and the inspection photo flow — kanban drag changes status and reflects search, the list has one working actions column with a persistent delete and correct pagination, all valid statuses render, expense descriptions save, and inspection photos display and upload correctly.
