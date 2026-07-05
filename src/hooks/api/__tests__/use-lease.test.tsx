@@ -19,7 +19,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	type LeaseWithNestedRelations,
+	type TenantWithUser,
+	transformLease,
+	type UnitWithProperty,
+} from "#components/leases/table/lease-utils";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import type { Lease, Property } from "#types/core";
 import { leaseQueries } from "../query-keys/lease-keys";
 import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import {
@@ -939,5 +946,141 @@ describe("Error Handling", () => {
 		});
 
 		await expect(result.current.mutateAsync("lease-123")).rejects.toBeTruthy();
+	});
+});
+
+describe("transformLease (LEASE-01 list embed shape)", () => {
+	// Full typed base lease so the fixtures below need no `any` / `as` casts.
+	const baseLease: Lease = {
+		id: "lease-list-1",
+		unit_id: "unit-list-1",
+		primary_tenant_id: "tenant-list-1",
+		owner_user_id: "owner-1",
+		start_date: "2026-01-01",
+		end_date: "2026-12-31",
+		rent_amount: 1800,
+		rent_currency: "USD",
+		security_deposit: 1800,
+		lease_status: "active",
+		payment_day: 1,
+		grace_period_days: 3,
+		late_fee_amount: 50,
+		late_fee_days: 5,
+		created_at: "2025-12-15T00:00:00Z",
+		updated_at: "2026-01-01T00:00:00Z",
+		owner_signature_user_agent: null,
+		tenant_signature_user_agent: null,
+		tenant_signature_name: null,
+		owner_signature_consent_at: null,
+		tenant_signature_consent_at: null,
+		signed_document_path: null,
+		signed_document_hash: null,
+		landlord_notice_address: null,
+		immediate_family_members: null,
+		owner_signed_at: null,
+		owner_signature_ip: null,
+		owner_signature_method: null,
+		tenant_signed_at: null,
+		tenant_signature_ip: null,
+		tenant_signature_method: null,
+		sent_for_signature_at: null,
+		max_occupants: 4,
+		pets_allowed: false,
+		pet_deposit: null,
+		pet_rent: null,
+		utilities_included: null,
+		tenant_responsible_utilities: null,
+		property_rules: null,
+		property_built_before_1978: false,
+		lead_paint_disclosure_acknowledged: false,
+		governing_state: "TX",
+	};
+
+	const fullProperty: Property = {
+		id: "prop-list-1",
+		name: "Maple Court",
+		address_line1: "742 Maple Ave",
+		address_line2: null,
+		city: "Dallas",
+		state: "TX",
+		postal_code: "75201",
+		country: "US",
+		property_type: "residential",
+		status: "active",
+		owner_user_id: "owner-1",
+		acquisition_cost: null,
+		acquisition_date: null,
+		date_sold: null,
+		sale_price: null,
+		search_vector: null,
+		created_at: "2025-01-01T00:00:00Z",
+		updated_at: "2025-01-01T00:00:00Z",
+	};
+
+	// The list embed only selects a subset of unit columns; the remaining
+	// required columns are filled so the fixture stays fully typed.
+	const fullUnit: UnitWithProperty = {
+		id: "unit-list-1",
+		property_id: "prop-list-1",
+		owner_user_id: "owner-1",
+		unit_number: "12B",
+		bedrooms: 2,
+		bathrooms: 1,
+		square_feet: 850,
+		rent_amount: 1800,
+		rent_currency: "USD",
+		rent_period: "monthly",
+		status: "occupied",
+		created_at: "2025-01-01T00:00:00Z",
+		updated_at: "2025-01-01T00:00:00Z",
+		property: fullProperty,
+	};
+
+	const fullTenant: TenantWithUser = {
+		id: "tenant-list-1",
+		name: null,
+		first_name: "Jane",
+		last_name: "Renter",
+		email: "jane.renter@example.com",
+		phone: null,
+		owner_user_id: "owner-1",
+		status: "active",
+		date_of_birth: null,
+		emergency_contact_name: null,
+		emergency_contact_phone: null,
+		emergency_contact_relationship: null,
+		identity_verified: null,
+		ssn_last_four: null,
+		created_at: "2025-01-01T00:00:00Z",
+		updated_at: "2025-01-01T00:00:00Z",
+	};
+
+	it("renders the real tenant name, property name, and unit number from the aligned embed keys", () => {
+		const lease: LeaseWithNestedRelations = {
+			...baseLease,
+			tenant: fullTenant,
+			unit: fullUnit,
+		};
+
+		const display = transformLease(lease);
+
+		expect(display.tenantName).toBe("Jane Renter");
+		expect(display.propertyName).toBe("Maple Court");
+		expect(display.unitNumber).toBe("12B");
+		// Guard against the LEASE-01 regression (all fallbacks).
+		expect(display.tenantName).not.toBe("Unassigned");
+		expect(display.propertyName).not.toBe("No Property");
+		expect(display.unitNumber).not.toBe("N/A");
+	});
+
+	it("falls back to Unassigned / No Property / N/A when the tenant and unit relations are absent", () => {
+		// A lease row whose embed resolved no tenant and no unit.
+		const lease: LeaseWithNestedRelations = { ...baseLease };
+
+		const display = transformLease(lease);
+
+		expect(display.tenantName).toBe("Unassigned");
+		expect(display.propertyName).toBe("No Property");
+		expect(display.unitNumber).toBe("N/A");
 	});
 });
