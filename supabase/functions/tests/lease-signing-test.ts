@@ -10,7 +10,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { finalizeSignedLease } from "../_shared/lease-signing.ts";
+import { finalizeSignedLease, formatMoney } from "../_shared/lease-signing.ts";
 
 interface LeaseRowOverrides {
 	owner_signed_at?: string | null;
@@ -109,6 +109,19 @@ function makeClient(opts: {
 
 	return { client, calls };
 }
+
+Deno.test("formatMoney: a single trailing decimal renders with two fraction digits", () => {
+	assertEquals(formatMoney(1500.5), "$1,500.50");
+});
+
+Deno.test("formatMoney: a whole-dollar amount renders with .00", () => {
+	assertEquals(formatMoney(1500), "$1,500.00");
+});
+
+Deno.test("formatMoney: null and empty string fall back to N/A", () => {
+	assertEquals(formatMoney(null), "N/A");
+	assertEquals(formatMoney(""), "N/A");
+});
 
 Deno.test("finalizeSignedLease: no-op when only one party has signed", async () => {
 	const { client, calls } = makeClient({
