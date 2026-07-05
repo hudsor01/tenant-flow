@@ -24,9 +24,9 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 26 (lease-domain-correctness) — EXECUTING
-Plan: 1 of 9
-Status: Executing Phase 26
+Phase: 26 (lease-domain-correctness) — REVIEW-PASSED (perfect-PR gate met)
+Plan: 9 of 9 complete
+Status: Phase 26 done + reviewed (cycles 4+5 zero-finding). typecheck/lint/102,061 tests green; 6 lease migrations applied+verified live. LEASE-04 term-lock grew 2->6 migrations across review (signed-PDF tamper: dates->gov->notice/family->FK selectors). Discovered SEC-04/05 follow-ups. Ready for PR + merge.
 Last activity: 2026-07-05 -- Phase 26 execution started
 
 ## Roadmap Summary (v8.0)
