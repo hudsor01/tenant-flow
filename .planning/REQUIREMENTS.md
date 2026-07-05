@@ -95,6 +95,8 @@
 - [ ] **SEC-01**: MFA (TOTP aal2) is enforced server-side. The proxy and/or the `(owner)`/`(admin)` layouts require aal2 for users with a verified factor (via `getAuthenticatorAssuranceLevel` or a JWT `aal` claim / RLS), so a password-only session cannot reach private routes; dismissing the OTP dialog signs the aal1 session out (`proxy.ts`, login MFA dialog).
 - [ ] **SEC-02**: Storage-backed images render on private routes — the per-request CSP `img-src` (and `media-src`) in `proxy.ts:129` (and the static CSP in `vercel.json`) allow the Supabase storage origin so maintenance photos, document-vault previews, and inspection photos are not blocked.
 - [ ] **SEC-03**: The auth-walled `/properties/(.*)` route no longer carries a `public, s-maxage` shared-cache header (cross-user cache risk); the stale `/manage` and `/tenant` cache rules for non-existent routes are removed (`vercel.json:129-160`).
+- [ ] **SEC-04**: Lease FK re-pointing is owner-validated. A `leases` UPDATE that changes `unit_id` or `primary_tenant_id` must reject a target row not owned by the caller — the current `leases_update_owner` RLS policy pins only `owner_user_id`, so an owner can attach their lease to another owner's unit/tenant. Add a trigger/RLS check validating the NEW `unit_id`/`primary_tenant_id` belongs to the owner. (Discovered in Phase 26 review; the signed-PDF tamper via these FKs during signature is already closed by the Phase-26 term-lock — this is the broader all-status cross-owner-integrity gap.)
+- [ ] **SEC-05**: The e-signature audit trail is tamper-proof. Once a signature-audit column is set (`tenant_signed_at`, `tenant_signature_name`, `tenant_signature_ip/user_agent/method`, and the owner equivalents), it cannot be silently changed to a *different* non-null value (an asymmetric null-transition guard: allow null→value on sign and value→null on cancel, reject value→different-value), so an owner cannot forge the tenant's rendered signature name / audit metadata on the signed PDF between tenant-sign and finalize. (Discovered in Phase 26 review; distinct from lease-term locking.)
 
 ### MKT — marketing, blog & SEO surface
 
@@ -143,7 +145,7 @@ None scoped. This milestone is exhaustive over the 2026-07-02 hunt; any bug foun
 | DATA-01..03, PROP-01..03 | 30 — Analytics & Data-Layer Correctness |
 | FORMFIX-01..08 | 31 — Forms Behavior Correctness |
 | UIX-01..05, PROP-04, PROP-05 | 32 — Shared UI, Data-Table & Uploads |
-| SEC-01..03 | 33 — Security & Delivery Config |
+| SEC-01..05 | 33 — Security & Delivery Config |
 | MKT-01..05 | 34 — Marketing, Blog & SEO Surface |
 | MISC-01..04, TZ-01..03 | 35 — Timezone Sweep, Bulk-Import, Scripts & Hygiene |
 
