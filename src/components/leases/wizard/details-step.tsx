@@ -65,12 +65,13 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 		handleChange(field, updated);
 	};
 
-	const centsToDisplay = (cents: number | undefined) =>
-		cents === undefined ? "" : (cents / 100).toFixed(2);
+	const dollarsToDisplay = (value: number | undefined) =>
+		value === undefined ? "" : value.toString();
 
-	const dollarsToCents = (dollars: string) => {
-		const num = parseFloat(dollars);
-		return isNaN(num) ? undefined : Math.round(num * 100);
+	const parseDollars = (value: string): number | undefined => {
+		if (value === "") return undefined;
+		const num = Number.parseFloat(value);
+		return Number.isNaN(num) ? undefined : num;
 	};
 
 	return (
@@ -154,9 +155,9 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								step="0.01"
 								min="0"
 								placeholder="300.00"
-								value={centsToDisplay(data.pet_deposit ?? undefined)}
+								value={dollarsToDisplay(data.pet_deposit ?? undefined)}
 								onChange={(e) =>
-									handleChange("pet_deposit", dollarsToCents(e.target.value))
+									handleChange("pet_deposit", parseDollars(e.target.value))
 								}
 							/>
 						</div>
@@ -168,9 +169,9 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								step="0.01"
 								min="0"
 								placeholder="25.00"
-								value={centsToDisplay(data.pet_rent ?? undefined)}
+								value={dollarsToDisplay(data.pet_rent ?? undefined)}
 								onChange={(e) =>
-									handleChange("pet_rent", dollarsToCents(e.target.value))
+									handleChange("pet_rent", parseDollars(e.target.value))
 								}
 							/>
 						</div>

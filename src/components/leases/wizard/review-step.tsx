@@ -16,12 +16,12 @@ import {
 import { Badge } from "#components/ui/badge";
 import { Separator } from "#components/ui/separator";
 import { formatDate, getOrdinalSuffix } from "#lib/formatters/date";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
 
-// Format cents to currency, returning '-' for null/undefined
-const formatCentsOrDash = (cents?: number | null) =>
-	typeof cents === "number" ? formatCents(cents) : "-";
+// Format a dollar amount to currency, returning '-' for null/undefined
+const formatAmountOrDash = (amount?: number | null) =>
+	typeof amount === "number" ? formatCurrency(amount) : "-";
 
 interface ReviewStepProps {
 	data: Partial<LeaseWizardData>;
@@ -106,13 +106,13 @@ export function ReviewStep({
 					<div>
 						<p className="text-sm text-muted-foreground">Monthly Rent</p>
 						<p className="font-medium text-lg">
-							{formatCentsOrDash(data.rent_amount)}
+							{formatAmountOrDash(data.rent_amount)}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Security Deposit</p>
 						<p className="font-medium">
-							{formatCentsOrDash(data.security_deposit)}
+							{formatAmountOrDash(data.security_deposit)}
 						</p>
 					</div>
 					<div>
@@ -134,7 +134,7 @@ export function ReviewStep({
 					<div>
 						<p className="text-sm text-muted-foreground">Late Fee</p>
 						<p className="font-medium">
-							{formatCentsOrDash(data.late_fee_amount)}
+							{formatAmountOrDash(data.late_fee_amount)}
 						</p>
 					</div>
 				</div>
@@ -166,12 +166,12 @@ export function ReviewStep({
 									</Badge>
 									{data.pet_deposit && (
 										<span className="text-sm">
-											Deposit: {formatCentsOrDash(data.pet_deposit)}
+											Deposit: {formatAmountOrDash(data.pet_deposit)}
 										</span>
 									)}
 									{data.pet_rent && (
 										<span className="text-sm">
-											Rent: {formatCentsOrDash(data.pet_rent)}/mo
+											Rent: {formatAmountOrDash(data.pet_rent)}/mo
 										</span>
 									)}
 								</>

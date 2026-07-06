@@ -59,17 +59,17 @@ export function TermsStep({
 		onChange({ ...data, [field]: value });
 	};
 
-	// Display cents as dollars (simple conversion for input value)
-	const centsToDisplay = (cents: number | undefined): string => {
-		if (cents === undefined || cents === 0) return "";
-		return (cents / 100).toString();
+	// Display the dollar value as a string (empty when 0/undefined)
+	const dollarsToDisplay = (value: number | undefined): string => {
+		if (value === undefined || value === 0) return "";
+		return value.toString();
 	};
 
-	// Parse dollars input to cents (strips non-numeric except decimal)
-	const parseCents = (value: string): number => {
+	// Parse a dollar input (strips non-numeric except decimal), 0 when empty/NaN
+	const parseDollars = (value: string): number => {
 		const cleaned = value.replace(/[^0-9.]/g, "");
-		const num = parseFloat(cleaned);
-		return isNaN(num) ? 0 : Math.round(num * 100);
+		const num = Number.parseFloat(cleaned);
+		return Number.isNaN(num) ? 0 : num;
 	};
 
 	// Parse integer input (strips non-numeric)
@@ -172,9 +172,9 @@ export function TermsStep({
 							type="text"
 							inputMode="decimal"
 							placeholder="1500.00"
-							value={centsToDisplay(data.rent_amount)}
+							value={dollarsToDisplay(data.rent_amount)}
 							onChange={(e) =>
-								handleChange("rent_amount", parseCents(e.target.value))
+								handleChange("rent_amount", parseDollars(e.target.value))
 							}
 						/>
 					</Field>
@@ -187,9 +187,9 @@ export function TermsStep({
 							type="text"
 							inputMode="decimal"
 							placeholder="1500.00"
-							value={centsToDisplay(data.security_deposit)}
+							value={dollarsToDisplay(data.security_deposit)}
 							onChange={(e) =>
-								handleChange("security_deposit", parseCents(e.target.value))
+								handleChange("security_deposit", parseDollars(e.target.value))
 							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
@@ -234,9 +234,9 @@ export function TermsStep({
 							type="text"
 							inputMode="decimal"
 							placeholder="50.00"
-							value={centsToDisplay(data.late_fee_amount)}
+							value={dollarsToDisplay(data.late_fee_amount)}
 							onChange={(e) =>
-								handleChange("late_fee_amount", parseCents(e.target.value))
+								handleChange("late_fee_amount", parseDollars(e.target.value))
 							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>

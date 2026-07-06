@@ -15,19 +15,24 @@
 - **v2.0 Dashboard Command Center** (2026-06-02, 34/34) — `/dashboard` redesign.
 - **v1.0 Marketing Surface Honesty** (2026-05-22, 56/56 audit findings).
 
-## Current Milestone: v7.0 TanStack Form Composition Migration
+## Current Milestone: v8.0 Correctness Restoration (Bug Eradication)
 
-**Goal:** Adopt TanStack Form's built-in composition API (`createFormHook` / `useAppForm` / `withForm` / `withFieldGroup` / `formOptions`) so the codebase never hand-rolls a form-instance type again — replacing 5 hand-rolled 12-generic `ReactFormExtendedApi` aliases, 10 `*FormApi`-prop sections, 14 raw `useForm` sites, and 123 per-field annotations with one shared form-hook module + a typed field-component library. Zero runtime/behavior change.
+**Goal:** Eradicate the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt — all severities (P0/P1/P2), every one verified against source and (where a DB constraint/RPC is involved) the live Supabase DB. Nothing new is built; each requirement restores an existing feature to correct behavior.
 
-**Target areas:**
-- One shared `form-hook` foundation (`createFormHook` → `useAppForm`/`withForm`/`withFieldGroup`) + a `formOptions()` convention — no hand-rolled generics anywhere
-- Typed field-component library wrapping the existing shadcn primitives (TextField/NumberField/TextareaField/SelectField/SwitchField/IconInputField/DateField) + a shared SubmitButton
-- Migrate all 5 typed forms (property, subscribe, lease, tenant, unit) + their 10 sections to `withForm`; delete the 5 `*-form-types.ts` aliases
-- Multi-step lease-creation wizard typed via `withFieldGroup`
-- Remaining standalone forms (login, maintenance-form hook, 4 document-template forms) on `useAppForm` + shared fields
-- Drift guard: zero `ReactFormExtendedApi` aliases remain in `src/`
+**Target areas (11 phases, 25-35):**
+- **Critical (P0):** lease-wizard 100× money corruption + lease-template PDF money; unit-delete and lease-delete (both write a status value the live CHECK rejects → fail every time)
+- **Lease domain:** list table shows real tenant/property/unit + search; `lease_tenants` join row on UI create; renew applies rent; terms lock after signing; status select + pagination
+- **Maintenance & inspections:** kanban drag/search; list actions/delete/pagination; inspection photos (route + private-bucket signed URLs) + upload status
+- **Tenant domain:** real deletes; correct lease navigation; status persistence; active-lease selection
+- **Billing & financial:** Stripe `current_period_end` (null billing + cancel/reactivate crash); period-scoped statements; real invoice amounts; matching PDFs
+- **Analytics & data-layer:** occupancy array shape; soft-delete filtering in performance RPCs; cache-invalidation keys; table virtualizer positioning
+- **Forms:** unsaved-changes guard reactivity; contact form actually sends; `use-form-progress` render loop; discarded field payloads; missing validators; duplicate toasts
+- **Shared UI:** inert data-table filters/pagination; double-upload; search sanitize; raw error leakage; taxonomy round-trip
+- **Security & config:** server-side MFA enforcement; CSP image allowance on private routes; public cache header on the auth-walled `/properties` route
+- **Marketing/blog:** oklch OG images render black; blog pagination doesn't re-render; 404 honesty; search contract; dead cross-links
+- **Cross-cutting:** timezone "one day early" sweep; bulk-import currency/status; script + repo-migration hygiene
 
-Built on the framework already installed (`@tanstack/react-form@1.32`) — no new dependency. Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 20-24 in [ROADMAP.md](ROADMAP.md). Roadmaps + requirements for v1.0–v6.0 are archived in `.planning/milestones/`.
+Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 25-35 in [ROADMAP.md](ROADMAP.md). v7.0 (TanStack Form composition migration, phases 20-24) is **paused mid-flight** — phases 20-22 merged, 23-24 open — its plan archived in `.planning/milestones/v7.0-{REQUIREMENTS,ROADMAP}.md`; v8.0 fixes behavior bugs in some of the same files. Roadmaps + requirements for v1.0–v7.0 are archived in `.planning/milestones/`.
 
 ## What This Is
 
@@ -162,4 +167,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-25 — started v7.0 "TanStack Form Composition Migration" (FORM-01..13; phases 20-24), adopting the framework's `createFormHook`/`useAppForm`/`withForm`/`withFieldGroup`/`formOptions` composition API to delete all 5 hand-rolled `ReactFormExtendedApi` aliases. v6.0 "Final Canonical Cleanup" (24 reqs, phases 15-19) shipped + archived. v5.0 "AI Blog Content Engine" (9/9), v4.0 "Hardening & Hygiene" (20/21, advisor 44/0/1 via v3.0), v3.0 "Security Hardening" (12/12), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*
+*Last updated: 2026-07-02 — started v8.0 "Correctness Restoration" (56 reqs across phases 25-35), a bug-eradication milestone scoped from the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 + every cross-owner/DB claim verified against source + the live DB). v7.0 "TanStack Form Composition Migration" (FORM-01..13; phases 20-24) is paused mid-flight (20-22 merged, 23-24 open) and archived. v6.0 "Final Canonical Cleanup" (24 reqs, phases 15-19), v5.0 "AI Blog Content Engine" (9/9), v4.0 "Hardening & Hygiene" (20/21, advisor 44/0/1 via v3.0), v3.0 "Security Hardening" (12/12), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*

@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.0
-milestone_name: TanStack Form Composition Migration
+milestone: v8.0
+milestone_name: Correctness Restoration
 status: executing
-last_updated: "2026-06-25T00:00:00.000Z"
-last_activity: 2026-06-25
+last_updated: "2026-07-02T21:15:46.837Z"
+last_activity: 2026-07-02 -- Phase 25 execution started
 progress:
-  total_phases: 5
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 20
+  total_phases: 11
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -19,25 +19,31 @@ progress:
 
 See: .planning/PROJECT.md
 
-**Core value (v7.0):** The codebase never hand-rolls a form-instance type again. TanStack Form's built-in composition API (`createFormHook` / `useAppForm` / `withForm` / `withFieldGroup` / `formOptions`) becomes the single typed foundation for every form — extracted sections are auto-typed by `withForm`, fields render through a shared typed component library, and the 5 hand-rolled 12-generic `ReactFormExtendedApi` aliases are deleted. Zero runtime/behavior change.
-**Current focus:** Milestone defined. Branch `milestone/v7.0-form-composition` off `main` (includes merged PRs #867 inspection-exhaustiveness + #868 form-`any` removal). Built on `@tanstack/react-form@1.32` (already installed — no new dependency). Next: plan Phase 20 (Form Foundation).
+**Core value (v8.0):** Every core operation an owner performs — create a lease, delete a unit, view the leases list, sign a document, pay an invoice, upload a photo, run a report — produces correct data and correct behavior. This milestone eradicates the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 and every cross-owner/DB claim verified against source + the live Supabase DB). Nothing new is built; every requirement restores an existing feature to correct behavior.
+**Current focus:** Phase 25 — critical-corruption-broken-deletes
 
 ## Current Position
 
-Phase: 20 — Form Foundation (built + verified; PR open for review)
-Plan: shared form-hook + 7 field components + SubmitButton + tests
-Status: Executing — phase 20 shipped to PR; phase 21 next (gated on phase 20 merge)
-Last activity: 2026-06-25 — Phase 20 foundation built: `src/lib/forms/{form-contexts,form-hook,fields/*,form-components/submit-button}`; 4 field-component tests; typecheck + lint + 101,910 unit tests green; zero existing forms touched
+Phase: 25 (critical-corruption-broken-deletes) — REVIEW-PASSED (perfect-PR gate met)
+Plan: 5 of 5 complete
+Status: Phase 25 done + reviewed. typecheck/lint/101,918 unit tests green; 9 migrations applied to prod + verified live; perfect-PR gate MET (cycles 8+9 zero-finding, complementary SQL + frontend/RLS surfaces). The soft-delete filter-audit grew the migration set 3→9 as review cycles surfaced latent inactive-inclusion gaps (5 occupancy RPCs, plan-quota trigger, get_user_profile, get_lead_paint, the lease→unit sync trigger). Ready for PR + merge.
+Last activity: 2026-07-04 -- Phase 25 review passed (9 review cycles)
 
-## Roadmap Summary (v7.0)
+## Roadmap Summary (v8.0)
 
 | Phase | Goal | Requirements |
 |-------|------|--------------|
-| 20. Form Foundation | One shared `form-hook` module + typed field-component library + SubmitButton + `formOptions` convention; zero hand-rolled generics | FORM-01..03, FORM-11 |
-| 21. Single-Section Forms | Migrate property / subscribe / unit forms + sections to `useAppForm`/`withForm`; delete those 3 type aliases | FORM-04, FORM-05, FORM-08 |
-| 22. Multi-Section & Tenant Forms | Migrate lease + tenant (+ tenant-edit) forms + their sections; delete those 2 type aliases | FORM-06, FORM-07 |
-| 23. Wizard & Standalone Forms | Lease wizard via `withFieldGroup`; login + maintenance hook + 4 document-template forms | FORM-09, FORM-10 |
-| 24. Cleanup, Drift Guard & Verify | Delete residual type files; drift-guard test; full verify; behavior preservation pinned | FORM-12, FORM-13 |
+| 25. Critical: Corruption & Broken Deletes | Stop 100× money corruption on lease create + document template; restore unit + lease delete | CRIT-01..04 |
+| 26. Lease Domain Correctness | Leases list/renew/sign/status/pagination show + persist correct data | LEASE-01..08 |
+| 27. Maintenance & Inspections | Kanban drag/search, list actions/delete/pagination, inspection photos + upload | MAINT-01..08, INSP-01..02 |
+| 28. Tenant Domain | Real deletes, correct lease navigation, status persistence, current-lease selection | TEN-01..06 |
+| 29. Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..05 |
+| 30. Analytics & Data-Layer Correctness | Occupancy analytics, soft-delete filtering, cache invalidation, virtualizer | DATA-01..03, PROP-01..03 |
+| 31. Forms Behavior Correctness | Unsaved-guard, contact send, no render loop, saved fields, validators, single toast | FORMFIX-01..08 |
+| 32. Shared UI, Data-Table & Uploads | Working filters/pagination, single-upload, search sanitize, error messages, taxonomy | UIX-01..05, PROP-04..05 |
+| 33. Security & Delivery Config | Server-side MFA, CSP image allowance, remove public cache on auth routes | SEC-01..03 |
+| 34. Marketing, Blog & SEO Surface | OG images, blog pagination, 404 honesty, search contract, cross-links | MKT-01..05 |
+| 35. TZ Sweep, Bulk-Import, Scripts & Hygiene | Local-zone dates, currency/status import, script + migration hygiene | MISC-01..04, TZ-01..03 |
 
 ## Blockers
 
@@ -50,16 +56,17 @@ None.
 - 2026-06-02: v3.0 "Security Hardening" shipped + archived (3 phases, 12/12).
 - 2026-06-07: v4.0 "Hardening & Hygiene" shipped + archived (8 phases, 20/21).
 - 2026-06-10: v5.0 "AI Blog Content Engine" shipped + archived (6 phases 9-14, 9/9).
-- 2026-06-14: v6.0 "Final Canonical Cleanup" roadmap created (5 phases 15-19, 24 requirements); audit findings resolved/verified 2026-06-19. Archived to `.planning/milestones/v6.0-{REQUIREMENTS,ROADMAP}.md`.
-- 2026-06-25: v7.0 "TanStack Form Composition Migration" started (5 phases 20-24, FORM-01..13). Preceded by merged PRs #867 (inspection compile-time exhaustiveness) + #868 (last form-field `any`s removed via hand-rolled typed API — superseded by this milestone's composition-API adoption).
+- 2026-06-14: v6.0 "Final Canonical Cleanup" roadmap created (5 phases 15-19, 24 requirements); resolved/verified 2026-06-19.
+- 2026-06-25: v7.0 "TanStack Form Composition Migration" started (5 phases 20-24, FORM-01..13). Paused mid-flight 2026-07-02 (phases 20-22 merged, 23-24 open); plan archived to `.planning/milestones/v7.0-{REQUIREMENTS,ROADMAP}.md`.
+- 2026-07-02: v8.0 "Correctness Restoration" started (11 phases 25-35, 56 requirements) — bug-eradication milestone scoped from the 2026-07-02 whole-codebase hunt.
 
 ## Next Action
 
-Phase 20 (Form Foundation) is built + verified and open as a PR. On merge, start **Phase 21** (single-section forms: property / subscribe / unit) — migrate each onto `useAppForm`/`withForm` + the shared field components and delete `property-form-types.ts`, `owner-subscribe-form-types.ts`, `unit-form-types.ts`. Phases 21-24 each build on the prior, so they ship sequentially under the perfect-PR gate.
+Phase 25 (CRIT-01..04) is executed, verified, and REVIEW-PASSED (perfect-PR gate met — cycles 8+9 zero-finding) on branch `milestone/v8.0-correctness`. 9 migrations are applied to prod (additive CHECK values + RPC/trigger inactive-exclusion); the PR carries the migration files for repo↔prod parity. Residual (non-gating): manual UI eyeball of the two money-display flows (`/leases/new`, `/documents/lease-template`). Next: user reviews + merges the PR, then plan **Phase 26** (Lease Domain Correctness) via `/gsd-plan-phase 26`. Note: PROP-01 (Phase 30) already tracks the pre-existing `unitQueries.byProperty` invalidation gap surfaced during review.
 
 ## Overrides
 
 (none active)
 
 ---
-*Last updated: 2026-06-25 — v7.0 "TanStack Form Composition Migration" started; REQUIREMENTS + ROADMAP authored on branch `milestone/v7.0-form-composition`. Integer phase numbers continue across milestones (20-24). Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*
+*Last updated: 2026-07-02 — v8.0 "Correctness Restoration" started; REQUIREMENTS (56 reqs) + ROADMAP (11 phases 25-35) authored. v7.0 paused mid-flight, plan archived. Integer phase numbers continue across milestones (v7.0 ended at 24; v8.0 is 25-35). Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*
