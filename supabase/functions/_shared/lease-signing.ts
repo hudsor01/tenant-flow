@@ -101,11 +101,19 @@ function formatDate(value: unknown): string {
 	});
 }
 
-function formatMoney(value: unknown): string {
+// Exported for unit testing. Formats a dollar value as 2-decimal USD to match
+// the signing page's formatCurrency (e.g. 1500 -> "$1,500.00", 1500.5 ->
+// "$1,500.50"). Values are already dollars — no cents conversion.
+export function formatMoney(value: unknown): string {
 	if (value == null || value === "") return "N/A";
 	const n = Number(value);
 	if (Number.isNaN(n)) return "N/A";
-	return `$${n.toLocaleString("en-US")}`;
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	}).format(n);
 }
 
 /**

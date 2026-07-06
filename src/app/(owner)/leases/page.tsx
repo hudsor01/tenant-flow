@@ -40,6 +40,15 @@ import { useDeleteLeaseMutation } from "#hooks/api/use-lease-mutations";
 import { useLeasesStore } from "#stores/leases-store";
 import { LeasesStatCards } from "./leases-stat-cards";
 
+// Fetch bound for the leases list. The whole realistic dataset is loaded in a
+// single page and search / sort / pagination run client-side — client-side
+// tenant & property name search (LEASE-01) needs the full set loaded, so a
+// per-page server fetch is intentionally NOT used.
+// DOCUMENTED LIMIT: an owner with more than 1000 leases would have rows beyond
+// this cap unreachable and would need a future dedicated search RPC (server-side
+// search + pagination). Realistic owner lease volumes are far below 1000.
+const LEASES_FETCH_CAP = 1000;
+
 export default function LeasesPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -94,7 +103,7 @@ export default function LeasesPage() {
 		data: leasesResponse,
 		isLoading,
 		error,
-	} = useLeaseList({ limit: 50, offset: 0 });
+	} = useLeaseList({ limit: LEASES_FETCH_CAP, offset: 0 });
 	const deleteLeaseMutation = useDeleteLeaseMutation();
 
 	const rawLeases = leasesResponse?.data ?? [];
@@ -105,7 +114,9 @@ export default function LeasesPage() {
 		);
 	})();
 
-	const totalLeases = leases.length;
+	// True total from the PostgREST count (accurate even when the fetch is
+	// windowed to the cap), never the current-page length.
+	const totalLeases = leasesResponse?.total ?? leases.length;
 	const activeLeases = leases.filter((l) => l.status === "active").length;
 	const expiringLeases = leases.filter((l) => l.status === "expiring").length;
 	const pendingLeases = leases.filter(

@@ -435,23 +435,38 @@ describe("LeaseDetails", () => {
 	});
 
 	describe("Edit Button", () => {
-		test("renders edit lease button", async () => {
+		test("renders a disabled (locked) edit affordance for a signed lease", async () => {
+			// mockLease is signed (tenant_signed_at set) → terms locked, so the
+			// Edit affordance is a disabled button, not an editable link (LEASE-04).
 			render(<LeaseDetails id="lease-test-123" />);
 
 			await waitFor(() => {
-				expect(
-					screen.getByRole("link", { name: /edit lease/i }),
-				).toBeInTheDocument();
+				const editButton = screen.getByRole("button", {
+					name: /editing is locked/i,
+				});
+				expect(editButton).toBeDisabled();
 			});
+			expect(screen.queryByRole("link", { name: /edit lease/i })).toBeNull();
 		});
 
-		test("edit button links to correct edit page", async () => {
-			render(<LeaseDetails id="lease-test-123" />);
+		test("renders an edit link for an unsigned (not-yet-signed) lease", async () => {
+			// Keep the lease active but clear tenant_signed_at → terms unlocked, so
+			// the Edit affordance is a working link to the edit route.
+			const originalTenantSignedAt = mockLease.tenant_signed_at;
+			mockLease.tenant_signed_at = null;
+			try {
+				render(<LeaseDetails id="lease-test-123" />);
 
-			await waitFor(() => {
-				const editLink = screen.getByRole("link", { name: /edit lease/i });
-				expect(editLink).toHaveAttribute("href", "/leases/lease-test-123/edit");
-			});
+				await waitFor(() => {
+					const editLink = screen.getByRole("link", { name: /edit lease/i });
+					expect(editLink).toHaveAttribute(
+						"href",
+						"/leases/lease-test-123/edit",
+					);
+				});
+			} finally {
+				mockLease.tenant_signed_at = originalTenantSignedAt;
+			}
 		});
 	});
 

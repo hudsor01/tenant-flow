@@ -63,7 +63,7 @@ export const leaseQueries = {
 				let q = supabase
 					.from("leases")
 					.select(
-						"*, tenants:primary_tenant_id(id), units(id, unit_number, bedrooms, bathrooms, square_feet)",
+						"*, tenant:primary_tenant_id(id, name, first_name, last_name), unit:units(id, unit_number, bedrooms, bathrooms, square_feet, property:properties(id, name, address_line1))",
 						{ count: "exact" },
 					)
 					.order("created_at", { ascending: false });

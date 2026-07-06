@@ -18,6 +18,7 @@ import { useUnitList } from "#hooks/api/use-unit";
 import { getOrdinalSuffix } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
+import type { Lease } from "#types/core";
 import { generateTimelineEvents } from "./lease-detail-utils";
 import { LeaseDetailsSkeleton } from "./lease-details-skeleton";
 import { LeaseDetailsTab } from "./lease-details-tab";
@@ -31,6 +32,32 @@ interface LeaseDetailsProps {
 }
 
 const logger = createLogger({ component: "LeaseDetails" });
+
+/**
+ * The detail lease embeds units→properties (leaseQueries.detail select). The
+ * base Lease type doesn't model that embed, so narrow it with an optional-field
+ * interface (no `any` / `as unknown as`) to read the property street address.
+ */
+interface LeaseWithPropertyEmbed {
+	units?: {
+		properties?: {
+			address_line1?: string | null;
+			city?: string | null;
+			state?: string | null;
+		} | null;
+	} | null;
+}
+
+function getPropertyAddress(lease: Lease): string | null {
+	const property = (lease as Lease & LeaseWithPropertyEmbed).units?.properties;
+	if (!property) return null;
+	const line1 = property.address_line1?.trim();
+	const cityState = [property.city?.trim(), property.state?.trim()]
+		.filter(Boolean)
+		.join(", ");
+	const parts = [line1, cityState].filter(Boolean);
+	return parts.length > 0 ? parts.join(", ") : null;
+}
 
 export function LeaseDetails({ id }: LeaseDetailsProps) {
 	const {
@@ -91,6 +118,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				lease={lease}
 				tenant={tenant}
 				unitName={unit?.unit_number ?? null}
+				propertyAddress={getPropertyAddress(lease)}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}
 			/>

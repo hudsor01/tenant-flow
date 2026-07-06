@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Correctness Restoration
 status: executing
-last_updated: "2026-07-02T21:15:46.837Z"
-last_activity: 2026-07-02 -- Phase 25 execution started
+last_updated: "2026-07-05T00:17:07.569Z"
+last_activity: 2026-07-05 -- Phase 26 execution started
 progress:
   total_phases: 11
-  completed_phases: 0
-  total_plans: 5
+  completed_phases: 1
+  total_plans: 14
   completed_plans: 5
-  percent: 100
+  percent: 9
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v8.0):** Every core operation an owner performs — create a lease, delete a unit, view the leases list, sign a document, pay an invoice, upload a photo, run a report — produces correct data and correct behavior. This milestone eradicates the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 and every cross-owner/DB claim verified against source + the live Supabase DB). Nothing new is built; every requirement restores an existing feature to correct behavior.
-**Current focus:** Phase 25 — critical-corruption-broken-deletes
+**Current focus:** Phase 26 — lease-domain-correctness
 
 ## Current Position
 
-Phase: 25 (critical-corruption-broken-deletes) — REVIEW-PASSED (perfect-PR gate met)
-Plan: 5 of 5 complete
-Status: Phase 25 done + reviewed. typecheck/lint/101,918 unit tests green; 9 migrations applied to prod + verified live; perfect-PR gate MET (cycles 8+9 zero-finding, complementary SQL + frontend/RLS surfaces). The soft-delete filter-audit grew the migration set 3→9 as review cycles surfaced latent inactive-inclusion gaps (5 occupancy RPCs, plan-quota trigger, get_user_profile, get_lead_paint, the lease→unit sync trigger). Ready for PR + merge.
-Last activity: 2026-07-04 -- Phase 25 review passed (9 review cycles)
+Phase: 26 (lease-domain-correctness) — REVIEW-PASSED (perfect-PR gate met)
+Plan: 9 of 9 complete
+Status: Phase 26 done + reviewed (cycles 4+5 zero-finding). typecheck/lint/102,061 tests green; 6 lease migrations applied+verified live. LEASE-04 term-lock grew 2->6 migrations across review (signed-PDF tamper: dates->gov->notice/family->FK selectors). Discovered SEC-04/05 follow-ups. Ready for PR + merge.
+Last activity: 2026-07-05 -- Phase 26 execution started
 
 ## Roadmap Summary (v8.0)
 

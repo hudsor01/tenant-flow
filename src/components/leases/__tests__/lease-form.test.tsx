@@ -57,6 +57,19 @@ vi.mock("#hooks/api/use-lease", () => ({
 	},
 }));
 
+// LeaseForm imports the mutation hooks from #hooks/api/use-lease-mutations —
+// mock that module so submit-payload assertions capture the real call.
+vi.mock("#hooks/api/use-lease-mutations", () => ({
+	useCreateLeaseMutation: () => ({
+		mutateAsync: mockCreateLeaseMutation,
+		isPending: false,
+	}),
+	useUpdateLeaseMutation: () => ({
+		mutateAsync: mockUpdateLeaseMutation,
+		isPending: false,
+	}),
+}));
+
 vi.mock("#hooks/api/use-tenant", () => ({
 	tenantQueries: {
 		list: () => ({
@@ -335,6 +348,50 @@ describe("LeaseForm", () => {
 				name: /property/i,
 			});
 			expect(propertyTrigger).toBeInTheDocument();
+		});
+
+		test("renders a pending_signature lease with a non-blank Pending status", async () => {
+			const pendingLease: LeaseWithExtras = {
+				...mockLease,
+				lease_status: "pending_signature",
+			};
+			renderWithQueryClient(<LeaseForm mode="edit" lease={pendingLease} />);
+
+			await waitFor(() => {
+				expect(screen.getByLabelText(/status/i)).toBeInTheDocument();
+			});
+
+			// Status trigger resolves to the Pending option (not a blank trigger)
+			const statusTrigger = screen.getByRole("combobox", { name: /status/i });
+			expect(statusTrigger).toHaveTextContent(/pending/i);
+		});
+
+		test("no-op save preserves the pending_signature status", async () => {
+			const user = userEvent.setup();
+			const pendingLease: LeaseWithExtras = {
+				...mockLease,
+				lease_status: "pending_signature",
+			};
+			renderWithQueryClient(<LeaseForm mode="edit" lease={pendingLease} />);
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /save changes/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+			await waitFor(() => {
+				expect(mockUpdateLeaseMutation).toHaveBeenCalled();
+			});
+			expect(mockUpdateLeaseMutation).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						lease_status: "pending_signature",
+					}),
+				}),
+			);
 		});
 	});
 
