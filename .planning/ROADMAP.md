@@ -27,7 +27,7 @@
 |---|-------|------|--------------|------------------|
 | 25 | Critical: Corruption & Broken Deletes | 5/5 | Complete   | 2026-07-02 |
 | 26 | Lease Domain Correctness | 9/9 | Complete   | 2026-07-05 |
-| 27 | Maintenance & Inspections | Kanban drag/search, list actions/delete/pagination, inspection photos + upload | MAINT-01..08, INSP-01, INSP-02 | 5 |
+| 27 | Maintenance & Inspections | 6/7 | In Progress|  |
 | 28 | Tenant Domain | Real deletes, correct lease navigation, status persistence, current-lease selection | TEN-01..06 | 4 |
 | 29 | Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..06 | 6 |
 | 30 | Analytics & Data-Layer Correctness | Occupancy analytics, soft-delete filtering, stale-cache invalidation, virtualizer | DATA-01..03, PROP-01..03 | 5 |
