@@ -6,7 +6,6 @@
  */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import { inspectionQueries } from "./query-keys/inspection-keys";
 import { inspectionMutations } from "./query-keys/inspection-mutation-options";
 
@@ -26,8 +25,9 @@ export function useRecordInspectionPhoto(inspectionId: string) {
 				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey,
 			});
 		},
-		onError: (error) => {
-			handleMutationError(error, "Record inspection photo");
-		},
+		// No onError toast: the sole consumer (InspectionPhotoUpload) catches the
+		// rejection in uploadOne, marks the tile as failed with retry, and shows a
+		// single summary toast. A mutation-level toast here double-toasted and
+		// leaked the raw Postgres message.
 	});
 }

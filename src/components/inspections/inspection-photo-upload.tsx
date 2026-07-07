@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, CheckCircle, RotateCw, Upload, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
@@ -33,6 +33,18 @@ export function InspectionPhotoUpload({
 	const [files, setFiles] = useState<FileUploadState[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
 	const recordPhoto = useRecordInspectionPhoto(inspectionId);
+
+	// Revoke any staged object URLs when the panel unmounts (e.g. the user opens
+	// "Add Photos", stages files, then hides the panel without uploading) so the
+	// blobs are not leaked until a full page reload.
+	const filesRef = useRef(files);
+	filesRef.current = files;
+	useEffect(
+		() => () => {
+			for (const f of filesRef.current) URL.revokeObjectURL(f.objectUrl);
+		},
+		[],
+	);
 
 	const onDrop = (acceptedFiles: File[]) => {
 		const newFiles = acceptedFiles.map((file) => ({
