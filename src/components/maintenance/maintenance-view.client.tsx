@@ -64,8 +64,16 @@ export function MaintenanceViewClient() {
 	const inProgressCount = requests.filter(
 		(r) => r.status === "in_progress",
 	).length;
+	// Local-zone start of the current month (the constructor yields local
+	// midnight on the 1st — no UTC skew) so "Completed" matches its
+	// "this month" caption.
+	const now = new Date();
+	const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 	const completedCount = requests.filter(
-		(r) => r.status === "completed",
+		(r) =>
+			r.status === "completed" &&
+			r.completed_at != null &&
+			new Date(r.completed_at) >= startOfMonth,
 	).length;
 	const urgentCount = requests.filter(
 		(r) => r.priority === "urgent" && r.status !== "completed",
