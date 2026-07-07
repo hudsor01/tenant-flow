@@ -205,12 +205,23 @@ export function InspectionRoomCard({
 										key={photo.id}
 										className="aspect-square rounded-md bg-muted overflow-hidden relative group"
 									>
-										<img
-											src={`/api/v1/inspections/photos/${photo.id}/url`}
-											alt={photo.file_name}
-											className="w-full h-full object-cover"
-											loading="lazy"
-										/>
+										{photo.publicUrl ? (
+											// Signed URL from the private inspection-photos bucket is
+											// cross-origin + short-lived, so next/image can't render it.
+											<img
+												src={photo.publicUrl}
+												alt={photo.file_name}
+												className="w-full h-full object-cover"
+												loading="lazy"
+											/>
+										) : (
+											<div
+												className="flex h-full w-full items-center justify-center text-muted-foreground"
+												aria-label={photo.file_name}
+											>
+												<Camera className="w-5 h-5" aria-hidden="true" />
+											</div>
+										)}
 										{photo.caption && (
 											<div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
 												<p className="text-white text-xs truncate">
