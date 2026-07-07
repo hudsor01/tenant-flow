@@ -40,6 +40,9 @@ export function InspectionPhotoUpload({
 	const filesRef = useRef(files);
 	filesRef.current = files;
 	const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	// Ids currently mid-upload — a synchronous guard against double-fire (a fast
+	// double-tap on Retry commits status:"uploading" too late to block the 2nd).
+	const uploadingIdsRef = useRef<Set<string>>(new Set());
 	useEffect(
 		() => () => {
 			for (const f of filesRef.current) URL.revokeObjectURL(f.objectUrl);
@@ -102,6 +105,12 @@ export function InspectionPhotoUpload({
 		if (fileState.status === "success") return true;
 
 		const { id, file } = fileState;
+		// Ignore a re-entrant call for a file already uploading (Retry double-tap,
+		// or Upload racing a manual retry) so it can't create a duplicate storage
+		// object + recordPhoto row.
+		if (uploadingIdsRef.current.has(id)) return false;
+		uploadingIdsRef.current.add(id);
+
 		const supabase = createClient();
 		const fileExt = file.name.split(".").pop() ?? "jpg";
 		const fileName = `${crypto.randomUUID()}.${fileExt}`;
@@ -143,6 +152,8 @@ export function InspectionPhotoUpload({
 				),
 			);
 			return false;
+		} finally {
+			uploadingIdsRef.current.delete(id);
 		}
 	}
 
