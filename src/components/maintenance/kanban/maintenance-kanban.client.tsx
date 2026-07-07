@@ -7,6 +7,7 @@ import {
 	DragOverlay,
 	DragStartEvent,
 	PointerSensor,
+	useDroppable,
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
@@ -15,6 +16,7 @@ import {
 	SortableContext,
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	CheckCircle,
@@ -29,6 +31,8 @@ import type { ReactNode } from "react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
+import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenanceStatus } from "#types/core";
@@ -92,6 +96,35 @@ const COLUMNS: ColumnConfig[] = [
 	},
 ];
 
+// The set of valid, droppable status ids (drives the type guard below).
+const VALID_STATUS_IDS: ReadonlySet<string> = new Set(COLUMNS.map((c) => c.id));
+
+function isMaintenanceStatus(value: unknown): value is MaintenanceStatus {
+	return typeof value === "string" && VALID_STATUS_IDS.has(value);
+}
+
+/**
+ * Resolve the target status of a drop from the droppable's data payload.
+ * Column droppables carry `{ type: "column", status }`; sortable cards carry
+ * `{ type: "maintenance-request", columnId }`. Dropping on a card resolves to
+ * that card's column. Never returns the raw `over.id` (a card UUID).
+ */
+function resolveDropStatus(
+	overData: Record<string, unknown> | undefined,
+): MaintenanceStatus | null {
+	if (!overData) return null;
+	if (overData.type === "column" && isMaintenanceStatus(overData.status)) {
+		return overData.status;
+	}
+	if (
+		overData.type === "maintenance-request" &&
+		isMaintenanceStatus(overData.columnId)
+	) {
+		return overData.columnId;
+	}
+	return null;
+}
+
 function getDaysOpen(timestamp: string | null | undefined): number {
 	if (!timestamp) return 0;
 	const date = new Date(timestamp);
@@ -113,6 +146,12 @@ function KanbanColumn({
 	columnIndex,
 	onView,
 }: KanbanColumnProps) {
+	// Register the whole column (incl. its empty-state area) as a drop target.
+	const { setNodeRef } = useDroppable({
+		id: column.id,
+		data: { type: "column", status: column.id },
+	});
+
 	// Sort by age (oldest first for open/in_progress, newest first for completed)
 	const sortedRequests = [...requests].sort((a, b) => {
 		if (column.id === "completed" || column.id === "cancelled") {
@@ -140,7 +179,10 @@ function KanbanColumn({
 				</div>
 
 				{/* Cards Container */}
-				<div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-380px)]">
+				<div
+					ref={setNodeRef}
+					className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-380px)]"
+				>
 					<SortableContext
 						id={column.id}
 						items={sortedRequests.map((r) => r.id)}
@@ -178,6 +220,7 @@ interface MaintenanceKanbanProps {
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [requests, setRequests] = useState<MaintenanceDisplayRequest[]>(
 		initialRequests || [],
 	);
@@ -222,7 +265,10 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		if (!over) return;
 
 		const requestId = active.id as string;
-		const newStatus = over.id as MaintenanceStatus;
+		// Resolve the target status from the droppable/card data — never the raw
+		// over.id (a card UUID), which would send a UUID to the status CHECK.
+		const newStatus = resolveDropStatus(over.data.current);
+		if (!newStatus) return;
 
 		const request = requests.find((r) => r.id === requestId);
 		if (!request || request.status === newStatus) return;
@@ -253,6 +299,15 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 				toast.success(
 					`Request moved to ${COLUMNS.find((c) => c.id === newStatus)?.title}`,
 				);
+
+				// Refetch the source query so the change persists per the
+				// mutation-invalidation rule (survives the Task 3 prop-driven board).
+				await Promise.all([
+					queryClient.invalidateQueries({
+						queryKey: maintenanceQueries.lists(),
+					}),
+					queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all }),
+				]);
 			} catch (error) {
 				logger.error("Status update failed", {
 					action: "handleDragEnd",
