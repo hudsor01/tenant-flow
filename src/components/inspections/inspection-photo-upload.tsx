@@ -2,7 +2,7 @@
 
 import { AlertCircle, CheckCircle, RotateCw, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { type FileRejection, useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { useRecordInspectionPhoto } from "#hooks/api/use-inspection-photo-mutations";
@@ -56,8 +56,22 @@ export function InspectionPhotoUpload({
 		setFiles((prev) => [...prev, ...newFiles]);
 	};
 
+	// Surface files react-dropzone rejects (wrong type — e.g. iOS HEIC — or over
+	// 10MB) so they are not silently dropped with no on-screen feedback.
+	const onDropRejected = (rejections: FileRejection[]) => {
+		for (const { file, errors } of rejections) {
+			const reason = errors.some((e) => e.code === "file-too-large")
+				? "is larger than 10MB"
+				: errors.some((e) => e.code === "file-invalid-type")
+					? "is not a supported image (use JPEG, PNG, or WebP)"
+					: (errors[0]?.message ?? "was rejected");
+			toast.error(`${file.name} ${reason}`);
+		}
+	};
+
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
+		onDropRejected,
 		accept: {
 			"image/jpeg": [],
 			"image/jpg": [],
