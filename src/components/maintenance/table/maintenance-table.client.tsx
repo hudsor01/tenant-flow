@@ -16,6 +16,8 @@ import {
 import { useDataTable } from "#hooks/use-data-table";
 import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
+const PAGE_SIZE = 10;
+
 interface MaintenanceTableClientProps {
 	columns: ColumnDef<MaintenanceDisplayRequest>[];
 	initialRequests: MaintenanceDisplayRequest[];
@@ -28,12 +30,12 @@ export function MaintenanceTableClient({
 	const { table } = useDataTable({
 		data: initialRequests,
 		columns,
-		pageCount: -1,
+		pageCount: Math.max(1, Math.ceil(initialRequests.length / PAGE_SIZE)),
 		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10,
+				pageSize: PAGE_SIZE,
 			},
 		},
 	});
