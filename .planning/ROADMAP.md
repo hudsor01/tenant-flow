@@ -29,7 +29,7 @@
 | 26 | Lease Domain Correctness | 9/9 | Complete   | 2026-07-05 |
 | 27 | Maintenance & Inspections | Kanban drag/search, list actions/delete/pagination, inspection photos + upload | MAINT-01..08, INSP-01, INSP-02 | 5 |
 | 28 | Tenant Domain | Real deletes, correct lease navigation, status persistence, current-lease selection | TEN-01..06 | 4 |
-| 29 | Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..05 | 5 |
+| 29 | Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..06 | 6 |
 | 30 | Analytics & Data-Layer Correctness | Occupancy analytics, soft-delete filtering, stale-cache invalidation, virtualizer | DATA-01..03, PROP-01..03 | 5 |
 | 31 | Forms Behavior Correctness | Unsaved-guard, contact send, no render loop, saved fields, validators, single toast | FORMFIX-01..08 | 5 |
 | 32 | Shared UI, Data-Table & Uploads | Working filters/pagination, single-upload, search sanitize, error messages, taxonomy | UIX-01..05, PROP-04, PROP-05 | 5 |
@@ -97,7 +97,7 @@ Requirements: TEN-01, TEN-02, TEN-03, TEN-04, TEN-05, TEN-06
 
 ### Phase 29: Billing, Stripe & Financial Reports
 **Goal:** Correct the billing and financial-reporting numbers — read Stripe's period-end from the right SDK location (fixing the null billing date and the cancel/reactivate crash), scope financial statements to their selected period, show real invoice amounts, surface RPC errors instead of zeroing expenses, and build the year-end/tax PDFs from the financial RPCs.
-Requirements: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05
+Requirements: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06
 **Success Criteria**:
 1. The billing UI shows the next-billing date, and cancel/reactivate completes without a RangeError
 2. Income-statement / cash-flow / tax-documents show different, correct numbers per selected period/year
