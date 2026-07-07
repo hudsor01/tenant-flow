@@ -39,9 +39,13 @@ export function InspectionPhotoUpload({
 	// blobs are not leaked until a full page reload.
 	const filesRef = useRef(files);
 	filesRef.current = files;
+	const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	useEffect(
 		() => () => {
 			for (const f of filesRef.current) URL.revokeObjectURL(f.objectUrl);
+			// Cancel the pending success/auto-close timer so it can't fire after
+			// unmount (setState on a dead component / a spurious onUploadComplete).
+			if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
 		},
 		[],
 	);
@@ -162,7 +166,7 @@ export function InspectionPhotoUpload({
 				`${successCount} photo${successCount > 1 ? "s" : ""} uploaded`,
 			);
 			// Clean up object URLs and clear successful uploads after a delay
-			setTimeout(() => {
+			closeTimerRef.current = setTimeout(() => {
 				setFiles((prev) => {
 					for (const f of prev) {
 						if (f.status === "success") URL.revokeObjectURL(f.objectUrl);
