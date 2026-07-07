@@ -1,23 +1,10 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useOptimistic, useState, useTransition } from "react";
-import { toast } from "sonner";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "#components/ui/alert-dialog";
 import { Button } from "#components/ui/button";
 import {
 	Card,
@@ -27,11 +14,7 @@ import {
 	CardTitle,
 } from "#components/ui/card";
 import { useDataTable } from "#hooks/use-data-table";
-import { createLogger } from "#lib/frontend-logger";
-import { createClient } from "#lib/supabase/client";
 import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
-
-const logger = createLogger({ component: "MaintenanceTableClient" });
 
 interface MaintenanceTableClientProps {
 	columns: ColumnDef<MaintenanceDisplayRequest>[];
@@ -42,98 +25,9 @@ export function MaintenanceTableClient({
 	columns,
 	initialRequests,
 }: MaintenanceTableClientProps) {
-	const [isPending, startTransition] = useTransition();
-	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const [optimisticRequests, removeOptimistic] = useOptimistic(
-		initialRequests,
-		(state, requestId: string) => state.filter((r) => r.id !== requestId),
-	);
-
-	const handleDelete = (requestId: string, requestTitle: string) => {
-		setDeletingId(requestId);
-		startTransition(async () => {
-			removeOptimistic(requestId);
-			try {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("maintenance_requests")
-					.delete()
-					.eq("id", requestId);
-				if (error) throw error;
-				toast.success(`Request "${requestTitle}" deleted`);
-			} catch (error) {
-				logger.error("Delete failed", {
-					action: "handleDelete",
-					metadata: { requestId, error },
-				});
-				toast.error("Failed to delete request");
-				// Optimistic update will auto-rollback on error
-			} finally {
-				setDeletingId(null);
-			}
-		});
-	};
-
-	// Add delete action column
-	const columnsWithActions: ColumnDef<MaintenanceDisplayRequest>[] = [
-		...columns,
-		{
-			id: "actions",
-			cell: ({ row }) => {
-				const request = row.original;
-				return (
-					<div className="flex items-center justify-end gap-1">
-						<Button asChild size="sm" variant="ghost">
-							<Link href={`/maintenance/${request.id}`}>View</Link>
-						</Button>
-						<Button asChild size="sm" variant="ghost">
-							<Link href={`/maintenance/${request.id}/edit`}>Edit</Link>
-						</Button>
-						<AlertDialog>
-							<AlertDialogTrigger asChild>
-								<Button
-									size="sm"
-									variant="ghost"
-									className="text-destructive hover:text-destructive"
-								>
-									<Trash2 className="size-4" />
-									<span className="sr-only">Delete</span>
-								</Button>
-							</AlertDialogTrigger>
-							<AlertDialogContent>
-								<AlertDialogHeader>
-									<AlertDialogTitle>
-										Delete maintenance request
-									</AlertDialogTitle>
-									<AlertDialogDescription>
-										Permanently remove <strong>{request.description}</strong>?
-									</AlertDialogDescription>
-								</AlertDialogHeader>
-								<AlertDialogFooter>
-									<AlertDialogCancel>Cancel</AlertDialogCancel>
-									<AlertDialogAction
-										disabled={isPending && deletingId === request.id}
-										onClick={() =>
-											handleDelete(request.id, request.description)
-										}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-									>
-										{isPending && deletingId === request.id
-											? "Deleting..."
-											: "Delete"}
-									</AlertDialogAction>
-								</AlertDialogFooter>
-							</AlertDialogContent>
-						</AlertDialog>
-					</div>
-				);
-			},
-		},
-	];
-
 	const { table } = useDataTable({
-		data: optimisticRequests,
-		columns: columnsWithActions,
+		data: initialRequests,
+		columns,
 		pageCount: -1,
 		enableAdvancedFilter: true,
 		initialState: {

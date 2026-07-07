@@ -19,6 +19,7 @@ import {
 } from "#components/ui/alert-dialog";
 import { Button } from "#components/ui/button";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
@@ -224,6 +225,7 @@ function MaintenanceActionsCell({
 				queryClient.invalidateQueries({
 					queryKey: maintenanceQueries.stats().queryKey,
 				}),
+				queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all }),
 			]);
 		} catch {
 			toast.error("Failed to delete");
