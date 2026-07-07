@@ -37,7 +37,16 @@ export function MaintenanceTableClient({
 	// because this table is neither sorted (non-sortable columns) nor filtered
 	// here (search is applied by the parent before `initialRequests` arrives).
 	const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
-	const pageCount = Math.max(1, Math.ceil(initialRequests.length / PAGE_SIZE));
+	// Honor the "Rows per page" selector: use-data-table writes the chosen size to
+	// the `perPage` URL param, so read it here and slice by the same value (never a
+	// hard-coded PAGE_SIZE) — otherwise the selector updates the footer while the
+	// visible window stays 10.
+	const [perPage] = useQueryState(
+		"perPage",
+		parseAsInteger.withDefault(PAGE_SIZE),
+	);
+	const pageSize = perPage > 0 ? perPage : PAGE_SIZE;
+	const pageCount = Math.max(1, Math.ceil(initialRequests.length / pageSize));
 	const currentPage = Math.min(Math.max(1, page), pageCount);
 
 	// Reset an out-of-range page (e.g. after a search shrinks the list) so the
@@ -49,8 +58,8 @@ export function MaintenanceTableClient({
 	}, [page, currentPage, setPage]);
 
 	const pageData = initialRequests.slice(
-		(currentPage - 1) * PAGE_SIZE,
-		currentPage * PAGE_SIZE,
+		(currentPage - 1) * pageSize,
+		currentPage * pageSize,
 	);
 
 	const { table } = useDataTable({

@@ -2546,7 +2546,10 @@ export type Database = {
 			};
 			get_lease_stats: { Args: { p_user_id: string }; Returns: Json };
 			get_maintenance_analytics: { Args: { user_id: string }; Returns: Json };
-			get_maintenance_stats: { Args: { p_user_id: string }; Returns: Json };
+			get_maintenance_stats: {
+				Args: { p_month_start?: string; p_user_id: string };
+				Returns: Json;
+			};
 			get_metric_trend: {
 				Args: { p_metric_name: string; p_period?: string; p_user_id: string };
 				Returns: Json;
