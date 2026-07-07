@@ -325,6 +325,13 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					queryClient.invalidateQueries({
 						queryKey: maintenanceQueries.lists(),
 					}),
+					// Stats now come from the get_maintenance_stats RPC (a separate
+					// ['maintenance','stats'] query), so lists() no longer refreshes the
+					// KPI cards — invalidate it explicitly or a status-changing drag
+					// leaves the Open/Completed counts stale.
+					queryClient.invalidateQueries({
+						queryKey: maintenanceQueries.stats().queryKey,
+					}),
 					queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all }),
 				]);
 				clearStatusOverride(requestId);
@@ -344,15 +351,18 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		router.push(`/maintenance/${id}`);
 	};
 
-	// Filter out columns with no requests except for the main ones
+	// Filter out columns with no requests except for the manual-workflow lanes.
 	const visibleColumns = COLUMNS.filter((column) => {
 		const count = requestsByStatus[column.id]?.length ?? 0;
-		// Always show Open, In Progress, and Completed
-		if (["open", "in_progress", "completed"].includes(column.id)) {
+		// Always show the lanes an owner manually drags between (Open, In Progress,
+		// On Hold, Completed) so each stays a drop target even when empty.
+		if (["open", "in_progress", "on_hold", "completed"].includes(column.id)) {
 			return true;
 		}
-		// Show Assigned, Needs Reassignment, On Hold, and Cancelled only when
-		// they hold requests — so no request in those statuses is ever hidden.
+		// Assigned / Needs Reassignment are vendor-workflow statuses (set via vendor
+		// assignment, not manual drag) and Cancelled is a deliberate terminal action;
+		// show those only when they hold requests — so no request is ever hidden but
+		// the board stays focused on the manual workflow.
 		return count > 0;
 	});
 

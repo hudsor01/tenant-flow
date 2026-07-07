@@ -31,7 +31,11 @@ export function useMaintenanceRequestCreateMutation() {
 	return useMutation({
 		...maintenanceMutations.create(),
 		...createMutationCallbacks(queryClient, {
-			invalidate: [maintenanceQueries.lists(), ownerDashboardKeys.all],
+			invalidate: [
+				maintenanceQueries.lists(),
+				maintenanceQueries.stats().queryKey,
+				ownerDashboardKeys.all,
+			],
 			successMessage: "Maintenance request created successfully",
 			errorContext: "Create maintenance request",
 		}),
@@ -48,7 +52,11 @@ export function useDeleteMaintenanceRequest() {
 	return useMutation({
 		...maintenanceMutations.delete(),
 		...createMutationCallbacks(queryClient, {
-			invalidate: [maintenanceQueries.lists(), ownerDashboardKeys.all],
+			invalidate: [
+				maintenanceQueries.lists(),
+				maintenanceQueries.stats().queryKey,
+				ownerDashboardKeys.all,
+			],
 			errorContext: "Delete maintenance request",
 		}),
 	});
@@ -63,7 +71,11 @@ export function useMaintenanceRequestUpdateMutation() {
 	return useMutation({
 		...maintenanceMutations.update(),
 		...createMutationCallbacks<MaintenanceRequest>(queryClient, {
-			invalidate: [maintenanceQueries.lists(), ownerDashboardKeys.all],
+			invalidate: [
+				maintenanceQueries.lists(),
+				maintenanceQueries.stats().queryKey,
+				ownerDashboardKeys.all,
+			],
 			updateDetail: (request) => ({
 				queryKey: maintenanceQueries.detail(request.id).queryKey,
 				data: request,
