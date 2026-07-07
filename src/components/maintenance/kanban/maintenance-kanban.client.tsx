@@ -221,12 +221,23 @@ interface MaintenanceKanbanProps {
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const [requests, setRequests] = useState<MaintenanceDisplayRequest[]>(
-		initialRequests || [],
-	);
+	// Optimistic status overrides keyed by request id — applied on top of the
+	// prop during an in-flight drag, cleared once the refetch reconciles. The
+	// board itself is derived from the filtered `initialRequests` prop so search
+	// stays live (no stale local copy of the list).
+	const [statusOverrides, setStatusOverrides] = useState<
+		Record<string, MaintenanceStatus>
+	>({});
 	const [activeRequest, setActiveRequest] =
 		useState<MaintenanceDisplayRequest | null>(null);
 	const [, startTransition] = useTransition();
+
+	const requests = (initialRequests || []).map((request) => {
+		const override = statusOverrides[request.id];
+		return override && override !== request.status
+			? { ...request, status: override }
+			: request;
+	});
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -249,6 +260,15 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		},
 		{} as Record<MaintenanceStatus, MaintenanceDisplayRequest[]>,
 	);
+
+	const clearStatusOverride = (requestId: string) => {
+		setStatusOverrides((prev) => {
+			if (!(requestId in prev)) return prev;
+			const next = { ...prev };
+			delete next[requestId];
+			return next;
+		});
+	};
 
 	const handleDragStart = (event: DragStartEvent) => {
 		const { active } = event;
@@ -273,11 +293,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		const request = requests.find((r) => r.id === requestId);
 		if (!request || request.status === newStatus) return;
 
-		// Optimistic update
-		const oldStatus = request.status;
-		setRequests((prev) =>
-			prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r)),
-		);
+		// Optimistic update — pin the new status via the override map (on top of
+		// the prop) instead of copying the whole list.
+		setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }));
 
 		// API update
 		startTransition(async () => {
@@ -301,25 +319,23 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 				);
 
 				// Refetch the source query so the change persists per the
-				// mutation-invalidation rule (survives the Task 3 prop-driven board).
+				// mutation-invalidation rule; the refreshed prop then carries the
+				// new status, so we can drop the optimistic override.
 				await Promise.all([
 					queryClient.invalidateQueries({
 						queryKey: maintenanceQueries.lists(),
 					}),
 					queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all }),
 				]);
+				clearStatusOverride(requestId);
 			} catch (error) {
 				logger.error("Status update failed", {
 					action: "handleDragEnd",
 					metadata: { requestId, newStatus, error },
 				});
 				toast.error("Failed to update status");
-				// Rollback on error
-				setRequests((prev) =>
-					prev.map((r) =>
-						r.id === requestId ? { ...r, status: oldStatus } : r,
-					),
-				);
+				// Rollback: dropping the override reverts to the prop's status.
+				clearStatusOverride(requestId);
 			}
 		});
 	};
