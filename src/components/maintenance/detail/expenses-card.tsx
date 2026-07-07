@@ -51,6 +51,11 @@ export function ExpensesCard({
 									<p className="font-medium">
 										{expense.vendor_name || "Unknown Vendor"}
 									</p>
+									{expense.description ? (
+										<p className="text-sm text-muted-foreground">
+											{expense.description}
+										</p>
+									) : null}
 									<p className="text-sm text-muted-foreground">
 										{expense.expense_date
 											? new Date(expense.expense_date).toLocaleDateString()

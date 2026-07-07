@@ -46,7 +46,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			const { data, error } = await supabase
 				.from("expenses")
 				.select(
-					"id, amount, expense_date, vendor_name, maintenance_request_id, status",
+					"id, amount, description, expense_date, vendor_name, maintenance_request_id, status",
 				)
 				// Filter soft-deleted rows so the maintenance detail page agrees
 				// with the rest of the app (expenseQueries.* + expenses page).
