@@ -169,7 +169,13 @@ export function InspectionPhotoUpload({
 					}
 					return prev.filter((f) => f.status !== "success");
 				});
-				onUploadComplete?.();
+				// Only auto-close the panel if nothing new was staged during the 1.5s
+				// window — a file dropped in meanwhile would otherwise be unmounted
+				// (its objectUrl revoked, state dropped) and silently lost.
+				const hasPending = filesRef.current.some(
+					(f) => f.status === "pending" || f.status === "error",
+				);
+				if (!hasPending) onUploadComplete?.();
 			}, 1500);
 		} else if (errorCount > 0) {
 			toast.error(
