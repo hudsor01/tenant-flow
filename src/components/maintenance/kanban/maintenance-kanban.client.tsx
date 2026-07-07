@@ -20,6 +20,8 @@ import {
 	CheckCircle,
 	Clock,
 	Pause,
+	RotateCcw,
+	UserCheck,
 	XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -51,10 +53,24 @@ const COLUMNS: ColumnConfig[] = [
 		icon: <Clock className="w-4 h-4 text-warning" />,
 	},
 	{
+		id: "assigned",
+		title: "Assigned",
+		colorClass: "bg-primary/10",
+		icon: <UserCheck className="w-4 h-4 text-primary" />,
+	},
+	{
 		id: "in_progress",
 		title: "In Progress",
 		colorClass: "bg-primary/10",
 		icon: <AlertTriangle className="w-4 h-4 text-primary" />,
+	},
+	{
+		id: "needs_reassignment",
+		title: "Needs Reassignment",
+		colorClass: "bg-orange-500/10",
+		icon: (
+			<RotateCcw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+		),
 	},
 	{
 		id: "completed",
@@ -264,7 +280,8 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		if (["open", "in_progress", "completed"].includes(column.id)) {
 			return true;
 		}
-		// Only show On Hold and Cancelled if they have requests
+		// Show Assigned, Needs Reassignment, On Hold, and Cancelled only when
+		// they hold requests — so no request in those statuses is ever hidden.
 		return count > 0;
 	});
 

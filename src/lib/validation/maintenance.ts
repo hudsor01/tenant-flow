@@ -31,11 +31,15 @@ export const maintenancePrioritySchema = z.enum([
 	"urgent",
 ]);
 
-// Maintenance status enum validation
-// DB enum values: 'open' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold'
+// Maintenance status enum validation — mirrors the DB
+// maintenance_requests_status_check CHECK constraint and the MaintenanceStatus
+// union in #types/core (all 7 valid statuses). vendorMutations.assign/unassign
+// set "assigned"/"needs_reassignment", so both must validate.
 export const maintenanceStatusSchema = z.enum([
 	"open",
+	"assigned",
 	"in_progress",
+	"needs_reassignment",
 	"completed",
 	"cancelled",
 	"on_hold",
