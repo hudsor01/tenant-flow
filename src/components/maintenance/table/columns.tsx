@@ -32,9 +32,17 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
 			label: "Open",
 		},
+		assigned: {
+			className: "bg-primary/10 text-primary-text",
+			label: "Assigned",
+		},
 		in_progress: {
 			className: "bg-primary/10 text-primary-text",
 			label: "In Progress",
+		},
+		needs_reassignment: {
+			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			label: "Needs Reassignment",
 		},
 		completed: {
 			className: "bg-green-500/10 text-green-600 dark:text-green-400",

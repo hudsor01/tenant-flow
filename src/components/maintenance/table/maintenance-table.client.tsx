@@ -3,6 +3,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useEffect } from "react";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Button } from "#components/ui/button";
@@ -27,10 +29,34 @@ export function MaintenanceTableClient({
 	columns,
 	initialRequests,
 }: MaintenanceTableClientProps) {
+	// use-data-table hard-codes manualPagination, so it renders exactly the rows
+	// it is handed — it does not slice. Do the paging here: read the same `page`
+	// URL param the hook drives and hand it only the current page's window, so the
+	// Next/Prev controls actually change the visible rows instead of the footer
+	// silently disagreeing with an unpaged list. Safe to slice before the hook
+	// because this table is neither sorted (non-sortable columns) nor filtered
+	// here (search is applied by the parent before `initialRequests` arrives).
+	const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+	const pageCount = Math.max(1, Math.ceil(initialRequests.length / PAGE_SIZE));
+	const currentPage = Math.min(Math.max(1, page), pageCount);
+
+	// Reset an out-of-range page (e.g. after a search shrinks the list) so the
+	// footer never shows "Page 5 of 2".
+	useEffect(() => {
+		if (page !== currentPage) {
+			void setPage(currentPage === 1 ? null : currentPage);
+		}
+	}, [page, currentPage, setPage]);
+
+	const pageData = initialRequests.slice(
+		(currentPage - 1) * PAGE_SIZE,
+		currentPage * PAGE_SIZE,
+	);
+
 	const { table } = useDataTable({
-		data: initialRequests,
+		data: pageData,
 		columns,
-		pageCount: Math.max(1, Math.ceil(initialRequests.length / PAGE_SIZE)),
+		pageCount,
 		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
