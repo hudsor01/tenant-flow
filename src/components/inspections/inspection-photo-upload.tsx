@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, Upload, X } from "lucide-react";
+import { AlertCircle, CheckCircle, RotateCw, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -15,6 +15,10 @@ interface InspectionPhotoUploadProps {
 }
 
 interface FileUploadState {
+	// Stable identity for this file across filtering/re-renders. Status updates
+	// key on this id, never on an array index — the pending subset's index does
+	// not line up with the full `files` array.
+	id: string;
 	file: File;
 	objectUrl: string;
 	status: "pending" | "uploading" | "success" | "error";
@@ -32,6 +36,7 @@ export function InspectionPhotoUpload({
 
 	const onDrop = (acceptedFiles: File[]) => {
 		const newFiles = acceptedFiles.map((file) => ({
+			id: crypto.randomUUID(),
 			file,
 			objectUrl: URL.createObjectURL(file),
 			status: "pending" as const,
@@ -51,63 +56,80 @@ export function InspectionPhotoUpload({
 		multiple: true,
 	});
 
-	function removeFile(index: number) {
+	function removeFile(id: string) {
 		setFiles((prev) => {
-			const file = prev[index];
-			if (file) URL.revokeObjectURL(file.objectUrl);
-			return prev.filter((_, i) => i !== index);
+			const target = prev.find((f) => f.id === id);
+			if (target) URL.revokeObjectURL(target.objectUrl);
+			return prev.filter((f) => f.id !== id);
 		});
 	}
 
-	async function handleUpload() {
-		if (files.length === 0) return;
+	// Upload a single file, tracking its own status by stable id. Never throws —
+	// resolves to whether the upload succeeded so the caller can tally the batch.
+	async function uploadOne(fileState: FileUploadState): Promise<boolean> {
+		// Skip files already uploaded: re-running upload must not create a
+		// duplicate storage object or a duplicate recordPhoto row.
+		if (fileState.status === "success") return true;
 
+		const { id, file } = fileState;
 		const supabase = createClient();
-		setIsUploading(true);
+		const fileExt = file.name.split(".").pop() ?? "jpg";
+		const fileName = `${crypto.randomUUID()}.${fileExt}`;
+		const storagePath = `${inspectionId}/${roomId}/${fileName}`;
 
-		const pendingFiles = files.filter((f) => f.status === "pending");
-
-		const results = await Promise.allSettled(
-			pendingFiles.map(async (fileState, idx) => {
-				const { file } = fileState;
-				const fileExt = file.name.split(".").pop() ?? "jpg";
-				const fileName = `${crypto.randomUUID()}.${fileExt}`;
-				const storagePath = `${inspectionId}/${roomId}/${fileName}`;
-
-				// Mark as uploading
-				setFiles((prev) =>
-					prev.map((f, i) =>
-						i === idx ? { ...f, status: "uploading" as const } : f,
-					),
-				);
-
-				const { error: uploadError } = await supabase.storage
-					.from("inspection-photos")
-					.upload(storagePath, file, { cacheControl: "3600", upsert: false });
-
-				if (uploadError) throw uploadError;
-
-				// Record the photo in the database
-				await recordPhoto.mutateAsync({
-					inspection_room_id: roomId,
-					inspection_id: inspectionId,
-					storage_path: storagePath,
-					file_name: file.name,
-					file_size: file.size,
-					mime_type: file.type,
-				});
-
-				// Mark as success
-				setFiles((prev) =>
-					prev.map((f, i) =>
-						i === idx ? { ...f, status: "success" as const } : f,
-					),
-				);
-			}),
+		setFiles((prev) =>
+			prev.map((f) =>
+				f.id === id ? { ...f, status: "uploading" as const } : f,
+			),
 		);
 
-		const successCount = results.filter((r) => r.status === "fulfilled").length;
-		const errorCount = results.filter((r) => r.status === "rejected").length;
+		try {
+			const { error: uploadError } = await supabase.storage
+				.from("inspection-photos")
+				.upload(storagePath, file, { cacheControl: "3600", upsert: false });
+
+			if (uploadError) throw uploadError;
+
+			await recordPhoto.mutateAsync({
+				inspection_room_id: roomId,
+				inspection_id: inspectionId,
+				storage_path: storagePath,
+				file_name: file.name,
+				file_size: file.size,
+				mime_type: file.type,
+			});
+
+			setFiles((prev) =>
+				prev.map((f) =>
+					f.id === id ? { ...f, status: "success" as const } : f,
+				),
+			);
+			return true;
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Upload failed";
+			setFiles((prev) =>
+				prev.map((f) =>
+					f.id === id ? { ...f, status: "error" as const, error: message } : f,
+				),
+			);
+			return false;
+		}
+	}
+
+	async function handleUpload() {
+		// Retry pending + previously-failed files; succeeded files are excluded
+		// so a re-click cannot duplicate them.
+		const targets = files.filter(
+			(f) => f.status === "pending" || f.status === "error",
+		);
+		if (targets.length === 0) return;
+
+		setIsUploading(true);
+		const results = await Promise.all(targets.map((f) => uploadOne(f)));
+		setIsUploading(false);
+
+		const successCount = results.filter(Boolean).length;
+		const errorCount = results.length - successCount;
 
 		if (successCount > 0 && errorCount === 0) {
 			toast.success(
@@ -116,10 +138,10 @@ export function InspectionPhotoUpload({
 			// Clean up object URLs and clear successful uploads after a delay
 			setTimeout(() => {
 				setFiles((prev) => {
-					const successFiles = prev.filter((f) => f.status === "success");
-					for (const f of successFiles) URL.revokeObjectURL(f.objectUrl);
-					const remaining = prev.filter((f) => f.status !== "success");
-					return remaining;
+					for (const f of prev) {
+						if (f.status === "success") URL.revokeObjectURL(f.objectUrl);
+					}
+					return prev.filter((f) => f.status !== "success");
 				});
 				onUploadComplete?.();
 			}, 1500);
@@ -128,11 +150,11 @@ export function InspectionPhotoUpload({
 				`${errorCount} photo${errorCount > 1 ? "s" : ""} failed to upload`,
 			);
 		}
-
-		setIsUploading(false);
 	}
 
-	const pendingCount = files.filter((f) => f.status === "pending").length;
+	const uploadableCount = files.filter(
+		(f) => f.status === "pending" || f.status === "error",
+	).length;
 
 	return (
 		<div className="space-y-3">
@@ -163,11 +185,12 @@ export function InspectionPhotoUpload({
 			{/* File previews */}
 			{files.length > 0 && (
 				<div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-					{files.map((fileState, index) => (
+					{files.map((fileState) => (
 						<div
-							key={fileState.objectUrl}
+							key={fileState.id}
 							className="aspect-square rounded-md bg-muted overflow-hidden relative group"
 						>
+							{/* Local object-URL preview of the picked file (not the stored photo) */}
 							<img
 								src={fileState.objectUrl}
 								alt={fileState.file.name}
@@ -187,11 +210,40 @@ export function InspectionPhotoUpload({
 									/>
 								</div>
 							)}
-							{/* Remove button */}
+							{fileState.status === "error" && (
+								<div
+									className="absolute inset-0 bg-destructive/70 flex flex-col items-center justify-center gap-1 p-1"
+									title={fileState.error}
+								>
+									<AlertCircle
+										className="w-5 h-5 text-white"
+										aria-hidden="true"
+									/>
+									<div className="flex gap-1">
+										<button
+											type="button"
+											onClick={() => void uploadOne(fileState)}
+											aria-label={`Retry ${fileState.file.name}`}
+											className="p-1 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
+										>
+											<RotateCw className="w-3 h-3" aria-hidden="true" />
+										</button>
+										<button
+											type="button"
+											onClick={() => removeFile(fileState.id)}
+											aria-label={`Remove ${fileState.file.name}`}
+											className="p-1 bg-black/60 rounded-full text-white hover:bg-black/80 transition-colors"
+										>
+											<X className="w-3 h-3" aria-hidden="true" />
+										</button>
+									</div>
+								</div>
+							)}
+							{/* Remove button (pending only — uploading has no control, error has its own) */}
 							{fileState.status === "pending" && (
 								<button
 									type="button"
-									onClick={() => removeFile(index)}
+									onClick={() => removeFile(fileState.id)}
 									aria-label={`Remove ${fileState.file.name}`}
 									className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
 								>
@@ -204,7 +256,7 @@ export function InspectionPhotoUpload({
 			)}
 
 			{/* Upload button */}
-			{pendingCount > 0 && (
+			{uploadableCount > 0 && (
 				<Button
 					type="button"
 					size="sm"
@@ -214,7 +266,7 @@ export function InspectionPhotoUpload({
 				>
 					{isUploading
 						? "Uploading..."
-						: `Upload ${pendingCount} photo${pendingCount > 1 ? "s" : ""}`}
+						: `Upload ${uploadableCount} photo${uploadableCount > 1 ? "s" : ""}`}
 				</Button>
 			)}
 		</div>
