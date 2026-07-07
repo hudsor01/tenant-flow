@@ -47,7 +47,7 @@ Last activity: 2026-07-05 -- Phase 26 execution started
 
 ## Blockers
 
-None.
+None. (Phase 25 #882 + Phase 26 #883 merged to main + deployed to prod 2026-07-06.)
 
 ## Roadmap Evolution
 
