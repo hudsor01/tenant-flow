@@ -452,8 +452,13 @@ export const reportAnalyticsQueries = {
 				const user = await getCachedUser();
 				if (!user)
 					return { year, threshold: 600, recipients: [], totalReported: 0 };
+				// BILL-02: scope to the selected tax year. (NOTE: get_expense_summary
+				// does not emit a `vendor_payments` key, so this report renders empty
+				// regardless — a separate pre-existing gap, out of BILL-02 scope.)
 				const { data, error } = await supabase.rpc("get_expense_summary", {
 					p_user_id: user.id,
+					p_start_date: `${year}-01-01`,
+					p_end_date: `${year}-12-31`,
 				});
 				if (error) handlePostgrestError(error, "1099 summary");
 				const summary = data as Record<string, unknown> | null;
