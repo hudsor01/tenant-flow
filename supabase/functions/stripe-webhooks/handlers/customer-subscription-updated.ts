@@ -62,12 +62,16 @@ export async function handleCustomerSubscriptionUpdated(
 				: null
 			: null;
 
+	// basil+ API (2026-03-25.dahlia) moved current_period_end OFF the top-level
+	// Subscription onto the subscription item — read it via the same accessor
+	// already used for price.id above (sub.items.data[0]?.price.id).
+	const currentPeriodEnd = sub.items.data[0]?.current_period_end;
 	const updatePayload: Record<string, unknown> = {
 		subscription_id: sub.id,
 		subscription_status: sub.status,
 		subscription_plan: tier ?? planLookup ?? priceId,
-		subscription_current_period_end: sub.current_period_end
-			? new Date(sub.current_period_end * 1000).toISOString()
+		subscription_current_period_end: currentPeriodEnd
+			? new Date(currentPeriodEnd * 1000).toISOString()
 			: null,
 		subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
 		subscription_updated_at: new Date().toISOString(),
