@@ -25,6 +25,8 @@ export function Tenants({
 	onEditTenant,
 	onContactTenant,
 	onViewLease,
+	onDeleteTenant,
+	onBulkDelete,
 }: TenantsProps) {
 	const router = useRouter();
 
@@ -91,9 +93,7 @@ export function Tenants({
 	};
 
 	const handleBulkDelete = () => {
-		logger.info("Bulk delete initiated", {
-			selectedIds: Array.from(selectedIds),
-		});
+		onBulkDelete(Array.from(selectedIds));
 		clearSelection();
 	};
 
@@ -196,9 +196,7 @@ export function Tenants({
 							onDeselectAll={handleDeselectAll}
 							onView={handleViewTenant}
 							onEdit={onEditTenant}
-							onDelete={(id) =>
-								logger.info("Delete tenant requested", { tenantId: id })
-							}
+							onDelete={onDeleteTenant}
 							onViewLease={onViewLease}
 						/>
 					) : (
@@ -208,9 +206,7 @@ export function Tenants({
 							onSelectChange={handleSelectChange}
 							onView={handleViewTenant}
 							onEdit={onEditTenant}
-							onDelete={(id) =>
-								logger.info("Delete tenant requested", { tenantId: id })
-							}
+							onDelete={onDeleteTenant}
 							onContact={onContactTenant}
 						/>
 					)}
