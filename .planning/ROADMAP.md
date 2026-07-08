@@ -28,7 +28,7 @@
 | 25 | Critical: Corruption & Broken Deletes | 5/5 | Complete   | 2026-07-02 |
 | 26 | Lease Domain Correctness | 9/9 | Complete   | 2026-07-05 |
 | 27 | Maintenance & Inspections | 6/7 | In Progress|  |
-| 28 | Tenant Domain | Real deletes, correct lease navigation, status persistence, current-lease selection | TEN-01..06 | 4 |
+| 28 | Tenant Domain | 5/6 | In Progress|  |
 | 29 | Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..06 | 6 |
 | 30 | Analytics & Data-Layer Correctness | Occupancy analytics, soft-delete filtering, stale-cache invalidation, virtualizer | DATA-01..03, PROP-01..03 | 5 |
 | 31 | Forms Behavior Correctness | Unsaved-guard, contact send, no render loop, saved fields, validators, single toast | FORMFIX-01..08 | 5 |
@@ -95,13 +95,13 @@ Requirements: TEN-01, TEN-02, TEN-03, TEN-04, TEN-05, TEN-06
 3. Emergency-contact fields can be left empty or cleared, and name-only edits save
 4. Two consecutive zero-finding review cycles
 
-**Plans:** 6 plans
+**Plans:** 5/6 plans executed
 Plans:
-- [ ] 28-01-PLAN.md — TEN-04: mapTenantRow prefers the active lease (current-lease selection + test)
-- [ ] 28-02-PLAN.md — TEN-01: wire real tenant delete (row/grid/bulk) behind confirm dialogs
-- [ ] 28-03-PLAN.md — TEN-05: empty-safe emergency-contact edit validator
-- [ ] 28-04-PLAN.md — TEN-06: fix moved-out optimistic update (drop wrong-key/shape list step)
-- [ ] 28-05-PLAN.md — TEN-02/TEN-03: View-lease by leaseId + read-only status badge
+- [x] 28-01-PLAN.md — TEN-04: mapTenantRow prefers the active lease (current-lease selection + test)
+- [x] 28-02-PLAN.md — TEN-01: wire real tenant delete (row/grid/bulk) behind confirm dialogs
+- [x] 28-03-PLAN.md — TEN-05: empty-safe emergency-contact edit validator
+- [x] 28-04-PLAN.md — TEN-06: fix moved-out optimistic update (drop wrong-key/shape list step)
+- [x] 28-05-PLAN.md — TEN-02/TEN-03: View-lease by leaseId + read-only status badge
 - [ ] 28-06-PLAN.md — verification: full gate + human-verify the six tenant flows
 
 ### Phase 29: Billing, Stripe & Financial Reports
