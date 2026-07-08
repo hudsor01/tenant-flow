@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Correctness Restoration
 status: executing
-last_updated: "2026-07-05T00:17:07.569Z"
-last_activity: 2026-07-05 -- Phase 26 execution started
+last_updated: "2026-07-07T02:57:08.843Z"
+last_activity: 2026-07-07 -- Phase 27 execution started
 progress:
   total_phases: 11
-  completed_phases: 1
-  total_plans: 14
-  completed_plans: 5
-  percent: 9
+  completed_phases: 2
+  total_plans: 21
+  completed_plans: 14
+  percent: 18
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v8.0):** Every core operation an owner performs — create a lease, delete a unit, view the leases list, sign a document, pay an invoice, upload a photo, run a report — produces correct data and correct behavior. This milestone eradicates the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 and every cross-owner/DB claim verified against source + the live Supabase DB). Nothing new is built; every requirement restores an existing feature to correct behavior.
-**Current focus:** Phase 26 — lease-domain-correctness
+**Current focus:** Phase 27 — maintenance-inspections
 
 ## Current Position
 
-Phase: 26 (lease-domain-correctness) — REVIEW-PASSED (perfect-PR gate met)
-Plan: 9 of 9 complete
-Status: Phase 26 done + reviewed (cycles 4+5 zero-finding). typecheck/lint/102,061 tests green; 6 lease migrations applied+verified live. LEASE-04 term-lock grew 2->6 migrations across review (signed-PDF tamper: dates->gov->notice/family->FK selectors). Discovered SEC-04/05 follow-ups. Ready for PR + merge.
-Last activity: 2026-07-05 -- Phase 26 execution started
+Phase: 27 (maintenance-inspections) — REVIEW-PASSED (perfect-PR gate met, cycles 10+11)
+Plan: 7 of 7 (execution + review complete)
+Status: Executing Phase 27
+Last activity: 2026-07-07 -- Phase 27 execution started
 
 ## Roadmap Summary (v8.0)
 
@@ -47,7 +47,7 @@ Last activity: 2026-07-05 -- Phase 26 execution started
 
 ## Blockers
 
-None.
+None. (Phase 25 #882 + Phase 26 #883 merged to main + deployed to prod 2026-07-06.)
 
 ## Roadmap Evolution
 

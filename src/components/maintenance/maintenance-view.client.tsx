@@ -54,22 +54,20 @@ export function MaintenanceViewClient() {
 
 	const { data: response, isLoading } = useQuery(maintenanceQueries.list());
 	const requests = (response?.data ?? []) as MaintenanceDisplayRequest[];
+	// Stat cards come from the get_maintenance_stats RPC (counts the owner's FULL
+	// set) instead of the paginated list() (capped at 50), so they stay accurate
+	// for large portfolios. `completed_this_month` is scoped to the caller's local
+	// month boundary inside the stats() factory.
+	const { data: stats } = useQuery(maintenanceQueries.stats());
 
 	const handleViewChange = (view: ViewType) => {
 		setViewPreference("maintenance", view);
 	};
 
-	// Calculate stats
-	const openCount = requests.filter((r) => r.status === "open").length;
-	const inProgressCount = requests.filter(
-		(r) => r.status === "in_progress",
-	).length;
-	const completedCount = requests.filter(
-		(r) => r.status === "completed",
-	).length;
-	const urgentCount = requests.filter(
-		(r) => r.priority === "urgent" && r.status !== "completed",
-	).length;
+	const openCount = stats?.open ?? 0;
+	const inProgressCount = stats?.in_progress ?? 0;
+	const completedCount = stats?.completed_this_month ?? 0;
+	const urgentCount = stats?.urgent ?? 0;
 
 	// Filter requests
 	const filteredRequests = (() => {

@@ -64,6 +64,7 @@
 - [ ] **BILL-03**: Unpaid/open invoices show their real amount, not $0.00 — `billing-keys.ts:35` stops letting `amount_paid = 0` win over `amount_due`.
 - [ ] **BILL-04**: Financial views surface an error (or fall back honestly) when `get_expense_summary`/billing RPCs fail, instead of silently defaulting expenses to 0 and overstating net income (`financial-keys.ts`, `expense-keys.ts`).
 - [ ] **BILL-05**: The year-end and tax-document **PDF** exports build from the same financial RPCs as their CSV counterparts (`get_financial_overview`/`get_billing_insights`), not `get_dashboard_stats`, so PDF content matches the report title (`generate-pdf/index.ts:92`).
+- [ ] **BILL-06**: `expenses.amount` has one consistent money convention (dollars) end-to-end. Today the column is `integer` (rounds cents on insert; the add-expense dialog invites `step=0.01` decimals) and readers disagree: `/financials/expenses` table + `expense-category-breakdown` + `tax-documents` + `financials-quick-links` read it as **cents** (`formatCents(amount)` → 100× too small — a $150 expense shows "$1.50"), while `maintenance` detail + income-statement/cash-flow/balance treat it as **dollars**. Migrate `expenses.amount` → `numeric(10,2)`, fix the cents-readers to `formatCurrency`, and update the financial RPCs that `SUM(e.amount)::bigint` so fractional dollars are not truncated. (Discovered in the Phase 27 review via the MAINT-08 add-expense insert path; the description feature itself shipped correctly. Prod `expenses` is currently empty, so no historical data to convert.)
 
 ### DATA — analytics + data-layer correctness
 
@@ -141,7 +142,7 @@ None scoped. This milestone is exhaustive over the 2026-07-02 hunt; any bug foun
 | LEASE-01..08 | 26 — Lease Domain Correctness |
 | MAINT-01..08, INSP-01, INSP-02 | 27 — Maintenance & Inspections |
 | TEN-01..06 | 28 — Tenant Domain |
-| BILL-01..05 | 29 — Billing, Stripe & Financial Reports |
+| BILL-01..06 | 29 — Billing, Stripe & Financial Reports |
 | DATA-01..03, PROP-01..03 | 30 — Analytics & Data-Layer Correctness |
 | FORMFIX-01..08 | 31 — Forms Behavior Correctness |
 | UIX-01..05, PROP-04, PROP-05 | 32 — Shared UI, Data-Table & Uploads |

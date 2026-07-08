@@ -59,6 +59,7 @@ export function AddExpenseDialog({
 				vendor_name: vendorName || null,
 				amount: parseFloat(amount),
 				expense_date: expenseDate,
+				description: description || null,
 			});
 			if (error) throw error;
 			toast.success("Expense added successfully");

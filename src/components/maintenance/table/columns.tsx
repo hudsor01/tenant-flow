@@ -19,6 +19,7 @@ import {
 } from "#components/ui/alert-dialog";
 import { Button } from "#components/ui/button";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
@@ -31,9 +32,17 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
 			label: "Open",
 		},
+		assigned: {
+			className: "bg-primary/10 text-primary-text",
+			label: "Assigned",
+		},
 		in_progress: {
 			className: "bg-primary/10 text-primary-text",
 			label: "In Progress",
+		},
+		needs_reassignment: {
+			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			label: "Needs Reassignment",
 		},
 		completed: {
 			className: "bg-green-500/10 text-green-600 dark:text-green-400",
@@ -224,6 +233,7 @@ function MaintenanceActionsCell({
 				queryClient.invalidateQueries({
 					queryKey: maintenanceQueries.stats().queryKey,
 				}),
+				queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all }),
 			]);
 		} catch {
 			toast.error("Failed to delete");

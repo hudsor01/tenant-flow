@@ -170,8 +170,18 @@ export const maintenanceQueries = {
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
 
+				// Local-zone start of the current month so `completed_this_month` is
+				// counted in the owner's timezone, not UTC.
+				const now = new Date();
+				const monthStart = new Date(
+					now.getFullYear(),
+					now.getMonth(),
+					1,
+				).toISOString();
+
 				const { data, error } = await supabase.rpc("get_maintenance_stats", {
 					p_user_id: user.id,
+					p_month_start: monthStart,
 				});
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
@@ -183,8 +193,10 @@ export const maintenanceQueries = {
 					in_progress: stats.in_progress ?? 0,
 					needs_reassignment: stats.needs_reassignment ?? 0,
 					completed: stats.completed ?? 0,
+					completed_this_month: stats.completed_this_month ?? 0,
 					cancelled: stats.cancelled ?? 0,
 					on_hold: stats.on_hold ?? 0,
+					urgent: stats.urgent ?? 0,
 					total: stats.total ?? 0,
 				};
 			},

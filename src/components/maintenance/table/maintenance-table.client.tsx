@@ -1,23 +1,12 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useOptimistic, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useEffect } from "react";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "#components/ui/alert-dialog";
 import { Button } from "#components/ui/button";
 import {
 	Card,
@@ -27,11 +16,9 @@ import {
 	CardTitle,
 } from "#components/ui/card";
 import { useDataTable } from "#hooks/use-data-table";
-import { createLogger } from "#lib/frontend-logger";
-import { createClient } from "#lib/supabase/client";
 import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
-const logger = createLogger({ component: "MaintenanceTableClient" });
+const PAGE_SIZE = 10;
 
 interface MaintenanceTableClientProps {
 	columns: ColumnDef<MaintenanceDisplayRequest>[];
@@ -42,104 +29,48 @@ export function MaintenanceTableClient({
 	columns,
 	initialRequests,
 }: MaintenanceTableClientProps) {
-	const [isPending, startTransition] = useTransition();
-	const [deletingId, setDeletingId] = useState<string | null>(null);
-	const [optimisticRequests, removeOptimistic] = useOptimistic(
-		initialRequests,
-		(state, requestId: string) => state.filter((r) => r.id !== requestId),
+	// use-data-table hard-codes manualPagination, so it renders exactly the rows
+	// it is handed — it does not slice. Do the paging here: read the same `page`
+	// URL param the hook drives and hand it only the current page's window, so the
+	// Next/Prev controls actually change the visible rows instead of the footer
+	// silently disagreeing with an unpaged list. Safe to slice before the hook
+	// because this table is neither sorted (non-sortable columns) nor filtered
+	// here (search is applied by the parent before `initialRequests` arrives).
+	const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+	// Honor the "Rows per page" selector: use-data-table writes the chosen size to
+	// the `perPage` URL param, so read it here and slice by the same value (never a
+	// hard-coded PAGE_SIZE) — otherwise the selector updates the footer while the
+	// visible window stays 10.
+	const [perPage] = useQueryState(
+		"perPage",
+		parseAsInteger.withDefault(PAGE_SIZE),
+	);
+	const pageSize = perPage > 0 ? perPage : PAGE_SIZE;
+	const pageCount = Math.max(1, Math.ceil(initialRequests.length / pageSize));
+	const currentPage = Math.min(Math.max(1, page), pageCount);
+
+	// Reset an out-of-range page (e.g. after a search shrinks the list) so the
+	// footer never shows "Page 5 of 2".
+	useEffect(() => {
+		if (page !== currentPage) {
+			void setPage(currentPage === 1 ? null : currentPage);
+		}
+	}, [page, currentPage, setPage]);
+
+	const pageData = initialRequests.slice(
+		(currentPage - 1) * pageSize,
+		currentPage * pageSize,
 	);
 
-	const handleDelete = (requestId: string, requestTitle: string) => {
-		setDeletingId(requestId);
-		startTransition(async () => {
-			removeOptimistic(requestId);
-			try {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("maintenance_requests")
-					.delete()
-					.eq("id", requestId);
-				if (error) throw error;
-				toast.success(`Request "${requestTitle}" deleted`);
-			} catch (error) {
-				logger.error("Delete failed", {
-					action: "handleDelete",
-					metadata: { requestId, error },
-				});
-				toast.error("Failed to delete request");
-				// Optimistic update will auto-rollback on error
-			} finally {
-				setDeletingId(null);
-			}
-		});
-	};
-
-	// Add delete action column
-	const columnsWithActions: ColumnDef<MaintenanceDisplayRequest>[] = [
-		...columns,
-		{
-			id: "actions",
-			cell: ({ row }) => {
-				const request = row.original;
-				return (
-					<div className="flex items-center justify-end gap-1">
-						<Button asChild size="sm" variant="ghost">
-							<Link href={`/maintenance/${request.id}`}>View</Link>
-						</Button>
-						<Button asChild size="sm" variant="ghost">
-							<Link href={`/maintenance/${request.id}/edit`}>Edit</Link>
-						</Button>
-						<AlertDialog>
-							<AlertDialogTrigger asChild>
-								<Button
-									size="sm"
-									variant="ghost"
-									className="text-destructive hover:text-destructive"
-								>
-									<Trash2 className="size-4" />
-									<span className="sr-only">Delete</span>
-								</Button>
-							</AlertDialogTrigger>
-							<AlertDialogContent>
-								<AlertDialogHeader>
-									<AlertDialogTitle>
-										Delete maintenance request
-									</AlertDialogTitle>
-									<AlertDialogDescription>
-										Permanently remove <strong>{request.description}</strong>?
-									</AlertDialogDescription>
-								</AlertDialogHeader>
-								<AlertDialogFooter>
-									<AlertDialogCancel>Cancel</AlertDialogCancel>
-									<AlertDialogAction
-										disabled={isPending && deletingId === request.id}
-										onClick={() =>
-											handleDelete(request.id, request.description)
-										}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-									>
-										{isPending && deletingId === request.id
-											? "Deleting..."
-											: "Delete"}
-									</AlertDialogAction>
-								</AlertDialogFooter>
-							</AlertDialogContent>
-						</AlertDialog>
-					</div>
-				);
-			},
-		},
-	];
-
 	const { table } = useDataTable({
-		data: optimisticRequests,
-		columns: columnsWithActions,
-		pageCount: -1,
+		data: pageData,
+		columns,
+		pageCount,
 		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10,
+				pageSize: PAGE_SIZE,
 			},
 		},
 	});

@@ -1,4 +1,11 @@
-import { AlertTriangle, CheckCircle, Clock, XCircle } from "lucide-react";
+import {
+	AlertTriangle,
+	CheckCircle,
+	Clock,
+	RotateCcw,
+	UserCheck,
+	XCircle,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { createElement } from "react";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
@@ -13,10 +20,20 @@ export const STATUS_CONFIG: Record<
 		className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
 		icon: createElement(Clock, { className: "size-3.5" }),
 	},
+	assigned: {
+		label: "Assigned",
+		className: "bg-primary/10 text-primary",
+		icon: createElement(UserCheck, { className: "size-3.5" }),
+	},
 	in_progress: {
 		label: "In Progress",
 		className: "bg-primary/10 text-primary",
 		icon: createElement(AlertTriangle, { className: "size-3.5" }),
+	},
+	needs_reassignment: {
+		label: "Needs Reassignment",
+		className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+		icon: createElement(RotateCcw, { className: "size-3.5" }),
 	},
 	completed: {
 		label: "Completed",

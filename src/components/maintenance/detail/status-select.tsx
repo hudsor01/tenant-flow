@@ -54,7 +54,9 @@ export function StatusSelect({
 			</SelectTrigger>
 			<SelectContent>
 				<SelectItem value="open">Open</SelectItem>
+				<SelectItem value="assigned">Assigned</SelectItem>
 				<SelectItem value="in_progress">In Progress</SelectItem>
+				<SelectItem value="needs_reassignment">Needs Reassignment</SelectItem>
 				<SelectItem value="on_hold">On Hold</SelectItem>
 				<SelectItem value="completed">Completed</SelectItem>
 				<SelectItem value="cancelled">Cancelled</SelectItem>

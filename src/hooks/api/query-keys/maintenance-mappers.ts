@@ -25,18 +25,17 @@ import type { MaintenanceRequest } from "#types/core";
 // source of truth; no later override widens or narrows it):
 //   open, assigned, in_progress, needs_reassignment, completed, cancelled, on_hold
 //
-// This is intentionally NOT the shared `maintenanceStatusSchema` from
-// #lib/validation/maintenance. That schema is the STALE 5-value INPUT enum
-// (open/in_progress/completed/cancelled/on_hold) — it gates the create/update
-// FORM (which must not offer vendor-workflow statuses) and omits "assigned" and
-// "needs_reassignment". vendorMutations.assign / unassign actively PERSIST those
-// two statuses (maintenance-keys.ts), and those rows flow back through
-// list()/detail()/urgent()/overdue(). Validating a persisted status against the
-// 5-value input schema would throw on every assigned/reassignment row and break
-// the maintenance surfaces in prod — the exact over-validation failure 02-CONTEXT
-// warns against. So this is a module-local schema (mirrors plan 02-02's tenant
-// `moved_out` persisted-status union precedent). Do NOT widen the shared input
-// enum to "fix" this — the two schemas validate different boundaries.
+// This is a module-local schema kept separate from the shared
+// `maintenanceStatusSchema` in #lib/validation/maintenance so the two boundaries
+// stay independent: this one validates PERSISTED rows read back from the DB
+// (list()/detail()/urgent()/overdue()), while the shared schema validates
+// form/mutation INPUT. Both now enumerate the same 7 values — Phase 27 (MAINT-06)
+// widened the shared schema to include "assigned" and "needs_reassignment"
+// because the kanban drag + detail StatusSelect now let an owner set those
+// vendor-workflow statuses through the general update mutation (in addition to
+// vendorMutations.assign / unassign). Keep this local copy anyway: it decouples
+// the read-side defensive validation from any future narrowing of the input
+// schema, mirroring plan 02-02's tenant `moved_out` persisted-status precedent.
 const maintenancePersistedStatusSchema = z.enum([
 	"open",
 	"assigned",

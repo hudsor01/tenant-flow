@@ -119,18 +119,36 @@ export const inspectionQueries = {
 
 				// Strip the raw PostgREST `inspection_rooms` embed -- the
 				// Inspection contract exposes the enriched `rooms` field
-				// (photos resolved to publicUrl) instead.
+				// (photos resolved to signed URLs) instead.
 				const { inspection_rooms, ...rest } = data;
-				const rooms = (inspection_rooms ?? []).map((room) => ({
+				const rawRooms = inspection_rooms ?? [];
+
+				// The inspection-photos bucket is private -- a public URL would
+				// resolve to a 403. Batch-sign every photo path across all rooms in
+				// one round-trip (1h TTL) and resolve each photo's publicUrl from the
+				// map. Skip the sign call entirely when the inspection has no photos.
+				const paths = rawRooms.flatMap((room) =>
+					(room.inspection_photos ?? []).map((photo) => photo.storage_path),
+				);
+				const urlByPath = new Map<string, string>();
+				if (paths.length > 0) {
+					const { data: signed } = await supabase.storage
+						.from("inspection-photos")
+						.createSignedUrls(paths, 3600);
+					for (const entry of signed ?? []) {
+						if (entry.path && entry.signedUrl) {
+							urlByPath.set(entry.path, entry.signedUrl);
+						}
+					}
+				}
+
+				const rooms = rawRooms.map((room) => ({
 					...narrowInspectionRoomEnums(room),
 					photos: (room.inspection_photos ?? []).map((photo) => {
-						const { data: urlData } = supabase.storage
-							.from("inspection-photos")
-							.getPublicUrl(photo.storage_path);
-						return {
-							...photo,
-							publicUrl: urlData.publicUrl,
-						};
+						const signedUrl = urlByPath.get(photo.storage_path);
+						return signedUrl === undefined
+							? photo
+							: { ...photo, publicUrl: signedUrl };
 					}),
 				}));
 

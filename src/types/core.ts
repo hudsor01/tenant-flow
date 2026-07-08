@@ -30,7 +30,9 @@ export type PaymentStatus =
 
 export type MaintenanceStatus =
 	| "open"
+	| "assigned"
 	| "in_progress"
+	| "needs_reassignment"
 	| "completed"
 	| "cancelled"
 	| "on_hold";

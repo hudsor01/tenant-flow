@@ -7,6 +7,7 @@ import {
 	DragOverlay,
 	DragStartEvent,
 	PointerSensor,
+	useDroppable,
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
@@ -15,11 +16,14 @@ import {
 	SortableContext,
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	CheckCircle,
 	Clock,
 	Pause,
+	RotateCcw,
+	UserCheck,
 	XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -27,6 +31,8 @@ import type { ReactNode } from "react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
+import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenanceStatus } from "#types/core";
@@ -51,10 +57,24 @@ const COLUMNS: ColumnConfig[] = [
 		icon: <Clock className="w-4 h-4 text-warning" />,
 	},
 	{
+		id: "assigned",
+		title: "Assigned",
+		colorClass: "bg-primary/10",
+		icon: <UserCheck className="w-4 h-4 text-primary" />,
+	},
+	{
 		id: "in_progress",
 		title: "In Progress",
 		colorClass: "bg-primary/10",
 		icon: <AlertTriangle className="w-4 h-4 text-primary" />,
+	},
+	{
+		id: "needs_reassignment",
+		title: "Needs Reassignment",
+		colorClass: "bg-orange-500/10",
+		icon: (
+			<RotateCcw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+		),
 	},
 	{
 		id: "completed",
@@ -75,6 +95,35 @@ const COLUMNS: ColumnConfig[] = [
 		icon: <XCircle className="w-4 h-4 text-muted-foreground" />,
 	},
 ];
+
+// The set of valid, droppable status ids (drives the type guard below).
+const VALID_STATUS_IDS: ReadonlySet<string> = new Set(COLUMNS.map((c) => c.id));
+
+function isMaintenanceStatus(value: unknown): value is MaintenanceStatus {
+	return typeof value === "string" && VALID_STATUS_IDS.has(value);
+}
+
+/**
+ * Resolve the target status of a drop from the droppable's data payload.
+ * Column droppables carry `{ type: "column", status }`; sortable cards carry
+ * `{ type: "maintenance-request", columnId }`. Dropping on a card resolves to
+ * that card's column. Never returns the raw `over.id` (a card UUID).
+ */
+function resolveDropStatus(
+	overData: Record<string, unknown> | undefined,
+): MaintenanceStatus | null {
+	if (!overData) return null;
+	if (overData.type === "column" && isMaintenanceStatus(overData.status)) {
+		return overData.status;
+	}
+	if (
+		overData.type === "maintenance-request" &&
+		isMaintenanceStatus(overData.columnId)
+	) {
+		return overData.columnId;
+	}
+	return null;
+}
 
 function getDaysOpen(timestamp: string | null | undefined): number {
 	if (!timestamp) return 0;
@@ -97,6 +146,12 @@ function KanbanColumn({
 	columnIndex,
 	onView,
 }: KanbanColumnProps) {
+	// Register the whole column (incl. its empty-state area) as a drop target.
+	const { setNodeRef } = useDroppable({
+		id: column.id,
+		data: { type: "column", status: column.id },
+	});
+
 	// Sort by age (oldest first for open/in_progress, newest first for completed)
 	const sortedRequests = [...requests].sort((a, b) => {
 		if (column.id === "completed" || column.id === "cancelled") {
@@ -124,7 +179,10 @@ function KanbanColumn({
 				</div>
 
 				{/* Cards Container */}
-				<div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-380px)]">
+				<div
+					ref={setNodeRef}
+					className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-380px)]"
+				>
 					<SortableContext
 						id={column.id}
 						items={sortedRequests.map((r) => r.id)}
@@ -162,12 +220,24 @@ interface MaintenanceKanbanProps {
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const router = useRouter();
-	const [requests, setRequests] = useState<MaintenanceDisplayRequest[]>(
-		initialRequests || [],
-	);
+	const queryClient = useQueryClient();
+	// Optimistic status overrides keyed by request id — applied on top of the
+	// prop during an in-flight drag, cleared once the refetch reconciles. The
+	// board itself is derived from the filtered `initialRequests` prop so search
+	// stays live (no stale local copy of the list).
+	const [statusOverrides, setStatusOverrides] = useState<
+		Record<string, MaintenanceStatus>
+	>({});
 	const [activeRequest, setActiveRequest] =
 		useState<MaintenanceDisplayRequest | null>(null);
 	const [, startTransition] = useTransition();
+
+	const requests = (initialRequests || []).map((request) => {
+		const override = statusOverrides[request.id];
+		return override && override !== request.status
+			? { ...request, status: override }
+			: request;
+	});
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -191,6 +261,15 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		{} as Record<MaintenanceStatus, MaintenanceDisplayRequest[]>,
 	);
 
+	const clearStatusOverride = (requestId: string) => {
+		setStatusOverrides((prev) => {
+			if (!(requestId in prev)) return prev;
+			const next = { ...prev };
+			delete next[requestId];
+			return next;
+		});
+	};
+
 	const handleDragStart = (event: DragStartEvent) => {
 		const { active } = event;
 		const request = requests.find((r) => r.id === active.id);
@@ -206,16 +285,17 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		if (!over) return;
 
 		const requestId = active.id as string;
-		const newStatus = over.id as MaintenanceStatus;
+		// Resolve the target status from the droppable/card data — never the raw
+		// over.id (a card UUID), which would send a UUID to the status CHECK.
+		const newStatus = resolveDropStatus(over.data.current);
+		if (!newStatus) return;
 
 		const request = requests.find((r) => r.id === requestId);
 		if (!request || request.status === newStatus) return;
 
-		// Optimistic update
-		const oldStatus = request.status;
-		setRequests((prev) =>
-			prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r)),
-		);
+		// Optimistic update — pin the new status via the override map (on top of
+		// the prop) instead of copying the whole list.
+		setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }));
 
 		// API update
 		startTransition(async () => {
@@ -237,18 +317,32 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 				toast.success(
 					`Request moved to ${COLUMNS.find((c) => c.id === newStatus)?.title}`,
 				);
+
+				// Refetch the source query so the change persists per the
+				// mutation-invalidation rule; the refreshed prop then carries the
+				// new status, so we can drop the optimistic override.
+				await Promise.all([
+					queryClient.invalidateQueries({
+						queryKey: maintenanceQueries.lists(),
+					}),
+					// Stats now come from the get_maintenance_stats RPC (a separate
+					// ['maintenance','stats'] query), so lists() no longer refreshes the
+					// KPI cards — invalidate it explicitly or a status-changing drag
+					// leaves the Open/Completed counts stale.
+					queryClient.invalidateQueries({
+						queryKey: maintenanceQueries.stats().queryKey,
+					}),
+					queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all }),
+				]);
+				clearStatusOverride(requestId);
 			} catch (error) {
 				logger.error("Status update failed", {
 					action: "handleDragEnd",
 					metadata: { requestId, newStatus, error },
 				});
 				toast.error("Failed to update status");
-				// Rollback on error
-				setRequests((prev) =>
-					prev.map((r) =>
-						r.id === requestId ? { ...r, status: oldStatus } : r,
-					),
-				);
+				// Rollback: dropping the override reverts to the prop's status.
+				clearStatusOverride(requestId);
 			}
 		});
 	};
@@ -257,14 +351,18 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		router.push(`/maintenance/${id}`);
 	};
 
-	// Filter out columns with no requests except for the main ones
+	// Filter out columns with no requests except for the manual-workflow lanes.
 	const visibleColumns = COLUMNS.filter((column) => {
 		const count = requestsByStatus[column.id]?.length ?? 0;
-		// Always show Open, In Progress, and Completed
-		if (["open", "in_progress", "completed"].includes(column.id)) {
+		// Always show the lanes an owner manually drags between (Open, In Progress,
+		// On Hold, Completed) so each stays a drop target even when empty.
+		if (["open", "in_progress", "on_hold", "completed"].includes(column.id)) {
 			return true;
 		}
-		// Only show On Hold and Cancelled if they have requests
+		// Assigned / Needs Reassignment are vendor-workflow statuses (set via vendor
+		// assignment, not manual drag) and Cancelled is a deliberate terminal action;
+		// show those only when they hold requests — so no request is ever hidden but
+		// the board stays focused on the manual workflow.
 		return count > 0;
 	});
 
