@@ -32,6 +32,9 @@ function extractDashStats(data: unknown) {
 	return {
 		revenue: stats?.revenue as Record<string, unknown> | undefined,
 		units: stats?.units as Record<string, unknown> | undefined,
+		// Occupancy lives under `properties.occupancyRate` (camelCase), NOT
+		// `units.occupancy_rate` — the snake_case key the RPC never emits.
+		properties: stats?.properties as Record<string, unknown> | undefined,
 		tenants: stats?.tenants as Record<string, unknown> | undefined,
 		leases: stats?.leases as Record<string, unknown> | undefined,
 	};
@@ -157,7 +160,12 @@ export const reportAnalyticsQueries = {
 				}
 				const [dashResult, expenseResult] = await Promise.all([
 					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
-					supabase.rpc("get_expense_summary", { p_user_id: user.id }),
+					// BILL-02: scope expenses to the selected period (defaults to YTD).
+					supabase.rpc("get_expense_summary", {
+						p_user_id: user.id,
+						...(start_date ? { p_start_date: start_date } : {}),
+						...(end_date ? { p_end_date: end_date } : {}),
+					}),
 				]);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "financial report");
@@ -165,7 +173,7 @@ export const reportAnalyticsQueries = {
 				// 0 expenses and overstating net income.
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "financial report");
-				const { revenue, units } = extractDashStats(dashResult.data);
+				const { revenue, properties } = extractDashStats(dashResult.data);
 				const totalIncome = Number(revenue?.yearly ?? 0);
 				const expenseSummary = expenseResult.data as Record<
 					string,
@@ -178,7 +186,7 @@ export const reportAnalyticsQueries = {
 						totalExpenses,
 						netIncome: totalIncome - totalExpenses,
 						cashFlow: Number(revenue?.monthly ?? 0) - totalExpenses / 12,
-						rentRollOccupancyRate: Number(units?.occupancy_rate ?? 0),
+						rentRollOccupancyRate: Number(properties?.occupancyRate ?? 0),
 					},
 					monthly: [],
 					expenseBreakdown: (
@@ -380,7 +388,12 @@ export const reportAnalyticsQueries = {
 					};
 				const [dashResult, expenseResult, propResult] = await Promise.all([
 					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
-					supabase.rpc("get_expense_summary", { p_user_id: user.id }),
+					// BILL-02: scope the year-end expenses to the selected year.
+					supabase.rpc("get_expense_summary", {
+						p_user_id: user.id,
+						p_start_date: `${year}-01-01`,
+						p_end_date: `${year}-12-31`,
+					}),
 					supabase.rpc("get_property_performance_analytics", {
 						p_user_id: user.id,
 					}),
