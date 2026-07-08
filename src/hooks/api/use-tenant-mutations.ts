@@ -92,7 +92,6 @@ export function useMarkTenantAsMovedOutMutation() {
 			{
 				previousDetail: Tenant | undefined;
 				previousWithLease: TenantWithLeaseInfo | undefined;
-				previousList: TenantWithLeaseInfo[] | undefined;
 				id: string;
 			}
 		>(queryClient, {
@@ -122,9 +121,6 @@ export function useMarkTenantAsMovedOutMutation() {
 					previousWithLease: qc.getQueryData<TenantWithLeaseInfo>(
 						tenantQueries.withLease(id).queryKey,
 					),
-					previousList: qc.getQueryData<TenantWithLeaseInfo[]>(
-						tenantQueries.lists(),
-					),
 					id,
 				}),
 				apply: (qc, { id }) => {
@@ -144,10 +140,6 @@ export function useMarkTenantAsMovedOutMutation() {
 						tenantQueries.withLease(id).queryKey,
 						updateFn,
 					);
-					qc.setQueryData<TenantWithLeaseInfo[]>(
-						tenantQueries.lists(),
-						(old) => (old ? old.filter((tenant) => tenant.id !== id) : old),
-					);
 				},
 				rollback: (qc, context) => {
 					if (context.previousDetail)
@@ -160,8 +152,6 @@ export function useMarkTenantAsMovedOutMutation() {
 							tenantQueries.withLease(context.id).queryKey,
 							context.previousWithLease,
 						);
-					if (context.previousList)
-						qc.setQueryData(tenantQueries.lists(), context.previousList);
 				},
 			},
 		}),
