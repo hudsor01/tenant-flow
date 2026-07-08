@@ -129,6 +129,25 @@ export const emergencyContactSchema = z.object({
 		.max(50, "Emergency contact relationship cannot exceed 50 characters"),
 });
 
+// Empty-safe emergency-contact schema for the tenant EDIT form (TEN-05).
+// The form always submits present strings ("" when cleared, never undefined),
+// so the fields must accept the empty string rather than require presence — an
+// owner must be able to clear a field or save a name-only edit. Name and
+// relationship are only max-bounded (empty passes); phone accepts "" OR a
+// valid phone (a bare `.optional()` would NOT work because phoneSchema's
+// `.min(10)` rejects "", and the value is never undefined). Do NOT `.required()`
+// or `.partial()` this. Distinct from `emergencyContactSchema`, which validates
+// a REQUIRED contact elsewhere.
+export const tenantEmergencyContactEditSchema = z.object({
+	emergency_contact_name: z
+		.string()
+		.max(100, "Emergency contact name cannot exceed 100 characters"),
+	emergency_contact_phone: z.union([z.literal(""), phoneSchema]),
+	emergency_contact_relationship: z
+		.string()
+		.max(50, "Emergency contact relationship cannot exceed 50 characters"),
+});
+
 // Tenant verification schema
 export const tenantVerificationSchema = z.object({
 	identity_verified: z.boolean(),
