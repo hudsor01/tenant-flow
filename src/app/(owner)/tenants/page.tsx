@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Tenants } from "#components/tenants/tenants";
 import {
 	AlertDialog,
@@ -27,6 +27,9 @@ export default function TenantsPage() {
 	const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
 	const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
 	const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null);
+	// Clears the tenants-list selection — invoked ONLY when a bulk delete is
+	// confirmed (not on cancel), so a cancelled confirm keeps the selection.
+	const bulkClearRef = useRef<(() => void) | null>(null);
 
 	// Fetch tenants list
 	const {
@@ -75,6 +78,8 @@ export default function TenantsPage() {
 	const confirmBulkDelete = () => {
 		if (bulkDeleteIds) {
 			bulkDeleteIds.forEach((id) => deleteTenant(id));
+			bulkClearRef.current?.();
+			bulkClearRef.current = null;
 			setBulkDeleteIds(null);
 		}
 	};
@@ -123,7 +128,10 @@ export default function TenantsPage() {
 				onContactTenant={handleContactTenant}
 				onViewLease={handleViewLease}
 				onDeleteTenant={(id) => setTenantToDelete(id)}
-				onBulkDelete={(ids) => setBulkDeleteIds(ids)}
+				onBulkDelete={(ids, onConfirmed) => {
+					setBulkDeleteIds(ids);
+					bulkClearRef.current = onConfirmed;
+				}}
 			/>
 
 			<AlertDialog
@@ -153,7 +161,14 @@ export default function TenantsPage() {
 
 			<AlertDialog
 				open={bulkDeleteIds !== null}
-				onOpenChange={(open) => !open && setBulkDeleteIds(null)}
+				onOpenChange={(open) => {
+					if (!open) {
+						// Cancel/dismiss: drop the pending clear callback so the
+						// selection is preserved (nothing was deleted).
+						bulkClearRef.current = null;
+						setBulkDeleteIds(null);
+					}
+				}}
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>

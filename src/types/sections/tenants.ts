@@ -11,7 +11,7 @@ export interface TenantsProps {
 	onContactTenant: (tenantId: string, method: "email" | "phone") => void;
 	onViewLease: (leaseId: string) => void;
 	onDeleteTenant: (tenantId: string) => void;
-	onBulkDelete: (tenantIds: string[]) => void;
+	onBulkDelete: (tenantIds: string[], onConfirmed: () => void) => void;
 }
 
 export interface TenantItem {

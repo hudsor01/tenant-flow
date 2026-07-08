@@ -93,8 +93,10 @@ export function Tenants({
 	};
 
 	const handleBulkDelete = () => {
-		onBulkDelete(Array.from(selectedIds));
-		clearSelection();
+		// Clear the selection only after the delete is CONFIRMED (passed as the
+		// onConfirmed callback), not on dialog-open — otherwise cancelling the
+		// confirm dialog would wipe the selection with nothing deleted.
+		onBulkDelete(Array.from(selectedIds), clearSelection);
 	};
 
 	const handleBulkExport = () => {
