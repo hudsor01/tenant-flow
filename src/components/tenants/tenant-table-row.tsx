@@ -3,12 +3,8 @@
 import { FileText, Pencil, Trash2 } from "lucide-react";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
-import { createLogger } from "#lib/frontend-logger";
-import type { LeaseStatus } from "#types/core";
 import type { TenantItem } from "#types/sections/tenants";
-import { StatusSelectCell } from "./tenant-table-helpers";
-
-const logger = createLogger({ component: "TenantTableRow" });
+import { TenantLeaseStatusBadge } from "./tenant-table-helpers";
 
 interface TenantTableRowProps {
 	tenant: TenantItem;
@@ -29,6 +25,10 @@ export function TenantTableRow({
 	onDelete,
 	onViewLease,
 }: TenantTableRowProps) {
+	// Extract to a local const so TypeScript narrows it into the onClick closure
+	// (a `tenant.leaseId` property access is NOT narrowed there → TS2345).
+	const leaseId = tenant.leaseId;
+
 	return (
 		<tr
 			className={`hover:bg-muted/50 transition-colors ${
@@ -73,23 +73,15 @@ export function TenantTableRow({
 				)}
 			</td>
 			<td className="px-4 py-2">
-				<StatusSelectCell
-					value={tenant.leaseStatus}
-					onChange={(value: LeaseStatus) =>
-						logger.info("Status change:", {
-							tenantId: tenant.id,
-							newStatus: value,
-						})
-					}
-				/>
+				<TenantLeaseStatusBadge status={tenant.leaseStatus} />
 			</td>
 			<td className="px-4 py-2">
-				{tenant.leaseStatus === "active" ? (
+				{tenant.leaseStatus === "active" && leaseId ? (
 					<Button
 						variant="ghost"
 						size="sm"
 						className="h-auto p-0 text-primary-text"
-						onClick={() => onViewLease(tenant.id)}
+						onClick={() => onViewLease(leaseId)}
 					>
 						<FileText className="mr-1 h-3.5 w-3.5" />
 						View
