@@ -38,7 +38,7 @@ describe("TenantGrid accessibility (A11Y-02)", () => {
 		expect(checkbox).toHaveAccessibleName("Select Jane Doe");
 	});
 
-	it("exposes an accessible name on the per-row status select", () => {
+	it("exposes an accessible name on the read-only status badge", () => {
 		render(
 			<TenantGrid
 				tenants={[stubTenant]}
@@ -51,10 +51,10 @@ describe("TenantGrid accessibility (A11Y-02)", () => {
 			/>,
 		);
 
-		// Resolves ONLY if the <select> carries aria-label="Lease status for Jane Doe".
-		const statusSelect = screen.getByRole("combobox", {
-			name: /lease status for jane doe/i,
-		});
-		expect(statusSelect).toBeInTheDocument();
+		// Resolves ONLY if the read-only badge carries
+		// aria-label="Lease status for Jane Doe" (accessible name preserved
+		// after the writable <select> was removed in TEN-03).
+		const statusBadge = screen.getByLabelText(/lease status for jane doe/i);
+		expect(statusBadge).toBeInTheDocument();
 	});
 });

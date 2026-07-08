@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Correctness Restoration
 status: executing
-last_updated: "2026-07-07T02:57:08.843Z"
-last_activity: 2026-07-07 -- Phase 27 execution started
+last_updated: "2026-07-08T00:41:09.891Z"
+last_activity: 2026-07-08 -- Phase 28 execution started
 progress:
   total_phases: 11
   completed_phases: 2
-  total_plans: 21
-  completed_plans: 14
+  total_plans: 27
+  completed_plans: 20
   percent: 18
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value (v8.0):** Every core operation an owner performs — create a lease, delete a unit, view the leases list, sign a document, pay an invoice, upload a photo, run a report — produces correct data and correct behavior. This milestone eradicates the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 and every cross-owner/DB claim verified against source + the live Supabase DB). Nothing new is built; every requirement restores an existing feature to correct behavior.
-**Current focus:** Phase 27 — maintenance-inspections
+**Current focus:** Phase 28 — tenant-domain
 
 ## Current Position
 
-Phase: 27 (maintenance-inspections) — REVIEW-PASSED (perfect-PR gate met, cycles 10+11)
-Plan: 7 of 7 (execution + review complete)
-Status: Executing Phase 27
-Last activity: 2026-07-07 -- Phase 27 execution started
+Phase: 28 (tenant-domain) — REVIEW-PASSED (perfect-PR gate met, cycles 3+4)
+Plan: 1 of 6
+Status: Executing Phase 28
+Last activity: 2026-07-08 -- Phase 28 execution started
 
 ## Roadmap Summary (v8.0)
 

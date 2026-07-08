@@ -1,22 +1,10 @@
 "use client";
 
-import {
-	Check,
-	ChevronDown,
-	Eye,
-	Mail,
-	MapPin,
-	Pencil,
-	Phone,
-	Trash2,
-} from "lucide-react";
+import { Check, Eye, Mail, MapPin, Pencil, Phone, Trash2 } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
-import { createLogger } from "#lib/frontend-logger";
-import type { LeaseStatus } from "#types/core";
 import type { TenantItem } from "#types/sections/tenants";
-
-const logger = createLogger({ component: "TenantGrid" });
+import { TenantLeaseStatusBadge } from "./tenant-table-helpers";
 
 interface TenantGridProps {
 	tenants: TenantItem[];
@@ -26,40 +14,6 @@ interface TenantGridProps {
 	onEdit: (id: string) => void;
 	onDelete: (id: string) => void;
 	onContact: (id: string, method: "email" | "phone") => void;
-}
-
-interface StatusDropdownProps {
-	value: LeaseStatus | undefined;
-	onChange: (value: LeaseStatus) => void;
-	ariaLabel: string;
-}
-
-function StatusDropdown({ value, onChange, ariaLabel }: StatusDropdownProps) {
-	const statusLabels: Record<LeaseStatus, string> = {
-		draft: "Draft",
-		pending_signature: "Pending",
-		active: "Active",
-		ended: "Ended",
-		terminated: "Terminated",
-	};
-
-	return (
-		<div className="relative">
-			<select
-				value={value || "active"}
-				onChange={(e) => onChange(e.target.value as LeaseStatus)}
-				aria-label={ariaLabel}
-				className="appearance-none w-full px-2 py-1 text-xs bg-muted border border-transparent hover:border-border focus:border-primary rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer transition-all"
-			>
-				{Object.entries(statusLabels).map(([key, label]) => (
-					<option key={key} value={key}>
-						{label}
-					</option>
-				))}
-			</select>
-			<ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-		</div>
-	);
 }
 
 interface TenantCardProps {
@@ -125,17 +79,11 @@ function TenantCard({
 							</span>
 						)}
 					</div>
-					{/* Status Dropdown */}
+					{/* Read-only lease-status badge */}
 					<div className="w-24">
-						<StatusDropdown
-							value={tenant.leaseStatus}
+						<TenantLeaseStatusBadge
+							status={tenant.leaseStatus}
 							ariaLabel={`Lease status for ${tenant.fullName}`}
-							onChange={(value) =>
-								logger.info("Status change", {
-									tenantId: tenant.id,
-									newStatus: value,
-								})
-							}
 						/>
 					</div>
 				</div>

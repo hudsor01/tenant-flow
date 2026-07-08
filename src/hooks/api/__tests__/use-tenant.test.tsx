@@ -17,6 +17,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { tenantQueries } from "../query-keys/tenant-keys";
 import {
 	useAllTenants,
 	usePrefetchTenantDetail,
@@ -28,6 +29,7 @@ import {
 import {
 	useCreateTenantMutation,
 	useDeleteTenantMutation,
+	useMarkTenantAsMovedOutMutation,
 	useUpdateTenantMutation,
 } from "../use-tenant-mutations";
 
@@ -467,6 +469,95 @@ describe("Mutation Hooks", () => {
 					"Cannot delete tenant with active lease",
 				),
 			});
+		});
+	});
+
+	describe("useMarkTenantAsMovedOutMutation (TEN-06)", () => {
+		beforeEach(() => {
+			// markMovedOut updates tenants.status then re-selects the row with the
+			// lease join and returns it — mock both chains so the mutation resolves.
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "tenants") {
+					return {
+						update: vi.fn().mockReturnValue({
+							eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+						}),
+						select: vi.fn().mockReturnValue({
+							eq: vi.fn().mockReturnValue({
+								single: vi.fn().mockResolvedValue({
+									data: { ...mockTenantWithLease, status: "moved_out" },
+									error: null,
+								}),
+							}),
+						}),
+					};
+				}
+				return createQueryChain({ data: null });
+			});
+		});
+
+		it("resolves without throwing and leaves the real list cache key a PaginatedResponse object", async () => {
+			const queryClient = new QueryClient({
+				defaultOptions: {
+					queries: { retry: false },
+					mutations: { retry: false },
+				},
+			});
+
+			// Seed the list cache under the REAL exact key ['tenants','list',{}]
+			// with a PaginatedResponse OBJECT (not a bare array). The pre-fix
+			// optimistic block would have thrown `old.filter is not a function`
+			// had it actually matched this key.
+			const listKey = tenantQueries.list().queryKey;
+			queryClient.setQueryData(listKey, {
+				data: [mockTenantWithLease],
+				total: 1,
+				pagination: { page: 1, limit: 50, total: 1, totalPages: 1 },
+			});
+
+			// Seed detail cache to prove the detail optimistic write still applies.
+			const detailKey = tenantQueries.detail("tenant-123").queryKey;
+			queryClient.setQueryData(detailKey, {
+				...mockTenant,
+				updated_at: "2024-01-01T00:00:00Z",
+			});
+
+			const wrapper = ({ children }: { children: ReactNode }) => (
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
+			);
+
+			const { result } = renderHook(() => useMarkTenantAsMovedOutMutation(), {
+				wrapper,
+			});
+
+			await expect(
+				result.current.mutateAsync({
+					id: "tenant-123",
+					data: { moveOutDate: "2026-07-07", moveOutReason: "lease ended" },
+				}),
+			).resolves.toBeDefined();
+
+			// The list cache entry stays a PaginatedResponse object — the broken
+			// wrong-key/wrong-shape optimistic write is gone, so it is neither
+			// overwritten into an array nor corrupted; invalidation refreshes it.
+			const listAfter = queryClient.getQueryData(listKey);
+			expect(Array.isArray(listAfter)).toBe(false);
+			expect(listAfter).toMatchObject({
+				total: 1,
+				data: expect.any(Array),
+				pagination: { page: 1 },
+			});
+
+			// The detail optimistic write applied (correct key + single-object
+			// shape): updated_at was bumped off the seeded value.
+			const detailAfter = queryClient.getQueryData<{
+				id: string;
+				updated_at: string;
+			}>(detailKey);
+			expect(detailAfter).toMatchObject({ id: "tenant-123" });
+			expect(detailAfter?.updated_at).not.toBe("2024-01-01T00:00:00Z");
 		});
 	});
 });

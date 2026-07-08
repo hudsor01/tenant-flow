@@ -13,27 +13,11 @@ import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useUpdateTenantMutation } from "#hooks/api/use-tenant-mutations";
 import { useAppForm } from "#lib/forms/form-hook";
 import { handleMutationError } from "#lib/mutation-error-handler";
-import { tenantInputSchema } from "#lib/validation/tenants";
+import { tenantEmergencyContactEditSchema } from "#lib/validation/tenants";
 
 export interface TenantEditFormProps {
 	id: string;
 }
-
-/**
- * Validates the 3 emergency-contact fields on change. Form-level (like the
- * form it replaces) so any change re-validates the whole form's `canSubmit` —
- * matching the prior `tenantUpdateSchema` gate. `.required()` lifts the
- * `tenantInputSchema` `.optional()` fields to the form's always-present string
- * shape; passed directly as a Standard Schema (no safeParse / treeifyError),
- * which — unlike the old treeify path — actually surfaces per-field errors.
- */
-const emergencyContactSchema = tenantInputSchema
-	.pick({
-		emergency_contact_name: true,
-		emergency_contact_phone: true,
-		emergency_contact_relationship: true,
-	})
-	.required();
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
 	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id));
@@ -61,7 +45,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 				handleMutationError(error, "Update tenant");
 			}
 		},
-		validators: { onChange: emergencyContactSchema },
+		validators: { onChange: tenantEmergencyContactEditSchema },
 	});
 
 	const handleSubmit = (e: FormEvent) => {

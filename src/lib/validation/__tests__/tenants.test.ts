@@ -4,6 +4,7 @@ import {
 	addTenantSchema,
 	bulkDeleteTenantsSchema,
 	emergencyContactSchema,
+	tenantEmergencyContactEditSchema,
 	tenantFormSchema,
 	tenantInputSchema,
 	tenantQuerySchema,
@@ -214,6 +215,62 @@ describe("emergencyContactSchema", () => {
 			emergencyContactSchema.safeParse({
 				name: "Jane Doe",
 				relationship: "Spouse",
+			}).success,
+		).toBe(false);
+	});
+});
+describe("tenantEmergencyContactEditSchema (TEN-05)", () => {
+	it("accepts all-empty values (owner clears every field)", () => {
+		expect(
+			tenantEmergencyContactEditSchema.safeParse({
+				emergency_contact_name: "",
+				emergency_contact_phone: "",
+				emergency_contact_relationship: "",
+			}).success,
+		).toBe(true);
+	});
+	it("accepts a name-only edit (phone + relationship empty)", () => {
+		expect(
+			tenantEmergencyContactEditSchema.safeParse({
+				emergency_contact_name: "Jane",
+				emergency_contact_phone: "",
+				emergency_contact_relationship: "",
+			}).success,
+		).toBe(true);
+	});
+	it("accepts a valid non-empty phone", () => {
+		expect(
+			tenantEmergencyContactEditSchema.safeParse({
+				emergency_contact_name: "Jane",
+				emergency_contact_phone: "555-123-4567",
+				emergency_contact_relationship: "Spouse",
+			}).success,
+		).toBe(true);
+	});
+	it("rejects a non-empty phone that is too short", () => {
+		expect(
+			tenantEmergencyContactEditSchema.safeParse({
+				emergency_contact_name: "",
+				emergency_contact_phone: "123",
+				emergency_contact_relationship: "",
+			}).success,
+		).toBe(false);
+	});
+	it("rejects a name over 100 chars", () => {
+		expect(
+			tenantEmergencyContactEditSchema.safeParse({
+				emergency_contact_name: "x".repeat(101),
+				emergency_contact_phone: "",
+				emergency_contact_relationship: "",
+			}).success,
+		).toBe(false);
+	});
+	it("rejects a relationship over 50 chars", () => {
+		expect(
+			tenantEmergencyContactEditSchema.safeParse({
+				emergency_contact_name: "",
+				emergency_contact_phone: "",
+				emergency_contact_relationship: "x".repeat(51),
 			}).success,
 		).toBe(false);
 	});

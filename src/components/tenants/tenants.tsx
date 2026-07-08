@@ -25,6 +25,8 @@ export function Tenants({
 	onEditTenant,
 	onContactTenant,
 	onViewLease,
+	onDeleteTenant,
+	onBulkDelete,
 }: TenantsProps) {
 	const router = useRouter();
 
@@ -91,10 +93,10 @@ export function Tenants({
 	};
 
 	const handleBulkDelete = () => {
-		logger.info("Bulk delete initiated", {
-			selectedIds: Array.from(selectedIds),
-		});
-		clearSelection();
+		// Clear the selection only after the delete is CONFIRMED (passed as the
+		// onConfirmed callback), not on dialog-open — otherwise cancelling the
+		// confirm dialog would wipe the selection with nothing deleted.
+		onBulkDelete(Array.from(selectedIds), clearSelection);
 	};
 
 	const handleBulkExport = () => {
@@ -196,9 +198,7 @@ export function Tenants({
 							onDeselectAll={handleDeselectAll}
 							onView={handleViewTenant}
 							onEdit={onEditTenant}
-							onDelete={(id) =>
-								logger.info("Delete tenant requested", { tenantId: id })
-							}
+							onDelete={onDeleteTenant}
 							onViewLease={onViewLease}
 						/>
 					) : (
@@ -208,9 +208,7 @@ export function Tenants({
 							onSelectChange={handleSelectChange}
 							onView={handleViewTenant}
 							onEdit={onEditTenant}
-							onDelete={(id) =>
-								logger.info("Delete tenant requested", { tenantId: id })
-							}
+							onDelete={onDeleteTenant}
 							onContact={onContactTenant}
 						/>
 					)}
