@@ -129,3 +129,132 @@ describe("mapTenantRow", () => {
 		).toThrow(/status/);
 	});
 });
+
+// --- TEN-04: current-lease selection prefers the active lease ---
+
+type LeaseTenantFixture = NonNullable<
+	TenantPostgrestRow["lease_tenants"]
+>[number];
+
+function makeLeaseTenant(opts: {
+	leaseId: string;
+	leaseStatus: string;
+	startDate: string;
+	isPrimary: boolean;
+}): LeaseTenantFixture {
+	return {
+		lease_id: opts.leaseId,
+		is_primary: opts.isPrimary,
+		leases: {
+			id: opts.leaseId,
+			lease_status: opts.leaseStatus,
+			start_date: opts.startDate,
+			end_date: "2027-01-01",
+			rent_amount: 1500,
+			security_deposit: 1500,
+			unit_id: `unit-${opts.leaseId}`,
+			primary_tenant_id: minimalNestedRow.id,
+			owner_user_id: minimalNestedRow.owner_user_id ?? "owner",
+			units: {
+				id: `unit-${opts.leaseId}`,
+				unit_number: `U-${opts.leaseId}`,
+				bedrooms: 2,
+				bathrooms: 1,
+				square_feet: 800,
+				rent_amount: 1500,
+				property_id: `prop-${opts.leaseId}`,
+				properties: {
+					id: `prop-${opts.leaseId}`,
+					name: `Property ${opts.leaseId}`,
+					address_line1: `${opts.leaseId} Main St`,
+					address_line2: null,
+					city: "Dallas",
+					state: "TX",
+					postal_code: "75001",
+				},
+			},
+		},
+	};
+}
+
+describe("mapTenantRow current-lease selection (TEN-04)", () => {
+	it("prefers a separate active lease over a terminated is_primary lease", () => {
+		const row: TenantPostgrestRow = {
+			...minimalNestedRow,
+			lease_tenants: [
+				makeLeaseTenant({
+					leaseId: "terminated-primary",
+					leaseStatus: "terminated",
+					startDate: "2025-01-01",
+					isPrimary: true,
+				}),
+				makeLeaseTenant({
+					leaseId: "active-secondary",
+					leaseStatus: "active",
+					startDate: "2024-06-01",
+					isPrimary: false,
+				}),
+			],
+		};
+		const mapped = mapTenantRow(row);
+		expect(mapped.currentLease?.id).toBe("active-secondary");
+		expect(mapped.currentLease?.status).toBe("active");
+		expect(mapped.lease_status).toBe("active");
+		expect(mapped.unit?.id).toBe("unit-active-secondary");
+		expect(mapped.property?.id).toBe("prop-active-secondary");
+	});
+
+	it("falls back to the is_primary lease when none are active", () => {
+		const row: TenantPostgrestRow = {
+			...minimalNestedRow,
+			lease_tenants: [
+				makeLeaseTenant({
+					leaseId: "terminated-secondary",
+					leaseStatus: "terminated",
+					startDate: "2025-05-01",
+					isPrimary: false,
+				}),
+				makeLeaseTenant({
+					leaseId: "terminated-primary",
+					leaseStatus: "terminated",
+					startDate: "2024-01-01",
+					isPrimary: true,
+				}),
+			],
+		};
+		const mapped = mapTenantRow(row);
+		expect(mapped.currentLease?.id).toBe("terminated-primary");
+		expect(mapped.lease_status).toBe("terminated");
+	});
+
+	it("tie-breaks between two active leases by latest start_date", () => {
+		const row: TenantPostgrestRow = {
+			...minimalNestedRow,
+			lease_tenants: [
+				makeLeaseTenant({
+					leaseId: "active-older",
+					leaseStatus: "active",
+					startDate: "2024-01-01",
+					isPrimary: false,
+				}),
+				makeLeaseTenant({
+					leaseId: "active-newer",
+					leaseStatus: "active",
+					startDate: "2025-11-01",
+					isPrimary: false,
+				}),
+			],
+		};
+		const mapped = mapTenantRow(row);
+		expect(mapped.currentLease?.id).toBe("active-newer");
+		expect(mapped.lease_status).toBe("active");
+	});
+
+	it("returns a null currentLease when there are no lease_tenants", () => {
+		const mapped = mapTenantRow({ ...minimalNestedRow, lease_tenants: [] });
+		expect(mapped.currentLease).toBeNull();
+		expect(mapped.unit).toBeNull();
+		expect(mapped.property).toBeNull();
+		expect(mapped.lease_status).toBeUndefined();
+	});
+});

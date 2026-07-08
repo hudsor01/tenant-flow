@@ -154,6 +154,49 @@ export interface TenantPostgrestRow {
 	}>;
 }
 
+type LeaseTenantRow = NonNullable<TenantPostgrestRow["lease_tenants"]>[number];
+
+/**
+ * Pick the "current" lease_tenant for a tenant (TEN-04). Only considers
+ * entries whose joined `leases` is non-null. Prefers, in strict priority:
+ *   1. a lease whose `lease_status === "active"`
+ *   2. the `is_primary` row
+ *   3. the latest `start_date` (deterministic tie-break; parsed for safety)
+ * so a primary row on a terminated lease never wins over a separate active
+ * lease. Returns undefined when no lease_tenant has a non-null lease.
+ */
+function pickCurrentLeaseTenant(
+	leaseRows: readonly LeaseTenantRow[],
+): LeaseTenantRow | undefined {
+	const withLease = leaseRows.filter((lt) => lt.leases !== null);
+	if (withLease.length === 0) {
+		return undefined;
+	}
+	return withLease.reduce((best, candidate) => {
+		const bestActive = best.leases?.lease_status === "active";
+		const candidateActive = candidate.leases?.lease_status === "active";
+		if (candidateActive !== bestActive) {
+			return candidateActive ? candidate : best;
+		}
+		const bestPrimary = best.is_primary === true;
+		const candidatePrimary = candidate.is_primary === true;
+		if (candidatePrimary !== bestPrimary) {
+			return candidatePrimary ? candidate : best;
+		}
+		// Tie-break: latest start_date wins (descending). Parse for safety so a
+		// malformed/absent date sorts last rather than corrupting the order.
+		const bestStart = Date.parse(best.leases?.start_date ?? "");
+		const candidateStart = Date.parse(candidate.leases?.start_date ?? "");
+		if (Number.isNaN(candidateStart)) {
+			return best;
+		}
+		if (Number.isNaN(bestStart)) {
+			return candidate;
+		}
+		return candidateStart > bestStart ? candidate : best;
+	});
+}
+
 export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 	// Validate the NOT-NULL id + the persisted status BEFORE shaping, so a
 	// dropped column or an enum drift fails loudly at the boundary instead of
@@ -176,10 +219,11 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 
 	const leaseRows = row.lease_tenants ?? [];
 
-	// Find the primary/active lease (prefer active, fallback to first)
-	const primaryLeaseTenant =
-		leaseRows.find((lt) => lt.is_primary) ?? leaseRows[0];
-	const activeLease = primaryLeaseTenant?.leases ?? null;
+	// Select the "current" lease: prefer an active lease, then the is_primary
+	// row, then the latest start_date (TEN-04). A primary row on a terminated
+	// lease must NOT win over a separate active lease.
+	const chosenLeaseTenant = pickCurrentLeaseTenant(leaseRows);
+	const activeLease = chosenLeaseTenant?.leases ?? null;
 	const activeUnit = activeLease?.units ?? null;
 	const activeProperty = activeUnit?.properties ?? null;
 
