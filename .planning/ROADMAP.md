@@ -114,6 +114,15 @@ Requirements: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06
 4. The year-end and tax PDF exports contain the same financial data as their CSV counterparts
 5. Two consecutive zero-finding review cycles
 
+**Plans:** 7 plans (2 migration, 2 edge, 3 frontend/verification)
+- [ ] 29-01-PLAN.md — BILL-06 migrations: expenses.amount → numeric(10,2) + get_property_performance_analytics recreate (numeric cast + DATA-02 status filter)
+- [ ] 29-02-PLAN.md — BILL-02 migrations: date params on get_expense_summary / get_financial_overview / get_billing_insights
+- [ ] 29-03-PLAN.md — BILL-01: Stripe current_period_end read fix (edge handlers + client NaN guard)
+- [ ] 29-04-PLAN.md — BILL-05: generate-pdf reportType branching to the export-report RPCs
+- [ ] 29-05-PLAN.md — BILL-02 frontend + BILL-04 + BILL-03: date-range passing, expense/billing error surfacing, unpaid-invoice amount
+- [ ] 29-06-PLAN.md — BILL-06 frontend: formatCents → formatCurrency cents-readers + Financial Highlights fix
+- [ ] 29-07-PLAN.md — Phase verification + residual/limitation ledger
+
 ### Phase 30: Analytics & Data-Layer Correctness
 **Goal:** Fix analytics and cross-cutting data-layer correctness — occupancy analytics consume the RPC's array shape, soft-deleted properties are excluded from the performance RPCs, the expired-lease stat counts `expired`, unit mutations invalidate the by-property cache, property updates refresh the dashboard, and the property/tenant table virtualizers position rows correctly.
 Requirements: DATA-01, DATA-02, DATA-03, PROP-01, PROP-02, PROP-03
