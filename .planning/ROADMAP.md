@@ -95,6 +95,15 @@ Requirements: TEN-01, TEN-02, TEN-03, TEN-04, TEN-05, TEN-06
 3. Emergency-contact fields can be left empty or cleared, and name-only edits save
 4. Two consecutive zero-finding review cycles
 
+**Plans:** 6 plans
+Plans:
+- [ ] 28-01-PLAN.md — TEN-04: mapTenantRow prefers the active lease (current-lease selection + test)
+- [ ] 28-02-PLAN.md — TEN-01: wire real tenant delete (row/grid/bulk) behind confirm dialogs
+- [ ] 28-03-PLAN.md — TEN-05: empty-safe emergency-contact edit validator
+- [ ] 28-04-PLAN.md — TEN-06: fix moved-out optimistic update (drop wrong-key/shape list step)
+- [ ] 28-05-PLAN.md — TEN-02/TEN-03: View-lease by leaseId + read-only status badge
+- [ ] 28-06-PLAN.md — verification: full gate + human-verify the six tenant flows
+
 ### Phase 29: Billing, Stripe & Financial Reports
 **Goal:** Correct the billing and financial-reporting numbers — read Stripe's period-end from the right SDK location (fixing the null billing date and the cancel/reactivate crash), scope financial statements to their selected period, show real invoice amounts, surface RPC errors instead of zeroing expenses, and build the year-end/tax PDFs from the financial RPCs.
 Requirements: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06
