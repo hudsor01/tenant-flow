@@ -32,7 +32,12 @@ export const billingQueries = {
 				});
 				if (error) handlePostgrestError(error, "billing.history");
 				return (data ?? []).map((row): BillingHistoryItem => {
-					const amount = Number(row.amount_paid ?? row.amount_due ?? 0);
+					// An unpaid invoice has amount_paid = 0, which would win over the
+					// real amount_due under a plain `??`. Show amount_due unless paid.
+					const amount =
+						row.status === "paid"
+							? Number(row.amount_paid)
+							: Number(row.amount_due ?? row.amount_paid ?? 0);
 					return {
 						id: row.invoice_id,
 						amount,
