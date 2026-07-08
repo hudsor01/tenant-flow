@@ -10,7 +10,7 @@ import {
 import Link from "next/link";
 import type { ElementType } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface QuickLinkCardProps {
 	href: string;
@@ -79,7 +79,7 @@ export function FinancialsQuickLinks({
 					icon={FileText}
 					title="Income Statement"
 					description="Revenue, expenses, and net income breakdown"
-					value={formatCents(netIncome)}
+					value={formatCurrency(netIncome)}
 					trend={netIncome > 0 ? "up" : netIncome < 0 ? "down" : "neutral"}
 				/>
 				<QuickLinkCard
@@ -87,7 +87,7 @@ export function FinancialsQuickLinks({
 					icon={TrendingUp}
 					title="Cash Flow"
 					description="Track money coming in and going out"
-					value={formatCents(totalRevenue - totalExpenses)}
+					value={formatCurrency(totalRevenue - totalExpenses)}
 					trend="up"
 				/>
 				<QuickLinkCard
@@ -101,7 +101,7 @@ export function FinancialsQuickLinks({
 					icon={Receipt}
 					title="Expenses"
 					description="Track maintenance and operating costs"
-					value={formatCents(totalExpenses)}
+					value={formatCurrency(totalExpenses)}
 					trend="down"
 				/>
 				<QuickLinkCard

@@ -27,7 +27,7 @@ import {
 	TableRow,
 } from "#components/ui/table";
 import type { Expense } from "#hooks/api/query-keys/expense-keys";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import { EXPENSE_CATEGORIES, getCategoryBadge } from "./expense-category-badge";
 
 interface ExpenseTableProps {
@@ -152,7 +152,7 @@ export function ExpenseTable({
 									{getCategoryBadge(expense.category ?? "other")}
 								</TableCell>
 								<TableCell className="text-right tabular-nums font-medium text-foreground">
-									{formatCents(expense.amount ?? 0)}
+									{formatCurrency(expense.amount ?? 0)}
 								</TableCell>
 							</TableRow>
 						))}

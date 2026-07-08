@@ -24,7 +24,7 @@ import { Skeleton } from "#components/ui/skeleton";
 import { useTaxDocuments } from "#hooks/api/use-expense-mutations";
 import { useDownloadTaxDocumentPdf } from "#hooks/api/use-report-mutations";
 import { createLogger } from "#lib/frontend-logger";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 
 const logger = createLogger({ component: "TaxDocumentsPage" });
 
@@ -167,7 +167,7 @@ export default function TaxDocumentsPage() {
 									</div>
 									<div>
 										<p className="text-xl font-semibold tabular-nums">
-											{formatCents(data.totals.totalIncome)}
+											{formatCurrency(data.totals.totalIncome)}
 										</p>
 										<p className="text-sm text-muted-foreground">
 											Gross Income
@@ -183,7 +183,7 @@ export default function TaxDocumentsPage() {
 									</div>
 									<div>
 										<p className="text-xl font-semibold tabular-nums">
-											{formatCents(data.totals.totalDeductions)}
+											{formatCurrency(data.totals.totalDeductions)}
 										</p>
 										<p className="text-sm text-muted-foreground">
 											Total Deductions
@@ -199,7 +199,7 @@ export default function TaxDocumentsPage() {
 									</div>
 									<div>
 										<p className="text-xl font-semibold tabular-nums">
-											{formatCents(data.totals.netTaxableIncome)}
+											{formatCurrency(data.totals.netTaxableIncome)}
 										</p>
 										<p className="text-sm text-muted-foreground">
 											Net Taxable Income
@@ -239,7 +239,7 @@ export default function TaxDocumentsPage() {
 												</div>
 												<div className="text-right">
 													<p className="text-sm font-medium tabular-nums">
-														{formatCents(cat.amount)}
+														{formatCurrency(cat.amount)}
 													</p>
 													<p className="text-xs text-muted-foreground">
 														{cat.percentage.toFixed(1)}% of expenses
@@ -272,16 +272,16 @@ export default function TaxDocumentsPage() {
 													{prop.propertyName}
 												</p>
 												<p className="text-xs text-muted-foreground">
-													Basis: {formatCents(prop.propertyValue)}
+													Basis: {formatCurrency(prop.propertyValue)}
 												</p>
 											</div>
 											<div className="text-right">
 												<p className="text-sm font-medium tabular-nums">
-													{formatCents(prop.annualDepreciation)}/yr
+													{formatCurrency(prop.annualDepreciation)}/yr
 												</p>
 												<p className="text-xs text-muted-foreground">
 													Accumulated:{" "}
-													{formatCents(prop.accumulatedDepreciation)}
+													{formatCurrency(prop.accumulatedDepreciation)}
 												</p>
 											</div>
 										</div>
