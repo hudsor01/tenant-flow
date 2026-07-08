@@ -26,6 +26,7 @@ export default function TenantsPage() {
 	const router = useRouter();
 	const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
 	const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
+	const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null);
 
 	// Fetch tenants list
 	const {
@@ -65,6 +66,16 @@ export default function TenantsPage() {
 		if (tenantToDelete) {
 			deleteTenant(tenantToDelete);
 			setTenantToDelete(null);
+		}
+	};
+
+	// Bulk delete: fire the mutation per id. Each call invalidates the list on
+	// success and toasts the Phase-26 active-lease block on failure, so blocked
+	// tenants surface an error toast while the rest delete — do NOT swallow.
+	const confirmBulkDelete = () => {
+		if (bulkDeleteIds) {
+			bulkDeleteIds.forEach((id) => deleteTenant(id));
+			setBulkDeleteIds(null);
 		}
 	};
 
@@ -111,6 +122,8 @@ export default function TenantsPage() {
 				onEditTenant={handleEditTenant}
 				onContactTenant={handleContactTenant}
 				onViewLease={handleViewLease}
+				onDeleteTenant={(id) => setTenantToDelete(id)}
+				onBulkDelete={(ids) => setBulkDeleteIds(ids)}
 			/>
 
 			<AlertDialog
@@ -130,6 +143,35 @@ export default function TenantsPage() {
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmDeleteTenant}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			<AlertDialog
+				open={bulkDeleteIds !== null}
+				onOpenChange={(open) => !open && setBulkDeleteIds(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Delete {bulkDeleteIds?.length ?? 0} tenant
+							{(bulkDeleteIds?.length ?? 0) === 1 ? "" : "s"}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will mark the selected tenants as inactive and remove them
+							from active listings. Their data will be retained for legal
+							compliance. Any tenant with an active lease will be skipped and
+							show an error. Are you sure you want to continue?
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={confirmBulkDelete}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
 							Delete
