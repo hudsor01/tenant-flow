@@ -69,7 +69,7 @@
 ### DATA — analytics + data-layer correctness
 
 - [ ] **DATA-01**: Occupancy analytics render real data. The mappers consume `get_occupancy_trends_optimized`'s JSONB **array** shape correctly (not a `z.object` that always fails → empty defaults) across `use-analytics.ts` and `report-analytics-keys.ts`.
-- [ ] **DATA-02**: Soft-deleted properties are excluded from the per-property performance RPCs — restore the `p.status <> 'inactive'` predicate to `get_property_performance_analytics` / `_trends` / `_with_trends` (verified missing on the live definitions) so deleted properties don't emit rows or inflate portfolio totals.
+- [ ] **DATA-02** (PARTIAL — `get_property_performance_analytics` portion done in Phase 29's BILL-06 recreate; Phase 30 must still fix `_with_trends`/`_trends`, NOT re-recreate `_analytics`): Soft-deleted properties are excluded from the per-property performance RPCs — restore the `p.status <> 'inactive'` predicate to `get_property_performance_analytics` / `_trends` / `_with_trends` (verified missing on the live definitions) so deleted properties don't emit rows or inflate portfolio totals.
 - [ ] **DATA-03**: The `get_lease_stats` "Expired" tile counts naturally-lapsed leases (`lease_status='expired'`, set by the expire-leases cron), and the frontend `LeaseStatus` union includes `'expired'`.
 
 ### FORMFIX — form behavior correctness
