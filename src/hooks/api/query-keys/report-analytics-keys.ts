@@ -161,6 +161,10 @@ export const reportAnalyticsQueries = {
 				]);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "financial report");
+				// BILL-04: surface an expense-RPC failure instead of silently reading
+				// 0 expenses and overstating net income.
+				if (expenseResult.error)
+					handlePostgrestError(expenseResult.error, "financial report");
 				const { revenue, units } = extractDashStats(dashResult.data);
 				const totalIncome = Number(revenue?.yearly ?? 0);
 				const expenseSummary = expenseResult.data as Record<
@@ -383,6 +387,12 @@ export const reportAnalyticsQueries = {
 				]);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "year-end summary");
+				// BILL-04: surface expense / property-analytics RPC failures instead of
+				// silently zeroing expenses (overstated net income) or the by-property table.
+				if (expenseResult.error)
+					handlePostgrestError(expenseResult.error, "year-end summary");
+				if (propResult.error)
+					handlePostgrestError(propResult.error, "year-end summary");
 				const { revenue } = extractDashStats(dashResult.data);
 				const grossRentalIncome = Number(revenue?.yearly ?? 0);
 				const expenseSummary = expenseResult.data as Record<
