@@ -87,6 +87,9 @@ function parseDashStats(data: unknown) {
 	return {
 		revenue: stats?.revenue as Record<string, unknown> | undefined,
 		units: stats?.units as Record<string, unknown> | undefined,
+		// Occupancy lives under `properties.occupancyRate` (camelCase) in the RPC —
+		// NOT `units.occupancy_rate`.
+		properties: stats?.properties as Record<string, unknown> | undefined,
 	};
 }
 
@@ -132,7 +135,7 @@ export const financialQueries = {
 						expenseResult.error,
 						"financial overview expenses",
 					);
-				const { revenue, units } = parseDashStats(dashResult.data);
+				const { revenue, properties } = parseDashStats(dashResult.data);
 				const totalRevenue = Number(revenue?.yearly ?? 0);
 				const monthlyRevenue = Number(revenue?.monthly ?? 0);
 				const totalExpenses = Number(
@@ -152,7 +155,7 @@ export const financialQueries = {
 						{ label: "Annual Revenue", value: totalRevenue, trend: null },
 						{
 							label: "Occupancy Rate",
-							value: Number(units?.occupancy_rate ?? 0),
+							value: Number(properties?.occupancyRate ?? 0),
 							trend: null,
 						},
 					],
