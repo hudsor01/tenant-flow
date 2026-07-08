@@ -1,5 +1,5 @@
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import { getCategoryBadge } from "./expense-category-badge";
 
 interface CategorySummary {
@@ -28,7 +28,7 @@ export function ExpenseCategoryBreakdown({
 						<div key={cat.category} className="flex items-center gap-3">
 							{getCategoryBadge(cat.category)}
 							<span className="text-sm text-muted-foreground">
-								{formatCents(cat.amount)} ({cat.percentage.toFixed(1)}%)
+								{formatCurrency(cat.amount)} ({cat.percentage.toFixed(1)}%)
 							</span>
 						</div>
 					))}

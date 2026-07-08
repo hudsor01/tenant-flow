@@ -166,8 +166,12 @@ describe("useIncomeStatement", () => {
 		expect(mockRpc).toHaveBeenCalledWith("get_dashboard_stats", {
 			p_user_id: "user-1",
 		});
+		// BILL-02: incomeStatement forwards the selected range to the now
+		// date-aware get_expense_summary (revenue side stays annualized MRR).
 		expect(mockRpc).toHaveBeenCalledWith("get_expense_summary", {
 			p_user_id: "user-1",
+			p_start_date: "2024-01-01",
+			p_end_date: "2024-12-31",
 		});
 	});
 

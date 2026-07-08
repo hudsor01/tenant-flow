@@ -29,7 +29,7 @@
 | 26 | Lease Domain Correctness | 9/9 | Complete   | 2026-07-05 |
 | 27 | Maintenance & Inspections | 6/7 | In Progress|  |
 | 28 | Tenant Domain | 5/6 | In Progress|  |
-| 29 | Billing, Stripe & Financial Reports | Correct period-end, period-scoped statements, invoice amounts, matching PDFs | BILL-01..06 | 6 |
+| 29 | Billing, Stripe & Financial Reports | 7/7 | Complete   | 2026-07-08 |
 | 30 | Analytics & Data-Layer Correctness | Occupancy analytics, soft-delete filtering, stale-cache invalidation, virtualizer | DATA-01..03, PROP-01..03 | 5 |
 | 31 | Forms Behavior Correctness | Unsaved-guard, contact send, no render loop, saved fields, validators, single toast | FORMFIX-01..08 | 5 |
 | 32 | Shared UI, Data-Table & Uploads | Working filters/pagination, single-upload, search sanitize, error messages, taxonomy | UIX-01..05, PROP-04, PROP-05 | 5 |
@@ -113,6 +113,15 @@ Requirements: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06
 3. Open/unpaid invoices show their real amount; a failed expense/billing RPC surfaces an error rather than $0 expenses
 4. The year-end and tax PDF exports contain the same financial data as their CSV counterparts
 5. Two consecutive zero-finding review cycles
+
+**Plans:** 7/7 plans complete
+- [x] 29-01-PLAN.md — BILL-06 migrations: expenses.amount → numeric(10,2) + get_property_performance_analytics recreate (numeric cast + DATA-02 status filter)
+- [x] 29-02-PLAN.md — BILL-02 migrations: date params on get_expense_summary / get_financial_overview / get_billing_insights
+- [x] 29-03-PLAN.md — BILL-01: Stripe current_period_end read fix (edge handlers + client NaN guard)
+- [x] 29-04-PLAN.md — BILL-05: generate-pdf reportType branching to the export-report RPCs
+- [x] 29-05-PLAN.md — BILL-02 frontend + BILL-04 + BILL-03: date-range passing, expense/billing error surfacing, unpaid-invoice amount
+- [x] 29-06-PLAN.md — BILL-06 frontend: formatCents → formatCurrency cents-readers + Financial Highlights fix
+- [x] 29-07-PLAN.md — Phase verification + residual/limitation ledger
 
 ### Phase 30: Analytics & Data-Layer Correctness
 **Goal:** Fix analytics and cross-cutting data-layer correctness — occupancy analytics consume the RPC's array shape, soft-deleted properties are excluded from the performance RPCs, the expired-lease stat counts `expired`, unit mutations invalidate the by-property cache, property updates refresh the dashboard, and the property/tenant table virtualizers position rows correctly.

@@ -1,5 +1,5 @@
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency, formatPercentage } from "#lib/utils/currency";
 
 interface Highlight {
 	label: string;
@@ -26,9 +26,11 @@ export function FinancialsHighlights({
 					{highlights.map((highlight, index) => (
 						<div key={index} className="text-center p-4 bg-muted/30 rounded-lg">
 							<p className="text-2xl font-semibold tabular-nums">
-								{typeof highlight.value === "number" && highlight.value > 1000
-									? formatCents(highlight.value)
-									: highlight.value}
+								{/* Render by KIND, not magnitude: percentages (occupancy /
+								    rate) use formatPercentage; everything else is dollars. */}
+								{/rate|occupancy|%/i.test(highlight.label)
+									? formatPercentage(highlight.value)
+									: formatCurrency(highlight.value)}
 							</p>
 							<p className="text-sm text-muted-foreground mt-1">
 								{highlight.label}

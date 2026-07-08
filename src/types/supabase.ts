@@ -2500,8 +2500,14 @@ export type Database = {
 					unique_users: number;
 				}[];
 			};
-			get_expense_summary: { Args: { p_user_id: string }; Returns: Json };
-			get_financial_overview: { Args: { p_user_id: string }; Returns: Json };
+			get_expense_summary: {
+				Args: { p_end_date?: string; p_start_date?: string; p_user_id: string };
+				Returns: Json;
+			};
+			get_financial_overview: {
+				Args: { p_end_date?: string; p_start_date?: string; p_user_id: string };
+				Returns: Json;
+			};
 			get_funnel_stats: {
 				Args: { p_from?: string; p_to?: string };
 				Returns: Json;

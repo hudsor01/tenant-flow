@@ -53,12 +53,30 @@ export interface ExpenseSummaryData {
 
 const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
-/** Fetch dashboard + expense RPCs in parallel for authenticated user */
-async function fetchDashAndExpense(userId: string) {
+/**
+ * Fetch dashboard + expense RPCs in parallel for authenticated user.
+ *
+ * When `range` is provided, only the expense side (get_expense_summary) is
+ * period-scoped; revenue stays annualized MRR because get_dashboard_stats is
+ * point-in-time and the data model has no payment history (see 29-CONTEXT.md).
+ */
+async function fetchDashAndExpense(
+	userId: string,
+	range?: { start_date: string; end_date: string },
+) {
 	const supabase = createClient();
 	const [dashResult, expenseResult] = await Promise.all([
 		supabase.rpc("get_dashboard_stats", { p_user_id: userId }),
-		supabase.rpc("get_expense_summary", { p_user_id: userId }),
+		supabase.rpc(
+			"get_expense_summary",
+			range
+				? {
+						p_user_id: userId,
+						p_start_date: range.start_date,
+						p_end_date: range.end_date,
+					}
+				: { p_user_id: userId },
+		),
 	]);
 	return { dashResult, expenseResult };
 }
@@ -69,6 +87,9 @@ function parseDashStats(data: unknown) {
 	return {
 		revenue: stats?.revenue as Record<string, unknown> | undefined,
 		units: stats?.units as Record<string, unknown> | undefined,
+		// Occupancy lives under `properties.occupancyRate` (camelCase) in the RPC —
+		// NOT `units.occupancy_rate`.
+		properties: stats?.properties as Record<string, unknown> | undefined,
 	};
 }
 
@@ -109,7 +130,12 @@ export const financialQueries = {
 				);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "financial overview");
-				const { revenue, units } = parseDashStats(dashResult.data);
+				if (expenseResult.error)
+					handlePostgrestError(
+						expenseResult.error,
+						"financial overview expenses",
+					);
+				const { revenue, properties } = parseDashStats(dashResult.data);
 				const totalRevenue = Number(revenue?.yearly ?? 0);
 				const monthlyRevenue = Number(revenue?.monthly ?? 0);
 				const totalExpenses = Number(
@@ -129,7 +155,7 @@ export const financialQueries = {
 						{ label: "Annual Revenue", value: totalRevenue, trend: null },
 						{
 							label: "Occupancy Rate",
-							value: Number(units?.occupancy_rate ?? 0),
+							value: Number(properties?.occupancyRate ?? 0),
 							trend: null,
 						},
 					],
@@ -240,11 +266,19 @@ export const financialQueries = {
 					};
 					return { success: true, data: empty };
 				}
+				// Only the expense side is period-scoped; revenue remains annualized
+				// MRR (get_dashboard_stats is point-in-time — no payment history).
 				const { dashResult, expenseResult } = await fetchDashAndExpense(
 					user.id,
+					{ start_date: params.start_date, end_date: params.end_date },
 				);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "income statement");
+				if (expenseResult.error)
+					handlePostgrestError(
+						expenseResult.error,
+						"income statement expenses",
+					);
 				const { revenue } = parseDashStats(dashResult.data);
 				const totalRevenue = Number(revenue?.yearly ?? 0);
 				const totalExpenses = Number(
@@ -324,11 +358,16 @@ export const financialQueries = {
 						},
 					};
 				}
+				// Only the expense side is period-scoped; revenue remains annualized
+				// MRR (get_dashboard_stats is point-in-time — no payment history).
 				const { dashResult, expenseResult } = await fetchDashAndExpense(
 					user.id,
+					{ start_date: params.start_date, end_date: params.end_date },
 				);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "cash flow");
+				if (expenseResult.error)
+					handlePostgrestError(expenseResult.error, "cash flow expenses");
 				const { revenue } = parseDashStats(dashResult.data);
 				const monthlyRevenue = Number(revenue?.monthly ?? 0);
 				const monthlyExpenses = Number(
@@ -428,6 +467,10 @@ export const financialQueries = {
 					]);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "balance sheet");
+				if (expenseResult.error)
+					handlePostgrestError(expenseResult.error, "balance sheet expenses");
+				if (billingResult.error)
+					handlePostgrestError(billingResult.error, "balance sheet billing");
 				const { revenue } = parseDashStats(dashResult.data);
 				const totalRevenue = Number(revenue?.yearly ?? 0);
 				const totalExpenses = Number(

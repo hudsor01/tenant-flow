@@ -46,11 +46,19 @@ export const financialTaxQueries = {
 
 				const [dashResult, expenseResult] = await Promise.all([
 					supabase.rpc("get_dashboard_stats", { p_user_id: userId }),
-					supabase.rpc("get_expense_summary", { p_user_id: userId }),
+					// Only the expense side is period-scoped; revenue remains annualized
+					// MRR (get_dashboard_stats is point-in-time — no payment history).
+					supabase.rpc("get_expense_summary", {
+						p_user_id: userId,
+						p_start_date: `${year}-01-01`,
+						p_end_date: `${year}-12-31`,
+					}),
 				]);
 
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "tax documents");
+				if (expenseResult.error)
+					handlePostgrestError(expenseResult.error, "tax documents expenses");
 
 				const stats = (
 					dashResult.data as Array<Record<string, unknown>> | null

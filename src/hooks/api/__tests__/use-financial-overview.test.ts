@@ -114,6 +114,36 @@ describe("useFinancialOverview", () => {
 
 		expect(result.current.error).toBeDefined();
 	});
+
+	it("surfaces an expense-RPC error instead of silently zeroing expenses (BILL-04)", async () => {
+		// get_dashboard_stats succeeds but get_expense_summary fails. Without the
+		// expenseResult.error check this would resolve with total_expenses: 0 and
+		// overstate net income; it must reject instead.
+		mockRpc
+			.mockResolvedValueOnce({
+				data: [
+					{
+						revenue: { yearly: 500000, monthly: 41667 },
+						units: { occupancy_rate: 94 },
+					},
+				],
+				error: null,
+			})
+			.mockResolvedValueOnce({
+				data: null,
+				error: { message: "expense summary failed", code: "500" },
+			});
+
+		const { result } = renderHook(() => useFinancialOverview(), {
+			wrapper: createWrapper(),
+		});
+
+		await waitFor(() => {
+			expect(result.current.isError).toBe(true);
+		});
+
+		expect(result.current.data).toBeUndefined();
+	});
 });
 
 describe("useMonthlyMetrics", () => {

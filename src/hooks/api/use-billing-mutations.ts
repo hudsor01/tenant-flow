@@ -72,9 +72,14 @@ function mapCancelResponseToStatus(
 	return {
 		subscriptionStatus:
 			response.status as SubscriptionStatusResponse["subscriptionStatus"],
-		currentPeriodEnd: new Date(
-			response.current_period_end * 1000,
-		).toISOString(),
+		// current_period_end may be absent/NaN if an edge fn is not yet
+		// redeployed post-basil (the field moved onto the subscription item).
+		// Guard with Number.isFinite — 0 is falsy but a valid epoch is huge, so a
+		// truthy check would wrongly reject 0; map non-finite values to null
+		// instead of letting new Date(NaN).toISOString() throw a RangeError.
+		currentPeriodEnd: Number.isFinite(response.current_period_end)
+			? new Date(response.current_period_end * 1000).toISOString()
+			: null,
 		cancelAtPeriodEnd: response.cancel_at_period_end,
 	};
 }

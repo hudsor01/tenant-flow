@@ -89,22 +89,72 @@ function buildReportHtml(
 </html>`;
 }
 
+function coerceCell(value: unknown): string | number | null {
+	if (value === null || value === undefined) return null;
+	if (typeof value === "number" || typeof value === "string") return value;
+	return JSON.stringify(value);
+}
+
+// Mirror of export-report's flattenToRows, coerced to the ReportRow cell shape:
+// object-shaped RPC results -> [{ metric, value }] rows; array results -> rows.
+function flattenToReportRows(data: unknown): ReportRow[] {
+	if (!data || typeof data !== "object") return [];
+	if (Array.isArray(data)) {
+		return (data as Record<string, unknown>[]).map((row) => {
+			const out: ReportRow = {};
+			for (const [key, value] of Object.entries(row)) {
+				out[key] = coerceCell(value);
+			}
+			return out;
+		});
+	}
+	return Object.entries(data as Record<string, unknown>).map(
+		([key, value]) => ({ metric: key, value: coerceCell(value) }),
+	);
+}
+
+// Branch by reportType to the SAME RPCs export-report's CSV path uses so the
+// PDF content matches its CSV counterpart and the report title's year. The
+// date-aware get_financial_overview (BILL-02) receives the requested year's
+// boundaries so the numbers are period-correct.
 async function fetchReportRows(
 	supabase: SupabaseClient,
 	userId: string,
+	reportType: string,
+	year: number,
 ): Promise<ReportRow[]> {
-	const { data, error } = await supabase.rpc("get_dashboard_stats", {
+	if (reportType === "year-end" || reportType === "financial") {
+		const { data, error } = await supabase.rpc("get_financial_overview", {
+			p_user_id: userId,
+			p_start_date: `${year}-01-01`,
+			p_end_date: `${year}-12-31`,
+		});
+		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
+		return flattenToReportRows(data);
+	}
+
+	if (reportType === "1099") {
+		const { data, error } = await supabase.rpc("get_billing_insights", {
+			owner_id_param: userId,
+		});
+		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
+		return flattenToReportRows(data);
+	}
+
+	if (reportType === "maintenance") {
+		const { data, error } = await supabase.rpc("get_maintenance_analytics", {
+			user_id: userId,
+		});
+		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
+		return flattenToReportRows(data);
+	}
+
+	const { data, error } = await supabase.rpc("get_revenue_trends_optimized", {
 		p_user_id: userId,
+		p_months: 12,
 	});
 	if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-	const stats = (data as Record<string, unknown>[] | null)?.[0] ?? {};
-	return Object.entries(stats).map(([key, value]) => ({
-		metric: key,
-		value:
-			typeof value === "object" && value !== null
-				? JSON.stringify(value)
-				: String(value ?? ""),
-	}));
+	return flattenToReportRows(data);
 }
 
 async function buildLeasePreviewHtml(
@@ -283,7 +333,12 @@ Deno.serve(async (req: Request) => {
 				if (entitlementBlock) return entitlementBlock;
 			}
 
-			const rows = await fetchReportRows(supabase, user.id);
+			const rows = await fetchReportRows(
+				supabase,
+				user.id,
+				body.reportType,
+				body.year,
+			);
 			html = buildReportHtml(body.reportType, body.year, rows);
 		}
 

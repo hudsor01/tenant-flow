@@ -107,7 +107,8 @@ Deno.serve(async (req: Request) => {
 					id: subscription.id,
 					status: subscription.status,
 					cancel_at_period_end: subscription.cancel_at_period_end,
-					current_period_end: subscription.current_period_end,
+					// basil+ API moved current_period_end onto the subscription item.
+					current_period_end: subscription.items.data[0]?.current_period_end,
 				}),
 				{ status: 200, headers: getJsonHeaders(req) },
 			);
@@ -122,7 +123,8 @@ Deno.serve(async (req: Request) => {
 				id: updated.id,
 				status: updated.status,
 				cancel_at_period_end: updated.cancel_at_period_end,
-				current_period_end: updated.current_period_end,
+				// basil+ API moved current_period_end onto the subscription item.
+				current_period_end: updated.items.data[0]?.current_period_end,
 			}),
 			{ status: 200, headers: getJsonHeaders(req) },
 		);

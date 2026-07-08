@@ -206,4 +206,33 @@ describe("useCancelSubscriptionMutation setQueryData (T-42-06 mitigation)", () =
 			new Date(cached!.currentPeriodEnd as string).getTime(),
 		).toBeGreaterThan(Date.now());
 	});
+
+	it("maps an absent/NaN current_period_end to null instead of throwing a RangeError", async () => {
+		// Simulates a pre-basil edge fn that has not yet been redeployed: the
+		// response omits current_period_end (it moved onto the subscription item).
+		globalThis.fetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				id: "sub_no_period",
+				status: "active",
+				cancel_at_period_end: true,
+				// current_period_end intentionally omitted (undefined)
+			}),
+		}) as unknown as typeof fetch;
+
+		const { result, queryClient } = renderWithClient(() =>
+			useCancelSubscriptionMutation(),
+		);
+
+		// Must not throw new Date(NaN).toISOString() RangeError.
+		await result.current.mutateAsync();
+
+		const cached = queryClient.getQueryData<{
+			currentPeriodEnd: string | null;
+			cancelAtPeriodEnd: boolean;
+		}>(["billing", "subscription-status"]);
+
+		expect(cached?.currentPeriodEnd).toBeNull();
+		expect(cached?.cancelAtPeriodEnd).toBe(true);
+	});
 });
