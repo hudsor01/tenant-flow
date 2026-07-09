@@ -132,10 +132,19 @@ export function TenantTable({
 				ref={tableScrollRef}
 				className="overflow-auto max-h-[calc(100vh-400px)]"
 			>
-				<table className="grid w-full">
-					<thead className="grid border-b border-border bg-muted/50 sticky top-0 z-10">
-						<tr className="flex w-full">
-							<th className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")}>
+				{/* grid/flex strip the implicit table ARIA roles, so explicit
+				    role attributes are restored on every structural element
+				    (mirrors portfolio-data-table.tsx). */}
+				<table className="grid w-full" role="table">
+					<thead
+						className="grid border-b border-border bg-muted/50 sticky top-0 z-10"
+						role="rowgroup"
+					>
+						<tr className="flex w-full" role="row">
+							<th
+								className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")}
+								role="columnheader"
+							>
 								<Checkbox
 									checked={
 										allSelected ? true : someSelected ? "indeterminate" : false
@@ -144,7 +153,10 @@ export function TenantTable({
 									aria-label="Select all"
 								/>
 							</th>
-							<th className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")}>
+							<th
+								className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")}
+								role="columnheader"
+							>
 								<SortableHeader
 									title="Name"
 									field="fullName"
@@ -153,7 +165,10 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")}>
+							<th
+								className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")}
+								role="columnheader"
+							>
 								<SortableHeader
 									title="Email"
 									field="email"
@@ -163,6 +178,7 @@ export function TenantTable({
 								/>
 							</th>
 							<th
+								role="columnheader"
 								className={cn(
 									TENANT_COLUMN_CLASS.phone,
 									"px-4 py-2 text-sm font-medium text-muted-foreground",
@@ -170,7 +186,10 @@ export function TenantTable({
 							>
 								Phone
 							</th>
-							<th className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")}>
+							<th
+								className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")}
+								role="columnheader"
+							>
 								<SortableHeader
 									title="Property"
 									field="property"
@@ -179,7 +198,10 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")}>
+							<th
+								className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")}
+								role="columnheader"
+							>
 								<SortableHeader
 									title="Status"
 									field="leaseStatus"
@@ -189,6 +211,7 @@ export function TenantTable({
 								/>
 							</th>
 							<th
+								role="columnheader"
 								className={cn(
 									TENANT_COLUMN_CLASS.lease,
 									"px-4 py-2 text-sm font-medium text-muted-foreground",
@@ -196,11 +219,15 @@ export function TenantTable({
 							>
 								Lease
 							</th>
-							<th className={cn(TENANT_COLUMN_CLASS.actions, "px-4 py-2")}></th>
+							<th
+								className={cn(TENANT_COLUMN_CLASS.actions, "px-4 py-2")}
+								role="columnheader"
+							></th>
 						</tr>
 					</thead>
 					<tbody
 						className="relative grid divide-y divide-border"
+						role="rowgroup"
 						style={{
 							height: `${rowVirtualizer.getTotalSize()}px`,
 						}}

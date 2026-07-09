@@ -50,6 +50,7 @@ export function PropertyTableRow({
 	return (
 		<tr
 			data-index={virtualRow.index}
+			role="row"
 			style={getVirtualRowStyle(virtualRow)}
 			className={cn(
 				VIRTUAL_ROW_CLASS,
@@ -57,14 +58,20 @@ export function PropertyTableRow({
 				isSelected && "bg-primary/5",
 			)}
 		>
-			<td className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}>
+			<td
+				className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}
+				role="cell"
+			>
 				<Checkbox
 					checked={isSelected}
 					onCheckedChange={() => onSelectRow(property.id)}
 				/>
 			</td>
 			{isColumnVisible("property") && (
-				<td className={cn(PROPERTY_COLUMN_CLASS.property, "px-4 py-3")}>
+				<td
+					className={cn(PROPERTY_COLUMN_CLASS.property, "px-4 py-3")}
+					role="cell"
+				>
 					<div className="flex items-center gap-3 min-w-0">
 						<div className="w-10 h-10 rounded-sm overflow-hidden bg-muted shrink-0">
 							{property.imageUrl ? (
@@ -93,7 +100,10 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("address") && (
-				<td className={cn(PROPERTY_COLUMN_CLASS.address, "px-4 py-3")}>
+				<td
+					className={cn(PROPERTY_COLUMN_CLASS.address, "px-4 py-3")}
+					role="cell"
+				>
 					<div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
 						<MapPin className="w-3.5 h-3.5 shrink-0" />
 						<span className="truncate">
@@ -103,14 +113,20 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("units") && (
-				<td className={cn(PROPERTY_COLUMN_CLASS.units, "px-4 py-3")}>
+				<td
+					className={cn(PROPERTY_COLUMN_CLASS.units, "px-4 py-3")}
+					role="cell"
+				>
 					<span className="text-sm font-medium text-foreground">
 						{property.occupiedUnits}/{property.totalUnits}
 					</span>
 				</td>
 			)}
 			{isColumnVisible("occupancy") && (
-				<td className={cn(PROPERTY_COLUMN_CLASS.occupancy, "px-4 py-3")}>
+				<td
+					className={cn(PROPERTY_COLUMN_CLASS.occupancy, "px-4 py-3")}
+					role="cell"
+				>
 					<div className="flex items-center gap-2">
 						<div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
 							<div
@@ -132,7 +148,10 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("status") && (
-				<td className={cn(PROPERTY_COLUMN_CLASS.status, "px-4 py-3")}>
+				<td
+					className={cn(PROPERTY_COLUMN_CLASS.status, "px-4 py-3")}
+					role="cell"
+				>
 					<div className="flex items-center gap-1">
 						{property.availableUnits > 0 && (
 							<Badge
@@ -164,13 +183,19 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("revenue") && (
-				<td className={cn(PROPERTY_COLUMN_CLASS.revenue, "px-4 py-3")}>
+				<td
+					className={cn(PROPERTY_COLUMN_CLASS.revenue, "px-4 py-3")}
+					role="cell"
+				>
 					<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
 						{formatCurrency(property.monthlyRevenue)}
 					</span>
 				</td>
 			)}
-			<td className={cn(PROPERTY_COLUMN_CLASS.actions, "px-4 py-3")}>
+			<td
+				className={cn(PROPERTY_COLUMN_CLASS.actions, "px-4 py-3")}
+				role="cell"
+			>
 				<div className="flex items-center justify-end gap-1">
 					<Tooltip>
 						<TooltipTrigger asChild>

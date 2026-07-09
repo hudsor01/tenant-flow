@@ -43,6 +43,7 @@ export function TenantTableRow({
 	return (
 		<tr
 			data-index={virtualRow.index}
+			role="row"
 			style={getVirtualRowStyle(virtualRow)}
 			className={cn(
 				VIRTUAL_ROW_CLASS,
@@ -50,14 +51,14 @@ export function TenantTableRow({
 				isSelected && "bg-primary/5",
 			)}
 		>
-			<td className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")} role="cell">
 				<Checkbox
 					checked={isSelected}
 					onCheckedChange={() => onSelect(tenant.id)}
 					aria-label={`Select ${tenant.fullName}`}
 				/>
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")} role="cell">
 				<button
 					onClick={() => onView(tenant.id)}
 					className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left truncate"
@@ -65,17 +66,17 @@ export function TenantTableRow({
 					{tenant.fullName}
 				</button>
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")} role="cell">
 				<span className="text-sm text-muted-foreground truncate">
 					{tenant.email}
 				</span>
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.phone, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.phone, "px-4 py-2")} role="cell">
 				<span className="text-sm text-muted-foreground truncate">
 					{tenant.phone || "—"}
 				</span>
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")} role="cell">
 				{tenant.currentProperty ? (
 					<div className="text-left min-w-0">
 						<p className="text-sm text-foreground truncate">
@@ -91,10 +92,10 @@ export function TenantTableRow({
 					<span className="text-sm text-muted-foreground">—</span>
 				)}
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")} role="cell">
 				<TenantLeaseStatusBadge status={tenant.leaseStatus} />
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.lease, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.lease, "px-4 py-2")} role="cell">
 				{tenant.leaseStatus === "active" && leaseId ? (
 					<Button
 						variant="ghost"
@@ -109,7 +110,7 @@ export function TenantTableRow({
 					<span className="text-sm text-muted-foreground">—</span>
 				)}
 			</td>
-			<td className={cn(TENANT_COLUMN_CLASS.actions, "px-4 py-2")}>
+			<td className={cn(TENANT_COLUMN_CLASS.actions, "px-4 py-2")} role="cell">
 				<div className="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"

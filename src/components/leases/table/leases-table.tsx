@@ -105,10 +105,19 @@ export function LeasesTable({
 					ref={tableScrollRef}
 					className="overflow-auto max-h-[calc(100vh-420px)]"
 				>
-					<table className="grid w-full">
-						<thead className="grid sticky top-0 z-10">
-							<tr className="flex w-full border-b border-border bg-muted/30">
-								<th className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")}>
+					{/* grid/flex strip the implicit table ARIA roles, so explicit
+					    role attributes are restored on every structural element
+					    (mirrors portfolio-data-table.tsx). */}
+					<table className="grid w-full" role="table">
+						<thead className="grid sticky top-0 z-10" role="rowgroup">
+							<tr
+								className="flex w-full border-b border-border bg-muted/30"
+								role="row"
+							>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")}
+									role="columnheader"
+								>
 									<input
 										type="checkbox"
 										checked={
@@ -119,7 +128,10 @@ export function LeasesTable({
 										className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 									/>
 								</th>
-								<th className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}
+									role="columnheader"
+								>
 									<SortHeader
 										field="tenant"
 										sortField={sortField}
@@ -129,7 +141,10 @@ export function LeasesTable({
 										Tenant
 									</SortHeader>
 								</th>
-								<th className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}
+									role="columnheader"
+								>
 									<SortHeader
 										field="property"
 										sortField={sortField}
@@ -139,7 +154,10 @@ export function LeasesTable({
 										Property
 									</SortHeader>
 								</th>
-								<th className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}
+									role="columnheader"
+								>
 									<SortHeader
 										field="status"
 										sortField={sortField}
@@ -151,11 +169,13 @@ export function LeasesTable({
 								</th>
 								<th
 									className={cn(LEASE_COLUMN_CLASS.actions, "px-4 py-3")}
+									role="columnheader"
 								></th>
 							</tr>
 						</thead>
 						<tbody
 							className="relative grid divide-y divide-border"
+							role="rowgroup"
 							style={{
 								height: `${rowVirtualizer.getTotalSize()}px`,
 							}}

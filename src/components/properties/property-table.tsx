@@ -142,10 +142,19 @@ export function PropertyTable({
 				ref={tableScrollRef}
 				className="overflow-auto max-h-[calc(100vh-340px)]"
 			>
-				<table className="grid w-full">
-					<thead className="grid sticky top-0 z-10">
-						<tr className="flex w-full border-b border-border bg-muted/30">
-							<th className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}>
+				{/* grid/flex strip the implicit table ARIA roles, so explicit
+				    role attributes are restored on every structural element
+				    (mirrors portfolio-data-table.tsx). */}
+				<table className="grid w-full" role="table">
+					<thead className="grid sticky top-0 z-10" role="rowgroup">
+						<tr
+							className="flex w-full border-b border-border bg-muted/30"
+							role="row"
+						>
+							<th
+								className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}
+								role="columnheader"
+							>
 								<Checkbox
 									checked={
 										selectedRows.size === properties.length &&
@@ -156,6 +165,7 @@ export function PropertyTable({
 							</th>
 							{isColumnVisible("property") && (
 								<th
+									role="columnheader"
 									className={cn(
 										PROPERTY_COLUMN_CLASS.property,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -166,6 +176,7 @@ export function PropertyTable({
 							)}
 							{isColumnVisible("address") && (
 								<th
+									role="columnheader"
 									className={cn(
 										PROPERTY_COLUMN_CLASS.address,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -176,6 +187,7 @@ export function PropertyTable({
 							)}
 							{isColumnVisible("units") && (
 								<th
+									role="columnheader"
 									className={cn(
 										PROPERTY_COLUMN_CLASS.units,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -186,6 +198,7 @@ export function PropertyTable({
 							)}
 							{isColumnVisible("occupancy") && (
 								<th
+									role="columnheader"
 									className={cn(
 										PROPERTY_COLUMN_CLASS.occupancy,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -196,6 +209,7 @@ export function PropertyTable({
 							)}
 							{isColumnVisible("status") && (
 								<th
+									role="columnheader"
 									className={cn(
 										PROPERTY_COLUMN_CLASS.status,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -206,6 +220,7 @@ export function PropertyTable({
 							)}
 							{isColumnVisible("revenue") && (
 								<th
+									role="columnheader"
 									className={cn(
 										PROPERTY_COLUMN_CLASS.revenue,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -215,6 +230,7 @@ export function PropertyTable({
 								</th>
 							)}
 							<th
+								role="columnheader"
 								className={cn(
 									PROPERTY_COLUMN_CLASS.actions,
 									"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -226,6 +242,7 @@ export function PropertyTable({
 					</thead>
 					<tbody
 						className="relative grid divide-y divide-border"
+						role="rowgroup"
 						style={{
 							height: `${rowVirtualizer.getTotalSize()}px`,
 						}}

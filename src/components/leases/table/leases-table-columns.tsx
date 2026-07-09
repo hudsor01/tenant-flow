@@ -88,6 +88,7 @@ export function LeaseRow({
 	return (
 		<tr
 			data-index={virtualRow.index}
+			role="row"
 			style={getVirtualRowStyle(virtualRow)}
 			className={cn(
 				VIRTUAL_ROW_CLASS,
@@ -95,7 +96,7 @@ export function LeaseRow({
 				isSelected && "bg-primary/5",
 			)}
 		>
-			<td className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")}>
+			<td className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")} role="cell">
 				<input
 					type="checkbox"
 					checked={isSelected}
@@ -104,7 +105,7 @@ export function LeaseRow({
 					className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 				/>
 			</td>
-			<td className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}>
+			<td className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")} role="cell">
 				<div className="min-w-0">
 					<button
 						onClick={() => onView(lease.id)}
@@ -121,7 +122,7 @@ export function LeaseRow({
 					</p>
 				</div>
 			</td>
-			<td className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}>
+			<td className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")} role="cell">
 				<div className="min-w-0">
 					<p className="text-sm text-foreground truncate">
 						{lease.propertyName}
@@ -131,10 +132,10 @@ export function LeaseRow({
 					</p>
 				</div>
 			</td>
-			<td className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}>
+			<td className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")} role="cell">
 				<StatusBadge status={lease.status} />
 			</td>
-			<td className={cn(LEASE_COLUMN_CLASS.actions, "px-4 py-3")}>
+			<td className={cn(LEASE_COLUMN_CLASS.actions, "px-4 py-3")} role="cell">
 				<div className="flex items-center justify-end gap-1">
 					<button
 						onClick={() => onView(lease.id)}
