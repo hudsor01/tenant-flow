@@ -4,9 +4,14 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { cn } from "#lib/utils";
 import type { StatusFilter } from "#stores/leases-store";
 import type { LeaseDisplay, SortDirection, SortField } from "./lease-utils";
-import { LeaseRow, SortHeader } from "./leases-table-columns";
+import {
+	LEASE_COLUMN_CLASS,
+	LeaseRow,
+	SortHeader,
+} from "./leases-table-columns";
 import { LeasesTableToolbar } from "./leases-table-toolbar";
 
 interface LeasesTableProps {
@@ -100,10 +105,10 @@ export function LeasesTable({
 					ref={tableScrollRef}
 					className="overflow-auto max-h-[calc(100vh-420px)]"
 				>
-					<table className="w-full">
-						<thead className="sticky top-0 z-10">
-							<tr className="border-b border-border bg-muted/30">
-								<th className="w-12 px-4 py-3">
+					<table className="grid w-full">
+						<thead className="grid sticky top-0 z-10">
+							<tr className="flex w-full border-b border-border bg-muted/30">
+								<th className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")}>
 									<input
 										type="checkbox"
 										checked={
@@ -114,7 +119,7 @@ export function LeasesTable({
 										className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 									/>
 								</th>
-								<th className="px-4 py-3 text-left">
+								<th className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}>
 									<SortHeader
 										field="tenant"
 										sortField={sortField}
@@ -124,7 +129,7 @@ export function LeasesTable({
 										Tenant
 									</SortHeader>
 								</th>
-								<th className="px-4 py-3 text-left hidden lg:table-cell">
+								<th className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}>
 									<SortHeader
 										field="property"
 										sortField={sortField}
@@ -134,7 +139,7 @@ export function LeasesTable({
 										Property
 									</SortHeader>
 								</th>
-								<th className="px-4 py-3 text-left">
+								<th className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}>
 									<SortHeader
 										field="status"
 										sortField={sortField}
@@ -144,14 +149,15 @@ export function LeasesTable({
 										Status
 									</SortHeader>
 								</th>
-								<th className="w-20 px-4 py-3"></th>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.actions, "px-4 py-3")}
+								></th>
 							</tr>
 						</thead>
 						<tbody
-							className="divide-y divide-border"
+							className="relative grid divide-y divide-border"
 							style={{
 								height: `${rowVirtualizer.getTotalSize()}px`,
-								position: "relative",
 							}}
 						>
 							{rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -160,6 +166,7 @@ export function LeasesTable({
 									<LeaseRow
 										key={lease.id}
 										lease={lease}
+										virtualRow={virtualRow}
 										isSelected={selectedRows.has(lease.id)}
 										onToggleSelect={onToggleSelect}
 										onView={onView}

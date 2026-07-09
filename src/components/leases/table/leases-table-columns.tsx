@@ -1,11 +1,31 @@
+import type { VirtualItem } from "@tanstack/react-virtual";
 import { ArrowUpDown, Eye, Pencil, RefreshCw, XCircle } from "lucide-react";
 import type { ReactNode } from "react";
+import {
+	getVirtualRowStyle,
+	VIRTUAL_ROW_CLASS,
+} from "#components/shared/virtualized-table-row";
 import { formatDate } from "#lib/formatters/date";
+import { cn } from "#lib/utils";
 import {
 	getStatusConfig,
 	type LeaseDisplay,
 	type SortField,
 } from "./lease-utils";
+
+/**
+ * Per-column layout classes shared by the leases `<thead>` cells and the
+ * flex-row `<td>`s so columns stay aligned with the header. Header + rows apply
+ * the SAME class per column; responsive columns (property: `hidden lg:flex`)
+ * toggle on both together.
+ */
+export const LEASE_COLUMN_CLASS = {
+	checkbox: "flex w-12 shrink-0 items-center",
+	tenant: "flex flex-1 min-w-0 items-center",
+	property: "hidden lg:flex w-48 shrink-0 items-center",
+	status: "flex w-32 shrink-0 items-center",
+	actions: "flex w-40 shrink-0 items-center justify-end",
+} as const;
 
 export function SortHeader({
 	field,
@@ -46,6 +66,7 @@ export function StatusBadge({ status }: { status: string }) {
 
 interface LeaseRowProps {
 	lease: LeaseDisplay;
+	virtualRow: VirtualItem;
 	isSelected: boolean;
 	onToggleSelect: (id: string) => void;
 	onView: (id: string) => void;
@@ -56,6 +77,7 @@ interface LeaseRowProps {
 
 export function LeaseRow({
 	lease,
+	virtualRow,
 	isSelected,
 	onToggleSelect,
 	onView,
@@ -65,9 +87,15 @@ export function LeaseRow({
 }: LeaseRowProps) {
 	return (
 		<tr
-			className={`hover:bg-muted/50 transition-colors ${isSelected ? "bg-primary/5" : ""}`}
+			data-index={virtualRow.index}
+			style={getVirtualRowStyle(virtualRow)}
+			className={cn(
+				VIRTUAL_ROW_CLASS,
+				"hover:bg-muted/50 transition-colors",
+				isSelected && "bg-primary/5",
+			)}
 		>
-			<td className="px-4 py-3">
+			<td className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")}>
 				<input
 					type="checkbox"
 					checked={isSelected}
@@ -76,29 +104,37 @@ export function LeaseRow({
 					className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 				/>
 			</td>
-			<td className="px-4 py-3">
-				<button
-					onClick={() => onView(lease.id)}
-					className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left"
-				>
-					{lease.tenantName}
-				</button>
-				<p className="text-xs text-muted-foreground">
-					{formatDate(lease.startDate, { fallback: "N/A" })} -{" "}
-					{formatDate(lease.endDate, { fallback: "N/A" })}
-				</p>
-				<p className="text-sm text-muted-foreground lg:hidden">
-					{lease.propertyName}
-				</p>
+			<td className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}>
+				<div className="min-w-0">
+					<button
+						onClick={() => onView(lease.id)}
+						className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left truncate max-w-full"
+					>
+						{lease.tenantName}
+					</button>
+					<p className="text-xs text-muted-foreground">
+						{formatDate(lease.startDate, { fallback: "N/A" })} -{" "}
+						{formatDate(lease.endDate, { fallback: "N/A" })}
+					</p>
+					<p className="text-sm text-muted-foreground lg:hidden truncate">
+						{lease.propertyName}
+					</p>
+				</div>
 			</td>
-			<td className="px-4 py-3 hidden lg:table-cell">
-				<p className="text-sm text-foreground">{lease.propertyName}</p>
-				<p className="text-xs text-muted-foreground">Unit {lease.unitNumber}</p>
+			<td className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}>
+				<div className="min-w-0">
+					<p className="text-sm text-foreground truncate">
+						{lease.propertyName}
+					</p>
+					<p className="text-xs text-muted-foreground">
+						Unit {lease.unitNumber}
+					</p>
+				</div>
 			</td>
-			<td className="px-4 py-3">
+			<td className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}>
 				<StatusBadge status={lease.status} />
 			</td>
-			<td className="px-4 py-3">
+			<td className={cn(LEASE_COLUMN_CLASS.actions, "px-4 py-3")}>
 				<div className="flex items-center justify-end gap-1">
 					<button
 						onClick={() => onView(lease.id)}

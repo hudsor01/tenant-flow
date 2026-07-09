@@ -31,6 +31,14 @@ function renderRow() {
 			<tbody>
 				<LeaseRow
 					lease={stubLease}
+					virtualRow={{
+						index: 0,
+						start: 0,
+						size: 72,
+						end: 72,
+						key: 0,
+						lane: 0,
+					}}
 					isSelected={false}
 					onToggleSelect={vi.fn()}
 					onView={vi.fn()}
