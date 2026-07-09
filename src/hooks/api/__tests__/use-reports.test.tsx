@@ -572,7 +572,7 @@ describe("useTenantReport", () => {
 			data: [
 				{
 					tenants: { total: 12 },
-					leases: { active: 9, expiring_soon: 2 },
+					leases: { active: 9, expiringSoon: 2 },
 				},
 			],
 			error: null,

@@ -294,7 +294,7 @@ export const reportAnalyticsQueries = {
 					summary: {
 						totalTenants: Number(tenants?.total ?? 0),
 						activeLeases: Number(leases?.active ?? 0),
-						leasesExpiringNext90: Number(leases?.expiring_soon ?? 0),
+						leasesExpiringNext90: Number(leases?.expiringSoon ?? 0),
 						turnoverRate: 0,
 						onTimePaymentRate: 0,
 					},
