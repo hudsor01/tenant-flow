@@ -217,14 +217,18 @@ export function mapOccupancyAnalytics(
 	}
 
 	const rows = raw as Array<Record<string, unknown>>;
-	const trends: OccupancyTrendPoint[] = rows.map((row) => ({
-		period: String(row.month ?? ""),
-		occupancyRate: Number(row.occupancy_rate ?? 0),
-		occupiedUnits: Number(row.occupied_units ?? 0),
-		totalUnits: Number(row.total_units ?? 0),
-	}));
-
+	// The RPC returns rows newest-first (month_date DESC). Metrics read element[0]
+	// (the latest month). The trend chart plots the x-axis in array order, so it
+	// needs oldest->newest — reverse the mapped series so time runs left-to-right.
 	const latest = rows[0] ?? {};
+	const trends: OccupancyTrendPoint[] = rows
+		.map((row) => ({
+			period: String(row.month ?? ""),
+			occupancyRate: Number(row.occupancy_rate ?? 0),
+			occupiedUnits: Number(row.occupied_units ?? 0),
+			totalUnits: Number(row.total_units ?? 0),
+		}))
+		.reverse();
 	const metrics: OccupancyMetricSummary = {
 		currentOccupancy: Number(latest.occupancy_rate ?? 0),
 		averageVacancyDays: 0,

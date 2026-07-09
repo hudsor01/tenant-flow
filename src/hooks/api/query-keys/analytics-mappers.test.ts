@@ -187,22 +187,25 @@ describe("mapOccupancyAnalytics", () => {
 		},
 	];
 
-	it("maps every row to a trend point and derives metrics from element[0]", () => {
+	it("maps every row to a trend point (oldest-first for the chart) and derives metrics from element[0]", () => {
 		const mapped = mapOccupancyAnalytics(rows);
+		// trends are reversed to oldest->newest so the chart x-axis runs forward in
+		// time; input rows are newest-first (RPC DESC).
 		expect(mapped.trends).toEqual([
-			{
-				period: "2024-03",
-				occupancyRate: 90,
-				occupiedUnits: 18,
-				totalUnits: 20,
-			},
 			{
 				period: "2024-02",
 				occupancyRate: 85,
 				occupiedUnits: 17,
 				totalUnits: 20,
 			},
+			{
+				period: "2024-03",
+				occupancyRate: 90,
+				occupiedUnits: 18,
+				totalUnits: 20,
+			},
 		]);
+		// metrics still derive from element[0] of the ORIGINAL (DESC) input = latest.
 		expect(mapped.metrics.currentOccupancy).toBe(90);
 		expect(mapped.metrics.averageVacancyDays).toBe(0);
 		expect(mapped.metrics.seasonalPeakOccupancy).toBe(0);
