@@ -145,6 +145,15 @@ Plans:
 ### Phase 31: Forms Behavior Correctness
 **Goal:** Fix form behaviors that silently drop data or misbehave — the unsaved-changes guard arms on typing, the contact form actually sends, `use-form-progress` stops render-looping, add-tenant persists the property assignment, maintenance edit saves unit/tenant + validates, general settings saves all fields, the notifications toggle covers all channels, and forms show a single toast.
 Requirements: FORMFIX-01, FORMFIX-02, FORMFIX-03, FORMFIX-04, FORMFIX-05, FORMFIX-06, FORMFIX-07, FORMFIX-08
+**Plans:** 7 plans
+Plans:
+- [ ] 31-01-PLAN.md — Add-tenant: reactive unsaved guard + property/unit assignment carried into lease creation (FORMFIX-01, FORMFIX-04)
+- [ ] 31-02-PLAN.md — Property + lease forms: reactive guard + single-toast dedup (FORMFIX-01, FORMFIX-08)
+- [ ] 31-03-PLAN.md — Contact send: new send-contact-email edge function + form invoke gated on real success (FORMFIX-02)
+- [ ] 31-04-PLAN.md — use-form-progress: eliminate render loop, save once per real change (FORMFIX-03)
+- [ ] 31-05-PLAN.md — Maintenance edit: persist unit/tenant + wire schema validators (FORMFIX-05)
+- [ ] 31-06-PLAN.md — Settings: general saves all four fields (users + user_preferences), Enable All covers all channels (FORMFIX-06, FORMFIX-07)
+- [ ] 31-07-PLAN.md — Phase verification: quality gate + per-FORMFIX behavioral checklist
 **Success Criteria**:
 1. Editing a property/tenant form arms the beforeunload warning; the contact form transmits and only shows success on a real send
 2. Typing in the contact form does not spin renders/localStorage; add-tenant persists the chosen property/unit
