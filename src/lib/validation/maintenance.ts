@@ -106,11 +106,22 @@ export const maintenanceRequestSchema = maintenanceRequestInputSchema.extend({
 });
 
 // Maintenance request update schema (partial input)
+// PROP-05: estimated_cost/scheduled_date are nullable on the UPDATE schema only
+// (create/input unchanged) so clearing them in the edit form sends explicit null
+// and nulls the column, instead of omitting and keeping the old value.
 export const maintenanceRequestUpdateSchema = maintenanceRequestInputSchema
 	.partial()
 	.extend({
 		id: uuidSchema.optional(),
 		status: maintenanceStatusSchema.optional(),
+		estimated_cost: positiveNumberSchema
+			.max(
+				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
+				"Estimated cost seems unrealistic",
+			)
+			.nullable()
+			.optional(),
+		scheduled_date: z.string().nullable().optional(),
 	});
 
 // Maintenance request query schema (for search/filtering)
