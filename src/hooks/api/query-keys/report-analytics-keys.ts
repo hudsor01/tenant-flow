@@ -28,7 +28,10 @@ const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
 /** Extract first dashboard stats row */
 function extractDashStats(data: unknown) {
-	const stats = (data as Array<Record<string, unknown>> | null)?.[0];
+	// get_dashboard_stats RETURNS json (a bare object, supabase.ts `Returns: Json`) —
+	// NOT a SETOF/array. supabase-js returns the object directly, so read it as-is
+	// (the old `data[0]` was always undefined → every derived value collapsed to 0).
+	const stats = data as Record<string, unknown> | null;
 	return {
 		revenue: stats?.revenue as Record<string, unknown> | undefined,
 		units: stats?.units as Record<string, unknown> | undefined,

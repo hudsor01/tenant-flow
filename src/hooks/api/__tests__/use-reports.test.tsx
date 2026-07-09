@@ -296,12 +296,10 @@ describe("useFinancialReport", () => {
 		// financial() calls get_dashboard_stats + get_expense_summary
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [
-					{
-						revenue: { yearly: 600000, monthly: 50000 },
-						units: { occupancy_rate: 95 },
-					},
-				],
+				data: {
+					revenue: { yearly: 600000, monthly: 50000 },
+					properties: { occupancyRate: 95 },
+				},
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -388,7 +386,7 @@ describe("useYearEndSummary", () => {
 		// yearEnd() calls get_dashboard_stats + get_expense_summary + get_property_performance_analytics
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: 500000, monthly: 41667 }, units: {} }],
+				data: { revenue: { yearly: 500000, monthly: 41667 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -569,12 +567,10 @@ describe("useTenantReport", () => {
 		// tenants() issues a single get_dashboard_stats call; turnover /
 		// on-time-payment have no data source, so both stay 0.
 		mockRpc.mockResolvedValueOnce({
-			data: [
-				{
-					tenants: { total: 12 },
-					leases: { active: 9, expiringSoon: 2 },
-				},
-			],
+			data: {
+				tenants: { total: 12 },
+				leases: { active: 9, expiringSoon: 2 },
+			},
 			error: null,
 		});
 
@@ -987,12 +983,10 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		const totalExpenses = 200000.25;
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [
-					{
-						revenue: { yearly: yearlyIncome, monthly: 50000.04 },
-						units: { occupancy_rate: 95 },
-					},
-				],
+				data: {
+					revenue: { yearly: yearlyIncome, monthly: 50000.04 },
+					properties: { occupancyRate: 95 },
+				},
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -1028,7 +1022,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		const expenses = 120000.5;
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: gross, monthly: 41666.73 }, units: {} }],
+				data: { revenue: { yearly: gross, monthly: 41666.73 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({

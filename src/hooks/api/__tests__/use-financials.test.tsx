@@ -131,12 +131,10 @@ describe("useIncomeStatement", () => {
 		// incomeStatement() calls get_dashboard_stats + get_expense_summary in parallel
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [
-					{
-						revenue: { yearly: 500000, monthly: 41667 },
-						units: { occupancy_rate: 94 },
-					},
-				],
+				data: {
+					revenue: { yearly: 500000, monthly: 41667 },
+					properties: { occupancyRate: 94 },
+				},
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -209,7 +207,7 @@ describe("useCashFlow", () => {
 	it("fetches cash flow from parallel RPCs", async () => {
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: 500000, monthly: 41667 }, units: {} }],
+				data: { revenue: { yearly: 500000, monthly: 41667 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -248,7 +246,7 @@ describe("useBalanceSheet", () => {
 		// balanceSheet() calls get_dashboard_stats + get_expense_summary + get_billing_insights
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: 500000, monthly: 41667 }, units: {} }],
+				data: { revenue: { yearly: 500000, monthly: 41667 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({
