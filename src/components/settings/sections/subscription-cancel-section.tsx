@@ -23,7 +23,6 @@ import {
 	useCancelSubscriptionMutation,
 	useReactivateSubscriptionMutation,
 } from "#hooks/api/use-billing-mutations";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import { cn } from "#lib/utils";
 
 function formatPlanEndDate(iso: string | null): string {
@@ -138,14 +137,11 @@ export function SubscriptionCancelSection() {
 	// ───────────── State 2: Cancel-scheduled (grace window) ─────────────
 	if (subscriptionStatus === "active" && cancelAtPeriodEnd) {
 		const onReactivate = () => {
+			// FORMFIX-08: no onError override — the mutation's built-in onError owns the
+			// single error toast (with a friendly fallback message); a second handler
+			// here would double-toast + double-Sentry the same failure.
 			reactivateMutation.mutate(undefined, {
 				onSuccess: () => toast.success("Your subscription is active again."),
-				onError: (err) =>
-					handleMutationError(
-						err,
-						"Reactivate subscription",
-						"Couldn't reactivate. Please try again.",
-					),
 			});
 		};
 		return (
@@ -198,17 +194,14 @@ export function SubscriptionCancelSection() {
 
 	// ───────────── State 1: Active (default) ─────────────
 	const onConfirmCancel = () => {
+		// FORMFIX-08: no onError override — the mutation's built-in onError owns the
+		// single error toast (with a friendly fallback message); a second handler
+		// here would double-toast + double-Sentry the same failure.
 		cancelMutation.mutate(undefined, {
 			onSuccess: () => {
 				toast.success(`Subscription set to cancel on ${endDate}.`);
 				setDialogOpen(false);
 			},
-			onError: (err) =>
-				handleMutationError(
-					err,
-					"Cancel subscription",
-					"Couldn't cancel your subscription. Please try again or contact support.",
-				),
 		});
 	};
 

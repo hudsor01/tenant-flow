@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Home, Plus } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { BulkImportDialog } from "#components/bulk-import/bulk-import-dialog";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
@@ -20,12 +19,15 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import type { PropertyType } from "#lib/constants/status-types";
 import { SINGLE_UNIT_PROPERTY_TYPES } from "#lib/constants/status-types";
+import { createLogger } from "#lib/frontend-logger";
 import type { Unit } from "#types/core";
 import { AddUnitPanel } from "./add-unit-panel";
 import { EditUnitPanel } from "./edit-unit-panel";
 import { UnitDeleteDialog } from "./property-units-delete-dialog";
 import { SingleUnitCard, SingleUnitNoData } from "./property-units-single-view";
 import { UnitTableRow } from "./property-units-table-row";
+
+const logger = createLogger({ component: "PropertyUnitsTable" });
 
 interface PropertyUnitsTableProps {
 	propertyId: string;
@@ -68,8 +70,13 @@ export function PropertyUnitsTable({
 		try {
 			await deleteUnitMutation.mutateAsync(deletingUnit.id);
 			setDeletingUnit(null);
-		} catch {
-			toast.error("Failed to delete unit");
+		} catch (error) {
+			// FORMFIX-08: useDeleteUnitMutation's onError surfaces the single error
+			// toast (errorContext "Delete unit"); only log here. The dialog stays open
+			// because setDeletingUnit(null) is skipped on failure.
+			logger.error("Delete unit failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

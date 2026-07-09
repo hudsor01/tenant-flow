@@ -17,7 +17,6 @@ import {
 import { useCurrentUser } from "#hooks/use-current-user";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import { cn } from "#lib/utils";
 import type { LeaseCreate } from "#lib/validation/leases";
 import type { LeaseWithExtras } from "#types/core";
@@ -90,7 +89,8 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						queryClient.invalidateQueries({ queryKey: unitQueries.all() }),
 						queryClient.invalidateQueries({ queryKey: tenantQueries.all() }),
 					]);
-					toast.success("Lease created successfully");
+					// FORMFIX-08: the create mutation's createMutationCallbacks fires the
+					// single success toast; no form-level duplicate.
 					router.push("/leases");
 				} else {
 					if (!lease?.id) {
@@ -102,18 +102,17 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						data: { ...value, lease_status: leaseStatus },
 						version: lease.version ?? 1,
 					});
-					toast.success("Lease updated successfully");
+					// FORMFIX-08: the update mutation's createMutationCallbacks fires the
+					// single success toast; no form-level duplicate.
 				}
 				onSuccess?.();
 			} catch (error) {
+				// FORMFIX-08: the mutation's onError (createMutationCallbacks) surfaces
+				// the error toast; only log here to avoid a duplicate.
 				logger.error(`Lease ${mode} failed`, {
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,
 				});
-				handleMutationError(
-					error,
-					`${mode === "create" ? "Create" : "Update"} lease`,
-				);
 			}
 		},
 	});

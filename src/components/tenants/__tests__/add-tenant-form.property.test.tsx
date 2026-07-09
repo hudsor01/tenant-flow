@@ -17,19 +17,43 @@ import {
 	QueryClientProvider,
 	useMutation,
 } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import * as fc from "fast-check";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AddTenantRequest } from "#lib/validation/tenants";
+import type { Property, Unit } from "#types/core";
+import { AddTenantForm } from "../add-tenant-form";
 
 // Mock dependencies
 vi.mock("sonner", () => ({
 	toast: {
 		success: vi.fn(),
 		error: vi.fn(),
+		info: vi.fn(),
 	},
+}));
+
+// Mock the create-tenant mutation so the guard test never hits PostgREST.
+const mockCreateTenant = vi.fn().mockResolvedValue({ id: "new-tenant-id" });
+vi.mock("#hooks/api/use-tenant-mutations", () => ({
+	useCreateTenantMutation: () => ({
+		mutateAsync: mockCreateTenant,
+		isPending: false,
+	}),
+}));
+
+const mockRouterPush = vi.fn();
+const mockRouterBack = vi.fn();
+const mockRouterRefresh = vi.fn();
+vi.mock("next/navigation", () => ({
+	useRouter: () => ({
+		push: mockRouterPush,
+		back: mockRouterBack,
+		refresh: mockRouterRefresh,
+	}),
 }));
 
 // Helper to create a query client for each test
@@ -371,4 +395,191 @@ it("should distinguish between authentication and authorization errors", async (
 		),
 		{ numRuns: 100 },
 	);
+});
+
+/**
+ * FORMFIX-01: the add-tenant unsaved-changes guard must arm REACTIVELY.
+ *
+ * Regression: the call site passed a non-reactive `form.state.isDirty` snapshot,
+ * so the `beforeunload` guard never armed as the user typed. The fix reads dirty
+ * via `useStore(form.store, (s) => s.isDirty)`. These tests prove the listener is
+ * registered after a field change and removed once the form returns to pristine.
+ */
+describe("AddTenantForm - unsaved-changes guard (FORMFIX-01)", () => {
+	function renderForm() {
+		const queryClient = createTestQueryClient();
+		return render(
+			<QueryClientProvider client={queryClient}>
+				<AddTenantForm properties={[]} units={[]} />
+			</QueryClientProvider>,
+		);
+	}
+
+	function countBeforeUnload(calls: unknown[][]): number {
+		return calls.filter((call) => call[0] === "beforeunload").length;
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("arms the beforeunload guard when the form becomes dirty", async () => {
+		const user = userEvent.setup();
+		const addSpy = vi.spyOn(window, "addEventListener");
+
+		renderForm();
+
+		// Pristine form → guard not armed.
+		expect(countBeforeUnload(addSpy.mock.calls)).toBe(0);
+
+		await user.type(screen.getByLabelText(/email address/i), "a");
+
+		// Dirty form → reactive isDirty flips true → effect registers the guard.
+		await waitFor(() => {
+			expect(countBeforeUnload(addSpy.mock.calls)).toBeGreaterThan(0);
+		});
+
+		addSpy.mockRestore();
+	});
+
+	it("removes the beforeunload guard when the armed form unmounts (navigate-away)", async () => {
+		// TanStack Form's field-level `isDirty` is sticky once a field changes, so
+		// the guard disarms on submit/navigation (unmount) rather than on revert.
+		// This asserts the reactive effect's cleanup runs, mirroring the real
+		// navigate-away path after a successful create.
+		const user = userEvent.setup();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const removeSpy = vi.spyOn(window, "removeEventListener");
+
+		const { unmount } = renderForm();
+
+		await user.type(screen.getByLabelText(/email address/i), "a");
+		await waitFor(() => {
+			expect(countBeforeUnload(addSpy.mock.calls)).toBeGreaterThan(0);
+		});
+
+		unmount();
+
+		expect(countBeforeUnload(removeSpy.mock.calls)).toBeGreaterThan(0);
+
+		addSpy.mockRestore();
+		removeSpy.mockRestore();
+	});
+});
+
+const TEST_PROPERTY: Property = {
+	id: "prop-1",
+	owner_user_id: "owner-1",
+	name: "Maple Court",
+	address_line1: "1 Maple St",
+	address_line2: null,
+	city: "Austin",
+	state: "TX",
+	postal_code: "78701",
+	country: "US",
+	property_type: "single_family",
+	status: "active",
+	date_sold: null,
+	sale_price: null,
+	acquisition_cost: null,
+	acquisition_date: null,
+	created_at: "2024-01-01T00:00:00Z",
+	updated_at: "2024-01-01T00:00:00Z",
+	search_vector: null,
+};
+
+const TEST_UNIT: Unit = {
+	id: "unit-1",
+	property_id: "prop-1",
+	owner_user_id: "owner-1",
+	unit_number: "101",
+	bedrooms: 1,
+	bathrooms: 1,
+	square_feet: 650,
+	rent_amount: 1200,
+	rent_currency: "USD",
+	rent_period: "month",
+	status: "available",
+	created_at: "2024-01-01T00:00:00Z",
+	updated_at: "2024-01-01T00:00:00Z",
+};
+
+/**
+ * FORMFIX-04: a property/unit selected in the add-tenant form must not be
+ * silently discarded. There is no standalone tenant↔unit link, so the created
+ * tenant + selection are carried into the lease-creation flow via query params.
+ */
+describe("AddTenantForm - carries selection into lease flow (FORMFIX-04)", () => {
+	function renderForm() {
+		const queryClient = createTestQueryClient();
+		return render(
+			<QueryClientProvider client={queryClient}>
+				<AddTenantForm properties={[TEST_PROPERTY]} units={[TEST_UNIT]} />
+			</QueryClientProvider>,
+		);
+	}
+
+	async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>) {
+		await user.type(screen.getByLabelText(/first name/i), "John");
+		await user.type(screen.getByLabelText(/last name/i), "Doe");
+		await user.type(
+			screen.getByLabelText(/email address/i),
+			"john@example.com",
+		);
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("routes to /leases/new with the tenant, property, and unit when a property is selected", async () => {
+		const user = userEvent.setup();
+		renderForm();
+
+		await fillRequiredFields(user);
+
+		// Pick the property — the single available unit auto-selects.
+		await user.click(screen.getByRole("combobox", { name: /property/i }));
+		await user.click(
+			await screen.findByRole("option", { name: /maple court/i }),
+		);
+
+		await user.click(screen.getByRole("button", { name: /add tenant/i }));
+
+		await waitFor(() => {
+			expect(mockRouterPush).toHaveBeenCalled();
+		});
+
+		const leaseCall = mockRouterPush.mock.calls.find(
+			([url]) => typeof url === "string" && url.startsWith("/leases/new"),
+		);
+		expect(leaseCall).toBeDefined();
+		const url = leaseCall?.[0] as string;
+		expect(url).toContain("tenant=new-tenant-id");
+		expect(url).toContain("property=prop-1");
+		expect(url).toContain("unit=unit-1");
+		// The selection is NOT silently dropped to the tenants list.
+		expect(mockRouterPush).not.toHaveBeenCalledWith("/tenants");
+	});
+
+	it("redirects to /tenants when no property is selected", async () => {
+		const user = userEvent.setup();
+		renderForm();
+
+		await fillRequiredFields(user);
+		await user.click(screen.getByRole("button", { name: /add tenant/i }));
+
+		await waitFor(() => {
+			expect(mockRouterPush).toHaveBeenCalledWith("/tenants");
+		});
+
+		const leaseCall = mockRouterPush.mock.calls.find(
+			([url]) => typeof url === "string" && url.startsWith("/leases/new"),
+		);
+		expect(leaseCall).toBeUndefined();
+
+		// FORMFIX-08: the form no longer fires its own success toast — the single
+		// success toast comes from the create mutation's createMutationCallbacks.
+		expect(toast.success).not.toHaveBeenCalledWith("Tenant added");
+	});
 });

@@ -4,7 +4,6 @@ import { Building, Edit, MapPin, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
 import { PropertyImageGallery } from "#components/properties/property-image-gallery";
 import { PropertyPerformanceSection } from "#components/properties/property-performance-section";
@@ -24,6 +23,7 @@ import { Button } from "#components/ui/button";
 import { ButtonGroup } from "#components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { useDeletePropertyMutation } from "#hooks/api/use-property-mutations";
+import { createLogger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
 
 interface PropertyDetailsProps {
@@ -39,6 +39,8 @@ interface PropertyDetailsProps {
  * - Units section (card for single-unit, table for multi-unit)
  * - Property images gallery
  */
+const logger = createLogger({ component: "PropertyDetails" });
+
 export function PropertyDetails({ property }: PropertyDetailsProps) {
 	const [deleteOpen, setDeleteOpen] = useState(false);
 	const router = useRouter();
@@ -47,10 +49,14 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 	const handleDelete = async () => {
 		try {
 			await deletePropertyMutation.mutateAsync(property.id);
-			toast.success("Property deleted successfully");
+			// FORMFIX-08: useDeletePropertyMutation's createMutationCallbacks fires the
+			// single success toast; no form-level duplicate.
 			router.push("/properties");
-		} catch {
-			toast.error("Failed to delete property. Please try again.");
+		} catch (error) {
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
+			logger.error("Delete property failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

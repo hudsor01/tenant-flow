@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, FileText, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 /**
  * Lease Creation Wizard
  * Unified multi-step wizard for creating lease agreements
@@ -50,12 +50,25 @@ interface LeaseCreationWizardProps {
 
 export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const queryClient = useQueryClient();
 	const [currentStep, setCurrentStep] = useState<WizardStep>("selection");
 	useUnsavedChangesWarning(currentStep !== "selection");
+	// FORMFIX-04: seed the selection from preselection query params carried over
+	// from the add-tenant flow (?tenant=&property=&unit=) so a property/unit
+	// chosen there is not dropped — the tenant↔unit association is completed here.
 	const [selectionData, setSelectionData] = useState<
 		Partial<SelectionStepData>
-	>({});
+	>(() => {
+		const seed: Partial<SelectionStepData> = {};
+		const property = searchParams.get("property");
+		const unit = searchParams.get("unit");
+		const tenant = searchParams.get("tenant");
+		if (property) seed.property_id = property;
+		if (unit) seed.unit_id = unit;
+		if (tenant) seed.primary_tenant_id = tenant;
+		return seed;
+	});
 	const [termsData, setTermsData] = useState<Partial<TermsStepData>>({
 		payment_day: 1,
 		grace_period_days: 3,

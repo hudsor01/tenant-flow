@@ -6,7 +6,14 @@
 
 "use client";
 
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import {
+	startTransition,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { createLogger } from "#lib/frontend-logger";
 import type { FormProgressData } from "#types/core";
 
@@ -68,56 +75,62 @@ function useFormProgress(formType: FormType) {
 		};
 	}, [formType]);
 
-	// Save progress function with local storage (excludes sensitive data)
-	const saveProgress = async (data: FormProgressData): Promise<void> => {
-		try {
-			// Skip if no meaningful data to save
-			if (!data.email && !data.name) return;
+	// Save progress function with local storage (excludes sensitive data).
+	// FORMFIX-03: memoized (deps: formType only) so its identity is stable across
+	// renders — consumers depend on this reference, not on the whole hook return.
+	// It uses the functional setState form, so it never needs `state` as a dep.
+	const saveProgress = useCallback(
+		async (data: FormProgressData): Promise<void> => {
+			try {
+				// Skip if no meaningful data to save
+				if (!data.email && !data.name) return;
 
-			// Security: Never save passwords locally
-			const safeData = { ...data };
-			delete safeData.password;
-			delete safeData.confirmPassword;
+				// Security: Never save passwords locally
+				const safeData = { ...data };
+				delete safeData.password;
+				delete safeData.confirmPassword;
 
-			// Save to localStorage
-			localStorage.setItem(
-				`form-progress-${formType}`,
-				JSON.stringify(safeData),
-			);
+				// Save to localStorage
+				localStorage.setItem(
+					`form-progress-${formType}`,
+					JSON.stringify(safeData),
+				);
 
-			setState((prev) => ({
-				...prev,
-				data: safeData,
-				error: null,
-			}));
-		} catch (error) {
-			// Graceful degradation - don't break the form
-			logger.warn("Failed to save form progress", {
-				action: "form_progress_save_failed",
-				metadata: {
-					formType,
-					hasEmail: !!data.email,
-					hasName: !!data.name,
-					error: error instanceof Error ? error.message : String(error),
-				},
-			});
-			setState((prev) => ({
-				...prev,
-				error:
-					error instanceof Error ? error.message : "Failed to save progress",
-			}));
-		}
-	};
+				setState((prev) => ({
+					...prev,
+					data: safeData,
+					error: null,
+				}));
+			} catch (error) {
+				// Graceful degradation - don't break the form
+				logger.warn("Failed to save form progress", {
+					action: "form_progress_save_failed",
+					metadata: {
+						formType,
+						hasEmail: !!data.email,
+						hasName: !!data.name,
+						error: error instanceof Error ? error.message : String(error),
+					},
+				});
+				setState((prev) => ({
+					...prev,
+					error:
+						error instanceof Error ? error.message : "Failed to save progress",
+				}));
+			}
+		},
+		[formType],
+	);
 
-	// Clear progress (on successful submission)
-	const clearProgress = () => {
+	// Clear progress (on successful submission) — memoized for a stable identity.
+	const clearProgress = useCallback(() => {
 		localStorage.removeItem(`form-progress-${formType}`);
 		setState((prev) => ({
 			...prev,
 			data: null,
 			error: null,
 		}));
-	};
+	}, [formType]);
 
 	return {
 		...state,
@@ -141,6 +154,26 @@ export function useFormWithProgress<T extends FormProgressData>(
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [isHydrated, setIsHydrated] = useState(false);
 
+	// FORMFIX-03: the serialized (password-free) payload of the last save. The
+	// auto-save effect writes only when the current serialized payload differs,
+	// so re-renders with unchanged data produce no writes and the loop is broken.
+	const lastSavedRef = useRef<string | null>(null);
+
+	// FORMFIX-03: the restore-from-draft merge must happen exactly ONCE, at the
+	// initial load. `progress.data` is re-assigned a fresh reference on every
+	// auto-save (saveProgress does setState({ ...prev, data })), so without this
+	// gate the restore effect re-fires on each keystroke's save and re-merges the
+	// saved snapshot over the user's live edits (progressData wins the merge) —
+	// under fast typing a deferred stale snapshot can roll a controlled input back
+	// and drop in-flight characters. This gate pins restore to the load-time draft.
+	const hasRestoredRef = useRef(false);
+
+	// Stable identities (the mutable pieces of `progress`) so the auto-save effect
+	// does not re-run every render on a fresh `progress` object reference.
+	const { saveProgress } = progress;
+	const progressIsLoading = progress.isLoading;
+	const progressData = progress.data;
+
 	// Mark as hydrated on client
 	useEffect(() => {
 		setIsHydrated(true);
@@ -152,26 +185,53 @@ export function useFormWithProgress<T extends FormProgressData>(
 	// Auto-save progress when form data changes (deferred) - only after hydration, excluding passwords
 	useEffect(() => {
 		if (
-			isHydrated &&
-			!progress.isLoading &&
-			(deferredFormData.email || deferredFormData.name)
+			!isHydrated ||
+			progressIsLoading ||
+			!(deferredFormData.email || deferredFormData.name)
 		) {
-			startTransition(() => {
-				// Security: Never auto-save passwords
-				const safeData = { ...deferredFormData };
-				delete safeData.password;
-				delete safeData.confirmPassword;
-				progress.saveProgress(safeData);
-			});
+			return;
 		}
-	}, [deferredFormData, progress, isHydrated]);
 
-	// Restore progress data when loaded - only after hydration
+		// Security: Never auto-save passwords
+		const safeData = { ...deferredFormData };
+		delete safeData.password;
+		delete safeData.confirmPassword;
+
+		// FORMFIX-03: skip when nothing meaningful changed since the last save.
+		const serialized = JSON.stringify(safeData);
+		if (serialized === lastSavedRef.current) return;
+		lastSavedRef.current = serialized;
+
+		startTransition(() => {
+			saveProgress(safeData);
+		});
+	}, [deferredFormData, saveProgress, progressIsLoading, isHydrated]);
+
+	// Restore progress data when loaded - only after hydration, and ONLY ONCE.
+	// FORMFIX-03: the guard runs the merge the first time the initial localStorage
+	// load has settled (isHydrated && !progressIsLoading); subsequent progressData
+	// changes are auto-save writes, which must NOT re-merge over live form edits.
 	useEffect(() => {
-		if (isHydrated && progress.data && !progress.isLoading) {
-			setFormData((prev) => ({ ...prev, ...progress.data }));
-		}
-	}, [progress.data, progress.isLoading, isHydrated]);
+		if (hasRestoredRef.current) return;
+		if (!isHydrated || progressIsLoading) return;
+
+		// Initial load has completed — restore the draft that existed at load time
+		// (if any). Mark done first so an auto-save-driven progressData change can
+		// never re-enter this merge.
+		hasRestoredRef.current = true;
+		if (!progressData) return;
+
+		setFormData((prev) => {
+			const merged = { ...prev, ...progressData };
+			// Prime the change guard with what we just restored so the auto-save
+			// effect does not immediately write the restored data straight back.
+			const safe = { ...merged };
+			delete safe.password;
+			delete safe.confirmPassword;
+			lastSavedRef.current = JSON.stringify(safe);
+			return merged;
+		});
+	}, [progressData, progressIsLoading, isHydrated]);
 
 	const handleSubmit = async (data: T) => {
 		setIsSubmitting(true);

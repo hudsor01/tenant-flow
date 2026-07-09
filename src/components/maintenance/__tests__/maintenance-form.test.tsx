@@ -25,14 +25,59 @@ vi.mock("#hooks/use-current-user", () => ({
 	}),
 }));
 
+// Stable, hoisted mutation spies so FORMFIX-05 tests can assert on the exact
+// payload the edit/create submit sends (a fresh vi.fn() per render would lose
+// call history). FORMFIX-05 also wires uuidSchema validators onto
+// unit_id/tenant_id, so the mock units/tenant carry real UUIDs (fake "unit-1"
+// strings would fail the validator and block the edit submit these tests run).
+const {
+	mockCreateMutateAsync,
+	mockUpdateMutateAsync,
+	UNIT_1,
+	UNIT_2,
+	TENANT_1,
+	MOCK_UNITS,
+} = vi.hoisted(() => {
+	const UNIT_1 = "11111111-1111-4111-8111-111111111111";
+	const UNIT_2 = "22222222-2222-4222-8222-222222222222";
+	const UNIT_3 = "33333333-3333-4333-8333-333333333333";
+	return {
+		mockCreateMutateAsync: vi.fn(),
+		mockUpdateMutateAsync: vi.fn(),
+		UNIT_1,
+		UNIT_2,
+		TENANT_1: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+		MOCK_UNITS: [
+			{
+				id: UNIT_1,
+				unit_number: "101",
+				property_id: "property-1",
+				status: "occupied",
+			},
+			{
+				id: UNIT_2,
+				unit_number: "102",
+				property_id: "property-1",
+				status: "available",
+			},
+			{
+				id: UNIT_3,
+				unit_number: "201",
+				property_id: "property-2",
+				status: "occupied",
+			},
+		],
+	};
+});
+
 // Mock hooks
 vi.mock("#hooks/api/use-maintenance", () => ({
 	useMaintenanceRequestCreateMutation: () => ({
-		mutateAsync: vi.fn().mockResolvedValue({ id: "new-request-id" }),
+		mutateAsync: mockCreateMutateAsync,
 		isPending: false,
 	}),
 	useMaintenanceRequestUpdateMutation: () => ({
-		mutateAsync: vi.fn().mockResolvedValue({ id: "request-1" }),
+		mutateAsync: mockUpdateMutateAsync,
 		isPending: false,
 	}),
 	maintenanceKeys: {
@@ -66,49 +111,11 @@ vi.mock("#hooks/api/use-properties", () => ({
 
 vi.mock("#hooks/api/use-unit", () => ({
 	useUnitsByProperty: () => ({
-		data: [
-			{
-				id: "unit-1",
-				unit_number: "101",
-				property_id: "property-1",
-				status: "occupied",
-			},
-			{
-				id: "unit-2",
-				unit_number: "102",
-				property_id: "property-1",
-				status: "available",
-			},
-			{
-				id: "unit-3",
-				unit_number: "201",
-				property_id: "property-2",
-				status: "occupied",
-			},
-		],
+		data: MOCK_UNITS,
 		isLoading: false,
 	}),
 	useUnitList: () => ({
-		data: [
-			{
-				id: "unit-1",
-				unit_number: "101",
-				property_id: "property-1",
-				status: "occupied",
-			},
-			{
-				id: "unit-2",
-				unit_number: "102",
-				property_id: "property-1",
-				status: "available",
-			},
-			{
-				id: "unit-3",
-				unit_number: "201",
-				property_id: "property-2",
-				status: "occupied",
-			},
-		],
+		data: MOCK_UNITS,
 		isLoading: false,
 	}),
 }));
@@ -116,8 +123,8 @@ vi.mock("#hooks/api/use-unit", () => ({
 const mockMaintenanceRequest: MaintenanceRequest = {
 	id: "request-1",
 	title: "Kitchen Faucet Issue",
-	unit_id: "unit-1",
-	requested_by: "tenant-1",
+	unit_id: UNIT_1,
+	requested_by: TENANT_1,
 	owner_user_id: "user-1",
 	description: "The kitchen faucet is dripping continuously",
 	priority: "medium",
@@ -130,7 +137,7 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	inspection_findings: null,
 	inspector_id: null,
 	scheduled_date: null,
-	tenant_id: "tenant-1",
+	tenant_id: TENANT_1,
 	vendor_id: null,
 	created_at: "2024-01-01T00:00:00Z",
 	updated_at: "2024-01-01T00:00:00Z",
@@ -151,6 +158,8 @@ function renderWithQueryClient(ui: ReactElement) {
 describe("MaintenanceForm", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockCreateMutateAsync.mockResolvedValue({ id: "new-request-id" });
+		mockUpdateMutateAsync.mockResolvedValue({ id: "request-1" });
 	});
 
 	describe("Create Mode", () => {
@@ -587,6 +596,80 @@ describe("MaintenanceForm", () => {
 			});
 			// Note: Priority options defined in NOTIFICATION_PRIORITY_OPTIONS from @repo/shared:
 			// Low, Medium, High, Urgent
+		});
+	});
+
+	// FORMFIX-05a: the edit payload previously omitted unit_id/tenant_id, so
+	// reassigning the unit or tenant silently did not persist. It must now be
+	// carried into the MaintenanceRequestUpdate payload.
+	describe("FORMFIX-05a: edit persists unit/tenant changes", () => {
+		test("edit submit includes the reassigned unit_id and tenant_id", async () => {
+			const user = userEvent.setup();
+			await act(async () => {
+				renderWithQueryClient(
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />,
+				);
+			});
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("combobox", { name: /unit/i }),
+				).toBeInTheDocument();
+			});
+
+			// Reassign the unit from 101 to 102.
+			await user.click(screen.getByRole("combobox", { name: /unit/i }));
+			await user.click(
+				await screen.findByRole("option", { name: /unit 102/i }),
+			);
+
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+			await waitFor(() => {
+				expect(mockUpdateMutateAsync).toHaveBeenCalledTimes(1);
+			});
+
+			expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
+				expect.objectContaining({
+					id: "request-1",
+					data: expect.objectContaining({
+						unit_id: UNIT_2,
+						tenant_id: TENANT_1,
+						title: "Kitchen Faucet Issue",
+						priority: "medium",
+					}),
+				}),
+			);
+		});
+	});
+
+	// FORMFIX-05b: empty/invalid required fields must surface FIELD errors
+	// (from maintenanceRequestCreateSchema) before the mutation — never a raw
+	// PostgREST uuid error.
+	describe("FORMFIX-05b: required-field validators block the mutation", () => {
+		test("empty unit/title/description surface field errors and do not call create", async () => {
+			const user = userEvent.setup();
+			await act(async () => {
+				renderWithQueryClient(<MaintenanceForm mode="create" />);
+			});
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /create request/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /create request/i }));
+
+			// Field-level messages surface (client-side), not a raw PostgREST uuid
+			// error, and the mutation is never called.
+			await waitFor(() => {
+				expect(
+					screen.getAllByText(/invalid uuid format/i).length,
+				).toBeGreaterThan(0);
+			});
+			expect(screen.getAllByText(/cannot be empty/i).length).toBeGreaterThan(0);
+			expect(mockCreateMutateAsync).not.toHaveBeenCalled();
 		});
 	});
 });

@@ -21,10 +21,13 @@ import {
 } from "#components/ui/alert-dialog";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
 import type { Lease } from "#types/core";
 import { isLeaseTermsLocked } from "../lease-terms-lock";
 import { getDaysUntilExpiry, getStatusConfig } from "./lease-detail-utils";
+
+const logger = createLogger({ component: "LeaseHeader" });
 
 interface TenantInfo {
 	first_name?: string | null | undefined;
@@ -91,9 +94,10 @@ export function LeaseHeader({
 			});
 			setCancelDialogOpen(false);
 		} catch (error) {
-			toast.error("Failed to cancel signature request", {
-				description:
-					error instanceof Error ? error.message : "Please try again.",
+			// FORMFIX-08: useCancelSignatureRequestMutation's built-in onError already
+			// fires the single error toast; only log here to avoid a duplicate.
+			logger.error("Cancel signature request failed", {
+				error: error instanceof Error ? error.message : String(error),
 			});
 		}
 	};

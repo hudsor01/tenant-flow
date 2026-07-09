@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, PenLine } from "lucide-react";
+import { CheckCircle2, PenLine } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -18,7 +18,10 @@ import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Label } from "#components/ui/label";
 import { useSignLeaseAsOwnerMutation } from "#hooks/api/use-lease-signature-mutations";
+import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
+
+const logger = createLogger({ component: "SignLeaseButton" });
 
 interface SignLeaseButtonProps {
 	leaseId: string;
@@ -62,10 +65,10 @@ export function SignLeaseButton({
 			setOpen(false);
 			setAgreed(false);
 		} catch (error) {
-			toast.error("Failed to sign lease", {
-				description:
-					error instanceof Error ? error.message : "Please try again.",
-				icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+			// FORMFIX-08: useSignLeaseAsOwnerMutation's built-in onError already fires
+			// the single error toast; only log here to avoid a duplicate.
+			logger.error("Sign lease failed", {
+				error: error instanceof Error ? error.message : String(error),
 			});
 		}
 	};

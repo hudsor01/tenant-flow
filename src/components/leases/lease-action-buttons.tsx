@@ -37,8 +37,10 @@ import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
 import { useDeleteLeaseOptimisticMutation } from "#hooks/api/use-lease-mutations";
 import { useSignLeaseAsOwnerMutation } from "#hooks/api/use-lease-signature-mutations";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import type { Lease } from "#types/core";
+
+const logger = createLogger({ component: "LeaseActionButtons" });
 
 interface LeaseActionButtonsProps {
 	lease: Lease;
@@ -52,11 +54,14 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const [showTerminateDialog, setShowTerminateDialog] = useState(false);
 	const deleteLease = useDeleteLeaseOptimisticMutation({
 		onSuccess: () => {
+			// This mutation sets no successMessage, so the component owns the sole
+			// success toast here.
 			toast.success("Lease deleted successfully");
 			setShowDeleteDialog(false);
 		},
-		onError: (err) =>
-			handleMutationError(err, "Delete lease", "Failed to delete lease"),
+		// FORMFIX-08: no component onError — useDeleteLeaseOptimisticMutation's factory
+		// wrapper already calls handleMutationError (errorContext "Delete lease"), so a
+		// second handler here would double-toast + double-Sentry the same failure.
 	});
 
 	const isDraft = lease.lease_status === "draft";
@@ -66,9 +71,15 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const handleSignAsOwner = async () => {
 		try {
 			await signAsOwner.mutateAsync(lease.id);
+			// This mutation has no successMessage, so the component owns the sole
+			// success toast here.
 			toast.success("Lease signed successfully");
-		} catch {
-			toast.error("Failed to sign lease");
+		} catch (error) {
+			// FORMFIX-08: useSignLeaseAsOwnerMutation's built-in onError already fires
+			// the single error toast; only log here to avoid a duplicate.
+			logger.error("Sign lease failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

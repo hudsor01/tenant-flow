@@ -125,7 +125,14 @@ export function useCancelSubscriptionMutation() {
 			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey });
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 		},
-		onError: (error) => handleMutationError(error, "Cancel subscription"),
+		// FORMFIX-08: the built-in owns the single error toast; carry the friendly
+		// fallback message here so the sole consumer needn't add its own onError.
+		onError: (error) =>
+			handleMutationError(
+				error,
+				"Cancel subscription",
+				"Couldn't cancel your subscription. Please try again or contact support.",
+			),
 	});
 }
 
@@ -141,7 +148,14 @@ export function useReactivateSubscriptionMutation() {
 			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey });
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 		},
-		onError: (error) => handleMutationError(error, "Reactivate subscription"),
+		// FORMFIX-08: the built-in owns the single error toast; carry the friendly
+		// fallback message here so the sole consumer needn't add its own onError.
+		onError: (error) =>
+			handleMutationError(
+				error,
+				"Reactivate subscription",
+				"Couldn't reactivate. Please try again.",
+			),
 	});
 }
 

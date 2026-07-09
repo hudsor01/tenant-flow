@@ -111,10 +111,15 @@ export function useMaintenanceForm({
 						throw new Error("Request ID is required for edit mode");
 					}
 
+					// FORMFIX-05: include unit_id/tenant_id so reassigning the unit or
+					// tenant on edit actually persists (previously omitted → silently
+					// dropped). maintenanceRequestUpdateSchema accepts them (partial input).
 					const payload: MaintenanceRequestUpdate = {
 						title: value.title,
 						description: value.description,
 						priority: value.priority,
+						unit_id: value.unit_id,
+						tenant_id: value.tenant_id,
 					};
 
 					// Add optional fields only if they have values
@@ -149,12 +154,16 @@ export function useMaintenanceForm({
 					onSuccess?.(result);
 				}
 			} catch (error) {
+				// FORMFIX-08: the mutation's onError (createMutationCallbacks) surfaces
+				// the single error toast; only log here. Do NOT re-throw — form-core
+				// re-throws whatever onSubmit throws, and the DOM handler calls
+				// form.handleSubmit() un-awaited, so a re-thrown rejection escapes as an
+				// unhandled promise rejection (second Sentry capture + a dev error
+				// overlay on an already-handled failure). Matches the other 3 forms.
 				logger.error("Failed to submit maintenance request", {
 					mode,
 					error,
 				});
-				// Re-throw to let mutation error handlers manage UI notifications
-				throw error;
 			}
 		},
 	});

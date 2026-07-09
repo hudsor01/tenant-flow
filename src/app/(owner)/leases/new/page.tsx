@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { LeaseCreationWizard } from "#components/leases/wizard/lease-creation-wizard";
 
 export default function NewLeasePage() {
@@ -16,9 +17,13 @@ export default function NewLeasePage() {
 					Create a new lease agreement step by step.
 				</p>
 			</div>
-			<LeaseCreationWizard
-				onSuccess={(leaseId) => router.push(`/leases/${leaseId}`)}
-			/>
+			{/* FORMFIX-04: the wizard reads preselection query params via
+			    useSearchParams, which must sit under a Suspense boundary. */}
+			<Suspense fallback={null}>
+				<LeaseCreationWizard
+					onSuccess={(leaseId) => router.push(`/leases/${leaseId}`)}
+				/>
+			</Suspense>
 		</div>
 	);
 }

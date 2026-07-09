@@ -11,9 +11,8 @@ import {
 	useUpdateUnitMutation,
 } from "#hooks/api/use-unit";
 import { useCurrentUser } from "#hooks/use-current-user";
-import { ERROR_MESSAGES } from "#lib/constants/error-messages";
 import { useAppForm } from "#lib/forms/form-hook";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import {
 	handleConflictError,
 	isConflictError,
@@ -50,6 +49,7 @@ export function UnitForm({
 	const properties = propertiesResponse?.data;
 	const createUnitMutation = useCreateUnitMutation();
 	const updateUnitMutation = useUpdateUnitMutation();
+	const logger = createLogger({ component: "UnitForm" });
 
 	// Fetch unit if id provided (for client-side edit mode)
 	// Only fetch if we don't have a unit prop and we're in edit mode
@@ -147,7 +147,8 @@ export function UnitForm({
 
 				if (mode === "create") {
 					await createUnitMutation.mutateAsync(unitData);
-					toast.success("Unit created successfully");
+					// FORMFIX-08: the create mutation's createMutationCallbacks fires the
+					// single success toast; no form-level duplicate.
 					router.push("/units");
 				} else {
 					if (!unit?.id) {
@@ -158,25 +159,26 @@ export function UnitForm({
 						id: unit.id,
 						data: unitData,
 					});
-					toast.success("Unit updated successfully");
+					// FORMFIX-08: the update mutation's createMutationCallbacks fires the
+					// single success toast; no form-level duplicate.
 				}
 
 				onSuccess?.();
 			} catch (error) {
-				// Handle optimistic locking conflicts
+				// FORMFIX-08: the mutation's onError (createMutationCallbacks ->
+				// handleMutationError) surfaces the single error toast, including the
+				// 409 "Conflict" toast. On a conflict, reconcile the cache so the stale
+				// unit refetches; otherwise just log. No second toast, and no re-throw
+				// (form-core re-throws onSubmit errors into the un-awaited handleSubmit).
 				if (mode === "edit" && unit && isConflictError(error)) {
 					handleConflictError("units", unit.id, queryClient, [
 						unitQueries.detail(unit.id).queryKey,
 						unitQueries.all(),
 					]);
-					toast.error(ERROR_MESSAGES.CONFLICT_UPDATE);
-					return;
 				}
-
-				handleMutationError(
-					error,
-					`${mode === "create" ? "Create" : "Update"} unit`,
-				);
+				logger.error(`Unit ${mode} failed`, {
+					error: error instanceof Error ? error.message : String(error),
+				});
 			}
 		},
 	});

@@ -11,7 +11,6 @@ import {
 import { DoorOpen, Plus } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRef } from "react";
-import { toast } from "sonner";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Button } from "#components/ui/button";
@@ -35,6 +34,7 @@ import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useCreateUnitMutation } from "#hooks/api/use-unit";
+import { createLogger } from "#lib/frontend-logger";
 import type { UnitInput } from "#lib/validation/units";
 import { type UnitRow, unitColumns } from "./columns";
 
@@ -51,6 +51,8 @@ const ChartAreaInteractive = dynamic(
 		ssr: false, // Chart renders client-side only
 	},
 );
+
+const logger = createLogger({ component: "UnitsPage" });
 
 export default function UnitsPage() {
 	// Use modern hook with pagination
@@ -198,11 +200,13 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 				status: "available",
 			} satisfies UnitInput);
 			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() });
-			toast.success("Unit created successfully");
+			// FORMFIX-08: useCreateUnitMutation's createMutationCallbacks fires the
+			// single success toast; no form-level duplicate.
 			closeButtonRef.current?.click();
 		} catch (error) {
-			toast.error("Failed to create unit", {
-				description: error instanceof Error ? error.message : "Unknown error",
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
+			logger.error("Create unit failed", {
+				error: error instanceof Error ? error.message : String(error),
 			});
 		}
 	}

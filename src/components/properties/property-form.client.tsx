@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -14,7 +15,6 @@ import { useCurrentUser } from "#hooks/use-current-user";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import type { Property, PropertyType } from "#types/core";
@@ -115,6 +115,13 @@ export function PropertyForm({
 			acquisition_date: property?.acquisition_date ?? "",
 		},
 		onSubmit: async ({ value }) => {
+			// FORMFIX-08: no form-level error toast — the mutation's onError
+			// (createMutationCallbacks) surfaces the single error toast. Swallow the
+			// rejection here (log only, matching lease-form/add-tenant-form): form-core
+			// RE-THROWS anything onSubmit throws, and the DOM handler calls
+			// form.handleSubmit() un-awaited, so a re-thrown mutation rejection would
+			// escape as an unhandled promise rejection (second Sentry capture via the
+			// global handler + a dev error overlay on an already-handled failure).
 			try {
 				if (mode === "create") {
 					await handleCreateSubmit(value);
@@ -123,15 +130,19 @@ export function PropertyForm({
 				}
 				onSuccess?.();
 			} catch (error) {
-				handleMutationError(
-					error,
-					`${mode === "create" ? "Create" : "Update"} property`,
-				);
+				logger.error(`Property ${mode} failed`, {
+					error: error instanceof Error ? error.message : String(error),
+					stack: error instanceof Error ? error.stack : undefined,
+				});
 			}
 		},
 	});
 
-	useUnsavedChangesWarning(form.state.isDirty);
+	// FORMFIX-01: read dirty REACTIVELY from the form store so the beforeunload
+	// guard re-arms as the user edits (a `form.state.isDirty` snapshot is read
+	// once at mount and never updates).
+	const isDirty = useStore(form.store, (s) => s.isDirty);
+	useUnsavedChangesWarning(isDirty);
 
 	async function handleCreateSubmit(
 		value: typeof form.state.values,
@@ -165,6 +176,9 @@ export function PropertyForm({
 
 		const newProperty = await createPropertyMutation.mutateAsync(createData);
 
+		// FORMFIX-08: the create mutation's createMutationCallbacks fires the single
+		// success toast; no form-level duplicate. Image upload still runs on the
+		// image branch (its own toasts are unaffected).
 		if (filesWithStatus.length > 0) {
 			await uploadPropertyImages({
 				propertyId: newProperty.id,
@@ -175,8 +189,6 @@ export function PropertyForm({
 				setUploadingImages,
 				setFilesWithStatus,
 			});
-		} else {
-			toast.success("Property created successfully");
 		}
 
 		if (showSuccessState) {
@@ -218,7 +230,8 @@ export function PropertyForm({
 			id: property.id,
 			data: updateData,
 		});
-		toast.success("Property updated successfully");
+		// FORMFIX-08: the update mutation's createMutationCallbacks fires the single
+		// success toast; no form-level duplicate.
 
 		if (!onSuccess) {
 			router.back();

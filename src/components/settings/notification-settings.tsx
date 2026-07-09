@@ -20,6 +20,24 @@ export function NotificationSettings() {
 		updateSettings.mutate({ [channel]: value });
 	};
 
+	// FORMFIX-07: "Enable All" reflects/controls every channel, not just email.
+	// Read ON only when all four channels are ON (mirror each channel Switch's
+	// own default), and write all four in a single mutate on toggle.
+	const allChannelsEnabled =
+		(settings?.email ?? true) &&
+		(settings?.sms ?? false) &&
+		(settings?.push ?? true) &&
+		(settings?.inApp ?? true);
+
+	const handleEnableAllToggle = (value: boolean) => {
+		updateSettings.mutate({
+			email: value,
+			sms: value,
+			push: value,
+			inApp: value,
+		});
+	};
+
 	const handleCategoryToggle = (
 		category: "maintenance" | "leases" | "general",
 		value: boolean,
@@ -61,9 +79,10 @@ export function NotificationSettings() {
 							</p>
 						</div>
 						<Switch
-							checked={settings?.email ?? true}
-							onCheckedChange={(value) => handleChannelToggle("email", value)}
+							checked={allChannelsEnabled}
+							onCheckedChange={handleEnableAllToggle}
 							disabled={updateSettings.isPending}
+							aria-label="Enable all notifications"
 						/>
 					</div>
 				</section>

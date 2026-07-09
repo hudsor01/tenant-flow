@@ -2,13 +2,14 @@
 
 import { Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
 import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import type { TenantCreate } from "#lib/validation/tenants";
+
+const logger = createLogger({ component: "InlineTenantCreate" });
 
 interface InlineFormData {
 	first_name: string;
@@ -53,11 +54,17 @@ export function InlineTenantCreate({
 
 			await createTenant.mutateAsync(payload);
 
-			toast.success("Tenant added");
+			// FORMFIX-08: useCreateTenantMutation's createMutationCallbacks fires the
+			// single success toast ("Tenant created successfully") — no form-level
+			// duplicate ("Tenant added") on top of it.
 			onToggleMode();
 			setForm({ first_name: "", last_name: "", email: "", phone: "" });
 		} catch (error) {
-			handleMutationError(error, "Add tenant");
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only
+			// log here to avoid a duplicate.
+			logger.error("Inline tenant create failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

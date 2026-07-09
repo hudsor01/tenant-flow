@@ -13,8 +13,10 @@ import { CardLayout } from "#components/ui/card-layout";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations";
 import { formatDate } from "#lib/formatters/date";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import { MoveOutDialog } from "./move-out-dialog";
+
+const logger = createLogger({ component: "TenantDetails" });
 
 interface TenantDetailsProps {
 	id: string;
@@ -74,11 +76,15 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 					moveOutReason: `${moveOutReason}${additionalNotes ? `: ${additionalNotes}` : ""}`,
 				},
 			});
-			toast.success("Tenant marked as moved out");
+			// FORMFIX-08: useMarkTenantAsMovedOutMutation fires the single success toast
+			// (onSuccessExtra -> handleMutationSuccess); no form-level duplicate.
 			setMoveOutDialogOpen(false);
 			router.push("/tenants");
 		} catch (error) {
-			handleMutationError(error, "Mark tenant as moved out");
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
+			logger.error("Mark tenant as moved out failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

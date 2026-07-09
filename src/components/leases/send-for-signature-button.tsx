@@ -19,8 +19,11 @@ import {
 	useResendSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 } from "#hooks/api/use-lease-signature-mutations";
+import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
+
+const logger = createLogger({ component: "SendForSignatureButton" });
 
 interface SendForSignatureButtonProps {
 	leaseId: string;
@@ -107,14 +110,13 @@ export function SendForSignatureButton({
 			// Close + reset + abort any in-flight preview via the shared handler.
 			handleOpenChange(false);
 		} catch (error) {
-			toast.error(
+			// FORMFIX-08: the send/resend mutation's built-in onError already fires the
+			// single error toast; only log here to avoid a duplicate.
+			logger.error(
 				isResend
-					? "Failed to resend signature request"
-					: "Failed to send lease for signature",
-				{
-					description:
-						error instanceof Error ? error.message : "Please try again.",
-				},
+					? "Resend signature request failed"
+					: "Send for signature failed",
+				{ error: error instanceof Error ? error.message : String(error) },
 			);
 		}
 	};

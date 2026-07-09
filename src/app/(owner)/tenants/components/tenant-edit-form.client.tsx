@@ -4,7 +4,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, Save, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent } from "react";
-import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
@@ -12,8 +11,10 @@ import { InputGroup, InputGroupInput } from "#components/ui/input-group";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useUpdateTenantMutation } from "#hooks/api/use-tenant-mutations";
 import { useAppForm } from "#lib/forms/form-hook";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import { tenantEmergencyContactEditSchema } from "#lib/validation/tenants";
+
+const logger = createLogger({ component: "TenantEditForm" });
 
 export interface TenantEditFormProps {
 	id: string;
@@ -39,10 +40,14 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 					emergency_contact_relationship: value.emergency_contact_relationship,
 				};
 				await updateMutation.mutateAsync({ id, data: updateData });
-				toast.success("Tenant updated successfully");
+				// FORMFIX-08: useUpdateTenantMutation's createMutationCallbacks fires the
+				// single success toast; no form-level duplicate.
 				router.push(`/tenants/${id}`);
 			} catch (error) {
-				handleMutationError(error, "Update tenant");
+				// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
+				logger.error("Update tenant failed", {
+					error: error instanceof Error ? error.message : String(error),
+				});
 			}
 		},
 		validators: { onChange: tenantEmergencyContactEditSchema },
