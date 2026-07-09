@@ -12,7 +12,7 @@ import { useFieldContext } from "../form-contexts";
 
 type SelectFieldProps = {
 	label: string;
-	options: ReadonlyArray<{ value: string; label: string }>;
+	options: ReadonlyArray<{ value: string; label: string; disabled?: boolean }>;
 	placeholder?: string;
 	id?: string;
 	disabled?: boolean;
@@ -48,7 +48,11 @@ export function SelectField({
 				</SelectTrigger>
 				<SelectContent>
 					{options.map((option) => (
-						<SelectItem key={option.value} value={option.value}>
+						<SelectItem
+							key={option.value}
+							value={option.value}
+							disabled={option.disabled ?? false}
+						>
 							{option.label}
 						</SelectItem>
 					))}

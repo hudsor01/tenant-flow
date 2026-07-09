@@ -4,9 +4,14 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { cn } from "#lib/utils";
 import type { StatusFilter } from "#stores/leases-store";
 import type { LeaseDisplay, SortDirection, SortField } from "./lease-utils";
-import { LeaseRow, SortHeader } from "./leases-table-columns";
+import {
+	LEASE_COLUMN_CLASS,
+	LeaseRow,
+	SortHeader,
+} from "./leases-table-columns";
 import { LeasesTableToolbar } from "./leases-table-toolbar";
 
 interface LeasesTableProps {
@@ -39,7 +44,7 @@ export function LeasesTable({
 	searchQuery,
 	statusFilter,
 	sortField,
-	sortDirection: _sortDirection,
+	sortDirection,
 	selectedRows,
 	currentPage,
 	totalPages,
@@ -60,6 +65,16 @@ export function LeasesTable({
 		onSearchChange("");
 		onStatusFilterChange("all");
 	};
+
+	// aria-sort belongs on the `<th role="columnheader">`, not the SortHeader
+	// button (mirrors getAriaSort in portfolio-data-table.tsx). Sort state arrives
+	// via props (sortField/sortDirection) here.
+	const ariaSort = (field: SortField): "ascending" | "descending" | "none" =>
+		sortField === field
+			? sortDirection === "asc"
+				? "ascending"
+				: "descending"
+			: "none";
 
 	const tableScrollRef = useRef<HTMLDivElement>(null);
 	const rowVirtualizer = useVirtualizer({
@@ -100,10 +115,24 @@ export function LeasesTable({
 					ref={tableScrollRef}
 					className="overflow-auto max-h-[calc(100vh-420px)]"
 				>
-					<table className="w-full">
-						<thead className="sticky top-0 z-10">
-							<tr className="border-b border-border bg-muted/30">
-								<th className="w-12 px-4 py-3">
+					{/* grid/flex strip the implicit table ARIA roles, so explicit
+					    role attributes are restored on every structural element
+					    (mirrors portfolio-data-table.tsx). */}
+					<table
+						className="grid w-full"
+						role="table"
+						aria-rowcount={paginatedLeases.length + 1}
+					>
+						<thead className="grid sticky top-0 z-10" role="rowgroup">
+							<tr
+								className="flex w-full border-b border-border bg-muted/30"
+								role="row"
+								aria-rowindex={1}
+							>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.checkbox, "px-4 py-3")}
+									role="columnheader"
+								>
 									<input
 										type="checkbox"
 										checked={
@@ -114,7 +143,11 @@ export function LeasesTable({
 										className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 									/>
 								</th>
-								<th className="px-4 py-3 text-left">
+								<th
+									className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}
+									role="columnheader"
+									aria-sort={ariaSort("tenant")}
+								>
 									<SortHeader
 										field="tenant"
 										sortField={sortField}
@@ -124,7 +157,11 @@ export function LeasesTable({
 										Tenant
 									</SortHeader>
 								</th>
-								<th className="px-4 py-3 text-left hidden lg:table-cell">
+								<th
+									className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}
+									role="columnheader"
+									aria-sort={ariaSort("property")}
+								>
 									<SortHeader
 										field="property"
 										sortField={sortField}
@@ -134,7 +171,11 @@ export function LeasesTable({
 										Property
 									</SortHeader>
 								</th>
-								<th className="px-4 py-3 text-left">
+								<th
+									className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}
+									role="columnheader"
+									aria-sort={ariaSort("status")}
+								>
 									<SortHeader
 										field="status"
 										sortField={sortField}
@@ -144,14 +185,17 @@ export function LeasesTable({
 										Status
 									</SortHeader>
 								</th>
-								<th className="w-20 px-4 py-3"></th>
+								<th
+									className={cn(LEASE_COLUMN_CLASS.actions, "px-4 py-3")}
+									role="columnheader"
+								></th>
 							</tr>
 						</thead>
 						<tbody
-							className="divide-y divide-border"
+							className="relative grid divide-y divide-border"
+							role="rowgroup"
 							style={{
 								height: `${rowVirtualizer.getTotalSize()}px`,
-								position: "relative",
 							}}
 						>
 							{rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -160,6 +204,8 @@ export function LeasesTable({
 									<LeaseRow
 										key={lease.id}
 										lease={lease}
+										virtualRow={virtualRow}
+										measureElement={rowVirtualizer.measureElement}
 										isSelected={selectedRows.has(lease.id)}
 										onToggleSelect={onToggleSelect}
 										onView={onView}

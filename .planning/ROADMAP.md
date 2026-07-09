@@ -133,6 +133,15 @@ Requirements: DATA-01, DATA-02, DATA-03, PROP-01, PROP-02, PROP-03
 4. Scrolling the property/tenant tables in virtualized mode shows the correct rows (no offset/blank)
 5. Two consecutive zero-finding review cycles
 
+**Plans:** 6 plans
+Plans:
+- [ ] 30-01-PLAN.md — DATA-02: recreate get_property_performance_with_trends + _trends with the property-status predicate (migration)
+- [ ] 30-02-PLAN.md — DATA-03: get_lease_stats Expired filter 'ended'->'expired' (migration) + widen LeaseStatus union with 'expired' + lockstep sites
+- [ ] 30-03-PLAN.md — DATA-01: occupancy analytics consume the RPC jsonb array (fetch + mapper + use-analytics + report-analytics)
+- [ ] 30-04-PLAN.md — PROP-01/PROP-02: unit mutations invalidate unitQueries.all(); property update invalidates ownerDashboardKeys.all
+- [ ] 30-05-PLAN.md — PROP-03: property + tenant virtualized tables flex-row positioning (translateY + header alignment)
+- [ ] 30-06-PLAN.md — verification: gates + live migration proofs + human-verify occupancy render / table scroll
+
 ### Phase 31: Forms Behavior Correctness
 **Goal:** Fix form behaviors that silently drop data or misbehave — the unsaved-changes guard arms on typing, the contact form actually sends, `use-form-progress` stops render-looping, add-tenant persists the property assignment, maintenance edit saves unit/tenant + validates, general settings saves all fields, the notifications toggle covers all channels, and forms show a single toast.
 Requirements: FORMFIX-01, FORMFIX-02, FORMFIX-03, FORMFIX-04, FORMFIX-05, FORMFIX-06, FORMFIX-07, FORMFIX-08

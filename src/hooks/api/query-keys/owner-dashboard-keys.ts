@@ -8,7 +8,7 @@
  * hook file under the 300-line cap.
  *
  * Only leaves with live consumers are included (per cycle-5 dead-code
- * pruning): `all` (18 invalidation sites), `analytics.stats()` (2 sites),
+ * pruning): `all` (invalidation sites), `analytics.stats()` (1 site),
  * `analytics.pageData()` (DASHBOARD_BASE_QUERY_OPTIONS), and
  * `financial.chartData()` (dashboardFinancialQueries). New keys should be
  * added when (not before) their first consumer lands.

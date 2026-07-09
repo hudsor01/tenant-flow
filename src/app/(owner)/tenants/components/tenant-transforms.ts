@@ -21,7 +21,8 @@ export function transformToTenantItem(
 		if (status === "active") leaseStatus = "active";
 		else if (status === "pending" || status === "pending_signature")
 			leaseStatus = "pending_signature";
-		else if (status === "expired" || status === "ended") leaseStatus = "ended";
+		else if (status === "expired") leaseStatus = "expired";
+		else if (status === "ended") leaseStatus = "ended";
 		else if (status === "terminated") leaseStatus = "terminated";
 		else if (status === "draft") leaseStatus = "draft";
 	}

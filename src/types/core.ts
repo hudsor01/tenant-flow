@@ -15,7 +15,8 @@ export type LeaseStatus =
 	| "pending_signature"
 	| "active"
 	| "ended"
-	| "terminated";
+	| "terminated"
+	| "expired";
 
 export type UnitStatus = "available" | "occupied" | "maintenance" | "reserved";
 

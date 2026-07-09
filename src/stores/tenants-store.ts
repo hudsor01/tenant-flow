@@ -18,6 +18,7 @@ export type TenantStatusFilter =
 	| "active"
 	| "pending_signature"
 	| "ended"
+	| "expired"
 	| "terminated";
 
 export interface TenantsState {

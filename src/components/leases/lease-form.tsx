@@ -19,7 +19,8 @@ import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { cn } from "#lib/utils";
-import type { LeaseStatus, LeaseWithExtras } from "#types/core";
+import type { LeaseCreate } from "#lib/validation/leases";
+import type { LeaseWithExtras } from "#types/core";
 import { LeaseFormFinancialFields } from "./lease-form-financial-fields";
 import { leaseFormOptions } from "./lease-form-options";
 import { LeaseFormPropertyUnitFields } from "./lease-form-property-unit-fields";
@@ -73,7 +74,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const leaseStatus = value.lease_status as LeaseStatus;
+				// The form only offers the writable workflow statuses; 'expired' is a
+				// cron-set, read-only display state (part of the widened core
+				// LeaseStatus union) and is never selectable here, so narrow to the
+				// mutation-input union rather than the display union.
+				const leaseStatus = value.lease_status as LeaseCreate["lease_status"];
 				if (mode === "create") {
 					await createLeaseMutation.mutateAsync({
 						...value,

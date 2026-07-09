@@ -251,7 +251,13 @@ describe("useOccupancyMetrics", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.occupancyRate).toBeDefined();
+		// DATA-01: metrics derive from element[0] (the latest month) of the
+		// occupancy-trends array — regression-lock the concrete values.
+		expect(result.current.data?.occupancyRate).toBe(90);
+		expect(result.current.data?.totalUnits).toBe(20);
+		expect(result.current.data?.occupiedUnits).toBe(18);
+		expect(result.current.data?.vacantUnits).toBe(2);
+		expect(result.current.data?.byProperty).toEqual([]);
 		expect(mockRpc).toHaveBeenCalledWith(
 			"get_occupancy_trends_optimized",
 			expect.objectContaining({
@@ -290,12 +296,10 @@ describe("useFinancialReport", () => {
 		// financial() calls get_dashboard_stats + get_expense_summary
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [
-					{
-						revenue: { yearly: 600000, monthly: 50000 },
-						units: { occupancy_rate: 95 },
-					},
-				],
+				data: {
+					revenue: { yearly: 600000, monthly: 50000 },
+					properties: { occupancyRate: 95 },
+				},
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -382,7 +386,7 @@ describe("useYearEndSummary", () => {
 		// yearEnd() calls get_dashboard_stats + get_expense_summary + get_property_performance_analytics
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: 500000, monthly: 41667 }, units: {} }],
+				data: { revenue: { yearly: 500000, monthly: 41667 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -559,22 +563,16 @@ describe("useTenantReport", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches tenant report from get_dashboard_stats + occupancy trends", async () => {
-		// tenants() runs get_dashboard_stats + fetchOccupancyTrends in parallel.
-		mockRpc
-			.mockResolvedValueOnce({
-				data: [
-					{
-						tenants: { total: 12 },
-						leases: { active: 9, expiring_soon: 2 },
-					},
-				],
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: { turnover_rate: 5, on_time_payment_rate: 98 },
-				error: null,
-			});
+	it("fetches tenant report from get_dashboard_stats", async () => {
+		// tenants() issues a single get_dashboard_stats call; turnover /
+		// on-time-payment have no data source, so both stay 0.
+		mockRpc.mockResolvedValueOnce({
+			data: {
+				tenants: { total: 12 },
+				leases: { active: 9, expiringSoon: 2 },
+			},
+			error: null,
+		});
 
 		const { result } = renderHook(
 			() => useTenantReport("2024-01-01", "2024-12-31"),
@@ -588,8 +586,8 @@ describe("useTenantReport", () => {
 		expect(result.current.data?.summary?.totalTenants).toBe(12);
 		expect(result.current.data?.summary?.activeLeases).toBe(9);
 		expect(result.current.data?.summary?.leasesExpiringNext90).toBe(2);
-		expect(result.current.data?.summary?.turnoverRate).toBe(5);
-		expect(result.current.data?.summary?.onTimePaymentRate).toBe(98);
+		expect(result.current.data?.summary?.turnoverRate).toBe(0);
+		expect(result.current.data?.summary?.onTimePaymentRate).toBe(0);
 		expect(mockRpc).toHaveBeenCalledWith("get_dashboard_stats", {
 			p_user_id: "user-1",
 		});
@@ -888,11 +886,9 @@ describe("useTenantReport (error path)", () => {
 	});
 
 	it("surfaces isError when get_dashboard_stats RPC errors", async () => {
-		// tenants() runs get_dashboard_stats + fetchOccupancyTrends in parallel;
-		// dashResult.error must propagate through handlePostgrestError.
-		mockRpc
-			.mockResolvedValueOnce({ data: null, error: postgrestError })
-			.mockResolvedValueOnce({ data: {}, error: null });
+		// tenants() issues a single get_dashboard_stats call; its error must
+		// propagate through handlePostgrestError.
+		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
 		const { result } = renderHook(() => useTenantReport(), {
 			wrapper: createWrapper(),
@@ -987,12 +983,10 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		const totalExpenses = 200000.25;
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [
-					{
-						revenue: { yearly: yearlyIncome, monthly: 50000.04 },
-						units: { occupancy_rate: 95 },
-					},
-				],
+				data: {
+					revenue: { yearly: yearlyIncome, monthly: 50000.04 },
+					properties: { occupancyRate: 95 },
+				},
 				error: null,
 			})
 			.mockResolvedValueOnce({
@@ -1028,7 +1022,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		const expenses = 120000.5;
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: gross, monthly: 41666.73 }, units: {} }],
+				data: { revenue: { yearly: gross, monthly: 41666.73 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({

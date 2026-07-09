@@ -49,7 +49,9 @@ export async function fetchRevenueTrends(
  * Single source of truth -- all consumers call this function.
  * Uses correct param name p_owner_id (not p_user_id).
  */
-export async function fetchOccupancyTrends(months: number): Promise<unknown> {
+export async function fetchOccupancyTrends(
+	months: number,
+): Promise<Array<Record<string, unknown>>> {
 	const supabase = createClient();
 	const user = await getCachedUser();
 	if (!user) throw new Error("Not authenticated");
@@ -58,7 +60,10 @@ export async function fetchOccupancyTrends(months: number): Promise<unknown> {
 		p_months: months,
 	});
 	if (error) handlePostgrestError(error, "analytics");
-	return data ?? {};
+	// get_occupancy_trends_optimized returns a jsonb ARRAY ordered month DESC
+	// (element[0] = latest month), not an object — route it through the same
+	// boundary helper as revenue trends. Empty/null degrades to [].
+	return jsonArrayOrEmpty<Record<string, unknown>>(data);
 }
 
 /**
@@ -70,7 +75,8 @@ export const occupancyTrendsQuery = (params?: { months?: number }) => {
 	const months = params?.months ?? 12;
 	return queryOptions({
 		queryKey: analyticsKeys.occupancyTrends(months),
-		queryFn: async (): Promise<unknown> => fetchOccupancyTrends(months),
+		queryFn: async (): Promise<Array<Record<string, unknown>>> =>
+			fetchOccupancyTrends(months),
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 	});

@@ -167,7 +167,7 @@ export function UnitForm({
 				if (mode === "edit" && unit && isConflictError(error)) {
 					handleConflictError("units", unit.id, queryClient, [
 						unitQueries.detail(unit.id).queryKey,
-						unitQueries.lists(),
+						unitQueries.all(),
 					]);
 					toast.error(ERROR_MESSAGES.CONFLICT_UPDATE);
 					return;

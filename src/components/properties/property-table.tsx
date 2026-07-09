@@ -14,7 +14,7 @@ import type {
 	SortDirection,
 	SortField,
 } from "./property-table-types";
-import { TABLE_COLUMNS } from "./property-table-types";
+import { PROPERTY_COLUMN_CLASS, TABLE_COLUMNS } from "./property-table-types";
 
 /**
  * PropertyTable - Table view for displaying properties with sorting and column visibility
@@ -69,6 +69,16 @@ export function PropertyTable({
 			setSortDirection("asc");
 		}
 	};
+
+	// aria-sort belongs on the `<th role="columnheader">`, not the SortHeader
+	// button (mirrors getAriaSort in portfolio-data-table.tsx). Sort state lives
+	// in local useState here, so derive the WAI-ARIA token from sortField/sortDirection.
+	const ariaSort = (field: SortField): "ascending" | "descending" | "none" =>
+		sortField === field
+			? sortDirection === "asc"
+				? "ascending"
+				: "descending"
+			: "none";
 
 	const sortedProperties = (() => {
 		return [...properties].sort((a, b) => {
@@ -142,10 +152,24 @@ export function PropertyTable({
 				ref={tableScrollRef}
 				className="overflow-auto max-h-[calc(100vh-340px)]"
 			>
-				<table className="w-full">
-					<thead className="sticky top-0 z-10">
-						<tr className="border-b border-border bg-muted/30">
-							<th className="w-12 px-4 py-3">
+				{/* grid/flex strip the implicit table ARIA roles, so explicit
+				    role attributes are restored on every structural element
+				    (mirrors portfolio-data-table.tsx). */}
+				<table
+					className="grid w-full"
+					role="table"
+					aria-rowcount={sortedProperties.length + 1}
+				>
+					<thead className="grid sticky top-0 z-10" role="rowgroup">
+						<tr
+							className="flex w-full border-b border-border bg-muted/30"
+							role="row"
+							aria-rowindex={1}
+						>
+							<th
+								className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}
+								role="columnheader"
+							>
 								<Checkbox
 									checked={
 										selectedRows.size === properties.length &&
@@ -155,45 +179,92 @@ export function PropertyTable({
 								/>
 							</th>
 							{isColumnVisible("property") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									role="columnheader"
+									aria-sort={ariaSort("name")}
+									className={cn(
+										PROPERTY_COLUMN_CLASS.property,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="name">Property</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("address") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">
+								<th
+									role="columnheader"
+									aria-sort={ariaSort("address")}
+									className={cn(
+										PROPERTY_COLUMN_CLASS.address,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="address">Address</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("units") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									role="columnheader"
+									aria-sort={ariaSort("units")}
+									className={cn(
+										PROPERTY_COLUMN_CLASS.units,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="units">Units</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("occupancy") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									role="columnheader"
+									aria-sort={ariaSort("occupancy")}
+									className={cn(
+										PROPERTY_COLUMN_CLASS.occupancy,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="occupancy">Occupancy</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("status") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									role="columnheader"
+									className={cn(
+										PROPERTY_COLUMN_CLASS.status,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									Status
 								</th>
 							)}
 							{isColumnVisible("revenue") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
+								<th
+									role="columnheader"
+									aria-sort={ariaSort("revenue")}
+									className={cn(
+										PROPERTY_COLUMN_CLASS.revenue,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="revenue">Monthly Revenue</SortHeader>
 								</th>
 							)}
-							<th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+							<th
+								role="columnheader"
+								className={cn(
+									PROPERTY_COLUMN_CLASS.actions,
+									"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+								)}
+							>
 								Actions
 							</th>
 						</tr>
 					</thead>
 					<tbody
-						className="divide-y divide-border"
+						className="relative grid divide-y divide-border"
+						role="rowgroup"
 						style={{
 							height: `${rowVirtualizer.getTotalSize()}px`,
-							position: "relative",
 						}}
 					>
 						{rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -202,6 +273,7 @@ export function PropertyTable({
 								<PropertyTableRow
 									key={property.id}
 									property={property}
+									virtualRow={virtualRow}
 									isSelected={selectedRows.has(property.id)}
 									visibleColumns={visibleColumns}
 									onSelectRow={onSelectRow}

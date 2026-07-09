@@ -5,6 +5,7 @@ import { handleMutationError } from "#lib/mutation-error-handler";
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
+import { unitQueries } from "./query-keys/unit-keys";
 
 export function useSendLeaseForSignatureMutation() {
 	const queryClient = useQueryClient();
@@ -41,6 +42,9 @@ export function useSignLeaseAsOwnerMutation() {
 				queryKey: leaseQueries.signatureStatus(leaseId).queryKey,
 			});
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
+			// Owner-signing can complete signing and ACTIVATE the lease, which
+			// occupies the unit — refresh the units views (incl. by-property).
+			queryClient.invalidateQueries({ queryKey: unitQueries.all() });
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 			logger.info("Lease signed by owner", { leaseId });
 		},

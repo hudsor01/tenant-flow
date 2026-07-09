@@ -58,6 +58,7 @@ export function LeasesTableToolbar({
 						<option value="expiring">Expiring Soon</option>
 						<option value="pending_signature">Pending Signature</option>
 						<option value="ended">Ended</option>
+						<option value="expired">Expired</option>
 						<option value="terminated">Terminated</option>
 					</select>
 					<ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />

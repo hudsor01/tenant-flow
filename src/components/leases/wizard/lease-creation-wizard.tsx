@@ -205,7 +205,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() });
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() });
+			queryClient.invalidateQueries({ queryKey: unitQueries.all() });
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 		},
 	});

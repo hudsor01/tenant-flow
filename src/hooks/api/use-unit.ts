@@ -78,7 +78,10 @@ export function useCreateUnitMutation() {
 		...unitMutations.create(),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [
-				unitQueries.lists(),
+				// PROP-01: broad ['units'] prefix so the property-detail units
+				// table (unitQueries.byProperty) refreshes — lists() is a sibling
+				// branch that does NOT prefix-match by-property.
+				unitQueries.all(),
 				propertyQueries.lists(),
 				ownerDashboardKeys.all,
 			],
@@ -98,7 +101,7 @@ export function useUpdateUnitMutation() {
 		...unitMutations.update(),
 		...createMutationCallbacks<Unit>(queryClient, {
 			invalidate: [
-				unitQueries.lists(),
+				unitQueries.all(),
 				propertyQueries.lists(),
 				leaseQueries.lists(),
 				ownerDashboardKeys.all,
@@ -123,7 +126,7 @@ export function useDeleteUnitMutation() {
 		...unitMutations.delete(),
 		...createMutationCallbacks<unknown, string>(queryClient, {
 			invalidate: [
-				unitQueries.lists(),
+				unitQueries.all(),
 				propertyQueries.lists(),
 				leaseQueries.lists(),
 				ownerDashboardKeys.all,

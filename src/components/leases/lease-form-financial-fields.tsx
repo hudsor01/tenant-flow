@@ -9,8 +9,11 @@ const STATUS_OPTIONS = [
 	{ value: "draft", label: "Draft" },
 	{ value: "pending_signature", label: "Pending" },
 	{ value: "active", label: "Active" },
-	{ value: "expired", label: "Expired" },
 	{ value: "ended", label: "Ended" },
+	// 'expired' is cron-set + read-only (not in the write union) — shown disabled
+	// so an already-expired lease's Status renders "Expired" instead of blank,
+	// while staying non-selectable for any other lease.
+	{ value: "expired", label: "Expired", disabled: true },
 	{ value: "terminated", label: "Terminated" },
 ];
 

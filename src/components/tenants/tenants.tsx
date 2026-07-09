@@ -59,7 +59,12 @@ export function Tenants({
 	const pendingTenants = tenants.filter(
 		(t) => t.leaseStatus === "pending_signature",
 	).length;
-	const endedTenants = tenants.filter((t) => t.leaseStatus === "ended").length;
+	// "Past tenants" tile — count both manually ended and naturally expired
+	// (cron-set) leases; both are no longer active. DATA-03 widened the status so
+	// expired no longer folds into 'ended' at the transform.
+	const endedTenants = tenants.filter(
+		(t) => t.leaseStatus === "ended" || t.leaseStatus === "expired",
+	).length;
 
 	// Filter tenants
 	const filteredTenants = tenants.filter((t) => {

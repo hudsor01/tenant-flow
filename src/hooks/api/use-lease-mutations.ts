@@ -50,6 +50,9 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		invalidate: [
 			leaseQueries.lists(),
 			leaseQueries.stats().queryKey,
+			// Soft-deleting an active lease frees its unit (sync_unit_status_from_lease
+			// trigger), so refresh the units views like the sibling delete mutation.
+			unitQueries.all(),
 			ownerDashboardKeys.all,
 		],
 		errorContext: "Delete lease",
@@ -129,7 +132,7 @@ export function useCreateLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			successMessage: "Lease created successfully",
@@ -150,7 +153,7 @@ export function useUpdateLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			updateDetail: (lease) => ({
@@ -176,7 +179,7 @@ export function useDeleteLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			removeDetail: (_data, deletedId) =>

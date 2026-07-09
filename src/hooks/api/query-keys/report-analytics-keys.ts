@@ -28,7 +28,10 @@ const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
 /** Extract first dashboard stats row */
 function extractDashStats(data: unknown) {
-	const stats = (data as Array<Record<string, unknown>> | null)?.[0];
+	// get_dashboard_stats RETURNS json (a bare object, supabase.ts `Returns: Json`) —
+	// NOT a SETOF/array. supabase-js returns the object directly, so read it as-is
+	// (the old `data[0]` was always undefined → every derived value collapsed to 0).
+	const stats = data as Record<string, unknown> | null;
 	return {
 		revenue: stats?.revenue as Record<string, unknown> | undefined,
 		units: stats?.units as Record<string, unknown> | undefined,
@@ -116,23 +119,20 @@ export const reportAnalyticsQueries = {
 						occupancyRate: 0,
 						byProperty: [],
 					};
-				const data = await fetchOccupancyTrends(12);
-				const result = data as Record<string, unknown> | null;
-				const byProperty = (result?.by_property ?? []) as Array<
-					Record<string, unknown>
-				>;
+				// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
+				// ordered month DESC — element[0] is the latest month. Derive the
+				// current occupancy metrics from that row (the RPC has NO top-level
+				// totals and NO per-property breakdown, so byProperty stays []).
+				const rows = await fetchOccupancyTrends(12);
+				const latest = rows[0];
+				const totalUnits = Number(latest?.total_units ?? 0);
+				const occupiedUnits = Number(latest?.occupied_units ?? 0);
 				return {
-					totalUnits: Number(result?.total_units ?? 0),
-					occupiedUnits: Number(result?.occupied_units ?? 0),
-					vacantUnits: Number(result?.vacant_units ?? 0),
-					occupancyRate: Number(result?.occupancy_rate ?? 0),
-					byProperty: byProperty.map((p) => ({
-						property_id: String(p.property_id ?? ""),
-						propertyName: String(p.property_name ?? ""),
-						totalUnits: Number(p.total_units ?? 0),
-						occupiedUnits: Number(p.occupied_units ?? 0),
-						occupancyRate: Number(p.occupancy_rate ?? 0),
-					})),
+					totalUnits,
+					occupiedUnits,
+					vacantUnits: totalUnits - occupiedUnits,
+					occupancyRate: Number(latest?.occupancy_rate ?? 0),
+					byProperty: [],
 				};
 			},
 			...CACHE,
@@ -282,21 +282,24 @@ export const reportAnalyticsQueries = {
 						turnover: [],
 					};
 				}
-				const [dashResult, occupancyData] = await Promise.all([
-					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
-					fetchOccupancyTrends(12),
-				]);
+				// MIS-WIRE follow-up (DATA-01): the tenant report has no real source
+				// for turnover / on-time-payment — those fields used to be read off
+				// get_occupancy_trends_optimized, which never emits them. The occupancy
+				// fetch was discarded anyway and coupled the report's success to an
+				// unrelated RPC, so it is dropped; both metrics stay 0 below.
+				const dashResult = await supabase.rpc("get_dashboard_stats", {
+					p_user_id: user.id,
+				});
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "tenant report");
 				const { tenants, leases } = extractDashStats(dashResult.data);
-				const occupancy = occupancyData as Record<string, unknown> | null;
 				return {
 					summary: {
 						totalTenants: Number(tenants?.total ?? 0),
 						activeLeases: Number(leases?.active ?? 0),
-						leasesExpiringNext90: Number(leases?.expiring_soon ?? 0),
-						turnoverRate: Number(occupancy?.turnover_rate ?? 0),
-						onTimePaymentRate: Number(occupancy?.on_time_payment_rate ?? 0),
+						leasesExpiringNext90: Number(leases?.expiringSoon ?? 0),
+						turnoverRate: 0,
+						onTimePaymentRate: 0,
 					},
 					paymentHistory: [],
 					leaseExpirations: [],

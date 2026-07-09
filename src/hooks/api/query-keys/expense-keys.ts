@@ -60,9 +60,10 @@ export const financialTaxQueries = {
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "tax documents expenses");
 
-				const stats = (
-					dashResult.data as Array<Record<string, unknown>> | null
-				)?.[0];
+				// get_dashboard_stats RETURNS json (a bare object, supabase.ts
+				// `Returns: Json`) — NOT a SETOF/array. Read it directly (the old
+				// `data[0]` was always undefined → totalIncome collapsed to 0).
+				const stats = dashResult.data as Record<string, unknown> | null;
 				const revenue = stats?.revenue as Record<string, unknown> | undefined;
 				const totalIncome = Number(revenue?.yearly ?? 0);
 				const expenseSummary = expenseResult.data as Record<

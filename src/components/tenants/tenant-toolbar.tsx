@@ -48,6 +48,7 @@ export function TenantToolbar({
 				<option value="active">Active</option>
 				<option value="pending_signature">Pending</option>
 				<option value="ended">Ended</option>
+				<option value="expired">Expired</option>
 				<option value="terminated">Terminated</option>
 			</select>
 

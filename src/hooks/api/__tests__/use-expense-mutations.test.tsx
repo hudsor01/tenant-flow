@@ -410,7 +410,7 @@ describe("useTaxDocuments default year", () => {
 		mockRpc.mockImplementation((fn: string) => {
 			if (fn === "get_dashboard_stats") {
 				return Promise.resolve({
-					data: [{ revenue: { yearly: 600000 } }],
+					data: { revenue: { yearly: 600000 } },
 					error: null,
 				});
 			}
