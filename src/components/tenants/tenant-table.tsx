@@ -56,6 +56,16 @@ export function TenantTable({
 		}
 	};
 
+	// aria-sort belongs on the `<th role="columnheader">`, not the SortableHeader
+	// button (mirrors getAriaSort in portfolio-data-table.tsx). Sort state is
+	// nullable here, so an inactive/unset column reports "none".
+	const ariaSort = (field: SortField): "ascending" | "descending" | "none" =>
+		sortField === field && sortDirection
+			? sortDirection === "asc"
+				? "ascending"
+				: "descending"
+			: "none";
+
 	const sortedTenants = (() => {
 		if (!sortField || !sortDirection) return tenants;
 
@@ -160,6 +170,7 @@ export function TenantTable({
 							<th
 								className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")}
 								role="columnheader"
+								aria-sort={ariaSort("fullName")}
 							>
 								<SortableHeader
 									title="Name"
@@ -172,6 +183,7 @@ export function TenantTable({
 							<th
 								className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")}
 								role="columnheader"
+								aria-sort={ariaSort("email")}
 							>
 								<SortableHeader
 									title="Email"
@@ -193,6 +205,7 @@ export function TenantTable({
 							<th
 								className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")}
 								role="columnheader"
+								aria-sort={ariaSort("property")}
 							>
 								<SortableHeader
 									title="Property"
@@ -205,6 +218,7 @@ export function TenantTable({
 							<th
 								className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")}
 								role="columnheader"
+								aria-sort={ariaSort("leaseStatus")}
 							>
 								<SortableHeader
 									title="Status"

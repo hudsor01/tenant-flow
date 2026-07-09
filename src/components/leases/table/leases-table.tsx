@@ -44,7 +44,7 @@ export function LeasesTable({
 	searchQuery,
 	statusFilter,
 	sortField,
-	sortDirection: _sortDirection,
+	sortDirection,
 	selectedRows,
 	currentPage,
 	totalPages,
@@ -65,6 +65,16 @@ export function LeasesTable({
 		onSearchChange("");
 		onStatusFilterChange("all");
 	};
+
+	// aria-sort belongs on the `<th role="columnheader">`, not the SortHeader
+	// button (mirrors getAriaSort in portfolio-data-table.tsx). Sort state arrives
+	// via props (sortField/sortDirection) here.
+	const ariaSort = (field: SortField): "ascending" | "descending" | "none" =>
+		sortField === field
+			? sortDirection === "asc"
+				? "ascending"
+				: "descending"
+			: "none";
 
 	const tableScrollRef = useRef<HTMLDivElement>(null);
 	const rowVirtualizer = useVirtualizer({
@@ -136,6 +146,7 @@ export function LeasesTable({
 								<th
 									className={cn(LEASE_COLUMN_CLASS.tenant, "px-4 py-3")}
 									role="columnheader"
+									aria-sort={ariaSort("tenant")}
 								>
 									<SortHeader
 										field="tenant"
@@ -149,6 +160,7 @@ export function LeasesTable({
 								<th
 									className={cn(LEASE_COLUMN_CLASS.property, "px-4 py-3")}
 									role="columnheader"
+									aria-sort={ariaSort("property")}
 								>
 									<SortHeader
 										field="property"
@@ -162,6 +174,7 @@ export function LeasesTable({
 								<th
 									className={cn(LEASE_COLUMN_CLASS.status, "px-4 py-3")}
 									role="columnheader"
+									aria-sort={ariaSort("status")}
 								>
 									<SortHeader
 										field="status"

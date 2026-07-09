@@ -70,6 +70,16 @@ export function PropertyTable({
 		}
 	};
 
+	// aria-sort belongs on the `<th role="columnheader">`, not the SortHeader
+	// button (mirrors getAriaSort in portfolio-data-table.tsx). Sort state lives
+	// in local useState here, so derive the WAI-ARIA token from sortField/sortDirection.
+	const ariaSort = (field: SortField): "ascending" | "descending" | "none" =>
+		sortField === field
+			? sortDirection === "asc"
+				? "ascending"
+				: "descending"
+			: "none";
+
 	const sortedProperties = (() => {
 		return [...properties].sort((a, b) => {
 			let comparison = 0;
@@ -171,6 +181,7 @@ export function PropertyTable({
 							{isColumnVisible("property") && (
 								<th
 									role="columnheader"
+									aria-sort={ariaSort("name")}
 									className={cn(
 										PROPERTY_COLUMN_CLASS.property,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -182,6 +193,7 @@ export function PropertyTable({
 							{isColumnVisible("address") && (
 								<th
 									role="columnheader"
+									aria-sort={ariaSort("address")}
 									className={cn(
 										PROPERTY_COLUMN_CLASS.address,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -193,6 +205,7 @@ export function PropertyTable({
 							{isColumnVisible("units") && (
 								<th
 									role="columnheader"
+									aria-sort={ariaSort("units")}
 									className={cn(
 										PROPERTY_COLUMN_CLASS.units,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -204,6 +217,7 @@ export function PropertyTable({
 							{isColumnVisible("occupancy") && (
 								<th
 									role="columnheader"
+									aria-sort={ariaSort("occupancy")}
 									className={cn(
 										PROPERTY_COLUMN_CLASS.occupancy,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
@@ -226,6 +240,7 @@ export function PropertyTable({
 							{isColumnVisible("revenue") && (
 								<th
 									role="columnheader"
+									aria-sort={ariaSort("revenue")}
 									className={cn(
 										PROPERTY_COLUMN_CLASS.revenue,
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
