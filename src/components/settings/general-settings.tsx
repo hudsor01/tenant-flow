@@ -61,9 +61,11 @@ export function GeneralSettings() {
 
 	const queryClient = useQueryClient();
 
-	// Update profile mutation (Contact Email + Phone → `users`).
+	// Update profile mutation (Phone → `users`). Email is NOT written here — it is a
+	// locked privileged column (REVOKE UPDATE on public.users + the
+	// guard_user_self_update trigger reject it); it goes through Auth (updateEmail).
 	const updateProfile = useMutation({
-		mutationFn: async (updates: { phone?: string; email?: string }) => {
+		mutationFn: async (updates: { phone?: string }) => {
 			const supabase = createClient();
 			const user = await getCachedUser();
 			if (!user) throw new Error("Not authenticated");
@@ -80,6 +82,28 @@ export function GeneralSettings() {
 		onError: (error) => {
 			toast.error(
 				error instanceof Error ? error.message : "Failed to update profile",
+			);
+		},
+	});
+
+	// Contact (account) email → Supabase Auth. `public.users.email` is a locked
+	// privileged column that cannot be written via PostgREST, so an email change is
+	// an auth operation: it sends a confirmation link and only takes effect once the
+	// user confirms (the users.email is then synced from auth).
+	const updateEmail = useMutation({
+		mutationFn: async (email: string) => {
+			const supabase = createClient();
+			const { error } = await supabase.auth.updateUser({ email });
+			if (error) throw error;
+		},
+		onSuccess: () => {
+			toast.success(
+				"Check your inbox — we sent a link to confirm your new email.",
+			);
+		},
+		onError: (error) => {
+			toast.error(
+				error instanceof Error ? error.message : "Failed to update email",
 			);
 		},
 	});
@@ -126,18 +150,20 @@ export function GeneralSettings() {
 	const handleSaveChanges = () => {
 		let changed = false;
 
-		// Contact Email + Phone → `users`.
-		const profileUpdates: { phone?: string; email?: string } = {};
+		// Phone → `users`.
+		const profileUpdates: { phone?: string } = {};
 		if (phone !== (profile?.phone ?? "")) {
 			profileUpdates.phone = phone;
 		}
-		// Guard against wiping the account email with a blank value
-		// (T-31-06-02): only send email when non-empty and changed.
-		if (contactEmail && contactEmail !== profile?.email) {
-			profileUpdates.email = contactEmail;
-		}
 		if (Object.keys(profileUpdates).length > 0) {
 			updateProfile.mutate(profileUpdates);
+			changed = true;
+		}
+
+		// Contact (account) email → Auth (locked column; confirmation flow). Guard
+		// against wiping it with a blank value — only send when non-empty and changed.
+		if (contactEmail && contactEmail !== profile?.email) {
+			updateEmail.mutate(contactEmail);
 			changed = true;
 		}
 

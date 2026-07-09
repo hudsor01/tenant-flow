@@ -10,6 +10,7 @@ import { GeneralSettings } from "../general-settings";
 // factories below (CLAUDE.md testing rule).
 const h = vi.hoisted(() => ({
 	usersUpdate: vi.fn(),
+	authUpdateUser: vi.fn(),
 	prefsUpsert: vi.fn(),
 	prefsRow: {
 		current: null as {
@@ -27,6 +28,12 @@ const h = vi.hoisted(() => ({
 
 vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
+		auth: {
+			updateUser: (payload: unknown) => {
+				h.authUpdateUser(payload);
+				return Promise.resolve({ data: {}, error: null });
+			},
+		},
 		from: (table: string) => {
 			if (table === "users") {
 				return {
@@ -120,7 +127,7 @@ describe("GeneralSettings (FORMFIX-06)", () => {
 		expect(language.value).toBe("es");
 	});
 
-	it("persists all four fields: email/phone → users, timezone/language → user_preferences", async () => {
+	it("persists all fields: phone → users, email → Auth, timezone/language → user_preferences", async () => {
 		const user = userEvent.setup();
 		renderWithClient(<GeneralSettings />);
 
@@ -142,12 +149,16 @@ describe("GeneralSettings (FORMFIX-06)", () => {
 
 		await user.click(screen.getByRole("button", { name: /save changes/i }));
 
+		// Phone → `users` (email is a locked column, never written here).
 		await waitFor(() => {
-			expect(h.usersUpdate).toHaveBeenCalledWith({
-				email: "new@example.com",
-				phone: "555-2000",
-			});
+			expect(h.usersUpdate).toHaveBeenCalledWith({ phone: "555-2000" });
 		});
+		expect(h.usersUpdate).not.toHaveBeenCalledWith(
+			expect.objectContaining({ email: expect.anything() }),
+		);
+
+		// Email → Supabase Auth (confirmation flow), NOT the users table.
+		expect(h.authUpdateUser).toHaveBeenCalledWith({ email: "new@example.com" });
 
 		expect(h.prefsUpsert).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -174,6 +185,7 @@ describe("GeneralSettings (FORMFIX-06)", () => {
 		});
 		// No email key sent (would have wiped the account email).
 		expect(h.usersUpdate).not.toHaveBeenCalled();
+		expect(h.authUpdateUser).not.toHaveBeenCalled();
 	});
 
 	it("shows 'No changes to save' when nothing changed", async () => {

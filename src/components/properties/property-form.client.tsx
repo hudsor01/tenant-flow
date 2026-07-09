@@ -15,7 +15,6 @@ import { useCurrentUser } from "#hooks/use-current-user";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import type { Property, PropertyType } from "#types/core";
@@ -116,19 +115,16 @@ export function PropertyForm({
 			acquisition_date: property?.acquisition_date ?? "",
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				if (mode === "create") {
-					await handleCreateSubmit(value);
-				} else {
-					await handleEditSubmit(value);
-				}
-				onSuccess?.();
-			} catch (error) {
-				handleMutationError(
-					error,
-					`${mode === "create" ? "Create" : "Update"} property`,
-				);
+			// FORMFIX-08: no form-level error toast — the mutation's onError
+			// (createMutationCallbacks) surfaces a single error toast. On failure the
+			// awaited mutation rejects (onSuccess is not reached); the rejection is
+			// handled by the mutation callback + TanStack Form's submit boundary.
+			if (mode === "create") {
+				await handleCreateSubmit(value);
+			} else {
+				await handleEditSubmit(value);
 			}
+			onSuccess?.();
 		},
 	});
 

@@ -17,7 +17,6 @@ import {
 import { useCurrentUser } from "#hooks/use-current-user";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import { cn } from "#lib/utils";
 import type { LeaseCreate } from "#lib/validation/leases";
 import type { LeaseWithExtras } from "#types/core";
@@ -108,14 +107,12 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 				}
 				onSuccess?.();
 			} catch (error) {
+				// FORMFIX-08: the mutation's onError (createMutationCallbacks) surfaces
+				// the error toast; only log here to avoid a duplicate.
 				logger.error(`Lease ${mode} failed`, {
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,
 				});
-				handleMutationError(
-					error,
-					`${mode === "create" ? "Create" : "Update"} lease`,
-				);
 			}
 		},
 	});

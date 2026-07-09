@@ -10,7 +10,6 @@ import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
 import type { TenantCreate } from "#lib/validation/tenants";
 import type { Property, Unit } from "#types/core";
 import { addTenantFormOptions } from "./add-tenant-form-options";
@@ -93,10 +92,11 @@ export function AddTenantForm({
 					router.refresh();
 				}
 			} catch (error) {
+				// FORMFIX-08: the mutation's onError (createMutationCallbacks) surfaces
+				// the error toast; only log here to avoid a duplicate.
 				logger.error("Failed to add tenant", {
 					error: error instanceof Error ? error.message : String(error),
 				});
-				handleMutationError(error, "Add tenant");
 			}
 		},
 	});
