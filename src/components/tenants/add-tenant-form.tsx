@@ -66,7 +66,9 @@ export function AddTenantForm({
 				const created = await createTenant.mutateAsync(payload);
 
 				logger.info("Tenant added", { email: value.email });
-				toast.success("Tenant added");
+				// FORMFIX-08: the create mutation's createMutationCallbacks already
+				// fires the single success toast ("Tenant created successfully") — no
+				// form-level duplicate here.
 
 				onSuccess?.();
 

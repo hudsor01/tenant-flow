@@ -577,5 +577,9 @@ describe("AddTenantForm - carries selection into lease flow (FORMFIX-04)", () =>
 			([url]) => typeof url === "string" && url.startsWith("/leases/new"),
 		);
 		expect(leaseCall).toBeUndefined();
+
+		// FORMFIX-08: the form no longer fires its own success toast — the single
+		// success toast comes from the create mutation's createMutationCallbacks.
+		expect(toast.success).not.toHaveBeenCalledWith("Tenant added");
 	});
 });
