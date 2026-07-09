@@ -20,7 +20,42 @@ import type {
 } from "#types/analytics-page-data";
 import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 import { fetchOccupancyTrends } from "./query-keys/analytics-keys";
-import { mapLeaseAnalytics } from "./query-keys/analytics-mappers";
+import { mapOccupancyAnalytics } from "./query-keys/analytics-mappers";
+
+/**
+ * MIS-WIRE (captured follow-up, DATA-01): the "lease analytics" page and the
+ * overview page are both fed `get_occupancy_trends_optimized`, which carries
+ * NO lease-financial data — so this path returned an empty lease shape via the
+ * accidental "array fails the lease object parse -> empty" behavior. Until a
+ * real lease-analytics source exists (candidate requirement DATA-04), derive
+ * the one occupancy-shaped field the lease page can legitimately carry
+ * (`vacancyTrends` = the complement of the occupancy rate) and leave every
+ * lease-financial sub-shape (metrics/profitability/lifecycle/statusBreakdown/
+ * renewalRates) at its empty default. Do NOT invent a lease-analytics source.
+ */
+function occupancyAsLeaseAnalytics(raw: unknown): LeaseAnalyticsPageData {
+	const { trends } = mapOccupancyAnalytics(raw);
+	return {
+		metrics: {
+			totalLeases: 0,
+			activeLeases: 0,
+			expiringSoon: 0,
+			totalrent_amount: 0,
+			averageLeaseValue: 0,
+		},
+		profitability: [],
+		renewalRates: [],
+		vacancyTrends: trends.map((t) => ({
+			period: t.period,
+			vacancyRate: Math.max(0, 100 - t.occupancyRate),
+			turnovers: 0,
+			avgVacancyDays: 0,
+		})),
+		leaseDistribution: [],
+		lifecycle: [],
+		statusBreakdown: [],
+	};
+}
 
 /**
  * Analytics query factory
@@ -59,8 +94,9 @@ export const analyticsQueries = {
 		queryOptions({
 			queryKey: analyticsQueries.lease(),
 			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
-				const data = await fetchOccupancyTrends(12);
-				return mapLeaseAnalytics(data);
+				// MIS-WIRE follow-up (DATA-01): fed the occupancy RPC, not a
+				// lease-analytics source — see occupancyAsLeaseAnalytics above.
+				return occupancyAsLeaseAnalytics(await fetchOccupancyTrends(12));
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -90,22 +126,11 @@ export const analyticsQueries = {
 		queryOptions({
 			queryKey: analyticsQueries.occupancy(),
 			queryFn: async (): Promise<OccupancyAnalyticsPageData> => {
-				const data = await fetchOccupancyTrends(12);
-				const raw = (data ?? {}) as Partial<OccupancyAnalyticsPageData>;
-
-				// Ensure all required fields have defaults
-				return {
-					metrics: raw.metrics ?? {
-						currentOccupancy: 0,
-						averageVacancyDays: 0,
-						seasonalPeakOccupancy: 0,
-						trend: 0,
-					},
-					trends: raw.trends ?? [],
-					propertyPerformance: raw.propertyPerformance ?? [],
-					seasonalPatterns: raw.seasonalPatterns ?? [],
-					vacancyAnalysis: raw.vacancyAnalysis ?? [],
-				};
+				// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
+				// (month DESC). Map trends from every row + derive metrics from
+				// element[0] via the array-aware mapper. propertyPerformance/
+				// seasonalPatterns/vacancyAnalysis stay [] (RPC has no such data).
+				return mapOccupancyAnalytics(await fetchOccupancyTrends(12));
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -143,7 +168,11 @@ export const analyticsQueries = {
 					maintenance: jsonObject<MaintenanceInsightsPageData>(
 						maintenanceResult.data,
 					),
-					lease: mapLeaseAnalytics(occupancyData),
+					// MIS-WIRE follow-up (DATA-01): the overview's `lease` slice is
+					// fed the occupancy RPC, not a lease-analytics source — occupancy
+					// data is derived into vacancyTrends; lease-financial sub-shapes
+					// stay empty (see occupancyAsLeaseAnalytics above).
+					lease: occupancyAsLeaseAnalytics(occupancyData),
 				};
 			},
 			staleTime: 2 * 60 * 1000,
