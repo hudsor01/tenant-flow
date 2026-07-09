@@ -98,14 +98,17 @@ export async function uploadPropertyImages({
 			queryKey: propertyQueries.images(propertyId).queryKey,
 		});
 
+		// FORMFIX-08: the create mutation already toasted "Property created
+		// successfully"; these report ONLY the image-upload outcome so they do not
+		// duplicate the create success toast.
 		if (errorCount === 0) {
-			toast.success(`Property created with ${successCount} image(s)`);
+			toast.success(`${successCount} image(s) uploaded`);
 		} else if (successCount > 0) {
-			toast.warning(
-				`Property created. ${successCount} image(s) uploaded, ${errorCount} failed`,
-			);
+			toast.warning(`${successCount} image(s) uploaded, ${errorCount} failed`);
 		} else {
-			toast.error("Property created but all images failed to upload");
+			toast.error(
+				"Image upload failed. Add images later from the property page.",
+			);
 		}
 	} catch (error) {
 		logger.error("Failed to upload images", { error });
