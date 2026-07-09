@@ -159,6 +159,15 @@ export function useFormWithProgress<T extends FormProgressData>(
 	// so re-renders with unchanged data produce no writes and the loop is broken.
 	const lastSavedRef = useRef<string | null>(null);
 
+	// FORMFIX-03: the restore-from-draft merge must happen exactly ONCE, at the
+	// initial load. `progress.data` is re-assigned a fresh reference on every
+	// auto-save (saveProgress does setState({ ...prev, data })), so without this
+	// gate the restore effect re-fires on each keystroke's save and re-merges the
+	// saved snapshot over the user's live edits (progressData wins the merge) —
+	// under fast typing a deferred stale snapshot can roll a controlled input back
+	// and drop in-flight characters. This gate pins restore to the load-time draft.
+	const hasRestoredRef = useRef(false);
+
 	// Stable identities (the mutable pieces of `progress`) so the auto-save effect
 	// does not re-run every render on a fresh `progress` object reference.
 	const { saveProgress } = progress;
@@ -198,20 +207,30 @@ export function useFormWithProgress<T extends FormProgressData>(
 		});
 	}, [deferredFormData, saveProgress, progressIsLoading, isHydrated]);
 
-	// Restore progress data when loaded - only after hydration
+	// Restore progress data when loaded - only after hydration, and ONLY ONCE.
+	// FORMFIX-03: the guard runs the merge the first time the initial localStorage
+	// load has settled (isHydrated && !progressIsLoading); subsequent progressData
+	// changes are auto-save writes, which must NOT re-merge over live form edits.
 	useEffect(() => {
-		if (isHydrated && progressData && !progressIsLoading) {
-			setFormData((prev) => {
-				const merged = { ...prev, ...progressData };
-				// Prime the change guard with what we just restored so the auto-save
-				// effect does not immediately write the restored data straight back.
-				const safe = { ...merged };
-				delete safe.password;
-				delete safe.confirmPassword;
-				lastSavedRef.current = JSON.stringify(safe);
-				return merged;
-			});
-		}
+		if (hasRestoredRef.current) return;
+		if (!isHydrated || progressIsLoading) return;
+
+		// Initial load has completed — restore the draft that existed at load time
+		// (if any). Mark done first so an auto-save-driven progressData change can
+		// never re-enter this merge.
+		hasRestoredRef.current = true;
+		if (!progressData) return;
+
+		setFormData((prev) => {
+			const merged = { ...prev, ...progressData };
+			// Prime the change guard with what we just restored so the auto-save
+			// effect does not immediately write the restored data straight back.
+			const safe = { ...merged };
+			delete safe.password;
+			delete safe.confirmPassword;
+			lastSavedRef.current = JSON.stringify(safe);
+			return merged;
+		});
 	}, [progressData, progressIsLoading, isHydrated]);
 
 	const handleSubmit = async (data: T) => {
