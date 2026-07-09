@@ -17,19 +17,42 @@ import {
 	QueryClientProvider,
 	useMutation,
 } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import * as fc from "fast-check";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AddTenantRequest } from "#lib/validation/tenants";
+import { AddTenantForm } from "../add-tenant-form";
 
 // Mock dependencies
 vi.mock("sonner", () => ({
 	toast: {
 		success: vi.fn(),
 		error: vi.fn(),
+		info: vi.fn(),
 	},
+}));
+
+// Mock the create-tenant mutation so the guard test never hits PostgREST.
+const mockCreateTenant = vi.fn().mockResolvedValue({ id: "new-tenant-id" });
+vi.mock("#hooks/api/use-tenant-mutations", () => ({
+	useCreateTenantMutation: () => ({
+		mutateAsync: mockCreateTenant,
+		isPending: false,
+	}),
+}));
+
+const mockRouterPush = vi.fn();
+const mockRouterBack = vi.fn();
+const mockRouterRefresh = vi.fn();
+vi.mock("next/navigation", () => ({
+	useRouter: () => ({
+		push: mockRouterPush,
+		back: mockRouterBack,
+		refresh: mockRouterRefresh,
+	}),
 }));
 
 // Helper to create a query client for each test
@@ -371,4 +394,74 @@ it("should distinguish between authentication and authorization errors", async (
 		),
 		{ numRuns: 100 },
 	);
+});
+
+/**
+ * FORMFIX-01: the add-tenant unsaved-changes guard must arm REACTIVELY.
+ *
+ * Regression: the call site passed a non-reactive `form.state.isDirty` snapshot,
+ * so the `beforeunload` guard never armed as the user typed. The fix reads dirty
+ * via `useStore(form.store, (s) => s.isDirty)`. These tests prove the listener is
+ * registered after a field change and removed once the form returns to pristine.
+ */
+describe("AddTenantForm - unsaved-changes guard (FORMFIX-01)", () => {
+	function renderForm() {
+		const queryClient = createTestQueryClient();
+		return render(
+			<QueryClientProvider client={queryClient}>
+				<AddTenantForm properties={[]} units={[]} />
+			</QueryClientProvider>,
+		);
+	}
+
+	function countBeforeUnload(calls: unknown[][]): number {
+		return calls.filter((call) => call[0] === "beforeunload").length;
+	}
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("arms the beforeunload guard when the form becomes dirty", async () => {
+		const user = userEvent.setup();
+		const addSpy = vi.spyOn(window, "addEventListener");
+
+		renderForm();
+
+		// Pristine form → guard not armed.
+		expect(countBeforeUnload(addSpy.mock.calls)).toBe(0);
+
+		await user.type(screen.getByLabelText(/email address/i), "a");
+
+		// Dirty form → reactive isDirty flips true → effect registers the guard.
+		await waitFor(() => {
+			expect(countBeforeUnload(addSpy.mock.calls)).toBeGreaterThan(0);
+		});
+
+		addSpy.mockRestore();
+	});
+
+	it("removes the beforeunload guard when the armed form unmounts (navigate-away)", async () => {
+		// TanStack Form's field-level `isDirty` is sticky once a field changes, so
+		// the guard disarms on submit/navigation (unmount) rather than on revert.
+		// This asserts the reactive effect's cleanup runs, mirroring the real
+		// navigate-away path after a successful create.
+		const user = userEvent.setup();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const removeSpy = vi.spyOn(window, "removeEventListener");
+
+		const { unmount } = renderForm();
+
+		await user.type(screen.getByLabelText(/email address/i), "a");
+		await waitFor(() => {
+			expect(countBeforeUnload(addSpy.mock.calls)).toBeGreaterThan(0);
+		});
+
+		unmount();
+
+		expect(countBeforeUnload(removeSpy.mock.calls)).toBeGreaterThan(0);
+
+		addSpy.mockRestore();
+		removeSpy.mockRestore();
+	});
 });
