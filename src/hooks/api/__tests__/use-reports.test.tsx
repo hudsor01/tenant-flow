@@ -565,32 +565,18 @@ describe("useTenantReport", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches tenant report from get_dashboard_stats + occupancy trends", async () => {
-		// tenants() runs get_dashboard_stats + fetchOccupancyTrends in parallel.
-		mockRpc
-			.mockResolvedValueOnce({
-				data: [
-					{
-						tenants: { total: 12 },
-						leases: { active: 9, expiring_soon: 2 },
-					},
-				],
-				error: null,
-			})
-			// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
-			// (jsonArrayOrEmpty throws on an object). The tenant report has no
-			// real source for turnover / on-time-payment, so both stay 0.
-			.mockResolvedValueOnce({
-				data: [
-					{
-						month: "2024-01",
-						occupancy_rate: 90,
-						total_units: 20,
-						occupied_units: 18,
-					},
-				],
-				error: null,
-			});
+	it("fetches tenant report from get_dashboard_stats", async () => {
+		// tenants() issues a single get_dashboard_stats call; turnover /
+		// on-time-payment have no data source, so both stay 0.
+		mockRpc.mockResolvedValueOnce({
+			data: [
+				{
+					tenants: { total: 12 },
+					leases: { active: 9, expiring_soon: 2 },
+				},
+			],
+			error: null,
+		});
 
 		const { result } = renderHook(
 			() => useTenantReport("2024-01-01", "2024-12-31"),
@@ -904,13 +890,9 @@ describe("useTenantReport (error path)", () => {
 	});
 
 	it("surfaces isError when get_dashboard_stats RPC errors", async () => {
-		// tenants() runs get_dashboard_stats + fetchOccupancyTrends in parallel;
-		// dashResult.error must propagate through handlePostgrestError.
-		mockRpc
-			.mockResolvedValueOnce({ data: null, error: postgrestError })
-			// DATA-01: occupancy fetch now returns an ARRAY (jsonArrayOrEmpty
-			// throws on an object) — mock [] so the dashboard error surfaces.
-			.mockResolvedValueOnce({ data: [], error: null });
+		// tenants() issues a single get_dashboard_stats call; its error must
+		// propagate through handlePostgrestError.
+		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
 		const { result } = renderHook(() => useTenantReport(), {
 			wrapper: createWrapper(),

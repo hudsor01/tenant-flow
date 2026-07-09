@@ -19,9 +19,9 @@ import type { OccupancyAnalyticsPageData } from "#types/analytics-page-data";
 //   [{ month, occupancy_rate, total_units, occupied_units }, ...]
 // element[0] is the latest month. The RPC provides NO metrics/trends envelope,
 // no per-property breakdown, and no vacancy/seasonal/trend data — those page
-// sub-shapes stay empty. This mapper mirrors `mapLeaseAnalytics`'s degrade-to-
-// empty contract: it NEVER throws; a non-array/empty input yields zeroed
-// metrics + empty trends. Types are REUSED from `#types/analytics(-page-data)`.
+// sub-shapes stay empty. It NEVER throws — a non-array/empty input yields
+// zeroed metrics + empty trends. Types are REUSED from
+// `#types/analytics(-page-data)`.
 
 function emptyOccupancyMetrics(): OccupancyMetricSummary {
 	return {
