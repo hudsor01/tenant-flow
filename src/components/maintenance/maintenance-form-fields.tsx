@@ -13,6 +13,7 @@ import { Textarea } from "#components/ui/textarea";
 import { useAllTenants } from "#hooks/api/use-tenant";
 import type { useMaintenanceForm } from "#hooks/use-maintenance-form";
 import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
+import { maintenanceRequestCreateSchema } from "#lib/validation/maintenance";
 import type { MaintenancePriority, Property, Unit } from "#types/core";
 
 interface MaintenanceFormFieldsProps {
@@ -53,7 +54,17 @@ export function MaintenanceFormFields({
 	return (
 		<>
 			{/* Unit Selection */}
-			<form.Field name="unit_id">
+			{/* FORMFIX-05: required-field validators derived from the create schema
+			    so empty/invalid unit/title/description surface FIELD errors before
+			    the mutation (no raw PostgREST uuid error). Field-level only — the
+			    whole schema must not validate the string-typed estimated_cost. */}
+			<form.Field
+				name="unit_id"
+				validators={{
+					onChange: maintenanceRequestCreateSchema.shape.unit_id,
+					onSubmit: maintenanceRequestCreateSchema.shape.unit_id,
+				}}
+			>
 				{(field) => (
 					<Field>
 						<FieldLabel id={unitLabelId} htmlFor="unit_id">
@@ -89,15 +100,19 @@ export function MaintenanceFormFields({
 								})}
 							</SelectContent>
 						</Select>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>
 
 			{/* Tenant — pick by name; form stores the tenant.id */}
-			<form.Field name="tenant_id">
+			<form.Field
+				name="tenant_id"
+				validators={{
+					onChange: maintenanceRequestCreateSchema.shape.tenant_id,
+					onSubmit: maintenanceRequestCreateSchema.shape.tenant_id,
+				}}
+			>
 				{(field) => (
 					<Field>
 						<FieldLabel id={tenantLabelId} htmlFor="tenant_id">
@@ -128,15 +143,22 @@ export function MaintenanceFormFields({
 								)}
 							</SelectContent>
 						</Select>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>
 
 			{/* Title Field */}
-			<form.Field name="title">
+			<form.Field
+				name="title"
+				validators={{
+					// .unwrap() strips the schema's .default() so the validator's input
+					// type is `string` (not `string | undefined`) — the checks
+					// (trim/min/max + messages) are preserved.
+					onChange: maintenanceRequestCreateSchema.shape.title.unwrap(),
+					onSubmit: maintenanceRequestCreateSchema.shape.title.unwrap(),
+				}}
+			>
 				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="title">Title *</FieldLabel>
@@ -150,15 +172,19 @@ export function MaintenanceFormFields({
 							}
 							onBlur={field.handleBlur}
 						/>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>
 
 			{/* Description Field */}
-			<form.Field name="description">
+			<form.Field
+				name="description"
+				validators={{
+					onChange: maintenanceRequestCreateSchema.shape.description,
+					onSubmit: maintenanceRequestCreateSchema.shape.description,
+				}}
+			>
 				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="description">Description *</FieldLabel>
@@ -173,9 +199,7 @@ export function MaintenanceFormFields({
 							}
 							onBlur={field.handleBlur}
 						/>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>
@@ -202,9 +226,7 @@ export function MaintenanceFormFields({
 								))}
 							</SelectContent>
 						</Select>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>
@@ -229,9 +251,7 @@ export function MaintenanceFormFields({
 							}
 							onBlur={field.handleBlur}
 						/>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>
@@ -253,9 +273,7 @@ export function MaintenanceFormFields({
 							}
 							onBlur={field.handleBlur}
 						/>
-						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-						)}
+						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}
 			</form.Field>

@@ -111,10 +111,15 @@ export function useMaintenanceForm({
 						throw new Error("Request ID is required for edit mode");
 					}
 
+					// FORMFIX-05: include unit_id/tenant_id so reassigning the unit or
+					// tenant on edit actually persists (previously omitted → silently
+					// dropped). maintenanceRequestUpdateSchema accepts them (partial input).
 					const payload: MaintenanceRequestUpdate = {
 						title: value.title,
 						description: value.description,
 						priority: value.priority,
+						unit_id: value.unit_id,
+						tenant_id: value.tenant_id,
 					};
 
 					// Add optional fields only if they have values
