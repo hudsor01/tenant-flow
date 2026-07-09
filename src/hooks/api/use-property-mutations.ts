@@ -109,7 +109,10 @@ export function useUpdatePropertyMutation() {
 			invalidate: [
 				propertyQueries.lists(),
 				unitQueries.lists(),
-				ownerDashboardKeys.analytics.stats(),
+				// PROP-02: the dashboard queries ownerDashboardKeys.analytics
+				// .pageData(); analytics.stats() is never queried, so a rename
+				// never refreshed it. Use the broad prefix like create/delete.
+				ownerDashboardKeys.all,
 			],
 			updateDetail: (property) => ({
 				queryKey: propertyQueries.detail(property.id).queryKey,
