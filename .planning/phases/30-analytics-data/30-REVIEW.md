@@ -46,3 +46,7 @@ Recurring theme: three cross-cutting mechanisms (the DATA-03 `LeaseStatus` widen
 
 ## DB `'expired'`-propagation (delivered — migration `20260709044800`)
 Cycle 12's adversarial sweep found that DATA-03 formalized `'expired'` as first-class but several DB functions/triggers predating the expire-leases cron special-cased only `'ended'`/`'terminated'`. Audited every DB function referencing `'ended'`/`'terminated'`; `get_dashboard_stats`/`get_dashboard_data_v2` already handled `'expired'`. Fixed the 5 that didn't: the unit-sync trigger (frees the unit on expire), occupancy + revenue historical CTEs (count expired periods), billing churn, and the dead cached RPC (property status filter). This closes the whole class.
+
+## Adjudicated non-defects (settled during review)
+- **get_financial_overview expense join** does NOT filter `p.status <> 'inactive'` — INTENTIONAL. The primary expense aggregator `get_expense_summary` joins expenses->maintenance_requests by owner with no property join at all (includes soft-deleted-property expenses per the financial-records-retention convention); `get_financial_overview` matches it. Filtering it would diverge the financials-page total from the expense breakdown and drop retained records. Also a Phase-29 (BILL-02) function, untouched here. Financial/expense AGGREGATION is owner-level; only PER-PROPERTY PERFORMANCE analytics filter property status. Not changed.
+- **get_dashboard_time_series / get_metric_trend** occupancy-branch property-status omission: caller-less (no .rpc() consumer), pre-existing → folded into DATA-04.
