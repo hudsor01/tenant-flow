@@ -24,6 +24,7 @@ export type StatusFilter =
 	| "expiring"
 	| "pending_signature"
 	| "expired"
+	| "ended"
 	| "terminated"
 	| "draft";
 
