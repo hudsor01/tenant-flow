@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { useFormWithProgress } from "#hooks/use-form-progress";
 import { createLogger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
 import type { ContactFormRequest } from "#types/domain";
 import { ContactFormFields } from "./contact-form-fields";
 
@@ -69,6 +70,32 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 		async (data: ContactFormRequest) => {
 			if (!validateForm(data)) {
 				throw new Error("Please check your input");
+			}
+
+			// FORMFIX-02: actually transmit the message via the send-contact-email
+			// edge function. The thank-you is gated on a real success below.
+			const supabase = createClient();
+			const { data: result, error } = await supabase.functions.invoke<{
+				success?: boolean;
+			}>("send-contact-email", { body: data });
+
+			if (error || result?.success !== true) {
+				logger.error("Contact form send failed", {
+					action: "contact_form_send_failed",
+					metadata: {
+						email: data.email,
+						subject: data.subject,
+						hasError: !!error,
+						detail:
+							error instanceof Error
+								? error.message
+								: String(error ?? "send did not report success"),
+					},
+				});
+				// Thrown message becomes submitError (rendered) — thank-you is skipped.
+				throw new Error(
+					"We couldn't send your message. Please try again, or email us directly at sales@tenantflow.app.",
+				);
 			}
 
 			logger.info("Contact form submitted", {
