@@ -19,6 +19,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
+import { toast } from "sonner";
 import { vi } from "vitest";
 import { render } from "#test/utils/test-render";
 import type { LeaseWithExtras } from "#types/core";
@@ -364,6 +365,25 @@ describe("LeaseForm", () => {
 			// Status trigger resolves to the Pending option (not a blank trigger)
 			const statusTrigger = screen.getByRole("combobox", { name: /status/i });
 			expect(statusTrigger).toHaveTextContent(/pending/i);
+		});
+
+		test("saving a lease fires no form-level success toast (FORMFIX-08)", async () => {
+			const user = userEvent.setup();
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />);
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /save changes/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+			await waitFor(() => {
+				expect(mockUpdateLeaseMutation).toHaveBeenCalled();
+			});
+			// The single success toast is the mutation callback's, not the form's.
+			expect(toast.success).not.toHaveBeenCalled();
 		});
 
 		test("no-op save preserves the pending_signature status", async () => {

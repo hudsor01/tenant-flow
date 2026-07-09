@@ -90,7 +90,8 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						queryClient.invalidateQueries({ queryKey: unitQueries.all() }),
 						queryClient.invalidateQueries({ queryKey: tenantQueries.all() }),
 					]);
-					toast.success("Lease created successfully");
+					// FORMFIX-08: the create mutation's createMutationCallbacks fires the
+					// single success toast; no form-level duplicate.
 					router.push("/leases");
 				} else {
 					if (!lease?.id) {
@@ -102,7 +103,8 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						data: { ...value, lease_status: leaseStatus },
 						version: lease.version ?? 1,
 					});
-					toast.success("Lease updated successfully");
+					// FORMFIX-08: the update mutation's createMutationCallbacks fires the
+					// single success toast; no form-level duplicate.
 				}
 				onSuccess?.();
 			} catch (error) {
