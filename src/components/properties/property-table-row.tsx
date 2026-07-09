@@ -1,7 +1,12 @@
 "use client";
 
+import type { VirtualItem } from "@tanstack/react-virtual";
 import { Building2, Eye, MapPin, Pencil, Trash2, Wrench } from "lucide-react";
 import Image from "next/image";
+import {
+	getVirtualRowStyle,
+	VIRTUAL_ROW_CLASS,
+} from "#components/shared/virtualized-table-row";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
@@ -13,11 +18,15 @@ import {
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import type { ColumnId } from "./property-table-types";
-import { formatPropertyType } from "./property-table-types";
+import {
+	formatPropertyType,
+	PROPERTY_COLUMN_CLASS,
+} from "./property-table-types";
 import type { PropertyItem } from "./types";
 
 interface PropertyTableRowProps {
 	property: PropertyItem;
+	virtualRow: VirtualItem;
 	isSelected: boolean;
 	visibleColumns: Set<ColumnId>;
 	onSelectRow: (id: string) => void;
@@ -28,6 +37,7 @@ interface PropertyTableRowProps {
 
 export function PropertyTableRow({
 	property,
+	virtualRow,
 	isSelected,
 	visibleColumns,
 	onSelectRow,
@@ -39,20 +49,23 @@ export function PropertyTableRow({
 
 	return (
 		<tr
+			data-index={virtualRow.index}
+			style={getVirtualRowStyle(virtualRow)}
 			className={cn(
+				VIRTUAL_ROW_CLASS,
 				"hover:bg-muted/30 transition-colors",
 				isSelected && "bg-primary/5",
 			)}
 		>
-			<td className="px-4 py-3">
+			<td className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}>
 				<Checkbox
 					checked={isSelected}
 					onCheckedChange={() => onSelectRow(property.id)}
 				/>
 			</td>
 			{isColumnVisible("property") && (
-				<td className="px-4 py-3">
-					<div className="flex items-center gap-3">
+				<td className={cn(PROPERTY_COLUMN_CLASS.property, "px-4 py-3")}>
+					<div className="flex items-center gap-3 min-w-0">
 						<div className="w-10 h-10 rounded-sm overflow-hidden bg-muted shrink-0">
 							{property.imageUrl ? (
 								<Image
@@ -68,9 +81,11 @@ export function PropertyTableRow({
 								</div>
 							)}
 						</div>
-						<div>
-							<p className="font-medium text-foreground">{property.name}</p>
-							<p className="text-xs text-muted-foreground">
+						<div className="min-w-0">
+							<p className="font-medium text-foreground truncate">
+								{property.name}
+							</p>
+							<p className="text-xs text-muted-foreground truncate">
 								{formatPropertyType(property.propertyType)}
 							</p>
 						</div>
@@ -78,24 +93,24 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("address") && (
-				<td className="px-4 py-3 hidden md:table-cell">
-					<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+				<td className={cn(PROPERTY_COLUMN_CLASS.address, "px-4 py-3")}>
+					<div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
 						<MapPin className="w-3.5 h-3.5 shrink-0" />
-						<span className="truncate max-w-[200px]">
+						<span className="truncate">
 							{property.addressLine1}, {property.city}
 						</span>
 					</div>
 				</td>
 			)}
 			{isColumnVisible("units") && (
-				<td className="px-4 py-3">
+				<td className={cn(PROPERTY_COLUMN_CLASS.units, "px-4 py-3")}>
 					<span className="text-sm font-medium text-foreground">
 						{property.occupiedUnits}/{property.totalUnits}
 					</span>
 				</td>
 			)}
 			{isColumnVisible("occupancy") && (
-				<td className="px-4 py-3">
+				<td className={cn(PROPERTY_COLUMN_CLASS.occupancy, "px-4 py-3")}>
 					<div className="flex items-center gap-2">
 						<div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
 							<div
@@ -117,7 +132,7 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("status") && (
-				<td className="px-4 py-3">
+				<td className={cn(PROPERTY_COLUMN_CLASS.status, "px-4 py-3")}>
 					<div className="flex items-center gap-1">
 						{property.availableUnits > 0 && (
 							<Badge
@@ -149,13 +164,13 @@ export function PropertyTableRow({
 				</td>
 			)}
 			{isColumnVisible("revenue") && (
-				<td className="px-4 py-3 hidden lg:table-cell">
+				<td className={cn(PROPERTY_COLUMN_CLASS.revenue, "px-4 py-3")}>
 					<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
 						{formatCurrency(property.monthlyRevenue)}
 					</span>
 				</td>
 			)}
-			<td className="px-4 py-3">
+			<td className={cn(PROPERTY_COLUMN_CLASS.actions, "px-4 py-3")}>
 				<div className="flex items-center justify-end gap-1">
 					<Tooltip>
 						<TooltipTrigger asChild>

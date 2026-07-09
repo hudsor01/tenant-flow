@@ -14,7 +14,7 @@ import type {
 	SortDirection,
 	SortField,
 } from "./property-table-types";
-import { TABLE_COLUMNS } from "./property-table-types";
+import { PROPERTY_COLUMN_CLASS, TABLE_COLUMNS } from "./property-table-types";
 
 /**
  * PropertyTable - Table view for displaying properties with sorting and column visibility
@@ -142,10 +142,10 @@ export function PropertyTable({
 				ref={tableScrollRef}
 				className="overflow-auto max-h-[calc(100vh-340px)]"
 			>
-				<table className="w-full">
-					<thead className="sticky top-0 z-10">
-						<tr className="border-b border-border bg-muted/30">
-							<th className="w-12 px-4 py-3">
+				<table className="grid w-full">
+					<thead className="grid sticky top-0 z-10">
+						<tr className="flex w-full border-b border-border bg-muted/30">
+							<th className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}>
 								<Checkbox
 									checked={
 										selectedRows.size === properties.length &&
@@ -155,45 +155,79 @@ export function PropertyTable({
 								/>
 							</th>
 							{isColumnVisible("property") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									className={cn(
+										PROPERTY_COLUMN_CLASS.property,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="name">Property</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("address") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">
+								<th
+									className={cn(
+										PROPERTY_COLUMN_CLASS.address,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="address">Address</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("units") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									className={cn(
+										PROPERTY_COLUMN_CLASS.units,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="units">Units</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("occupancy") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									className={cn(
+										PROPERTY_COLUMN_CLASS.occupancy,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="occupancy">Occupancy</SortHeader>
 								</th>
 							)}
 							{isColumnVisible("status") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+								<th
+									className={cn(
+										PROPERTY_COLUMN_CLASS.status,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									Status
 								</th>
 							)}
 							{isColumnVisible("revenue") && (
-								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
+								<th
+									className={cn(
+										PROPERTY_COLUMN_CLASS.revenue,
+										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+									)}
+								>
 									<SortHeader field="revenue">Monthly Revenue</SortHeader>
 								</th>
 							)}
-							<th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+							<th
+								className={cn(
+									PROPERTY_COLUMN_CLASS.actions,
+									"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
+								)}
+							>
 								Actions
 							</th>
 						</tr>
 					</thead>
 					<tbody
-						className="divide-y divide-border"
+						className="relative grid divide-y divide-border"
 						style={{
 							height: `${rowVirtualizer.getTotalSize()}px`,
-							position: "relative",
 						}}
 					>
 						{rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -202,6 +236,7 @@ export function PropertyTable({
 								<PropertyTableRow
 									key={property.id}
 									property={property}
+									virtualRow={virtualRow}
 									isSelected={selectedRows.has(property.id)}
 									visibleColumns={visibleColumns}
 									onSelectRow={onSelectRow}
