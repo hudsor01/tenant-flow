@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -13,8 +12,10 @@ import {
 	AlertDialogTitle,
 } from "#components/ui/alert-dialog";
 import { useTerminateLeaseMutation } from "#hooks/api/use-lease-lifecycle-mutations";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import type { Lease } from "#types/core";
+
+const logger = createLogger({ component: "TerminateLeaseDialog" });
 
 interface TerminateLeaseDialogProps {
 	open: boolean;
@@ -34,11 +35,15 @@ export function TerminateLeaseDialog({
 	const handleConfirm = async () => {
 		try {
 			await terminateLease.mutateAsync(lease.id);
-			toast.success("Lease terminated successfully");
+			// FORMFIX-08: useTerminateLeaseMutation's createMutationCallbacks fires the
+			// single success toast; no form-level duplicate.
 			onSuccess?.();
 			onOpenChange(false);
 		} catch (error) {
-			handleMutationError(error, "Terminate lease");
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
+			logger.error("Terminate lease failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

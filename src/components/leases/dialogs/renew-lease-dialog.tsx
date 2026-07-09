@@ -22,7 +22,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { useRenewLeaseMutation } from "#hooks/api/use-lease-lifecycle-mutations";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import { createLogger } from "#lib/frontend-logger";
 import type { Lease } from "#types/core";
 import { isLeaseTermsLocked } from "../lease-terms-lock";
 import {
@@ -30,6 +30,8 @@ import {
 	DateSelector,
 	RentAdjustment,
 } from "./renew-lease-form-fields";
+
+const logger = createLogger({ component: "RenewLeaseDialog" });
 
 interface RenewLeaseDialogProps {
 	open: boolean;
@@ -90,14 +92,18 @@ export function RenewLeaseDialog({
 					...(rentAmount !== undefined ? { rent_amount: rentAmount } : {}),
 				},
 			});
-			toast.success("Lease renewed successfully");
+			// FORMFIX-08: useRenewLeaseMutation's createMutationCallbacks fires the
+			// single success toast; no form-level duplicate.
 			onSuccess?.();
 			onOpenChange(false);
 			setNewEndDate(defaultNewEndDate);
 			setNewRentAmount("");
 			setShowRentIncrease(false);
 		} catch (error) {
-			handleMutationError(error, "Renew lease");
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
+			logger.error("Renew lease failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	};
 

@@ -8,7 +8,6 @@ import {
 	TrashIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -53,9 +52,11 @@ export function UnitActions({ unit }: UnitActionsProps) {
 		setIsDeleting(true);
 		try {
 			await deleteUnit.mutateAsync(unit.id);
-			toast.success(`Unit ${unit.unit_number} has been deleted successfully`);
+			// FORMFIX-08: useDeleteUnitMutation's createMutationCallbacks fires the
+			// single success toast; no form-level duplicate.
 			setDeleteOpen(false);
 		} catch (error) {
+			// FORMFIX-08: the mutation's onError surfaces the single error toast; only log.
 			logger.error("Unit deletion operation failed", {
 				action: "unit_delete_failed",
 				metadata: {
@@ -64,7 +65,6 @@ export function UnitActions({ unit }: UnitActionsProps) {
 					error: error instanceof Error ? error.message : String(error),
 				},
 			});
-			toast.error("Failed to delete unit. Please try again.");
 		} finally {
 			setIsDeleting(false);
 		}
