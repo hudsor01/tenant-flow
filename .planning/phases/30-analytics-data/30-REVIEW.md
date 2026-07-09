@@ -19,7 +19,12 @@
 | 12 | DB `'expired'`-propagation class: `sync_unit_status_from_lease` didn't free a unit on expire (data-integrity); `get_occupancy_trends_optimized` + `get_revenue_trends_optimized` historical CTEs excluded expired; `get_billing_insights` churn omitted expired; `get_property_performance_cached` (dead) lacked the property status filter | one migration recreating all 5 to handle `'expired'` |
 | 13 | `get_dashboard_stats` + `get_dashboard_data_v2` `leases.expired` count omitted `'expired'` (unread field, but the last of the class) | migration adding `'expired'` to both — DB-wide sweep now shows 0 stale predicates |
 | 14 | CLEAN (all 5) | — |
-| 15 | CLEAN | — |
+| 15 | DB `'expired'`-propagation (occupancy/revenue/billing/trigger) — see below | migration `044800` |
+| 16 | soft-deleted properties leaked into occupancy/revenue trends + search_properties | migrations `060533`/`060701` — 0 property-reading fns now omit the filter |
+| 17-20 | (interleaved CLEAN + small a11y/hygiene items) | aria-rowcount/rowindex; expiringSoon camelCase key; get_financial_overview adjudicated |
+| 21 | **HIGH** — `parseDashStats`/`extractDashStats`/`taxDocuments` read `get_dashboard_stats` as `data[0]`, but it `RETURNS json` (bare object) → the financial overview, all report summaries, and tax-documents rendered **0 in production**. Masked by array-wrapped test mocks for ~21 cycles + all of Phase 29. Also: sortable headers lacked `aria-sort` | read `data` directly in all 3 consumers + un-array-wrap the mocks; add `aria-sort` mirroring the reference |
+| 22 | CLEAN (all 5) | — |
+| 23 | CLEAN | — |
 
 Recurring theme: three cross-cutting mechanisms (the DATA-03 `LeaseStatus` widening, the PROP-03 flex-row virtualizer rework, and the DATA-01 occupancy-array rewire) each rippled into **runtime consumers, a11y semantics, sibling mutations, and dead code that typecheck can't see** — reversed chart axis, stat/filter/timeline lockstep sites, stripped ARIA roles, a third+fourth virtualized-mutation sibling, orphaned mappers. The adversarial sweeps caught each; proactive class-sweeps (all occupancy-changing mutations; all `lease_status` branches) closed the tails. (A recurring spurious subagent glitch echoing injected skill boilerplate was neutralized by a reviewer-guard preamble.)
 
