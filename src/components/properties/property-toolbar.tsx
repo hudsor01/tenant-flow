@@ -69,7 +69,6 @@ export function PropertyToolbar({
 				<option value="apartment">Apartment</option>
 				<option value="condo">Condo</option>
 				<option value="townhouse">Townhouse</option>
-				<option value="duplex">Duplex</option>
 			</select>
 
 			{/* RIGHT: Count + View Toggle */}

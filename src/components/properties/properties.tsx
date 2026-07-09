@@ -28,7 +28,6 @@ const PROPERTY_TYPE_TO_API: Record<PropertyType, string> = {
 	apartment: "APARTMENT",
 	condo: "CONDO",
 	townhouse: "TOWNHOUSE",
-	duplex: "MULTI_UNIT",
 };
 
 /**

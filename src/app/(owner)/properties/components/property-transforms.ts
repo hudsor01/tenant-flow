@@ -18,7 +18,6 @@ function mapPropertyType(
 		apartment: "apartment",
 		condo: "condo",
 		townhouse: "townhouse",
-		duplex: "duplex",
 	};
 	return typeMap[apiType?.toLowerCase() ?? ""] ?? "single_family";
 }
