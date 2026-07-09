@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -131,7 +132,11 @@ export function PropertyForm({
 		},
 	});
 
-	useUnsavedChangesWarning(form.state.isDirty);
+	// FORMFIX-01: read dirty REACTIVELY from the form store so the beforeunload
+	// guard re-arms as the user edits (a `form.state.isDirty` snapshot is read
+	// once at mount and never updates).
+	const isDirty = useStore(form.store, (s) => s.isDirty);
+	useUnsavedChangesWarning(isDirty);
 
 	async function handleCreateSubmit(
 		value: typeof form.state.values,
@@ -165,6 +170,9 @@ export function PropertyForm({
 
 		const newProperty = await createPropertyMutation.mutateAsync(createData);
 
+		// FORMFIX-08: the create mutation's createMutationCallbacks fires the single
+		// success toast; no form-level duplicate. Image upload still runs on the
+		// image branch (its own toasts are unaffected).
 		if (filesWithStatus.length > 0) {
 			await uploadPropertyImages({
 				propertyId: newProperty.id,
@@ -175,8 +183,6 @@ export function PropertyForm({
 				setUploadingImages,
 				setFilesWithStatus,
 			});
-		} else {
-			toast.success("Property created successfully");
 		}
 
 		if (showSuccessState) {
@@ -218,7 +224,8 @@ export function PropertyForm({
 			id: property.id,
 			data: updateData,
 		});
-		toast.success("Property updated successfully");
+		// FORMFIX-08: the update mutation's createMutationCallbacks fires the single
+		// success toast; no form-level duplicate.
 
 		if (!onSuccess) {
 			router.back();

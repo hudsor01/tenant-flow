@@ -7,14 +7,46 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
+import { toast } from "sonner";
 import { vi } from "vitest";
 import { render } from "#test/utils/test-render";
 import type { Property } from "#types/core";
 import { PropertyForm } from "../property-form.client";
 import "@testing-library/jest-dom/vitest";
+
+vi.mock("sonner", () => ({
+	toast: {
+		success: vi.fn(),
+		error: vi.fn(),
+		info: vi.fn(),
+	},
+}));
+
+// FORMFIX-08: mock the mutation module the component actually imports so a
+// submit resolves without PostgREST; the real success toast lives in the
+// mutation's createMutationCallbacks (covered by create-mutation-callbacks.test).
+const { mockCreateProperty, mockUpdateProperty } = vi.hoisted(() => ({
+	mockCreateProperty: vi.fn().mockResolvedValue({ id: "new-property-id" }),
+	mockUpdateProperty: vi.fn().mockResolvedValue({ id: "property-1" }),
+}));
+vi.mock("#hooks/api/use-property-mutations", async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import("#hooks/api/use-property-mutations")>();
+	return {
+		...actual,
+		useCreatePropertyMutation: () => ({
+			mutateAsync: mockCreateProperty,
+			isPending: false,
+		}),
+		useUpdatePropertyMutation: () => ({
+			mutateAsync: mockUpdateProperty,
+			isPending: false,
+		}),
+	};
+});
 
 // Mock useCurrentUser hook
 vi.mock("#hooks/use-current-user", () => ({
@@ -366,6 +398,76 @@ describe("PropertyForm", () => {
 			// Note: Full form submission testing would require mocking the mutation
 			// This verifies the prop is accepted
 			expect(onSuccess).not.toHaveBeenCalled(); // Not called until form submits
+		});
+	});
+
+	/**
+	 * FORMFIX-01 (reactive unsaved-changes guard) + FORMFIX-08 (no duplicate toast).
+	 */
+	describe("Guard reactivity + single toast (FORMFIX-01, FORMFIX-08)", () => {
+		function countBeforeUnload(calls: unknown[][]): number {
+			return calls.filter((call) => call[0] === "beforeunload").length;
+		}
+
+		async function fillCreateFields(user: ReturnType<typeof userEvent.setup>) {
+			await user.type(screen.getByLabelText(/property name/i), "Test Property");
+			await user.type(screen.getByLabelText(/^Address \*$/i), "456 Oak Ave");
+			await user.type(screen.getByLabelText(/city/i), "Oakland");
+			await user.type(screen.getByLabelText(/state/i), "CA");
+			await user.type(screen.getByLabelText(/zip code/i), "94601");
+		}
+
+		test("arms the beforeunload guard when the form becomes dirty", async () => {
+			const user = userEvent.setup();
+			const addSpy = vi.spyOn(window, "addEventListener");
+
+			renderWithQueryClient(<PropertyForm mode="create" />);
+			expect(countBeforeUnload(addSpy.mock.calls)).toBe(0);
+
+			await user.type(screen.getByLabelText(/property name/i), "Maple");
+
+			await waitFor(() => {
+				expect(countBeforeUnload(addSpy.mock.calls)).toBeGreaterThan(0);
+			});
+
+			addSpy.mockRestore();
+		});
+
+		test("create submit fires no form-level success toast", async () => {
+			const user = userEvent.setup();
+			renderWithQueryClient(<PropertyForm mode="create" />);
+
+			await fillCreateFields(user);
+			await user.click(
+				screen.getByRole("button", { name: /create property/i }),
+			);
+
+			await waitFor(() => {
+				expect(mockCreateProperty).toHaveBeenCalled();
+			});
+			// The single success toast is the mutation callback's, not the form's.
+			expect(toast.success).not.toHaveBeenCalled();
+		});
+
+		test("update submit fires no form-level success toast", async () => {
+			const user = userEvent.setup();
+			const editable: Property = {
+				...DEFAULT_PROPERTY,
+				property_type: "SINGLE_FAMILY",
+			};
+			renderWithQueryClient(<PropertyForm mode="edit" property={editable} />);
+
+			const nameInput = screen.getByLabelText(/property name/i);
+			await user.clear(nameInput);
+			await user.type(nameInput, "Renamed Property");
+			await user.click(
+				screen.getByRole("button", { name: /update property/i }),
+			);
+
+			await waitFor(() => {
+				expect(mockUpdateProperty).toHaveBeenCalled();
+			});
+			expect(toast.success).not.toHaveBeenCalled();
 		});
 	});
 });
