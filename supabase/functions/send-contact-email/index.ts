@@ -134,10 +134,14 @@ ${rows}
 </body>
 </html>`;
 
-		// From stays the fixed FROM_ADDRESS; the subject carries the escaped value.
+		// From stays the fixed FROM_ADDRESS. The email SUBJECT header is NOT an HTML
+		// context, so use the raw (validated) subject — Resend takes it as a JSON
+		// field, not a raw SMTP header, so there is no injection risk, and escaping
+		// here would render doubled HTML entities in the inbox. safe.subject (escaped)
+		// stays in the HTML body.
 		const result = await sendEmail({
 			to: [CONTACT_INBOX],
-			subject: `Contact form: ${safe.subject}`,
+			subject: `Contact form: ${subject}`,
 			html,
 			tags: [{ name: "source", value: "contact-form" }],
 		});

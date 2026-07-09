@@ -38,6 +38,7 @@ const FUNCTIONS: Array<{
 	{ slug: "n8n-blog-ingest", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "newsletter-subscribe", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "resend-webhook", entrypoint: "index.ts", verify_jwt: false },
+	{ slug: "send-contact-email", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "sign-lease-token", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "stripe-billing-portal", entrypoint: "index.ts", verify_jwt: false },
 	{

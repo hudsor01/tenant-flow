@@ -415,6 +415,12 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+# Unauthenticated by design — the public /contact form posts here (publishable key,
+# not a user JWT). import_map required: _shared/errors imports @sentry/deno.
+[functions.send-contact-email]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 # Auth email send — Supabase Auth Hook receiver. Supabase Auth POSTs the
 # `SUPABASE_AUTH_HOOK_SECRET` value as the Bearer token (NOT a Supabase user
 # JWT). The platform JWT gate MUST be off so the hook secret reaches the
