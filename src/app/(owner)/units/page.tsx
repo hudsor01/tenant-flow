@@ -37,7 +37,7 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
-import { useDataTable } from "#hooks/use-data-table";
+import { useClientDataTable } from "#hooks/use-client-data-table";
 import type { Unit } from "#types/core";
 
 export default function UnitsPage() {
@@ -90,6 +90,7 @@ export default function UnitsPage() {
 
 	const columns: ColumnDef<Unit>[] = [
 		{
+			id: "unit_number",
 			accessorKey: "unit_number",
 			header: "Unit Number",
 			meta: {
@@ -112,6 +113,7 @@ export default function UnitsPage() {
 			),
 		},
 		{
+			id: "bedrooms",
 			accessorKey: "bedrooms",
 			header: "Bedrooms",
 			meta: {
@@ -121,6 +123,7 @@ export default function UnitsPage() {
 			enableColumnFilter: true,
 		},
 		{
+			id: "bathrooms",
 			accessorKey: "bathrooms",
 			header: "Bathrooms",
 			meta: {
@@ -130,6 +133,7 @@ export default function UnitsPage() {
 			enableColumnFilter: true,
 		},
 		{
+			id: "square_feet",
 			accessorKey: "square_feet",
 			header: "Square Feet",
 			meta: {
@@ -141,6 +145,7 @@ export default function UnitsPage() {
 				row.original.square_feet ? `${row.original.square_feet} sq ft` : "-",
 		},
 		{
+			id: "rent_amount",
 			accessorKey: "rent_amount",
 			header: "Rent",
 			meta: {
@@ -154,6 +159,7 @@ export default function UnitsPage() {
 					: "-",
 		},
 		{
+			id: "status",
 			accessorKey: "status",
 			header: "Status",
 			meta: {
@@ -205,11 +211,9 @@ export default function UnitsPage() {
 		},
 	];
 
-	const { table } = useDataTable({
+	const { table } = useClientDataTable({
 		data: units,
 		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,

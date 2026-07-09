@@ -10,7 +10,7 @@ import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton"
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
-import { useDataTable } from "#hooks/use-data-table";
+import { useClientDataTable } from "#hooks/use-client-data-table";
 import { formatCurrency, formatNumber } from "#lib/utils/currency";
 import type { LeaseFinancialInsight } from "#types/analytics";
 
@@ -51,6 +51,7 @@ export function LeaseInsightsSkeleton() {
 function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	const columns: ColumnDef<LeaseFinancialInsight>[] = [
 		{
+			id: "lease_id",
 			accessorKey: "lease_id",
 			header: "Lease",
 			meta: {
@@ -64,6 +65,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			),
 		},
 		{
+			id: "tenantName",
 			accessorKey: "tenantName",
 			header: "Tenant",
 			meta: {
@@ -74,6 +76,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			enableColumnFilter: true,
 		},
 		{
+			id: "propertyName",
 			accessorKey: "propertyName",
 			header: "Property",
 			meta: {
@@ -84,6 +87,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			enableColumnFilter: true,
 		},
 		{
+			id: "rent_amount",
 			accessorKey: "rent_amount",
 			header: "Monthly rent",
 			meta: {
@@ -98,6 +102,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			),
 		},
 		{
+			id: "outstandingBalance",
 			accessorKey: "outstandingBalance",
 			header: "Outstanding",
 			meta: {
@@ -112,6 +117,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			),
 		},
 		{
+			id: "profitabilityScore",
 			accessorKey: "profitabilityScore",
 			header: "Score",
 			meta: {
@@ -132,11 +138,9 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 		},
 	];
 
-	const { table } = useDataTable({
+	const { table } = useClientDataTable({
 		data: leases,
 		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,

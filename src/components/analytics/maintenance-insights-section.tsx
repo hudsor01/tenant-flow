@@ -10,7 +10,7 @@ import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton"
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
-import { useDataTable } from "#hooks/use-data-table";
+import { useClientDataTable } from "#hooks/use-client-data-table";
 import type { MaintenanceCategoryBreakdown } from "#types/analytics";
 
 const MaintenanceTrendChart = dynamic(
@@ -54,6 +54,7 @@ function CategoryBreakdownTable({
 }) {
 	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
 		{
+			id: "category",
 			accessorKey: "category",
 			header: "Category",
 			meta: {
@@ -67,6 +68,7 @@ function CategoryBreakdownTable({
 			),
 		},
 		{
+			id: "count",
 			accessorKey: "count",
 			header: "Count",
 			meta: {
@@ -78,11 +80,9 @@ function CategoryBreakdownTable({
 		},
 	];
 
-	const { table } = useDataTable({
+	const { table } = useClientDataTable({
 		data: entries,
 		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,

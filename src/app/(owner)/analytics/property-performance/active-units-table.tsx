@@ -4,13 +4,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Badge } from "#components/ui/badge";
-import { useDataTable } from "#hooks/use-data-table";
+import { useClientDataTable } from "#hooks/use-client-data-table";
 import { formatCurrency, formatNumber } from "#lib/utils/currency";
 import type { PropertyUnitDetail } from "#types/analytics";
 
 export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 	const columns: ColumnDef<PropertyUnitDetail>[] = [
 		{
+			id: "unit_number",
 			accessorKey: "unit_number",
 			header: "Unit",
 			meta: {
@@ -27,6 +28,7 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			),
 		},
 		{
+			id: "status",
 			accessorKey: "status",
 			header: "Status",
 			meta: {
@@ -38,6 +40,7 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
 		},
 		{
+			id: "bedrooms",
 			accessorKey: "bedrooms",
 			header: "Bedrooms",
 			meta: {
@@ -54,6 +57,7 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			),
 		},
 		{
+			id: "bathrooms",
 			accessorKey: "bathrooms",
 			header: "Bathrooms",
 			meta: {
@@ -71,6 +75,7 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			),
 		},
 		{
+			id: "rent",
 			accessorKey: "rent",
 			header: "Rent",
 			meta: {
@@ -88,11 +93,9 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 		},
 	];
 
-	const { table } = useDataTable({
+	const { table } = useClientDataTable({
 		data: units,
 		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,

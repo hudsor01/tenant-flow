@@ -3,7 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
-import { useDataTable } from "#hooks/use-data-table";
+import { useClientDataTable } from "#hooks/use-client-data-table";
 import {
 	formatCurrency,
 	formatNumber,
@@ -18,6 +18,7 @@ export function TopPropertiesTable({
 }) {
 	const columns: ColumnDef<PropertyPerformanceEntry>[] = [
 		{
+			id: "propertyName",
 			accessorKey: "propertyName",
 			header: "Property",
 			meta: {
@@ -28,6 +29,7 @@ export function TopPropertiesTable({
 			enableColumnFilter: true,
 		},
 		{
+			id: "occupancyRate",
 			accessorKey: "occupancyRate",
 			header: "Occupancy",
 			meta: {
@@ -52,6 +54,7 @@ export function TopPropertiesTable({
 			),
 		},
 		{
+			id: "monthlyRevenue",
 			accessorKey: "monthlyRevenue",
 			header: "Monthly revenue",
 			meta: {
@@ -67,11 +70,9 @@ export function TopPropertiesTable({
 		},
 	];
 
-	const { table } = useDataTable({
+	const { table } = useClientDataTable({
 		data: properties,
 		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,

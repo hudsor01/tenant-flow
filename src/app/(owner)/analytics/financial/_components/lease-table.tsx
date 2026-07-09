@@ -3,13 +3,14 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
-import { useDataTable } from "#hooks/use-data-table";
+import { useClientDataTable } from "#hooks/use-client-data-table";
 import { formatCurrency, formatNumber } from "#lib/utils/currency";
 import type { LeaseFinancialInsight } from "#types/analytics";
 
 export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	const columns: ColumnDef<LeaseFinancialInsight>[] = [
 		{
+			id: "lease_id",
 			accessorKey: "lease_id",
 			header: "Lease",
 			meta: {
@@ -23,6 +24,7 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			),
 		},
 		{
+			id: "tenantName",
 			accessorKey: "tenantName",
 			header: "Tenant",
 			meta: {
@@ -33,6 +35,7 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			enableColumnFilter: true,
 		},
 		{
+			id: "propertyName",
 			accessorKey: "propertyName",
 			header: "Property",
 			meta: {
@@ -43,6 +46,7 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			enableColumnFilter: true,
 		},
 		{
+			id: "rent_amount",
 			accessorKey: "rent_amount",
 			header: "Monthly Rent",
 			meta: {
@@ -57,6 +61,7 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			),
 		},
 		{
+			id: "outstandingBalance",
 			accessorKey: "outstandingBalance",
 			header: "Outstanding",
 			meta: {
@@ -71,6 +76,7 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			),
 		},
 		{
+			id: "profitabilityScore",
 			accessorKey: "profitabilityScore",
 			header: "Profitability",
 			meta: {
@@ -91,11 +97,9 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 		},
 	];
 
-	const { table } = useDataTable({
+	const { table } = useClientDataTable({
 		data: leases,
 		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
 		initialState: {
 			pagination: {
 				pageIndex: 0,
