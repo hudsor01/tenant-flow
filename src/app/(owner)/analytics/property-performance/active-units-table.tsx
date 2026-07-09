@@ -102,6 +102,16 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 				pageSize: 8,
 			},
 		},
+		// UIX-01: this route also renders TopPropertiesTable — namespace the nuqs URL
+		// keys so the two client tables don't share (and clobber) page/sort/filter
+		// state.
+		queryKeys: {
+			page: "unitsPage",
+			perPage: "unitsPerPage",
+			sort: "unitsSort",
+			filters: "unitsFilters",
+			joinOperator: "unitsJoin",
+		},
 	});
 
 	if (!units.length) {
