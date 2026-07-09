@@ -251,7 +251,13 @@ describe("useOccupancyMetrics", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.occupancyRate).toBeDefined();
+		// DATA-01: metrics derive from element[0] (the latest month) of the
+		// occupancy-trends array — regression-lock the concrete values.
+		expect(result.current.data?.occupancyRate).toBe(90);
+		expect(result.current.data?.totalUnits).toBe(20);
+		expect(result.current.data?.occupiedUnits).toBe(18);
+		expect(result.current.data?.vacantUnits).toBe(2);
+		expect(result.current.data?.byProperty).toEqual([]);
 		expect(mockRpc).toHaveBeenCalledWith(
 			"get_occupancy_trends_optimized",
 			expect.objectContaining({
@@ -571,8 +577,18 @@ describe("useTenantReport", () => {
 				],
 				error: null,
 			})
+			// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
+			// (jsonArrayOrEmpty throws on an object). The tenant report has no
+			// real source for turnover / on-time-payment, so both stay 0.
 			.mockResolvedValueOnce({
-				data: { turnover_rate: 5, on_time_payment_rate: 98 },
+				data: [
+					{
+						month: "2024-01",
+						occupancy_rate: 90,
+						total_units: 20,
+						occupied_units: 18,
+					},
+				],
 				error: null,
 			});
 
@@ -588,8 +604,8 @@ describe("useTenantReport", () => {
 		expect(result.current.data?.summary?.totalTenants).toBe(12);
 		expect(result.current.data?.summary?.activeLeases).toBe(9);
 		expect(result.current.data?.summary?.leasesExpiringNext90).toBe(2);
-		expect(result.current.data?.summary?.turnoverRate).toBe(5);
-		expect(result.current.data?.summary?.onTimePaymentRate).toBe(98);
+		expect(result.current.data?.summary?.turnoverRate).toBe(0);
+		expect(result.current.data?.summary?.onTimePaymentRate).toBe(0);
 		expect(mockRpc).toHaveBeenCalledWith("get_dashboard_stats", {
 			p_user_id: "user-1",
 		});
@@ -892,7 +908,9 @@ describe("useTenantReport (error path)", () => {
 		// dashResult.error must propagate through handlePostgrestError.
 		mockRpc
 			.mockResolvedValueOnce({ data: null, error: postgrestError })
-			.mockResolvedValueOnce({ data: {}, error: null });
+			// DATA-01: occupancy fetch now returns an ARRAY (jsonArrayOrEmpty
+			// throws on an object) — mock [] so the dashboard error surfaces.
+			.mockResolvedValueOnce({ data: [], error: null });
 
 		const { result } = renderHook(() => useTenantReport(), {
 			wrapper: createWrapper(),
