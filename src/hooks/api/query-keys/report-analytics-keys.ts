@@ -116,23 +116,20 @@ export const reportAnalyticsQueries = {
 						occupancyRate: 0,
 						byProperty: [],
 					};
-				const data = await fetchOccupancyTrends(12);
-				const result = data as Record<string, unknown> | null;
-				const byProperty = (result?.by_property ?? []) as Array<
-					Record<string, unknown>
-				>;
+				// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
+				// ordered month DESC — element[0] is the latest month. Derive the
+				// current occupancy metrics from that row (the RPC has NO top-level
+				// totals and NO per-property breakdown, so byProperty stays []).
+				const rows = await fetchOccupancyTrends(12);
+				const latest = rows[0];
+				const totalUnits = Number(latest?.total_units ?? 0);
+				const occupiedUnits = Number(latest?.occupied_units ?? 0);
 				return {
-					totalUnits: Number(result?.total_units ?? 0),
-					occupiedUnits: Number(result?.occupied_units ?? 0),
-					vacantUnits: Number(result?.vacant_units ?? 0),
-					occupancyRate: Number(result?.occupancy_rate ?? 0),
-					byProperty: byProperty.map((p) => ({
-						property_id: String(p.property_id ?? ""),
-						propertyName: String(p.property_name ?? ""),
-						totalUnits: Number(p.total_units ?? 0),
-						occupiedUnits: Number(p.occupied_units ?? 0),
-						occupancyRate: Number(p.occupancy_rate ?? 0),
-					})),
+					totalUnits,
+					occupiedUnits,
+					vacantUnits: totalUnits - occupiedUnits,
+					occupancyRate: Number(latest?.occupancy_rate ?? 0),
+					byProperty: [],
 				};
 			},
 			...CACHE,
@@ -282,21 +279,25 @@ export const reportAnalyticsQueries = {
 						turnover: [],
 					};
 				}
-				const [dashResult, occupancyData] = await Promise.all([
+				const [dashResult] = await Promise.all([
 					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
+					// MIS-WIRE follow-up (DATA-01): the tenant report has no real
+					// source for turnover / on-time-payment. It used to read those
+					// fields off get_occupancy_trends_optimized, which never emits
+					// them. The RPC now correctly returns an array, so we keep the
+					// shared fetch but read nothing off it — both metrics stay 0.
 					fetchOccupancyTrends(12),
 				]);
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "tenant report");
 				const { tenants, leases } = extractDashStats(dashResult.data);
-				const occupancy = occupancyData as Record<string, unknown> | null;
 				return {
 					summary: {
 						totalTenants: Number(tenants?.total ?? 0),
 						activeLeases: Number(leases?.active ?? 0),
 						leasesExpiringNext90: Number(leases?.expiring_soon ?? 0),
-						turnoverRate: Number(occupancy?.turnover_rate ?? 0),
-						onTimePaymentRate: Number(occupancy?.on_time_payment_rate ?? 0),
+						turnoverRate: 0,
+						onTimePaymentRate: 0,
 					},
 					paymentHistory: [],
 					leaseExpirations: [],
