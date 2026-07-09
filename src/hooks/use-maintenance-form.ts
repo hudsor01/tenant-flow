@@ -154,12 +154,16 @@ export function useMaintenanceForm({
 					onSuccess?.(result);
 				}
 			} catch (error) {
+				// FORMFIX-08: the mutation's onError (createMutationCallbacks) surfaces
+				// the single error toast; only log here. Do NOT re-throw — form-core
+				// re-throws whatever onSubmit throws, and the DOM handler calls
+				// form.handleSubmit() un-awaited, so a re-thrown rejection escapes as an
+				// unhandled promise rejection (second Sentry capture + a dev error
+				// overlay on an already-handled failure). Matches the other 3 forms.
 				logger.error("Failed to submit maintenance request", {
 					mode,
 					error,
 				});
-				// Re-throw to let mutation error handlers manage UI notifications
-				throw error;
 			}
 		},
 	});
