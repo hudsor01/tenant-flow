@@ -69,6 +69,11 @@ export function getStatusConfig(status: string): {
 				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
 			label: "Ended",
 		},
+		expired: {
+			className:
+				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+			label: "Expired",
+		},
 		terminated: {
 			className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 			label: "Terminated",

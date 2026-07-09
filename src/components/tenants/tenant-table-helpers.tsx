@@ -18,6 +18,7 @@ const STATUS_LABELS: Record<LeaseStatus, string> = {
 	active: "Active",
 	ended: "Ended",
 	terminated: "Terminated",
+	expired: "Expired",
 };
 
 const STATUS_CHIP: Record<LeaseStatus, string> = {
@@ -26,6 +27,7 @@ const STATUS_CHIP: Record<LeaseStatus, string> = {
 	active: "status-active",
 	ended: "status-inactive",
 	terminated: "status-inactive",
+	expired: "status-inactive",
 };
 
 /**
