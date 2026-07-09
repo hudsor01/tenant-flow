@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { sanitizeSearchInput } from "#lib/sanitize-search";
+import { normalizeSearchInput } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import type { Vendor, VendorFilters } from "#types/domain";
 import { vendorMutations } from "./query-keys/maintenance-keys";
@@ -45,7 +45,7 @@ const vendorKeys = {
 					q = q.eq("trade", filters.trade);
 				}
 				if (filters?.search) {
-					const safe = sanitizeSearchInput(filters.search);
+					const safe = normalizeSearchInput(filters.search);
 					if (safe) {
 						q = q.ilike("name", `%${safe}%`);
 					}

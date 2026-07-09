@@ -64,6 +64,39 @@ function getErrorStatus(error: unknown): number | undefined {
 }
 
 /**
+ * User-safe copy for known-leaky Postgres SQLSTATE codes. The raw DB message
+ * (e.g. "duplicate key value violates unique constraint …") leaks schema
+ * internals, so map the codes we recognise to product copy instead. Sentry
+ * still captures the real error server-side.
+ */
+const POSTGRES_ERROR_MESSAGES: Record<string, string> = {
+	"23505": "This record already exists.",
+	"23514":
+		"Some of the information entered isn't allowed. Please review and try again.",
+	"23503": "This action references a record that no longer exists.",
+	"23502": "A required field is missing.",
+	"42501": "You don't have permission to perform this action.",
+};
+
+/**
+ * Fallback shown for a leaky code we don't have specific copy for, so raw
+ * Postgres internals never reach the toast.
+ */
+const GENERIC_MUTATION_ERROR = "Something went wrong. Please try again.";
+
+/**
+ * A SQLSTATE is "leaky" when its raw message exposes DB/schema internals:
+ * class 22 (data exceptions), class 23 (integrity constraint violations),
+ * 42501 (insufficient privilege / RLS), and any PostgREST `PGRST*` code.
+ * Author-written PL/pgSQL RAISE codes (P0001/P0002) are deliberately NOT
+ * leaky — their messages are user-safe product copy and surface verbatim.
+ */
+function isLeakyCode(code?: string): boolean {
+	if (!code) return false;
+	return /^(22|23)/.test(code) || code === "42501" || /^PGRST/.test(code);
+}
+
+/**
  * Handle mutation errors with consistent logging and user feedback
  *
  * @param error - The error from mutation onError callback
@@ -122,6 +155,7 @@ export function handleMutationError(
 	// the body and are surfaced through their own per-feature handlers — they
 	// do NOT pass through this function.
 	const errObj = error as Record<string, unknown> | null;
+	const pgCode = typeof errObj?.code === "string" ? errObj.code : undefined;
 	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
 	const pgDetails =
 		typeof errObj?.details === "string" ? errObj.details : undefined;
@@ -172,7 +206,20 @@ export function handleMutationError(
 			description: "Our servers encountered an issue. Please try again later.",
 		});
 	} else {
-		toast.error(displayMessage);
+		// Caller-supplied copy always wins; otherwise map known-leaky SQLSTATE
+		// codes to friendly product copy so raw Postgres internals never reach
+		// the toast. Author-written P0001/P0002 RAISE messages are not leaky and
+		// fall through to `message` verbatim.
+		const mappedMessage = pgCode ? POSTGRES_ERROR_MESSAGES[pgCode] : undefined;
+		if (customMessage) {
+			toast.error(customMessage);
+		} else if (mappedMessage) {
+			toast.error(mappedMessage);
+		} else if (isLeakyCode(pgCode)) {
+			toast.error(GENERIC_MUTATION_ERROR);
+		} else {
+			toast.error(message);
+		}
 	}
 }
 
