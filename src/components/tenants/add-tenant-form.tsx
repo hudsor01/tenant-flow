@@ -63,14 +63,33 @@ export function AddTenantForm({
 					...(value.phone ? { phone: value.phone } : {}),
 				};
 
-				await createTenant.mutateAsync(payload);
+				const created = await createTenant.mutateAsync(payload);
 
 				logger.info("Tenant added", { email: value.email });
 				toast.success("Tenant added");
 
 				onSuccess?.();
-				router.push("/tenants");
-				router.refresh();
+
+				// FORMFIX-04: a selected property/unit must not be silently dropped.
+				// There is no standalone tenant↔unit link — lease_tenants needs a
+				// lease_id, and a lease needs start/end/rent that this form does not
+				// collect. So carry the created tenant + selected property/unit into
+				// the lease-creation flow (preselection query params) instead of
+				// discarding the selection on the /tenants redirect.
+				if (value.property_id) {
+					const params = new URLSearchParams({
+						tenant: created.id,
+						property: value.property_id,
+					});
+					if (value.unit_id) params.set("unit", value.unit_id);
+					toast.info(
+						"Complete the lease to finish assigning this tenant to the unit.",
+					);
+					router.push(`/leases/new?${params.toString()}`);
+				} else {
+					router.push("/tenants");
+					router.refresh();
+				}
 			} catch (error) {
 				logger.error("Failed to add tenant", {
 					error: error instanceof Error ? error.message : String(error),
