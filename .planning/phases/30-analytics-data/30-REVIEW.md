@@ -17,7 +17,9 @@
 | 10 | lease detail timeline had no Expired terminal event | add the event + type + icon/color |
 | 11 | CLEAN (all 5) | — |
 | 12 | DB `'expired'`-propagation class: `sync_unit_status_from_lease` didn't free a unit on expire (data-integrity); `get_occupancy_trends_optimized` + `get_revenue_trends_optimized` historical CTEs excluded expired; `get_billing_insights` churn omitted expired; `get_property_performance_cached` (dead) lacked the property status filter | one migration recreating all 5 to handle `'expired'` |
-| 13+ | (re-review to close the gate) | — |
+| 13 | `get_dashboard_stats` + `get_dashboard_data_v2` `leases.expired` count omitted `'expired'` (unread field, but the last of the class) | migration adding `'expired'` to both — DB-wide sweep now shows 0 stale predicates |
+| 14 | CLEAN (all 5) | — |
+| 15 | CLEAN | — |
 
 Recurring theme: three cross-cutting mechanisms (the DATA-03 `LeaseStatus` widening, the PROP-03 flex-row virtualizer rework, and the DATA-01 occupancy-array rewire) each rippled into **runtime consumers, a11y semantics, sibling mutations, and dead code that typecheck can't see** — reversed chart axis, stat/filter/timeline lockstep sites, stripped ARIA roles, a third+fourth virtualized-mutation sibling, orphaned mappers. The adversarial sweeps caught each; proactive class-sweeps (all occupancy-changing mutations; all `lease_status` branches) closed the tails. (A recurring spurious subagent glitch echoing injected skill boilerplate was neutralized by a reviewer-guard preamble.)
 
@@ -37,7 +39,8 @@ Recurring theme: three cross-cutting mechanisms (the DATA-03 `LeaseStatus` widen
 - typecheck 0, lint 0, full unit suite green (102,214). Live DB proofs on both migrations. Prod left clean.
 
 ## Follow-ups (captured, out of scope — candidates for a later phase)
-1. **lease/overview analytics mis-wire** — `leasePageData`/`overviewPageData` are fed the occupancy RPC (no lease-financial source exists); occupancy is derived into vacancyTrends, lease-financial sub-shapes stay empty. Needs a real lease-analytics data source (candidate DATA-04).
+1. **lease/overview analytics mis-wire** — `leasePageData`/`overviewPageData` are fed the occupancy RPC (no lease-financial source exists); occupancy is derived into vacancyTrends, lease-financial sub-shapes stay empty. Needs a real lease-analytics data source.
+   - **DATA-04 (dashboard historical-CTE accuracy, discovered cycle 15)** — `get_dashboard_data_v2`'s trend/time-series CTEs (live-rendered) + the caller-less `get_dashboard_time_series`/`get_metric_trend` filter historical windows on the CURRENT `lease_status='active'`, dropping since-ended/expired leases from past periods. Pre-existing (predates 'expired', undercounts ended too — NOT a Phase-30 regression; never touched here), latent (prod all-draft), distinct from DATA-03's status handling. Align with the standalone trend RPCs' `IN ('active','ended','expired')` in a focused plan.
 2. **tenant report turnover/on-time-payment** — read non-existent fields off the occupancy RPC; hardcoded 0 with a comment. No real source today.
 3. **`LeaseActionButtons` + `useDeleteLeaseOptimisticMutation`** — the component is rendered nowhere (dead); its mutation's invalidation was fixed defensively here, but the component itself (incl. its uppercase-key `getStatusBadge` bug) is pre-existing dead code — candidate for deletion in a cleanup phase.
 
