@@ -135,12 +135,16 @@ export function TenantTable({
 				{/* grid/flex strip the implicit table ARIA roles, so explicit
 				    role attributes are restored on every structural element
 				    (mirrors portfolio-data-table.tsx). */}
-				<table className="grid w-full" role="table">
+				<table
+					className="grid w-full"
+					role="table"
+					aria-rowcount={paginatedTenants.length + 1}
+				>
 					<thead
 						className="grid border-b border-border bg-muted/50 sticky top-0 z-10"
 						role="rowgroup"
 					>
-						<tr className="flex w-full" role="row">
+						<tr className="flex w-full" role="row" aria-rowindex={1}>
 							<th
 								className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")}
 								role="columnheader"

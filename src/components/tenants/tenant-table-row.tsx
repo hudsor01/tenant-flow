@@ -43,6 +43,7 @@ export function TenantTableRow({
 	return (
 		<tr
 			data-index={virtualRow.index}
+			aria-rowindex={virtualRow.index + 2}
 			role="row"
 			style={getVirtualRowStyle(virtualRow)}
 			className={cn(

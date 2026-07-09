@@ -145,11 +145,16 @@ export function PropertyTable({
 				{/* grid/flex strip the implicit table ARIA roles, so explicit
 				    role attributes are restored on every structural element
 				    (mirrors portfolio-data-table.tsx). */}
-				<table className="grid w-full" role="table">
+				<table
+					className="grid w-full"
+					role="table"
+					aria-rowcount={sortedProperties.length + 1}
+				>
 					<thead className="grid sticky top-0 z-10" role="rowgroup">
 						<tr
 							className="flex w-full border-b border-border bg-muted/30"
 							role="row"
+							aria-rowindex={1}
 						>
 							<th
 								className={cn(PROPERTY_COLUMN_CLASS.checkbox, "px-4 py-3")}

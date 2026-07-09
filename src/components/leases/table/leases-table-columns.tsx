@@ -91,6 +91,7 @@ export function LeaseRow({
 		<tr
 			ref={measureElement}
 			data-index={virtualRow.index}
+			aria-rowindex={virtualRow.index + 2}
 			role="row"
 			style={getVirtualRowStyle(virtualRow, { measured: true })}
 			className={cn(
