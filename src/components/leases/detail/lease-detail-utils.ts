@@ -20,7 +20,8 @@ export interface TimelineEvent {
 		| "activated"
 		| "renewed"
 		| "terminated"
-		| "ended";
+		| "ended"
+		| "expired";
 	title: string;
 	description: string;
 	timestamp: string;
@@ -122,6 +123,17 @@ export function generateTimelineEvents(lease: Lease): TimelineEvent[] {
 		});
 	}
 
+	// Expired (naturally lapsed via the expire-leases cron)
+	if (lease.lease_status === "expired" && lease.end_date) {
+		events.push({
+			id: "expired",
+			type: "expired",
+			title: "Lease Expired",
+			description: "Lease lapsed at the end of its term",
+			timestamp: lease.end_date,
+		});
+	}
+
 	// Sort by timestamp (newest first)
 	return events.sort(
 		(a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
@@ -139,6 +151,7 @@ export function getTimelineIcon(type: TimelineEvent["type"]) {
 		renewed: RefreshCw,
 		terminated: XCircle,
 		ended: Clock,
+		expired: Clock,
 	};
 	return iconMap[type] || Clock;
 }
@@ -154,6 +167,7 @@ export function getTimelineColor(type: TimelineEvent["type"]) {
 		renewed: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
 		terminated: "text-red-600 bg-red-100 dark:bg-red-900/30",
 		ended: "text-stone-500 bg-stone-100 dark:bg-stone-800",
+		expired: "text-amber-600 bg-amber-100 dark:bg-amber-900/30",
 	};
 	return colorMap[type] || "text-stone-500 bg-stone-100 dark:bg-stone-800";
 }
