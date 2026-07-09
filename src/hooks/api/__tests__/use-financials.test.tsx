@@ -296,7 +296,7 @@ describe("useTaxDocuments", () => {
 	it("fetches tax documents from parallel RPCs", async () => {
 		mockRpc
 			.mockResolvedValueOnce({
-				data: [{ revenue: { yearly: 500000 }, units: {} }],
+				data: { revenue: { yearly: 500000 }, units: {} },
 				error: null,
 			})
 			.mockResolvedValueOnce({
