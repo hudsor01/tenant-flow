@@ -80,6 +80,7 @@ describe("VendorFormDialog", () => {
 			await user.clear(screen.getByLabelText(/email/i));
 			await user.clear(screen.getByLabelText(/phone/i));
 			await user.clear(screen.getByLabelText(/notes/i));
+			await user.clear(screen.getByLabelText(/hourly rate/i));
 
 			await user.click(screen.getByRole("button", { name: /save changes/i }));
 
@@ -94,6 +95,7 @@ describe("VendorFormDialog", () => {
 						email: null,
 						phone: null,
 						notes: null,
+						hourly_rate: null,
 						name: "Acme Plumbing",
 						trade: "plumbing",
 					}),

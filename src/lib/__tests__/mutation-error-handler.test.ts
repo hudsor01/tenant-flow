@@ -161,27 +161,58 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 		vi.mocked(toast.error).mockClear();
 	});
 
-	it("maps each known SQLSTATE code to its friendly copy", () => {
-		const cases: Array<[string, string]> = [
-			["23505", "This record already exists."],
+	it("maps a RAW Postgres constraint message to its friendly copy by SQLSTATE", () => {
+		// Each case pairs a real auto-generated Postgres system message (which leaks
+		// schema internals) with the friendly copy it must be replaced by.
+		const cases: Array<[string, string, string]> = [
+			[
+				"23505",
+				'duplicate key value violates unique constraint "users_email_key"',
+				"This record already exists.",
+			],
 			[
 				"23514",
+				'new row for relation "leases" violates check constraint "leases_status_check"',
 				"Some of the information entered isn't allowed. Please review and try again.",
 			],
-			["23503", "This action references a record that no longer exists."],
-			["23502", "A required field is missing."],
-			["42501", "You don't have permission to perform this action."],
+			[
+				"23503",
+				'insert or update on table "leases" violates foreign key constraint "leases_unit_id_fkey"',
+				"This action references a record that no longer exists.",
+			],
+			[
+				"23502",
+				'null value in column "name" of relation "properties" violates not-null constraint',
+				"A required field is missing.",
+			],
+			[
+				"42501",
+				'new row violates row-level security policy for table "properties"',
+				"You don't have permission to perform this action.",
+			],
 		];
 
-		for (const [code, friendly] of cases) {
+		for (const [code, raw, friendly] of cases) {
 			vi.mocked(toast.error).mockClear();
-			handleMutationError(
-				{ message: "raw postgres internals leak", code },
-				"Save record",
-			);
+			handleMutationError({ message: raw, code }, "Save record");
 			const [title, opts] = lastToastErrorCall();
 			expect(title).toBe(friendly);
 			expect(opts?.action).toBeUndefined();
+		}
+	});
+
+	it("surfaces an AUTHOR-written RAISE message verbatim even under a constraint SQLSTATE (regression)", () => {
+		// The codebase RAISEs user-facing copy under 23514 (term-lock trigger) and
+		// 42501 (default-category delete). These must NOT be genericized.
+		const authorCases: Array<[string, string]> = [
+			["23514", "Cannot edit financial terms of a signed lease"],
+			["42501", "Default categories cannot be deleted"],
+		];
+		for (const [code, authorMsg] of authorCases) {
+			vi.mocked(toast.error).mockClear();
+			handleMutationError({ message: authorMsg, code }, "Update lease");
+			const [title] = lastToastErrorCall();
+			expect(title).toBe(authorMsg);
 		}
 	});
 

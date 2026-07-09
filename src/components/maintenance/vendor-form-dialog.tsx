@@ -87,17 +87,17 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 		};
 
 		if (isEditing && vendor) {
-			// PROP-05: on edit, send explicit null when an optional contact field is
-			// cleared so the column is nulled (the create branch keeps omit-on-empty
-			// so a new row never force-writes null). name/trade are NOT-NULL and stay
-			// non-null; hourly_rate keeps its existing conditional-spread handling.
+			// PROP-05: on edit, send explicit null when an optional field is cleared
+			// so the column is nulled (the create branch keeps omit-on-empty so a new
+			// row never force-writes null). name/trade are NOT-NULL and stay non-null;
+			// hourly_rate is nullable, so a cleared value nulls it too.
 			const updateData: VendorUpdateInput = {
 				name: name.trim(),
 				trade,
 				email: email.trim() || null,
 				phone: phone.trim() || null,
 				notes: notes.trim() || null,
-				...(hourlyRate ? { hourly_rate: parseFloat(hourlyRate) } : {}),
+				hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
 			};
 			updateMutation.mutate(
 				{ id: vendor.id, data: updateData },

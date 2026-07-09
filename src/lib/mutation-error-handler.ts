@@ -85,16 +85,18 @@ const POSTGRES_ERROR_MESSAGES: Record<string, string> = {
 const GENERIC_MUTATION_ERROR = "Something went wrong. Please try again.";
 
 /**
- * A SQLSTATE is "leaky" when its raw message exposes DB/schema internals:
- * class 22 (data exceptions), class 23 (integrity constraint violations),
- * 42501 (insufficient privilege / RLS), and any PostgREST `PGRST*` code.
- * Author-written PL/pgSQL RAISE codes (P0001/P0002) are deliberately NOT
- * leaky — their messages are user-safe product copy and surface verbatim.
+ * Detects a RAW Postgres/PostgREST system message — the auto-generated text that
+ * leaks schema internals (table/column/constraint names). We genericize by
+ * MESSAGE SHAPE, not by SQLSTATE alone, because this codebase deliberately
+ * RAISEs user-facing product copy under constraint SQLSTATEs — e.g. `23514`
+ * ("Cannot edit financial terms of a signed lease" term-lock trigger; document-
+ * category validation) and `42501` ("Default categories cannot be deleted").
+ * Those author-written messages must surface verbatim, so only a message that
+ * actually matches this raw-internals shape is replaced with friendly copy.
+ * PL/pgSQL RAISE codes (P0001/P0002) never match and also pass through verbatim.
  */
-function isLeakyCode(code?: string): boolean {
-	if (!code) return false;
-	return /^(22|23)/.test(code) || code === "42501" || /^PGRST/.test(code);
-}
+const RAW_DB_INTERNALS =
+	/duplicate key value|violates (?:unique|check|foreign key|not-null|exclusion) constraint|null value in column|violates row-level security policy|invalid input syntax|value too long|out of range/i;
 
 /**
  * Handle mutation errors with consistent logging and user feedback
@@ -206,17 +208,18 @@ export function handleMutationError(
 			description: "Our servers encountered an issue. Please try again later.",
 		});
 	} else {
-		// Caller-supplied copy always wins; otherwise map known-leaky SQLSTATE
-		// codes to friendly product copy so raw Postgres internals never reach
-		// the toast. Author-written P0001/P0002 RAISE messages are not leaky and
-		// fall through to `message` verbatim.
+		// Caller-supplied copy always wins. Otherwise: only replace the message when
+		// it is a RAW Postgres/PostgREST internal (matches RAW_DB_INTERNALS, or a
+		// PostgREST `PGRST*` code which is never author copy) — using specific copy
+		// for a known SQLSTATE, else the generic fallback. Any other message —
+		// including author-written RAISE EXCEPTION copy carrying a constraint
+		// SQLSTATE like 23514/42501, and P0001/P0002 — surfaces verbatim.
 		const mappedMessage = pgCode ? POSTGRES_ERROR_MESSAGES[pgCode] : undefined;
+		const isPgrstCode = !!pgCode && /^PGRST/.test(pgCode);
 		if (customMessage) {
 			toast.error(customMessage);
-		} else if (mappedMessage) {
-			toast.error(mappedMessage);
-		} else if (isLeakyCode(pgCode)) {
-			toast.error(GENERIC_MUTATION_ERROR);
+		} else if (RAW_DB_INTERNALS.test(message) || isPgrstCode) {
+			toast.error(mappedMessage ?? GENERIC_MUTATION_ERROR);
 		} else {
 			toast.error(message);
 		}
