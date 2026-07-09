@@ -279,15 +279,14 @@ export const reportAnalyticsQueries = {
 						turnover: [],
 					};
 				}
-				const [dashResult] = await Promise.all([
-					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
-					// MIS-WIRE follow-up (DATA-01): the tenant report has no real
-					// source for turnover / on-time-payment. It used to read those
-					// fields off get_occupancy_trends_optimized, which never emits
-					// them. The RPC now correctly returns an array, so we keep the
-					// shared fetch but read nothing off it — both metrics stay 0.
-					fetchOccupancyTrends(12),
-				]);
+				// MIS-WIRE follow-up (DATA-01): the tenant report has no real source
+				// for turnover / on-time-payment — those fields used to be read off
+				// get_occupancy_trends_optimized, which never emits them. The occupancy
+				// fetch was discarded anyway and coupled the report's success to an
+				// unrelated RPC, so it is dropped; both metrics stay 0 below.
+				const dashResult = await supabase.rpc("get_dashboard_stats", {
+					p_user_id: user.id,
+				});
 				if (dashResult.error)
 					handlePostgrestError(dashResult.error, "tenant report");
 				const { tenants, leases } = extractDashStats(dashResult.data);

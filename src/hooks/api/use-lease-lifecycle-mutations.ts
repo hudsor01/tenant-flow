@@ -30,7 +30,7 @@ export function useTerminateLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			successMessage: "Lease terminated successfully",

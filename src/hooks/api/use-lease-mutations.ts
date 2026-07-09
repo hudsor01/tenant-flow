@@ -129,7 +129,7 @@ export function useCreateLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			successMessage: "Lease created successfully",
@@ -150,7 +150,7 @@ export function useUpdateLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			updateDetail: (lease) => ({
@@ -176,7 +176,7 @@ export function useDeleteLeaseMutation() {
 			invalidate: [
 				leaseQueries.lists(),
 				tenantQueries.lists(),
-				unitQueries.lists(),
+				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
 			removeDetail: (_data, deletedId) =>
