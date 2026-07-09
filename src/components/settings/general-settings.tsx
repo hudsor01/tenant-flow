@@ -182,7 +182,10 @@ export function GeneralSettings() {
 	};
 
 	const isLoading = profileLoading || preferencesLoading;
-	const isSaving = updateProfile.isPending || updatePreferences.isPending;
+	const isSaving =
+		updateProfile.isPending ||
+		updatePreferences.isPending ||
+		updateEmail.isPending;
 
 	if (isLoading) {
 		return (

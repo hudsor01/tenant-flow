@@ -116,15 +116,25 @@ export function PropertyForm({
 		},
 		onSubmit: async ({ value }) => {
 			// FORMFIX-08: no form-level error toast — the mutation's onError
-			// (createMutationCallbacks) surfaces a single error toast. On failure the
-			// awaited mutation rejects (onSuccess is not reached); the rejection is
-			// handled by the mutation callback + TanStack Form's submit boundary.
-			if (mode === "create") {
-				await handleCreateSubmit(value);
-			} else {
-				await handleEditSubmit(value);
+			// (createMutationCallbacks) surfaces the single error toast. Swallow the
+			// rejection here (log only, matching lease-form/add-tenant-form): form-core
+			// RE-THROWS anything onSubmit throws, and the DOM handler calls
+			// form.handleSubmit() un-awaited, so a re-thrown mutation rejection would
+			// escape as an unhandled promise rejection (second Sentry capture via the
+			// global handler + a dev error overlay on an already-handled failure).
+			try {
+				if (mode === "create") {
+					await handleCreateSubmit(value);
+				} else {
+					await handleEditSubmit(value);
+				}
+				onSuccess?.();
+			} catch (error) {
+				logger.error(`Property ${mode} failed`, {
+					error: error instanceof Error ? error.message : String(error),
+					stack: error instanceof Error ? error.stack : undefined,
+				});
 			}
-			onSuccess?.();
 		},
 	});
 
