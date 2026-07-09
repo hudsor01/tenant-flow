@@ -1,13 +1,23 @@
 "use client";
 
+import type { VirtualItem } from "@tanstack/react-virtual";
 import { FileText, Pencil, Trash2 } from "lucide-react";
+import {
+	getVirtualRowStyle,
+	VIRTUAL_ROW_CLASS,
+} from "#components/shared/virtualized-table-row";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
+import { cn } from "#lib/utils";
 import type { TenantItem } from "#types/sections/tenants";
-import { TenantLeaseStatusBadge } from "./tenant-table-helpers";
+import {
+	TENANT_COLUMN_CLASS,
+	TenantLeaseStatusBadge,
+} from "./tenant-table-helpers";
 
 interface TenantTableRowProps {
 	tenant: TenantItem;
+	virtualRow: VirtualItem;
 	isSelected: boolean;
 	onSelect: (id: string) => void;
 	onView: (id: string) => void;
@@ -18,6 +28,7 @@ interface TenantTableRowProps {
 
 export function TenantTableRow({
 	tenant,
+	virtualRow,
 	isSelected,
 	onSelect,
 	onView,
@@ -31,39 +42,47 @@ export function TenantTableRow({
 
 	return (
 		<tr
-			className={`hover:bg-muted/50 transition-colors ${
-				isSelected ? "bg-primary/5" : ""
-			}`}
+			data-index={virtualRow.index}
+			style={getVirtualRowStyle(virtualRow)}
+			className={cn(
+				VIRTUAL_ROW_CLASS,
+				"hover:bg-muted/50 transition-colors",
+				isSelected && "bg-primary/5",
+			)}
 		>
-			<td className="px-4 py-2">
+			<td className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")}>
 				<Checkbox
 					checked={isSelected}
 					onCheckedChange={() => onSelect(tenant.id)}
 					aria-label={`Select ${tenant.fullName}`}
 				/>
 			</td>
-			<td className="px-4 py-2">
+			<td className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")}>
 				<button
 					onClick={() => onView(tenant.id)}
-					className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left"
+					className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left truncate"
 				>
 					{tenant.fullName}
 				</button>
 			</td>
-			<td className="px-4 py-2">
-				<span className="text-sm text-muted-foreground">{tenant.email}</span>
+			<td className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")}>
+				<span className="text-sm text-muted-foreground truncate">
+					{tenant.email}
+				</span>
 			</td>
-			<td className="px-4 py-2">
-				<span className="text-sm text-muted-foreground">
+			<td className={cn(TENANT_COLUMN_CLASS.phone, "px-4 py-2")}>
+				<span className="text-sm text-muted-foreground truncate">
 					{tenant.phone || "—"}
 				</span>
 			</td>
-			<td className="px-4 py-2">
+			<td className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")}>
 				{tenant.currentProperty ? (
-					<div className="text-left">
-						<p className="text-sm text-foreground">{tenant.currentProperty}</p>
+					<div className="text-left min-w-0">
+						<p className="text-sm text-foreground truncate">
+							{tenant.currentProperty}
+						</p>
 						{tenant.currentUnit && (
-							<p className="text-xs text-muted-foreground">
+							<p className="text-xs text-muted-foreground truncate">
 								Unit {tenant.currentUnit}
 							</p>
 						)}
@@ -72,10 +91,10 @@ export function TenantTableRow({
 					<span className="text-sm text-muted-foreground">—</span>
 				)}
 			</td>
-			<td className="px-4 py-2">
+			<td className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")}>
 				<TenantLeaseStatusBadge status={tenant.leaseStatus} />
 			</td>
-			<td className="px-4 py-2">
+			<td className={cn(TENANT_COLUMN_CLASS.lease, "px-4 py-2")}>
 				{tenant.leaseStatus === "active" && leaseId ? (
 					<Button
 						variant="ghost"
@@ -90,7 +109,7 @@ export function TenantTableRow({
 					<span className="text-sm text-muted-foreground">—</span>
 				)}
 			</td>
-			<td className="px-4 py-2">
+			<td className={cn(TENANT_COLUMN_CLASS.actions, "px-4 py-2")}>
 				<div className="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"

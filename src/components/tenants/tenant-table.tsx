@@ -4,11 +4,13 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, useState } from "react";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
+import { cn } from "#lib/utils";
 import type { TenantItem } from "#types/sections/tenants";
 import {
 	SortableHeader,
 	type SortDirection,
 	type SortField,
+	TENANT_COLUMN_CLASS,
 } from "./tenant-table-helpers";
 import { TenantTableRow } from "./tenant-table-row";
 
@@ -130,10 +132,10 @@ export function TenantTable({
 				ref={tableScrollRef}
 				className="overflow-auto max-h-[calc(100vh-400px)]"
 			>
-				<table className="w-full">
-					<thead className="border-b border-border bg-muted/50 sticky top-0 z-10">
-						<tr>
-							<th className="w-10 px-4 py-2">
+				<table className="grid w-full">
+					<thead className="grid border-b border-border bg-muted/50 sticky top-0 z-10">
+						<tr className="flex w-full">
+							<th className={cn(TENANT_COLUMN_CLASS.checkbox, "px-4 py-2")}>
 								<Checkbox
 									checked={
 										allSelected ? true : someSelected ? "indeterminate" : false
@@ -142,7 +144,7 @@ export function TenantTable({
 									aria-label="Select all"
 								/>
 							</th>
-							<th className="px-4 py-2 text-left">
+							<th className={cn(TENANT_COLUMN_CLASS.name, "px-4 py-2")}>
 								<SortableHeader
 									title="Name"
 									field="fullName"
@@ -151,7 +153,7 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-2 text-left">
+							<th className={cn(TENANT_COLUMN_CLASS.email, "px-4 py-2")}>
 								<SortableHeader
 									title="Email"
 									field="email"
@@ -160,10 +162,15 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
+							<th
+								className={cn(
+									TENANT_COLUMN_CLASS.phone,
+									"px-4 py-2 text-sm font-medium text-muted-foreground",
+								)}
+							>
 								Phone
 							</th>
-							<th className="px-4 py-2 text-left">
+							<th className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")}>
 								<SortableHeader
 									title="Property"
 									field="property"
@@ -172,7 +179,7 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-2 text-left">
+							<th className={cn(TENANT_COLUMN_CLASS.status, "px-4 py-2")}>
 								<SortableHeader
 									title="Status"
 									field="leaseStatus"
@@ -181,17 +188,21 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
+							<th
+								className={cn(
+									TENANT_COLUMN_CLASS.lease,
+									"px-4 py-2 text-sm font-medium text-muted-foreground",
+								)}
+							>
 								Lease
 							</th>
-							<th className="w-20 px-4 py-2"></th>
+							<th className={cn(TENANT_COLUMN_CLASS.actions, "px-4 py-2")}></th>
 						</tr>
 					</thead>
 					<tbody
-						className="divide-y divide-border"
+						className="relative grid divide-y divide-border"
 						style={{
 							height: `${rowVirtualizer.getTotalSize()}px`,
-							position: "relative",
 						}}
 					>
 						{rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -200,6 +211,7 @@ export function TenantTable({
 								<TenantTableRow
 									key={tenant.id}
 									tenant={tenant}
+									virtualRow={virtualRow}
 									isSelected={selectedIds.has(tenant.id)}
 									onSelect={handleSelectOne}
 									onView={onView}

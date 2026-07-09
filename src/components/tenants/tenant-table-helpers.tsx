@@ -12,6 +12,23 @@ export type SortField =
 	| "leaseStatus"
 	| null;
 
+/**
+ * Per-column layout classes shared by the flex `<thead>` cells and the flex
+ * virtualized row `<td>`s so column widths stay in lockstep and align. The tenant
+ * table has a fixed column set (no visibility toggles), so every entry renders at
+ * every breakpoint. Each entry is `display` + width + vertical centering.
+ */
+export const TENANT_COLUMN_CLASS = {
+	checkbox: "flex w-12 shrink-0 items-center",
+	name: "flex flex-1 min-w-0 items-center",
+	email: "flex flex-1 min-w-0 items-center",
+	phone: "flex w-36 shrink-0 items-center",
+	property: "flex flex-1 min-w-0 items-center",
+	status: "flex w-32 shrink-0 items-center",
+	lease: "flex w-24 shrink-0 items-center",
+	actions: "flex w-28 shrink-0 items-center justify-end",
+} as const;
+
 const STATUS_LABELS: Record<LeaseStatus, string> = {
 	draft: "Draft",
 	pending_signature: "Pending",
