@@ -34,15 +34,11 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	const [errors, setErrors] = useState<{ name: string; message: string }[]>([]);
 	const [successes, setSuccesses] = useState<string[]>([]);
 
-	const isSuccess = (() => {
-		if (errors.length === 0 && successes.length === 0) {
-			return false;
-		}
-		if (errors.length === 0 && successes.length === files.length) {
-			return true;
-		}
-		return false;
-	})();
+	const isSuccess =
+		files.length > 0 &&
+		!loading &&
+		errors.length === 0 &&
+		files.every((f) => successes.includes(f.name));
 
 	const onDrop = (acceptedFiles: File[], fileRejections: FileRejection[]) => {
 		const validFiles = acceptedFiles
@@ -78,16 +74,12 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	const onUpload = async () => {
 		setLoading(true);
 
-		// [Joshen] This is to support handling partial successes
-		// If any files didn't upload for any reason, hitting "Upload" again will only upload the files that had errors
-		const filesWithErrors = errors.map((x) => x.name);
-		const filesToUpload =
-			filesWithErrors.length > 0
-				? [
-						...files.filter((f) => filesWithErrors.includes(f.name)),
-						...files.filter((f) => !successes.includes(f.name)),
-					]
-				: files;
+		// Retry list: upload each file at most once — skip client-invalid files
+		// (errors.length > 0) and files that already succeeded, so a partial-failure
+		// retry never double-uploads a file (one storage object + one property_images row).
+		const filesToUpload = files.filter(
+			(f) => f.errors.length === 0 && !successes.includes(f.name),
+		);
 
 		const responses = await Promise.all(
 			filesToUpload.map(async (file) => {
@@ -125,6 +117,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	useEffect(() => {
 		if (files.length === 0) {
 			setErrors([]);
+			setSuccesses([]);
 		}
 
 		// If the number of files doesn't exceed the maxFiles parameter, remove the error 'Too many files' from each file
