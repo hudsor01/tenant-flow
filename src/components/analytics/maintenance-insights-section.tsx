@@ -89,6 +89,17 @@ function CategoryBreakdownTable({
 				pageSize: 8,
 			},
 		},
+		// UIX-01: the /maintenance route's List view (MaintenanceTableClient) owns the
+		// default `page`/`perPage` nuqs params, and those persist across the Radix tab
+		// switch — so without a namespace this insights table would mount on the list's
+		// leftover page number (e.g. "page 2" → blank). Namespace its URL keys.
+		queryKeys: {
+			page: "catPage",
+			perPage: "catPerPage",
+			sort: "catSort",
+			filters: "catFilters",
+			joinOperator: "catJoin",
+		},
 	});
 
 	if (!entries.length) {
