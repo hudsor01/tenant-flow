@@ -187,6 +187,7 @@ export function LeasesTable({
 										key={lease.id}
 										lease={lease}
 										virtualRow={virtualRow}
+										measureElement={rowVirtualizer.measureElement}
 										isSelected={selectedRows.has(lease.id)}
 										onToggleSelect={onToggleSelect}
 										onView={onView}

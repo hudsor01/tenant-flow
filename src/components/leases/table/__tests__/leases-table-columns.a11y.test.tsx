@@ -39,6 +39,7 @@ function renderRow() {
 						key: 0,
 						lane: 0,
 					}}
+					measureElement={() => {}}
 					isSelected={false}
 					onToggleSelect={vi.fn()}
 					onView={vi.fn()}

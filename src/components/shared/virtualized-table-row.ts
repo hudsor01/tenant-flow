@@ -20,7 +20,17 @@ export const VIRTUAL_ROW_CLASS =
  * are computed at runtime, so they must be inline style rather than Tailwind
  * utilities — the same reason the `<tbody>` spacer sets its total height inline.
  */
-export function getVirtualRowStyle(virtualRow: VirtualItem): CSSProperties {
+export function getVirtualRowStyle(
+	virtualRow: VirtualItem,
+	opts?: { measured?: boolean },
+): CSSProperties {
+	// Measured rows (variable height via `measureElement` — e.g. the leases table,
+	// whose tenant cell stacks a 3rd line below `lg`) must NOT be pinned to a fixed
+	// height, or measurement reads the pinned value and rows overlap. Fixed rows
+	// (uniform content) keep the exact estimateSize height.
+	if (opts?.measured) {
+		return { transform: `translateY(${virtualRow.start}px)` };
+	}
 	return {
 		height: `${virtualRow.size}px`,
 		transform: `translateY(${virtualRow.start}px)`,

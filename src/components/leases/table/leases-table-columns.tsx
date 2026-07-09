@@ -67,6 +67,7 @@ export function StatusBadge({ status }: { status: string }) {
 interface LeaseRowProps {
 	lease: LeaseDisplay;
 	virtualRow: VirtualItem;
+	measureElement: (node: Element | null) => void;
 	isSelected: boolean;
 	onToggleSelect: (id: string) => void;
 	onView: (id: string) => void;
@@ -78,6 +79,7 @@ interface LeaseRowProps {
 export function LeaseRow({
 	lease,
 	virtualRow,
+	measureElement,
 	isSelected,
 	onToggleSelect,
 	onView,
@@ -87,9 +89,10 @@ export function LeaseRow({
 }: LeaseRowProps) {
 	return (
 		<tr
+			ref={measureElement}
 			data-index={virtualRow.index}
 			role="row"
-			style={getVirtualRowStyle(virtualRow)}
+			style={getVirtualRowStyle(virtualRow, { measured: true })}
 			className={cn(
 				VIRTUAL_ROW_CLASS,
 				"hover:bg-muted/50 transition-colors",
