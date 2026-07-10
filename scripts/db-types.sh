@@ -55,5 +55,8 @@ if [ ! -s "$tmp" ]; then
 fi
 
 mv "$tmp" "$DEST"
-trap - EXIT
+# Leave the EXIT trap armed so it removes "$err" (empty on success, and — unlike
+# the ".tmp" sibling — not covered by .gitignore, so it would otherwise surface
+# in `git status`). "$tmp" was just mv'd to "$DEST", so the trap's `rm -f "$tmp"`
+# is a harmless no-op.
 echo "db:types: regenerated $DEST"
