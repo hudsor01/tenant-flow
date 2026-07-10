@@ -13,8 +13,7 @@ interface BlogPaginationProps {
 
 /**
  * Build a `?page=N` href for the current pathname. Page 1 drops the param
- * entirely so the canonical first page stays at the bare path (mirrors the
- * nuqs `null` default the click handler sets).
+ * entirely so the canonical first page stays at the bare path.
  */
 function pageHref(pathname: string, page: number): string {
 	return page <= 1 ? pathname : `${pathname}?page=${page}`;
@@ -22,7 +21,9 @@ function pageHref(pathname: string, page: number): string {
 
 export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 	const pathname = usePathname();
-	const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
+	// Read-only: the reactive "Page X of Y" label tracks the URL `?page` after a
+	// real navigation. No setter — navigation is driven by the <Link> hrefs.
+	const [page] = useQueryState("page", parseAsInteger.withDefault(1));
 
 	const currentPage = Math.max(1, Math.min(page, totalPages));
 
@@ -45,9 +46,12 @@ export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 			className={cn("flex items-center justify-center gap-4", className)}
 		>
 			{/* Real anchors so the page>1 URLs exist in the SSR HTML and are
-			    crawlable — the onClick keeps the nuqs instant client-side swap.
-			    aria-disabled (not the `disabled` attribute, invalid on <a>)
-			    plus pointer-events-none gate the boundary pages. */}
+			    crawlable — a click performs real <Link> navigation, which
+			    re-runs the Server Component so the post grid actually changes.
+			    The onClick is a guard only: it preventDefaults nothing but a
+			    disabled boundary link. aria-disabled (not the `disabled`
+			    attribute, invalid on <a>) plus pointer-events-none gate the
+			    boundary pages. */}
 			<Link
 				href={pageHref(pathname, prevPage)}
 				className={cn(linkClasses, !hasPrev && disabledClasses)}
@@ -55,12 +59,7 @@ export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 				aria-disabled={!hasPrev}
 				tabIndex={hasPrev ? undefined : -1}
 				onClick={(e) => {
-					if (!hasPrev) {
-						e.preventDefault();
-						return;
-					}
-					e.preventDefault();
-					setPage(prevPage === 1 ? null : prevPage);
+					if (!hasPrev) e.preventDefault();
 				}}
 			>
 				<ChevronLeft className="size-4" />
@@ -77,12 +76,7 @@ export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 				aria-disabled={!hasNext}
 				tabIndex={hasNext ? undefined : -1}
 				onClick={(e) => {
-					if (!hasNext) {
-						e.preventDefault();
-						return;
-					}
-					e.preventDefault();
-					setPage(nextPage);
+					if (!hasNext) e.preventDefault();
 				}}
 			>
 				<ChevronRight className="size-4" />

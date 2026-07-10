@@ -127,12 +127,14 @@ interface MockBuilderOpts {
 	posts?: BlogListItem[];
 	postsCount?: number | null;
 	categories?: typeof mockCategories;
+	postsError?: { code?: string; message: string } | null;
 }
 
 function makeClient({
 	posts = mockPosts,
 	postsCount = 14,
 	categories = mockCategories,
+	postsError = null,
 }: MockBuilderOpts = {}) {
 	const fromMock = vi.fn(() => {
 		const chain: Record<string, unknown> = {};
@@ -140,7 +142,11 @@ function makeClient({
 		chain.eq = vi.fn(() => chain);
 		chain.order = vi.fn(() => chain);
 		chain.range = vi.fn(() =>
-			Promise.resolve({ data: posts, count: postsCount, error: null }),
+			Promise.resolve({
+				data: postsError ? null : posts,
+				count: postsError ? null : postsCount,
+				error: postsError,
+			}),
 		);
 		// Awaiting the builder directly (the HEAD count path used by
 		// getCategoryPublishedCount) resolves to the same {count} shape.
@@ -268,6 +274,43 @@ describe("BlogCategoryPage (server component)", () => {
 	it("renders NewsletterSignup", async () => {
 		render(await renderPage("software-comparisons"));
 		expect(screen.getByTestId("newsletter-signup")).toBeInTheDocument();
+	});
+
+	it("returns notFound() for an out-of-range page (PGRST103)", async () => {
+		mockBlogAnonClient.mockReturnValue(
+			makeClient({
+				postsError: {
+					code: "PGRST103",
+					message: "Requested range not satisfiable",
+				},
+			}),
+		);
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
+		await expect(
+			BlogCategoryPage({
+				params: Promise.resolve({ category: "software-comparisons" }),
+				searchParams: Promise.resolve({ page: "9999" }),
+			}),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("NEXT_NOT_FOUND"),
+		});
+		expect(mockNotFound).toHaveBeenCalled();
+	});
+
+	it("throws (surfaces to error boundary) on a generic posts-query error", async () => {
+		mockBlogAnonClient.mockReturnValue(
+			makeClient({ postsError: { code: "XX000", message: "boom" } }),
+		);
+		mockGetBlogCategories.mockResolvedValue(mockCategories);
+		await expect(
+			BlogCategoryPage({
+				params: Promise.resolve({ category: "software-comparisons" }),
+				searchParams: Promise.resolve({}),
+			}),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("boom"),
+		});
+		expect(mockNotFound).not.toHaveBeenCalled();
 	});
 });
 
