@@ -204,6 +204,14 @@ Requirements: MKT-01, MKT-02, MKT-03, MKT-04, MKT-05
 3. The homepage SearchAction and `/search` agree; compare/resource cross-link blocks point at existing posts or degrade cleanly
 4. Two consecutive zero-finding review cycles
 
+**Plans:** 5 plans
+Plans:
+- [ ] 34-01-PLAN.md — MKT-01: OG oklch→hsl + OG-scoped design-token drift guard
+- [ ] 34-02-PLAN.md — MKT-02/MKT-03: blog pagination navigation + category 404/error honesty
+- [ ] 34-03-PLAN.md — MKT-04: /search public blog-search rewrite (name="q")
+- [ ] 34-04-PLAN.md — MKT-05: cross-link slug repoints + prod slug-integrity guard
+- [ ] 34-05-PLAN.md — Phase verification (gate + MKT-01 pixel-verify + per-MKT checklist)
+
 ### Phase 35: TZ Sweep, Bulk-Import, Scripts & Hygiene
 **Goal:** Clean up the cross-cutting remainder — eliminate the whole timezone "one day early" class with local-zone date handling, fix the default-report-range month math and the revenue-vs-expenses chart, preserve import currency/status, and fix the script + repo-migration hygiene issues.
 Requirements: MISC-01, MISC-02, MISC-03, MISC-04, TZ-01, TZ-02, TZ-03
