@@ -29,7 +29,12 @@ describe("LEASE-04 reject_signed_lease_term_edits trigger", () => {
 	let tenantA: { id: string } | null = null;
 	const insertedLeaseIds: string[] = [];
 
-	// Signed lease (tenant_signed_at set) reused across the lock/allow cases.
+	// Out-for-signature lease (lease_status='pending_signature') reused across the
+	// lock/allow cases. The term-lock trigger fires on OLD.tenant_signed_at IS NOT
+	// NULL *or* OLD.lease_status='pending_signature'; SEC-05 (20260710070223)
+	// revoked the signature-audit columns from `authenticated`, so an owner client
+	// can no longer set tenant_signed_at directly — lease_status is the writable
+	// signal that drives the same lock.
 	let signedLeaseId: string | null = null;
 	// Unsigned draft used for the still-editable case.
 	let draftLeaseId: string | null = null;
@@ -109,13 +114,15 @@ describe("LEASE-04 reject_signed_lease_term_edits trigger", () => {
 			.single();
 		tenantA = tA ? { id: tA.id } : null;
 
-		// Signed lease: create a draft, then set tenant_signed_at (an allowed
-		// signature-column write while OLD is still unsigned).
+		// Drive the term-lock via lease_status='pending_signature' (owner-writable).
+		// The lock-requiring case runs first, while the status is still
+		// pending_signature; the later renew/terminate cases only exercise allowed
+		// edits, so mutating lease_status afterwards is fine.
 		signedLeaseId = await createLease("2036-01-01", "2036-12-31");
 		if (signedLeaseId) {
 			await clientA
 				.from("leases")
-				.update({ tenant_signed_at: new Date().toISOString() })
+				.update({ lease_status: "pending_signature" })
 				.eq("id", signedLeaseId);
 		}
 
