@@ -5,8 +5,7 @@ export type PropertyType =
 	| "multi_family"
 	| "apartment"
 	| "condo"
-	| "townhouse"
-	| "duplex";
+	| "townhouse";
 
 export interface PropertyImage {
 	id: string;

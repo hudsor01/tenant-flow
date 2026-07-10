@@ -217,8 +217,19 @@ export interface VendorCreateInput {
 	notes?: string;
 }
 
-export interface VendorUpdateInput extends Partial<VendorCreateInput> {
+export interface VendorUpdateInput
+	extends Omit<
+		Partial<VendorCreateInput>,
+		"email" | "phone" | "notes" | "hourly_rate"
+	> {
 	status?: VendorStatus;
+	// PROP-05: optional fields accept explicit null so clearing them in the edit
+	// form nulls the column (omitting would keep the old value). The `Vendor` type
+	// already allows null on these; only the input type was narrow.
+	email?: string | null;
+	phone?: string | null;
+	notes?: string | null;
+	hourly_rate?: number | null;
 }
 
 export interface VendorFilters {

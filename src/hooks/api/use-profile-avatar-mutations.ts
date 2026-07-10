@@ -43,13 +43,18 @@ const avatarMutationFactories = {
 					data: { publicUrl },
 				} = supabase.storage.from("avatars").getPublicUrl(path);
 
+				// Deterministic path + upsert overwrites the same object in place (no
+				// orphans), so bake a version token into the stored URL to bust the
+				// CDN/browser cache key and force React to re-render the new src.
+				const versionedUrl = `${publicUrl}?v=${Date.now()}`;
+
 				const { error: updateError } = await supabase
 					.from("users")
-					.update({ avatar_url: publicUrl })
+					.update({ avatar_url: versionedUrl })
 					.eq("id", user.id);
 				if (updateError) throw updateError;
 
-				return { avatar_url: publicUrl };
+				return { avatar_url: versionedUrl };
 			},
 		}),
 

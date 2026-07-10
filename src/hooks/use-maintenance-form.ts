@@ -122,15 +122,19 @@ export function useMaintenanceForm({
 						tenant_id: value.tenant_id,
 					};
 
-					// Add optional fields only if they have values
+					// PROP-05: send explicit null on clear (edit branch only) so the
+					// column is nulled — a cleared field previously omitted the key and
+					// kept the old value. NOT-NULL columns above are always sent.
 					if (value.estimated_cost) {
 						const parsed = parseFloat(value.estimated_cost);
-						if (Number.isFinite(parsed)) {
-							payload.estimated_cost = parsed;
-						}
+						payload.estimated_cost = Number.isFinite(parsed) ? parsed : null;
+					} else {
+						payload.estimated_cost = null;
 					}
 					if (value.scheduled_date) {
 						payload.scheduled_date = value.scheduled_date;
+					} else {
+						payload.scheduled_date = null;
 					}
 
 					const mutationPayload: {

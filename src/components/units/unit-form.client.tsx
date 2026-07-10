@@ -157,7 +157,10 @@ export function UnitForm({
 					}
 					await updateUnitMutation.mutateAsync({
 						id: unit.id,
-						data: unitData,
+						// PROP-05: the shared unitData omits square_feet on clear
+						// (square_feet ?? undefined); the edit path must send explicit
+						// null so a cleared optional column is actually nulled.
+						data: { ...unitData, square_feet },
 					});
 					// FORMFIX-08: the update mutation's createMutationCallbacks fires the
 					// single success toast; no form-level duplicate.

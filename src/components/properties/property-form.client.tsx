@@ -212,7 +212,9 @@ export function PropertyForm({
 			postal_code: value.postal_code,
 			country: value.country,
 			property_type: value.property_type,
-			...(value.address_line2 ? { address_line2: value.address_line2 } : {}),
+			...(value.address_line2
+				? { address_line2: value.address_line2 }
+				: { address_line2: null }),
 			...(value.acquisition_cost !== null
 				? { acquisition_cost: value.acquisition_cost }
 				: { acquisition_cost: null }),

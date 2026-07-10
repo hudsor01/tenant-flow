@@ -94,6 +94,13 @@ const propertyUpdateSchema = propertyInputSchema.partial().extend({
 	id: uuidSchema.optional(),
 	status: propertyStatusSchema.optional(),
 	owner_user_id: uuidSchema.optional(),
+	// PROP-05: allow clearing the optional address_line2 (nullable column) by
+	// sending explicit null in the edit path; create/input schema stays optional-only.
+	address_line2: z
+		.string()
+		.max(200, "Address line 2 cannot exceed 200 characters")
+		.nullable()
+		.optional(),
 });
 
 // Property query schema (for search/filtering)

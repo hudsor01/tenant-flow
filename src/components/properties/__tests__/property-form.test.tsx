@@ -240,6 +240,69 @@ describe("PropertyForm", () => {
 			expect(screen.getByText(/property type \*/i)).toBeInTheDocument();
 			// The form should be rendered in edit mode successfully
 		});
+
+		// PROP-05: clearing the optional Address line 2 must null the column in the
+		// update payload (previously the conditional-spread omitted it, so the DB
+		// kept its old value). NOT-NULL columns must never be sent as null.
+		test("clearing Address line 2 sends address_line2: null in the update payload (PROP-05)", async () => {
+			const user = userEvent.setup();
+			const editable: Property = {
+				...DEFAULT_PROPERTY,
+				property_type: "SINGLE_FAMILY",
+				address_line2: "Suite 200",
+			};
+			renderWithQueryClient(<PropertyForm mode="edit" property={editable} />);
+
+			const line2 = screen.getByLabelText(/address line 2/i);
+			expect(line2).toHaveValue("Suite 200");
+			await user.clear(line2);
+
+			await user.click(
+				screen.getByRole("button", { name: /update property/i }),
+			);
+
+			await waitFor(() => {
+				expect(mockUpdateProperty).toHaveBeenCalled();
+			});
+			expect(mockUpdateProperty).toHaveBeenCalledWith(
+				expect.objectContaining({
+					id: "property-1",
+					data: expect.objectContaining({
+						// cleared optional field → explicit null
+						address_line2: null,
+						// NOT-NULL column stays a string (never null)
+						name: expect.any(String),
+					}),
+				}),
+			);
+		});
+
+		test("editing a non-empty Address line 2 sends the string (PROP-05)", async () => {
+			const user = userEvent.setup();
+			const editable: Property = {
+				...DEFAULT_PROPERTY,
+				property_type: "SINGLE_FAMILY",
+				address_line2: "Suite 200",
+			};
+			renderWithQueryClient(<PropertyForm mode="edit" property={editable} />);
+
+			const line2 = screen.getByLabelText(/address line 2/i);
+			await user.clear(line2);
+			await user.type(line2, "Suite 305");
+
+			await user.click(
+				screen.getByRole("button", { name: /update property/i }),
+			);
+
+			await waitFor(() => {
+				expect(mockUpdateProperty).toHaveBeenCalled();
+			});
+			expect(mockUpdateProperty).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({ address_line2: "Suite 305" }),
+				}),
+			);
+		});
 	});
 
 	describe("Form Validation", () => {

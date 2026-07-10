@@ -1,26 +1,34 @@
 const MAX_SEARCH_LENGTH = 100;
 
 /**
- * Characters that can modify PostgREST filter semantics when interpolated
- * into .or() and .ilike() calls:
- * - , separates filter clauses in .or()
- * - . separates column.operator.value
- * - ( ) group filter logic
- * - " ' string delimiters
- * - \ escape character
+ * Normalize user search input for a discrete PostgREST filter param.
  *
- * % is intentionally NOT stripped -- it is the ILIKE wildcard
- * and is already part of the template (e.g., %${search}%).
+ * Value characters are NOT stripped: postgrest-js sends the value in a
+ * discrete parameter for `.ilike(col, `%${s}%`)` calls, so dots, `@`, commas
+ * and quotes are treated as literal text by PostgREST — stripping them
+ * corrupted legitimate email/dotted searches (e.g. "jane.doe@acme.com").
+ *
+ * Only trims surrounding whitespace and caps length.
  */
-const POSTGREST_DANGEROUS_CHARS = /[,.()"'\\]/g;
+export function normalizeSearchInput(input: string): string {
+	return input.trim().slice(0, MAX_SEARCH_LENGTH);
+}
 
 /**
- * Strips PostgREST filter operators from user search input.
- * Silent strip -- no user-visible feedback when characters are removed.
+ * Escape a search value for interpolation into a raw PostgREST `.or()` logic
+ * string. Unlike a discrete `.ilike()` param, the `.or()` string is parsed by
+ * PostgREST — `, . ( ) :` are structural. To keep the value literal, callers
+ * MUST wrap it in double quotes at the call site:
+ *
+ *   q.or(`name.ilike."%${escapeOrValue(s)}%",city.ilike."%${escapeOrValue(s)}%"`)
+ *
+ * Inside those double quotes only `\` and `"` are special, so this escapes the
+ * backslash FIRST (so an already-escaping backslash isn't double-counted) then
+ * the double quote. Value chars like `. , ( ) :` are left intact and become
+ * literal text once quote-wrapped.
  */
-export function sanitizeSearchInput(input: string): string {
-	return input
-		.replace(POSTGREST_DANGEROUS_CHARS, "")
-		.trim()
-		.slice(0, MAX_SEARCH_LENGTH);
+export function escapeOrValue(input: string): string {
+	return normalizeSearchInput(input)
+		.replace(/\\/g, "\\\\")
+		.replace(/"/g, '\\"');
 }

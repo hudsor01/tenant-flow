@@ -29,7 +29,11 @@ import {
 } from "#hooks/api/use-vendor";
 import { useCurrentUser } from "#hooks/use-current-user";
 import { cn } from "#lib/utils";
-import type { Vendor, VendorCreateInput } from "#types/domain";
+import type {
+	Vendor,
+	VendorCreateInput,
+	VendorUpdateInput,
+} from "#types/domain";
 
 const TRADES = [
 	{ value: "plumbing", label: "Plumbing" },
@@ -83,8 +87,20 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 		};
 
 		if (isEditing && vendor) {
+			// PROP-05: on edit, send explicit null when an optional field is cleared
+			// so the column is nulled (the create branch keeps omit-on-empty so a new
+			// row never force-writes null). name/trade are NOT-NULL and stay non-null;
+			// hourly_rate is nullable, so a cleared value nulls it too.
+			const updateData: VendorUpdateInput = {
+				name: name.trim(),
+				trade,
+				email: email.trim() || null,
+				phone: phone.trim() || null,
+				notes: notes.trim() || null,
+				hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
+			};
 			updateMutation.mutate(
-				{ id: vendor.id, data },
+				{ id: vendor.id, data: updateData },
 				{
 					onSuccess: () => {
 						setOpen(false);

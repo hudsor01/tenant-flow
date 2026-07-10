@@ -4,7 +4,7 @@ import { omitUndefined } from "#lib/db-insert";
 import { createLogger, logger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
-import { sanitizeSearchInput } from "#lib/sanitize-search";
+import { escapeOrValue } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
@@ -57,9 +57,9 @@ export const propertyQueries = {
 				}
 
 				if (filters?.search) {
-					const safe = sanitizeSearchInput(filters.search);
+					const safe = escapeOrValue(filters.search);
 					if (safe) {
-						q = q.or(`name.ilike.%${safe}%,city.ilike.%${safe}%`);
+						q = q.or(`name.ilike."%${safe}%",city.ilike."%${safe}%"`);
 					}
 				}
 

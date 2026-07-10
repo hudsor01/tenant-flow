@@ -6,7 +6,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { vi } from "vitest";
@@ -670,6 +670,68 @@ describe("MaintenanceForm", () => {
 			});
 			expect(screen.getAllByText(/cannot be empty/i).length).toBeGreaterThan(0);
 			expect(mockCreateMutateAsync).not.toHaveBeenCalled();
+		});
+	});
+
+	// PROP-05: clearing an optional edit field previously OMITTED the key, so the
+	// column kept its old value. The edit branch must now send explicit null on
+	// clear (nullable columns only) while NOT-NULL fields (title/unit_id/tenant_id)
+	// stay populated.
+	describe("PROP-05: clearing optional fields nulls the columns", () => {
+		const requestWithSchedule: MaintenanceRequest = {
+			...mockMaintenanceRequest,
+			scheduled_date: "2024-06-15",
+		};
+
+		test("clearing estimated cost + scheduled date sends explicit null; NOT-NULL fields persist", async () => {
+			const user = userEvent.setup();
+			await act(async () => {
+				renderWithQueryClient(
+					<MaintenanceForm mode="edit" request={requestWithSchedule} />,
+				);
+			});
+
+			await waitFor(() => {
+				expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(150);
+			});
+			expect(screen.getByLabelText(/scheduled date/i)).toHaveValue(
+				"2024-06-15",
+			);
+
+			// fireEvent.change is deterministic for number/date inputs (userEvent.clear
+			// is flaky on type="date"); both drive field.handleChange(e.target.value).
+			fireEvent.change(screen.getByLabelText(/estimated cost/i), {
+				target: { value: "" },
+			});
+			fireEvent.change(screen.getByLabelText(/scheduled date/i), {
+				target: { value: "" },
+			});
+
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+			await waitFor(() => {
+				expect(mockUpdateMutateAsync).toHaveBeenCalledTimes(1);
+			});
+
+			expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
+				expect.objectContaining({
+					id: "request-1",
+					data: expect.objectContaining({
+						estimated_cost: null,
+						scheduled_date: null,
+						title: "Kitchen Faucet Issue",
+						unit_id: UNIT_1,
+						tenant_id: TENANT_1,
+					}),
+				}),
+			);
+
+			// NOT-NULL title stays a non-empty string (never nulled).
+			const submitted = mockUpdateMutateAsync.mock.calls[0]?.[0] as {
+				data: { title: unknown };
+			};
+			expect(typeof submitted.data.title).toBe("string");
+			expect(submitted.data.title).not.toBe("");
 		});
 	});
 });

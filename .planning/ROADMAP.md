@@ -164,6 +164,14 @@ Plans:
 ### Phase 32: Shared UI, Data-Table & Uploads
 **Goal:** Fix shared infrastructure that many pages depend on — data-table filters and pagination actually work, image upload uploads once and reports success accurately, search sanitize stops corrupting dotted queries, unclassified errors show friendly messages, avatar re-upload busts the cache, the Duplex taxonomy round-trips, and clearing optional edit fields nulls the column.
 Requirements: UIX-01, UIX-02, UIX-03, UIX-04, UIX-05, PROP-04, PROP-05
+**Plans:** 6 plans
+Plans:
+- [ ] 32-01-PLAN.md — UIX-03 sanitize-search split (normalize/escapeOr) + UIX-04 SQLSTATE→friendly error map
+- [ ] 32-02-PLAN.md — UIX-02 single-upload + honest isSuccess + UIX-05 avatar cache-bust
+- [ ] 32-03-PLAN.md — UIX-01 migrate 6 tables to useClientDataTable + explicit column ids
+- [ ] 32-04-PLAN.md — PROP-04 remove Duplex taxonomy + PROP-05 property/unit clear-to-null
+- [ ] 32-05-PLAN.md — PROP-05 vendor/maintenance clear-to-null + schema widening
+- [ ] 32-06-PLAN.md — phase verification (gate + per-requirement checklist + residuals)
 **Success Criteria**:
 1. Typing in a data-table column filter filters rows and the pagination footer/controls work on every consumer
 2. Uploading images stores each file once and signals success only when the batch completed; avatar replacement shows the new image

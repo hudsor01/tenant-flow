@@ -14,7 +14,7 @@ import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
-import { sanitizeSearchInput } from "#lib/sanitize-search";
+import { normalizeSearchInput } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { UnitInput, UnitUpdate } from "#lib/validation/units";
@@ -74,7 +74,7 @@ export const unitQueries = {
 				}
 
 				if (filters?.search) {
-					const safe = sanitizeSearchInput(filters.search);
+					const safe = normalizeSearchInput(filters.search);
 					if (safe) {
 						q = q.ilike("unit_number", `%${safe}%`);
 					}

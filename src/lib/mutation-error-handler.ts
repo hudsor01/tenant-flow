@@ -64,6 +64,41 @@ function getErrorStatus(error: unknown): number | undefined {
 }
 
 /**
+ * User-safe copy for known-leaky Postgres SQLSTATE codes. The raw DB message
+ * (e.g. "duplicate key value violates unique constraint …") leaks schema
+ * internals, so map the codes we recognise to product copy instead. Sentry
+ * still captures the real error server-side.
+ */
+const POSTGRES_ERROR_MESSAGES: Record<string, string> = {
+	"23505": "This record already exists.",
+	"23514":
+		"Some of the information entered isn't allowed. Please review and try again.",
+	"23503": "This action references a record that no longer exists.",
+	"23502": "A required field is missing.",
+	"42501": "You don't have permission to perform this action.",
+};
+
+/**
+ * Fallback shown for a leaky code we don't have specific copy for, so raw
+ * Postgres internals never reach the toast.
+ */
+const GENERIC_MUTATION_ERROR = "Something went wrong. Please try again.";
+
+/**
+ * Detects a RAW Postgres/PostgREST system message — the auto-generated text that
+ * leaks schema internals (table/column/constraint names). We genericize by
+ * MESSAGE SHAPE, not by SQLSTATE alone, because this codebase deliberately
+ * RAISEs user-facing product copy under constraint SQLSTATEs — e.g. `23514`
+ * ("Cannot edit financial terms of a signed lease" term-lock trigger; document-
+ * category validation) and `42501` ("Default categories cannot be deleted").
+ * Those author-written messages must surface verbatim, so only a message that
+ * actually matches this raw-internals shape is replaced with friendly copy.
+ * PL/pgSQL RAISE codes (P0001/P0002) never match and also pass through verbatim.
+ */
+const RAW_DB_INTERNALS =
+	/duplicate key value|violates (?:unique|check|foreign key|not-null|exclusion) constraint|null value in column|violates row-level security policy|invalid input syntax|value too long|out of range/i;
+
+/**
  * Handle mutation errors with consistent logging and user feedback
  *
  * @param error - The error from mutation onError callback
@@ -122,6 +157,7 @@ export function handleMutationError(
 	// the body and are surfaced through their own per-feature handlers — they
 	// do NOT pass through this function.
 	const errObj = error as Record<string, unknown> | null;
+	const pgCode = typeof errObj?.code === "string" ? errObj.code : undefined;
 	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
 	const pgDetails =
 		typeof errObj?.details === "string" ? errObj.details : undefined;
@@ -172,7 +208,21 @@ export function handleMutationError(
 			description: "Our servers encountered an issue. Please try again later.",
 		});
 	} else {
-		toast.error(displayMessage);
+		// Caller-supplied copy always wins. Otherwise: only replace the message when
+		// it is a RAW Postgres/PostgREST internal (matches RAW_DB_INTERNALS, or a
+		// PostgREST `PGRST*` code which is never author copy) — using specific copy
+		// for a known SQLSTATE, else the generic fallback. Any other message —
+		// including author-written RAISE EXCEPTION copy carrying a constraint
+		// SQLSTATE like 23514/42501, and P0001/P0002 — surfaces verbatim.
+		const mappedMessage = pgCode ? POSTGRES_ERROR_MESSAGES[pgCode] : undefined;
+		const isPgrstCode = !!pgCode && /^PGRST/.test(pgCode);
+		if (customMessage) {
+			toast.error(customMessage);
+		} else if (RAW_DB_INTERNALS.test(message) || isPgrstCode) {
+			toast.error(mappedMessage ?? GENERIC_MUTATION_ERROR);
+		} else {
+			toast.error(message);
+		}
 	}
 }
 

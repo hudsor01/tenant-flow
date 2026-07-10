@@ -61,6 +61,9 @@ export const unitInputSchema = z.object({
 			VALIDATION_LIMITS.UNIT_MAX_SQUARE_FEET,
 			"Square feet seems unrealistic",
 		)
+		// PROP-05: nullable so the edit path can clear the optional square_feet
+		// column by sending explicit null (unitUpdateSchema = partial() inherits it).
+		.nullable()
 		.optional(),
 
 	rent_amount: nonNegativeNumberSchema.max(

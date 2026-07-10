@@ -15,7 +15,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { sanitizeSearchInput } from "#lib/sanitize-search";
+import { escapeOrValue } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse, TenantFilters } from "#types/api-contracts";
@@ -62,10 +62,10 @@ export const tenantQueries = {
 					.order("created_at", { ascending: false });
 
 				if (filters?.search) {
-					const safe = sanitizeSearchInput(filters.search);
+					const safe = escapeOrValue(filters.search);
 					if (safe) {
 						q = q.or(
-							`name.ilike.%${safe}%,email.ilike.%${safe}%,first_name.ilike.%${safe}%,last_name.ilike.%${safe}%`,
+							`name.ilike."%${safe}%",email.ilike."%${safe}%",first_name.ilike."%${safe}%",last_name.ilike."%${safe}%"`,
 						);
 					}
 				}
