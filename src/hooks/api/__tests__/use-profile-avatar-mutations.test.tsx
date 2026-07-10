@@ -106,9 +106,11 @@ describe("useUploadAvatarMutation — cache-busted avatar_url (UIX-05)", () => {
 		// users.avatar_url payload carries the cache-buster token.
 		expect(mockUpdate).toHaveBeenCalledTimes(1);
 		const payload = mockUpdate.mock.calls[0]?.[0] as { avatar_url: string };
-		expect(payload.avatar_url).toMatch(
-			new RegExp(`^${PUBLIC_URL.replace(/[.]/g, "\\.")}\\?v=\\d+$`),
-		);
+		// Assert the prefix + token shape without building a RegExp from PUBLIC_URL
+		// (a dynamic pattern would need full metacharacter escaping — CodeQL flags
+		// the partial `.`-only escape as incomplete string escaping).
+		expect(payload.avatar_url.startsWith(`${PUBLIC_URL}?v=`)).toBe(true);
+		expect(payload.avatar_url).toMatch(/\?v=\d+$/);
 
 		// The persisted URL and the returned AvatarUploadResponse are identical.
 		expect(response.avatar_url).toBe(payload.avatar_url);
