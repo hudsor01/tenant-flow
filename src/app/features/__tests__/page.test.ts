@@ -97,16 +97,18 @@ describe("/api/og/features/route.tsx — SEO-02 OG route contract", () => {
 		expect(source).toMatch(/height:\s*630/);
 	});
 
-	it("uses only oklch() color literals, no hex", async () => {
+	it("uses only hsl() color literals — no oklch (satori renders it black), no hex", async () => {
 		const { readFileSync } = await import("node:fs");
 		const { resolve } = await import("node:path");
 		const source = readFileSync(
 			resolve(__dirname, "../../api/og/features/route.tsx"),
 			"utf8",
 		);
-		// oklch present
-		expect(source).toMatch(/oklch\(/);
-		// no hex colors (any length)
+		// MKT-01: satori does not support oklch (renders it as solid black), so the
+		// OG route must use hsl() literals only.
+		expect(source).toMatch(/hsl\(/);
+		// no oklch in a style string (comments may mention it) + no hex colors
+		expect(source).not.toMatch(/["'`][^"'`]*oklch\(/);
 		expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
 	});
 });

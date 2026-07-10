@@ -13,12 +13,11 @@ export const runtime = "edge";
 export const revalidate = 3600;
 
 export function GET() {
-	// Brand colors derived from globals.css `--color-primary` (oklch).
-	// `@vercel/og` requires inline CSS values so the canonical token
-	// literals are duplicated here. This is the ONE permitted exception
-	// to the no-hex/no-inline-color rule (Phase 6 CONTEXT.md § Design Token).
+	// Brand colors as hsl() literals. satori renders oklch as black, so OG
+	// routes MUST use hsl (never oklch/hex/rgb). Duplicated inline because
+	// satori has no CSS-var context (no --color-primary token available).
 	const bgGradient =
-		"linear-gradient(135deg, oklch(0.62 0.18 250) 0%, oklch(0.45 0.20 270) 100%)";
+		"linear-gradient(135deg, hsl(205 100% 46%) 0%, hsl(233 61% 47%) 100%)";
 
 	return new ImageResponse(
 		<div
@@ -30,7 +29,7 @@ export function GET() {
 				justifyContent: "space-between",
 				padding: "60px",
 				background: bgGradient,
-				color: "oklch(1 0 0)",
+				color: "hsl(0 0% 100%)",
 				fontFamily: "sans-serif",
 			}}
 		>
