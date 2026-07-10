@@ -869,6 +869,26 @@ describe("slug_brand_match gate", () => {
 	});
 });
 
+describe("post-override slug_brand_match (re-gate the published slug)", () => {
+	it("a model slug without -vs- skips slug_brand_match", () => {
+		// seoDraft's slug has no "-vs-", so the brand gate is inert on the model draft.
+		expect(gateNames(seoDraft)).not.toContain("slug_brand_match");
+	});
+
+	it("applySlugOverride to a -vs- slug re-activates the gate on the published slug", () => {
+		// The override pins a comparison slug whose brands (tenantflow, doorloop)
+		// are absent from seoDraft's screening title, so re-running the gates on
+		// the POST-override slug must now surface slug_brand_match — the exact leak
+		// the fix closes (the gate previously only saw the model's pre-override slug).
+		const overridden = applySlugOverride(
+			seoDraft,
+			"tenantflow-vs-doorloop-comparison-guide",
+		);
+		expect(overridden.slug).toBe("tenantflow-vs-doorloop-comparison-guide");
+		expect(gateNames(overridden)).toContain("slug_brand_match");
+	});
+});
+
 describe("title_length gate", () => {
 	it("fails under 25 characters", () => {
 		expect(gateNames({ ...seoDraft, title: "Screening Tips" })).toContain(

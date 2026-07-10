@@ -19,6 +19,7 @@ import {
 	existsSync,
 	openSync,
 	readFileSync,
+	renameSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
@@ -124,19 +125,39 @@ export function acquireLock(
 	pid: number,
 	lockPath: string = DEFAULT_LOCK_PATH,
 ): boolean {
-	for (let attempt = 0; attempt < 2; attempt++) {
-		try {
-			writeFileSync(lockPath, String(pid), { flag: "wx" });
-			return true;
-		} catch {
-			const holder = Number.parseInt(readFileSync(lockPath, "utf8"), 10);
-			if (Number.isInteger(holder) && holder > 0 && isProcessAlive(holder)) {
-				return false;
-			}
-			rmSync(lockPath, { force: true }); // stale lock — reclaim and retry
-		}
+	// Fast path: exclusive create when no lock exists.
+	try {
+		writeFileSync(lockPath, String(pid), { flag: "wx" });
+		return true;
+	} catch {
+		/* lock exists */
 	}
-	return false;
+	let holder: number;
+	try {
+		holder = Number.parseInt(readFileSync(lockPath, "utf8"), 10);
+	} catch {
+		return false; // vanished between create+read — a racer is mid-reclaim; don't steal
+	}
+	if (Number.isInteger(holder) && holder > 0 && isProcessAlive(holder)) {
+		return false; // live holder
+	}
+	// Stale: reclaim WITHOUT unconditional delete — write pid to a private temp,
+	// atomically rename over the stale lock, then read-back-verify. Two racers both
+	// rename (atomic, last-writer-wins); only one pid remains, so exactly one
+	// returns true.
+	const tmp = `${lockPath}.${pid}.${process.hrtime.bigint()}.tmp`;
+	try {
+		writeFileSync(tmp, String(pid), { flag: "wx" });
+		renameSync(tmp, lockPath);
+	} catch {
+		rmSync(tmp, { force: true });
+		return false;
+	}
+	try {
+		return Number.parseInt(readFileSync(lockPath, "utf8"), 10) === pid;
+	} catch {
+		return false;
+	}
 }
 
 export function releaseLock(lockPath: string = DEFAULT_LOCK_PATH): void {

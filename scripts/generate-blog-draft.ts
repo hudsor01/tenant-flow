@@ -1436,6 +1436,23 @@ STRICT requirements:
 	// the slug gate inside applySlugOverride (throws on a bad/oversized slug).
 	draft = applySlugOverride(draft, slugOverride);
 
+	// The slug-derived HARD gates (slug_brand_match, slug_pattern) ran inside
+	// generateValidDraft against the MODEL's slug; the override swaps the slug
+	// AFTER those gates, so a comparison override whose title omits a brand — or
+	// an invalid override — would otherwise reach the dry-run print / HMAC POST
+	// unchecked. Re-run the gates on the PUBLISHED slug and fail closed on any
+	// hard failure (advisory gates stay best-effort, same as generation).
+	if (slugOverride !== undefined) {
+		const postOverride = runGates(draft, gateCtx).filter(
+			(f) => !ADVISORY_GATES.has(f.gate),
+		);
+		if (postOverride.length > 0) {
+			fail(
+				`post-override gate failure (published slug "${draft.slug}"): ${postOverride.map((f) => `${f.gate} (${f.message})`).join("; ")}`,
+			);
+		}
+	}
+
 	if (dryRun) {
 		console.log(
 			`\nDRY RUN — ${TOTAL_GATES} gates + judge passed; NOT posted.\n  title: ${draft.title}\n  slug: ${draft.slug}\n  category: ${draft.category}\n  words: ${countWords(draft.content)}\n  judge: PASS\n  excerpt: ${draft.excerpt}\n  meta: ${draft.meta_description}\n\n  preview: ${draft.content.slice(0, 400)}`,
