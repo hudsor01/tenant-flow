@@ -132,7 +132,7 @@ function buildNonceCsp(nonce: string): string {
 		"connect-src 'self' *.supabase.co *.sentry.io *.stripe.com",
 		"font-src 'self'",
 		"object-src 'none'",
-		"frame-src 'self' https://*.supabase.co",
+		"frame-src 'self' blob: https://*.supabase.co",
 		"frame-ancestors 'none'",
 		"base-uri 'self'",
 		"form-action 'self'",

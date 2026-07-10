@@ -274,7 +274,7 @@ describe("SEC-02 storage-media CSP allowances", () => {
 	it.each([
 		["img-src", `img-src 'self' data: blob: ${SUPA}`],
 		["media-src", `media-src 'self' data: blob: ${SUPA}`],
-		["frame-src", `frame-src 'self' ${SUPA}`],
+		["frame-src", `frame-src 'self' blob: ${SUPA}`],
 	])("vercel.json static CSP %s allows the Supabase storage host", (name, expected) => {
 		const csp = readVercelCsp();
 		expect(directive(csp, name)).toBe(expected);
@@ -291,7 +291,7 @@ describe("SEC-02 storage-media CSP allowances", () => {
 	it.each([
 		["img-src", `img-src 'self' data: blob: ${SUPA}`],
 		["media-src", `media-src 'self' data: blob: ${SUPA}`],
-		["frame-src", `frame-src 'self' ${SUPA}`],
+		["frame-src", `frame-src 'self' blob: ${SUPA}`],
 	])("proxy nonce CSP %s allows the Supabase storage host (in sync with vercel.json)", async (name, expected) => {
 		const response = await proxy(buildRequest("/dashboard"));
 		const responseCsp = response.headers.get("content-security-policy") ?? "";
