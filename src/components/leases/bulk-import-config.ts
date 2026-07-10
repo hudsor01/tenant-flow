@@ -57,21 +57,23 @@ const TEMPLATE_SAMPLE_ROWS = [
 	],
 ] as const;
 
-// Bulk-import uses the shared `leaseInputSchema` via `.omit()` of the two
-// server-defaulted fields. Do NOT `.extend()` security_deposit — that
-// silently replaces the shared schema's `.max(RENT_MAXIMUM_VALUE)` guard
-// with a bare `nonnegative()` check, dropping the realistic-bound ceiling.
-// Blank `security_deposit` cells still surface as a row error because
-// `mapRow` omits the key when coerceOptionalNumber returns undefined, and
-// the leaseInputSchema defines the field as required.
+// Bulk-import uses the shared `leaseInputSchema` via `.omit()` of the
+// server-defaulted `lease_status` field only. `rent_currency` is NOT
+// omitted so a CSV currency actually reaches the RPC — previously the
+// omit dropped it and every imported lease was silently forced to USD.
+// The shared field's `.min(3).max(3)` guard now also rejects malformed
+// codes client-side, and a blank cell falls back to `.default('USD')`.
+// Do NOT `.extend()` security_deposit — that silently replaces the shared
+// schema's `.max(RENT_MAXIMUM_VALUE)` guard with a bare `nonnegative()`
+// check, dropping the realistic-bound ceiling. Blank `security_deposit`
+// cells still surface as a row error because `mapRow` omits the key when
+// coerceOptionalNumber returns undefined, and the leaseInputSchema defines
+// the field as required.
 const leaseImportSchema = leaseInputSchema.omit({
 	lease_status: true,
-	rent_currency: true,
 });
 
-type LeaseImportInput = Omit<LeaseInput, "lease_status" | "rent_currency"> & {
-	rent_currency?: string;
-};
+type LeaseImportInput = Omit<LeaseInput, "lease_status">;
 
 function coerceOptionalNumber(value: string | undefined): number | undefined {
 	if (value === undefined) return undefined;
@@ -85,8 +87,9 @@ function coerceOptionalCurrency(value: string | undefined): string | undefined {
 	if (!value) return undefined;
 	const trimmed = value.trim().toUpperCase();
 	if (trimmed === "") return undefined;
-	// Shape check only — the RPC enforces 3-letter length and rejects
-	// invalid codes. Anything that reaches here passes through.
+	// Normalize to upper-case and drop blank cells (→ schema `.default('USD')`).
+	// The shared field's `.min(3).max(3)` guard rejects malformed codes
+	// client-side; the RPC still validates the code server-side.
 	return trimmed;
 }
 

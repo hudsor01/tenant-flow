@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { nextUnwrittenTopic } from "./run-continuous-blog";
+import { existsSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { main, nextUnwrittenTopic } from "./run-continuous-blog";
 import type { BlogTopicEntry } from "./run-scheduled-blog";
 
 const entry = (
@@ -40,5 +43,24 @@ describe("nextUnwrittenTopic", () => {
 				new Set(["c-three"]),
 			),
 		).toBeUndefined();
+	});
+});
+
+describe("main kill-switch", () => {
+	// The continuous runner shares run-scheduled-blog's DEFAULT_LOCK_PATH; that
+	// constant is module-private there, so derive the identical path here.
+	const SHARED_LOCK_PATH = join(tmpdir(), "tenantflow-blog-factory.lock");
+
+	afterEach(() => {
+		delete process.env.BLOG_FACTORY_OFF;
+		rmSync(SHARED_LOCK_PATH, { force: true });
+	});
+
+	it("returns 0 and never acquires the shared lock when BLOG_FACTORY_OFF=1", async () => {
+		rmSync(SHARED_LOCK_PATH, { force: true }); // start from a clean slate
+		process.env.BLOG_FACTORY_OFF = "1";
+		await expect(main()).resolves.toBe(0);
+		// The kill-switch runs BEFORE acquireLock, so the shared lock is untouched.
+		expect(existsSync(SHARED_LOCK_PATH)).toBe(false);
 	});
 });

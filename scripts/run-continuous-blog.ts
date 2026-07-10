@@ -29,9 +29,11 @@ import {
 	acquireLock,
 	type BlogTopicEntry,
 	fetchAllSlugs,
+	isFactoryStopped,
 	loadTopics,
 	pickNextTopic,
 	releaseLock,
+	STOP_SENTINEL_PATH,
 } from "./run-scheduled-blog";
 
 const MAX_ATTEMPTS = Math.max(
@@ -84,7 +86,17 @@ function generateOne(topic: BlogTopicEntry): number {
 	return child.status ?? 1;
 }
 
-async function main(): Promise<number> {
+export async function main(): Promise<number> {
+	// Kill-switch FIRST — before the env/url check and before acquireLock — so a
+	// paused factory never starts a multi-day burn (mirrors run-scheduled-blog's
+	// per-tick no-op). Re-arm by deleting the sentinel or unsetting the env flag.
+	if (isFactoryStopped()) {
+		console.log(
+			`blog factory paused — kill-switch on; not starting the continuous run (re-arm: rm ${STOP_SENTINEL_PATH} or unset BLOG_FACTORY_OFF).`,
+		);
+		return 0;
+	}
+
 	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const key =
 		process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;

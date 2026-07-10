@@ -14,11 +14,20 @@ export const safeFormatMoney = (value: ValueType | undefined) =>
 export const safeFormatPercent = (value: ValueType | undefined) =>
 	formatPercent(Number(value ?? 0));
 
+// Returns the first day of the month `monthsBack` months before `today`.
+// Pin the day to 1 BEFORE shifting the month so setMonth can never overflow:
+// e.g. on the 31st, `setMonth(month - 2)` on a shorter target month would spill
+// into the following month (Date normalizes the out-of-range day forward).
+export function startOfMonthsBack(today: Date, monthsBack: number): Date {
+	const start = new Date(today);
+	start.setDate(1);
+	start.setMonth(today.getMonth() - monthsBack);
+	return start;
+}
+
 export function getDefaultDateRange() {
 	const today = new Date();
-	const start = new Date(today);
-	start.setMonth(today.getMonth() - 2);
-	start.setDate(1);
+	const start = startOfMonthsBack(today, 2);
 
 	return {
 		start: format(start, "yyyy-MM-dd"),

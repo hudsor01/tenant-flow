@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { createElement } from "react";
+import { formatDate } from "#lib/formatters/date";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 
 // Status configuration
@@ -106,7 +107,7 @@ export function generateTimeline(request: {
 			id: "scheduled",
 			type: "scheduled",
 			title: "Work Scheduled",
-			description: `Scheduled for ${new Date(request.scheduled_date).toLocaleDateString()}`,
+			description: `Scheduled for ${formatDate(request.scheduled_date)}`,
 			timestamp: request.scheduled_date,
 		});
 	}

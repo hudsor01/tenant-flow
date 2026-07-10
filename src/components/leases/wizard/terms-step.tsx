@@ -15,6 +15,7 @@ import {
 	FieldLabel,
 } from "#components/ui/field";
 import { Input } from "#components/ui/input";
+import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
 import { cn } from "#lib/utils";
 import type { TermsStepData } from "#lib/validation/lease-wizard.schemas";
 
@@ -36,10 +37,11 @@ const DURATION_PRESETS: {
  * Advances by N months, then subtracts 1 day (e.g. Jan 1 + 12 months = Dec 31).
  */
 function calculateEndDate(startDate: string, months: number): string {
-	const date = new Date(startDate);
+	const date = parseLocalYmd(startDate);
+	if (!date) return startDate;
 	date.setMonth(date.getMonth() + months);
 	date.setDate(date.getDate() - 1);
-	return date.toISOString().slice(0, 10);
+	return formatLocalYmd(date);
 }
 
 interface TermsStepProps {

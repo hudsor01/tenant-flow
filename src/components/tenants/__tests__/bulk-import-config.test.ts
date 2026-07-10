@@ -37,13 +37,14 @@ describe("tenantBulkImportConfig", () => {
 		expect(fields).toContain("last_name");
 	});
 
-	it('defaults unknown status values to "active"', () => {
+	it("rejects an unknown status value (no silent coercion)", () => {
 		const csv = buildCsvTemplate(config.templateHeaders, [
 			["a@b.com", "Alice", "Smith", "415-555-0101", "not-a-status"],
 		]);
 		const result = config.parseAndValidate(csv);
-		const parsed = result.rows[0]?.parsed as unknown as Record<string, unknown>;
-		expect(parsed.status).toBe("active");
+		expect(result.rows[0]?.parsed).toBeNull();
+		const fields = (result.rows[0]?.errors ?? []).map((e) => e.field);
+		expect(fields).toContain("status");
 	});
 
 	it("lowercases status values from the CSV", () => {

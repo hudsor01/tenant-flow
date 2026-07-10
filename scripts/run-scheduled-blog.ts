@@ -17,8 +17,10 @@
 import { spawn, spawnSync } from "node:child_process";
 import {
 	existsSync,
+	linkSync,
 	openSync,
 	readFileSync,
+	renameSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
@@ -124,19 +126,63 @@ export function acquireLock(
 	pid: number,
 	lockPath: string = DEFAULT_LOCK_PATH,
 ): boolean {
-	for (let attempt = 0; attempt < 2; attempt++) {
-		try {
-			writeFileSync(lockPath, String(pid), { flag: "wx" });
-			return true;
-		} catch {
-			const holder = Number.parseInt(readFileSync(lockPath, "utf8"), 10);
-			if (Number.isInteger(holder) && holder > 0 && isProcessAlive(holder)) {
-				return false;
-			}
-			rmSync(lockPath, { force: true }); // stale lock — reclaim and retry
-		}
+	// Fast path: exclusive create when no lock exists.
+	try {
+		writeFileSync(lockPath, String(pid), { flag: "wx" });
+		return true;
+	} catch {
+		/* lock exists */
 	}
-	return false;
+	let holder: number;
+	try {
+		holder = Number.parseInt(readFileSync(lockPath, "utf8"), 10);
+	} catch {
+		return false; // vanished between create+read — a racer is mid-reclaim; don't steal
+	}
+	if (Number.isInteger(holder) && holder > 0 && isProcessAlive(holder)) {
+		return false; // live holder
+	}
+	// Stale (dead/corrupt holder). Reclaim by ATOMICALLY moving the observed
+	// lock aside: rename(2) serializes in the kernel, so of N racers only one
+	// moves any given file — the rest get ENOENT and back off.
+	const claimed = `${lockPath}.stale.${pid}.${process.hrtime.bigint()}`;
+	try {
+		renameSync(lockPath, claimed);
+	} catch {
+		return false; // another racer already moved/removed the observed lock
+	}
+	// Our read of `holder` above and this rename are not atomic together, so a
+	// faster racer may have reclaimed and installed a LIVE lock in that window —
+	// which we just moved aside. Confirm what we actually moved is the stale
+	// file we observed; if it is live, restore it (without clobbering anything
+	// that grabbed the freed path, via an exclusive link) and back off. This
+	// makes it impossible for two processes that both observed the same stale
+	// lock to both acquire.
+	let movedPid: number;
+	try {
+		movedPid = Number.parseInt(readFileSync(claimed, "utf8"), 10);
+	} catch {
+		movedPid = Number.NaN;
+	}
+	if (Number.isInteger(movedPid) && movedPid > 0 && isProcessAlive(movedPid)) {
+		try {
+			linkSync(claimed, lockPath); // fails if the path was already retaken
+		} catch {
+			/* freed path already retaken — that live holder wins, not us */
+		}
+		rmSync(claimed, { force: true });
+		return false;
+	}
+	// Confirmed stale. Install our lock with the same exclusive create, which
+	// loses cleanly to any process that grabbed the freed path first.
+	try {
+		writeFileSync(lockPath, String(pid), { flag: "wx" });
+		return true;
+	} catch {
+		return false;
+	} finally {
+		rmSync(claimed, { force: true });
+	}
 }
 
 export function releaseLock(lockPath: string = DEFAULT_LOCK_PATH): void {

@@ -99,11 +99,8 @@ export function ChartAreaInteractive({
 								<SelectValue placeholder="Last 6 months" />
 							</SelectTrigger>
 							<SelectContent className="rounded-xl">
-								<SelectItem value="7d" className="rounded-lg">
-									Last 7 days
-								</SelectItem>
-								<SelectItem value="30d" className="rounded-lg">
-									Last 30 days
+								<SelectItem value="3m" className="rounded-lg">
+									Last 3 months
 								</SelectItem>
 								<SelectItem value="6m" className="rounded-lg">
 									Last 6 months
@@ -123,18 +120,11 @@ export function ChartAreaInteractive({
 							className="ml-auto flex gap-2"
 						>
 							<ToggleGroupItem
-								value="7d"
+								value="3m"
 								className="rounded-lg px-3 text-sm data-[state=on]:bg-card-foreground data-[state=on]:text-card"
-								aria-label="Last 7 days"
+								aria-label="Last 3 months"
 							>
-								7D
-							</ToggleGroupItem>
-							<ToggleGroupItem
-								value="30d"
-								className="rounded-lg px-3 text-sm data-[state=on]:bg-card-foreground data-[state=on]:text-card"
-								aria-label="Last 30 days"
-							>
-								30D
+								3M
 							</ToggleGroupItem>
 							<ToggleGroupItem
 								value="6m"

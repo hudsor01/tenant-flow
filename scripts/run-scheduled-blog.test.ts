@@ -145,6 +145,18 @@ describe("overlap lock", () => {
 		expect(acquireLock(process.pid, lockPath)).toBe(true);
 	});
 
+	it("reclaims a dead-pid lock but never steals an already-reclaimed live one", () => {
+		// PID 4194304 exceeds the default pid_max — a dead holder to reclaim.
+		writeFileSync(lockPath, "4194304");
+		expect(acquireLock(process.pid, lockPath)).toBe(true);
+		expect(readFileSync(lockPath, "utf8")).toBe(String(process.pid));
+		// A second attempt now sees THIS live process as the holder: it must
+		// refuse, and the recorded pid must be unchanged — proving the
+		// atomic-rename fence didn't let a racer re-reclaim a live lock.
+		expect(acquireLock(process.pid, lockPath)).toBe(false);
+		expect(readFileSync(lockPath, "utf8")).toBe(String(process.pid));
+	});
+
 	it("releaseLock removes the file and is idempotent", () => {
 		expect(acquireLock(process.pid, lockPath)).toBe(true);
 		releaseLock(lockPath);

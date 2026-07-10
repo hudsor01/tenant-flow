@@ -17,6 +17,7 @@ import {
 import { Field, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { useMaintenanceRequestUpdateMutation } from "#hooks/api/use-maintenance";
+import { formatLocalYmd } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 
 const logger = createLogger({ component: "ScheduleDialog" });
@@ -80,7 +81,7 @@ export function ScheduleDialog({
 							type="date"
 							value={scheduledDate}
 							onChange={(e) => setScheduledDate(e.target.value)}
-							min={new Date().toISOString().split("T")[0]}
+							min={formatLocalYmd(new Date())}
 							required
 						/>
 					</Field>

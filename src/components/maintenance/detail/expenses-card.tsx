@@ -6,6 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { ExpenseRecord } from "#types/core";
 import { AddExpenseDialog } from "./add-expense-dialog";
@@ -58,7 +59,7 @@ export function ExpensesCard({
 									) : null}
 									<p className="text-sm text-muted-foreground">
 										{expense.expense_date
-											? new Date(expense.expense_date).toLocaleDateString()
+											? formatDate(expense.expense_date)
 											: "No date"}
 									</p>
 								</div>

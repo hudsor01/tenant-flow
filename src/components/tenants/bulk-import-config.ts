@@ -22,7 +22,6 @@ import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { phoneSchema } from "#lib/validation/common";
 import {
 	TENANT_ACTIVE_STATUSES,
-	type TenantActiveStatus,
 	type TenantCreate,
 } from "#lib/validation/tenants";
 
@@ -30,10 +29,11 @@ import {
 // than reaching into `tenantCreateSchema.shape.*.unwrap()` so the schema
 // is not coupled to the optionality of the reused schema. The import
 // stepper rejects blank cells up front instead of silently inserting
-// tenants with empty names. Status defaults to 'active' at the schema
-// level — mapRow sends `undefined` when the CSV cell is blank / unknown,
-// and Zod's `.default('active')` fills it in so we don't depend on a
-// separate TS-only fallback.
+// tenants with empty names. Status is `z.enum(...).default('active')`:
+// mapRow sends `undefined` only when the CSV cell is BLANK (Zod's
+// `.default('active')` fills it in); a non-blank cell passes through as-is
+// so an unknown value FAILS the row instead of being silently coerced to a
+// default.
 const tenantImportSchema = z.object({
 	email: z.email({ message: "Valid email is required" }),
 	first_name: z
@@ -63,8 +63,6 @@ const TEMPLATE_SAMPLE_ROWS = [
 	["john.smith@example.com", "John", "Smith", "415-555-0102", "pending"],
 ] as const;
 
-const ALLOWED_STATUSES = new Set<string>(TENANT_ACTIVE_STATUSES);
-
 type TenantImportInput = z.infer<typeof tenantImportSchema>;
 
 export function tenantBulkImportConfig(): BulkImportConfig<TenantImportInput> {
@@ -79,21 +77,16 @@ export function tenantBulkImportConfig(): BulkImportConfig<TenantImportInput> {
 			parseCsvWithSchema(csvText, {
 				schema: tenantImportSchema,
 				mapRow: (raw) => {
+					// Pass a non-blank status THROUGH to the schema (an unknown
+					// value then fails the row); a blank cell is omitted so the
+					// schema's `.default('active')` supplies the fallback.
 					const rawStatus = (raw.status ?? "").trim().toLowerCase();
-					// Only pass `status` through if it matches a known value.
-					// Blank or unknown → omit, and the Zod `.default('active')`
-					// provides the fallback.
-					const status: TenantActiveStatus | undefined = ALLOWED_STATUSES.has(
-						rawStatus,
-					)
-						? (rawStatus as TenantActiveStatus)
-						: undefined;
 					return {
 						email: (raw.email ?? "").trim(),
 						first_name: (raw.first_name ?? "").trim(),
 						last_name: (raw.last_name ?? "").trim(),
 						phone: (raw.phone ?? "").trim() || undefined,
-						...(status ? { status } : {}),
+						...(rawStatus ? { status: rawStatus } : {}),
 					};
 				},
 			}),

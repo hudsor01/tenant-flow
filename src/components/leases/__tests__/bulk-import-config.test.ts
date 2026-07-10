@@ -90,6 +90,60 @@ describe("leaseBulkImportConfig", () => {
 		expect(fields).toContain("primary_tenant_id");
 	});
 
+	it("imports a non-USD currency code as-is", () => {
+		const csv = buildCsvTemplate(config.templateHeaders, [
+			[
+				"550e8400-e29b-41d4-a716-446655440001",
+				"550e8400-e29b-41d4-a716-446655440002",
+				"2026-05-01",
+				"2027-04-30",
+				"1800",
+				"1800",
+				"1",
+				"EUR",
+			],
+		]);
+		const result = config.parseAndValidate(csv);
+		expect(result.rows[0]?.errors).toEqual([]);
+		expect(result.rows[0]?.parsed?.rent_currency).toBe("EUR");
+	});
+
+	it("rejects a malformed 2-letter currency code", () => {
+		const csv = buildCsvTemplate(config.templateHeaders, [
+			[
+				"550e8400-e29b-41d4-a716-446655440001",
+				"550e8400-e29b-41d4-a716-446655440002",
+				"2026-05-01",
+				"2027-04-30",
+				"1800",
+				"1800",
+				"1",
+				"US",
+			],
+		]);
+		const result = config.parseAndValidate(csv);
+		const fields = (result.rows[0]?.errors ?? []).map((e) => e.field);
+		expect(fields).toContain("rent_currency");
+	});
+
+	it("defaults a blank currency cell to USD", () => {
+		const csv = buildCsvTemplate(config.templateHeaders, [
+			[
+				"550e8400-e29b-41d4-a716-446655440001",
+				"550e8400-e29b-41d4-a716-446655440002",
+				"2026-05-01",
+				"2027-04-30",
+				"1800",
+				"1800",
+				"1",
+				"",
+			],
+		]);
+		const result = config.parseAndValidate(csv);
+		expect(result.rows[0]?.errors).toEqual([]);
+		expect(result.rows[0]?.parsed?.rent_currency).toBe("USD");
+	});
+
 	it("sample rows must align with header length", () => {
 		const headerLen = config.templateHeaders.length;
 		for (const row of config.templateSampleRows) {

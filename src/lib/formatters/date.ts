@@ -78,6 +78,34 @@ export const formatDate = (
 	return formatWithIntl(date, locale, style, formatOptions);
 };
 
+// Parse a YYYY-MM-DD string into a local-zone Date (midnight local).
+// Returns undefined on malformed input. Critically uses local-component
+// construction — NOT `new Date('2026-04-30')` which produces UTC midnight
+// and silently shifts the value by one day for users east of UTC.
+// Round-trips through getFullYear/getMonth/getDate to reject overflow
+// inputs like `2026-13-99` (which JS otherwise wraps to April 9, 2027).
+export function parseLocalYmd(input: string | null): Date | undefined {
+	if (!input) return undefined;
+	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
+	if (!m) return undefined;
+	const y = Number(m[1]);
+	const mo = Number(m[2]);
+	const day = Number(m[3]);
+	const d = new Date(y, mo - 1, day);
+	if (Number.isNaN(d.getTime())) return undefined;
+	if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== day) {
+		return undefined;
+	}
+	return d;
+}
+
+// Format a Date as local-zone YYYY-MM-DD. Pairs with parseLocalYmd for
+// round-trip stability across timezones.
+export function formatLocalYmd(d: Date): string {
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+
 export const formatRelativeDate = (
 	value: DateInput,
 	{

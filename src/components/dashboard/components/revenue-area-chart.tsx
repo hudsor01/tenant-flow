@@ -46,6 +46,7 @@ import {
 } from "#components/ui/chart-tooltip";
 import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
+import { parseLocalYmd } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type {
 	MonthlyRevenuePoint,
@@ -90,12 +91,13 @@ function pickActiveSeries(
 }
 
 function format30dTick(iso: string): string {
-	const date = new Date(iso);
-	if (Number.isNaN(date.getTime())) return iso;
-	return date.toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-	});
+	const date = parseLocalYmd(iso);
+	return date
+		? date.toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+			})
+		: iso;
 }
 
 function format6moTick(yyyymm: string): string {
