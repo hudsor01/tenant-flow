@@ -1,0 +1,39 @@
+# Phase 34 — Marketing, Blog & SEO Surface — CONTEXT (locked decisions)
+
+Source: 2026-07-02 hunt requirements MKT-01..05, verified against current source (+ live prod `blogs` for MKT-05 slugs) by the phase-34 understand Workflow (2026-07-10). **No DB migrations** — all frontend / edge-route / content changes.
+
+## MKT-01 — OG images render solid black (satori oklch)
+**Confirmed:** the `/pricing`, `/features`, `/compare/[competitor]` OG routes render the whole 1200×630 PNG via satori using `oklch()` literals for the background gradient (2 stops) AND the text color — satori renders oklch as black, so the entire card is black. (The blog OG route is fine — its oklch hits are comments only; leave it.)
+**Decision:** in each of the 3 routes (`src/app/api/og/pricing/route.tsx`, `.../features/route.tsx`, `.../compare/[competitor]/route.tsx`), replace the oklch literals with their exact hsl equivalents (space-separated, satori-valid; **hsl NOT hex/rgb** — the design-token-drift guard bans hex/rgb in `src/app/**`, hsl is allowed):
+- gradient: `linear-gradient(135deg, oklch(0.62 0.18 250) 0%, oklch(0.45 0.20 270) 100%)` → `linear-gradient(135deg, hsl(205 100% 46%) 0%, hsl(233 61% 47%) 100%)`
+- text: `color: "oklch(1 0 0)"` → `color: "hsl(0 0% 100%)"`
+- Update the `// Brand colors ... (oklch)` comment to say hsl-only (satori renders oklch black). Do NOT reference the globals.css `--color-primary` token (satori has no CSS-var context — inline literals required).
+**Coverage fix (this is why it shipped):** add an `oklch` (+ `lab(`/`lch(`/`color-mix(`) pattern to `DRIFT_PATTERNS` in `src/app/__tests__/design-token-drift.test.ts`, scanned against **string-literal content only** (reuse the existing `extractStringContent` path) so oklch-in-comments (blog route) doesn't false-positive but oklch inside a quoted style string fails CI permanently.
+**Verify:** a local `ImageResponse` pixel harness — render each route's JSX, write the PNG, assert it's not uniformly black (sample center+corners, gradient varies). Per the CLAUDE.md blog-cover "pixel-verify before deploy" rule.
+
+## MKT-02 — blog/category pagination doesn't re-render the post grid
+**Confirmed:** `src/components/blog/blog-pagination.tsx` renders correct `<Link href={pageHref}>` anchors, but each onClick does `e.preventDefault()` + `setPage()` via nuqs `useQueryState("page")` WITHOUT `shallow:false` — so the URL + "Page X of Y" label change client-side but the Server Component (which paginates by `.range(offset, ...)` from `searchParams.page`) never re-runs → same posts. Server side (`blog/page.tsx`, `blog/category/[category]/page.tsx`) is already correct.
+**Decision:** stop hijacking the anchors — let the real `<Link>` navigation run (it already has the right hrefs, which re-runs the Server Component). Drop the unused `setPage` (keep `const [page] = useQueryState(...)` for the reactive label, or read from props to avoid `noUnusedLocals`); change each onClick to a guard only: `onClick={(e) => { if (!hasPrev) e.preventDefault() }}` (prev) / `{ if (!hasNext) e.preventDefault() }` (next). No shallow nuqs.
+
+## MKT-03 — out-of-range blog/category page + category error handling
+**Confirmed:** the blog INDEX page (`blog/page.tsx:112-124`) already handles out-of-range (`PGRST103`/"range not satisfiable" → `notFound()`) + throws on query error. The CATEGORY page (`blog/category/[category]/page.tsx`) does NEITHER: an out-of-range `?page` (PGRST103 → data/count null) renders `BlogEmptyState` at HTTP 200 with a false "0 articles" subtitle, and any query error is silently ignored (silent empty, no Sentry/error boundary). Count is already `{count:'exact'}` (NOT a `data.length` bug).
+**Decision:** in the category page, between the query and `const posts = ...`, mirror the index page: if `error.code === 'PGRST103'` (or /range not satisfiable/) → `notFound()`; else if `error` → `throw new Error(error.message)` (hits `blog/error.tsx`). No try/catch needed (the invalid-category branch already calls `notFound()` directly).
+
+## MKT-04 — SearchAction advertises /search but /search is a dead stub
+**Confirmed:** the homepage `WebSite` JSON-LD (`src/app/page.tsx:50-54`) advertises a `SearchAction` at `/search?q={search_term_string}`, but `src/app/search/page.tsx` is a static stub: no `searchParams`, input is `name="search"` (not `q`), no `<form>`, hardcoded fake "Recent Searches", framed as private-portfolio search (wrong — it's public, noindex). `/search` is referenced ONLY by the SearchAction (safe to repurpose).
+**Decision: Option A — wire a real public blog search** (blog content is public + all infra exists: `blogAnonClient()`, `escapeOrValue`/`normalizeSearchInput`, `BlogCard`, `Empty`, `BLOG_LIST_COLUMNS`). Rewrite `/search/page.tsx` as an async server component:
+- `SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> })`; `const { q } = await searchParams`; `const query = normalizeSearchInput(q ?? "")`.
+- When `query` non-empty: `blogAnonClient().from("blogs").select(BLOG_LIST_COLUMNS).eq("status","published").or(\`title.ilike."%${escapeOrValue(query)}%",excerpt.ilike."%${escapeOrValue(query)}%",content.ilike."%${escapeOrValue(query)}%"\`).order("published_at",{ascending:false}).limit(24)`.
+- Wrap the input in `<form method="GET" action="/search">` with `<input name="q" defaultValue={query}>` (name MUST be `q` to match the SearchAction). Render a `BlogCard` grid for results; the `Empty` compound for no-query / no-matches. Delete the fake "Recent Searches" + dead Quick-Search cards. Replace "your portfolio" copy with public blog-search copy. Keep `noindex: true`.
+- The SearchAction JSON-LD stays as-is (now truthful).
+
+## MKT-05 — six dead cross-link blog slugs
+**Confirmed against prod `blogs`:** all 6 referenced slugs do NOT exist (never did — hand-authored guesses, not in `blog-redirects.ts`). `RelatedArticles` (`related-articles.tsx`) filters `.in('slug', slugs).eq('status','published')` and returns `null` on 0 matches → the "Read the Full Comparison" (every `/compare/*`) + "Related Blog Posts" (3 `/resources/*`) sections silently vanish. Both directions dead (reverse maps `BLOG_TO_COMPETITOR`/`BLOG_TO_RESOURCE` key on the same slugs).
+**Decision: repoint all 6 to real published slugs** (verified live; fixes both directions since the reverse maps derive from these two sources):
+- `compare-data.ts` `blogSlug`: buildium → `buildium-vs-doorloop-vs-tenantflow-2026`; appfolio → `appfolio-alternatives-under-25-month-for-first-time-landlords`; rentredi → `rentredi-alternatives-under-30-month-for-budget-conscious-landlords`.
+- `content-links.ts` `RESOURCE_TO_BLOGS`: `seasonal-maintenance-checklist` → `twelve-month-preventive-maintenance-calendar-rentals` (+ optional `spring-rental-maintenance-checklist`, `fall-rental-maintenance-checklist`); `landlord-tax-deduction-tracker` → `mortgage-interest-deduction-rental-property-schedule-e`, `repairs-deduction-schedule-e-line-14`, `legal-accounting-fees-landlord-deduction`; `security-deposit-reference-card` → `security-deposit-deadlines-and-caps-all-50-states`.
+- Update `content-links.test.ts` slug assertions. **Add a guard against recurrence:** an integration test (`tests/integration/`) that queries prod `blogs` for every slug referenced by `compare-data.ts` + `content-links.ts` and asserts each is `published` (unit tests can't hit the DB; this runs in CI). VERIFY each target slug's existence before finalizing (a slug may have changed) — re-check via MCP at execution.
+
+## Cross-cutting
+- No migrations. No new query-key factories. Follow CLAUDE.md (no `any`, no barrel, hsl-only in satori/OG, `Empty` compound for empty states, `NotFoundPage` semantics for 404s where applicable). Reuse `blogAnonClient` for public blog reads.
+- Gate: perfect-PR (two consecutive zero-finding review cycles), run as a Workflow. MKT-01 needs a pixel-verify (rendered PNG not black) before merge.
