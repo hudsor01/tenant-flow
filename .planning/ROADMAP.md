@@ -181,6 +181,13 @@ Plans:
 
 ### Phase 33: Security & Delivery Config
 **Goal:** Close the security/config gaps — enforce MFA server-side, allow Supabase storage images through the CSP on private routes, and remove the public shared-cache header from the auth-walled `/properties` route.
+**Plans:** 5 plans
+Plans:
+- [ ] 33-01-PLAN.md — SEC-01: server-side MFA aal2 enforcement (middleware assuranceLevel + proxy gate + login dismiss→signOut / on-mount challenge)
+- [ ] 33-02-PLAN.md — SEC-02 + SEC-03: CSP img/media/frame allow *.supabase.co + /properties private no-store (proxy.ts + vercel.json)
+- [ ] 33-03-PLAN.md — SEC-04: cross-owner lease/lease_tenants FK guard (migration: INSERT tightening + BEFORE UPDATE triggers) + RLS test
+- [ ] 33-04-PLAN.md — SEC-05: signature-audit write-once trigger (migration) + RLS test
+- [ ] 33-05-PLAN.md — Phase verification (gate + per-SEC checklist + get_advisors note + residual ledger)
 Requirements: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05
 **Success Criteria**:
 1. A password-only (aal1) session for an MFA-enrolled user cannot reach private routes; dismissing the OTP dialog signs the session out
