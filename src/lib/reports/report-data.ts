@@ -16,6 +16,7 @@ import type { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
 import type { ReportType } from "#app/(owner)/reports/generate/components/report-types";
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
+import { parseLocalYmd } from "#lib/formatters/date";
 import type {
 	FinancialReport,
 	MaintenanceReport,
@@ -215,14 +216,14 @@ const fmtNumber = (n: number): string =>
 	new Intl.NumberFormat("en-US").format(Number.isFinite(n) ? n : 0);
 
 const fmtDate = (iso: string): string => {
-	const d = new Date(iso);
-	return Number.isNaN(d.getTime())
-		? iso
-		: d.toLocaleDateString("en-US", {
+	const d = parseLocalYmd(iso);
+	return d
+		? d.toLocaleDateString("en-US", {
 				year: "numeric",
 				month: "short",
 				day: "numeric",
-			});
+			})
+		: iso;
 };
 
 const periodHeader = (start: string, end: string): string =>
@@ -816,7 +817,8 @@ async function buildTaxPreparation(
 	start: string,
 	end: string,
 ): Promise<ReportData> {
-	const year = new Date(end).getFullYear();
+	const year =
+		parseLocalYmd(end)?.getFullYear() ?? new Date(end).getUTCFullYear();
 	const yearEndResult = await safeFetch(
 		queryClient,
 		reportAnalyticsQueries.yearEnd(year),

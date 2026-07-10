@@ -11,6 +11,7 @@
 
 import { mutationOptions } from "@tanstack/react-query";
 import { omitUndefined } from "#lib/db-insert";
+import { formatLocalYmd } from "#lib/formatters/date";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
@@ -147,7 +148,7 @@ export const leaseMutations = {
 					.from("leases")
 					.update({
 						lease_status: "terminated",
-						end_date: new Date().toISOString(),
+						end_date: formatLocalYmd(new Date()),
 					})
 					.eq("id", id)
 					.select()

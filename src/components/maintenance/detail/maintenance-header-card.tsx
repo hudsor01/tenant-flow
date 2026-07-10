@@ -12,6 +12,7 @@ import Link from "next/link";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 import { PRIORITY_CONFIG, STATUS_CONFIG } from "./maintenance-utils";
@@ -137,11 +138,14 @@ export function MaintenanceHeaderCard({
 						</div>
 						<p className="mt-1 font-medium">
 							{request.scheduled_date
-								? new Date(request.scheduled_date).toLocaleDateString("en-US", {
-										weekday: "long",
-										year: "numeric",
-										month: "long",
-										day: "numeric",
+								? formatDate(request.scheduled_date, {
+										formatOptions: {
+											weekday: "long",
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+											timeZone: "UTC",
+										},
 									})
 								: "Not scheduled"}
 						</p>

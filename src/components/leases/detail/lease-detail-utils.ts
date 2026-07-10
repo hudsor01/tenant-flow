@@ -1,3 +1,4 @@
+import { differenceInCalendarDays } from "date-fns";
 import {
 	CheckCircle,
 	Clock,
@@ -7,6 +8,7 @@ import {
 	Send,
 	XCircle,
 } from "lucide-react";
+import { parseLocalYmd } from "#lib/formatters/date";
 import type { Lease } from "#types/core";
 
 /** Timeline event for lease history display */
@@ -238,8 +240,7 @@ export function formatRelativeTime(dateString: string): string {
 /** Calculate days until expiry */
 export function getDaysUntilExpiry(endDate: string | null): number | null {
 	if (!endDate) return null;
-	const end = new Date(endDate);
-	const now = new Date();
-	const diffMs = end.getTime() - now.getTime();
-	return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+	const end = parseLocalYmd(endDate);
+	if (!end) return null;
+	return differenceInCalendarDays(end, new Date());
 }

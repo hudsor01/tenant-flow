@@ -40,6 +40,7 @@ import {
 	SEARCH_PAGE_SIZE,
 } from "#hooks/api/query-keys/document-search-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
+import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
 import { createClient } from "#lib/supabase/client";
 import { type DocumentCategory } from "#lib/validation/documents";
 import { DocumentRow } from "./document-row";
@@ -73,34 +74,6 @@ if ((DOCUMENT_ENTITY_TYPES as readonly string[]).includes(ANY_ENTITY)) {
 // `document_categories` table via `useDocumentCategories`. The static
 // CATEGORY_OPTIONS constant is gone — see the in-component
 // `categoryOptions` derived from the hook's data.
-
-// Parse a YYYY-MM-DD URL value into a local-zone Date (midnight local).
-// Returns undefined on malformed input. Critically uses local-component
-// construction — NOT `new Date('2026-04-30')` which produces UTC midnight
-// and silently shifts the picker by one day for users east of UTC.
-// Round-trips through getFullYear/getMonth/getDate to reject overflow
-// inputs like `2026-13-99` (which JS otherwise wraps to April 9, 2027).
-function parseLocalYmd(input: string | null): Date | undefined {
-	if (!input) return undefined;
-	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
-	if (!m) return undefined;
-	const y = Number(m[1]);
-	const mo = Number(m[2]);
-	const day = Number(m[3]);
-	const d = new Date(y, mo - 1, day);
-	if (Number.isNaN(d.getTime())) return undefined;
-	if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== day) {
-		return undefined;
-	}
-	return d;
-}
-
-// Format a Date as local-zone YYYY-MM-DD. Pairs with parseLocalYmd for
-// round-trip stability across timezones.
-function formatLocalYmd(d: Date): string {
-	const pad = (n: number) => String(n).padStart(2, "0");
-	return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-}
 
 export function DocumentsVaultClient() {
 	// URL-synced filters via nuqs so a shared link reproduces the search.

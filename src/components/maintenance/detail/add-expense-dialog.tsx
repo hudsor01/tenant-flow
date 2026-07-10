@@ -17,6 +17,7 @@ import {
 import { Field, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { Textarea } from "#components/ui/textarea";
+import { formatLocalYmd } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 
@@ -35,13 +36,11 @@ export function AddExpenseDialog({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [vendorName, setVendorName] = useState("");
 	const [amount, setAmount] = useState("");
-	// `.split("T")[0]` is `string | undefined` under noUncheckedIndexedAccess.
-	// The ISO timestamp always has a "T", so the date prefix exists -- coerce
-	// to `string` so downstream insert payload typing stays clean.
-	const [expenseDate, setExpenseDate] = useState(() => {
-		const isoDate = new Date().toISOString().split("T")[0];
-		return isoDate ?? new Date().toISOString().slice(0, 10);
-	});
+	// Default to today in the owner's local zone so the date input matches the
+	// calendar day they're looking at (not the UTC day).
+	const [expenseDate, setExpenseDate] = useState(() =>
+		formatLocalYmd(new Date()),
+	);
 	const [description, setDescription] = useState("");
 
 	const handleSubmit = async (e: FormEvent) => {

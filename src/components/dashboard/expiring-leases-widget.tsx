@@ -1,6 +1,7 @@
 "use client";
 
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { differenceInCalendarDays } from "date-fns";
 import { ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 import {
@@ -12,6 +13,7 @@ import {
 } from "#components/ui/card";
 import { Skeleton } from "#components/ui/skeleton";
 import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
+import { formatDate, parseLocalYmd } from "#lib/formatters/date";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import {
@@ -58,8 +60,13 @@ const expiringLeasesWithContext = queryOptions({
 });
 
 function daysUntil(dateIso: string): number {
-	const ms = new Date(dateIso).getTime() - Date.now();
-	return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+	return Math.max(
+		0,
+		differenceInCalendarDays(
+			parseLocalYmd(dateIso) ?? new Date(dateIso),
+			new Date(),
+		),
+	);
 }
 
 export function ExpiringLeasesWidget() {
@@ -124,14 +131,14 @@ export function ExpiringLeasesWidget() {
 												</p>
 												<p className="truncate text-xs text-muted-foreground">
 													{lease.property_name ?? "Property"} · ends{" "}
-													{new Date(lease.end_date).toLocaleDateString(
-														"en-US",
-														{
+													{formatDate(lease.end_date, {
+														formatOptions: {
 															month: "short",
 															day: "numeric",
 															year: "numeric",
+															timeZone: "UTC",
 														},
-													)}
+													})}
 												</p>
 											</div>
 											<div className="flex items-center gap-2 shrink-0">
