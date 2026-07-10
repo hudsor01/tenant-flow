@@ -49,21 +49,21 @@ const LEAD_MAGNETS: Record<
 		downloadUrl: string;
 	}
 > = {
-	"preventive-maintenance-checklist-rental-properties-seasonal-guide": {
+	"twelve-month-preventive-maintenance-calendar-rentals": {
 		title: "Download the Complete Maintenance Checklist",
 		description:
 			"Get a printable season-by-season maintenance checklist covering HVAC, plumbing, electrical, and exterior inspections for your rental properties.",
 		resourceType: "checklist",
 		downloadUrl: "/resources/seasonal-maintenance-checklist",
 	},
-	"landlord-tax-deductions-missing-2025": {
+	"mortgage-interest-deduction-rental-property-schedule-e": {
 		title: "Free Tax Deduction Tracker Spreadsheet",
 		description:
 			"Track every deductible expense throughout the year with this ready-to-use spreadsheet. Categorized by IRS schedule with auto-calculated totals.",
 		resourceType: "spreadsheet",
 		downloadUrl: "/resources/landlord-tax-deduction-tracker",
 	},
-	"security-deposit-laws-by-state-2025": {
+	"security-deposit-deadlines-and-caps-all-50-states": {
 		title: "Security Deposit Quick Reference Card",
 		description:
 			"A one-page reference with deposit limits, return deadlines, and required documentation for all 50 states. Print it and keep it at your desk.",

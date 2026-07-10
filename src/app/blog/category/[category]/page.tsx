@@ -119,6 +119,25 @@ export default async function BlogCategoryPage({
 		.order("published_at", { ascending: false })
 		.range(offset, offset + PAGE_LIMIT - 1);
 
+	// An out-of-range ?page=N (offset past the last row) makes PostgREST return
+	// 416 "Requested range not satisfiable" (code PGRST103) — a crawler probing
+	// a page beyond the last, not a server error. Return a real 404 so crawlers
+	// drop the URL instead of soft-rendering a false "0 articles" empty state.
+	// Mirrors blog/page.tsx; notFound() throws NEXT_NOT_FOUND, which propagates.
+	const rangeCode = (postsResult.error as { code?: string } | null)?.code;
+	if (
+		rangeCode === "PGRST103" ||
+		/range not satisfiable/i.test(postsResult.error?.message ?? "")
+	) {
+		notFound();
+	}
+
+	// Any other query error surfaces to blog/error.tsx instead of being silently
+	// swallowed into an empty state.
+	if (postsResult.error) {
+		throw new Error(postsResult.error.message);
+	}
+
 	const posts = (postsResult.data ?? []) as BlogListItem[];
 	const total = postsResult.count ?? 0;
 	const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));

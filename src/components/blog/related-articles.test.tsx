@@ -48,7 +48,7 @@ function setupSupabaseChain(returnData: BlogListItem[] | null) {
 const mockPost1: BlogListItem = {
 	id: "post-1",
 	title: "Seasonal Maintenance Guide",
-	slug: "preventive-maintenance-checklist-rental-properties-seasonal-guide",
+	slug: "twelve-month-preventive-maintenance-calendar-rentals",
 	excerpt: "Keep your rental property in top shape.",
 	published_at: "2026-01-01T00:00:00Z",
 	category: "Maintenance",
@@ -62,7 +62,7 @@ const mockPost1: BlogListItem = {
 const mockPost2: BlogListItem = {
 	id: "post-2",
 	title: "Tax Deductions for Landlords",
-	slug: "landlord-tax-deductions-missing-2025",
+	slug: "mortgage-interest-deduction-rental-property-schedule-e",
 	excerpt: "Stop leaving money on the table.",
 	published_at: "2026-02-01T00:00:00Z",
 	category: "Finance",

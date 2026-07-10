@@ -1,10 +1,14 @@
 /**
  * Design-token drift guard (TOKEN-03).
  *
- * Recursively scans `src/components/**` and `src/app/**` for the four design-token
- * drift patterns — hex color literals, `rgb()`/`rgba()`, the `bg-white` class, and
- * non-zero inline `[NNN]ms` durations — and asserts zero matches outside the
- * documented D-03 allowlist (`DRIFT_EXEMPTIONS`).
+ * Recursively scans `src/components/**` and `src/app/**` for five design-token
+ * drift patterns — hex color literals, `rgb()`/`rgba()`, the `bg-white` class,
+ * non-zero inline `[NNN]ms` durations, and modern color functions
+ * (`oklch()`/`oklab()`/`lab()`/`lch()`/`color-mix()`) — and asserts zero matches
+ * outside the documented D-03 allowlist (`DRIFT_EXEMPTIONS`). The `modernColor`
+ * pattern is scoped to the `src/app/api/og/` satori surface (next/og renders
+ * those color spaces as solid black) and scanned against string-literal content
+ * only, so an OG-route comment mentioning oklch does not self-trigger.
  *
  * This is a Vitest unit-project test (it runs in the lefthook pre-commit hook
  * and the CI test gate). The mechanism is documented for maintainers in
@@ -18,9 +22,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs";
+type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs" | "modernColor";
 
-// The four design-token drift patterns (D-02 enumerates exactly these four).
+// The five design-token drift patterns (D-02 enumerates the first four; MKT-01
+// adds `modernColor`, scoped to the src/app/api/og/ satori surface — see below).
 const DRIFT_PATTERNS: Record<DriftPattern, RegExp> = {
 	// #RGB / #RGBA / #RRGGBB / #RRGGBBAA at a word boundary
 	hex: /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g,
@@ -33,6 +38,14 @@ const DRIFT_PATTERNS: Record<DriftPattern, RegExp> = {
 	// literals animationDelay: "200ms". [1-9]\d* excludes the 0ms zero-case
 	// (globals.css has no --duration-0; 0ms is a legitimate no-delay).
 	inlineMs: /\[\s*[a-z-]*:?\s*[1-9]\d*ms\s*\]|["'`]\s*[1-9]\d*ms\s*["'`]/g,
+	// MKT-01: satori (next/og ImageResponse) renders oklch/oklab/lab/lch/
+	// color-mix() as solid black, so these color functions are forbidden inside a
+	// quoted style string in an OG/satori route. Scoped to `src/app/api/og/` (see
+	// the per-pattern loop) and scanned against string-literal content only, so a
+	// browser-CSS oklch/color-mix literal elsewhere — or an OG-route comment
+	// mentioning oklch — never triggers it. (?<![\w-]) blocks `--foo-lab(` /
+	// `scolor-mix(` word/hyphen-prefixed false positives.
+	modernColor: /(?<![\w-])(?:oklch|oklab|lab|lch|color-mix)\s*\(/gi,
 };
 
 // String / template-literal extractor. The hex scan runs against string-literal
@@ -147,10 +160,20 @@ for (const root of ["src/components", "src/app"]) {
 			describe(rel, () => {
 				for (const pattern of Object.keys(DRIFT_PATTERNS) as DriftPattern[]) {
 					if (isExempt(rel, pattern)) continue;
+					// modernColor is scoped to the OG/satori surface only — browser-CSS
+					// oklch/color-mix literals elsewhere in src/app + src/components are
+					// legitimate (React drives them through a real CSS engine, not satori),
+					// and src/app/features/page.test.ts REQUIRES oklch on the marketing page.
+					if (pattern === "modernColor" && !rel.startsWith("src/app/api/og/"))
+						continue;
 					it(`no ${pattern} drift`, () => {
-						// hex scans string-literal content only (Pitfall-4 false-positive
-						// guard); the other three scan the raw file text.
-						const scanText = pattern === "hex" ? stringContent : content;
+						// hex + modernColor scan string-literal content only (Pitfall-4
+						// false-positive guard, and so an OG-route comment mentioning oklch
+						// does not self-trigger); the other patterns scan the raw file text.
+						const scanText =
+							pattern === "hex" || pattern === "modernColor"
+								? stringContent
+								: content;
 						const rawMatches: readonly string[] =
 							scanText.match(DRIFT_PATTERNS[pattern]) ?? [];
 						const matches =
@@ -191,6 +214,44 @@ describe("drift regexes catch known drift (meta-test)", () => {
 		).not.toBeNull());
 	it("inlineMs regex IGNORES the 0ms zero-case", () =>
 		expect('"0ms"'.match(DRIFT_PATTERNS.inlineMs)).toBeNull());
+	it("modernColor regex catches oklch(", () =>
+		expect(
+			"oklch(0.62 0.18 250)".match(DRIFT_PATTERNS.modernColor),
+		).not.toBeNull());
+	it("modernColor regex catches oklab(", () =>
+		expect(
+			"oklab(0.4 0.1 0.1)".match(DRIFT_PATTERNS.modernColor),
+		).not.toBeNull());
+	it("modernColor regex catches color-mix(", () =>
+		expect(
+			"color-mix(in oklch, white 50%, black)".match(DRIFT_PATTERNS.modernColor),
+		).not.toBeNull());
+	it("modernColor regex catches lab( and lch(", () => {
+		expect("lab(50% 40 59.5)".match(DRIFT_PATTERNS.modernColor)).not.toBeNull();
+		expect(
+			"lch(52.2% 72.2 50)".match(DRIFT_PATTERNS.modernColor),
+		).not.toBeNull();
+	});
+	it("modernColor regex IGNORES a bare word oklch with no paren", () =>
+		expect(
+			"renders oklch as black".match(DRIFT_PATTERNS.modernColor),
+		).toBeNull());
+	it("modernColor regex IGNORES word/hyphen-prefixed lab(/color-mix(", () => {
+		expect("--foo-lab(".match(DRIFT_PATTERNS.modernColor)).toBeNull();
+		expect("scolor-mix(".match(DRIFT_PATTERNS.modernColor)).toBeNull();
+	});
+	it("modernColor scan (string-literal only) ignores an oklch mention in a comment", () =>
+		expect(
+			extractStringContent("// satori renders oklch as black; use hsl").match(
+				DRIFT_PATTERNS.modernColor,
+			),
+		).toBeNull());
+	it("modernColor scan flags a quoted oklch color string", () =>
+		expect(
+			extractStringContent('const c = "oklch(1 0 0)";').match(
+				DRIFT_PATTERNS.modernColor,
+			),
+		).not.toBeNull());
 	it("hex scan keeps a hex inside a string literal", () =>
 		expect(
 			extractStringContent('const fill = "#2563eb";').match(DRIFT_PATTERNS.hex),

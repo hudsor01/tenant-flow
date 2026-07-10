@@ -17,10 +17,18 @@ import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
  */
 export const RESOURCE_TO_BLOGS: Record<string, string[]> = {
 	"seasonal-maintenance-checklist": [
-		"preventive-maintenance-checklist-rental-properties-seasonal-guide",
+		"twelve-month-preventive-maintenance-calendar-rentals",
+		"spring-rental-maintenance-checklist",
+		"fall-rental-maintenance-checklist",
 	],
-	"landlord-tax-deduction-tracker": ["landlord-tax-deductions-missing-2025"],
-	"security-deposit-reference-card": ["security-deposit-laws-by-state-2025"],
+	"landlord-tax-deduction-tracker": [
+		"mortgage-interest-deduction-rental-property-schedule-e",
+		"repairs-deduction-schedule-e-line-14",
+		"legal-accounting-fees-landlord-deduction",
+	],
+	"security-deposit-reference-card": [
+		"security-deposit-deadlines-and-caps-all-50-states",
+	],
 };
 
 /**

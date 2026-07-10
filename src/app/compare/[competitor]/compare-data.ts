@@ -19,7 +19,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	buildium: {
 		name: "Buildium",
 		slug: "buildium",
-		blogSlug: "tenantflow-vs-buildium-comparison",
+		blogSlug: "buildium-vs-doorloop-vs-tenantflow-2026",
 		tagline: "The Modern Buildium Alternative",
 		description:
 			"See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and a better tenant experience.",
@@ -122,7 +122,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	appfolio: {
 		name: "AppFolio",
 		slug: "appfolio",
-		blogSlug: "tenantflow-vs-appfolio-comparison",
+		blogSlug: "appfolio-alternatives-under-25-month-for-first-time-landlords",
 		tagline: "The AppFolio Alternative for Landlords",
 		description:
 			"AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $19/month with no minimums. Compare features and pricing.",
@@ -251,7 +251,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	rentredi: {
 		name: "RentRedi",
 		slug: "rentredi",
-		blogSlug: "tenantflow-vs-rentredi-comparison",
+		blogSlug:
+			"rentredi-alternatives-under-30-month-for-budget-conscious-landlords",
 		tagline: "TenantFlow vs RentRedi: More Features, Fair Price",
 		description:
 			"RentRedi is cheap but basic. TenantFlow adds advanced reporting, visual workflows, and lease management for just $10 more per month.",

@@ -13,6 +13,6 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true
 	},
-	"include": ["rls/**/*", "setup/**/*"],
+	"include": ["rls/**/*", "setup/**/*", "content-links-slugs.test.ts"],
 	"exclude": ["node_modules"]
 }

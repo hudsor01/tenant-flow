@@ -4,13 +4,14 @@
  * The pagination controls are REAL `<Link>` anchors carrying `?page=N`
  * hrefs so the paginated URLs exist in the SSR HTML and are crawlable
  * (page 2+ posts were crawl orphans when these were hrefless `<button>`s).
- * The onClick still drives the instant nuqs client-side swap.
+ * An enabled click performs real navigation (no nuqs hijack) so the Server
+ * Component re-runs and the post grid changes; the onClick is a guard that
+ * only preventDefaults a disabled boundary link.
  *
  * @vitest-environment jsdom
  */
 
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockSetPage = vi.hoisted(() => vi.fn());
@@ -115,29 +116,33 @@ describe("BlogPagination", () => {
 		expect(nav).toBeInTheDocument();
 	});
 
-	it("calls setPage with next value on next click", async () => {
-		const user = userEvent.setup();
+	it("lets an enabled next click navigate (no setPage hijack, default not prevented)", () => {
+		mockPage.value = 3;
 		render(<BlogPagination totalPages={5} />);
 		const next = screen.getByRole("link", { name: "Next page" });
-		await user.click(next);
-		expect(mockSetPage).toHaveBeenCalledWith(2);
-	});
-
-	it("calls setPage with null when navigating back to page 1", async () => {
-		mockPage.value = 2;
-		const user = userEvent.setup();
-		render(<BlogPagination totalPages={5} />);
-		const prev = screen.getByRole("link", { name: "Previous page" });
-		await user.click(prev);
-		expect(mockSetPage).toHaveBeenCalledWith(null);
-	});
-
-	it("does not call setPage when clicking a disabled boundary link", async () => {
-		const user = userEvent.setup();
-		render(<BlogPagination totalPages={5} />);
-		const prev = screen.getByRole("link", { name: "Previous page" });
-		await user.click(prev);
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+		next.dispatchEvent(event);
 		expect(mockSetPage).not.toHaveBeenCalled();
+		expect(event.defaultPrevented).toBe(false);
+	});
+
+	it("lets an enabled prev click navigate (no setPage hijack, default not prevented)", () => {
+		mockPage.value = 2;
+		render(<BlogPagination totalPages={5} />);
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+		prev.dispatchEvent(event);
+		expect(mockSetPage).not.toHaveBeenCalled();
+		expect(event.defaultPrevented).toBe(false);
+	});
+
+	it("preventDefaults a disabled boundary link and never calls setPage", () => {
+		render(<BlogPagination totalPages={5} />);
+		const prev = screen.getByRole("link", { name: "Previous page" });
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+		prev.dispatchEvent(event);
+		expect(mockSetPage).not.toHaveBeenCalled();
+		expect(event.defaultPrevented).toBe(true);
 	});
 
 	it("applies custom className", () => {
