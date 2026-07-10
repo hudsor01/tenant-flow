@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
+import type { MfaAssurance } from "#lib/supabase/mfa-assurance";
 import type { Database } from "#types/supabase";
 
 /**
@@ -11,15 +12,24 @@ import type { Database } from "#types/supabase";
  * incoming request and the outgoing response. Calls getUser() for
  * server-validated auth (never getSession()).
  *
- * Returns the authenticated user (or null) and the response with
- * updated cookies. **Never throws** — auth failures (malformed JWT,
- * Supabase auth-server outage, network errors) are coerced to `user:
- * null` so the proxy can fall through to the public-route / login-
- * redirect path instead of returning 503. A thrown auth error in
- * middleware causes Vercel to surface a 5xx for what's actually a
- * routine "no valid session" outcome — battle-test Session 7 saw ~25
- * such 503s on RSC prefetches because the agent's hand-crafted
- * workaround cookie occasionally tripped Supabase's JWT validator.
+ * Returns the authenticated user (or null), the session's MFA
+ * `assuranceLevel`, and the response with updated cookies. **Never
+ * throws** — auth failures (malformed JWT, Supabase auth-server outage,
+ * network errors) are coerced to `user: null` so the proxy can fall
+ * through to the public-route / login-redirect path instead of returning
+ * 503. A thrown auth error in middleware causes Vercel to surface a 5xx
+ * for what's actually a routine "no valid session" outcome — battle-test
+ * Session 7 saw ~25 such 503s on RSC prefetches because the agent's
+ * hand-crafted workaround cookie occasionally tripped Supabase's JWT
+ * validator.
+ *
+ * SEC-01: `assuranceLevel` is derived LOCALLY from the just-refreshed
+ * session (getAuthenticatorAssuranceLevel decodes the JWT `aal` claim for
+ * `currentLevel` and derives `nextLevel` from the session's verified
+ * factors) — zero extra network round-trip. On any error it is coerced to
+ * `null` (fail-secure) and captured to Sentry at `warning`. The proxy uses
+ * it (via `requiresMfaStepUp`) to gate aal1 sessions of MFA-enrolled users
+ * out of private routes server-side.
  *
  * `requestHeaders` (CISEC-02): when provided, the pass-through
  * `NextResponse.next({ request: { headers } })` carries these headers
@@ -41,7 +51,11 @@ import type { Database } from "#types/supabase";
 export async function updateSession(
 	request: NextRequest,
 	requestHeaders?: Headers,
-): Promise<{ user: User | null; supabaseResponse: NextResponse }> {
+): Promise<{
+	user: User | null;
+	assuranceLevel: MfaAssurance | null;
+	supabaseResponse: NextResponse;
+}> {
 	const nextOptions = requestHeaders
 		? { request: { headers: requestHeaders } }
 		: { request };
@@ -123,5 +137,30 @@ export async function updateSession(
 		});
 	}
 
-	return { user, supabaseResponse };
+	// SEC-01: derive the session's MFA assurance level LOCALLY — no extra
+	// round-trip, getAuthenticatorAssuranceLevel decodes the just-refreshed
+	// JWT `aal` claim for currentLevel and derives nextLevel from the
+	// session's verified factors. On any throw, capture to Sentry at
+	// `warning` and leave assuranceLevel null (fail-secure). Kept in its own
+	// try/catch so an AAL failure never affects the getUser result above.
+	let assuranceLevel: MfaAssurance | null = null;
+	try {
+		const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+		assuranceLevel = data ?? null;
+	} catch (error) {
+		Sentry.captureException(error, {
+			tags: {
+				component: "supabase/middleware",
+				check: "auth_get_aal",
+			},
+			extra: {
+				pathname: request.nextUrl.pathname,
+				requestId: request.headers.get("x-vercel-id") ?? undefined,
+				userAgent: request.headers.get("user-agent") ?? undefined,
+			},
+			level: "warning",
+		});
+	}
+
+	return { user, assuranceLevel, supabaseResponse };
 }

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // ── Mocks ──────────────────────────────────────────────────
 
 const mockGetUser = vi.fn();
+const mockGetAAL = vi.fn();
 const mockCreateServerClient = vi.fn();
 const mockCaptureException = vi.fn();
 
@@ -97,7 +98,10 @@ describe("updateSession", () => {
 					mockCreateServerClient as unknown as Record<string, unknown>
 				)._lastCookieHandlers = options.cookies;
 				return {
-					auth: { getUser: mockGetUser },
+					auth: {
+						getUser: mockGetUser,
+						mfa: { getAuthenticatorAssuranceLevel: mockGetAAL },
+					},
 				};
 			},
 		);
@@ -106,6 +110,13 @@ describe("updateSession", () => {
 			data: {
 				user: { id: "user-123", app_metadata: {} },
 			},
+			error: null,
+		});
+
+		// SEC-01: getAuthenticatorAssuranceLevel is LOCAL (decodes the just-
+		// refreshed JWT). Default to a no-MFA aal1 session.
+		mockGetAAL.mockResolvedValue({
+			data: { currentLevel: "aal1", nextLevel: "aal1" },
 			error: null,
 		});
 	});
@@ -167,6 +178,43 @@ describe("updateSession", () => {
 		const reqCookie = request.cookies.get("sb-token");
 		expect(reqCookie).toBeDefined();
 		expect(reqCookie?.value).toBe("refreshed-value");
+	});
+
+	it("returns the session's MFA assuranceLevel derived locally (no extra round-trip)", async () => {
+		mockGetAAL.mockResolvedValue({
+			data: { currentLevel: "aal1", nextLevel: "aal2" },
+			error: null,
+		});
+
+		const request = buildRequest("/dashboard");
+		const result = await updateSession(request);
+
+		expect(mockGetAAL).toHaveBeenCalledOnce();
+		expect(result.assuranceLevel).toEqual({
+			currentLevel: "aal1",
+			nextLevel: "aal2",
+		});
+	});
+
+	it("coerces a thrown getAuthenticatorAssuranceLevel() error to null (fail-secure) and captures to Sentry at warning", async () => {
+		mockGetAAL.mockRejectedValue(new Error("aal decode failed"));
+
+		const request = buildRequest("/dashboard");
+		const result = await updateSession(request);
+
+		// User still resolves; only the AAL derivation failed.
+		expect(result.user).toEqual({ id: "user-123", app_metadata: {} });
+		expect(result.assuranceLevel).toBeNull();
+		expect(mockCaptureException).toHaveBeenCalledOnce();
+		const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+			Error,
+			{ tags: Record<string, string>; level: string },
+		];
+		expect(capturedContext.tags).toMatchObject({
+			component: "supabase/middleware",
+			check: "auth_get_aal",
+		});
+		expect(capturedContext.level).toBe("warning");
 	});
 
 	it("returns null user when getUser() returns no user", async () => {

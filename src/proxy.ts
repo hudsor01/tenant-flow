@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "#env";
+import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { updateSession } from "#lib/supabase/middleware";
 import type { Database } from "#types/supabase";
 
@@ -126,10 +127,12 @@ function buildNonceCsp(nonce: string): string {
 		"default-src 'self'",
 		scriptSrc,
 		"style-src 'self' 'unsafe-inline'",
-		"img-src 'self' data: blob:",
+		"img-src 'self' data: blob: https://*.supabase.co",
+		"media-src 'self' data: blob: https://*.supabase.co",
 		"connect-src 'self' *.supabase.co *.sentry.io *.stripe.com",
 		"font-src 'self'",
 		"object-src 'none'",
+		"frame-src 'self' https://*.supabase.co",
 		"frame-ancestors 'none'",
 		"base-uri 'self'",
 		"form-action 'self'",
@@ -186,7 +189,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		return NextResponse.next();
 	}
 
-	const { user, supabaseResponse } = await updateSession(
+	const { user, assuranceLevel, supabaseResponse } = await updateSession(
 		request,
 		requestHeaders,
 	);
@@ -213,6 +216,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	}
 
 	if (!user) {
+		const url = request.nextUrl.clone();
+		url.pathname = "/login";
+		url.searchParams.set("redirect", pathname);
+		return withCsp(redirectWithCookies(url, supabaseResponse));
+	}
+
+	// SEC-01: an aal1 session belonging to an MFA-enrolled user must complete
+	// step-up (aal2) before any private route — server-enforced here so it
+	// can't be bypassed by typing a URL. Keys on `nextLevel` (not the raw JWT
+	// aal claim) so a no-MFA aal1 user is NOT locked out. /login is public
+	// (not in PRIVATE_ROUTE_PREFIXES), so redirecting there is loop-free; the
+	// login page auto-opens the OTP challenge on mount.
+	if (requiresMfaStepUp(assuranceLevel)) {
 		const url = request.nextUrl.clone();
 		url.pathname = "/login";
 		url.searchParams.set("redirect", pathname);

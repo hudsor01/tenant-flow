@@ -247,3 +247,63 @@ describe("CISEC-02 CSP hardening", () => {
 		expect(response.status).toBeLessThan(300);
 	});
 });
+
+/** Isolates a single named directive from a serialized CSP string. */
+function directive(csp: string, name: string): string {
+	return (
+		csp
+			.split(";")
+			.map((d) => d.trim())
+			.find((d) => d.startsWith(`${name} `) || d === name) ?? ""
+	);
+}
+
+/**
+ * SEC-02 regression guard. Both CSP definitions (the proxy's per-request
+ * nonce CSP on private routes AND the static vercel.json CSP) must allow
+ * `https://*.supabase.co` on img-src, media-src, and frame-src so
+ * private-route storage media (maintenance photos/videos, inspection
+ * photos, document image + PDF <iframe> previews, avatars) renders instead
+ * of being CSP-blocked. The two definitions must stay in sync, and NO bare
+ * `https:` scheme-source may be introduced (that would relax the policy to
+ * any origin). frame-ancestors stays 'none' (clickjacking protection).
+ */
+describe("SEC-02 storage-media CSP allowances", () => {
+	const SUPA = "https://*.supabase.co";
+
+	it.each([
+		["img-src", `img-src 'self' data: blob: ${SUPA}`],
+		["media-src", `media-src 'self' data: blob: ${SUPA}`],
+		["frame-src", `frame-src 'self' ${SUPA}`],
+	])("vercel.json static CSP %s allows the Supabase storage host", (name, expected) => {
+		const csp = readVercelCsp();
+		expect(directive(csp, name)).toBe(expected);
+	});
+
+	it("vercel.json keeps frame-ancestors 'none' and adds no bare https: source", () => {
+		const csp = readVercelCsp();
+		expect(directive(csp, "frame-ancestors")).toBe("frame-ancestors 'none'");
+		// A bare `https:` scheme-source (any origin) must never appear — only
+		// the scoped `https://*.supabase.co` host-source is allowed.
+		expect(csp).not.toMatch(/(?:^|[\s;])https:(?![/])/);
+	});
+
+	it.each([
+		["img-src", `img-src 'self' data: blob: ${SUPA}`],
+		["media-src", `media-src 'self' data: blob: ${SUPA}`],
+		["frame-src", `frame-src 'self' ${SUPA}`],
+	])("proxy nonce CSP %s allows the Supabase storage host (in sync with vercel.json)", async (name, expected) => {
+		const response = await proxy(buildRequest("/dashboard"));
+		const responseCsp = response.headers.get("content-security-policy") ?? "";
+		expect(directive(responseCsp, name)).toBe(expected);
+	});
+
+	it("proxy nonce CSP keeps frame-ancestors 'none' and adds no bare https: source", async () => {
+		const response = await proxy(buildRequest("/dashboard"));
+		const responseCsp = response.headers.get("content-security-policy") ?? "";
+		expect(directive(responseCsp, "frame-ancestors")).toBe(
+			"frame-ancestors 'none'",
+		);
+		expect(responseCsp).not.toMatch(/(?:^|[\s;])https:(?![/])/);
+	});
+});
