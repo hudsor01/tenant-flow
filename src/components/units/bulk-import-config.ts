@@ -40,7 +40,13 @@ const TEMPLATE_SAMPLE_ROWS = [
 	["102", "3", "2", "1100", "2400", "available"],
 ] as const;
 
-type UnitStatus = ReturnType<typeof unitStatusSchema.parse>;
+// Bulk-import schema tightens the shared `unitInputSchema`'s
+// `status: z.string().default('available')` down to the real enum so an
+// invalid CSV status FAILS the row instead of being silently coerced to a
+// default. A blank cell still falls back via `.default('available')`.
+const unitImportSchema = unitInputSchema.extend({
+	status: unitStatusSchema.default("available"),
+});
 
 function coerceOptionalNumber(value: string | undefined): number | undefined {
 	if (value === undefined) return undefined;
@@ -48,12 +54,6 @@ function coerceOptionalNumber(value: string | undefined): number | undefined {
 	if (trimmed === "") return undefined;
 	const parsed = Number(trimmed);
 	return Number.isNaN(parsed) ? undefined : parsed;
-}
-
-function normalizeStatus(raw: string | undefined): UnitStatus {
-	const trimmed = (raw ?? "").trim().toLowerCase();
-	const parsed = unitStatusSchema.safeParse(trimmed);
-	return parsed.success ? parsed.data : "available";
 }
 
 export function unitBulkImportConfig(
@@ -71,9 +71,12 @@ export function unitBulkImportConfig(
 			const result: BulkImportParseResult<UnitInput> = parseCsvWithSchema(
 				csvText,
 				{
-					schema: unitInputSchema,
+					schema: unitImportSchema,
 					mapRow: (raw) => {
-						const status = normalizeStatus(raw.status);
+						// Pass a non-blank status THROUGH to the schema (an unknown
+						// value then fails the row); a blank cell is omitted so the
+						// schema's `.default('available')` supplies the fallback.
+						const rawStatus = (raw.status ?? "").trim().toLowerCase();
 						const bedrooms = coerceOptionalNumber(raw.bedrooms);
 						const bathrooms = coerceOptionalNumber(raw.bathrooms);
 						const square_feet = coerceOptionalNumber(raw.square_feet);
@@ -89,7 +92,7 @@ export function unitBulkImportConfig(
 							...(bathrooms !== undefined ? { bathrooms } : {}),
 							...(square_feet !== undefined ? { square_feet } : {}),
 							...(rent_amount !== undefined ? { rent_amount } : {}),
-							status,
+							...(rawStatus ? { status: rawStatus } : {}),
 						};
 					},
 				},

@@ -61,13 +61,14 @@ describe("unitBulkImportConfig", () => {
 		expect(parsed.property_id).toBe(PROPERTY_ID);
 	});
 
-	it('defaults unknown status to "available"', () => {
+	it("rejects an unknown status value (no silent coercion)", () => {
 		const csv = buildCsvTemplate(config.templateHeaders, [
 			["101", "2", "1", "850", "1800", "bogus"],
 		]);
 		const result = config.parseAndValidate(csv);
-		const parsed = result.rows[0]?.parsed as unknown as Record<string, unknown>;
-		expect(parsed.status).toBe("available");
+		expect(result.rows[0]?.parsed).toBeNull();
+		const fields = (result.rows[0]?.errors ?? []).map((e) => e.field);
+		expect(fields).toContain("status");
 	});
 
 	it("sample rows must align with header length", () => {
