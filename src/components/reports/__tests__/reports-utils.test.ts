@@ -12,10 +12,12 @@ describe("startOfMonthsBack", () => {
 		expect(iso(startOfMonthsBack(new Date(2026, 0, 31), 2))).toBe("2025-11-01");
 	});
 
-	it("handles a 31-day source month over a shorter target month", () => {
-		// Jul 31 minus 2 months -> May 1 (the buggy ordering yielded Jul 1
-		// via a normalized May 31 -> ... path).
-		expect(iso(startOfMonthsBack(new Date(2026, 6, 31), 2))).toBe("2026-05-01");
+	it("pins the day before shifting so a short target month cannot overflow", () => {
+		// Mar 31 minus 1 month must land on Feb 1. The buggy ordering (setMonth
+		// before pinning the day) sets the month to Feb while the day is still
+		// 31; Feb 2026 has 28 days, so Date normalizes Feb 31 -> Mar 3, and the
+		// later setDate(1) then wrongly yields Mar 1.
+		expect(iso(startOfMonthsBack(new Date(2026, 2, 31), 1))).toBe("2026-02-01");
 	});
 
 	it("is unaffected by the day-of-month for mid-month dates", () => {
