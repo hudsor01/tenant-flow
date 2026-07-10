@@ -141,22 +141,26 @@ export function acquireLock(
 	if (Number.isInteger(holder) && holder > 0 && isProcessAlive(holder)) {
 		return false; // live holder
 	}
-	// Stale: reclaim WITHOUT unconditional delete — write pid to a private temp,
-	// atomically rename over the stale lock, then read-back-verify. Two racers both
-	// rename (atomic, last-writer-wins); only one pid remains, so exactly one
-	// returns true.
-	const tmp = `${lockPath}.${pid}.${process.hrtime.bigint()}.tmp`;
+	// Stale (dead/corrupt holder). Reclaim by ATOMICALLY moving the stale lock
+	// aside first: rename(2) serializes in the kernel, so of N racers that all
+	// observed the same stale file, exactly one rename of the stale path
+	// succeeds — the rest get ENOENT and back off. The winner then re-creates
+	// the lock with the same exclusive `wx` create, which also loses cleanly to
+	// any process that grabbed the now-free path first. No unconditional delete,
+	// and no last-writer-wins overwrite of a lock a racer is already holding.
+	const claimed = `${lockPath}.stale.${pid}.${process.hrtime.bigint()}`;
 	try {
-		writeFileSync(tmp, String(pid), { flag: "wx" });
-		renameSync(tmp, lockPath);
+		renameSync(lockPath, claimed);
 	} catch {
-		rmSync(tmp, { force: true });
-		return false;
+		return false; // another racer already moved/removed the stale lock
 	}
 	try {
-		return Number.parseInt(readFileSync(lockPath, "utf8"), 10) === pid;
+		writeFileSync(lockPath, String(pid), { flag: "wx" });
+		return true;
 	} catch {
-		return false;
+		return false; // someone claimed the freed path first
+	} finally {
+		rmSync(claimed, { force: true });
 	}
 }
 
