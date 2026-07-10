@@ -11,6 +11,7 @@ import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog"
 import { authKeys } from "#hooks/api/use-auth";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
+import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { LoginForm } from "./login-form";
 import { LoginOAuth } from "./login-oauth";
 
@@ -55,6 +56,52 @@ function LoginPageContent() {
 			router.replace("/login");
 		}
 	}, [router]);
+
+	// SEC-01: when the proxy redirects an aal1 session for an MFA-enrolled
+	// user here (→ /login?redirect=…), open the OTP challenge on mount
+	// instead of showing the password form — the password was already
+	// accepted; only step-up remains. Mirrors the submit-handler aal dance.
+	useEffect(() => {
+		let ignore = false;
+		void (async () => {
+			const supabase = createClient();
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (ignore || !user) return;
+
+			const { data: aalData } =
+				await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+			if (
+				ignore ||
+				!requiresMfaStepUp({
+					currentLevel: aalData?.currentLevel ?? null,
+					nextLevel: aalData?.nextLevel ?? null,
+				})
+			) {
+				return;
+			}
+
+			const { data: factorsData } = await supabase.auth.mfa.listFactors();
+			if (ignore) return;
+			const totpFactor = factorsData?.totp?.find(
+				(f) => f.status === "verified",
+			);
+			if (!totpFactor) return;
+
+			const redirectTo = new URLSearchParams(window.location.search).get(
+				"redirect",
+			);
+			const destination =
+				redirectTo && isValidRedirect(redirectTo) ? redirectTo : "/dashboard";
+			setPendingRedirect(destination);
+			setMfaFactorId(totpFactor.id);
+			setShowMfaDialog(true);
+		})();
+		return () => {
+			ignore = true;
+		};
+	}, []);
 
 	const handleCredentialSubmit = async (value: {
 		email: string;
@@ -280,7 +327,14 @@ function LoginPageContent() {
 			{mfaFactorId && (
 				<MfaVerificationDialog
 					open={showMfaDialog}
-					onOpenChange={setShowMfaDialog}
+					onOpenChange={(next) => {
+						// SEC-01: route every dismiss (Escape / backdrop / X) through
+						// sign-out so a dismissed challenge cannot leave a usable aal1
+						// session. handleMfaSuccess uses the controlled
+						// setShowMfaDialog(false), which Radix does NOT report via
+						// onOpenChange — so a successful verify won't double-signOut.
+						if (!next) void handleMfaCancel();
+					}}
 					factorId={mfaFactorId}
 					onSuccess={handleMfaSuccess}
 					onCancel={handleMfaCancel}

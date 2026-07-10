@@ -17,176 +17,203 @@
  * test, fixture create + cleanup, chai6-safe rejection matcher).
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
-describe("LEASE-04 reject_signed_lease_term_edits trigger", () => {
-	let clientA: SupabaseClient;
-	let ownerAId: string;
+const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+const SERVICE_ROLE_KEY =
+	process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
+	process.env["SUPABASE_SECRET_KEY"];
+// SEC-05 (20260710070223) revoked the signature-audit columns from
+// `authenticated`, so seeding the tenant-signed state now requires a service-role
+// client (bypasses column grants, exactly as the prod sign RPC does). Skip cleanly
+// when the key is absent — the term-lock assertions themselves run as the owner.
+const skipReason = !SUPABASE_URL
+	? "NEXT_PUBLIC_SUPABASE_URL not set"
+	: !SERVICE_ROLE_KEY
+		? "SUPABASE_SERVICE_ROLE_KEY / SUPABASE_SECRET_KEY not set"
+		: null;
 
-	let propertyA: { id: string } | null = null;
-	let unitA: { id: string } | null = null;
-	let tenantA: { id: string } | null = null;
-	const insertedLeaseIds: string[] = [];
+describe.skipIf(skipReason)(
+	"LEASE-04 reject_signed_lease_term_edits trigger",
+	() => {
+		let clientA: SupabaseClient;
+		let ownerAId: string;
 
-	// Signed lease (tenant_signed_at set) reused across the lock/allow cases.
-	let signedLeaseId: string | null = null;
-	// Unsigned draft used for the still-editable case.
-	let draftLeaseId: string | null = null;
+		let propertyA: { id: string } | null = null;
+		let unitA: { id: string } | null = null;
+		let tenantA: { id: string } | null = null;
+		const insertedLeaseIds: string[] = [];
 
-	async function createLease(
-		start: string,
-		end: string,
-	): Promise<string | null> {
-		if (!unitA || !tenantA) return null;
-		const { data } = await clientA
-			.from("leases")
-			.insert({
-				owner_user_id: ownerAId,
-				unit_id: unitA.id,
-				primary_tenant_id: tenantA.id,
-				start_date: start,
-				end_date: end,
-				rent_amount: 1600,
-				security_deposit: 1600,
-			})
-			.select("id")
-			.single();
-		if (data?.id) insertedLeaseIds.push(data.id);
-		return data?.id ?? null;
-	}
+		// Signed lease (tenant_signed_at set, seeded via service role) reused across the
+		// lock/allow cases. tenant_signed_at is the durable lock signal and also lets the
+		// renew/terminate cases transition to active/terminated (an unsigned lease can't).
+		let signedLeaseId: string | null = null;
+		// Unsigned draft used for the still-editable case.
+		let draftLeaseId: string | null = null;
 
-	beforeAll(async () => {
-		const { ownerA } = getTestCredentials();
-		clientA = await createTestClient(ownerA.email, ownerA.password);
-
-		const {
-			data: { user: userA },
-		} = await clientA.auth.getUser();
-		ownerAId = userA!.id;
-
-		const { data: pA } = await clientA
-			.from("properties")
-			.insert({
-				name: "Terms-Lock Test Property A",
-				address_line1: "20 Lock St",
-				city: "Testville",
-				state: "CA",
-				postal_code: "94105",
-				country: "US",
-				property_type: "APARTMENT",
-				owner_user_id: ownerAId,
-			})
-			.select("id")
-			.single();
-		propertyA = pA ? { id: pA.id } : null;
-
-		if (propertyA) {
-			const { data: uA } = await clientA
-				.from("units")
+		async function createLease(
+			start: string,
+			end: string,
+		): Promise<string | null> {
+			if (!unitA || !tenantA) return null;
+			const { data } = await clientA
+				.from("leases")
 				.insert({
-					property_id: propertyA.id,
-					unit_number: "LOCK-A-101",
-					bedrooms: 1,
-					bathrooms: 1,
-					rent_amount: 1500,
+					owner_user_id: ownerAId,
+					unit_id: unitA.id,
+					primary_tenant_id: tenantA.id,
+					start_date: start,
+					end_date: end,
+					rent_amount: 1600,
+					security_deposit: 1600,
+				})
+				.select("id")
+				.single();
+			if (data?.id) insertedLeaseIds.push(data.id);
+			return data?.id ?? null;
+		}
+
+		beforeAll(async () => {
+			const { ownerA } = getTestCredentials();
+			clientA = await createTestClient(ownerA.email, ownerA.password);
+
+			const {
+				data: { user: userA },
+			} = await clientA.auth.getUser();
+			ownerAId = userA!.id;
+
+			const { data: pA } = await clientA
+				.from("properties")
+				.insert({
+					name: "Terms-Lock Test Property A",
+					address_line1: "20 Lock St",
+					city: "Testville",
+					state: "CA",
+					postal_code: "94105",
+					country: "US",
+					property_type: "APARTMENT",
 					owner_user_id: ownerAId,
 				})
 				.select("id")
 				.single();
-			unitA = uA ? { id: uA.id } : null;
-		}
+			propertyA = pA ? { id: pA.id } : null;
 
-		const { data: tA } = await clientA
-			.from("tenants")
-			.insert({
-				email: `lock-test-tenant-a-${Date.now()}@example.com`,
-				first_name: "Lock",
-				last_name: "TestA",
-				owner_user_id: ownerAId,
-			})
-			.select("id")
-			.single();
-		tenantA = tA ? { id: tA.id } : null;
+			if (propertyA) {
+				const { data: uA } = await clientA
+					.from("units")
+					.insert({
+						property_id: propertyA.id,
+						unit_number: "LOCK-A-101",
+						bedrooms: 1,
+						bathrooms: 1,
+						rent_amount: 1500,
+						owner_user_id: ownerAId,
+					})
+					.select("id")
+					.single();
+				unitA = uA ? { id: uA.id } : null;
+			}
 
-		// Signed lease: create a draft, then set tenant_signed_at (an allowed
-		// signature-column write while OLD is still unsigned).
-		signedLeaseId = await createLease("2036-01-01", "2036-12-31");
-		if (signedLeaseId) {
-			await clientA
-				.from("leases")
-				.update({ tenant_signed_at: new Date().toISOString() })
-				.eq("id", signedLeaseId);
-		}
+			const { data: tA } = await clientA
+				.from("tenants")
+				.insert({
+					email: `lock-test-tenant-a-${Date.now()}@example.com`,
+					first_name: "Lock",
+					last_name: "TestA",
+					owner_user_id: ownerAId,
+				})
+				.select("id")
+				.single();
+			tenantA = tA ? { id: tA.id } : null;
 
-		// Unsigned draft, still fully editable.
-		draftLeaseId = await createLease("2037-01-01", "2037-12-31");
-	});
+			// Seed tenant_signed_at with a service-role client (bypasses the SEC-05
+			// column lock, exactly as the prod sign RPC does). skipReason guarantees the
+			// key is present here.
+			signedLeaseId = await createLease("2036-01-01", "2036-12-31");
+			if (signedLeaseId) {
+				const admin = createClient(
+					SUPABASE_URL as string,
+					SERVICE_ROLE_KEY as string,
+					{
+						auth: { persistSession: false, autoRefreshToken: false },
+					},
+				);
+				await admin
+					.from("leases")
+					.update({ tenant_signed_at: new Date().toISOString() })
+					.eq("id", signedLeaseId);
+			}
 
-	afterAll(async () => {
-		for (const id of insertedLeaseIds) {
-			await clientA.from("leases").delete().eq("id", id);
-		}
-		if (unitA) await clientA.from("units").delete().eq("id", unitA.id);
-		if (tenantA) await clientA.from("tenants").delete().eq("id", tenantA.id);
-		if (propertyA)
-			await clientA.from("properties").delete().eq("id", propertyA.id);
-	});
-
-	it("rejects a rent_amount edit on a signed lease", async () => {
-		if (!signedLeaseId) {
-			console.warn("Skipping: signed lease not created");
-			return;
-		}
-		const { error } = await clientA
-			.from("leases")
-			.update({ rent_amount: 9999 })
-			.eq("id", signedLeaseId);
-
-		// PostgREST surfaces the trigger's RAISE as an error object (not a
-		// thrown rejection). Assert on the object via toMatchObject with an
-		// asymmetric string matcher (chai6-safe — no `.rejects.toThrow`).
-		expect(error).toMatchObject({
-			message: expect.stringContaining("financial terms"),
+			// Unsigned draft, still fully editable.
+			draftLeaseId = await createLease("2037-01-01", "2037-12-31");
 		});
-	});
 
-	it("allows a renew-shaped edit (end_date + lease_status='active') on a signed lease", async () => {
-		if (!signedLeaseId) {
-			console.warn("Skipping: signed lease not created");
-			return;
-		}
-		const { error } = await clientA
-			.from("leases")
-			.update({ end_date: "2037-01-31", lease_status: "active" })
-			.eq("id", signedLeaseId);
+		afterAll(async () => {
+			for (const id of insertedLeaseIds) {
+				await clientA.from("leases").delete().eq("id", id);
+			}
+			if (unitA) await clientA.from("units").delete().eq("id", unitA.id);
+			if (tenantA) await clientA.from("tenants").delete().eq("id", tenantA.id);
+			if (propertyA)
+				await clientA.from("properties").delete().eq("id", propertyA.id);
+		});
 
-		expect(error).toBeNull();
-	});
+		it("rejects a rent_amount edit on a signed lease", async () => {
+			if (!signedLeaseId) {
+				console.warn("Skipping: signed lease not created");
+				return;
+			}
+			const { error } = await clientA
+				.from("leases")
+				.update({ rent_amount: 9999 })
+				.eq("id", signedLeaseId);
 
-	it("allows a terminate-shaped edit (end_date + lease_status='terminated') on a signed lease", async () => {
-		if (!signedLeaseId) {
-			console.warn("Skipping: signed lease not created");
-			return;
-		}
-		const { error } = await clientA
-			.from("leases")
-			.update({ end_date: "2037-02-28", lease_status: "terminated" })
-			.eq("id", signedLeaseId);
+			// PostgREST surfaces the trigger's RAISE as an error object (not a
+			// thrown rejection). Assert on the object via toMatchObject with an
+			// asymmetric string matcher (chai6-safe — no `.rejects.toThrow`).
+			expect(error).toMatchObject({
+				message: expect.stringContaining("financial terms"),
+			});
+		});
 
-		expect(error).toBeNull();
-	});
+		it("allows a renew-shaped edit (end_date + lease_status='active') on a signed lease", async () => {
+			if (!signedLeaseId) {
+				console.warn("Skipping: signed lease not created");
+				return;
+			}
+			const { error } = await clientA
+				.from("leases")
+				.update({ end_date: "2037-01-31", lease_status: "active" })
+				.eq("id", signedLeaseId);
 
-	it("allows a rent_amount edit on an unsigned draft lease", async () => {
-		if (!draftLeaseId) {
-			console.warn("Skipping: draft lease not created");
-			return;
-		}
-		const { error } = await clientA
-			.from("leases")
-			.update({ rent_amount: 1700 })
-			.eq("id", draftLeaseId);
+			expect(error).toBeNull();
+		});
 
-		expect(error).toBeNull();
-	});
-});
+		it("allows a terminate-shaped edit (end_date + lease_status='terminated') on a signed lease", async () => {
+			if (!signedLeaseId) {
+				console.warn("Skipping: signed lease not created");
+				return;
+			}
+			const { error } = await clientA
+				.from("leases")
+				.update({ end_date: "2037-02-28", lease_status: "terminated" })
+				.eq("id", signedLeaseId);
+
+			expect(error).toBeNull();
+		});
+
+		it("allows a rent_amount edit on an unsigned draft lease", async () => {
+			if (!draftLeaseId) {
+				console.warn("Skipping: draft lease not created");
+				return;
+			}
+			const { error } = await clientA
+				.from("leases")
+				.update({ rent_amount: 1700 })
+				.eq("id", draftLeaseId);
+
+			expect(error).toBeNull();
+		});
+	},
+);
