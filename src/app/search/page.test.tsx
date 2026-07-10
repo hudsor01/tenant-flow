@@ -141,6 +141,25 @@ describe("SearchPage (server component)", () => {
 		expect(orArg).toContain(`title.ilike."%${escapeOrValue(q)}%"`);
 	});
 
+	it("coerces a repeated ?q= (string[]) to its first value instead of 500ing", async () => {
+		// Next.js returns a string[] for a repeated param; normalizeSearchInput
+		// calls .trim(), so an array would throw a 500 on this public route.
+		mockBlogAnonClient.mockReturnValue(
+			makeClient({ data: mockPosts, error: null }),
+		);
+		const { container } = render(
+			await SearchPage({
+				searchParams: Promise.resolve({ q: ["lease", "ignored"] }),
+			}),
+		);
+		// It ran (no throw) and used the first value.
+		expect(screen.getAllByTestId("blog-card")).toHaveLength(2);
+		const input = container.querySelector("input[name='q']");
+		expect(input).toHaveValue("lease");
+		const orArg = orSpy.mock.calls[0]?.[0] as string;
+		expect(orArg).toContain('title.ilike."%lease%"');
+	});
+
 	it("renders the no-results Empty state when a query matches zero rows", async () => {
 		mockBlogAnonClient.mockReturnValue(makeClient({ data: [], error: null }));
 

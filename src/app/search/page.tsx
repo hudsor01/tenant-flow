@@ -34,10 +34,14 @@ export const metadata = createPageMetadata({
 export default async function SearchPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ q?: string }>;
+	searchParams: Promise<{ q?: string | string[] }>;
 }) {
 	const { q } = await searchParams;
-	const query = normalizeSearchInput(q ?? "");
+	// Next.js returns a string[] for a repeated ?q= param; coerce to a scalar so
+	// normalizeSearchInput (which calls .trim()) never receives an array — a
+	// crawler hitting /search?q=a&q=b must not 500 this public route.
+	const raw = Array.isArray(q) ? q[0] : q;
+	const query = normalizeSearchInput(raw ?? "");
 
 	let posts: BlogListItem[] = [];
 
