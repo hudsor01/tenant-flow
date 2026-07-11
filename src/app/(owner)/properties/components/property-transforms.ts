@@ -40,9 +40,12 @@ export function transformToPropertyItem(
 		(u) => u.status === "maintenance",
 	).length;
 	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0;
+	// units.rent_amount is stored in whole dollars; monthlyRevenue is rendered
+	// with formatCurrency/formatCompactCurrency (both dollar-valued), so keep it
+	// in dollars — the prior `* 100` overstated the figure 100x.
 	const monthlyRevenue = safeUnits
 		.filter((u) => u.status === "occupied")
-		.reduce((sum, u) => sum + (u.rent_amount ?? 0) * 100, 0); // Convert to cents
+		.reduce((sum, u) => sum + (u.rent_amount ?? 0), 0);
 
 	return {
 		id: property.id,

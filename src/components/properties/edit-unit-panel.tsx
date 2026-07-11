@@ -94,7 +94,10 @@ export function EditUnitPanel({
 						unit_number: value.unit_number,
 						bedrooms,
 						bathrooms,
-						square_feet: square_feet ?? undefined,
+						// Send the explicit null (not undefined) so clearing Square Feet
+						// persists — omitUndefined keeps null but strips undefined, which
+						// would silently drop the column and keep the old value (PROP-05).
+						square_feet,
 						rent_amount,
 						status: value.status,
 					},
