@@ -73,7 +73,10 @@ export function transformToTenantSectionDetail(
 						unitNumber: tenant.unit?.unit_number ?? "",
 						startDate: tenant.currentLease.start_date,
 						endDate: tenant.currentLease.end_date,
-						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
+						// leases.rent_amount is whole dollars and this is rendered with
+						// formatCurrency (dollar-valued); the prior `* 100` showed rent
+						// 100x too high on the tenant detail sheet.
+						rentAmount: tenant.currentLease.rent_amount ?? 0,
 					},
 				}
 			: {}),
