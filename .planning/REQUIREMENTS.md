@@ -151,4 +151,4 @@ None scoped. This milestone is exhaustive over the 2026-07-02 hunt; any bug foun
 | MKT-01..05 | 34 — Marketing, Blog & SEO Surface |
 | MISC-01..04, TZ-01..03 | 35 — Timezone Sweep, Bulk-Import, Scripts & Hygiene |
 
-All 56 requirements mapped to exactly one phase ✓
+All 72 requirements mapped to exactly one phase ✓ (73 IDs defined; DATA-04, discovered in the Phase 30 review, is intentionally deferred and unmapped.)
