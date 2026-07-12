@@ -11,6 +11,21 @@
 //
 // Run: deno test --allow-all tests/stripe-webhooks-test.ts
 // Requires: local Supabase instance (`supabase functions serve`)
+//
+// Deploy-time integration verification (NOT runnable in this harness — the test
+// env has no real STRIPE_WEBHOOK_SECRET, so signatures are rejected before any
+// handler logic runs; a valid signing secret + seeded rows are required). Run
+// these against a live deploy as part of the owner-run edge-function deploy:
+//   - BILL-14 ordering: deliver customer.subscription.deleted (event.created=T2)
+//     then a stale customer.subscription.updated(active, event.created=T1<T2);
+//     assert users.subscription_status stays 'canceled' and the updated event
+//     logs "Skipped stale subscription.updated event".
+//   - BILL-14 checkout watermark: a reprocessed checkout.session.completed with
+//     an early event.created must not regress subscription_updated_at below a
+//     later cancel (skips + logs "Skipped stale checkout.session.completed").
+//   - BILL-15 recovery: orphan a row in status='processing' with an aged
+//     processed_at (> STALE_PROCESSING_MS); assert the next delivery reclaims
+//     and reprocesses it instead of 200-acking it as a duplicate.
 
 import { assert, assertEquals, assertExists } from "jsr:@std/assert@1";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
