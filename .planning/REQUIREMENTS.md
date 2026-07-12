@@ -357,6 +357,25 @@ Each requirement references its finding as `file:line` (severity). Full defect d
 
 ## Traceability
 
-_Filled by roadmapper: every REQ maps to exactly one phase (category = phase by construction)._
+Every REQ maps to exactly one phase (category = phase by construction). Phases execute strictly sequentially (36 → 51); each phase merges before the next branches.
 
-**Total requirements: 296**
+| Phase | Category | REQ range | Count |
+|-------|----------|-----------|-------|
+| 36 | Billing & Subscription Lifecycle | BILL-01..20 | 20 |
+| 37 | Auth Flows | AUTH-01..13 | 13 |
+| 38 | Forms & Validation | FORM-01..19 | 19 |
+| 39 | Data Layer & Cache Integrity | DATA-01..18 | 18 |
+| 40 | Type Boundaries (RPC/PostgREST) | TYPE-01..07 | 7 |
+| 41 | Component Logic & Analytics Correctness | COMP-01..13 | 13 |
+| 42 | Dashboard UX & Navigation | DASH-01..23 | 23 |
+| 43 | E-sign Flow | SIGN-01..06 | 6 |
+| 44 | Public Site UX | PUBUX-01..11 | 11 |
+| 45 | Marketing Content Truthfulness | CONTENT-01..24 | 24 |
+| 46 | Marketing UI Consistency | MKTUI-01..26 | 26 |
+| 47 | Accessibility | A11Y-01..41 | 41 |
+| 48 | Routing, SEO & Performance | SEO-01..15 | 15 |
+| 49 | Client State (Zustand) | STATE-01..13 | 13 |
+| 50 | Admin Surface | ADMIN-01..07 | 7 |
+| 51 | Code Hygiene | HYG-01..40 | 40 |
+
+**Total requirements: 296** — all mapped, no orphans, no double-mapping. Status: all Pending (v9.0 not started).
