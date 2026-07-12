@@ -398,7 +398,9 @@ export function BillingSettings() {
 							)}
 							{isResubscribeState && (
 								<p className="text-sm text-muted-foreground mt-1">
-									Your subscription is {statusVariant.label.toLowerCase()}.{" "}
+									{status === "expired"
+										? "Your trial has expired."
+										: `Your subscription is ${statusVariant.label.toLowerCase()}.`}{" "}
 									<Link
 										href="/billing/plans"
 										className="text-primary-text hover:underline underline-offset-4"

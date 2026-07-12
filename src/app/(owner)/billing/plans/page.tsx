@@ -199,9 +199,11 @@ export default function BillingPlansPage() {
 							Subscription Plans
 						</h1>
 						<p className="text-muted-foreground mt-1">
-							{hasSubscription
-								? `You are currently on the ${currentPlan?.name} plan`
-								: "Choose a plan that fits your needs"}
+							{hasSubscription && currentPlan
+								? `You are currently on the ${currentPlan.name} plan`
+								: hasSubscription
+									? "You have an active subscription"
+									: "Choose a plan that fits your needs"}
 						</p>
 					</div>
 
@@ -277,6 +279,7 @@ export default function BillingPlansPage() {
 			<UpgradeDialog
 				targetPlan={selectedPlan}
 				currentPlan={currentPlan}
+				hasActiveSubscription={hasSubscription}
 				isOpen={dialogOpen}
 				onClose={handleDialogClose}
 				onConfirm={handleConfirmPlanChange}

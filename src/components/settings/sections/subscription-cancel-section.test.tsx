@@ -231,6 +231,24 @@ describe("SubscriptionCancelSection", () => {
 		expect(container.firstChild).toBeNull();
 	});
 
+	it("returns null when subscriptionStatus is unpaid", () => {
+		cleanup();
+		hooks.useSubscriptionStatus.mockReturnValue({
+			data: {
+				subscriptionStatus: "unpaid",
+				stripeCustomerId: "cus_test",
+				stripePriceId: "price_test",
+				currentPeriodEnd: "2026-06-15T12:00:00Z",
+				cancelAtPeriodEnd: false,
+			},
+			isLoading: false,
+			isError: false,
+			refetch: vi.fn(),
+		});
+		const { container } = render(<SubscriptionCancelSection />);
+		expect(container.firstChild).toBeNull();
+	});
+
 	it("renders State 1 (Active) when subscriptionStatus='active' and cancelAtPeriodEnd=false", () => {
 		cleanup();
 		mockActive();

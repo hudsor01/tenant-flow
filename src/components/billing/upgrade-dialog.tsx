@@ -17,6 +17,14 @@ import { cn } from "#lib/utils";
 interface UpgradeDialogProps {
 	targetPlan: Plan | null;
 	currentPlan: Plan | null;
+	/**
+	 * True when the owner has a live Stripe subscription. Distinguishes a
+	 * brand-new subscription (`currentPlan === null && !hasActiveSubscription`)
+	 * from a live subscriber whose stored plan can't be matched to PRICING_PLANS
+	 * (legacy/comp price id, or the RPC-fallback null price) — the latter is a
+	 * portal-routed plan switch, never a first subscription.
+	 */
+	hasActiveSubscription?: boolean;
 	isOpen: boolean;
 	onClose: () => void;
 	onConfirm: (plan: Plan) => Promise<void>;
@@ -25,6 +33,7 @@ interface UpgradeDialogProps {
 export function UpgradeDialog({
 	targetPlan,
 	currentPlan,
+	hasActiveSubscription = false,
 	isOpen,
 	onClose,
 	onConfirm,
@@ -33,11 +42,15 @@ export function UpgradeDialog({
 
 	if (!targetPlan) return null;
 
+	const isNewSubscription = currentPlan === null && !hasActiveSubscription;
+	// Live subscriber with an unresolved current plan: neither a new signup nor a
+	// computable up/downgrade — confirm and route to the billing portal.
+	const isManagedSwitch = currentPlan === null && hasActiveSubscription;
 	const isUpgrade =
-		currentPlan === null || targetPlan.tier > (currentPlan?.tier ?? 0);
+		!isManagedSwitch &&
+		(isNewSubscription || targetPlan.tier > (currentPlan?.tier ?? 0));
 	const isDowngrade =
 		currentPlan !== null && targetPlan.tier < currentPlan.tier;
-	const isNewSubscription = currentPlan === null;
 
 	const getPriceDifference = () => {
 		if (!currentPlan) return targetPlan.price;
@@ -87,6 +100,7 @@ export function UpgradeDialog({
 
 	const getDialogTitle = () => {
 		if (isNewSubscription) return `Subscribe to ${targetPlan.name}`;
+		if (isManagedSwitch) return `Switch to ${targetPlan.name}`;
 		if (isUpgrade) return `Upgrade to ${targetPlan.name}`;
 		if (isDowngrade) return `Downgrade to ${targetPlan.name}`;
 		return `Switch to ${targetPlan.name}`;
@@ -95,6 +109,9 @@ export function UpgradeDialog({
 	const getDialogDescription = () => {
 		if (isNewSubscription) {
 			return "Start your subscription and unlock all features.";
+		}
+		if (isManagedSwitch) {
+			return "Review and manage your subscription in the billing portal.";
 		}
 		if (isUpgrade) {
 			return "Get access to more features and higher limits.";
@@ -105,6 +122,7 @@ export function UpgradeDialog({
 	const getConfirmButtonText = () => {
 		if (isLoading) return "Processing...";
 		if (isNewSubscription) return "Start Subscription";
+		if (isManagedSwitch) return "Continue to Billing Portal";
 		if (isUpgrade) return "Confirm Upgrade";
 		return "Confirm Downgrade";
 	};

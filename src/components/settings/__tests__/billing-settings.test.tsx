@@ -234,7 +234,7 @@ describe("BillingSettings empty-state branches", () => {
 		{
 			status: "expired",
 			badge: "Trial Expired",
-			copy: /Your subscription is trial expired/,
+			copy: /Your trial has expired/,
 		},
 	] as const;
 
