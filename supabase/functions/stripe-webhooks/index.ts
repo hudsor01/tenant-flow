@@ -16,8 +16,15 @@ import { getStripeClient } from "../_shared/stripe-client.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import { handleCheckoutSessionCompleted } from "./handlers/checkout-session-completed.ts";
 import { handleCustomerSubscriptionDeleted } from "./handlers/customer-subscription-deleted.ts";
+import { handleCustomerSubscriptionTrialWillEnd } from "./handlers/customer-subscription-trial-will-end.ts";
 import { handleCustomerSubscriptionUpdated } from "./handlers/customer-subscription-updated.ts";
 import { handleInvoicePaymentFailed } from "./handlers/invoice-payment-failed.ts";
+
+// Edge Function wall-clock runtime is well under 5 minutes, so a
+// `stripe_webhook_events` row still marked 'processing' after this window is
+// provably a dead isolate (killed between the idempotency insert and the
+// status update) — safe to reclaim and reprocess (BILL-15).
+const STALE_PROCESSING_MS = 5 * 60_000;
 
 // Initialize Sentry for error monitoring (Decision #15: Sentry is MANDATORY for metadata validation)
 const sentryDsn = Deno.env.get("SENTRY_DSN");
@@ -111,14 +118,30 @@ Deno.serve(async (req: Request) => {
 		if (idempotencyError.code === "23505") {
 			const { data: existing } = await supabase
 				.from("stripe_webhook_events")
-				.select("status")
+				.select("status, processed_at")
 				.eq("id", event.id)
 				.single();
 
-			if (existing?.status === "failed") {
+			// A row orphaned in 'processing' (isolate killed between insert and
+			// the status update) would otherwise 200 every Stripe retry and lose
+			// the event forever. Treat an old 'processing' row as reprocessable so
+			// Stripe's 72h retry machinery can redeliver it (BILL-14's ordering
+			// guard makes the re-run safe).
+			const isStaleProcessing =
+				existing?.status === "processing" &&
+				existing.processed_at != null &&
+				Date.now() - Date.parse(existing.processed_at) > STALE_PROCESSING_MS;
+
+			if (existing?.status === "failed" || isStaleProcessing) {
+				// Refresh processed_at so concurrent retries in the same window
+				// don't both claim it.
 				await supabase
 					.from("stripe_webhook_events")
-					.update({ status: "processing", error_message: null })
+					.update({
+						status: "processing",
+						error_message: null,
+						processed_at: new Date().toISOString(),
+					})
 					.eq("id", event.id);
 			} else {
 				return new Response(
@@ -146,6 +169,9 @@ Deno.serve(async (req: Request) => {
 				break;
 			case "customer.subscription.deleted":
 				await handleCustomerSubscriptionDeleted(supabase, stripe, event);
+				break;
+			case "customer.subscription.trial_will_end":
+				await handleCustomerSubscriptionTrialWillEnd(supabase, stripe, event);
 				break;
 			case "checkout.session.completed":
 				await handleCheckoutSessionCompleted(supabase, stripe, event);

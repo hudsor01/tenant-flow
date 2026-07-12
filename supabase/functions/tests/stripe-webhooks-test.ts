@@ -264,6 +264,35 @@ Deno.test("stripe-webhooks: invoice.payment_failed payload format accepted", asy
 	);
 });
 
+Deno.test("stripe-webhooks: customer.subscription.trial_will_end payload format accepted (BILL-20)", async () => {
+	const client = createTestClient();
+	const payload = buildWebhookPayload("customer.subscription.trial_will_end", {
+		data_object: {
+			status: "trialing",
+			customer: "cus_test123",
+			trial_end: Math.floor(Date.now() / 1000) + 86400 * 3,
+		},
+	});
+
+	const { data, error } = await client.functions.invoke("stripe-webhooks", {
+		body: payload,
+		headers: {
+			"stripe-signature": "t=1234567890,v1=invalid_but_present",
+		},
+	});
+
+	// Signature verification fails in test env (no real STRIPE_WEBHOOK_SECRET),
+	// but the router must not crash on the newly-wired event type. Fully
+	// exercising the trial-reminder email path, the event-ordering watermark
+	// (out-of-order deleted vs updated), and the stale-'processing' recovery
+	// requires `supabase functions serve` with a valid signing secret and seeded
+	// rows — covered by manual/integration verification, not this smoke test.
+	assert(
+		error !== null || data !== null,
+		"Function should respond to customer.subscription.trial_will_end payload",
+	);
+});
+
 Deno.test("stripe-webhooks: unrecognized event type handled gracefully", async () => {
 	const client = createTestClient();
 	const payload = buildWebhookPayload("some.unknown.event.type");

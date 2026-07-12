@@ -86,6 +86,31 @@ function mockCanceled() {
 	});
 }
 
+function mockTrialing(overrides: {
+	stripeCustomerId?: string | null;
+	currentPeriodEnd?: string | null;
+	cancelAtPeriodEnd?: boolean;
+}) {
+	hooks.useSubscriptionStatus.mockReturnValue({
+		data: {
+			subscriptionStatus: "trialing",
+			stripeCustomerId:
+				overrides.stripeCustomerId === undefined
+					? "cus_test"
+					: overrides.stripeCustomerId,
+			stripePriceId: "price_test",
+			currentPeriodEnd:
+				overrides.currentPeriodEnd === undefined
+					? "2026-06-15T12:00:00Z"
+					: overrides.currentPeriodEnd,
+			cancelAtPeriodEnd: overrides.cancelAtPeriodEnd ?? false,
+		},
+		isLoading: false,
+		isError: false,
+		refetch: vi.fn(),
+	});
+}
+
 describe("SubscriptionCancelSection", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -123,6 +148,69 @@ describe("SubscriptionCancelSection", () => {
 		});
 		const { container } = render(<SubscriptionCancelSection />);
 		expect(container.firstChild).toBeNull();
+	});
+
+	it("returns null when subscriptionStatus is expired (no Stripe sub to cancel)", () => {
+		cleanup();
+		hooks.useSubscriptionStatus.mockReturnValue({
+			data: {
+				subscriptionStatus: "expired",
+				stripeCustomerId: null,
+				stripePriceId: null,
+				currentPeriodEnd: null,
+				cancelAtPeriodEnd: false,
+			},
+			isLoading: false,
+			isError: false,
+			refetch: vi.fn(),
+		});
+		const { container } = render(<SubscriptionCancelSection />);
+		expect(container.firstChild).toBeNull();
+	});
+
+	it("returns null for a DB trial (trialing, no stripeCustomerId) — BILL-16", () => {
+		cleanup();
+		mockTrialing({ stripeCustomerId: null, currentPeriodEnd: null });
+		const { container } = render(<SubscriptionCancelSection />);
+		expect(container.firstChild).toBeNull();
+	});
+
+	it("returns null for a trialing customer with no synced currentPeriodEnd — BILL-16", () => {
+		cleanup();
+		mockTrialing({ stripeCustomerId: "cus_test", currentPeriodEnd: null });
+		const { container } = render(<SubscriptionCancelSection />);
+		expect(container.firstChild).toBeNull();
+	});
+
+	it("renders State 2 for a trialing Stripe subscriber with cancelAtPeriodEnd — BILL-09", () => {
+		cleanup();
+		mockTrialing({
+			stripeCustomerId: "cus_test",
+			currentPeriodEnd: "2026-06-15T12:00:00Z",
+			cancelAtPeriodEnd: true,
+		});
+		render(<SubscriptionCancelSection />);
+		expect(screen.getByText(/subscription ends/i)).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /reactivate subscription/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /cancel my subscription/i }),
+		).toBeNull();
+	});
+
+	it("renders State 1 (Cancel) for a trialing Stripe subscriber not yet scheduled to cancel", () => {
+		cleanup();
+		mockTrialing({
+			stripeCustomerId: "cus_test",
+			currentPeriodEnd: "2026-06-15T12:00:00Z",
+			cancelAtPeriodEnd: false,
+		});
+		render(<SubscriptionCancelSection />);
+		expect(screen.getByText("Cancel Subscription")).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /cancel my subscription/i }),
+		).toBeInTheDocument();
 	});
 
 	it("returns null when subscriptionStatus is past_due", () => {

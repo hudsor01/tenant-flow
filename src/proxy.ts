@@ -6,8 +6,21 @@ import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { updateSession } from "#lib/supabase/middleware";
 import type { Database } from "#types/supabase";
 
-/** Stripe subscription statuses that grant dashboard access. */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+/**
+ * Stripe subscription statuses that grant dashboard access.
+ *
+ * `past_due` is admitted so a delinquent owner keeps access during Stripe's
+ * dunning/retry window (the grace period promised in the dunning email +
+ * banner) and can reach the in-app payment-fix surface. When Stripe exhausts
+ * its retries it emits `customer.subscription.updated`→`unpaid` or
+ * `.deleted`→`canceled`, and the gate then locks the owner out. `unpaid`,
+ * `canceled`, `expired`, etc. stay locked (they recover via /billing/plans).
+ */
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
+	"active",
+	"trialing",
+	"past_due",
+]);
 
 /**
  * Private route prefixes that require an authenticated user. Anything NOT

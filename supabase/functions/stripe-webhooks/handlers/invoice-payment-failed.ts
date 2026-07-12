@@ -49,9 +49,9 @@ export async function handleInvoicePaymentFailed(
 		to: [owner.email as string],
 		subject: "Action Required: Subscription Payment Failed",
 		html: `<p>Hi ${escapeHtml((owner.first_name as string) || "there")},</p>
-      <p>Your TenantFlow subscription payment failed. Please update your payment method to avoid service interruption.</p>
-      <p>You have a 7-day grace period before premium features are restricted.</p>
-      <p><a href="${escapeHtml(frontendUrl)}/owner/billing">Update Payment Method</a></p>`,
+      <p>Your TenantFlow subscription payment failed. Please update your payment method to avoid losing access.</p>
+      <p>We'll keep retrying the charge, but if it keeps failing your subscription will be canceled and premium features will be disabled.</p>
+      <p><a href="${escapeHtml(frontendUrl)}/settings?tab=billing">Update Payment Method</a></p>`,
 		tags: [{ name: "category", value: "subscription_failure" }],
 	});
 

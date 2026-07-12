@@ -67,7 +67,10 @@ export async function handleCheckoutSessionCompleted(
 				? new Date(currentPeriodEnd * 1000).toISOString()
 				: null,
 			subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
-			subscription_updated_at: new Date().toISOString(),
+			// BILL-14: stamp the ordering watermark at event time (not wall-clock)
+			// so the subscription handlers' `lte` comparison shares a consistent
+			// column semantics across all writers.
+			subscription_updated_at: new Date(event.created * 1000).toISOString(),
 			trial_ends_at: trialEndsAtForPayload,
 		};
 		if (source) updatePayload.subscription_source = source;

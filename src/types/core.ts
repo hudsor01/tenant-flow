@@ -91,13 +91,6 @@ import type {
 	PropertyType as PropertyTypeFromConstants,
 } from "../../src/lib/constants/status-types";
 
-export interface StripeSessionStatusResponse {
-	status: string;
-	payment_intent_id: string | null;
-	payment_status: string | null;
-	payment_intent_status: string | null;
-}
-
 export interface CreateCheckoutSessionRequest {
 	productName: string;
 	tenantId: string;

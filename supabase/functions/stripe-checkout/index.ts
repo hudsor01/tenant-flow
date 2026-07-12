@@ -11,9 +11,23 @@ import { ALLOWED_CHECKOUT_PRICE_IDS } from "../_shared/plan-tier.ts";
 import { getStripeClient } from "../_shared/stripe-client.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
-// 14-day free trial with NO card up front — matches the "free trial, no credit
-// card required" promise across the marketing surface.
-const TRIAL_PERIOD_DAYS = 14;
+// A live Stripe subscription still exists on the customer even in
+// past_due/unpaid/paused/incomplete — such an owner must be routed to the
+// billing portal, never into a second checkout (double billing + webhook
+// thrash). Mirrors LIVE_SUBSCRIPTION_STATUSES in
+// src/app/(owner)/billing/plans/page.tsx (BILL-01) — keep the two sets in
+// lockstep.
+const LIVE_SUBSCRIPTION_STATUSES = new Set([
+	"active",
+	"trialing",
+	"past_due",
+	"unpaid",
+	"paused",
+	"incomplete",
+]);
+
+// Stripe rejects a `trial_end` less than 48h in the future.
+const MIN_TRIAL_CARRYOVER_MS = 48 * 60 * 60 * 1000;
 
 Deno.serve(async (req: Request) => {
 	const optionsResponse = handleCorsOptions(req);
@@ -87,11 +101,16 @@ Deno.serve(async (req: Request) => {
 		// Get or create Stripe customer for this user
 		const { data: userData } = await supabase
 			.from("users")
-			.select("stripe_customer_id, email, full_name")
+			.select(
+				"stripe_customer_id, email, full_name, subscription_status, trial_ends_at",
+			)
 			.eq("id", user.id)
 			.single();
 
 		let customerId = userData?.stripe_customer_id;
+		// Only a pre-existing customer can carry a live subscription; a
+		// just-created customer never does, so skip the guard round-trip below.
+		const customerAlreadyExisted = Boolean(customerId);
 
 		if (!customerId) {
 			const customer = await stripe.customers.create({
@@ -107,6 +126,33 @@ Deno.serve(async (req: Request) => {
 				.eq("id", user.id);
 		}
 
+		// BILL-05: an already-subscribed owner must never mint a second
+		// concurrent subscription (double billing + webhook thrash). If a live
+		// subscription exists on the customer, return a billing-portal URL (the
+		// correct plan-change surface) instead of a checkout session. Every
+		// frontend caller redirects to the returned `url`, so no client change
+		// is needed — the subscriber lands in the portal.
+		if (customerAlreadyExisted) {
+			const existingSubs = await stripe.subscriptions.list({
+				customer: customerId,
+				status: "all",
+				limit: 10,
+			});
+			const hasLiveSubscription = existingSubs.data.some((sub) =>
+				LIVE_SUBSCRIPTION_STATUSES.has(sub.status),
+			);
+			if (hasLiveSubscription) {
+				const portalSession = await stripe.billingPortal.sessions.create({
+					customer: customerId,
+					return_url: `${frontendUrl}/settings?tab=billing`,
+				});
+				return new Response(JSON.stringify({ url: portalSession.url }), {
+					status: 200,
+					headers: getJsonHeaders(req),
+				});
+			}
+		}
+
 		// Create Checkout Session (hosted checkout with Radar fraud detection).
 		// subscription_data.metadata propagates to the resulting subscription so
 		// customer.subscription.* webhooks can identify the owner without a lookup.
@@ -115,28 +161,49 @@ Deno.serve(async (req: Request) => {
 		};
 		if (source) sessionMetadata.source = source;
 
+		// BILL-06: carry over the remaining DB-managed trial rather than minting
+		// a fresh 14-day no-card trial (which enabled infinite serial free
+		// trials: expired → checkout → 14 more free days → auto-cancel →
+		// repeat). An 'expired' user has remainingTrialMs = 0, so checkout
+		// collects a card and charges immediately; a mid-trial converter keeps
+		// exactly their remaining days. Stripe rejects trial_end < 48h out.
+		const remainingTrialMs =
+			userData?.subscription_status === "trialing" && userData?.trial_ends_at
+				? Date.parse(userData.trial_ends_at) - Date.now()
+				: 0;
+		const trialEndUnix =
+			remainingTrialMs > MIN_TRIAL_CARRYOVER_MS && userData?.trial_ends_at
+				? Math.floor(Date.parse(userData.trial_ends_at) / 1000)
+				: null;
+
 		const session = await stripe.checkout.sessions.create({
 			customer: customerId,
 			payment_method_types: ["card"],
 			line_items: [{ price: priceId, quantity: 1 }],
 			mode: "subscription",
 			success_url: `${frontendUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${frontendUrl}/settings/billing?checkout=cancelled`,
+			cancel_url: `${frontendUrl}/billing/checkout/cancel`,
 			metadata: sessionMetadata,
-			// Start a 14-day trial with no card. `if_required` skips card
-			// collection because a pure trial owes nothing at checkout, so the
-			// hosted page never shows a card form. `trial_settings` is mandatory
-			// in that combination: if no card is added by the time the trial ends
-			// the subscription cancels (the proxy already gates dashboard access
-			// on subscription_status IN ('active','trialing')).
+			// Carry-over trial only. When trialEndUnix is set, `if_required`
+			// skips card collection (a pure trial owes nothing at checkout) and
+			// `trial_settings` cancels the sub if no card is added by trial end
+			// (the proxy gates dashboard access on subscription_status IN
+			// ('active','trialing')). Otherwise the hosted page collects a card
+			// and charges immediately (no free-trial-farming path).
 			subscription_data: {
 				metadata: sessionMetadata,
-				trial_period_days: TRIAL_PERIOD_DAYS,
-				trial_settings: {
-					end_behavior: { missing_payment_method: "cancel" },
-				},
+				...(trialEndUnix
+					? {
+							trial_end: trialEndUnix,
+							trial_settings: {
+								end_behavior: { missing_payment_method: "cancel" as const },
+							},
+						}
+					: {}),
 			},
-			payment_method_collection: "if_required",
+			...(trialEndUnix
+				? { payment_method_collection: "if_required" as const }
+				: {}),
 			allow_promotion_codes: true,
 		});
 

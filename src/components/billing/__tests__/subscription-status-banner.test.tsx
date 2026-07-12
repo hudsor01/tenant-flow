@@ -102,7 +102,7 @@ describe("SubscriptionStatusBanner", () => {
 
 		expect(screen.getByText(/payment failed/i)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /update billing/i });
-		expect(link).toHaveAttribute("href", "/owner/billing");
+		expect(link).toHaveAttribute("href", "/settings?tab=billing");
 	});
 
 	it("renders trial banner with days remaining when status is trialing", () => {
@@ -206,7 +206,7 @@ describe("SubscriptionStatusBanner", () => {
 
 		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
-		expect(link).toHaveAttribute("href", "/owner/billing");
+		expect(link).toHaveAttribute("href", "/billing/plans");
 	});
 
 	it("renders red lock banner when status is canceled", () => {
@@ -225,6 +225,25 @@ describe("SubscriptionStatusBanner", () => {
 
 		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
-		expect(link).toHaveAttribute("href", "/owner/billing");
+		expect(link).toHaveAttribute("href", "/billing/plans");
+	});
+
+	it("renders red lock banner when status is expired (trial lapsed)", () => {
+		mockUseSubscriptionStatus.mockReturnValue({
+			data: {
+				subscriptionStatus: "expired",
+				stripeCustomerId: null,
+				stripePriceId: null,
+				currentPeriodEnd: null,
+				cancelAtPeriodEnd: false,
+			},
+			isLoading: false,
+		});
+
+		render(<SubscriptionStatusBanner />);
+
+		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
+		const link = screen.getByRole("link", { name: /reactivate/i });
+		expect(link).toHaveAttribute("href", "/billing/plans");
 	});
 });

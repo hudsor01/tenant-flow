@@ -327,16 +327,20 @@ export interface BillingHistoryItem {
  * Subscription status response from Stripe API
  */
 export interface SubscriptionStatusResponse {
+	// The real writer set: Stripe webhooks write Stripe's own spellings
+	// (`canceled`, etc.); `expire_trials()` writes `expired`. Nothing writes
+	// the British `cancelled` — it was removed (BILL-18). Keep in sync with
+	// `mapSubscriptionStatus` in subscription-keys.ts.
 	subscriptionStatus:
 		| "active"
 		| "trialing"
-		| "cancelled"
 		| "canceled"
 		| "past_due"
 		| "unpaid"
 		| "incomplete"
 		| "incomplete_expired"
 		| "paused"
+		| "expired"
 		| null;
 	stripeCustomerId: string | null;
 	stripePriceId: string | null;

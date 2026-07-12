@@ -321,12 +321,36 @@ describe("proxy routing", () => {
 			expect(result).toBe(supabaseResponse);
 		});
 
-		it("redirects user with past_due subscription to /pricing", async () => {
+		it("allows user with past_due subscription through /dashboard (grace period)", async () => {
+			// BILL-04: past_due is a recoverable dunning state — the owner keeps
+			// dashboard access during Stripe's retry window and reaches the
+			// in-app payment-fix surface. Terminal states (unpaid/canceled/
+			// expired) still lock out below.
+			const supabaseResponse = makeSupabaseResponse();
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse,
+			});
+			mockUserRow = { is_admin: false, subscription_status: "past_due" };
+
+			const result = await proxy(buildRequest("/dashboard"));
+
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
+		});
+
+		it.each([
+			"unpaid",
+			"canceled",
+			"expired",
+			"incomplete_expired",
+			"paused",
+		])("redirects user with terminal status %s to /pricing (BILL-12 lockout matrix)", async (subscription_status) => {
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
 				supabaseResponse: makeSupabaseResponse(),
 			});
-			mockUserRow = { is_admin: false, subscription_status: "past_due" };
+			mockUserRow = { is_admin: false, subscription_status };
 
 			await proxy(buildRequest("/dashboard"));
 
@@ -334,6 +358,25 @@ describe("proxy routing", () => {
 			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
 				.mock.calls[0]![0] as URL;
 			expect(redirectUrl.pathname).toBe("/pricing");
+		});
+
+		it.each([
+			"past_due",
+			"unpaid",
+			"canceled",
+			"expired",
+		])("allows %s user onto /billing/plans (recovery surface reachable, BILL-12)", async (subscription_status) => {
+			const supabaseResponse = makeSupabaseResponse();
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse,
+			});
+			mockUserRow = { is_admin: false, subscription_status };
+
+			const result = await proxy(buildRequest("/billing/plans"));
+
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
 		});
 
 		it("redirects user with no subscription on /dashboard to /pricing", async () => {
