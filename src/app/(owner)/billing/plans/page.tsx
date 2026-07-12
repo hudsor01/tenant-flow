@@ -80,11 +80,18 @@ export default function BillingPlansPage() {
 	// Portal-vs-checkout routing keys on "does a live Stripe subscription
 	// exist", NOT on a successful price-id→plan match. The `stripeCustomerId`
 	// clause keeps DB-managed trials (trialing with no Stripe customer) on the
-	// checkout path, which is correct for them.
+	// checkout path. For trialing users it is NOT sufficient on its own:
+	// stripe-checkout persists `stripe_customer_id` BEFORE creating the checkout
+	// session, so a DB-trial owner who abandons checkout keeps a customer id with
+	// no live subscription. Require a webhook-synced `currentPeriodEnd` as proof
+	// of a real Stripe subscription for the trialing case (mirrors the same
+	// evidence check in subscription-cancel-section.tsx) so those abandoners stay
+	// on the checkout path where BILL-05's server guard can run.
 	const hasLiveSubscription =
 		status !== null &&
 		LIVE_SUBSCRIPTION_STATUSES.has(status) &&
-		subscriptionStatus?.stripeCustomerId != null;
+		subscriptionStatus?.stripeCustomerId != null &&
+		(status !== "trialing" || subscriptionStatus?.currentPeriodEnd != null);
 	// `subscription_plan` can be a Stripe price_id OR a tier slug (per the
 	// Stripe webhook handler: `tier ?? planLookup ?? priceId`). Match both.
 	// Gated on `hasLiveSubscription` (not just "active") so the "Current Plan"

@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { PageLayout } from "#components/layout/page-layout";
 import { Button } from "#components/ui/button";
 
-// Transactional Stripe-result page — no SEO value, duplicates `/pricing/success`.
+// Transactional Stripe-result page — no SEO value.
 // robots.ts also disallows `/stripe/*` for defense in depth.
 export const metadata: Metadata = {
 	robots: { index: false, follow: false },
