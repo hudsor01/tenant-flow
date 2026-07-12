@@ -126,3 +126,60 @@ describe("BillingPlansPage — BILL-08 trial card excluded", () => {
 		expect(screen.getByText("Max")).toBeInTheDocument();
 	});
 });
+
+describe("BillingPlansPage — plan-card confirm routing (BILL-01 anti-double-billing)", () => {
+	it("routes a live subscriber's plan-card selection to the PORTAL via UpgradeDialog, never createCheckoutSession", async () => {
+		// active subscriber whose stored price id matches no PRICING_PLANS entry
+		// (legacy/comp) -> currentPlan === null but hasLiveSubscription === true.
+		mockStatus({
+			subscriptionStatus: "active",
+			stripeCustomerId: "cus_test",
+			stripePriceId: "price_legacy_comp",
+			currentPeriodEnd: "2026-06-15T12:00:00Z",
+			cancelAtPeriodEnd: false,
+		});
+		render(<BillingPlansPage />);
+
+		// currentTier is null for an unresolved plan, so every card CTA reads
+		// "Get Started". Click the first to open the dialog.
+		const cta = screen.getAllByRole("button", { name: /get started/i })[0];
+		await userEvent.click(cta as HTMLElement);
+
+		// isManagedSwitch copy: not a "new subscription".
+		expect(
+			await screen.findByText(
+				/review and manage your subscription in the billing portal/i,
+			),
+		).toBeInTheDocument();
+		const confirm = screen.getByRole("button", {
+			name: /continue to billing portal/i,
+		});
+		await userEvent.click(confirm);
+
+		expect(hooks.createCustomerPortalSession).toHaveBeenCalledTimes(1);
+		expect(hooks.createCheckoutSession).not.toHaveBeenCalled();
+	});
+
+	it("routes a DB-managed trial's plan-card selection to createCheckoutSession, not the portal", async () => {
+		mockStatus({
+			subscriptionStatus: "trialing",
+			stripeCustomerId: null,
+			stripePriceId: null,
+			currentPeriodEnd: null,
+			cancelAtPeriodEnd: false,
+		});
+		render(<BillingPlansPage />);
+
+		const cta = screen.getAllByRole("button", { name: /get started/i })[0];
+		await userEvent.click(cta as HTMLElement);
+
+		// isNewSubscription copy for a user with no live subscription.
+		const confirm = await screen.findByRole("button", {
+			name: /start subscription/i,
+		});
+		await userEvent.click(confirm);
+
+		expect(hooks.createCheckoutSession).toHaveBeenCalledTimes(1);
+		expect(hooks.createCustomerPortalSession).not.toHaveBeenCalled();
+	});
+});
