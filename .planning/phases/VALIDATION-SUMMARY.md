@@ -10,23 +10,23 @@ _Every one of the 296 audit findings has a documented root-cause fix in its phas
 | 37 | Auth Flows | 13 | 13 | ✅ fully validated |
 | 38 | Forms & Validation | 19 | 19 | ✅ fully validated |
 | 39 | Data Layer & Cache Integrity | 18 | 18 | ✅ fully validated (DATA-03 rejection resolved — see below) |
-| 40 | Type Boundaries | 7 | — | ⏳ research done, validation pending |
-| 41 | Component Logic & Analytics | 13 | — | ⏳ research done, validation pending |
-| 42 | Dashboard UX & Navigation | 23 | — | ⏳ research done, validation pending |
+| 40 | Type Boundaries | 7 | 7 | ✅ fully validated |
+| 41 | Component Logic & Analytics | 13 | 13 | ✅ fully validated |
+| 42 | Dashboard UX & Navigation | 23 | 23 | ✅ fully validated |
 | 43 | E-sign Flow | 6 | 6 | ✅ fully validated |
-| 44 | Public Site UX | 11 | — | ⏳ research done, validation pending |
+| 44 | Public Site UX | 11 | 11 | ✅ fully validated |
 | 45 | Marketing Content Truthfulness | 24 | 24 | ✅ fully validated |
 | 46 | Marketing UI Consistency | 26 | 26 | ✅ fully validated |
 | 47 | Accessibility | 41 | 41 | ✅ fully validated |
-| 48 | Routing, SEO & Performance | 15 | — | ⏳ research done, validation pending |
-| 49 | Client State (Zustand) | 13 | — | ⏳ research done, validation pending |
+| 48 | Routing, SEO & Performance | 15 | 15 | ✅ fully validated |
+| 49 | Client State (Zustand) | 13 | 13 | ✅ fully validated |
 | 50 | Admin Surface | 7 | 7 | ✅ fully validated |
 | 51 | Code Hygiene | 40 | 40 | ✅ fully validated |
-| **Total** | | **296** | **214** | **0 unresolved rejections** |
+| **Total** | | **296** | **296** | **✅ 0 unresolved rejections** |
 
-- **214 / 296** fixes adversarially confirmed WILL-FIX.
+- **296 / 296** fixes adversarially confirmed WILL-FIX.
 - **1** rejection total across the entire pass (DATA-03), now **resolved** — the `removeDetail` single-key→array signature change also required updating `src/hooks/create-mutation-callbacks.test.ts:115`, which was missing from the fix's file list; RESEARCH.md amended to include it.
-- **82** REQs (phases 40, 41, 42, 44, 48, 49) have complete root-cause fixes on disk but their validators did not finish (account rate/session limit during the fan-out). Validate-only workflow staged at `~/.claude/.../workflows/scripts/v9-residual-validation.js` — reads the on-disk RESEARCH.md, no research stage. Run it before planning those phases. The perfect-PR gate + `plan-check` will independently re-verify every fix at execution time regardless.
+- The final 82 REQs (phases 40, 41, 42, 44, 48, 49), whose validators were interrupted by an account session limit during the main fan-out, were completed by the validate-only `v9-residual-validation.js` workflow (reads on-disk RESEARCH.md, no research stage) — all 82 confirmed WILL-FIX. The perfect-PR gate + `plan-check` still independently re-verify every fix at execution time.
 
 ## Method
 
