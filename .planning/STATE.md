@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v8.0
-milestone_name: Correctness Restoration
-status: executing
-last_updated: "2026-07-08T13:16:22.278Z"
-last_activity: 2026-07-08 -- Phase 29 execution started
+milestone: v9.0
+milestone_name: Full-Surface Remediation
+status: planning
+last_updated: "2026-07-12T02:53:58.833Z"
+last_activity: 2026-07-12
 progress:
-  total_phases: 11
-  completed_phases: 2
-  total_plans: 34
-  completed_plans: 25
-  percent: 18
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 29 (billing-financials) — REVIEW-PASSED (perfect-PR gate met, cycles 4+5)
-Plan: 1 of 7
-Status: Executing Phase 29
-Last activity: 2026-07-08 -- Phase 29 execution started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-12 — Milestone v9.0 started
 
 ## Roadmap Summary (v8.0)
 
