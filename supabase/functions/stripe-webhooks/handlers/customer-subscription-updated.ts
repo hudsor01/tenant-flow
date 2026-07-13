@@ -66,6 +66,11 @@ export async function handleCustomerSubscriptionUpdated(
 	// Subscription onto the subscription item — read it via the same accessor
 	// already used for price.id above (sub.items.data[0]?.price.id).
 	const currentPeriodEnd = sub.items.data[0]?.current_period_end;
+	// BILL-14: use event.created as the ordering key (not wall-clock processing
+	// time). Stripe does not guarantee delivery order and the router
+	// re-processes previously-failed events, so a stale updated applied after a
+	// newer deleted must not resurrect access.
+	const eventCreatedIso = new Date(event.created * 1000).toISOString();
 	const updatePayload: Record<string, unknown> = {
 		subscription_id: sub.id,
 		subscription_status: sub.status,
@@ -74,17 +79,34 @@ export async function handleCustomerSubscriptionUpdated(
 			? new Date(currentPeriodEnd * 1000).toISOString()
 			: null,
 		subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
-		subscription_updated_at: new Date().toISOString(),
+		subscription_updated_at: eventCreatedIso,
 		trial_ends_at: trialEndsAtForPayload,
 	};
 	if (source) updatePayload.subscription_source = source;
 
-	const { error: userUpdateError } = await supabase
+	// Conditional + atomic: skip the write when this event is older than the
+	// persisted watermark. `lte` (not `lt`) keeps same-event replays and
+	// same-second successors applied/idempotent.
+	const { data: updated, error: userUpdateError } = await supabase
 		.from("users")
 		.update(updatePayload)
-		.eq("id", user.id);
+		.eq("id", user.id)
+		.or(
+			`subscription_updated_at.is.null,subscription_updated_at.lte.${eventCreatedIso}`,
+		)
+		.select("id");
 
 	if (userUpdateError) throw userUpdateError;
+
+	if (!updated || updated.length === 0) {
+		logEvent("[WEBHOOK] Skipped stale subscription.updated event", {
+			user_id: user.id,
+			status: sub.status,
+			sub_id: sub.id,
+			event_created: eventCreatedIso,
+		});
+		return;
+	}
 
 	logEvent("[WEBHOOK] Updated owner subscription", {
 		user_id: user.id,

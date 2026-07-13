@@ -9,8 +9,8 @@ import { useSubscriptionStatus } from "#hooks/api/use-billing";
  *
  * - trialing: indigo banner with days-remaining counter + upgrade CTA
  * - active: renders nothing (null)
- * - past_due: yellow warning with link to /owner/billing
- * - unpaid/canceled/cancelled: red lock banner with link to /owner/billing
+ * - past_due: yellow warning with link to /settings?tab=billing (portal launcher)
+ * - unpaid/canceled/expired: red lock banner with link to /billing/plans
  * - null (no subscription): blue info banner with link to /pricing
  *
  * Include in owner layout to show across all owner pages.
@@ -87,11 +87,11 @@ export function SubscriptionStatusBanner() {
 			<div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
 				<AlertTriangle className="size-5 shrink-0" />
 				<p className="flex-1">
-					Your subscription payment failed. Please update your payment method
-					within 7 days to avoid service interruption.
+					Your subscription payment failed. Please update your payment method to
+					avoid losing access when your subscription is canceled.
 				</p>
 				<Link
-					href="/owner/billing"
+					href="/settings?tab=billing"
 					className="shrink-0 font-medium underline underline-offset-4 hover:text-amber-900 dark:hover:text-amber-100"
 				>
 					Update billing
@@ -100,7 +100,10 @@ export function SubscriptionStatusBanner() {
 		);
 	}
 
-	// Unpaid, canceled, cancelled: red lock banner
+	// Unpaid, canceled, expired: red lock banner. Links to /billing/plans,
+	// which is proxy-allowlisted (reachable for these gate-locked statuses) and
+	// shows Manage Subscription for unpaid (live sub → portal) or a fresh
+	// checkout for canceled/expired (no live sub → resubscribe).
 	return (
 		<div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950/50 dark:text-red-200">
 			<Lock className="size-5 shrink-0" />
@@ -109,7 +112,7 @@ export function SubscriptionStatusBanner() {
 				subscription is renewed.
 			</p>
 			<Link
-				href="/owner/billing"
+				href="/billing/plans"
 				className="shrink-0 font-medium underline underline-offset-4 hover:text-red-900 dark:hover:text-red-100"
 			>
 				Reactivate

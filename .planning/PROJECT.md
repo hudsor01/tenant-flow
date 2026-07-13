@@ -2,12 +2,14 @@
 
 ## Current State
 
-**Latest shipped milestone:** v5.0 AI Blog Content Engine (shipped 2026-06-10, 6 phases / 14 plans / 9/9 requirements). A local-LLM (LM Studio on the M5 Pro) + RAG n8n pipeline that drafts brand-positive, judge-gated, E-E-A-T-credible blog posts into the `n8n-blog-ingest` Edge Function as `status='in-review'` drafts for human approval at `/admin/blog`, executes the SEO-01 ghost-slug reclaim (republish at the exact deleted high-impression URLs), and self-schedules with pre-POST slug dedup + `BLOG-GEN-FAIL` alerts + documented runaway/cost guards. The perfect-PR gate caught and fixed a live prod incident along the way (an RLS policy referencing `is_admin()` raised 42501 on every anonymous `blogs` read). Archive: [milestones/v5.0-ROADMAP.md](milestones/v5.0-ROADMAP.md).
+**Latest shipped milestone:** v8.0 Correctness Restoration (shipped 2026-07-10, 11 phases / 71/72 requirements + audit remediation #893). Eradicated the 2026-07-02 whole-codebase bug hunt findings; every phase merged as its own perfect-PR PR (#882-#893). Archive: [milestones/v8.0-ROADMAP.md](milestones/v8.0-ROADMAP.md).
 
-**Active milestone:** v6.0 Final Canonical Cleanup (started 2026-06-14) — remove every orphaned remnant of the demolished offerings (tenant-as-user/portal, rent-payment facilitation, Stripe Connect/payouts, automated screening) and finish the deferred dead-code trim. Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 15-19 in [ROADMAP.md](ROADMAP.md). The last milestone before the project is considered fully complete.
+**Active milestone:** v9.0 Full-Surface Remediation (started 2026-07-11) — fix all 296 adversarially verified findings from the 2026-07-11 full-surface audit (`.planning/audits/2026-07-11-full-audit.md`), one category per phase, each phase its own perfect-PR PR, executed strictly sequentially so no phase overwrites another's fixes.
 
 ### Recently shipped
 
+- **v8.0 Correctness Restoration** (2026-07-10, 71/72 + remediation) — 11 phases (25-35), PRs #882-#893; lease-wizard 100× money corruption, broken deletes, billing period-end, MFA enforcement, timezone sweep, and 60+ more verified bug fixes. See [milestones/v8.0-ROADMAP.md](milestones/v8.0-ROADMAP.md).
+- **v6.0 Final Canonical Cleanup** (2026-06-15) — removed orphaned tenant-portal / rent-facilitation / Connect / screening remnants (#842). v7.0 TanStack Form migration paused mid-flight (20-22 merged; archived in milestones/v7.0-*).
 - **v5.0 AI Blog Content Engine** (2026-06-10, 9/9) — local-LLM RAG blog factory: judge-gated drafts → `/admin/blog` approve → SEO-01 reclaim → self-scheduled with dedup + alerts. See [milestones/v5.0-ROADMAP.md](milestones/v5.0-ROADMAP.md).
 - **v4.0 Hardening & Hygiene** (2026-06-07, 20/21) — audit janitorial-debt + security-CI + SEO recovery; SEO-01 content-reclaim carried to v5.0. See [milestones/v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md).
 - **CI security gates** (PR #781, 2026-06-04) — CodeQL SAST (app + workflows) + gitleaks server-side secret scanning.
@@ -15,24 +17,29 @@
 - **v2.0 Dashboard Command Center** (2026-06-02, 34/34) — `/dashboard` redesign.
 - **v1.0 Marketing Surface Honesty** (2026-05-22, 56/56 audit findings).
 
-## Current Milestone: v8.0 Correctness Restoration (Bug Eradication)
+## Current Milestone: v9.0 Full-Surface Remediation
 
-**Goal:** Eradicate the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt — all severities (P0/P1/P2), every one verified against source and (where a DB constraint/RPC is involved) the live Supabase DB. Nothing new is built; each requirement restores an existing feature to correct behavior.
+**Goal:** Fix all 296 adversarially verified findings from the 2026-07-11 full-surface audit (codebase + public marketing pages + owner dashboard). Every finding is a tracked requirement; findings are categorized into 16 phases (one category per phase); each phase ships as its own perfect-PR PR and phases execute strictly sequentially — a phase merges before the next branches — so no phase can overwrite another's fixes.
 
-**Target areas (11 phases, 25-35):**
-- **Critical (P0):** lease-wizard 100× money corruption + lease-template PDF money; unit-delete and lease-delete (both write a status value the live CHECK rejects → fail every time)
-- **Lease domain:** list table shows real tenant/property/unit + search; `lease_tenants` join row on UI create; renew applies rent; terms lock after signing; status select + pagination
-- **Maintenance & inspections:** kanban drag/search; list actions/delete/pagination; inspection photos (route + private-bucket signed URLs) + upload status
-- **Tenant domain:** real deletes; correct lease navigation; status persistence; active-lease selection
-- **Billing & financial:** Stripe `current_period_end` (null billing + cancel/reactivate crash); period-scoped statements; real invoice amounts; matching PDFs
-- **Analytics & data-layer:** occupancy array shape; soft-delete filtering in performance RPCs; cache-invalidation keys; table virtualizer positioning
-- **Forms:** unsaved-changes guard reactivity; contact form actually sends; `use-form-progress` render loop; discarded field payloads; missing validators; duplicate toasts
-- **Shared UI:** inert data-table filters/pagination; double-upload; search sanitize; raw error leakage; taxonomy round-trip
-- **Security & config:** server-side MFA enforcement; CSP image allowance on private routes; public cache header on the auth-walled `/properties` route
-- **Marketing/blog:** oklch OG images render black; blog pagination doesn't re-render; 404 honesty; search contract; dead cross-links
-- **Cross-cutting:** timezone "one day early" sweep; bulk-import currency/status; script + repo-migration hygiene
+**Target categories (16 phases, 36-51):**
+- **Billing & subscription lifecycle:** session-verify param mismatch (always-400), unconditional trial on every checkout (serial-trial abuse), no existing-subscription guard, nonexistent past_due grace path, `/owner/billing` 404 CTAs, webhook handlers querying dropped columns / acking stuck events / no event-ordering guard
+- **Auth flows:** email_change rejected by callback allowlist, magiclink/invite success falls through to "expired" error, confirm-email resend requires impossible session, post-checkout/redirect gaps
+- **Forms & validation:** phantom `version` field failing every lease edit (PGRST204), decimal money into integer columns across ~8 forms + both CSV importers, missing date-range/phone/length validators, silent wizard errors, unhandled mutateAsync rejections
+- **Data layer & cache:** setQueryData poisoning enriched detail caches (lease/inspection/tenant), missing invalidations, unbounded list queries, data.length pagination fallback
+- **Type boundaries:** property edit silently wiping acquisition fields, RPC shape mismatches zeroing analytics, unvalidated enum casts leaking to UI
+- **Component logic & analytics:** surviving 100× money divisions, KPI stubs hardwired to zero, invalid quarterly dates (2026-06-31), timezone one-day-early siblings, pagination reset bugs, dead buttons
+- **Dashboard UX:** dead @modal parallel-route subsystem (missing slots + wrong interceptor paths), 404 quick-action links, missing confirmations, ad-hoc empty states
+- **E-sign flow:** owner never notified on tenant-first signing, tenant loses post-sign access, stuck PDF finalize, unreachable completed states, per-token-only rate limiting
+- **Public site UX:** auth-gated CTAs on /features, raw slug category chips, email-confirmation checkout dead-ends, dead help resources, self-referential sticky CTA
+- **Marketing content truthfulness:** nonexistent features sold (team seats, API access, custom lease clauses, ACH), false trial claims, `[Your State]` ToS placeholders, fabricated ratings/imagery, wrong arithmetic in compare pages
+- **Marketing UI consistency:** 6+ undefined utility classes collapsing hero type/spacing, double navbar offset, broken search container, dark-mode-breaking palettes, duplicate components
+- **Accessibility:** 41 findings — unreadable badge tokens, vivid-token text AA failures, unnamed icon buttons, keyboard-invisible hover controls, unassociated labels, focus-unmanaged dialogs
+- **Routing, SEO & performance:** ISR silently defeated by cookie-aware clients, breadcrumb JSON-LD 404 node, robots gaps, marketing-home client bundle, static recharts import, N+1 property queries
+- **Client state (Zustand):** dead toast/loading/navigation stores, sign-out state leakage, stale persisted pagination, phantom selections resurrecting soft-deleted rows
+- **Admin surface:** swallowed RPC errors, fabricated word counts, unbounded queries, /admin 404, broken skip link
+- **Code hygiene:** ~25 duplicate type definitions, string-literal query keys, module-level Supabase client, inline styles, emojis in code
 
-Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 25-35 in [ROADMAP.md](ROADMAP.md). v7.0 (TanStack Form composition migration, phases 20-24) is **paused mid-flight** — phases 20-22 merged, 23-24 open — its plan archived in `.planning/milestones/v7.0-{REQUIREMENTS,ROADMAP}.md`; v8.0 fixes behavior bugs in some of the same files. Roadmaps + requirements for v1.0–v7.0 are archived in `.planning/milestones/`.
+Source of truth: [audits/2026-07-11-full-audit.md](audits/2026-07-11-full-audit.md) (296 confirmed findings, each independently adversarially verified). Requirements in [REQUIREMENTS.md](REQUIREMENTS.md); phases 36-51 in [ROADMAP.md](ROADMAP.md). Roadmaps + requirements for v1.0–v8.0 are archived in `.planning/milestones/`.
 
 ## What This Is
 

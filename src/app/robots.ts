@@ -26,10 +26,8 @@ export const PRIVATE_PATHS = [
 	"/billing",
 	"/_next/data",
 	"/monitoring",
-	// Stripe + checkout result pages — duplicate of `/pricing/cancel`
-	// and `/pricing/success`, no unique content, soft-404 risk.
+	// Stripe checkout result pages — no unique content, soft-404 risk.
 	"/stripe",
-	"/pricing/complete",
 ] as const satisfies readonly string[];
 
 // Paths UNDER a disallowed prefix that must stay crawlable. `/api` is blocked

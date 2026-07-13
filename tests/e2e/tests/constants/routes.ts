@@ -4,7 +4,6 @@ export const ROUTES = {
 	LOGIN: "/login",
 	FEATURES: "/features",
 	PRICING: "/pricing",
-	PRICING_SUCCESS: "/pricing/success",
 
 	// Auth routes
 	AUTH_CALLBACK_GOOGLE: "/api/auth/callback/google",

@@ -11,6 +11,21 @@
 //
 // Run: deno test --allow-all tests/stripe-webhooks-test.ts
 // Requires: local Supabase instance (`supabase functions serve`)
+//
+// Deploy-time integration verification (NOT runnable in this harness — the test
+// env has no real STRIPE_WEBHOOK_SECRET, so signatures are rejected before any
+// handler logic runs; a valid signing secret + seeded rows are required). Run
+// these against a live deploy as part of the owner-run edge-function deploy:
+//   - BILL-14 ordering: deliver customer.subscription.deleted (event.created=T2)
+//     then a stale customer.subscription.updated(active, event.created=T1<T2);
+//     assert users.subscription_status stays 'canceled' and the updated event
+//     logs "Skipped stale subscription.updated event".
+//   - BILL-14 checkout watermark: a reprocessed checkout.session.completed with
+//     an early event.created must not regress subscription_updated_at below a
+//     later cancel (skips + logs "Skipped stale checkout.session.completed").
+//   - BILL-15 recovery: orphan a row in status='processing' with an aged
+//     processed_at (> STALE_PROCESSING_MS); assert the next delivery reclaims
+//     and reprocesses it instead of 200-acking it as a duplicate.
 
 import { assert, assertEquals, assertExists } from "jsr:@std/assert@1";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
@@ -261,6 +276,35 @@ Deno.test("stripe-webhooks: invoice.payment_failed payload format accepted", asy
 	assert(
 		error !== null || data !== null,
 		"Function should respond to invoice.payment_failed payload",
+	);
+});
+
+Deno.test("stripe-webhooks: customer.subscription.trial_will_end payload format accepted (BILL-20)", async () => {
+	const client = createTestClient();
+	const payload = buildWebhookPayload("customer.subscription.trial_will_end", {
+		data_object: {
+			status: "trialing",
+			customer: "cus_test123",
+			trial_end: Math.floor(Date.now() / 1000) + 86400 * 3,
+		},
+	});
+
+	const { data, error } = await client.functions.invoke("stripe-webhooks", {
+		body: payload,
+		headers: {
+			"stripe-signature": "t=1234567890,v1=invalid_but_present",
+		},
+	});
+
+	// Signature verification fails in test env (no real STRIPE_WEBHOOK_SECRET),
+	// but the router must not crash on the newly-wired event type. Fully
+	// exercising the trial-reminder email path, the event-ordering watermark
+	// (out-of-order deleted vs updated), and the stale-'processing' recovery
+	// requires `supabase functions serve` with a valid signing secret and seeded
+	// rows — covered by manual/integration verification, not this smoke test.
+	assert(
+		error !== null || data !== null,
+		"Function should respond to customer.subscription.trial_will_end payload",
 	);
 });
 

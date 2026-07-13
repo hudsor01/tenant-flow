@@ -20,6 +20,37 @@ import type { SubscriptionStatusResponse } from "#types/api-contracts";
 
 const logger = createLogger({ component: "SubscriptionKeys" });
 
+// The real writer set (see SubscriptionStatusResponse in api-contracts.ts):
+// Stripe webhooks write Stripe's spellings; `expire_trials()` writes 'expired'.
+const KNOWN_SUBSCRIPTION_STATUSES = new Set<string>([
+	"active",
+	"trialing",
+	"canceled",
+	"past_due",
+	"unpaid",
+	"incomplete",
+	"incomplete_expired",
+	"paused",
+	"expired",
+]);
+
+// Validated mapper at the PostgREST/RPC boundary (CLAUDE.md mapper rule):
+// never launder an unvalidated DB/RPC string into the status union via `as`.
+// Anything outside the known set fails to the "No Subscription" state rather
+// than fabricating a status the UI can't handle.
+export function mapSubscriptionStatus(
+	raw: unknown,
+): SubscriptionStatusResponse["subscriptionStatus"] {
+	if (raw === null || raw === undefined) return null;
+	if (typeof raw === "string" && KNOWN_SUBSCRIPTION_STATUSES.has(raw)) {
+		return raw as SubscriptionStatusResponse["subscriptionStatus"];
+	}
+	logger.warn("Unknown subscription status; treating as no subscription", {
+		status: raw,
+	});
+	return null;
+}
+
 /**
  * Subscription status key lives here (colocated with its query factory).
  * Exported so mutation hooks (cancel/reactivate) can write/invalidate the same cache entry.
@@ -57,8 +88,7 @@ export const subscriptionStatusQuery = {
 				if (!stripeCustomerId) {
 					logger.debug("No stripe_customer_id, returning local status");
 					return {
-						subscriptionStatus:
-							localStatus as SubscriptionStatusResponse["subscriptionStatus"],
+						subscriptionStatus: mapSubscriptionStatus(localStatus),
 						stripeCustomerId: null,
 						stripePriceId: null,
 						currentPeriodEnd: null,
@@ -84,8 +114,7 @@ export const subscriptionStatusQuery = {
 						},
 					);
 					return {
-						subscriptionStatus:
-							localStatus as SubscriptionStatusResponse["subscriptionStatus"],
+						subscriptionStatus: mapSubscriptionStatus(localStatus),
 						stripeCustomerId,
 						stripePriceId: null,
 						currentPeriodEnd: null,
@@ -102,14 +131,13 @@ export const subscriptionStatusQuery = {
 						? (subRaw as Record<string, unknown>)
 						: null;
 
-				const status = (sub?.status as string) ?? localStatus;
+				const status = mapSubscriptionStatus(sub?.status ?? localStatus);
 				logger.debug("Subscription status from get_subscription_status", {
 					status,
 				});
 
 				return {
-					subscriptionStatus:
-						status as SubscriptionStatusResponse["subscriptionStatus"],
+					subscriptionStatus: status,
 					stripeCustomerId,
 					stripePriceId: (sub?.price_id as string) ?? null,
 					currentPeriodEnd: (sub?.current_period_end as string) ?? null,

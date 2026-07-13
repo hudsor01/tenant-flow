@@ -4,8 +4,11 @@ import type { SupabaseAdmin } from "./types.ts";
 
 /**
  * Handle customer.subscription.deleted event.
- * Marks lease subscription_status as 'canceled' AND owner user subscription_status
- * as 'canceled' (revokes dashboard access on next request via proxy gate).
+ * Landlord-only (v2.1): marks users.subscription_status = 'canceled' so the
+ * proxy gate revokes dashboard access on the next request. The tenant-rent
+ * lease path was removed with the landlord-only refactor (the
+ * leases.stripe_subscription_* columns were dropped in
+ * 20260418170000_drop_dead_lease_subscription_cols.sql).
  */
 export async function handleCustomerSubscriptionDeleted(
 	supabase: SupabaseAdmin,
@@ -16,23 +19,7 @@ export async function handleCustomerSubscriptionDeleted(
 	const customerId =
 		typeof sub.customer === "string" ? sub.customer : sub.customer.id;
 
-	// Path 1: tenant rent subscription
-	const { data: leases } = await supabase
-		.from("leases")
-		.select("id")
-		.eq("stripe_subscription_id", sub.id)
-		.limit(1);
-
-	if (leases && leases.length > 0) {
-		const { error } = await supabase
-			.from("leases")
-			.update({ stripe_subscription_status: "canceled" })
-			.eq("stripe_subscription_id", sub.id);
-		if (error) throw error;
-		return;
-	}
-
-	// Path 2: owner SaaS subscription — revoke dashboard access
+	// Owner SaaS subscription — revoke dashboard access.
 	const { data: user } = await supabase
 		.from("users")
 		.select("id")
@@ -40,23 +27,43 @@ export async function handleCustomerSubscriptionDeleted(
 		.maybeSingle();
 
 	if (!user) {
-		captureWebhookWarning(
-			"[WEBHOOK] deleted subscription matches no lease and no user",
-			{ sub_id: sub.id, customer_id: customerId },
-		);
+		captureWebhookWarning("[WEBHOOK] deleted subscription matches no user", {
+			sub_id: sub.id,
+			customer_id: customerId,
+		});
 		return;
 	}
 
-	const { error: userUpdateError } = await supabase
+	// BILL-14: order by event time, not processing time. Stripe does not
+	// guarantee delivery order and the router re-processes previously-failed
+	// events, so a stale updated(active) retried AFTER this deleted must not
+	// resurrect access. Stamp the watermark at event.created and apply the
+	// cancel only when this event is not older than the persisted watermark —
+	// atomically, via a PostgREST filter (no read-modify-write race).
+	const eventCreatedIso = new Date(event.created * 1000).toISOString();
+	const { data: updated, error: userUpdateError } = await supabase
 		.from("users")
 		.update({
 			subscription_status: "canceled",
 			subscription_cancel_at_period_end: false,
-			subscription_updated_at: new Date().toISOString(),
+			subscription_updated_at: eventCreatedIso,
 		})
-		.eq("id", user.id);
+		.eq("id", user.id)
+		.or(
+			`subscription_updated_at.is.null,subscription_updated_at.lte.${eventCreatedIso}`,
+		)
+		.select("id");
 
 	if (userUpdateError) throw userUpdateError;
+
+	if (!updated || updated.length === 0) {
+		logEvent("[WEBHOOK] Skipped stale subscription.deleted event", {
+			user_id: user.id,
+			sub_id: sub.id,
+			event_created: eventCreatedIso,
+		});
+		return;
+	}
 
 	logEvent("[WEBHOOK] Canceled owner subscription — dashboard access revoked", {
 		user_id: user.id,

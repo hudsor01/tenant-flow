@@ -1,154 +1,381 @@
-# Requirements: TenantFlow v8.0 — Correctness Restoration (Bug Eradication)
+# Requirements: TenantFlow v9.0 Full-Surface Remediation
 
-**Defined:** 2026-07-02
-**Core Value:** Every core operation an owner performs — create a lease, delete a unit, view the leases list, sign a document, pay an invoice, upload a photo, run a report — produces correct data and correct behavior. This milestone eradicates the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt (12 parallel domain agents; every P0 and every cross-owner/DB claim verified against source + the live Supabase DB). Nothing new is built; every requirement restores an existing feature to correct behavior.
+**Defined:** 2026-07-11
+**Source:** [audits/2026-07-11-full-audit.md](audits/2026-07-11-full-audit.md) — 296 adversarially verified findings. Every confirmed finding is a requirement; nothing is deferred.
+**Core value:** every finding fixed at root cause; each category ships as its own perfect-PR PR, strictly sequentially (a phase merges before the next branches), so no phase overwrites another's fixes.
 
-**Grounded in:** the 2026-07-02 bug hunt. Each requirement cites the confirmed defect and its file:line. Findings refuted by ground truth (e.g. GDPR `request_account_deletion` — live function is fine, repo migration is stale) are excluded from fixes except the repo-hygiene reconciliation (MISC-04). Dead code (`lease-action-buttons.tsx`, the `@modal` parallel-route trees) is out of scope.
+Each requirement references its finding as `file:line` (severity). Full defect detail + verifier evidence live in the audit document — plans MUST read the audit entry for each REQ before proposing a fix.
 
-**Constraint (applies to every requirement):** each fix is verified by exercising the actual flow (not just typecheck) and, where a DB constraint/RPC is involved, confirmed against the live prod schema. Amount columns store **dollars** (`numeric(10,2)`); date-only columns are `YYYY-MM-DD` and must be parsed/formatted in the local zone via `parseLocalYmd`/`formatLocalYmd`. Each phase ships under the perfect-PR gate (two consecutive zero-finding review cycles); `bun run typecheck` + `bun run lint` + the full unit suite stay green; no new `any` / `as unknown as`.
+## Billing & Subscription Lifecycle (BILL) — Phase 36
 
-## v1 Requirements
+- [ ] **BILL-01**: Fix: hasActiveSubscription excludes past_due/unpaid, so a delinquent subscriber on /billing/plans is routed into a brand-new checkout instead of the portal and loses the Manage Subscription button. (`src/app/(owner)/billing/plans/page.tsx:59`; high)
+- [ ] **BILL-02**: Fix: The past_due and unpaid/canceled subscription banners link to `/owner/billing`, a route that does not exist, so the billing-recovery CTA 404s. (`src/components/billing/subscription-status-banner.tsx:94`; high)
+- [ ] **BILL-03**: Fix: Both session-verification queries send `session_id` but the stripe-checkout-session Edge Function reads `body.sessionId`, so every call returns 400. (`src/hooks/api/query-keys/subscription-verification-keys.ts:28`; high)
+- [ ] **BILL-04**: Fix: past_due is excluded from the subscription gate, so the promised 7-day grace period does not exist and a past_due owner has no reachable way to fix their payment method. (`src/proxy.ts:10`; high)
+- [ ] **BILL-05**: Fix: No existing-subscription guard before creating a checkout session, so an already-subscribed owner can create a second concurrent subscription on the same customer. (`supabase/functions/stripe-checkout/index.ts:118`; high)
+- [ ] **BILL-06**: Fix: Every checkout unconditionally grants a fresh 14-day no-card trial, enabling infinite serial free trials. (`supabase/functions/stripe-checkout/index.ts:134`; high)
+- [ ] **BILL-07**: Fix: Payment-failure email's "Update Payment Method" CTA links to `/owner/billing`, a route that 404s (`supabase/functions/stripe-webhooks/handlers/invoice-payment-failed.ts:54`; high)
+- [ ] **BILL-08**: Fix: The Free Trial card on /billing/plans starts a checkout with the trial price ID, which stripe-checkout categorically rejects. (`src/app/(owner)/billing/plans/page.tsx:47`; medium)
+- [ ] **BILL-09**: Fix: The cancel-scheduled state requires status 'active', so a trialing Stripe subscriber who cancels sees the Danger-Zone Cancel button again instead of the "ends on X / Reactivate" UI. (`src/components/settings/sections/subscription-cancel-section.tsx:138`; medium)
+- [ ] **BILL-10**: Fix: Raw Stripe invoice statuses ('open', 'draft', 'void', 'uncollectible') are cast into the 4-value `BillingHistoryItem["status"]` union without validation and leak to the UI. (`src/hooks/api/query-keys/billing-keys.ts:48`; medium)
+- [ ] **BILL-11**: Fix: `users.subscription_status` value 'expired' is cast into a `SubscriptionStatusResponse["subscriptionStatus"]` union that does not contain it, so expired-trial owners get unhandled status in every consumer. (`src/hooks/api/query-keys/subscription-keys.ts:61`; medium)
+- [ ] **BILL-12**: Fix: Subscription-lapsed users (past_due/canceled/expired) are locked out of every surface that could fix their billing. (`src/proxy.ts:347`; medium)
+- [ ] **BILL-13**: Fix: customer.subscription.deleted handler queries and updates `leases` columns that no longer exist, silently erroring on every cancellation event (`supabase/functions/stripe-webhooks/handlers/customer-subscription-deleted.ts:23`; medium)
+- [ ] **BILL-14**: Fix: No event-ordering guard — a late or retried customer.subscription.updated processed after customer.subscription.deleted resurrects 'active' status and permanently re-grants dashboard access. (`supabase/functions/stripe-webhooks/handlers/customer-subscription-updated.ts:82`; medium)
+- [ ] **BILL-15**: Fix: Webhook events stuck in status 'processing' are permanently acked as duplicates and never processed. (`supabase/functions/stripe-webhooks/index.ts:118`; medium)
+- [ ] **BILL-16**: Fix: DB-managed trial users (every new signup) see an active "Cancel Plan" button that always fails with a 404 from stripe-cancel-subscription. (`src/components/settings/sections/subscription-cancel-section.tsx:90`; low)
+- [ ] **BILL-17**: Fix: sessionStatus/verifySession expect response fields the stripe-checkout-session function never returns, so /pricing/complete can never show success even if the param bug is fixed. (`src/hooks/api/query-keys/subscription-verification-keys.ts:51`; low)
+- [ ] **BILL-18**: Fix: SubscriptionStatusResponse.subscriptionStatus union omits 'expired', a status the expire_trials cron actually writes, while including 'cancelled' which nothing writes. (`src/types/api-contracts.ts:331`; low)
+- [ ] **BILL-19**: Fix: Checkout cancel_url targets /settings/billing, which immediately redirects and drops the ?checkout=cancelled context, and is subscription-gated for the users most likely to abandon checkout. (`supabase/functions/stripe-checkout/index.ts:124`; low)
+- [ ] **BILL-20**: Fix: customer.subscription.trial_will_end is unhandled, so no-card Stripe trials auto-cancel with zero advance notice to the owner. (`supabase/functions/stripe-webhooks/index.ts:156`; low)
 
-### CRIT — P0: silent data corruption + fully-broken core operations
+## Auth Flows (AUTH) — Phase 37
 
-- [ ] **CRIT-01**: The lease-creation wizard persists rent/deposit/late-fee/pet amounts as **dollars**, not cents. `terms-step.tsx:72` / `details-step.tsx` stop multiplying by 100 and the wizard inserts dollar values into `leases`; review step, unit auto-fill, PDF, dashboard MRR, and `RENT_MAXIMUM_VALUE` validation all agree in dollars. (100× corruption on the sole create path.)
-- [ ] **CRIT-02**: The `/documents/lease-template` builder renders money at face value — `lease-template.ts:604-624` `createDefaultContext` uses `formatCents` (not `formatCurrency`) for the cents-valued fields, and the DEFAULT_CONTEXT figures render as intended (e.g. $1,800 / $50, not $180,000 / $5,000).
-- [ ] **CRIT-03**: Deleting a unit succeeds. `unit-keys.ts:260` stops writing the invalid `status:'inactive'` (rejected by live `units_status_check`); it uses a hard delete or a valid soft-delete value, and any `.neq('status','inactive')` filters are corrected to match.
-- [ ] **CRIT-04**: Deleting a lease succeeds. `lease-mutation-options.ts:118,133` (delete + optimistic) stop writing the invalid `lease_status:'inactive'` (rejected by live `leases_lease_status_check`); they use a valid soft-delete/hard-delete, and the list `.neq('lease_status','inactive')` filter is corrected.
+- [ ] **AUTH-01**: Fix: Email-change confirmation links are generated with type=email_change but the callback's VALID_OTP_TYPES rejects that type, so email change can never be confirmed. (`src/app/auth/callback/route.ts:7`; high)
+- [ ] **AUTH-02**: Fix: A SUCCESSFUL magiclink or invite OTP verification falls through to the "link has expired" error redirect. (`src/app/auth/callback/route.ts:82`; high)
+- [ ] **AUTH-03**: Fix: The "Resend Email" action requires an authenticated session that its target audience can never have, so the button always fails. (`src/app/auth/confirm-email/page.tsx:62`; high)
+- [ ] **AUTH-04**: Fix: The login page silently strips ?error=oauth_failed without showing any error to the user. (`src/app/(auth)/login/page.tsx:55`; medium)
+- [ ] **AUTH-05**: Fix: Magic-link resend sets emailRedirectTo to /dashboard, bypassing /auth/callback so the sign-in dead-ends against the proxy auth gate. (`src/app/auth/post-checkout/page.tsx:90`; medium)
+- [ ] **AUTH-06**: Fix: Page claims "A login link has been sent to {email}" but nothing ever sends one, and no flow links to this page. (`src/app/auth/post-checkout/page.tsx:160`; medium)
+- [ ] **AUTH-07**: Fix: The page marks itself "valid" and shows the password form without ever verifying a recovery session exists. (`src/app/auth/update-password/page.tsx:43`; medium)
+- [ ] **AUTH-08**: Fix: Checkout success_url returns paying customers to /dashboard, which the proxy subscription gate can bounce to /pricing before the webhook lands. (`supabase/functions/stripe-checkout/index.ts:123`; medium)
+- [ ] **AUTH-09**: Fix: An invalid OTP type redirects /auth/callback to itself, which then re-runs and lands the user on /login with the misleading error "oauth_failed". (`src/app/auth/callback/route.ts:72`; low)
+- [ ] **AUTH-10**: Fix: Sign-out failure is presented as success — onError sets signedOut(true), showing "You have been signed out successfully". (`src/app/auth/signout/page.tsx:43`; low)
+- [ ] **AUTH-11**: Fix: Signup emailRedirectTo points at /auth/confirm, a route that does not exist anywhere in src/app. (`src/components/pricing/owner-subscribe-dialog.tsx:52`; low)
+- [ ] **AUTH-12**: Fix: The login redirect preserves only the pathname in ?redirect=, dropping the destination's query string. (`src/proxy.ts:221`; low)
+- [ ] **AUTH-13**: Fix: Billing-portal Edge Function hardcodes return_url to /dashboard and ignores the returnUrl the client sends. (`supabase/functions/stripe-billing-portal/index.ts:70`; low)
 
-### LEASE — lease domain correctness
+## Forms & Validation (FORM) — Phase 38
 
-- [ ] **LEASE-01**: The leases list table shows real tenant / property / unit values and search matches them. Reconcile `transformLease` (`table/lease-utils.ts:92`) with the `leaseQueries.list` select (`lease-keys.ts:66`) so tenant name, property name, and unit number populate instead of "Unassigned / No Property / N/A".
-- [ ] **LEASE-02**: Creating a lease through the UI (wizard or form) writes the `lease_tenants` join row, so tenant→lease/unit/property reads resolve and the active-lease tenant-delete guard sees the lease.
-- [ ] **LEASE-03**: The renew-lease dialog applies the rent adjustment it collects — `renew-lease-dialog.tsx:77` sends the new `rent_amount` (when adjusted) alongside `end_date`.
-- [ ] **LEASE-04**: Lease terms are locked once the tenant has signed (or the lease is `pending_signature`), so the finalized signed PDF cannot carry terms the tenant never agreed to. Edit is gated in UI and rejected server-side.
-- [ ] **LEASE-05**: The edit-form lease status select includes `pending_signature` and cannot silently drop a lease out of that state on save.
-- [ ] **LEASE-06**: The leases page paginates server-side (uses the PostgREST `count`, not a hardcoded `limit:50` client slice) so leases beyond the first 50 are reachable and the "Total Leases" stat is accurate.
-- [ ] **LEASE-07**: The lease-signing PDF (`_shared/lease-signing.ts:104`) formats money with 2-decimal currency consistent with the signing page.
-- [ ] **LEASE-08**: The rent-increase-notice dialog receives the property address (not the unit number) for its "Property:" line (`lease-header.tsx:170`).
+- [ ] **FORM-01**: Fix: Monthly Rent and Security Deposit inputs accept cents (step="0.01" + parseFloat) but leases.rent_amount/security_deposit are integer columns, so any decimal entry fails with a dead-end generic error (`src/components/leases/lease-form-financial-fields.tsx:43`; high)
+- [ ] **FORM-02**: Fix: Lease edit form always sends a `version` field to PostgREST, but the `leases` table has no `version` column, so every lease edit fails with PGRST204. (`src/components/leases/lease-form.tsx:103`; high)
+- [ ] **FORM-03**: Fix: Edit Unit slide-out panel rent input accepts decimals into the integer units.rent_amount column (sibling of unit-form) (`src/components/properties/edit-unit-panel.tsx:194`; high)
+- [ ] **FORM-04**: Fix: Lease update payload includes a `version` field that does not exist as a column on `leases`, so every lease edit save fails with PGRST204. (`src/hooks/api/query-keys/lease-mutation-options.ts:96`; high)
+- [ ] **FORM-05**: Fix: Template Preview/Export read form.state.values directly and never run form validation, so the wired zod schemas (tenant-notice, rental-application, inspection, maintenance) gate nothing (`src/app/(owner)/documents/templates/components/use-template-pdf.ts:87`; medium)
+- [ ] **FORM-06**: Fix: Lease CSV import accepts decimal rent/deposit which the bulk_import_create_lease RPC silently rounds into the integer columns, altering the imported financial data (`src/components/leases/bulk-import-config.ts:109`; medium)
+- [ ] **FORM-07**: Fix: Lease create/edit form has no end_date-after-start_date validation; reversed dates save silently for draft leases and hit a raw DB range error for active ones (`src/components/leases/lease-form-options.ts:13`; medium)
+- [ ] **FORM-08**: Fix: Pet Deposit and Monthly Pet Rent inputs accept cents (step="0.01", placeholders "300.00"/"25.00") but leases.pet_deposit/pet_rent are integer columns (`src/components/leases/wizard/details-step.tsx:160`; medium)
+- [ ] **FORM-09**: Fix: Wizard step validation errors are computed but never rendered — the Next/Create button is silently disabled with no message telling the user what is wrong (`src/components/leases/wizard/lease-creation-wizard.tsx:246`; medium)
+- [ ] **FORM-10**: Fix: Wizard Monthly Rent/Security Deposit/Late Fee inputs invite decimal dollars (placeholder "1500.00", parseDollars) but insert into integer lease columns, failing with an unexplained error at the final step (`src/components/leases/wizard/terms-step.tsx:179`; medium)
+- [ ] **FORM-11**: Fix: Estimated Cost accepts decimals (step="0.01") and negatives (form is noValidate, field has no validator) but maintenance_requests.estimated_cost is an integer column (`src/components/maintenance/maintenance-form-fields.tsx:246`; medium)
+- [ ] **FORM-12**: Fix: Add Unit slide-out panel rent input accepts decimals into the integer units.rent_amount column (sibling of unit-form) (`src/components/properties/add-unit-panel.tsx:189`; medium)
+- [ ] **FORM-13**: Fix: handleSave and handleDelete await mutateAsync without try/catch, producing unhandled promise rejections on failure (`src/components/settings/owner-emergency-contact-section.tsx:59`; medium)
+- [ ] **FORM-14**: Fix: Unit CSV import accepts decimal rent_amount which fails the direct PostgREST insert into integer units.rent_amount as a raw per-row 22P02 error (`src/components/units/bulk-import-config.ts:87`; medium)
+- [ ] **FORM-15**: Fix: Unit form Monthly Rent input accepts decimals (step="0.01", placeholder "0.00") but units.rent_amount is an integer column, so decimal rents always fail (`src/components/units/unit-form-fields.tsx:104`; medium)
+- [ ] **FORM-16**: Fix: Property form validates state/ZIP as merely non-empty (requiredString), bypassing the strict 2-letter-state and ZIP-format rules defined in the same file, so invalid codes persist silently (`src/lib/validation/properties.ts:208`; medium)
+- [ ] **FORM-17**: Fix: Contact form has no client-side max-length validation while the send-contact-email edge function hard-rejects over-length fields, producing a misleading "try again" error (`src/components/contact/contact-form.tsx:51`; low)
+- [ ] **FORM-18**: Fix: Failed inspection creation escapes handleSubmit as an unhandled promise rejection (no try/catch around mutateAsync) (`src/components/inspections/new-inspection-form.client.tsx:58`; low)
+- [ ] **FORM-19**: Fix: Add-tenant phone field is wired without any validator even though addTenantSchema.shape.phone exists, so malformed phone numbers persist unchecked (`src/components/tenants/add-tenant-info-fields.tsx:62`; low)
 
-### MAINT — maintenance + inspections
+## Data Layer & Cache Integrity (DATA) — Phase 39
 
-- [ ] **MAINT-01**: Maintenance kanban drag-and-drop changes status. Columns register as droppables and `handleDragEnd` resolves the target column status (not a card UUID) — `maintenance-kanban.client.tsx:202`.
-- [ ] **MAINT-02**: The maintenance kanban board reflects the search box — it syncs to the filtered `initialRequests` prop instead of copying it into state once (`maintenance-kanban.client.tsx:165`).
-- [ ] **MAINT-03**: The maintenance list view renders exactly one actions column — remove the duplicate `{id:'actions'}` appended in `maintenance-table.client.tsx:78` (keep the one in `columns.tsx`).
-- [ ] **MAINT-04**: Deleting a maintenance request in list view persists in the UI — the optimistic delete invalidates/refetches the source query so the row does not reappear (`maintenance-table.client.tsx:47`).
-- [ ] **MAINT-05**: The maintenance list pagination footer is correct — pass a real `pageCount` (not `-1`) so "Page X of N" and the next/last controls work (`maintenance-table.client.tsx:137`).
-- [ ] **MAINT-06**: Kanban + detail handle every valid status, including `assigned` / `needs_reassignment`, so those rows are visible on the board and render the correct badge/StatusSelect.
-- [ ] **MAINT-07**: The maintenance "Completed" stat is either labeled correctly or scoped to the period it claims ("this month") — `maintenance-view.client.tsx:67`.
-- [ ] **MAINT-08**: The add-expense dialog persists the Description the user enters (add the column + payload field, or remove the input) — `add-expense-dialog.tsx:57`.
-- [ ] **INSP-01**: Inspection room photos display. The card renders the resolved image URL instead of the nonexistent `/api/v1/inspections/photos/{id}/url` route (`inspection-room-card.tsx:209`), and the query resolves photos on the private `inspection-photos` bucket via signed URLs (not `getPublicUrl`) — `inspection-keys.ts:126`.
-- [ ] **INSP-02**: Inspection photo upload tracks per-file status correctly — no wrong-index status writes, failed uploads land in an `error` state with retry, and an already-uploaded file cannot be re-uploaded (`inspection-photo-upload.tsx:68`).
+- [ ] **DATA-01**: Fix: useUpdateInspection's updateDetail replaces the enriched inspection detail (with rooms/photos) with the bare updated row, making all rooms vanish from the UI (`src/hooks/api/use-inspection-mutations.ts:43`; high)
+- [ ] **DATA-02**: Fix: useRenewLeaseMutation's updateDetail poisons the lease detail cache with an embed-less row marked fresh (`src/hooks/api/use-lease-lifecycle-mutations.ts:52`; high)
+- [ ] **DATA-03**: Fix: useUpdateTenantMutation never invalidates tenantQueries.withLease(id), so the tenant detail page shows stale data immediately after a successful save (`src/hooks/api/use-tenant-mutations.ts:47`; high)
+- [ ] **DATA-04**: Fix: inspectionQueries.list() is an unbounded list query — no .limit() or .range() despite requesting count:'exact' (`src/hooks/api/query-keys/inspection-keys.ts:46`; medium)
+- [ ] **DATA-05**: Fix: propertyStatsQueries.stats() mixes occupied-UNIT counts with total-PROPERTY counts, producing negative vacancy and >100% occupancy (`src/hooks/api/query-keys/property-stats-keys.ts:140`; medium)
+- [ ] **DATA-06**: Fix: useUpdateLeaseMutation's updateDetail overwrites the lease detail cache with a bare row, wiping the units/tenants embeds the detail page renders (`src/hooks/api/use-lease-mutations.ts:159`; medium)
+- [ ] **DATA-07**: Fix: blogQueries.reviewQueue() is an unbounded list query (`src/hooks/api/query-keys/blog-keys.ts:175`; low)
+- [ ] **DATA-08**: Fix: blogQueries.reviewQueue() is the client-side sibling of the same unbounded list query — no .limit() or .range(). (`src/hooks/api/query-keys/blog-keys.ts:177`; low)
+- [ ] **DATA-09**: Fix: documentCategoryQueries.list() has no .limit()/.range() (`src/hooks/api/query-keys/document-category-keys.ts:108`; low)
+- [ ] **DATA-10**: Fix: expenseQueries.list() falls back to `data?.length` for the pagination total on the limit-only path (`src/hooks/api/query-keys/expense-keys.ts:193`; low)
+- [ ] **DATA-11**: Fix: leaseQueries.list() declares `search` and `property_id` in LeaseFilters but the queryFn never applies either filter (`src/hooks/api/query-keys/lease-keys.ts:70`; low)
+- [ ] **DATA-12**: Fix: maintenanceQueries.list() property_id branch silently drops the unit_id/priority/status filters (`src/hooks/api/query-keys/maintenance-keys.ts:75`; low)
+- [ ] **DATA-13**: Fix: maintenanceQueries.overdue() has no .limit() while its sibling urgent() caps at 50 (`src/hooks/api/query-keys/maintenance-keys.ts:289`; low)
+- [ ] **DATA-14**: Fix: propertyQueries.withUnits() is an unbounded `select("*, units(*)")` list query (`src/hooks/api/query-keys/property-keys.ts:94`; low)
+- [ ] **DATA-15**: Fix: propertyQueries.images() list query has no .limit() (`src/hooks/api/query-keys/property-keys.ts:170`; low)
+- [ ] **DATA-16**: Fix: reportQueries.runs() uses unbounded `select("*")` on report_runs (`src/hooks/api/query-keys/report-keys.ts:103`; low)
+- [ ] **DATA-17**: Fix: unitQueries.listByProperty() and unitQueries.byProperty() are unbounded list queries with no .limit()/.range() (`src/hooks/api/query-keys/unit-keys.ts:112`; low)
+- [ ] **DATA-18**: Fix: useRenewLeaseMutation invalidates only lease lists + dashboard, missing the unit/tenant keys its sibling lifecycle mutations refresh (`src/hooks/api/use-lease-lifecycle-mutations.ts:51`; low)
 
-### TEN — tenant domain
+## Type Boundaries (RPC/PostgREST) (TYPE) — Phase 40
 
-- [ ] **TEN-01**: Tenant delete works from every control (row, grid card, bulk action bar) — wire the real delete mutation + confirm dialog; no control is a `logger.info`-only no-op (`tenants.tsx:93-213`).
-- [ ] **TEN-02**: The tenant "View lease" action navigates to the tenant's lease (uses `leaseId`, not `tenant.id`) — `tenant-table-row.tsx:92`.
-- [ ] **TEN-03**: The per-tenant lease-status dropdowns either persist the change or are removed (no onChange-logs-only controls that snap back) — `tenant-grid.tsx:130`, `tenant-table-helpers`.
-- [ ] **TEN-04**: `mapTenantRow.currentLease` selects the active lease (prefer `lease_status='active'`, deterministic ordering), not whichever `lease_tenants` row PostgREST emits first — `tenant-mappers.ts:179`.
-- [ ] **TEN-05**: The tenant-edit emergency-contact fields can be left empty / cleared — the whole-form validator does not make phone effectively mandatory or block name-only edits (`tenant-edit-form.client.tsx:30`).
-- [ ] **TEN-06**: `useMarkTenantAsMovedOutMutation` optimistic update targets the real list query key + shape (or drops the optimistic step) so it doesn't silently no-op / throw (`use-tenant-mutations.ts:125`).
+- [ ] **TYPE-01**: Fix: propertyQueries.detail() selects a column subset but casts to full `Property`, causing every property edit to silently wipe acquisition_cost and acquisition_date in the DB. (`src/hooks/api/query-keys/property-keys.ts:28`; high)
+- [ ] **TYPE-02**: Fix: `jsonObject<FinancialAnalyticsPageData>(data)` asserts a shape `get_financial_overview` has never returned, so /analytics/financial permanently renders zeroed metrics and empty charts. (`src/hooks/api/use-analytics.ts:87`; high)
+- [ ] **TYPE-03**: Fix: `jsonObject<MaintenanceInsightsPageData>(data)` asserts keys `get_maintenance_analytics` never emits, so the maintenance insights section always renders empty. (`src/hooks/api/use-analytics.ts:119`; high)
+- [ ] **TYPE-04**: Fix: Local all-optional `Expense` interface declares fields that are never selected or don't exist on the `expenses` table, so the expenses table UI renders fabricated fallbacks on every row. (`src/hooks/api/query-keys/expense-keys.ts:277`; medium)
+- [ ] **TYPE-05**: Fix: `financialQueries.monthly()` maps `row.expenses`/`row.net_income` keys that `get_revenue_trends_optimized` never emits, silently defaulting them to 0. (`src/hooks/api/query-keys/financial-keys.ts:180`; medium)
+- [ ] **TYPE-06**: Fix: `reportQueries.monthlyRevenue()` maps phantom `expenses`/`profit`/`net_income`/`property_count`/`unit_count`/`occupied_units` keys, so the /reports/analytics "Profit" chart series permanently flatlines at 0. (`src/hooks/api/query-keys/report-keys.ts:125`; medium)
+- [ ] **TYPE-07**: Fix: The `custom_fields` jsonb column is cast directly to `DynamicField[]` with no runtime validation. (`src/hooks/api/query-keys/template-definition-keys.ts:48`; medium)
 
-### PROP — property + unit domain
+## Component Logic & Analytics Correctness (COMP) — Phase 41
 
-- [ ] **PROP-01**: The property-detail units table refreshes after unit create/edit/delete — the three unit mutations invalidate `unitQueries.byProperty()` (not just `.lists()`) — `use-unit.ts:80-130`.
-- [ ] **PROP-02**: Renaming/updating a property refreshes the dashboard — `useUpdatePropertyMutation` invalidates the dashboard's real key (`ownerDashboardKeys.all` / `analytics.pageData()`), not the non-matching `analytics.stats()` — `use-property-mutations.ts:109`.
-- [ ] **PROP-03**: The property table (and tenant table) virtualizer positions rows correctly (absolute/`translateY(virtualRow.start)`) so scrolling shows the right rows, not offset/blank — `property-table.tsx:192`, `tenant-table.tsx:190`.
-- [ ] **PROP-04**: The "Duplex" property type round-trips — either it maps to a real stored value that displays as Duplex and is filterable, or it is removed from the taxonomy (`properties.tsx:25`, `property-transforms.ts`).
-- [ ] **PROP-05**: Clearing an optional field in an edit form nulls the column (property `address_line2`, unit `square_feet`, vendor email/phone/notes, maintenance cost/date) — replace conditional-spread/`?? undefined` + `omitUndefined` with explicit `null` on clear.
+- [ ] **COMP-01**: Fix: Financial analytics stat cards divide dollar-valued metrics by 100, understating Total Revenue, Net Income, and Cash Flow 100x (surviving sibling of the v8.0 100x money-class). (`src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx:35`; high)
+- [ ] **COMP-02**: Fix: Analytics overview KPI cards (Occupancy Rate, Active Tenants, Monthly Revenue) are hardwired to zero because they read fields never present on the locally constructed stats stub. (`src/app/(owner)/analytics/overview/page.tsx:97`; high)
+- [ ] **COMP-03**: Fix: Quarterly income statement builds invalid calendar dates ("-31" for June/September), breaking the Quarterly view for two quarters of every year. (`src/app/(owner)/financials/income-statement/page.tsx:29`; high)
+- [ ] **COMP-04**: Fix: Monthly revenue stat card divides the dollar-valued totalRevenue by 100 while the adjacent table on the same page formats the identical source without dividing. (`src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx:89`; medium)
+- [ ] **COMP-05**: Fix: Expense dates display one day early for all US timezones because the date-only expense_date is parsed as UTC midnight then formatted in local time. (`src/app/(owner)/financials/expenses/_components/expense-table.tsx:133`; medium)
+- [ ] **COMP-06**: Fix: Expense pagination never resets when search or category filters change, leaving the user on an out-of-range page with an empty, unrecoverable table. (`src/app/(owner)/financials/expenses/page.tsx:49`; medium)
+- [ ] **COMP-07**: Fix: The "Export CSV" button on the Expenses page has no onClick handler and does nothing when clicked. (`src/app/(owner)/financials/expenses/page.tsx:134`; medium)
+- [ ] **COMP-08**: Fix: Move-out validation rejects today's date as "in the past" for every user west of UTC. (`src/app/(owner)/tenants/components/tenant-details.client.tsx:39`; medium)
+- [ ] **COMP-09**: Fix: Work-order PDF shows scheduled dates and expense dates one day early in negative-UTC-offset timezones via a local formatDate that lacks UTC handling. (`src/components/maintenance/detail/work-order-template.ts:30`; medium)
+- [ ] **COMP-10**: Fix: TenantTable keeps a local pageIndex that never resets when the filtered tenant list shrinks, showing an empty table with no pagination controls. (`src/components/tenants/tenant-table.tsx:42`; medium)
+- [ ] **COMP-11**: Fix: "Download insight summary" is an anchor with href="#" that downloads nothing and scrolls the page to the top. (`src/app/(owner)/analytics/financial/page.tsx:105`; low)
+- [ ] **COMP-12**: Fix: transformLease parses the date-only lease end_date as UTC midnight and compares it to local now, shifting the "expiring" window and expired/active boundary by the timezone offset. (`src/components/leases/table/lease-utils.ts:114`; low)
+- [ ] **COMP-13**: Fix: Render-time in-place .sort() mutates the expenseByCategory array owned by the TanStack Query cache. (`src/components/reports/sections/year-end-report-section.tsx:210`; low)
 
-### BILL — billing, Stripe & financial reports
+## Dashboard UX & Navigation (DASH) — Phase 42
 
-- [ ] **BILL-01**: The subscription current-period-end is read from the correct SDK location (`subscription.items.data[].current_period_end` for the pinned stripe@20 / `2026-03-25.dahlia`), so `public.users.subscription_current_period_end` is populated, the billing UI shows the next-billing date, and cancel/reactivate no longer crashes with `RangeError` from `new Date(undefined*1000)` (webhook handlers + `stripe-cancel-subscription` + `use-billing-mutations.ts:75`).
-- [ ] **BILL-02**: The income-statement, cash-flow, and tax-documents views return period-specific numbers — the queryFns pass their `start_date`/`end_date`/`year` to date-aware RPCs instead of calling `get_dashboard_stats` with only `p_user_id` (`financial-keys.ts:243,327`, `expense-keys.ts:47`).
-- [ ] **BILL-03**: Unpaid/open invoices show their real amount, not $0.00 — `billing-keys.ts:35` stops letting `amount_paid = 0` win over `amount_due`.
-- [ ] **BILL-04**: Financial views surface an error (or fall back honestly) when `get_expense_summary`/billing RPCs fail, instead of silently defaulting expenses to 0 and overstating net income (`financial-keys.ts`, `expense-keys.ts`).
-- [ ] **BILL-05**: The year-end and tax-document **PDF** exports build from the same financial RPCs as their CSV counterparts (`get_financial_overview`/`get_billing_insights`), not `get_dashboard_stats`, so PDF content matches the report title (`generate-pdf/index.ts:92`).
-- [ ] **BILL-06**: `expenses.amount` has one consistent money convention (dollars) end-to-end. Today the column is `integer` (rounds cents on insert; the add-expense dialog invites `step=0.01` decimals) and readers disagree: `/financials/expenses` table + `expense-category-breakdown` + `tax-documents` + `financials-quick-links` read it as **cents** (`formatCents(amount)` → 100× too small — a $150 expense shows "$1.50"), while `maintenance` detail + income-statement/cash-flow/balance treat it as **dollars**. Migrate `expenses.amount` → `numeric(10,2)`, fix the cents-readers to `formatCurrency`, and update the financial RPCs that `SUM(e.amount)::bigint` so fractional dollars are not truncated. (Discovered in the Phase 27 review via the MAINT-08 add-expense insert path; the description feature itself shipped correctly. Prod `expenses` is currently empty, so no historical data to convert.)
+- [ ] **DASH-01**: Fix: The leases layout never renders the `@modal` parallel-route slot, so the New/Edit lease modals under `leases/@modal/` can never be displayed. (`src/app/(owner)/leases/layout.tsx:9`; high)
+- [ ] **DASH-02**: Fix: The maintenance segment has no layout.tsx at all, so its `@modal` slot (New/Edit maintenance modals) has no layout to render it and can never be displayed. (`src/app/(owner)/maintenance/@modal/(.)new/page.tsx:7`; high)
+- [ ] **DASH-03**: Fix: The properties layout never renders the `@modal` parallel-route slot, so every modal under `src/app/(owner)/properties/@modal/` can never be displayed. (`src/app/(owner)/properties/layout.tsx:9`; high)
+- [ ] **DASH-04**: Fix: The units layout never renders the `@modal` parallel-route slot, so the New/Edit unit modals under `units/@modal/` can never be displayed. (`src/app/(owner)/units/layout.tsx:9`; high)
+- [ ] **DASH-05**: Fix: The edit-lease interceptor targets `/leases/edit/[id]` instead of `/leases/[id]/edit`, and it also lacks the terms-lock gate its full-page sibling enforces. (`src/app/(owner)/leases/@modal/(.)edit/[id]/page.tsx:14`; medium)
+- [ ] **DASH-06**: Fix: The new-lease modal renders a plain single-step `LeaseForm` while its full-page sibling `/leases/new` renders the multi-step `LeaseCreationWizard`, dropping the tenant/property preselection handoff. (`src/app/(owner)/leases/@modal/(.)new/page.tsx:20`; medium)
+- [ ] **DASH-07**: Fix: The edit-maintenance interceptor targets `/maintenance/edit/[id]` instead of the real route `/maintenance/[id]/edit`, so it can never match a navigation. (`src/app/(owner)/maintenance/@modal/(.)edit/[id]/page.tsx:14`; medium)
+- [ ] **DASH-08**: Fix: The edit-property interceptor is nested as `(.)edit/[id]`, which intercepts the non-existent URL `/properties/edit/[id]` instead of the real edit route `/properties/[id]/edit`. (`src/app/(owner)/properties/@modal/(.)edit/[id]/page.tsx:23`; medium)
+- [ ] **DASH-09**: Fix: After a successful create in the new-property modal, the modal neither closes nor navigates — the form just resets to blank while the dialog stays open. (`src/app/(owner)/properties/@modal/(.)new/page.tsx:19`; medium)
+- [ ] **DASH-10**: Fix: Document deletion is a single-click permanent destructive action with no confirmation dialog. (`src/components/documents/documents-section.tsx:174`; medium)
+- [ ] **DASH-11**: Fix: The "View Unit Details" quick action on the lease detail page links to `/properties/[id]/units/[unitId]`, a route that does not exist. (`src/components/leases/detail/lease-sidebar.tsx:53`; medium)
+- [ ] **DASH-12**: Fix: The profile page's "View All" activity button pushes `/activity`, a route that does not exist, and the section shows hardcoded fake activity entries. (`src/components/profiles/owner/recent-activity-section.tsx:17`; medium)
+- [ ] **DASH-13**: Fix: The "View details" link in every financial breakdown card is a dead `Link href="#"`. (`src/app/(owner)/analytics/financial/_components/breakdown-list.tsx:18`; low)
+- [ ] **DASH-14**: Fix: The expenses list empty states are ad-hoc div blocks instead of the `Empty` compound component. (`src/app/(owner)/financials/expenses/_components/expense-table.tsx:178`; low)
+- [ ] **DASH-15**: Fix: The edit-unit interceptor targets `/units/edit/[id]` instead of the real route `/units/[id]/edit`, so it can never match a navigation. (`src/app/(owner)/units/@modal/(.)edit/[id]/page.tsx:11`; low)
+- [ ] **DASH-16**: Fix: The document vault defines a private local `EmptyState` component duplicating the mandated `Empty` compound component. (`src/components/documents/documents-vault.client.tsx:571`; low)
+- [ ] **DASH-17**: Fix: The inspections list empty state is an ad-hoc div block instead of the `Empty` compound component. (`src/components/inspections/inspection-list.client.tsx:135`; low)
+- [ ] **DASH-18**: Fix: The lease detail "Maintenance Requests" quick action links to `/maintenance?unit_id=…`, but the maintenance page never reads a `unit_id` param, so the promised unit filter silently does nothing. (`src/components/leases/detail/lease-sidebar.tsx:39`; low)
+- [ ] **DASH-19**: Fix: The maintenance request form does not autoFocus its primary input, unlike the other key create forms. (`src/components/maintenance/maintenance-form-fields.tsx:153`; low)
+- [ ] **DASH-20**: Fix: The maintenance list zero-state is an ad-hoc div block instead of the `Empty` compound component. (`src/components/maintenance/maintenance-view.client.tsx:121`; low)
+- [ ] **DASH-21**: Fix: "Remove Contact" deletes the emergency contact on a single click with no confirmation. (`src/components/settings/owner-emergency-contact-section.tsx:181`; low)
+- [ ] **DASH-22**: Fix: The tenants list empty state is an ad-hoc div block instead of the mandated `Empty` compound component from `#components/ui/empty`. (`src/components/tenants/tenants.tsx:119`; low)
+- [ ] **DASH-23**: Fix: The unit form does not autoFocus its primary input (`unit_number`), unlike the other key create forms. (`src/components/units/unit-form-fields.tsx:56`; low)
 
-### DATA — analytics + data-layer correctness
+## E-sign Flow (SIGN) — Phase 43
 
-- [ ] **DATA-01**: Occupancy analytics render real data. The mappers consume `get_occupancy_trends_optimized`'s JSONB **array** shape correctly (not a `z.object` that always fails → empty defaults) across `use-analytics.ts` and `report-analytics-keys.ts`.
-- [ ] **DATA-02** (PARTIAL — `get_property_performance_analytics` portion done in Phase 29's BILL-06 recreate; Phase 30 must still fix `_with_trends`/`_trends`, NOT re-recreate `_analytics`): Soft-deleted properties are excluded from the per-property performance RPCs — restore the `p.status <> 'inactive'` predicate to `get_property_performance_analytics` / `_trends` / `_with_trends` (verified missing on the live definitions) so deleted properties don't emit rows or inflate portfolio totals.
-- [ ] **DATA-03**: The `get_lease_stats` "Expired" tile counts naturally-lapsed leases (`lease_status='expired'`, set by the expire-leases cron), and the frontend `LeaseStatus` union includes `'expired'`.
-- [ ] **DATA-04** (discovered in Phase 30 review; deferred): the dashboard trend/time-series CTEs filter historical windows on the CURRENT `lease_status='active'`, so past periods drop leases that have since ended/expired — `get_dashboard_data_v2` (`trend_occupancy`/`trend_revenue`/`trend_tenants` previous-value subqueries + `ts_occupancy`/`ts_revenue`/`ts_revenue_6mo`, LIVE-rendered on the dashboard), and the caller-less `get_dashboard_time_series` + `get_metric_trend`. Align the historical predicates with the standalone trend RPCs' `IN ('active','ended','expired')`. Pre-existing (predates the 'expired' status — undercounts ended too), latent (prod all-draft), and a distinct historical-accuracy class from DATA-03's status handling.
+- [ ] **SIGN-01**: Fix: After signing, the tenant permanently loses all access to the lease — no copy is emailed and the used token blocks the document endpoint. (`src/components/leases/sign-lease-form.tsx:150`; medium)
+- [ ] **SIGN-02**: Fix: A failed signed-PDF finalize has no retry or regeneration path, leaving the download button in a permanent "Finalizing signed document…" state. (`supabase/functions/_shared/lease-signing.ts:274`; medium)
+- [ ] **SIGN-03**: Fix: When the tenant signs first, the owner is never notified that a counter-signature is needed — the flow silently stalls in pending_signature. (`supabase/functions/sign-lease-token/index.ts:232`; medium)
+- [ ] **SIGN-04**: Fix: The friendly "Already signed / Lease is active" completed-state cards are unreachable — a tenant revisiting their link after signing always gets the warning-styled "Signing link unavailable" card instead. (`src/app/sign/[token]/sign-context.ts:79`; low)
+- [ ] **SIGN-05**: Fix: getStatusBadge keys badge variants on legacy uppercase statuses ("EXPIRED", "TERMINATED", "DRAFT") that can never match the lowercase lease_status values in the DB. (`src/components/leases/lease-action-buttons.tsx:92`; low)
+- [ ] **SIGN-06**: Fix: The unauthenticated `context` action rate-limits per token hash instead of per IP, so there is no per-IP ceiling at all on token probing. (`supabase/functions/sign-lease-token/index.ts:83`; low)
 
-### FORMFIX — form behavior correctness
+## Public Site UX (PUBUX) — Phase 44
 
-- [ ] **FORMFIX-01**: The unsaved-changes warning arms while the user types — `useUnsavedChangesWarning` reads TanStack Form dirty state reactively (via `useStore`/`form.Subscribe`), not a non-reactive `form.state.isDirty` snapshot (`property-form.client.tsx:134`, `add-tenant-form.tsx:83`).
-- [ ] **FORMFIX-02**: The contact form transmits the message (to an Edge Function / Resend), returns real success/failure, and only shows the thank-you on a successful send — `contact-form.tsx:69` (currently sends nowhere).
-- [ ] **FORMFIX-03**: `use-form-progress` no longer render-loops — the auto-save effect depends on stable identities and guards on value change, so typing in the contact form doesn't spin renders + localStorage writes (`use-form-progress.ts:153`).
-- [ ] **FORMFIX-04**: The add-tenant "Property Assignment (Optional)" selection is persisted — the chosen property/unit creates the association (lease/`lease_tenants` or the intended link), instead of being dropped from the payload (`add-tenant-form.tsx:57`).
-- [ ] **FORMFIX-05**: The maintenance edit form saves unit/tenant changes and validates input — the edit payload includes `unit_id`/`tenant_id`, and `maintenanceRequestCreateSchema` is wired so empty title/description/unit surface field errors instead of a raw PostgREST uuid error (`use-maintenance-form.ts:56,114`).
-- [ ] **FORMFIX-06**: General settings persists every editable field — Contact Email, Timezone, and Language are included in the update, not just `phone` (`general-settings.tsx:76`).
-- [ ] **FORMFIX-07**: The notification-settings "Enable All Notifications" toggle reads and writes all channels it claims (email/sms/push/in-app), not just `email` (`notification-settings.tsx:63`).
-- [ ] **FORMFIX-08**: Create/update forms show a single success/error toast — remove the duplicate toast between the form's onSubmit and the mutation's `createMutationCallbacks` (lease + property) (`lease-form.tsx:88`, `property-form.client.tsx:221`).
+- [ ] **PUBUX-01**: Fix: Sibling instance: the featured (Growth) pricing card's onComplete also ignores requiresEmailConfirmation and unconditionally attempts checkout. (`src/components/pricing/pricing-card-featured.tsx:269`; high)
+- [ ] **PUBUX-02**: Fix: The tax lead magnet promises a "ready-to-use spreadsheet" with "auto-calculated totals" but the email-gated download delivers a printable HTML page with blank write-in lines. (`src/app/blog/[slug]/blog-post-page.tsx:59`; medium)
+- [ ] **PUBUX-03**: Fix: Blog index category chips render the raw kebab-case slug (cat.name) instead of the human label, showing "software-vault (85)" / "lease-law (33)" to visitors. (`src/app/blog/page.tsx:200`; medium)
+- [ ] **PUBUX-04**: Fix: The Help Center's "Popular resources" cards promise "Quick access to the most requested help topics" but are non-interactive dead ends with no links. (`src/app/help/page.tsx:143`; medium)
+- [ ] **PUBUX-05**: Fix: All six feature-card CTAs on the public /features page deep-link into auth-gated app routes, dead-ending logged-out prospects at the login wall. (`src/components/landing/bento-features-section.tsx:49`; medium)
+- [ ] **PUBUX-06**: Fix: The pricing card's OwnerSubscribeDialog onComplete ignores requiresEmailConfirmation and always fires the checkout mutation, which is guaranteed to 401 when signup did not produce a session. (`src/components/pricing/pricing-card-standard.tsx:292`; medium)
+- [ ] **PUBUX-07**: Fix: Hero CTAs on /faq, /about and /help are rendered as buttons driving router.push instead of links, so they expose no href. (`src/components/sections/hero-section.tsx:72`; medium)
+- [ ] **PUBUX-08**: Fix: /help-center and /rss-feed redirects are speculative aliases for URLs that never existed, violating the project's no-typo-courtesy-redirects rule. (`next.config.ts:137`; low)
+- [ ] **PUBUX-09**: Fix: The global "Skip to main content" link targets #main-content, which does not exist on /login, /auth/* or /sign/[token], leaving a dead skip link on those pages. (`src/app/layout.tsx:100`; low)
+- [ ] **PUBUX-10**: Fix: Customer-facing payment-status page links "View details" to the merchant-only Stripe dashboard (dashboard.stripe.com), which no customer can access. (`src/app/pricing/complete/complete-client.tsx:188`; low)
+- [ ] **PUBUX-11**: Fix: The StickyConversionCta on /pricing uses its default primaryHref="/pricing", making the floating "Start free" button a self-referential no-op. (`src/app/pricing/page.tsx:101`; low)
 
-### UIX — shared UI, data-table, uploads, error handling
+## Marketing Content Truthfulness (CONTENT) — Phase 45
 
-- [ ] **UIX-01**: Data-table column filters and pagination work on every consumer — `use-data-table.ts:211` no longer no-ops `onColumnFiltersChange` under `enableAdvancedFilter`, or the toolbar stops rendering inert filter widgets and `-1` page counts (units, financial-lease, top-properties, active-units, insights tables).
-- [ ] **UIX-02**: Image upload uploads each file exactly once and reports success only when the current batch actually completed — fix `use-supabase-upload.ts:84` retry-list double-inclusion, re-upload of succeeded files, and the `isSuccess` length comparison.
-- [ ] **UIX-03**: `sanitizeSearchInput` stops stripping `.` so email / dotted searches match (only escape the PostgREST `.or()` metacharacters, don't corrupt ilike values) — `sanitize-search.ts:15`.
-- [ ] **UIX-04**: The mutation error handler shows friendly messages for unclassified errors instead of raw Postgres/PostgREST internals (e.g. unique/check-constraint violations) — `mutation-error-handler.ts:114`.
-- [ ] **UIX-05**: Avatar re-upload reflects the new image — bust the cache (versioned path or query param) so a replaced avatar doesn't serve the stale cached object — `use-profile-avatar-mutations.ts:33`.
+- [ ] **CONTENT-01**: Fix: Pricing comparison table advertises "Team members: 1 / 3 / Unlimited" for a feature that does not exist in the product. (`src/components/pricing/pricing-comparison-table.tsx:45`; high)
+- [ ] **CONTENT-02**: Fix: Growth plan sells a "Team (3 users)" feature (and `limits.users` 1/3/unlimited) but no team/multi-user capability exists anywhere in the app. (`src/config/pricing.ts:163`; high)
+- [ ] **CONTENT-03**: Fix: Max plan advertises "API access" (also in its description, line 174) but no API access feature exists. (`src/config/pricing.ts:197`; high)
+- [ ] **CONTENT-04**: Fix: Buildium card copy promises "a better tenant experience" from a product that has zero tenant-facing surface. (`src/app/compare/[competitor]/compare-data.ts:25`; medium)
+- [ ] **CONTENT-05**: Fix: Buildium metaDescription claims "TenantFlow offers the same features at half the price", contradicted by the page's own feature table and prices. (`src/app/compare/[competitor]/compare-data.ts:27`; medium)
+- [ ] **CONTENT-06**: Fix: RentRedi feature table marks TenantFlow "Team Collaboration: yes — 3 users on Growth" for a nonexistent multi-user feature. (`src/app/compare/[competitor]/compare-data.ts:332`; medium)
+- [ ] **CONTENT-07**: Fix: Help page instructs users to "Invite team members" — an operation the product does not support. (`src/app/help/page.tsx:169`; medium)
+- [ ] **CONTENT-08**: Fix: Pricing FAQ claims "We accept all major credit cards, debit cards, and ACH transfers" but checkout is card-only. (`src/app/pricing/pricing-content.tsx:42`; medium)
+- [ ] **CONTENT-09**: Fix: Pricing CTA bullet "14-day trial, all features" promises "generate and e-sign leases" in the trial, which is false for Starter trials. (`src/app/pricing/pricing-content.tsx:190`; medium)
+- [ ] **CONTENT-10**: Fix: Resources page advertises setup guides for "team billing", a feature that does not exist. (`src/app/resources/page.tsx:32`; medium)
+- [ ] **CONTENT-11**: Fix: Blog newsletter signup repeats the undelivered "landlord operations guide" promise and the false "Check your inbox" success toast. (`src/components/blog/newsletter-signup.tsx:61`; medium)
+- [ ] **CONTENT-12**: Fix: Features-page section claims "Higher tiers unlock more e-sign volume, more storage, and team-member seats" — seats don't exist. (`src/components/landing/results-proof-section.tsx:48`; medium)
+- [ ] **CONTENT-13**: Fix: Lead-capture modal promises a "landlord operations guide" and toasts "Subscribed! Check your inbox." but no guide exists and no email is ever sent. (`src/components/marketing/lead-capture-modal.tsx:133`; medium)
+- [ ] **CONTENT-14**: Fix: Comparison table "Custom lease clauses" row (Starter ✗ / Growth ✗ / Max ✓) claims a Max capability that is not implemented. (`src/components/pricing/pricing-comparison-table.tsx:96`; medium)
+- [ ] **CONTENT-15**: Fix: Homepage FAQ claims the free trial includes "Everything. You get full access to all features" but trials are plan-scoped and a Starter trial lacks e-sign. (`src/components/sections/home-faq.tsx:36`; medium)
+- [ ] **CONTENT-16**: Fix: Homepage logo cloud titled "Trusted integrations" with subtitle "Connect to the tools your portfolio already runs on" misrepresents TenantFlow's own infrastructure vendors as user-connectable integrations. (`src/components/sections/logo-cloud.tsx:16`; medium)
+- [ ] **CONTENT-17**: Fix: Testimonials render a hardcoded 5-star rating (`[...Array(5)]` filled stars) that no customer ever gave. (`src/components/sections/testimonials-section.tsx:123`; medium)
+- [ ] **CONTENT-18**: Fix: FREETRIAL plan copy "Try every feature for 14 days" / "14-day full-feature trial" contradicts the same object's own limits (1 property, 5 units, no e-sign). (`src/config/pricing.ts:67`; medium)
+- [ ] **CONTENT-19**: Fix: Max plan advertises "Custom lease clauses" but the lease builder has no way to add a custom clause on any plan. (`src/config/pricing.ts:196`; medium)
+- [ ] **CONTENT-20**: Fix: FAQ answers claim "API access is available on the Max plan" (also line 58) for a nonexistent feature. (`src/data/faqs.ts:78`; medium)
+- [ ] **CONTENT-21**: Fix: AppFolio claim "Save over $3,000/year at 30 units ($49/mo vs $298/mo minimum)" is arithmetically false — the cited numbers yield $2,988/year. (`src/app/compare/[competitor]/compare-data.ts:238`; low)
+- [ ] **CONTENT-22**: Fix: RentRedi comparison marks TenantFlow "Unlimited Units: no — 25-100 by plan", contradicting the Max plan's unlimited units shown on the same page. (`src/app/compare/[competitor]/compare-data.ts:341`; low)
+- [ ] **CONTENT-23**: Fix: Stock Unsplash photo captioned as "TenantFlow support team helping landlords with their portfolios" fabricates team imagery. (`src/app/help/page.tsx:46`; low)
+- [ ] **CONTENT-24**: Fix: Security-deposit reference card is still labeled "as of 2025" in mid-2026. (`src/app/resources/security-deposit-reference-card/page.tsx:628`; low)
 
-### SEC — security + delivery config
+## Marketing UI Consistency (MKTUI) — Phase 46
 
-- [ ] **SEC-01**: MFA (TOTP aal2) is enforced server-side. The proxy and/or the `(owner)`/`(admin)` layouts require aal2 for users with a verified factor (via `getAuthenticatorAssuranceLevel` or a JWT `aal` claim / RLS), so a password-only session cannot reach private routes; dismissing the OTP dialog signs the aal1 session out (`proxy.ts`, login MFA dialog).
-- [ ] **SEC-02**: Storage-backed images render on private routes — the per-request CSP `img-src` (and `media-src`) in `proxy.ts:129` (and the static CSP in `vercel.json`) allow the Supabase storage origin so maintenance photos, document-vault previews, and inspection photos are not blocked.
-- [ ] **SEC-03**: The auth-walled `/properties/(.*)` route no longer carries a `public, s-maxage` shared-cache header (cross-user cache risk); the stale `/manage` and `/tenant` cache rules for non-existent routes are removed (`vercel.json:129-160`).
-- [ ] **SEC-04**: Lease FK re-pointing is owner-validated. A `leases` UPDATE that changes `unit_id` or `primary_tenant_id` must reject a target row not owned by the caller — the current `leases_update_owner` RLS policy pins only `owner_user_id`, so an owner can attach their lease to another owner's unit/tenant. Add a trigger/RLS check validating the NEW `unit_id`/`primary_tenant_id` belongs to the owner. (Discovered in Phase 26 review; the signed-PDF tamper via these FKs during signature is already closed by the Phase-26 term-lock — this is the broader all-status cross-owner-integrity gap.)
-- [ ] **SEC-05**: The e-signature audit trail is tamper-proof. Once a signature-audit column is set (`tenant_signed_at`, `tenant_signature_name`, `tenant_signature_ip/user_agent/method`, and the owner equivalents), it cannot be silently changed to a *different* non-null value (an asymmetric null-transition guard: allow null→value on sign and value→null on cancel, reject value→different-value), so an owner cannot forge the tenant's rendered signature name / audit metadata on the signed PDF between tenant-sign and finalize. (Discovered in Phase 26 review; distinct from lease-term locking.)
+- [ ] **MKTUI-01**: Fix: Search page container is missing `mx-auto` and horizontal padding, so content hugs the left edge on wide screens and touches the viewport edge on mobile. (`src/app/search/page.tsx:72`; high)
+- [ ] **MKTUI-02**: Fix: Live Terms of Service still contains unfilled template placeholders "[Your State/Location]" and "[Your State]". (`src/app/terms/page.tsx:416`; high)
+- [ ] **MKTUI-03**: Fix: Features-page hero re-adds `page-offset-navbar` inside PageLayout, doubling the navbar offset. (`src/components/landing/hero-section.tsx:8`; high)
+- [ ] **MKTUI-04**: Fix: The Max plan card is rendered with `variant="enterprise"`, forcing a "Contact Sales" CTA even though Max is a published self-serve $149/mo plan. (`src/components/pricing/bento-pricing-section.tsx:139`; high)
+- [ ] **MKTUI-05**: Fix: Hero `<h1>` uses the undefined class `text-responsive-display-xl`, so about/faq/help/blog hero titles render at base h1 size (24–30px). (`src/components/sections/hero-section.tsx:57`; high)
+- [ ] **MKTUI-06**: Fix: Compare pages use raw Tailwind palette colors (text-green-600/red-400/amber-500/blue-500) instead of the semantic tokens used by the equivalent homepage table. (`src/app/compare/[competitor]/compare-sections.tsx:9`; medium)
+- [ ] **MKTUI-07**: Fix: Compare index cards use `hover:bg-accent` (vivid green) without switching text color, making card text unreadable on hover. (`src/app/compare/page.tsx:57`; medium)
+- [ ] **MKTUI-08**: Fix: `FaqsAccordion` exists as two byte-identical duplicate components. (`src/app/faq/faq-accordion.tsx:20`; medium)
+- [ ] **MKTUI-09**: Fix: /features shows two competing sticky CTAs simultaneously — a custom top-right floating button plus the shared bottom StickyConversionCta bar. (`src/app/features/features-client.tsx:35`; medium)
+- [ ] **MKTUI-10**: Fix: Help-page hero loads a stock photo from the Unsplash image API. (`src/app/help/page.tsx:45`; medium)
+- [ ] **MKTUI-11**: Fix: Pricing FAQ and CTA section headings use undefined class `text-section-title`. (`src/app/pricing/pricing-content.tsx:100`; medium)
+- [ ] **MKTUI-12**: Fix: Privacy Policy lists "Railway: Backend API hosting" as a data processor, but the architecture has no Railway backend. (`src/app/privacy/page.tsx:184`; medium)
+- [ ] **MKTUI-13**: Fix: `section-content` class is undefined, leaving the resources CTA and pricing result pages with zero vertical padding. (`src/app/resources/page.tsx:206`; medium)
+- [ ] **MKTUI-14**: Fix: Resource pages hard-code light-only palette colors (bg-green-50/amber-50/blue-50 + text-*-900) that break dark mode. (`src/app/resources/seasonal-maintenance-checklist/page.tsx:23`; medium)
+- [ ] **MKTUI-15**: Fix: `page-content` class is undefined, so all three printable resource pages start with no top spacing. (`src/app/resources/seasonal-maintenance-checklist/page.tsx:294`; medium)
+- [ ] **MKTUI-16**: Fix: Blog cards display the raw kebab category slug (e.g. "lease-law") instead of the humanized label used everywhere else. (`src/components/blog/blog-card.tsx:36`; medium)
+- [ ] **MKTUI-17**: Fix: Pricing comparison table grants "Priority email support" to Starter, contradicting the help/features pages which reserve priority support for Growth and Max. (`src/components/pricing/pricing-comparison-table.tsx:128`; medium)
+- [ ] **MKTUI-18**: Fix: Trust badge uses undefined class `inline-flex-center`, so the FAQ hero badge renders as a full-width block with stacked children. (`src/components/sections/hero-section.tsx:26`; medium)
+- [ ] **MKTUI-19**: Fix: Homepage Premium CTA headline uses undefined class `text-responsive-display-2xl`, collapsing to base h2 size. (`src/components/sections/premium-cta.tsx:25`; medium)
+- [ ] **MKTUI-20**: Fix: Blog loading skeleton uses `pt-8` for the breadcrumb while the real page uses `pt-12`, causing a 16px layout shift on load. (`src/app/blog/loading.tsx:27`; low)
+- [ ] **MKTUI-21**: Fix: Help resource badges alternate between the AA-safe `text-primary-text` token and the raw vivid `text-accent` token for text. (`src/app/help/page.tsx:157`; low)
+- [ ] **MKTUI-22**: Fix: /pricing/complete does not wrap in PageLayout — no navbar, footer, or grid background, unlike its sibling checkout-result pages. (`src/app/pricing/complete/page.tsx:19`; low)
+- [ ] **MKTUI-23**: Fix: Resources hero "highlight" span de-emphasizes instead of highlighting, diverging from the `hero-highlight` pattern used on every other hero. (`src/app/resources/page.tsx:100`; low)
+- [ ] **MKTUI-24**: Fix: CTA button references undefined class `gradient-background`. (`src/app/resources/page.tsx:228`; low)
+- [ ] **MKTUI-25**: Fix: Inline `style` attributes in marketing components violate the zero-tolerance no-inline-styles rule. (`src/components/landing/feature-backgrounds.tsx:24`; low)
+- [ ] **MKTUI-26**: Fix: Three homepage sections use `container px-4` instead of the standard `max-w-7xl mx-auto px-6 lg:px-8`, giving them different widths and gutters. (`src/components/sections/features-section.tsx:66`; low)
 
-### MKT — marketing, blog & SEO surface
+## Accessibility (A11Y) — Phase 47
 
-- [ ] **MKT-01**: The `/pricing`, `/features`, and `/compare/[competitor]` OG images render real content — replace `oklch()` with `hsl()` (satori renders oklch black) in all three `api/og/*` routes; verify the PNGs are not solid black.
-- [ ] **MKT-02**: Blog and category pagination re-renders the server-rendered post grid — the pagination control uses real navigation / nuqs `shallow:false` so Next/Prev change the posts, not just the URL + page label (`blog-pagination.tsx`).
-- [ ] **MKT-03**: Out-of-range blog/category pages return a real 404 (or the intended empty state honestly), and the category page handles the query error + shows the correct post count (`blog/page.tsx:112`, `blog/category/[category]/page.tsx:114`).
-- [ ] **MKT-04**: The homepage `SearchAction` structured data and `/search` agree — either `/search` honors the `q` param and renders results, or the SearchAction/`/search` contract is removed (`page.tsx:50`, `search/page.tsx`).
-- [ ] **MKT-05**: The compare/resource cross-link blocks either point at blog slugs that exist or degrade correctly — fix or remove the six dead slugs in `compare-data.ts` / `content-links.ts` so the "Read the Full Comparison" / "Related Blog Posts" sections aren't silently empty.
+- [ ] **A11Y-01**: Fix: Unit status badge text uses near-white `*-foreground` tokens on 10% tint backgrounds, making badge labels unreadable in light mode. (`src/app/(owner)/properties/units/components/unit-status-badge.tsx:42`; high)
+- [ ] **A11Y-02**: Fix: Icon-only Trash2 remove-clause button has no aria-label. (`src/app/(owner)/documents/templates/components/clauses-editor.tsx:51`; medium)
+- [ ] **A11Y-03**: Fix: Icon-only Trash2 remove-field button has no aria-label. (`src/app/(owner)/documents/templates/components/custom-fields-editor.tsx:58`; medium)
+- [ ] **A11Y-04**: Fix: Icon-only Trash2 remove-list-item button has no aria-label. (`src/app/(owner)/documents/templates/components/dynamic-form.tsx:132`; medium)
+- [ ] **A11Y-05**: Fix: Icon-only Trash2 remove-custom-field button has no aria-label. (`src/app/(owner)/documents/templates/components/form-builder-panel.tsx:150`; medium)
+- [ ] **A11Y-06**: Fix: Form-builder field inputs have visible Labels that are not programmatically associated, leaving inputs with no accessible name. (`src/app/(owner)/documents/templates/components/form-builder-panel.tsx:161`; medium)
+- [ ] **A11Y-07**: Fix: Bare `dark:text-muted` uses the muted surface token as text color, violating the repo rule and producing dark-on-dark text. (`src/app/(owner)/properties/units/components/unit-status-badge.tsx:50`; medium)
+- [ ] **A11Y-08**: Fix: Clear-filter control is a role="button" div nested inside the popover trigger Button with no keyboard handler. (`src/components/data-table/data-table-date-filter.tsx:180`; medium)
+- [ ] **A11Y-09**: Fix: Clear-filter control is a role="button" div nested inside the popover trigger Button with no keyboard handler. (`src/components/data-table/data-table-faceted-filter.tsx:83`; medium)
+- [ ] **A11Y-10**: Fix: Clear-filter control is a role="button" div nested inside the popover trigger Button with no keyboard handler. (`src/components/data-table/data-table-slider-filter.tsx:135`; medium)
+- [ ] **A11Y-11**: Fix: Hover-only-revealed remove-photo button is invisible when focused via keyboard. (`src/components/inspections/inspection-photo-upload.tsx:295`; medium)
+- [ ] **A11Y-12**: Fix: Vivid `text-success`/`text-warning` tokens on visible small text in landing feature previews fail WCAG AA contrast. (`src/components/landing/feature-backgrounds.tsx:171`; medium)
+- [ ] **A11Y-13**: Fix: Mobile nav submenu can only be expanded by clicking a raw SVG chevron — no keyboard or screen-reader access. (`src/components/layout/navbar/navbar-mobile-menu.tsx:72`; medium)
+- [ ] **A11Y-14**: Fix: Leases status filter select has no accessible name; search input is placeholder-only. (`src/components/leases/table/leases-table-toolbar.tsx:49`; medium)
+- [ ] **A11Y-15**: Fix: Icon-only pagination buttons (previous/next page) have no aria-label. (`src/components/leases/table/leases-table.tsx:229`; medium)
+- [ ] **A11Y-16**: Fix: Hover-only-revealed "More options" button is invisible on keyboard focus and performs no action. (`src/components/maintenance/cards/maintenance-card.tsx:113`; medium)
+- [ ] **A11Y-17**: Fix: Icon-only Download/export button has no aria-label. (`src/components/maintenance/detail/maintenance-header-card.tsx:94`; medium)
+- [ ] **A11Y-18**: Fix: Property gallery images open the lightbox via a clickable div with no keyboard access. (`src/components/properties/property-image-gallery.tsx:128`; medium)
+- [ ] **A11Y-19**: Fix: Hover-only-revealed delete image button is invisible when focused via keyboard. (`src/components/properties/property-image-gallery.tsx:154`; medium)
+- [ ] **A11Y-20**: Fix: Columns menu trigger lacks aria-expanded and the custom menu has no Escape handling. (`src/components/properties/property-table-toolbar.tsx:36`; medium)
+- [ ] **A11Y-21**: Fix: Hover-only-revealed remove-image button is invisible when focused via keyboard. (`src/components/properties/sections/property-images-create-section.tsx:98`; medium)
+- [ ] **A11Y-22**: Fix: Vivid `text-success`/`text-warning`/`text-info`/`text-destructive` tokens on visible small text fail WCAG AA contrast. (`src/components/sections/hero-dashboard-mockup.tsx:211`; medium)
+- [ ] **A11Y-23**: Fix: Settings dropdown trigger lacks aria-expanded/aria-haspopup and the menu has no Escape handling. (`src/components/shell/main-nav.tsx:150`; medium)
+- [ ] **A11Y-24**: Fix: Collapsed sidebar submenu links remain keyboard-focusable while visually hidden. (`src/components/shell/main-nav.tsx:217`; medium)
+- [ ] **A11Y-25**: Fix: Custom tenant profile dialog has no focus management — focus never moves into the sheet and background stays tabbable. (`src/components/tenants/tenant-detail-sheet.tsx:62`; medium)
+- [ ] **A11Y-26**: Fix: Bento card CTA link is keyboard-focusable while hidden inside a hover-only reveal container. (`src/components/ui/bento-grid.tsx:79`; medium)
+- [ ] **A11Y-27**: Fix: Photo evidence file input has no label or aria-label. (`src/app/(owner)/documents/templates/components/photo-evidence-card.tsx:28`; low)
+- [ ] **A11Y-28**: Fix: Expense search input has no label or aria-label (placeholder only). (`src/app/(owner)/financials/expenses/_components/expense-table.tsx:69`; low)
+- [ ] **A11Y-29**: Fix: Unit detail/edit dialog Labels are not associated with their inputs. (`src/app/(owner)/properties/units/components/unit-detail-dialogs.tsx:93`; low)
+- [ ] **A11Y-30**: Fix: Duplicate FAQ accordion component has the same missing aria-expanded defect. (`src/app/faq/faq-accordion.tsx:84`; low)
+- [ ] **A11Y-31**: Fix: Lead magnet email input has no label or aria-label (placeholder only). (`src/components/blog/lead-magnet-cta.tsx:82`; low)
+- [ ] **A11Y-32**: Fix: Newsletter email input has no label or aria-label (placeholder only). (`src/components/blog/newsletter-signup.tsx:73`; low)
+- [ ] **A11Y-33**: Fix: Data-table text and number filter inputs are placeholder-only named. (`src/components/data-table/data-table-toolbar.tsx:86`; low)
+- [ ] **A11Y-34**: Fix: Custom FAQ accordion toggle button lacks aria-expanded and aria-controls. (`src/components/faq-accordion.tsx:84`; low)
+- [ ] **A11Y-35**: Fix: Desktop nav dropdown trigger links lack aria-expanded/aria-haspopup. (`src/components/layout/navbar/navbar-desktop-nav.tsx:95`; low)
+- [ ] **A11Y-36**: Fix: Renewal dialog Labels are not associated with their disabled inputs. (`src/components/leases/lease-action-buttons.tsx:214`; low)
+- [ ] **A11Y-37**: Fix: Maintenance search input has no label or aria-label (placeholder only). (`src/components/maintenance/maintenance-view-tabs.tsx:74`; low)
+- [ ] **A11Y-38**: Fix: Vendor search input has no label or aria-label (placeholder only). (`src/components/maintenance/vendors-page.client.tsx:187`; low)
+- [ ] **A11Y-39**: Fix: Column visibility toggle buttons convey checked state only visually via a fake checkbox div. (`src/components/properties/property-table-toolbar.tsx:60`; low)
+- [ ] **A11Y-40**: Fix: Collapsible sidebar section buttons (Analytics/Reports/Financials) expose no aria-expanded. (`src/components/shell/main-nav.tsx:202`; low)
+- [ ] **A11Y-41**: Fix: Quick-actions dock tooltips appear on hover only, never on keyboard focus. (`src/components/shell/quick-actions-dock.tsx:59`; low)
 
-### MISC — bulk-import, scripts & repo hygiene
+## Routing, SEO & Performance (SEO) — Phase 48
 
-- [ ] **MISC-01**: Lease bulk-import preserves the CSV `rent_currency` — remove the `.omit({rent_currency:true})` (or explicitly pass it through) so imported leases aren't silently forced to USD; invalid CSV `status` cells fail the row instead of silently coercing to the default (leases/tenants/units bulk-import).
-- [ ] **MISC-02**: The continuous blog runner honors the kill-switch — `run-continuous-blog.ts` calls `isFactoryStopped()` before acquiring the lock, and the factory lock reclaim is race-safe (fence the stale-lock delete); the slug-brand gate evaluates the published (post-override) slug.
-- [ ] **MISC-03**: `db-types.sh` no longer merges CLI stderr into the generated types file (separate stderr capture), and `verify-seeds.sh` queries the current schema (`owner_user_id`, not the dropped `property_owners`/`property_owner_id`/`seed_versions`) or is retired.
-- [ ] **MISC-04**: Repo↔prod migration drift is reconciled — a migration in `supabase/migrations/` reflects the live `request_account_deletion` definition (live is correct; the repo copy references dropped `user_type`/`rent_due`), so the repo is a faithful source of truth.
+- [ ] **SEO-01**: Fix: Properties page issues two PostgREST queries per property (N+1 fan-out via useQueries) instead of one consolidated query. (`src/app/(owner)/properties/page.tsx:70`; medium)
+- [ ] **SEO-02**: Fix: The full markdown pipeline (react-markdown + remark-gfm + rehype-raw + rehype-sanitize) ships in the client bundle for every blog post view. (`src/app/blog/[slug]/markdown-content.tsx:18`; medium)
+- [ ] **SEO-03**: Fix: Category-page breadcrumb JSON-LD mints a "/blog/category" node that HTTP-404s and drifts from the visible breadcrumb. (`src/app/blog/category/[category]/page.tsx:149`; medium)
+- [ ] **SEO-04**: Fix: Marketing homepage root declares "use client" with zero client-only constructs, dragging all static marketing sections into the client bundle. (`src/app/marketing-home.tsx:1`; medium)
+- [ ] **SEO-05**: Fix: Sitemap uses the cookie-aware Supabase client, which forces dynamic rendering and silently defeats the declared 24h ISR cache. (`src/app/sitemap.ts:153`; medium)
+- [ ] **SEO-06**: Fix: Static recharts import in KpiSparkline puts recharts in the initial /dashboard chunk, defeating the route's dynamic-import isolation. (`src/components/dashboard/components/kpi-sparkline.tsx:15`; medium)
+- [ ] **SEO-07**: Fix: Inspections list renders every inspection with no pagination or virtualization, backed by an unbounded list query. (`src/components/inspections/inspection-list.client.tsx:150`; medium)
+- [ ] **SEO-08**: Fix: Stale Netlify `_redirects` file maps /webhook/* to a NestJS endpoint that no longer exists. (`public/_redirects:2`; low)
+- [ ] **SEO-09**: Fix: feed.xml declares `revalidate = 86400` but the cookie-aware Supabase client makes the route dynamic, so ISR never applies. (`src/app/feed.xml/route.ts:66`; low)
+- [ ] **SEO-10**: Fix: llms-full.txt declares `revalidate = 3600` but the cookie-aware Supabase client makes the route dynamic, so ISR never applies. (`src/app/llms-full.txt/route.ts:116`; low)
+- [ ] **SEO-11**: Fix: llms.txt declares `revalidate = 3600` but the cookie-aware Supabase client makes the route dynamic, so ISR never applies. (`src/app/llms.txt/route.ts:86`; low)
+- [ ] **SEO-12**: Fix: PRIVATE_PATHS omits 9 of the 15 auth-gated route prefixes that proxy.ts treats as private. (`src/app/robots.ts:12`; low)
+- [ ] **SEO-13**: Fix: The /compare hub page is missing from the sitemap while its three child pages are included. (`src/app/sitemap.ts:78`; low)
+- [ ] **SEO-14**: Fix: Purely presentational DeliverabilityTable declares "use client" and is imported by a Server Component page, needlessly client-rendering it. (`src/components/admin/deliverability-table.tsx:1`; low)
+- [ ] **SEO-15**: Fix: Root-default `alternates.canonical: SITE_URL` is inherited by the four metadata-less /auth pages, which serve the homepage title, an explicit "index, follow" robots meta, and a canonical pointing at the homepage. (`src/lib/generate-metadata.ts:47`; low)
 
-### TZ — timezone correctness sweep
+## Client State (Zustand) (STATE) — Phase 49
 
-- [ ] **TZ-01**: Every date-only (`YYYY-MM-DD`) value is parsed and formatted in the local zone (via `parseLocalYmd`/`formatLocalYmd`/`expandDateBoundary`), eliminating the "one day early" class across: report subtitles + lease-expiration table + tax-year derivation (`report-data.ts:217,819`), the expiring-leases widget (`expiring-leases-widget.tsx:60`), the 30-day revenue chart ticks (`revenue-area-chart.tsx:92`), lease terminate `end_date` (`lease-mutation-options.ts:150`), and the lease-expiry badge / days-remaining (`lease-detail-utils.ts:220`).
-- [ ] **TZ-02**: `getDefaultDateRange` (`reports-utils.ts:17`) computes a correct start-of-month N months back (set the day before the month, overflow-safe), so the default report window isn't a month short on month-end days.
-- [ ] **TZ-03**: The dashboard "Revenue vs Expenses" chart shows real expenses and honors the selected 7d/30d range — remove the hardcoded `expenses:0` / 100% margin and the 7d→monthly-bucket collapse (`use-owner-dashboard-financial.ts:44`, `chart-area-interactive.tsx`).
+- [ ] **STATE-01**: Fix: `currentPage` persists in the module-level leases store across page visits and is never clamped to the recomputed `totalPages`, stranding the user on an empty, unrecoverable page. (`src/app/(owner)/leases/page.tsx:155`; medium)
+- [ ] **STATE-02**: Fix: Sign-out never resets any Zustand store, leaking the previous user's search terms, filters, selections, and an in-memory Lease entity to the next user in the same tab. (`src/hooks/api/use-auth.ts:159`; medium)
+- [ ] **STATE-03**: Fix: `selectedLease` caches a full server Lease entity in a global Zustand store, and the open-dialog flags persist across unmounts, so back/forward navigation reopens the renew/terminate dialog with a stale lease snapshot. (`src/stores/leases-store.ts:51`; medium)
+- [ ] **STATE-04**: Fix: The entire loading store is read-only dead state — no production code ever starts a loading operation, so the mounted GlobalLoadingIndicator can never appear. (`src/stores/loading-store.ts:93`; medium)
+- [ ] **STATE-05**: Fix: `selectedRows` retains ids of properties deleted via the single-delete flow, and a subsequent bulk status edit on the phantom ids can silently resurrect a soft-deleted property. (`src/stores/properties-store.ts:34`; medium)
+- [ ] **STATE-06**: Fix: The toast store is a dead parallel toast system — nothing ever writes a toast into it; all production code calls sonner directly. (`src/stores/toast-store.ts:81`; medium)
+- [ ] **STATE-07**: Fix: The `isInErrorState` computed getter is both unconsumed and broken — Zustand's `set()` freezes it into a stale plain boolean after the first state update. (`src/stores/error-boundary-store.ts:90`; low)
+- [ ] **STATE-08**: Fix: The delete-dialog slice of the leases store is write-never: `openDeleteDialog` has zero callers, so `showDeleteDialog` can never become true. (`src/stores/leases-store.ts:183`; low)
+- [ ] **STATE-09**: Fix: The breadcrumbs/navigation-history/active-route subsystem of the navigation store (roughly 70 percent of the file) has zero production consumers — a second, real breadcrumb system exists elsewhere. (`src/stores/navigation-store.ts:29`; low)
+- [ ] **STATE-10**: Fix: `viewPreferences.properties` is a dead field duplicating `properties-store.viewMode` — two competing sources of truth for the same grid/table preference, only one of which is ever used. (`src/stores/preferences-store.ts:27`; low)
+- [ ] **STATE-11**: Fix: `setViewPreference` is the only preference setter that does not persist, so the maintenance kanban/table choice silently resets to kanban on every reload. (`src/stores/preferences-store.ts:78`; low)
+- [ ] **STATE-12**: Fix: `selectedIds` is never pruned when a tenant is deleted via the single-delete flow, leaving a phantom selection count and a bulk-delete that targets already-deleted tenants. (`src/stores/tenants-store.ts:33`; low)
+- [ ] **STATE-13**: Fix: `addModalToast` discards its defining `modalId` parameter — a no-op filter statement is executed and the id is never stored, so modal toasts are untrackable even if the store were used. (`src/stores/toast-store.ts:228`; low)
 
-## v2 Requirements
+## Admin Surface (ADMIN) — Phase 50
 
-None scoped. This milestone is exhaustive over the 2026-07-02 hunt; any bug found after this milestone opens a new cycle.
+- [ ] **ADMIN-01**: Fix: All three admin analytics RPC errors are silently swallowed — failures render as "No data yet" empty states with no Sentry capture. (`src/app/(admin)/admin/analytics/page.tsx:34`; medium)
+- [ ] **ADMIN-02**: Fix: Review queue displays `word_count`, but no writer ever populates `blogs.word_count`, so every draft shows a fabricated "0 words". (`src/app/(admin)/admin/blog/blog-review-client.tsx:75`; low)
+- [ ] **ADMIN-03**: Fix: The destructive Reject action archives a draft on a single click with no confirmation dialog. (`src/app/(admin)/admin/blog/blog-review-client.tsx:104`; low)
+- [ ] **ADMIN-04**: Fix: Admin review-queue fetch is an unbounded list query with no .limit() or .range(). (`src/app/(admin)/admin/blog/page.tsx:24`; low)
+- [ ] **ADMIN-05**: Fix: No page or redirect exists at /admin, so the natural admin entry URL 404s for authenticated admins. (`src/app/(admin)/layout.tsx:23`; low)
+- [ ] **ADMIN-06**: Fix: The admin shell's <main> lacks id="main-content", breaking the root layout's skip-to-content link on every /admin page. (`src/app/(admin)/layout.tsx:43`; low)
+- [ ] **ADMIN-07**: Fix: GateConversionTable is a purely presentational component carrying an unnecessary "use client" directive (sibling of the confirmed DeliverabilityTable case). (`src/components/admin/gate-conversion-table.tsx:1`; low)
+
+## Code Hygiene (HYG) — Phase 51
+
+- [ ] **HYG-01**: Fix: Static inline backgroundImage pointing at a hardcoded remote Unsplash stock photo (`src/components/contact/contact-form.tsx:191`; medium)
+- [ ] **HYG-02**: Fix: Ad-hoc queryOptions with string-literal key segment defined in a component instead of the query-keys factories (`src/components/dashboard/expiring-leases-widget.tsx:29`; medium)
+- [ ] **HYG-03**: Fix: Duplicate `UnitWithProperty` conflicting with src/types/relations.ts (`src/components/leases/table/lease-utils.ts:15`; medium)
+- [ ] **HYG-04**: Fix: Three inline string-literal query keys in the lease wizard selection step (lines 83, 101, 126) (`src/components/leases/wizard/selection-step.tsx:83`; medium)
+- [ ] **HYG-05**: Fix: Inline string-literal expenses query key duplicated in two places within the component (lines 43 and 73) (`src/components/maintenance/detail/maintenance-details.client.tsx:43`; medium)
+- [ ] **HYG-06**: Fix: Duplicate maintenance `TimelineEvent` shadowing src/types/sections/maintenance.ts (`src/components/maintenance/detail/maintenance-utils.ts:72`; medium)
+- [ ] **HYG-07**: Fix: Parallel duplicate type system (`Property`, `Unit`, `PropertyType`, `PropertySummary`) shadowing canonical src/types definitions (`src/components/properties/types.ts:34`; medium)
+- [ ] **HYG-08**: Fix: Static inline `maxWidth: "28rem"` overrides and dead-codes the `sm:max-w-80` Tailwind class on the same element (`src/components/tenants/tenant-detail-sheet.tsx:66`; medium)
+- [ ] **HYG-09**: Fix: Duplicate `LeaseFilters` conflicting with src/types/api-contracts.ts (`src/hooks/api/query-keys/lease-keys.ts:15`; medium)
+- [ ] **HYG-10**: Fix: Duplicate `SignatureStatus` conflicting with src/types/api-contracts.ts (`src/hooks/api/query-keys/lease-keys.ts:26`; medium)
+- [ ] **HYG-11**: Fix: Duplicate `LeaseListItem` with a different Pick set than src/types/api-contracts.ts (`src/hooks/api/query-keys/lease-keys.ts:38`; medium)
+- [ ] **HYG-12**: Fix: Duplicate `PropertyFilters` conflicting with src/types/relations.ts (`src/hooks/api/query-keys/property-keys.ts:19`; medium)
+- [ ] **HYG-13**: Fix: `vendorKeys` queryOptions factory with string-literal root key defined outside src/hooks/api/query-keys/ (`src/hooks/api/use-vendor.ts:27`; medium)
+- [ ] **HYG-14**: Fix: Module-level Supabase client created at import time, violating the "No module-level Supabase client" rule (`src/hooks/use-supabase-upload.ts:9`; medium)
+- [ ] **HYG-15**: Fix: Duplicate `SecurityEventType` with a completely different value set than the one in src/types/core.ts (`src/lib/constants/status-types.ts:382`; medium)
+- [ ] **HYG-16**: Fix: Duplicate `CreateCheckoutSessionRequest` with a conflicting shape vs src/types/core.ts (`src/lib/stripe/stripe-client.ts:13`; medium)
+- [ ] **HYG-17**: Fix: Duplicate `BillingInterval` with a different union than src/types/stripe.ts (`src/lib/utils/currency.ts:8`; medium)
+- [ ] **HYG-18**: Fix: Validation file re-exports duplicate type names `Lease` (217), `LeaseUpdate` (218), `LeaseFormData` (265) already defined in src/types (`src/lib/validation/leases.ts:217`; medium)
+- [ ] **HYG-19**: Fix: Validation file re-exports duplicate type names `MaintenanceRequest` (225) and `MaintenanceRequestUpdate` (226) already defined in src/types (`src/lib/validation/maintenance.ts:225`; medium)
+- [ ] **HYG-20**: Fix: Validation file re-exports duplicate type names `Property` (194), `PropertyUpdate` (195), `PropertyStats` (199) already defined in src/types (`src/lib/validation/properties.ts:194`; medium)
+- [ ] **HYG-21**: Fix: Validation file re-exports duplicate type names `TenantInput` (158), `Tenant` (159), `TenantUpdate` (160), `EmergencyContact` (163) already defined in src/types (`src/lib/validation/tenants.ts:158`; medium)
+- [ ] **HYG-22**: Fix: Validation file re-exports duplicate type names `Unit` (140), `UnitUpdate` (141), `UnitStats` (143) already defined in src/types (`src/lib/validation/units.ts:140`; medium)
+- [ ] **HYG-23**: Fix: Fully static inline style objects (lines 217, 225, 237) where Tailwind utilities exist (`src/components/dashboard/components/portfolio-data-table.tsx:217`; low)
+- [ ] **HYG-24**: Fix: Exported `TimelineEvent` name collides with the existing src/types TimelineEvent (`src/components/leases/detail/lease-detail-utils.ts:15`; low)
+- [ ] **HYG-25**: Fix: Ad-hoc inline query keys bypassing detail factories (lines 102, 115, 128) (`src/components/leases/wizard/lease-creation-wizard.tsx:102`; low)
+- [ ] **HYG-26**: Fix: Local `MaintenanceRequest` interface duplicates the canonical type name from src/types/core.ts (`src/components/maintenance/detail/maintenance-header-card.tsx:30`; low)
+- [ ] **HYG-27**: Fix: Local `KanbanColumnProps` duplicates the exported KanbanColumnProps in src/types/sections/maintenance.ts (`src/components/maintenance/kanban/maintenance-kanban.client.tsx:136`; low)
+- [ ] **HYG-28**: Fix: Static inline width/animationDelay styles (lines 29, 33, 37, 39, 42) (`src/components/shared/blog-empty-state.tsx:29`; low)
+- [ ] **HYG-29**: Fix: Static inline height/animationDelay styles (lines 14, 18, 22, 26, 30) (`src/components/shared/chart-loading-skeleton.tsx:14`; low)
+- [ ] **HYG-30**: Fix: Static inline style object trivially expressible as Tailwind utilities (`src/components/tenants/tenant-action-bar.tsx:36`; low)
+- [ ] **HYG-31**: Fix: Local `Property` interface duplicates the canonical Property type name (`src/components/units/unit-form-fields.tsx:10`; low)
+- [ ] **HYG-32**: Fix: Emoji characters in code strings (lines 156 and 166) violating the no-emojis rule (`src/env.ts:156`; low)
+- [ ] **HYG-33**: Fix: Duplicate `MaintenanceFilters` vs src/types/api-contracts.ts (`src/hooks/api/query-keys/maintenance-keys.ts:36`; low)
+- [ ] **HYG-34**: Fix: Duplicate `UnitFilters` vs src/types/api-contracts.ts (`src/hooks/api/query-keys/unit-keys.ts:30`; low)
+- [ ] **HYG-35**: Fix: Duplicate `SubscriptionStatus` independently defined in both status-types.ts and src/types/core.ts (`src/lib/constants/status-types.ts:80`; low)
+- [ ] **HYG-36**: Fix: Duplicate `TenantStatus` with a superset union vs src/types/api-contracts.ts (`src/lib/constants/status-types.ts:95`; low)
+- [ ] **HYG-37**: Fix: Duplicate `PlanType` independently defined in src/types/stripe.ts (`src/lib/constants/status-types.ts:202`; low)
+- [ ] **HYG-38**: Fix: Duplicate `EntityType` (243), `ActionType` (255), and `Permission` (260) independently defined in src/types/core.ts (`src/lib/constants/status-types.ts:243`; low)
+- [ ] **HYG-39**: Fix: Duplicate `SignatureStatusResponse` vs src/types/api-contracts.ts (`src/lib/validation/lease-wizard.schemas.ts:341`; low)
+- [ ] **HYG-40**: Fix: `DataDensity` copy-pasted duplicate of src/types/domain.ts (`src/stores/preferences-store.ts:11`; low)
 
 ## Out of Scope
 
-| Item | Reason |
-|------|--------|
-| GDPR `request_account_deletion` "broken" finding | Refuted against the live DB — the live function does not reference the dropped `user_type`/`rent_due`; only the repo migration is stale. Covered as repo hygiene by MISC-04, not a live bug fix. |
-| `lease-action-buttons.tsx` one-click "Sign as Owner" (no consent UI) | Dead code — zero non-test imports. |
-| The four `@modal` parallel-route trees (leases/maintenance/properties/units) | Dead — segment layouts never render the slot and interceptor paths don't match the app's links; not a user-facing regression. |
-| Completing v7.0 FORM-09/FORM-10 typing migration (wizard + standalone forms) | Separate in-flight milestone (typing refactor). v8.0 fixes the *behavior* bugs in those files (CRIT-01, FORMFIX-05); the typing migration is tracked in the archived v7.0 plan and can resume independently. |
-| Adding new features, redesigns, or perf work | This milestone is strictly bug eradication — restore correct behavior of existing features. |
+- **4 plausible-but-unconfirmed audit claims** (see audit doc "Plausible" section) — not confirmed by adversarial verification; re-check opportunistically when touching those files, do not build phases around them.
+- **New features** — this milestone only restores correct behavior and honest content; the nonexistent marketed features (team seats, API access, custom lease clauses, ACH) are fixed by removing the claims, not by building the features.
 
 ## Traceability
 
-| REQ-ID | Phase |
-|--------|-------|
-| CRIT-01, CRIT-02, CRIT-03, CRIT-04 | 25 — Critical: Corruption & Broken Deletes |
-| LEASE-01..08 | 26 — Lease Domain Correctness |
-| MAINT-01..08, INSP-01, INSP-02 | 27 — Maintenance & Inspections |
-| TEN-01..06 | 28 — Tenant Domain |
-| BILL-01..06 | 29 — Billing, Stripe & Financial Reports |
-| DATA-01..03, PROP-01..03 | 30 — Analytics & Data-Layer Correctness |
-| FORMFIX-01..08 | 31 — Forms Behavior Correctness |
-| UIX-01..05, PROP-04, PROP-05 | 32 — Shared UI, Data-Table & Uploads |
-| SEC-01..05 | 33 — Security & Delivery Config |
-| MKT-01..05 | 34 — Marketing, Blog & SEO Surface |
-| MISC-01..04, TZ-01..03 | 35 — Timezone Sweep, Bulk-Import, Scripts & Hygiene |
+Every REQ maps to exactly one phase (category = phase by construction). Phases execute strictly sequentially (36 → 51); each phase merges before the next branches.
 
-All 72 requirements mapped to exactly one phase ✓ (73 IDs defined; DATA-04, discovered in the Phase 30 review, is intentionally deferred and unmapped.)
+| Phase | Category | REQ range | Count |
+|-------|----------|-----------|-------|
+| 36 | Billing & Subscription Lifecycle | BILL-01..20 | 20 |
+| 37 | Auth Flows | AUTH-01..13 | 13 |
+| 38 | Forms & Validation | FORM-01..19 | 19 |
+| 39 | Data Layer & Cache Integrity | DATA-01..18 | 18 |
+| 40 | Type Boundaries (RPC/PostgREST) | TYPE-01..07 | 7 |
+| 41 | Component Logic & Analytics Correctness | COMP-01..13 | 13 |
+| 42 | Dashboard UX & Navigation | DASH-01..23 | 23 |
+| 43 | E-sign Flow | SIGN-01..06 | 6 |
+| 44 | Public Site UX | PUBUX-01..11 | 11 |
+| 45 | Marketing Content Truthfulness | CONTENT-01..24 | 24 |
+| 46 | Marketing UI Consistency | MKTUI-01..26 | 26 |
+| 47 | Accessibility | A11Y-01..41 | 41 |
+| 48 | Routing, SEO & Performance | SEO-01..15 | 15 |
+| 49 | Client State (Zustand) | STATE-01..13 | 13 |
+| 50 | Admin Surface | ADMIN-01..07 | 7 |
+| 51 | Code Hygiene | HYG-01..40 | 40 |
+
+**Total requirements: 296** — all mapped, no orphans, no double-mapping. Status: all Pending (v9.0 not started).

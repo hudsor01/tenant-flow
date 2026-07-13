@@ -100,10 +100,6 @@ const STATUS_BADGE_VARIANTS = {
 		label: "Canceled",
 		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
 	},
-	cancelled: {
-		label: "Canceled",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
-	},
 	incomplete: {
 		label: "Incomplete",
 		className: "bg-muted text-muted-foreground",
@@ -113,6 +109,12 @@ const STATUS_BADGE_VARIANTS = {
 		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
 	},
 	paused: { label: "Paused", className: "bg-muted text-muted-foreground" },
+	// Written by `expire_trials()` when a DB-managed trial lapses — the cohort
+	// that most needs the resubscribe treatment (BILL-11).
+	expired: {
+		label: "Trial Expired",
+		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+	},
 } as const satisfies Record<string, { label: string; className: string }>;
 
 const NO_SUBSCRIPTION_VARIANT = {
@@ -143,10 +145,10 @@ const RESUBSCRIBE_STATUSES = new Set([
 	"past_due",
 	"unpaid",
 	"canceled",
-	"cancelled",
 	"incomplete",
 	"incomplete_expired",
 	"paused",
+	"expired",
 ]);
 
 export function BillingSettings() {
@@ -396,7 +398,9 @@ export function BillingSettings() {
 							)}
 							{isResubscribeState && (
 								<p className="text-sm text-muted-foreground mt-1">
-									Your subscription is {statusVariant.label.toLowerCase()}.{" "}
+									{status === "expired"
+										? "Your trial has expired."
+										: `Your subscription is ${statusVariant.label.toLowerCase()}.`}{" "}
 									<Link
 										href="/billing/plans"
 										className="text-primary-text hover:underline underline-offset-4"

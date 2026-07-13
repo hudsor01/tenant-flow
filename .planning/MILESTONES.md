@@ -1,5 +1,15 @@
 # Milestones
 
+## v8.0 Correctness Restoration (Shipped: 2026-07-10)
+
+**Goal:** Eradicate the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt — all severities, every one verified against source and the live Supabase DB.
+
+**Shipped:** 11 phases (25-35), each merged as its own perfect-PR PR (#882-#892), followed by an adversarial milestone audit (71/72 requirements PASS) whose remediation shipped in #893 (PROP-05 sibling clear-field miss; MONEY-01/02 100× rent overstatement on two read paths). DATA-04 was the one deferred requirement. Residual owner-run items: edge-function deploys (CLI-401 workaround) and the stale blog seed subsystem cleanup (retired in #895).
+
+**Archive:** [v8.0-ROADMAP.md](milestones/v8.0-ROADMAP.md) · [v8.0-REQUIREMENTS.md](milestones/v8.0-REQUIREMENTS.md) · phases in `milestones/v8.0-phases/`
+
+Note: v6.0 (Final Canonical Cleanup, phases 15-19, #842) and v7.0 (TanStack Form composition migration, phases 20-24; 20-22 merged, 23-24 paused) predate this entry — their artifacts are archived in `milestones/v6.0-*` / `v7.0-*`.
+
 ## v5.0 AI Blog Content Engine (Shipped: 2026-06-10)
 
 **Phases:** 6 (9-14) | **Plans:** 14 | **Requirements:** 9/9 (BLOG-01..09)

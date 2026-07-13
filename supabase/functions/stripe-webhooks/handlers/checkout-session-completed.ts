@@ -59,6 +59,9 @@ export async function handleCheckoutSessionCompleted(
 		// top-level Subscription onto the subscription item — read it via the
 		// same accessor already used for price.id above.
 		const currentPeriodEnd = sub.items.data[0]?.current_period_end;
+		// BILL-14: stamp the ordering watermark at event time (not wall-clock) so
+		// every writer of subscription_updated_at shares one comparable semantics.
+		const eventCreatedIso = new Date(event.created * 1000).toISOString();
 		const updatePayload: Record<string, unknown> = {
 			subscription_id: sub.id,
 			subscription_status: sub.status,
@@ -67,20 +70,37 @@ export async function handleCheckoutSessionCompleted(
 				? new Date(currentPeriodEnd * 1000).toISOString()
 				: null,
 			subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
-			subscription_updated_at: new Date().toISOString(),
+			subscription_updated_at: eventCreatedIso,
 			trial_ends_at: trialEndsAtForPayload,
 		};
 		if (source) updatePayload.subscription_source = source;
 
-		const { error } = await supabase
+		// Conditional + atomic, identical to the subscription.updated/deleted
+		// handlers: never move the watermark backward. checkout.session.completed
+		// carries an early lifecycle event.created, and the router re-processes
+		// failed/stale-'processing' rows over Stripe's 72h retry window, so an
+		// unconditional write could regress the watermark below a later cancel and
+		// let a stale updated(active) event pass its `lte` guard and resurrect
+		// access. `lte` keeps the first-delivery write (watermark null) applied.
+		const { data: updated, error } = await supabase
 			.from("users")
 			.update(updatePayload)
-			.eq("id", session.metadata["supabase_user_id"]);
+			.eq("id", session.metadata["supabase_user_id"])
+			.or(
+				`subscription_updated_at.is.null,subscription_updated_at.lte.${eventCreatedIso}`,
+			)
+			.select("id");
 		if (error) {
 			captureWebhookError(error, {
 				message: "[CHECKOUT] Failed to update user subscription state",
 				user_id: session.metadata["supabase_user_id"],
 				sub_id: sub.id,
+			});
+		} else if (!updated || updated.length === 0) {
+			logEvent("[CHECKOUT] Skipped stale checkout.session.completed event", {
+				user_id: session.metadata["supabase_user_id"],
+				sub_id: sub.id,
+				event_created: eventCreatedIso,
 			});
 		} else {
 			logEvent("[CHECKOUT] Granted dashboard access to user", {

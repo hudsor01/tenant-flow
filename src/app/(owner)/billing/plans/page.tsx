@@ -44,7 +44,27 @@ function toBillingPlan(config: PricingConfig): Plan {
 	};
 }
 
-const PLANS: Plan[] = getAllPricingPlans().map(toBillingPlan);
+// Trials are DB-managed and deliberately excluded from ALLOWED_CHECKOUT_PRICE_IDS,
+// so rendering the trial as a purchasable card only produces a guaranteed
+// "price_id not allowed" rejection (BILL-08). Filter it out; every remaining
+// card carries an allowlisted price id.
+const PLANS: Plan[] = getAllPricingPlans()
+	.filter((p) => p.planId !== "trial")
+	.map(toBillingPlan);
+
+// A live Stripe subscription still exists on the customer even in
+// past_due/unpaid/paused/incomplete — it must be managed via the billing
+// portal, never via a second checkout (which would mint a duplicate
+// subscription and double-bill). Mirrors the server-side guard set in
+// `stripe-checkout/index.ts` (BILL-05) — keep the two sets in lockstep.
+const LIVE_SUBSCRIPTION_STATUSES = new Set([
+	"active",
+	"trialing",
+	"past_due",
+	"unpaid",
+	"paused",
+	"incomplete",
+]);
 
 export default function BillingPlansPage() {
 	const [isLoading, setIsLoading] = useState(false);
@@ -56,18 +76,36 @@ export default function BillingPlansPage() {
 
 	const { data: subscriptionStatus, isLoading: subscriptionLoading } =
 		useSubscriptionStatus();
-	const hasActiveSubscription =
-		subscriptionStatus?.subscriptionStatus === "active" ||
-		subscriptionStatus?.subscriptionStatus === "trialing";
+	const status = subscriptionStatus?.subscriptionStatus ?? null;
+	// Portal-vs-checkout routing keys on "does a live Stripe subscription
+	// exist", NOT on a successful price-id→plan match. The `stripeCustomerId`
+	// clause keeps DB-managed trials (trialing with no Stripe customer) on the
+	// checkout path. For trialing users it is NOT sufficient on its own:
+	// stripe-checkout persists `stripe_customer_id` BEFORE creating the checkout
+	// session, so a DB-trial owner who abandons checkout keeps a customer id with
+	// no live subscription. Require a webhook-synced `currentPeriodEnd` as proof
+	// of a real Stripe subscription for the trialing case (mirrors the same
+	// evidence check in subscription-cancel-section.tsx) so those abandoners stay
+	// on the checkout path where BILL-05's server guard can run.
+	const hasLiveSubscription =
+		status !== null &&
+		LIVE_SUBSCRIPTION_STATUSES.has(status) &&
+		subscriptionStatus?.stripeCustomerId != null &&
+		(status !== "trialing" || subscriptionStatus?.currentPeriodEnd != null);
 	// `subscription_plan` can be a Stripe price_id OR a tier slug (per the
 	// Stripe webhook handler: `tier ?? planLookup ?? priceId`). Match both.
+	// Gated on `hasLiveSubscription` (not just "active") so the "Current Plan"
+	// info card still renders for a past_due/unpaid owner.
 	const currentPlan =
-		hasActiveSubscription && subscriptionStatus?.stripePriceId
+		hasLiveSubscription && subscriptionStatus?.stripePriceId
 			? (PLANS.find((p) => p.priceId === subscriptionStatus.stripePriceId) ??
 				PLANS.find((p) => p.id === subscriptionStatus.stripePriceId) ??
 				null)
 			: null;
-	const hasSubscription = currentPlan !== null;
+	// Decoupled from `currentPlan`: a live subscriber whose stored plan doesn't
+	// match PRICING_PLANS (legacy/comp price id) must still route to the portal,
+	// never into a second checkout.
+	const hasSubscription = hasLiveSubscription;
 
 	const handlePlanSelect = (plan: Plan) => {
 		setSelectedPlan(plan);
@@ -168,9 +206,11 @@ export default function BillingPlansPage() {
 							Subscription Plans
 						</h1>
 						<p className="text-muted-foreground mt-1">
-							{hasSubscription
-								? `You are currently on the ${currentPlan?.name} plan`
-								: "Choose a plan that fits your needs"}
+							{hasSubscription && currentPlan
+								? `You are currently on the ${currentPlan.name} plan`
+								: hasSubscription
+									? "You have an active subscription"
+									: "Choose a plan that fits your needs"}
 						</p>
 					</div>
 
@@ -212,7 +252,7 @@ export default function BillingPlansPage() {
 			<div
 				className={cn(
 					"grid gap-6",
-					"grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+					"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
 				)}
 			>
 				{PLANS.map((plan) => (
@@ -239,13 +279,14 @@ export default function BillingPlansPage() {
 					</Link>
 				</p>
 				<p className="text-xs text-muted-foreground mt-2">
-					All plans include a 14-day free trial. Cancel anytime.
+					New accounts include a 14-day free trial. Cancel anytime.
 				</p>
 			</div>
 
 			<UpgradeDialog
 				targetPlan={selectedPlan}
 				currentPlan={currentPlan}
+				hasActiveSubscription={hasSubscription}
 				isOpen={dialogOpen}
 				onClose={handleDialogClose}
 				onConfirm={handleConfirmPlanChange}

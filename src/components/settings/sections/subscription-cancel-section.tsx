@@ -83,19 +83,41 @@ export function SubscriptionCancelSection() {
 		);
 	}
 
-	const { subscriptionStatus, cancelAtPeriodEnd, currentPeriodEnd } =
-		status.data;
+	const {
+		subscriptionStatus,
+		cancelAtPeriodEnd,
+		currentPeriodEnd,
+		stripeCustomerId,
+	} = status.data;
 
-	// Gates — component opts out when not applicable (per UI-SPEC "Loading & error substates")
+	// Gate ladder — the component opts out whenever there is no cancelable
+	// Stripe subscription (per UI-SPEC "Loading & error substates"). ORDER IS
+	// LOAD-BEARING: the DB-trial opt-out must run BEFORE the State 2 gate so a
+	// trialing+cancel-scheduled Stripe subscriber (BILL-09) isn't swallowed.
 	if (subscriptionStatus === null) return null;
 	if (subscriptionStatus === "past_due" || subscriptionStatus === "unpaid")
 		return null;
+	// Expired trial (written by expire_trials()) — no Stripe subscription to
+	// cancel (BILL-11); BillingSettings offers the resubscribe path above.
+	if (subscriptionStatus === "expired") return null;
+	// DB-managed trial (or abandoned-checkout customer): a trial with no Stripe
+	// customer definitely has no subscription; a Stripe-checkout trial always
+	// has subscription_current_period_end synced by the webhook, so its absence
+	// marks the DB-trial variant. Confirming a cancel here would 404
+	// ("No subscription to modify") — opt out instead (BILL-16). Trialing WITH
+	// Stripe evidence continues into States 1/2 below (required by BILL-09).
+	if (
+		subscriptionStatus === "trialing" &&
+		(!stripeCustomerId || !currentPeriodEnd)
+	) {
+		return null;
+	}
 
 	const endDate = formatPlanEndDate(currentPeriodEnd);
 	const daysLeft = daysUntil(currentPeriodEnd);
 
 	// ───────────── State 3: Canceled (terminal) ─────────────
-	if (subscriptionStatus === "canceled" || subscriptionStatus === "cancelled") {
+	if (subscriptionStatus === "canceled") {
 		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30);
 		return (
 			<BlurFade delay={0.55} inView>
@@ -135,7 +157,13 @@ export function SubscriptionCancelSection() {
 	}
 
 	// ───────────── State 2: Cancel-scheduled (grace window) ─────────────
-	if (subscriptionStatus === "active" && cancelAtPeriodEnd) {
+	// Stripe keeps status: 'trialing' when cancel_at_period_end is set during a
+	// trial, so both active AND trialing (with Stripe evidence, per the gate
+	// ladder above) route here (BILL-09).
+	if (
+		(subscriptionStatus === "active" || subscriptionStatus === "trialing") &&
+		cancelAtPeriodEnd
+	) {
 		const onReactivate = () => {
 			// FORMFIX-08: no onError override — the mutation's built-in onError owns the
 			// single error toast (with a friendly fallback message); a second handler

@@ -221,11 +221,6 @@ describe("BillingSettings empty-state branches", () => {
 			copy: /Your subscription is canceled/,
 		},
 		{
-			status: "cancelled",
-			badge: "Canceled",
-			copy: /Your subscription is canceled/,
-		},
-		{
 			status: "incomplete",
 			badge: "Incomplete",
 			copy: /Your subscription is incomplete/,
@@ -236,6 +231,11 @@ describe("BillingSettings empty-state branches", () => {
 			copy: /Your subscription is expired/,
 		},
 		{ status: "paused", badge: "Paused", copy: /Your subscription is paused/ },
+		{
+			status: "expired",
+			badge: "Trial Expired",
+			copy: /Your trial has expired/,
+		},
 	] as const;
 
 	it.each(
