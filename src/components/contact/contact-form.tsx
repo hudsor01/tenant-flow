@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { useFormWithProgress } from "#hooks/use-form-progress";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import type { ContactFormRequest } from "#types/domain";
@@ -24,10 +25,18 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 	const validateForm = (data: ContactFormRequest): boolean => {
 		const newErrors: Record<string, string> = {};
 
+		// FORM-17: mirror the send-contact-email edge function's length caps
+		// client-side so an over-length field surfaces an actionable message
+		// instead of a generic, unsatisfiable 400 retry loop. All client caps are
+		// <= the server caps, so anything the client accepts the server accepts.
 		if (!data.name.trim()) {
 			newErrors.name = "Name is required";
 		} else if (data.name.trim().length < 2) {
 			newErrors.name = "Name must be at least 2 characters";
+		} else if (
+			data.name.trim().length > VALIDATION_LIMITS.CONTACT_FORM_NAME_MAX_LENGTH
+		) {
+			newErrors.name = `Name cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_NAME_MAX_LENGTH} characters`;
 		}
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,17 +50,40 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 			const phoneRegex = /^[\d\s()+-]+$/;
 			if (!phoneRegex.test(data.phone)) {
 				newErrors.phone = "Please enter a valid phone number";
+			} else if (
+				data.phone.trim().length >
+				VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH
+			) {
+				newErrors.phone = `Phone number cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH} characters`;
 			}
+		}
+
+		if (
+			data.company &&
+			data.company.trim().length >
+				VALIDATION_LIMITS.CONTACT_FORM_COMPANY_MAX_LENGTH
+		) {
+			newErrors.company = `Company name cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_COMPANY_MAX_LENGTH} characters`;
 		}
 
 		if (!data.subject) {
 			newErrors.subject = "Please select what you're interested in";
+		} else if (
+			data.subject.trim().length >
+			VALIDATION_LIMITS.CONTACT_FORM_SUBJECT_MAX_LENGTH
+		) {
+			newErrors.subject = `Subject cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_SUBJECT_MAX_LENGTH} characters`;
 		}
 
 		if (!data.message.trim()) {
 			newErrors.message = "Message is required";
 		} else if (data.message.trim().length < 10) {
 			newErrors.message = "Message must be at least 10 characters";
+		} else if (
+			data.message.trim().length >
+			VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MAX_LENGTH
+		) {
+			newErrors.message = `Message cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MAX_LENGTH} characters`;
 		}
 
 		setErrors(newErrors);

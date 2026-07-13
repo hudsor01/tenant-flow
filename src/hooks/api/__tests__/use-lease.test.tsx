@@ -618,28 +618,6 @@ describe("Mutation Hooks", () => {
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
 		});
-
-		it("should include version when provided", async () => {
-			const updatedLease = { ...mockLease, rent_amount: 1600 };
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "leases") {
-					return createQueryChain({ data: updatedLease });
-				}
-				return createQueryChain({ data: null });
-			});
-
-			const { result } = renderHook(() => useUpdateLeaseMutation(), {
-				wrapper: createWrapper(),
-			});
-
-			await result.current.mutateAsync({
-				id: "lease-123",
-				data: { rent_amount: 1600 },
-				version: 5,
-			});
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
 	});
 
 	describe("useDeleteLeaseMutation", () => {

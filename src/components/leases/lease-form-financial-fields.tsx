@@ -40,11 +40,14 @@ export const LeaseFormFinancialFields = withForm({
 									id="rent_amount"
 									type="number"
 									min="0"
-									step="0.01"
+									step="1"
 									value={field.state.value}
 									onChange={(event) => {
 										const v = event.target.value;
-										field.handleChange(v === "" ? 0 : Number.parseFloat(v));
+										// Whole dollars only — leases.rent_amount is an integer column.
+										field.handleChange(
+											v === "" ? 0 : Math.round(Number.parseFloat(v)),
+										);
 									}}
 									onBlur={field.handleBlur}
 								/>
@@ -65,11 +68,14 @@ export const LeaseFormFinancialFields = withForm({
 									id="security_deposit"
 									type="number"
 									min="0"
-									step="0.01"
+									step="1"
 									value={field.state.value}
 									onChange={(event) => {
 										const v = event.target.value;
-										field.handleChange(v === "" ? 0 : Number.parseFloat(v));
+										// Whole dollars only — leases.security_deposit is an integer column.
+										field.handleChange(
+											v === "" ? 0 : Math.round(Number.parseFloat(v)),
+										);
 									}}
 									onBlur={field.handleBlur}
 								/>

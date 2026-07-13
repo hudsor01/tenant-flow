@@ -102,4 +102,20 @@ describe("EditUnitPanel — PROP-05 clearing an optional field persists", () => 
 			);
 		});
 	});
+
+	it("uses a whole-dollar rent input and guards against cents (FORM-03)", async () => {
+		const { readFileSync } = await import("node:fs");
+		const { resolve } = await import("node:path");
+		render(<EditUnitPanel {...defaultProps} />, { wrapper: createWrapper() });
+
+		expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute("step", "1");
+		const src = readFileSync(
+			resolve(__dirname, "..", "edit-unit-panel.tsx"),
+			"utf8",
+		);
+		expect(src).toMatch(/!Number\.isInteger\(rent_amount\)/);
+		expect(src).toContain(
+			"Monthly rent must be a whole dollar amount (no cents)",
+		);
+	});
 });

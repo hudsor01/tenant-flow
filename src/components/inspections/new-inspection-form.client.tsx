@@ -15,9 +15,12 @@ import {
 import { useCreateInspection } from "#hooks/api/use-inspection-mutations";
 import { useLeaseList } from "#hooks/api/use-lease";
 import { useCurrentUser } from "#hooks/use-current-user";
+import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
 import type { CreateInspectionInput } from "#lib/validation/inspections";
 import type { LeaseWithRelations } from "#types/relations";
+
+const logger = createLogger({ component: "NewInspectionForm" });
 
 export function NewInspectionForm() {
 	const router = useRouter();
@@ -55,10 +58,20 @@ export function NewInspectionForm() {
 			scheduled_date: scheduledDate || null,
 		};
 
-		const result = await createInspection.mutateAsync(dto);
-		const newId = (result as { id?: string }).id;
-		if (newId) {
-			router.push(`/inspections/${newId}`);
+		// FORMFIX-08: catch the mutateAsync rejection locally so a failed insert
+		// does not escape this async submit handler as an unhandled rejection
+		// (duplicate Sentry capture + dev overlay). useCreateInspection's onError
+		// already toasts; the navigation stays success-only inside the try.
+		try {
+			const result = await createInspection.mutateAsync(dto);
+			const newId = (result as { id?: string }).id;
+			if (newId) {
+				router.push(`/inspections/${newId}`);
+			}
+		} catch (error) {
+			logger.error("Failed to create inspection", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		}
 	}
 

@@ -100,6 +100,13 @@ export function AddUnitPanel({
 					return;
 				}
 
+				if (!Number.isInteger(rent_amount)) {
+					// units.rent_amount is an integer column — reject cents, never round.
+					toast.error("Monthly rent must be a whole dollar amount (no cents)");
+					setIsSubmitting(false);
+					return;
+				}
+
 				await createUnitMutation.mutateAsync({
 					property_id: propertyId,
 					unit_number: value.unit_number,
@@ -186,8 +193,8 @@ export function AddUnitPanel({
 								icon={DollarSign}
 								type="number"
 								min="0"
-								step="0.01"
-								placeholder="0.00"
+								step="1"
+								placeholder="0"
 							/>
 						)}
 					</form.AppField>

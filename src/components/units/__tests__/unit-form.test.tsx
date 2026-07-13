@@ -173,5 +173,25 @@ describe("UnitForm", () => {
 				}),
 			);
 		});
+
+		test("uses a whole-dollar rent input and guards against cents (FORM-15)", async () => {
+			const { readFileSync } = await import("node:fs");
+			const { resolve } = await import("node:path");
+			renderWithQueryClient(<UnitForm mode="edit" unit={DEFAULT_UNIT} />);
+
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute(
+				"step",
+				"1",
+			);
+			// The imperative whole-dollar guard must not be dropped.
+			const src = readFileSync(
+				resolve(__dirname, "..", "unit-form.client.tsx"),
+				"utf8",
+			);
+			expect(src).toMatch(/!Number\.isInteger\(rent_amount\)/);
+			expect(src).toContain(
+				"Monthly rent must be a whole dollar amount (no cents)",
+			);
+		});
 	});
 });

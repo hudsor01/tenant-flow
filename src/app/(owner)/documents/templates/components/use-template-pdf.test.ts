@@ -371,6 +371,45 @@ describe("useTemplatePdf", () => {
 
 			expect(mockBuildTemplateHtml).toHaveBeenCalledWith(mockPayload);
 		});
+
+		it("should block export and toast when the validate gate fails (FORM-05)", async () => {
+			vi.useRealTimers();
+
+			const validate = vi.fn().mockResolvedValue(false);
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload, validate),
+			);
+
+			await act(async () => {
+				await result.current.handleExport();
+			});
+
+			expect(validate).toHaveBeenCalled();
+			expect(mockCallGeneratePdfFromHtml).not.toHaveBeenCalled();
+			expect(toast.error).toHaveBeenCalledWith(
+				"Please fix the highlighted fields before exporting.",
+			);
+			expect(result.current.isExporting).toBe(false);
+		});
+
+		it("should export when the validate gate passes (FORM-05)", async () => {
+			vi.useRealTimers();
+
+			const validate = vi.fn().mockResolvedValue(true);
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload, validate),
+			);
+
+			await act(async () => {
+				await result.current.handleExport();
+			});
+
+			expect(validate).toHaveBeenCalled();
+			expect(mockCallGeneratePdfFromHtml).toHaveBeenCalledWith(
+				"<html>mock</html>",
+				"property-inspection.pdf",
+			);
+		});
 	});
 
 	describe("cleanup", () => {

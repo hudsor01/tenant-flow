@@ -167,7 +167,12 @@ export function TenantNoticeTemplate() {
 		isExporting,
 		handlePreview,
 		handleExport,
-	} = useTemplatePdf("tenant-notice", getPayload);
+	} = useTemplatePdf("tenant-notice", getPayload, async () => {
+		// FORM-05: run the wired validators (maps zod tree errors onto fields)
+		// and gate export on the resulting validity.
+		await form.handleSubmit();
+		return form.state.isValid;
+	});
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">

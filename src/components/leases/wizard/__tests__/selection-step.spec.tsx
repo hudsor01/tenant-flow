@@ -270,3 +270,44 @@ describe("SelectionStep - Tenant Filtering", () => {
 		expect(totalTenantCalls).toBe(initialTenantCallCount);
 	});
 });
+
+describe("SelectionStep - validation error rendering (FORM-09 regression)", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockFrom.mockImplementation(() => createChainMock([]));
+	});
+
+	it("renders per-field errors passed via the errors prop", () => {
+		const queryClient = new QueryClient({
+			defaultOptions: { queries: { retry: false } },
+		});
+		render(
+			<QueryClientProvider client={queryClient}>
+				<SelectionStep
+					data={{}}
+					onChange={vi.fn()}
+					errors={{
+						property_id: "Property is required",
+						unit_id: "Unit is required",
+						primary_tenant_id: "Primary tenant is required",
+					}}
+				/>
+			</QueryClientProvider>,
+		);
+		expect(screen.getByText("Property is required")).toBeInTheDocument();
+		expect(screen.getByText("Unit is required")).toBeInTheDocument();
+		expect(screen.getByText("Primary tenant is required")).toBeInTheDocument();
+	});
+
+	it("renders no error messages when errors prop is omitted", () => {
+		const queryClient = new QueryClient({
+			defaultOptions: { queries: { retry: false } },
+		});
+		render(
+			<QueryClientProvider client={queryClient}>
+				<SelectionStep data={{}} onChange={vi.fn()} />
+			</QueryClientProvider>,
+		);
+		expect(screen.queryByText(/is required/)).not.toBeInTheDocument();
+	});
+});

@@ -9,7 +9,7 @@
  * @vitest-environment jsdom
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -168,5 +168,35 @@ describe("ContactForm submit (FORMFIX-02)", () => {
 		expect(
 			screen.queryByRole("heading", { name: /thank you/i }),
 		).not.toBeInTheDocument();
+	});
+
+	it("blocks an over-length message client-side instead of the unsatisfiable 400 loop (FORM-17)", async () => {
+		const user = userEvent.setup();
+
+		render(<ContactForm />);
+		await user.type(screen.getByLabelText(/full name/i), "Jane Landlord");
+		await user.type(
+			screen.getByLabelText(/email address/i),
+			"jane@example.com",
+		);
+		await user.click(screen.getByRole("combobox", { name: /interested in/i }));
+		await user.click(
+			await screen.findByRole("option", {
+				name: /scheduling a product demo/i,
+			}),
+		);
+		// fireEvent bypasses the new maxLength attribute to exercise the JS guard;
+		// 5001 chars exceeds CONTACT_FORM_MESSAGE_MAX_LENGTH (5000).
+		fireEvent.change(screen.getByLabelText(/how can we help/i), {
+			target: { value: "x".repeat(5001) },
+		});
+		await user.click(screen.getByRole("button", { name: /send message/i }));
+
+		await waitFor(() => {
+			expect(
+				screen.getByText(/message cannot exceed 5000 characters/i),
+			).toBeInTheDocument();
+		});
+		expect(invokeMock).not.toHaveBeenCalled();
 	});
 });

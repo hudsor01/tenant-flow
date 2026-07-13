@@ -15,7 +15,9 @@ import { z } from "zod";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import {
 	nonNegativeNumberSchema,
+	nonNegativeWholeDollarSchema,
 	positiveNumberSchema,
+	positiveWholeDollarSchema,
 	requiredString,
 	uuidSchema,
 } from "./common";
@@ -45,7 +47,9 @@ export const leaseInputSchema = z.object({
 	start_date: z.string().min(1, "Start date is required"),
 	end_date: z.string().min(1, "End date is required"),
 
-	rent_amount: positiveNumberSchema.max(
+	// Money columns are integer (whole dollars) in prod — the bulk-import RPC's
+	// numeric params would otherwise silently round a decimal on assignment.
+	rent_amount: positiveWholeDollarSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 		"Rent amount seems unrealistic",
 	),
@@ -56,7 +60,7 @@ export const leaseInputSchema = z.object({
 		.max(3, "Currency code must be 3 characters")
 		.default("USD"),
 
-	security_deposit: nonNegativeNumberSchema.max(
+	security_deposit: nonNegativeWholeDollarSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 		"Security deposit seems unrealistic",
 	),
@@ -70,7 +74,7 @@ export const leaseInputSchema = z.object({
 		.max(30, "Grace period cannot exceed 30 days")
 		.optional(),
 
-	late_fee_amount: nonNegativeNumberSchema
+	late_fee_amount: nonNegativeWholeDollarSchema
 		.max(
 			VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 			"Late fee amount seems unrealistic",

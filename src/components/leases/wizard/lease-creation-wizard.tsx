@@ -43,6 +43,7 @@ import {
 import { ReviewStep } from "./review-step";
 import { SelectionStep } from "./selection-step";
 import { type DurationPreset, TermsStep } from "./terms-step";
+import { mapStepErrors } from "./wizard-step-errors";
 
 interface LeaseCreationWizardProps {
 	onSuccess?: (leaseId: string) => void;
@@ -72,6 +73,9 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const [termsData, setTermsData] = useState<Partial<TermsStepData>>({
 		payment_day: 1,
 		grace_period_days: 3,
+		// Labeled "Optional, defaults to $0" — seed it so an untouched deposit
+		// passes step validation and the required-field check on submit.
+		security_deposit: 0,
 		late_fee_amount: 0,
 	});
 	const [selectedDuration, setSelectedDuration] =
@@ -223,18 +227,25 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		},
 	});
 
-	const validateStep = (step: WizardStep): boolean => {
-		switch (step) {
+	// FORM-09: per-field validation messages for the current step, surfaced when
+	// the user tries to advance with invalid input (the Next/Create buttons stay
+	// enabled so the click can run validation and render the errors).
+	const [stepErrors, setStepErrors] = useState<Partial<Record<string, string>>>(
+		{},
+	);
+
+	const validateCurrentStep = () => {
+		switch (currentStep) {
 			case "selection":
-				return selectionStepSchema.safeParse(selectionData).success;
+				return selectionStepSchema.safeParse(selectionData);
 			case "terms":
-				return termsStepSchema.safeParse(termsData).success;
+				return termsStepSchema.safeParse(termsData);
 			case "details":
-				return leaseDetailsStepSchema.safeParse(detailsData).success;
+				return leaseDetailsStepSchema.safeParse(detailsData);
 			case "review":
-				return true;
+				return null;
 			default:
-				return assertNever(step, "validateStep");
+				return assertNever(currentStep, "validateCurrentStep");
 		}
 	};
 
@@ -243,18 +254,27 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	);
 	const isFirstStep = currentStepIndex === 0;
 	const isLastStep = currentStepIndex === WIZARD_STEPS.length - 1;
-	const canGoNext = validateStep(currentStep);
+
+	const advanceTo = (step: WizardStep) => {
+		setStepErrors({});
+		setCurrentStep(step);
+	};
+
 	const goToNextStep = () => {
-		if (!isLastStep && canGoNext) {
-			const nextStep = WIZARD_STEPS[currentStepIndex + 1];
-			if (nextStep) setCurrentStep(nextStep.value);
+		if (isLastStep) return;
+		const result = validateCurrentStep();
+		if (result && !result.success) {
+			setStepErrors(mapStepErrors(result.error));
+			return;
 		}
+		const nextStep = WIZARD_STEPS[currentStepIndex + 1];
+		if (nextStep) advanceTo(nextStep.value);
 	};
 
 	const goToPreviousStep = () => {
 		if (!isFirstStep) {
 			const prevStep = WIZARD_STEPS[currentStepIndex - 1];
-			if (prevStep) setCurrentStep(prevStep.value);
+			if (prevStep) advanceTo(prevStep.value);
 		}
 	};
 
@@ -276,7 +296,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		<div className="w-full max-w-4xl mx-auto space-y-8">
 			<LeaseCreationWizardHeader
 				currentStep={currentStep}
-				onStepChange={setCurrentStep}
+				onStepChange={advanceTo}
 			/>
 
 			<Card>
@@ -287,6 +307,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 								data={selectionData}
 								onChange={setSelectionData}
 								onUnitSelected={handleUnitSelected}
+								errors={stepErrors}
 							/>
 						)}
 						{currentStep === "terms" && (
@@ -295,10 +316,15 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 								onChange={setTermsData}
 								selectedDuration={selectedDuration}
 								onDurationChange={setSelectedDuration}
+								errors={stepErrors}
 							/>
 						)}
 						{currentStep === "details" && (
-							<DetailsStep data={detailsData} onChange={setDetailsData} />
+							<DetailsStep
+								data={detailsData}
+								onChange={setDetailsData}
+								errors={stepErrors}
+							/>
 						)}
 						{currentStep === "review" && (
 							<ReviewStep
@@ -338,7 +364,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 					<Button
 						type="button"
 						onClick={goToNextStep}
-						disabled={!canGoNext || createLeaseMutation.isPending}
+						disabled={createLeaseMutation.isPending}
 					>
 						Next
 						<ChevronRight className="ml-2 h-4 w-4" />
@@ -347,7 +373,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 					<Button
 						type="button"
 						onClick={handleSubmit}
-						disabled={createLeaseMutation.isPending || !canGoNext}
+						disabled={createLeaseMutation.isPending}
 					>
 						{createLeaseMutation.isPending ? (
 							<>

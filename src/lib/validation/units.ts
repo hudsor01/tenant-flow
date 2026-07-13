@@ -15,6 +15,7 @@ import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
+	nonNegativeWholeDollarSchema,
 	positiveNumberSchema,
 	requiredString,
 	uuidSchema,
@@ -66,7 +67,9 @@ export const unitInputSchema = z.object({
 		.nullable()
 		.optional(),
 
-	rent_amount: nonNegativeNumberSchema.max(
+	// units.rent_amount is an integer column — reject decimals client-side so a
+	// CSV row fails validation with a readable message instead of a raw 22P02.
+	rent_amount: nonNegativeWholeDollarSchema.max(
 		VALIDATION_LIMITS.UNIT_RENT_MAXIMUM,
 		"Rent amount seems unrealistic",
 	),

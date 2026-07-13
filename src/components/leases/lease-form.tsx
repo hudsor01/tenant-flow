@@ -100,7 +100,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					await updateLeaseMutation.mutateAsync({
 						id: lease.id,
 						data: { ...value, lease_status: leaseStatus },
-						version: lease.version ?? 1,
 					});
 					// FORMFIX-08: the update mutation's createMutationCallbacks fires the
 					// single success toast; no form-level duplicate.

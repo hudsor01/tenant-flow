@@ -85,16 +85,14 @@ export const leaseMutations = {
 			mutationFn: async ({
 				id,
 				data,
-				version,
 			}: {
 				id: string;
 				data: LeaseUpdate;
-				version?: number;
 			}): Promise<Lease> => {
 				const supabase = createClient();
-				const payload = omitUndefined(
-					version ? { ...data, version } : { ...data },
-				);
+				// `leases` has no `version` column (only notification_settings does),
+				// so nothing here optimistic-locks — send the real lease columns only.
+				const payload = omitUndefined({ ...data });
 				const { data: updated, error } = await supabase
 					.from("leases")
 					.update(payload)

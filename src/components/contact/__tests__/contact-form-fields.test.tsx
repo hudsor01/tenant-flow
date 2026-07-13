@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ContactFormFields } from "#components/contact/contact-form-fields";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import type { ContactFormRequest } from "#types/domain";
 
 const baseFormData: ContactFormRequest = {
@@ -26,6 +27,28 @@ describe("CONS-08: /contact 'How did you hear about us?' placeholder", () => {
 	// observable placeholder STATE: the #type trigger renders no selected
 	// label. The exact "Please select" literal is pinned by the
 	// source-text test below.
+	it("caps name/message/phone inputs at the server max lengths (FORM-17)", () => {
+		render(
+			<ContactFormFields
+				formData={baseFormData}
+				errors={{}}
+				onInputChange={() => {}}
+			/>,
+		);
+		expect(screen.getByLabelText(/full name/i)).toHaveAttribute(
+			"maxLength",
+			String(VALIDATION_LIMITS.CONTACT_FORM_NAME_MAX_LENGTH),
+		);
+		expect(screen.getByLabelText(/how can we help/i)).toHaveAttribute(
+			"maxLength",
+			String(VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MAX_LENGTH),
+		);
+		expect(screen.getByLabelText(/phone/i)).toHaveAttribute(
+			"maxLength",
+			String(VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH),
+		);
+	});
+
 	it("the 'How did you hear about us?' select renders no hardcoded default selection", () => {
 		const { container } = render(
 			<ContactFormFields

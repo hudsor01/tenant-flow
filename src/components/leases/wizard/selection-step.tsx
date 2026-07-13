@@ -29,6 +29,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { FieldError } from "#components/ui/field";
 import { Label } from "#components/ui/label";
 import { Skeleton } from "#components/ui/skeleton";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
@@ -46,6 +47,7 @@ interface SelectionStepProps {
 	data: Partial<SelectionStepData>;
 	onChange: (data: Partial<SelectionStepData>) => void;
 	onUnitSelected?: (rentAmount: number | null) => void;
+	errors?: Partial<Record<string, string>>;
 }
 
 // Use Pick to get minimal fields from shared types
@@ -72,6 +74,7 @@ export function SelectionStep({
 	data,
 	onChange,
 	onUnitSelected,
+	errors,
 }: SelectionStepProps) {
 	const [inviteMode, setInviteMode] = useState(false);
 
@@ -202,6 +205,9 @@ export function SelectionStep({
 							</ComboboxContent>
 						</Combobox>
 					)}
+					{errors?.property_id ? (
+						<FieldError>{errors.property_id}</FieldError>
+					) : null}
 				</div>
 
 				{/* Unit Selection */}
@@ -243,6 +249,7 @@ export function SelectionStep({
 							</ComboboxContent>
 						</Combobox>
 					)}
+					{errors?.unit_id ? <FieldError>{errors.unit_id}</FieldError> : null}
 				</div>
 
 				{/* Tenant Selection */}
@@ -300,6 +307,9 @@ export function SelectionStep({
 							</ComboboxContent>
 						</Combobox>
 					)}
+					{errors?.primary_tenant_id ? (
+						<FieldError>{errors.primary_tenant_id}</FieldError>
+					) : null}
 				</div>
 			</div>
 		</div>

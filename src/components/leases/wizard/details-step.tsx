@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from "lucide-react";
 import { Checkbox } from "#components/ui/checkbox";
+import { FieldError } from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
 import {
@@ -18,6 +19,8 @@ import type { LeaseDetailsStepData } from "#lib/validation/lease-wizard.schemas"
 interface DetailsStepProps {
 	data: Partial<LeaseDetailsStepData>;
 	onChange: (data: Partial<LeaseDetailsStepData>) => void;
+	/** Per-field validation messages surfaced on a failed step advance (FORM-09). */
+	errors?: Partial<Record<string, string>>;
 }
 
 const UTILITY_OPTIONS = [
@@ -46,7 +49,7 @@ const US_STATES = [
 	{ value: "MI", label: "Michigan" },
 ];
 
-export function DetailsStep({ data, onChange }: DetailsStepProps) {
+export function DetailsStep({ data, onChange, errors }: DetailsStepProps) {
 	const handleChange = <K extends keyof LeaseDetailsStepData>(
 		field: K,
 		value: LeaseDetailsStepData[K],
@@ -68,10 +71,12 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 	const dollarsToDisplay = (value: number | undefined) =>
 		value === undefined ? "" : value.toString();
 
+	// Pet deposit/rent map to integer columns — round to whole dollars so a stray
+	// cents entry can never reach the insert (the input also uses step="1").
 	const parseDollars = (value: string): number | undefined => {
 		if (value === "") return undefined;
 		const num = Number.parseFloat(value);
-		return Number.isNaN(num) ? undefined : num;
+		return Number.isNaN(num) ? undefined : Math.round(num);
 	};
 
 	return (
@@ -103,6 +108,9 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								)
 							}
 						/>
+						{errors?.max_occupants ? (
+							<FieldError>{errors.max_occupants}</FieldError>
+						) : null}
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="governing_state">Governing State</Label>
@@ -152,28 +160,34 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 							<Input
 								id="pet_deposit"
 								type="number"
-								step="0.01"
+								step="1"
 								min="0"
-								placeholder="300.00"
+								placeholder="300"
 								value={dollarsToDisplay(data.pet_deposit ?? undefined)}
 								onChange={(e) =>
 									handleChange("pet_deposit", parseDollars(e.target.value))
 								}
 							/>
+							{errors?.pet_deposit ? (
+								<FieldError>{errors.pet_deposit}</FieldError>
+							) : null}
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="pet_rent">Monthly Pet Rent ($)</Label>
 							<Input
 								id="pet_rent"
 								type="number"
-								step="0.01"
+								step="1"
 								min="0"
-								placeholder="25.00"
+								placeholder="25"
 								value={dollarsToDisplay(data.pet_rent ?? undefined)}
 								onChange={(e) =>
 									handleChange("pet_rent", parseDollars(e.target.value))
 								}
 							/>
+							{errors?.pet_rent ? (
+								<FieldError>{errors.pet_rent}</FieldError>
+							) : null}
 						</div>
 					</div>
 				)}
@@ -242,9 +256,13 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 					id="property_rules"
 					placeholder="Enter any additional property rules or restrictions..."
 					rows={4}
+					maxLength={5000}
 					value={data.property_rules || ""}
 					onChange={(e) => handleChange("property_rules", e.target.value)}
 				/>
+				{errors?.property_rules ? (
+					<FieldError>{errors.property_rules}</FieldError>
+				) : null}
 			</div>
 
 			<div className="space-y-4 p-4 border rounded-lg bg-muted/50">
@@ -294,6 +312,12 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								</Label>
 							</div>
 						)}
+
+						{errors?.lead_paint_disclosure_acknowledged ? (
+							<FieldError>
+								{errors.lead_paint_disclosure_acknowledged}
+							</FieldError>
+						) : null}
 					</div>
 				</div>
 			</div>

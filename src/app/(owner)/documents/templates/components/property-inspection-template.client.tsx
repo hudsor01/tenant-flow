@@ -180,7 +180,12 @@ export function PropertyInspectionTemplate() {
 		isExporting,
 		handlePreview,
 		handleExport,
-	} = useTemplatePdf("property-inspection", getPayload);
+	} = useTemplatePdf("property-inspection", getPayload, async () => {
+		// FORM-05: run the wired validators (maps zod tree errors onto fields)
+		// and gate export on the resulting validity.
+		await form.handleSubmit();
+		return form.state.isValid;
+	});
 
 	const handlePhotoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(event.target.files ?? []);

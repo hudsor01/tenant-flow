@@ -13,6 +13,7 @@ import {
 	useOwnerEmergencyContact,
 	useUpdateOwnerEmergencyContactMutation,
 } from "#hooks/api/use-owner-emergency-contact";
+import { createLogger } from "#lib/frontend-logger";
 
 interface FormState {
 	name: string;
@@ -21,6 +22,8 @@ interface FormState {
 }
 
 const EMPTY_FORM: FormState = { name: "", phone: "", relationship: "" };
+
+const logger = createLogger({ component: "OwnerEmergencyContactSection" });
 
 export function OwnerEmergencyContactSection() {
 	const { data: contact, isLoading } = useOwnerEmergencyContact();
@@ -56,12 +59,22 @@ export function OwnerEmergencyContactSection() {
 
 	const handleSave = async (e: FormEvent) => {
 		e.preventDefault();
-		await updateMutation.mutateAsync({
-			name: formData.name.trim() || null,
-			phone: formData.phone.trim() || null,
-			relationship: formData.relationship.trim() || null,
-		});
-		setIsEditing(false);
+		// FORMFIX-08: catch the mutateAsync rejection locally so it does not escape
+		// the async submit handler as an unhandled rejection (duplicate Sentry +
+		// dev overlay). The hook's onError already toasts + rolls back; only the
+		// success-path state change belongs inside the try.
+		try {
+			await updateMutation.mutateAsync({
+				name: formData.name.trim() || null,
+				phone: formData.phone.trim() || null,
+				relationship: formData.relationship.trim() || null,
+			});
+			setIsEditing(false);
+		} catch (error) {
+			logger.error("Failed to save emergency contact", {
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
 	};
 
 	const handleCancel = () => {
@@ -78,9 +91,17 @@ export function OwnerEmergencyContactSection() {
 	};
 
 	const handleDelete = async () => {
-		await deleteMutation.mutateAsync();
-		setFormData(EMPTY_FORM);
-		setIsEditing(false);
+		// FORMFIX-08: same as handleSave — the reset is success-only inside the try;
+		// the hook's onError already toasts + rolls back, so only log on failure.
+		try {
+			await deleteMutation.mutateAsync();
+			setFormData(EMPTY_FORM);
+			setIsEditing(false);
+		} catch (error) {
+			logger.error("Failed to remove emergency contact", {
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
 	};
 
 	if (isLoading) {

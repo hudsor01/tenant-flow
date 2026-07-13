@@ -13,6 +13,9 @@ const PREVIEW_DEBOUNCE_MS = 500;
 export function useTemplatePdf(
 	template: string,
 	getPayload: () => TemplatePreviewOptions,
+	// FORM-05: optional export-time validation gate. Returns true when the form is
+	// valid. Only Export is gated; Preview stays lenient so drafts still render.
+	validate?: () => boolean | Promise<boolean>,
 ) {
 	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 	const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
@@ -85,6 +88,12 @@ export function useTemplatePdf(
 	};
 
 	const handleExport = async () => {
+		// FORM-05: block export on invalid input so the wired zod validators
+		// actually gate the finished PDF (they map field errors via handleSubmit).
+		if (validate && !(await validate())) {
+			toast.error("Please fix the highlighted fields before exporting.");
+			return;
+		}
 		setIsExporting(true);
 		try {
 			const payload = getPayload();

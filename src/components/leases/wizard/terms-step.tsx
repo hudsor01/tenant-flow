@@ -11,6 +11,7 @@ import { Button } from "#components/ui/button";
 import {
 	Field,
 	FieldDescription,
+	FieldError,
 	FieldGroup,
 	FieldLabel,
 } from "#components/ui/field";
@@ -49,6 +50,8 @@ interface TermsStepProps {
 	onChange: (data: Partial<TermsStepData>) => void;
 	selectedDuration: DurationPreset;
 	onDurationChange: (duration: DurationPreset) => void;
+	/** Per-field validation messages surfaced on a failed step advance (FORM-09). */
+	errors?: Partial<Record<string, string>>;
 }
 
 export function TermsStep({
@@ -56,6 +59,7 @@ export function TermsStep({
 	onChange,
 	selectedDuration,
 	onDurationChange,
+	errors,
 }: TermsStepProps) {
 	const handleChange = (field: keyof TermsStepData, value: string | number) => {
 		onChange({ ...data, [field]: value });
@@ -147,6 +151,9 @@ export function TermsStep({
 							value={data.start_date}
 							onChange={(e) => handleStartDateChange(e.target.value)}
 						/>
+						{errors?.start_date ? (
+							<FieldError>{errors.start_date}</FieldError>
+						) : null}
 					</Field>
 					<Field>
 						<FieldLabel htmlFor="end_date">End Date *</FieldLabel>
@@ -159,6 +166,9 @@ export function TermsStep({
 						{selectedDuration && (
 							<FieldDescription>Auto-calculated from preset</FieldDescription>
 						)}
+						{errors?.end_date ? (
+							<FieldError>{errors.end_date}</FieldError>
+						) : null}
 					</Field>
 				</div>
 			</FieldGroup>
@@ -172,13 +182,16 @@ export function TermsStep({
 						<Input
 							id="rent_amount"
 							type="text"
-							inputMode="decimal"
-							placeholder="1500.00"
+							inputMode="numeric"
+							placeholder="1500"
 							value={dollarsToDisplay(data.rent_amount)}
 							onChange={(e) =>
 								handleChange("rent_amount", parseDollars(e.target.value))
 							}
 						/>
+						{errors?.rent_amount ? (
+							<FieldError>{errors.rent_amount}</FieldError>
+						) : null}
 					</Field>
 					<Field>
 						<FieldLabel htmlFor="security_deposit">
@@ -187,14 +200,17 @@ export function TermsStep({
 						<Input
 							id="security_deposit"
 							type="text"
-							inputMode="decimal"
-							placeholder="1500.00"
+							inputMode="numeric"
+							placeholder="1500"
 							value={dollarsToDisplay(data.security_deposit)}
 							onChange={(e) =>
 								handleChange("security_deposit", parseDollars(e.target.value))
 							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
+						{errors?.security_deposit ? (
+							<FieldError>{errors.security_deposit}</FieldError>
+						) : null}
 					</Field>
 				</div>
 
@@ -212,6 +228,9 @@ export function TermsStep({
 							}
 						/>
 						<FieldDescription>Day rent is due (1-31)</FieldDescription>
+						{errors?.payment_day ? (
+							<FieldError>{errors.payment_day}</FieldError>
+						) : null}
 					</Field>
 					<Field>
 						<FieldLabel htmlFor="grace_period_days">
@@ -228,20 +247,26 @@ export function TermsStep({
 							}
 						/>
 						<FieldDescription>Days before late fee</FieldDescription>
+						{errors?.grace_period_days ? (
+							<FieldError>{errors.grace_period_days}</FieldError>
+						) : null}
 					</Field>
 					<Field>
 						<FieldLabel htmlFor="late_fee_amount">Late Fee ($)</FieldLabel>
 						<Input
 							id="late_fee_amount"
 							type="text"
-							inputMode="decimal"
-							placeholder="50.00"
+							inputMode="numeric"
+							placeholder="50"
 							value={dollarsToDisplay(data.late_fee_amount)}
 							onChange={(e) =>
 								handleChange("late_fee_amount", parseDollars(e.target.value))
 							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
+						{errors?.late_fee_amount ? (
+							<FieldError>{errors.late_fee_amount}</FieldError>
+						) : null}
 					</Field>
 				</div>
 			</FieldGroup>

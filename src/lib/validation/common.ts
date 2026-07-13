@@ -89,6 +89,37 @@ export const positiveNumberSchema = z
 	.positive("Value must be positive");
 
 /**
+ * Positive whole-dollar amount (integer, > 0).
+ * Money columns (`leases.*_amount`, `units.rent_amount`,
+ * `maintenance_requests.estimated_cost`) are `integer` (whole dollars) in prod,
+ * so a fractional value fails 22P02 at insert. Enforce whole dollars client-side
+ * rather than silently rounding. Do NOT swap this in for `positiveNumberSchema`
+ * on non-money fields (e.g. `units.bathrooms` is legitimately fractional).
+ */
+export const positiveWholeDollarSchema = z
+	.number()
+	.int("Enter a whole dollar amount (no cents)")
+	.positive("Value must be positive");
+
+/** Non-negative whole-dollar amount (integer, >= 0). See positiveWholeDollarSchema. */
+export const nonNegativeWholeDollarSchema = z
+	.number()
+	.int("Enter a whole dollar amount (no cents)")
+	.min(0, "Value must be non-negative");
+
+/**
+ * Optional whole-dollar amount for a STRING-typed input (empty stays valid).
+ * For fields whose form value is always a string ("" when empty) that must map
+ * to an integer money column — rejects decimals and negatives, accepts empty.
+ */
+export const optionalWholeDollarStringSchema = z
+	.string()
+	.refine(
+		(v) => v.trim() === "" || (/^\d+$/.test(v.trim()) && Number(v) > 0),
+		"Estimated cost must be a whole dollar amount greater than 0",
+	);
+
+/**
  * Safe integer schema (Zod 4)
  * Validates integers within JavaScript's safe integer range
  */
@@ -111,6 +142,14 @@ export const phoneSchema = z
 		examples: ["+1 (555) 123-4567", "555-123-4567", "5551234567"],
 		format: "phone",
 	});
+
+/**
+ * Optional phone field for a STRING-typed input that is always present ("" when
+ * empty). `phoneSchema.optional()` would run `.min(10)` on "" (never undefined)
+ * and reject it, breaking the "phone is optional" UX — accept empty OR a valid
+ * phone instead. Mirrors `tenantEmergencyContactEditSchema.emergency_contact_phone`.
+ */
+export const optionalPhoneSchema = z.union([z.literal(""), phoneSchema]);
 
 /**
  * Environment-style boolean parsing (Zod 4)
