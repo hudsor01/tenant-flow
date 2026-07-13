@@ -311,6 +311,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 								data={selectionData}
 								onChange={setSelectionData}
 								onUnitSelected={handleUnitSelected}
+								errors={stepErrors}
 							/>
 						)}
 						{currentStep === "terms" && (
