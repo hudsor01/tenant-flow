@@ -24,17 +24,10 @@ import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary
 import { Badge } from "#components/ui/badge";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
 import { Skeleton } from "#components/ui/skeleton";
+import { useDashboardStats } from "#hooks/api/use-dashboard-hooks";
 import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
-import type { DashboardSummary, PropertyPerformance } from "#types/core";
-import type { DashboardStats } from "#types/stats";
+import type { PropertyPerformance } from "#types/core";
 import { AnalyticsStatCards } from "./analytics-stat-cards";
 
 function AnalyticsSkeleton() {
@@ -86,6 +79,7 @@ export default function AnalyticsPage() {
 	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(
 		analyticsQueries.ownerPaymentSummary(),
 	);
+	const { data: dashboardStats } = useDashboardStats();
 
 	if (overviewLoading) {
 		return <AnalyticsSkeleton />;
@@ -93,26 +87,21 @@ export default function AnalyticsPage() {
 
 	const { financial } = overviewData || {};
 	const financialMetrics = financial?.metrics;
-
-	const stats = {
-		revenue: { growth: financialMetrics?.revenueTrend ?? 0 },
-		units: { occupancyChange: 0 },
-	} as DashboardStats;
-	const financialStats = {
-		avgRoi:
-			financialMetrics?.netIncome && financialMetrics?.totalRevenue
-				? (financialMetrics.netIncome / financialMetrics.totalRevenue) * 100
-				: 0,
-	} as DashboardSummary;
 	const properties = [] as PropertyPerformance[];
 
-	const revenueGrowth = stats?.revenue?.growth ?? 0;
-	const occupancyChange = stats?.units?.occupancyChange ?? 0;
-	const avgRoi = financialStats?.avgRoi ?? 0;
-	const occupancyRate = stats?.units?.occupancyRate ?? 0;
-	const activeTenants = stats?.units?.occupied ?? 0;
+	const occupancyRate = dashboardStats?.stats?.units?.occupancyRate ?? 0;
+	const occupancyChange = dashboardStats?.stats?.units?.occupancyChange ?? 0;
+	const activeTenants = dashboardStats?.stats?.units?.occupied ?? 0;
+	const monthlyRevenue = dashboardStats?.stats?.revenue?.monthly ?? 0;
+	const revenueGrowth = dashboardStats?.stats?.revenue?.growth ?? 0;
+	const openMaintenance = dashboardStats?.stats?.maintenance?.open ?? 0;
+	const maintenanceChange =
+		dashboardStats?.metricTrends?.openMaintenance?.change ?? 0;
+	const avgRoi =
+		financialMetrics?.netIncome && financialMetrics?.totalRevenue
+			? (financialMetrics.netIncome / financialMetrics.totalRevenue) * 100
+			: 0;
 	const tenantsChange = Math.max(0, Math.round(occupancyChange * 10));
-	const monthlyRevenue = (stats?.revenue?.monthly ?? 0) * 100;
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -123,19 +112,6 @@ export default function AnalyticsPage() {
 						<p className="text-muted-foreground">
 							Portfolio performance and insights.
 						</p>
-					</div>
-					<div className="flex gap-2">
-						<Select defaultValue="30_days">
-							<SelectTrigger className="w-[160px]">
-								<SelectValue placeholder="Time range" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="30_days">Last 30 Days</SelectItem>
-								<SelectItem value="3_months">Last 3 Months</SelectItem>
-								<SelectItem value="6_months">Last 6 Months</SelectItem>
-								<SelectItem value="12_months">Last 12 Months</SelectItem>
-							</SelectContent>
-						</Select>
 					</div>
 				</div>
 			</BlurFade>
@@ -148,8 +124,8 @@ export default function AnalyticsPage() {
 				monthlyRevenue={monthlyRevenue}
 				revenueGrowth={revenueGrowth}
 				avgRoi={avgRoi}
-				openMaintenance={0}
-				maintenanceChange={0}
+				openMaintenance={openMaintenance}
+				maintenanceChange={maintenanceChange}
 			/>
 
 			<BlurFade delay={0.55} inView>

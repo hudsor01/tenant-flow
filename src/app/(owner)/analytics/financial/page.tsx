@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, FileDown, PieChart } from "lucide-react";
+import { BarChart3, PieChart } from "lucide-react";
 import dynamic from "next/dynamic";
 import { RefreshableAnalytics } from "#app/(owner)/analytics/refreshable-analytics";
 import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
@@ -100,13 +100,6 @@ export default function FinancialAnalyticsPage() {
 						</div>
 						<div className="flex flex-wrap items-center gap-3">
 							<ExportButtons filename="financial-analytics" payload={data} />
-							<a
-								className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
-								href="#"
-							>
-								<FileDown className="size-4" />
-								Download insight summary
-							</a>
 						</div>
 					</div>
 				</BlurFade>

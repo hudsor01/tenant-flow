@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useIncomeStatement } from "#hooks/api/use-financials";
+import { buildIncomeStatementDateRange } from "./income-statement-date-range";
 import { IncomeStatementPageBreakdowns } from "./income-statement-page-breakdowns";
 import { IncomeStatementPageError } from "./income-statement-page-error";
 import { IncomeStatementPageHeader } from "./income-statement-page-header";
@@ -13,30 +14,7 @@ export default function IncomeStatementPage() {
 	const [period, setPeriod] = useState("monthly");
 	const [year, setYear] = useState(String(new Date().getFullYear()));
 
-	const dateRange = (() => {
-		const yearNum = parseInt(year, 10);
-		if (period === "yearly") {
-			return {
-				start_date: `${yearNum}-01-01`,
-				end_date: `${yearNum}-12-31`,
-			};
-		} else if (period === "quarterly") {
-			const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1;
-			const quarterStart = (currentQuarter - 1) * 3 + 1;
-			const quarterEnd = quarterStart + 2;
-			return {
-				start_date: `${yearNum}-${quarterStart.toString().padStart(2, "0")}-01`,
-				end_date: `${yearNum}-${quarterEnd.toString().padStart(2, "0")}-31`,
-			};
-		} else {
-			const currentMonth = new Date().getMonth() + 1;
-			const lastDay = new Date(yearNum, currentMonth, 0).getDate();
-			return {
-				start_date: `${yearNum}-${currentMonth.toString().padStart(2, "0")}-01`,
-				end_date: `${yearNum}-${currentMonth.toString().padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`,
-			};
-		}
-	})();
+	const dateRange = buildIncomeStatementDateRange(period, year);
 
 	const {
 		data: response,

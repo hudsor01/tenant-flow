@@ -1,7 +1,7 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { cn } from "#lib/utils";
@@ -97,12 +97,23 @@ export function TenantTable({
 		});
 	})();
 
-	const paginatedTenants = sortedTenants.slice(
-		pageIndex * pageSize,
-		(pageIndex + 1) * pageSize,
-	);
+	const totalPages = Math.max(1, Math.ceil(sortedTenants.length / pageSize));
 
-	const totalPages = Math.ceil(sortedTenants.length / pageSize);
+	// When a filter shrinks the list past the current page, reset to page 1.
+	// Fires only on the out-of-range transition (deps are primitives), so it
+	// never interferes with normal pagination (COMP-10).
+	useEffect(() => {
+		if (pageIndex > totalPages - 1) {
+			setPageIndex(0);
+		}
+	}, [totalPages, pageIndex]);
+
+	// Clamp the slice so no blank frame renders before the effect commits.
+	const safePageIndex = Math.min(pageIndex, totalPages - 1);
+	const paginatedTenants = sortedTenants.slice(
+		safePageIndex * pageSize,
+		(safePageIndex + 1) * pageSize,
+	);
 
 	const allSelected =
 		paginatedTenants.length > 0 &&
@@ -274,16 +285,16 @@ export function TenantTable({
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-4 py-2 border-t border-border">
 					<p className="text-sm text-muted-foreground">
-						Showing {pageIndex * pageSize + 1} to{" "}
-						{Math.min((pageIndex + 1) * pageSize, sortedTenants.length)} of{" "}
+						Showing {safePageIndex * pageSize + 1} to{" "}
+						{Math.min((safePageIndex + 1) * pageSize, sortedTenants.length)} of{" "}
 						{sortedTenants.length}
 					</p>
 					<div className="flex items-center gap-2">
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
-							disabled={pageIndex === 0}
+							onClick={() => setPageIndex(Math.max(0, safePageIndex - 1))}
+							disabled={safePageIndex === 0}
 						>
 							Previous
 						</Button>
@@ -291,9 +302,9 @@ export function TenantTable({
 							variant="outline"
 							size="sm"
 							onClick={() =>
-								setPageIndex(Math.min(totalPages - 1, pageIndex + 1))
+								setPageIndex(Math.min(totalPages - 1, safePageIndex + 1))
 							}
-							disabled={pageIndex >= totalPages - 1}
+							disabled={safePageIndex >= totalPages - 1}
 						>
 							Next
 						</Button>

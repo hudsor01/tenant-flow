@@ -20,6 +20,7 @@ import {
 	TableRow,
 } from "#components/ui/table";
 import type { Year1099Summary, YearEndSummary } from "#types/reports";
+import { sortExpenseCategoriesDesc } from "./year-end-report-section-utils";
 
 function formatMoney(amount: number): string {
 	return new Intl.NumberFormat("en-US", {
@@ -206,9 +207,10 @@ export function YearEndReportSection({
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{yearEndData?.expenseByCategory
-											.sort((a, b) => b.amount - a.amount)
-											.map((cat, i) => (
+										{yearEndData?.expenseByCategory &&
+											sortExpenseCategoriesDesc(
+												yearEndData.expenseByCategory,
+											).map((cat, i) => (
 												<TableRow key={i}>
 													<TableCell>{cat.category}</TableCell>
 													<TableCell className="text-right text-red-500">
