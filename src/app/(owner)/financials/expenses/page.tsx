@@ -13,7 +13,6 @@ import { ExpenseTable } from "./_components/expense-table";
 
 export default function ExpensesPage() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [categoryFilter, setCategoryFilter] = useState("all");
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 15;
 
@@ -22,22 +21,14 @@ export default function ExpensesPage() {
 
 	const filteredExpenses = (() => {
 		if (!expenses) return [];
-		return expenses.filter((expense) => {
-			if (categoryFilter !== "all" && expense.category !== categoryFilter) {
-				return false;
-			}
-			if (searchQuery) {
-				const query = searchQuery.toLowerCase();
-				if (
-					!expense.description?.toLowerCase().includes(query) &&
-					!expense.vendor_name?.toLowerCase().includes(query) &&
-					!expense.property_name?.toLowerCase().includes(query)
-				) {
-					return false;
-				}
-			}
-			return true;
-		});
+		if (!searchQuery) return expenses;
+		const query = searchQuery.toLowerCase();
+		return expenses.filter(
+			(expense) =>
+				expense.description?.toLowerCase().includes(query) ||
+				expense.vendor_name?.toLowerCase().includes(query) ||
+				expense.property_name?.toLowerCase().includes(query),
+		);
 	})();
 
 	const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
@@ -52,7 +43,6 @@ export default function ExpensesPage() {
 
 	const clearFilters = () => {
 		setSearchQuery("");
-		setCategoryFilter("all");
 	};
 
 	const totalExpenses = summary?.total_amount ?? 0;
@@ -155,12 +145,10 @@ export default function ExpensesPage() {
 				filteredExpenses={filteredExpenses}
 				paginatedExpenses={paginatedExpenses}
 				searchQuery={searchQuery}
-				categoryFilter={categoryFilter}
 				currentPage={currentPage}
 				totalPages={totalPages}
 				itemsPerPage={itemsPerPage}
 				onSearchChange={setSearchQuery}
-				onCategoryChange={setCategoryFilter}
 				onPageChange={setCurrentPage}
 				onClearFilters={clearFilters}
 			/>

@@ -32,9 +32,6 @@ export interface RevenueData {
 	revenue: number;
 	expenses: number;
 	profit: number;
-	propertyCount: number;
-	unitCount: number;
-	occupiedUnits: number;
 }
 
 export interface ReportPaymentAnalytics {

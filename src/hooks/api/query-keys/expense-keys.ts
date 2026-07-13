@@ -3,6 +3,7 @@ import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { ExpenseRecord } from "#types/core";
 import type { TaxDocumentsData } from "#types/financial-statements";
 import { mutationKeys } from "../mutation-keys";
 
@@ -130,11 +131,78 @@ export const expenseKeys = {
 		[...expenseKeys.all, "dateRange", start, end] as const,
 };
 
-const EXPENSE_SELECT =
-	"id, amount, expense_date, vendor_name, maintenance_request_id, status, created_at";
+// Real columns only (`description` was missing → the table showed "Expense" on
+// every row) plus the property linkage via the expenses → maintenance_requests
+// → units → properties join. Typed `string` so supabase-js returns a generic
+// row shape validated at the mapExpenseRow boundary (the nested-embed pattern
+// used by maintenance-keys.ts).
+const EXPENSE_SELECT: string =
+	"id, amount, description, expense_date, vendor_name, maintenance_request_id, status, created_at, maintenance_requests(units(properties(name)))";
+
+/**
+ * Select-scoped view of an expenses row. Reuses the canonical
+ * `ExpenseRecord = Tables<"expenses">` (no duplicate type, Rule #3) and adds the
+ * derived `property_name` from the maintenance_requests→units→properties join.
+ * `expenses` has NO `category`/`property_name`/`property_id` columns, so the
+ * schema-derived Pick makes reading a fabricated field a compile error.
+ */
+export type ExpenseRow = Pick<
+	ExpenseRecord,
+	| "id"
+	| "amount"
+	| "description"
+	| "expense_date"
+	| "vendor_name"
+	| "maintenance_request_id"
+	| "status"
+	| "created_at"
+> & { property_name: string | null };
+
+/**
+ * Extract the first embedded record from a PostgREST to-one embed, which
+ * resolves to either an object or a single-element array depending on how the
+ * relationship is detected. Returns null for anything else.
+ */
+function firstEmbedded(value: unknown): Record<string, unknown> | null {
+	if (Array.isArray(value)) {
+		const first = value[0];
+		return first && typeof first === "object"
+			? (first as Record<string, unknown>)
+			: null;
+	}
+	if (value && typeof value === "object") {
+		return value as Record<string, unknown>;
+	}
+	return null;
+}
+
+/**
+ * Typed boundary mapper (CLAUDE.md "typed mapper at every boundary"): a raw
+ * PostgREST expenses row plus its nested maintenance_requests→units→properties
+ * embed → `ExpenseRow`. Derives `property_name` from the join. Never
+ * `as unknown as`.
+ */
+function mapExpenseRow(raw: Record<string, unknown>): ExpenseRow {
+	const maintenanceRequest = firstEmbedded(raw.maintenance_requests);
+	const unit = firstEmbedded(maintenanceRequest?.units);
+	const property = firstEmbedded(unit?.properties);
+	const propertyName =
+		property && typeof property.name === "string" ? property.name : null;
+	return {
+		id: String(raw.id ?? ""),
+		amount: Number(raw.amount ?? 0),
+		description: typeof raw.description === "string" ? raw.description : null,
+		expense_date: String(raw.expense_date ?? ""),
+		vendor_name: typeof raw.vendor_name === "string" ? raw.vendor_name : null,
+		maintenance_request_id: String(raw.maintenance_request_id ?? ""),
+		status: String(raw.status ?? ""),
+		created_at: typeof raw.created_at === "string" ? raw.created_at : null,
+		property_name: propertyName,
+	};
+}
 
 export interface PaginatedExpenses {
-	data: Expense[];
+	data: ExpenseRow[];
 	total: number;
 }
 
@@ -186,8 +254,11 @@ export const expenseQueries = {
 
 				const { data, error, count } = await q;
 				if (error) handlePostgrestError(error, "expenses");
+				const rawRows: unknown[] = data ?? [];
 				return {
-					data: (data ?? []) as Expense[],
+					data: rawRows.map((row) =>
+						mapExpenseRow(row as Record<string, unknown>),
+					),
 					total: count ?? 0,
 				};
 			},
@@ -199,7 +270,7 @@ export const expenseQueries = {
 	byProperty: (propertyId: string, options?: { enabled?: boolean }) =>
 		queryOptions({
 			queryKey: expenseKeys.byProperty(propertyId),
-			queryFn: async (): Promise<Expense[]> => {
+			queryFn: async (): Promise<ExpenseRow[]> => {
 				const supabase = createClient();
 				// expenses → maintenance_requests → units → properties. There's no
 				// property_id on maintenance_requests; the join goes through units.
@@ -231,7 +302,10 @@ export const expenseQueries = {
 					.order("expense_date", { ascending: false })
 					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
 				if (error) handlePostgrestError(error, "expenses by property");
-				return (data ?? []) as Expense[];
+				const rawRows: unknown[] = data ?? [];
+				return rawRows.map((row) =>
+					mapExpenseRow(row as Record<string, unknown>),
+				);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -245,7 +319,7 @@ export const expenseQueries = {
 	) =>
 		queryOptions({
 			queryKey: expenseKeys.byDateRange(startDate, endDate),
-			queryFn: async (): Promise<Expense[]> => {
+			queryFn: async (): Promise<ExpenseRow[]> => {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("expenses")
@@ -256,7 +330,10 @@ export const expenseQueries = {
 					.order("expense_date", { ascending: false })
 					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
 				if (error) handlePostgrestError(error, "expenses by date range");
-				return (data ?? []) as Expense[];
+				const rawRows: unknown[] = data ?? [];
+				return rawRows.map((row) =>
+					mapExpenseRow(row as Record<string, unknown>),
+				);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -272,25 +349,11 @@ export interface CreateExpenseInput {
 	vendor_name?: string;
 }
 
-export interface Expense {
-	id: string;
-	description?: string;
-	category?: string;
-	amount?: number;
-	property_name?: string;
-	property_id?: string;
-	expense_date?: string;
-	vendor_name?: string;
-	maintenance_request_id?: string;
-	status?: string;
-	created_at?: string;
-}
-
 export const financialMutations = {
 	createExpense: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.expenses.create,
-			mutationFn: async (input: CreateExpenseInput): Promise<Expense> => {
+			mutationFn: async (input: CreateExpenseInput): Promise<ExpenseRow> => {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("expenses")
@@ -305,7 +368,8 @@ export const financialMutations = {
 					.select(EXPENSE_SELECT)
 					.single();
 				if (error) handlePostgrestError(error, "create expense");
-				return data as Expense;
+				const rawRow: unknown = data ?? {};
+				return mapExpenseRow(rawRow as Record<string, unknown>);
 			},
 		}),
 

@@ -7,7 +7,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { jsonObject } from "#lib/rpc-shape";
+import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PropertyPerformanceEntry } from "#types/analytics";
@@ -20,7 +20,11 @@ import type {
 } from "#types/analytics-page-data";
 import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 import { fetchOccupancyTrends } from "./query-keys/analytics-keys";
-import { mapOccupancyAnalytics } from "./query-keys/analytics-mappers";
+import {
+	mapFinancialOverview,
+	mapMaintenanceAnalytics,
+	mapOccupancyAnalytics,
+} from "./query-keys/analytics-mappers";
 
 /**
  * MIS-WIRE (captured follow-up, DATA-01): the "lease analytics" page and the
@@ -80,11 +84,32 @@ export const analyticsQueries = {
 				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
-				const { data, error } = await supabase.rpc("get_financial_overview", {
-					p_user_id: user.id,
+				const userId = user.id;
+				// get_financial_overview carries only headline totals; the page's four
+				// charts need the revenue-trend + expense series joined by month
+				// (TYPE-02). Fetch all three in one round-trip, then map at the
+				// boundary — no blind cast to a shape the RPC never returns.
+				const [overviewResult, revenueResult, expenseResult] =
+					await Promise.all([
+						supabase.rpc("get_financial_overview", { p_user_id: userId }),
+						supabase.rpc("get_revenue_trends_optimized", {
+							p_user_id: userId,
+							p_months: 12,
+						}),
+						supabase.rpc("get_expense_summary", { p_user_id: userId }),
+					]);
+				if (overviewResult.error)
+					handlePostgrestError(overviewResult.error, "analytics");
+				if (revenueResult.error)
+					handlePostgrestError(revenueResult.error, "analytics");
+				if (expenseResult.error)
+					handlePostgrestError(expenseResult.error, "analytics expenses");
+				return mapFinancialOverview(overviewResult.data, {
+					revenueRows: jsonArrayOrEmpty<Record<string, unknown>>(
+						revenueResult.data,
+					),
+					expenseSummary: expenseResult.data,
 				});
-				if (error) handlePostgrestError(error, "analytics");
-				return jsonObject<FinancialAnalyticsPageData>(data);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -116,7 +141,7 @@ export const analyticsQueries = {
 					},
 				);
 				if (error) handlePostgrestError(error, "analytics");
-				return jsonObject<MaintenanceInsightsPageData>(data);
+				return mapMaintenanceAnalytics(data);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -162,12 +187,12 @@ export const analyticsQueries = {
 					handlePostgrestError(maintenanceResult.error, "analytics");
 
 				return {
-					financial: jsonObject<FinancialAnalyticsPageData>(
-						financialResult.data,
-					),
-					maintenance: jsonObject<MaintenanceInsightsPageData>(
-						maintenanceResult.data,
-					),
+					// The overview page reads only `financial.metrics`; the never-throw
+					// mapper derives it from get_financial_overview's `overview` (TYPE-02
+					// sibling). Charts stay empty here (no chart RPCs fetched) — the
+					// dedicated financial page wires them.
+					financial: mapFinancialOverview(financialResult.data),
+					maintenance: mapMaintenanceAnalytics(maintenanceResult.data),
 					// MIS-WIRE follow-up (DATA-01): the overview's `lease` slice is
 					// fed the occupancy RPC, not a lease-analytics source — occupancy
 					// data is derived into vacancyTrends; lease-financial sub-shapes

@@ -149,29 +149,29 @@ describe("useMonthlyMetrics", () => {
 	});
 
 	it("fetches monthly metrics data successfully", async () => {
-		mockRpc.mockResolvedValueOnce({
-			data: [
-				{
-					month: "2024-01",
-					total_revenue: 40000,
-					total_expenses: 10000,
-					net_income: 30000,
+		// useMonthlyMetrics now fires TWO RPCs via fetchRevenueWithExpenses:
+		// get_revenue_trends_optimized (revenue-only, real key `revenue`) then
+		// get_expense_summary (per-month expenses via monthly_totals). expenses/
+		// net_income/cash_flow come from the join, not phantom RPC keys (TYPE-05).
+		mockRpc
+			.mockResolvedValueOnce({
+				data: [
+					{ month: "2024-01", revenue: 40000 },
+					{ month: "2024-02", revenue: 42000 },
+					{ month: "2024-03", revenue: 43000 },
+				],
+				error: null,
+			})
+			.mockResolvedValueOnce({
+				data: {
+					monthly_totals: [
+						{ month: "2024-01", amount: 10000 },
+						{ month: "2024-02", amount: 11000 },
+						{ month: "2024-03", amount: 10500 },
+					],
 				},
-				{
-					month: "2024-02",
-					total_revenue: 42000,
-					total_expenses: 11000,
-					net_income: 31000,
-				},
-				{
-					month: "2024-03",
-					total_revenue: 43000,
-					total_expenses: 10500,
-					net_income: 32500,
-				},
-			],
-			error: null,
-		});
+				error: null,
+			});
 
 		const { result } = renderHook(() => useMonthlyMetrics(), {
 			wrapper: createWrapper(),
@@ -184,11 +184,17 @@ describe("useMonthlyMetrics", () => {
 		expect(result.current.data?.length).toBe(3);
 		expect(result.current.data?.[0]?.month).toBe("2024-01");
 		expect(result.current.data?.[0]?.revenue).toBe(40000);
+		expect(result.current.data?.[0]?.expenses).toBe(10000);
+		// cash_flow = revenue - joined expenses = 40000 - 10000.
 		expect(result.current.data?.[0]?.cash_flow).toBe(30000);
 	});
 
 	it("returns empty array when no data", async () => {
-		mockRpc.mockResolvedValueOnce({ data: [], error: null });
+		// Promise.all fires the expense RPC unconditionally even for empty
+		// revenue, so BOTH must be mocked (TYPE-05).
+		mockRpc
+			.mockResolvedValueOnce({ data: [], error: null })
+			.mockResolvedValueOnce({ data: { monthly_totals: [] }, error: null });
 
 		const { result } = renderHook(() => useMonthlyMetrics(), {
 			wrapper: createWrapper(),

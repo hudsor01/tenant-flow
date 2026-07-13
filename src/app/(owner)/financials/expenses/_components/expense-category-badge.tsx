@@ -37,13 +37,3 @@ export function getCategoryBadge(category: string) {
 		</span>
 	);
 }
-
-export const EXPENSE_CATEGORIES = [
-	{ value: "all", label: "All Categories" },
-	{ value: "maintenance", label: "Maintenance" },
-	{ value: "utilities", label: "Utilities" },
-	{ value: "insurance", label: "Insurance" },
-	{ value: "taxes", label: "Taxes" },
-	{ value: "management", label: "Management" },
-	{ value: "other", label: "Other" },
-];

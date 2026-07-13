@@ -1,23 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
-import {
-	ChevronLeft,
-	ChevronRight,
-	Filter,
-	Receipt,
-	Search,
-	X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Receipt, Search, X } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Input } from "#components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
 import {
 	Table,
 	TableBody,
@@ -26,21 +12,18 @@ import {
 	TableHeader,
 	TableRow,
 } from "#components/ui/table";
-import type { Expense } from "#hooks/api/query-keys/expense-keys";
+import type { ExpenseRow } from "#hooks/api/query-keys/expense-keys";
 import { formatCurrency } from "#lib/utils/currency";
-import { EXPENSE_CATEGORIES, getCategoryBadge } from "./expense-category-badge";
 
 interface ExpenseTableProps {
-	expenses: Expense[];
-	filteredExpenses: Expense[];
-	paginatedExpenses: Expense[];
+	expenses: ExpenseRow[];
+	filteredExpenses: ExpenseRow[];
+	paginatedExpenses: ExpenseRow[];
 	searchQuery: string;
-	categoryFilter: string;
 	currentPage: number;
 	totalPages: number;
 	itemsPerPage: number;
 	onSearchChange: (value: string) => void;
-	onCategoryChange: (value: string) => void;
 	onPageChange: (page: number) => void;
 	onClearFilters: () => void;
 }
@@ -50,12 +33,10 @@ export function ExpenseTable({
 	filteredExpenses,
 	paginatedExpenses,
 	searchQuery,
-	categoryFilter,
 	currentPage,
 	totalPages,
 	itemsPerPage,
 	onSearchChange,
-	onCategoryChange,
 	onPageChange,
 	onClearFilters,
 }: ExpenseTableProps) {
@@ -75,7 +56,7 @@ export function ExpenseTable({
 					</div>
 
 					<div className="flex items-center gap-3 sm:ml-auto w-full sm:w-auto">
-						{(searchQuery || categoryFilter !== "all") && (
+						{searchQuery && (
 							<button
 								onClick={onClearFilters}
 								className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
@@ -84,19 +65,6 @@ export function ExpenseTable({
 								Clear
 							</button>
 						)}
-						<Select value={categoryFilter} onValueChange={onCategoryChange}>
-							<SelectTrigger className="w-[150px] h-9">
-								<Filter className="w-4 h-4 mr-2" />
-								<SelectValue placeholder="Category" />
-							</SelectTrigger>
-							<SelectContent>
-								{EXPENSE_CATEGORIES.map((cat) => (
-									<SelectItem key={cat.value} value={cat.value}>
-										{cat.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
 						<span className="text-sm text-muted-foreground whitespace-nowrap">
 							{filteredExpenses.length} expense
 							{filteredExpenses.length !== 1 ? "s" : ""}
@@ -117,16 +85,13 @@ export function ExpenseTable({
 							<TableHead className="hidden md:table-cell text-xs font-medium text-muted-foreground uppercase tracking-wider">
 								Property
 							</TableHead>
-							<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-								Category
-							</TableHead>
 							<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">
 								Amount
 							</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{paginatedExpenses.map((expense: Expense) => (
+						{paginatedExpenses.map((expense: ExpenseRow) => (
 							<TableRow key={expense.id}>
 								<TableCell className="text-sm">
 									{expense.expense_date
@@ -148,11 +113,8 @@ export function ExpenseTable({
 								<TableCell className="hidden md:table-cell text-sm text-muted-foreground">
 									{expense.property_name || "--"}
 								</TableCell>
-								<TableCell>
-									{getCategoryBadge(expense.category ?? "other")}
-								</TableCell>
 								<TableCell className="text-right tabular-nums font-medium text-foreground">
-									{formatCurrency(expense.amount ?? 0)}
+									{formatCurrency(expense.amount)}
 								</TableCell>
 							</TableRow>
 						))}

@@ -16,6 +16,7 @@ import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import { parseDynamicFields } from "#lib/validation/dynamic-field";
 
 /**
  * Template definition query factory
@@ -45,7 +46,7 @@ export const templateDefinitionQueries = {
 
 				if (error) handlePostgrestError(error, "document_template_definitions");
 
-				return (data?.custom_fields ?? []) as DynamicField[];
+				return parseDynamicFields(data?.custom_fields);
 			},
 			enabled: !!templateKey,
 			...QUERY_CACHE_TIMES.DETAIL,
