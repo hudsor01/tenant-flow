@@ -8,7 +8,7 @@ import type {
 	RevenueData,
 } from "#types/reports";
 import { mutationKeys } from "../mutation-keys";
-import { fetchRevenueTrends } from "./analytics-keys";
+import { fetchRevenueWithExpenses } from "./analytics-keys";
 
 export const reportKeys = {
 	all: ["reports"] as const,
@@ -121,16 +121,17 @@ export const reportQueries = {
 			queryFn: async (): Promise<RevenueData[]> => {
 				const user = await getCachedUser();
 				if (!user) return [];
-				const rows = await fetchRevenueTrends(months);
+				// get_revenue_trends_optimized is revenue-only; expenses/profit come
+				// from the shared join with get_expense_summary.monthly_totals
+				// (TYPE-06). Previously mapped phantom expenses/profit/count keys the
+				// RPC never emits, so the Profit series flatlined at 0.
+				const rows = await fetchRevenueWithExpenses(months);
 				return rows.map(
 					(row): RevenueData => ({
-						month: String(row.month ?? ""),
-						revenue: Number(row.revenue ?? 0),
-						expenses: Number(row.expenses ?? 0),
-						profit: Number(row.profit ?? row.net_income ?? 0),
-						propertyCount: Number(row.property_count ?? 0),
-						unitCount: Number(row.unit_count ?? 0),
-						occupiedUnits: Number(row.occupied_units ?? 0),
+						month: row.month,
+						revenue: row.revenue,
+						expenses: row.expenses,
+						profit: row.revenue - row.expenses,
 					}),
 				);
 			},

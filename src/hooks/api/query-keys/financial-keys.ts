@@ -22,7 +22,7 @@ import type {
 	CashFlowData,
 	IncomeStatementData,
 } from "#types/financial-statements";
-import { fetchRevenueTrends } from "./analytics-keys";
+import { fetchRevenueWithExpenses } from "./analytics-keys";
 
 export interface FinancialOverviewData {
 	overview: {
@@ -173,18 +173,21 @@ export const financialQueries = {
 			queryFn: async (): Promise<MonthlyMetric[]> => {
 				const user = await getCachedUser();
 				if (!user) return [];
-				const rows = await fetchRevenueTrends(12);
-				return rows.map(
-					(row): MonthlyMetric => ({
-						month: String(row.month ?? row.timeframe ?? ""),
-						revenue: Number(row.revenue ?? row.total_revenue ?? 0),
-						expenses: Number(row.expenses ?? row.total_expenses ?? 0),
-						net_income: Number(row.net_income ?? 0),
-						cash_flow:
-							Number(row.revenue ?? row.total_revenue ?? 0) -
-							Number(row.expenses ?? row.total_expenses ?? 0),
-					}),
-				);
+				// get_revenue_trends_optimized is revenue-only; expenses/net_income
+				// come from the shared join with get_expense_summary.monthly_totals
+				// (TYPE-05). Previously mapped phantom `row.expenses`/`row.net_income`
+				// keys the RPC never emits, so the expense trend was always 0%.
+				const rows = await fetchRevenueWithExpenses(12);
+				return rows.map((row): MonthlyMetric => {
+					const netIncome = row.revenue - row.expenses;
+					return {
+						month: row.month,
+						revenue: row.revenue,
+						expenses: row.expenses,
+						net_income: netIncome,
+						cash_flow: netIncome,
+					};
+				});
 			},
 			...CACHE,
 		}),

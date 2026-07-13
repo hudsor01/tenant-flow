@@ -32,7 +32,7 @@ export function FinancialOverviewStats({
 					<StatLabel>Total Revenue</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
 						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalRevenue / 100} duration={1500} />
+						<NumberTicker value={metrics.totalRevenue} duration={1500} />
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
@@ -57,7 +57,7 @@ export function FinancialOverviewStats({
 					<StatLabel>Net Income</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.netIncome / 100} duration={1500} />
+						<NumberTicker value={metrics.netIncome} duration={1500} />
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<TrendingUp />
@@ -111,7 +111,7 @@ export function FinancialOverviewStats({
 					<StatLabel>Cash Flow</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.cashFlow / 100} duration={1500} />
+						<NumberTicker value={metrics.cashFlow} duration={1500} />
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />

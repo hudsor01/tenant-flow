@@ -25,7 +25,7 @@ export interface PropertyFilters {
 }
 
 const PROPERTY_SELECT_COLUMNS =
-	"id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, date_sold, sale_price, created_at, updated_at";
+	"id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, date_sold, sale_price, acquisition_cost, acquisition_date, created_at, updated_at";
 
 export const propertyQueries = {
 	all: () => ["properties"] as const,

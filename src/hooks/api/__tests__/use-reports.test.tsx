@@ -104,26 +104,27 @@ describe("useMonthlyRevenue", () => {
 	});
 
 	it("fetches monthly revenue data from get_revenue_trends_optimized", async () => {
-		// The RPC returns rows with revenue/expenses/profit (or net_income) keys
-		mockRpc.mockResolvedValueOnce({
-			data: [
-				{
-					month: "2024-01",
-					revenue: 40000,
-					expenses: 10000,
-					net_income: 30000,
-					property_count: 3,
+		// useMonthlyRevenue now joins revenue with real per-month expenses via
+		// fetchRevenueWithExpenses: get_revenue_trends_optimized (revenue-only)
+		// then get_expense_summary (monthly_totals). profit = revenue - joined
+		// expenses; the phantom expenses/profit/count keys are gone (TYPE-06).
+		mockRpc
+			.mockResolvedValueOnce({
+				data: [
+					{ month: "2024-01", revenue: 40000 },
+					{ month: "2024-02", revenue: 42000 },
+				],
+				error: null,
+			})
+			.mockResolvedValueOnce({
+				data: {
+					monthly_totals: [
+						{ month: "2024-01", amount: 10000 },
+						{ month: "2024-02", amount: 11000 },
+					],
 				},
-				{
-					month: "2024-02",
-					revenue: 42000,
-					expenses: 11000,
-					net_income: 31000,
-					property_count: 3,
-				},
-			],
-			error: null,
-		});
+				error: null,
+			});
 
 		const { result } = renderHook(() => useMonthlyRevenue(12), {
 			wrapper: createWrapper(),
@@ -138,7 +139,6 @@ describe("useMonthlyRevenue", () => {
 		expect(result.current.data?.[0]?.revenue).toBe(40000);
 		expect(result.current.data?.[0]?.expenses).toBe(10000);
 		expect(result.current.data?.[0]?.profit).toBe(30000);
-		expect(result.current.data?.[0]?.propertyCount).toBe(3);
 		expect(mockRpc).toHaveBeenCalledWith("get_revenue_trends_optimized", {
 			p_user_id: "user-1",
 			p_months: 12,
@@ -924,18 +924,17 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 
 	it("useMonthlyRevenue forwards revenue/expenses/profit as dollars (no cents math)", async () => {
 		// 12345.67 dollars: *100 would yield 1234567, /100 would yield 123.4567.
-		mockRpc.mockResolvedValueOnce({
-			data: [
-				{
-					month: "2024-03",
-					revenue: 12345.67,
-					expenses: 2345.89,
-					net_income: 9999.78,
-					property_count: 4,
-				},
-			],
-			error: null,
-		});
+		// expenses now join in from get_expense_summary.monthly_totals; profit =
+		// revenue - joined expenses = 12345.67 - 2345.89 = 9999.78 (TYPE-06).
+		mockRpc
+			.mockResolvedValueOnce({
+				data: [{ month: "2024-03", revenue: 12345.67 }],
+				error: null,
+			})
+			.mockResolvedValueOnce({
+				data: { monthly_totals: [{ month: "2024-03", amount: 2345.89 }] },
+				error: null,
+			});
 
 		const { result } = renderHook(() => useMonthlyRevenue(12), {
 			wrapper: createWrapper(),
