@@ -73,6 +73,9 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const [termsData, setTermsData] = useState<Partial<TermsStepData>>({
 		payment_day: 1,
 		grace_period_days: 3,
+		// Labeled "Optional, defaults to $0" — seed it so an untouched deposit
+		// passes step validation and the required-field check on submit.
+		security_deposit: 0,
 		late_fee_amount: 0,
 	});
 	const [selectedDuration, setSelectedDuration] =

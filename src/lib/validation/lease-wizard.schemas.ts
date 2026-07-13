@@ -118,6 +118,9 @@ export const termsStepSchema = z
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Security deposit seems unrealistic",
 			)
+			// Labeled "Optional, defaults to $0" in the UI — default it so an
+			// omitted deposit doesn't block lease creation (matches late_fee_amount).
+			.default(0)
 			.describe("Security deposit in whole dollars"),
 		payment_day: z
 			.number()
@@ -244,9 +247,9 @@ const leaseWizardBaseSchema = z.object({
 	rent_amount: positiveWholeDollarSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 	),
-	security_deposit: nonNegativeWholeDollarSchema.max(
-		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-	),
+	security_deposit: nonNegativeWholeDollarSchema
+		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE)
+		.default(0),
 	payment_day: z.number().int().min(1).max(31).default(1),
 	grace_period_days: z.number().int().min(0).max(30).default(3),
 	late_fee_amount: nonNegativeWholeDollarSchema

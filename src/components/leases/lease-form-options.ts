@@ -10,7 +10,7 @@ import {
  * directly (no `safeParse` / `z.treeifyError`) — its shape already matches the
  * form values, so TanStack runs it and maps issues to fields.
  */
-const validationSchema = z
+export const validationSchema = z
 	.object({
 		unit_id: z.string().min(1, "Unit is required"),
 		primary_tenant_id: z.string().min(1, "Primary tenant is required"),
