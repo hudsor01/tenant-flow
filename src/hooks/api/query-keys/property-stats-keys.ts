@@ -15,6 +15,10 @@ import type { Database } from "#types/supabase";
 import { occupancyTrendsQuery } from "./analytics-keys";
 import { propertyQueries } from "./property-keys";
 
+// Bounds the property performance list fetch (bounded-lists rule). Matches the
+// paired get_property_performance_with_trends RPC's p_limit of 100.
+const PROPERTY_PERFORMANCE_LIMIT = 100;
+
 /**
  * Extract RPC return type from generated Database types
  */
@@ -175,7 +179,8 @@ export const propertyStatsQueries = {
 						.from("properties")
 						.select(`id, name, address_line1, property_type, units(id, status)`)
 						.eq("owner_user_id", user.id)
-						.neq("status", "inactive"),
+						.neq("status", "inactive")
+						.limit(PROPERTY_PERFORMANCE_LIMIT),
 				]);
 
 				if (trendsResult.error)
