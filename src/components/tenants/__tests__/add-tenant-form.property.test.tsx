@@ -583,3 +583,45 @@ describe("AddTenantForm - carries selection into lease flow (FORMFIX-04)", () =>
 		expect(toast.success).not.toHaveBeenCalledWith("Tenant added");
 	});
 });
+
+describe("AddTenantForm - optional phone validation (FORM-19)", () => {
+	function renderForm() {
+		const queryClient = new QueryClient({
+			defaultOptions: { queries: { retry: false } },
+		});
+		return render(
+			<QueryClientProvider client={queryClient}>
+				<AddTenantForm properties={[]} units={[]} />
+			</QueryClientProvider>,
+		);
+	}
+
+	it("rejects a malformed non-empty phone number", async () => {
+		const user = userEvent.setup();
+		renderForm();
+
+		const phone = screen.getByLabelText(/phone number/i);
+		await user.type(phone, "abc");
+		await user.tab(); // blur → field becomes touched so the error renders
+
+		await waitFor(() => {
+			expect(screen.getByText(/can only contain digits/i)).toBeInTheDocument();
+		});
+	});
+
+	it("accepts an empty phone (optional) without error", async () => {
+		const user = userEvent.setup();
+		renderForm();
+
+		const phone = screen.getByLabelText(/phone number/i);
+		await user.click(phone);
+		await user.tab(); // touched but empty
+
+		expect(
+			screen.queryByText(/can only contain digits/i),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/at least 10 characters/i),
+		).not.toBeInTheDocument();
+	});
+});

@@ -38,6 +38,23 @@ describe("leaseBulkImportConfig", () => {
 		expect(fields).toContain("rent_amount");
 	});
 
+	it("rejects a fractional (cents) rent_amount instead of silently rounding (FORM-06)", () => {
+		const csv = buildCsvTemplate(config.templateHeaders, [
+			[
+				"550e8400-e29b-41d4-a716-446655440001",
+				"550e8400-e29b-41d4-a716-446655440002",
+				"2026-05-01",
+				"2027-04-30",
+				"1800.50",
+				"1800",
+				"1",
+			],
+		]);
+		const result = config.parseAndValidate(csv);
+		const fields = (result.rows[0]?.errors ?? []).map((e) => e.field);
+		expect(fields).toContain("rent_amount");
+	});
+
 	it("rejects blank security_deposit (no silent $0 coercion)", () => {
 		const csv = buildCsvTemplate(config.templateHeaders, [
 			[
