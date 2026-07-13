@@ -164,6 +164,28 @@ describe("Query Hooks", () => {
 
 			expect(result.current.isFetching).toBe(false);
 		});
+
+		it("selects acquisition_cost and acquisition_date so edits don't wipe them (TYPE-01)", async () => {
+			const chain = createQueryChain({ data: mockProperty, error: null });
+			mockFrom.mockReturnValue(chain);
+
+			const { result } = renderHook(() => useProperty("prop-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
+
+			// If these columns aren't selected they arrive undefined and the edit
+			// form submits explicit null, wiping them on every save.
+			expect(chain.select).toHaveBeenCalledWith(
+				expect.stringContaining("acquisition_cost"),
+			);
+			expect(chain.select).toHaveBeenCalledWith(
+				expect.stringContaining("acquisition_date"),
+			);
+		});
 	});
 
 	describe("usePropertyList", () => {
