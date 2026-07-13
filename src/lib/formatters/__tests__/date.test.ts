@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatLocalYmd, parseLocalYmd } from "../date";
+import { formatDate, formatLocalYmd, parseLocalYmd } from "../date";
 
 describe("parseLocalYmd", () => {
 	it("parses a YYYY-MM-DD string to local-zone midnight", () => {
@@ -54,5 +54,34 @@ describe("formatLocalYmd", () => {
 				expect(formatLocalYmd(parsed)).toBe(iso);
 			}
 		}
+	});
+});
+
+// COMP-05 (expense table) + COMP-09 (work-order PDF) both render a Postgres
+// `date` column via these exact formatDate option shapes. The formatter renders
+// with timeZone:UTC, so the stored calendar day is preserved in every zone —
+// the property these fixes rely on. `new Date(ymd).toLocaleDateString()` /
+// `format(new Date(ymd), ...)` (the reverted forms) would shift a day west of
+// UTC.
+describe("formatDate date-only rendering (COMP-05 / COMP-09)", () => {
+	it("renders the short style used by the expense table", () => {
+		expect(formatDate("2026-07-11", { fallback: "--" })).toBe("Jul 11, 2026");
+	});
+
+	it("returns the fallback for an empty date-only value", () => {
+		expect(formatDate("", { fallback: "--" })).toBe("--");
+	});
+
+	it("renders the long style used by the work-order PDF", () => {
+		expect(formatDate("2026-07-11", { style: "long", fallback: "—" })).toBe(
+			"July 11, 2026",
+		);
+	});
+
+	it("preserves the calendar day at a month boundary (no UTC shift)", () => {
+		expect(formatDate("2026-03-01", { fallback: "--" })).toBe("Mar 1, 2026");
+		expect(formatDate("2026-12-31", { style: "long", fallback: "—" })).toBe(
+			"December 31, 2026",
+		);
 	});
 });

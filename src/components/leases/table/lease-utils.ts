@@ -1,3 +1,5 @@
+import { differenceInCalendarDays } from "date-fns";
+import { parseLocalYmd } from "#lib/formatters/date";
 import type { Lease, Property, Tenant, Unit, User } from "#types/core";
 
 /** Extended user type that may include computed fields from API response */
@@ -111,13 +113,17 @@ export function transformLease(lease: LeaseWithNestedRelations): LeaseDisplay {
 			: null) ||
 		"Unassigned";
 
-	const endDate = lease.end_date ? new Date(lease.end_date) : null;
-	const now = new Date();
-	const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+	// Parse the date-only end_date in the local frame and diff by calendar day
+	// (mirrors getDaysUntilExpiry in lease-detail-utils.ts). `new Date(ymd)` is
+	// UTC midnight and shifted the expiring boundary a day for US users (COMP-12).
+	const end = lease.end_date ? parseLocalYmd(lease.end_date) : undefined;
+	const daysUntilExpiry = end
+		? differenceInCalendarDays(end, new Date())
+		: null;
 	const isExpiring =
-		endDate &&
-		endDate <= thirtyDaysFromNow &&
-		endDate > now &&
+		daysUntilExpiry !== null &&
+		daysUntilExpiry >= 0 &&
+		daysUntilExpiry <= 30 &&
 		lease.lease_status === "active";
 
 	return {

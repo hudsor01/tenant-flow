@@ -1142,4 +1142,78 @@ describe("transformLease (LEASE-01 list embed shape)", () => {
 		expect(display.propertyName).toBe("No Property");
 		expect(display.unitNumber).toBe("N/A");
 	});
+
+	// COMP-12: the expiring window must use a local calendar-day diff, not a
+	// UTC-midnight `new Date(end_date)` compared to a local `now` — the latter
+	// dropped the "expiring" badge on the final day for users west of UTC.
+	// System time is set to a fixed LOCAL date, and end_date strings are literal
+	// calendar days, so these assertions hold in every timezone.
+	const withEnd = (
+		endDate: string,
+		status: string,
+	): LeaseWithNestedRelations => ({
+		...baseLease,
+		end_date: endDate,
+		lease_status: status,
+	});
+
+	it("marks an active lease ending today as expiring", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
+		try {
+			expect(transformLease(withEnd("2026-06-15", "active")).status).toBe(
+				"expiring",
+			);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("marks an active lease ending in exactly 30 days as expiring", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
+		try {
+			expect(transformLease(withEnd("2026-07-15", "active")).status).toBe(
+				"expiring",
+			);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("does not mark a lease ending in 31 days as expiring", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
+		try {
+			expect(transformLease(withEnd("2026-07-16", "active")).status).toBe(
+				"active",
+			);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("does not mark an already-past lease as expiring", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
+		try {
+			expect(transformLease(withEnd("2026-06-14", "active")).status).toBe(
+				"active",
+			);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("only applies the expiring badge to active leases", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
+		try {
+			expect(transformLease(withEnd("2026-06-15", "draft")).status).toBe(
+				"draft",
+			);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
 });

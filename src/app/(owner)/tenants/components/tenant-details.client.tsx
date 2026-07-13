@@ -15,31 +15,13 @@ import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations
 import { formatDate } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { MoveOutDialog } from "./move-out-dialog";
+import { validateMoveOutDate } from "./move-out-validation";
 
 const logger = createLogger({ component: "TenantDetails" });
 
 interface TenantDetailsProps {
 	id: string;
 }
-
-// Modern date validation - throws on invalid input
-const validateMoveOutDate = (dateString: string): void => {
-	if (!dateString) {
-		throw new Error("Move out date is required");
-	}
-
-	const date = new Date(dateString);
-	if (isNaN(date.getTime())) {
-		throw new Error("Invalid date format");
-	}
-
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-
-	if (date < today) {
-		throw new Error("Move out date cannot be in the past");
-	}
-};
 
 export function TenantDetails({ id }: TenantDetailsProps) {
 	const { data: tenant } = useSuspenseQuery(tenantQueries.withLease(id));

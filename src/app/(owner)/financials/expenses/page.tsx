@@ -1,7 +1,8 @@
 "use client";
 
 import { AlertTriangle, Download } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
@@ -10,6 +11,7 @@ import { useExpenseSummary } from "#hooks/api/use-financials";
 import { ExpenseCategoryBreakdown } from "./_components/expense-category-breakdown";
 import { ExpenseStats } from "./_components/expense-stats";
 import { ExpenseTable } from "./_components/expense-table";
+import { buildExpensesCsv } from "./expenses-csv";
 
 export default function ExpensesPage() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -37,12 +39,31 @@ export default function ExpensesPage() {
 		currentPage * itemsPerPage,
 	);
 
-	useEffect(() => {
+	const handleSearchChange = (value: string) => {
+		setSearchQuery(value);
 		setCurrentPage(1);
-	}, []);
+	};
 
 	const clearFilters = () => {
 		setSearchQuery("");
+		setCurrentPage(1);
+	};
+
+	const handleExportCsv = () => {
+		if (filteredExpenses.length === 0) {
+			toast.error("No data to download");
+			return;
+		}
+		const csv = buildExpensesCsv(filteredExpenses);
+		const blob = new Blob([csv], { type: "text/csv" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `expenses-${new Date().toISOString().slice(0, 10)}.csv`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		setTimeout(() => URL.revokeObjectURL(url), 100);
 	};
 
 	const totalExpenses = summary?.total_amount ?? 0;
@@ -121,7 +142,7 @@ export default function ExpensesPage() {
 							Track maintenance costs and operating expenses.
 						</p>
 					</div>
-					<Button variant="outline">
+					<Button variant="outline" onClick={handleExportCsv}>
 						<Download className="w-4 h-4 mr-2" />
 						Export CSV
 					</Button>
@@ -148,7 +169,7 @@ export default function ExpensesPage() {
 				currentPage={currentPage}
 				totalPages={totalPages}
 				itemsPerPage={itemsPerPage}
-				onSearchChange={setSearchQuery}
+				onSearchChange={handleSearchChange}
 				onPageChange={setCurrentPage}
 				onClearFilters={clearFilters}
 			/>

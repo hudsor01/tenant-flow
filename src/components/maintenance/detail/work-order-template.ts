@@ -1,3 +1,4 @@
+import { formatDate } from "#lib/formatters/date";
 import type { MaintenanceRequest } from "#types/core";
 
 interface WorkOrderExpense {
@@ -24,19 +25,6 @@ function escapeHtml(text: string | null | undefined): string {
 		.replace(/'/g, "&#39;");
 }
 
-function formatDate(iso: string | null | undefined): string {
-	if (!iso) return "—";
-	try {
-		return new Date(iso).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "long",
-			day: "numeric",
-		});
-	} catch {
-		return "—";
-	}
-}
-
 /**
  * Build printable work-order HTML for the generate-pdf Edge Function.
  *
@@ -51,7 +39,7 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
 	const expenseRows = expenses
 		.map(
 			(e) => `<tr>
-  <td>${escapeHtml(formatDate(e.expense_date))}</td>
+  <td>${escapeHtml(formatDate(e.expense_date, { style: "long", fallback: "—" }))}</td>
   <td>${escapeHtml(e.vendor_name)}</td>
   <td style="text-align:right;">${escapeHtml(e.amount)}</td>
 </tr>`,
@@ -109,15 +97,15 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
     </div>
     <div>
       <div class="field-label">Reported</div>
-      <div class="field-value">${escapeHtml(formatDate(request.created_at))}</div>
+      <div class="field-value">${escapeHtml(formatDate(request.created_at, { style: "long", fallback: "—" }))}</div>
     </div>
     <div>
       <div class="field-label">Scheduled</div>
-      <div class="field-value">${escapeHtml(formatDate(request.scheduled_date))}</div>
+      <div class="field-value">${escapeHtml(formatDate(request.scheduled_date, { style: "long", fallback: "—" }))}</div>
     </div>
     <div>
       <div class="field-label">Completed</div>
-      <div class="field-value">${escapeHtml(formatDate(request.completed_at))}</div>
+      <div class="field-value">${escapeHtml(formatDate(request.completed_at, { style: "long", fallback: "—" }))}</div>
     </div>
     <div>
       <div class="field-label">Assigned to</div>

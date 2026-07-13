@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Receipt, Search, X } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Input } from "#components/ui/input";
@@ -13,6 +12,7 @@ import {
 	TableRow,
 } from "#components/ui/table";
 import type { ExpenseRow } from "#hooks/api/query-keys/expense-keys";
+import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 
 interface ExpenseTableProps {
@@ -94,9 +94,7 @@ export function ExpenseTable({
 						{paginatedExpenses.map((expense: ExpenseRow) => (
 							<TableRow key={expense.id}>
 								<TableCell className="text-sm">
-									{expense.expense_date
-										? format(new Date(expense.expense_date), "MMM d, yyyy")
-										: "--"}
+									{formatDate(expense.expense_date, { fallback: "--" })}
 								</TableCell>
 								<TableCell>
 									<div>
