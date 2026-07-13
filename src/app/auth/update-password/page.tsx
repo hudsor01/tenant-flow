@@ -19,6 +19,7 @@ import { UpdatePasswordForm } from "#components/auth/update-password-form";
 import { Button } from "#components/ui/button";
 import { GridPattern } from "#components/ui/grid-pattern";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
+import { createClient } from "#lib/supabase/client";
 
 type PageState = "loading" | "valid" | "error";
 
@@ -27,6 +28,8 @@ function useResetTokenStatus(): { state: PageState; errorMessage: string } {
 	const [errorMessage, setErrorMessage] = useState("");
 
 	useEffect(() => {
+		let ignore = false;
+
 		// Supabase appends error info to the URL hash when a reset link is invalid/expired
 		// e.g. #error=access_denied&error_description=...
 		const hash = window.location.hash.substring(1);
@@ -40,9 +43,33 @@ function useResetTokenStatus(): { state: PageState; errorMessage: string } {
 				"This link has expired or is invalid.";
 			setErrorMessage(message);
 			setState("error");
-		} else {
-			setState("valid");
+			return;
 		}
+
+		// AUTH-07: a clean hash is NOT proof of a recovery session. The callback
+		// verifies the OTP and sets cookies server-side before redirecting here,
+		// so `getUser()` must succeed. A session-less visitor (cross-device link
+		// open, direct navigation) is routed to ExpiredLinkContent BEFORE typing
+		// a password instead of hitting a raw "Auth session missing!" on submit.
+		void (async () => {
+			const supabase = createClient();
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (ignore) return;
+			if (user) {
+				setState("valid");
+			} else {
+				setErrorMessage(
+					"Open the password reset link on this device, or request a new one below.",
+				);
+				setState("error");
+			}
+		})();
+
+		return () => {
+			ignore = true;
+		};
 	}, []);
 
 	return { state, errorMessage };

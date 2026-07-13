@@ -181,7 +181,11 @@ Deno.serve(async (req: Request) => {
 			payment_method_types: ["card"],
 			line_items: [{ price: priceId, quantity: 1 }],
 			mode: "subscription",
-			success_url: `${frontendUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+			// AUTH-08: land on the purpose-built, subscription-gate-allowlisted
+			// success page (proxy `/billing/checkout` prefix) so a lapsed
+			// re-subscriber isn't bounced to /pricing before the webhook updates
+			// subscription_status. cancel_url is already allowlisted (BILL-19).
+			success_url: `${frontendUrl}/billing/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${frontendUrl}/billing/checkout/cancel`,
 			metadata: sessionMetadata,
 			// Carry-over trial only. When trialEndUnix is set, `if_required`

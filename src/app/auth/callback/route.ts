@@ -10,6 +10,7 @@ export const VALID_OTP_TYPES = [
 	"recovery",
 	"magiclink",
 	"invite",
+	"email_change",
 ] as const;
 type ValidOtpType = (typeof VALID_OTP_TYPES)[number];
 
@@ -19,6 +20,55 @@ export function isValidOtpType(type: string | null): type is ValidOtpType {
 		type !== "" &&
 		(VALID_OTP_TYPES as readonly string[]).includes(type)
 	);
+}
+
+/**
+ * AUTH-01/02/09: exhaustive per-type success redirect. The `switch` returns on
+ * every `ValidOtpType`, so `noImplicitReturns` makes a future omission a
+ * compile error — the old fall-through-to-error defect can't recur.
+ *   - signup/email → dashboard (email confirmed, session set)
+ *   - recovery/invite → update-password (set/reset the password)
+ *   - magiclink → the already-sanitized `next` (producer steers the landing)
+ *   - email_change → settings with a confirmation flag (AUTH-01)
+ */
+export function successRedirectPath(type: ValidOtpType, next: string): string {
+	switch (type) {
+		case "signup":
+		case "email":
+			return "/dashboard";
+		case "recovery":
+			return "/auth/update-password";
+		case "invite":
+			return "/auth/update-password";
+		case "magiclink":
+			return next;
+		case "email_change":
+			return "/settings?email_change=confirmed";
+	}
+}
+
+/**
+ * AUTH-02/09: exhaustive per-type failure redirect. Each destination is a real,
+ * user-facing page whose error is surfaced (no self-redirect to /auth/callback,
+ * which has no page).
+ *   - signup/email → confirm-email with an invalid-token banner
+ *   - recovery → update-password error hash (its ExpiredLinkContent renders it)
+ *   - magiclink/invite → login with the link_expired code (AUTH-04 surfaces it)
+ *   - email_change → settings with a failed flag (AUTH-01)
+ */
+export function failureRedirectPath(type: ValidOtpType): string {
+	switch (type) {
+		case "signup":
+		case "email":
+			return "/auth/confirm-email?error=invalid_token";
+		case "recovery":
+			return "/auth/update-password#error=access_denied&error_description=This+link+has+expired+or+is+invalid";
+		case "magiclink":
+		case "invite":
+			return "/login?error=link_expired";
+		case "email_change":
+			return "/settings?email_change=failed";
+	}
 }
 
 // AUTH-13: x-forwarded-host is intentionally ignored to prevent host header injection attacks.
@@ -67,10 +117,12 @@ export async function GET(request: NextRequest) {
 	);
 
 	if (tokenHash && type) {
-		// AUTH-15: validate OTP type against allowlist before calling Supabase
+		// AUTH-15: validate OTP type against allowlist before calling Supabase.
+		// AUTH-09: an invalid type redirects straight to a user-facing page with
+		// an accurate code — never back to /auth/callback (which has no page).
 		if (!isValidOtpType(type)) {
 			return NextResponse.redirect(
-				buildRedirectUrl(request, origin, "/auth/callback?error=invalid_type"),
+				buildRedirectUrl(request, origin, "/login?error=invalid_link"),
 			);
 		}
 
@@ -79,37 +131,18 @@ export async function GET(request: NextRequest) {
 			type,
 		});
 
-		if (!error && data?.session) {
-			if (type === "signup" || type === "email") {
-				return NextResponse.redirect(
-					buildRedirectUrl(request, origin, "/dashboard"),
-				);
-			}
+		// AUTH-01: "Secure email change" (Supabase dashboard default) double-
+		// confirms — the FIRST click returns `session: null` with no error. Gating
+		// email_change success on a session would misroute that correct click to
+		// the failure path, so treat `!error` alone as success for email_change.
+		const succeeded =
+			type === "email_change" ? !error : !error && Boolean(data?.session);
 
-			if (type === "recovery") {
-				return NextResponse.redirect(
-					buildRedirectUrl(request, origin, "/auth/update-password"),
-				);
-			}
-		}
+		const path = succeeded
+			? successRedirectPath(type, next)
+			: failureRedirectPath(type);
 
-		if (type === "signup" || type === "email") {
-			return NextResponse.redirect(
-				buildRedirectUrl(
-					request,
-					origin,
-					"/auth/confirm-email?error=invalid_token",
-				),
-			);
-		}
-
-		return NextResponse.redirect(
-			buildRedirectUrl(
-				request,
-				origin,
-				"/auth/update-password#error=access_denied&error_description=This+link+has+expired+or+is+invalid",
-			),
-		);
+		return NextResponse.redirect(buildRedirectUrl(request, origin, path));
 	}
 
 	if (code) {

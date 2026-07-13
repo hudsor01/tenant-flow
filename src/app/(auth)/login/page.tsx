@@ -50,11 +50,28 @@ function LoginPageContent() {
 	// only the "Loading..." Suspense fallback in the initial HTML (no form). The
 	// params are only needed in this client-only effect + the submit handler, so
 	// reading them lazily lets the whole form render server-side into the HTML.
+	//
+	// AUTH-04/09: surface the auth-flow error codes the callback route emits
+	// (oauth_failed / link_expired / invalid_link) as an inline auth error, then
+	// strip ONLY the `error` param so a sibling `redirect` survives the cleanup
+	// (AUTH-12 round-trips /settings?email_change=… back through here after login).
 	useEffect(() => {
-		const error = new URLSearchParams(window.location.search).get("error");
-		if (error === "oauth_failed") {
-			router.replace("/login");
-		}
+		const params = new URLSearchParams(window.location.search);
+		const code = params.get("error");
+		if (!code) return;
+		const messages: Record<string, string> = {
+			oauth_failed:
+				"Sign-in failed. Your Google sign-in or sign-in link could not be completed — please try again.",
+			link_expired:
+				"Your sign-in link has expired or is invalid. Request a new one below.",
+			invalid_link: "That sign-in link is invalid. Please request a new one.",
+		};
+		const message = messages[code];
+		if (!message) return;
+		setAuthError(message);
+		params.delete("error");
+		const query = params.toString();
+		router.replace(query ? `/login?${query}` : "/login");
 	}, [router]);
 
 	// SEC-01: when the proxy redirects an aal1 session for an MFA-enrolled
@@ -120,7 +137,12 @@ function LoginPageContent() {
 			if (error) {
 				logger.error("[LOGIN_FAILED]", { error: error.message });
 				if (error.message.includes("Email not confirmed")) {
-					router.push("/auth/confirm-email");
+					// AUTH-03: hand the exact address to the confirm-email page so its
+					// session-free resend works (the page's audience is by definition
+					// pre-confirmation and has no session to read the email from).
+					router.push(
+						`/auth/confirm-email?email=${encodeURIComponent(value.email)}`,
+					);
 					throw new Error("Please confirm your email before signing in.");
 				}
 				throw new Error(

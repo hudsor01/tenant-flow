@@ -49,7 +49,11 @@ export function OwnerSubscribeDialog({
 					password,
 					options: {
 						data: { first_name, last_name, planIntent: planName },
-						emailRedirectTo: `${window.location.origin}/auth/confirm`,
+						// AUTH-11: /auth/confirm does not exist — the real callback route
+						// is /auth/callback (handles both the PKCE `code` and token_hash
+						// shapes). Inert while the auth-email-send hook overrides links,
+						// but correct under default Supabase templates.
+						emailRedirectTo: `${window.location.origin}/auth/callback`,
 					},
 				});
 				if (error) throw error;

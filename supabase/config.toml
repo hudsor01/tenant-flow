@@ -438,15 +438,6 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
-# Stripe checkout session retrieval — public by design. The Stripe
-# session_id IS the secret; the function looks up customer_email for the
-# /auth/post-checkout magic-link flow before the user has an account.
-# Caller is `src/app/auth/post-checkout/page.tsx` via raw fetch() with no
-# Authorization header. NOT Supabase JWT.
-[functions.stripe-checkout-session]
-verify_jwt = false
-import_map = "./functions/deno.json"
-
 # Stripe billing portal — function calls `validateBearerAuth()` internally,
 # gateway gate off.
 [functions.stripe-billing-portal]
