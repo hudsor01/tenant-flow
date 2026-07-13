@@ -141,6 +141,40 @@ describe("useExpenses", () => {
 		expect(mockLimit).toHaveBeenCalledWith(1000);
 	});
 
+	it("derives property_name from the maintenance_requests join and maps description (TYPE-04)", async () => {
+		mockSelect.mockReturnValue({ neq: mockNeq });
+		mockNeq.mockReturnValue({ order: mockOrder });
+		mockOrder.mockReturnValue({ limit: mockLimit });
+		mockLimit.mockResolvedValue({
+			data: [
+				{
+					...mockExpenseRow,
+					description: "HVAC repair",
+					maintenance_requests: {
+						units: { properties: { name: "Maple Court" } },
+					},
+				},
+				// No maintenance link → property_name must be null, not "--".
+				{ ...mockExpenseRow, id: "exp-2", maintenance_requests: null },
+			],
+			count: null,
+			error: null,
+		});
+		mockFrom.mockReturnValue({ select: mockSelect });
+
+		const { result } = renderHook(() => useExpenses(), {
+			wrapper: createWrapper(),
+		});
+
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+
+		expect(result.current.data?.[0]?.property_name).toBe("Maple Court");
+		expect(result.current.data?.[0]?.description).toBe("HVAC repair");
+		expect(result.current.data?.[1]?.property_name).toBeNull();
+	});
+
 	it("handles empty expense list", async () => {
 		const selectChain = { neq: mockNeq };
 		const neqChain = { order: mockOrder };
