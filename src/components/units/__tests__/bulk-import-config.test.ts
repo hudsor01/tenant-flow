@@ -37,6 +37,15 @@ describe("unitBulkImportConfig", () => {
 		expect(fields).toContain("rent_amount");
 	});
 
+	it("rejects a fractional (cents) rent_amount instead of a raw 22P02 (FORM-14)", () => {
+		const csv = buildCsvTemplate(config.templateHeaders, [
+			["101", "2", "1", "850", "1500.50", "available"],
+		]);
+		const result = config.parseAndValidate(csv);
+		const fields = (result.rows[0]?.errors ?? []).map((e) => e.field);
+		expect(fields).toContain("rent_amount");
+	});
+
 	it("flags duplicate unit_number within same CSV", () => {
 		const csv = buildCsvTemplate(config.templateHeaders, [
 			["101", "2", "1", "850", "1800", "available"],

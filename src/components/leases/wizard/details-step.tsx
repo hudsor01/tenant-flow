@@ -256,9 +256,13 @@ export function DetailsStep({ data, onChange, errors }: DetailsStepProps) {
 					id="property_rules"
 					placeholder="Enter any additional property rules or restrictions..."
 					rows={4}
+					maxLength={5000}
 					value={data.property_rules || ""}
 					onChange={(e) => handleChange("property_rules", e.target.value)}
 				/>
+				{errors?.property_rules ? (
+					<FieldError>{errors.property_rules}</FieldError>
+				) : null}
 			</div>
 
 			<div className="space-y-4 p-4 border rounded-lg bg-muted/50">
