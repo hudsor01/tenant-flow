@@ -105,20 +105,27 @@ describe("createMutationCallbacks", () => {
 			expect(qc.setQueryData).toHaveBeenCalledWith(["items", "42"], data);
 		});
 
-		it("onSuccess calls removeQueries when removeDetail config is provided", () => {
+		it("onSuccess calls removeQueries once per key when removeDetail returns an array of keys", () => {
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ deletedId: string }
 			>(qc, {
 				invalidate: [],
 				errorContext: "Test",
-				removeDetail: (_data, vars) => ["items", vars.deletedId],
+				removeDetail: (_data, vars) => [
+					["items", "detail", vars.deletedId],
+					["items", "with-lease", vars.deletedId],
+				],
 			});
 
 			callbacks.onSuccess({ id: "1" }, { deletedId: "99" });
 
+			expect(qc.removeQueries).toHaveBeenCalledTimes(2);
 			expect(qc.removeQueries).toHaveBeenCalledWith({
-				queryKey: ["items", "99"],
+				queryKey: ["items", "detail", "99"],
+			});
+			expect(qc.removeQueries).toHaveBeenCalledWith({
+				queryKey: ["items", "with-lease", "99"],
 			});
 		});
 

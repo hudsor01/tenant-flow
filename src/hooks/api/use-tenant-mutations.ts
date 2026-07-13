@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { handleMutationSuccess } from "#lib/mutation-error-handler";
 import { incrementVersion } from "#lib/utils/optimistic-locking";
+import type { TenantUpdate } from "#lib/validation/tenants";
 import type {
 	Tenant,
 	TenantWithLeaseInfo,
@@ -43,15 +44,23 @@ export function useUpdateTenantMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		...tenantMutations.update(),
-		...createMutationCallbacks<TenantWithLeaseInfo>(queryClient, {
-			invalidate: [tenantQueries.lists(), ownerDashboardKeys.all],
-			updateDetail: (tenant) => ({
-				queryKey: tenantQueries.detail(tenant.id).queryKey,
-				data: tenant,
-			}),
-			successMessage: "Tenant updated successfully",
-			errorContext: "Update tenant",
-		}),
+		...createMutationCallbacks<Tenant, { id: string; data: TenantUpdate }>(
+			queryClient,
+			{
+				// update() returns a base Tenant (no lease embed), so it must NOT be
+				// written into the enriched detail/withLease caches (superset rule).
+				// The tenant detail page reads withLease(id) — invalidate both keys so
+				// saved edits refetch through the lease-carrying queryFn.
+				invalidate: ({ id }) => [
+					tenantQueries.lists(),
+					tenantQueries.detail(id).queryKey,
+					tenantQueries.withLease(id).queryKey,
+					ownerDashboardKeys.all,
+				],
+				successMessage: "Tenant updated successfully",
+				errorContext: "Update tenant",
+			},
+		),
 	});
 }
 
@@ -69,8 +78,10 @@ export function useDeleteTenantMutation() {
 				leaseQueries.lists(),
 				ownerDashboardKeys.all,
 			],
-			removeDetail: (_data, deletedId) =>
+			removeDetail: (_data, deletedId) => [
 				tenantQueries.detail(deletedId).queryKey,
+				tenantQueries.withLease(deletedId).queryKey,
+			],
 			successMessage: "Tenant deleted successfully",
 			errorContext: "Delete tenant",
 		}),

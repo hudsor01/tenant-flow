@@ -15,6 +15,10 @@ import type { Database } from "#types/supabase";
 import { occupancyTrendsQuery } from "./analytics-keys";
 import { propertyQueries } from "./property-keys";
 
+// Bounds the property performance list fetch (bounded-lists rule). Matches the
+// paired get_property_performance_with_trends RPC's p_limit of 100.
+const PROPERTY_PERFORMANCE_LIMIT = 100;
+
 /**
  * Extract RPC return type from generated Database types
  */
@@ -105,31 +109,30 @@ function getTimeframeDays(timeframe: string): number {
 
 export const propertyStatsQueries = {
 	/**
-	 * Property statistics
-	 * Aggregates active, total counts directly via PostgREST
+	 * Property statistics — all counts are PROPERTY-denominated so the derived
+	 * fields stay consistent (vacant = total - occupied ≥ 0, occupancyRate ≤ 100%):
+	 *  - total    = non-inactive properties
+	 *  - occupied = non-inactive properties with ≥1 occupied unit (the `units!inner`
+	 *    join counts parent rows; joining through already-status-filtered properties
+	 *    also excludes soft-deleted properties' units).
 	 */
 	stats: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), "stats"],
 			queryFn: async (): Promise<PropertyStats> => {
 				const supabase = createClient();
-				const [activeResult, totalResult, occupiedResult] = await Promise.all([
-					supabase
-						.from("properties")
-						.select("id", { count: "exact", head: true })
-						.eq("status", "active"),
+				const [totalResult, occupiedResult] = await Promise.all([
 					supabase
 						.from("properties")
 						.select("id", { count: "exact", head: true })
 						.neq("status", "inactive"),
 					supabase
-						.from("units")
-						.select("id", { count: "exact", head: true })
-						.eq("status", "occupied"),
+						.from("properties")
+						.select("id, units!inner(id)", { count: "exact", head: true })
+						.neq("status", "inactive")
+						.eq("units.status", "occupied"),
 				]);
 
-				if (activeResult.error)
-					handlePostgrestError(activeResult.error, "properties");
 				if (totalResult.error)
 					handlePostgrestError(totalResult.error, "properties");
 				if (occupiedResult.error)
@@ -176,7 +179,8 @@ export const propertyStatsQueries = {
 						.from("properties")
 						.select(`id, name, address_line1, property_type, units(id, status)`)
 						.eq("owner_user_id", user.id)
-						.neq("status", "inactive"),
+						.neq("status", "inactive")
+						.limit(PROPERTY_PERFORMANCE_LIMIT),
 				]);
 
 				if (trendsResult.error)

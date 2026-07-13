@@ -39,11 +39,14 @@ export function useUpdateInspection(id: string) {
 	return useMutation({
 		...inspectionMutations.update(id),
 		...createMutationCallbacks(queryClient, {
-			invalidate: [inspectionQueries.lists()],
-			updateDetail: (updated) => ({
-				queryKey: inspectionQueries.detailQuery(id).queryKey,
-				data: updated,
-			}),
+			// The update mutationFn returns a bare row (no enriched `rooms`), so it
+			// must NOT be written into the detail cache via updateDetail (superset
+			// rule). Invalidate the detail key so detailQuery refetches the enriched
+			// shape (rooms + signed photo URLs) instead — matches complete/submit.
+			invalidate: [
+				inspectionQueries.detailQuery(id).queryKey,
+				inspectionQueries.lists(),
+			],
 			successMessage: "Inspection updated",
 			errorContext: "Update inspection",
 			broadcastSuccess: true,

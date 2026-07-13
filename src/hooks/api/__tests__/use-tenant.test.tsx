@@ -109,6 +109,33 @@ function createWrapper() {
 	};
 }
 
+// Like createWrapper but exposes spies on the client's invalidate/remove so a
+// mutation's cache-key targeting can be asserted (DATA-03).
+function createSpyWrapper() {
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: { retry: false },
+			mutations: { retry: false },
+		},
+	});
+	const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+	const removeSpy = vi.spyOn(queryClient, "removeQueries");
+	function Wrapper({ children }: { children: ReactNode }) {
+		return (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		);
+	}
+	return { Wrapper, invalidateSpy, removeSpy };
+}
+
+function invalidatedKeys(spy: {
+	mock: { calls: ReadonlyArray<ReadonlyArray<unknown>> };
+}): string[] {
+	return spy.mock.calls.map((c) =>
+		JSON.stringify((c[0] as { queryKey?: unknown })?.queryKey),
+	);
+}
+
 // Sample tenant data matching DB schema. `status` is NOT NULL on the
 // tenants row and is now field-validated at the create/update boundary by
 // mapTenantBaseRow (TYPE-02), so the fixture must carry a valid status.
@@ -395,6 +422,28 @@ describe("Mutation Hooks", () => {
 				expect.objectContaining({ identity_verified: true }),
 			);
 		});
+
+		it("invalidates the withLease detail key on update (DATA-03)", async () => {
+			const { Wrapper, invalidateSpy } = createSpyWrapper();
+			const { result } = renderHook(() => useUpdateTenantMutation(), {
+				wrapper: Wrapper,
+			});
+
+			await result.current.mutateAsync({
+				id: "tenant-123",
+				data: { identity_verified: true },
+			});
+
+			// The tenant detail page reads tenantQueries.withLease(id); it must be
+			// invalidated (alongside detail(id)) or edits stay stale for 5 minutes.
+			const keys = invalidatedKeys(invalidateSpy);
+			expect(keys).toContain(
+				JSON.stringify(tenantQueries.withLease("tenant-123").queryKey),
+			);
+			expect(keys).toContain(
+				JSON.stringify(tenantQueries.detail("tenant-123").queryKey),
+			);
+		});
 	});
 
 	describe("useDeleteTenantMutation", () => {
@@ -432,6 +481,46 @@ describe("Mutation Hooks", () => {
 			expect(supabaseFromMock).toHaveBeenCalledWith("tenants");
 			expect(tenantsUpdateMock).toHaveBeenCalledWith(
 				expect.objectContaining({ status: "inactive" }),
+			);
+		});
+
+		it("removes the detail and withLease keys on delete (DATA-03)", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "tenants") {
+					return {
+						update: vi.fn().mockReturnValue({
+							eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+						}),
+					};
+				}
+				if (table === "lease_tenants") {
+					return {
+						select: vi.fn().mockReturnValue({
+							eq: vi.fn().mockReturnValue({
+								eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+							}),
+						}),
+					};
+				}
+				return createQueryChain({ data: null });
+			});
+
+			const { Wrapper, removeSpy } = createSpyWrapper();
+			const { result } = renderHook(() => useDeleteTenantMutation(), {
+				wrapper: Wrapper,
+			});
+
+			await result.current.mutateAsync("tenant-123");
+
+			// Soft-delete: the withLease queryFn fetches by id with no status
+			// filter, so the entries must be REMOVED (not invalidated) or the
+			// deleted tenant re-populates its detail caches.
+			const keys = invalidatedKeys(removeSpy);
+			expect(keys).toContain(
+				JSON.stringify(tenantQueries.detail("tenant-123").queryKey),
+			);
+			expect(keys).toContain(
+				JSON.stringify(tenantQueries.withLease("tenant-123").queryKey),
 			);
 		});
 

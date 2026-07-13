@@ -156,15 +156,13 @@ export const expenseQueries = {
 			] as const,
 			queryFn: async (): Promise<PaginatedExpenses> => {
 				const supabase = createClient();
-				const isPaginated =
-					options?.limit !== undefined && options?.offset !== undefined;
 
-				// `count: 'exact'` runs a separate COUNT(*) on every fetch — only
-				// pay for it when the caller actually consumes `total` (paginated
-				// mode). Legacy useExpenses() discards `total` via select(); no count.
+				// Always request the exact count so `total` is the true row count on
+				// every path (CLAUDE.md: use `count`, never `data.length`). This is
+				// the same unconditional COUNT(*) every other list factory pays.
 				let q = supabase
 					.from("expenses")
-					.select(EXPENSE_SELECT, isPaginated ? { count: "exact" } : undefined)
+					.select(EXPENSE_SELECT, { count: "exact" })
 					.neq("status", "inactive")
 					.order("expense_date", { ascending: false });
 
@@ -190,7 +188,7 @@ export const expenseQueries = {
 				if (error) handlePostgrestError(error, "expenses");
 				return {
 					data: (data ?? []) as Expense[],
-					total: count ?? data?.length ?? 0,
+					total: count ?? 0,
 				};
 			},
 			staleTime: 2 * 60 * 1000,

@@ -1,9 +1,4 @@
-import {
-	usePrefetchQuery,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
-import { useEffect } from "react";
+import { usePrefetchQuery, useQuery } from "@tanstack/react-query";
 import { useEntityDetail } from "#hooks/use-entity-detail";
 import type { Lease } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
@@ -19,34 +14,24 @@ export function useLease(id: string) {
 
 export function useLeaseList(params?: {
 	status?: string;
-	search?: string;
 	limit?: number;
 	offset?: number;
 }) {
-	const { status, search, limit = 50, offset = 0 } = params || {};
-	const queryClient = useQueryClient();
+	const { status, limit = 50, offset = 0 } = params || {};
 
-	const listQuery = leaseQueries.list({
-		...(status && { status }),
-		...(search && { search }),
-		limit,
-		offset,
-	});
-
-	const query = useQuery({
-		...listQuery,
+	// No list->detail seeding: the list row shape (aliased embeds) is NOT a
+	// superset of the detail queryFn shape, so seeding it fresh via setQueryData
+	// poisons the detail cache. useLease() already gets instant paint via
+	// useEntityDetail's list-cache placeholderData (which does NOT mark fresh),
+	// so the real detail queryFn still fetches the embed-carrying shape.
+	return useQuery({
+		...leaseQueries.list({
+			...(status && { status }),
+			limit,
+			offset,
+		}),
 		structuralSharing: true,
 	});
-
-	useEffect(() => {
-		if (query.data?.data) {
-			for (const lease of query.data.data) {
-				queryClient.setQueryData(leaseQueries.detail(lease.id).queryKey, lease);
-			}
-		}
-	}, [query.data, queryClient]);
-
-	return query;
 }
 
 export function useExpiringLeases(daysUntilExpiry: number = 30) {

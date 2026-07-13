@@ -100,9 +100,12 @@ export const reportQueries = {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("report_runs")
-					.select("*")
+					.select(
+						"id, report_id, execution_status, file_path, file_size, execution_time_ms, error_message, started_at, completed_at, created_at",
+					)
 					.eq("report_id", reportId)
-					.order("created_at", { ascending: false });
+					.order("created_at", { ascending: false })
+					.limit(50);
 
 				if (error) handlePostgrestError(error, "report runs");
 				return data ?? [];

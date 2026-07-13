@@ -16,7 +16,6 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import {
-	usePropertiesWithUnits,
 	useProperty,
 	usePropertyImages,
 	usePropertyList,
@@ -63,11 +62,10 @@ const {
 	mockFrom,
 	mockSelect,
 	mockEq,
-	mockNeq,
 	mockOrder,
+	mockLimit,
 	mockSingle,
 	mockUpdate,
-	mockHead,
 	mockGetUser,
 	mockRpc,
 	mockStorageFrom,
@@ -76,11 +74,10 @@ const {
 	mockFrom: vi.fn(),
 	mockSelect: vi.fn(),
 	mockEq: vi.fn(),
-	mockNeq: vi.fn(),
 	mockOrder: vi.fn(),
+	mockLimit: vi.fn(),
 	mockSingle: vi.fn(),
 	mockUpdate: vi.fn(),
-	mockHead: vi.fn(),
 	mockGetUser: vi.fn(),
 	mockRpc: vi.fn(),
 	mockStorageFrom: vi.fn(),
@@ -211,41 +208,15 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("usePropertiesWithUnits", () => {
-		it("should query properties with units using supabase.from", async () => {
-			const propertyWithUnits = { ...mockProperty, units: [] };
-			mockFrom.mockReturnValue(
-				createQueryChain({ data: [propertyWithUnits], error: null }),
-			);
-
-			const { result } = renderHook(() => usePropertiesWithUnits(), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(mockFrom).toHaveBeenCalledWith("properties");
-		});
-	});
-
 	describe("usePropertyStats", () => {
-		it("should aggregate stats from multiple PostgREST queries", async () => {
-			// Stats uses three parallel queries to: properties (active), properties (total), units (occupied)
-			const headResult = { data: null, error: null, count: 5 };
-			mockHead.mockResolvedValue(headResult);
-
-			const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-			chain.select = mockSelect;
-			chain.eq = mockEq;
-			chain.neq = mockNeq;
-
-			mockSelect.mockReturnValue(chain);
-			mockEq.mockResolvedValue(headResult);
-			mockNeq.mockResolvedValue(headResult);
-
-			mockFrom.mockReturnValue({ select: mockSelect });
+		it("should aggregate stats from two property-denominated PostgREST queries", async () => {
+			// Stats now runs TWO parallel property-denominated HEAD counts, both on
+			// `properties`:
+			//   total    = .neq('status','inactive')
+			//   occupied = .neq('status','inactive').eq('units.status','occupied')
+			//              via the units!inner join (parent-row count)
+			const chain = createQueryChain({ data: null, error: null, count: 5 });
+			mockFrom.mockReturnValue(chain);
 
 			const { result } = renderHook(() => usePropertyStats(), {
 				wrapper: createWrapper(),
@@ -256,6 +227,8 @@ describe("Query Hooks", () => {
 			});
 
 			expect(mockFrom).toHaveBeenCalledWith("properties");
+			expect(chain.neq).toHaveBeenCalledWith("status", "inactive");
+			expect(chain.eq).toHaveBeenCalledWith("units.status", "occupied");
 		});
 	});
 });
@@ -340,10 +313,12 @@ describe("Utility Hooks", () => {
 			const imageChain: Record<string, ReturnType<typeof vi.fn>> = {};
 			imageChain.eq = mockEq;
 			imageChain.order = mockOrder;
+			imageChain.limit = mockLimit;
 
 			mockSelect.mockReturnValue(imageChain);
 			mockEq.mockReturnValue({ order: mockOrder });
-			mockOrder.mockResolvedValue({
+			mockOrder.mockReturnValue({ limit: mockLimit });
+			mockLimit.mockResolvedValue({
 				data: [
 					{
 						id: "img-1",

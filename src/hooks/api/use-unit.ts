@@ -131,8 +131,9 @@ export function useDeleteUnitMutation() {
 				leaseQueries.lists(),
 				ownerDashboardKeys.all,
 			],
-			removeDetail: (_data, deletedId) =>
+			removeDetail: (_data, deletedId) => [
 				unitQueries.detail(deletedId).queryKey,
+			],
 			successMessage: "Unit deleted successfully",
 			errorContext: "Delete unit",
 		}),

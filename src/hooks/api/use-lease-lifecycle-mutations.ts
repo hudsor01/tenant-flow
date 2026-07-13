@@ -47,12 +47,22 @@ export function useRenewLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.renew(),
-		...createMutationCallbacks<Lease>(queryClient, {
-			invalidate: [leaseQueries.lists(), ownerDashboardKeys.all],
-			updateDetail: (lease) => ({
-				queryKey: leaseQueries.detail(lease.id).queryKey,
-				data: lease,
-			}),
+		...createMutationCallbacks<
+			Lease,
+			{ id: string; data: { end_date: string; rent_amount?: number } }
+		>(queryClient, {
+			// renew() returns a bare row (no units/tenants embeds), so it must NOT
+			// be written into the detail cache (superset rule). Invalidate the detail
+			// key so it refetches the embed-carrying shape. Renewing also flips
+			// lease_status to 'active' (unit status via trigger) and changes
+			// end_date/rent_amount embedded in tenant list rows — invalidate those too.
+			invalidate: ({ id }) => [
+				leaseQueries.lists(),
+				leaseQueries.detail(id).queryKey,
+				tenantQueries.lists(),
+				unitQueries.all(),
+				ownerDashboardKeys.all,
+			],
 			successMessage: "Lease renewed successfully",
 			errorContext: "Renew lease",
 		}),

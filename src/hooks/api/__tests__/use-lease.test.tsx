@@ -29,6 +29,8 @@ import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import type { Lease, Property } from "#types/core";
 import { leaseQueries } from "../query-keys/lease-keys";
 import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
+import { tenantQueries } from "../query-keys/tenant-keys";
+import { unitQueries } from "../query-keys/unit-keys";
 import {
 	useExpiringLeases,
 	useLease,
@@ -135,6 +137,32 @@ function createWrapper() {
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		);
 	};
+}
+
+// Exposes a spy on the client's invalidateQueries so a mutation's cache-key
+// targeting can be asserted (DATA-02/06/18).
+function createSpyWrapper() {
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: { retry: false },
+			mutations: { retry: false },
+		},
+	});
+	const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+	function Wrapper({ children }: { children: ReactNode }) {
+		return (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		);
+	}
+	return { Wrapper, invalidateSpy };
+}
+
+function invalidatedKeys(spy: {
+	mock: { calls: ReadonlyArray<ReadonlyArray<unknown>> };
+}): string[] {
+	return spy.mock.calls.map((c) =>
+		JSON.stringify((c[0] as { queryKey?: unknown })?.queryKey),
+	);
 }
 
 // Set up global fetch mock before tests
@@ -618,6 +646,29 @@ describe("Mutation Hooks", () => {
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
 		});
+
+		it("invalidates the lease detail key on update (DATA-06)", async () => {
+			supabaseFromMock.mockImplementation((table: string) =>
+				createQueryChain({
+					data: table === "leases" ? { ...mockLease, rent_amount: 1600 } : null,
+				}),
+			);
+			const { Wrapper, invalidateSpy } = createSpyWrapper();
+			const { result } = renderHook(() => useUpdateLeaseMutation(), {
+				wrapper: Wrapper,
+			});
+
+			await result.current.mutateAsync({
+				id: "lease-123",
+				data: { rent_amount: 1600 },
+			});
+
+			// The detail page reads the embed-carrying leaseQueries.detail(id); it
+			// must be invalidated so the units/properties embeds refetch.
+			expect(invalidatedKeys(invalidateSpy)).toContain(
+				JSON.stringify(leaseQueries.detail("lease-123").queryKey),
+			);
+		});
 	});
 
 	describe("useDeleteLeaseMutation", () => {
@@ -672,6 +723,36 @@ describe("Mutation Hooks", () => {
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+
+		it("invalidates detail + tenant/unit views on renew (DATA-02/18)", async () => {
+			supabaseFromMock.mockImplementation((table: string) =>
+				createQueryChain({
+					data:
+						table === "leases"
+							? { ...mockLease, end_date: "2026-01-01" }
+							: null,
+				}),
+			);
+			const { Wrapper, invalidateSpy } = createSpyWrapper();
+			const { result } = renderHook(() => useRenewLeaseMutation(), {
+				wrapper: Wrapper,
+			});
+
+			await result.current.mutateAsync({
+				id: "lease-123",
+				data: { end_date: "2026-01-01" },
+			});
+
+			// Renew flips lease_status→active (unit may flip occupied via trigger)
+			// and changes end_date/rent embedded in tenant list rows: detail, tenant
+			// lists, and unit queries must all be invalidated.
+			const keys = invalidatedKeys(invalidateSpy);
+			expect(keys).toContain(
+				JSON.stringify(leaseQueries.detail("lease-123").queryKey),
+			);
+			expect(keys).toContain(JSON.stringify(tenantQueries.lists()));
+			expect(keys).toContain(JSON.stringify(unitQueries.all()));
 		});
 	});
 
