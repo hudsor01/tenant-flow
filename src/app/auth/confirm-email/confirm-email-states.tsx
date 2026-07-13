@@ -10,6 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
 
 export function ConfirmEmailImagePanel() {
 	return (
@@ -190,6 +191,11 @@ interface ConfirmEmailActionsProps {
 	isDisabled: boolean;
 	buttonText: string;
 	onResend: () => void;
+	// AUTH-03: fallback manual email entry, rendered when neither a query param
+	// nor a signed-in session supplies the address to resend to.
+	showEmailInput?: boolean;
+	email?: string;
+	onEmailChange?: (value: string) => void;
 }
 
 export function ConfirmEmailActions({
@@ -197,12 +203,33 @@ export function ConfirmEmailActions({
 	isDisabled,
 	buttonText,
 	onResend,
+	showEmailInput = false,
+	email = "",
+	onEmailChange,
 }: ConfirmEmailActionsProps) {
 	return (
 		<div className="space-y-4">
 			<p className="text-muted-foreground text-center">
 				Didn&apos;t receive the email?
 			</p>
+			{showEmailInput && (
+				<div className="grid gap-2">
+					<label
+						htmlFor="confirm-email-address"
+						className="text-sm font-medium text-foreground"
+					>
+						Email address
+					</label>
+					<Input
+						id="confirm-email-address"
+						type="email"
+						autoComplete="email"
+						placeholder="you@example.com"
+						value={email}
+						onChange={(event) => onEmailChange?.(event.target.value)}
+					/>
+				</div>
+			)}
 			<div className="flex flex-col sm:flex-row gap-3">
 				<Button
 					variant="outline"

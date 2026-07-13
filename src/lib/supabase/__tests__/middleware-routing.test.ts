@@ -196,6 +196,25 @@ describe("proxy routing", () => {
 			expect(redirectUrl.pathname).toBe("/login");
 			expect(redirectUrl.searchParams.get("redirect")).toBe("/dashboard");
 		});
+
+		it("preserves the destination query string in the redirect param (AUTH-12)", async () => {
+			// AUTH-12: buildLoginRedirect keeps pathname + search so post-login
+			// navigation restores `?page=2`-style state instead of truncating it.
+			mockUpdateSession.mockResolvedValue({
+				user: null,
+				supabaseResponse: makeSupabaseResponse(),
+			});
+
+			await proxy(buildRequest("/properties?page=2"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe(
+				"/properties?page=2",
+			);
+		});
 	});
 
 	describe("admin routes", () => {

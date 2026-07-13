@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { authKeys } from "#hooks/api/use-auth";
@@ -35,12 +36,13 @@ export default function SignOutPage() {
 
 	const isAuthenticated = !!session && !signedOut;
 
+	// AUTH-10: only mark the user signed out when supabase-js actually cleared
+	// the session (onSuccess). A failed sign-out (network / auth-server 5xx keeps
+	// the local session) must NOT render the success card — it renders an honest
+	// failure state with a retry instead. The mutation's own onError logs.
 	function handleSignOut() {
 		signOut.mutate(undefined, {
 			onSuccess: () => {
-				setSignedOut(true);
-			},
-			onError: () => {
 				setSignedOut(true);
 			},
 		});
@@ -96,13 +98,24 @@ export default function SignOutPage() {
 				description="Are you sure you want to sign out?"
 			>
 				<div className="space-y-4">
+					{signOut.isError && (
+						<Alert variant="destructive">
+							<AlertDescription className="text-destructive-text">
+								Sign out failed — check your connection and try again.
+							</AlertDescription>
+						</Alert>
+					)}
 					<Button
 						className="w-full"
 						onClick={handleSignOut}
 						disabled={signOut.isPending}
 					>
 						<LogOut className="mr-2 size-4" />
-						{signOut.isPending ? "Signing out..." : "Sign Out"}
+						{signOut.isPending
+							? "Signing out..."
+							: signOut.isError
+								? "Try Again"
+								: "Sign Out"}
 					</Button>
 					<Button
 						variant="outline"

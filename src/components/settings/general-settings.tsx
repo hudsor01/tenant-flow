@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Mail, Smartphone } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
@@ -22,9 +23,30 @@ import type { ThemeMode } from "#types/domain";
 import { OwnerEmergencyContactSection } from "./owner-emergency-contact-section";
 
 export function GeneralSettings() {
+	const router = useRouter();
 	const themeMode = usePreferencesStore((state) => state.themeMode);
 	const setThemeMode = usePreferencesStore((state) => state.setThemeMode);
 	const { dataDensity, setDataDensity } = useDataDensity();
+
+	// AUTH-01: the email-change confirmation link lands here as
+	// /settings?email_change=confirmed|failed. Surface a toast and strip the
+	// param (preserving any others) so a refresh doesn't re-fire it. Read from
+	// window.location to avoid a useSearchParams() prerender bailout.
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const emailChange = params.get("email_change");
+		if (emailChange !== "confirmed" && emailChange !== "failed") return;
+		if (emailChange === "confirmed") {
+			toast.success("Email address updated");
+		} else {
+			toast.error("Email change link expired or invalid — try again");
+		}
+		params.delete("email_change");
+		const query = params.toString();
+		router.replace(
+			query ? `${window.location.pathname}?${query}` : window.location.pathname,
+		);
+	}, [router]);
 
 	// Fetch current user profile via shared hook
 	const { data: profile, isLoading: profileLoading } = useProfile();

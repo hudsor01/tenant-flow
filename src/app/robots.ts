@@ -14,7 +14,6 @@ export const PRIVATE_PATHS = [
 	"/api",
 	"/auth/callback",
 	"/auth/confirm-email",
-	"/auth/post-checkout",
 	"/auth/select-role",
 	"/auth/signout",
 	"/auth/update-password",

@@ -47,11 +47,6 @@ const FUNCTIONS: Array<{
 		verify_jwt: false,
 	},
 	{ slug: "stripe-checkout", entrypoint: "index.ts", verify_jwt: false },
-	{
-		slug: "stripe-checkout-session",
-		entrypoint: "index.ts",
-		verify_jwt: false,
-	},
 	{ slug: "stripe-webhooks", entrypoint: "index.ts", verify_jwt: false },
 ];
 

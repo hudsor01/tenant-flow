@@ -18,12 +18,26 @@ import {
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
+/** Basic email-shape check — the resend address must at least look like one. */
+function isEmailShape(value: string): boolean {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 function ConfirmEmailContent() {
 	const [isResending, setIsResending] = useState(false);
 	const [cooldownSeconds, setCooldownSeconds] = useState(0);
+	const [fetchedEmail, setFetchedEmail] = useState<string | null>(null);
+	const [manualEmail, setManualEmail] = useState("");
 	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const searchParams = useSearchParams();
 	const errorParam = searchParams.get("error");
+
+	// AUTH-03: resolve the resend address in priority order — (a) the `email`
+	// query param the login form forwards, (b) a logged-in-but-unconfirmed
+	// user's own email, (c) manual entry. The page's traffic is pre-confirmation
+	// (no session), so the old getUser()-only gate always aborted.
+	const emailParam = searchParams.get("email");
+	const paramEmail = emailParam && isEmailShape(emailParam) ? emailParam : null;
 
 	useEffect(() => {
 		return () => {
@@ -32,6 +46,28 @@ function ConfirmEmailContent() {
 			}
 		};
 	}, []);
+
+	// Fallback (b): only fetch the current user when no valid param was passed.
+	useEffect(() => {
+		if (paramEmail) return;
+		let ignore = false;
+		void (async () => {
+			const supabase = createClient();
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!ignore && user?.email) setFetchedEmail(user.email);
+		})();
+		return () => {
+			ignore = true;
+		};
+	}, [paramEmail]);
+
+	const showEmailInput = !paramEmail && !fetchedEmail;
+	const resolvedEmail =
+		paramEmail ??
+		fetchedEmail ??
+		(isEmailShape(manualEmail) ? manualEmail : null);
 
 	const startCooldown = () => {
 		setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
@@ -54,21 +90,20 @@ function ConfirmEmailContent() {
 
 	const handleResendEmail = async () => {
 		if (cooldownSeconds > 0) return;
+		if (!resolvedEmail) {
+			toast.error("Enter your email", {
+				description: "Add the email address you signed up with to resend.",
+			});
+			return;
+		}
 		setIsResending(true);
 		try {
 			const supabase = createClient();
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
-			if (!user?.email) {
-				toast.error("Unable to resend email", {
-					description: "Please sign up again or contact support.",
-				});
-				return;
-			}
+			// `resend` needs no session — only the email. This is the exact
+			// audience the page serves (pre-confirmation, unauthenticated).
 			const { error } = await supabase.auth.resend({
 				type: "signup",
-				email: user.email,
+				email: resolvedEmail,
 			});
 			if (error) throw error;
 			toast.success("Email sent!", {
@@ -119,6 +154,9 @@ function ConfirmEmailContent() {
 						isDisabled={isDisabled}
 						buttonText={getResendButtonText()}
 						onResend={handleResendEmail}
+						showEmailInput={showEmailInput}
+						email={manualEmail}
+						onEmailChange={setManualEmail}
 					/>
 					<ConfirmEmailFooter />
 				</div>

@@ -63,11 +63,31 @@ Deno.serve(async (req: Request) => {
 			);
 		}
 
+		// AUTH-13: honor the client's `returnUrl` (the /billing/plans callers post
+		// one so the portal returns to /billing/plans, also allowlisted — avoiding
+		// the lapsed-user /pricing bounce). Origin is validated against
+		// NEXT_PUBLIC_APP_URL to block an open redirect via an attacker-supplied
+		// returnUrl; an empty/malformed/foreign body silently keeps the default
+		// (`useBillingPortalMutation` posts `{}` → the /dashboard?billing=updated
+		// toast flow stays byte-identical).
+		let returnUrl = `${frontendUrl}/dashboard?billing=updated`;
+		try {
+			const body = await req.json();
+			if (typeof body?.returnUrl === "string") {
+				const candidate = new URL(body.returnUrl);
+				if (candidate.origin === new URL(frontendUrl).origin) {
+					returnUrl = candidate.toString();
+				}
+			}
+		} catch {
+			// empty/malformed body → keep default
+		}
+
 		// Create Customer Portal Session
 		// Proration behavior: Stripe Customer Portal default (per user decision)
 		const session = await stripe.billingPortal.sessions.create({
 			customer: userData.stripe_customer_id,
-			return_url: `${frontendUrl}/dashboard?billing=updated`,
+			return_url: returnUrl,
 		});
 
 		return new Response(JSON.stringify({ url: session.url }), {

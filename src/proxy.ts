@@ -163,6 +163,23 @@ function redirectWithCookies(
 	return redirectResponse;
 }
 
+/**
+ * AUTH-12: build the /login redirect URL, preserving the FULL destination
+ * (pathname + query string) in the `redirect` param so post-login navigation
+ * restores `?page=2`-style state and the /settings?email_change=… round-trip.
+ * Builds a fresh /login URL from the origin so the original query params don't
+ * leak onto /login (where nothing reads them). `searchParams.set` URL-encodes
+ * the value; the login consumer decodes it via `URLSearchParams.get`.
+ */
+function buildLoginRedirect(request: NextRequest): URL {
+	const url = new URL("/login", request.nextUrl.origin);
+	url.searchParams.set(
+		"redirect",
+		request.nextUrl.pathname + request.nextUrl.search,
+	);
+	return url;
+}
+
 // Next.js 16: proxy.ts replaces deprecated middleware.ts
 export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const { pathname } = request.nextUrl;
@@ -229,10 +246,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	}
 
 	if (!user) {
-		const url = request.nextUrl.clone();
-		url.pathname = "/login";
-		url.searchParams.set("redirect", pathname);
-		return withCsp(redirectWithCookies(url, supabaseResponse));
+		return withCsp(
+			redirectWithCookies(buildLoginRedirect(request), supabaseResponse),
+		);
 	}
 
 	// SEC-01: an aal1 session belonging to an MFA-enrolled user must complete
@@ -242,10 +258,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// (not in PRIVATE_ROUTE_PREFIXES), so redirecting there is loop-free; the
 	// login page auto-opens the OTP challenge on mount.
 	if (requiresMfaStepUp(assuranceLevel)) {
-		const url = request.nextUrl.clone();
-		url.pathname = "/login";
-		url.searchParams.set("redirect", pathname);
-		return withCsp(redirectWithCookies(url, supabaseResponse));
+		return withCsp(
+			redirectWithCookies(buildLoginRedirect(request), supabaseResponse),
+		);
 	}
 
 	// Allowlist check BEFORE the DB query (cycle-2 P2-2 perf fix). These
@@ -338,10 +353,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// real role/subscription state takes effect. Avoids the bug where an
 	// admin during a DB blip would otherwise be redirected to /pricing.
 	if (gateRow === null) {
-		const url = request.nextUrl.clone();
-		url.pathname = "/login";
-		url.searchParams.set("redirect", pathname);
-		return withCsp(redirectWithCookies(url, supabaseResponse));
+		return withCsp(
+			redirectWithCookies(buildLoginRedirect(request), supabaseResponse),
+		);
 	}
 
 	// /admin/* is admin-only. The (admin) route group's layout.tsx performs a
