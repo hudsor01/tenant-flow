@@ -122,6 +122,29 @@ describe("AddUnitPanel", () => {
 				expect(toast.error).toHaveBeenCalledWith("Monthly rent is required");
 			});
 		});
+
+		it("uses a whole-dollar rent input and guards against cents (FORM-12)", async () => {
+			const { readFileSync } = await import("node:fs");
+			const { resolve } = await import("node:path");
+			render(<AddUnitPanel {...defaultProps} />, { wrapper: createWrapper() });
+
+			// Input no longer invites cents.
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute(
+				"step",
+				"1",
+			);
+			// The imperative whole-dollar guard (the sole runtime enforcement on
+			// this panel) must not be dropped — a removed guard would let a pasted
+			// cents value reach the integer column and 22P02.
+			const src = readFileSync(
+				resolve(__dirname, "..", "add-unit-panel.tsx"),
+				"utf8",
+			);
+			expect(src).toMatch(/!Number\.isInteger\(rent_amount\)/);
+			expect(src).toContain(
+				"Monthly rent must be a whole dollar amount (no cents)",
+			);
+		});
 	});
 
 	describe("Form Submission", () => {
