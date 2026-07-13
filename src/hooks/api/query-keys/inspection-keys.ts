@@ -22,6 +22,9 @@ import {
 const INSPECTION_SELECT_COLUMNS =
 	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, tenant_signature_data, overall_condition, owner_notes, tenant_notes, created_at, updated_at";
 
+// Display cap for the live inspections list (mirrors document-keys' LIST_DISPLAY_LIMIT).
+const INSPECTION_LIST_LIMIT = 100;
+
 const INSPECTION_DETAIL_SELECT =
 	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, tenant_signature_data, overall_condition, owner_notes, tenant_notes, created_at, updated_at, inspection_rooms(id, inspection_id, room_name, room_type, condition_rating, notes, created_at, updated_at, inspection_photos(id, inspection_room_id, inspection_id, storage_path, file_name, file_size, mime_type, caption, uploaded_by, created_at))";
 
@@ -45,9 +48,9 @@ export const inspectionQueries = {
 					.from("inspections")
 					.select(
 						`${INSPECTION_SELECT_COLUMNS}, properties(name, address_line1), units(unit_number), inspection_rooms(id)`,
-						{ count: "exact" },
 					)
-					.order("created_at", { ascending: false });
+					.order("created_at", { ascending: false })
+					.limit(INSPECTION_LIST_LIMIT);
 
 				if (error) handlePostgrestError(error, "inspections");
 
@@ -91,7 +94,8 @@ export const inspectionQueries = {
 					.from("inspections")
 					.select(INSPECTION_SELECT_COLUMNS)
 					.eq("lease_id", leaseId)
-					.order("created_at", { ascending: true });
+					.order("created_at", { ascending: true })
+					.limit(50);
 
 				if (error) handlePostgrestError(error, "inspections");
 

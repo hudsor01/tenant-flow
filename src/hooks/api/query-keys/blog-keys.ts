@@ -86,6 +86,11 @@ const BLOG_DETAIL_COLUMNS =
 export const BLOG_REVIEW_COLUMNS =
 	"id, title, slug, content, excerpt, category, word_count, reading_time, created_at";
 
+// Bounds the admin review-queue fetch. Shared by reviewQueue() and the
+// /admin/blog server-side fetch so both paths render the same window and can
+// never silently truncate at PostgREST's max-rows ceiling.
+export const BLOG_REVIEW_QUEUE_LIMIT = 50;
+
 /**
  * Typed mapper at the PostgREST boundary for review-queue rows (CLAUDE.md: no
  * raw `as` casts). NOT NULL fields throw; nullable columns normalize to null.
@@ -174,7 +179,8 @@ export const blogQueries = {
 					.from("blogs")
 					.select(BLOG_REVIEW_COLUMNS)
 					.eq("status", "in-review")
-					.order("created_at", { ascending: false });
+					.order("created_at", { ascending: false })
+					.limit(BLOG_REVIEW_QUEUE_LIMIT);
 
 				if (error) handlePostgrestError(error, "blog review queue");
 

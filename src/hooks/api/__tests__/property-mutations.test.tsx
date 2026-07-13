@@ -397,16 +397,18 @@ describe("usePropertyImages", () => {
 
 		const mockSelect = vi.fn().mockReturnValue({
 			eq: vi.fn().mockReturnValue({
-				order: vi.fn().mockResolvedValue({
-					data: [
-						{
-							id: "img-1",
-							property_id: "prop-123",
-							image_url: "http://example.com/img.jpg",
-							display_order: 0,
-						},
-					],
-					error: null,
+				order: vi.fn().mockReturnValue({
+					limit: vi.fn().mockResolvedValue({
+						data: [
+							{
+								id: "img-1",
+								property_id: "prop-123",
+								image_url: "http://example.com/img.jpg",
+								display_order: 0,
+							},
+						],
+						error: null,
+					}),
 				}),
 			}),
 		});

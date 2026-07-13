@@ -21,6 +21,8 @@ import { mutationKeys } from "../mutation-keys";
 
 const LIST_STALE_TIME_MS = 5 * 60 * 1000; // 5 min — categories change rarely
 const LIST_GC_TIME_MS = 30 * 60 * 1000;
+// Generous cap: per-owner category counts are tiny (7 seeded defaults + customs).
+const CATEGORY_LIST_LIMIT = 100;
 
 export interface DocumentCategoryRow {
 	id: string;
@@ -110,7 +112,8 @@ export const documentCategoryQueries = {
 						"id, slug, label, sort_order, is_default, owner_user_id, created_at, updated_at",
 					)
 					.order("sort_order", { ascending: true })
-					.order("label", { ascending: true });
+					.order("label", { ascending: true })
+					.limit(CATEGORY_LIST_LIMIT);
 				if (error) handlePostgrestError(error, "document categories list");
 				return ((data ?? []) as Record<string, unknown>[]).map(
 					mapDocumentCategoryRow,

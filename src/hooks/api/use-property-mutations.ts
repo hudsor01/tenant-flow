@@ -139,8 +139,9 @@ export function useDeletePropertyMutation() {
 				unitQueries.lists(),
 				ownerDashboardKeys.all,
 			],
-			removeDetail: (_data, deletedId) =>
+			removeDetail: (_data, deletedId) => [
 				propertyQueries.detail(deletedId).queryKey,
+			],
 			successMessage: "Property deleted successfully",
 			errorContext: "Delete property",
 		}),

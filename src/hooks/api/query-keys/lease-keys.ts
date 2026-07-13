@@ -13,11 +13,9 @@ import type { Lease, LeaseStatsResponse } from "#types/core";
 import { revenueTrendsQuery } from "./analytics-keys";
 
 export interface LeaseFilters {
-	property_id?: string;
 	unit_id?: string;
 	tenant_id?: string;
 	status?: string;
-	search?: string;
 	limit?: number;
 	offset?: number;
 }

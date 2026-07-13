@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import type { Metadata } from "next";
 import {
 	BLOG_REVIEW_COLUMNS,
+	BLOG_REVIEW_QUEUE_LIMIT,
 	type BlogReviewItem,
 	mapBlogReviewRow,
 } from "#hooks/api/query-keys/blog-keys";
@@ -21,7 +22,8 @@ export default async function AdminBlogReviewPage() {
 		.from("blogs")
 		.select(BLOG_REVIEW_COLUMNS)
 		.eq("status", "in-review")
-		.order("created_at", { ascending: false });
+		.order("created_at", { ascending: false })
+		.limit(BLOG_REVIEW_QUEUE_LIMIT);
 
 	if (error) {
 		Sentry.captureException(error, { tags: { page: "admin-blog-review" } });

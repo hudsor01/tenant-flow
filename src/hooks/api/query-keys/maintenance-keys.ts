@@ -63,70 +63,45 @@ export const maintenanceQueries = {
 				const limit = filters?.limit ?? 50;
 				const offset = filters?.offset ?? 0;
 
-				let data: MaintenanceRequest[] | null;
-				let error: {
-					message: string;
-					code: string;
-					details: string;
-					hint: string;
-				} | null;
-				let count: number | null;
+				// Single builder so EVERY filter applies on EVERY path. When
+				// filtering by property_id we join through units (`units!inner`);
+				// mapMaintenanceRow reads only the maintenance_requests columns, so
+				// the embed is ignored and each row is field-validated at the boundary.
+				// The select string is widened to `string` (runtime-conditional) so the
+				// client returns a generic row shape mapped at the boundary.
+				const selectColumns: string = filters?.property_id
+					? `${MAINTENANCE_SELECT_COLUMNS}, units!inner(property_id)`
+					: MAINTENANCE_SELECT_COLUMNS;
 
-				if (filters?.property_id) {
-					// Join through units when filtering by property_id.
-					// PostgREST `units!inner(property_id)` filter adds a `units`
-					// embed to each row -- mapMaintenanceRow reads only the
-					// maintenance_requests columns, so the embed is ignored and
-					// each row is field-validated at the boundary.
-					const result = await supabase
-						.from("maintenance_requests")
-						.select(
-							"id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, actual_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at, units!inner(property_id)",
-							{ count: "exact" },
-						)
-						.eq("units.property_id", filters.property_id)
-						.order("created_at", { ascending: false })
-						.range(offset, offset + limit - 1);
-					data = (result.data ?? []).map(mapMaintenanceRow);
-					error = result.error;
-					count = result.count;
-				} else {
-					let q = supabase
-						.from("maintenance_requests")
-						.select(MAINTENANCE_SELECT_COLUMNS, { count: "exact" })
-						.order("created_at", { ascending: false });
+				let q = supabase
+					.from("maintenance_requests")
+					.select(selectColumns, { count: "exact" })
+					.order("created_at", { ascending: false });
 
-					if (filters?.unit_id) {
-						q = q.eq("unit_id", filters.unit_id);
-					}
-					if (filters?.priority) {
-						q = q.eq("priority", filters.priority);
-					}
-					if (filters?.status) {
-						q = q.eq("status", filters.status);
-					}
+				if (filters?.property_id)
+					q = q.eq("units.property_id", filters.property_id);
+				if (filters?.unit_id) q = q.eq("unit_id", filters.unit_id);
+				if (filters?.priority) q = q.eq("priority", filters.priority);
+				if (filters?.status) q = q.eq("status", filters.status);
 
-					q = q.range(offset, offset + limit - 1);
+				q = q.range(offset, offset + limit - 1);
 
-					const result = await q;
-					data = ((result.data ?? []) as Record<string, unknown>[]).map(
-						mapMaintenanceRow,
-					);
-					error = result.error;
-					count = result.count;
-				}
+				const { data: rows, error, count } = await q;
 
-				if (error)
-					handlePostgrestError(
-						error as Parameters<typeof handlePostgrestError>[0],
-						"maintenance_requests",
-					);
+				if (error) handlePostgrestError(error, "maintenance_requests");
+
+				// The widened `string` select yields an opaque row type; each row is
+				// validated field-by-field at the mapMaintenanceRow boundary.
+				const rawRows: unknown[] = rows ?? [];
+				const data = rawRows.map((row) =>
+					mapMaintenanceRow(row as Record<string, unknown>),
+				);
 
 				const total = count ?? 0;
 				const totalPages = Math.ceil(total / limit);
 
 				return {
-					data: data ?? [],
+					data,
 					total,
 					pagination: {
 						page: Math.floor(offset / limit) + 1,
@@ -290,7 +265,8 @@ export const maintenanceQueries = {
 					.select(MAINTENANCE_SELECT_COLUMNS)
 					.lt("scheduled_date", new Date().toISOString())
 					.not("status", "in", '("completed","cancelled")')
-					.order("scheduled_date", { ascending: true });
+					.order("scheduled_date", { ascending: true })
+					.limit(50);
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 

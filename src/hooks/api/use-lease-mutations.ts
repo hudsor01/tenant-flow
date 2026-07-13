@@ -12,6 +12,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { logger } from "#lib/frontend-logger";
+import type { LeaseUpdate } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
@@ -149,20 +150,23 @@ export function useUpdateLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.update(),
-		...createMutationCallbacks<Lease>(queryClient, {
-			invalidate: [
-				leaseQueries.lists(),
-				tenantQueries.lists(),
-				unitQueries.all(),
-				ownerDashboardKeys.all,
-			],
-			updateDetail: (lease) => ({
-				queryKey: leaseQueries.detail(lease.id).queryKey,
-				data: lease,
-			}),
-			successMessage: "Lease updated successfully",
-			errorContext: "Update lease",
-		}),
+		...createMutationCallbacks<Lease, { id: string; data: LeaseUpdate }>(
+			queryClient,
+			{
+				// update() returns a bare row (no units/tenants embeds), so it must
+				// NOT be written into the detail cache (superset rule). Invalidate the
+				// detail key so it refetches the embed-carrying shape.
+				invalidate: ({ id }) => [
+					leaseQueries.lists(),
+					leaseQueries.detail(id).queryKey,
+					tenantQueries.lists(),
+					unitQueries.all(),
+					ownerDashboardKeys.all,
+				],
+				successMessage: "Lease updated successfully",
+				errorContext: "Update lease",
+			},
+		),
 	});
 }
 
@@ -182,8 +186,9 @@ export function useDeleteLeaseMutation() {
 				unitQueries.all(),
 				ownerDashboardKeys.all,
 			],
-			removeDetail: (_data, deletedId) =>
+			removeDetail: (_data, deletedId) => [
 				leaseQueries.detail(deletedId).queryKey,
+			],
 			successMessage: "Lease deleted successfully",
 			errorContext: "Delete lease",
 		}),

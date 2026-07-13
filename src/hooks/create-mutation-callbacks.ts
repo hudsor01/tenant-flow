@@ -45,10 +45,24 @@ export interface MutationCallbackConfig<
 	successMessage?: string;
 	/** Context for handleMutationError (e.g., "Create property") */
 	errorContext: string;
-	/** Tier 2: set detail cache on success */
+	/**
+	 * Tier 2: set detail cache on success.
+	 *
+	 * WARNING — superset rule: only use `updateDetail` when the mutation's
+	 * returned `data` is a SUPERSET of the target key's queryFn return shape.
+	 * `setQueryData` full-replaces the entry AND stamps it fresh, so writing a
+	 * bare row (e.g. a `.select().single()` with no embeds) over an enriched
+	 * detail cache silently drops the missing fields for the whole staleTime.
+	 * If the mutation returns a narrower shape than the detail queryFn, do NOT
+	 * use `updateDetail` — add the detail key to `invalidate` instead so the
+	 * queryFn refetches the full shape.
+	 */
 	updateDetail?: (data: TData) => { queryKey: readonly unknown[]; data: TData };
-	/** Remove detail cache entry on success (for deletes) */
-	removeDetail?: (data: TData, variables: TVariables) => readonly unknown[];
+	/** Remove detail cache entries on success (for deletes). Returns one or more keys. */
+	removeDetail?: (
+		data: TData,
+		variables: TVariables,
+	) => ReadonlyArray<readonly unknown[]>;
 	/** Custom callback after standard operations */
 	onSuccessExtra?: (data: TData) => void;
 	/** When true, use handleMutationSuccess (structured logging) instead of toast.success */
@@ -183,8 +197,10 @@ export function createMutationCallbacks<
 				queryClient.setQueryData(result.queryKey, result.data);
 			}
 			if (config.removeDetail) {
-				const queryKey = config.removeDetail(data, variables);
-				queryClient.removeQueries({ queryKey });
+				const keys = config.removeDetail(data, variables);
+				for (const queryKey of keys) {
+					queryClient.removeQueries({ queryKey });
+				}
 			}
 			invalidateAll(variables);
 			showSuccess();

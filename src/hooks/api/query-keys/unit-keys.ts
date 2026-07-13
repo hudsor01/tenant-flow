@@ -38,6 +38,10 @@ export interface UnitFilters {
 const UNIT_SELECT_COLUMNS =
 	"id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status, created_at, updated_at";
 
+// Per-property unit bound: comfortably exceeds any realistic single-property
+// unit count while staying under the PostgREST 1000-row ceiling.
+const UNITS_BY_PROPERTY_LIMIT = 500;
+
 /**
  * Unit query factory
  */
@@ -114,7 +118,8 @@ export const unitQueries = {
 					.select(UNIT_SELECT_COLUMNS)
 					.eq("property_id", property_id)
 					.neq("status", "inactive")
-					.order("unit_number", { ascending: true });
+					.order("unit_number", { ascending: true })
+					.limit(UNITS_BY_PROPERTY_LIMIT);
 
 				if (error) handlePostgrestError(error, "units");
 
@@ -162,7 +167,8 @@ export const unitQueries = {
 					.select(UNIT_SELECT_COLUMNS)
 					.eq("property_id", property_id)
 					.neq("status", "inactive")
-					.order("unit_number", { ascending: true });
+					.order("unit_number", { ascending: true })
+					.limit(UNITS_BY_PROPERTY_LIMIT);
 
 				if (error) handlePostgrestError(error, "units");
 

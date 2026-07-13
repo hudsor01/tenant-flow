@@ -59,10 +59,6 @@ export function usePropertyList(params?: {
 	});
 }
 
-export function usePropertiesWithUnits() {
-	return useQuery(propertyQueries.withUnits());
-}
-
 export function usePropertyStats() {
 	return useQuery(propertyStatsQueries.stats());
 }

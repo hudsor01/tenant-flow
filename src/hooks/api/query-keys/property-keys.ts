@@ -86,24 +86,6 @@ export const propertyQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
-	withUnits: () =>
-		queryOptions({
-			queryKey: [...propertyQueries.all(), "with-units"] as const,
-			queryFn: async (): Promise<Property[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("properties")
-					.select("*, units(*)")
-					.neq("status", "inactive")
-					.order("created_at", { ascending: false });
-
-				if (error) handlePostgrestError(error, "properties");
-
-				return (data as Property[]) ?? [];
-			},
-			...QUERY_CACHE_TIMES.DETAIL,
-		}),
-
 	details: () => [...propertyQueries.all(), "detail"] as const,
 
 	detail: (id: string) =>
@@ -169,9 +151,10 @@ export const propertyQueries = {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("property_images")
-					.select("*")
+					.select("id, property_id, image_url, display_order, created_at")
 					.eq("property_id", property_id)
-					.order("display_order", { ascending: true });
+					.order("display_order", { ascending: true })
+					.limit(50);
 
 				if (error) throw new Error(error.message);
 
