@@ -2,6 +2,7 @@
 
 import { Mail, Phone, User } from "lucide-react";
 import { withForm } from "#lib/forms/form-hook";
+import { optionalPhoneSchema } from "#lib/validation/common";
 import { addTenantSchema } from "#lib/validation/tenants";
 import { addTenantFormOptions } from "./add-tenant-form-options";
 
@@ -59,7 +60,13 @@ export const AddTenantInfoFields = withForm({
 					)}
 				</form.AppField>
 
-				<form.AppField name="phone">
+				{/* FORM-19: optionalPhoneSchema accepts "" OR a valid phone — do NOT
+				    attach addTenantSchema.shape.phone (phoneSchema.optional()), which
+				    runs .min(10) on the empty string and breaks optional entry. */}
+				<form.AppField
+					name="phone"
+					validators={{ onChange: optionalPhoneSchema }}
+				>
 					{(field) => (
 						<field.IconInputField
 							label="Phone Number (Optional)"

@@ -35,6 +35,22 @@ export const propertyTypeSchema = z.enum([
 	"OTHER",
 ]);
 
+// Strict US-state (2 uppercase letters) + ZIP field schemas. Shared across the
+// input, address, and FORM schemas so the create/edit form validators enforce
+// the same rules as the API path (FORM-16) instead of merely non-empty.
+const stateFieldSchema = z
+	.string()
+	.min(2, "State is required")
+	.max(2, "State must be 2 characters")
+	.regex(/^[A-Z]{2}$/, "State must be 2 uppercase letters");
+
+const postalCodeFieldSchema = z
+	.string()
+	.regex(
+		/^\d{5}(-\d{4})?$/,
+		"Please enter a valid ZIP code (12345 or 12345-6789)",
+	);
+
 // Base property input schema (matches database exactly)
 export const propertyInputSchema = z.object({
 	name: nonEmptyStringSchema
@@ -57,18 +73,9 @@ export const propertyInputSchema = z.object({
 		.min(2, "City must be at least 2 characters")
 		.max(50, "City cannot exceed 50 characters"),
 
-	state: z
-		.string()
-		.min(2, "State is required")
-		.max(2, "State must be 2 characters")
-		.regex(/^[A-Z]{2}$/, "State must be 2 uppercase letters"),
+	state: stateFieldSchema,
 
-	postal_code: z
-		.string()
-		.regex(
-			/^\d{5}(-\d{4})?$/,
-			"Please enter a valid ZIP code (12345 or 12345-6789)",
-		),
+	postal_code: postalCodeFieldSchema,
 
 	country: z
 		.string()
@@ -144,17 +151,8 @@ export const propertyAddressSchema = z.object({
 	city: nonEmptyStringSchema
 		.min(2, "City must be at least 2 characters")
 		.max(50, "City cannot exceed 50 characters"),
-	state: z
-		.string()
-		.min(2, "State is required")
-		.max(2, "State must be 2 characters")
-		.regex(/^[A-Z]{2}$/, "State must be 2 uppercase letters"),
-	postal_code: z
-		.string()
-		.regex(
-			/^\d{5}(-\d{4})?$/,
-			"Please enter a valid ZIP code (12345 or 12345-6789)",
-		),
+	state: stateFieldSchema,
+	postal_code: postalCodeFieldSchema,
 	country: z
 		.string()
 		.max(50, "Country cannot exceed 50 characters")
@@ -205,8 +203,10 @@ export const propertyFormSchema = z.object({
 	address_line1: requiredString,
 	address_line2: z.string().optional(),
 	city: requiredString,
-	state: requiredString,
-	postal_code: requiredString,
+	// FORM-16: enforce the strict state/ZIP rules on the form (not merely
+	// non-empty) so "T" / "abcde" fail validation instead of saving raw.
+	state: stateFieldSchema,
+	postal_code: postalCodeFieldSchema,
 	country: z.string().optional().default("US"),
 	property_type: propertyTypeSchema,
 	owner_user_id: requiredString,

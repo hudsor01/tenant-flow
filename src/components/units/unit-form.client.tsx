@@ -125,6 +125,12 @@ export function UnitForm({
 					return;
 				}
 
+				if (!Number.isInteger(rent_amount)) {
+					// units.rent_amount is an integer column — reject cents, never round.
+					toast.error("Monthly rent must be a whole dollar amount (no cents)");
+					return;
+				}
+
 				if (
 					value.square_feet &&
 					(!Number.isFinite(square_feet) || square_feet! < 0)

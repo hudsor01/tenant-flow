@@ -101,8 +101,8 @@ export const UnitFormFields = withForm({
 								icon={DollarSign}
 								type="number"
 								min="0"
-								step="0.01"
-								placeholder="0.00"
+								step="1"
+								placeholder="0"
 							/>
 						)}
 					</form.AppField>

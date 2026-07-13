@@ -8,8 +8,8 @@
 import { z } from "zod";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import {
-	nonNegativeNumberSchema,
-	positiveNumberSchema,
+	nonNegativeWholeDollarSchema,
+	positiveWholeDollarSchema,
 	uuidSchema,
 } from "./common";
 
@@ -107,18 +107,18 @@ export const termsStepSchema = z
 	.object({
 		start_date: dateStringSchema.describe("Lease start date"),
 		end_date: dateStringSchema.describe("Lease end date"),
-		rent_amount: positiveNumberSchema
+		rent_amount: positiveWholeDollarSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Rent amount seems unrealistic",
 			)
-			.describe("Monthly rent in dollars"),
-		security_deposit: nonNegativeNumberSchema
+			.describe("Monthly rent in whole dollars"),
+		security_deposit: nonNegativeWholeDollarSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Security deposit seems unrealistic",
 			)
-			.describe("Security deposit in dollars"),
+			.describe("Security deposit in whole dollars"),
 		payment_day: z
 			.number()
 			.int("Payment day must be a whole number")
@@ -133,13 +133,13 @@ export const termsStepSchema = z
 			.max(30, "Grace period cannot exceed 30 days")
 			.default(3)
 			.describe("Days after due date before late fee applies"),
-		late_fee_amount: nonNegativeNumberSchema
+		late_fee_amount: nonNegativeWholeDollarSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Late fee amount seems unrealistic",
 			)
 			.default(0)
-			.describe("Late fee amount in dollars"),
+			.describe("Late fee amount in whole dollars"),
 	})
 	.refine(
 		(data) => {
@@ -172,17 +172,17 @@ export const leaseDetailsStepSchema = z
 			.boolean()
 			.default(false)
 			.describe("Whether pets are allowed"),
-		pet_deposit: nonNegativeNumberSchema
+		pet_deposit: nonNegativeWholeDollarSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 				"Pet deposit seems unrealistic",
 			)
 			.optional()
-			.describe("One-time pet deposit in dollars"),
-		pet_rent: nonNegativeNumberSchema
+			.describe("One-time pet deposit in whole dollars"),
+		pet_rent: nonNegativeWholeDollarSchema
 			.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, "Pet rent seems unrealistic")
 			.optional()
-			.describe("Monthly pet rent in dollars"),
+			.describe("Monthly pet rent in whole dollars"),
 		utilities_included: z
 			.array(z.string())
 			.default([])
@@ -241,21 +241,23 @@ const leaseWizardBaseSchema = z.object({
 	// Step 2: Terms
 	start_date: dateStringSchema,
 	end_date: dateStringSchema,
-	rent_amount: positiveNumberSchema.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE),
-	security_deposit: nonNegativeNumberSchema.max(
+	rent_amount: positiveWholeDollarSchema.max(
+		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
+	),
+	security_deposit: nonNegativeWholeDollarSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 	),
 	payment_day: z.number().int().min(1).max(31).default(1),
 	grace_period_days: z.number().int().min(0).max(30).default(3),
-	late_fee_amount: nonNegativeNumberSchema
+	late_fee_amount: nonNegativeWholeDollarSchema
 		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE)
 		.default(0),
 
 	// Step 3: Lease Details
 	max_occupants: z.number().int().min(1).max(20).optional(),
 	pets_allowed: z.boolean().default(false),
-	pet_deposit: nonNegativeNumberSchema.optional(),
-	pet_rent: nonNegativeNumberSchema.optional(),
+	pet_deposit: nonNegativeWholeDollarSchema.optional(),
+	pet_rent: nonNegativeWholeDollarSchema.optional(),
 	utilities_included: z.array(z.string()).default([]),
 	tenant_responsible_utilities: z.array(z.string()).default([]),
 	property_rules: z.string().max(5000).optional(),

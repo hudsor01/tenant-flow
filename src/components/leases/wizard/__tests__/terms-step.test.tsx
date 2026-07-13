@@ -140,20 +140,20 @@ describe("TermsStep", () => {
 	});
 
 	describe("Input Modes", () => {
-		it("should use decimal inputMode for currency fields", () => {
+		it("should use numeric inputMode for currency fields (whole dollars)", () => {
 			renderTermsStep();
 
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute(
 				"inputMode",
-				"decimal",
+				"numeric",
 			);
 			expect(screen.getByLabelText(/security deposit/i)).toHaveAttribute(
 				"inputMode",
-				"decimal",
+				"numeric",
 			);
 			expect(screen.getByLabelText(/late fee/i)).toHaveAttribute(
 				"inputMode",
-				"decimal",
+				"numeric",
 			);
 		});
 

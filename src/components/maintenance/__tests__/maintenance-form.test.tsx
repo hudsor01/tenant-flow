@@ -429,7 +429,8 @@ describe("MaintenanceForm", () => {
 				const costInput = screen.getByLabelText(/estimated cost/i);
 				expect(costInput).toHaveAttribute("type", "number");
 				expect(costInput).toHaveAttribute("min", "0");
-				expect(costInput).toHaveAttribute("step", "0.01");
+				// estimated_cost maps to an integer column — whole dollars only.
+				expect(costInput).toHaveAttribute("step", "1");
 			});
 		});
 

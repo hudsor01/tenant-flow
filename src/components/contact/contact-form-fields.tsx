@@ -15,6 +15,7 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { Textarea } from "#components/ui/textarea";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import type { ContactFormRequest } from "#types/domain";
 
 interface ContactFormFieldsProps {
@@ -42,6 +43,7 @@ export function ContactFormFields({
 							name="name"
 							type="text"
 							autoComplete="name"
+							maxLength={VALIDATION_LIMITS.CONTACT_FORM_NAME_MAX_LENGTH}
 							value={formData.name}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								onInputChange("name", e.target.value)
@@ -86,12 +88,15 @@ export function ContactFormFields({
 						name="organization"
 						type="text"
 						autoComplete="organization"
+						maxLength={VALIDATION_LIMITS.CONTACT_FORM_COMPANY_MAX_LENGTH}
 						value={formData.company || ""}
 						onChange={(e: ChangeEvent<HTMLInputElement>) =>
 							onInputChange("company", e.target.value)
 						}
 						placeholder="Property Management Co"
+						className={errors.company ? "border-destructive" : ""}
 					/>
+					{errors.company && <FieldError>{errors.company}</FieldError>}
 				</Field>
 
 				<Field>
@@ -105,6 +110,7 @@ export function ContactFormFields({
 							name="tel"
 							type="tel"
 							autoComplete="tel"
+							maxLength={VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH}
 							value={formData.phone || ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								onInputChange("phone", e.target.value)
@@ -179,6 +185,7 @@ export function ContactFormFields({
 					id="message"
 					name="message"
 					autoComplete="off"
+					maxLength={VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MAX_LENGTH}
 					value={formData.message}
 					onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 						onInputChange("message", e.target.value)

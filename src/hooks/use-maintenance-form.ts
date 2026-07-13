@@ -83,9 +83,11 @@ export function useMaintenanceForm({
 						status: "open",
 					};
 
-					// Add optional fields only if they have values
+					// Add optional fields only if they have values. estimated_cost is
+					// an integer column — parse as a whole dollar (the field validator
+					// already rejects decimals/negatives).
 					if (value.estimated_cost) {
-						const parsed = parseFloat(value.estimated_cost);
+						const parsed = Number.parseInt(value.estimated_cost, 10);
 						if (Number.isFinite(parsed)) {
 							payload.estimated_cost = parsed;
 						}
@@ -126,7 +128,7 @@ export function useMaintenanceForm({
 					// column is nulled — a cleared field previously omitted the key and
 					// kept the old value. NOT-NULL columns above are always sent.
 					if (value.estimated_cost) {
-						const parsed = parseFloat(value.estimated_cost);
+						const parsed = Number.parseInt(value.estimated_cost, 10);
 						payload.estimated_cost = Number.isFinite(parsed) ? parsed : null;
 					} else {
 						payload.estimated_cost = null;

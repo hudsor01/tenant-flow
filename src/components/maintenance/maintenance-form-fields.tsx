@@ -13,6 +13,7 @@ import { Textarea } from "#components/ui/textarea";
 import { useAllTenants } from "#hooks/api/use-tenant";
 import type { useMaintenanceForm } from "#hooks/use-maintenance-form";
 import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
+import { optionalWholeDollarStringSchema } from "#lib/validation/common";
 import { maintenanceRequestCreateSchema } from "#lib/validation/maintenance";
 import type { MaintenancePriority, Property, Unit } from "#types/core";
 
@@ -232,7 +233,17 @@ export function MaintenanceFormFields({
 			</form.Field>
 
 			{/* Estimated Cost Field */}
-			<form.Field name="estimated_cost">
+			{/* maintenance_requests.estimated_cost is an integer (whole-dollar)
+			    column. The field value is a STRING, so attach the string-based
+			    whole-dollar validator (a number schema would type-mismatch);
+			    empty stays valid because the cost is optional. */}
+			<form.Field
+				name="estimated_cost"
+				validators={{
+					onChange: optionalWholeDollarStringSchema,
+					onSubmit: optionalWholeDollarStringSchema,
+				}}
+			>
 				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="estimated_cost">
@@ -243,8 +254,8 @@ export function MaintenanceFormFields({
 							name="estimated_cost"
 							type="number"
 							min="0"
-							step="0.01"
-							placeholder="0.00"
+							step="1"
+							placeholder="0"
 							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								field.handleChange(e.target.value)
