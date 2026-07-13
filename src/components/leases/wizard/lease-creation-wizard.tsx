@@ -43,6 +43,7 @@ import {
 import { ReviewStep } from "./review-step";
 import { SelectionStep } from "./selection-step";
 import { type DurationPreset, TermsStep } from "./terms-step";
+import { mapStepErrors } from "./wizard-step-errors";
 
 interface LeaseCreationWizardProps {
 	onSuccess?: (leaseId: string) => void;
@@ -260,15 +261,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		if (isLastStep) return;
 		const result = validateCurrentStep();
 		if (result && !result.success) {
-			// Flatten zod issues to a { field -> first message } map for the step.
-			const nextErrors: Record<string, string> = {};
-			for (const issue of result.error.issues) {
-				const key = issue.path[0];
-				if (typeof key === "string" && !(key in nextErrors)) {
-					nextErrors[key] = issue.message;
-				}
-			}
-			setStepErrors(nextErrors);
+			setStepErrors(mapStepErrors(result.error));
 			return;
 		}
 		const nextStep = WIZARD_STEPS[currentStepIndex + 1];

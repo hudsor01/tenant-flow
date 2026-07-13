@@ -6,8 +6,12 @@ import {
 	isValidUUID,
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
+	nonNegativeWholeDollarSchema,
+	optionalPhoneSchema,
+	optionalWholeDollarStringSchema,
 	phoneSchema,
 	positiveNumberSchema,
+	positiveWholeDollarSchema,
 	requiredDescription,
 	requiredString,
 	requiredTitle,
@@ -184,6 +188,61 @@ describe("positiveNumberSchema", () => {
 	});
 	it("rejects negative number", () => {
 		expect(positiveNumberSchema.safeParse(-5).success).toBe(false);
+	});
+});
+describe("positiveWholeDollarSchema", () => {
+	it("accepts a positive whole dollar amount", () => {
+		expect(positiveWholeDollarSchema.safeParse(1500).success).toBe(true);
+	});
+	it("rejects a fractional (cents) amount", () => {
+		expect(positiveWholeDollarSchema.safeParse(1500.5).success).toBe(false);
+	});
+	it("rejects zero and negatives", () => {
+		expect(positiveWholeDollarSchema.safeParse(0).success).toBe(false);
+		expect(positiveWholeDollarSchema.safeParse(-10).success).toBe(false);
+	});
+});
+describe("nonNegativeWholeDollarSchema", () => {
+	it("accepts zero and positive whole dollars", () => {
+		expect(nonNegativeWholeDollarSchema.safeParse(0).success).toBe(true);
+		expect(nonNegativeWholeDollarSchema.safeParse(300).success).toBe(true);
+	});
+	it("rejects a fractional amount", () => {
+		expect(nonNegativeWholeDollarSchema.safeParse(300.5).success).toBe(false);
+	});
+	it("rejects negatives", () => {
+		expect(nonNegativeWholeDollarSchema.safeParse(-1).success).toBe(false);
+	});
+});
+describe("optionalWholeDollarStringSchema", () => {
+	it("accepts an empty string (optional)", () => {
+		expect(optionalWholeDollarStringSchema.safeParse("").success).toBe(true);
+		expect(optionalWholeDollarStringSchema.safeParse("   ").success).toBe(true);
+	});
+	it("accepts a positive whole-dollar string", () => {
+		expect(optionalWholeDollarStringSchema.safeParse("250").success).toBe(true);
+	});
+	it("rejects a cents string and a negative/zero string", () => {
+		expect(optionalWholeDollarStringSchema.safeParse("250.50").success).toBe(
+			false,
+		);
+		expect(optionalWholeDollarStringSchema.safeParse("-50").success).toBe(
+			false,
+		);
+		expect(optionalWholeDollarStringSchema.safeParse("0").success).toBe(false);
+	});
+});
+describe("optionalPhoneSchema", () => {
+	it("accepts an empty string (optional)", () => {
+		expect(optionalPhoneSchema.safeParse("").success).toBe(true);
+	});
+	it("accepts a valid phone number", () => {
+		expect(optionalPhoneSchema.safeParse("+1 (555) 123-4567").success).toBe(
+			true,
+		);
+	});
+	it("rejects a malformed non-empty phone", () => {
+		expect(optionalPhoneSchema.safeParse("abc").success).toBe(false);
 	});
 });
 describe("safeIntegerSchema", () => {

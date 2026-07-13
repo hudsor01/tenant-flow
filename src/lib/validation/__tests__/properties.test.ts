@@ -137,6 +137,28 @@ describe("propertyFormSchema", () => {
 			propertyFormSchema.safeParse({ ...v, acquisition_cost: -1 }).success,
 		).toBe(false);
 	});
+	it("rejects a non-2-letter state (FORM-16 strict rule runs on the form path)", () => {
+		expect(propertyFormSchema.safeParse({ ...v, state: "T" }).success).toBe(
+			false,
+		);
+		expect(propertyFormSchema.safeParse({ ...v, state: "tx" }).success).toBe(
+			false,
+		);
+		expect(propertyFormSchema.safeParse({ ...v, state: "Texas" }).success).toBe(
+			false,
+		);
+	});
+	it("rejects a malformed ZIP (FORM-16 strict rule runs on the form path)", () => {
+		expect(
+			propertyFormSchema.safeParse({ ...v, postal_code: "abcde" }).success,
+		).toBe(false);
+		expect(
+			propertyFormSchema.safeParse({ ...v, postal_code: "1234" }).success,
+		).toBe(false);
+		expect(
+			propertyFormSchema.safeParse({ ...v, postal_code: "75201-1234" }).success,
+		).toBe(true);
+	});
 	it("accepts null acquisition_cost", () => {
 		expect(
 			propertyFormSchema.safeParse({ ...v, acquisition_cost: null }).success,
