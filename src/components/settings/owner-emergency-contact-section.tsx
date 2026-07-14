@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from "react";
 
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import { Field, FieldLabel } from "#components/ui/field";
 import { Skeleton } from "#components/ui/skeleton";
 import {
@@ -32,6 +33,9 @@ export function OwnerEmergencyContactSection() {
 
 	const [isEditing, setIsEditing] = useState(false);
 	const [formData, setFormData] = useState<FormState>(EMPTY_FORM);
+	// DASH-21: gate the destructive clear behind a confirm dialog, matching
+	// every other settings destructive action.
+	const [confirmOpen, setConfirmOpen] = useState(false);
 
 	const nameId = useId();
 	const relationshipId = useId();
@@ -199,7 +203,7 @@ export function OwnerEmergencyContactSection() {
 								<Button
 									type="button"
 									variant="outline"
-									onClick={handleDelete}
+									onClick={() => setConfirmOpen(true)}
 									disabled={isDeleting}
 								>
 									{isDeleting ? "Removing…" : "Remove Contact"}
@@ -223,6 +227,18 @@ export function OwnerEmergencyContactSection() {
 					)}
 				</div>
 			</form>
+			<ConfirmDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				title="Remove emergency contact?"
+				description="This clears the saved name, phone, and relationship."
+				confirmText="Remove"
+				loading={isDeleting}
+				onConfirm={() => {
+					setConfirmOpen(false);
+					void handleDelete();
+				}}
+			/>
 		</CardLayout>
 	);
 }

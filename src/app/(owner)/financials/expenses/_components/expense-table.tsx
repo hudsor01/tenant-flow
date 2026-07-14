@@ -2,6 +2,15 @@
 
 import { ChevronLeft, ChevronRight, Receipt, Search, X } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import { Input } from "#components/ui/input";
 import {
 	Table,
@@ -121,32 +130,31 @@ export function ExpenseTable({
 
 				{/* No results from filters */}
 				{filteredExpenses.length === 0 && expenses.length > 0 && (
-					<div className="text-center py-12">
-						<p className="text-muted-foreground">
-							No expenses match your filters
-						</p>
-						<button
-							onClick={onClearFilters}
-							className="mt-3 text-sm text-primary-text hover:underline"
-						>
-							Clear filters
-						</button>
-					</div>
+					<Empty>
+						<EmptyHeader>
+							<EmptyTitle>No expenses match your filters</EmptyTitle>
+						</EmptyHeader>
+						<EmptyContent>
+							<Button variant="ghost" size="sm" onClick={onClearFilters}>
+								Clear filters
+							</Button>
+						</EmptyContent>
+					</Empty>
 				)}
 
 				{/* Empty state - no expenses at all */}
 				{expenses.length === 0 && (
-					<div className="text-center py-12">
-						<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
-							<Receipt className="w-8 h-8 text-primary" />
-						</div>
-						<h2 className="text-xl font-semibold text-foreground mb-3">
-							No expenses yet
-						</h2>
-						<p className="text-muted-foreground">
-							Expenses from maintenance requests will appear here.
-						</p>
-					</div>
+					<Empty>
+						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+							<Receipt />
+						</EmptyMedia>
+						<EmptyHeader>
+							<EmptyTitle>No expenses yet</EmptyTitle>
+							<EmptyDescription>
+								Expenses from maintenance requests will appear here.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
 				)}
 
 				{/* Pagination */}

@@ -166,6 +166,7 @@ export function MaintenanceFormFields({
 						<Input
 							id="title"
 							name="title"
+							autoFocus
 							placeholder="Kitchen faucet leak"
 							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>

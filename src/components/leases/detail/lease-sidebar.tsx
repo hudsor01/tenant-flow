@@ -50,9 +50,9 @@ export function LeaseSidebar({ lease, unit }: LeaseSidebarProps) {
 					</Button>
 					{unit && (
 						<Button variant="outline" className="w-full justify-start" asChild>
-							<Link href={`/properties/${unit.property_id}/units/${unit.id}`}>
+							<Link href={`/units/${unit.id}/edit`}>
 								<Building className="w-4 h-4 mr-2" />
-								View Unit Details
+								View Unit
 							</Link>
 						</Button>
 					)}

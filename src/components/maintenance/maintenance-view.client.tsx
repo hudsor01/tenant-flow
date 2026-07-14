@@ -1,12 +1,28 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle, Clock, Plus, Wrench } from "lucide-react";
+import {
+	AlertTriangle,
+	CheckCircle,
+	Clock,
+	Plus,
+	Wrench,
+	X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
+import { Button } from "#components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import { NumberTicker } from "#components/ui/number-ticker";
 import { Skeleton } from "#components/ui/skeleton";
 import {
@@ -18,6 +34,7 @@ import {
 } from "#components/ui/stat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { usePreferencesStore } from "#providers/preferences-provider";
 import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 import {
@@ -39,6 +56,15 @@ export function MaintenanceViewClient() {
 	const tabFromUrl = searchParams.get("tab") || "overview";
 	const [activeTab, setActiveTab] = useState(tabFromUrl);
 
+	// DASH-18: URL-driven unit scope. The lease detail's "Maintenance Requests"
+	// quick action links `/maintenance?unit_id=…`; the query factory already
+	// applies `.eq("unit_id", …)` so the filter is a pure param wiring.
+	const unitIdFilter = searchParams.get("unit_id");
+	const { data: filterUnit } = useQuery({
+		...unitQueries.detail(unitIdFilter ?? ""),
+		enabled: !!unitIdFilter,
+	});
+
 	const handleTabChange = (value: string) => {
 		setActiveTab(value);
 		const url = new URL(window.location.href);
@@ -52,7 +78,11 @@ export function MaintenanceViewClient() {
 
 	const [searchQuery, setSearchQuery] = useState("");
 
-	const { data: response, isLoading } = useQuery(maintenanceQueries.list());
+	const { data: response, isLoading } = useQuery(
+		maintenanceQueries.list(
+			unitIdFilter ? { unit_id: unitIdFilter } : undefined,
+		),
+	);
 	const requests = (response?.data ?? []) as MaintenanceDisplayRequest[];
 	// Stat cards come from the get_maintenance_stats RPC (counts the owner's FULL
 	// set) instead of the paginated list() (capped at 50), so they stay accurate
@@ -122,25 +152,50 @@ export function MaintenanceViewClient() {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
 				<BlurFade delay={0.1} inView>
-					<div className="max-w-md mx-auto text-center py-16">
-						<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
-							<Wrench className="w-8 h-8 text-primary" />
-						</div>
-						<h2 className="text-xl font-semibold text-foreground mb-3">
-							No maintenance requests
-						</h2>
-						<p className="text-muted-foreground mb-6">
-							Log a request to track repairs, costs, and vendor assignments for
-							a unit.
-						</p>
-						<Link
-							href="/maintenance/new"
-							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-						>
-							<Plus className="w-5 h-5" />
-							Create Request
-						</Link>
-					</div>
+					{unitIdFilter ? (
+						<Empty>
+							<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+								<Wrench />
+							</EmptyMedia>
+							<EmptyHeader>
+								<EmptyTitle>No maintenance requests for this unit</EmptyTitle>
+								<EmptyDescription>
+									{filterUnit?.unit_number
+										? `Unit ${filterUnit.unit_number} has no maintenance requests yet.`
+										: "This unit has no maintenance requests yet."}
+								</EmptyDescription>
+							</EmptyHeader>
+							<EmptyContent>
+								<Button
+									variant="outline"
+									onClick={() => router.replace("/maintenance")}
+								>
+									Clear filter
+								</Button>
+							</EmptyContent>
+						</Empty>
+					) : (
+						<Empty>
+							<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+								<Wrench />
+							</EmptyMedia>
+							<EmptyHeader>
+								<EmptyTitle>No maintenance requests</EmptyTitle>
+								<EmptyDescription>
+									Log a request to track repairs, costs, and vendor assignments
+									for a unit.
+								</EmptyDescription>
+							</EmptyHeader>
+							<EmptyContent>
+								<Button asChild>
+									<Link href="/maintenance/new">
+										<Plus className="w-5 h-5 mr-2" />
+										Create Request
+									</Link>
+								</Button>
+							</EmptyContent>
+						</Empty>
+					)}
 				</BlurFade>
 			</div>
 		);
@@ -239,6 +294,23 @@ export function MaintenanceViewClient() {
 					</Stat>
 				</BlurFade>
 			</div>
+
+			{/* DASH-18: unit-scope indicator when filtered via ?unit_id= */}
+			{unitIdFilter && (
+				<div className="mb-4 flex items-center">
+					<span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 text-sm text-muted-foreground">
+						Filtered to unit {filterUnit?.unit_number ?? "one unit"}
+						<button
+							type="button"
+							onClick={() => router.replace("/maintenance")}
+							aria-label="Clear unit filter"
+							className="text-muted-foreground hover:text-foreground"
+						>
+							<X className="size-3.5" />
+						</button>
+					</span>
+				</div>
+			)}
 
 			{/* Tabbed Content */}
 			<Tabs

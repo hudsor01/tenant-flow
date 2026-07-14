@@ -20,6 +20,14 @@ import { DateRangePicker } from "#components/shared/date-range-picker";
 import { MultiSelectChips } from "#components/shared/multi-select-chips";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import { Input } from "#components/ui/input";
 import {
 	Select,
@@ -480,10 +488,14 @@ export function DocumentsVaultClient() {
 							))}
 						</div>
 					) : isError ? (
-						<EmptyState
-							icon={<AlertTriangle className="size-8 text-destructive" />}
-							title="We couldn't load your documents."
-							action={
+						<Empty>
+							<EmptyMedia className="bg-destructive/10 text-destructive size-16 rounded-sm mb-6 [&_svg]:size-8">
+								<AlertTriangle />
+							</EmptyMedia>
+							<EmptyHeader>
+								<EmptyTitle>We couldn't load your documents.</EmptyTitle>
+							</EmptyHeader>
+							<EmptyContent>
 								<Button
 									size="sm"
 									variant="outline"
@@ -493,30 +505,34 @@ export function DocumentsVaultClient() {
 								>
 									Try again
 								</Button>
-							}
-						/>
+							</EmptyContent>
+						</Empty>
 					) : !data || data.rows.length === 0 ? (
-						<EmptyState
-							icon={<FolderArchive className="size-8 opacity-50" />}
-							title={
-								queryParam ||
-								entityType ||
-								categories.length > 0 ||
-								fromParam ||
-								toParam
-									? "No documents match your search."
-									: "No documents uploaded yet."
-							}
-							subtitle={
-								queryParam ||
-								entityType ||
-								categories.length > 0 ||
-								fromParam ||
-								toParam
-									? "Try a different keyword or filter."
-									: "Open a property, lease, tenant, maintenance request, or inspection to upload your first document."
-							}
-						/>
+						<Empty>
+							<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+								<FolderArchive />
+							</EmptyMedia>
+							<EmptyHeader>
+								<EmptyTitle>
+									{queryParam ||
+									entityType ||
+									categories.length > 0 ||
+									fromParam ||
+									toParam
+										? "No documents match your search."
+										: "No documents uploaded yet."}
+								</EmptyTitle>
+								<EmptyDescription>
+									{queryParam ||
+									entityType ||
+									categories.length > 0 ||
+									fromParam ||
+									toParam
+										? "Try a different keyword or filter."
+										: "Open a property, lease, tenant, maintenance request, or inspection to upload your first document."}
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
 					) : (
 						<>
 							<ul className="divide-y divide-border">
@@ -566,25 +582,4 @@ export function DocumentsVaultClient() {
 function DocumentVaultRow({ doc }: { doc: DocumentRowData }) {
 	const [isOpen, setIsOpen] = useState(false);
 	return <DocumentRow doc={doc} isOpen={isOpen} onOpenChange={setIsOpen} />;
-}
-
-function EmptyState({
-	icon,
-	title,
-	subtitle,
-	action,
-}: {
-	icon: React.ReactNode;
-	title: string;
-	subtitle?: string;
-	action?: React.ReactNode;
-}) {
-	return (
-		<div className="text-center py-12 text-muted-foreground space-y-3">
-			<div className="flex justify-center">{icon}</div>
-			<p className="text-sm font-medium text-foreground">{title}</p>
-			{subtitle && <p className="text-xs">{subtitle}</p>}
-			{action}
-		</div>
-	);
 }
