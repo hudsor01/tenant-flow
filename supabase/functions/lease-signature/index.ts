@@ -525,6 +525,38 @@ Deno.serve(async (req: Request) => {
 			});
 		}
 
+		// ── finalize ─────────────────────────────────────────────────────────────
+		// Owner-triggerable, idempotent heal for a transient finalize failure
+		// (render / upload / email) — no re-signing needed. finalizeSignedLease
+		// internally no-ops unless the lease is fully signed and the PDF pointer or
+		// the tenant email are still outstanding. Rate-limited per owner because it
+		// renders a PDF.
+		if (action === "finalize") {
+			const limited = await rateLimit(req, {
+				maxRequests: 30,
+				windowMs: 60_000,
+				prefix: "lease-esign-finalize",
+				identifier: user.id,
+			});
+			if (limited) return limited;
+
+			await finalizeSignedLease(supabase, leaseId);
+
+			const { data: refreshed } = await supabase
+				.from("leases")
+				.select("signed_document_path")
+				.eq("id", leaseId)
+				.maybeSingle();
+
+			return new Response(
+				JSON.stringify({
+					success: true,
+					document_ready: !!refreshed?.signed_document_path,
+				}),
+				{ status: 200, headers: getJsonHeaders(req) },
+			);
+		}
+
 		return new Response(JSON.stringify({ error: "Unknown action" }), {
 			status: 400,
 			headers: getJsonHeaders(req),

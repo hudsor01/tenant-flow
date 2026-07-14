@@ -11,6 +11,8 @@ export interface SendEmailParams {
 	html: string;
 	tags?: Array<{ name: string; value: string }>;
 	idempotencyKey?: string;
+	/** Base64-encoded file attachments (e.g. a signed lease PDF). */
+	attachments?: Array<{ filename: string; content: string }>;
 }
 
 export type SendEmailResult =
@@ -19,6 +21,21 @@ export type SendEmailResult =
 
 const RESEND_API_URL = "https://api.resend.com/emails";
 const FROM_ADDRESS = "TenantFlow <noreply@tenantflow.app>";
+
+/**
+ * Base64-encode bytes in fixed-size chunks. `btoa(String.fromCharCode(...bytes))`
+ * spreads the ENTIRE array onto the call stack and overflows on large buffers
+ * (a signed lease PDF is tens of KB); accumulate the binary string in bounded
+ * 32KB slices instead, which stays well under the argument-count limit.
+ */
+export function uint8ToBase64(bytes: Uint8Array): string {
+	let binary = "";
+	const CHUNK = 0x8000;
+	for (let i = 0; i < bytes.length; i += CHUNK) {
+		binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+	}
+	return btoa(binary);
+}
 
 /**
  * Sends an email via the Resend REST API.
@@ -48,6 +65,10 @@ export async function sendEmail(
 
 		if (params.tags && params.tags.length > 0) {
 			body.tags = params.tags;
+		}
+
+		if (params.attachments && params.attachments.length > 0) {
+			body.attachments = params.attachments;
 		}
 
 		const headers: Record<string, string> = {

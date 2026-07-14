@@ -16,6 +16,11 @@ vi.mock("#hooks/api/use-lease", () => ({
 		mockUseSignedDocumentUrl(...args),
 }));
 
+const finalizeMutate = vi.fn();
+vi.mock("#hooks/api/use-lease-signature-mutations", () => ({
+	useFinalizeSignedLeaseMutation: () => ({ mutate: finalizeMutate }),
+}));
+
 const toastError = vi.fn();
 vi.mock("sonner", () => ({
 	toast: { error: (...args: unknown[]) => toastError(...args) },
@@ -61,7 +66,7 @@ describe("DownloadSignedLeaseButton", () => {
 		openSpy.mockRestore();
 	});
 
-	it("shows a Finalizing state that can be manually re-checked", () => {
+	it("auto-fires the idempotent finalize once on mount in the Finalizing state", () => {
 		mockUseSignedDocumentUrl.mockReturnValue({
 			data: { document_url: null, finalizing: true },
 			isLoading: false,
@@ -70,9 +75,27 @@ describe("DownloadSignedLeaseButton", () => {
 		});
 		render(<DownloadSignedLeaseButton leaseId="l1" />);
 
+		expect(
+			screen.getByTestId("download-signed-lease-finalizing"),
+		).toBeInTheDocument();
+		// Auto-heal: the finalize mutation fires once per mount, ref-guarded.
+		expect(finalizeMutate).toHaveBeenCalledTimes(1);
+		expect(finalizeMutate).toHaveBeenCalledWith("l1");
+	});
+
+	it("re-triggers finalize and refetch when the Finalizing button is clicked", () => {
+		mockUseSignedDocumentUrl.mockReturnValue({
+			data: { document_url: null, finalizing: true },
+			isLoading: false,
+			error: null,
+			refetch,
+		});
+		render(<DownloadSignedLeaseButton leaseId="l1" />);
+
+		finalizeMutate.mockClear();
 		const btn = screen.getByTestId("download-signed-lease-finalizing");
-		expect(btn).toBeInTheDocument();
 		fireEvent.click(btn);
+		expect(finalizeMutate).toHaveBeenCalledWith("l1");
 		expect(refetch).toHaveBeenCalled();
 	});
 
