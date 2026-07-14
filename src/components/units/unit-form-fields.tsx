@@ -58,6 +58,7 @@ export const UnitFormFields = withForm({
 							<field.TextField
 								label="Unit Number *"
 								placeholder="e.g., 101, A1"
+								autoFocus
 							/>
 						)}
 					</form.AppField>

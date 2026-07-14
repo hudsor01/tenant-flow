@@ -19,7 +19,6 @@ import { ProfileCard } from "#components/profiles/owner/profile-card";
 // Components
 import { ProfileSkeleton } from "#components/profiles/owner/profile-skeleton";
 import { QuickLinksSection } from "#components/profiles/owner/quick-links-section";
-import { RecentActivitySection } from "#components/profiles/owner/recent-activity-section";
 import { SecuritySection } from "#components/profiles/owner/security-section";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
@@ -245,8 +244,6 @@ export default function OwnerProfilePage() {
 					/>
 
 					<QuickLinksSection />
-
-					<RecentActivitySection />
 				</div>
 			</div>
 

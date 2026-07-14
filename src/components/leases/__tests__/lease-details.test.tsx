@@ -423,13 +423,15 @@ describe("LeaseDetails", () => {
 			});
 		});
 
-		test("shows unit details link when unit exists", async () => {
+		test("shows unit link to the unit edit route when unit exists", async () => {
+			// DASH-11: the affordance is relabeled "View Unit" and points at the
+			// real per-unit route /units/[id]/edit (the old
+			// /properties/[id]/units/[unitId] route never existed and 404'd).
 			render(<LeaseDetails id="lease-test-123" />);
 
 			await waitFor(() => {
-				expect(
-					screen.getByRole("link", { name: /view unit details/i }),
-				).toBeInTheDocument();
+				const unitLink = screen.getByRole("link", { name: /view unit/i });
+				expect(unitLink).toHaveAttribute("href", "/units/unit-101/edit");
 			});
 		});
 	});

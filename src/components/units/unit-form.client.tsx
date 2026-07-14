@@ -155,7 +155,11 @@ export function UnitForm({
 					await createUnitMutation.mutateAsync(unitData);
 					// FORMFIX-08: the create mutation's createMutationCallbacks fires the
 					// single success toast; no form-level duplicate.
-					router.push("/units");
+					// DASH-04: inside a modal, `onSuccess` closes in place (router.back);
+					// only the full /units/new page (no onSuccess) navigates to the list.
+					if (!onSuccess) {
+						router.push("/units");
+					}
 				} else {
 					if (!unit?.id) {
 						toast.error("Unit ID is missing");

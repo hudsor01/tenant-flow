@@ -4,6 +4,14 @@ import { ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import { Skeleton } from "#components/ui/skeleton";
 import { useInspections } from "#hooks/api/use-inspections";
 import { assertNever } from "#lib/assert-never";
@@ -127,22 +135,25 @@ export function InspectionListClient() {
 				)}
 
 				{!isLoading && !error && (!inspections || inspections.length === 0) && (
-					<div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-						<ClipboardList
-							className="w-12 h-12 text-muted-foreground mb-4"
-							aria-hidden="true"
-						/>
-						<h3 className="text-base font-medium mb-1">No inspections yet</h3>
-						<p className="text-sm text-muted-foreground mb-4">
-							Create a move-in or move-out inspection for your properties.
-						</p>
-						<Link href="/inspections/new">
-							<Button size="sm">
-								<Plus className="w-4 h-4 mr-2" aria-hidden="true" />
-								New Inspection
+					<Empty>
+						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+							<ClipboardList aria-hidden="true" />
+						</EmptyMedia>
+						<EmptyHeader>
+							<EmptyTitle>No inspections yet</EmptyTitle>
+							<EmptyDescription>
+								Create a move-in or move-out inspection for your properties.
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<Button size="sm" asChild>
+								<Link href="/inspections/new">
+									<Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+									New Inspection
+								</Link>
 							</Button>
-						</Link>
-					</div>
+						</EmptyContent>
+					</Empty>
 				)}
 
 				{!isLoading && !error && inspections && inspections.length > 0 && (

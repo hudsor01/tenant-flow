@@ -12,6 +12,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import {
 	Select,
 	SelectContent,
@@ -65,6 +66,11 @@ export function DocumentsSection({
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [openId, setOpenId] = useState<string | null>(null);
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set());
+	// DASH-10: document deletion (DB row + storage blob) is irreversible — gate
+	// it behind a confirm dialog like every sibling destructive flow.
+	const [pendingDelete, setPendingDelete] = useState<DocumentRowData | null>(
+		null,
+	);
 	// One category per upload batch. Multi-file uploads share the choice;
 	// per-file categorization would force a dialog roundtrip we want to
 	// avoid. Defaults to 'other' — every owner is seeded with `other` at
@@ -326,7 +332,7 @@ export function DocumentsSection({
 									doc={doc}
 									isOpen={openId === doc.id}
 									onOpenChange={(open) => setOpenId(open ? doc.id : null)}
-									onDelete={handleDelete}
+									onDelete={setPendingDelete}
 									isDeleting={deletingIds.has(doc.id)}
 								/>
 							))}
@@ -334,6 +340,23 @@ export function DocumentsSection({
 					</>
 				)}
 			</CardContent>
+			<ConfirmDialog
+				open={!!pendingDelete}
+				onOpenChange={(open) => {
+					if (!open) setPendingDelete(null);
+				}}
+				title="Remove document?"
+				description={`This permanently deletes "${
+					pendingDelete?.title ?? pendingDelete?.file_path ?? "this document"
+				}" and its stored file. This can't be undone.`}
+				confirmText="Remove"
+				loading={deleteMutation.isPending}
+				onConfirm={() => {
+					const doc = pendingDelete;
+					setPendingDelete(null);
+					if (doc) void handleDelete(doc);
+				}}
+			/>
 		</Card>
 	);
 }
