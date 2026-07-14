@@ -20,6 +20,7 @@ import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
+import { completeSubscribeSignup } from "./subscribe-complete";
 
 const logger = createLogger({ component: "PricingCardStandard" });
 
@@ -289,13 +290,12 @@ export function PricingCardStandard({
 					onOpenChange={setSubscribeDialogOpen}
 					planName={plan.name}
 					planCta={`Subscribe to ${plan.name}`}
-					onComplete={async ({ email, tenant_id }) => {
-						await subscriptionMutation.mutateAsync({
-							customerEmail: email,
-							...(tenant_id && { tenant_id }),
-						});
-						setSubscribeDialogOpen(false);
-					}}
+					onComplete={(payload) =>
+						completeSubscribeSignup(payload, {
+							startCheckout: (o) => subscriptionMutation.mutateAsync(o),
+							closeDialog: () => setSubscribeDialogOpen(false),
+						})
+					}
 				/>
 			)}
 		</>

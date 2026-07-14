@@ -18,6 +18,7 @@ import {
 } from "#components/ui/breadcrumb";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
 import { blogAnonClient, getBlogCategories } from "#lib/blog/blog-queries";
+import { categoryLabel } from "#lib/seo/blog-categories";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -31,7 +32,6 @@ interface BlogPageProps {
 }
 
 interface CategoryRow {
-	name: string;
 	slug: string;
 	post_count: number;
 }
@@ -197,7 +197,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 									href={`/blog/category/${cat.slug}`}
 									className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
 								>
-									{cat.name}
+									{categoryLabel(cat.slug)}
 									<span className="text-muted-foreground">
 										({cat.post_count})
 									</span>

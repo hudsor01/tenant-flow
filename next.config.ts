@@ -118,11 +118,10 @@ const nextConfig: NextConfig = {
 				destination: "/pricing",
 				permanent: true,
 			},
-			// CRIT-06: long-form legal URL aliases. External links/emails/
-			// sitemaps may reference verbose forms; canonical paths use the
-			// short forms throughout footer + llms.txt + sitemap.xml.
-			// permanent: true emits 308 — Google + browsers treat as 301 for
-			// SEO + cache.
+			// CRIT-06: long-form legal URL aliases. These verbose forms genuinely
+			// existed as pages; the canonical paths use the short forms
+			// throughout footer + llms.txt + sitemap.xml. permanent: true emits
+			// 308 — Google + browsers treat as 301 for SEO + cache.
 			{
 				source: "/terms-of-service",
 				destination: "/terms",
@@ -131,16 +130,6 @@ const nextConfig: NextConfig = {
 			{
 				source: "/privacy-policy",
 				destination: "/privacy",
-				permanent: true,
-			},
-			{
-				source: "/help-center",
-				destination: "/help",
-				permanent: true,
-			},
-			{
-				source: "/rss-feed",
-				destination: "/feed.xml",
 				permanent: true,
 			},
 			// Deleted Phase-1 blog catalogue: 301 each ghost slug (now HTTP-404

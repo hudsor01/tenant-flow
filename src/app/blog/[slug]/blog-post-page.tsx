@@ -57,10 +57,10 @@ const LEAD_MAGNETS: Record<
 		downloadUrl: "/resources/seasonal-maintenance-checklist",
 	},
 	"mortgage-interest-deduction-rental-property-schedule-e": {
-		title: "Free Tax Deduction Tracker Spreadsheet",
+		title: "Free Printable Tax Deduction Tracker",
 		description:
-			"Track every deductible expense throughout the year with this ready-to-use spreadsheet. Categorized by IRS schedule with auto-calculated totals.",
-		resourceType: "spreadsheet",
+			"Track every deductible expense throughout the year with this printable tracker. Categorized by IRS Schedule E with space to record amounts and category totals.",
+		resourceType: "guide",
 		downloadUrl: "/resources/landlord-tax-deduction-tracker",
 	},
 	"security-deposit-deadlines-and-caps-all-50-states": {

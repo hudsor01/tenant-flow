@@ -98,7 +98,7 @@ export default async function PricingPage() {
 			/>
 			<PricingFaqSection />
 			<PricingCtaSection />
-			<StickyConversionCta />
+			<StickyConversionCta primaryHref="#plans" />
 			<LeadCaptureModal />
 		</PageLayout>
 	);

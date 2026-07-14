@@ -1,8 +1,6 @@
-"use client";
-
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "#components/ui/button";
 import type { HeroSectionProps } from "#types/frontend";
 
@@ -16,8 +14,6 @@ export function HeroSection({
 	trustSignals,
 	image,
 }: HeroSectionProps) {
-	const router = useRouter();
-
 	return (
 		<section className="relative flex-1 flex flex-col">
 			{/* Trust Badge */}
@@ -69,15 +65,14 @@ export function HeroSection({
 							</div>
 
 							<div className="flex flex-row gap-4">
-								<Button onClick={() => router.push(primaryCta.href)}>
-									{primaryCta.label}
-									<ArrowRight className="ml-2 size-4" />
+								<Button asChild>
+									<Link href={primaryCta.href}>
+										{primaryCta.label}
+										<ArrowRight className="ml-2 size-4" />
+									</Link>
 								</Button>
-								<Button
-									variant="outline"
-									onClick={() => router.push(secondaryCta.href)}
-								>
-									{secondaryCta.label}
+								<Button variant="outline" asChild>
+									<Link href={secondaryCta.href}>{secondaryCta.label}</Link>
 								</Button>
 							</div>
 

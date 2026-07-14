@@ -71,7 +71,7 @@ const downloadResources = [
 		description:
 			"Track every deductible expense year-round, organized by IRS Schedule E categories.",
 		href: "/resources/landlord-tax-deduction-tracker",
-		badge: "Spreadsheet",
+		badge: "Printable",
 	},
 	{
 		icon: <Scale className="size-6" />,
