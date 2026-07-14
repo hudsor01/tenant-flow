@@ -86,7 +86,26 @@ describe("SignLeaseForm", () => {
 		});
 	});
 
-	it("announces full activation when both parties have signed", async () => {
+	it("tells the tenant-first signer the owner was notified and a copy will be emailed", async () => {
+		// Default mock is both_signed:false — the tenant-first success branch.
+		render(<SignLeaseForm token="tok-1" tenantName="Jane Doe" />);
+
+		await viewLease();
+		fireEvent.click(screen.getByTestId("sign-consent-checkbox"));
+		fireEvent.click(screen.getByTestId("sign-lease-submit"));
+
+		await waitFor(() => {
+			expect(screen.getByTestId("sign-lease-success")).toBeInTheDocument();
+		});
+		expect(
+			screen.getByText(/landlord has been notified and will countersign/i),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(/emailed copy of the fully signed lease/i),
+		).toBeInTheDocument();
+	});
+
+	it("announces full activation and an emailed copy when both parties have signed", async () => {
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true, both_signed: true }),
@@ -101,6 +120,9 @@ describe("SignLeaseForm", () => {
 		await waitFor(() => {
 			expect(screen.getByText(/now active/i)).toBeInTheDocument();
 		});
+		expect(
+			screen.getByText(/copy of the signed lease is being emailed to you/i),
+		).toBeInTheDocument();
 	});
 
 	it("surfaces a friendly message when the token is rejected", async () => {

@@ -161,8 +161,8 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				</p>
 				<p className="text-sm text-muted-foreground">
 					{bothSigned
-						? "All parties have signed. This lease is now active. You can close this page."
-						: "Thank you. The landlord will be notified once all parties have signed."}
+						? "All parties have signed. This lease is now active. A copy of the signed lease is being emailed to you."
+						: "Thank you. The landlord has been notified and will countersign to activate the lease. You'll receive an emailed copy of the fully signed lease once they do."}
 				</p>
 			</div>
 		);

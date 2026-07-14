@@ -46,56 +46,6 @@ export interface LeaseDisplay {
 	original: Lease;
 }
 
-export function getStatusConfig(status: string): {
-	className: string;
-	label: string;
-} {
-	const config: Record<string, { className: string; label: string }> = {
-		draft: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Draft",
-		},
-		pending_signature: {
-			className:
-				"bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-			label: "Pending",
-		},
-		active: {
-			className:
-				"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-			label: "Active",
-		},
-		ended: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Ended",
-		},
-		expired: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Expired",
-		},
-		terminated: {
-			className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-			label: "Terminated",
-		},
-		expiring: {
-			className:
-				"bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-			label: "Expiring",
-		},
-	};
-
-	return (
-		config[status] ?? {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Draft",
-		}
-	);
-}
-
 export function transformLease(lease: LeaseWithNestedRelations): LeaseDisplay {
 	const tenant = lease.tenant;
 	const unit = lease.unit;

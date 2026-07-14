@@ -236,6 +236,15 @@ export const leaseMutations = {
 				callLeaseSignatureEdgeFunction("cancel", { leaseId }),
 		}),
 
+	// Idempotent owner-triggered re-render/upload + one-time tenant email. Heals
+	// a transient finalize failure without re-signing (SIGN-02).
+	finalizeSignature: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.leases.finalizeSignature,
+			mutationFn: (leaseId: string) =>
+				callLeaseSignatureEdgeFunction("finalize", { leaseId }),
+		}),
+
 	resendSignature: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.resendSignature,

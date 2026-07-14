@@ -3,6 +3,7 @@
 import { Eye, MoreVertical, PenLine, RotateCcw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getStatusConfig } from "#components/leases/detail/lease-detail-utils";
 import { RenewLeaseDialog } from "#components/leases/dialogs/renew-lease-dialog";
 import { TerminateLeaseDialog } from "#components/leases/dialogs/terminate-lease-dialog";
 import { SendForSignatureButton } from "#components/leases/send-for-signature-button";
@@ -83,28 +84,11 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		}
 	};
 
-	const getStatusBadge = (status: string) => {
-		const variants: Record<
-			string,
-			"default" | "secondary" | "destructive" | "outline"
-		> = {
-			active: "default",
-			EXPIRED: "destructive",
-			TERMINATED: "secondary",
-			DRAFT: "outline",
-			pending_signature: "secondary",
-		};
-
-		const labels: Record<string, string> = {
-			pending_signature: "Pending Signature",
-		};
-
-		return (
-			<Badge variant={variants[status] || "outline"}>
-				{labels[status] || status}
-			</Badge>
-		);
-	};
+	// Single canonical lowercase lease-status map (getStatusConfig) — the legacy
+	// UPPERCASE-keyed local map here was dead against the lowercase lease_status
+	// CHECK set. Badge merges className via cn/tailwind-merge, so the config's
+	// bg/text utilities win over the "outline" variant.
+	const statusConfig = getStatusConfig(lease.lease_status);
 
 	return (
 		<div className="flex items-center gap-2">
@@ -201,7 +185,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				</AlertDialogContent>
 			</AlertDialog>
 
-			{getStatusBadge(lease.lease_status)}
+			<Badge variant="outline" className={statusConfig.className}>
+				{statusConfig.label}
+			</Badge>
 
 			<Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
 				<DialogContent intent="read">
@@ -228,7 +214,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 						</div>
 						<div>
 							<Label>Status</Label>
-							{getStatusBadge(lease.lease_status)}
+							<Badge variant="outline" className={statusConfig.className}>
+								{statusConfig.label}
+							</Badge>
 						</div>
 					</DialogBody>
 				</DialogContent>

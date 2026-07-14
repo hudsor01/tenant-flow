@@ -41,6 +41,7 @@ export const mutationKeys = {
 		sendForSignature: ["mutations", "leases", "sendForSignature"] as const,
 		cancelSignature: ["mutations", "leases", "cancelSignature"] as const,
 		resendSignature: ["mutations", "leases", "resendSignature"] as const,
+		finalizeSignature: ["mutations", "leases", "finalizeSignature"] as const,
 		terminate: ["mutations", "leases", "terminate"] as const,
 		renew: ["mutations", "leases", "renew"] as const,
 	},

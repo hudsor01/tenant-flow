@@ -1,17 +1,14 @@
 import type { VirtualItem } from "@tanstack/react-virtual";
 import { ArrowUpDown, Eye, Pencil, RefreshCw, XCircle } from "lucide-react";
 import type { ReactNode } from "react";
+import { getStatusConfig } from "#components/leases/detail/lease-detail-utils";
 import {
 	getVirtualRowStyle,
 	VIRTUAL_ROW_CLASS,
 } from "#components/shared/virtualized-table-row";
 import { formatDate } from "#lib/formatters/date";
 import { cn } from "#lib/utils";
-import {
-	getStatusConfig,
-	type LeaseDisplay,
-	type SortField,
-} from "./lease-utils";
+import type { LeaseDisplay, SortField } from "./lease-utils";
 
 /**
  * Per-column layout classes shared by the leases `<thead>` cells and the

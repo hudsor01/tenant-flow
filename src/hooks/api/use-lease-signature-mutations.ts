@@ -54,6 +54,29 @@ export function useSignLeaseAsOwnerMutation() {
 	});
 }
 
+// Idempotent owner-triggered heal for a stuck finalize (SIGN-02): re-renders +
+// re-uploads the signed PDF and re-attempts the one-time tenant email. Safe to
+// re-run; the edge action no-ops unless the lease is fully signed with an
+// outstanding PDF pointer or tenant email.
+export function useFinalizeSignedLeaseMutation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		...leaseMutations.finalizeSignature(),
+		onSuccess: (_result, leaseId) => {
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.signedDocument(leaseId).queryKey,
+			});
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(leaseId).queryKey,
+			});
+		},
+		onError: (err) => {
+			handleMutationError(err, "Finalize signed lease");
+		},
+	});
+}
+
 // Revokes the tenant signing token and reverts the lease to draft.
 export function useCancelSignatureRequestMutation() {
 	const queryClient = useQueryClient();

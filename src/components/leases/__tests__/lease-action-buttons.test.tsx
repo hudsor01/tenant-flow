@@ -179,7 +179,7 @@ describe("LeaseActionButtons", () => {
 				/>,
 			);
 
-			expect(screen.getByText("active")).toBeInTheDocument();
+			expect(screen.getByText("Active")).toBeInTheDocument();
 		});
 	});
 
@@ -551,26 +551,34 @@ describe("LeaseActionButtons", () => {
 	});
 
 	describe("Status Badge Display", () => {
-		test('displays "Pending Signature" label for pending_signature status', () => {
+		// SIGN-05: canonical lowercase getStatusConfig replaced the dead
+		// UPPERCASE-keyed local map, so terminated/expired/draft now render their
+		// human labels (previously fell through to the raw string).
+		test.each([
+			["pending_signature", "Pending Signature"],
+			["active", "Active"],
+			["draft", "Draft"],
+			["terminated", "Terminated"],
+			["expired", "Expired"],
+			["ended", "Ended"],
+		])("renders the %s status as %s", (status, label) => {
 			render(
 				<LeaseActionButtons
-					lease={createMockLease({
-						lease_status: "pending_signature",
-					})}
+					lease={createMockLease({ lease_status: status })}
 				/>,
 			);
 
-			expect(screen.getByText("Pending Signature")).toBeInTheDocument();
+			expect(screen.getByText(label)).toBeInTheDocument();
 		});
 
 		test("displays raw status for unrecognized statuses", () => {
 			render(
 				<LeaseActionButtons
-					lease={createMockLease({ lease_status: "active" })}
+					lease={createMockLease({ lease_status: "mystery" })}
 				/>,
 			);
 
-			expect(screen.getByText("active")).toBeInTheDocument();
+			expect(screen.getByText("mystery")).toBeInTheDocument();
 		});
 	});
 });

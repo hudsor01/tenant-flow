@@ -1,9 +1,11 @@
 "use client";
 
 import { AlertCircle, Download, Loader2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { useSignedDocumentUrl } from "#hooks/api/use-lease";
+import { useFinalizeSignedLeaseMutation } from "#hooks/api/use-lease-signature-mutations";
 import { cn } from "#lib/utils";
 
 interface DownloadSignedLeaseButtonProps {
@@ -26,6 +28,18 @@ export function DownloadSignedLeaseButton({
 	size = "default",
 }: DownloadSignedLeaseButtonProps) {
 	const { data, isLoading, error, refetch } = useSignedDocumentUrl(leaseId);
+	const { mutate: finalize } = useFinalizeSignedLeaseMutation();
+	const autoFinalizedRef = useRef(false);
+
+	// Both parties signed but the PDF pointer is still unwritten — the out-of-band
+	// finalize may have failed. Auto-fire the idempotent owner-side finalize ONCE
+	// per mount to self-heal; the bounded poll then surfaces the download.
+	useEffect(() => {
+		if (data?.finalizing && !autoFinalizedRef.current) {
+			autoFinalizedRef.current = true;
+			finalize(leaseId);
+		}
+	}, [data?.finalizing, leaseId, finalize]);
 
 	const handleDownload = () => {
 		if (!data?.document_url) {
@@ -77,12 +91,16 @@ export function DownloadSignedLeaseButton({
 	if (data?.finalizing) {
 		// Both parties signed; the signed PDF is still being written out-of-band.
 		// Clickable (not disabled) so that if the bounded auto-poll gives up on a
-		// stuck finalize, the owner can still manually re-check — no dead-end.
+		// stuck finalize, the owner can re-trigger the idempotent finalize and
+		// re-check — no dead-end.
 		return (
 			<Button
 				variant={variant}
 				size={size}
-				onClick={() => refetch()}
+				onClick={() => {
+					finalize(leaseId);
+					refetch();
+				}}
 				className={cn("gap-2", className)}
 				data-testid="download-signed-lease-finalizing"
 			>

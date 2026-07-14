@@ -15,18 +15,22 @@ import {
 	getJsonHeaders,
 	handleCorsOptions,
 } from "../_shared/cors.ts";
+import { wrapEmailLayout } from "../_shared/email-layout.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
 import { renderLeasePdf } from "../_shared/lease-pdf.ts";
 import {
 	buildLeasePdfData,
 	clientIp,
 	clientUserAgent,
+	EMAIL_RE,
 	fetchLeaseSigningData,
 	finalizeSignedLease,
 	sha256Hex,
 } from "../_shared/lease-signing.ts";
 import { rateLimit } from "../_shared/rate-limit.ts";
+import { sendEmail } from "../_shared/resend.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
 interface SigningContextRow {
@@ -45,14 +49,54 @@ interface SigningContextRow {
 	rent_amount: number | null;
 }
 
+/**
+ * SIGN-03: tenant-signed-first email nudge to the owner. Best-effort — the
+ * in-app notification is written atomically inside sign_lease_with_token, so an
+ * email failure only downgrades the prompt, never the record. Guarded by a
+ * valid owner email address.
+ */
+async function emailOwnerToCountersign(
+	supabase: ReturnType<typeof createAdminClient>,
+	appUrl: string,
+	leaseId: string,
+): Promise<void> {
+	const record = await fetchLeaseSigningData(supabase, leaseId);
+	if (!record || !EMAIL_RE.test(record.ownerEmail)) return;
+
+	const body = `
+<h1 style="margin:0 0 16px;font-size:20px;color:#18181b;">Your tenant signed the lease</h1>
+<p style="margin:0 0 16px;font-size:15px;color:#3f3f46;line-height:1.6;">
+  ${escapeHtml(record.tenantName)} has signed the residential lease agreement for
+  <strong>${escapeHtml(record.propertyLabel)}</strong>. Sign as the owner to activate
+  the lease.
+</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;">
+  <tr><td style="border-radius:6px;background:#2563eb;">
+    <a href="${appUrl}/leases/${leaseId}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Review &amp; Countersign</a>
+  </td></tr>
+</table>`;
+
+	await sendEmail({
+		to: [record.ownerEmail],
+		subject: "Action needed: countersign your lease",
+		html: wrapEmailLayout(body),
+		tags: [{ name: "type", value: "lease_owner_countersign" }],
+	});
+}
+
 Deno.serve(async (req: Request) => {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
 
 	try {
 		const env = validateEnv({
-			required: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+			required: [
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"NEXT_PUBLIC_APP_URL",
+			],
 		});
+		const appUrl = env["NEXT_PUBLIC_APP_URL"].replace(/\/$/, "");
 		const supabase = createAdminClient(
 			env["SUPABASE_URL"],
 			env["SUPABASE_SERVICE_ROLE_KEY"],
@@ -72,10 +116,25 @@ Deno.serve(async (req: Request) => {
 
 		// ── context ──────────────────────────────────────────────────────────────
 		if (action === "context") {
-			// Keyed by the token hash, not IP: legitimate context fetches come from
-			// the Next.js server (one shared egress IP), so one tenant's loads must
-			// not exhaust another's bucket. Per-session 60/min still bounds repeated
-			// hits on any single token against the multi-table-join RPC.
+			// Two-layer rate limit on this public (verify_jwt=false) endpoint:
+			//   1. A coarse per-IP ceiling (300/min) caps aggregate load from any
+			//      single IP so token-rotation probing can't buy unlimited multi-join
+			//      RPC / Upstash calls by opening a fresh per-token bucket each time.
+			//      300/min supports ~300 signing-page SSR loads/min per egress IP —
+			//      far above real traffic — so the layer is invisible to tenants.
+			//   2. A per-token bucket (60/min, keyed by the token hash — NOT the IP)
+			//      isolates legitimate sessions from each other: context fetches come
+			//      from the Next.js server's shared egress IP, so one tenant's loads
+			//      must not exhaust another's.
+			// Run the IP check FIRST so an IP-limited request never charges token
+			// buckets.
+			const ipLimited = await rateLimit(req, {
+				maxRequests: 300,
+				windowMs: 60_000,
+				prefix: "lease-context-ip",
+			});
+			if (ipLimited) return ipLimited;
+
 			const limited = await rateLimit(req, {
 				maxRequests: 60,
 				windowMs: 60_000,
@@ -231,6 +290,11 @@ Deno.serve(async (req: Request) => {
 
 			if (result.both_signed && result.lease_id) {
 				await finalizeSignedLease(supabase, result.lease_id);
+			} else if (result.lease_id) {
+				// SIGN-03: tenant signed first — nudge the owner to countersign. The
+				// in-app notification already landed atomically inside the RPC; this
+				// email is best-effort (failure is logged, never surfaced).
+				await emailOwnerToCountersign(supabase, appUrl, result.lease_id);
 			}
 
 			return new Response(

@@ -212,6 +212,13 @@ export function getStatusConfig(status: string): StatusConfig {
 			className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 			label: "Terminated",
 		},
+		// Pseudo-status produced by transformLease (table/lease-utils.ts) for an
+		// active lease within 30 days of its end date. Not a stored lease_status.
+		expiring: {
+			className:
+				"bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+			label: "Expiring",
+		},
 	};
 
 	return (

@@ -4,8 +4,11 @@
 // sign-lease-token (tenant) Edge Functions.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { wrapEmailLayout } from "./email-layout.ts";
 import { captureWebhookError } from "./errors.ts";
+import { escapeHtml } from "./escape-html.ts";
 import { type LeasePdfData, renderLeasePdf } from "./lease-pdf.ts";
+import { sendEmail, uint8ToBase64 } from "./resend.ts";
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -241,51 +244,176 @@ export function buildLeasePdfData(
 	};
 }
 
+function buildSignedLeaseEmail(record: LeaseSigningRecord): string {
+	const body = `
+<h1 style="margin:0 0 16px;font-size:20px;color:#18181b;">Your lease is fully signed</h1>
+<p style="margin:0 0 16px;font-size:15px;color:#3f3f46;line-height:1.6;">
+  Hi ${escapeHtml(record.tenantName)}, all parties have signed the residential lease
+  agreement for <strong>${escapeHtml(record.propertyLabel)}</strong>. A copy of the
+  fully executed lease is attached to this email for your records.
+</p>
+<p style="margin:0 0 8px;font-size:13px;color:#71717a;line-height:1.6;">
+  Please keep this copy for your records. If you have any questions about the lease,
+  contact your landlord directly.
+</p>`;
+	return wrapEmailLayout(body);
+}
+
+/** Reset the one-time email claim so a later finalize retry re-attempts the
+ *  send. Called only after a claimed send fails (or its bytes can't be read). */
+async function releaseSignedLeaseEmailClaim(
+	supabase: SupabaseClient,
+	leaseId: string,
+): Promise<void> {
+	await supabase
+		.from("leases")
+		.update({ signed_lease_emailed_at: null })
+		.eq("id", leaseId);
+}
+
 /**
- * Render + store the finalized signed PDF. Activation (lease_status -> active)
- * and the owner notification happen atomically INSIDE the signing RPCs, so this
- * step is best-effort and idempotent: it is a no-op once the PDF pointer is set,
- * and a failure here never affects the already-durable activation. The PDF can
- * be regenerated later (the lease data + signatures fully determine it).
+ * Ensure-email step: email the tenant the executed PDF exactly once. Atomically
+ * claims the send (null -> now() on signed_lease_emailed_at) so concurrent
+ * finalizes never double-email; on send failure the claim is released so a
+ * later retry re-attempts. `renderedBytes` is the just-rendered buffer when the
+ * PDF was produced in this call; otherwise the finalized PDF is pulled back from
+ * storage (the retry path).
+ */
+async function ensureSignedLeaseEmail(
+	supabase: SupabaseClient,
+	leaseId: string,
+	record: LeaseSigningRecord,
+	signedPath: string,
+	renderedBytes: Uint8Array | null,
+): Promise<void> {
+	if (!EMAIL_RE.test(record.tenantEmail)) return;
+
+	// Atomic single-claim: only the updater that flips signed_lease_emailed_at
+	// from null proceeds. A concurrent finalize (sign-time + owner retry) that
+	// loses the race matches zero rows and returns without emailing.
+	const { data: claimed, error: claimError } = await supabase
+		.from("leases")
+		.update({ signed_lease_emailed_at: new Date().toISOString() })
+		.eq("id", leaseId)
+		.is("signed_lease_emailed_at", null)
+		.select("id");
+	if (claimError) {
+		captureWebhookError(claimError, {
+			action: "finalize_email_claim",
+			lease_id: leaseId,
+		});
+		return;
+	}
+	if (!claimed || claimed.length === 0) return;
+
+	let pdfBytes = renderedBytes;
+	if (!pdfBytes) {
+		const { data: blob, error: downloadError } = await supabase.storage
+			.from(SIGNED_LEASE_BUCKET)
+			.download(signedPath);
+		if (downloadError || !blob) {
+			await releaseSignedLeaseEmailClaim(supabase, leaseId);
+			captureWebhookError(
+				downloadError ??
+					new Error("Signed lease PDF download returned no data"),
+				{ action: "finalize_email_download", lease_id: leaseId },
+			);
+			return;
+		}
+		pdfBytes = new Uint8Array(await blob.arrayBuffer());
+	}
+
+	const emailResult = await sendEmail({
+		to: [record.tenantEmail],
+		subject: "Your signed lease agreement",
+		html: buildSignedLeaseEmail(record),
+		attachments: [
+			{
+				filename: `lease-${leaseId}-signed.pdf`,
+				content: uint8ToBase64(pdfBytes),
+			},
+		],
+		tags: [{ name: "type", value: "lease_signed_copy" }],
+		idempotencyKey: `signed-lease-email-${leaseId}`,
+	});
+	if (!emailResult.success) {
+		// Release the claim so a later finalize retry (SIGN-02) re-sends.
+		await releaseSignedLeaseEmailClaim(supabase, leaseId);
+		captureWebhookError(new Error("Signed lease email send failed"), {
+			message: emailResult.error,
+			action: "finalize_email_send",
+			lease_id: leaseId,
+		});
+	}
+}
+
+/**
+ * Finalize a fully-signed lease. Two idempotent steps, safe to re-run:
+ *   1. ensure-PDF   — render the signed PDF -> upload -> write the pointer
+ *                     (guarded by `.is('signed_document_path', null)`), once.
+ *   2. ensure-email — email the tenant the executed PDF exactly once (claim-
+ *                     guarded on signed_lease_emailed_at).
+ * Activation (lease_status -> active) and the owner notification happen
+ * atomically INSIDE the signing RPCs, so this whole step is best-effort: a
+ * failure here never affects the already-durable activation, and any later
+ * finalize (sign-time callers, or the owner-triggered `finalize` action) heals
+ * a transient render/upload/email outage. The PDF is fully determined by the
+ * lease data + signatures, so re-rendering is deterministic.
  */
 export async function finalizeSignedLease(
 	supabase: SupabaseClient,
 	leaseId: string,
 ): Promise<void> {
 	const record = await fetchLeaseSigningData(supabase, leaseId);
-	if (
-		!record ||
-		!record.ownerSignedAt ||
-		!record.tenantSignedAt ||
-		record.signedDocumentPath
-	) {
+	if (!record || !record.ownerSignedAt || !record.tenantSignedAt) {
 		return;
 	}
 
-	try {
-		const bytes = await renderLeasePdf(
-			buildLeasePdfData(record, { signed: true }),
-		);
-		const hash = await sha256Hex(bytes);
-		const path = signedLeasePath(leaseId);
-		const { error: uploadError } = await supabase.storage
-			.from(SIGNED_LEASE_BUCKET)
-			.upload(path, bytes, { contentType: "application/pdf", upsert: true });
-		if (uploadError) {
-			captureWebhookError(new Error("Signed lease PDF upload failed"), {
-				message: uploadError.message,
-				action: "finalize_upload",
+	// Step 1 — ensure the signed PDF exists. Keep the freshly-rendered bytes so
+	// the email step can attach them without a storage round-trip on first pass.
+	let renderedBytes: Uint8Array | null = null;
+	let signedPath = record.signedDocumentPath;
+	if (!signedPath) {
+		try {
+			const bytes = await renderLeasePdf(
+				buildLeasePdfData(record, { signed: true }),
+			);
+			const hash = await sha256Hex(bytes);
+			const path = signedLeasePath(leaseId);
+			const { error: uploadError } = await supabase.storage
+				.from(SIGNED_LEASE_BUCKET)
+				.upload(path, bytes, { contentType: "application/pdf", upsert: true });
+			if (uploadError) {
+				captureWebhookError(new Error("Signed lease PDF upload failed"), {
+					message: uploadError.message,
+					action: "finalize_upload",
+					lease_id: leaseId,
+				});
+				return;
+			}
+			// Only the first finalize writes the pointer (idempotent under retries).
+			await supabase
+				.from("leases")
+				.update({ signed_document_path: path, signed_document_hash: hash })
+				.eq("id", leaseId)
+				.is("signed_document_path", null);
+			renderedBytes = bytes;
+			signedPath = path;
+		} catch (err) {
+			captureWebhookError(err, {
+				action: "finalize_render",
 				lease_id: leaseId,
 			});
 			return;
 		}
-		// Only the first finalize writes the pointer (idempotent under retries).
-		await supabase
-			.from("leases")
-			.update({ signed_document_path: path, signed_document_hash: hash })
-			.eq("id", leaseId)
-			.is("signed_document_path", null);
-	} catch (err) {
-		captureWebhookError(err, { action: "finalize_render", lease_id: leaseId });
 	}
+
+	// Step 2 — ensure the tenant has been emailed the executed copy exactly once.
+	await ensureSignedLeaseEmail(
+		supabase,
+		leaseId,
+		record,
+		signedPath,
+		renderedBytes,
+	);
 }
