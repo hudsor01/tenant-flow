@@ -14,8 +14,9 @@ import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
  *
  * Mirrors the full page at /leases/[id]/edit, including the terms-lock gate:
  * once the lease is pending_signature or the tenant has signed, the editable
- * term form must never render. Bounce to the read-only detail (the new
- * [...catchAll] slot dismisses this modal during that soft navigation).
+ * term form must never render. Bounce to the read-only detail via
+ * router.replace; the @modal slot's default.tsx renders null on that
+ * unmatched soft navigation, dismissing this modal.
  *
  * LeaseForm's edit path performs no navigation of its own, so the modal
  * supplies `onSuccess={() => router.back()}` to dismiss itself on save.
