@@ -64,7 +64,7 @@ export default function MaintenanceEditPage({
 					Edit maintenance request
 				</h1>
 				<p className="text-muted-foreground">
-					Update request details and communicate changes with your team.
+					Update request details and keep the record current.
 				</p>
 			</div>
 			<MaintenanceForm mode="edit" request={request} />

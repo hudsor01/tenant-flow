@@ -45,7 +45,7 @@ export function ResultsProofSection() {
 							</h2>
 							<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
 								Every plan starts with the document vault. Higher tiers unlock
-								more e-sign volume, more storage, and team-member seats.
+								more e-sign volume and more storage.
 							</p>
 						</div>
 

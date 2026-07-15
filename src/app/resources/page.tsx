@@ -29,7 +29,7 @@ const mainResources = [
 		icon: <HelpCircle className="size-8" />,
 		title: "Help Center",
 		description:
-			"Setup guides for the document vault, leases, maintenance, and team billing.",
+			"Setup guides for the document vault, leases, maintenance, and billing.",
 		href: "/help",
 		color: "bg-muted border-border",
 		iconColor: "text-muted-foreground",

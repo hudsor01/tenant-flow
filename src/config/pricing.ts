@@ -49,9 +49,7 @@ export interface PricingConfig {
 	readonly limits: {
 		readonly properties: number;
 		readonly units: number;
-		readonly users: number;
 		readonly storage: number;
-		readonly apiCalls: number;
 	};
 	readonly features: readonly string[];
 	readonly support: string;
@@ -64,8 +62,8 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: "FREETRIAL",
 		planId: "trial",
 		name: "Free Trial",
-		description: "Try every feature for 14 days before subscribing",
-		audienceTagline: "14-day full-feature trial",
+		description: "Try TenantFlow free for 14 days — 1 property, up to 5 units",
+		audienceTagline: "14-day free trial",
 		price: {
 			monthly: 0,
 			annual: 0,
@@ -77,9 +75,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		limits: {
 			properties: 1,
 			units: 5,
-			users: 1,
 			storage: 1,
-			apiCalls: 1000,
 		},
 		features: [
 			"1 property",
@@ -114,9 +110,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		limits: {
 			properties: 5,
 			units: 25,
-			users: 1,
 			storage: 10,
-			apiCalls: 10000,
 		},
 		features: [
 			"Up to 5 properties",
@@ -148,9 +142,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		limits: {
 			properties: 20,
 			units: 100,
-			users: 3,
 			storage: 50,
-			apiCalls: 50000,
 		},
 		features: [
 			"Up to 20 properties",
@@ -160,7 +152,6 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			"Renewal reminders",
 			"Advanced financial reporting",
 			"50GB document storage",
-			"Team (3 users)",
 			"Phone and priority email support",
 		],
 		support: "Phone & Email",
@@ -171,7 +162,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		planId: "max",
 		name: "Max",
 		description:
-			"For landlords with 21+ rentals — unlimited scale and API access",
+			"For landlords with 21+ rentals — unlimited properties, units, and e-signs",
 		audienceTagline: "Built for 21+ unit portfolios",
 		price: {
 			monthly: 149,
@@ -184,17 +175,13 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		limits: {
 			properties: -1,
 			units: -1,
-			users: -1,
 			storage: -1,
-			apiCalls: -1,
 		},
 		features: [
 			"Unlimited properties",
 			"Unlimited units",
 			"Document vault with global search",
 			"Unlimited lease e-signs",
-			"Custom lease clauses",
-			"API access",
 			"Dedicated account manager",
 			"Unlimited storage",
 			"Priority support during US business hours",
@@ -215,9 +202,7 @@ export function getAllPricingPlans(): PricingConfig[] {
 export interface UsageMetrics {
 	properties: number;
 	units: number;
-	users: number;
 	storage: number;
-	apiCalls: number;
 }
 
 export function checkPlanLimits(
@@ -240,16 +225,8 @@ export function checkPlanLimits(
 		limits.push(`Units: ${usage.units}/${plan.limits.units}`);
 		exceeded = true;
 	}
-	if (plan.limits.users > 0 && usage.users > plan.limits.users) {
-		limits.push(`Users: ${usage.users}/${plan.limits.users}`);
-		exceeded = true;
-	}
 	if (plan.limits.storage > 0 && usage.storage > plan.limits.storage) {
 		limits.push(`Storage: ${usage.storage}GB/${plan.limits.storage}GB`);
-		exceeded = true;
-	}
-	if (plan.limits.apiCalls > 0 && usage.apiCalls > plan.limits.apiCalls) {
-		limits.push(`API Calls: ${usage.apiCalls}/${plan.limits.apiCalls}`);
 		exceeded = true;
 	}
 

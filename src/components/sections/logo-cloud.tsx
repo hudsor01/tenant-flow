@@ -8,15 +8,15 @@ interface LogoCloudProps {
 }
 
 /**
- * Logo cloud showing integration partners and technology stack.
+ * Logo cloud showing the technology stack.
  * SVG logos render at native color with a subtle opacity bump on hover.
  */
 export function LogoCloud({
 	className,
-	title = "Trusted integrations",
-	subtitle = "Connect to the tools your portfolio already runs on",
+	title = "Built on Stripe, Supabase, Vercel, and Resend",
+	subtitle = "The infrastructure behind billing, data, hosting, and email",
 }: LogoCloudProps) {
-	const integrations = [
+	const stack = [
 		{
 			name: "Stripe",
 			description: "Payments",
@@ -55,23 +55,19 @@ export function LogoCloud({
 					</div>
 
 					<div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
-						{integrations.map((integration, index) => (
-							<BlurFade
-								key={integration.name}
-								delay={0.1 + index * 0.05}
-								inView
-							>
+						{stack.map((item, index) => (
+							<BlurFade key={item.name} delay={0.1 + index * 0.05} inView>
 								<div className="group relative flex flex-col items-center gap-2">
 									<div
 										className={cn(
 											"h-8 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300",
-											integration.width,
+											item.width,
 										)}
 									>
-										<integration.logo className="h-full w-full" />
+										<item.logo className="h-full w-full" />
 									</div>
 									<span className="text-xs text-muted-foreground">
-										{integration.description}
+										{item.description}
 									</span>
 								</div>
 							</BlurFade>

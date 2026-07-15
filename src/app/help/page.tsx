@@ -43,7 +43,7 @@ export default function HelpPage() {
 				trustSignals="Email support on every plan • Priority and phone support on Growth and Max"
 				image={{
 					src: "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop",
-					alt: "TenantFlow support team helping landlords with their portfolios",
+					alt: "Support professionals collaborating in a modern office",
 				}}
 			/>
 
@@ -167,9 +167,9 @@ export default function HelpPage() {
 								href: "/blog/category/tax-prep",
 							},
 							{
-								title: "Manage your team and billing",
+								title: "Manage billing and your account",
 								description:
-									"Invite team members, switch plans, update payment methods, and export account data",
+									"Switch plans, update payment methods, and export account data",
 								badge: "Account",
 								badgeColor: "bg-accent/10 text-accent",
 								href: "/faq",
