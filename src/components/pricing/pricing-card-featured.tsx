@@ -137,7 +137,6 @@ export function PricingCardFeatured({
 			<div
 				className={cn(
 					"relative h-full rounded-2xl p-[2px] bg-gradient-to-br from-primary via-accent to-primary",
-					"animate-gradient-x",
 					className,
 				)}
 			>

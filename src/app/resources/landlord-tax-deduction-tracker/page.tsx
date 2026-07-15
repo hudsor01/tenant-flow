@@ -39,7 +39,7 @@ export default function TaxDeductionTrackerPage() {
 				}}
 			/>
 
-			<div className="max-w-4xl mx-auto px-6 lg:px-8 page-content pb-16">
+			<div className="max-w-4xl mx-auto px-6 lg:px-8 section-spacing">
 				<div className="flex items-center justify-between mb-8 print:hidden">
 					<Link
 						href="/resources"
@@ -66,8 +66,8 @@ export default function TaxDeductionTrackerPage() {
 				</header>
 
 				{/* Important notice */}
-				<div className="rounded-xl border border-amber-200 bg-amber-50 p-6 mb-12">
-					<p className="text-sm text-amber-900">
+				<div className="rounded-xl border border-warning/20 bg-warning/10 p-6 mb-12">
+					<p className="text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This tracker is for informational
 						purposes only and does not constitute tax advice. Consult a
 						qualified tax professional for advice specific to your situation.

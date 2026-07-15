@@ -115,7 +115,6 @@ export function BentoPricingSection({
 							<PricingCardStandard
 								plan={starterPlan}
 								billingCycle={billingCycle}
-								variant="starter"
 							/>
 						</div>
 					)}
@@ -133,11 +132,7 @@ export function BentoPricingSection({
 					{/* Max - Right Column (1 col) */}
 					{maxPlan && (
 						<div className="lg:col-span-1">
-							<PricingCardStandard
-								plan={maxPlan}
-								billingCycle={billingCycle}
-								variant="enterprise"
-							/>
+							<PricingCardStandard plan={maxPlan} billingCycle={billingCycle} />
 						</div>
 					)}
 				</div>

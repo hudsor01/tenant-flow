@@ -97,8 +97,7 @@ export default function ResourcesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center max-w-4xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-							Resources for{" "}
-							<span className="text-foreground font-semibold">landlords</span>
+							Resources for <span className="hero-highlight">landlords</span>
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
@@ -203,7 +202,7 @@ export default function ResourcesPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-content relative overflow-hidden">
+			<section className="section-spacing relative overflow-hidden">
 				<div className="absolute inset-0 bg-background">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_10%,transparent),transparent_70%)]" />
 				</div>
@@ -212,9 +211,7 @@ export default function ResourcesPage() {
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 							Still have questions?{" "}
-							<span className="text-foreground font-semibold">
-								Reach the team
-							</span>
+							<span className="hero-highlight">Reach the team</span>
 						</h2>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
@@ -225,7 +222,7 @@ export default function ResourcesPage() {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center">
 							<Button
 								size="lg"
-								className="gradient-background hover:opacity-90 shadow-2xl shadow-primary/25 typography-large px-8 py-4"
+								className="shadow-2xl shadow-primary/25 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/contact">

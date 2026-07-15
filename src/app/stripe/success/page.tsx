@@ -15,7 +15,6 @@ function SuccessContent() {
 	return (
 		<PageLayout
 			showNavbar={false}
-			className="gradient-authority"
 			containerClass="flex-center min-h-screen max-w-md"
 		>
 			<div className="w-full shadow-md bg-card/50 border border-border backdrop-blur-sm rounded-2xl p-8 text-center">
@@ -59,7 +58,6 @@ export default function SuccessPage() {
 			fallback={
 				<PageLayout
 					showNavbar={false}
-					className="gradient-authority"
 					containerClass="flex-center min-h-screen"
 				>
 					<div className="animate-spin rounded-full size-12 border-b-2 border-primary"></div>

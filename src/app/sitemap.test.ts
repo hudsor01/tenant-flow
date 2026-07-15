@@ -196,7 +196,7 @@ describe("sitemap()", () => {
 		const privacy = entries.find(
 			(e) => e.url === "https://tenantflow.app/privacy",
 		);
-		expect(privacy?.lastModified).toBe("2026-05-11");
+		expect(privacy?.lastModified).toBe("2026-07-15");
 
 		const securityPolicy = entries.find(
 			(e) => e.url === "https://tenantflow.app/security-policy",

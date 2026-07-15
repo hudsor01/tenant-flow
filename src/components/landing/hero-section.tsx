@@ -5,7 +5,7 @@ import { Button } from "#components/ui/button";
 
 export function HeroSection() {
 	return (
-		<section className="relative pb-16 overflow-hidden page-offset-navbar">
+		<section className="relative pb-16 overflow-hidden">
 			<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--color-primary)_5%,transparent)]" />
 			<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--color-foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
 

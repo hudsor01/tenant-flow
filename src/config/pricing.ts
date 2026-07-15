@@ -120,9 +120,9 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			"Maintenance tracking",
 			"Lease templates (e-sign on Growth and Max)",
 			"10GB document storage",
-			"Priority email support",
+			"Email support",
 		],
-		support: "Priority Email",
+		support: "Email",
 		trial: false,
 	},
 	GROWTH: {

@@ -17,12 +17,12 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 				className,
 			)}
 		>
-			<div className="container px-4 mx-auto relative z-10">
+			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<div className="max-w-5xl mx-auto text-center">
 					{/* Headline */}
 					<BlurFade delay={0.1} inView>
 						<div className="mb-8">
-							<h2 className="text-responsive-display-2xl font-bold tracking-tight text-foreground mb-6 leading-[0.9]">
+							<h2 className="text-responsive-display-xl font-bold tracking-tight text-foreground mb-6 leading-[0.9]">
 								Stop juggling
 								<span className="block text-primary relative">
 									spreadsheets and Dropbox

@@ -1,13 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import {
-	ArrowRight,
-	BadgeCheck,
-	ChevronDown,
-	Loader2,
-	MessageSquare,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, ChevronDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "#components/ui/badge";
@@ -47,30 +41,22 @@ interface PricingPlan {
 interface PricingCardStandardProps {
 	plan: PricingPlan;
 	billingCycle: "monthly" | "yearly";
-	variant: "starter" | "enterprise";
 	className?: string;
 }
 
 export function PricingCardStandard({
 	plan,
 	billingCycle,
-	variant,
 	className,
 }: PricingCardStandardProps) {
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 	const [showAllFeatures, setShowAllFeatures] = useState(false);
-	const isEnterprise = variant === "enterprise";
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (overrides?: {
 			customerEmail?: string;
 			tenant_id?: string;
 		}) => {
-			if (isEnterprise) {
-				window.location.href = "/contact";
-				return { success: true };
-			}
-
 			if (!checkoutRateLimiter.canMakeRequest()) {
 				throw new Error(
 					"Too many requests. Please wait a moment before trying again.",
@@ -119,11 +105,6 @@ export function PricingCardStandard({
 
 	const handleSubscribe = async () => {
 		if (subscriptionMutation.isPending) return;
-
-		if (isEnterprise) {
-			await subscriptionMutation.mutateAsync({});
-			return;
-		}
 
 		// Use getSession() — reads from local cookie cache, no network call.
 		// Avoids the silent dialog-open path that hid CTA failures when
@@ -254,14 +235,9 @@ export function PricingCardStandard({
 
 				{/* CTA */}
 				<Button
-					variant={isEnterprise ? "outline" : "default"}
+					variant="default"
 					size="lg"
-					className={cn(
-						"w-full group transition-all duration-300",
-						isEnterprise
-							? "hover:bg-primary/5 hover:border-primary/50"
-							: "bg-foreground text-background hover:bg-foreground/90",
-					)}
+					className="w-full group transition-all duration-300 bg-foreground text-background hover:bg-foreground/90"
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
 				>
@@ -269,11 +245,6 @@ export function PricingCardStandard({
 						<>
 							<Loader2 className="mr-2 size-4 animate-spin" />
 							Processing...
-						</>
-					) : isEnterprise ? (
-						<>
-							<MessageSquare className="mr-2 size-4" />
-							Contact Sales
 						</>
 					) : (
 						<>
@@ -284,20 +255,18 @@ export function PricingCardStandard({
 				</Button>
 			</div>
 
-			{!isEnterprise && (
-				<OwnerSubscribeDialog
-					open={subscribeDialogOpen}
-					onOpenChange={setSubscribeDialogOpen}
-					planName={plan.name}
-					planCta={`Subscribe to ${plan.name}`}
-					onComplete={(payload) =>
-						completeSubscribeSignup(payload, {
-							startCheckout: (o) => subscriptionMutation.mutateAsync(o),
-							closeDialog: () => setSubscribeDialogOpen(false),
-						})
-					}
-				/>
-			)}
+			<OwnerSubscribeDialog
+				open={subscribeDialogOpen}
+				onOpenChange={setSubscribeDialogOpen}
+				planName={plan.name}
+				planCta={`Subscribe to ${plan.name}`}
+				onComplete={(payload) =>
+					completeSubscribeSignup(payload, {
+						startCheckout: (o) => subscriptionMutation.mutateAsync(o),
+						closeDialog: () => setSubscribeDialogOpen(false),
+					})
+				}
+			/>
 		</>
 	);
 }

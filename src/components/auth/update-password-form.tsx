@@ -101,9 +101,7 @@ export function UpdatePasswordForm({
 						<Lock className="size-[var(--spacing-6)] text-primary" />
 					</div>
 					<div className="space-y-[var(--spacing-2)]">
-						<CardTitle className="text-section-title">
-							Reset Your Password
-						</CardTitle>
+						<CardTitle className="typography-h2">Reset Your Password</CardTitle>
 						<CardDescription className="leading-relaxed">
 							Please enter a strong new password to secure your account.
 						</CardDescription>

@@ -20,8 +20,8 @@ export const metadata: Metadata = createPageMetadata({
 const seasons = [
 	{
 		name: "Spring (March - May)",
-		color: "bg-green-50 border-green-200",
-		headerColor: "bg-green-100 text-green-900",
+		color: "bg-success/10 border-success/20",
+		headerColor: "bg-success/20 text-success-text",
 		tasks: [
 			{
 				area: "Exterior",
@@ -78,8 +78,8 @@ const seasons = [
 	},
 	{
 		name: "Summer (June - August)",
-		color: "bg-amber-50 border-amber-200",
-		headerColor: "bg-amber-100 text-amber-900",
+		color: "bg-warning/10 border-warning/20",
+		headerColor: "bg-warning/20 text-warning-text",
 		tasks: [
 			{
 				area: "HVAC",
@@ -135,8 +135,8 @@ const seasons = [
 	},
 	{
 		name: "Fall (September - November)",
-		color: "bg-orange-50 border-orange-200",
-		headerColor: "bg-orange-100 text-orange-900",
+		color: "bg-destructive/10 border-destructive/20",
+		headerColor: "bg-destructive/20 text-destructive-text",
 		tasks: [
 			{
 				area: "HVAC",
@@ -194,8 +194,8 @@ const seasons = [
 	},
 	{
 		name: "Winter (December - February)",
-		color: "bg-blue-50 border-blue-200",
-		headerColor: "bg-blue-100 text-blue-900",
+		color: "bg-info/10 border-info/20",
+		headerColor: "bg-info/20 text-info-text",
 		tasks: [
 			{
 				area: "HVAC",
@@ -291,7 +291,7 @@ export default function SeasonalMaintenanceChecklistPage() {
 				}}
 			/>
 
-			<div className="max-w-4xl mx-auto px-6 lg:px-8 page-content pb-16">
+			<div className="max-w-4xl mx-auto px-6 lg:px-8 section-spacing">
 				{/* Back link */}
 				<div className="flex items-center justify-between mb-8 print:hidden">
 					<Link

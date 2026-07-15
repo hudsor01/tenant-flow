@@ -41,10 +41,6 @@ export default function HelpPage() {
 				}}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
 				trustSignals="Email support on every plan • Priority and phone support on Growth and Max"
-				image={{
-					src: "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop",
-					alt: "Support professionals collaborating in a modern office",
-				}}
 			/>
 
 			{/* Support Options */}
@@ -155,7 +151,7 @@ export default function HelpPage() {
 								description:
 									"How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits",
 								badge: "Lease Workflow",
-								badgeColor: "bg-accent/10 text-accent",
+								badgeColor: "bg-success/10 text-success-text",
 								href: "/blog/category/lease-law",
 							},
 							{
@@ -171,7 +167,7 @@ export default function HelpPage() {
 								description:
 									"Switch plans, update payment methods, and export account data",
 								badge: "Account",
-								badgeColor: "bg-accent/10 text-accent",
+								badgeColor: "bg-success/10 text-success-text",
 								href: "/faq",
 							},
 						].map((resource) => (

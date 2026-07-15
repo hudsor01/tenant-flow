@@ -69,8 +69,8 @@ export default async function SearchPage({
 	}
 
 	return (
-		<PageLayout containerClass="max-w-6xl py-8">
-			<div className="flex flex-col gap-6">
+		<PageLayout>
+			<div className="max-w-6xl mx-auto px-6 lg:px-8 section-spacing flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
 					<h1 className="typography-h2">Search the blog</h1>
 					<p className="text-muted-foreground">

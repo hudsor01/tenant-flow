@@ -1092,6 +1092,11 @@
    These utilities provide explicit responsive text classes.
    ========================================================================== */
 
+@utility text-responsive-display-xl {
+	font-size: var(--text-display-hero);
+	line-height: var(--leading-display);
+}
+
 @utility text-responsive-display-lg {
 	font-size: var(--text-display-lg);
 	line-height: var(--leading-tight);
@@ -1420,6 +1425,10 @@
 
 @utility flex-center {
 	@apply flex items-center justify-center;
+}
+
+@utility inline-flex-center {
+	@apply inline-flex items-center justify-center;
 }
 
 @utility flex-between {
