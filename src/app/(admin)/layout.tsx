@@ -40,7 +40,7 @@ export default async function AdminLayout({
 					<h1 className="text-xl font-semibold text-foreground">Admin</h1>
 				</div>
 			</header>
-			<main>{children}</main>
+			<main id="main-content">{children}</main>
 		</div>
 	);
 }
