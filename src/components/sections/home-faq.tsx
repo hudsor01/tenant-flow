@@ -13,7 +13,7 @@ export const homeFaqs = [
 	{
 		question: "How long does it take to get started?",
 		answer:
-			"Import your properties via CSV, add tenant records, and start tracking leases the same day. The 14-day free trial covers every feature so you can see the workflow before committing to a plan.",
+			"Import your properties via CSV, add tenant records, and start tracking leases the same day. The 14-day free trial covers every feature of the plan you pick, so you can see the workflow before committing.",
 	},
 	{
 		question: "What if I have fewer than 10 units?",
@@ -33,7 +33,7 @@ export const homeFaqs = [
 	{
 		question: "What's included in the free trial?",
 		answer:
-			"Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation — simply don't subscribe.",
+			"Full access to every feature of the plan you choose, for 14 days, with no credit card required. Lease e-sign is included on Growth and Max. If you decide TenantFlow isn't right for you, there's no obligation — simply don't subscribe.",
 	},
 ];
 

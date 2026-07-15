@@ -101,7 +101,7 @@ export function LeadCaptureModal({
 			if (error) throw error;
 		},
 		onSuccess: () => {
-			toast.success("Subscribed! Check your inbox.");
+			toast.success("You're on the list.");
 			setOpen(false);
 		},
 		onError: (err) =>
@@ -130,7 +130,7 @@ export function LeadCaptureModal({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Mail className="size-5 text-primary" />
-						Get the landlord operations guide
+						Landlord tips in your inbox
 					</DialogTitle>
 					<DialogDescription>
 						Monthly tips on leases, maintenance, and tax season — written for
@@ -157,7 +157,7 @@ export function LeadCaptureModal({
 							No thanks
 						</Button>
 						<Button type="submit" disabled={mutation.isPending}>
-							{mutation.isPending ? "Subscribing…" : "Send me the guide"}
+							{mutation.isPending ? "Subscribing…" : "Subscribe"}
 						</Button>
 					</DialogFooter>
 				</form>

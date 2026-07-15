@@ -27,7 +27,7 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 			if (error) throw error;
 		},
 		onSuccess: () => {
-			toast.success("Subscribed! Check your inbox.");
+			toast.success("You're on the list.");
 			if (inputRef.current) {
 				inputRef.current.value = "";
 			}
@@ -57,9 +57,7 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 		>
 			<div className="flex items-center gap-2">
 				<Mail className="h-5 w-5 text-primary" />
-				<h3 className="text-sm font-semibold">
-					Get the landlord operations guide
-				</h3>
+				<h3 className="text-sm font-semibold">Landlord tips in your inbox</h3>
 			</div>
 			<p className="text-sm text-muted-foreground">
 				Monthly tips on leases, maintenance, and tax season — written for

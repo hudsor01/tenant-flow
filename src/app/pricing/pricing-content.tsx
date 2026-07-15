@@ -39,7 +39,7 @@ const FAQS = [
 	{
 		question: "What payment methods do you accept?",
 		answer:
-			"We accept all major credit cards, debit cards, and ACH transfers. All payments are securely processed through Stripe.",
+			"We accept all major credit and debit cards. Payments are processed securely through Stripe.",
 	},
 	{
 		question: "Is there a long-term contract?",
@@ -101,8 +101,8 @@ export function PricingFaqSection() {
 							Frequently asked questions
 						</h2>
 						<p className="mt-4 text-base text-muted-foreground sm:text-lg">
-							Details on trials, billing, switching plans, and how access works
-							for your team. Tenants are records, not users — they never log in.
+							Details on trials, billing, and switching plans. Tenants are
+							records, not users — they never log in.
 						</p>
 					</div>
 					<div className="grid gap-4 lg:grid-cols-2">
@@ -169,8 +169,8 @@ export function PricingCtaSection() {
 						</h2>
 						<p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
 							Start with the records and document vault built for self-managing
-							owners, then add teammates and integrations as your portfolio
-							grows. Your data carries across every plan.
+							owners, then move up for more e-sign volume and storage as your
+							portfolio grows.
 						</p>
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<Button size="lg" className="px-8" asChild>
@@ -187,8 +187,8 @@ export function PricingCtaSection() {
 					<div className="flex flex-col justify-center gap-5 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-6 text-left">
 						{[
 							{
-								title: "14-day trial, all features",
-								desc: "Add properties, upload documents, generate and e-sign leases — keep everything when you subscribe.",
+								title: "14-day free trial",
+								desc: "Add properties, upload documents, and generate leases — e-sign included on Growth and Max. Keep everything when you subscribe.",
 							},
 							{
 								title: "Billing that flexes with you",

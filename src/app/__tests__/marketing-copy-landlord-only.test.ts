@@ -58,6 +58,11 @@ const BANNED_FEATURE_CLAIMS = [
 	"rent processing",
 	"process rent",
 	"tenant invitation",
+	"invite team members",
+	"team (3 users)",
+	"team-member seats",
+	"team billing",
+	"api access",
 ] as const;
 
 // Fabricated-identity / fabricated-team copy. Pass 7 of the perfect-PR
@@ -73,6 +78,7 @@ const BANNED_FABRICATED_IDENTITY_CLAIMS = [
 	"engineers, designers, and property management experts",
 	"our team of engineers",
 	"our diverse team",
+	"tenantflow support team",
 ] as const;
 
 // Dead plan names that don't exist in PRICING_PLANS. The real plans are

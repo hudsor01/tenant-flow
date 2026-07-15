@@ -55,7 +55,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Is TenantFlow suitable for my portfolio size?",
 				answer:
-					"Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and Max supports unlimited properties with API access and a dedicated account manager.",
+					"Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and Max supports unlimited properties with a dedicated account manager.",
 			},
 		],
 	},
@@ -75,7 +75,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Do you integrate with my existing systems?",
 				answer:
-					"API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. Lease e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
+					"Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. Lease e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
 			},
 		],
 	},

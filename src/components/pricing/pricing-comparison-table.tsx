@@ -42,7 +42,6 @@ const comparisonData: FeatureCategory[] = [
 				growth: "Unlimited",
 				max: "Unlimited",
 			},
-			{ name: "Team members", starter: "1", growth: "3", max: "Unlimited" },
 			{ name: "Lease management", starter: true, growth: true, max: true },
 		],
 	},
@@ -92,12 +91,6 @@ const comparisonData: FeatureCategory[] = [
 				max: "Unlimited",
 			},
 			{ name: "Renewal reminders", starter: false, growth: true, max: true },
-			{
-				name: "Custom lease clauses",
-				starter: false,
-				growth: false,
-				max: true,
-			},
 		],
 	},
 	{

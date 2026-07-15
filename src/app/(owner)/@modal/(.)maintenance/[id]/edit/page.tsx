@@ -42,7 +42,7 @@ export default function EditMaintenanceModal({
 						Edit maintenance request
 					</h2>
 					<p className="text-muted-foreground">
-						Update request details and communicate changes with your team.
+						Update request details and keep the record current.
 					</p>
 				</div>
 				{isLoading ? (

@@ -22,9 +22,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		blogSlug: "buildium-vs-doorloop-vs-tenantflow-2026",
 		tagline: "The Modern Buildium Alternative",
 		description:
-			"See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and a better tenant experience.",
+			"See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and transparent pricing.",
 		metaDescription:
-			"Looking for a Buildium alternative? TenantFlow offers the same features at half the price. Compare pricing, features, and see why landlords are switching.",
+			"Looking for a Buildium alternative? TenantFlow starts at $19/mo vs Buildium's $58/mo, covering the core landlord features. Compare pricing and features.",
 		heroSubtitle:
 			"Buildium starts at $58/month. TenantFlow starts at $19/month with the same core features, modern technology, and no hidden fees.",
 		capterra: "4.5/5 (2,131 reviews)",
@@ -235,7 +235,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		whySwitch: [
 			"No unit minimums — manage 1 unit or 100 without restrictions",
-			"Save over $3,000/year at 30 units ($49/mo vs $298/mo minimum)",
+			"Save $2,988/year at 30 units ($49/mo vs $298/mo minimum)",
 			"Transparent pricing — no custom quotes or sales calls needed",
 			"14-day free trial to test everything before committing",
 			"Per-entity document vault and lease e-sign (Growth+) without paying for commercial/HOA tools",
@@ -330,15 +330,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 			{
 				name: "Team Collaboration",
-				tenantflow: "yes",
-				tenantflowNote: "3 users on Growth",
+				tenantflow: "no",
+				tenantflowNote: "Single-owner accounts",
 				competitor: "yes",
 				competitorNote: "Unlimited team members",
 			},
 			{
 				name: "Unlimited Units",
-				tenantflow: "no",
-				tenantflowNote: "25-100 by plan",
+				tenantflow: "partial",
+				tenantflowNote: "Unlimited on Max; 25/100 on Starter/Growth",
 				competitor: "yes",
 				competitorNote: "All plans",
 			},

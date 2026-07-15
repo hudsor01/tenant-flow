@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
@@ -119,13 +119,7 @@ export function TestimonialsSection({
 								</div>
 							</div>
 
-							<div className="flex gap-1 mb-6 pt-4">
-								{[...Array(5)].map((_, i) => (
-									<Star key={i} className="size-5 fill-accent text-accent" />
-								))}
-							</div>
-
-							<blockquote className="text-xl md:text-2xl text-foreground font-medium leading-relaxed mb-8">
+							<blockquote className="text-xl md:text-2xl text-foreground font-medium leading-relaxed mb-8 pt-4">
 								"{currentTestimonial?.quote}"
 							</blockquote>
 
@@ -219,11 +213,6 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 		<div className="relative group h-full">
 			<div className="card-standard p-8 h-full flex flex-col hover:border-primary/20 hover:shadow-lg transition-all duration-300">
 				<Quote className="size-8 text-primary/20 mb-4" />
-				<div className="flex gap-0.5 mb-4">
-					{[...Array(5)].map((_, i) => (
-						<Star key={i} className="size-4 fill-accent text-accent" />
-					))}
-				</div>
 
 				<blockquote className="text-foreground/90 leading-relaxed mb-6 flex-1">
 					"{testimonial.quote}"

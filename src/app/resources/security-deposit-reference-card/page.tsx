@@ -67,20 +67,21 @@ const stateData: StateDeposit[] = [
 	{
 		state: "California",
 		abbr: "CA",
-		maxDeposit: "1 month (unfurn) / 2 months (furn)",
+		maxDeposit: "1 month (2 for small landlords)",
 		returnDeadline: "21 days",
 		itemizedRequired: true,
 		interestRequired: false,
-		notes: "Effective 7/1/2024 cap applies",
+		notes:
+			"AB 12: 1-month cap since 7/1/2024; small landlords (2 or fewer properties) may charge 2 months",
 	},
 	{
 		state: "Colorado",
 		abbr: "CO",
-		maxDeposit: "No limit",
+		maxDeposit: "1 month",
 		returnDeadline: "30 days (60 with lease)",
 		itemizedRequired: true,
 		interestRequired: false,
-		notes: "",
+		notes: "1-month cap effective 1/1/2026 (HB 25-1249)",
 	},
 	{
 		state: "Connecticut",
@@ -455,10 +456,11 @@ const stateData: StateDeposit[] = [
 		state: "Washington",
 		abbr: "WA",
 		maxDeposit: "No limit",
-		returnDeadline: "21 days",
+		returnDeadline: "30 days",
 		itemizedRequired: true,
 		interestRequired: false,
-		notes: "Must provide written checklist at move-in",
+		notes:
+			"Written checklist at move-in; itemized receipts required for deductions",
 	},
 	{
 		state: "West Virginia",
@@ -625,7 +627,7 @@ export default function SecurityDepositReferenceCardPage() {
 				<div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-6">
 					<p className="text-sm text-amber-900">
 						<strong>Disclaimer:</strong> This reference card provides a general
-						overview of state security deposit laws as of 2025. Laws change
+						overview of state security deposit laws as of July 2026. Laws change
 						frequently and local jurisdictions may have additional requirements.
 						Always verify current regulations with your state landlord-tenant
 						statute or a local attorney before relying on this information.
