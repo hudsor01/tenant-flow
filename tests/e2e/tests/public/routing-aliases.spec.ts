@@ -32,20 +32,34 @@ test.describe("Routing aliases — Phase 3 (CRIT-05 + CRIT-06)", () => {
 		expect(response.headers().location).toBe("/privacy");
 	});
 
-	test("CRIT-06: /help-center 301/308s to /help", async ({ page }) => {
+	// PUBUX-08: /help-center and /rss-feed never existed as pages in any
+	// commit. The speculative CRIT-06 aliases were removed (the
+	// no-typo-courtesy-redirects rule: 404 is correct for URLs that never
+	// existed). These assertions now guard against re-adding the speculative
+	// redirects. The real destinations (/help, /feed.xml) are asserted below.
+	test("PUBUX-08: /help-center 404s (speculative alias removed)", async ({
+		page,
+	}) => {
 		const response = await page.request.get("/help-center", {
 			maxRedirects: 0,
 		});
-		expect([301, 308]).toContain(response.status());
-		expect(response.headers().location).toBe("/help");
+		expect(response.status()).toBe(404);
 	});
 
-	test("CRIT-06: /rss-feed 301/308s to /feed.xml", async ({ page }) => {
+	test("PUBUX-08: /rss-feed 404s (speculative alias removed)", async ({
+		page,
+	}) => {
 		const response = await page.request.get("/rss-feed", {
 			maxRedirects: 0,
 		});
-		expect([301, 308]).toContain(response.status());
-		expect(response.headers().location).toBe("/feed.xml");
+		expect(response.status()).toBe(404);
+	});
+
+	test("/help renders (the real help page — no alias needed)", async ({
+		page,
+	}) => {
+		const response = await page.request.get("/help", { maxRedirects: 0 });
+		expect(response.status()).toBe(200);
 	});
 
 	test("Bonus: /feed.xml returns 200 with RSS content-type for anonymous readers", async ({
