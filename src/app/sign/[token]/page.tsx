@@ -36,7 +36,7 @@ export default async function SignLeasePage({
 	const context = await fetchContext(token);
 
 	return (
-		<main className="min-h-dvh bg-muted/40 px-4 py-10">
+		<main id="main-content" className="min-h-dvh bg-muted/40 px-4 py-10">
 			<div className="mx-auto w-full max-w-2xl">
 				<h1 className="sr-only">Review and sign your lease agreement</h1>
 				<div className="mb-6 text-center">

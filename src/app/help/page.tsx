@@ -145,9 +145,10 @@ export default function HelpPage() {
 							{
 								title: "Set up the document vault",
 								description:
-									"Per-entity uploads, custom categories, search, filters, and tax-season zip exports — everything the vault does in one walkthrough",
+									"Per-entity uploads, custom categories, search, filters, and tax-season zip exports — see everything the vault does",
 								badge: "Most Popular",
 								badgeColor: "bg-primary/10 text-primary-text",
+								href: "/features",
 							},
 							{
 								title: "Send a lease for e-signature",
@@ -155,6 +156,7 @@ export default function HelpPage() {
 									"How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits",
 								badge: "Lease Workflow",
 								badgeColor: "bg-accent/10 text-accent",
+								href: "/blog/category/lease-law",
 							},
 							{
 								title: "Run reports for tax season",
@@ -162,6 +164,7 @@ export default function HelpPage() {
 									"Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity",
 								badge: "Tax Time",
 								badgeColor: "bg-primary/10 text-primary-text",
+								href: "/blog/category/tax-prep",
 							},
 							{
 								title: "Manage your team and billing",
@@ -169,23 +172,32 @@ export default function HelpPage() {
 									"Invite team members, switch plans, update payment methods, and export account data",
 								badge: "Account",
 								badgeColor: "bg-accent/10 text-accent",
+								href: "/faq",
 							},
 						].map((resource) => (
-							<CardLayout
+							<Link
 								key={resource.title}
-								title={resource.title}
-								description={resource.description}
-								className="bg-card border border-border/50 shadow-md transition-shadow"
+								href={resource.href}
+								className="group block h-full"
 							>
-								<span
-									className={cn(
-										"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-										resource.badgeColor,
-									)}
+								<CardLayout
+									title={resource.title}
+									description={resource.description}
+									className="h-full bg-card border border-border/50 shadow-md transition-all group-hover:border-primary/40 group-hover:shadow-lg"
 								>
-									{resource.badge}
-								</span>
-							</CardLayout>
+									<div className="flex items-center justify-between">
+										<span
+											className={cn(
+												"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+												resource.badgeColor,
+											)}
+										>
+											{resource.badge}
+										</span>
+										<ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+									</div>
+								</CardLayout>
+							</Link>
 						))}
 					</div>
 				</div>

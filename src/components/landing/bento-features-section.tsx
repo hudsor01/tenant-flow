@@ -46,8 +46,8 @@ export function BentoFeaturesSection() {
 								background={<PropertyGrid />}
 								Icon={Building}
 								description="Track properties and units with occupancy and portfolio analytics. Up to 5/20/unlimited properties depending on plan."
-								href="/properties"
-								cta="Manage Properties"
+								href="/pricing"
+								cta="Start free"
 							/>
 							<BentoCard
 								name="Document Vault"
@@ -55,8 +55,8 @@ export function BentoFeaturesSection() {
 								background={<VaultPreview />}
 								Icon={FolderArchive}
 								description="Per-entity document storage with global search, multi-select filters, date range, and bulk download"
-								href="/documents/vault"
-								cta="Open Vault"
+								href="/pricing"
+								cta="Start free"
 							/>
 							<BentoCard
 								name="Tenant Records"
@@ -64,8 +64,8 @@ export function BentoFeaturesSection() {
 								background={<TenantListBackground />}
 								Icon={Users}
 								description="Track tenant contacts and lease history. No tenant logins — landlords own every record"
-								href="/tenants"
-								cta="View Tenants"
+								href="/pricing"
+								cta="Start free"
 							/>
 							<BentoCard
 								name="Maintenance Tracking"
@@ -73,8 +73,8 @@ export function BentoFeaturesSection() {
 								background={<MaintenanceBoard />}
 								Icon={Wrench}
 								description="Kanban-style board with photo uploads and vendor assignment"
-								href="/maintenance"
-								cta="Track Maintenance"
+								href="/pricing"
+								cta="Start free"
 							/>
 							<BentoCard
 								name="Lease Management"
@@ -82,8 +82,8 @@ export function BentoFeaturesSection() {
 								background={<LeaseDocuments />}
 								Icon={FileText}
 								description="Digital lease signing on Growth and Max plans, with state-aware templates"
-								href="/leases"
-								cta="Manage Leases"
+								href="/pricing"
+								cta="Start free"
 							/>
 							<BentoCard
 								name="Financial Analytics"
@@ -91,8 +91,8 @@ export function BentoFeaturesSection() {
 								background={<AnalyticsPreview />}
 								Icon={PieChart}
 								description="Revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
-								href="/analytics/financial"
-								cta="View Analytics"
+								href="/pricing"
+								cta="Start free"
 							/>
 						</BentoGrid>
 					</BlurFade>

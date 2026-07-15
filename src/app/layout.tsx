@@ -94,8 +94,10 @@ export default async function RootLayout({
 				className={`${roboto.variable} ${playfairDisplay.variable} ${GeistMono.variable} font-sans antialiased`}
 			>
 				{/* Skip-to-content for keyboard and screen-reader users. The
-				    target id="main-content" is set on <main> in PageLayout and
-				    on the dashboard shell. CLAUDE.md mandates this link. */}
+				    target id="main-content" is set on <main> in PageLayout, the
+				    dashboard app-shell, the login + auth layouts, the admin
+				    route-group layout, and the /sign/[token] page. CLAUDE.md
+				    mandates this link. */}
 				<a
 					href="#main-content"
 					className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-md focus:ring-2 focus:ring-primary"

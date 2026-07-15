@@ -72,7 +72,7 @@ RentRedi competes on tenant-facing features — rent payment collection, tenant 
 ## Free resources (no signup required)
 
 - **Seasonal maintenance checklist** — printable HVAC/plumbing/electrical/exterior inspection list, organized by quarter.
-- **Landlord tax deduction tracker** — spreadsheet keyed to IRS schedules with auto-totaled categories.
+- **Landlord tax deduction tracker** — printable tracker keyed to IRS Schedule E with space to record deductible expenses and category totals.
 - **Security deposit reference card** — one-page summary of deposit limits, return deadlines, and required documentation per state.`;
 
 const STATIC_TAIL = `## Company
