@@ -17,7 +17,7 @@ export const metadata: Metadata = createPageMetadata({
 export default function CheckoutCancelPage() {
 	return (
 		<PageLayout>
-			<div className="mx-auto max-w-2xl px-6 section-content lg:px-8">
+			<div className="mx-auto max-w-2xl px-6 section-spacing lg:px-8">
 				<CardLayout
 					title="Checkout cancelled"
 					description="No worries — your payment was cancelled and you haven't been charged."

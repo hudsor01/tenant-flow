@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
 
 interface BlogCardProps {
@@ -33,8 +34,12 @@ export function BlogCard({ post, className }: BlogCardProps) {
 
 			<div className="flex flex-1 flex-col gap-2 p-4">
 				<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-					<span>{post.category}</span>
-					<span aria-hidden="true">-</span>
+					{post.category && (
+						<>
+							<span>{categoryLabel(post.category)}</span>
+							<span aria-hidden="true">-</span>
+						</>
+					)}
 					<span>{post.reading_time} min read</span>
 				</div>
 

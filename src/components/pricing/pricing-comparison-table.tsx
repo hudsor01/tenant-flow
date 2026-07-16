@@ -117,9 +117,10 @@ const comparisonData: FeatureCategory[] = [
 	{
 		category: "Support",
 		features: [
+			{ name: "Email support", starter: true, growth: true, max: true },
 			{
 				name: "Priority email support",
-				starter: true,
+				starter: false,
 				growth: true,
 				max: true,
 			},

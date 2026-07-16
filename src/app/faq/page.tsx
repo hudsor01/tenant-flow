@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaqsAccordion } from "#app/faq/faq-accordion";
+import { FaqsAccordion } from "#components/faq-accordion";
 import { PageLayout } from "#components/layout/page-layout";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
 import { HeroSection } from "#components/sections/hero-section";

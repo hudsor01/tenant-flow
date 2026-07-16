@@ -17,11 +17,10 @@ export function PropertyGrid() {
 					{ name: "456 Maple Ave", units: 8, occupancy: "87%" },
 					{ name: "789 Pine Rd", units: 12, occupancy: "92%" },
 					{ name: "321 Cedar Ln", units: 6, occupancy: "100%" },
-				].map((property, i) => (
+				].map((property) => (
 					<div
 						key={property.name}
 						className="card-standard p-3 flex flex-col justify-between"
-						style={{ animationDelay: `${i * 100}ms` }}
 					>
 						<div className="flex items-center gap-2">
 							<div className="icon-container-sm bg-primary/10 text-primary">
@@ -241,15 +240,28 @@ export function AnalyticsPreview() {
 						<span className="text-xs font-medium text-success">+12.5%</span>
 					</div>
 					<div className="flex items-end gap-1 h-16">
-						{[45, 52, 48, 61, 55, 70, 65, 78, 72, 85, 80, 92].map(
-							(height, i) => (
-								<div
-									key={i}
-									className="bg-primary/70 rounded-sm flex-1 transition-all duration-300"
-									style={{ height: `${height}%` }}
-								/>
-							),
-						)}
+						{[
+							"h-[45%]",
+							"h-[52%]",
+							"h-[48%]",
+							"h-[61%]",
+							"h-[55%]",
+							"h-[70%]",
+							"h-[65%]",
+							"h-[78%]",
+							"h-[72%]",
+							"h-[85%]",
+							"h-[80%]",
+							"h-[92%]",
+						].map((h, i) => (
+							<div
+								key={i}
+								className={cn(
+									"bg-primary/70 rounded-sm flex-1 transition-all duration-300",
+									h,
+								)}
+							/>
+						))}
 					</div>
 				</div>
 				<div className="grid grid-cols-2 gap-2">

@@ -96,21 +96,29 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								</span>
 							</div>
 							<div className="flex items-end gap-1 h-20">
-								{[35, 45, 40, 55, 50, 65, 60, 75, 70, 82, 78, 92].map(
-									(height, i) => (
-										<div
-											key={i}
-											className={cn(
-												"rounded-sm flex-1 transition-all duration-500",
-												i === 11 ? "bg-primary" : "bg-primary/40",
-											)}
-											style={{
-												height: `${height}%`,
-												animationDelay: `${i * 50}ms`,
-											}}
-										/>
-									),
-								)}
+								{[
+									"h-[35%]",
+									"h-[45%]",
+									"h-[40%]",
+									"h-[55%]",
+									"h-[50%]",
+									"h-[65%]",
+									"h-[60%]",
+									"h-[75%]",
+									"h-[70%]",
+									"h-[82%]",
+									"h-[78%]",
+									"h-[92%]",
+								].map((h, i) => (
+									<div
+										key={i}
+										className={cn(
+											"rounded-sm flex-1 transition-all duration-500",
+											i === 11 ? "bg-primary" : "bg-primary/40",
+											h,
+										)}
+									/>
+								))}
 							</div>
 							<div className="flex justify-between mt-2 text-xs text-muted-foreground">
 								<span>Jan</span>

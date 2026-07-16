@@ -54,7 +54,7 @@ export default function ComparePage() {
 							>
 								<Link
 									href={`/compare/${competitor.slug}`}
-									className="group flex h-full flex-col rounded-lg border bg-card p-6 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+									className="group flex h-full flex-col rounded-lg border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 									aria-label={`Compare TenantFlow vs ${competitor.name}`}
 								>
 									<h2 className="text-lg font-semibold group-hover:underline">

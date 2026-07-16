@@ -513,7 +513,7 @@ export default function SecurityDepositReferenceCardPage() {
 				}}
 			/>
 
-			<div className="max-w-5xl mx-auto px-6 lg:px-8 page-content pb-16">
+			<div className="max-w-5xl mx-auto px-6 lg:px-8 section-spacing">
 				<div className="flex items-center justify-between mb-8 print:hidden">
 					<Link
 						href="/resources"
@@ -541,13 +541,13 @@ export default function SecurityDepositReferenceCardPage() {
 				{/* Legend */}
 				<div className="flex flex-wrap gap-6 mb-8 p-4 rounded-xl border border-border bg-muted/30">
 					<div className="flex items-center gap-2 text-sm">
-						<span className="size-3 rounded-full bg-green-500" />
+						<span className="size-3 rounded-full bg-success" />
 						<span className="text-muted-foreground">
 							Itemized statement required
 						</span>
 					</div>
 					<div className="flex items-center gap-2 text-sm">
-						<span className="size-3 rounded-full bg-blue-500" />
+						<span className="size-3 rounded-full bg-info" />
 						<span className="text-muted-foreground">
 							Interest payment required
 						</span>
@@ -600,7 +600,7 @@ export default function SecurityDepositReferenceCardPage() {
 										<span
 											className={`inline-block size-3 rounded-full ${
 												s.itemizedRequired
-													? "bg-green-500"
+													? "bg-success"
 													: "bg-muted-foreground/30"
 											}`}
 										/>
@@ -609,7 +609,7 @@ export default function SecurityDepositReferenceCardPage() {
 										<span
 											className={`inline-block size-3 rounded-full ${
 												s.interestRequired
-													? "bg-blue-500"
+													? "bg-info"
 													: "bg-muted-foreground/30"
 											}`}
 										/>
@@ -624,8 +624,8 @@ export default function SecurityDepositReferenceCardPage() {
 				</div>
 
 				{/* Disclaimer */}
-				<div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-6">
-					<p className="text-sm text-amber-900">
+				<div className="mt-8 rounded-xl border border-warning/20 bg-warning/10 p-6">
+					<p className="text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This reference card provides a general
 						overview of state security deposit laws as of July 2026. Laws change
 						frequently and local jurisdictions may have additional requirements.

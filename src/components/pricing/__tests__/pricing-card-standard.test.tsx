@@ -1,26 +1,55 @@
 /**
- * PricingCardStandard component tests — Phase 7 CONS-09 / CONS-10 regression pins.
+ * PricingCardStandard component tests — Phase 7 CONS-09 / CONS-10 regression
+ * pins plus the Phase 46 MKTUI-04 self-serve-checkout pin.
  *
  * Phase 7's CONS fixes shipped in source already; these tests lock the
- * price-row nowrap and the per-card annual-savings render.
+ * price-row nowrap and the per-card annual-savings render. MKTUI-04 removed
+ * the enterprise/contact-sales variant, so every standard card (including Max)
+ * is self-serve checkout — the added pin proves Max reaches
+ * createCheckoutSession with its configured Stripe price ID.
  *
  * @vitest-environment jsdom
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { createCheckoutSessionMock, getSessionMock } = vi.hoisted(() => ({
+	createCheckoutSessionMock: vi.fn(),
+	getSessionMock: vi.fn(),
+}));
 
 vi.mock("@tanstack/react-query", () => ({
-	useMutation: () => ({ mutateAsync: vi.fn(), isPending: false }),
+	useMutation: (opts: {
+		mutationFn: (o?: {
+			customerEmail?: string;
+			tenant_id?: string;
+		}) => Promise<unknown>;
+		onError?: (error: Error) => void;
+		onSettled?: () => void;
+	}) => ({
+		mutateAsync: async (o?: { customerEmail?: string; tenant_id?: string }) => {
+			try {
+				return await opts.mutationFn(o);
+			} catch (error) {
+				opts.onError?.(error as Error);
+				return undefined;
+			} finally {
+				opts.onSettled?.();
+			}
+		},
+		isPending: false,
+	}),
 }));
 vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
-		auth: { getSession: async () => ({ data: { session: null } }) },
+		auth: { getSession: getSessionMock },
 	}),
 }));
 vi.mock("#lib/stripe/stripe-client", () => ({
-	createCheckoutSession: vi.fn(),
+	createCheckoutSession: createCheckoutSessionMock,
 }));
 vi.mock("#lib/security", () => ({
 	checkoutRateLimiter: { canMakeRequest: () => true },
@@ -36,6 +65,26 @@ vi.mock("../owner-subscribe-dialog", () => ({
 }));
 
 import { PricingCardStandard } from "../pricing-card-standard";
+
+const originalLocation = window.location;
+
+beforeEach(() => {
+	getSessionMock.mockResolvedValue({ data: { session: null } });
+	createCheckoutSessionMock.mockReset();
+	Object.defineProperty(window, "location", {
+		configurable: true,
+		writable: true,
+		value: { href: "" },
+	});
+});
+
+afterEach(() => {
+	Object.defineProperty(window, "location", {
+		configurable: true,
+		writable: true,
+		value: originalLocation,
+	});
+});
 
 const starterPlan: ComponentProps<typeof PricingCardStandard>["plan"] = {
 	id: "starter",
@@ -64,13 +113,7 @@ const maxPlan: ComponentProps<typeof PricingCardStandard>["plan"] = {
 
 describe("PricingCardStandard", () => {
 	it("price-row container carries whitespace-nowrap (CONS-09)", () => {
-		render(
-			<PricingCardStandard
-				plan={starterPlan}
-				billingCycle="monthly"
-				variant="starter"
-			/>,
-		);
+		render(<PricingCardStandard plan={starterPlan} billingCycle="monthly" />);
 		// Anchor on the price text rather than a class-soup selector so the
 		// assertion survives layout refactors that add other flex wrappers.
 		const priceRow = screen.getByText("$19").closest("div");
@@ -79,35 +122,17 @@ describe("PricingCardStandard", () => {
 	});
 
 	it('renders "Save $38/year" for Starter on annual (CONS-10)', () => {
-		render(
-			<PricingCardStandard
-				plan={starterPlan}
-				billingCycle="yearly"
-				variant="starter"
-			/>,
-		);
+		render(<PricingCardStandard plan={starterPlan} billingCycle="yearly" />);
 		expect(screen.getByText(/Save\s+\$38\/year/)).toBeInTheDocument();
 	});
 
 	it('renders "Save $298/year" for Max on annual (CONS-10)', () => {
-		render(
-			<PricingCardStandard
-				plan={maxPlan}
-				billingCycle="yearly"
-				variant="enterprise"
-			/>,
-		);
+		render(<PricingCardStandard plan={maxPlan} billingCycle="yearly" />);
 		expect(screen.getByText(/Save\s+\$298\/year/)).toBeInTheDocument();
 	});
 
 	it("hides the savings line on monthly (CONS-10)", () => {
-		render(
-			<PricingCardStandard
-				plan={starterPlan}
-				billingCycle="monthly"
-				variant="starter"
-			/>,
-		);
+		render(<PricingCardStandard plan={starterPlan} billingCycle="monthly" />);
 		// Match the savings shape specifically so the assertion verifies the
 		// savings paragraph is gone, not just any incidental "/year" string.
 		expect(screen.queryByText(/Save\s+\$\d/)).toBeNull();
@@ -115,14 +140,40 @@ describe("PricingCardStandard", () => {
 
 	it("savings line uses the text-success-text token (CONS-10)", () => {
 		const { container } = render(
-			<PricingCardStandard
-				plan={starterPlan}
-				billingCycle="yearly"
-				variant="starter"
-			/>,
+			<PricingCardStandard plan={starterPlan} billingCycle="yearly" />,
 		);
 		const savings = container.querySelector(".text-success-text.font-semibold");
 		expect(savings).toBeTruthy();
 		expect(savings?.textContent).toMatch(/Save\s+\$38\/year/);
+	});
+
+	it("Max card is self-serve — renders 'Start free', not 'Contact Sales' (MKTUI-04)", () => {
+		render(<PricingCardStandard plan={maxPlan} billingCycle="monthly" />);
+		expect(
+			screen.getByRole("button", { name: /Start free/ }),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/Contact Sales/)).toBeNull();
+	});
+
+	it("Max card CTA starts checkout with the configured price ID (MKTUI-04)", async () => {
+		getSessionMock.mockResolvedValue({
+			data: { session: { access_token: "token" } },
+		});
+		createCheckoutSessionMock.mockResolvedValue({
+			url: "https://checkout.stripe.test/session",
+		});
+		const user = userEvent.setup();
+		render(<PricingCardStandard plan={maxPlan} billingCycle="yearly" />);
+
+		await user.click(screen.getByRole("button", { name: /Start free/ }));
+
+		await waitFor(() =>
+			expect(createCheckoutSessionMock).toHaveBeenCalledWith(
+				expect.objectContaining({
+					priceId: "price_test_max_a",
+					planName: "Max",
+				}),
+			),
+		);
 	});
 });

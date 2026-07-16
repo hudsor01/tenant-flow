@@ -63,12 +63,8 @@ export function PricingStatsGrid() {
 		<section className="section-spacing animate-in fade-in duration-700 delay-150">
 			<div className="mx-auto max-w-7xl px-6 lg:px-8">
 				<div className="grid gap-8 text-left sm:grid-cols-3">
-					{STATS.map((stat, index) => (
-						<Card
-							key={stat.label}
-							variant="stat"
-							style={{ animationDelay: `${index * 150}ms` }}
-						>
+					{STATS.map((stat) => (
+						<Card key={stat.label} variant="stat">
 							<div className="relative">
 								<div className="mb-4 typography-h2 text-primary">
 									<stat.icon className="h-8 w-8" />
@@ -97,7 +93,7 @@ export function PricingFaqSection() {
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
 				<div className="rounded-3xl border border-border/60 bg-card/60 p-10 shadow-sm backdrop-blur sm:p-14">
 					<div className="mx-auto mb-14 max-w-3xl text-center">
-						<h2 className="text-section-title tracking-tight text-foreground">
+						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
 							Frequently asked questions
 						</h2>
 						<p className="mt-4 text-base text-muted-foreground sm:text-lg">
@@ -164,7 +160,7 @@ export function PricingCtaSection() {
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
 				<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 					<div className="space-y-6 text-left">
-						<h2 className="text-section-title tracking-tight text-foreground">
+						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
 							Ready to centralize your portfolio?
 						</h2>
 						<p className="text-base leading-relaxed text-muted-foreground sm:text-lg">

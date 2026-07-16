@@ -32,7 +32,7 @@ export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 	}
 
 	const linkClasses =
-		"inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent";
+		"inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground";
 	const disabledClasses = "pointer-events-none opacity-50";
 
 	const prevPage = currentPage - 1;

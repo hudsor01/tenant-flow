@@ -6,13 +6,13 @@ import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
 function FeatureIcon({ support }: { support: FeatureSupport }) {
 	switch (support) {
 		case "yes":
-			return <Check className="size-5 text-green-600" />;
+			return <Check className="size-5 text-success" />;
 		case "no":
-			return <X className="size-5 text-red-400" />;
+			return <X className="size-5 text-destructive" />;
 		case "partial":
-			return <Minus className="size-5 text-amber-500" />;
+			return <Minus className="size-5 text-warning" />;
 		case "addon":
-			return <Plus className="size-5 text-blue-500" />;
+			return <Plus className="size-5 text-info" />;
 		case "na":
 			// CONS-07: neutral framing for "by design" feature absences
 			// (ACH/Payment, HOA Management) — these are positioning
@@ -171,7 +171,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 						<ul className="space-y-4">
 							{data.whySwitch.map((reason) => (
 								<li key={reason} className="flex gap-3 text-muted-foreground">
-									<Check className="size-5 text-green-600 mt-0.5 shrink-0" />
+									<Check className="size-5 text-success mt-0.5 shrink-0" />
 									<span>{reason}</span>
 								</li>
 							))}
@@ -184,7 +184,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 						<ul className="space-y-4">
 							{data.competitorStrengths.map((strength) => (
 								<li key={strength} className="flex gap-3 text-muted-foreground">
-									<Check className="size-5 text-blue-500 mt-0.5 shrink-0" />
+									<Check className="size-5 text-info mt-0.5 shrink-0" />
 									<span>{strength}</span>
 								</li>
 							))}

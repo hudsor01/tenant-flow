@@ -14,8 +14,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Mortgage & Financing",
 		scheduleRef: "Schedule E, Line 12-13",
-		color: "bg-blue-50 border-blue-200",
-		headerColor: "bg-blue-100 text-blue-900",
+		color: "bg-info/10 border-info/20",
+		headerColor: "bg-info/20 text-info-text",
 		items: [
 			{
 				deduction: "Mortgage Interest",
@@ -40,8 +40,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Property Expenses",
 		scheduleRef: "Schedule E, Lines 5-19",
-		color: "bg-green-50 border-green-200",
-		headerColor: "bg-green-100 text-green-900",
+		color: "bg-success/10 border-success/20",
+		headerColor: "bg-success/20 text-success-text",
 		items: [
 			{
 				deduction: "Property Taxes",
@@ -70,8 +70,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Repairs & Maintenance",
 		scheduleRef: "Schedule E, Line 14",
-		color: "bg-amber-50 border-amber-200",
-		headerColor: "bg-amber-100 text-amber-900",
+		color: "bg-warning/10 border-warning/20",
+		headerColor: "bg-warning/20 text-warning-text",
 		items: [
 			{
 				deduction: "Routine Repairs",
@@ -102,8 +102,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Depreciation",
 		scheduleRef: "Schedule E, Line 18 / Form 4562",
-		color: "bg-purple-50 border-purple-200",
-		headerColor: "bg-purple-100 text-purple-900",
+		color: "bg-primary/10 border-primary/20",
+		headerColor: "bg-primary/20 text-primary-text",
 		items: [
 			{
 				deduction: "Building Depreciation",
@@ -134,8 +134,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Professional Services",
 		scheduleRef: "Schedule E, Lines 10-11, 17",
-		color: "bg-rose-50 border-rose-200",
-		headerColor: "bg-rose-100 text-rose-900",
+		color: "bg-destructive/10 border-destructive/20",
+		headerColor: "bg-destructive/20 text-destructive-text",
 		items: [
 			{
 				deduction: "Property Management Fees",
@@ -165,8 +165,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Travel & Auto",
 		scheduleRef: "Schedule E / Form 4562",
-		color: "bg-teal-50 border-teal-200",
-		headerColor: "bg-teal-100 text-teal-900",
+		color: "bg-info/10 border-info/20",
+		headerColor: "bg-info/20 text-info-text",
 		items: [
 			{
 				deduction: "Mileage (Standard Rate)",
@@ -186,8 +186,8 @@ export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Other Deductions",
 		scheduleRef: "Schedule E, Line 19",
-		color: "bg-gray-50 border-gray-200",
-		headerColor: "bg-gray-100 text-gray-900",
+		color: "bg-muted/50 border-border",
+		headerColor: "bg-muted text-foreground",
 		items: [
 			{
 				deduction: "Advertising",
