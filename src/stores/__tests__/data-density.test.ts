@@ -9,11 +9,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	createPreferencesStore,
 	DATA_DENSITY_STORAGE_KEY,
-	type DataDensity,
 	DEFAULT_DATA_DENSITY,
 	getStoredDataDensity,
 	persistDataDensity,
 } from "#stores/preferences-store";
+import type { DataDensity } from "#types/domain";
 
 describe("data density preferences", () => {
 	let mockLocalStorage: Record<string, string>;

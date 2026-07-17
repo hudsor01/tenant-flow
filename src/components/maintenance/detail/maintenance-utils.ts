@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { createElement } from "react";
 import { formatDate } from "#lib/formatters/date";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
+import type { TimelineEvent } from "#types/sections/maintenance";
 
 // Status configuration
 export const STATUS_CONFIG: Record<
@@ -67,22 +68,6 @@ export const PRIORITY_CONFIG: Record<
 	},
 	urgent: { label: "Urgent", className: "bg-destructive/10 text-destructive" },
 };
-
-// Timeline event type
-export interface TimelineEvent {
-	id: string;
-	type:
-		| "created"
-		| "status_change"
-		| "scheduled"
-		| "expense_added"
-		| "photo_added"
-		| "completed";
-	title: string;
-	description?: string;
-	timestamp: string;
-	user?: string;
-}
 
 export function generateTimeline(request: {
 	created_at: string | null;

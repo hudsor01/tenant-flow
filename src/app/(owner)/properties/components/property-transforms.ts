@@ -1,7 +1,7 @@
 import type {
-	PropertyType as DesignPropertyType,
+	DesignPropertyType,
+	PortfolioSummary,
 	PropertyItem,
-	PropertySummary,
 } from "#components/properties/types";
 import type { Property as ApiProperty, Unit } from "#types/core";
 
@@ -75,7 +75,7 @@ export function transformToPropertyItem(
 /**
  * Calculate portfolio summary from properties
  */
-export function calculateSummary(properties: PropertyItem[]): PropertySummary {
+export function calculateSummary(properties: PropertyItem[]): PortfolioSummary {
 	const totalProperties = properties.length;
 	const totalUnits = properties.reduce((sum, p) => sum + p.totalUnits, 0);
 	const occupiedUnits = properties.reduce((sum, p) => sum + p.occupiedUnits, 0);

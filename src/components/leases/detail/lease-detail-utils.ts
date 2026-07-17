@@ -12,7 +12,7 @@ import { parseLocalYmd } from "#lib/formatters/date";
 import type { Lease } from "#types/core";
 
 /** Timeline event for lease history display */
-export interface TimelineEvent {
+export interface LeaseTimelineEvent {
 	id: string;
 	type:
 		| "created"
@@ -31,8 +31,8 @@ export interface TimelineEvent {
 }
 
 /** Generates timeline events from lease data */
-export function generateTimelineEvents(lease: Lease): TimelineEvent[] {
-	const events: TimelineEvent[] = [];
+export function generateTimelineEvents(lease: Lease): LeaseTimelineEvent[] {
+	const events: LeaseTimelineEvent[] = [];
 
 	// Lease created
 	if (lease.created_at) {
@@ -143,7 +143,7 @@ export function generateTimelineEvents(lease: Lease): TimelineEvent[] {
 }
 
 /** Get icon for timeline event type */
-export function getTimelineIcon(type: TimelineEvent["type"]) {
+export function getTimelineIcon(type: LeaseTimelineEvent["type"]) {
 	const iconMap = {
 		created: FileText,
 		sent_for_signature: Send,
@@ -159,7 +159,7 @@ export function getTimelineIcon(type: TimelineEvent["type"]) {
 }
 
 /** Get color classes for timeline event type */
-export function getTimelineColor(type: TimelineEvent["type"]) {
+export function getTimelineColor(type: LeaseTimelineEvent["type"]) {
 	const colorMap = {
 		created: "text-stone-500 bg-stone-100 dark:bg-stone-800",
 		sent_for_signature: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",

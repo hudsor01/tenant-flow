@@ -1,6 +1,6 @@
 import type { PropertyStatus, UnitStatus } from "#types/core";
 
-export type PropertyType =
+export type DesignPropertyType =
 	| "single_family"
 	| "multi_family"
 	| "apartment"
@@ -20,7 +20,7 @@ export interface UnitTenant {
 	leaseEndDate: string;
 }
 
-export interface Unit {
+export interface DesignUnit {
 	id: string;
 	unitNumber: string;
 	bedrooms: number;
@@ -31,7 +31,7 @@ export interface Unit {
 	tenant: UnitTenant | null;
 }
 
-export interface Property {
+export interface DesignProperty {
 	id: string;
 	name: string;
 	addressLine1: string;
@@ -39,7 +39,7 @@ export interface Property {
 	city: string;
 	state: string;
 	postalCode: string;
-	propertyType: PropertyType;
+	propertyType: DesignPropertyType;
 	status: PropertyStatus;
 	images: PropertyImage[];
 	totalUnits: number;
@@ -48,10 +48,10 @@ export interface Property {
 	maintenanceUnits: number;
 	occupancyRate: number;
 	monthlyRevenue: number;
-	units: Unit[];
+	units: DesignUnit[];
 }
 
-export interface PropertySummary {
+export interface PortfolioSummary {
 	totalProperties: number;
 	totalUnits: number;
 	occupiedUnits: number;
@@ -61,7 +61,7 @@ export interface PropertySummary {
 	totalMonthlyRevenue: number;
 }
 
-export type PropertiesSummary = PropertySummary;
+export type PropertiesSummary = PortfolioSummary;
 
 export interface PropertyItem {
 	id: string;
@@ -71,7 +71,7 @@ export interface PropertyItem {
 	city: string;
 	state: string;
 	postalCode: string;
-	propertyType: PropertyType;
+	propertyType: DesignPropertyType;
 	status: PropertyStatus;
 	imageUrl: string | undefined;
 	totalUnits: number;
@@ -84,7 +84,7 @@ export interface PropertyItem {
 
 export interface PropertiesProps {
 	properties: PropertyItem[];
-	summary: PropertySummary;
+	summary: PortfolioSummary;
 	filter?: "all" | "occupied" | "available" | "maintenance";
 	isLoading?: boolean;
 	onPropertyClick?: (id: string) => void;
@@ -97,8 +97,8 @@ export interface PropertiesProps {
 }
 
 export interface PropertiesListProps {
-	properties: Property[];
-	summary: PropertySummary;
+	properties: DesignProperty[];
+	summary: PortfolioSummary;
 	filter?: "all" | "occupied" | "available" | "maintenance";
 	isLoading?: boolean;
 	onPropertyClick?: (id: string) => void;
@@ -111,7 +111,7 @@ export interface PropertiesListProps {
 }
 
 export interface PropertyDetailProps {
-	property: Property;
+	property: DesignProperty;
 	isLoading?: boolean;
 	onPropertyEdit?: () => void;
 	onPropertyDelete?: () => void;
@@ -144,7 +144,7 @@ export interface PropertyFormData {
 	city: string;
 	state: string;
 	postalCode: string;
-	propertyType: PropertyType;
+	propertyType: DesignPropertyType;
 	image?: File;
 }
 

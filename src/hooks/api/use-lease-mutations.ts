@@ -12,7 +12,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { logger } from "#lib/frontend-logger";
-import type { LeaseUpdate } from "#lib/validation/leases";
+import type { LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
@@ -150,7 +150,7 @@ export function useUpdateLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.update(),
-		...createMutationCallbacks<Lease, { id: string; data: LeaseUpdate }>(
+		...createMutationCallbacks<Lease, { id: string; data: LeaseUpdateInput }>(
 			queryClient,
 			{
 				// update() returns a bare row (no units/tenants embeds), so it must

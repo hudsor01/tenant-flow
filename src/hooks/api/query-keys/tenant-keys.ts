@@ -28,6 +28,21 @@ import { mapTenantStats } from "./tenant-stats-mapper";
 const TENANT_BASE_SELECT =
 	"id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four";
 
+/** Flat tenant option for lease-wizard selection (records, not auth users). */
+interface LeaseTenantOption {
+	id: string;
+	first_name: string;
+	last_name: string;
+	email: string;
+}
+
+/** Tenant name snapshot for the lease-wizard review step. */
+interface TenantNameSnapshot {
+	id: string;
+	first_name: string | null;
+	last_name: string | null;
+}
+
 // Landlord-managed tenants are records, never auth users, so the dead
 // tenants.user_id FK embed was removed (LEGACY-TENANT-06). Display fields come
 // from the tenant's own first_name/last_name/email/phone columns.
@@ -215,5 +230,56 @@ export const tenantQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,
 			structuralSharing: true,
+		}),
+
+	/**
+	 * Flat active-tenant list for lease-wizard selection (records, not users).
+	 */
+	listForLease: () =>
+		queryOptions({
+			queryKey: [...tenantQueries.all(), "list-for-lease"],
+			queryFn: async (): Promise<LeaseTenantOption[]> => {
+				const supabase = createClient();
+				const { data, error } = await supabase
+					.from("tenants")
+					.select("id, first_name, last_name, email")
+					.neq("status", "inactive");
+				if (error) handlePostgrestError(error, "tenants");
+				return (data ?? [])
+					.map(
+						(row) =>
+							({
+								id: row.id,
+								first_name: row.first_name ?? "",
+								last_name: row.last_name ?? "",
+								email: row.email ?? "",
+							}) satisfies LeaseTenantOption,
+					)
+					.sort((a, b) => a.last_name.localeCompare(b.last_name));
+			},
+		}),
+
+	/**
+	 * Lightweight tenant name snapshot for the lease-wizard review step.
+	 * Nested under `details()` so tenant mutations that invalidate details reach it.
+	 */
+	nameById: (id?: string) =>
+		queryOptions({
+			queryKey: [...tenantQueries.details(), id, "name"],
+			queryFn: async (): Promise<TenantNameSnapshot | null> => {
+				const supabase = createClient();
+				const { data } = await supabase
+					.from("tenants")
+					.select("id, first_name, last_name")
+					.eq("id", id ?? "")
+					.single();
+				if (!data) return null;
+				return {
+					id: data.id,
+					first_name: data.first_name ?? null,
+					last_name: data.last_name ?? null,
+				};
+			},
+			enabled: !!id,
 		}),
 };

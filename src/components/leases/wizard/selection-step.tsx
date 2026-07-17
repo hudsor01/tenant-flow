@@ -35,12 +35,7 @@ import { Skeleton } from "#components/ui/skeleton";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
-import { createClient } from "#lib/supabase/client";
 import type { SelectionStepData } from "#lib/validation/lease-wizard.schemas";
-import type {
-	Property as SharedProperty,
-	Unit as SharedUnit,
-} from "#types/core";
 import { InlineTenantCreate, TenantModeToggle } from "./selection-step-filters";
 
 interface SelectionStepProps {
@@ -48,26 +43,6 @@ interface SelectionStepProps {
 	onChange: (data: Partial<SelectionStepData>) => void;
 	onUnitSelected?: (rentAmount: number | null) => void;
 	errors?: Partial<Record<string, string>>;
-}
-
-// Use Pick to get minimal fields from shared types
-type Property = Pick<
-	SharedProperty,
-	"id" | "name" | "address_line1" | "city" | "state"
->;
-type Unit = Pick<
-	SharedUnit,
-	"id" | "unit_number" | "property_id" | "rent_amount"
->;
-
-// Tenant API response shape — flat tenant columns (landlord-managed tenants are
-// records, not auth users; LEGACY-TENANT-06 removed the users join).
-// This is the shape of the API response, not a duplicate of shared types
-interface Tenant {
-	id: string;
-	first_name: string;
-	last_name: string;
-	email: string;
 }
 
 export function SelectionStep({
@@ -82,71 +57,19 @@ export function SelectionStep({
 		data: properties,
 		isLoading: propertiesLoading,
 		error: propertiesError,
-	} = useQuery({
-		queryKey: [...propertyQueries.all(), "list"],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data: rows, error } = await supabase
-				.from("properties")
-				.select("id, name, address_line1, city, state")
-				.neq("status", "inactive")
-				.order("name");
-			if (error) throw error;
-			return (rows ?? []) as Property[];
-		},
-	});
+	} = useQuery(propertyQueries.selectOptions());
 
 	const {
 		data: units,
 		isLoading: unitsLoading,
 		error: unitsError,
-	} = useQuery({
-		queryKey: [
-			...unitQueries.all(),
-			"by-property",
-			data.property_id,
-			"available",
-		],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data: rows, error } = await supabase
-				.from("units")
-				.select("id, unit_number, property_id, rent_amount")
-				.eq("property_id", data.property_id ?? "")
-				.eq("status", "available")
-				.order("unit_number");
-			if (error) throw error;
-			return (rows ?? []) as Unit[];
-		},
-		enabled: !!data.property_id,
-	});
+	} = useQuery(unitQueries.availableByProperty(data.property_id));
 
 	const {
 		data: tenants,
 		isLoading: tenantsLoading,
 		error: tenantsError,
-	} = useQuery({
-		queryKey: [...tenantQueries.all(), "list-for-lease"],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data: rows, error } = await supabase
-				.from("tenants")
-				.select("id, first_name, last_name, email")
-				.neq("status", "inactive");
-			if (error) throw error;
-			return (rows ?? [])
-				.map(
-					(row) =>
-						({
-							id: row.id,
-							first_name: row.first_name ?? "",
-							last_name: row.last_name ?? "",
-							email: row.email ?? "",
-						}) satisfies Tenant,
-				)
-				.sort((a, b) => a.last_name.localeCompare(b.last_name));
-		},
-	});
+	} = useQuery(tenantQueries.listForLease());
 
 	const handlePropertyChange = (propertyId: string) => {
 		const newData: Partial<SelectionStepData> = { property_id: propertyId };

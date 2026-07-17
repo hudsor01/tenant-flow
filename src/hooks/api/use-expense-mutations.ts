@@ -15,6 +15,7 @@ import {
 	financialTaxQueries,
 } from "./query-keys/expense-keys";
 import { financialKeys } from "./query-keys/financial-keys";
+import { maintenanceQueries } from "./query-keys/maintenance-keys";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 /**
@@ -60,7 +61,14 @@ export function useCreateExpenseMutation() {
 			// ownerDashboardKeys.all" — covers any future dashboard tile that
 			// surfaces expense numbers (today's get_dashboard_stats does not,
 			// but the convention prevents drift).
-			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
+			invalidate: [
+				expenseKeys.all,
+				financialKeys.all,
+				// Maintenance-scoped expenses list on the request detail page
+				// (maintenanceQueries.expenses(id)) sits under this prefix.
+				maintenanceQueries.all(),
+				ownerDashboardKeys.all,
+			],
 			errorContext: "Create expense",
 		}),
 	});
@@ -73,7 +81,12 @@ export function useDeleteExpenseMutation() {
 		...financialMutations.deleteExpense(),
 		...createMutationCallbacks(queryClient, {
 			// Same cross-domain fanout as create — see useCreateExpenseMutation.
-			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
+			invalidate: [
+				expenseKeys.all,
+				financialKeys.all,
+				maintenanceQueries.all(),
+				ownerDashboardKeys.all,
+			],
 			errorContext: "Delete expense",
 		}),
 	});

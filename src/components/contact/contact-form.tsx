@@ -218,13 +218,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 		>
 			{/* Left side - Contact Info with Image Background */}
 			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 overflow-hidden">
-				<div
-					className="absolute inset-0 bg-cover bg-center"
-					style={{
-						backgroundImage:
-							"url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')",
-					}}
-				/>
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
 				<div className="absolute inset-0 bg-linear-to-br from-background/30 via-transparent to-background/20" />
 
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">

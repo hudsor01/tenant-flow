@@ -102,50 +102,15 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	);
 
 	// Fetch entity names for review step
-	const { data: propertyData } = useQuery({
-		queryKey: [...propertyQueries.all(), selectionData.property_id],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data } = await supabase
-				.from("properties")
-				.select("id, name")
-				.eq("id", selectionData.property_id ?? "")
-				.single();
-			return data ?? null;
-		},
-		enabled: !!selectionData.property_id,
-	});
-	const { data: unitData } = useQuery({
-		queryKey: [...unitQueries.all(), selectionData.unit_id],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data } = await supabase
-				.from("units")
-				.select("id, unit_number")
-				.eq("id", selectionData.unit_id ?? "")
-				.single();
-			return data ?? null;
-		},
-		enabled: !!selectionData.unit_id,
-	});
-	const { data: tenantData } = useQuery({
-		queryKey: [...tenantQueries.all(), selectionData.primary_tenant_id],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data } = await supabase
-				.from("tenants")
-				.select("id, first_name, last_name")
-				.eq("id", selectionData.primary_tenant_id ?? "")
-				.single();
-			if (!data) return null;
-			return {
-				id: data.id,
-				first_name: data.first_name ?? null,
-				last_name: data.last_name ?? null,
-			};
-		},
-		enabled: !!selectionData.primary_tenant_id,
-	});
+	const { data: propertyData } = useQuery(
+		propertyQueries.nameById(selectionData.property_id),
+	);
+	const { data: unitData } = useQuery(
+		unitQueries.nameById(selectionData.unit_id),
+	);
+	const { data: tenantData } = useQuery(
+		tenantQueries.nameById(selectionData.primary_tenant_id),
+	);
 
 	const createLeaseMutation = useMutation({
 		mutationKey: mutationKeys.leases.create,

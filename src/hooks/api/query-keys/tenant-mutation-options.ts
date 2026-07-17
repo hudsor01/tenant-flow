@@ -3,7 +3,7 @@ import { omitUndefined } from "#lib/db-insert";
 import { logger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
-import type { TenantCreate, TenantUpdate } from "#lib/validation/tenants";
+import type { TenantCreate, TenantUpdateInput } from "#lib/validation/tenants";
 import type { Tenant, TenantWithLeaseInfo } from "#types/core";
 import { mutationKeys } from "../mutation-keys";
 import {
@@ -52,7 +52,7 @@ export const tenantMutations = {
 				data,
 			}: {
 				id: string;
-				data: TenantUpdate;
+				data: TenantUpdateInput;
 			}): Promise<Tenant> => {
 				const supabase = createClient();
 				const { data: updated, error } = await supabase

@@ -1,6 +1,4 @@
 // Maintenance Section Types
-import type { ReactElement } from "react";
-
 import type {
 	MaintenancePriority,
 	MaintenanceRequest,
@@ -178,17 +176,6 @@ export type MaintenanceDisplayRequest = MaintenanceRequest & {
 	assignedTo?: { name: string } | null;
 	tenant?: { name: string } | null;
 };
-
-export interface KanbanColumnProps {
-	title: string;
-	count: number;
-	colorClass: string;
-	icon: ReactElement;
-	requests: MaintenanceRequestItem[];
-	onView?: ((id: string) => void) | undefined;
-	onUpdateStatus?: (id: string, status: MaintenanceStatus) => void;
-	columnIndex: number;
-}
 
 export interface MaintenanceListProps {
 	requests: MaintenanceRequestItem[];

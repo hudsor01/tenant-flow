@@ -222,8 +222,7 @@ export const maintenanceInspectionSchema = z.object({
 export type MaintenanceRequestInput = z.infer<
 	typeof maintenanceRequestInputSchema
 >;
-export type MaintenanceRequest = z.infer<typeof maintenanceRequestSchema>;
-export type MaintenanceRequestUpdate = z.infer<
+export type MaintenanceRequestUpdateInput = z.infer<
 	typeof maintenanceRequestUpdateSchema
 >;
 export type MaintenanceRequestQuery = z.infer<

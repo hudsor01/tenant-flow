@@ -11,6 +11,10 @@ import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Lease, LeaseStatsResponse } from "#types/core";
 import { revenueTrendsQuery } from "./analytics-keys";
+import {
+	type ExpiringLeaseRow,
+	mapExpiringLeaseRow,
+} from "./expiring-leases-mapper";
 
 export interface LeaseFilters {
 	unit_id?: string;
@@ -133,6 +137,45 @@ export const leaseQueries = {
 				return data ?? [];
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
+		}),
+
+	/**
+	 * Enriched expiring-lease list joined with tenant + unit + property for
+	 * the dashboard widget. Uses PostgREST FK join; limits to the next `days`.
+	 */
+	expiringEnriched: (days: number = 60) =>
+		queryOptions({
+			queryKey: [...leaseQueries.all(), "expiring-enriched", days],
+			queryFn: async (): Promise<ExpiringLeaseRow[]> => {
+				const supabase = createClient();
+				const now = new Date().toISOString();
+				const future = new Date(
+					Date.now() + days * 24 * 60 * 60 * 1000,
+				).toISOString();
+
+				const { data, error } = await supabase
+					.from("leases")
+					.select(`
+						id,
+						end_date,
+						rent_amount,
+						tenants:primary_tenant_id (name),
+						units:unit_id (
+							unit_number,
+							properties:property_id (name)
+						)
+					`)
+					.eq("lease_status", "active")
+					.lte("end_date", future)
+					.gte("end_date", now)
+					.order("end_date", { ascending: true })
+					.limit(5);
+
+				if (error) handlePostgrestError(error, "leases");
+
+				return (data ?? []).map((row) => mapExpiringLeaseRow(row));
+			},
+			staleTime: 5 * 60 * 1000,
 		}),
 
 	stats: () =>

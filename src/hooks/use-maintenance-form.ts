@@ -4,7 +4,7 @@ import type { MaintenanceUpdateMutationVariables } from "#hooks/api/use-maintena
 import { createLogger } from "#lib/frontend-logger";
 import type {
 	MaintenanceRequestCreate,
-	MaintenanceRequestUpdate,
+	MaintenanceRequestUpdateInput,
 } from "#lib/validation/maintenance";
 import type { MaintenancePriority, MaintenanceRequest } from "#types/core";
 
@@ -116,7 +116,7 @@ export function useMaintenanceForm({
 					// FORMFIX-05: include unit_id/tenant_id so reassigning the unit or
 					// tenant on edit actually persists (previously omitted → silently
 					// dropped). maintenanceRequestUpdateSchema accepts them (partial input).
-					const payload: MaintenanceRequestUpdate = {
+					const payload: MaintenanceRequestUpdateInput = {
 						title: value.title,
 						description: value.description,
 						priority: value.priority,
@@ -141,7 +141,7 @@ export function useMaintenanceForm({
 
 					const mutationPayload: {
 						id: string;
-						data: MaintenanceRequestUpdate;
+						data: MaintenanceRequestUpdateInput;
 						version?: number;
 					} = {
 						id: requestId,

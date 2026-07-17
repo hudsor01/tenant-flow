@@ -96,6 +96,7 @@ vi.mock("../query-keys/expense-keys", async (importOriginal) => {
 
 import { expenseKeys } from "../query-keys/expense-keys";
 import { financialKeys } from "../query-keys/financial-keys";
+import { maintenanceQueries } from "../query-keys/maintenance-keys";
 import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import {
 	useCreateExpenseMutation,
@@ -123,6 +124,9 @@ function renderWithClient<TReturn>(hook: () => TReturn): {
 const EXPECTED_INVALIDATION_KEYS = [
 	expenseKeys.all,
 	financialKeys.all,
+	// HYG-05: maintenance-scoped expenses list on the request detail page sits
+	// under this prefix, so expense mutations must reach it.
+	maintenanceQueries.all(),
 	ownerDashboardKeys.all,
 ];
 
@@ -197,7 +201,7 @@ describe("useCreateExpenseMutation", () => {
 		expect(forwarded).toMatchObject(input);
 	});
 
-	it("invalidates EXACTLY expenseKeys.all, financialKeys.all, ownerDashboardKeys.all on success", async () => {
+	it("invalidates EXACTLY expenseKeys.all, financialKeys.all, maintenanceQueries.all, ownerDashboardKeys.all on success", async () => {
 		const { result, queryClient } = renderWithClient(() =>
 			useCreateExpenseMutation(),
 		);
@@ -258,7 +262,7 @@ describe("useDeleteExpenseMutation", () => {
 		expect(mockDeleteExpense.mock.calls[0]?.[0]).toBe("exp-77");
 	});
 
-	it("invalidates EXACTLY expenseKeys.all, financialKeys.all, ownerDashboardKeys.all on success", async () => {
+	it("invalidates EXACTLY expenseKeys.all, financialKeys.all, maintenanceQueries.all, ownerDashboardKeys.all on success", async () => {
 		const { result, queryClient } = renderWithClient(() =>
 			useDeleteExpenseMutation(),
 		);

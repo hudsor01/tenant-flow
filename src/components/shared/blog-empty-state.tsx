@@ -24,23 +24,11 @@ export function BlogEmptyState({
 			aria-label={message}
 		>
 			<div className="flex flex-col gap-2.5 w-48">
-				<div
-					className="h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite]"
-					style={{ width: "100%", animationDelay: "0ms" }}
-				/>
-				<div
-					className="h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite]"
-					style={{ width: "85%", animationDelay: "var(--duration-300)" }}
-				/>
-				<div
-					className="h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite]"
-					style={{ width: "92%", animationDelay: "var(--duration-500)" }}
-				/>
-				<div className="flex items-center" style={{ width: "60%" }}>
-					<div
-						className="h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] flex-1"
-						style={{ animationDelay: "var(--duration-1000)" }}
-					/>
+				<div className="h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-full [animation-delay:0ms]" />
+				<div className="h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-[85%] [animation-delay:var(--duration-300)]" />
+				<div className="h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-[92%] [animation-delay:var(--duration-500)]" />
+				<div className="flex items-center w-[60%]">
+					<div className="h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] flex-1 [animation-delay:var(--duration-1000)]" />
 					<div className="ml-0.5 h-3.5 w-0.5 bg-primary/50 animate-[typewriter-cursor_0.8s_step-end_infinite]" />
 				</div>
 			</div>

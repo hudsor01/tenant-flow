@@ -9,7 +9,7 @@ import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
 	PropertyCreate,
-	PropertyUpdate,
+	PropertyUpdateInput,
 } from "#lib/validation/properties";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Property, PropertyStatus, PropertyType, Unit } from "#types/core";
@@ -26,6 +26,15 @@ export interface PropertyFilters {
 
 const PROPERTY_SELECT_COLUMNS =
 	"id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, date_sold, sale_price, acquisition_cost, acquisition_date, created_at, updated_at";
+
+/** Minimal property shape for lease-wizard select options. */
+type PropertySelectOption = Pick<
+	Property,
+	"id" | "name" | "address_line1" | "city" | "state"
+>;
+
+/** Property name snapshot for the lease-wizard review step. */
+type PropertyNameSnapshot = Pick<Property, "id" | "name">;
 
 export const propertyQueries = {
 	all: () => ["properties"] as const,
@@ -291,6 +300,44 @@ export const propertyQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
 		}),
+
+	/**
+	 * Minimal property list for lease-wizard selection. Keyed OFF `lists()` so
+	 * its partial-column shape never collides with the paginated `list()` cache.
+	 */
+	selectOptions: () =>
+		queryOptions({
+			queryKey: [...propertyQueries.all(), "select-options"],
+			queryFn: async (): Promise<PropertySelectOption[]> => {
+				const supabase = createClient();
+				const { data, error } = await supabase
+					.from("properties")
+					.select("id, name, address_line1, city, state")
+					.neq("status", "inactive")
+					.order("name");
+				if (error) handlePostgrestError(error, "properties");
+				return (data as PropertySelectOption[]) ?? [];
+			},
+		}),
+
+	/**
+	 * Lightweight property name snapshot for the lease-wizard review step.
+	 * Nested under `details()` so property mutations that invalidate details reach it.
+	 */
+	nameById: (id?: string) =>
+		queryOptions({
+			queryKey: [...propertyQueries.details(), id, "name"],
+			queryFn: async (): Promise<PropertyNameSnapshot | null> => {
+				const supabase = createClient();
+				const { data } = await supabase
+					.from("properties")
+					.select("id, name")
+					.eq("id", id ?? "")
+					.single();
+				return data ?? null;
+			},
+			enabled: !!id,
+		}),
 };
 
 export const propertyMutations = {
@@ -318,7 +365,7 @@ export const propertyMutations = {
 		mutationOptions<
 			Property,
 			unknown,
-			{ id: string; data: PropertyUpdate; version?: number }
+			{ id: string; data: PropertyUpdateInput; version?: number }
 		>({
 			mutationKey: mutationKeys.properties.update,
 			mutationFn: async ({ id, data, version }): Promise<Property> => {

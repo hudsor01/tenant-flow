@@ -17,7 +17,7 @@ import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { normalizeSearchInput } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type { UnitInput, UnitUpdate } from "#lib/validation/units";
+import type { UnitInput, UnitUpdateInput } from "#lib/validation/units";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Unit } from "#types/core";
 import type { UnitStats } from "#types/stats";
@@ -37,6 +37,15 @@ export interface UnitFilters {
 
 const UNIT_SELECT_COLUMNS =
 	"id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status, created_at, updated_at";
+
+/** Minimal unit shape for lease-wizard select options. */
+type UnitSelectOption = Pick<
+	Unit,
+	"id" | "unit_number" | "property_id" | "rent_amount"
+>;
+
+/** Unit name snapshot for the lease-wizard review step. */
+type UnitNameSnapshot = Pick<Unit, "id" | "unit_number">;
 
 // Per-property unit bound: comfortably exceeds any realistic single-property
 // unit count while staying under the PostgREST 1000-row ceiling.
@@ -204,6 +213,46 @@ export const unitQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,
 		}),
+
+	/**
+	 * Available units for a property, minimal columns for lease-wizard selection.
+	 * Distinct from `byProperty` (which returns full columns, any status).
+	 */
+	availableByProperty: (property_id?: string) =>
+		queryOptions({
+			queryKey: [...unitQueries.all(), "by-property", property_id, "available"],
+			queryFn: async (): Promise<UnitSelectOption[]> => {
+				const supabase = createClient();
+				const { data, error } = await supabase
+					.from("units")
+					.select("id, unit_number, property_id, rent_amount")
+					.eq("property_id", property_id ?? "")
+					.eq("status", "available")
+					.order("unit_number");
+				if (error) handlePostgrestError(error, "units");
+				return (data as UnitSelectOption[]) ?? [];
+			},
+			enabled: !!property_id,
+		}),
+
+	/**
+	 * Lightweight unit name snapshot for the lease-wizard review step.
+	 * Nested under `details()` so unit mutations that invalidate details reach it.
+	 */
+	nameById: (id?: string) =>
+		queryOptions({
+			queryKey: [...unitQueries.details(), id, "name"],
+			queryFn: async (): Promise<UnitNameSnapshot | null> => {
+				const supabase = createClient();
+				const { data } = await supabase
+					.from("units")
+					.select("id, unit_number")
+					.eq("id", id ?? "")
+					.single();
+				return data ?? null;
+			},
+			enabled: !!id,
+		}),
 };
 
 export const unitMutations = {
@@ -236,7 +285,7 @@ export const unitMutations = {
 				version,
 			}: {
 				id: string;
-				data: UnitUpdate;
+				data: UnitUpdateInput;
 				version?: number;
 			}): Promise<Unit> => {
 				const supabase = createClient();

@@ -462,8 +462,9 @@ describe("PortfolioDataTable", () => {
 			});
 
 			const table = screen.getByRole("table");
-			// The table renders as a grid (canonical virtualized layout).
-			expect(table.style.display).toBe("grid");
+			// The table renders as a grid (canonical virtualized layout) via the
+			// `grid` utility class (HYG-23 moved this off an inline style).
+			expect(table.classList.contains("grid")).toBe(true);
 			// scrollRef is the table's DIRECT parent and the sole scroll container.
 			const scrollParent = table.parentElement as HTMLElement;
 			expect(scrollParent.className).toMatch(/overflow-auto/);
@@ -473,13 +474,13 @@ describe("PortfolioDataTable", () => {
 			expect(
 				document.querySelector('[data-slot="table-container"]'),
 			).toBeNull();
-			// The header is sticky to scrollRef.
+			// The header is sticky to scrollRef via `sticky top-0 z-[1]` utilities.
 			const thead = document.querySelector(
 				'thead[data-slot="table-header"]',
 			) as HTMLElement;
-			expect(thead.style.position).toBe("sticky");
-			expect(thead.style.top).toBe("0px");
-			expect(thead.style.zIndex).toBe("1");
+			expect(thead.classList.contains("sticky")).toBe(true);
+			expect(thead.classList.contains("top-0")).toBe(true);
+			expect(thead.classList.contains("z-[1]")).toBe(true);
 		} finally {
 			virtualMock.override = null;
 		}

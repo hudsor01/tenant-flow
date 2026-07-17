@@ -153,7 +153,7 @@ export const env = createEnv({
 
 		// Include all details in the thrown error - no console needed
 		throw new Error(
-			`\n❌ Invalid environment variables:\n\n${formatted}\n\n📋 Check your .env.local file or deployment configuration.\n`,
+			`\nERROR: Invalid environment variables:\n\n${formatted}\n\nNOTE: Check your .env.local file or deployment configuration.\n`,
 		);
 	},
 
@@ -163,7 +163,7 @@ export const env = createEnv({
 	 */
 	onInvalidAccess: (variable) => {
 		throw new Error(
-			`❌ Attempted to access server-side environment variable "${variable}" on the client.\n` +
+			`ERROR: Attempted to access server-side environment variable "${variable}" on the client.\n` +
 				`This variable is not prefixed with NEXT_PUBLIC_ and cannot be exposed to the browser.\n` +
 				`If you need this value client-side, create a NEXT_PUBLIC_ version or fetch it from an API route.`,
 		);

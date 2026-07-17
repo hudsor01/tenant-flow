@@ -17,9 +17,7 @@ import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
-import { createClient } from "#lib/supabase/client";
 import { formatCurrency } from "#lib/utils/currency";
-import type { ExpenseRecord } from "#types/core";
 import { ExpensesCard } from "./expenses-card";
 import { MaintenanceHeaderCard } from "./maintenance-header-card";
 import { generateTimeline } from "./maintenance-utils";
@@ -39,24 +37,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const { data: propertiesResponse } = useSuspenseQuery(propertyQueries.list());
 	const { data: unitsResponse } = useSuspenseQuery(unitQueries.list());
 
-	const { data: expensesData } = useQuery({
-		queryKey: [...maintenanceQueries.all(), id, "expenses"],
-		queryFn: async () => {
-			const supabase = createClient();
-			const { data, error } = await supabase
-				.from("expenses")
-				.select(
-					"id, amount, description, expense_date, vendor_name, maintenance_request_id, status",
-				)
-				// Filter soft-deleted rows so the maintenance detail page agrees
-				// with the rest of the app (expenseQueries.* + expenses page).
-				.neq("status", "inactive")
-				.eq("maintenance_request_id", id);
-			if (error) throw error;
-			return (data ?? []) as ExpenseRecord[];
-		},
-		enabled: !!id,
-	});
+	const { data: expensesData } = useQuery(maintenanceQueries.expenses(id));
 
 	const units = unitsResponse?.data ?? [];
 	const properties = propertiesResponse?.data ?? [];
@@ -70,7 +51,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			queryKey: maintenanceQueries.detail(id).queryKey,
 		});
 		queryClient.invalidateQueries({
-			queryKey: [...maintenanceQueries.all(), id, "expenses"],
+			queryKey: maintenanceQueries.expenses(id).queryKey,
 		});
 	};
 

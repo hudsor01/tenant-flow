@@ -91,13 +91,6 @@ export const leaseInputSchema = z.object({
 	lease_status: lease_statusSchema.default("draft"),
 });
 
-// Full lease schema (includes server-generated fields)
-const leaseSchema = leaseInputSchema.extend({
-	id: uuidSchema,
-	created_at: z.string(),
-	updated_at: z.string(),
-});
-
 // Lease update schema (partial input)
 const leaseUpdateSchema = leaseInputSchema.partial().extend({
 	id: uuidSchema.optional(),
@@ -218,8 +211,7 @@ export type LeaseWithSignature = z.infer<typeof leaseWithSignatureSchema>;
 
 // Export types
 export type LeaseInput = z.infer<typeof leaseInputSchema>;
-export type Lease = z.infer<typeof leaseSchema>;
-export type LeaseUpdate = z.infer<typeof leaseUpdateSchema>;
+export type LeaseUpdateInput = z.infer<typeof leaseUpdateSchema>;
 export type LeaseQuery = z.infer<typeof leaseQuerySchema>;
 export type LeaseCreate = z.infer<typeof leaseCreateSchema>;
 export type LeaseTermination = z.infer<typeof leaseTerminationSchema>;
@@ -245,7 +237,7 @@ const leaseCreateFormSchema = leaseFormSchema.extend({
 });
 
 // Transform functions for form data
-const transformLeaseFormData = (data: LeaseFormData) => ({
+const transformLeaseFormData = (data: LeaseFormValues) => ({
 	unit_id: data.unit_id,
 	primary_tenant_id: data.primary_tenant_id,
 	start_date: data.start_date,
@@ -266,7 +258,7 @@ const transformLeaseFormData = (data: LeaseFormData) => ({
 		: undefined,
 });
 
-export type LeaseFormData = z.infer<typeof leaseFormSchema>;
+export type LeaseFormValues = z.infer<typeof leaseFormSchema>;
 export type LeaseCreateFormData = z.infer<typeof leaseCreateFormSchema>;
 export type TransformedLeaseData = ReturnType<typeof transformLeaseFormData>;
 

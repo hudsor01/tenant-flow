@@ -12,7 +12,7 @@
  */
 
 import { create } from "zustand";
-import type { PropertyType } from "#components/properties/types";
+import type { DesignPropertyType } from "#components/properties/types";
 import type { PropertyStatus } from "#types/core";
 
 export type PropertyStatusFilter =
@@ -36,7 +36,7 @@ export interface PropertiesState {
 	// Bulk Edit dialog state
 	isBulkEditOpen: boolean;
 	bulkEditStatus: PropertyStatus;
-	bulkEditType: PropertyType;
+	bulkEditType: DesignPropertyType;
 	applyBulkStatus: boolean;
 	applyBulkType: boolean;
 	isBulkSaving: boolean;
@@ -64,11 +64,11 @@ export interface PropertiesActions {
 	// Bulk Edit actions
 	openBulkEdit: (
 		initialStatus: PropertyStatus,
-		initialType: PropertyType,
+		initialType: DesignPropertyType,
 	) => void;
 	closeBulkEdit: () => void;
 	setBulkEditStatus: (status: PropertyStatus) => void;
-	setBulkEditType: (type: PropertyType) => void;
+	setBulkEditType: (type: DesignPropertyType) => void;
 	setApplyBulkStatus: (apply: boolean) => void;
 	setApplyBulkType: (apply: boolean) => void;
 	setIsBulkSaving: (saving: boolean) => void;

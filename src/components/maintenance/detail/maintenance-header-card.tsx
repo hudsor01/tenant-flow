@@ -14,7 +14,11 @@ import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
-import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
+import type {
+	MaintenancePriority,
+	MaintenanceRequest as MaintenanceRow,
+	MaintenanceStatus,
+} from "#types/core";
 import { PRIORITY_CONFIG, STATUS_CONFIG } from "./maintenance-utils";
 import { ScheduleDialog } from "./schedule-dialog";
 import { StatusSelect } from "./status-select";
@@ -27,19 +31,20 @@ interface UnitInfo {
 	unit_number?: string | null;
 }
 
-interface MaintenanceRequest {
-	id: string;
-	title?: string | null;
-	description?: string | null;
-	status: string;
-	priority: string;
-	scheduled_date?: string | null;
-	estimated_cost?: number | null;
-	actual_cost?: number | null;
-}
+type MaintenanceHeaderRequest = Pick<
+	MaintenanceRow,
+	| "id"
+	| "title"
+	| "description"
+	| "status"
+	| "priority"
+	| "scheduled_date"
+	| "estimated_cost"
+	| "actual_cost"
+>;
 
 interface MaintenanceHeaderCardProps {
-	request: MaintenanceRequest;
+	request: MaintenanceHeaderRequest;
 	property?: PropertyInfo | null | undefined;
 	unit?: UnitInfo | null | undefined;
 	totalExpenses: number;

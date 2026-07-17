@@ -1,6 +1,6 @@
 "use client";
 
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays } from "date-fns";
 import { ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
@@ -14,50 +14,6 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
 import { formatDate, parseLocalYmd } from "#lib/formatters/date";
-import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { createClient } from "#lib/supabase/client";
-import {
-	type ExpiringLeaseRow,
-	mapExpiringLeaseRow,
-} from "./expiring-leases-mapper";
-
-/**
- * Enriched expiring-lease list joined with tenant + unit + property for
- * the dashboard widget. Uses PostgREST FK join; limits to next 60 days.
- */
-const expiringLeasesWithContext = queryOptions({
-	queryKey: [...leaseQueries.all(), "expiring-enriched", 60],
-	queryFn: async (): Promise<ExpiringLeaseRow[]> => {
-		const supabase = createClient();
-		const now = new Date().toISOString();
-		const future = new Date(
-			Date.now() + 60 * 24 * 60 * 60 * 1000,
-		).toISOString();
-
-		const { data, error } = await supabase
-			.from("leases")
-			.select(`
-				id,
-				end_date,
-				rent_amount,
-				tenants:primary_tenant_id (name),
-				units:unit_id (
-					unit_number,
-					properties:property_id (name)
-				)
-			`)
-			.eq("lease_status", "active")
-			.lte("end_date", future)
-			.gte("end_date", now)
-			.order("end_date", { ascending: true })
-			.limit(5);
-
-		if (error) handlePostgrestError(error, "leases");
-
-		return (data ?? []).map((row) => mapExpiringLeaseRow(row));
-	},
-	staleTime: 5 * 60 * 1000,
-});
 
 function daysUntil(dateIso: string): number {
 	return Math.max(
@@ -70,7 +26,7 @@ function daysUntil(dateIso: string): number {
 }
 
 export function ExpiringLeasesWidget() {
-	const { data, isLoading } = useQuery(expiringLeasesWithContext);
+	const { data, isLoading } = useQuery(leaseQueries.expiringEnriched());
 
 	if (isLoading) {
 		return (

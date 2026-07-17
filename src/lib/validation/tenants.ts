@@ -83,13 +83,6 @@ export const tenantInputSchema = z.object({
 		.optional(),
 });
 
-// Full tenant schema (includes server-generated fields)
-const tenantSchema = tenantInputSchema.extend({
-	id: uuidSchema,
-	created_at: z.string(),
-	updated_at: z.string(),
-});
-
 // Tenant update schema (partial input)
 export const tenantUpdateSchema = tenantInputSchema.partial().extend({
 	id: uuidSchema.optional(),
@@ -155,13 +148,9 @@ export const tenantVerificationSchema = z.object({
 });
 
 // Export types
-export type TenantInput = z.infer<typeof tenantInputSchema>;
-export type Tenant = z.infer<typeof tenantSchema>;
-export type TenantUpdate = z.infer<typeof tenantUpdateSchema>;
+export type TenantUpdateInput = z.infer<typeof tenantUpdateSchema>;
 export type TenantQuery = z.infer<typeof tenantQuerySchema>;
 export type TenantCreate = z.infer<typeof tenantCreateSchema>;
-export type EmergencyContact = z.infer<typeof emergencyContactSchema>;
-export type UpdateEmergencyContact = EmergencyContact; // Alias for user profile updates
 export type TenantVerification = z.infer<typeof tenantVerificationSchema>;
 
 // Frontend-specific form schemas
