@@ -127,21 +127,28 @@ export function PropertyImageGallery({
 					return (
 						<div
 							key={image.id}
-							className="relative aspect-video group cursor-pointer overflow-hidden rounded-lg bg-muted"
-							onClick={() => goToImage(idx)}
+							className="relative aspect-video group overflow-hidden rounded-lg bg-muted"
 						>
 							{/* Image */}
 							<Image
 								src={image.image_url}
 								alt={`Property image ${idx + 1}`}
 								fill
-								className="object-cover transition-transform group-hover:scale-105"
+								className="pointer-events-none object-cover transition-transform group-hover:scale-105"
 								sizes="(max-width: 640px) 100vw, 50vw"
+							/>
+
+							{/* Lightbox trigger layered on top of the image */}
+							<button
+								type="button"
+								className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+								aria-label={`View property image ${idx + 1}`}
+								onClick={() => goToImage(idx)}
 							/>
 
 							{/* Primary badge */}
 							{isPrimary && (
-								<Badge className="absolute top-2 left-2 bg-primary text-white">
+								<Badge className="pointer-events-none absolute top-2 left-2 z-20 bg-primary text-white">
 									Primary
 								</Badge>
 							)}
@@ -151,7 +158,7 @@ export function PropertyImageGallery({
 								<Button
 									variant="destructive"
 									size="icon"
-									className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+									className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity h-8 w-8"
 									onClick={(e) => {
 										e.stopPropagation();
 										handleDeleteClick(image.id, image.image_url);
@@ -165,7 +172,7 @@ export function PropertyImageGallery({
 
 							{/* "+N more" overlay on 4th image if > 4 total */}
 							{hasMore && (
-								<div className="absolute inset-0 bg-black/60 flex-center group-hover:bg-black/70 transition-colors">
+								<div className="pointer-events-none absolute inset-0 bg-black/60 flex-center group-hover:bg-black/70 transition-colors">
 									<span className="text-white typography-h2">
 										+{images.length - 4}
 									</span>

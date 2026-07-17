@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface NavigationItem {
 	label: string;
@@ -107,6 +107,17 @@ function SettingsMenu({ onNavigate }: { onNavigate: () => void }) {
 		onNavigate();
 	};
 
+	useEffect(() => {
+		if (!isOpen) return;
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setIsOpen(false);
+			}
+		};
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [isOpen]);
+
 	return (
 		<div className="mt-auto pt-4 border-t border-border relative">
 			{/* Dropdown menu - opens upward */}
@@ -149,6 +160,8 @@ function SettingsMenu({ onNavigate }: { onNavigate: () => void }) {
 			{/* Settings button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
+				aria-expanded={isOpen}
+				aria-haspopup="true"
 				className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors ${isOpen ? "bg-muted" : ""}`}
 			>
 				<div className="flex items-center gap-3">
@@ -196,10 +209,13 @@ export function MainNav({ onNavigate }: MainNavProps) {
 		const Icon = item.icon;
 
 		if (hasChildren) {
+			const sectionId = `nav-section-${item.label}`;
 			return (
 				<div key={item.label}>
 					<button
 						onClick={() => toggleExpanded(item.label)}
+						aria-expanded={isExpanded}
+						aria-controls={sectionId}
 						className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
 					>
 						<div className="flex items-center gap-3">
@@ -213,6 +229,8 @@ export function MainNav({ onNavigate }: MainNavProps) {
 						/>
 					</button>
 					<div
+						id={sectionId}
+						inert={!isExpanded ? true : undefined}
 						className={`overflow-hidden transition-all duration-200 ${
 							isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
 						}`}

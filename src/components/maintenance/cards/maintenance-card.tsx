@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, MapPin, MoreHorizontal, User } from "lucide-react";
+import { Clock, MapPin, User } from "lucide-react";
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { BorderBeam } from "#components/ui/border-beam";
@@ -105,16 +105,6 @@ export function MaintenanceCard({
 				<h4 className="font-medium text-foreground text-sm leading-tight group-hover:text-primary-text transition-colors line-clamp-2">
 					{request.title ?? request.description}
 				</h4>
-				<button
-					onClick={(e) => {
-						e.stopPropagation();
-						e.preventDefault();
-					}}
-					className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-					aria-label="More options"
-				>
-					<MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-				</button>
 			</div>
 
 			{/* Property Info */}

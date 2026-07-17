@@ -34,7 +34,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
-import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
 import { useDeleteLeaseOptimisticMutation } from "#hooks/api/use-lease-mutations";
 import { useSignLeaseAsOwnerMutation } from "#hooks/api/use-lease-signature-mutations";
@@ -198,19 +197,25 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					<DialogBody>
 						<div>
 							<Label>Start Date</Label>
-							<Input type="date" value={lease.start_date} disabled />
+							<p className="mt-1 text-sm text-foreground">{lease.start_date}</p>
 						</div>
 						<div>
 							<Label>End Date</Label>
-							<Input type="date" value={lease.end_date || ""} disabled />
+							<p className="mt-1 text-sm text-foreground">
+								{lease.end_date || ""}
+							</p>
 						</div>
 						<div>
 							<Label>Rent Amount</Label>
-							<Input type="number" value={lease.rent_amount} disabled />
+							<p className="mt-1 text-sm text-foreground">
+								{lease.rent_amount}
+							</p>
 						</div>
 						<div>
 							<Label>Security Deposit</Label>
-							<Input type="number" value={lease.security_deposit} disabled />
+							<p className="mt-1 text-sm text-foreground">
+								{lease.security_deposit}
+							</p>
 						</div>
 						<div>
 							<Label>Status</Label>

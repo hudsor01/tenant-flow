@@ -229,6 +229,7 @@ export function LeasesTable({
 							<button
 								onClick={() => onPageChange(Math.max(1, currentPage - 1))}
 								disabled={currentPage === 1}
+								aria-label="Previous page"
 								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 							>
 								<ChevronLeft className="w-4 h-4" />
@@ -241,6 +242,7 @@ export function LeasesTable({
 									onPageChange(Math.min(totalPages, currentPage + 1))
 								}
 								disabled={currentPage === totalPages}
+								aria-label="Next page"
 								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 							>
 								<ChevronRight className="w-4 h-4" />

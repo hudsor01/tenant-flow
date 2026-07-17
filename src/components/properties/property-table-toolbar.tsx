@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronDown, Settings2 } from "lucide-react";
+import { useEffect } from "react";
 import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
 import type { ColumnId } from "./property-table-types";
@@ -25,6 +26,15 @@ export function PropertyTableToolbar({
 }: PropertyTableToolbarProps) {
 	const isColumnVisible = (columnId: ColumnId) => visibleColumns.has(columnId);
 
+	useEffect(() => {
+		if (!showColumnMenu) return;
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") onCloseColumnMenu();
+		};
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [showColumnMenu, onCloseColumnMenu]);
+
 	return (
 		<div className="px-4 py-2 border-b border-border flex items-center justify-between">
 			<span className="text-sm text-muted-foreground">
@@ -38,6 +48,8 @@ export function PropertyTableToolbar({
 					size="sm"
 					onClick={onToggleColumnMenu}
 					className="gap-2"
+					aria-expanded={showColumnMenu}
+					aria-haspopup="true"
 				>
 					<Settings2 className="w-4 h-4" />
 					Columns
@@ -61,6 +73,7 @@ export function PropertyTableToolbar({
 									key={column.id}
 									onClick={() => onToggleColumn(column.id)}
 									disabled={column.alwaysVisible}
+									aria-pressed={isColumnVisible(column.id)}
 									className={cn(
 										"w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted transition-colors",
 										column.alwaysVisible && "opacity-50 cursor-not-allowed",

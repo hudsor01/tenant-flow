@@ -98,6 +98,13 @@ export function NavbarDesktopNav({
 						aria-current={
 							isActiveLink(item.href, pathname) ? "page" : undefined
 						}
+						aria-haspopup={item.hasDropdown ? "menu" : undefined}
+						aria-expanded={
+							item.hasDropdown ? openDropdown === item.name : undefined
+						}
+						aria-controls={
+							item.hasDropdown ? `desktop-submenu-${item.name}` : undefined
+						}
 						className={cn(
 							"flex items-center px-4 py-2 text-foreground/70 hover:text-foreground font-medium text-base rounded-lg transition-colors duration-fast",
 							isActiveLink(item.href, pathname) && "text-foreground",
@@ -117,6 +124,7 @@ export function NavbarDesktopNav({
 					{/* Dropdown Menu */}
 					{item.hasDropdown && openDropdown === item.name && (
 						<div
+							id={`desktop-submenu-${item.name}`}
 							className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-lg shadow-lg py-2 animate-in fade-in-0 zoom-in-95 duration-150"
 							onMouseEnter={() => handleDropdownOpen(item.name)}
 							onMouseLeave={handleDropdownClose}

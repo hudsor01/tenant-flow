@@ -72,64 +72,67 @@ export function DataTableFacetedFilter<TData, TValue>({
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger asChild>
-				<Button
-					variant="outline"
-					size="sm"
-					className="border-dashed font-normal"
-				>
-					{selectedValues?.size > 0 ? (
-						<div
-							role="button"
-							aria-label={`Clear ${title} filter`}
-							tabIndex={0}
-							className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-							onClick={onReset}
-						>
-							<XCircle />
-						</div>
-					) : (
-						<PlusCircle />
-					)}
-					{title}
-					{selectedValues?.size > 0 && (
-						<>
-							<Separator
-								orientation="vertical"
-								className="mx-0.5 data-[orientation=vertical]:h-4"
-							/>
-							<Badge
-								variant="secondary"
-								className="rounded-sm px-1 font-normal lg:hidden"
-							>
-								{selectedValues.size}
-							</Badge>
-							<div className="hidden items-center gap-1 lg:flex">
-								{selectedValues.size > 2 ? (
-									<Badge
-										variant="secondary"
-										className="rounded-sm px-1 font-normal"
-									>
-										{selectedValues.size} selected
-									</Badge>
-								) : (
-									options
-										.filter((option) => selectedValues.has(option.value))
-										.map((option) => (
-											<Badge
-												variant="secondary"
-												key={option.value}
-												className="rounded-sm px-1 font-normal"
-											>
-												{option.label}
-											</Badge>
-										))
-								)}
-							</div>
-						</>
-					)}
-				</Button>
-			</PopoverTrigger>
+			<div className="relative inline-flex items-center">
+				{selectedValues.size > 0 && (
+					<button
+						type="button"
+						aria-label={`Clear ${title} filter`}
+						onClick={onReset}
+						className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+					>
+						<XCircle className="size-4" />
+					</button>
+				)}
+				<PopoverTrigger asChild>
+					<Button
+						variant="outline"
+						size="sm"
+						className={cn(
+							"border-dashed font-normal",
+							selectedValues.size > 0 && "pl-8",
+						)}
+					>
+						{selectedValues.size === 0 && <PlusCircle />}
+						{title}
+						{selectedValues?.size > 0 && (
+							<>
+								<Separator
+									orientation="vertical"
+									className="mx-0.5 data-[orientation=vertical]:h-4"
+								/>
+								<Badge
+									variant="secondary"
+									className="rounded-sm px-1 font-normal lg:hidden"
+								>
+									{selectedValues.size}
+								</Badge>
+								<div className="hidden items-center gap-1 lg:flex">
+									{selectedValues.size > 2 ? (
+										<Badge
+											variant="secondary"
+											className="rounded-sm px-1 font-normal"
+										>
+											{selectedValues.size} selected
+										</Badge>
+									) : (
+										options
+											.filter((option) => selectedValues.has(option.value))
+											.map((option) => (
+												<Badge
+													variant="secondary"
+													key={option.value}
+													className="rounded-sm px-1 font-normal"
+												>
+													{option.label}
+												</Badge>
+											))
+									)}
+								</div>
+							</>
+						)}
+					</Button>
+				</PopoverTrigger>
+			</div>
 			<PopoverContent className="w-50 p-0" align="start">
 				<Command>
 					<CommandInput placeholder={title} />

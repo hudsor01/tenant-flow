@@ -90,7 +90,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								<span className="text-xs font-medium text-foreground">
 									Monthly Revenue
 								</span>
-								<span className="text-xs text-success flex items-center gap-1">
+								<span className="text-xs text-success-text flex items-center gap-1">
 									<ArrowUpRight className="size-3" />
 									+18.2%
 								</span>
@@ -216,7 +216,7 @@ function StatCard({
 				<span
 					className={cn(
 						"text-xs flex items-center gap-0.5",
-						trendUp ? "text-success" : "text-destructive",
+						trendUp ? "text-success-text" : "text-destructive-text",
 					)}
 				>
 					{trendUp ? (
@@ -245,9 +245,9 @@ function QuickAction({
 	badgeColor?: "warning" | "info" | "success";
 }) {
 	const badgeColors = {
-		warning: "bg-warning/10 text-warning",
-		info: "bg-info/10 text-info",
-		success: "bg-success/10 text-success",
+		warning: "bg-warning/10 text-warning-text",
+		info: "bg-info/10 text-info-text",
+		success: "bg-success/10 text-success-text",
 	};
 
 	return (
@@ -293,9 +293,9 @@ function ActivityItem({
 	status: "success" | "warning" | "info";
 }) {
 	const statusColors = {
-		success: "bg-success/10 text-success",
-		warning: "bg-warning/10 text-warning",
-		info: "bg-info/10 text-info",
+		success: "bg-success/10 text-success-text",
+		warning: "bg-warning/10 text-warning-text",
+		info: "bg-info/10 text-info-text",
 	};
 
 	return (

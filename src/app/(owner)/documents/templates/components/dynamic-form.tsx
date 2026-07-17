@@ -110,7 +110,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 												) : null}
 												{field.type === "list" ? (
 													<div className="space-y-3">
-														<Label>{field.label}</Label>
+														<p className="text-sm font-medium">{field.label}</p>
 														{listValue.length === 0 ? (
 															<p className="text-sm text-muted-foreground">
 																No items yet. Add one to start.
@@ -133,6 +133,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																			type="button"
 																			variant="ghost"
 																			size="sm"
+																			aria-label={`Remove ${field.itemLabel ?? "item"} ${index + 1}`}
 																			onClick={() => {
 																				const next = listValue.filter(
 																					(_, idx: number) => idx !== index,
@@ -184,10 +185,14 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																					key={itemField.key}
 																					className="space-y-1"
 																				>
-																					<Label className="text-xs text-muted-foreground">
+																					<Label
+																						htmlFor={`${field.name}-${index}-${itemField.key}`}
+																						className="text-xs text-muted-foreground"
+																					>
 																						{itemField.label}
 																					</Label>
 																					<Input
+																						id={`${field.name}-${index}-${itemField.key}`}
 																						type={itemField.type}
 																						value={(itemValue as string) ?? ""}
 																						onChange={(event) =>

@@ -173,15 +173,6 @@ describe("MaintenanceCard", () => {
 			const button = screen.getByRole("button", { name: /plumbing issue/i });
 			expect(button).toBeInTheDocument();
 		});
-
-		test("has more options button", () => {
-			// Act
-			render(<MaintenanceCard request={defaultRequest} />);
-
-			// Assert - "More options" button exists
-			const moreButton = screen.getByRole("button", { name: /more options/i });
-			expect(moreButton).toBeInTheDocument();
-		});
 	});
 
 	describe("Drag State", () => {

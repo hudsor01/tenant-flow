@@ -29,6 +29,7 @@ export function LeasesTableToolbar({
 				<input
 					type="text"
 					placeholder="Search leases..."
+					aria-label="Search leases"
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
 					className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
@@ -48,6 +49,7 @@ export function LeasesTableToolbar({
 				<div className="relative">
 					<select
 						value={statusFilter}
+						aria-label="Filter by status"
 						onChange={(e) =>
 							onStatusFilterChange(e.target.value as StatusFilter)
 						}

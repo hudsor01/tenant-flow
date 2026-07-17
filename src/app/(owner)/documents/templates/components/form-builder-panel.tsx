@@ -151,6 +151,7 @@ export function FormBuilderPanel({
 								type="button"
 								variant="ghost"
 								size="sm"
+								aria-label={`Remove custom field ${index + 1}`}
 								onClick={() => removeField(index)}
 							>
 								<Trash2 className="size-4" />
@@ -158,8 +159,9 @@ export function FormBuilderPanel({
 						</div>
 						<div className="grid gap-3 sm:grid-cols-2">
 							<div className="space-y-2">
-								<Label>Label</Label>
+								<Label htmlFor={`builder-field-${index}-label`}>Label</Label>
 								<Input
+									id={`builder-field-${index}-label`}
 									value={field.label}
 									onChange={(event) =>
 										updateField(index, "label", event.target.value)
@@ -167,8 +169,9 @@ export function FormBuilderPanel({
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label>Field key</Label>
+								<Label htmlFor={`builder-field-${index}-key`}>Field key</Label>
 								<Input
+									id={`builder-field-${index}-key`}
 									value={field.name}
 									onChange={(event) =>
 										updateField(index, "name", event.target.value)
@@ -182,14 +185,14 @@ export function FormBuilderPanel({
 								) : null}
 							</div>
 							<div className="space-y-2">
-								<Label>Type</Label>
+								<Label htmlFor={`builder-field-${index}-type`}>Type</Label>
 								<Select
 									value={field.type}
 									onValueChange={(value) =>
 										updateField(index, "type", value as DynamicField["type"])
 									}
 								>
-									<SelectTrigger>
+									<SelectTrigger id={`builder-field-${index}-type`}>
 										<SelectValue placeholder="Select type" />
 									</SelectTrigger>
 									<SelectContent>
@@ -202,8 +205,11 @@ export function FormBuilderPanel({
 								</Select>
 							</div>
 							<div className="space-y-2">
-								<Label>Section</Label>
+								<Label htmlFor={`builder-field-${index}-section`}>
+									Section
+								</Label>
 								<Input
+									id={`builder-field-${index}-section`}
 									value={field.section ?? ""}
 									onChange={(event) =>
 										updateField(index, "section", event.target.value)
@@ -213,8 +219,11 @@ export function FormBuilderPanel({
 							</div>
 							{field.type === "select" ? (
 								<div className="space-y-2 sm:col-span-2">
-									<Label>Options (comma-separated)</Label>
+									<Label htmlFor={`builder-field-${index}-options`}>
+										Options (comma-separated)
+									</Label>
 									<Input
+										id={`builder-field-${index}-options`}
 										value={
 											field.options?.map((option) => option.value).join(", ") ??
 											""

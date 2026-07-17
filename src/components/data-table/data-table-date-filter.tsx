@@ -15,6 +15,7 @@ import {
 } from "#components/ui/popover";
 import { Separator } from "#components/ui/separator";
 import { formatDate } from "#lib/formatters/date";
+import { cn } from "#lib/utils";
 
 type DateSelection = Date[] | DateRange;
 
@@ -169,28 +170,28 @@ export function DataTableDateFilter<TData>({
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				<Button
-					variant="outline"
-					size="sm"
-					className="border-dashed font-normal"
-				>
-					{hasValue ? (
-						<div
-							role="button"
-							aria-label={`Clear ${title} filter`}
-							tabIndex={0}
-							onClick={onReset}
-							className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-						>
-							<XCircle />
-						</div>
-					) : (
-						<CalendarIcon />
-					)}
-					{label}
-				</Button>
-			</PopoverTrigger>
+			<div className="relative inline-flex items-center">
+				{hasValue && (
+					<button
+						type="button"
+						aria-label={`Clear ${title} filter`}
+						onClick={onReset}
+						className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+					>
+						<XCircle className="size-4" />
+					</button>
+				)}
+				<PopoverTrigger asChild>
+					<Button
+						variant="outline"
+						size="sm"
+						className={cn("border-dashed font-normal", hasValue && "pl-8")}
+					>
+						{!hasValue && <CalendarIcon />}
+						{label}
+					</Button>
+				</PopoverTrigger>
+			</div>
 			<PopoverContent className="w-auto p-0" align="start">
 				{multiple ? (
 					<Calendar

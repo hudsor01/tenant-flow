@@ -59,6 +59,7 @@ export function CustomFieldsEditor({
 								type="button"
 								variant="ghost"
 								size="sm"
+								aria-label={`Remove field ${index + 1}`}
 								onClick={() => handleRemove(index)}
 							>
 								<Trash2 className="size-4" />
@@ -66,6 +67,8 @@ export function CustomFieldsEditor({
 						</div>
 						<div className="grid gap-2 sm:grid-cols-2">
 							<Input
+								id={`custom-field-${index}-label`}
+								aria-label="Label"
 								placeholder="Label"
 								value={field.label}
 								onChange={(event) =>
@@ -73,6 +76,8 @@ export function CustomFieldsEditor({
 								}
 							/>
 							<Input
+								id={`custom-field-${index}-value`}
+								aria-label="Value"
 								placeholder="Value"
 								value={field.value}
 								onChange={(event) =>

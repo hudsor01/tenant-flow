@@ -34,7 +34,7 @@ export function PropertyGrid() {
 							<span className="text-muted-foreground">
 								{property.units} units
 							</span>
-							<span className="text-success font-medium">
+							<span className="text-success-text font-medium">
 								{property.occupancy}
 							</span>
 						</div>
@@ -167,7 +167,9 @@ export function TenantListBackground() {
 							<span
 								className={cn(
 									"text-xs",
-									tenant.lease === "Renewing" ? "text-warning" : "text-success",
+									tenant.lease === "Renewing"
+										? "text-warning-text"
+										: "text-success-text",
 								)}
 							>
 								{tenant.lease}
@@ -237,7 +239,9 @@ export function AnalyticsPreview() {
 						<span className="text-xs text-muted-foreground">
 							Monthly Revenue
 						</span>
-						<span className="text-xs font-medium text-success">+12.5%</span>
+						<span className="text-xs font-medium text-success-text">
+							+12.5%
+						</span>
 					</div>
 					<div className="flex items-end gap-1 h-16">
 						{[
@@ -321,8 +325,8 @@ export function LeaseDocuments() {
 							className={cn(
 								"text-xs px-2 py-0.5 rounded-full",
 								doc.status === "Signed"
-									? "bg-success/10 text-success"
-									: "bg-warning/10 text-warning",
+									? "bg-success/10 text-success-text"
+									: "bg-warning/10 text-warning-text",
 							)}
 						>
 							{doc.status}

@@ -50,36 +50,47 @@ export function NavbarMobileMenu({
 					<nav className="flex flex-col gap-1">
 						{navItems.map((item) => (
 							<div key={item.name}>
-								<Link
-									href={item.href}
-									onClick={() => !item.hasDropdown && onClose()}
-									aria-current={
-										isActiveLink(item.href, pathname) ? "page" : undefined
-									}
-									className={cn(
-										"flex items-center justify-between px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast",
-										isActiveLink(item.href, pathname) &&
-											"text-foreground bg-muted/50",
-									)}
-								>
-									{item.name}
+								<div className="flex items-center">
+									<Link
+										href={item.href}
+										onClick={() => !item.hasDropdown && onClose()}
+										aria-current={
+											isActiveLink(item.href, pathname) ? "page" : undefined
+										}
+										className={cn(
+											"flex-1 flex items-center px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast",
+											isActiveLink(item.href, pathname) &&
+												"text-foreground bg-muted/50",
+										)}
+									>
+										{item.name}
+									</Link>
 									{item.hasDropdown && (
-										<ChevronDown
-											className={cn(
-												"size-4 transition-transform duration-fast",
-												openDropdown === item.name && "rotate-180",
-											)}
-											onClick={(e) => {
-												e.preventDefault();
-												handleDropdownToggle(item.name);
-											}}
-										/>
+										<button
+											type="button"
+											aria-label={`Toggle ${item.name} submenu`}
+											aria-expanded={openDropdown === item.name}
+											aria-controls={`mobile-submenu-${item.name}`}
+											onClick={() => handleDropdownToggle(item.name)}
+											className="p-3 text-foreground/70 hover:text-foreground rounded-lg transition-colors duration-fast"
+										>
+											<ChevronDown
+												aria-hidden="true"
+												className={cn(
+													"size-4 transition-transform duration-fast",
+													openDropdown === item.name && "rotate-180",
+												)}
+											/>
+										</button>
 									)}
-								</Link>
+								</div>
 
 								{/* Mobile Dropdown */}
 								{item.hasDropdown && openDropdown === item.name && (
-									<div className="ml-4 mt-1 space-y-1">
+									<div
+										id={`mobile-submenu-${item.name}`}
+										className="ml-4 mt-1 space-y-1"
+									>
 										{item.dropdownItems?.map((dropdownItem) => (
 											<Link
 												key={dropdownItem.name}

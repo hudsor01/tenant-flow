@@ -84,6 +84,9 @@ function DataTableToolbarFilter<TData>({
 				case "text":
 					return (
 						<Input
+							aria-label={
+								columnMeta.label ?? columnMeta.placeholder ?? column.id
+							}
 							placeholder={columnMeta.placeholder ?? columnMeta.label}
 							value={(column.getFilterValue() as string) ?? ""}
 							onChange={(event) => column.setFilterValue(event.target.value)}
@@ -95,6 +98,9 @@ function DataTableToolbarFilter<TData>({
 					return (
 						<div className="relative">
 							<Input
+								aria-label={
+									columnMeta.label ?? columnMeta.placeholder ?? column.id
+								}
 								type="number"
 								inputMode="numeric"
 								placeholder={columnMeta.placeholder ?? columnMeta.label}
