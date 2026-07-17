@@ -5,6 +5,7 @@ import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation,
 } from "#hooks/api/use-property-mutations";
+import { intersectSelection } from "#lib/intersect-selection";
 import {
 	type PropertyStatusFilter,
 	usePropertiesStore,
@@ -102,8 +103,9 @@ export function Properties({
 		// STATE-05: only target ids still present in the active list — a bulk
 		// edit must never resurrect a just-deleted (inactive) property via a
 		// phantom selection surviving the delete→refetch race.
-		const ids = Array.from(selectedRows).filter((id) =>
-			properties.some((p) => p.id === id),
+		const ids = intersectSelection(
+			selectedRows,
+			properties.map((p) => p.id),
 		);
 		if (ids.length === 0) return;
 		const updateData: Record<string, string> = {};

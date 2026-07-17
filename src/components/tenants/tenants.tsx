@@ -15,6 +15,7 @@ import {
 	EmptyTitle,
 } from "#components/ui/empty";
 import { createLogger } from "#lib/frontend-logger";
+import { intersectSelection } from "#lib/intersect-selection";
 import { useTenantsStore } from "#stores/tenants-store";
 import type { TenantsProps } from "#types/sections/tenants";
 import { tenantBulkImportConfig } from "./bulk-import-config";
@@ -119,8 +120,9 @@ export function Tenants({
 		// STATE-12: target only ids that are actually in the current list —
 		// closes the delete→refetch race where a just-deleted id is still
 		// selected when the user submits.
-		const ids = Array.from(selectedIds).filter((id) =>
-			tenants.some((t) => t.id === id),
+		const ids = intersectSelection(
+			selectedIds,
+			tenants.map((t) => t.id),
 		);
 		if (ids.length === 0) return;
 		// Clear the selection only after the delete is CONFIRMED (passed as the

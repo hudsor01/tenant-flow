@@ -24,8 +24,8 @@ vi.mock("#hooks/api/use-auth", () => ({
 	useSupabaseSession: () => useSupabaseSessionMock(),
 }));
 
-vi.mock("#hooks/use-navigation", () => ({
-	useNavigation: () => useNavigationMock(),
+vi.mock("#stores/navigation-store", () => ({
+	useNavigationStore: () => useNavigationMock(),
 }));
 
 vi.mock("#lib/supabase/cookie-name", () => ({

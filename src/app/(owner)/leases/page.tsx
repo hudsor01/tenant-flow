@@ -171,8 +171,11 @@ export default function LeasesPage() {
 
 	// Prune stale selections against the fetched id set (STATE-01/05/12 class fix)
 	useEffect(() => {
-		pruneSelection(sortedLeases.map((l) => l.id));
-	}, [sortedLeases, pruneSelection]);
+		// STATE-01: prune against the FULL fetched list, not the filtered/sorted
+		// view — a search/status filter must never wipe a selection for rows
+		// that are merely hidden; only genuinely absent (deleted) ids drop.
+		pruneSelection(leases.map((l) => l.id));
+	}, [leases, pruneSelection]);
 
 	// Close dialogs on unmount (STATE-03: kills back/forward auto-reopen)
 	useEffect(() => closeAllDialogs, [closeAllDialogs]);
