@@ -36,7 +36,6 @@ import {
 } from "#components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { useLeaseList } from "#hooks/api/use-lease";
-import { useDeleteLeaseMutation } from "#hooks/api/use-lease-mutations";
 import { useLeasesStore } from "#stores/leases-store";
 import { LeasesStatCards } from "./leases-stat-cards";
 
@@ -72,15 +71,15 @@ export default function LeasesPage() {
 		currentPage,
 		setCurrentPage,
 		itemsPerPage,
-		selectedLease,
+		selectedLeaseId,
 		showRenewDialog,
 		showTerminateDialog,
-		showDeleteDialog,
 		openRenewDialog,
 		openTerminateDialog,
 		closeRenewDialog,
 		closeTerminateDialog,
-		closeDeleteDialog,
+		closeAllDialogs,
+		pruneSelection,
 	} = useLeasesStore();
 
 	// Sync URL tab with store when URL changes
@@ -104,8 +103,6 @@ export default function LeasesPage() {
 		isLoading,
 		error,
 	} = useLeaseList({ limit: LEASES_FETCH_CAP, offset: 0 });
-	const deleteLeaseMutation = useDeleteLeaseMutation();
-
 	const rawLeases = leasesResponse?.data ?? [];
 
 	const leases: LeaseDisplay[] = (() => {
@@ -152,20 +149,57 @@ export default function LeasesPage() {
 	});
 
 	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage);
+	// STATE-01: clamp to the recomputed totalPages BEFORE slicing so the slice
+	// can never land out of range — even for a single frame — when a stale
+	// stored page survives a dataset shrink (the write-back effect below then
+	// reconciles the store).
+	const effectivePage = Math.min(currentPage, Math.max(1, totalPages));
 	const paginatedLeases = sortedLeases.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage,
+		(effectivePage - 1) * itemsPerPage,
+		effectivePage * itemsPerPage,
 	);
 
 	const handleView = (id: string) => router.push(`/leases/${id}`);
 	const handleEdit = (id: string) => router.push(`/leases/${id}/edit`);
 
+	// Derive the selected lease entity fresh from the query-backed list (STATE-03)
+	const selectedLease =
+		leases.find((l) => l.id === selectedLeaseId)?.original ?? null;
+
+	// Write the clamp back to the store when they diverge (keeps footer/counter
+	// consistent). STATE-01: only during a loaded render — on the isLoading
+	// render sortedLeases is transiently [], so effectivePage collapses to 1 and
+	// would clobber a valid stored page (losing the user's page position on a
+	// cold remount after the list query's gcTime).
+	useEffect(() => {
+		if (!isLoading && effectivePage !== currentPage) {
+			setCurrentPage(effectivePage);
+		}
+	}, [isLoading, effectivePage, currentPage, setCurrentPage]);
+
+	// Prune stale selections against the fetched id set (STATE-01/05/12 class fix)
+	useEffect(() => {
+		// STATE-01: only prune once the list has actually loaded. This effect
+		// runs even on the isLoading render (effects fire after commit, before
+		// the early-return matters), where `leases` is transiently [] — pruning
+		// then would wipe a surviving cross-navigation selection with
+		// pruneSelection([]). Prune against the FULL fetched list (not the
+		// filtered/sorted view) so a filter never wipes a merely-hidden row;
+		// only genuinely absent (deleted) ids drop.
+		if (!isLoading) {
+			pruneSelection(leases.map((l) => l.id));
+		}
+	}, [leases, isLoading, pruneSelection]);
+
+	// Close dialogs on unmount (STATE-03: kills back/forward auto-reopen)
+	useEffect(() => closeAllDialogs, [closeAllDialogs]);
+
 	const handleRenew = (lease: LeaseDisplay) => {
-		openRenewDialog(lease.original);
+		openRenewDialog(lease.id);
 	};
 
 	const handleTerminate = (lease: LeaseDisplay) => {
-		openTerminateDialog(lease.original);
+		openTerminateDialog(lease.id);
 	};
 
 	if (isLoading) return <LeasesPageSkeleton />;
@@ -264,7 +298,7 @@ export default function LeasesPage() {
 						sortField={sortField}
 						sortDirection={sortDirection}
 						selectedRows={selectedRows}
-						currentPage={currentPage}
+						currentPage={effectivePage}
 						totalPages={totalPages}
 						itemsPerPage={itemsPerPage}
 						onSearchChange={setSearchQuery}
@@ -294,25 +328,14 @@ export default function LeasesPage() {
 				selectedLease={selectedLease}
 				showRenewDialog={showRenewDialog}
 				showTerminateDialog={showTerminateDialog}
-				showDeleteDialog={showDeleteDialog}
-				isDeleting={deleteLeaseMutation.isPending}
 				onRenewOpenChange={(open) => {
 					if (!open) closeRenewDialog();
 				}}
 				onTerminateOpenChange={(open) => {
 					if (!open) closeTerminateDialog();
 				}}
-				onDeleteOpenChange={(open) => {
-					if (!open) closeDeleteDialog();
-				}}
 				onRenewSuccess={closeRenewDialog}
 				onTerminateSuccess={closeTerminateDialog}
-				onDeleteConfirm={() => {
-					if (selectedLease) {
-						deleteLeaseMutation.mutate(selectedLease.id);
-					}
-					closeDeleteDialog();
-				}}
 			/>
 		</div>
 	);

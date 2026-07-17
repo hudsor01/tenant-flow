@@ -8,6 +8,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { intersectSelection } from "#lib/intersect-selection";
 import type { PropertyStatus } from "#types/core";
 import { propertyBulkImportConfig } from "./bulk-import-config";
 import type { PropertyType } from "./types";
@@ -121,7 +122,13 @@ export function useBulkHandlers(
 
 	const handleBulkDelete = async () => {
 		if (selectedRows.size === 0) return;
-		const ids = Array.from(selectedRows);
+		// STATE-05: only delete ids still present in the active list, so a stale
+		// phantom selection (already soft-deleted) can't be re-targeted.
+		const ids = intersectSelection(
+			selectedRows,
+			properties.map((p) => p.id),
+		);
+		if (ids.length === 0) return;
 		const label = ids.length === 1 ? "property" : "properties";
 		const confirmed =
 			typeof window === "undefined"

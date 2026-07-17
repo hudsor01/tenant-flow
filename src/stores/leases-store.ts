@@ -8,8 +8,8 @@
  * - Filters: search, status filter
  * - Sorting: field, direction
  * - Pagination: current page
- * - Selection: selected row IDs
- * - Dialogs: selected lease, dialog visibility states
+ * - Selection: selected row IDs (reconciled against fetched data)
+ * - Dialogs: selected lease ID, dialog visibility states
  */
 
 import { create } from "zustand";
@@ -17,7 +17,7 @@ import type {
 	SortDirection,
 	SortField,
 } from "#components/leases/table/lease-utils";
-import type { Lease } from "#types/core";
+
 export type StatusFilter =
 	| "all"
 	| "active"
@@ -44,14 +44,13 @@ export interface LeasesState {
 	currentPage: number;
 	itemsPerPage: number;
 
-	// Selection state
+	// Selection state (reconciled against fetched data via pruneSelection)
 	selectedRows: Set<string>;
 
-	// Dialog state
-	selectedLease: Lease | null;
+	// Dialog state — id only; entity is derived from the query-backed list
+	selectedLeaseId: string | null;
 	showRenewDialog: boolean;
 	showTerminateDialog: boolean;
-	showDeleteDialog: boolean;
 }
 
 export interface LeasesActions {
@@ -77,13 +76,18 @@ export interface LeasesActions {
 	toggleSelect: (id: string) => void;
 	clearSelection: () => void;
 
-	// Dialog actions
-	openRenewDialog: (lease: Lease) => void;
-	openTerminateDialog: (lease: Lease) => void;
-	openDeleteDialog: (lease: Lease) => void;
+	/**
+	 * Reconcile selected rows against a valid id set.
+	 * Returns the SAME state object when nothing was removed (no-op guard
+	 * against render loops).
+	 */
+	pruneSelection: (validIds: string[]) => void;
+
+	// Dialog actions — operate on id only
+	openRenewDialog: (leaseId: string) => void;
+	openTerminateDialog: (leaseId: string) => void;
 	closeRenewDialog: () => void;
 	closeTerminateDialog: () => void;
-	closeDeleteDialog: () => void;
 	closeAllDialogs: () => void;
 
 	// Reset store
@@ -99,10 +103,9 @@ const initialState: LeasesState = {
 	currentPage: 1,
 	itemsPerPage: 10,
 	selectedRows: new Set(),
-	selectedLease: null,
+	selectedLeaseId: null,
 	showRenewDialog: false,
 	showTerminateDialog: false,
-	showDeleteDialog: false,
 };
 
 export const useLeasesStore = create<LeasesState & LeasesActions>(
@@ -171,37 +174,40 @@ export const useLeasesStore = create<LeasesState & LeasesActions>(
 
 		clearSelection: () => set({ selectedRows: new Set() }),
 
-		// Dialog actions
-		openRenewDialog: (lease) => {
-			set({ selectedLease: lease, showRenewDialog: true });
+		// Selection reconciliation (STATE-01/05/12 class fix)
+		pruneSelection: (validIds) => {
+			const { selectedRows } = get();
+			const pruned = new Set(
+				Array.from(selectedRows).filter((id) => validIds.includes(id)),
+			);
+			if (pruned.size === selectedRows.size) {
+				return; // no-op guard: return same state object
+			}
+			set({ selectedRows: pruned });
 		},
 
-		openTerminateDialog: (lease) => {
-			set({ selectedLease: lease, showTerminateDialog: true });
+		// Dialog actions — id-only (STATE-03: entity derived from query cache)
+		openRenewDialog: (leaseId) => {
+			set({ selectedLeaseId: leaseId, showRenewDialog: true });
 		},
 
-		openDeleteDialog: (lease) => {
-			set({ selectedLease: lease, showDeleteDialog: true });
+		openTerminateDialog: (leaseId) => {
+			set({ selectedLeaseId: leaseId, showTerminateDialog: true });
 		},
 
 		closeRenewDialog: () => {
-			set({ showRenewDialog: false, selectedLease: null });
+			set({ showRenewDialog: false, selectedLeaseId: null });
 		},
 
 		closeTerminateDialog: () => {
-			set({ showTerminateDialog: false, selectedLease: null });
-		},
-
-		closeDeleteDialog: () => {
-			set({ showDeleteDialog: false, selectedLease: null });
+			set({ showTerminateDialog: false, selectedLeaseId: null });
 		},
 
 		closeAllDialogs: () => {
 			set({
 				showRenewDialog: false,
 				showTerminateDialog: false,
-				showDeleteDialog: false,
-				selectedLease: null,
+				selectedLeaseId: null,
 			});
 		},
 

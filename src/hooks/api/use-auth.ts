@@ -16,6 +16,7 @@ import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { logger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import { resetAllStores } from "#stores/reset-all-stores";
 import type { AuthSession } from "#types/auth";
 
 // NOTE: No module-level Supabase client — each mutation/query creates its own
@@ -200,6 +201,11 @@ export function useAuthCacheUtils() {
 					});
 				}
 			}
+
+			// STATE-02: reset every Zustand module-singleton store so the next
+			// user on this browser can't inherit this user's selection, filters,
+			// or dashboard preferences.
+			resetAllStores();
 		},
 
 		// Refresh auth state after critical operations

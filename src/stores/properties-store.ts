@@ -56,6 +56,10 @@ export interface PropertiesActions {
 	toggleSelect: (id: string) => void;
 	selectAll: (ids: string[]) => void;
 	clearSelection: () => void;
+	// STATE-05: reconcile selection against the fetched (active) dataset so a
+	// soft-deleted property can't linger in the set and be resurrected by a
+	// bulk edit.
+	pruneSelection: (validIds: string[]) => void;
 
 	// Bulk Edit actions
 	openBulkEdit: (
@@ -131,6 +135,17 @@ export const usePropertiesStore = create<PropertiesState & PropertiesActions>(
 		},
 
 		clearSelection: () => set({ selectedRows: new Set() }),
+
+		pruneSelection: (validIds) => {
+			const { selectedRows } = get();
+			const pruned = new Set(
+				Array.from(selectedRows).filter((id) => validIds.includes(id)),
+			);
+			if (pruned.size === selectedRows.size) {
+				return; // no-op guard: keep the same state object
+			}
+			set({ selectedRows: pruned });
+		},
 
 		// Bulk Edit actions
 		openBulkEdit: (initialStatus, initialType) => {

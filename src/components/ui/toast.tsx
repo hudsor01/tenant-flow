@@ -1,50 +1,16 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
 import type { ToasterProps } from "sonner";
-import { Toaster as Sonner, toast as sonnerToast } from "sonner";
-import { useToast } from "#hooks/use-toast";
+import { Toaster as Sonner } from "sonner";
 import { cn } from "#lib/utils";
 
 const Toaster = ({ className, toastOptions, ...props }: ToasterProps) => {
-	const { theme } = useTheme();
-	const { toasts, removeToast } = useToast();
-
-	const resolvedTheme = (theme ?? "system") as NonNullable<
-		ToasterProps["theme"]
-	>;
-
-	// Sync store toasts with sonner
-	useEffect(() => {
-		toasts.forEach((storeToast) => {
-			// Check if this toast is already shown by sonner
-			const existingToast = document.querySelector(
-				`[data-toast-id="${storeToast.id}"]`,
-			);
-			if (!existingToast) {
-				const toastFn =
-					storeToast.type === "error"
-						? sonnerToast.error
-						: storeToast.type === "success"
-							? sonnerToast.success
-							: storeToast.type === "warning"
-								? sonnerToast.warning
-								: sonnerToast;
-
-				toastFn(storeToast.title || storeToast.description || "", {
-					id: storeToast.id,
-					description: storeToast.description,
-					duration: storeToast.duration || 4000,
-					onDismiss: () => removeToast(storeToast.id),
-				});
-			}
-		});
-	}, [toasts, removeToast]);
+	const theme = useTheme().theme ?? "system";
 
 	return (
 		<Sonner
-			theme={resolvedTheme}
+			theme={theme as NonNullable<ToasterProps["theme"]>}
 			className={cn("toaster group", className)}
 			toastOptions={{
 				duration: toastOptions?.duration ?? 4000,
