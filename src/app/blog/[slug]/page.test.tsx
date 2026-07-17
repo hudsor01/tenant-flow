@@ -53,21 +53,14 @@ vi.mock("next/image", () => ({
 	),
 }));
 
-// MarkdownContent is now a direct (server-renderable) import — the
-// previous `dynamic(import, { ssr: false })` wrapper was dropped so
-// the article body lands in initial HTML for SEO/AI-crawler visibility.
-// Tests mock the module directly instead of through `next/dynamic`.
+// SEO-02: MarkdownContent is now a true Server Component imported only
+// by page.tsx (the server entry). blog-post-page.tsx receives the rendered
+// articleBody as a ReactNode prop, so this mock is no longer needed for
+// the client component tests. It stays as dead-code-safe stub.
 vi.mock("./markdown-content", () => ({
 	default: (props: { content: string }) => (
 		<div data-testid="markdown-content">{props.content}</div>
 	),
-	// Mirrors the real headingId transform (ToC anchor ids).
-	headingId: (text: string) =>
-		text
-			.toLowerCase()
-			.replace(/[^a-z0-9\s-]/g, "")
-			.trim()
-			.replace(/\s+/g, "-"),
 }));
 
 vi.mock("#components/blog/blog-card", () => ({
@@ -116,6 +109,13 @@ vi.mock("lucide-react", async (importOriginal) => {
 import BlogArticlePage from "./blog-post-page";
 
 // --- Mock data ---
+
+/** SEO-02: server-rendered article body passed as a prop. */
+const mockArticleBody = (
+	<div data-testid="markdown-content">
+		## Introduction This is the article content.
+	</div>
+);
 
 const mockPost = {
 	id: "post-1",
@@ -191,7 +191,13 @@ describe("BlogArticlePage", () => {
 	});
 
 	it("renders featured image with next/image when post.featured_image exists", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		const image = screen.getByTestId("featured-image");
 		expect(image).toBeInTheDocument();
 		expect(image).toHaveAttribute(
@@ -201,7 +207,13 @@ describe("BlogArticlePage", () => {
 	});
 
 	it("falls back to the generated per-post cover when featured_image is null", () => {
-		render(<BlogArticlePage post={mockPostNoImage} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPostNoImage}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		// Unique on-brand cover from /api/og/blog/[slug] — every post gets hero
 		// art, never a bare header.
 		const image = screen.getByTestId("featured-image");
@@ -209,7 +221,13 @@ describe("BlogArticlePage", () => {
 	});
 
 	it("renders category links (breadcrumb + meta bar) to /blog/category/[slug]", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		// Two by design: the breadcrumb (inside PageLayout so it clears the
 		// fixed navbar) and the meta bar both link the category.
 		const categoryLinks = screen.getAllByRole("link", {
@@ -225,39 +243,65 @@ describe("BlogArticlePage", () => {
 	});
 
 	it("renders author name and reading time in meta bar", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		expect(screen.getByText("TenantFlow Team")).toBeInTheDocument();
 		expect(screen.getByText("8 min read")).toBeInTheDocument();
 	});
 
-	it("renders prose wrapper with simplified classes (no [&>selector] overrides)", () => {
+	it("renders articleBody prop (prose wrapper is in server entry page.tsx)", () => {
 		const { container } = render(
-			<BlogArticlePage post={mockPost} slug="test-post" />,
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
 		);
-		const proseDiv = container.querySelector(".prose");
-		expect(proseDiv).toBeInTheDocument();
-		expect(proseDiv).toHaveClass("prose-lg");
-		// Should NOT contain arbitrary selector overrides
-		const classStr = proseDiv?.className ?? "";
-		expect(classStr).not.toContain("[&>");
+		// The .prose wrapper lives in page.tsx (server entry), not blog-post-page.tsx.
+		// The client component receives articleBody as a ReactNode prop and renders it
+		// inside the PageLayout. Verify the articleBody content is present.
+		expect(container.innerHTML).toContain("## Introduction");
 	});
 
 	it("renders MarkdownContent with post content", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		const markdown = screen.getByTestId("markdown-content");
 		expect(markdown).toBeInTheDocument();
 		expect(markdown).toHaveTextContent("## Introduction");
 	});
 
 	it("renders Related Articles section heading", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		expect(
 			screen.getByRole("heading", { name: "Related Articles" }),
 		).toBeInTheDocument();
 	});
 
 	it("renders BlogCard for each related post (up to 3)", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		const cards = screen.getAllByTestId("blog-card");
 		expect(cards).toHaveLength(3);
 		expect(cards[0]).toHaveTextContent("Tenant Screening Best Practices");
@@ -267,7 +311,11 @@ describe("BlogArticlePage", () => {
 
 	it("does NOT render raw inline newsletter section (no bare input[type=email])", () => {
 		const { container } = render(
-			<BlogArticlePage post={mockPost} slug="test-post" />,
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
 		);
 		const emailInputs = container.querySelectorAll('input[type="email"]');
 		expect(emailInputs).toHaveLength(0);
@@ -278,8 +326,8 @@ describe("BlogArticlePage", () => {
 	// `notFound()` for missing slugs and never reaching this component
 	// with null post. The page-level loading skeleton branch (which
 	// fired while `useBlogBySlug` was loading) was removed when that
-	// hook was dropped. MarkdownContent is now a server-renderable
-	// direct import, no `dynamic({ ssr: false })` skeleton remains.
+	// hook was dropped. SEO-02: MarkdownContent is now a true Server
+	// Component; blog-post-page receives the rendered articleBody as a prop.
 });
 
 // ---------------------------------------------------------------------------
@@ -545,7 +593,13 @@ describe("On this page (table of contents)", () => {
 			content:
 				"## Understanding the SALT Cap\n\nBody.\n\n## Schedule E Basics\n\nBody.\n\n## Common Mistakes & Fixes\n\nBody.",
 		};
-		render(<BlogArticlePage post={post} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={post}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		const nav = screen.getByRole("navigation", { name: "Table of contents" });
 		expect(nav).toBeInTheDocument();
 		const link = screen.getByRole("link", {
@@ -558,7 +612,13 @@ describe("On this page (table of contents)", () => {
 	});
 
 	it("omits the ToC for short articles (under 3 H2s)", () => {
-		render(<BlogArticlePage post={mockPost} slug="test-post" />);
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
 		expect(
 			screen.queryByRole("navigation", { name: "Table of contents" }),
 		).not.toBeInTheDocument();

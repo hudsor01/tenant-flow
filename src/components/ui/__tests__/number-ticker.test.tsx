@@ -9,7 +9,7 @@
  * @vitest-environment jsdom
  */
 
-import { screen } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "#test/utils/test-render";
 import { NumberTicker } from "../number-ticker";
@@ -30,33 +30,47 @@ describe("NumberTicker", () => {
 
 	it("animates to the target value after duration elapses (CRIT-02 regression)", async () => {
 		render(<NumberTicker value={5} duration={2000} />);
-		await vi.advanceTimersByTimeAsync(2100);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2100);
+		});
 		expect(screen.getByText("5")).toBeInTheDocument();
 	});
 
 	it("honors delay before starting the tween (mirrors stats-showcase usage)", async () => {
 		render(<NumberTicker value={500} delay={0.3} duration={2000} />);
-		await vi.advanceTimersByTimeAsync(150);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(150);
+		});
 		expect(screen.getByText("0")).toBeInTheDocument();
-		await vi.advanceTimersByTimeAsync(2300);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2300);
+		});
 		expect(screen.getByText("500")).toBeInTheDocument();
 	});
 
 	it("renders all four production stat values to completion", async () => {
 		const { rerender } = render(<NumberTicker value={5} delay={0.3} />);
-		await vi.advanceTimersByTimeAsync(2500);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2500);
+		});
 		expect(screen.getByText("5")).toBeInTheDocument();
 
 		rerender(<NumberTicker value={7} delay={0.4} />);
-		await vi.advanceTimersByTimeAsync(2500);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2500);
+		});
 		expect(screen.getByText("7")).toBeInTheDocument();
 
 		rerender(<NumberTicker value={500} delay={0.5} />);
-		await vi.advanceTimersByTimeAsync(2500);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2500);
+		});
 		expect(screen.getByText("500")).toBeInTheDocument();
 
 		rerender(<NumberTicker value={14} delay={0.6} />);
-		await vi.advanceTimersByTimeAsync(2500);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2500);
+		});
 		expect(screen.getByText("14")).toBeInTheDocument();
 	});
 
@@ -149,7 +163,9 @@ describe("NumberTicker", () => {
 		render(<NumberTicker value={5} duration={2000} />);
 
 		// First intersection fires synchronously on observe(); advance to complete the animation
-		await vi.advanceTimersByTimeAsync(2100);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(2100);
+		});
 		expect(screen.getByText("5")).toBeInTheDocument();
 
 		// Simulate scroll-out then scroll-back-in via the captured callback
@@ -173,7 +189,9 @@ describe("NumberTicker", () => {
 
 		// hasIntersected is one-shot: stays true, effect deps unchanged, animation must NOT
 		// reset to startValue (0). Counter remains at 5.
-		await vi.advanceTimersByTimeAsync(100);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(100);
+		});
 		expect(screen.queryByText("0")).not.toBeInTheDocument();
 		expect(screen.getByText("5")).toBeInTheDocument();
 

@@ -1,6 +1,6 @@
+import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
 import { categoryLabel } from "#lib/seo/blog-categories";
-import { createClient } from "#lib/supabase/server";
 
 // Revalidate hourly — the published catalogue changes a few times a day at
 // most. The full per-post digest is regenerated on each revalidation.
@@ -113,7 +113,7 @@ function oneLine(value: string): string {
  */
 async function buildBlogDigest(): Promise<string> {
 	try {
-		const supabase = await createClient();
+		const supabase = blogAnonClient();
 		const { data, error } = await supabase
 			.from("blogs")
 			.select("title, slug, excerpt, category, canonical_url")

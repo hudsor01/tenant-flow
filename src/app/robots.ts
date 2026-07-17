@@ -1,32 +1,17 @@
 import type { MetadataRoute } from "next";
 
 import { getSiteUrl } from "#lib/generate-metadata";
+import {
+	PRIVATE_ROUTE_PREFIXES,
+	ROBOTS_ONLY_PRIVATE_PATHS,
+} from "#lib/routes/private-routes";
 
-// Private + transactional surface area that should never appear in the
-// SERP. No trailing slashes — `/dashboard` blocks both `/dashboard` and
-// `/dashboard/anything`. Trailing-slash form only blocks subpaths.
-//
-// Exported so `robots.test.ts` can import a single source of truth for
-// the bidirectional drift guard (additions or removals here surface in
-// the test without a parallel hardcoded list).
+// Combined disallow list: auth-gated prefixes from proxy.ts +
+// non-auth transactional paths. Built at module level so the test can
+// import a single source of truth for the bidirectional drift guard.
 export const PRIVATE_PATHS = [
-	"/admin",
-	"/api",
-	"/auth/callback",
-	"/auth/confirm-email",
-	"/auth/select-role",
-	"/auth/signout",
-	"/auth/update-password",
-	"/dashboard",
-	"/tenant",
-	"/owner",
-	"/settings",
-	"/profile",
-	"/billing",
-	"/_next/data",
-	"/monitoring",
-	// Stripe checkout result pages — no unique content, soft-404 risk.
-	"/stripe",
+	...PRIVATE_ROUTE_PREFIXES,
+	...ROBOTS_ONLY_PRIVATE_PATHS,
 ] as const satisfies readonly string[];
 
 // Paths UNDER a disallowed prefix that must stay crawlable. `/api` is blocked

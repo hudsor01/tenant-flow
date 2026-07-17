@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { env } from "#env";
+import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
-import { createClient } from "#lib/supabase/server";
 
 // Cache the feed for 24h via ISR — RSS readers commonly poll hourly,
 // and the underlying `blogs` table doesn't change minute-to-minute.
@@ -63,7 +63,7 @@ export async function GET(): Promise<Response> {
 	}> = [];
 
 	try {
-		const supabase = await createClient();
+		const supabase = blogAnonClient();
 		const { data, error } = await supabase
 			.from("blogs")
 			.select("slug, title, excerpt, published_at, updated_at, category")

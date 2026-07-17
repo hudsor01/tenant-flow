@@ -97,6 +97,10 @@ export async function uploadPropertyImages({
 		queryClient.invalidateQueries({
 			queryKey: propertyQueries.images(propertyId).queryKey,
 		});
+		// SEO-01: also invalidate the consolidated list so cover thumbnails refresh.
+		queryClient.invalidateQueries({
+			queryKey: propertyQueries.lists(),
+		});
 
 		// FORMFIX-08: the create mutation already toasted "Property created
 		// successfully"; these report ONLY the image-upload outcome so they do not

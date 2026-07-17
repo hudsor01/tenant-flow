@@ -1,7 +1,10 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { cache } from "react";
+import { BlogInlineCta } from "#components/blog/blog-inline-cta";
+import { LeadMagnetCta } from "#components/blog/lead-magnet-cta";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { env } from "#env";
 import { createLogger } from "#lib/frontend-logger";
@@ -9,6 +12,60 @@ import { createArticleJsonLd } from "#lib/seo/article-schema";
 import { createBlogPostBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd, parseFaqSection } from "#lib/seo/faq-schema";
 import BlogPostPage from "./blog-post-page";
+import MarkdownContent from "./markdown-content";
+
+/**
+ * Split markdown content at a `## ` heading near ~40% of the total length.
+ * Returns [firstHalf, secondHalf]. If no good split point, secondHalf is empty.
+ */
+function splitContentForCta(content: string): [string, string] {
+	const lines = content.split("\n");
+	const totalLength = content.length;
+	const targetSplit = totalLength * 0.4;
+
+	let currentLength = 0;
+
+	for (const [i, line] of lines.entries()) {
+		currentLength += line.length + 1;
+		if (currentLength >= targetSplit && line.startsWith("## ")) {
+			return [lines.slice(0, i).join("\n"), lines.slice(i).join("\n")];
+		}
+	}
+
+	return [content, ""];
+}
+
+const LEAD_MAGNETS: Record<
+	string,
+	{
+		title: string;
+		description: string;
+		resourceType: "checklist" | "guide" | "spreadsheet";
+		downloadUrl: string;
+	}
+> = {
+	"twelve-month-preventive-maintenance-calendar-rentals": {
+		title: "Download the Complete Maintenance Checklist",
+		description:
+			"Get a printable season-by-season maintenance checklist covering HVAC, plumbing, electrical, and exterior inspections for your rental properties.",
+		resourceType: "checklist",
+		downloadUrl: "/resources/seasonal-maintenance-checklist",
+	},
+	"mortgage-interest-deduction-rental-property-schedule-e": {
+		title: "Free Printable Tax Deduction Tracker",
+		description:
+			"Track every deductible expense throughout the year with this printable tracker. Categorized by IRS Schedule E with space to record amounts and category totals.",
+		resourceType: "guide",
+		downloadUrl: "/resources/landlord-tax-deduction-tracker",
+	},
+	"security-deposit-deadlines-and-caps-all-50-states": {
+		title: "Security Deposit Quick Reference Card",
+		description:
+			"A one-page reference with deposit limits, return deadlines, and required documentation for all 50 states. Print it and keep it at your desk.",
+		resourceType: "guide",
+		downloadUrl: "/resources/security-deposit-reference-card",
+	},
+};
 
 // Phase 6 (BLOG-02): ISR with `generateStaticParams` enumerating the
 // published slug set. `dynamicParams = false` makes any slug outside that
@@ -292,6 +349,31 @@ export default async function Page({ params }: Props) {
 				})
 			: null;
 
+	// SEO-02: render markdown server-side so react-markdown / remark / rehype
+	// stay out of the client bundle. The rendered ReactNode serializes across
+	// the client boundary as `articleBody`.
+	const markdownContent = post.content.trim();
+	const [firstHalf, secondHalf] = splitContentForCta(markdownContent);
+	const leadMagnet = LEAD_MAGNETS[slug];
+
+	const articleBody: ReactNode = (
+		<div className="prose prose-lg dark:prose-invert max-w-none prose-blockquote:border-primary prose-headings:tracking-tight prose-a:text-primary-text">
+			<MarkdownContent content={firstHalf} />
+			{secondHalf &&
+				(leadMagnet ? (
+					<LeadMagnetCta
+						title={leadMagnet.title}
+						description={leadMagnet.description}
+						resourceType={leadMagnet.resourceType}
+						downloadUrl={leadMagnet.downloadUrl}
+					/>
+				) : (
+					<BlogInlineCta />
+				))}
+			{secondHalf && <MarkdownContent content={secondHalf} />}
+		</div>
+	);
+
 	return (
 		<>
 			{breadcrumbSchema && <JsonLdScript schema={breadcrumbSchema} />}
@@ -300,7 +382,7 @@ export default async function Page({ params }: Props) {
 			{/* The visible breadcrumb renders INSIDE BlogPostPage's PageLayout so
 			    it sits below the fixed navbar (page-offset-navbar). Rendering it
 			    here put it underneath the navbar. */}
-			<BlogPostPage post={post} slug={slug} />
+			<BlogPostPage post={post} slug={slug} articleBody={articleBody} />
 		</>
 	);
 }

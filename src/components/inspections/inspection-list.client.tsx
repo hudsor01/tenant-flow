@@ -1,7 +1,8 @@
 "use client";
 
-import { ClipboardList, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import {
@@ -88,7 +89,13 @@ function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 }
 
 export function InspectionListClient() {
-	const { data: inspections, isLoading, error } = useInspections();
+	const searchParams = useSearchParams();
+	const pageParam = searchParams?.get("page");
+	const offset = pageParam ? Math.max(0, parseInt(pageParam, 10) - 1) * 50 : 0;
+
+	const { data, isLoading, error } = useInspections({ offset });
+	const inspections = data?.data ?? [];
+	const total = data?.total ?? 0;
 
 	return (
 		<div className="space-y-6">
@@ -134,7 +141,7 @@ export function InspectionListClient() {
 					</div>
 				)}
 
-				{!isLoading && !error && (!inspections || inspections.length === 0) && (
+				{!isLoading && !error && inspections.length === 0 && total === 0 && (
 					<Empty>
 						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
 							<ClipboardList aria-hidden="true" />
@@ -156,11 +163,52 @@ export function InspectionListClient() {
 					</Empty>
 				)}
 
-				{!isLoading && !error && inspections && inspections.length > 0 && (
+				{!isLoading && !error && inspections.length > 0 && (
 					<div>
 						{inspections.map((inspection) => (
 							<InspectionRow key={inspection.id} inspection={inspection} />
 						))}
+
+						{/* Pagination controls — bounded DOM per SEO-07 */}
+						{total > 50 && (
+							<div className="flex items-center justify-between px-4 py-3 border-t">
+								<p className="text-sm text-muted-foreground">
+									Showing {inspections.length} of {total} inspections
+								</p>
+								<div className="flex items-center gap-2">
+									<Link
+										href={{
+											pathname: "/inspections",
+											query:
+												pageParam && parseInt(pageParam, 10) > 1
+													? { page: String(parseInt(pageParam, 10) - 1) }
+													: undefined,
+										}}
+										className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3 disabled:opacity-50 disabled:pointer-events-none"
+									>
+										<ChevronLeft className="w-4 h-4 mr-1" />
+										Previous
+									</Link>
+									<Link
+										href={{
+											pathname: "/inspections",
+											query:
+												offset + inspections.length < total
+													? {
+															page: String(
+																pageParam ? parseInt(pageParam, 10) + 1 : 2,
+															),
+														}
+													: undefined,
+										}}
+										className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3 disabled:opacity-50 disabled:pointer-events-none"
+									>
+										Next
+										<ChevronRight className="w-4 h-4 ml-1" />
+									</Link>
+								</div>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

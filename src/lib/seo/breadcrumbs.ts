@@ -96,6 +96,42 @@ export function createBlogPostBreadcrumbJsonLd(
 }
 
 /**
+ * Build a BreadcrumbList for a blog category page.
+ *
+ * Emits exactly: Home > Blog (`/blog`) > {category label} (no `item` — the
+ * last node is the current page). Mirrors the visible `<Breadcrumb>` on
+ * category/[category]/page.tsx so schema and visible nav are in sync.
+ */
+export function createBlogCategoryBreadcrumbJsonLd(
+	categorySlug: string,
+): BreadcrumbList {
+	const siteUrl = getSiteUrl();
+	return {
+		"@type": "BreadcrumbList" as const,
+		itemListElement: [
+			{
+				"@type": "ListItem" as const,
+				position: 1,
+				name: "Home",
+				item: siteUrl,
+			},
+			{
+				"@type": "ListItem" as const,
+				position: 2,
+				name: "Blog",
+				item: `${siteUrl}/blog`,
+			},
+			{
+				"@type": "ListItem" as const,
+				position: 3,
+				name: categoryLabel(categorySlug),
+				// No `item` — the last node is the current page.
+			},
+		],
+	};
+}
+
+/**
  * Strip HTML tags from a breadcrumb display name. Loops to a fixpoint so a
  * single pass cannot leave a reconstructable tag (e.g. `<scr<script>ipt>`) —
  * a plain one-shot `.replace(/<[^>]*>/g, "")` is an incomplete multi-character

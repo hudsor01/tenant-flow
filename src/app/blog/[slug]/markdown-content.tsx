@@ -1,40 +1,21 @@
 /**
- * Markdown renderer for blog posts. This module deliberately omits
- * `'use client'`, but its parent (`blog-post-page.tsx`) is a client
- * component, so the React Server Components rule means this file is
- * still part of the client bundle in practice — a transitive import
- * from a `'use client'` boundary is a Client Component regardless of
- * whether it declares the directive itself.
+ * Markdown renderer for blog posts.
  *
- * The SEO win comes from a different mechanism: dropping the parent's
- * `dynamic(import, { ssr: false })` wrapper restored the SSR pass, so
- * Next.js now ships the rendered article body in the initial HTML.
- * Library choice still matters because it must work both at SSR and on
- * the client — `react-markdown` v9+, `remark-gfm`, `rehype-raw`, and
- * `rehype-sanitize` are pure Node libs with no DOM-only dependencies,
- * so they render identically in both passes.
+ * This is a true Server Component — no `"use client"` directive, and no
+ * client module imports it. The react-markdown / remark-gfm / rehype-raw /
+ * rehype-sanitize dependency chain stays server-only, while the rendered
+ * ReactNode serializes across the client boundary as part of the `articleBody`
+ * prop passed from `page.tsx`.
  */
 import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import { headingId } from "./heading-id";
 
 interface MarkdownContentProps {
 	content: string;
-}
-
-/**
- * Shared heading-anchor slugifier — the SAME transform builds the rendered
- * `<h2 id>` (below) and the "On this page" ToC links (blog-post-page.tsx),
- * so anchors can never drift from the nav that targets them.
- */
-export function headingId(text: string): string {
-	return text
-		.toLowerCase()
-		.replace(/[^a-z0-9\s-]/g, "")
-		.trim()
-		.replace(/\s+/g, "-");
 }
 
 function nodeText(node: ReactNode): string {

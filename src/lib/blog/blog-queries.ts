@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 import { env } from "#env";
+import type { Database } from "#types/supabase";
 
 /**
  * Cookie-less anon client for PUBLIC blog reads. `status = 'published'` is the
@@ -10,7 +11,7 @@ import { env } from "#env";
  * dynamic blog list routes, which contributed to the F2 intermittent 503s.
  */
 export function blogAnonClient() {
-	return createSupabaseClient(
+	return createSupabaseClient<Database>(
 		env.NEXT_PUBLIC_SUPABASE_URL,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 	);

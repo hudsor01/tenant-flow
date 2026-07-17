@@ -3,12 +3,11 @@
 import { ArrowRight, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 import { BlogCard } from "#components/blog/blog-card";
-import { BlogInlineCta } from "#components/blog/blog-inline-cta";
 import { BlogPostBreadcrumb } from "#components/blog/blog-post-breadcrumb";
-import { LeadMagnetCta } from "#components/blog/lead-magnet-cta";
 import { NewsletterSignup } from "#components/blog/newsletter-signup";
 import { PageLayout } from "#components/layout/page-layout";
 import { Button } from "#components/ui/button";
@@ -16,7 +15,7 @@ import { useRelatedPosts } from "#hooks/api/use-blogs";
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
-import MarkdownContent, { headingId } from "./markdown-content";
+import { headingId } from "./heading-id";
 
 /**
  * Subset of `BlogDetail` actually rendered by this page. Defining the prop
@@ -34,42 +33,8 @@ export type BlogPostProps = {
 		readonly category: string | null;
 	};
 	slug: string;
-};
-
-/**
- * Split markdown content at a `## ` heading near ~40% of the total length.
- * Returns [firstHalf, secondHalf]. If no good split point, secondHalf is empty.
- */
-const LEAD_MAGNETS: Record<
-	string,
-	{
-		title: string;
-		description: string;
-		resourceType: "checklist" | "guide" | "spreadsheet";
-		downloadUrl: string;
-	}
-> = {
-	"twelve-month-preventive-maintenance-calendar-rentals": {
-		title: "Download the Complete Maintenance Checklist",
-		description:
-			"Get a printable season-by-season maintenance checklist covering HVAC, plumbing, electrical, and exterior inspections for your rental properties.",
-		resourceType: "checklist",
-		downloadUrl: "/resources/seasonal-maintenance-checklist",
-	},
-	"mortgage-interest-deduction-rental-property-schedule-e": {
-		title: "Free Printable Tax Deduction Tracker",
-		description:
-			"Track every deductible expense throughout the year with this printable tracker. Categorized by IRS Schedule E with space to record amounts and category totals.",
-		resourceType: "guide",
-		downloadUrl: "/resources/landlord-tax-deduction-tracker",
-	},
-	"security-deposit-deadlines-and-caps-all-50-states": {
-		title: "Security Deposit Quick Reference Card",
-		description:
-			"A one-page reference with deposit limits, return deadlines, and required documentation for all 50 states. Print it and keep it at your desk.",
-		resourceType: "guide",
-		downloadUrl: "/resources/security-deposit-reference-card",
-	},
+	/** Server-rendered article body (SEO-02). */
+	articleBody: ReactNode;
 };
 
 /** Extract `## ` section headings for the "On this page" nav — ids built with
@@ -82,24 +47,11 @@ function extractToc(content: string): { id: string; text: string }[] {
 	});
 }
 
-function splitContentForCta(content: string): [string, string] {
-	const lines = content.split("\n");
-	const totalLength = content.length;
-	const targetSplit = totalLength * 0.4;
-
-	let currentLength = 0;
-
-	for (const [i, line] of lines.entries()) {
-		currentLength += line.length + 1;
-		if (currentLength >= targetSplit && line.startsWith("## ")) {
-			return [lines.slice(0, i).join("\n"), lines.slice(i).join("\n")];
-		}
-	}
-
-	return [content, ""];
-}
-
-export default function BlogPostPage({ post, slug }: BlogPostProps) {
+export default function BlogPostPage({
+	post,
+	slug,
+	articleBody,
+}: BlogPostProps) {
 	// Hero LCP: the image must be VISIBLE in the no-JS / pre-hydration render
 	// (social scrapers, non-JS crawlers, and the LCP measurement all see the
 	// server HTML). `jsReady` is false during SSR + first paint, so the image
@@ -122,12 +74,6 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	// confirm `lower-and-dasherize` was wasted.
 	const { data: relatedPosts } = useRelatedPosts(post.category ?? "", slug, 3);
 
-	const markdownContent = post.content.trim();
-	const [firstHalf, secondHalf] = splitContentForCta(markdownContent);
-	const leadMagnet = LEAD_MAGNETS[slug];
-	const competitorSlug = BLOG_TO_COMPETITOR[slug];
-	const resourceSlug = BLOG_TO_RESOURCE[slug];
-
 	// `post.category` is the raw `blogs.category` value — the kebab SLUG.
 	// Use it verbatim as the category-page slug (the lower-and-dasherize is a
 	// harmless no-op on an already-kebab value) and humanize it for the
@@ -136,7 +82,10 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, "-");
 	const categoryDisplayLabel = postCategory ? categoryLabel(categorySlug) : "";
 
-	const toc = extractToc(markdownContent);
+	const toc = extractToc(post.content);
+
+	const competitorSlug = BLOG_TO_COMPETITOR[slug];
+	const resourceSlug = BLOG_TO_RESOURCE[slug];
 
 	return (
 		<PageLayout>
@@ -240,22 +189,8 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 						</nav>
 					)}
 
-					{/* Article Content with inline CTA */}
-					<div className="prose prose-lg dark:prose-invert max-w-none prose-blockquote:border-primary prose-headings:tracking-tight prose-a:text-primary-text">
-						<MarkdownContent content={firstHalf} />
-						{secondHalf &&
-							(leadMagnet ? (
-								<LeadMagnetCta
-									title={leadMagnet.title}
-									description={leadMagnet.description}
-									resourceType={leadMagnet.resourceType}
-									downloadUrl={leadMagnet.downloadUrl}
-								/>
-							) : (
-								<BlogInlineCta />
-							))}
-						{secondHalf && <MarkdownContent content={secondHalf} />}
-					</div>
+					{/* Article Content — server-rendered slot (SEO-02) */}
+					{articleBody}
 				</div>
 
 				{competitorSlug && (

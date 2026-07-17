@@ -43,11 +43,10 @@ function createDefaultMetadata(): Metadata {
 		robots:
 			"index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
 		alternates: {
-			canonical: SITE_URL,
-			// `languages` was set to `{ 'en-US': SITE_URL }` — declaring an
-			// alternate that equals the canonical is a no-op signal that
-			// some hreflang validators flag. Removed until we ship real
-			// localized content.
+			// No root-default canonical — the homepage sets its own via
+			// createPageMetadata({ path: "/" }), and every public page
+			// defines its own. Metadata-less pages emit no canonical instead
+			// of a wrong one (SEO-15).
 		},
 		openGraph: {
 			title:

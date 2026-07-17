@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	useMutation,
-	useQueries,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
@@ -27,10 +22,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
-import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
-import type { Unit } from "#types/core";
 import { PropertiesLoadingSkeleton } from "./components/properties-loading-skeleton";
 import {
 	calculateSummary,
@@ -58,57 +51,18 @@ export default function PropertiesPage() {
 		router.replace(url.pathname + url.search, { scroll: false });
 	};
 
-	// Fetch properties
+	// SEO-01: single consolidated query replaces the prior 1+2N fan-out.
 	const {
 		data: propertiesResponse,
 		isLoading,
 		error,
-	} = useQuery(propertyQueries.list());
-	const rawProperties = propertiesResponse?.data ?? [];
+	} = useQuery(propertyQueries.listWithDetails());
 
-	// Fetch all units for all properties using useQueries
-	const unitsQueriesResults = useQueries({
-		queries: rawProperties.map((p) => ({
-			...unitQueries.listByProperty(p.id),
-			enabled: !!p.id,
-		})),
-	});
+	const propertiesData = propertiesResponse?.data ?? [];
 
-	// Extract stable data from units queries
-	const unitsData = unitsQueriesResults.map((result) => result.data);
-
-	// Get units map by property ID
-	const unitsMap = (() => {
-		const map: Record<string, Unit[]> = {};
-		rawProperties.forEach((p, i) => {
-			map[p.id] = unitsData[i] ?? [];
-		});
-		return map;
-	})();
-
-	// Fetch images for all properties using useQueries
-	const imagesQueriesResults = useQueries({
-		queries: rawProperties.map((p) => ({
-			...propertyQueries.images(p.id),
-			enabled: !!p.id,
-		})),
-	});
-
-	// Extract stable data from images queries
-	const imagesData = imagesQueriesResults.map((result) => result.data);
-
-	const imagesMap = (() => {
-		const map: Record<string, string | undefined> = {};
-		rawProperties.forEach((p, i) => {
-			const images = imagesData[i];
-			map[p.id] = images?.[0]?.image_url;
-		});
-		return map;
-	})();
-
-	// Transform to design-os format
-	const properties = rawProperties.map((p) =>
-		transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id]),
+	// Transform to design-os format — units and cover_image_url are embedded.
+	const properties = propertiesData.map((p) =>
+		transformToPropertyItem(p, p.units, p.cover_image_url ?? undefined),
 	);
 
 	// Calculate summary (use API total for accurate count across pages)
@@ -213,17 +167,17 @@ export default function PropertiesPage() {
 				</Tabs>
 			</div>
 
+			{/* Delete confirmation dialog */}
 			<AlertDialog
-				open={propertyToDelete !== null}
-				onOpenChange={(open: boolean) => !open && setPropertyToDelete(null)}
+				open={!!propertyToDelete}
+				onOpenChange={(open) => !open && setPropertyToDelete(null)}
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Property</AlertDialogTitle>
 						<AlertDialogDescription>
-							This will mark the property as inactive. All associated units and
-							data will be preserved but the property will no longer appear in
-							your active portfolio.
+							Are you sure you want to delete this property? This action cannot
+							be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -232,7 +186,7 @@ export default function PropertiesPage() {
 							onClick={confirmDelete}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							Delete Property
+							Delete
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

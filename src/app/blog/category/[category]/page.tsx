@@ -19,7 +19,7 @@ import {
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
 import { blogAnonClient, getBlogCategories } from "#lib/blog/blog-queries";
 import { categoryLabel } from "#lib/seo/blog-categories";
-import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createBlogCategoryBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 const PAGE_LIMIT = 9;
@@ -145,11 +145,7 @@ export default async function BlogCategoryPage({
 
 	return (
 		<PageLayout>
-			<JsonLdScript
-				schema={createBreadcrumbJsonLd(`/blog/category/${category}`, {
-					[category]: label,
-				})}
-			/>
+			<JsonLdScript schema={createBlogCategoryBreadcrumbJsonLd(category)} />
 
 			<div className="container mx-auto max-w-6xl px-6 lg:px-8 pt-8">
 				<Breadcrumb>

@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "#env";
+import { PRIVATE_ROUTE_PREFIXES } from "#lib/routes/private-routes";
 import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { updateSession } from "#lib/supabase/middleware";
 import type { Database } from "#types/supabase";
@@ -34,23 +35,6 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
  * the checkout + plans subpaths (those are handled inside the subscription
  * gate below).
  */
-const PRIVATE_ROUTE_PREFIXES = [
-	"/admin",
-	"/analytics",
-	"/billing",
-	"/dashboard",
-	"/documents",
-	"/financials",
-	"/inspections",
-	"/leases",
-	"/maintenance",
-	"/profile",
-	"/properties",
-	"/reports",
-	"/settings",
-	"/tenants",
-	"/units",
-];
 
 /** Combined row read once per request and used by both gates. */
 type UserGateRow = {

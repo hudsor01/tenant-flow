@@ -1,6 +1,6 @@
+import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
 import { categoryLabel } from "#lib/seo/blog-categories";
-import { createClient } from "#lib/supabase/server";
 
 // Revalidate hourly — the published-post set changes at most a few times a
 // day, and AI crawlers don't need minute-level freshness on a TOC file.
@@ -83,7 +83,7 @@ interface PostRow {
  */
 async function buildBlogSection(): Promise<string> {
 	try {
-		const supabase = await createClient();
+		const supabase = blogAnonClient();
 		const [categoriesResult, postsResult] = await Promise.all([
 			supabase.rpc("get_blog_categories"),
 			supabase

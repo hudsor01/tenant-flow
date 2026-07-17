@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowRight, Lock } from "lucide-react";
 import Link from "next/link";
 import { PageLayout } from "#components/layout/page-layout";
