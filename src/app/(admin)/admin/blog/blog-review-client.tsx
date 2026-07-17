@@ -3,6 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import MarkdownContent from "#app/blog/[slug]/markdown-content";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
 import { Button } from "#components/ui/button";
 import {
 	Empty,
@@ -68,6 +78,7 @@ function formatCreatedAt(value: string | null): string {
 
 function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 	const [showPreview, setShowPreview] = useState(false);
+	const [confirmReject, setConfirmReject] = useState(false);
 	const approve = useApproveBlogMutation();
 	const reject = useRejectBlogMutation();
 
@@ -101,13 +112,34 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 					<Button
 						type="button"
 						variant="outline"
-						onClick={() => reject.mutate({ id: draft.id })}
+						onClick={() => setConfirmReject(true)}
 						disabled={isPending}
 					>
 						{reject.isPending ? "Rejecting…" : "Reject"}
 					</Button>
 				</div>
 			</div>
+
+			<AlertDialog open={confirmReject} onOpenChange={setConfirmReject}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Reject this draft?</AlertDialogTitle>
+						<AlertDialogDescription>
+							Rejecting archives this post. It cannot be undone from this
+							screen.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={() => reject.mutate({ id: draft.id })}
+						>
+							Reject
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<Button
 				type="button"
