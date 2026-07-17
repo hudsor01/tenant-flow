@@ -96,6 +96,22 @@ describe("LeasesPage state wiring", () => {
 		await waitFor(() => expect(useLeasesStore.getState().currentPage).toBe(1));
 	});
 
+	it("STATE-01: does NOT prune during the loading render (preserves a cross-nav selection)", async () => {
+		// Page remounts with isLoading=true and an empty list (query GC'd) while
+		// the singleton still holds the prior selection — must not wipe it.
+		useLeaseListMock.mockReturnValue({
+			data: undefined,
+			isLoading: true,
+			error: null,
+		});
+		useLeasesStore.setState({ selectedRows: new Set(["lease-0", "lease-1"]) });
+		await renderPage();
+
+		// Give effects a chance to run; the selection must survive.
+		await Promise.resolve();
+		expect(useLeasesStore.getState().selectedRows.size).toBe(2);
+	});
+
 	it("STATE-01: prunes a phantom selected id absent from the fetched list", async () => {
 		seedLeases(2);
 		useLeasesStore.setState({

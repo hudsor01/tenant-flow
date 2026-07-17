@@ -173,11 +173,17 @@ export default function LeasesPage() {
 
 	// Prune stale selections against the fetched id set (STATE-01/05/12 class fix)
 	useEffect(() => {
-		// STATE-01: prune against the FULL fetched list, not the filtered/sorted
-		// view — a search/status filter must never wipe a selection for rows
-		// that are merely hidden; only genuinely absent (deleted) ids drop.
-		pruneSelection(leases.map((l) => l.id));
-	}, [leases, pruneSelection]);
+		// STATE-01: only prune once the list has actually loaded. This effect
+		// runs even on the isLoading render (effects fire after commit, before
+		// the early-return matters), where `leases` is transiently [] — pruning
+		// then would wipe a surviving cross-navigation selection with
+		// pruneSelection([]). Prune against the FULL fetched list (not the
+		// filtered/sorted view) so a filter never wipes a merely-hidden row;
+		// only genuinely absent (deleted) ids drop.
+		if (!isLoading) {
+			pruneSelection(leases.map((l) => l.id));
+		}
+	}, [leases, isLoading, pruneSelection]);
 
 	// Close dialogs on unmount (STATE-03: kills back/forward auto-reopen)
 	useEffect(() => closeAllDialogs, [closeAllDialogs]);
