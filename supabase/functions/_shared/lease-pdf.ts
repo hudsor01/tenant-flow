@@ -58,12 +58,29 @@ const RULE = rgb(0.82, 0.82, 0.85);
  * printable ASCII + the Latin-1 supplement is collapsed to '?'.
  */
 function pdfSafe(text: string | null | undefined): string {
+	// The >U+00FF typographic-punctuation classes are built via
+	// String.fromCharCode instead of regex-literal Unicode escapes so this file
+	// stays pure ASCII on disk and round-trips byte-exact through edge deploy
+	// tooling that cannot preserve non-ASCII source. Behaviour is identical.
+	const cc = String.fromCharCode;
 	return (text ?? "")
-		.replace(/[‐-―]/g, "-")
-		.replace(/[‘’‚‛]/g, "'")
-		.replace(/[“”„‟]/g, '"')
-		.replace(/…/g, "...")
-		.replace(/[^\t\n\r\x20-\x7E\u00A0-\u00FF]/g, "?");
+		.replace(new RegExp("[" + cc(0x2010) + "-" + cc(0x2015) + "]", "g"), "-")
+		.replace(
+			new RegExp(
+				"[" + cc(0x2018) + cc(0x2019) + cc(0x201a) + cc(0x201b) + "]",
+				"g",
+			),
+			"'",
+		)
+		.replace(
+			new RegExp(
+				"[" + cc(0x201c) + cc(0x201d) + cc(0x201e) + cc(0x201f) + "]",
+				"g",
+			),
+			'"',
+		)
+		.replace(new RegExp(cc(0x2026), "g"), "...")
+		.replace(/[^\t\n\r\x20-\x7E\xA0-\xFF]/g, "?");
 }
 
 function formatStamp(iso: string | null): string {
