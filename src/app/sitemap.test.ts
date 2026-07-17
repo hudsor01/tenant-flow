@@ -201,7 +201,7 @@ describe("sitemap()", () => {
 		const entries = await sitemap();
 
 		const terms = entries.find((e) => e.url === "https://tenantflow.app/terms");
-		expect(terms?.lastModified).toBe("2026-05-11");
+		expect(terms?.lastModified).toBe("2026-07-17");
 
 		const privacy = entries.find(
 			(e) => e.url === "https://tenantflow.app/privacy",

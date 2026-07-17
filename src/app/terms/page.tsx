@@ -17,7 +17,9 @@ export default function TermsPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd("/terms")} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
-				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
+				<p className="mb-6 text-muted-foreground">
+					Last Updated: July 17, 2026
+				</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
@@ -413,7 +415,7 @@ export default function TermsPage() {
 							If informal resolution is unsuccessful, any dispute shall be
 							resolved through binding arbitration in accordance with the rules
 							of the American Arbitration Association. Arbitration will be
-							conducted in [Your State/Location].
+							conducted in Texas.
 						</p>
 
 						<h3 className="mb-3 typography-h4">11.3 Class Action Waiver</h3>
@@ -462,7 +464,7 @@ export default function TermsPage() {
 						<h2 className="mb-4 typography-h3">14. Governing Law</h2>
 						<p>
 							These Terms are governed by and construed in accordance with the
-							laws of [Your State], without regard to conflict of law
+							laws of the State of Texas, without regard to conflict of law
 							principles.
 						</p>
 					</section>
@@ -521,7 +523,7 @@ export default function TermsPage() {
 							understood, and agree to be bound by these Terms of Service.
 						</p>
 						<p className="mt-4">
-							<strong>Last Updated:</strong> May 11, 2026
+							<strong>Last Updated:</strong> July 17, 2026
 						</p>
 						<p className="mt-2">
 							<strong>Effective Date:</strong> October 5, 2025

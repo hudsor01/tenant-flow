@@ -37,5 +37,4 @@ export const ROBOTS_ONLY_PRIVATE_PATHS = [
 	"/_next/data",
 	"/monitoring",
 	"/stripe",
-	"/pricing/complete",
 ] as const;

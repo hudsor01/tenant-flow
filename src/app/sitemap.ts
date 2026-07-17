@@ -16,7 +16,7 @@ const logger = createLogger({ component: "Sitemap" });
 //
 // Source: src/app/{terms,privacy,security-policy}/page.tsx visible
 // "Last Updated" line.
-const TERMS_LAST_UPDATED = "2026-05-11";
+const TERMS_LAST_UPDATED = "2026-07-17";
 const PRIVACY_LAST_UPDATED = "2026-07-15";
 const SECURITY_POLICY_LAST_UPDATED = "2026-05-11";
 
