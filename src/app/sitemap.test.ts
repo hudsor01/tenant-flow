@@ -391,4 +391,21 @@ describe("sitemap() — DB-failure fallback", () => {
 		const { default: sitemap } = await import("./sitemap");
 		await expect(sitemap()).rejects.toThrow("Simulated DB outage");
 	});
+
+	it("swallows the failure on the placeholder-env CI build and emits the static sitemap", async () => {
+		// The CI `checks` build runs `next build` against the unresolvable
+		// placeholder Supabase host; that build is never deployed, so the blog
+		// query failure must NOT fail the build — the static pages still emit.
+		vi.doMock("#env", () => ({
+			env: {
+				NEXT_PUBLIC_APP_URL: "https://tenantflow.app",
+				NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co",
+			},
+		}));
+		const { default: sitemap } = await import("./sitemap");
+		const entries = await sitemap();
+		expect(entries.some((e) => e.url === "https://tenantflow.app")).toBe(true);
+		expect(entries.some((e) => e.url.includes("/blog/"))).toBe(false);
+		vi.doUnmock("#env");
+	});
 });

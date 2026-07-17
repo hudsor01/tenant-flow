@@ -1,11 +1,13 @@
 /**
  * Markdown renderer for blog posts.
  *
- * This is a true Server Component — no `"use client"` directive, and no
- * client module imports it. The react-markdown / remark-gfm / rehype-raw /
- * rehype-sanitize dependency chain stays server-only, while the rendered
- * ReactNode serializes across the client boundary as part of the `articleBody`
- * prop passed from `page.tsx`.
+ * This is a true Server Component — no `"use client"` directive. On the
+ * `/blog/[slug]` render path no client module imports it, so the
+ * react-markdown / remark-gfm / rehype-raw / rehype-sanitize dependency chain
+ * stays out of the blog-post client bundle; the rendered ReactNode serializes
+ * across the client boundary as the `articleBody` prop from `page.tsx`. (The
+ * admin `blog-review-client.tsx` does import it into a client bundle and
+ * intentionally accepts that cost — the SEO-02 saving is for the public post.)
  */
 import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";

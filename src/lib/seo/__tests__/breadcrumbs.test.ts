@@ -11,7 +11,9 @@ vi.mock("#lib/generate-metadata", () => ({
 	getSiteUrl: () => "https://tenantflow.app",
 }));
 
+import { categoryLabel } from "#lib/seo/blog-categories";
 import {
+	createBlogCategoryBreadcrumbJsonLd,
 	createBlogPostBreadcrumbJsonLd,
 	createBreadcrumbJsonLd,
 } from "../breadcrumbs";
@@ -157,5 +159,35 @@ describe("createBlogPostBreadcrumbJsonLd", () => {
 		);
 		expect(items[3]?.name).not.toMatch(/<\s*script/i);
 		expect(items[3]?.name).not.toContain("<");
+	});
+});
+
+describe("createBlogCategoryBreadcrumbJsonLd (SEO-03)", () => {
+	it("emits exactly 3 nodes: Home, Blog, and the category label", () => {
+		const items = getItems(createBlogCategoryBreadcrumbJsonLd("lease-law"));
+		expect(items).toHaveLength(3);
+		expect(items[0]).toMatchObject({
+			name: "Home",
+			item: "https://tenantflow.app",
+		});
+		expect(items[1]).toMatchObject({
+			name: "Blog",
+			item: "https://tenantflow.app/blog",
+		});
+		expect(items[2]?.name).toBe(categoryLabel("lease-law"));
+	});
+
+	it("never mints a /blog/category node (the SEO-03 404 regression)", () => {
+		const items = getItems(
+			createBlogCategoryBreadcrumbJsonLd("software-vault"),
+		);
+		for (const node of items) {
+			expect(String(node.item ?? "")).not.toContain("/blog/category");
+		}
+	});
+
+	it("omits `item` on the last (current-page) node", () => {
+		const items = getItems(createBlogCategoryBreadcrumbJsonLd("tax-prep"));
+		expect(items[2]?.item).toBeUndefined();
 	});
 });

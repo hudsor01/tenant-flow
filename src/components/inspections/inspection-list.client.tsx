@@ -91,7 +91,13 @@ function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 export function InspectionListClient() {
 	const searchParams = useSearchParams();
 	const pageParam = searchParams?.get("page");
-	const offset = pageParam ? Math.max(0, parseInt(pageParam, 10) - 1) * 50 : 0;
+	// Coerce a missing / non-numeric / `< 1` ?page (e.g. a crafted or stale
+	// /inspections?page=abc) to page 1. An unguarded NaN offset would flow into
+	// .range(NaN, NaN) and 400 the query, rendering the error state instead.
+	const parsedPage = Number.parseInt(pageParam ?? "", 10);
+	const currentPage =
+		Number.isFinite(parsedPage) && parsedPage > 1 ? parsedPage : 1;
+	const offset = (currentPage - 1) * 50;
 
 	const { data, isLoading, error } = useInspections({ offset });
 	const inspections = data?.data ?? [];
@@ -176,36 +182,53 @@ export function InspectionListClient() {
 									Showing {inspections.length} of {total} inspections
 								</p>
 								<div className="flex items-center gap-2">
-									<Link
-										href={{
-											pathname: "/inspections",
-											query:
-												pageParam && parseInt(pageParam, 10) > 1
-													? { page: String(parseInt(pageParam, 10) - 1) }
-													: undefined,
-										}}
-										className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3 disabled:opacity-50 disabled:pointer-events-none"
-									>
-										<ChevronLeft className="w-4 h-4 mr-1" />
-										Previous
-									</Link>
-									<Link
-										href={{
-											pathname: "/inspections",
-											query:
-												offset + inspections.length < total
-													? {
-															page: String(
-																pageParam ? parseInt(pageParam, 10) + 1 : 2,
-															),
-														}
-													: undefined,
-										}}
-										className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3 disabled:opacity-50 disabled:pointer-events-none"
-									>
-										Next
-										<ChevronRight className="w-4 h-4 ml-1" />
-									</Link>
+									{/* Boundary controls render as aria-disabled spans, not
+									    Links — an <a> can never enter `:disabled`, so a Link
+									    with a page-1 fallback href would silently send the
+									    user back to page 1 from the last page. */}
+									{currentPage > 1 ? (
+										<Link
+											href={{
+												pathname: "/inspections",
+												query:
+													currentPage > 2
+														? { page: String(currentPage - 1) }
+														: undefined,
+											}}
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3"
+										>
+											<ChevronLeft className="w-4 h-4 mr-1" />
+											Previous
+										</Link>
+									) : (
+										<span
+											aria-disabled="true"
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 opacity-50 pointer-events-none"
+										>
+											<ChevronLeft className="w-4 h-4 mr-1" />
+											Previous
+										</span>
+									)}
+									{offset + inspections.length < total ? (
+										<Link
+											href={{
+												pathname: "/inspections",
+												query: { page: String(currentPage + 1) },
+											}}
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3"
+										>
+											Next
+											<ChevronRight className="w-4 h-4 ml-1" />
+										</Link>
+									) : (
+										<span
+											aria-disabled="true"
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 opacity-50 pointer-events-none"
+										>
+											Next
+											<ChevronRight className="w-4 h-4 ml-1" />
+										</span>
+									)}
 								</div>
 							</div>
 						)}

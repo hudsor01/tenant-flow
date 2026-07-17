@@ -237,10 +237,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				stack: error instanceof Error ? error.stack : undefined,
 			},
 		});
-		// Re-throw so ISR serves the last-good cached sitemap (stale-if-error)
-		// instead of baking a blog-less 242→19-entry sitemap for 24h. At build
-		// time this fails the build the same way generateStaticParams does.
-		throw error;
+		// The CI compile-check build (`checks` job) runs `next build` with a
+		// placeholder Supabase host that is unresolvable, so the query hangs to
+		// the 5s timeout. That build is never deployed — emit the static
+		// (blog-less) sitemap instead of failing, mirroring the placeholder
+		// guard in `generateStaticParams`. For real builds (Vercel/e2e) a
+		// genuine DB outage re-throws so ISR serves the last-good cached sitemap
+		// (stale-if-error) instead of baking a blog-less sitemap for 24h.
+		if (!env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder")) {
+			throw error;
+		}
 	}
 
 	// Hub freshness derives from the most recent post (honest signal of
