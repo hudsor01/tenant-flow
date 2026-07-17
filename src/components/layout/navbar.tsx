@@ -8,9 +8,9 @@ import type { Ref } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { useSupabaseSession } from "#hooks/api/use-auth";
-import { useNavigation } from "#hooks/use-navigation";
 import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 import { cn } from "#lib/utils";
+import { useNavigationStore } from "#stores/navigation-store";
 import { NavbarDesktopNav } from "./navbar/navbar-desktop-nav";
 import { NavbarMobileMenu } from "./navbar/navbar-mobile-menu";
 import { DEFAULT_NAV_ITEMS, type NavbarProps } from "./navbar/types";
@@ -36,7 +36,7 @@ export function Navbar({
 	const [hasAuthCookie, setHasAuthCookie] = useState(false);
 
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
-		useNavigation();
+		useNavigationStore();
 	const pathname = usePathname();
 	// Session-only check — reads local cookie cache via getSession(), no
 	// network round-trip.

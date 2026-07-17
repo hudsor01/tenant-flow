@@ -36,7 +36,6 @@ import {
 } from "#components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { useLeaseList } from "#hooks/api/use-lease";
-import { useDeleteLeaseMutation } from "#hooks/api/use-lease-mutations";
 import { useLeasesStore } from "#stores/leases-store";
 import { LeasesStatCards } from "./leases-stat-cards";
 
@@ -72,15 +71,15 @@ export default function LeasesPage() {
 		currentPage,
 		setCurrentPage,
 		itemsPerPage,
-		selectedLease,
+		selectedLeaseId,
 		showRenewDialog,
 		showTerminateDialog,
-		showDeleteDialog,
 		openRenewDialog,
 		openTerminateDialog,
 		closeRenewDialog,
 		closeTerminateDialog,
-		closeDeleteDialog,
+		closeAllDialogs,
+		pruneSelection,
 	} = useLeasesStore();
 
 	// Sync URL tab with store when URL changes
@@ -104,8 +103,6 @@ export default function LeasesPage() {
 		isLoading,
 		error,
 	} = useLeaseList({ limit: LEASES_FETCH_CAP, offset: 0 });
-	const deleteLeaseMutation = useDeleteLeaseMutation();
-
 	const rawLeases = leasesResponse?.data ?? [];
 
 	const leases: LeaseDisplay[] = (() => {
@@ -160,12 +157,32 @@ export default function LeasesPage() {
 	const handleView = (id: string) => router.push(`/leases/${id}`);
 	const handleEdit = (id: string) => router.push(`/leases/${id}/edit`);
 
+	// Derive the selected lease entity fresh from the query-backed list (STATE-03)
+	const selectedLease =
+		leases.find((l) => l.id === selectedLeaseId)?.original ?? null;
+
+	// Clamp currentPage to the recomputed totalPages (STATE-01)
+	const effectivePage = Math.min(currentPage, Math.max(1, totalPages));
+
+	// Write clamp back to store when they diverge (keeps footer/counter consistent)
+	useEffect(() => {
+		if (effectivePage !== currentPage) setCurrentPage(effectivePage);
+	}, [effectivePage, currentPage, setCurrentPage]);
+
+	// Prune stale selections against the fetched id set (STATE-01/05/12 class fix)
+	useEffect(() => {
+		pruneSelection(sortedLeases.map((l) => l.id));
+	}, [sortedLeases, pruneSelection]);
+
+	// Close dialogs on unmount (STATE-03: kills back/forward auto-reopen)
+	useEffect(() => closeAllDialogs, [closeAllDialogs]);
+
 	const handleRenew = (lease: LeaseDisplay) => {
-		openRenewDialog(lease.original);
+		openRenewDialog(lease.id);
 	};
 
 	const handleTerminate = (lease: LeaseDisplay) => {
-		openTerminateDialog(lease.original);
+		openTerminateDialog(lease.id);
 	};
 
 	if (isLoading) return <LeasesPageSkeleton />;
@@ -264,7 +281,7 @@ export default function LeasesPage() {
 						sortField={sortField}
 						sortDirection={sortDirection}
 						selectedRows={selectedRows}
-						currentPage={currentPage}
+						currentPage={effectivePage}
 						totalPages={totalPages}
 						itemsPerPage={itemsPerPage}
 						onSearchChange={setSearchQuery}
@@ -294,25 +311,14 @@ export default function LeasesPage() {
 				selectedLease={selectedLease}
 				showRenewDialog={showRenewDialog}
 				showTerminateDialog={showTerminateDialog}
-				showDeleteDialog={showDeleteDialog}
-				isDeleting={deleteLeaseMutation.isPending}
 				onRenewOpenChange={(open) => {
 					if (!open) closeRenewDialog();
 				}}
 				onTerminateOpenChange={(open) => {
 					if (!open) closeTerminateDialog();
 				}}
-				onDeleteOpenChange={(open) => {
-					if (!open) closeDeleteDialog();
-				}}
 				onRenewSuccess={closeRenewDialog}
 				onTerminateSuccess={closeTerminateDialog}
-				onDeleteConfirm={() => {
-					if (selectedLease) {
-						deleteLeaseMutation.mutate(selectedLease.id);
-					}
-					closeDeleteDialog();
-				}}
 			/>
 		</div>
 	);

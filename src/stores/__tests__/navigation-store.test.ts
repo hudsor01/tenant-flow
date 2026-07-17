@@ -1,23 +1,14 @@
 /**
- * Navigation store tests to ensure routing state aligns with production usage.
+ * Navigation store tests to ensure mobile menu state management works correctly.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
 import { useNavigationStore } from "#stores/navigation-store";
 
-const resetNavigationStore = () => {
-	useNavigationStore.setState({
-		isMobileMenuOpen: false,
-		breadcrumbs: [],
-		navigationHistory: [],
-		activeRoute: null,
-		activeSection: null,
-	});
-};
-
 describe("navigation store", () => {
 	beforeEach(() => {
-		resetNavigationStore();
+		// Reset to initial state
+		useNavigationStore.setState({ isMobileMenuOpen: false });
 	});
 
 	it("toggles the mobile menu state consistently", () => {
@@ -31,66 +22,23 @@ describe("navigation store", () => {
 		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(false);
 	});
 
-	it("manages breadcrumbs array", () => {
+	it("opens and closes the mobile menu directly", () => {
 		const store = useNavigationStore.getState();
-		// Suppress TypeScript error for internal API
-		const setBreadcrumbs = (
-			store as {
-				setBreadcrumbs?: (
-					breadcrumbs: Array<{ label: string; href: string }>,
-				) => void;
-			}
-		).setBreadcrumbs;
-		const { addBreadcrumb, clearBreadcrumbs } = store;
 
-		if (setBreadcrumbs) {
-			setBreadcrumbs([{ label: "Dashboard", href: "/" }]);
-		}
-		addBreadcrumb({ label: "Leases", href: "/leases" });
+		store.openMobileMenu();
+		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(true);
 
-		let state = useNavigationStore.getState();
-		expect(state.breadcrumbs).toHaveLength(2);
-		expect(state.breadcrumbs[1]?.label).toBe("Leases");
-
-		clearBreadcrumbs();
-		state = useNavigationStore.getState();
-		expect(state.breadcrumbs).toHaveLength(0);
+		store.closeMobileMenu();
+		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(false);
 	});
 
-	it("tracks active route and navigation history", () => {
-		const { setActiveRoute } = useNavigationStore.getState();
-		setActiveRoute("/", "overview");
-		setActiveRoute("/leases", "leases");
+	it("resets to closed state after setState", () => {
+		const store = useNavigationStore.getState();
 
-		const state = useNavigationStore.getState();
-		expect(state.activeRoute).toBe("/leases");
-		expect(state.activeSection).toBe("leases");
-		expect(state.navigationHistory).toEqual(["/", "/leases"]);
-		expect(state.canGoBack).toBe(true);
-	});
+		store.openMobileMenu();
+		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(true);
 
-	it("goes back to the previous history entry", () => {
-		const { addToHistory, goBack } = useNavigationStore.getState();
-		addToHistory("/dashboard");
-		addToHistory("/leases");
-		addToHistory("/leases/create");
-
-		const previousRoute = goBack();
-		expect(previousRoute).toBe("/leases");
-		expect(useNavigationStore.getState().activeRoute).toBe("/leases");
-		expect(useNavigationStore.getState().navigationHistory).toEqual([
-			"/dashboard",
-			"/leases",
-		]);
-	});
-
-	it("clears navigation history", () => {
-		const { addToHistory, clearHistory } = useNavigationStore.getState();
-		addToHistory("/dashboard");
-		addToHistory("/leases");
-		clearHistory();
-
-		expect(useNavigationStore.getState().navigationHistory).toHaveLength(0);
-		expect(useNavigationStore.getState().canGoBack).toBe(false);
+		useNavigationStore.setState({ isMobileMenuOpen: false });
+		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(false);
 	});
 });

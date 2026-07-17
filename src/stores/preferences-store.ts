@@ -18,18 +18,15 @@ export const DEFAULT_DATA_DENSITY: DataDensity = "comfortable";
 export const DATA_DENSITY_STORAGE_KEY = "tenantflow-data-density";
 
 /**
- * View types for different entities in the application
- * - properties: 'grid' (visual) | 'table' (data-dense)
+ * View types for different entities in the application.
  * - maintenance: 'kanban' (workflow) | 'table' (data-dense)
  * - leases/tenants: locked to 'table' (best practice per UX research)
  */
 export type ViewPreferences = {
-	properties: "grid" | "table";
 	maintenance: "kanban" | "table";
 };
 
 const DEFAULT_VIEW_PREFERENCES: ViewPreferences = {
-	properties: "grid", // Visual-first per UX research
 	maintenance: "kanban", // Workflow-driven per UX research
 };
 
@@ -65,6 +62,43 @@ export function persistDataDensity(density: DataDensity): void {
 	localStorage.setItem(DATA_DENSITY_STORAGE_KEY, density);
 }
 
+/**
+ * LocalStorage key for persisting view preferences (maintenance kanban/table toggle).
+ */
+export const VIEW_PREFERENCES_STORAGE_KEY = "tenantflow-view-preferences";
+
+/**
+ * Get stored view preferences from localStorage.
+ * SSR-guarded; validates `maintenance` against known values and merges over defaults
+ * so unknown/missing keys degrade gracefully.
+ */
+export function getStoredViewPreferences(): ViewPreferences | null {
+	if (typeof window === "undefined") return null;
+	try {
+		const stored = localStorage.getItem(VIEW_PREFERENCES_STORAGE_KEY);
+		if (!stored) return null;
+		const parsed = JSON.parse(stored);
+		if (
+			parsed &&
+			typeof parsed === "object" &&
+			["kanban", "table"].includes(parsed.maintenance)
+		) {
+			return { maintenance: parsed.maintenance };
+		}
+	} catch {
+		// Corrupted value — degrade to defaults
+	}
+	return null;
+}
+
+/**
+ * Persist view preferences to localStorage.
+ */
+export function persistViewPreferences(prefs: ViewPreferences): void {
+	if (typeof window === "undefined") return;
+	localStorage.setItem(VIEW_PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
+}
+
 export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
 	createStore<PreferencesState>()((set) => ({
 		themeMode: init?.themeMode ?? DEFAULT_THEME_MODE,
@@ -76,10 +110,12 @@ export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
 			set({ dataDensity: density });
 		},
 		setViewPreference: (entity, view) =>
-			set((state) => ({
-				viewPreferences: {
+			set((state) => {
+				const newPrefs = {
 					...state.viewPreferences,
 					[entity]: view,
-				},
-			})),
+				};
+				persistViewPreferences(newPrefs);
+				return { viewPreferences: newPrefs };
+			}),
 	}));

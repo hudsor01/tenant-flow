@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation,
@@ -60,6 +61,7 @@ export function Properties({
 		toggleSelect,
 		selectAll,
 		clearSelection,
+		pruneSelection,
 		isBulkEditOpen,
 		bulkEditStatus,
 		bulkEditType,
@@ -86,10 +88,24 @@ export function Properties({
 		clearSelection,
 	);
 
+	// STATE-05: reconcile the selection against the fetched (active) property
+	// list. `properties` excludes inactive rows, so a soft-deleted id drops out
+	// of the selection as soon as the invalidated list query refetches —
+	// clearing the phantom action-bar count.
+	useEffect(() => {
+		pruneSelection(properties.map((p) => p.id));
+	}, [properties, pruneSelection]);
+
 	const handleBulkEditSubmit = async () => {
 		if (selectedRows.size === 0) return;
 		if (!applyBulkStatus && !applyBulkType) return;
-		const ids = Array.from(selectedRows);
+		// STATE-05: only target ids still present in the active list — a bulk
+		// edit must never resurrect a just-deleted (inactive) property via a
+		// phantom selection surviving the delete→refetch race.
+		const ids = Array.from(selectedRows).filter((id) =>
+			properties.some((p) => p.id === id),
+		);
+		if (ids.length === 0) return;
 		const updateData: Record<string, string> = {};
 		if (applyBulkStatus) updateData.status = bulkEditStatus;
 		if (applyBulkType)

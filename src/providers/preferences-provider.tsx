@@ -12,6 +12,7 @@ import type { PreferencesState } from "#stores/preferences-store";
 import {
 	createPreferencesStore,
 	getStoredDataDensity,
+	getStoredViewPreferences,
 } from "#stores/preferences-store";
 import type { ThemeMode } from "#types/domain";
 
@@ -68,6 +69,14 @@ export const PreferencesStoreProvider = ({
 		const storedDensity = getStoredDataDensity();
 		if (storedDensity) {
 			store.getState().setDataDensity(storedDensity);
+		}
+
+		// Handle view preferences initialization from localStorage (STATE-11)
+		const storedViewPrefs = getStoredViewPreferences();
+		if (storedViewPrefs) {
+			store
+				.getState()
+				.setViewPreference("maintenance", storedViewPrefs.maintenance);
 		}
 
 		let previousThemeMode = initialTheme;

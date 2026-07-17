@@ -62,6 +62,10 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 					queryClient.setQueryData(authKeys.session(), null);
 					queryClient.setQueryData(authKeys.user(), null);
 					queryClient.removeQueries({ queryKey: authKeys.all });
+					// STATE-02: reset all Zustand stores to prevent cross-user state leakage
+					import("#stores/reset-all-stores").then(({ resetAllStores }) =>
+						resetAllStores(),
+					);
 				} else if (session) {
 					queryClient.setQueryData(authKeys.session(), session);
 					queryClient.setQueryData(authKeys.user(), session.user);

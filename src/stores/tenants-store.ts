@@ -49,6 +49,10 @@ export interface TenantsActions {
 	setSelectedIds: (ids: string[]) => void;
 	selectAll: (ids: string[]) => void;
 	clearSelection: () => void;
+	// STATE-12: reconcile selection against the fetched dataset so a
+	// single-deleted tenant can't leave a phantom id that a bulk delete
+	// then targets.
+	pruneSelection: (validIds: string[]) => void;
 
 	// Modal actions
 	openDetailSheet: () => void;
@@ -68,7 +72,7 @@ const initialState: TenantsState = {
 };
 
 export const useTenantsStore = create<TenantsState & TenantsActions>(
-	(set, _get) => ({
+	(set, get) => ({
 		...initialState,
 
 		// View actions
@@ -92,6 +96,17 @@ export const useTenantsStore = create<TenantsState & TenantsActions>(
 		selectAll: (ids) => set({ selectedIds: new Set(ids) }),
 
 		clearSelection: () => set({ selectedIds: new Set() }),
+
+		pruneSelection: (validIds) => {
+			const { selectedIds } = get();
+			const pruned = new Set(
+				Array.from(selectedIds).filter((id) => validIds.includes(id)),
+			);
+			if (pruned.size === selectedIds.size) {
+				return; // no-op guard: keep the same state object
+			}
+			set({ selectedIds: pruned });
+		},
 
 		// Modal actions
 		openDetailSheet: () => set({ isDetailSheetOpen: true }),

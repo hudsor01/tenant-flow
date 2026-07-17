@@ -28,9 +28,6 @@ export interface ErrorBoundaryState {
 	setError: (error: Error, context?: string) => void;
 	clearError: () => void;
 	resetError: () => void;
-
-	// Computed properties
-	isInErrorState: boolean;
 }
 
 const initialErrorState: ErrorState = {
@@ -85,9 +82,5 @@ export const useErrorBoundaryStore = create<ErrorBoundaryState>((set, get) => ({
 
 	resetError: () => {
 		get().clearError();
-	},
-
-	get isInErrorState() {
-		return get().errorState.hasError;
 	},
 }));
