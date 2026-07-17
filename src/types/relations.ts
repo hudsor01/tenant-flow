@@ -4,7 +4,6 @@
  */
 
 import type { User } from "@supabase/supabase-js";
-import type { PropertyType } from "../../src/lib/constants/status-types";
 import type { Database } from "./supabase";
 
 // Define types properly from Database schema
@@ -270,18 +269,4 @@ export interface PropertyStatsExtended {
 export interface PropertySearchResult extends PropertyWithUnits {
 	searchScore?: number;
 	highlightedFields?: string[];
-}
-
-/**
- * PropertyFilters - Common property filtering options
- */
-export interface PropertyFilters {
-	property_type?: PropertyType;
-	status?: "active" | "inactive" | "maintenance";
-	minUnits?: number;
-	maxUnits?: number;
-	minRent?: number;
-	maxRent?: number;
-	city?: string;
-	state?: string;
 }

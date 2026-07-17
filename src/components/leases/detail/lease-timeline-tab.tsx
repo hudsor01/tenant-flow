@@ -11,11 +11,11 @@ import {
 	formatRelativeTime,
 	getTimelineColor,
 	getTimelineIcon,
-	type TimelineEvent,
+	type LeaseTimelineEvent,
 } from "./lease-detail-utils";
 
 interface LeaseTimelineTabProps {
-	events: TimelineEvent[];
+	events: LeaseTimelineEvent[];
 }
 
 export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {

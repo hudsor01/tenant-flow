@@ -81,23 +81,6 @@ export type SubscriptionStatus =
 	(typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSCRIPTION_STATUS];
 
 /**
- * TENANT STATUS ENUMERATION - App-level tenant state
- */
-const TENANT_STATUS = {
-	ACTIVE: "active",
-	INACTIVE: "inactive",
-	EVICTED: "EVICTED",
-	PENDING: "pending",
-	MOVED_OUT: "MOVED_OUT",
-	ARCHIVED: "ARCHIVED",
-} as const;
-
-export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS];
-
-/**
- * INVITATION STATUS ENUMERATION - App-level invitation state
- */
-/**
  * DOCUMENT TYPE ENUMERATION - App-level document classification
  */
 const DOCUMENT_TYPES = {
@@ -379,7 +362,7 @@ const SECURITY_EVENT_TYPES = {
 	AUTH_FAILURE: "auth_failure",
 } as const;
 
-export type SecurityEventType =
+export type SecurityMonitoringEventType =
 	(typeof SECURITY_EVENT_TYPES)[keyof typeof SECURITY_EVENT_TYPES];
 
 /**

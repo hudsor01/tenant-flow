@@ -5,12 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "#components/ui/button";
 import { withForm } from "#lib/forms/form-hook";
 import { cn } from "#lib/utils";
+import type { Property as SharedProperty } from "#types/core";
 import { unitFormOptions } from "./unit-form-options";
 
-interface Property {
-	id: string;
-	name: string;
-}
+type Property = Pick<SharedProperty, "id" | "name">;
 
 const STATUS_OPTIONS = [
 	{ value: "available", label: "Vacant" },

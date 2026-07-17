@@ -324,30 +324,6 @@ export type CreateLeaseWizardRequest = z.infer<
 >;
 
 /**
- * Signature status response schema
- */
-const signatureStatusResponseSchema = z.object({
-	lease_id: uuidSchema,
-	status: z.enum([
-		"draft",
-		"pending_signature",
-		"active",
-		"ended",
-		"terminated",
-	]),
-	owner_signed: z.boolean(),
-	owner_signed_at: z.string().nullable(),
-	tenant_signed: z.boolean(),
-	tenant_signed_at: z.string().nullable(),
-	sent_for_signature_at: z.string().nullable(),
-	both_signed: z.boolean(),
-});
-
-export type SignatureStatusResponse = z.infer<
-	typeof signatureStatusResponseSchema
->;
-
-/**
  * Wizard step identifiers
  */
 export type WizardStep = "selection" | "terms" | "details" | "review";

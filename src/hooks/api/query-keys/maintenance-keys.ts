@@ -18,10 +18,10 @@ import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
 	MaintenanceRequestCreate,
-	MaintenanceRequestUpdate,
+	MaintenanceRequestUpdateInput,
 } from "#lib/validation/maintenance";
 import type { PaginatedResponse } from "#types/api-contracts";
-import type { MaintenanceRequest } from "#types/core";
+import type { ExpenseRecord, MaintenanceRequest } from "#types/core";
 import type {
 	Vendor,
 	VendorCreateInput,
@@ -276,12 +276,34 @@ export const maintenanceQueries = {
 			},
 			...QUERY_CACHE_TIMES.STATS,
 		}),
+
+	/**
+	 * Expenses for a single maintenance request. Soft-deleted rows filtered so
+	 * the detail page agrees with expenseQueries.* + the expenses page.
+	 */
+	expenses: (id: string) =>
+		queryOptions({
+			queryKey: [...maintenanceQueries.all(), id, "expenses"],
+			queryFn: async (): Promise<ExpenseRecord[]> => {
+				const supabase = createClient();
+				const { data, error } = await supabase
+					.from("expenses")
+					.select(
+						"id, amount, description, expense_date, vendor_name, maintenance_request_id, status",
+					)
+					.neq("status", "inactive")
+					.eq("maintenance_request_id", id);
+				if (error) handlePostgrestError(error, "expenses");
+				return (data ?? []) as ExpenseRecord[];
+			},
+			enabled: !!id,
+		}),
 };
 
 /** Variables for update mutation including optional optimistic locking version */
 export interface MaintenanceUpdateMutationVariables {
 	id: string;
-	data: MaintenanceRequestUpdate;
+	data: MaintenanceRequestUpdateInput;
 	version?: number;
 }
 

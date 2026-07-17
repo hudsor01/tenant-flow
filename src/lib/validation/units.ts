@@ -81,13 +81,6 @@ export const unitInputSchema = z.object({
 	status: z.string().default("available"),
 });
 
-// Full unit schema (includes server-generated fields)
-const unitSchema = unitInputSchema.extend({
-	id: uuidSchema,
-	created_at: z.string(),
-	updated_at: z.string(),
-});
-
 // Unit update schema (partial input)
 const unitUpdateSchema = unitInputSchema.partial();
 
@@ -126,24 +119,10 @@ const unitQuerySchema = z.object({
 		.default(VALIDATION_LIMITS.API_QUERY_DEFAULT_LIMIT),
 });
 
-// Unit statistics schema
-const unitStatsSchema = z.object({
-	total: z.number().nonnegative(),
-	vacant: z.number().nonnegative(),
-	occupied: z.number().nonnegative(),
-	maintenance: z.number().nonnegative(),
-	unavailable: z.number().nonnegative(),
-	occupancyRate: z.number().min(0).max(100),
-	average_rent_amount: z.number().nonnegative(),
-	total_rent_amount: z.number().nonnegative(),
-});
-
 // Export types
 export type UnitInput = z.infer<typeof unitInputSchema>;
-export type Unit = z.infer<typeof unitSchema>;
-export type UnitUpdate = z.infer<typeof unitUpdateSchema>;
+export type UnitUpdateInput = z.infer<typeof unitUpdateSchema>;
 export type UnitQuery = z.infer<typeof unitQuerySchema>;
-export type UnitStats = z.infer<typeof unitStatsSchema>;
 
 // Frontend-specific form schema (handles string inputs from HTML forms) - matches database exactly
 const unitFormSchema = z.object({

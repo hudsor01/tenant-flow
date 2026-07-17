@@ -6,8 +6,6 @@ import {
 } from "react-dropzone";
 import { createClient } from "#lib/supabase/client";
 
-const supabase = createClient();
-
 interface FileWithPreview extends File {
 	preview?: string;
 	errors: readonly FileError[];
@@ -72,6 +70,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	});
 
 	const onUpload = async () => {
+		const supabase = createClient();
 		setLoading(true);
 
 		// Retry list: upload each file at most once — skip client-invalid files

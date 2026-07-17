@@ -18,7 +18,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "./supabase";
 
 import type { PropertyCreate } from "#lib/validation/properties";
 // Import Zod-inferred types (Single Source of Truth)
-import type { TenantCreate, TenantUpdate } from "#lib/validation/tenants";
+import type { TenantCreate, TenantUpdateInput } from "#lib/validation/tenants";
 
 export interface UserProfileOwnerData {
 	properties_count: number;
@@ -143,19 +143,6 @@ export type TenantDetail = Tables<"tenants"> & {
 	>[];
 };
 
-/** Lease list item - minimal fields for list views */
-export type LeaseListItem = Pick<
-	Tables<"leases">,
-	| "id"
-	| "lease_status"
-	| "start_date"
-	| "end_date"
-	| "rent_amount"
-	| "unit_id"
-	| "primary_tenant_id"
-	| "created_at"
->;
-
 /** Lease detail - full row with relations */
 export type LeaseDetail = Tables<"leases"> & {
 	unit?: Pick<Tables<"units">, "id" | "unit_number" | "property_id"> & {
@@ -234,26 +221,6 @@ export interface TenantFilters {
 	offset?: number;
 }
 
-export interface LeaseFilters {
-	status?: string;
-	property_id?: string;
-	tenant_id?: string;
-	start_date?: string;
-	end_date?: string;
-	limit?: number;
-	offset?: number;
-}
-
-export interface SignatureStatus {
-	lease_id: string;
-	owner_signed: boolean;
-	tenant_signed: boolean;
-	owner_signed_at: string | null;
-	tenant_signed_at: string | null;
-	owner_signature_ip: string | null;
-	tenant_signature_ip: string | null;
-}
-
 export interface SignatureStatusResponse {
 	lease_id: string;
 	status: "draft" | "pending_signature" | "active" | "ended" | "terminated";
@@ -268,24 +235,6 @@ export interface SignatureStatusResponse {
 export interface PropertyApiFilters {
 	status?: "active" | "SOLD" | "inactive";
 	property_type?: string;
-	search?: string;
-	limit?: number;
-	offset?: number;
-}
-
-export interface MaintenanceFilters {
-	unit_id?: string;
-	property_id?: string;
-	status?: string;
-	priority?: string;
-	search?: string;
-	limit?: number;
-	offset?: number;
-}
-
-export interface UnitFilters {
-	property_id?: string;
-	status?: string;
 	search?: string;
 	limit?: number;
 	offset?: number;
@@ -568,7 +517,7 @@ export interface ApiResponse<T = unknown> {
 
 // Request/Response aliases for consistency
 export type CreateTenantRequest = TenantCreate;
-export type UpdateTenantRequest = TenantUpdate;
+export type UpdateTenantRequest = TenantUpdateInput;
 export type CreateUnitRequest = CreateUnitInput;
 export type UpdateUnitRequest = UpdateUnitInput;
 export type CreatePropertyRequest = CreatePropertyInput;

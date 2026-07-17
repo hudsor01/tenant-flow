@@ -18,8 +18,7 @@ import {
 	useDataDensity,
 	usePreferencesStore,
 } from "#providers/preferences-provider";
-import type { DataDensity } from "#stores/preferences-store";
-import type { ThemeMode } from "#types/domain";
+import type { DataDensity, ThemeMode } from "#types/domain";
 import { OwnerEmergencyContactSection } from "./owner-emergency-contact-section";
 
 export function GeneralSettings() {

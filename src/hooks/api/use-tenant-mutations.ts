@@ -11,7 +11,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { handleMutationSuccess } from "#lib/mutation-error-handler";
 import { incrementVersion } from "#lib/utils/optimistic-locking";
-import type { TenantUpdate } from "#lib/validation/tenants";
+import type { TenantUpdateInput } from "#lib/validation/tenants";
 import type {
 	Tenant,
 	TenantWithLeaseInfo,
@@ -44,7 +44,7 @@ export function useUpdateTenantMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
 		...tenantMutations.update(),
-		...createMutationCallbacks<Tenant, { id: string; data: TenantUpdate }>(
+		...createMutationCallbacks<Tenant, { id: string; data: TenantUpdateInput }>(
 			queryClient,
 			{
 				// update() returns a base Tenant (no lease embed), so it must NOT be

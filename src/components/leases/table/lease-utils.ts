@@ -13,15 +13,17 @@ export interface TenantWithUser extends Tenant {
 	User?: UserWithExtras;
 }
 
-/** Extended unit type that includes property relation */
-export interface UnitWithProperty extends Unit {
+/** Extended unit type with an OPTIONAL property relation (lease-table API shape).
+ * Distinct from the canonical `UnitWithProperty` in relations.ts, which requires
+ * `property` and carries `leases`. */
+export interface UnitWithOptionalProperty extends Unit {
 	property?: Property;
 }
 
 /** Lease type with relations as returned by the API */
 export interface LeaseWithNestedRelations extends Lease {
 	tenant?: TenantWithUser;
-	unit?: UnitWithProperty;
+	unit?: UnitWithOptionalProperty;
 }
 
 export type SortField =

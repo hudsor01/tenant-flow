@@ -5,7 +5,7 @@
 
 import { assertNever } from "#lib/assert-never";
 
-export type BillingInterval = "monthly" | "annual" | "month" | "year";
+export type PriceInterval = "monthly" | "annual" | "month" | "year";
 export type CurrencyCode = "USD" | "EUR" | "GBP" | "CAD" | "AUD";
 
 export interface CurrencyFormatOptions {
@@ -17,7 +17,7 @@ export interface CurrencyFormatOptions {
 }
 
 export interface PriceFormatOptions extends CurrencyFormatOptions {
-	interval?: BillingInterval;
+	interval?: PriceInterval;
 	showInterval?: boolean;
 	fromCents?: boolean;
 }
@@ -116,7 +116,7 @@ export const formatPrice = (
 /**
  * Get interval suffix for pricing display
  */
-export const getIntervalSuffix = (interval: BillingInterval): string => {
+export const getIntervalSuffix = (interval: PriceInterval): string => {
 	switch (interval) {
 		case "monthly":
 		case "month":

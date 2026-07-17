@@ -1,6 +1,6 @@
 import { Calendar, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
-import type { TimelineEvent } from "./maintenance-utils";
+import type { TimelineEvent } from "#types/sections/maintenance";
 
 interface TimelineCardProps {
 	timeline: TimelineEvent[];

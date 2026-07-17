@@ -1,14 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import { DEFAULT_THEME_MODE } from "#lib/theme-utils";
-import type { ThemeMode } from "#types/domain";
-
-/**
- * Data Density modes for UI spacing and information density
- * - compact: Tighter spacing, smaller rows (h-8), more data visible
- * - comfortable: Default spacing (h-12), balanced view
- * - spacious: Generous spacing (h-16), easier scanning
- */
-export type DataDensity = "compact" | "comfortable" | "spacious";
+import type { DataDensity, ThemeMode } from "#types/domain";
 
 export const DEFAULT_DATA_DENSITY: DataDensity = "comfortable";
 

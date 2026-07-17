@@ -213,28 +213,21 @@ function PortfolioVirtualizedTable({
 			    <table> directly keeps scrollRef the SOLE scroll container so the
 			    sticky <thead> sticks to it. */}
 			<table
-				className="w-full caption-bottom text-sm"
-				style={{ display: "grid" }}
+				className="w-full caption-bottom text-sm grid"
 				role="table"
 				aria-label="Property portfolio"
 				aria-rowcount={pageRows.length + 1}
 			>
 				<TableHeader
 					role="rowgroup"
-					className="bg-muted/30"
-					style={{
-						display: "grid",
-						position: "sticky",
-						top: 0,
-						zIndex: 1,
-					}}
+					className="bg-muted/30 grid sticky top-0 z-[1]"
 				>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow
 							key={headerGroup.id}
 							role="row"
 							aria-rowindex={1}
-							style={{ display: "flex", width: "100%" }}
+							className="flex w-full"
 						>
 							{headerGroup.headers.map((header) => (
 								<TableHead

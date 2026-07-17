@@ -8,11 +8,13 @@
  * instead of creating duplicate definitions.
  */
 
+import type { PlanType as PlanTypeFromConstants } from "#lib/constants/status-types";
+
 /**
  * TenantFlow plan type enumeration
  * Maps to Supabase PlanType enum
  */
-export type PlanType = "FREETRIAL" | "STARTER" | "GROWTH" | "TENANTFLOW_MAX";
+export type PlanType = PlanTypeFromConstants;
 
 /**
  * Billing period type for subscriptions

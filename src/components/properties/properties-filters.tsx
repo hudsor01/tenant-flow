@@ -11,7 +11,7 @@ import {
 import { intersectSelection } from "#lib/intersect-selection";
 import type { PropertyStatus } from "#types/core";
 import { propertyBulkImportConfig } from "./bulk-import-config";
-import type { PropertyType } from "./types";
+import type { DesignPropertyType } from "./types";
 
 export interface EmptyPropertiesProps {
 	onAddProperty?: (() => void) | undefined;
@@ -103,11 +103,11 @@ export function useBulkHandlers(
 	properties: {
 		id: string;
 		status: PropertyStatus;
-		propertyType: PropertyType;
+		propertyType: DesignPropertyType;
 	}[],
 	openBulkEdit: (
 		initialStatus: PropertyStatus,
-		initialType: PropertyType,
+		initialType: DesignPropertyType,
 	) => void,
 	deletePropertyMutation: { mutateAsync: (id: string) => Promise<unknown> },
 	clearSelection: () => void,

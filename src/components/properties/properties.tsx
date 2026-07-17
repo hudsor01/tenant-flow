@@ -22,9 +22,9 @@ import { PropertyCard } from "./property-select-card";
 import { PropertyStatsSection } from "./property-stats-section";
 import { PropertyTable } from "./property-table";
 import { PropertyToolbar } from "./property-toolbar";
-import type { PropertiesProps, PropertyType } from "./types";
+import type { DesignPropertyType, PropertiesProps } from "./types";
 
-const PROPERTY_TYPE_TO_API: Record<PropertyType, string> = {
+const PROPERTY_TYPE_TO_API: Record<DesignPropertyType, string> = {
 	single_family: "SINGLE_FAMILY",
 	multi_family: "MULTI_UNIT",
 	apartment: "APARTMENT",

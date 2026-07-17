@@ -86,20 +86,14 @@ export type SecurityEventType =
 
 // Import app-only types that are NOT DB enums
 import type {
+	ActionType as ActionTypeFromConstants,
 	ActivityEntityType as ActivityEntityTypeFromConstants,
+	EntityType as EntityTypeFromConstants,
 	MaintenanceCategory as MaintenanceCategoryFromConstants,
+	Permission as PermissionFromConstants,
 	PropertyType as PropertyTypeFromConstants,
+	SubscriptionStatus as SubscriptionStatusFromConstants,
 } from "../../src/lib/constants/status-types";
-
-export interface CreateCheckoutSessionRequest {
-	productName: string;
-	tenantId: string;
-	domain: string;
-	description?: string;
-	isSubscription?: boolean;
-	priceId: string;
-	customerEmail?: string;
-}
 
 export interface Pagination {
 	page?: number;
@@ -208,14 +202,9 @@ export type HttpMethod =
 	| "HEAD"
 	| "OPTIONS";
 
-export type EntityType =
-	| "properties"
-	| "units"
-	| "tenants"
-	| "leases"
-	| "maintenance";
-export type ActionType = "create" | "update" | "delete" | "view";
-export type Permission = `${EntityType}:${ActionType}`;
+export type EntityType = EntityTypeFromConstants;
+export type ActionType = ActionTypeFromConstants;
+export type Permission = PermissionFromConstants;
 
 export interface FinancialOverviewResponse {
 	chartData: Array<{
@@ -465,15 +454,7 @@ export interface PaymentMethodResponse {
 	createdAt: string;
 }
 
-export type SubscriptionStatus =
-	| "incomplete"
-	| "incomplete_expired"
-	| "trialing"
-	| "active"
-	| "past_due"
-	| "canceled"
-	| "unpaid"
-	| "paused";
+export type SubscriptionStatus = SubscriptionStatusFromConstants;
 
 // WithVersion types for optimistic locking
 export type LeaseWithVersion = Lease & { version?: number };

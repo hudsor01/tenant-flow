@@ -89,13 +89,6 @@ export const propertyInputSchema = z.object({
 	owner_user_id: uuidSchema,
 });
 
-// Full property schema (includes server-generated fields)
-const propertySchema = propertyInputSchema.extend({
-	id: uuidSchema,
-	created_at: z.string(),
-	updated_at: z.string(),
-});
-
 // Property update schema (partial input)
 const propertyUpdateSchema = propertyInputSchema.partial().extend({
 	id: uuidSchema.optional(),
@@ -189,12 +182,10 @@ export const propertySoldSchema = z.object({
 
 // Export types
 export type PropertyInput = z.infer<typeof propertyInputSchema>;
-export type Property = z.infer<typeof propertySchema>;
-export type PropertyUpdate = z.infer<typeof propertyUpdateSchema>;
+export type PropertyUpdateInput = z.infer<typeof propertyUpdateSchema>;
 export type PropertyQuery = z.infer<typeof propertyQuerySchema>;
 export type PropertyCreate = z.infer<typeof propertyCreateSchema>;
 export type PropertyAddress = z.infer<typeof propertyAddressSchema>;
-export type PropertyStats = z.infer<typeof propertyStatsSchema>;
 export type PropertySold = z.infer<typeof propertySoldSchema>;
 
 // Frontend-specific form schemas

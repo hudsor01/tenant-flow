@@ -16,7 +16,7 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type { LeaseCreate, LeaseUpdate } from "#lib/validation/leases";
+import type { LeaseCreate, LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
 import { mutationKeys } from "../mutation-keys";
 
@@ -87,7 +87,7 @@ export const leaseMutations = {
 				data,
 			}: {
 				id: string;
-				data: LeaseUpdate;
+				data: LeaseUpdateInput;
 			}): Promise<Lease> => {
 				const supabase = createClient();
 				// `leases` has no `version` column (only notification_settings does),

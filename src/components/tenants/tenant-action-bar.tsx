@@ -32,12 +32,7 @@ export function TenantActionBar({
 		<div
 			role="toolbar"
 			aria-orientation="horizontal"
-			className="fixed z-50 rounded-lg border bg-card shadow-lg outline-none fade-in-0 zoom-in-95 animate-in duration-250 slide-in-from-bottom-4 flex flex-row items-center gap-2 px-2 py-1.5"
-			style={{
-				bottom: "24px",
-				left: "50%",
-				transform: "translateX(-50%)",
-			}}
+			className="fixed z-50 rounded-lg border bg-card shadow-lg outline-none fade-in-0 zoom-in-95 animate-in duration-250 slide-in-from-bottom-4 flex flex-row items-center gap-2 px-2 py-1.5 bottom-6 left-1/2 -translate-x-1/2"
 		>
 			{/* Selection Count */}
 			<div className="flex items-center gap-1 rounded-sm border px-2 py-1 font-medium text-sm tabular-nums">

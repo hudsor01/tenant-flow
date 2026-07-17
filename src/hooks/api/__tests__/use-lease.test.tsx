@@ -23,7 +23,7 @@ import {
 	type LeaseWithNestedRelations,
 	type TenantWithUser,
 	transformLease,
-	type UnitWithProperty,
+	type UnitWithOptionalProperty,
 } from "#components/leases/table/lease-utils";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import type { Lease, Property } from "#types/core";
@@ -1078,7 +1078,7 @@ describe("transformLease (LEASE-01 list embed shape)", () => {
 
 	// The list embed only selects a subset of unit columns; the remaining
 	// required columns are filled so the fixture stays fully typed.
-	const fullUnit: UnitWithProperty = {
+	const fullUnit: UnitWithOptionalProperty = {
 		id: "unit-list-1",
 		property_id: "prop-list-1",
 		owner_user_id: "owner-1",
