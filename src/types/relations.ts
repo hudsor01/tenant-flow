@@ -95,6 +95,9 @@ export interface PropertyWithUnits extends Property {
 	// Core relations - units is ALWAYS included from backend
 	units: Unit[];
 
+	// SEO-01: cover image URL resolved from embedded property_images.
+	cover_image_url?: string | null;
+
 	// REQUIRED computed fields - ALL calculated in database
 	totalUnits: number;
 	occupiedUnits: number;

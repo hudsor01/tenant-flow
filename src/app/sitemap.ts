@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { env } from "#env";
+import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
-import { createClient } from "#lib/supabase/server";
 
 // Cache sitemap for 24h via ISR — crawlers never hit a live DB call.
 export const revalidate = 86400;
@@ -85,6 +85,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		priority: 0.8,
 	}));
 
+	// /compare hub — indexable page, no noindex, not robots-blocked.
+	const compareHub: MetadataRoute.Sitemap = [
+		{
+			url: `${baseUrl}/compare`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.8,
+		},
+	];
+
 	const resourcePages: MetadataRoute.Sitemap = [
 		"seasonal-maintenance-checklist",
 		"landlord-tax-deduction-tracker",
@@ -150,7 +159,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	let blogHubLastModified: string | undefined;
 	let resourcesHubLastModified: string | undefined;
 	try {
-		const supabase = await createClient();
+		const supabase = blogAnonClient();
 
 		const timeout = new Promise<never>((_, reject) =>
 			setTimeout(
@@ -228,14 +237,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				stack: error instanceof Error ? error.stack : undefined,
 			},
 		});
-		// Continue with static pages only. `blogHubLastModified` and
-		// `resourcesHubLastModified` stay undefined → the hub URLs fall
-		// back to `STATIC_PAGES_LAST_UPDATED` in the contentHubs block
-		// below so every URL ships with a lastmod (battle-test Session 5
-		// P3-3 — no sparse coverage). Trade-off: under DB failure the hub
-		// lastmod no longer reflects actual post freshness, but it's
-		// honest about "the marketing surface was last refreshed on this
-		// date" and crawlers don't see a missing-lastmod outlier.
+		// The CI compile-check build (`checks` job) runs `next build` with a
+		// placeholder Supabase host that is unresolvable, so the query hangs to
+		// the 5s timeout. That build is never deployed — emit the static
+		// (blog-less) sitemap instead of failing, mirroring the placeholder
+		// guard in `generateStaticParams`. For real builds (Vercel/e2e) a
+		// genuine DB outage re-throws so ISR serves the last-good cached sitemap
+		// (stale-if-error) instead of baking a blog-less sitemap for 24h.
+		if (!env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder")) {
+			throw error;
+		}
 	}
 
 	// Hub freshness derives from the most recent post (honest signal of
@@ -259,6 +270,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const allPages = [
 		...marketingPages,
 		...contentHubs,
+		...compareHub,
 		...comparePages,
 		...resourcePages,
 		...companyPages,

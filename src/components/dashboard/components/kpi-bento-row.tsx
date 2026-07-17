@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+import dynamic from "next/dynamic";
 import { BlurFade } from "#components/ui/blur-fade";
 import { NumberTicker } from "#components/ui/number-ticker";
 import { Skeleton } from "#components/ui/skeleton";
@@ -21,7 +22,17 @@ import {
 	type KpiBentoRowProps,
 	type KpiTileConfig,
 } from "./kpi-helpers";
-import { KpiSparkline } from "./kpi-sparkline";
+
+// SEO-06: KpiSparkline statically imports recharts, which defeats the
+// dashboard's dynamic-import isolation. Dynamic-import it so recharts
+// loads in a single lazy chunk shared with the two chart wrappers.
+const KpiSparkline = dynamic(
+	() => import("./kpi-sparkline").then((m) => m.KpiSparkline),
+	{
+		ssr: false,
+		loading: () => <Skeleton className="h-16 w-full [grid-column:1/-1]" />,
+	},
+);
 
 // Grid wrapper styles for the `@container` parent. Tailwind v4 has no
 // parent-side container-type utility — this `style={{}}` PROP is the SOLE

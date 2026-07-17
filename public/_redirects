@@ -1,2 +1,0 @@
-# Redirect webhook to proper NestJS endpoint
-/webhook/* /api/v1/stripe/webhook 200

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 // CISEC-02: the proxy serves every /auth/* route with a per-request nonce CSP
@@ -10,6 +11,15 @@ import type { ReactNode } from "react";
 // render used to be provided incidentally by the root NuqsAdapter, scoped out
 // in #858. Dynamic SSR still emits full HTML, so pages stay usable without JS.
 export const dynamic = "force-dynamic";
+
+// SEO-15: auth pages must NOT inherit the homepage canonical or index/follow.
+// One segment-level export covers all four pages (confirm-email, post-checkout,
+// signout, update-password): title becomes "Account | TenantFlow", robots flips
+// to noindex (mirrors the (owner)/layout.tsx:33 pattern).
+export const metadata: Metadata = {
+	title: "Account",
+	robots: { index: false, follow: false },
+};
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
 	return <main id="main-content">{children}</main>;

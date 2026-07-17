@@ -12,7 +12,7 @@ import type {
 	PropertyUpdate,
 } from "#lib/validation/properties";
 import type { PaginatedResponse } from "#types/api-contracts";
-import type { Property, PropertyStatus, PropertyType } from "#types/core";
+import type { Property, PropertyStatus, PropertyType, Unit } from "#types/core";
 import type { Tables } from "#types/supabase";
 import { mutationKeys } from "../mutation-keys";
 
@@ -141,6 +141,123 @@ export const propertyQueries = {
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
+		}),
+
+	/**
+	 * Consolidated list with embedded units + cover image (SEO-01).
+	 * Single PostgREST request replaces the prior 1+2N fan-out.
+	 */
+	listWithDetails: (filters?: PropertyFilters) =>
+		queryOptions({
+			queryKey: [...propertyQueries.lists(), "with-details", filters ?? {}],
+			queryFn: async (): Promise<
+				PaginatedResponse<
+					Property & { units: Unit[]; cover_image_url: string | null }
+				>
+			> => {
+				const supabase = createClient();
+				const limit = filters?.limit ?? 50;
+				const offset = filters?.offset ?? 0;
+
+				// Unit columns for embedded select — matches UNIT_SELECT_COLUMNS shape.
+				const UNIT_COLS =
+					"id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status";
+				// Image columns for embedded select.
+				const IMAGE_COLS = "id, property_id, image_url, display_order";
+
+				let q = supabase
+					.from("properties")
+					.select(
+						`${PROPERTY_SELECT_COLUMNS}, units(${UNIT_COLS}), property_images(${IMAGE_COLS})`,
+						{ count: "exact" },
+					)
+					.order("created_at", { ascending: false });
+
+				// Parent-level filters (same as list()).
+				if (filters?.status) {
+					q = q.eq("status", filters.status);
+				} else {
+					q = q.neq("status", "inactive");
+				}
+
+				if (filters?.property_type) {
+					q = q.eq("property_type", filters.property_type);
+				}
+
+				if (filters?.search) {
+					const safe = escapeOrValue(filters.search);
+					if (safe) {
+						q = q.or(`name.ilike."%${safe}%",city.ilike."%${safe}%"`);
+					}
+				}
+
+				// Embedded per-parent filters/order/limit.
+				q = q.neq("units.status", "inactive");
+				q = q.order("unit_number", {
+					referencedTable: "units",
+					ascending: true,
+				});
+				q = q.order("display_order", {
+					referencedTable: "property_images",
+					ascending: true,
+				});
+				q = q.limit(1, { referencedTable: "property_images" });
+
+				q = q.range(offset, offset + limit - 1);
+
+				const { data, error, count } = await q;
+
+				if (error) handlePostgrestError(error, "properties");
+
+				const total = count ?? 0;
+				const totalPages = Math.ceil(total / limit);
+
+				// Map embedded data: resolve relative image_url paths to public URLs.
+				const mappedData = (
+					(data as Array<
+						Property & {
+							units: Unit[];
+							property_images?: Tables<"property_images">[];
+						}
+					>) ?? []
+				).map((property) => {
+					const units = (property.units ?? []) as Unit[];
+					const images = property.property_images ?? [];
+					let coverImageUrl: string | null = null;
+
+					if (images.length > 0) {
+						const firstImage = images[0];
+						if (firstImage?.image_url) {
+							if (/^https?:\/\//.test(firstImage.image_url)) {
+								coverImageUrl = firstImage.image_url;
+							} else {
+								const { data: urlData } = supabase.storage
+									.from("property-images")
+									.getPublicUrl(firstImage.image_url);
+								coverImageUrl = urlData.publicUrl;
+							}
+						}
+					}
+
+					return {
+						...property,
+						units,
+						cover_image_url: coverImageUrl,
+					} as Property & { units: Unit[]; cover_image_url: string | null };
+				});
+
+				return {
+					data: mappedData,
+					total,
+					pagination: {
+						page: Math.floor(offset / limit) + 1,
+						limit,
+						total,
+						totalPages,
+					},
+				};
+			},
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	// image_url stores a relative storage path; resolve to public URL at read time

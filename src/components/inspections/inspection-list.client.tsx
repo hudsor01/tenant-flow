@@ -1,7 +1,8 @@
 "use client";
 
-import { ClipboardList, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, ClipboardList, Plus } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import {
@@ -88,7 +89,19 @@ function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 }
 
 export function InspectionListClient() {
-	const { data: inspections, isLoading, error } = useInspections();
+	const searchParams = useSearchParams();
+	const pageParam = searchParams?.get("page");
+	// Coerce a missing / non-numeric / `< 1` ?page (e.g. a crafted or stale
+	// /inspections?page=abc) to page 1. An unguarded NaN offset would flow into
+	// .range(NaN, NaN) and 400 the query, rendering the error state instead.
+	const parsedPage = Number.parseInt(pageParam ?? "", 10);
+	const currentPage =
+		Number.isFinite(parsedPage) && parsedPage > 1 ? parsedPage : 1;
+	const offset = (currentPage - 1) * 50;
+
+	const { data, isLoading, error } = useInspections({ offset });
+	const inspections = data?.data ?? [];
+	const total = data?.total ?? 0;
 
 	return (
 		<div className="space-y-6">
@@ -134,7 +147,7 @@ export function InspectionListClient() {
 					</div>
 				)}
 
-				{!isLoading && !error && (!inspections || inspections.length === 0) && (
+				{!isLoading && !error && inspections.length === 0 && total === 0 && (
 					<Empty>
 						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
 							<ClipboardList aria-hidden="true" />
@@ -156,11 +169,84 @@ export function InspectionListClient() {
 					</Empty>
 				)}
 
-				{!isLoading && !error && inspections && inspections.length > 0 && (
+				{/* Out-of-range page (e.g. a stale/crafted ?page past the last
+				    page): the query returns no rows but total > 0, so neither the
+				    empty-state nor the list branch matches. Offer a way back
+				    instead of a permanently blank card. */}
+				{!isLoading && !error && inspections.length === 0 && total > 0 && (
+					<div className="p-8 text-center space-y-3">
+						<p className="text-sm text-muted-foreground">
+							This page is out of range.
+						</p>
+						<Button variant="outline" size="sm" asChild>
+							<Link href="/inspections">Back to first page</Link>
+						</Button>
+					</div>
+				)}
+
+				{!isLoading && !error && inspections.length > 0 && (
 					<div>
 						{inspections.map((inspection) => (
 							<InspectionRow key={inspection.id} inspection={inspection} />
 						))}
+
+						{/* Pagination controls — bounded DOM per SEO-07 */}
+						{total > 50 && (
+							<div className="flex items-center justify-between px-4 py-3 border-t">
+								<p className="text-sm text-muted-foreground">
+									Showing {inspections.length} of {total} inspections
+								</p>
+								<div className="flex items-center gap-2">
+									{/* Boundary controls render as aria-disabled spans, not
+									    Links — an <a> can never enter `:disabled`, so a Link
+									    with a page-1 fallback href would silently send the
+									    user back to page 1 from the last page. */}
+									{currentPage > 1 ? (
+										<Link
+											href={{
+												pathname: "/inspections",
+												query:
+													currentPage > 2
+														? { page: String(currentPage - 1) }
+														: undefined,
+											}}
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3"
+										>
+											<ChevronLeft className="w-4 h-4 mr-1" />
+											Previous
+										</Link>
+									) : (
+										<span
+											aria-disabled="true"
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 opacity-50 pointer-events-none"
+										>
+											<ChevronLeft className="w-4 h-4 mr-1" />
+											Previous
+										</span>
+									)}
+									{offset + inspections.length < total ? (
+										<Link
+											href={{
+												pathname: "/inspections",
+												query: { page: String(currentPage + 1) },
+											}}
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 px-3"
+										>
+											Next
+											<ChevronRight className="w-4 h-4 ml-1" />
+										</Link>
+									) : (
+										<span
+											aria-disabled="true"
+											className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 opacity-50 pointer-events-none"
+										>
+											Next
+											<ChevronRight className="w-4 h-4 ml-1" />
+										</span>
+									)}
+								</div>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

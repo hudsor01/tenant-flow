@@ -4,6 +4,7 @@ vi.mock("#lib/generate-metadata", () => ({
 	getSiteUrl: () => "https://tenantflow.app",
 }));
 
+import { PRIVATE_ROUTE_PREFIXES } from "#lib/routes/private-routes";
 // Import the source-of-truth arrays from robots.ts directly so any
 // addition OR removal there triggers the per-bot / per-path assertions
 // below. A previous version of this file duplicated the lists, which
@@ -23,6 +24,32 @@ function asArray(value: string | string[] | undefined): string[] {
 }
 
 describe("robots()", () => {
+	it("every proxy PRIVATE_ROUTE_PREFIX appears in wildcard AND every AI-bot disallow (drift guard)", () => {
+		const rules = Array.isArray(ROUTE.rules) ? ROUTE.rules : [ROUTE.rules];
+		const wildcard = rules.find((r) => r.userAgent === "*");
+		expect(wildcard).toBeDefined();
+
+		for (const prefix of PRIVATE_ROUTE_PREFIXES) {
+			// Wildcard rule
+			const wildcardDisallow = asArray(wildcard!.disallow);
+			expect(
+				wildcardDisallow,
+				`proxy prefix ${prefix} must be disallowed for all crawlers`,
+			).toContain(prefix);
+
+			// Every AI-bot rule
+			for (const ua of AI_USER_AGENTS) {
+				const rule = rules.find((r) => r.userAgent === ua);
+				expect(rule).toBeDefined();
+				const aiDisallow = asArray(rule!.disallow);
+				expect(
+					aiDisallow,
+					`${ua} must disallow proxy prefix ${prefix}`,
+				).toContain(prefix);
+			}
+		}
+	});
+
 	it("emits a wildcard rule with public allow + full private disallow", () => {
 		const rules = Array.isArray(ROUTE.rules) ? ROUTE.rules : [ROUTE.rules];
 		const wildcard = rules.find((r) => r.userAgent === "*");

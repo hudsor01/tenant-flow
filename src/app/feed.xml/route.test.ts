@@ -50,6 +50,13 @@ vi.mock("#lib/supabase/server", () => ({
 	}),
 }));
 
+// feed.xml/route.ts uses blogAnonClient() from #lib/blog/blog-queries.
+vi.mock("#lib/blog/blog-queries", () => ({
+	blogAnonClient: vi.fn().mockReturnValue({
+		from: vi.fn().mockImplementation(() => makeQueryBuilder()),
+	}),
+}));
+
 async function fetchFeed(): Promise<{
 	status: number;
 	xml: string;

@@ -113,6 +113,14 @@ vi.mock("#lib/supabase/server", () => ({
 	}),
 }));
 
+// sitemap.ts uses blogAnonClient() from #lib/blog/blog-queries, not the server client.
+// Mock it to return the same query builder so blog queries work in tests.
+vi.mock("#lib/blog/blog-queries", () => ({
+	blogAnonClient: vi.fn().mockReturnValue({
+		from: vi.fn().mockImplementation(() => makeQueryBuilder()),
+	}),
+}));
+
 describe("sitemap()", () => {
 	beforeEach(() => {
 		vi.resetModules();
@@ -162,6 +170,8 @@ describe("sitemap()", () => {
 			"https://tenantflow.app/faq",
 			"https://tenantflow.app/help",
 			"https://tenantflow.app/support",
+			// SEO-13: the /compare hub must be listed (not just its children).
+			"https://tenantflow.app/compare",
 			"https://tenantflow.app/compare/buildium",
 			"https://tenantflow.app/compare/appfolio",
 			"https://tenantflow.app/compare/rentredi",
@@ -352,16 +362,19 @@ describe("sitemap legal-page lastmod drift guard", () => {
 });
 
 /**
- * Hub-URL fallback test — isolated describe so the override mock can't
- * leak into the main suite. When the blog DB query fails, /blog and
- * /resources must still ship a lastmod (fall back to STATIC_PAGES_LAST_UPDATED)
- * so every URL keeps the freshness signal added in PR #719.
+ * DB-failure test — isolated describe so the override mock can't leak
+ * into the main suite. `sitemap.ts` deliberately RE-THROWS when the blog
+ * query fails (see the catch block in sitemap.ts) so ISR serves the
+ * last-good cached sitemap (stale-if-error) instead of baking a
+ * blog-less sitemap for 24h. Mock `#lib/blog/blog-queries` — the actual
+ * module `sitemap.ts` calls via `blogAnonClient()` — not
+ * `#lib/supabase/server`, which sitemap.ts never touches.
  */
 describe("sitemap() — DB-failure fallback", () => {
 	beforeEach(() => {
 		vi.resetModules();
-		vi.doMock("#lib/supabase/server", () => ({
-			createClient: vi.fn().mockResolvedValue({
+		vi.doMock("#lib/blog/blog-queries", () => ({
+			blogAnonClient: vi.fn().mockReturnValue({
 				from: vi.fn().mockImplementation(() => {
 					throw new Error("Simulated DB outage");
 				}),
@@ -373,23 +386,28 @@ describe("sitemap() — DB-failure fallback", () => {
 		// Defense-in-depth: this describe is currently the last in the
 		// file, but unmocking here keeps the "isolated" claim literally
 		// true if a future describe is appended below.
-		vi.doUnmock("#lib/supabase/server");
+		vi.doUnmock("#lib/blog/blog-queries");
 	});
 
-	it("hub URLs fall back to STATIC_PAGES_LAST_UPDATED when the blog query throws", async () => {
+	it("rethrows when the blog query fails, so ISR serves the last-good cached sitemap instead of a blog-less one", async () => {
+		const { default: sitemap } = await import("./sitemap");
+		await expect(sitemap()).rejects.toThrow("Simulated DB outage");
+	});
+
+	it("swallows the failure on the placeholder-env CI build and emits the static sitemap", async () => {
+		// The CI `checks` build runs `next build` against the unresolvable
+		// placeholder Supabase host; that build is never deployed, so the blog
+		// query failure must NOT fail the build — the static pages still emit.
+		vi.doMock("#env", () => ({
+			env: {
+				NEXT_PUBLIC_APP_URL: "https://tenantflow.app",
+				NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co",
+			},
+		}));
 		const { default: sitemap } = await import("./sitemap");
 		const entries = await sitemap();
-
-		const home = entries.find((e) => e.url === "https://tenantflow.app");
-		const blogHub = entries.find(
-			(e) => e.url === "https://tenantflow.app/blog",
-		);
-		const resourcesHub = entries.find(
-			(e) => e.url === "https://tenantflow.app/resources",
-		);
-
-		expect(home?.lastModified).toBeDefined();
-		expect(blogHub?.lastModified).toBe(home?.lastModified);
-		expect(resourcesHub?.lastModified).toBe(home?.lastModified);
+		expect(entries.some((e) => e.url === "https://tenantflow.app")).toBe(true);
+		expect(entries.some((e) => e.url.includes("/blog/"))).toBe(false);
+		vi.doUnmock("#env");
 	});
 });

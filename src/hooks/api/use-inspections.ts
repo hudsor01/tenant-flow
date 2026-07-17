@@ -9,11 +9,12 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import type { InspectionFilters } from "./query-keys/inspection-keys";
 import { inspectionQueries } from "./query-keys/inspection-keys";
 
 /**
- * Hook to fetch all inspections for the current owner
+ * Hook to fetch inspections for the current owner with pagination.
  */
-export function useInspections() {
-	return useQuery(inspectionQueries.list());
+export function useInspections(filters?: InspectionFilters) {
+	return useQuery(inspectionQueries.list(filters));
 }

@@ -13,8 +13,15 @@
  * - NaN occupancy guard (renders 0%, does not crash)
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock KpiSparkline since it's dynamically imported with ssr:false and uses recharts.
+vi.mock("#components/dashboard/components/kpi-sparkline", () => ({
+	KpiSparkline: ({ ariaLabel }: { ariaLabel: string }) => (
+		<div role="img" aria-label={ariaLabel} data-testid="sparkline-mock" />
+	),
+}));
 
 import { KpiBentoRow } from "#components/dashboard/components/kpi-bento-row";
 import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
@@ -145,7 +152,7 @@ describe("KpiBentoRow", () => {
 		]);
 	});
 
-	it("renders sparklines on tiles 0+1 only", () => {
+	it("renders sparklines on tiles 0+1 only", async () => {
 		render(
 			<KpiBentoRow
 				isLoading={false}
@@ -154,7 +161,9 @@ describe("KpiBentoRow", () => {
 				timeSeries={mockTimeSeries}
 			/>,
 		);
-		const sparklineImgs = screen.queryAllByRole("img");
+		// KpiSparkline is loaded via next/dynamic; the mocked module resolves on a
+		// microtask after the initial (loading-skeleton) render, so wait for it.
+		const sparklineImgs = await screen.findAllByRole("img");
 		expect(sparklineImgs).toHaveLength(2);
 		const items = screen.getAllByRole("listitem");
 		expect(items[0]?.querySelector("[role=img]")).not.toBeNull();
@@ -281,7 +290,7 @@ describe("KpiBentoRow", () => {
 		expect(trend?.className).toMatch(/!text-warning-text/);
 	});
 
-	it("sparkline-data-too-thin guard: data length 1 → no sparkline", () => {
+	it("sparkline-data-too-thin guard: data length 1 → no sparkline", async () => {
 		const thinTimeSeries: KpiBentoRowProps["timeSeries"] = {
 			occupancyRate: sparklineData,
 			monthlyRevenue: [{ date: "2026-05-01", value: 1000 }],
@@ -295,8 +304,12 @@ describe("KpiBentoRow", () => {
 			/>,
 		);
 		const items = screen.getAllByRole("listitem");
+		// KpiSparkline is loaded via next/dynamic; wait for the mocked module to
+		// resolve before asserting the thin-data guard suppressed tile 0's sparkline.
+		await waitFor(() => {
+			expect(items[1]?.querySelector("[role=img]")).not.toBeNull();
+		});
 		expect(items[0]?.querySelector("[role=img]")).toBeNull();
-		expect(items[1]?.querySelector("[role=img]")).not.toBeNull();
 	});
 
 	it("NaN occupancy guard renders 0% and does not crash", () => {
