@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import type { Metadata } from "next";
 import { DeliverabilityTable } from "#components/admin/deliverability-table";
 import { FunnelChartClient } from "#components/admin/funnel-chart";
@@ -25,11 +26,13 @@ const GATE_CONVERSION_WINDOW_DAYS = 30;
 export default async function AdminAnalyticsPage() {
 	const supabase = await createClient();
 
-	const now = new Date();
+	// Only p_from is passed. get_funnel_stats defaults p_to to the Postgres
+	// now(), so the DB clock is the upper bound — a Vercel/DB clock skew can no
+	// longer push a client-computed p_to past now() and trip the RPC's
+	// "p_to cannot be in the future" guard.
 	const funnelFrom = new Date(
-		now.getTime() - FUNNEL_WINDOW_DAYS * 86_400_000,
+		Date.now() - FUNNEL_WINDOW_DAYS * 86_400_000,
 	).toISOString();
-	const funnelTo = now.toISOString();
 
 	const [deliverabilityResult, funnelResult, gateResult] = await Promise.all([
 		supabase.rpc("get_deliverability_stats", {
@@ -37,12 +40,34 @@ export default async function AdminAnalyticsPage() {
 		}),
 		supabase.rpc("get_funnel_stats", {
 			p_from: funnelFrom,
-			p_to: funnelTo,
 		}),
 		supabase.rpc("get_gate_conversion_stats", {
 			p_days: GATE_CONVERSION_WINDOW_DAYS,
 		}),
 	]);
+
+	// An RPC failure returns { data: null, error }. Without this, the null falls
+	// through to []/null and renders as a genuine-empty state — masking outages
+	// from both the admin and Sentry.
+	if (deliverabilityResult.error) {
+		Sentry.captureException(deliverabilityResult.error, {
+			tags: { page: "admin-analytics", rpc: "get_deliverability_stats" },
+		});
+	}
+	if (funnelResult.error) {
+		Sentry.captureException(funnelResult.error, {
+			tags: { page: "admin-analytics", rpc: "get_funnel_stats" },
+		});
+	}
+	if (gateResult.error) {
+		Sentry.captureException(gateResult.error, {
+			tags: { page: "admin-analytics", rpc: "get_gate_conversion_stats" },
+		});
+	}
+
+	const deliverabilityErrored = deliverabilityResult.error != null;
+	const funnelErrored = funnelResult.error != null;
+	const gateErrored = gateResult.error != null;
 
 	const deliverability: DeliverabilityStats[] = Array.isArray(
 		deliverabilityResult.data,
@@ -82,7 +107,13 @@ export default async function AdminAnalyticsPage() {
 				>
 					Paywall Conversions
 				</h3>
-				<GateConversionTable data={gateConversion} />
+				{gateErrored ? (
+					<p className="text-sm text-destructive-text">
+						Failed to load — refresh to retry.
+					</p>
+				) : (
+					<GateConversionTable data={gateConversion} />
+				)}
 			</section>
 			<section aria-labelledby="deliverability-heading">
 				<h3
@@ -91,7 +122,13 @@ export default async function AdminAnalyticsPage() {
 				>
 					Email Deliverability
 				</h3>
-				<DeliverabilityTable data={deliverability} />
+				{deliverabilityErrored ? (
+					<p className="text-sm text-destructive-text">
+						Failed to load — refresh to retry.
+					</p>
+				) : (
+					<DeliverabilityTable data={deliverability} />
+				)}
 			</section>
 			<section aria-labelledby="funnel-heading">
 				<h3
@@ -100,12 +137,20 @@ export default async function AdminAnalyticsPage() {
 				>
 					Onboarding Funnel
 				</h3>
-				{funnel && funnel.cohortLabel ? (
-					<p className="text-xs text-muted-foreground mb-2">
-						Cohort: {funnel.cohortLabel}
+				{funnelErrored ? (
+					<p className="text-sm text-destructive-text">
+						Failed to load — refresh to retry.
 					</p>
-				) : null}
-				<FunnelChartClient data={funnel} />
+				) : (
+					<>
+						{funnel && funnel.cohortLabel ? (
+							<p className="text-xs text-muted-foreground mb-2">
+								Cohort: {funnel.cohortLabel}
+							</p>
+						) : null}
+						<FunnelChartClient data={funnel} />
+					</>
+				)}
 			</section>
 		</div>
 	);
