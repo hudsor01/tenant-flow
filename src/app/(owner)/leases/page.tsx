@@ -149,9 +149,14 @@ export default function LeasesPage() {
 	});
 
 	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage);
+	// STATE-01: clamp to the recomputed totalPages BEFORE slicing so the slice
+	// can never land out of range — even for a single frame — when a stale
+	// stored page survives a dataset shrink (the write-back effect below then
+	// reconciles the store).
+	const effectivePage = Math.min(currentPage, Math.max(1, totalPages));
 	const paginatedLeases = sortedLeases.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage,
+		(effectivePage - 1) * itemsPerPage,
+		effectivePage * itemsPerPage,
 	);
 
 	const handleView = (id: string) => router.push(`/leases/${id}`);
@@ -160,9 +165,6 @@ export default function LeasesPage() {
 	// Derive the selected lease entity fresh from the query-backed list (STATE-03)
 	const selectedLease =
 		leases.find((l) => l.id === selectedLeaseId)?.original ?? null;
-
-	// Clamp currentPage to the recomputed totalPages (STATE-01)
-	const effectivePage = Math.min(currentPage, Math.max(1, totalPages));
 
 	// Write clamp back to store when they diverge (keeps footer/counter consistent)
 	useEffect(() => {
