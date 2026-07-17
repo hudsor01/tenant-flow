@@ -169,6 +169,21 @@ export function InspectionListClient() {
 					</Empty>
 				)}
 
+				{/* Out-of-range page (e.g. a stale/crafted ?page past the last
+				    page): the query returns no rows but total > 0, so neither the
+				    empty-state nor the list branch matches. Offer a way back
+				    instead of a permanently blank card. */}
+				{!isLoading && !error && inspections.length === 0 && total > 0 && (
+					<div className="p-8 text-center space-y-3">
+						<p className="text-sm text-muted-foreground">
+							This page is out of range.
+						</p>
+						<Button variant="outline" size="sm" asChild>
+							<Link href="/inspections">Back to first page</Link>
+						</Button>
+					</div>
+				)}
+
 				{!isLoading && !error && inspections.length > 0 && (
 					<div>
 						{inspections.map((inspection) => (

@@ -170,6 +170,8 @@ describe("sitemap()", () => {
 			"https://tenantflow.app/faq",
 			"https://tenantflow.app/help",
 			"https://tenantflow.app/support",
+			// SEO-13: the /compare hub must be listed (not just its children).
+			"https://tenantflow.app/compare",
 			"https://tenantflow.app/compare/buildium",
 			"https://tenantflow.app/compare/appfolio",
 			"https://tenantflow.app/compare/rentredi",
