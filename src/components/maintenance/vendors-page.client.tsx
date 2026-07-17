@@ -191,6 +191,7 @@ export function VendorsPageClient() {
 							debouncedSetSearch(e.target.value);
 						}}
 						placeholder="Search vendors..."
+						aria-label="Search vendors"
 						className="pl-9 h-11"
 					/>
 				</div>

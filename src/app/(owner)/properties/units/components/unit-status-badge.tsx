@@ -23,7 +23,7 @@ export const statusConfig: Record<
 		label: "Occupied",
 		icon: Users,
 		className:
-			"bg-accent/10 text-accent-foreground border-accent/20 dark:bg-accent/20 dark:text-accent dark:border-accent/80",
+			"bg-accent/10 text-success-text border-accent/20 dark:bg-accent/20 dark:border-accent/80",
 		priority: 1,
 	},
 	available: {
@@ -31,7 +31,7 @@ export const statusConfig: Record<
 		label: "Available",
 		icon: Home,
 		className:
-			"bg-primary/10 text-primary-foreground border-primary/20 dark:bg-primary/20 dark:text-primary dark:border-primary/80",
+			"bg-primary/10 text-primary-text border-primary/20 dark:bg-primary/20 dark:border-primary/80",
 		priority: 2,
 	},
 	maintenance: {
@@ -39,7 +39,7 @@ export const statusConfig: Record<
 		label: "Maintenance",
 		icon: AlertTriangle,
 		className:
-			"bg-destructive/10 text-destructive-foreground border-destructive/20 dark:bg-destructive/20 dark:text-destructive dark:border-destructive/80",
+			"bg-destructive/10 text-destructive-text border-destructive/20 dark:bg-destructive/20 dark:border-destructive/80",
 		priority: 4,
 	},
 	reserved: {
@@ -47,7 +47,7 @@ export const statusConfig: Record<
 		label: "Reserved",
 		icon: Calendar,
 		className:
-			"bg-muted/10 text-muted-foreground border-muted/20 dark:bg-muted/20 dark:text-muted dark:border-muted/80",
+			"bg-muted text-muted-foreground border-border dark:bg-muted/20 dark:border-muted/80",
 		priority: 3,
 	},
 };

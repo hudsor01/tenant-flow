@@ -56,7 +56,7 @@ export function QuickActionsDock({
 						>
 							<Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
 							{/* Tooltip */}
-							<span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-xs font-medium bg-foreground text-background rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+							<span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 text-xs font-medium bg-foreground text-background rounded opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
 								{action.label}
 							</span>
 						</Link>

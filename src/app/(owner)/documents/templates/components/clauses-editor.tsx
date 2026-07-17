@@ -47,17 +47,19 @@ export function ClausesEditor({ clauses, onChange }: ClausesEditorProps) {
 				{clauses.map((clause, index) => (
 					<div key={clause.id} className="space-y-2">
 						<div className="flex items-center justify-between">
-							<Label>Clause {index + 1}</Label>
+							<Label htmlFor={`clause-${clause.id}`}>Clause {index + 1}</Label>
 							<Button
 								type="button"
 								variant="ghost"
 								size="sm"
+								aria-label={`Remove clause ${index + 1}`}
 								onClick={() => handleRemove(index)}
 							>
 								<Trash2 className="size-4" />
 							</Button>
 						</div>
 						<Input
+							id={`clause-${clause.id}`}
 							value={clause.text}
 							onChange={(event) => handleUpdate(index, event.target.value)}
 							placeholder="Example: State-required disclosure text"

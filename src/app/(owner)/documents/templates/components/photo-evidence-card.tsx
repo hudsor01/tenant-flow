@@ -25,7 +25,13 @@ export function PhotoEvidenceCard({
 				<CardTitle>Photo evidence</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<Input type="file" multiple accept="image/*" onChange={onUpload} />
+				<Input
+					type="file"
+					multiple
+					accept="image/*"
+					aria-label="Upload photo evidence"
+					onChange={onUpload}
+				/>
 				{photos.length > 0 ? (
 					<div className="grid gap-3 sm:grid-cols-2">
 						{photos.map((photo, index) => (

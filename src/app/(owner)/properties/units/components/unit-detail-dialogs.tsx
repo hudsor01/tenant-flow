@@ -8,15 +8,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#components/ui/dialog";
-import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
 import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
 import { UnitStatusBadge } from "./unit-status-badge";
 
@@ -91,39 +83,31 @@ export function UnitEditDialog({
 				<div className="space-y-4">
 					<div>
 						<Label>Unit Number</Label>
-						<Input value={unit.unit_number || ""} disabled />
+						<p className="mt-1 text-sm">{unit.unit_number || "—"}</p>
 					</div>
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<Label>Bedrooms</Label>
-							<Input type="number" value={unit.bedrooms ?? ""} disabled />
+							<p className="mt-1 text-sm">{unit.bedrooms ?? "—"}</p>
 						</div>
 						<div>
 							<Label>Bathrooms</Label>
-							<Input type="number" value={unit.bathrooms ?? ""} disabled />
+							<p className="mt-1 text-sm">{unit.bathrooms ?? "—"}</p>
 						</div>
 					</div>
 					<div>
 						<Label>Square Feet</Label>
-						<Input type="number" value={unit.square_feet || ""} disabled />
+						<p className="mt-1 text-sm">{unit.square_feet || "—"}</p>
 					</div>
 					<div>
 						<Label>Rent Amount</Label>
-						<Input type="number" value={unit.rent_amount} disabled />
+						<p className="mt-1 text-sm">${unit.rent_amount}</p>
 					</div>
 					<div>
 						<Label>Status</Label>
-						<Select value={unit.status} disabled>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="OCCUPIED">Occupied</SelectItem>
-								<SelectItem value="available">Vacant</SelectItem>
-								<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-								<SelectItem value="RESERVED">Reserved</SelectItem>
-							</SelectContent>
-						</Select>
+						<div className="mt-1">
+							<UnitStatusBadge status={unit.status as UnitStatus} />
+						</div>
 					</div>
 				</div>
 				<DialogFooter>

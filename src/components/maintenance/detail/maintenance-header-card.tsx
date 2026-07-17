@@ -91,7 +91,12 @@ export function MaintenanceHeaderCard({
 							Edit
 						</Link>
 					</Button>
-					<Button variant="outline" size="sm" onClick={onExport}>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onExport}
+						aria-label="Export request"
+					>
 						<Download className="size-4" />
 					</Button>
 				</div>

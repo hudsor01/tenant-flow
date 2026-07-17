@@ -124,39 +124,42 @@ export function DataTableSliderFilter<TData>({
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				<Button
-					variant="outline"
-					size="sm"
-					className="border-dashed font-normal"
-				>
-					{columnFilterValue ? (
-						<div
-							role="button"
-							aria-label={`Clear ${title} filter`}
-							tabIndex={0}
-							className="rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-							onClick={onReset}
-						>
-							<XCircle />
-						</div>
-					) : (
-						<PlusCircle />
-					)}
-					<span>{title}</span>
-					{columnFilterValue ? (
-						<>
-							<Separator
-								orientation="vertical"
-								className="mx-0.5 data-[orientation=vertical]:h-4"
-							/>
-							{formatValue(columnFilterValue[0])} -{" "}
-							{formatValue(columnFilterValue[1])}
-							{unit ? ` ${unit}` : ""}
-						</>
-					) : null}
-				</Button>
-			</PopoverTrigger>
+			<div className="relative inline-flex items-center">
+				{columnFilterValue && (
+					<button
+						type="button"
+						aria-label={`Clear ${title} filter`}
+						onClick={onReset}
+						className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+					>
+						<XCircle className="size-4" />
+					</button>
+				)}
+				<PopoverTrigger asChild>
+					<Button
+						variant="outline"
+						size="sm"
+						className={cn(
+							"border-dashed font-normal",
+							columnFilterValue && "pl-8",
+						)}
+					>
+						{!columnFilterValue && <PlusCircle />}
+						<span>{title}</span>
+						{columnFilterValue ? (
+							<>
+								<Separator
+									orientation="vertical"
+									className="mx-0.5 data-[orientation=vertical]:h-4"
+								/>
+								{formatValue(columnFilterValue[0])} -{" "}
+								{formatValue(columnFilterValue[1])}
+								{unit ? ` ${unit}` : ""}
+							</>
+						) : null}
+					</Button>
+				</PopoverTrigger>
+			</div>
 			<PopoverContent align="start" className="flex w-auto flex-col gap-4">
 				<div className="flex flex-col gap-3">
 					<p className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">

@@ -76,7 +76,7 @@ const BentoCard = ({
 		</div>
 
 		{/* CTA button - slides up on hover */}
-		<div className="absolute bottom-0 left-0 right-0 px-5 pb-4 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+		<div className="absolute bottom-0 left-0 right-0 px-5 pb-4 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
 			<Button variant="default" size="sm" asChild className="w-fit">
 				<Link href={href}>
 					{cta}

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { cn } from "#lib/utils";
 
 interface FaqItem {
@@ -78,11 +78,14 @@ interface FaqItemProps {
 
 function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 	const contentRef = useRef<HTMLDivElement>(null);
+	const panelId = useId();
 
 	return (
 		<div className="group overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg">
 			<button
 				onClick={onToggle}
+				aria-expanded={isOpen}
+				aria-controls={panelId}
 				className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:bg-muted/50"
 			>
 				<h3 className="text-foreground typography-large pr-4">
@@ -98,6 +101,8 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 
 			<div
 				ref={contentRef}
+				id={panelId}
+				role="region"
 				className={cn(
 					"grid transition-all [transition-duration:var(--duration-normal)] ease-in-out",
 					isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
