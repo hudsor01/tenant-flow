@@ -166,10 +166,16 @@ export default function LeasesPage() {
 	const selectedLease =
 		leases.find((l) => l.id === selectedLeaseId)?.original ?? null;
 
-	// Write clamp back to store when they diverge (keeps footer/counter consistent)
+	// Write the clamp back to the store when they diverge (keeps footer/counter
+	// consistent). STATE-01: only during a loaded render — on the isLoading
+	// render sortedLeases is transiently [], so effectivePage collapses to 1 and
+	// would clobber a valid stored page (losing the user's page position on a
+	// cold remount after the list query's gcTime).
 	useEffect(() => {
-		if (effectivePage !== currentPage) setCurrentPage(effectivePage);
-	}, [effectivePage, currentPage, setCurrentPage]);
+		if (!isLoading && effectivePage !== currentPage) {
+			setCurrentPage(effectivePage);
+		}
+	}, [isLoading, effectivePage, currentPage, setCurrentPage]);
 
 	// Prune stale selections against the fetched id set (STATE-01/05/12 class fix)
 	useEffect(() => {

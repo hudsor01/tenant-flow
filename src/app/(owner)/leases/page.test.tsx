@@ -112,6 +112,22 @@ describe("LeasesPage state wiring", () => {
 		expect(useLeasesStore.getState().selectedRows.size).toBe(2);
 	});
 
+	it("STATE-01: preserves a valid stored page across a cold (isLoading) remount", async () => {
+		// Cold SPA return: isLoading=true, no data yet, but the user was on page 2.
+		useLeaseListMock.mockReturnValue({
+			data: undefined,
+			isLoading: true,
+			error: null,
+		});
+		useLeasesStore.setState({ currentPage: 2 });
+		await renderPage();
+
+		// The write-back effect must NOT collapse the stored page to 1 while
+		// loading — the position is restored once the real data arrives.
+		await Promise.resolve();
+		expect(useLeasesStore.getState().currentPage).toBe(2);
+	});
+
 	it("STATE-01: prunes a phantom selected id absent from the fetched list", async () => {
 		seedLeases(2);
 		useLeasesStore.setState({
