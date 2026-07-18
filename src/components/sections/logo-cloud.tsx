@@ -4,7 +4,6 @@ import { cn } from "#lib/utils";
 interface LogoCloudProps {
 	className?: string;
 	title?: string;
-	subtitle?: string;
 }
 
 /**
@@ -13,34 +12,16 @@ interface LogoCloudProps {
  */
 export function LogoCloud({
 	className,
-	title = "Built on Stripe, Supabase, Vercel, and Resend",
-	subtitle = "The infrastructure behind billing, data, hosting, and email",
+	// Eyebrow adds a trust framing instead of repeating the brand names the
+	// wordmarks already show (and the per-logo captions already show the
+	// categories, so the old subtitle was dropped).
+	title = "Built on infrastructure trusted at scale",
 }: LogoCloudProps) {
 	const stack = [
-		{
-			name: "Stripe",
-			description: "Payments",
-			logo: StripeLogo,
-			width: "w-24",
-		},
-		{
-			name: "Supabase",
-			description: "Database",
-			logo: SupabaseWordmark,
-			width: "w-28",
-		},
-		{
-			name: "Vercel",
-			description: "Hosting",
-			logo: VercelWordmark,
-			width: "w-24",
-		},
-		{
-			name: "Resend",
-			description: "Email",
-			logo: ResendLogo,
-			width: "w-20",
-		},
+		{ name: "Stripe", description: "Payments", logo: StripeLogo },
+		{ name: "Supabase", description: "Database", logo: SupabaseWordmark },
+		{ name: "Vercel", description: "Hosting", logo: VercelWordmark },
+		{ name: "Resend", description: "Email", logo: ResendLogo },
 	];
 
 	return (
@@ -48,23 +29,20 @@ export function LogoCloud({
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-8">
-						<p className="typography-small text-muted-foreground uppercase tracking-wider mb-2">
+						<p className="typography-small text-muted-foreground uppercase tracking-wider">
 							{title}
 						</p>
-						<p className="text-muted-foreground text-sm">{subtitle}</p>
 					</div>
 
 					<div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
 						{stack.map((item, index) => (
 							<BlurFade key={item.name} delay={0.1 + index * 0.05} inView>
 								<div className="group relative flex flex-col items-center gap-2">
-									<div
-										className={cn(
-											"h-8 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300",
-											item.width,
-										)}
-									>
-										<item.logo className="h-full w-full" />
+									{/* Uniform 40px height, width auto — logos render at their
+									    natural aspect ratio (no per-logo fixed width letterboxing
+									    them to sub-32px optical heights). */}
+									<div className="h-10 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300">
+										<item.logo className="h-full w-auto" />
 									</div>
 									<span className="text-xs text-muted-foreground">
 										{item.description}
