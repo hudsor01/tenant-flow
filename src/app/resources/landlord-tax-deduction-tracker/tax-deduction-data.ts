@@ -171,7 +171,7 @@ export const deductionCategories: DeductionCategory[] = [
 			{
 				deduction: "Mileage (Standard Rate)",
 				description:
-					"IRS standard mileage rate for rental property trips (2026: 72.5 cents/mile through June 30, 76 cents/mile from July 1)",
+					"IRS standard mileage rate for rental property trips (check the current-year rate at irs.gov)",
 				example:
 					"500 miles for showings, repairs, inspections at 76 cents/mile = $380 deduction",
 			},

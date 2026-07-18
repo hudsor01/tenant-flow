@@ -28,7 +28,6 @@ const PUBLIC_PATHS = [
 	"/privacy",
 	"/terms",
 	"/security-policy",
-	"/support",
 ] as const;
 
 test.describe("Persona consistency — sitewide", () => {

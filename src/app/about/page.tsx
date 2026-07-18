@@ -1,15 +1,15 @@
 import {
 	ArrowRight,
-	Bolt,
-	Building2,
+	CalendarClock,
+	FileSignature,
+	FolderLock,
 	Handshake,
-	LifeBuoy,
 	Lightbulb,
 	Lock,
 	Rocket,
+	ShieldCheck,
 	Sprout,
 	Target,
-	Users,
 	Zap,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -32,10 +32,18 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 const stats = [
-	{ number: "Vault", label: "Per-entity document storage", Icon: Building2 },
-	{ number: "E-Sign", label: "Lease e-signing", Icon: Users },
-	{ number: "RLS", label: "Postgres-level data isolation", Icon: Bolt },
-	{ number: "14-day", label: "Free trial, no credit card", Icon: LifeBuoy },
+	{ number: "Vault", label: "Per-entity document storage", Icon: FolderLock },
+	{ number: "E-Sign", label: "Lease e-signing", Icon: FileSignature },
+	{
+		number: "Private",
+		label: "Per-landlord data isolation",
+		Icon: ShieldCheck,
+	},
+	{
+		number: "14-day",
+		label: "Free trial, no credit card",
+		Icon: CalendarClock,
+	},
 ];
 
 // ISR — about-page copy is static; 1h revalidate matches the sibling
@@ -64,10 +72,7 @@ export default function AboutPage() {
 				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
 				primaryCta={{ label: "Start free — no card", href: "/pricing" }}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
-				image={{
-					src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
-					alt: "Professional team collaborating on property management solutions",
-				}}
+				brandArt
 			/>
 
 			{/* Mission Section */}
@@ -82,13 +87,13 @@ export default function AboutPage() {
 								<div className="space-y-4">
 									<p className="text-xl text-muted-foreground leading-relaxed">
 										To empower landlords with the tools they need to grow their
-										business, reduce operational overhead, and provide
-										exceptional service to their tenants.
+										business, reduce operational overhead, and stay organized
+										across their entire portfolio.
 									</p>
 									<p className="text-base text-muted-foreground leading-relaxed">
 										We believe property management should be streamlined,
-										data-driven, and focused on building lasting relationships
-										between managers and tenants.
+										data-driven, and give landlords a reliable system of record
+										for every property they own.
 									</p>
 								</div>
 							</div>
@@ -128,8 +133,8 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Built on a modern stack</ItemTitle>
 									<ItemDescription>
-										TenantFlow ships on Next.js, React 19, Supabase, and Stripe.
-										The whole stack is documented and current.
+										TenantFlow runs on modern, well-documented infrastructure
+										and stays current with security and platform updates.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -158,7 +163,7 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Security & Privacy</ItemTitle>
 									<ItemDescription>
-										Postgres row-level security per landlord, encrypted at rest,
+										Row-level data isolation per landlord, encrypted at rest,
 										GDPR-compliant deletion flow.
 									</ItemDescription>
 								</ItemContent>
@@ -275,8 +280,8 @@ export default function AboutPage() {
 								</Button>
 							</div>
 							<p className="text-muted-foreground">
-								No setup fees • Postgres RLS isolation • 14-day free trial •
-								Cancel anytime
+								No setup fees • Per-landlord data isolation • 14-day free trial
+								• Cancel anytime
 							</p>
 						</div>
 					</BlurFade>

@@ -126,11 +126,11 @@ describe("sitemap()", () => {
 		vi.resetModules();
 	});
 
-	it("Test 1: includes /support URL in entries", async () => {
+	it("Test 1: includes /help URL in entries", async () => {
 		const { default: sitemap } = await import("./sitemap");
 		const entries = await sitemap();
 		const urls = entries.map((e) => e.url);
-		expect(urls).toContain("https://tenantflow.app/support");
+		expect(urls).toContain("https://tenantflow.app/help");
 	});
 
 	it("Test 2: includes /security-policy URL in entries", async () => {
@@ -169,7 +169,6 @@ describe("sitemap()", () => {
 			"https://tenantflow.app/contact",
 			"https://tenantflow.app/faq",
 			"https://tenantflow.app/help",
-			"https://tenantflow.app/support",
 			// SEO-13: the /compare hub must be listed (not just its children).
 			"https://tenantflow.app/compare",
 			"https://tenantflow.app/compare/buildium",

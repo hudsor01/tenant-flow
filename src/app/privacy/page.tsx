@@ -230,8 +230,8 @@ export default function PrivacyPage() {
 								compliant platforms (Supabase, Vercel)
 							</li>
 							<li>
-								<strong>Regular Audits:</strong> Security monitoring,
-								vulnerability scanning, and penetration testing
+								<strong>Regular Audits:</strong> Security monitoring and
+								vulnerability scanning
 							</li>
 							<li>
 								<strong>Data Backups:</strong> Regular automated backups with

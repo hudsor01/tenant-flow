@@ -28,7 +28,6 @@ const FOOTER_SECTIONS: ReadonlyArray<{
 		links: [
 			{ label: "About", href: "/about" },
 			{ label: "Contact", href: "/contact" },
-			{ label: "Support", href: "/support" },
 		],
 	},
 	{

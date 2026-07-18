@@ -202,8 +202,8 @@ export function PricingCardFeatured({
 						)}
 					</div>
 
-					{/* Features - 2 column grid for featured card */}
-					<div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-8 flex-1">
+					{/* Features - single column on mobile, 2 columns from sm up */}
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-8 flex-1">
 						{plan.features.map((feature) => (
 							<div
 								key={feature}

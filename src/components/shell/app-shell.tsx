@@ -323,12 +323,6 @@ export function AppShell({
 									Help
 								</Link>
 								<Link
-									href="/support"
-									className="hover:text-foreground transition-colors"
-								>
-									Support
-								</Link>
-								<Link
 									href="/terms"
 									className="hover:text-foreground transition-colors"
 								>

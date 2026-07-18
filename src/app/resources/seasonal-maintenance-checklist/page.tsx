@@ -13,7 +13,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 export const metadata: Metadata = createPageMetadata({
 	title: "Seasonal Maintenance Checklist for Rental Properties",
 	description:
-		"Free printable season-by-season maintenance checklist for landlords. Covers HVAC, plumbing, electrical, exterior, and safety inspections.",
+		"Free printable season-by-season maintenance checklist for landlords. Covers HVAC, plumbing, exterior, and safety inspections.",
 	path: "/resources/seasonal-maintenance-checklist",
 });
 
@@ -256,7 +256,7 @@ export default function SeasonalMaintenanceChecklistPage() {
 		"@type": "HowTo" as const,
 		name: "Seasonal Maintenance Checklist for Rental Properties",
 		description:
-			"A comprehensive season-by-season maintenance checklist covering HVAC, plumbing, electrical, exterior, safety, and landscaping inspections.",
+			"A comprehensive season-by-season maintenance checklist covering HVAC, plumbing, exterior, safety, and landscaping inspections.",
 		step: seasons.map((season) => ({
 			"@type": "HowToSection" as const,
 			name: season.name,
@@ -314,8 +314,8 @@ export default function SeasonalMaintenanceChecklistPage() {
 					</h1>
 					<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
 						A comprehensive season-by-season checklist covering HVAC, plumbing,
-						electrical, exterior, safety, and landscaping inspections. Print it
-						and keep it with your property files.
+						exterior, safety, and landscaping inspections. Print it and keep it
+						with your property files.
 					</p>
 				</header>
 

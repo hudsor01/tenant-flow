@@ -125,11 +125,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			lastModified: STATIC_PAGES_LAST_UPDATED,
 			priority: 0.6,
 		},
-		{
-			url: `${baseUrl}/support`,
-			lastModified: STATIC_PAGES_LAST_UPDATED,
-			priority: 0.6,
-		},
 	];
 
 	// Legal pages — real lastmod from constants above. The visible

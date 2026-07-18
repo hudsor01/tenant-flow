@@ -1,4 +1,10 @@
-import { ArrowRight, Building, CheckCircle2, Clock, Star } from "lucide-react";
+import {
+	ArrowRight,
+	CheckCircle2,
+	Download,
+	FolderLock,
+	Home,
+} from "lucide-react";
 import Link from "next/link";
 import {
 	Accordion,
@@ -14,19 +20,19 @@ const STATS = [
 		label: "Document Vault",
 		value: "Per-entity",
 		description: "Property, lease, tenant, maintenance, inspection",
-		icon: Building,
+		icon: FolderLock,
 	},
 	{
 		label: "Bulk Download",
 		value: "500/zip",
 		description: "Streaming zip export for tax season",
-		icon: Clock,
+		icon: Download,
 	},
 	{
 		label: "Built For",
 		value: "Landlords",
 		description: "Tenants are records, never platform users",
-		icon: Star,
+		icon: Home,
 	},
 ];
 
@@ -136,9 +142,10 @@ export function PricingFaqSection() {
 						<div className="flex flex-col items-center gap-3 sm:flex-row">
 							<Link
 								href="/faq"
-								className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+								className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
 							>
-								View all FAQs →
+								View all FAQs
+								<ArrowRight className="size-3.5" aria-hidden="true" />
 							</Link>
 							<Button size="lg" className="px-7" asChild>
 								<Link href="/contact">
