@@ -35,7 +35,11 @@ test.describe("Mobile nav at 375px viewport", () => {
 	});
 
 	test('"Start free" hero CTA is fully visible', async ({ page }) => {
-		const cta = page.getByRole("link", { name: /Start free/i });
+		// Scope to the hero CTA (first in DOM). The How-It-Works and Premium-CTA
+		// sections also render a "Start free — no card" link; before they were
+		// gated behind LazySection skeletons, but they now render directly, so an
+		// unscoped /Start free/i matches 3 links and trips strict mode.
+		const cta = page.getByRole("link", { name: /Start free/i }).first();
 		await expect(cta).toBeVisible();
 		const box = await cta.boundingBox();
 		expect(box).not.toBeNull();
