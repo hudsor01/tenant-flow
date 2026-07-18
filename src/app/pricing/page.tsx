@@ -6,7 +6,6 @@ import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
 import { TestimonialsSection } from "#components/sections/testimonials-section";
 import { JsonLdScript } from "#components/seo/json-ld-script";
-import { Badge } from "#components/ui/badge";
 import { getSoftwareApplicationJsonLd } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
@@ -56,13 +55,6 @@ export default async function PricingPage() {
 			<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 				<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">
 					<div className="flex flex-col items-center gap-6">
-						<Badge variant="trustIndicator" size="trust">
-							<div
-								className="h-2 w-2 rounded-full bg-primary animate-pulse"
-								aria-hidden="true"
-							/>
-							Built for landlords — 14-day free trial, no credit card
-						</Badge>
 						<h1 className="text-balance typography-h1 tracking-tight text-foreground sm:text-5xl lg:text-6xl">
 							Simple, transparent pricing for{" "}
 							<span className="hero-highlight">every portfolio</span>

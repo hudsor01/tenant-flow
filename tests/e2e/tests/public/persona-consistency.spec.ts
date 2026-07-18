@@ -101,33 +101,14 @@ test.describe("Persona consistency — homepage hero (COPY-01 + COPY-03)", () =>
 		expect(body).toContain("tenants stay off the platform");
 	});
 
-	test("Tenants-never-login Badge renders above the h1 on /", async ({
-		page,
-	}) => {
-		await page.goto("/");
-		// Badge should be discoverable by its locked text
-		const badge = page.getByText("Landlord-only · Tenants never log in", {
-			exact: true,
-		});
-		await expect(badge).toBeVisible();
-
-		// Structural assertion: badge appears in DOM order BEFORE the first h1
-		const allText = (await page.textContent("body")) ?? "";
-		const badgeIdx = allText.indexOf("Landlord-only · Tenants never log in");
-		const h1Text = (await page.locator("h1").first().textContent()) ?? "";
-		const h1Idx = allText.indexOf(h1Text.trim().slice(0, 20));
-		expect(badgeIdx).toBeGreaterThanOrEqual(0);
-		expect(h1Idx).toBeGreaterThan(badgeIdx);
-	});
-
-	test("Mobile 375px: badge fits in viewport without horizontal scroll", async ({
+	test("Mobile 375px: hero fits in viewport without horizontal scroll", async ({
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 667 });
 		await page.goto("/");
-		await expect(
-			page.getByText("Landlord-only · Tenants never log in", { exact: true }),
-		).toBeVisible();
+		// The tenants-never-login trust badge was removed from the hero; anchor
+		// the viewport-fit check on the h1 instead.
+		await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
 		const scrollWidth = await page.evaluate(
 			() => document.documentElement.scrollWidth,
 		);
@@ -155,19 +136,6 @@ test.describe("Persona consistency — about page (CONS-01)", () => {
 });
 
 test.describe("Persona consistency — pricing page (COPY-02)", () => {
-	test("Featured pricing card shows segment-framing badge", async ({
-		page,
-	}) => {
-		await page.goto("/pricing");
-		const body = (await page.textContent("body")) ?? "";
-		// PR #725 renamed the hardcoded "1–15 rentals" badge to a
-		// per-plan `audienceTagline` field in `#config/pricing`. The
-		// featured slot renders Growth's tagline ("Built for 6–20 unit
-		// portfolios"); Starter and Max use their own. Test still pins
-		// segment-framing presence — just on the new shape.
-		expect(body).toContain("Built for 6–20 unit portfolios");
-	});
-
 	test("Pricing page metadata description references landlords", async ({
 		page,
 	}) => {

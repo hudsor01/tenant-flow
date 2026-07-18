@@ -202,21 +202,6 @@ export function PricingCardFeatured({
 						)}
 					</div>
 
-					{/* Social-proof badge. Uses plan.audienceTagline (a
-					    short audience-targeting string) rather than
-					    plan.description (the longer subtitle shown next
-					    to the plan name) so the two don't render the
-					    same copy twice above the fold. PR #725 cycle-1
-					    review caught the duplication. */}
-					<Badge
-						variant="trustIndicator"
-						size="trust"
-						className="w-full justify-center mb-6"
-					>
-						<BadgeCheck className="size-4" aria-hidden="true" />
-						{plan.audienceTagline}
-					</Badge>
-
 					{/* Features - 2 column grid for featured card */}
 					<div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-8 flex-1">
 						{plan.features.map((feature) => (

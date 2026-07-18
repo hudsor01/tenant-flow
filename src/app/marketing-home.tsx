@@ -1,4 +1,4 @@
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { PageLayout } from "#components/layout/page-layout";
 import FeaturesSectionDemo from "#components/sections/features-section";
@@ -9,7 +9,6 @@ import { LogoCloud } from "#components/sections/logo-cloud";
 import { PremiumCta } from "#components/sections/premium-cta";
 import { StatsShowcase } from "#components/sections/stats-showcase";
 import { TestimonialsSection } from "#components/sections/testimonials-section";
-import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { realTestimonials } from "../data/testimonials";
 
@@ -20,27 +19,16 @@ export default function MarketingHomePage() {
 			containerClass="flex flex-col section-gap"
 		>
 			{/* Hero Section with Dashboard Mockup */}
-			<section className="relative flex-1 flex flex-col">
-				<div className="flex-1 w-full">
+			<section className="relative">
+				<div className="w-full">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center lg:min-h-[32rem]">
+						{/* items-start: the copy and the taller dashboard mockup share a
+						    top edge (no dead space above the heading / below the copy from
+						    centering unequal-height columns). Height is content-driven. */}
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 							{/* Content */}
-							<div className="flex flex-col justify-center space-y-8">
+							<div className="flex flex-col space-y-8">
 								<div className="space-y-6">
-									<Badge
-										variant="trustIndicator"
-										size="trust"
-										// `whitespace-normal` + `text-left` override Badge's
-										// base `whitespace-nowrap` so the 35-char trust
-										// indicator wraps under ~360px viewports instead of
-										// forcing a 281px-wide pill that overflows the page.
-										// Surfaced by AUDIT-1 (2026-05-18). `max-w-full` keeps
-										// the badge inside the flex column on every breakpoint.
-										className="self-start mb-2 whitespace-normal text-left max-w-full"
-									>
-										<Lock className="size-4" aria-hidden="true" />
-										Landlord-only · Tenants never log in
-									</Badge>
 									<h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05] text-balance">
 										Skip the{" "}
 										<span className="hero-highlight">tenant portal</span>.
@@ -107,7 +95,10 @@ export default function MarketingHomePage() {
 
 			{/* Testimonials (TRUST-01) — real-customer quotes; data source
 			    in src/data/testimonials.ts gates honest provenance. */}
-			<TestimonialsSection testimonials={realTestimonials} />
+			{/* grid variant: 2-up on md+ (fills the width with the real quotes)
+			    instead of a lone carousel card with empty flanks; also drops the
+			    carousel auto-rotate (WCAG 2.2.2). */}
+			<TestimonialsSection testimonials={realTestimonials} variant="grid" />
 
 			<HomeFaq />
 
