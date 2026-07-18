@@ -11,8 +11,6 @@ import { StatsShowcase } from "#components/sections/stats-showcase";
 import { TestimonialsSection } from "#components/sections/testimonials-section";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
-import { LazySection } from "#components/ui/lazy-section";
-import { SectionSkeleton } from "#components/ui/section-skeleton";
 import { realTestimonials } from "../data/testimonials";
 
 export default function MarketingHomePage() {
@@ -91,29 +89,17 @@ export default function MarketingHomePage() {
 				<LogoCloud />
 			</section>
 
-			{/* How It Works */}
-			<LazySection
-				fallback={<SectionSkeleton height={500} variant="grid" />}
-				minHeight={500}
-			>
-				<HowItWorks />
-			</LazySection>
+			{/* Below-hero sections render directly (no LazySection). This page
+			    is force-static with no data-fetching and no heavy libs, so
+			    intersection-gated lazy loading only added skeleton pop-in +
+			    layout shift and kept this content out of the prerendered HTML
+			    (hurting SEO). Any genuinely heavy child lazy-loads at the
+			    component level via next/dynamic. */}
+			<HowItWorks />
 
-			{/* Features Section */}
-			<LazySection
-				fallback={<SectionSkeleton height={600} variant="grid" />}
-				minHeight={600}
-			>
-				<FeaturesSectionDemo />
-			</LazySection>
+			<FeaturesSectionDemo />
 
-			{/* Stats Showcase */}
-			<LazySection
-				fallback={<SectionSkeleton height={400} variant="card" />}
-				minHeight={400}
-			>
-				<StatsShowcase />
-			</LazySection>
+			<StatsShowcase />
 
 			{/* CONS-14: "Why Landlords Choose TenantFlow" ComparisonTable
 			    removed from homepage to de-duplicate with /features (which is
@@ -121,28 +107,11 @@ export default function MarketingHomePage() {
 
 			{/* Testimonials (TRUST-01) — real-customer quotes; data source
 			    in src/data/testimonials.ts gates honest provenance. */}
-			<LazySection
-				fallback={<SectionSkeleton height={500} variant="card" />}
-				minHeight={500}
-			>
-				<TestimonialsSection testimonials={realTestimonials} />
-			</LazySection>
+			<TestimonialsSection testimonials={realTestimonials} />
 
-			{/* FAQ Section */}
-			<LazySection
-				fallback={<SectionSkeleton height={500} variant="card" />}
-				minHeight={500}
-			>
-				<HomeFaq />
-			</LazySection>
+			<HomeFaq />
 
-			{/* Premium CTA */}
-			<LazySection
-				fallback={<SectionSkeleton height={400} variant="card" />}
-				minHeight={400}
-			>
-				<PremiumCta />
-			</LazySection>
+			<PremiumCta />
 		</PageLayout>
 	);
 }

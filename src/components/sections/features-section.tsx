@@ -1,9 +1,9 @@
 import {
+	Building2,
 	DollarSign,
 	FolderArchive,
 	HelpCircle,
 	LayoutDashboard,
-	Terminal,
 	Zap,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -22,7 +22,7 @@ export default function FeaturesSectionDemo({
 			title: "Property Management",
 			description:
 				"Track leases, renewals, and maintenance in one place — Starter handles up to 5 properties, Growth up to 20, Max unlimited.",
-			icon: <Terminal />,
+			icon: <Building2 />,
 		},
 		{
 			title: "Fast Setup",

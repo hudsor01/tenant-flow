@@ -54,8 +54,8 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				<div className="text-center mb-10 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
-							Built for landlord
-							<span className="text-primary block">workflows</span>
+							Made for real
+							<span className="text-primary block">owner workflows</span>
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
 							Every feature ships against a real owner workflow — from upload to
