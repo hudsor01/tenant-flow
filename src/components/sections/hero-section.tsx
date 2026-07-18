@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { HeroDashboardMockup } from "#components/sections/hero-dashboard-mockup";
 import { Button } from "#components/ui/button";
 import type { HeroSectionProps } from "#types/frontend";
 
@@ -13,7 +14,9 @@ export function HeroSection({
 	secondaryCta,
 	trustSignals,
 	image,
+	brandArt,
 }: HeroSectionProps) {
+	const hasVisual = Boolean(image) || Boolean(brandArt);
 	return (
 		<section className="relative flex-1 flex flex-col">
 			{/* Trust Badge */}
@@ -36,7 +39,7 @@ export function HeroSection({
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div
 						className={
-							image
+							hasVisual
 								? "grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-150"
 								: "flex flex-col items-center justify-center min-h-100 text-center"
 						}
@@ -44,7 +47,7 @@ export function HeroSection({
 						{/* Content */}
 						<div
 							className={
-								image
+								hasVisual
 									? "flex flex-col justify-center space-y-8"
 									: "flex flex-col items-center space-y-8 max-w-4xl"
 							}
@@ -83,8 +86,11 @@ export function HeroSection({
 							)}
 						</div>
 
-						{/* Image - Only show if provided */}
-						{image && (
+						{/* Hero visual — brand product mockup (preferred) or, for
+							legacy callers, an explicit image. Never stock photography. */}
+						{brandArt ? (
+							<HeroDashboardMockup />
+						) : image ? (
 							<div className="relative">
 								<div className="relative h-150 rounded-3xl overflow-hidden shadow-2xl">
 									<Image
@@ -99,7 +105,7 @@ export function HeroSection({
 									/>
 								</div>
 							</div>
-						)}
+						) : null}
 					</div>
 				</div>
 			</div>

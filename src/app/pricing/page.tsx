@@ -87,6 +87,7 @@ export default async function PricingPage() {
 			<TestimonialsSection
 				className="animate-in fade-in duration-700 delay-200"
 				testimonials={realTestimonials}
+				variant="grid"
 			/>
 			<PricingFaqSection />
 			<PricingCtaSection />

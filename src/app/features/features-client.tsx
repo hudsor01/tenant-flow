@@ -8,8 +8,6 @@ import { TestimonialsSection } from "#components/landing/testimonials-section";
 import { PageLayout } from "#components/layout/page-layout";
 import { ComparisonTable } from "#components/sections/comparison-table";
 import { LogoCloud } from "#components/sections/logo-cloud";
-import { LazySection } from "#components/ui/lazy-section";
-import { SectionSkeleton } from "#components/ui/section-skeleton";
 
 export default function FeaturesClient() {
 	return (
@@ -23,12 +21,7 @@ export default function FeaturesClient() {
 
 			<ResultsProofSection />
 
-			<LazySection
-				fallback={<SectionSkeleton height={600} variant="grid" />}
-				minHeight={600}
-			>
-				<ComparisonTable />
-			</LazySection>
+			<ComparisonTable />
 
 			<FinalCtaSection />
 		</PageLayout>

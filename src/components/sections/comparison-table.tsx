@@ -228,12 +228,15 @@ function FeatureCell({
 	if (value === true) {
 		return (
 			<div
+				role="img"
+				aria-label="Included"
 				className={cn(
 					"size-8 rounded-full flex-center",
 					highlight ? "bg-primary/10" : "bg-success/10",
 				)}
 			>
 				<Check
+					aria-hidden="true"
 					className={cn("size-5", highlight ? "text-primary" : "text-success")}
 				/>
 			</div>
@@ -242,16 +245,24 @@ function FeatureCell({
 
 	if (value === false) {
 		return (
-			<div className="size-8 rounded-full bg-muted flex-center">
-				<X className="size-5 text-muted-foreground" />
+			<div
+				role="img"
+				aria-label="Not included"
+				className="size-8 rounded-full bg-muted flex-center"
+			>
+				<X aria-hidden="true" className="size-5 text-muted-foreground" />
 			</div>
 		);
 	}
 
 	// partial
 	return (
-		<div className="size-8 rounded-full bg-warning/10 flex-center">
-			<Minus className="size-5 text-warning" />
+		<div
+			role="img"
+			aria-label="Partial"
+			className="size-8 rounded-full bg-warning/10 flex-center"
+		>
+			<Minus aria-hidden="true" className="size-5 text-warning" />
 		</div>
 	);
 }

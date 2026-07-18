@@ -234,7 +234,6 @@ const MARKETING_FILES = [
 	"src/app/features/features-client.tsx",
 	"src/app/faq/page.tsx",
 	"src/app/blog/page.tsx",
-	"src/app/support/page.tsx",
 	"src/app/about/page.tsx",
 	"src/app/help/page.tsx",
 	"src/app/(auth)/login/page.tsx",

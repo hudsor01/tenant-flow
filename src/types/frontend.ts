@@ -71,6 +71,10 @@ export interface HeroSectionProps {
 		src: string;
 		alt: string;
 	};
+	// Renders the self-contained TenantFlow product mockup as the hero
+	// visual (two-column layout). Brand art, not stock photography — the
+	// codebase never ships stock photos or image-API URLs.
+	brandArt?: boolean;
 }
 
 export interface MetricsCardProps {

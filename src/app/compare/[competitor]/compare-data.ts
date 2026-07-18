@@ -26,7 +26,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		metaDescription:
 			"Looking for a Buildium alternative? TenantFlow starts at $19/mo vs Buildium's $58/mo, covering the core landlord features. Compare pricing and features.",
 		heroSubtitle:
-			"Buildium starts at $58/month. TenantFlow starts at $19/month with the same core features, modern technology, and no hidden fees.",
+			"Buildium starts at $58/month. TenantFlow starts at $19/month with the core landlord features, modern technology, and no hidden fees.",
 		capterra: "4.5/5 (2,131 reviews)",
 		g2: "4.4/5 (220+ reviews)",
 		founded: "2004",
