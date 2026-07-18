@@ -1,4 +1,4 @@
-import { ArrowRight, Calendar, Shield, Star, Users } from "lucide-react";
+import { ArrowRight, Calendar, Star, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -135,7 +135,7 @@ export default async function ComparePage({ params }: PageProps) {
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 						<div className="text-center p-6 rounded-xl border border-border bg-background">
-							<Shield className="size-6 text-primary mx-auto mb-2" />
+							<Star className="size-6 text-primary mx-auto mb-2" />
 							<p className="text-2xl font-bold text-foreground">
 								{data.capterra}
 							</p>

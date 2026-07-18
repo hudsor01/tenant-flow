@@ -1,9 +1,9 @@
 import {
 	Building,
+	CreditCard,
 	FileText,
 	HelpCircle,
 	Mail,
-	Shield,
 	UserCog,
 	Wrench,
 } from "lucide-react";
@@ -71,7 +71,7 @@ const supportCategories = [
 		],
 	},
 	{
-		icon: Shield,
+		icon: CreditCard,
 		title: "Billing & Subscription",
 		description:
 			"Plans, pricing, upgrades, invoices, and managing your TenantFlow subscription.",
