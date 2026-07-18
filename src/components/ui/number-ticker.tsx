@@ -38,7 +38,10 @@ export function NumberTicker({
 		ref as RefObject<Element>,
 		{
 			threshold: 0.1,
-			rootMargin: "0px",
+			// Pre-trigger ~200px before the counter scrolls into view so the
+			// count-up starts (and usually finishes) before it's visible —
+			// avoids the "stuck at 0" flash on a normal downward scroll.
+			rootMargin: "0px 0px 200px 0px",
 		},
 	);
 
