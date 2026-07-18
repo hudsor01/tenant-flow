@@ -20,7 +20,10 @@ const NON_ZERO_MS_LITERAL = /"[1-9]\d*ms"/;
 // blog-loading-skeleton keeps the inline-style token form.
 const TOKENIZED_DELAY_INLINE = /animationDelay: "var\(--duration-/g;
 // HYG-28/29 moved chart-loading-skeleton + blog-empty-state to the canonical
-// Tailwind arbitrary-value form `[animation-delay:var(--duration-*)]`.
+// Tailwind arbitrary-value class form binding animation-delay to a --duration
+// token. (Do NOT write the literal bracketed class here: Tailwind v4's Oxide
+// scanner extracts it from this comment and emits `animation-delay: var(--…-*)`,
+// whose bare `*` crashes Turbopack's CSS parser — see @source-not below.)
 const TOKENIZED_DELAY_CLASS = /\[animation-delay:var\(--duration-/g;
 
 describe("shared loading/empty-state skeleton duration tokens (TOKEN-02)", () => {
