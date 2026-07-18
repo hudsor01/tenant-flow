@@ -1,4 +1,10 @@
-import { ArrowRight, Building, CheckCircle2, Clock, Star } from "lucide-react";
+import {
+	ArrowRight,
+	CheckCircle2,
+	Download,
+	FolderLock,
+	Home,
+} from "lucide-react";
 import Link from "next/link";
 import {
 	Accordion,
@@ -14,19 +20,19 @@ const STATS = [
 		label: "Document Vault",
 		value: "Per-entity",
 		description: "Property, lease, tenant, maintenance, inspection",
-		icon: Building,
+		icon: FolderLock,
 	},
 	{
 		label: "Bulk Download",
 		value: "500/zip",
 		description: "Streaming zip export for tax season",
-		icon: Clock,
+		icon: Download,
 	},
 	{
 		label: "Built For",
 		value: "Landlords",
 		description: "Tenants are records, never platform users",
-		icon: Star,
+		icon: Home,
 	},
 ];
 
