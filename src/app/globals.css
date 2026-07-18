@@ -5,6 +5,11 @@
 @source "..*.{ts,tsx}";
 @source not "../../.planning/**/*";
 @source not "../../README.md";
+/* Test files assert on class strings (e.g. arbitrary-value candidates in
+   comments); Tailwind v4's Oxide scanner would extract those and emit invalid
+   CSS that crashes the Turbopack dev parser. Tests contribute no real UI
+   utilities, so exclude them from the source scan. */
+@source not "../**/*.test.{ts,tsx}";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
