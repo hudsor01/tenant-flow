@@ -45,10 +45,7 @@ export default function FAQPage() {
 				}}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
 				trustSignals="Document vault • Lease e-sign on Growth+ • 14-day free trial"
-				image={{
-					src: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop",
-					alt: "Modern office workspace showcasing property management efficiency",
-				}}
+				brandArt
 			/>
 			<section className="section-spacing">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
