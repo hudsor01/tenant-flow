@@ -61,7 +61,7 @@ const downloadResources = [
 		icon: <ClipboardCheck className="size-6" />,
 		title: "Seasonal Maintenance Checklist",
 		description:
-			"Season-by-season checklist covering HVAC, plumbing, electrical, and exterior inspections.",
+			"Season-by-season checklist covering HVAC, plumbing, and exterior inspections.",
 		href: "/resources/seasonal-maintenance-checklist",
 		badge: "Checklist",
 	},

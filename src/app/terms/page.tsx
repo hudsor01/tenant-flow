@@ -108,10 +108,7 @@ export default function TermsPage() {
 						<p>
 							TenantFlow offers various subscription plans with different
 							features and pricing. Current plans and pricing are available at{" "}
-							<a
-								href="https://tenantflow.app/pricing"
-								className="text-primary-text underline"
-							>
+							<a href="/pricing" className="text-primary-text underline">
 								tenantflow.app/pricing
 							</a>
 							.

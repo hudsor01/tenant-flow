@@ -36,7 +36,6 @@ export default function FAQPage() {
 			/>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/faq")} />
 			<HeroSection
-				trustBadge="Built for landlords"
 				title="Frequently asked"
 				titleHighlight="questions"
 				subtitle="How TenantFlow handles documents, e-signing, tenant records, security, and billing. If anything is missing, talk to our team."

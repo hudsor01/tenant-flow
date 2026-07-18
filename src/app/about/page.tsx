@@ -82,13 +82,13 @@ export default function AboutPage() {
 								<div className="space-y-4">
 									<p className="text-xl text-muted-foreground leading-relaxed">
 										To empower landlords with the tools they need to grow their
-										business, reduce operational overhead, and provide
-										exceptional service to their tenants.
+										business, reduce operational overhead, and stay organized
+										across their entire portfolio.
 									</p>
 									<p className="text-base text-muted-foreground leading-relaxed">
 										We believe property management should be streamlined,
-										data-driven, and focused on building lasting relationships
-										between managers and tenants.
+										data-driven, and give landlords a reliable system of record
+										for every property they own.
 									</p>
 								</div>
 							</div>
