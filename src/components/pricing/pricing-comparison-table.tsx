@@ -250,12 +250,12 @@ export function PricingComparisonTable({
 							<div className="text-sm font-semibold text-primary-text">
 								Growth
 							</div>
-							<div className="text-xs text-primary/70">$49/mo</div>
+							<div className="text-xs text-primary-text">$49/mo</div>
 						</div>
 						<div className="text-center">
 							<div className="text-sm font-semibold text-foreground">Max</div>
 							<div className="text-xs text-muted-foreground">
-								{MAX_PUBLIC_PRICE_DISPLAY}
+								{MAX_PUBLIC_PRICE_DISPLAY}/mo
 							</div>
 						</div>
 					</div>

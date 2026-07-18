@@ -541,19 +541,25 @@ export default function SecurityDepositReferenceCardPage() {
 				{/* Legend */}
 				<div className="flex flex-wrap gap-6 mb-8 p-4 rounded-xl border border-border bg-muted/30">
 					<div className="flex items-center gap-2 text-sm">
-						<span className="size-3 rounded-full bg-success" />
+						<span
+							className="size-3 rounded-full bg-success"
+							aria-hidden="true"
+						/>
 						<span className="text-muted-foreground">
 							Itemized statement required
 						</span>
 					</div>
 					<div className="flex items-center gap-2 text-sm">
-						<span className="size-3 rounded-full bg-info" />
+						<span className="size-3 rounded-full bg-info" aria-hidden="true" />
 						<span className="text-muted-foreground">
 							Interest payment required
 						</span>
 					</div>
 					<div className="flex items-center gap-2 text-sm">
-						<span className="size-3 rounded-full bg-muted-foreground/30" />
+						<span
+							className="size-3 rounded-full bg-muted-foreground/30"
+							aria-hidden="true"
+						/>
 						<span className="text-muted-foreground">Not required</span>
 					</div>
 				</div>
@@ -598,6 +604,12 @@ export default function SecurityDepositReferenceCardPage() {
 									</td>
 									<td className="p-3 text-center">
 										<span
+											role="img"
+											aria-label={
+												s.itemizedRequired
+													? "Itemized statement required"
+													: "Itemized statement not required"
+											}
 											className={`inline-block size-3 rounded-full ${
 												s.itemizedRequired
 													? "bg-success"
@@ -607,6 +619,12 @@ export default function SecurityDepositReferenceCardPage() {
 									</td>
 									<td className="p-3 text-center">
 										<span
+											role="img"
+											aria-label={
+												s.interestRequired
+													? "Interest payment required"
+													: "Interest payment not required"
+											}
 											className={`inline-block size-3 rounded-full ${
 												s.interestRequired
 													? "bg-info"

@@ -136,9 +136,10 @@ export function PricingFaqSection() {
 						<div className="flex flex-col items-center gap-3 sm:flex-row">
 							<Link
 								href="/faq"
-								className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+								className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
 							>
-								View all FAQs →
+								View all FAQs
+								<ArrowRight className="size-3.5" aria-hidden="true" />
 							</Link>
 							<Button size="lg" className="px-7" asChild>
 								<Link href="/contact">
