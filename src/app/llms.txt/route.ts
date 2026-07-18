@@ -57,7 +57,6 @@ const STATIC_TAIL = `## Help
 - [Help center](${SITE}/help)
 - [FAQ](${SITE}/faq)
 - [Contact](${SITE}/contact)
-- [Support](${SITE}/support)
 
 ## Optional
 

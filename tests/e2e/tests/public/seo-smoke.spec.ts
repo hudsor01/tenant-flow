@@ -136,10 +136,6 @@ test.describe("SEO Smoke Tests", () => {
 		await assertPageSeo(page, "/help", ["BreadcrumbList"]);
 	});
 
-	test("/support has full SEO metadata", async ({ page }) => {
-		await assertPageSeo(page, "/support", ["BreadcrumbList"]);
-	});
-
 	test("/resources has full SEO metadata", async ({ page }) => {
 		await assertPageSeo(page, "/resources", ["BreadcrumbList"]);
 	});
@@ -346,7 +342,6 @@ test.describe("SEO Smoke Tests", () => {
 			"/terms",
 			"/privacy",
 			"/security-policy",
-			"/support",
 			"/resources/seasonal-maintenance-checklist",
 			"/resources/security-deposit-reference-card",
 			"/resources/landlord-tax-deduction-tracker",

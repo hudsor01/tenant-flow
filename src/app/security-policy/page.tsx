@@ -202,8 +202,8 @@ export default function SecurityPolicyPage() {
 						</p>
 						<p>
 							For general support, visit our{" "}
-							<a href="/support" className="text-primary-text underline">
-								Support Center
+							<a href="/help" className="text-primary-text underline">
+								Help Center
 							</a>{" "}
 							or email{" "}
 							<a

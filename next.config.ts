@@ -132,6 +132,15 @@ const nextConfig: NextConfig = {
 				destination: "/privacy",
 				permanent: true,
 			},
+			// Consolidated /support into /help — the two pages were near
+			// duplicates (both "get help" hubs). /help is the canonical
+			// surface (hero + channels + resources). permanent: true emits
+			// 308 (Google treats as 301 so /support's ranking transfers).
+			{
+				source: "/support",
+				destination: "/help",
+				permanent: true,
+			},
 			// Deleted Phase-1 blog catalogue: 301 each ghost slug (now HTTP-404
 			// under dynamicParams=false) to its closest live equivalent so the
 			// accumulated Google ranking signal transfers instead of decaying on
