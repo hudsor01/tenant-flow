@@ -1,8 +1,5 @@
-import { ArrowRight, MessageCircle } from "lucide-react";
-import Link from "next/link";
 import { FaqsAccordion } from "#components/faq-accordion";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
 
 interface HomeFaqProps {
@@ -54,33 +51,6 @@ export function HomeFaq({ className }: HomeFaqProps) {
 
 				<BlurFade delay={0.2} inView>
 					<FaqsAccordion faqs={homeFaqs} defaultOpenIndex={0} />
-				</BlurFade>
-
-				{/* Still have questions CTA */}
-				<BlurFade delay={0.3} inView>
-					<div className="mt-12 text-center p-8 rounded-2xl bg-muted/50 border border-border">
-						<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4">
-							<MessageCircle className="size-6" />
-						</div>
-						<h3 className="typography-h4 text-foreground mb-2">
-							Still have questions?
-						</h3>
-						<p className="text-muted-foreground mb-6">
-							Our team is here to help you make the right decision for your
-							properties.
-						</p>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button asChild>
-								<Link href="/contact">
-									Contact Sales
-									<ArrowRight className="size-4 ml-2" />
-								</Link>
-							</Button>
-							<Button variant="outline" asChild>
-								<Link href="/faq">View All FAQs</Link>
-							</Button>
-						</div>
-					</div>
 				</BlurFade>
 			</div>
 		</section>
