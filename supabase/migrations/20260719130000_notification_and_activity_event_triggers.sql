@@ -124,3 +124,99 @@ create trigger trg_notify_owner_maintenance
   after insert or update on public.maintenance_requests
   for each row
   execute function public.notify_owner_maintenance();
+
+-- ============================================================================
+-- 3. Activity audit triggers — property / lease / document / maintenance create.
+--    Mirrors log_lease_signature_activity (20260616161248): each AFTER INSERT
+--    writes one owner-scoped audit row to public.activity so the ACT-01 dashboard
+--    timeline is non-empty (D-08: activity = complete audit, incl. the owner's own
+--    actions). Only create events become activity this phase — no CRUD-edit
+--    triggers (edits are out of scope). activity.user_id is NOT NULL, so any
+--    trigger writing it must have a non-null owner. activity_type is plain text
+--    (no CHECK constraint) and get_dashboard_data_v2.recent_activities applies no
+--    activity_type filter, so every value below renders in the timeline.
+-- ============================================================================
+
+-- (a) properties created.
+create or replace function public.log_property_created_activity()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path to 'public'
+as $function$
+begin
+  insert into activity (user_id, activity_type, entity_type, entity_id, title, description, created_at)
+  values (new.owner_user_id, 'properties', 'property', new.id, 'Property added', new.name, now());
+  return new;
+end;
+$function$;
+
+drop trigger if exists trg_log_property_created_activity on public.properties;
+create trigger trg_log_property_created_activity
+  after insert on public.properties
+  for each row
+  execute function public.log_property_created_activity();
+
+-- (b) leases created.
+create or replace function public.log_lease_created_activity()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path to 'public'
+as $function$
+begin
+  insert into activity (user_id, activity_type, entity_type, entity_id, title, description, created_at)
+  values (new.owner_user_id, 'leases', 'lease', new.id, 'Lease created', null, now());
+  return new;
+end;
+$function$;
+
+drop trigger if exists trg_log_lease_created_activity on public.leases;
+create trigger trg_log_lease_created_activity
+  after insert on public.leases
+  for each row
+  execute function public.log_lease_created_activity();
+
+-- (c) documents uploaded. owner_user_id is nullable on documents — guard so a
+--     null-owner insert never aborts on activity.user_id NOT NULL.
+create or replace function public.log_document_created_activity()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path to 'public'
+as $function$
+begin
+  if new.owner_user_id is not null then
+    insert into activity (user_id, activity_type, entity_type, entity_id, title, description, created_at)
+    values (new.owner_user_id, 'documents', 'document', new.id, 'Document uploaded', new.title, now());
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists trg_log_document_created_activity on public.documents;
+create trigger trg_log_document_created_activity
+  after insert on public.documents
+  for each row
+  execute function public.log_document_created_activity();
+
+-- (d) maintenance created (the audit row; the notification row for the same event
+--     is written by notify_owner_maintenance above — distinct surfaces per D-08).
+create or replace function public.log_maintenance_created_activity()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path to 'public'
+as $function$
+begin
+  insert into activity (user_id, activity_type, entity_type, entity_id, title, description, created_at)
+  values (new.owner_user_id, 'maintenance', 'maintenance_request', new.id, 'Maintenance request created', new.title, now());
+  return new;
+end;
+$function$;
+
+drop trigger if exists trg_log_maintenance_created_activity on public.maintenance_requests;
+create trigger trg_log_maintenance_created_activity
+  after insert on public.maintenance_requests
+  for each row
+  execute function public.log_maintenance_created_activity();
