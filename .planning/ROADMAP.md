@@ -23,7 +23,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 
 **Phase Numbering:** Integer phases only (project convention — never decimals). Phase numbers continue across milestones; v9.0 ended at Phase 51, so v10.0 runs 52-64.
 
-- [ ] **Phase 52: Notification Center, Activity Feed & Channel Honesty** - Surface the orphaned `notifications`/`activity` backend as a bell + inbox + dashboard timeline; remove dishonest SMS/push toggles; drop orphan schema
+- [x] **Phase 52: Notification Center, Activity Feed & Channel Honesty** - Surface the orphaned `notifications`/`activity` backend as a bell + inbox + dashboard timeline; remove dishonest SMS/push toggles; drop orphan schema (completed 2026-07-19)
 - [ ] **Phase 53: Renewal Reminder Delivery** - Deliver the sold Growth/Max lease-renewal reminders in-house (edge fn draining `lease_reminders`), exactly-once, suppression-honoring, backlog dry-run gated
 - [ ] **Phase 54: E-sign & Storage Metering** - Enforce the sold e-sign (25/mo Growth) and storage quotas with visible usage + upgrade prompts; grandfather existing over-quota owners
 - [ ] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation
@@ -55,7 +55,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 - [x] 52-03-PLAN.md — Retention cron + orphan schema reconcile (NOTIF-05, CLEAN-01/02)
 - [x] 52-04-PLAN.md — Notification data layer: keys + mark-read mutations (NOTIF-02/03)
 - [x] 52-05-PLAN.md — Notification bell + popover header island (NOTIF-02/03)
-- [ ] 52-06-PLAN.md — /notifications inbox page + E2E smoke (NOTIF-03)
+- [x] 52-06-PLAN.md — /notifications inbox page + E2E smoke (NOTIF-03)
 - [x] 52-07-PLAN.md — Dashboard activity card (ACT-01/02)
 - [x] 52-08-PLAN.md — Settings channel honesty (HONEST-01/02)
 **UI hint**: yes
@@ -210,7 +210,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 52. Notification Center, Activity Feed & Channel Honesty | 7/8 | In Progress|  |
+| 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete   | 2026-07-19 |
 | 53. Renewal Reminder Delivery | 0/TBD | Not started | - |
 | 54. E-sign & Storage Metering | 0/TBD | Not started | - |
 | 55. Rent Ledger | 0/TBD | Not started | - |
