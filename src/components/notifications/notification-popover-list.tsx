@@ -13,6 +13,7 @@ import { Skeleton } from "#components/ui/skeleton";
 import {
 	useMarkAllNotificationsRead,
 	useNotificationList,
+	useUnreadCount,
 } from "#hooks/api/use-notifications";
 import { NotificationItem } from "./notification-item";
 
@@ -24,9 +25,13 @@ import { NotificationItem } from "./notification-item";
 export function NotificationPopoverList() {
 	const { data, isLoading } = useNotificationList({ limit: 10 });
 	const markAll = useMarkAllNotificationsRead();
+	// Drive the disabled state from the same header count the bell badge uses,
+	// not the visible top-10 slice: is_read is independent of recency, so an
+	// owner who has read the 10 newest rows can still have older unread ones
+	// that Mark-all-read would clear (WR-01). Dedupes the already-polled query.
+	const { data: unreadCount = 0 } = useUnreadCount();
 
 	const rows = data?.rows ?? [];
-	const unreadVisible = rows.filter((row) => !row.is_read).length;
 
 	return (
 		<div className="flex flex-col">
@@ -36,7 +41,7 @@ export function NotificationPopoverList() {
 				<button
 					type="button"
 					onClick={() => markAll.mutate()}
-					disabled={unreadVisible === 0 || markAll.isPending}
+					disabled={unreadCount === 0 || markAll.isPending}
 					className="text-sm text-primary-text hover:underline disabled:pointer-events-none disabled:opacity-50"
 				>
 					Mark all read
