@@ -98,6 +98,14 @@ vi.mock("#components/ui/global-sync-indicator", () => ({
 	),
 }));
 
+// Mock NotificationBell (a client island that polls via useQuery) to avoid
+// needing a QueryClientProvider in the shell render harness. Uses the label
+// "Bell" (not "Notifications") so it never collides with the command-palette
+// "Notifications" entry in getByText queries.
+vi.mock("#components/notifications/notification-bell", () => ({
+	NotificationBell: () => <div data-testid="notification-bell">Bell</div>,
+}));
+
 // Mock scrollIntoView for command palette (JSDOM doesn't support it)
 beforeAll(() => {
 	Element.prototype.scrollIntoView = vi.fn();
@@ -331,14 +339,12 @@ describe("AppShell", () => {
 	});
 
 	describe("header", () => {
-		it("should render notifications link", () => {
-			const { container } = render(<AppShell>Content</AppShell>);
+		it("should render the NotificationBell island", () => {
+			render(<AppShell>Content</AppShell>);
 
-			// Find the link with Bell icon
-			const notificationsLink = container.querySelector(
-				'a[href="/settings?tab=notifications"]',
-			);
-			expect(notificationsLink).toBeInTheDocument();
+			// The header now mounts the interactive NotificationBell client island
+			// (NOTIF-02) in place of the former /settings?tab=notifications link.
+			expect(screen.getByTestId("notification-bell")).toBeInTheDocument();
 		});
 	});
 
