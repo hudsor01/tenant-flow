@@ -1,14 +1,5 @@
-import {
-	ArrowRight,
-	Building,
-	Check,
-	ChevronRight,
-	Users,
-	Zap,
-} from "lucide-react";
-import Link from "next/link";
+import { Building, Check, ChevronRight, Users, Zap } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
 
 interface HowItWorksProps {
@@ -100,25 +91,6 @@ export function HowItWorks({ className }: HowItWorksProps) {
 						))}
 					</div>
 				</div>
-
-				{/* CTA */}
-				<BlurFade delay={0.5} inView>
-					<div className="text-center mt-16">
-						<Button
-							size="lg"
-							className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
-							asChild
-						>
-							<Link href="/pricing">
-								Start free — no card
-								<ArrowRight className="size-5 ml-2" />
-							</Link>
-						</Button>
-						<p className="text-sm text-muted-foreground mt-4">
-							No credit card required
-						</p>
-					</div>
-				</BlurFade>
 			</div>
 		</section>
 	);
