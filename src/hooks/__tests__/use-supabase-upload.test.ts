@@ -127,7 +127,7 @@ describe("retry list — single upload per file", () => {
 
 		// Only the client-valid file reaches storage.
 		expect(mockUpload).toHaveBeenCalledTimes(1);
-		expect((mockUpload.mock.calls[0]?.[1] as File).name).toBe("good.jpg");
+		expect((mockUpload.mock.calls[0]?.[1] as File)?.name).toBe("good.jpg");
 	});
 });
 

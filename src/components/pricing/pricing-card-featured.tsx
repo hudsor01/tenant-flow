@@ -38,6 +38,7 @@ interface PricingPlan {
 	};
 	annualTotal: number;
 	features: string[];
+	includesPrevious?: string;
 	popular: boolean;
 	stripeMonthlyPriceId?: string | null;
 	stripeAnnualPriceId?: string | null;
@@ -203,16 +204,23 @@ export function PricingCardFeatured({
 					</div>
 
 					{/* Features - single column on mobile, 2 columns from sm up */}
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-8 flex-1">
-						{plan.features.map((feature) => (
-							<div
-								key={feature}
-								className="flex items-start gap-2 text-sm text-muted-foreground"
-							>
-								<BadgeCheck className="size-4 text-primary shrink-0 mt-0.5" />
-								<span>{feature}</span>
-							</div>
-						))}
+					<div className="mb-8 flex-1">
+						{plan.includesPrevious && (
+							<p className="text-sm font-medium text-foreground mb-3">
+								{plan.includesPrevious}
+							</p>
+						)}
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+							{plan.features.map((feature) => (
+								<div
+									key={feature}
+									className="flex items-start gap-2 text-sm text-muted-foreground"
+								>
+									<BadgeCheck className="size-4 text-primary shrink-0 mt-0.5" />
+									<span>{feature}</span>
+								</div>
+							))}
+						</div>
 					</div>
 
 					{/* CTA */}

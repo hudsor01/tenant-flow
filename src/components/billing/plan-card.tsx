@@ -18,6 +18,10 @@ export interface Plan {
 	price: number;
 	priceId: string | null;
 	features: PlanFeature[];
+	/** Optional "Everything in <lower tier>, plus:" lead-in shown above the
+	 *  feature list so trimmed higher-tier lists read additively (mirrors the
+	 *  marketing pricing cards). */
+	includesPrevious?: string;
 	tier: number;
 }
 
@@ -97,6 +101,11 @@ export function PlanCard({
 				</div>
 
 				{/* Features */}
+				{plan.includesPrevious && (
+					<p className="mb-3 text-sm font-medium text-foreground">
+						{plan.includesPrevious}
+					</p>
+				)}
 				<ul className="space-y-3">
 					{plan.features.map((feature) => (
 						<li

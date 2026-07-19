@@ -15,7 +15,7 @@ export default function TermsPage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/terms")} />
-			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
+			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
 				<p className="mb-6 text-muted-foreground">
 					Last Updated: July 17, 2026

@@ -76,7 +76,7 @@ describe("Tenants state wiring (STATE-12)", () => {
 		await renderTenants([tenant("t1"), tenant("t2")], onBulkDelete);
 		(actionBarProps.onDelete as () => void)();
 		expect(onBulkDelete).toHaveBeenCalledTimes(1);
-		expect((onBulkDelete.mock.calls[0]?.[0] as string[]).sort()).toEqual([
+		expect((onBulkDelete.mock.calls[0]?.[0] as string[])?.sort()).toEqual([
 			"t1",
 			"t2",
 		]);

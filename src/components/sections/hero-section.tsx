@@ -18,7 +18,7 @@ export function HeroSection({
 }: HeroSectionProps) {
 	const hasVisual = Boolean(image) || Boolean(brandArt);
 	return (
-		<section className="relative flex-1 flex flex-col">
+		<section className="relative flex-1 flex flex-col pt-8 lg:pt-12 pb-20">
 			{/* Trust Badge */}
 			{trustBadge && (
 				<div className="pb-8 text-center">
@@ -61,13 +61,13 @@ export function HeroSection({
 								</h1>
 
 								<p
-									className={`text-xl text-muted-foreground leading-relaxed ${image ? "max-w-lg" : "max-w-2xl"}`}
+									className={`text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl"}`}
 								>
 									{subtitle}
 								</p>
 							</div>
 
-							<div className="flex flex-row gap-4">
+							<div className="flex flex-col sm:flex-row gap-4">
 								<Button asChild>
 									<Link href={primaryCta.href}>
 										{primaryCta.label}

@@ -34,7 +34,7 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 	return (
 		<section className="section-spacing bg-muted/30">
 			<div className="max-w-4xl mx-auto px-6 lg:px-8">
-				<h2 className="text-3xl font-bold text-center mb-12">
+				<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-center mb-16">
 					Pricing Comparison
 				</h2>
 				<div className="grid md:grid-cols-2 gap-8">
@@ -106,7 +106,7 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 	return (
 		<section id="comparison" className="section-spacing scroll-mt-20">
 			<div className="max-w-4xl mx-auto px-6 lg:px-8">
-				<h2 className="text-3xl font-bold text-center mb-12">
+				<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-center mb-16">
 					Feature-by-Feature Comparison
 				</h2>
 				<div className="overflow-x-auto rounded-xl border border-border">

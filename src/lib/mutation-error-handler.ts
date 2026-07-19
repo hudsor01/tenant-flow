@@ -34,7 +34,7 @@ function toError(error: unknown, fallback: string): Error {
 	const message =
 		(typeof obj?.message === "string" && obj.message) ||
 		(typeof (obj?.payload as Record<string, unknown>)?.message === "string" &&
-			((obj?.payload as Record<string, unknown>).message as string)) ||
+			((obj?.payload as Record<string, unknown>)?.message as string)) ||
 		fallback;
 	return obj ? new Error(message, { cause: obj }) : new Error(message);
 }

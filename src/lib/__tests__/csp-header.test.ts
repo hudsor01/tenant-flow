@@ -225,27 +225,29 @@ describe("CISEC-02 CSP hardening", () => {
 	// a credential page is the highest-value target. Pinned on /login and a
 	// token-handling /auth/* page; both must get request+response nonce CSP
 	// without being redirected (they are not auth-gated).
-	it.each([
-		"/login",
-		"/auth/update-password",
-	])("(f) applies the nonce CSP to credential-entry auth route %s (request + response, not auth-gated)", async (authPath) => {
-		const response = await proxy(buildRequest(authPath));
+	it.each(["/login", "/auth/update-password"])(
+		"(f) applies the nonce CSP to credential-entry auth route %s (request + response, not auth-gated)",
+		async (authPath) => {
+			const response = await proxy(buildRequest(authPath));
 
-		// Request-side: the load-bearing nonce CSP is forwarded so Next
-		// nonces the auth page's hydration scripts.
-		const requestHeaders = mockUpdateSession.mock.calls[0]?.[1];
-		const requestCsp = requestHeaders?.get("content-security-policy") ?? "";
-		expect(scriptSrcDirective(requestCsp)).toContain("'nonce-");
-		expect(scriptSrcDirective(requestCsp)).toContain("'strict-dynamic'");
+			// Request-side: the load-bearing nonce CSP is forwarded so Next
+			// nonces the auth page's hydration scripts.
+			const requestHeaders = mockUpdateSession.mock.calls[0]?.[1];
+			const requestCsp = requestHeaders?.get("content-security-policy") ?? "";
+			expect(scriptSrcDirective(requestCsp)).toContain("'nonce-");
+			expect(scriptSrcDirective(requestCsp)).toContain("'strict-dynamic'");
 
-		// Response-side: same nonce, no unsafe-inline in script-src. And
-		// the route is NOT redirected (status < 300) — it stays a public
-		// page, just hardened.
-		const responseCsp = response.headers.get("content-security-policy") ?? "";
-		expect(extractNonceToken(requestCsp)).toBe(extractNonceToken(responseCsp));
-		expect(scriptSrcDirective(responseCsp)).not.toContain("'unsafe-inline'");
-		expect(response.status).toBeLessThan(300);
-	});
+			// Response-side: same nonce, no unsafe-inline in script-src. And
+			// the route is NOT redirected (status < 300) — it stays a public
+			// page, just hardened.
+			const responseCsp = response.headers.get("content-security-policy") ?? "";
+			expect(extractNonceToken(requestCsp)).toBe(
+				extractNonceToken(responseCsp),
+			);
+			expect(scriptSrcDirective(responseCsp)).not.toContain("'unsafe-inline'");
+			expect(response.status).toBeLessThan(300);
+		},
+	);
 });
 
 /** Isolates a single named directive from a serialized CSP string. */
@@ -275,10 +277,13 @@ describe("SEC-02 storage-media CSP allowances", () => {
 		["img-src", `img-src 'self' data: blob: ${SUPA}`],
 		["media-src", `media-src 'self' data: blob: ${SUPA}`],
 		["frame-src", `frame-src 'self' blob: ${SUPA}`],
-	])("vercel.json static CSP %s allows the Supabase storage host", (name, expected) => {
-		const csp = readVercelCsp();
-		expect(directive(csp, name)).toBe(expected);
-	});
+	])(
+		"vercel.json static CSP %s allows the Supabase storage host",
+		(name, expected) => {
+			const csp = readVercelCsp();
+			expect(directive(csp, name)).toBe(expected);
+		},
+	);
 
 	it("vercel.json keeps frame-ancestors 'none' and adds no bare https: source", () => {
 		const csp = readVercelCsp();
@@ -292,11 +297,14 @@ describe("SEC-02 storage-media CSP allowances", () => {
 		["img-src", `img-src 'self' data: blob: ${SUPA}`],
 		["media-src", `media-src 'self' data: blob: ${SUPA}`],
 		["frame-src", `frame-src 'self' blob: ${SUPA}`],
-	])("proxy nonce CSP %s allows the Supabase storage host (in sync with vercel.json)", async (name, expected) => {
-		const response = await proxy(buildRequest("/dashboard"));
-		const responseCsp = response.headers.get("content-security-policy") ?? "";
-		expect(directive(responseCsp, name)).toBe(expected);
-	});
+	])(
+		"proxy nonce CSP %s allows the Supabase storage host (in sync with vercel.json)",
+		async (name, expected) => {
+			const response = await proxy(buildRequest("/dashboard"));
+			const responseCsp = response.headers.get("content-security-policy") ?? "";
+			expect(directive(responseCsp, name)).toBe(expected);
+		},
+	);
 
 	it("proxy nonce CSP keeps frame-ancestors 'none' and adds no bare https: source", async () => {
 		const response = await proxy(buildRequest("/dashboard"));

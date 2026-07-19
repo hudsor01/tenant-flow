@@ -1,14 +1,5 @@
-import {
-	ArrowRight,
-	Building,
-	Check,
-	ChevronRight,
-	Users,
-	Zap,
-} from "lucide-react";
-import Link from "next/link";
+import { Building, Check, ChevronRight, Users, Zap } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
 
 interface HowItWorksProps {
@@ -87,33 +78,19 @@ export function HowItWorks({ className }: HowItWorksProps) {
 					{/* Connecting line - desktop only */}
 					<div className="hidden lg:block absolute top-24 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-primary via-info to-success opacity-20" />
 
-					<div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+					<div className="grid md:grid-cols-3 gap-8">
 						{steps.map((step, index) => (
-							<BlurFade key={step.number} delay={0.2 + index * 0.1} inView>
+							<BlurFade
+								key={step.number}
+								delay={0.2 + index * 0.1}
+								inView
+								className="h-full"
+							>
 								<StepCard step={step} index={index} />
 							</BlurFade>
 						))}
 					</div>
 				</div>
-
-				{/* CTA */}
-				<BlurFade delay={0.5} inView>
-					<div className="text-center mt-16">
-						<Button
-							size="lg"
-							className="shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
-							asChild
-						>
-							<Link href="/pricing">
-								Start free — no card
-								<ArrowRight className="size-5 ml-2" />
-							</Link>
-						</Button>
-						<p className="text-sm text-muted-foreground mt-4">
-							No credit card required
-						</p>
-					</div>
-				</BlurFade>
 			</div>
 		</section>
 	);
@@ -149,7 +126,7 @@ function StepCard({ step, index }: StepCardProps) {
 	const colors = colorClasses[step.color as keyof typeof colorClasses];
 
 	return (
-		<div className="relative group">
+		<div className="relative group h-full">
 			{/* Card */}
 			<div className="card-standard p-8 h-full hover:shadow-lg hover:border-primary/20 transition-all duration-300">
 				{/* Step number & icon */}

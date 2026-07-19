@@ -14,18 +14,16 @@ import { realTestimonials } from "../data/testimonials";
 
 export default function MarketingHomePage() {
 	return (
-		<PageLayout
-			showGridPattern={true}
-			containerClass="flex flex-col section-gap"
-		>
+		<PageLayout showGridPattern={true} containerClass="flex flex-col">
 			{/* Hero Section with Dashboard Mockup */}
-			<section className="relative">
+			<section className="relative pt-8 lg:pt-12">
 				<div className="w-full">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
-						{/* items-start: the copy and the taller dashboard mockup share a
-						    top edge (no dead space above the heading / below the copy from
-						    centering unequal-height columns). Height is content-driven. */}
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+						{/* items-center + lg:min-h-150: the short copy column vertically
+						    centers against the taller dashboard mockup (no dead void
+						    beneath the CTAs) and the hero pins to a consistent height,
+						    matching the shared HeroSection. */}
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center lg:min-h-150">
 							{/* Content */}
 							<div className="flex flex-col space-y-8">
 								<div className="space-y-6">
@@ -73,8 +71,9 @@ export default function MarketingHomePage() {
 					</div>
 				</div>
 
-				{/* Logo Cloud - Trusted Integrations */}
-				<LogoCloud />
+				{/* Logo Cloud — trust strip: a subtle top divider + symmetric
+				    padding separate it from the hero without a floating void. */}
+				<LogoCloud className="mt-12 lg:mt-16" />
 			</section>
 
 			{/* Below-hero sections render directly (no LazySection). This page

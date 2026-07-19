@@ -31,7 +31,7 @@ export function FaqsAccordion({
 	};
 
 	return (
-		<section className="mb-16">
+		<section className="mb-16 last:mb-0">
 			{/* Category Header - Only show if title/description/category provided */}
 			{(title || description || category) && (
 				<div className="text-center mb-12">

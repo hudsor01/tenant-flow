@@ -34,6 +34,9 @@ export function BentoPricingSection({
 			},
 			annualTotal: plan.price.annual,
 			features: [...plan.features],
+			...(plan.includesPrevious && {
+				includesPrevious: plan.includesPrevious,
+			}),
 			popular: plan.planId === "growth",
 			stripeMonthlyPriceId: plan.stripePriceIds.monthly,
 			stripeAnnualPriceId: plan.stripePriceIds.annual,
@@ -100,6 +103,9 @@ export function BentoPricingSection({
 				>
 					Annual
 				</Label>
+				<span className="rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success-text">
+					2 months free
+				</span>
 				{/* CONS-10: per-card "Save $X/year" badges render inside each
 				    PricingCard when billingCycle === 'yearly' — drops the
 				    misleading global badge that previously showed only

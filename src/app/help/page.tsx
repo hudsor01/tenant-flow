@@ -45,7 +45,7 @@ export default function HelpPage() {
 
 			{/* Support Options */}
 			<section className="section-spacing">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
 						<h2 className="typography-h1 mb-4">Pick the channel that fits</h2>
 						<p className="text-xl text-muted-foreground">
@@ -136,7 +136,7 @@ export default function HelpPage() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-2 gap-6">
+					<div className="grid md:grid-cols-2 gap-8">
 						{[
 							{
 								title: "Set up the document vault",

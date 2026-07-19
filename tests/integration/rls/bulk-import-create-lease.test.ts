@@ -382,26 +382,29 @@ describe("bulk_import_create_lease RPC", () => {
 		["p_start_date", { p_start_date: null }, /start date is required/i],
 		["p_end_date", { p_end_date: null }, /end date is required/i],
 		["p_payment_day", { p_payment_day: null }, /payment day is required/i],
-	])("rejects NULL %s with a clear field-name error", async (_label, override, pattern) => {
-		if (!unitA || !tenantA) {
-			console.warn("Skipping: fixtures not created");
-			return;
-		}
+	])(
+		"rejects NULL %s with a clear field-name error",
+		async (_label, override, pattern) => {
+			if (!unitA || !tenantA) {
+				console.warn("Skipping: fixtures not created");
+				return;
+			}
 
-		const base = {
-			p_unit_id: unitA.id,
-			p_primary_tenant_id: tenantA.id,
-			p_start_date: "2026-05-01",
-			p_end_date: "2027-04-30",
-			p_rent_amount: 1800,
-			p_security_deposit: 1800,
-			p_payment_day: 1,
-		};
-		const { error } = await clientA.rpc("bulk_import_create_lease", {
-			...base,
-			...override,
-		} as never);
-		expect(error).not.toBeNull();
-		expect(error!.message).toMatch(pattern);
-	});
+			const base = {
+				p_unit_id: unitA.id,
+				p_primary_tenant_id: tenantA.id,
+				p_start_date: "2026-05-01",
+				p_end_date: "2027-04-30",
+				p_rent_amount: 1800,
+				p_security_deposit: 1800,
+				p_payment_day: 1,
+			};
+			const { error } = await clientA.rpc("bulk_import_create_lease", {
+				...base,
+				...override,
+			} as never);
+			expect(error).not.toBeNull();
+			expect(error!.message).toMatch(pattern);
+		},
+	);
 });

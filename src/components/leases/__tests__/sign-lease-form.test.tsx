@@ -21,7 +21,7 @@ if (!URL.createObjectURL) {
 /** Find the fetch call whose body has the given action. */
 function fetchBodyFor(action: string): Record<string, unknown> | undefined {
 	for (const call of fetchMock.mock.calls) {
-		const body = JSON.parse((call?.[1] as { body: string }).body);
+		const body = JSON.parse((call?.[1] as { body: string })?.body);
 		if (body.action === action) return body;
 	}
 	return undefined;

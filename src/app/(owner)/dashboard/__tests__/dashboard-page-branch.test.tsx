@@ -214,15 +214,18 @@ describe("DashboardContent branch render (POLISH-07)", () => {
 		["error", setError],
 		["empty", setEmpty],
 		["content", setContent],
-	])("never co-renders the skeleton and the empty state (%s state)", (_label, setState) => {
-		setState();
-		render(<DashboardPage />);
+	])(
+		"never co-renders the skeleton and the empty state (%s state)",
+		(_label, setState) => {
+			setState();
+			render(<DashboardPage />);
 
-		const skeletonPresent = skeleton().length > 0;
-		const emptyPresent = emptyState() !== null;
+			const skeletonPresent = skeleton().length > 0;
+			const emptyPresent = emptyState() !== null;
 
-		// The core mutual-exclusion invariant: the loading skeleton and the
-		// empty state are never both mounted simultaneously.
-		expect(skeletonPresent && emptyPresent).toBe(false);
-	});
+			// The core mutual-exclusion invariant: the loading skeleton and the
+			// empty state are never both mounted simultaneously.
+			expect(skeletonPresent && emptyPresent).toBe(false);
+		},
+	);
 });
