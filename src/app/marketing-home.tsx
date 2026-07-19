@@ -71,8 +71,9 @@ export default function MarketingHomePage() {
 					</div>
 				</div>
 
-				{/* Logo Cloud - Trusted Integrations */}
-				<LogoCloud className="pt-16 lg:pt-20 pb-20" />
+				{/* Logo Cloud — trust strip: a subtle top divider + symmetric
+				    padding separate it from the hero without a floating void. */}
+				<LogoCloud className="mt-12 lg:mt-16" />
 			</section>
 
 			{/* Below-hero sections render directly (no LazySection). This page

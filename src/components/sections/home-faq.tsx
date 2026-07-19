@@ -40,7 +40,7 @@ export const homeFaqs = [
 export function HomeFaq({ className }: HomeFaqProps) {
 	return (
 		<section className={cn("section-spacing", className)}>
-			<div className="max-w-4xl mx-auto px-6 lg:px-8">
+			<div className="max-w-5xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-16">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">

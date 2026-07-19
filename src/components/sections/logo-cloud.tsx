@@ -25,10 +25,10 @@ export function LogoCloud({
 	];
 
 	return (
-		<section className={cn("pb-6", className)}>
+		<section className={cn("border-t border-border/40 py-12", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
-					<div className="text-center mb-8">
+					<div className="text-center mb-6">
 						<p className="typography-small text-muted-foreground uppercase tracking-wider">
 							{title}
 						</p>
