@@ -30,7 +30,24 @@ findings:
   warning: 3
   info: 4
   total: 8
-status: issues_found
+status: fixed
+fixed_at: 2026-07-19T00:00:00Z
+---
+
+## Fix Outcome (2026-07-19)
+
+Applied on branch `gsd/phase-52-notification-center-activity-feed-channel-honesty`. `bun run validate:quick` green after all fixes.
+
+| Finding | Outcome | Commit | Notes |
+|---------|---------|--------|-------|
+| CR-01 | fixed | `c8e56a7b4` | New migration `20260719210000_single_notification_writer_rpcs.sql` strips the direct notification inserts from `record_lease_signature` + `sign_lease_with_token`; `trg_notify_owner_lease_esign` is now the sole writer. Not applied to prod here — orchestrator applies via MCP + reconciles the filename. |
+| WR-01 | fixed | `0274744f3` | Popover mark-all-read disabled state now driven by `useUnreadCount()` (bell badge source), not the visible top-10 slice. |
+| WR-02 | skipped | — | By design: preference toggles gate no send path because the suppression-honoring send rail that reads `notification_settings` is Phase 53's REMIND-03 scope (accepted deferral). |
+| WR-03 | fixed | `47520a049` | `resolveHref` now rejects any backslash and any control character, closing the `/\evil.com` / `/\t//evil.com` protocol-relative open-redirect bypass; `/notifications` fallback preserved. |
+| IN-01 | fixed | `e32d465dc` | Enable-all copy reworded from "across all channels" to "Turn on email and all notification categories". |
+| IN-02 | skipped | — | Dead `old is null` predicate lives in already-applied prod migration `20260719200224`; retro-editing applied migrations is forbidden and the branch is harmless (correctly reduces to the transition check). |
+| IN-03 | fixed | `e7cff57a0` | RLS test comments corrected to reconciled prod filenames `20260719200224` (triggers) / `20260719202447` (retention). |
+| IN-04 | fixed | `a52bada66` | Inbox list query uses an explicit column list instead of `select('*')`; regression test assertion updated to match. |
 ---
 
 # Phase 52: Code Review Report
