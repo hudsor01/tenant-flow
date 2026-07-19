@@ -117,7 +117,10 @@ None - no external service configuration required.
 - Settings notification panel now advertises only channels that actually deliver (email) plus category preferences.
 - Residual `sms`/`push`/`in_app` columns remain in `notification_settings` with their stored defaults; a future phase may drop them via migration if desired (out of scope here).
 
-## Self-Check: PENDING
+## Self-Check: PASSED
+
+- Files present: notification-settings.tsx, notification-settings.test.tsx, 52-08-SUMMARY.md
+- Commits in log: `0291af249` (feat), `3108a8def` (test), `cc735107d` (docs)
 
 ---
 *Phase: 52-notification-center-activity-feed-channel-honesty*
