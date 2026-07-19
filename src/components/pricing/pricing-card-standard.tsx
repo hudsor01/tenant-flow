@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowRight, BadgeCheck, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
@@ -32,6 +32,7 @@ interface PricingPlan {
 	};
 	annualTotal: number;
 	features: string[];
+	includesPrevious?: string;
 	popular: boolean;
 	stripeMonthlyPriceId?: string | null;
 	stripeAnnualPriceId?: string | null;
@@ -49,7 +50,6 @@ export function PricingCardStandard({
 	className,
 }: PricingCardStandardProps) {
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
-	const [showAllFeatures, setShowAllFeatures] = useState(false);
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (overrides?: {
@@ -124,11 +124,6 @@ export function PricingCardStandard({
 	};
 
 	const currentPrice = plan.price[billingCycle];
-	const initialFeatureCount = 6;
-	const displayFeatures = showAllFeatures
-		? plan.features
-		: plan.features.slice(0, initialFeatureCount);
-	const hiddenFeatureCount = plan.features.length - initialFeatureCount;
 
 	return (
 		<>
@@ -192,7 +187,12 @@ export function PricingCardStandard({
 
 				{/* Features */}
 				<div className="space-y-2.5 mb-6 flex-1">
-					{displayFeatures.map((feature) => (
+					{plan.includesPrevious && (
+						<p className="text-sm font-medium text-foreground pb-1">
+							{plan.includesPrevious}
+						</p>
+					)}
+					{plan.features.map((feature) => (
 						<div
 							key={feature}
 							className="flex items-start gap-2 text-sm text-muted-foreground"
@@ -201,23 +201,6 @@ export function PricingCardStandard({
 							<span>{feature}</span>
 						</div>
 					))}
-					{hiddenFeatureCount > 0 && (
-						<button
-							type="button"
-							onClick={() => setShowAllFeatures(!showAllFeatures)}
-							className="flex items-center gap-1 text-xs text-primary-text hover:text-primary/80 pl-6 transition-colors"
-						>
-							<ChevronDown
-								className={cn(
-									"size-3 transition-transform duration-200",
-									showAllFeatures && "rotate-180",
-								)}
-							/>
-							{showAllFeatures
-								? "Show less"
-								: `+${hiddenFeatureCount} more features`}
-						</button>
-					)}
 				</div>
 
 				{/* CTA */}

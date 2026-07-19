@@ -34,6 +34,9 @@ export function BentoPricingSection({
 			},
 			annualTotal: plan.price.annual,
 			features: [...plan.features],
+			...(plan.includesPrevious && {
+				includesPrevious: plan.includesPrevious,
+			}),
 			popular: plan.planId === "growth",
 			stripeMonthlyPriceId: plan.stripePriceIds.monthly,
 			stripeAnnualPriceId: plan.stripePriceIds.annual,

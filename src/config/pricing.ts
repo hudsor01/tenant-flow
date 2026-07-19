@@ -52,6 +52,9 @@ export interface PricingConfig {
 		readonly storage: number;
 	};
 	readonly features: readonly string[];
+	/** Optional "Everything in <lower tier>, plus:" lead-in rendered above the
+	 *  feature list so higher tiers read as an additive progression. */
+	readonly includesPrevious?: string;
 	readonly support: string;
 	readonly trial: boolean | TrialConfig;
 }
@@ -144,10 +147,9 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			units: 100,
 			storage: 50,
 		},
+		includesPrevious: "Everything in Starter, plus:",
 		features: [
-			"Up to 20 properties",
-			"Up to 100 units",
-			"Document vault with global search",
+			"20 properties and 100 units",
 			"25 lease e-signs per month",
 			"Renewal reminders",
 			"Advanced financial reporting",
@@ -177,13 +179,11 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			units: -1,
 			storage: -1,
 		},
+		includesPrevious: "Everything in Growth, plus:",
 		features: [
-			"Unlimited properties",
-			"Unlimited units",
-			"Document vault with global search",
-			"Unlimited lease e-signs",
+			"Unlimited properties, units, and lease e-signs",
+			"Unlimited document storage",
 			"Dedicated account manager",
-			"Unlimited storage",
 			"Priority support during US business hours",
 		],
 		support: "Dedicated account manager",
