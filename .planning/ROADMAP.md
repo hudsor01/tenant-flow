@@ -51,9 +51,9 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
   5. Notifications are bounded by an archive-then-delete retention cron (3 AM window); the orphaned `payout_events` table and dead `docuseal_document_url` column are dropped
 **Plans**: 8 plans
 - [x] 52-01-PLAN.md — Notification write-path RPC + owner RLS reconcile (NOTIF-01)
-- [ ] 52-02-PLAN.md — Notification + activity event triggers + finalize-failed edge fn (NOTIF-04, ACT-01 write-path)
+- [x] 52-02-PLAN.md — Notification + activity event triggers + finalize-failed edge fn (NOTIF-04, ACT-01 write-path)
 - [ ] 52-03-PLAN.md — Retention cron + orphan schema reconcile (NOTIF-05, CLEAN-01/02)
-- [ ] 52-04-PLAN.md — Notification data layer: keys + mark-read mutations (NOTIF-02/03)
+- [x] 52-04-PLAN.md — Notification data layer: keys + mark-read mutations (NOTIF-02/03)
 - [ ] 52-05-PLAN.md — Notification bell + popover header island (NOTIF-02/03)
 - [ ] 52-06-PLAN.md — /notifications inbox page + E2E smoke (NOTIF-03)
 - [x] 52-07-PLAN.md — Dashboard activity card (ACT-01/02)
@@ -210,7 +210,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 52. Notification Center, Activity Feed & Channel Honesty | 3/8 | In Progress|  |
+| 52. Notification Center, Activity Feed & Channel Honesty | 5/8 | In Progress|  |
 | 53. Renewal Reminder Delivery | 0/TBD | Not started | - |
 | 54. E-sign & Storage Metering | 0/TBD | Not started | - |
 | 55. Rent Ledger | 0/TBD | Not started | - |
