@@ -34,7 +34,7 @@ export function LogoCloud({
 						</p>
 					</div>
 
-					<div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
+					<div className="grid grid-cols-2 sm:grid-cols-4 place-items-center gap-x-8 gap-y-10">
 						{stack.map((item, index) => (
 							<BlurFade key={item.name} delay={0.1 + index * 0.05} inView>
 								<div className="group relative flex flex-col items-center gap-2">
@@ -80,7 +80,7 @@ function SupabaseWordmark({ className }: { className?: string }) {
 	return (
 		<svg
 			className={className}
-			viewBox="0 0 581 113"
+			viewBox="0 0 385 113"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
@@ -140,7 +140,7 @@ function VercelWordmark({ className }: { className?: string }) {
 	return (
 		<svg
 			className={className}
-			viewBox="0 0 284 65"
+			viewBox="0 0 238 65"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
@@ -164,7 +164,7 @@ function ResendLogo({ className }: { className?: string }) {
 	return (
 		<svg
 			className={className}
-			viewBox="0 0 100 25"
+			viewBox="0 0 72 25"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
