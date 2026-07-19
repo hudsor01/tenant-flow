@@ -89,7 +89,12 @@ export function HowItWorks({ className }: HowItWorksProps) {
 
 					<div className="grid md:grid-cols-3 gap-8">
 						{steps.map((step, index) => (
-							<BlurFade key={step.number} delay={0.2 + index * 0.1} inView>
+							<BlurFade
+								key={step.number}
+								delay={0.2 + index * 0.1}
+								inView
+								className="h-full"
+							>
 								<StepCard step={step} index={index} />
 							</BlurFade>
 						))}
@@ -149,7 +154,7 @@ function StepCard({ step, index }: StepCardProps) {
 	const colors = colorClasses[step.color as keyof typeof colorClasses];
 
 	return (
-		<div className="relative group">
+		<div className="relative group h-full">
 			{/* Card */}
 			<div className="card-standard p-8 h-full hover:shadow-lg hover:border-primary/20 transition-all duration-300">
 				{/* Step number & icon */}
