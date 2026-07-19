@@ -41,6 +41,9 @@ function toBillingPlan(config: PricingConfig): Plan {
 		priceId: config.stripePriceIds.monthly,
 		tier: TIER_BY_PLAN_ID[config.planId],
 		features: toPlanFeatures(config.features),
+		...(config.includesPrevious && {
+			includesPrevious: config.includesPrevious,
+		}),
 	};
 }
 
