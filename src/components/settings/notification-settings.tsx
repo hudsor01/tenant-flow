@@ -77,7 +77,7 @@ export function NotificationSettings() {
 						<div>
 							<h3 className="text-sm font-medium">Enable All Notifications</h3>
 							<p className="text-xs text-muted-foreground">
-								Receive notifications across all channels
+								Turn on email and all notification categories
 							</p>
 						</div>
 						<Switch
