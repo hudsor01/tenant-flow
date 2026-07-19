@@ -222,9 +222,9 @@ export function PricingCardStandard({
 
 				{/* CTA */}
 				<Button
-					variant="default"
+					variant="outline"
 					size="lg"
-					className="w-full group transition-all duration-300 bg-foreground text-background hover:bg-foreground/90"
+					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text"
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
 				>
