@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 describe("Notifications RLS — cross-owner isolation", () => {
 	let clientA: SupabaseClient;
@@ -84,15 +85,38 @@ describe("Notifications RLS — cross-owner isolation", () => {
 
 		const targetId = notificationsA[0]!.id as string;
 
-		// Owner B tries to update owner A's notification — RLS blocks
+		// Owner B tries to update owner A's notification — RLS blocks.
+		// Column is `is_read` (generated types) — `read` is not a column; using it
+		// would 400 at the PostgREST boundary and mask the RLS assertion.
 		const { data, error } = await clientB
 			.from("notifications")
-			.update({ read: true })
+			.update({ is_read: true })
 			.eq("id", targetId)
 			.select("id");
 
 		// RLS USING clause prevents owner B from seeing/updating the row
 		expect(error).toBeNull();
 		expect(data).toEqual([]);
+	});
+
+	// ---------------------------------------------------------------------------
+	// create_notification privilege boundary (T-52-01) — the write-path RPC is
+	// service_role-only. An authenticated owner must NOT be able to mint
+	// notifications (for themselves or anyone else); writes go through triggers.
+	// ---------------------------------------------------------------------------
+
+	it("create_notification is not callable by the authenticated role", async () => {
+		const { data, error } = await clientA.rpc("create_notification", {
+			p_user_id: ownerAId,
+			p_type: "lease_signed",
+			p_title: "x",
+		});
+
+		// EXECUTE is revoked from public/authenticated (granted to service_role
+		// only). PostgREST surfaces this as insufficient_privilege / undefined_
+		// function / not-found — accept the canonical revoked-EXECUTE code set.
+		expect(error).not.toBeNull();
+		expect(REVOKED_CODES).toContain(error?.code);
+		expect(data).toBeNull();
 	});
 });
