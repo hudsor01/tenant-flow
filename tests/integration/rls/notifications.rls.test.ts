@@ -127,7 +127,7 @@ describe("Notifications RLS — cross-owner isolation", () => {
 // create_notification RPC. Exercises the full un-bypassable write path (trigger →
 // SECURITY DEFINER RPC → notification row) plus cross-owner isolation.
 //
-// Requires the 20260719130000_notification_and_activity_event_triggers migration
+// Requires the 20260719200224_notification_and_activity_event_triggers migration
 // applied to prod (deferred to the orchestrator; see 52-02-SUMMARY). Until then
 // this block fails because no notification row is written — that is the intended
 // signal that the trigger is not yet live.

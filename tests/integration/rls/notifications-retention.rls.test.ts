@@ -24,7 +24,7 @@ import { REVOKED_CODES } from "./_helpers/revoked-codes";
 //   2. notifications_archive is NOT readable by the authenticated role
 //      (service_role-only; no information disclosure of archived rows).
 //
-// Requires 20260719140000_notifications_retention_cron applied to prod (deferred
+// Requires 20260719202447_notifications_retention_cron applied to prod (deferred
 // to the orchestrator; see 52-03-SUMMARY). Before it is applied the RPC surfaces
 // as function-not-found and the table as not-in-schema-cache — both still
 // non-null errors, so the privilege boundary holds either way. Synthetic owners
