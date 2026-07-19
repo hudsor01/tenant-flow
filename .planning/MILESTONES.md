@@ -1,5 +1,17 @@
 # Milestones
 
+## v9.0 Full-Surface Remediation (Shipped: 2026-07-17)
+
+**Goal:** Fix all 296 adversarially verified findings from the 2026-07-11 full-surface audit (codebase + public marketing pages + owner dashboard), one category per phase, strictly sequential perfect-PR PRs.
+
+**Shipped:** All 16 phases (36-51) merged via PRs #896-#911, each through the perfect-PR gate + full CI. Adversarial post-merge audit: 296/296 accounted — PASS 291 · MOOT 4 · DEFERRED 1 · FAIL 0. Follow-up remediation (#912): MKTUI-02 governing law resolved (Texas), all 3 v9.0 migrations applied via MCP + reconciled, dead `/pricing/complete` allowlist entry removed. All 5 stale edge functions redeployed (billing-portal v84, checkout v104, webhooks v96, sign-lease-token v4, lease-signature v8); `lease-pdf.ts` rewritten pure-ASCII (#913). Prod audit 28/29 pass. Post-milestone marketing polish shipped in PRs #914-#917 + #920.
+
+**Deferred at close:** 1 requirement (deferred by design). Residual owner-run: delete orphaned `stripe-checkout-session` edge function.
+
+**Archive:** [v9.0-ROADMAP.md](milestones/v9.0-ROADMAP.md) · [v9.0-REQUIREMENTS.md](milestones/v9.0-REQUIREMENTS.md) · phases in `milestones/v9.0-phases/` · audit source `.planning/audits/2026-07-11-full-audit.md`
+
+---
+
 ## v8.0 Correctness Restoration (Shipped: 2026-07-10)
 
 **Goal:** Eradicate the full set of real bugs surfaced by the 2026-07-02 whole-codebase hunt — all severities, every one verified against source and the live Supabase DB.
