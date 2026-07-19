@@ -136,7 +136,12 @@ export const notificationQueries = {
 
 				const base = supabase
 					.from("notifications")
-					.select("*", { count: "exact" })
+					// Explicit column list (every field mapNotificationRow reads); `*`
+					// is reserved for detail reads per CLAUDE.md Data Access (IN-04).
+					.select(
+						"id,user_id,notification_type,title,message,entity_type,entity_id,action_url,is_read,read_at,created_at",
+						{ count: "exact" },
+					)
 					.eq("user_id", user.id)
 					.order("created_at", { ascending: false });
 

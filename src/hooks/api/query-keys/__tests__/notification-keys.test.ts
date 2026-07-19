@@ -221,7 +221,10 @@ describe("notificationQueries.list", () => {
 			.list({ from: 0, to: 9 })
 			.queryFn?.({} as never);
 
-		expect(mockSelect).toHaveBeenCalledWith("*", { count: "exact" });
+		expect(mockSelect).toHaveBeenCalledWith(
+			"id,user_id,notification_type,title,message,entity_type,entity_id,action_url,is_read,read_at,created_at",
+			{ count: "exact" },
+		);
 		expect(mockRange).toHaveBeenCalledWith(0, 9);
 		expect(mockLimit).not.toHaveBeenCalled();
 		expect(result?.totalCount).toBe(42);
