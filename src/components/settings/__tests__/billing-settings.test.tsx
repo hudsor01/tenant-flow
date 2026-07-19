@@ -238,38 +238,35 @@ describe("BillingSettings empty-state branches", () => {
 		},
 	] as const;
 
-	it.each(
-		RESUBSCRIBE_CASES,
-	)("renders the resubscribe branch for $status subscriptions", async ({
-		status,
-		badge,
-		copy,
-	}) => {
-		useSubscriptionStatusMock.mockReturnValue({
-			data: {
-				subscriptionStatus: status,
-				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
-				currentPeriodEnd: null,
-				stripeCustomerId: `cus_${status}`,
-				cancelAtPeriodEnd: false,
-				trialEndsAt: null,
-			},
-			isLoading: false,
-		});
-		useUserMock.mockReturnValue({
-			data: { stripe_customer_id: `cus_${status}` },
-		});
+	it.each(RESUBSCRIBE_CASES)(
+		"renders the resubscribe branch for $status subscriptions",
+		async ({ status, badge, copy }) => {
+			useSubscriptionStatusMock.mockReturnValue({
+				data: {
+					subscriptionStatus: status,
+					stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+					currentPeriodEnd: null,
+					stripeCustomerId: `cus_${status}`,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				isLoading: false,
+			});
+			useUserMock.mockReturnValue({
+				data: { stripe_customer_id: `cus_${status}` },
+			});
 
-		const BillingSettings = await getBillingSettings();
-		renderWithProviders(<BillingSettings />);
+			const BillingSettings = await getBillingSettings();
+			renderWithProviders(<BillingSettings />);
 
-		expect(screen.getByText(badge)).toBeInTheDocument();
-		expect(screen.getByText(copy)).toBeInTheDocument();
-		expect(screen.getByRole("link", { name: "Resubscribe" })).toHaveAttribute(
-			"href",
-			"/billing/plans",
-		);
-	});
+			expect(screen.getByText(badge)).toBeInTheDocument();
+			expect(screen.getByText(copy)).toBeInTheDocument();
+			expect(screen.getByRole("link", { name: "Resubscribe" })).toHaveAttribute(
+				"href",
+				"/billing/plans",
+			);
+		},
+	);
 
 	it("renders the no-subscription branch (Upgrade to unlock copy)", async () => {
 		useSubscriptionStatusMock.mockReturnValue({

@@ -81,7 +81,7 @@ export default function AboutPage() {
 					<BlurFade delay={0.2} inView>
 						<div className="grid xl:grid-cols-2 gap-16 items-center">
 							<div className="space-y-6">
-								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+								<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 									Our Mission
 								</h2>
 								<div className="space-y-4">
@@ -116,7 +116,7 @@ export default function AboutPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.3} inView>
 						<div className="text-center mb-16 space-y-4">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 								Our Values
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
@@ -221,10 +221,10 @@ export default function AboutPage() {
 
 			{/* Stats Section */}
 			<section className="section-spacing">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.5} inView>
 						<div className="text-center mb-16 space-y-4">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 								What ships in the box
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
@@ -254,10 +254,10 @@ export default function AboutPage() {
 
 			{/* CTA Section */}
 			<section className="section-spacing bg-muted/20">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={1.0} inView>
 						<div className="text-center space-y-8">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
+							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight leading-tight text-foreground">
 								Ready to{" "}
 								<span className="hero-highlight">
 									simplify property management

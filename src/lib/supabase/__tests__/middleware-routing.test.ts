@@ -147,37 +147,36 @@ describe("proxy routing", () => {
 	});
 
 	describe("public routes", () => {
-		it.each([
-			"/login",
-			"/pricing",
-			"/",
-		])("bypasses auth check for %s", async (route) => {
-			const supabaseResponse = makeSupabaseResponse();
-			mockUpdateSession.mockResolvedValue({
-				user: null,
-				supabaseResponse,
-			});
+		it.each(["/login", "/pricing", "/"])(
+			"bypasses auth check for %s",
+			async (route) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: null,
+					supabaseResponse,
+				});
 
-			const result = await proxy(buildRequest(route));
+				const result = await proxy(buildRequest(route));
 
-			expect(result).toBe(supabaseResponse);
-			expect(NextResponse.redirect).not.toHaveBeenCalled();
-		});
+				expect(result).toBe(supabaseResponse);
+				expect(NextResponse.redirect).not.toHaveBeenCalled();
+			},
+		);
 
-		it.each([
-			"/blog",
-			"/blog/some-post",
-		])("skips updateSession entirely for %s (F2: public, never reads the session)", async (route) => {
-			const result = await proxy(buildRequest(route));
+		it.each(["/blog", "/blog/some-post"])(
+			"skips updateSession entirely for %s (F2: public, never reads the session)",
+			async (route) => {
+				const result = await proxy(buildRequest(route));
 
-			// /blog/* returns NextResponse.next() WITHOUT the per-request
-			// Supabase session-refresh round-trip — that round-trip saturated
-			// Supabase under prefetch/crawler bursts (the F2 intermittent 503).
-			expect(mockUpdateSession).not.toHaveBeenCalled();
-			expect(NextResponse.next).toHaveBeenCalled();
-			expect(NextResponse.redirect).not.toHaveBeenCalled();
-			expect(result).toBeDefined();
-		});
+				// /blog/* returns NextResponse.next() WITHOUT the per-request
+				// Supabase session-refresh round-trip — that round-trip saturated
+				// Supabase under prefetch/crawler bursts (the F2 intermittent 503).
+				expect(mockUpdateSession).not.toHaveBeenCalled();
+				expect(NextResponse.next).toHaveBeenCalled();
+				expect(NextResponse.redirect).not.toHaveBeenCalled();
+				expect(result).toBeDefined();
+			},
+		);
 	});
 
 	describe("unauthenticated access", () => {
@@ -358,45 +357,40 @@ describe("proxy routing", () => {
 			expect(result).toBe(supabaseResponse);
 		});
 
-		it.each([
-			"unpaid",
-			"canceled",
-			"expired",
-			"incomplete_expired",
-			"paused",
-		])("redirects user with terminal status %s to /pricing (BILL-12 lockout matrix)", async (subscription_status) => {
-			mockUpdateSession.mockResolvedValue({
-				user: makeUser(),
-				supabaseResponse: makeSupabaseResponse(),
-			});
-			mockUserRow = { is_admin: false, subscription_status };
+		it.each(["unpaid", "canceled", "expired", "incomplete_expired", "paused"])(
+			"redirects user with terminal status %s to /pricing (BILL-12 lockout matrix)",
+			async (subscription_status) => {
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse: makeSupabaseResponse(),
+				});
+				mockUserRow = { is_admin: false, subscription_status };
 
-			await proxy(buildRequest("/dashboard"));
+				await proxy(buildRequest("/dashboard"));
 
-			expect(NextResponse.redirect).toHaveBeenCalledOnce();
-			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
-				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/pricing");
-		});
+				expect(NextResponse.redirect).toHaveBeenCalledOnce();
+				const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+					.mock.calls[0]![0] as URL;
+				expect(redirectUrl.pathname).toBe("/pricing");
+			},
+		);
 
-		it.each([
-			"past_due",
-			"unpaid",
-			"canceled",
-			"expired",
-		])("allows %s user onto /billing/plans (recovery surface reachable, BILL-12)", async (subscription_status) => {
-			const supabaseResponse = makeSupabaseResponse();
-			mockUpdateSession.mockResolvedValue({
-				user: makeUser(),
-				supabaseResponse,
-			});
-			mockUserRow = { is_admin: false, subscription_status };
+		it.each(["past_due", "unpaid", "canceled", "expired"])(
+			"allows %s user onto /billing/plans (recovery surface reachable, BILL-12)",
+			async (subscription_status) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse,
+				});
+				mockUserRow = { is_admin: false, subscription_status };
 
-			const result = await proxy(buildRequest("/billing/plans"));
+				const result = await proxy(buildRequest("/billing/plans"));
 
-			expect(NextResponse.redirect).not.toHaveBeenCalled();
-			expect(result).toBe(supabaseResponse);
-		});
+				expect(NextResponse.redirect).not.toHaveBeenCalled();
+				expect(result).toBe(supabaseResponse);
+			},
+		);
 
 		it("redirects user with no subscription on /dashboard to /pricing", async () => {
 			mockUpdateSession.mockResolvedValue({
@@ -413,23 +407,22 @@ describe("proxy routing", () => {
 			expect(redirectUrl.pathname).toBe("/pricing");
 		});
 
-		it.each([
-			"/pricing",
-			"/billing/checkout",
-			"/billing/plans",
-		])("allows user without subscription on %s (allowlist)", async (route) => {
-			const supabaseResponse = makeSupabaseResponse();
-			mockUpdateSession.mockResolvedValue({
-				user: makeUser(),
-				supabaseResponse,
-			});
-			mockUserRow = { is_admin: false, subscription_status: null };
+		it.each(["/pricing", "/billing/checkout", "/billing/plans"])(
+			"allows user without subscription on %s (allowlist)",
+			async (route) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse,
+				});
+				mockUserRow = { is_admin: false, subscription_status: null };
 
-			const result = await proxy(buildRequest(route));
+				const result = await proxy(buildRequest(route));
 
-			expect(NextResponse.redirect).not.toHaveBeenCalled();
-			expect(result).toBe(supabaseResponse);
-		});
+				expect(NextResponse.redirect).not.toHaveBeenCalled();
+				expect(result).toBe(supabaseResponse);
+			},
+		);
 
 		it("redirects user without subscription on /settings (non-allowlisted)", async () => {
 			mockUpdateSession.mockResolvedValue({

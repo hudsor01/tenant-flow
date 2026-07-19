@@ -18,16 +18,15 @@ describe("LeaseStatusBadge", () => {
 		{ status: "vacant", label: "Vacant", chip: "status-inactive" },
 	] as const;
 
-	it.each(cases)("renders $status as the $chip pill with a border", ({
-		status,
-		label,
-		chip,
-	}) => {
-		render(<LeaseStatusBadge status={status} />);
-		const pill = screen.getByText(label);
-		expect(pill).toHaveClass(chip);
-		// WR-01: status-* set border-color; the pill must carry a border width.
-		expect(pill).toHaveClass("border");
-		expect(pill).toHaveClass("inline-flex");
-	});
+	it.each(cases)(
+		"renders $status as the $chip pill with a border",
+		({ status, label, chip }) => {
+			render(<LeaseStatusBadge status={status} />);
+			const pill = screen.getByText(label);
+			expect(pill).toHaveClass(chip);
+			// WR-01: status-* set border-color; the pill must carry a border width.
+			expect(pill).toHaveClass("border");
+			expect(pill).toHaveClass("inline-flex");
+		},
+	);
 });

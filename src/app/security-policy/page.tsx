@@ -15,7 +15,7 @@ export default function SecurityPolicyPage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/security-policy")} />
-			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
+			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Security Policy</h1>
 				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
 

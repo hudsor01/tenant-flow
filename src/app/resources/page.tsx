@@ -89,7 +89,7 @@ export default function ResourcesPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd("/resources")} />
 
 			{/* Hero Section */}
-			<section className="relative pb-16 overflow-hidden">
+			<section className="relative pb-20 overflow-hidden">
 				<div className="absolute inset-0 bg-background">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--color-primary)_5%,transparent),transparent_50%)]" />
 				</div>
@@ -111,8 +111,8 @@ export default function ResourcesPage() {
 			{/* Main Resources Grid */}
 			<section className="section-spacing bg-muted/30">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="typography-h2 text-foreground mb-3">
+					<div className="text-center mb-16">
+						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							Resource Center
 						</h2>
 						<p className="text-muted-foreground text-lg">
@@ -163,8 +163,8 @@ export default function ResourcesPage() {
 			{/* Free Downloads */}
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="typography-h2 text-foreground mb-3">
+					<div className="text-center mb-16">
+						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							Free Downloads
 						</h2>
 						<p className="text-muted-foreground text-lg">
@@ -172,7 +172,7 @@ export default function ResourcesPage() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-3 gap-6">
+					<div className="grid md:grid-cols-3 gap-8">
 						{downloadResources.map((resource) => (
 							<Link
 								key={resource.title}
@@ -207,7 +207,7 @@ export default function ResourcesPage() {
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_10%,transparent),transparent_70%)]" />
 				</div>
 
-				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 							Still have questions?{" "}

@@ -88,7 +88,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 
 					{/* Trust Signals Grid */}
 					<BlurFade delay={0.4} inView>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-3xl mx-auto">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
 							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
 								<Check className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
