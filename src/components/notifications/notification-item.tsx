@@ -43,14 +43,31 @@ const FALLBACK_VISUAL: TypeVisual = {
 /**
  * Resolves a raw `action_url` to an app-relative href. Open-redirect guard
  * (T-52-15): navigate only when the value starts with a single "/" (app-local),
- * never a protocol-relative "//host" or an absolute external URL. Anything else
- * falls back to the inbox.
+ * never a protocol-relative "//host" or an absolute external URL. Browsers
+ * normalize backslashes to forward slashes and strip embedded tabs/newlines, so
+ * "/\evil.com" and "/\t//evil.com" would resolve protocol-relative and slip
+ * past a naive "//" check (WR-03) — reject any backslash or control char.
+ * Anything else falls back to the inbox.
  */
 function resolveHref(actionUrl: string | null): string {
-	if (actionUrl && actionUrl.startsWith("/") && !actionUrl.startsWith("//")) {
-		return actionUrl;
+	if (
+		!actionUrl ||
+		!actionUrl.startsWith("/") ||
+		actionUrl.startsWith("//") ||
+		actionUrl.includes("\\")
+	) {
+		return "/notifications";
 	}
-	return "/notifications";
+	// Browsers strip embedded tabs/newlines, so a value like "/\t//evil.com"
+	// would collapse to a protocol-relative "//evil.com" open redirect. Reject
+	// any control character outright.
+	for (const char of actionUrl) {
+		const code = char.charCodeAt(0);
+		if (code < 0x20 || code === 0x7f) {
+			return "/notifications";
+		}
+	}
+	return actionUrl;
 }
 
 interface NotificationItemProps {
