@@ -95,7 +95,7 @@ export function PricingStatsGrid() {
 
 export function PricingFaqSection() {
 	return (
-		<section className="section-spacing-spacious animate-in fade-in duration-700 delay-300">
+		<section className="section-spacing animate-in fade-in duration-700 delay-300">
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
 				<div className="rounded-3xl border border-border/60 bg-card/60 p-10 shadow-sm backdrop-blur sm:p-14">
 					<div className="mx-auto mb-14 max-w-3xl text-center">
@@ -163,7 +163,7 @@ export function PricingFaqSection() {
 
 export function PricingCtaSection() {
 	return (
-		<section className="section-spacing-spacious animate-in fade-in duration-700 delay-400">
+		<section className="section-spacing animate-in fade-in duration-700 delay-400">
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
 				<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 					<div className="space-y-6 text-left">
