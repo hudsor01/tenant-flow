@@ -194,11 +194,11 @@ function CategorySection({
 					<div
 						key={feature.name}
 						className={cn(
-							"grid grid-cols-4 items-center py-3 px-6",
+							"grid grid-cols-4 items-center py-3 px-6 transition-colors hover:bg-muted/40",
 							idx % 2 === 0 ? "bg-muted/20" : "bg-transparent",
 						)}
 					>
-						<div className="text-sm text-muted-foreground">{feature.name}</div>
+						<div className="text-sm text-foreground">{feature.name}</div>
 						<div className="text-center">
 							<FeatureCell value={feature.starter} />
 						</div>
@@ -236,7 +236,7 @@ export function PricingComparisonTable({
 				/>
 				<div className="min-w-[640px]">
 					{/* Sticky header */}
-					<div className="grid grid-cols-4 items-center py-4 px-6 bg-muted/50 border-b border-border/50 sticky top-0 z-10">
+					<div className="grid grid-cols-4 items-center py-4 px-6 bg-muted/70 backdrop-blur-sm border-b border-border sticky top-0 z-10 shadow-sm">
 						<div className="text-sm font-medium text-muted-foreground">
 							Features
 						</div>
