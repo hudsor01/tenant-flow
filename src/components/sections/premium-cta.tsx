@@ -22,15 +22,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					{/* Headline */}
 					<BlurFade delay={0.1} inView>
 						<div className="mb-8">
-							<h2 className="text-responsive-display-xl font-bold tracking-tight text-foreground mb-6 leading-[0.9]">
-								Stop juggling
-								<span className="block text-primary relative">
-									spreadsheets and Dropbox
-									<div className="absolute -inset-1 bg-primary/10 blur-xl rounded-lg" />
-								</span>
-								<span className="block text-foreground/80 text-responsive-display-lg">
-									for your portfolio
-								</span>
+							<h2 className="text-responsive-display-xl font-bold tracking-tight text-foreground mb-6 leading-[1.05]">
+								Stop juggling{" "}
+								<span className="text-primary">spreadsheets and Dropbox</span>{" "}
+								for your portfolio
 							</h2>
 						</div>
 					</BlurFade>
