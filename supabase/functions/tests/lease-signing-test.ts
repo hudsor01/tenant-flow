@@ -100,6 +100,7 @@ interface FakeCalls {
 	uploads: Array<{ path: string }>;
 	downloads: Array<{ path: string }>;
 	updates: UpdateCall[];
+	rpcs: Array<{ name: string; args: Record<string, unknown> }>;
 }
 
 /** Stateful fake client: updates mutate the live row (subject to `.is()` guards),
@@ -110,7 +111,12 @@ function makeClient(row: LeaseRowState): {
 	state: { row: LeaseRowState };
 } {
 	const state = { row };
-	const calls: FakeCalls = { uploads: [], downloads: [], updates: [] };
+	const calls: FakeCalls = {
+		uploads: [],
+		downloads: [],
+		updates: [],
+		rpcs: [],
+	};
 
 	const builder = (table: string) => {
 		let currentUpdate: UpdateCall | null = null;
@@ -155,6 +161,12 @@ function makeClient(row: LeaseRowState): {
 
 	const client = {
 		from: (table: string) => builder(table),
+		// Records every create_notification call so the finalize-failed notification
+		// (NOTIF-04, lease_finalize_failed) can be asserted on the failure branches.
+		rpc: async (name: string, args: Record<string, unknown>) => {
+			calls.rpcs.push({ name, args });
+			return { data: null, error: null };
+		},
 		storage: {
 			from: () => ({
 				upload: async (path: string) => {
@@ -326,5 +338,56 @@ Deno.test(
 			assertEquals(fetchCount(), 1);
 			assert(typeof state.row.signed_lease_emailed_at === "string");
 		})();
+	},
+);
+
+// -----------------------------------------------------------------------------
+// notifyFinalizeFailed (NOTIF-04) — every finalize failure exit publishes a
+// single lease_finalize_failed "Lease signing needs attention" notification for
+// the owner via the service_role create_notification RPC. Assert two branches:
+// the upload-error exit (finalizeSignedLease) and the email-failure exit
+// (ensureSignedLeaseEmail).
+// -----------------------------------------------------------------------------
+
+Deno.test(
+	"finalizeSignedLease: an upload error notifies the owner (lease_finalize_failed)",
+	withResendStub({ ok: true }, async () => {
+		const { client, calls } = makeClient(leaseRow({}));
+		// Force the upload to fail (drives the inline uploadError exit).
+		(client.storage.from as unknown) = () => ({
+			upload: async () => ({ error: { message: "boom" } }),
+			download: async () => ({ data: null, error: { message: "no" } }),
+		});
+		await finalizeSignedLease(client, "lease-1");
+
+		const failNotice = calls.rpcs.find(
+			(r) =>
+				r.name === "create_notification" &&
+				r.args.p_type === "lease_finalize_failed",
+		);
+		assert(failNotice, "expected a lease_finalize_failed notification");
+		assertEquals(failNotice.args.p_title, "Lease signing needs attention");
+		assertEquals(failNotice.args.p_entity_type, "lease");
+		assertEquals(failNotice.args.p_action_url, "/leases/lease-1");
+	}),
+);
+
+Deno.test(
+	"finalizeSignedLease: a failed email notifies the owner (lease_finalize_failed)",
+	async () => {
+		const { client, calls } = makeClient(leaseRow({}));
+		await withResendStub({ ok: false }, async (fetchCount) => {
+			await finalizeSignedLease(client, "lease-1");
+			assertEquals(fetchCount(), 1); // email attempted once, then failed
+		})();
+
+		const failNotice = calls.rpcs.find(
+			(r) =>
+				r.name === "create_notification" &&
+				r.args.p_type === "lease_finalize_failed",
+		);
+		assert(failNotice, "expected a lease_finalize_failed notification");
+		assertEquals(failNotice.args.p_title, "Lease signing needs attention");
+		assertEquals(failNotice.args.p_action_url, "/leases/lease-1");
 	},
 );
