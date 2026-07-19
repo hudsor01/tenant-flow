@@ -72,6 +72,36 @@ export type OwnerDashboardData = {
 // is defense-in-depth — it surfaces silent contract drift if a future
 // migration introduces a new status value the union doesn't cover.
 // Unreachable in normal operation against the current server contract.
+// The get_dashboard_data_v2 RPC emits activity rows with the DB's snake_case
+// column names (`title`, `description`, `entity_type`, `entity_id`, `created_at`
+// — see 20260301070000_unified_dashboard_rpc.sql `recent_activities`), NOT the
+// camelCase `ActivityItem` shape. Map at this boundary so downstream consumers
+// (useDashboardActivity → DashboardActivityCard) read populated fields instead
+// of `undefined`. Never `as unknown as` (CLAUDE.md rule #8).
+interface RawDashboardActivityRow {
+	id: string;
+	title: string;
+	description: string | null;
+	activity_type: string;
+	entity_type: string | null;
+	entity_id: string | null;
+	user_id: string;
+	created_at: string | null;
+}
+
+function mapDashboardActivityRow(raw: RawDashboardActivityRow): ActivityItem {
+	return {
+		id: raw.id,
+		user_id: raw.user_id,
+		action: raw.title,
+		entityType: raw.entity_type ?? "",
+		entityId: raw.entity_id ?? "",
+		entityName: raw.description ?? "",
+		created_at: raw.created_at ?? "",
+		...(raw.description ? { description: raw.description } : {}),
+	};
+}
+
 function mapPropertyPerformanceStatus(
 	raw: string,
 ): PropertyPerformance["status"] {
@@ -119,7 +149,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 			monthly_revenue_6mo?: MonthlyRevenuePoint[];
 		};
 		property_performance: PropertyPerformanceRpcResponse[];
-		activities: ActivityItem[];
+		activities: RawDashboardActivityRow[];
 	}>(data);
 
 	// The get_dashboard_data_v2 RPC emits property_performance rows with
@@ -155,7 +185,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	return {
 		stats: result.stats,
-		activity: result.activities ?? [],
+		activity: (result.activities ?? []).map(mapDashboardActivityRow),
 		metricTrends: {
 			occupancyRate: result.trends?.occupancy_rate ?? null,
 			activeTenants: result.trends?.active_tenants ?? null,
