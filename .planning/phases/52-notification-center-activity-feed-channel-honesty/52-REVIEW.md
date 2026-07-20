@@ -316,3 +316,8 @@ _Fixer: Claude (gsd-code-fixer)_
 - **CONFIRMED (fixed + prod-applied):** `notifications_user_unread_created_idx` was fully redundant with `idx_notifications_user_unread` (partial) + `idx_notifications_user_created` — dropped via `20260720151257` (write-amplification removal, index-consolidation doctrine).
 - **CONFIRMED (fixed):** inbox pagination lacked a tiebreaker while same-transaction notifications share byte-identical `created_at` — secondary `.order("id")` added to the list factory.
 - **KILLED:** "C2 clamp unreachable due to PGRST103 416" — both refuters refuted.
+
+## Perfect-PR Streak Cycles 5-6 (2026-07-20)
+
+- **Cycle 5: ZERO findings** (streak 1/2 on 8a6a26bf2).
+- **Cycle 6 (independent pass, same head): 1 confirmed minor (fixed), 1 killed** — `formatRelativeDate` off-by-one for past dates (`absDays + 1` rendered yesterday as "2 days ago"); latent pre-existing bug made user-visible by its FIRST production consumer (the activity card); the old unit test pinned the wrong output. Fixed verbatim-distance + singular unit; test re-pinned with 4 cases. Streak reset.
