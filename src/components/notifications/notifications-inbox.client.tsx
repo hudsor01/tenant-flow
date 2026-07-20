@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import {
 	Empty,
@@ -50,6 +50,19 @@ export function NotificationsInboxClient() {
 	const currentPage = page + 1;
 	const canPrev = page > 0;
 	const canNext = currentPage < totalPages;
+
+	// Clamp the page back into range when the total shrinks below the current
+	// window (retention cleanup / deletes + refetch). Without this, deleting the
+	// rows on the last page strands the user on an empty page whose Prev/Next
+	// controls are hidden by the `rows.length === 0` branch (C2). Snap to the
+	// last valid page once the refetched count lands.
+	useEffect(() => {
+		if (!data) return;
+		const lastPage = Math.max(0, Math.ceil(totalCount / PAGE_SIZE) - 1);
+		if (page > lastPage) {
+			setPage(lastPage);
+		}
+	}, [data, totalCount, page]);
 
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
