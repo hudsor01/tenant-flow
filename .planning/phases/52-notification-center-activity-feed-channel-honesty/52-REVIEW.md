@@ -332,3 +332,8 @@ _Fixer: Claude (gsd-code-fixer)_
 
 - **Cycle 8: ZERO findings** (streak 1/2 on d864c77fd).
 - **Cycle 9 (deciding pass): 1 confirmed minor (fixed)** — the inbox `page -> {from,to}` fetch-window glue was pinned by no layer (mock ignored hook args); added opts-capturing mock + window assertions for pages 1/2/back. Streak reset.
+
+## Perfect-PR Streak Cycles 10-11 (2026-07-20)
+
+- **Cycle 10: ZERO findings** (streak 1/2 on 094ff2ba0).
+- **Cycle 11 (deciding pass): 1 confirmed minor (fixed + prod-applied)** — LIKE INCLUDING ALL copied 3 redundant indexes onto notifications_archive (incl. the composite the PR itself condemned); pruned via `20260720185756`, archive keeps exactly {pkey, user_id_created_at_idx1}. Streak reset.
