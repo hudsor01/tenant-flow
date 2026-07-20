@@ -143,7 +143,12 @@ export const notificationQueries = {
 						{ count: "exact" },
 					)
 					.eq("user_id", user.id)
-					.order("created_at", { ascending: false });
+					.order("created_at", { ascending: false })
+					// Deterministic tiebreaker: same-transaction notifications (e.g.
+					// lease_signed + lease_executed from one signing, or a whole
+					// expire_leases batch) share a byte-identical created_at, and
+					// unordered ties can duplicate/vanish across .range() pages.
+					.order("id", { ascending: false });
 
 				const paginated = opts?.from !== undefined && opts?.to !== undefined;
 				const { data, error, count } = paginated

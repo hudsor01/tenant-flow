@@ -309,3 +309,10 @@ _Fixer: Claude (gsd-code-fixer)_
 
 1 confirmed minor, 0 split, 0 killed:
 - **CONFIRMED (fixed):** mark-all-read click-to-mutation wiring untested (unit mocks used throwaway spies; e2e self-skips at 0 unread) — stable `h.markAll` spy wired into both mock factories + click assertions added in the popover and inbox suites.
+
+## Perfect-PR Streak Cycle 4 (2026-07-20)
+
+2 confirmed minors (fixed), 0 split, 1 killed:
+- **CONFIRMED (fixed + prod-applied):** `notifications_user_unread_created_idx` was fully redundant with `idx_notifications_user_unread` (partial) + `idx_notifications_user_created` — dropped via `20260720151257` (write-amplification removal, index-consolidation doctrine).
+- **CONFIRMED (fixed):** inbox pagination lacked a tiebreaker while same-transaction notifications share byte-identical `created_at` — secondary `.order("id")` added to the list factory.
+- **KILLED:** "C2 clamp unreachable due to PGRST103 416" — both refuters refuted.

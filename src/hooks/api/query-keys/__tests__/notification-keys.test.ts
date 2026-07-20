@@ -179,7 +179,11 @@ describe("notificationQueries.list", () => {
 		mockFrom.mockReturnValue({ select: mockSelect });
 		mockSelect.mockReturnValue({ eq: mockEq });
 		mockEq.mockReturnValue({ order: mockOrder });
-		mockOrder.mockReturnValue({ limit: mockLimit, range: mockRange });
+		mockOrder.mockReturnValue({
+			order: mockOrder,
+			limit: mockLimit,
+			range: mockRange,
+		});
 		mockLimit.mockResolvedValue({ data: [fullRow], error: null, count: 1 });
 
 		const result = await notificationQueries.list().queryFn?.({} as never);
@@ -189,6 +193,9 @@ describe("notificationQueries.list", () => {
 		expect(mockOrder).toHaveBeenCalledWith("created_at", {
 			ascending: false,
 		});
+		// Deterministic pagination tiebreaker for same-transaction rows with
+		// byte-identical created_at (lease_signed + lease_executed pairs).
+		expect(mockOrder).toHaveBeenCalledWith("id", { ascending: false });
 		expect(mockLimit).toHaveBeenCalledWith(10);
 		expect(mockRange).not.toHaveBeenCalled();
 		expect(result?.rows).toHaveLength(1);
@@ -199,7 +206,11 @@ describe("notificationQueries.list", () => {
 		mockFrom.mockReturnValue({ select: mockSelect });
 		mockSelect.mockReturnValue({ eq: mockEq });
 		mockEq.mockReturnValue({ order: mockOrder });
-		mockOrder.mockReturnValue({ limit: mockLimit, range: mockRange });
+		mockOrder.mockReturnValue({
+			order: mockOrder,
+			limit: mockLimit,
+			range: mockRange,
+		});
 		mockLimit.mockResolvedValue({ data: [], error: null, count: 0 });
 
 		await notificationQueries.list({ limit: 5 }).queryFn?.({} as never);
@@ -210,7 +221,11 @@ describe("notificationQueries.list", () => {
 		mockFrom.mockReturnValue({ select: mockSelect });
 		mockSelect.mockReturnValue({ eq: mockEq });
 		mockEq.mockReturnValue({ order: mockOrder });
-		mockOrder.mockReturnValue({ limit: mockLimit, range: mockRange });
+		mockOrder.mockReturnValue({
+			order: mockOrder,
+			limit: mockLimit,
+			range: mockRange,
+		});
 		mockRange.mockResolvedValue({
 			data: [fullRow, fullRow],
 			error: null,
@@ -235,7 +250,11 @@ describe("notificationQueries.list", () => {
 		mockFrom.mockReturnValue({ select: mockSelect });
 		mockSelect.mockReturnValue({ eq: mockEq });
 		mockEq.mockReturnValue({ order: mockOrder });
-		mockOrder.mockReturnValue({ limit: mockLimit, range: mockRange });
+		mockOrder.mockReturnValue({
+			order: mockOrder,
+			limit: mockLimit,
+			range: mockRange,
+		});
 		mockLimit.mockResolvedValue({
 			data: [fullRow, fullRow],
 			error: null,
