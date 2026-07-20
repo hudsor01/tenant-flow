@@ -327,3 +327,8 @@ _Fixer: Claude (gsd-code-fixer)_
 1 confirmed minor (fixed), 1 split (PR-body staleness — adjudicated real-but-metadata; body refreshed via gh pr edit, not a code change):
 - **CONFIRMED (fixed):** the `/notifications` PRIVATE_ROUTE_PREFIXES entry (the route's only auth barrier) had no regression pin — removing it passed every suite. Added the unauthenticated `/notifications` → `/login?redirect=/notifications` case to middleware-routing.test.ts (34/34).
 - PR body corrected: 9 migrations (5 phase + 4 review fixes), dropped-index bullet removed, streak-cycle section added.
+
+## Perfect-PR Streak Cycles 8-9 (2026-07-20)
+
+- **Cycle 8: ZERO findings** (streak 1/2 on d864c77fd).
+- **Cycle 9 (deciding pass): 1 confirmed minor (fixed)** — the inbox `page -> {from,to}` fetch-window glue was pinned by no layer (mock ignored hook args); added opts-capturing mock + window assertions for pages 1/2/back. Streak reset.
