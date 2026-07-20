@@ -32,16 +32,10 @@ import { REVOKED_CODES } from "./_helpers/revoked-codes";
 // -----------------------------------------------------------------------------
 describe("Notifications retention — privilege boundaries (NOTIF-05)", () => {
 	let clientA: SupabaseClient;
-	let ownerAId: string;
 
 	beforeAll(async () => {
 		const { ownerA } = getTestCredentials();
 		clientA = await createTestClient(ownerA.email, ownerA.password);
-
-		const {
-			data: { user: userA },
-		} = await clientA.auth.getUser();
-		ownerAId = userA!.id;
 	});
 
 	// ---------------------------------------------------------------------------
