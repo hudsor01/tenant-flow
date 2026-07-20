@@ -18,6 +18,7 @@ import type {
 import type { PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
+import type { Database } from "#types/supabase";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 // Types exported for use-dashboard-hooks.ts
@@ -78,16 +79,9 @@ export type OwnerDashboardData = {
 // camelCase `ActivityItem` shape. Map at this boundary so downstream consumers
 // (useDashboardActivity → DashboardActivityCard) read populated fields instead
 // of `undefined`. Never `as unknown as` (CLAUDE.md rule #8).
-type RawDashboardActivityRow = {
-	id: string;
-	title: string;
-	description: string | null;
-	activity_type: string;
-	entity_type: string | null;
-	entity_id: string | null;
-	user_id: string;
-	created_at: string | null;
-};
+// Alias of the generated activity table Row (the RPC's recent_activities
+// projects exactly the table's columns) — never redeclare (CLAUDE.md rule #3).
+type RawDashboardActivityRow = Database["public"]["Tables"]["activity"]["Row"];
 
 // Typed PostgREST boundary mapper (C9). NOT NULL fields (id / user_id / title)
 // throw if absent rather than silently emitting undefined into the activity
