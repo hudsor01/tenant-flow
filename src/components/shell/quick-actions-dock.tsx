@@ -31,7 +31,7 @@ const defaultActions: QuickAction[] = [
 		id: "notifications",
 		label: "Notifications",
 		icon: Bell,
-		href: "/settings?tab=notifications",
+		href: "/notifications",
 	},
 ];
 
