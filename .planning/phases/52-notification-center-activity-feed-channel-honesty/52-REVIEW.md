@@ -217,6 +217,8 @@ _Depth: deep_
 
 ## Perfect-PR Cycle 1
 
+**C3 (major, security) — /notifications missing from PRIVATE_ROUTE_PREFIXES:** FIXED by orchestrator — added "/notifications" to `src/lib/routes/private-routes.ts` (single source of truth for the proxy auth/subscription/MFA/CSP gate AND the robots disallow list); middleware-routing suite 33/33 green.
+
 Applied on branch `gsd/phase-52-notification-center-activity-feed-channel-honesty`
 in the main working tree. `bun run validate:quick` green after all fixes
 (287 test files / 106804 tests, typecheck + lint clean).
