@@ -9,6 +9,7 @@ import { NotificationPopoverList } from "../notification-popover-list";
 const h = vi.hoisted(() => ({
 	isError: { current: false },
 	rows: { current: [] as Array<Record<string, unknown>> },
+	unreadCount: { current: 0 },
 	refetch: vi.fn(),
 }));
 
@@ -21,15 +22,35 @@ vi.mock("#hooks/api/use-notifications", () => ({
 		isError: h.isError.current,
 		refetch: h.refetch,
 	}),
-	useUnreadCount: () => ({ data: 0 }),
+	useUnreadCount: () => ({ data: h.unreadCount.current }),
 	useMarkAllNotificationsRead: () => ({ mutate: vi.fn(), isPending: false }),
 	useMarkNotificationRead: () => ({ mutate: vi.fn() }),
 }));
+
+// A fully-populated read row (is_read: true) so a rendered NotificationItem
+// never hits Invalid-Date / missing-field paths while we assert the header
+// Mark-all-read disabled state, which is driven purely by the unread count.
+function makeReadRow(id: string): Record<string, unknown> {
+	return {
+		id,
+		user_id: "u1",
+		notification_type: "lease_signed",
+		title: "Lease signed",
+		message: "123 Main St",
+		entity_type: "lease",
+		entity_id: "l1",
+		action_url: "/leases/l1",
+		is_read: true,
+		read_at: new Date().toISOString(),
+		created_at: new Date().toISOString(),
+	};
+}
 
 describe("NotificationPopoverList error state (C11)", () => {
 	beforeEach(() => {
 		h.isError.current = false;
 		h.rows.current = [];
+		h.unreadCount.current = 0;
 		h.refetch.mockClear();
 	});
 
@@ -54,5 +75,34 @@ describe("NotificationPopoverList error state (C11)", () => {
 		expect(
 			screen.queryByText("Couldn't load notifications."),
 		).not.toBeInTheDocument();
+	});
+});
+
+describe("NotificationPopoverList Mark-all-read disabled state (WR-01)", () => {
+	beforeEach(() => {
+		h.isError.current = false;
+		// The visible slice is all-read on purpose: the disabled state must key
+		// off the header unread count, never the loaded top-10.
+		h.rows.current = Array.from({ length: 10 }, (_, i) => makeReadRow(`n${i}`));
+		h.unreadCount.current = 0;
+		h.refetch.mockClear();
+	});
+
+	it("disables Mark-all-read when the header unread count is 0", () => {
+		h.unreadCount.current = 0;
+		render(<NotificationPopoverList />);
+		expect(
+			screen.getByRole("button", { name: "Mark all read" }),
+		).toBeDisabled();
+	});
+
+	it("enables Mark-all-read when unread count > 0 even though every visible row is read", () => {
+		// Older unread rows exist outside the top-10 window; the badge count is
+		// nonzero so the control must be actionable (WR-01 regression pin).
+		h.unreadCount.current = 3;
+		render(<NotificationPopoverList />);
+		expect(
+			screen.getByRole("button", { name: "Mark all read" }),
+		).not.toBeDisabled();
 	});
 });
