@@ -112,6 +112,7 @@ export function NotificationSettings() {
 								checked={settings?.email ?? true}
 								onCheckedChange={handleEmailToggle}
 								disabled={updateSettings.isPending}
+								aria-label="Email Notifications"
 							/>
 						</div>
 					</div>
@@ -139,6 +140,7 @@ export function NotificationSettings() {
 									handleCategoryToggle("maintenance", value)
 								}
 								disabled={updateSettings.isPending}
+								aria-label="Maintenance Requests"
 							/>
 						</div>
 
@@ -155,6 +157,7 @@ export function NotificationSettings() {
 									handleCategoryToggle("leases", value)
 								}
 								disabled={updateSettings.isPending}
+								aria-label="Lease Updates"
 							/>
 						</div>
 
@@ -171,6 +174,7 @@ export function NotificationSettings() {
 									handleCategoryToggle("general", value)
 								}
 								disabled={updateSettings.isPending}
+								aria-label="General Notifications"
 							/>
 						</div>
 					</div>

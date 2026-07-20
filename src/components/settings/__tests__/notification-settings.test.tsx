@@ -121,6 +121,40 @@ describe("NotificationSettings — Enable All (FORMFIX-07)", () => {
 	});
 });
 
+describe("NotificationSettings — accessible switch names (C4/a11y)", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("exposes every channel/category Switch by its visible label as accessible name", () => {
+		mockUseSettings.mockReturnValue({
+			data: makeSettings({}),
+			isLoading: false,
+		});
+
+		render(<NotificationSettings />);
+
+		// Name-based queries pin the label<->control association. The four sibling
+		// toggles previously had no accessible name (only the Enable-All switch
+		// carried an aria-label); these queries fail if that regresses.
+		expect(
+			screen.getByRole("switch", { name: "Enable all notifications" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("switch", { name: "Email Notifications" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("switch", { name: "Maintenance Requests" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("switch", { name: "Lease Updates" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("switch", { name: "General Notifications" }),
+		).toBeInTheDocument();
+	});
+});
+
 describe("NotificationSettings — channel honesty (HONEST-01/02)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
