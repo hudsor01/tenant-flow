@@ -77,21 +77,26 @@ test.describe("Notification center smoke (Phase 52)", () => {
 		await countResponse;
 		await expect(bellButton).toBeVisible();
 
-		// The HEAD response has landed; allow one settle window so the rendered
-		// aria-label reflects the resolved count before we decide whether to skip.
-		let previous = (await bellButton.getAttribute("aria-label")) ?? "";
+		// The HEAD response has landed, but React re-renders the aria-label a tick
+		// later — a single immediate read can still catch the pre-resolve label.
+		// Seed `previous` as null so the poll's first probe (which fires
+		// immediately) can NEVER report "settled"; it only records the first
+		// reading. Stability is asserted only once two consecutive reads taken
+		// >=500ms apart agree, guaranteeing the resolved count has rendered before
+		// we branch on the skip condition.
+		let previous: string | null = null;
 		await expect
 			.poll(
 				async () => {
 					const current = (await bellButton.getAttribute("aria-label")) ?? "";
-					const settled = current === previous;
+					const settled = previous !== null && current === previous;
 					previous = current;
 					return settled;
 				},
 				{ timeout: 5000, intervals: [500, 500, 500] },
 			)
 			.toBe(true);
-		const label = previous;
+		const label = previous ?? "";
 
 		const hasUnread = /\d+\s+unread/.test(label);
 		// Fresh synthetic owner may have 0 unread — nothing to clear, keep stable.
