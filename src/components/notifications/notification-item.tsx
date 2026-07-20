@@ -48,8 +48,10 @@ const FALLBACK_VISUAL: TypeVisual = {
  * "/\evil.com" and "/\t//evil.com" would resolve protocol-relative and slip
  * past a naive "//" check (WR-03) — reject any backslash or control char.
  * Anything else falls back to the inbox.
+ *
+ * Exported for direct unit coverage of the open-redirect guard (T-52-15).
  */
-function resolveHref(actionUrl: string | null): string {
+export function resolveHref(actionUrl: string | null): string {
 	if (
 		!actionUrl ||
 		!actionUrl.startsWith("/") ||
