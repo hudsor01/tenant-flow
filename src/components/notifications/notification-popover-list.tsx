@@ -2,6 +2,7 @@
 
 import { Bell } from "lucide-react";
 import Link from "next/link";
+import { Button } from "#components/ui/button";
 import {
 	Empty,
 	EmptyHeader,
@@ -23,7 +24,9 @@ import { NotificationItem } from "./notification-item";
  * most recent notifications, and a sticky footer linking to the full inbox.
  */
 export function NotificationPopoverList() {
-	const { data, isLoading } = useNotificationList({ limit: 10 });
+	const { data, isLoading, isError, refetch } = useNotificationList({
+		limit: 10,
+	});
 	const markAll = useMarkAllNotificationsRead();
 	// Drive the disabled state from the same header count the bell badge uses,
 	// not the visible top-10 slice: is_read is independent of recency, so an
@@ -56,6 +59,18 @@ export function NotificationPopoverList() {
 						{Array.from({ length: 4 }).map((_, i) => (
 							<Skeleton key={i} className="h-12 w-full" />
 						))}
+					</div>
+				) : isError ? (
+					// Error branch precedes the empty branch (C11): a failed list
+					// query must not masquerade as "all caught up". Compact,
+					// popover-sized version of the inbox error copy + Retry.
+					<div className="flex flex-col items-center gap-3 p-6 text-center">
+						<p className="text-sm text-muted-foreground">
+							Couldn&apos;t load notifications.
+						</p>
+						<Button variant="outline" size="sm" onClick={() => refetch()}>
+							Retry
+						</Button>
 					</div>
 				) : rows.length === 0 ? (
 					<Empty className="gap-2 p-8 md:p-8">
