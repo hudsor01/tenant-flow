@@ -58,14 +58,48 @@ test.describe("Notification center smoke (Phase 52)", () => {
 		page,
 	}) => {
 		const bellButton = bell(page);
-		const label = (await bellButton.getAttribute("aria-label")) ?? "";
+
+		// Determinism gate (F7): the unread badge is driven by a 60s HEAD count
+		// query that resolves shortly AFTER the bell mounts. Reading aria-label
+		// immediately races that query — the label starts at "Notifications" (0
+		// unread) and only gains the "N unread" suffix once the count response
+		// lands, so a naive early read can false-skip a genuinely-unread owner.
+		// Mechanism: reload, wait for the notifications HEAD count response to
+		// land, then poll until the rendered aria-label is stable across two
+		// reads before branching on it.
+		const countResponse = page.waitForResponse(
+			(res) =>
+				res.request().method() === "HEAD" &&
+				res.url().includes("/rest/v1/notifications") &&
+				res.url().includes("is_read=eq.false"),
+		);
+		await page.reload();
+		await countResponse;
+		await expect(bellButton).toBeVisible();
+
+		// The HEAD response has landed; allow one settle window so the rendered
+		// aria-label reflects the resolved count before we decide whether to skip.
+		let previous = (await bellButton.getAttribute("aria-label")) ?? "";
+		await expect
+			.poll(
+				async () => {
+					const current = (await bellButton.getAttribute("aria-label")) ?? "";
+					const settled = current === previous;
+					previous = current;
+					return settled;
+				},
+				{ timeout: 5000, intervals: [500, 500, 500] },
+			)
+			.toBe(true);
+		const label = previous;
+
 		const hasUnread = /\d+\s+unread/.test(label);
 		// Fresh synthetic owner may have 0 unread — nothing to clear, keep stable.
 		test.skip(!hasUnread, "owner has 0 unread — no badge to clear");
 
 		await bellButton.click();
 		await page.getByRole("button", { name: "Mark all read" }).click();
-		// After the mutation + the 60s HEAD unread-count refetch invalidation, the
+		// After the mutation + the HEAD unread-count refetch invalidation, the
 		// badge is hidden at 0 and the aria-label drops the "N unread" suffix.
 		await expect(bellButton).toHaveAccessibleName("Notifications");
 	});
