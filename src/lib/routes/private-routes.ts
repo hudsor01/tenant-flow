@@ -13,6 +13,7 @@ export const PRIVATE_ROUTE_PREFIXES = [
 	"/inspections",
 	"/leases",
 	"/maintenance",
+	"/notifications",
 	"/profile",
 	"/properties",
 	"/reports",
