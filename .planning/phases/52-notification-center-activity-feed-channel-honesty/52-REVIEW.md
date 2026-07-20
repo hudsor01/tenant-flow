@@ -321,3 +321,9 @@ _Fixer: Claude (gsd-code-fixer)_
 
 - **Cycle 5: ZERO findings** (streak 1/2 on 8a6a26bf2).
 - **Cycle 6 (independent pass, same head): 1 confirmed minor (fixed), 1 killed** — `formatRelativeDate` off-by-one for past dates (`absDays + 1` rendered yesterday as "2 days ago"); latent pre-existing bug made user-visible by its FIRST production consumer (the activity card); the old unit test pinned the wrong output. Fixed verbatim-distance + singular unit; test re-pinned with 4 cases. Streak reset.
+
+## Perfect-PR Streak Cycle 7 (2026-07-20)
+
+1 confirmed minor (fixed), 1 split (PR-body staleness — adjudicated real-but-metadata; body refreshed via gh pr edit, not a code change):
+- **CONFIRMED (fixed):** the `/notifications` PRIVATE_ROUTE_PREFIXES entry (the route's only auth barrier) had no regression pin — removing it passed every suite. Added the unauthenticated `/notifications` → `/login?redirect=/notifications` case to middleware-routing.test.ts (34/34).
+- PR body corrected: 9 migrations (5 phase + 4 review fixes), dropped-index bullet removed, streak-cycle section added.
