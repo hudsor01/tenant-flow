@@ -230,4 +230,23 @@ describe("notificationQueries.list", () => {
 		expect(result?.totalCount).toBe(42);
 		expect(result?.rows).toHaveLength(2);
 	});
+
+	it("falls back to totalCount 0 (not rows.length) when the count header is null", async () => {
+		mockFrom.mockReturnValue({ select: mockSelect });
+		mockSelect.mockReturnValue({ eq: mockEq });
+		mockEq.mockReturnValue({ order: mockOrder });
+		mockOrder.mockReturnValue({ limit: mockLimit, range: mockRange });
+		mockLimit.mockResolvedValue({
+			data: [fullRow, fullRow],
+			error: null,
+			count: null,
+		});
+
+		const result = await notificationQueries.list().queryFn?.({} as never);
+
+		// Convention parity with every other list factory (S1): a null count
+		// header resolves to 0, never the loaded slice length.
+		expect(result?.rows).toHaveLength(2);
+		expect(result?.totalCount).toBe(0);
+	});
 });

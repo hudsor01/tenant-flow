@@ -155,7 +155,10 @@ export const notificationQueries = {
 				const rows = ((data ?? []) as Record<string, unknown>[]).map(
 					mapNotificationRow,
 				);
-				return { rows, totalCount: count ?? rows.length };
+				// Convention parity with every other list factory: `count ?? 0`,
+				// never `data.length` (CLAUDE.md pagination rule). A null count
+				// header means "unknown", not "equal to the loaded slice".
+				return { rows, totalCount: count ?? 0 };
 			},
 			staleTime: 0,
 			gcTime: 5 * 60 * 1000,
