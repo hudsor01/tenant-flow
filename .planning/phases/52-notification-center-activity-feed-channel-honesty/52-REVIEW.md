@@ -257,3 +257,43 @@ Notes:
 
 _Cycle 1 fixed: 2026-07-19_
 _Fixer: Claude (gsd-code-fixer)_
+
+---
+
+## Perfect-PR Streak Cycle (2026-07-20)
+
+Applied on branch `gsd/phase-52-notification-center-activity-feed-channel-honesty`
+in the main working tree. `bun run validate:quick` green after all fixes
+(288 unit test files / 106811 tests, typecheck + lint clean).
+
+Streak-cycle findings: 11 confirmed (`C1`-`C11`) + 1 split (`S1`) = 12. The four
+DB findings (C1/C2/C3/C11) were fixed and already applied to prod via MCP
+(introspection-verified); the new migration file
+`20260720015620_retention_gdpr_and_writer_hardening.sql` is the repo record and
+was committed here. C5 and C10 are the same stale-schedule comment flagged by two
+review dimensions, closed in one commit. All remaining findings map to atomic
+commits on this branch.
+
+| Finding | Severity | Summary | Outcome | Commit |
+|---------|----------|---------|---------|--------|
+| C1 | critical | `notifications_archive` inherited the old 4-value `notification_type` CHECK via `LIKE INCLUDING ALL` — first new-type row to age out would abort the nightly cleanup; drop the copied constraint | fixed + prod-applied (migration `20260720015620`) | `d2d8791d3` (orchestrator) |
+| C2 | critical | GDPR cascade `anonymize_deleted_user` deleted live notifications but never `notifications_archive`, leaving deleted users' titles/messages in cold storage indefinitely; add the archive delete | fixed + prod-applied (migration `20260720015620`) | `d2d8791d3` (orchestrator) |
+| C3 | critical | the 6 new SECURITY DEFINER trigger functions kept default PUBLIC EXECUTE, regressing the pass-3 revoke convention; revoke from public/anon/authenticated | fixed + prod-applied (migration `20260720015620`) | `d2d8791d3` (orchestrator) |
+| C4 | minor | Email/Maintenance/Lease/General `Switch` toggles had no accessible name (only Enable-All carried an aria-label) — added an aria-label per visible label + role+name test | fixed | `8dba4a9e7` |
+| C5 | nit | RLS retention test doc comment cited the pre-move `45 3 * * *` schedule | fixed (with C10) | `11e946ff3` |
+| C6 | minor | `ownerAId` assigned in `beforeAll` but never read in the retention RLS test — removed the variable + dead `getUser()` lookup | fixed | `f8b445b22` |
+| C7 | minor | `NotificationItem` click-through mark-read had zero tests — added coverage (unread → mark-read+navigate; read → navigate only; popover open/close → no mark-read, D-10) | fixed | `f05dfeca1` |
+| C8 | nit | popover Mark-all-read disabled-state (WR-01) unpinned — added the two cases (disabled at 0 unread; enabled at >0 even when the visible 10 are all read) | fixed | `7c6dae48c` |
+| C9 | nit | e2e determinism gate's stability poll seeded `previous` from an immediate read, so the first probe (t=0) could report settled from two reads milliseconds apart and still false-skip; seed `previous` null so stability needs two reads >=500ms apart | fixed | `d4ba804a5` |
+| C10 | nit | same stale-schedule comment site as C5 — corrected to `50 3 * * *` (the cycle-1 free 3:50 slot) | fixed (with C5) | `11e946ff3` |
+| C11 | critical | `expire_leases()` still direct-inserted into `notifications`, breaching the NOTIF-01 single-writer invariant — routed through `create_notification` (gains an app-relative action_url) | fixed + prod-applied (migration `20260720015620`) | `d2d8791d3` (orchestrator) |
+| S1 | nit | list factory `totalCount: count ?? rows.length` deviated from the `count ?? 0` convention (CLAUDE.md: never `data.length`) — aligned + regression test on the null-count case | fixed | `0a85a740b` |
+
+Notes:
+- C1/C2/C3/C11 were applied to prod by the orchestrator via MCP and
+  introspection-verified; `d2d8791d3` commits the migration file as the immutable
+  repo record (header documents the prod-apply + verification).
+- C5/C10 are one comment corrected once; both review IDs close on `11e946ff3`.
+
+_Streak cycle fixed: 2026-07-20_
+_Fixer: Claude (gsd-code-fixer)_
