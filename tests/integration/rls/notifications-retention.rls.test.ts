@@ -12,7 +12,7 @@ import { REVOKED_CODES } from "./_helpers/revoked-codes";
 // The archive table and the cleanup function are BOTH service_role-only, so the
 // deep archive-then-delete behaviour cannot be exercised by an authenticated
 // dual-client. Those assertions (cron.job has 'cleanup-notifications' at
-// '45 3 * * *'; to_regclass('public.notifications_archive') is non-null; the
+// '50 3 * * *'; to_regclass('public.notifications_archive') is non-null; the
 // tiered archive count) are verified by the orchestrator via MCP execute_sql
 // and recorded in 52-03-SUMMARY.
 //
