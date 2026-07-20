@@ -16,15 +16,19 @@ const h = vi.hoisted(() => ({
 	},
 	unread: { current: 0 },
 	markAll: vi.fn(),
+	listOpts: vi.fn(),
 }));
 
 vi.mock("#hooks/api/use-notifications", () => ({
-	useNotificationList: () => ({
-		data: h.list.current,
-		isLoading: false,
-		isError: false,
-		refetch: vi.fn(),
-	}),
+	useNotificationList: (opts?: { from?: number; to?: number }) => {
+		h.listOpts(opts);
+		return {
+			data: h.list.current,
+			isLoading: false,
+			isError: false,
+			refetch: vi.fn(),
+		};
+	},
 	useUnreadCount: () => ({ data: h.unread.current }),
 	useMarkAllNotificationsRead: () => ({ mutate: h.markAll, isPending: false }),
 	useMarkNotificationRead: () => ({ mutate: vi.fn() }),
@@ -90,5 +94,23 @@ describe("NotificationsInboxClient pagination clamp (C2)", () => {
 
 		await user.click(screen.getByRole("button", { name: "Mark all read" }));
 		expect(h.markAll).toHaveBeenCalledTimes(1);
+	});
+
+	it("requests the correct 20-row fetch window per page (from/to glue pin)", async () => {
+		// The page -> { from, to } computation is the ONLY link making pages 2+
+		// reachable; the mock captures the hook's opts so an off-by-one or a
+		// dropped range cannot pass silently.
+		const user = userEvent.setup();
+		h.list.current = { rows: makeRows(2), totalCount: 100 };
+		h.listOpts.mockClear();
+		render(<NotificationsInboxClient />);
+
+		expect(h.listOpts).toHaveBeenLastCalledWith({ from: 0, to: 19 });
+
+		await user.click(screen.getByRole("button", { name: "Next" }));
+		expect(h.listOpts).toHaveBeenLastCalledWith({ from: 20, to: 39 });
+
+		await user.click(screen.getByRole("button", { name: "Previous" }));
+		expect(h.listOpts).toHaveBeenLastCalledWith({ from: 0, to: 19 });
 	});
 });
