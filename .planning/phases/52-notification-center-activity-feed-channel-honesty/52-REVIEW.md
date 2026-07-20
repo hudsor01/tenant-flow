@@ -304,3 +304,8 @@ _Fixer: Claude (gsd-code-fixer)_
 - **CONFIRMED (fixed):** `RawDashboardActivityRow` duplicated the generated `activity` table Row — replaced with a `Database["public"]["Tables"]["activity"]["Row"]` alias (CLAUDE.md rule #3, NotificationRow pattern).
 - **CONFIRMED (fixed):** trigger coverage — added RLS integration assertions for the `maintenance_status` UPDATE branch and the property/maintenance activity audit writes incl. cross-owner isolation on `activity`.
 - **SPLIT (refuted, no change):** "DashboardActivityCard has no error state" — unreachable: the card shares the dashboard base query; on failure the page-level `statsError || chartsError` branch renders "Unable to load dashboard data" before the card mounts (dashboard/page.tsx:102-124).
+
+## Perfect-PR Streak Cycle 3 (2026-07-20)
+
+1 confirmed minor, 0 split, 0 killed:
+- **CONFIRMED (fixed):** mark-all-read click-to-mutation wiring untested (unit mocks used throwaway spies; e2e self-skips at 0 unread) — stable `h.markAll` spy wired into both mock factories + click assertions added in the popover and inbox suites.
