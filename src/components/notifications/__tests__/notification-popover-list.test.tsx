@@ -11,6 +11,7 @@ const h = vi.hoisted(() => ({
 	rows: { current: [] as Array<Record<string, unknown>> },
 	unreadCount: { current: 0 },
 	refetch: vi.fn(),
+	markAll: vi.fn(),
 }));
 
 vi.mock("#hooks/api/use-notifications", () => ({
@@ -23,7 +24,7 @@ vi.mock("#hooks/api/use-notifications", () => ({
 		refetch: h.refetch,
 	}),
 	useUnreadCount: () => ({ data: h.unreadCount.current }),
-	useMarkAllNotificationsRead: () => ({ mutate: vi.fn(), isPending: false }),
+	useMarkAllNotificationsRead: () => ({ mutate: h.markAll, isPending: false }),
 	useMarkNotificationRead: () => ({ mutate: vi.fn() }),
 }));
 
@@ -104,5 +105,15 @@ describe("NotificationPopoverList Mark-all-read disabled state (WR-01)", () => {
 		expect(
 			screen.getByRole("button", { name: "Mark all read" }),
 		).not.toBeDisabled();
+	});
+
+	it("clicking Mark-all-read fires the mark-all mutation exactly once", async () => {
+		const user = userEvent.setup();
+		h.unreadCount.current = 3;
+		h.markAll.mockClear();
+		render(<NotificationPopoverList />);
+
+		await user.click(screen.getByRole("button", { name: "Mark all read" }));
+		expect(h.markAll).toHaveBeenCalledTimes(1);
 	});
 });

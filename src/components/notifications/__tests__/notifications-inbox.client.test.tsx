@@ -15,6 +15,7 @@ const h = vi.hoisted(() => ({
 		},
 	},
 	unread: { current: 0 },
+	markAll: vi.fn(),
 }));
 
 vi.mock("#hooks/api/use-notifications", () => ({
@@ -25,7 +26,7 @@ vi.mock("#hooks/api/use-notifications", () => ({
 		refetch: vi.fn(),
 	}),
 	useUnreadCount: () => ({ data: h.unread.current }),
-	useMarkAllNotificationsRead: () => ({ mutate: vi.fn(), isPending: false }),
+	useMarkAllNotificationsRead: () => ({ mutate: h.markAll, isPending: false }),
 	useMarkNotificationRead: () => ({ mutate: vi.fn() }),
 }));
 
@@ -78,5 +79,16 @@ describe("NotificationsInboxClient pagination clamp (C2)", () => {
 		h.list.current = { rows: makeRows(2), totalCount: 40 };
 		render(<NotificationsInboxClient />);
 		expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+	});
+
+	it("clicking Mark all read fires the mark-all mutation exactly once", async () => {
+		const user = userEvent.setup();
+		h.list.current = { rows: makeRows(2), totalCount: 2 };
+		h.unread.current = 2;
+		h.markAll.mockClear();
+		render(<NotificationsInboxClient />);
+
+		await user.click(screen.getByRole("button", { name: "Mark all read" }));
+		expect(h.markAll).toHaveBeenCalledTimes(1);
 	});
 });
