@@ -18,12 +18,23 @@ import {
 } from "#hooks/api/use-notifications";
 import { NotificationItem } from "./notification-item";
 
+interface NotificationPopoverListProps {
+	/**
+	 * Called when the user navigates away via a row click-through or the
+	 * View-all link, so the owning popover can close itself (S1). Never fires
+	 * on open/close alone, keeping D-10 (opening never marks read) intact.
+	 */
+	onNavigate?: () => void;
+}
+
 /**
  * Popover inbox body (NOTIF-03). Density mirrors the header CommandDialog (D-02):
  * sticky header (title + Mark-all-read), a scrollable `max-h-96` body of the 10
  * most recent notifications, and a sticky footer linking to the full inbox.
  */
-export function NotificationPopoverList() {
+export function NotificationPopoverList({
+	onNavigate,
+}: NotificationPopoverListProps = {}) {
 	const { data, isLoading, isError, refetch } = useNotificationList({
 		limit: 10,
 	});
@@ -84,7 +95,11 @@ export function NotificationPopoverList() {
 				) : (
 					<ul className="divide-y divide-border">
 						{rows.map((row) => (
-							<NotificationItem key={row.id} notification={row} />
+							<NotificationItem
+								key={row.id}
+								notification={row}
+								onNavigate={onNavigate}
+							/>
 						))}
 					</ul>
 				)}
@@ -95,6 +110,7 @@ export function NotificationPopoverList() {
 			<div className="px-4 py-2">
 				<Link
 					href="/notifications"
+					onClick={() => onNavigate?.()}
 					className="block text-sm font-medium text-primary-text hover:underline"
 				>
 					View all notifications

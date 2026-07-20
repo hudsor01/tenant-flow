@@ -72,9 +72,18 @@ function resolveHref(actionUrl: string | null): string {
 
 interface NotificationItemProps {
 	notification: NotificationRow;
+	/**
+	 * Fired on row click-through (alongside mark-read + navigation) so a
+	 * containing popover can close itself (S1). Optional — the full-page inbox
+	 * renders items without it.
+	 */
+	onNavigate?: (() => void) | undefined;
 }
 
-export function NotificationItem({ notification }: NotificationItemProps) {
+export function NotificationItem({
+	notification,
+	onNavigate,
+}: NotificationItemProps) {
 	const markRead = useMarkNotificationRead();
 
 	// Read only when is_read is explicitly true; false or null both mean unread.
@@ -102,6 +111,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 					// Mark-read fires alongside navigation (D-03/D-10); it never blocks
 					// the navigation. Skip the write for already-read rows.
 					if (unread) markRead.mutate(notification.id);
+					// Close the containing popover on click-through (S1); no-op in the
+					// full-page inbox where onNavigate is undefined.
+					onNavigate?.();
 				}}
 				className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent"
 			>
