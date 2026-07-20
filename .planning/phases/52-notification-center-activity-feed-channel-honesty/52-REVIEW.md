@@ -212,3 +212,46 @@ function resolveHref(actionUrl: string | null): string {
 _Reviewed: 2026-07-19T20:57:25Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+
+---
+
+## Perfect-PR Cycle 1
+
+Applied on branch `gsd/phase-52-notification-center-activity-feed-channel-honesty`
+in the main working tree. `bun run validate:quick` green after all fixes
+(287 test files / 106804 tests, typecheck + lint clean).
+
+Cycle-1 findings: 13 confirmed (`C*`) + 2 split (`S*`). The four DB findings
+were fixed and already applied to prod via MCP (introspection-verified); the
+two new migration files are the repo record and were committed here. `C13` is a
+PR-body overclaim resolved by the orchestrator via `gh pr edit`. All remaining
+findings map to atomic commits on this branch.
+
+| Finding | Severity | Summary | Outcome | Commit |
+|---------|----------|---------|---------|--------|
+| C1 | critical | `notifications_archive` inherited `authenticated`/`anon` table grants (service_role-only posture) | fixed + prod-applied (migration `20260720001657`) | `a6c2786ef` |
+| C4 | critical | Same grant leak on `notifications_archive` for `anon` — revoked outright | fixed + prod-applied (migration `20260720001657`) | `a6c2786ef` |
+| C5 | critical | `notifications_service_role` used `FOR ALL` — split into four per-operation service_role policies | fixed + prod-applied (migration `20260720001657`) | `a6c2786ef` |
+| C6 | critical | `notifications_notification_type_check` rejected the 5-type Phase 52 contract values, aborting maintenance-create + lease-sign triggers | fixed + prod-applied (migration `20260720001542`) | `a6c2786ef` |
+| C7 | critical | `cleanup-notifications` cron collided with `process-account-deletions` at 3:45 — moved to the free 3:50 slot | fixed + prod-applied (migration `20260720001657`) | `a6c2786ef` |
+| C2 | nit | Inbox `page` state never clamped when `totalCount` shrinks (retention/deletes) — stranded on an empty page with pagination hidden | fixed (clamp effect + unit test) | `a2436b0da` |
+| C8 | minor | `resolveHref` open-redirect guard had zero tests — exported + covered (protocol-relative, backslash, control-char, `javascript:`, absolute, null/empty) | fixed (export + guard test suite) | `a2286e2b4` |
+| C9 | minor | `mapDashboardActivityRow` untested and silently emitted `undefined` — hardened to throw on missing NOT NULL fields + exported + tested | fixed (mapper hardening + unit test); logic change, human-verify the throw contract | `abbe373c5` |
+| C10 | minor | Mark-all-read e2e skip gate read the bell aria-label before the unread-count query resolved (race → false skip) | fixed (reload + `waitForResponse` on HEAD count + stability poll) | `f710bef6c` |
+| C11 | minor | Notification popover had no error state — a failed list query fell through to the "all caught up" empty state | fixed (error branch + Retry + unit test) | `2b7882e0a` |
+| C12 | minor | Cmd+K palette "Notifications" entry routed to `/settings?tab=notifications` instead of the notification center | fixed (points at `/notifications`; test updated) | `718c60cea` |
+| C13 | minor | PR body overclaimed scope | fixed by orchestrator (`gh pr edit`) | — |
+| S1 | split | Popover never closed on navigation (row click-through / View-all left it open) | fixed (bell owns controlled `open`; `onNavigate` close; D-10 preserved; bell test extended) | `b77b1815a` |
+| S2 | split | Quick-actions dock Bell action routed to `/settings?tab=notifications` | fixed (points at `/notifications`; dock href test updated) | `718c60cea` |
+
+Notes:
+- C12/S2 are the two nav entry points (Cmd+K palette + dock) fixed together in
+  one commit. The genuine notification-*settings* links (profile Quick Links,
+  the Settings > Notifications tab, and the HONEST-01/02 e2e settings probe)
+  were intentionally left pointing at `/settings?tab=notifications`.
+- C9 changes runtime behavior (throw on missing NOT NULL fields) to match the
+  `mapNotificationRow`/`mapDocumentRow` boundary-mapper convention — flagged for
+  human confirmation of the contract.
+
+_Cycle 1 fixed: 2026-07-19_
+_Fixer: Claude (gsd-code-fixer)_
