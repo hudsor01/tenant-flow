@@ -120,10 +120,12 @@ export const formatRelativeDate = (
 
 	if (absDays === 0) return "Today";
 
-	const displayDays = dayDiff > 0 ? absDays + 1 : absDays;
+	// Calendar-day distance verbatim: yesterday is "1 day ago", never "2 days
+	// ago" (the historical +1 overstated every past event's age by one day).
+	const unit = absDays === 1 ? "day" : "days";
 
-	if (!addSuffix) return `${displayDays} days`;
-	return dayDiff > 0 ? `${displayDays} days ago` : `In ${displayDays} days`;
+	if (!addSuffix) return `${absDays} ${unit}`;
+	return dayDiff > 0 ? `${absDays} ${unit} ago` : `In ${absDays} ${unit}`;
 };
 
 export const getOrdinalSuffix = (day: number): string => {
