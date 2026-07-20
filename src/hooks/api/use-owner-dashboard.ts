@@ -78,7 +78,7 @@ export type OwnerDashboardData = {
 // camelCase `ActivityItem` shape. Map at this boundary so downstream consumers
 // (useDashboardActivity → DashboardActivityCard) read populated fields instead
 // of `undefined`. Never `as unknown as` (CLAUDE.md rule #8).
-interface RawDashboardActivityRow {
+type RawDashboardActivityRow = {
 	id: string;
 	title: string;
 	description: string | null;
@@ -87,18 +87,35 @@ interface RawDashboardActivityRow {
 	entity_id: string | null;
 	user_id: string;
 	created_at: string | null;
-}
+};
 
-function mapDashboardActivityRow(raw: RawDashboardActivityRow): ActivityItem {
+// Typed PostgREST boundary mapper (C9). NOT NULL fields (id / user_id / title)
+// throw if absent rather than silently emitting undefined into the activity
+// feed, mirroring mapNotificationRow / mapDocumentRow (CLAUDE.md "RPC /
+// PostgREST Return Typing"). Exported for direct unit coverage. No
+// `as unknown as` (rule #8).
+export function mapDashboardActivityRow(
+	raw: Record<string, unknown>,
+): ActivityItem {
+	function requireString(field: string): string {
+		const value = raw[field];
+		if (typeof value !== "string") {
+			throw new Error(
+				`mapDashboardActivityRow: NOT NULL field '${field}' missing or non-string from get_dashboard_data_v2 response`,
+			);
+		}
+		return value;
+	}
+	const description = (raw.description as string | null) ?? null;
 	return {
-		id: raw.id,
-		user_id: raw.user_id,
-		action: raw.title,
-		entityType: raw.entity_type ?? "",
-		entityId: raw.entity_id ?? "",
-		entityName: raw.description ?? "",
-		created_at: raw.created_at ?? "",
-		...(raw.description ? { description: raw.description } : {}),
+		id: requireString("id"),
+		user_id: requireString("user_id"),
+		action: requireString("title"),
+		entityType: (raw.entity_type as string | null) ?? "",
+		entityId: (raw.entity_id as string | null) ?? "",
+		entityName: description ?? "",
+		created_at: (raw.created_at as string | null) ?? "",
+		...(description ? { description } : {}),
 	};
 }
 
