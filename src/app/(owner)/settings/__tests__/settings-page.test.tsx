@@ -375,11 +375,13 @@ describe("Settings Page", () => {
 			).toBeInTheDocument();
 		});
 
-		// Check for notification channels
+		// Check for the honest notification channel — email only. SMS/push have
+		// no delivery infrastructure and in-app is always-on (D-05), so those
+		// toggles were removed (HONEST-01/02).
 		expect(screen.getByText("Email Notifications")).toBeInTheDocument();
-		expect(screen.getByText("SMS Notifications")).toBeInTheDocument();
-		expect(screen.getByText("Push Notifications")).toBeInTheDocument();
-		expect(screen.getByText("In-App Notifications")).toBeInTheDocument();
+		expect(screen.queryByText("SMS Notifications")).toBeNull();
+		expect(screen.queryByText("Push Notifications")).toBeNull();
+		expect(screen.queryByText("In-App Notifications")).toBeNull();
 
 		// Check for notification categories
 		expect(screen.getByText("Notification Categories")).toBeInTheDocument();

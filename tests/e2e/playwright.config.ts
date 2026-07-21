@@ -174,6 +174,11 @@ export default defineConfig({
 			testMatch: [
 				"**/owner/dashboard-a11y.e2e.spec.ts",
 				"**/owner/dashboard-smoke.e2e.spec.ts",
+				// Phase 52 notification-stack smoke — self-authenticates via
+				// loginAsOwner (no storageState), so it gates the PR under CI's
+				// `--project=owner-axe` e2e-smoke run rather than only matching the
+				// non-CI `chromium` project.
+				"**/notifications.spec.ts",
 			],
 		},
 
@@ -187,7 +192,14 @@ export default defineConfig({
 				storageState: OWNER_AUTH_FILE,
 			},
 			dependencies: ["setup-owner"],
-			testIgnore: ["**/*.setup.ts", "**/public/**", "**/owner/**"],
+			testIgnore: [
+				"**/*.setup.ts",
+				"**/public/**",
+				"**/owner/**",
+				// Owns its own in-test loginAsOwner; runs under owner-axe only so it
+				// does not double-execute under the storageState chromium project.
+				"**/notifications.spec.ts",
+			],
 		},
 
 		// ─────────────────────────────────────────

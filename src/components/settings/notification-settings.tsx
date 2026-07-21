@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Globe, Mail, MessageSquare } from "lucide-react";
+import { Mail } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { Switch } from "#components/ui/switch";
@@ -13,28 +13,30 @@ export function NotificationSettings() {
 	const { data: settings, isLoading } = useOwnerNotificationSettings();
 	const updateSettings = useUpdateOwnerNotificationSettingsMutation();
 
-	const handleChannelToggle = (
-		channel: "email" | "sms" | "push" | "inApp",
-		value: boolean,
-	) => {
-		updateSettings.mutate({ [channel]: value });
+	const handleEmailToggle = (value: boolean) => {
+		updateSettings.mutate({ email: value });
 	};
 
-	// FORMFIX-07: "Enable All" reflects/controls every channel, not just email.
-	// Read ON only when all four channels are ON (mirror each channel Switch's
-	// own default), and write all four in a single mutate on toggle.
+	// FORMFIX-07 / HONEST-01/02: "Enable All" reflects/controls the honest
+	// preference surface only — the Email channel plus the three categories.
+	// Text-message and browser delivery channels have no infrastructure, and
+	// in-app records are always created (D-05), so none of those are togglable
+	// here. Read ON only when email and all three categories are ON, and write
+	// only email + categories in a single mutate on toggle.
 	const allChannelsEnabled =
 		(settings?.email ?? true) &&
-		(settings?.sms ?? false) &&
-		(settings?.push ?? true) &&
-		(settings?.inApp ?? true);
+		(settings?.categories?.maintenance ?? true) &&
+		(settings?.categories?.leases ?? true) &&
+		(settings?.categories?.general ?? true);
 
 	const handleEnableAllToggle = (value: boolean) => {
 		updateSettings.mutate({
 			email: value,
-			sms: value,
-			push: value,
-			inApp: value,
+			categories: {
+				maintenance: value,
+				leases: value,
+				general: value,
+			},
 		});
 	};
 
@@ -75,7 +77,7 @@ export function NotificationSettings() {
 						<div>
 							<h3 className="text-sm font-medium">Enable All Notifications</h3>
 							<p className="text-xs text-muted-foreground">
-								Receive notifications across all channels
+								Turn on email and all notification categories
 							</p>
 						</div>
 						<Switch
@@ -108,59 +110,9 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.email ?? true}
-								onCheckedChange={(value) => handleChannelToggle("email", value)}
+								onCheckedChange={handleEmailToggle}
 								disabled={updateSettings.isPending}
-							/>
-						</div>
-
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								<MessageSquare className="h-4 w-4 text-muted-foreground" />
-								<div>
-									<p className="text-sm font-medium">SMS Notifications</p>
-									<p className="text-xs text-muted-foreground">
-										Receive text messages
-									</p>
-								</div>
-							</div>
-							<Switch
-								checked={settings?.sms ?? false}
-								onCheckedChange={(value) => handleChannelToggle("sms", value)}
-								disabled={updateSettings.isPending}
-							/>
-						</div>
-
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								<Bell className="h-4 w-4 text-muted-foreground" />
-								<div>
-									<p className="text-sm font-medium">Push Notifications</p>
-									<p className="text-xs text-muted-foreground">
-										Browser push notifications
-									</p>
-								</div>
-							</div>
-							<Switch
-								checked={settings?.push ?? true}
-								onCheckedChange={(value) => handleChannelToggle("push", value)}
-								disabled={updateSettings.isPending}
-							/>
-						</div>
-
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								<Globe className="h-4 w-4 text-muted-foreground" />
-								<div>
-									<p className="text-sm font-medium">In-App Notifications</p>
-									<p className="text-xs text-muted-foreground">
-										Show notifications in the app
-									</p>
-								</div>
-							</div>
-							<Switch
-								checked={settings?.inApp ?? true}
-								onCheckedChange={(value) => handleChannelToggle("inApp", value)}
-								disabled={updateSettings.isPending}
+								aria-label="Email Notifications"
 							/>
 						</div>
 					</div>
@@ -188,6 +140,7 @@ export function NotificationSettings() {
 									handleCategoryToggle("maintenance", value)
 								}
 								disabled={updateSettings.isPending}
+								aria-label="Maintenance Requests"
 							/>
 						</div>
 
@@ -204,6 +157,7 @@ export function NotificationSettings() {
 									handleCategoryToggle("leases", value)
 								}
 								disabled={updateSettings.isPending}
+								aria-label="Lease Updates"
 							/>
 						</div>
 
@@ -220,6 +174,7 @@ export function NotificationSettings() {
 									handleCategoryToggle("general", value)
 								}
 								disabled={updateSettings.isPending}
+								aria-label="General Notifications"
 							/>
 						</div>
 					</div>

@@ -18,6 +18,7 @@ import type {
 import type { PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
+import type { Database } from "#types/supabase";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 // Types exported for use-dashboard-hooks.ts
@@ -72,6 +73,46 @@ export type OwnerDashboardData = {
 // is defense-in-depth — it surfaces silent contract drift if a future
 // migration introduces a new status value the union doesn't cover.
 // Unreachable in normal operation against the current server contract.
+// The get_dashboard_data_v2 RPC emits activity rows with the DB's snake_case
+// column names (`title`, `description`, `entity_type`, `entity_id`, `created_at`
+// — see 20260301070000_unified_dashboard_rpc.sql `recent_activities`), NOT the
+// camelCase `ActivityItem` shape. Map at this boundary so downstream consumers
+// (useDashboardActivity → DashboardActivityCard) read populated fields instead
+// of `undefined`. Never `as unknown as` (CLAUDE.md rule #8).
+// Alias of the generated activity table Row (the RPC's recent_activities
+// projects exactly the table's columns) — never redeclare (CLAUDE.md rule #3).
+type RawDashboardActivityRow = Database["public"]["Tables"]["activity"]["Row"];
+
+// Typed PostgREST boundary mapper (C9). NOT NULL fields (id / user_id / title)
+// throw if absent rather than silently emitting undefined into the activity
+// feed, mirroring mapNotificationRow / mapDocumentRow (CLAUDE.md "RPC /
+// PostgREST Return Typing"). Exported for direct unit coverage. No
+// `as unknown as` (rule #8).
+export function mapDashboardActivityRow(
+	raw: Record<string, unknown>,
+): ActivityItem {
+	function requireString(field: string): string {
+		const value = raw[field];
+		if (typeof value !== "string") {
+			throw new Error(
+				`mapDashboardActivityRow: NOT NULL field '${field}' missing or non-string from get_dashboard_data_v2 response`,
+			);
+		}
+		return value;
+	}
+	const description = (raw.description as string | null) ?? null;
+	return {
+		id: requireString("id"),
+		user_id: requireString("user_id"),
+		action: requireString("title"),
+		entityType: (raw.entity_type as string | null) ?? "",
+		entityId: (raw.entity_id as string | null) ?? "",
+		entityName: description ?? "",
+		created_at: (raw.created_at as string | null) ?? "",
+		...(description ? { description } : {}),
+	};
+}
+
 function mapPropertyPerformanceStatus(
 	raw: string,
 ): PropertyPerformance["status"] {
@@ -119,7 +160,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 			monthly_revenue_6mo?: MonthlyRevenuePoint[];
 		};
 		property_performance: PropertyPerformanceRpcResponse[];
-		activities: ActivityItem[];
+		activities: RawDashboardActivityRow[];
 	}>(data);
 
 	// The get_dashboard_data_v2 RPC emits property_performance rows with
@@ -155,7 +196,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	return {
 		stats: result.stats,
-		activity: result.activities ?? [],
+		activity: (result.activities ?? []).map(mapDashboardActivityRow),
 		metricTrends: {
 			occupancyRate: result.trends?.occupancy_rate ?? null,
 			activeTenants: result.trends?.active_tenants ?? null,

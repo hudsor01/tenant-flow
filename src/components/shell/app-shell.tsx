@@ -179,7 +179,7 @@ export function AppShell({
 	];
 
 	const commandActions = [
-		{ label: "Notifications", href: "/settings?tab=notifications", icon: Bell },
+		{ label: "Notifications", href: "/notifications", icon: Bell },
 		{ label: "Settings", href: "/settings", icon: Settings },
 		{ label: "Profile", href: "/profile", icon: Settings },
 		{ label: "Help & Support", href: "/help", icon: HelpCircle },

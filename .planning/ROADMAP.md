@@ -2,285 +2,236 @@
 
 ## Milestones
 
-- ✅ **v1.0 Marketing Surface Honesty** — Phases 1-15 (shipped 2026-05-22) — see [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
-- ✅ **v2.0 Dashboard Command Center** — Phases 1-7 (shipped 2026-06-02, 34/34 requirements) — see [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
-- ✅ **v3.0 Security Hardening** — Phases 1-3 (shipped 2026-06-02, 12/12 requirements) — see [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
-- ✅ **v4.0 Hardening & Hygiene** — Phases 1-8 (shipped 2026-06-07, 20/21 requirements; SEO-01 carried to v5.0) — see [milestones/v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md)
-- ✅ **v5.0 AI Blog Content Engine** — Phases 9-14 (shipped 2026-06-10, 9/9 requirements) — see [milestones/v5.0-ROADMAP.md](milestones/v5.0-ROADMAP.md)
-- ✅ **v6.0 Final Canonical Cleanup** — Phases 15-19 (resolved/verified 2026-06-19, 24 requirements) — see [milestones/v6.0-ROADMAP.md](milestones/v6.0-ROADMAP.md)
-- ⏸️ **v7.0 TanStack Form Composition Migration** — Phases 20-24 (paused mid-flight; phases 20-22 merged, 23-24 open) — archived plan in [milestones/v7.0-ROADMAP.md](milestones/v7.0-ROADMAP.md)
-- ✅ **v8.0 Correctness Restoration** — Phases 25-35 (shipped 2026-07-10, 71/72 + remediation #893) — see [milestones/v8.0-ROADMAP.md](milestones/v8.0-ROADMAP.md)
-- 🔨 **v9.0 Full-Surface Remediation** — Phases 36-51 (active, started 2026-07-11, 296 requirements) — this file
+- ✅ **v1.0 Marketing Surface Honesty** — Phases 1-15 (shipped 2026-05-22)
+- ✅ **v2.0 Dashboard Command Center** — Phases 1-7 (shipped 2026-06-02)
+- ✅ **v3.0 Security Hardening** — Phases 1-3 (shipped 2026-06-02)
+- ✅ **v4.0 Hardening & Hygiene** — Phases 1-8 (shipped 2026-06-07)
+- ✅ **v5.0 AI Blog Content Engine** — Phases 9-14 (shipped 2026-06-10)
+- ✅ **v6.0 Final Canonical Cleanup** — Phases 15-19 (shipped 2026-06-15)
+- ⏸ **v7.0 TanStack Form Migration** — Phases 20-24 (paused: 20-22 merged)
+- ✅ **v8.0 Correctness Restoration** — Phases 25-35 (shipped 2026-07-10)
+- ✅ **v9.0 Full-Surface Remediation** — Phases 36-51 (shipped 2026-07-17)
+- 🚧 **v10.0 Claims Integrity + Canonical Feature Expansion** — Phases 52-64 (active)
 
----
+Archived roadmaps/requirements for v1.0–v9.0 live in `.planning/milestones/` (v9.0 at `milestones/v9.0-ROADMAP.md`).
 
-<details>
-<summary>✅ v8.0 Correctness Restoration (Phases 25-35) — SHIPPED 2026-07-10</summary>
+## Overview
 
-Eradicated the 2026-07-02 whole-codebase bug-hunt findings (56 requirements across CRIT / LEASE / MAINT / INSP / TEN / BILL / DATA / PROP / FORMFIX / UIX / SEC / MKT / MISC / TZ). 11 phases, each merged as its own perfect-PR PR (#882-#892), followed by an adversarial milestone audit (71/72 PASS) whose remediation shipped in #893 (PROP-05 sibling clear-field miss; MONEY-01/02 100× rent overstatement on two read paths). DATA-04 was the single deferred requirement. Full phase detail archived in [milestones/v8.0-ROADMAP.md](milestones/v8.0-ROADMAP.md).
+v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature audit (renewal reminders sold but undelivered, e-sign metering absent, storage quotas unenforced, dishonest SMS/push toggles), surfaces the built-but-orphaned backend (notification center, activity feed), consolidates the three duplicated financial-reporting surfaces into one hub, and ships the canonical landlord feature set (rent ledger, rental applications, tenant comms log, notice library, compliance tracking, Schedule E intelligence, owner digest, unit turnover) — every feature strictly within Next.js 16 idioms and the permanent positioning invariants (tenants are records not users, no rent-payment facilitation, no screening, no service worker). The build order is dependency-respecting: the notification write-path lands first (nearly every later feature calls `create_notification`), claims-integrity and the queue-drain-Resend delivery pattern come next, the rent ledger lands before any reporting/digest work so no metric gets re-fabricated, and the two highest-liability items (notice library, unit turnover) come last so every upstream primitive is already proven.
 
-</details>
+## Phases
 
----
+**Phase Numbering:** Integer phases only (project convention — never decimals). Phase numbers continue across milestones; v9.0 ended at Phase 51, so v10.0 runs 52-64.
 
-## v9.0 Full-Surface Remediation
+- [x] **Phase 52: Notification Center, Activity Feed & Channel Honesty** - Surface the orphaned `notifications`/`activity` backend as a bell + inbox + dashboard timeline; remove dishonest SMS/push toggles; drop orphan schema (completed 2026-07-19)
+- [ ] **Phase 53: Renewal Reminder Delivery** - Deliver the sold Growth/Max lease-renewal reminders in-house (edge fn draining `lease_reminders`), exactly-once, suppression-honoring, backlog dry-run gated
+- [ ] **Phase 54: E-sign & Storage Metering** - Enforce the sold e-sign (25/mo Growth) and storage quotas with visible usage + upgrade prompts; grandfather existing over-quota owners
+- [ ] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation
+- [ ] **Phase 56: Reporting Hub & Documents Landing** - Collapse `/financials/*` + `/analytics/financial` + `/reports/*` into one `/reports` hub with preserved tier-gating; make `/documents` a real landing page
+- [ ] **Phase 57: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
+- [ ] **Phase 58: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
+- [ ] **Phase 59: State-Aware Notice Library** - Counsel-reviewed, state-aware notices on the lease-template rails, saved to the vault with a service date (curated launch states)
+- [ ] **Phase 60: Compliance & Key-Date Tracking** - Track per-property key dates (insurance/license/tax/inspection) with reminders through the shared reminder rail
+- [ ] **Phase 61: Schedule E Expense Intelligence** - Map expenses to Schedule E lines, attach receipt photos, export a Schedule E annual report; reconcile the expenses money-type mismatch
+- [ ] **Phase 62: Scheduled Owner Digest** - Monthly ledger-backed email digest (occupancy, collected vs scheduled, expiring leases, open maintenance), exactly-once, opt-out honored
+- [ ] **Phase 63: Unit Turnover Workflow** - Chain move-out inspection → auto-drafted maintenance → deposit worksheet → unit-ready, orchestrating existing subsystems
+- [ ] **Phase 64: Claims Alignment & Marketing Truth** - Confirm-or-soften support claims (owner decision) and sweep marketing/pricing to truthfully reflect every shipped v10.0 capability
 
-**Goal:** Fix all 296 adversarially verified findings from the 2026-07-11 full-surface audit (`.planning/audits/2026-07-11-full-audit.md`) — codebase + public marketing pages + owner dashboard. Every confirmed finding is a tracked requirement; nothing is deferred. Findings are grouped one category per phase; each phase ships as its own perfect-PR PR.
+## Phase Details
 
-**Structure:** 16 phases (36-51), one per requirement category. The category structure is fixed by the audit — phases are NOT merged, split, or reordered. Every REQ maps 1:1 to its category phase by construction.
-
-### Execution disciplines (binding for every phase 36-51)
-
-1. **Strictly sequential.** Each phase branches only after the previous phase's PR is **MERGED to main**. Never stack phase branches. This guarantees no phase can overwrite another phase's fixes (the surfaces overlap — billing/auth/forms/data/type all touch shared files).
-2. **Perfect-PR gate per phase.** Every phase ships as its own PR and merges only after **two consecutive zero-finding review cycles on the frozen final state** (a mid-streak edit resets the streak).
-3. **Read the phase RESEARCH.md before planning.** Before `/gsd-plan-phase NN`, its `.planning/phases/NN-*/RESEARCH.md` (fix-approach validation, written at milestone setup) MUST be read.
-4. **Root-cause fixes, verified against the audit evidence.** Every fix must resolve the underlying defect (not the symptom) and be verified against the audit entry's `> Verifier:` evidence for that REQ. Plans MUST read the audit entry for each REQ before proposing a fix.
-5. **Exhaustive sibling sweep for bug classes.** Class-wide defects (decimal-into-integer money forms, ÷100 money divisions, timezone one-day-early date parsing, unbounded list queries, duplicate types, string-literal query keys, undefined utility classes, hover-only controls) get one focused exhaustive sweep so every sibling lands together — never one-sibling-per-review-cycle.
-
-**16 phases (36-51)** | **296 requirements mapped** | All covered ✓
-
-### Phases
-
-- [ ] **Phase 36: Billing & Subscription Lifecycle** - Checkout, trials, past_due recovery, cancellation, and webhooks all behave correctly
-- [ ] **Phase 37: Auth Flows** - Email-change, magic-link, invite, recovery, sign-out, and post-checkout paths complete and error honestly
-- [ ] **Phase 38: Forms & Validation** - Every form and both CSV importers save valid data with real client-side validation
-- [ ] **Phase 39: Data Layer & Cache Integrity** - Mutations keep the cache truthful; every list query is bounded and correctly filtered
-- [ ] **Phase 40: Type Boundaries (RPC/PostgREST)** - Validated typed mappers at every boundary so no cast fabricates or destroys data
-- [ ] **Phase 41: Component Logic & Analytics Correctness** - Analytics, financial, and date-sensitive components compute correct numbers and dates
-- [ ] **Phase 42: Dashboard UX & Navigation** - Modals, quick actions, confirmations, and empty states all work and route to real pages
-- [ ] **Phase 43: E-sign Flow** - Token signing notifies the right party, recovers from finalize failures, keeps signer access, and rate-limits by IP
-- [ ] **Phase 44: Public Site UX** - The marketing surface converts logged-out prospects without dead ends or auth walls
-- [ ] **Phase 45: Marketing Content Truthfulness** - Every marketing claim maps to a shipped capability
-- [ ] **Phase 46: Marketing UI Consistency** - Correct typography, spacing, containers, dark-mode-safe tokens; no dead utility classes or duplicates
-- [ ] **Phase 47: Accessibility** - WCAG AA — readable tokens, named controls, keyboard-reachable actions, managed dialog focus
-- [ ] **Phase 48: Routing, SEO & Performance** - ISR routes stay static, SEO metadata is correct, heavy bundles and N+1 queries removed
-- [ ] **Phase 49: Client State (Zustand)** - Client state is truthful across users and navigations; dead stores removed
-- [ ] **Phase 50: Admin Surface** - Honest data, captured errors, reachable and accessible admin pages
-- [ ] **Phase 51: Code Hygiene** - No duplicate types, string-literal query keys, module-level clients, inline styles, or emojis
-
-### Phase Details
-
-### Phase 36: Billing & Subscription Lifecycle
-**Goal**: The full subscription lifecycle — checkout, trial, past_due recovery, cancellation, and webhook processing — behaves correctly, and no owner is ever locked out of fixing their own billing.
-**Depends on**: Phase 35 (v8.0 shipped/merged) — branches after v8.0 is on main
-**Requirements**: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06, BILL-07, BILL-08, BILL-09, BILL-10, BILL-11, BILL-12, BILL-13, BILL-14, BILL-15, BILL-16, BILL-17, BILL-18, BILL-19, BILL-20
+### Phase 52: Notification Center, Activity Feed & Channel Honesty
+**Goal**: The orphaned `notifications`/`activity` backend becomes user-facing (bell + inbox + dashboard timeline), the shared `create_notification` write-path exists for every later feature to call, dishonest notification channels are removed, and residual demolished-feature schema is cleaned.
+**Depends on**: Nothing (first phase — establishes the notification write-path primitive)
+**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, ACT-01, ACT-02, HONEST-01, HONEST-02, CLEAN-01, CLEAN-02
 **Success Criteria** (what must be TRUE):
-  1. A past_due owner can reach the billing portal and fix their payment method — the grace period is real and no lapsed owner is locked out of every billing surface (portal button shows, banner/dunning CTAs resolve, not `/owner/billing` 404) [BILL-01/02/04/07/12/16]
-  2. Checkout-session verification succeeds — `/pricing/complete` and `/pricing/success` show the true payment outcome (session_id/sessionId contract matches, expected response fields returned) [BILL-03/17]
-  3. An already-subscribed owner cannot open a second concurrent subscription, and serial/repeat free trials are blocked (trial granted only to a never-trialed customer; trial price never flows through Checkout) [BILL-05/06/08]
-  4. Cancellation and subscription webhooks process without silent errors — no dropped-`leases`-column failures, stuck `processing` events are reprocessed, out-of-order events cannot resurrect canceled access, and trial-will-end is handled [BILL-13/14/15/20]
-  5. Stripe invoice/subscription statuses are validated at the boundary — no unhandled `expired`/`open`/`draft` union leaks to the UI, and cancel/reactivate UI is correct for trialing subscribers; two consecutive zero-finding review cycles [BILL-09/10/11/18/19]
+  1. Owner sees a notification bell with a live unread count in the app-shell header and can open an inbox to mark items read/unread including mark-all-read (TanStack Query 60s poll, no Realtime)
+  2. Product events (lease signed, renewal reminder sent, application received, maintenance created, digest sent) generate notifications via a `create_notification` RPC on the owner-scoped `notifications` table
+  3. Owner sees a historical activity timeline on the dashboard sourced from `get_user_dashboard_activities`, visually disambiguated from the notification center (feed = historical, center = actionable read/unread)
+  4. Settings no longer renders the SMS toggle or the browser-push toggle (no delivery infrastructure exists; in-app + email cover the need)
+  5. Notifications are bounded by an archive-then-delete retention cron (3 AM window); the orphaned `payout_events` table and dead `docuseal_document_url` column are dropped
+**Plans**: 8 plans
+- [x] 52-01-PLAN.md — Notification write-path RPC + owner RLS reconcile (NOTIF-01)
+- [x] 52-02-PLAN.md — Notification + activity event triggers + finalize-failed edge fn (NOTIF-04, ACT-01 write-path)
+- [x] 52-03-PLAN.md — Retention cron + orphan schema reconcile (NOTIF-05, CLEAN-01/02)
+- [x] 52-04-PLAN.md — Notification data layer: keys + mark-read mutations (NOTIF-02/03)
+- [x] 52-05-PLAN.md — Notification bell + popover header island (NOTIF-02/03)
+- [x] 52-06-PLAN.md — /notifications inbox page + E2E smoke (NOTIF-03)
+- [x] 52-07-PLAN.md — Dashboard activity card (ACT-01/02)
+- [x] 52-08-PLAN.md — Settings channel honesty (HONEST-01/02)
+**UI hint**: yes
+
+### Phase 53: Renewal Reminder Delivery
+**Goal**: The renewal-reminder feature sold on Growth/Max is actually delivered in-house, exactly once, honoring every suppression layer, without storming a stale backlog at go-live.
+**Depends on**: Phase 52 (writes an in-app notification per delivered reminder)
+**Requirements**: REMIND-01, REMIND-02, REMIND-03, REMIND-04, REMIND-05
+**Success Criteria** (what must be TRUE):
+  1. A Growth/Max owner with an expiring lease receives an automated renewal-reminder email delivered by a `send-lease-reminders` Edge Function draining `lease_reminders` on pg_cron (dead n8n `wf-lease-reminder` hop removed)
+  2. Each reminder is delivered exactly once per (lease, reminder_type) via a delivery-state column + `FOR UPDATE SKIP LOCKED` drain + Resend Idempotency-Key
+  3. Reminder delivery honors all suppression layers — `notification_settings` opt-out, `email_suppressions`, and the re-ported synthetic-CI-owner guard
+  4. Each delivered reminder also creates an in-app notification via the Phase 52 write-path
+  5. Delivery is only enabled after a backlog dry-run counts and expires/clears queued `lease_reminders` (no reminder storm)
 **Plans**: TBD
+**Gate**: REMIND-04 pre-flip backlog dry-run — delivery must not be enabled until the queued backlog is counted and cleared.
 
-### Phase 37: Auth Flows
-**Goal**: Every authentication entry and exit path — email change, magic link, invite, password recovery, sign-out, post-checkout — completes correctly and surfaces honest errors.
-**Depends on**: Phase 36 (merged)
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08, AUTH-09, AUTH-10, AUTH-11, AUTH-12, AUTH-13
+### Phase 54: E-sign & Storage Metering
+**Goal**: The sold e-sign monthly cap and storage quotas are actually enforced with visible usage and upgrade prompts, while existing over-quota owners are grandfathered so nobody is retroactively locked out.
+**Depends on**: Phase 52 (shares Settings surface / upgrade-prompt pattern; no hard dependency on 53)
+**Requirements**: METER-01, METER-02, METER-03, METER-04
 **Success Criteria** (what must be TRUE):
-  1. Email-change confirmation succeeds — the callback accepts `type=email_change` instead of rejecting it [AUTH-01]
-  2. A successful magic-link or invite verification lands the user in the app, not on the "link has expired" error, and invalid OTP types no longer loop the callback into a misleading `oauth_failed` [AUTH-02/09]
-  3. The confirm-email resend action works for its unauthenticated audience; recovery/update-password verifies a real recovery session before showing the form [AUTH-03/07]
-  4. Post-checkout redirect returns paying customers to the dashboard without a subscription-gate bounce; OAuth-failure and sign-out-failure states are shown honestly (not silently stripped or reported as success) [AUTH-05/08/10/04/06]
-  5. Redirect targets carry the full destination (query string preserved) and billing-portal `returnUrl` is honored; two consecutive zero-finding review cycles [AUTH-11/12/13]
+  1. Growth e-sign sends are metered at 25/month enforced race-safely (append-only `esign_events` + atomic count-and-insert RPC at the `lease-signature` send path after `checkTierEntitlement`); Max is unlimited
+  2. Owner sees current-month e-sign usage in Settings and gets an upgrade prompt at/near the cap
+  3. Owner sees storage usage vs plan quota in Settings, computed by an RPC summing `storage.objects.metadata->>'size'` across the owner's objects
+  4. Uploads are soft-enforced against the plan quota with an upgrade prompt; a pre-launch over-quota population report gates enforcement and existing over-quota owners are grandfathered (never blocked from reads/downloads/deletes)
 **Plans**: TBD
+**Gate**: METER-04 pre-flip grandfather report — the over-quota owner population must be reported and grandfathered before upload enforcement flips on.
+**UI hint**: yes
 
-### Phase 38: Forms & Validation
-**Goal**: Every create/edit form and both CSV importers save valid data — decimal money into money columns, no phantom fields, real client-side validation, and no unhandled mutation rejections.
-**Depends on**: Phase 37 (merged)
-**Requirements**: FORM-01, FORM-02, FORM-03, FORM-04, FORM-05, FORM-06, FORM-07, FORM-08, FORM-09, FORM-10, FORM-11, FORM-12, FORM-13, FORM-14, FORM-15, FORM-16, FORM-17, FORM-18, FORM-19
+### Phase 55: Rent Ledger
+**Goal**: Owner has a record-keeping rent ledger — expected charges from lease terms, recorded receipts, per-lease running balance, late flags — that becomes the single source of truth for honest "collected" revenue, with zero payment facilitation and zero money-boundary regressions.
+**Depends on**: Phase 52 (notifications); sequenced before Phases 56 & 62 so no reporting/digest metric is re-fabricated
+**Requirements**: LEDGER-01, LEDGER-02, LEDGER-03, LEDGER-04, LEDGER-05, LEDGER-06, LEDGER-07, LEDGER-08
 **Success Criteria** (what must be TRUE):
-  1. Saving any lease edit succeeds — the phantom `version` field is removed and no edit fails with PGRST204 [FORM-02/04]
-  2. Money inputs (rent, deposit, pet deposit/rent, late fee, maintenance cost) accept or reject decimals coherently across every lease/unit/maintenance form, the wizard, and both CSV importers — no raw 22P02 / silent-round integer-column failures (one exhaustive sibling sweep of the decimal-into-integer class) [FORM-01/03/06/08/10/11/12/14/15]
-  3. Wizard step validation errors are rendered to the user, and end-date/phone/length/state/ZIP validators actually gate submission [FORM-07/09/16/17/19]
-  4. Template preview/export runs schema validation, and failed mutations (emergency-contact, inspection) are caught and surfaced rather than left as unhandled promise rejections [FORM-05/13/18]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
-### Phase 39: Data Layer & Cache Integrity
-**Goal**: Mutations keep the TanStack Query cache truthful and every list query is bounded and correctly filtered.
-**Depends on**: Phase 38 (merged)
-**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06, DATA-07, DATA-08, DATA-09, DATA-10, DATA-11, DATA-12, DATA-13, DATA-14, DATA-15, DATA-16, DATA-17, DATA-18
-**Success Criteria** (what must be TRUE):
-  1. Editing a lease, renewing a lease, or updating an inspection no longer overwrites the enriched detail cache with a bare row — embeds/rooms/tenants stay visible after save [DATA-01/02/06]
-  2. Updating a tenant immediately refreshes the tenant detail page (the key the page reads is invalidated), and renew invalidates the unit/tenant keys its siblings do [DATA-03/18]
-  3. Every list query is bounded with `.limit()`/`.range()` and paginates off `count`, never `data.length` (one exhaustive sweep of the unbounded-query class) [DATA-04/07/08/09/10/13/14/15/16/17]
-  4. Declared list filters are actually applied (lease `search`/`property_id`, maintenance `property_id`) and occupancy stats stop producing >100% / negative vacancy [DATA-11/12/05]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
-### Phase 40: Type Boundaries (RPC/PostgREST)
-**Goal**: Every RPC/PostgREST boundary uses a validated typed mapper so no cast fabricates or destroys data.
-**Depends on**: Phase 39 (merged)
-**Requirements**: TYPE-01, TYPE-02, TYPE-03, TYPE-04, TYPE-05, TYPE-06, TYPE-07
-**Success Criteria** (what must be TRUE):
-  1. Editing a property preserves `acquisition_cost` and `acquisition_date` — the detail query no longer casts a column subset to a full `Property` [TYPE-01]
-  2. `/analytics/financial` and the maintenance insights section render real RPC data instead of zeroed metrics and empty charts [TYPE-02/03]
-  3. Financial/report/expense mappers read only keys the RPC actually emits — no phantom `expenses`/`profit`/`net_income`/counts silently defaulting to 0, no fabricated expense-row fallbacks [TYPE-04/05/06]
-  4. jsonb columns (`custom_fields`) are runtime-validated before use instead of blind-cast to `DynamicField[]` [TYPE-07]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
-### Phase 41: Component Logic & Analytics Correctness
-**Goal**: Analytics, financial, and date-sensitive components compute correct numbers and correct dates.
-**Depends on**: Phase 40 (merged)
-**Requirements**: COMP-01, COMP-02, COMP-03, COMP-04, COMP-05, COMP-06, COMP-07, COMP-08, COMP-09, COMP-10, COMP-11, COMP-12, COMP-13
-**Success Criteria** (what must be TRUE):
-  1. Financial/revenue/cash-flow stat cards show face-value dollars — the surviving ÷100 understatement is gone (last of the 100× money class) [COMP-01/04]
-  2. Analytics overview KPIs (occupancy rate, active tenants, monthly revenue) show real values, not fields hardwired to zero [COMP-02]
-  3. The quarterly income statement builds valid calendar dates for every quarter (no `2026-06-31`) so the Quarterly view works year-round [COMP-03]
-  4. Date-only values (expense, lease end, work-order, move-out) render on the correct local day in every US timezone; expense/tenant pagination resets on filter change; the Export CSV and insight-summary controls actually do something [COMP-05/08/09/12/06/10/07/11/13]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
-### Phase 42: Dashboard UX & Navigation
-**Goal**: The owner dashboard's intercepted-route modals, quick actions, confirmations, and empty states all work and route to real pages.
-**Depends on**: Phase 41 (merged)
-**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-07, DASH-08, DASH-09, DASH-10, DASH-11, DASH-12, DASH-13, DASH-14, DASH-15, DASH-16, DASH-17, DASH-18, DASH-19, DASH-20, DASH-21, DASH-22, DASH-23
-**Success Criteria** (what must be TRUE):
-  1. New/Edit modals for properties, leases, units, and maintenance actually open — the `@modal` slots are rendered (maintenance gains a layout) and every `(.)edit/[id]` interceptor targets the real `/x/[id]/edit` route [DASH-01/02/03/04/05/06/07/08/15]
-  2. Post-create the new-property modal closes/navigates, and every quick-action link resolves to a real route (unit details, activity, unit-filtered maintenance) [DASH-09/11/12/18]
-  3. Destructive single-click actions (document delete, emergency-contact remove) require a confirmation dialog [DASH-10/21]
-  4. List empty states use the mandated `Empty` compound component and key create forms autofocus their primary input [DASH-13/14/16/17/19/20/22/23]
-  5. Two consecutive zero-finding review cycles.
+  1. Monthly rent charges auto-generate from active lease terms into `rent_charges` via pg_cron in `numeric(10,2)` dollars, converting the integer `leases.rent_amount` boundary exactly once (no 100× regressions, `UNIQUE(lease_id, period_start)` idempotency)
+  2. Owner can record payments received into `rent_receipts` (date, amount, method label — no payment rails) including partial payments as discrete entries, and add manual charge/credit lines
+  3. Owner sees per-lease running balance (Σ charges − Σ receipts/credits) with unpaid past-due charges flagged late; ledger onboarding uses a "track since" date + opening balance (no history backfill)
+  4. Ledger entries are append-only — corrections are reversal entries, never edits or deletes
+  5. Revenue analytics adopt one revenue definition (lease-derived = scheduled, ledger = collected, no double-counting) and the collection-rate KPI returns to the dashboard from ledger actuals
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 43: E-sign Flow
-**Goal**: The token-based e-sign flow notifies the right party, recovers from finalize failures, keeps signer access, and rate-limits by IP.
-**Depends on**: Phase 42 (merged)
-**Requirements**: SIGN-01, SIGN-02, SIGN-03, SIGN-04, SIGN-05, SIGN-06
+### Phase 56: Reporting Hub & Documents Landing
+**Goal**: The three duplicated financial-reporting surfaces collapse into one `/reports` hub with tier-gating provably intact, and `/documents` becomes a real landing page instead of a bare redirect.
+**Depends on**: Phase 55 (hub launches with real ledger actuals, not a re-fabricated `collection_rate`)
+**Requirements**: RPTHUB-01, RPTHUB-02, RPTHUB-03, RPTHUB-04, DOCS-01
 **Success Criteria** (what must be TRUE):
-  1. When the tenant signs first, the owner is notified that a counter-signature is needed — the flow no longer stalls silently in `pending_signature` [SIGN-03]
-  2. After signing, the tenant retains access to a signed copy, and revisiting the link shows the friendly "already signed / active" completed-state card instead of "signing link unavailable" [SIGN-01/04]
-  3. A failed signed-PDF finalize has a retry/regeneration path — no permanent "Finalizing signed document…" state [SIGN-02]
-  4. Token probing is rate-limited per IP (not per token hash), and lease status badges key on the real lowercase statuses [SIGN-06/05]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
-### Phase 44: Public Site UX
-**Goal**: The public marketing surface converts logged-out prospects without dead ends or auth walls.
-**Depends on**: Phase 43 (merged)
-**Requirements**: PUBUX-01, PUBUX-02, PUBUX-03, PUBUX-04, PUBUX-05, PUBUX-06, PUBUX-07, PUBUX-08, PUBUX-09, PUBUX-10, PUBUX-11
-**Success Criteria** (what must be TRUE):
-  1. Pricing cards respect `requiresEmailConfirmation` — no guaranteed-401 checkout attempt when signup produced no session (both standard and featured cards) [PUBUX-01/06]
-  2. Feature-card and hero CTAs link to reachable destinations — no auth-gated dead-ends for logged-out prospects, real hrefs on /faq, /about, /help, and no self-referential sticky "Start free" [PUBUX-05/07/11]
-  3. Blog index category chips show the human label (not the raw kebab slug), and help-center resources and the tax lead magnet deliver what they promise [PUBUX-03/04/02]
-  4. Speculative typo redirects, merchant-only Stripe-dashboard links, and dead skip-link targets are removed/fixed on every page [PUBUX-08/10/09]
-  5. Two consecutive zero-finding review cycles.
+  1. One unified `/reports` hub absorbs `/financials/*` and `/analytics/financial` under a single navigation entry (statements + analytics + exports in one surface)
+  2. Every legacy financial/reporting URL (~15 routes) permanently 308-redirects to its hub equivalent via `next.config.ts` `redirects()` — no 404s, no `proxy.ts` involvement
+  3. Premium report export tier-gating (`export-report` `PREMIUM_REPORT_TYPES`) is verified intact after consolidation, and E2E covers hub routes before legacy routes are removed
+  4. `/documents` renders a real landing page (vault + lease template builder + printable templates entry points) instead of a bare redirect
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 45: Marketing Content Truthfulness
-**Goal**: Every marketing claim maps to a shipped capability — no nonexistent features, false trials, placeholders, or fabricated proof.
-**Depends on**: Phase 44 (merged)
-**Requirements**: CONTENT-01, CONTENT-02, CONTENT-03, CONTENT-04, CONTENT-05, CONTENT-06, CONTENT-07, CONTENT-08, CONTENT-09, CONTENT-10, CONTENT-11, CONTENT-12, CONTENT-13, CONTENT-14, CONTENT-15, CONTENT-16, CONTENT-17, CONTENT-18, CONTENT-19, CONTENT-20, CONTENT-21, CONTENT-22, CONTENT-23, CONTENT-24
+### Phase 57: Rental Application Intake
+**Goal**: Owner can collect standardized rental applications via a public hashed-token link — no applicant accounts, no SSN, no screening — and convert approved applicants into tenant records, with a real PII retention path.
+**Depends on**: Phase 52 (owner notification on submission); independent of ledger/reporting
+**Requirements**: APPLY-01, APPLY-02, APPLY-03, APPLY-04, APPLY-05, APPLY-06
 **Success Criteria** (what must be TRUE):
-  1. Nonexistent features are removed from every surface — team seats, API access, custom lease clauses, ACH (pricing config, comparison tables, compare pages, FAQ + FAQPage JSON-LD, help, resources, features) [CONTENT-01/02/03/04/06/07/08/10/12/14/19/20]
-  2. Trial copy is honest and plan-scoped — no "full access to all features" or "e-sign in trial" claim for Starter trials [CONTENT-09/15/18]
-  3. Fabricated proof and misframing are removed — hardcoded 5-star ratings, stock "support team" imagery, "trusted integrations" vendor misframing, undelivered newsletter/lead-magnet promises, "half the price" claim [CONTENT-05/11/13/16/17/23]
-  4. Arithmetic and dated copy are corrected (AppFolio $2,988/yr, RentRedi unlimited-units contradiction, "as of 2025") [CONTENT-21/22/24]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
-### Phase 46: Marketing UI Consistency
-**Goal**: Marketing pages render with correct typography, spacing, containers, and dark-mode-safe tokens — no dead utility classes, palette drift, or duplicate components.
-**Depends on**: Phase 45 (merged)
-**Requirements**: MKTUI-01, MKTUI-02, MKTUI-03, MKTUI-04, MKTUI-05, MKTUI-06, MKTUI-07, MKTUI-08, MKTUI-09, MKTUI-10, MKTUI-11, MKTUI-12, MKTUI-13, MKTUI-14, MKTUI-15, MKTUI-16, MKTUI-17, MKTUI-18, MKTUI-19, MKTUI-20, MKTUI-21, MKTUI-22, MKTUI-23, MKTUI-24, MKTUI-25, MKTUI-26
-**Success Criteria** (what must be TRUE):
-  1. The undefined utility classes are replaced so hero titles, section spacing, and badges render at intended size across about/faq/help/blog/pricing/resources (`text-responsive-display-xl/2xl`, `text-section-title`, `section-content`, `page-content`, `inline-flex-center`, `gradient-background`) — one exhaustive sweep of the class [MKTUI-05/11/13/15/18/19/24]
-  2. Layout defects are fixed — search container centering/padding, doubled navbar offset, Max card self-serve CTA (not "Contact Sales"), competing sticky CTAs, breadcrumb layout shift [MKTUI-01/03/04/09/20]
-  3. Colors use semantic tokens and survive dark mode (compare palettes, resource pages, hover states, help badges), and stock/Unsplash imagery + inline styles are removed [MKTUI-06/07/14/21/23/10/25/26/22]
-  4. Live legal/privacy copy is truthful (no "[Your State]" placeholders, no phantom Railway processor) and duplicate components + category-slug labels + support-tier claims are unified [MKTUI-02/12/08/16/17]
-  5. Two consecutive zero-finding review cycles.
+  1. Owner generates a shareable application link for a vacant unit — 256-bit token stored SHA-256-hashed, public `/apply/[token]` page (mirrors `/sign/[token]`; route added to proxy `PUBLIC_ROUTES`)
+  2. An applicant submits without an account via a `verify_jwt=false` Edge-Function-mediated insert (never an anonymous RLS INSERT) with per-IP rate limit + honeypot; SSN is never collected
+  3. Owner reviews applications per unit through a new / reviewing / approved / rejected workflow, and approving converts the applicant into a tenant record with prefilled fields
+  4. Applicant PII auto-purges for non-converted applications after a defined window (cron) and cascades on owner GDPR deletion
+  5. The application surface explicitly discloses that screening/FCRA duties sit with the landlord and TenantFlow performs no screening
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 47: Accessibility
-**Goal**: The app meets WCAG AA — readable tokens, named controls, keyboard-reachable actions, associated labels, and managed dialog focus.
-**Depends on**: Phase 46 (merged)
-**Requirements**: A11Y-01, A11Y-02, A11Y-03, A11Y-04, A11Y-05, A11Y-06, A11Y-07, A11Y-08, A11Y-09, A11Y-10, A11Y-11, A11Y-12, A11Y-13, A11Y-14, A11Y-15, A11Y-16, A11Y-17, A11Y-18, A11Y-19, A11Y-20, A11Y-21, A11Y-22, A11Y-23, A11Y-24, A11Y-25, A11Y-26, A11Y-27, A11Y-28, A11Y-29, A11Y-30, A11Y-31, A11Y-32, A11Y-33, A11Y-34, A11Y-35, A11Y-36, A11Y-37, A11Y-38, A11Y-39, A11Y-40, A11Y-41
+### Phase 58: Tenant Communication Log
+**Goal**: Owner has an owner-side communication history on each tenant record — manually logged notes/calls plus email sent from the app that auto-logs — with no two-way tenant messaging surface.
+**Depends on**: Phase 52 (notification write-path) + Phase 53 (Resend delivery rail)
+**Requirements**: COMMS-01, COMMS-02, COMMS-03
 **Success Criteria** (what must be TRUE):
-  1. Status/badge text and vivid-token text meet AA contrast in both themes — no near-white `*-foreground` on 10% tints, no bare `dark:text-muted`, vivid tokens reserved for icons [A11Y-01/07/12/22]
-  2. Every icon-only button and placeholder-only input has an accessible name [A11Y-02/03/04/05/15/17/27/28/31/32/33/34/36/37/38]
-  3. Hover-only controls are keyboard-visible/focusable, and clear-filter/menu/column controls are real keyboard-operable buttons with `aria-expanded` + Escape handling (not `role="button"` divs) [A11Y-08/09/10/11/16/18/19/20/21/23/24/26/39/40/41]
-  4. Custom dialogs manage focus, visible labels are programmatically associated with inputs, and mobile/desktop nav submenus are keyboard + screen-reader accessible [A11Y-06/25/29/13/30/35]
-  5. Two consecutive zero-finding review cycles.
+  1. Owner can log a communication (note / call summary) on a tenant record with timestamp and type
+  2. Owner can send an email to a tenant from the app via the Resend rail, auto-logged to the communication history and honoring suppression
+  3. Tenant detail shows the full communication history chronologically
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 48: Routing, SEO & Performance
-**Goal**: ISR routes stay static, SEO metadata is correct, and heavy client bundles and N+1 queries are eliminated.
-**Depends on**: Phase 47 (merged)
-**Requirements**: SEO-01, SEO-02, SEO-03, SEO-04, SEO-05, SEO-06, SEO-07, SEO-08, SEO-09, SEO-10, SEO-11, SEO-12, SEO-13, SEO-14, SEO-15
+### Phase 59: State-Aware Notice Library
+**Goal**: Owner can generate state-aware notices on the lease-template rails for a curated launch set of states, every notice carrying counsel-reviewed disclaimer copy, saved to the vault with a recordable service date.
+**Depends on**: Phase 58 (notice delivery events write into the comms log); lease-template/PDF rails proven stable
+**Requirements**: NOTICE-01, NOTICE-02, NOTICE-03
 **Success Criteria** (what must be TRUE):
-  1. ISR-declared routes stop forcing dynamic rendering via the cookie-aware Supabase client — sitemap, feed.xml, llms.txt, and llms-full.txt honor their `revalidate` [SEO-05/09/10/11]
-  2. The marketing homepage and presentational admin tables ship as Server Components; recharts and the markdown pipeline stay out of the initial /dashboard and blog-post bundles [SEO-04/14/06/02]
-  3. The properties page issues one consolidated query (no per-property N+1 fan-out) and the inspections list is bounded/paginated [SEO-01/07]
-  4. SEO metadata is correct — no 404 breadcrumb node, no /auth-page canonical/index leak, robots covers all private prefixes, /compare hub in the sitemap, stale Netlify `_redirects` removed [SEO-03/15/12/13/08]
-  5. Two consecutive zero-finding review cycles.
+  1. Owner can generate state-aware notices (pay-or-quit, cure-or-quit, notice-of-entry, non-renewal) for a curated launch set of states on the lease-template rails
+  2. Every generated notice carries counsel-reviewed "not legal advice — consult an attorney" disclaimer copy
+  3. Generated notices save to the document vault against the lease/tenant with a recordable service/delivery date
+**Plans**: TBD
+**Gate**: NOTICE-02 ship-time counsel-review — disclaimer language and per-state template data must pass counsel review before merge.
+**Research flag**: `/gsd-plan-phase 59 --research-phase` — per-state notice-period data + UPL-safe disclaimer language are jurisdiction-specific (MEDIUM confidence); align with the resolved ToS governing-law jurisdiction (Texas, MKTUI-02).
+**UI hint**: yes
+
+### Phase 60: Compliance & Key-Date Tracking
+**Goal**: Owner can track key property dates and receive reminders through the exact same queue-drain-Resend rail proven in Phase 53, with each date attachable to the document vault.
+**Depends on**: Phase 53 (reuses the reminder-drain/suppression infrastructure) + Phase 52 (in-app reminders)
+**Requirements**: COMPLY-01, COMPLY-02
+**Success Criteria** (what must be TRUE):
+  1. Owner can track key dates per property (insurance expiry, license/registration renewal, property tax, inspection cadence) surfaced on a calendar/dashboard view
+  2. Upcoming key dates trigger reminders through the shared reminder rail (email + in-app, exactly-once, suppression-honoring)
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 61: Schedule E Expense Intelligence
+**Goal**: Expense categories map to the canonical Schedule E line set, owners can attach receipt photos (metered against storage), a Schedule E annual report exports through the hub, and the expenses money-type mismatch is reconciled without a 100× regression.
+**Depends on**: Phase 54 (receipts consume the storage quota) + Phase 56 (export rides the reporting-hub export rails)
+**Requirements**: TAX-01, TAX-02, TAX-03, TAX-04
+**Success Criteria** (what must be TRUE):
+  1. Expense categories map to the canonical Schedule E line set (lines 5–19, Stessa/Landlord Studio-aligned)
+  2. Owner can attach a receipt photo to an expense via the existing upload rail, counting toward the storage quota
+  3. Owner can export a Schedule E-grouped annual report through the reporting hub export rails
+  4. The prod `expenses.amount integer` vs `numeric(10,2)` convention is resolved at schema time with exact conversion (no 100× class regressions)
+**Plans**: TBD
+**Research flag**: `/gsd-plan-phase 61 --research-phase` — the `expenses.amount` integer-vs-numeric reconciliation (migrate the column vs handle at a typed-mapper boundary) is a planning-time decision.
+**UI hint**: yes
+
+### Phase 62: Scheduled Owner Digest
+**Goal**: Owner receives a monthly email digest built from real ledger-backed numbers, delivered exactly once with opt-out honored, reusing the proven drain + PDF rails.
+**Depends on**: Phase 55 (ledger actuals) + Phase 56 (single revenue definition) + Phase 53 (drain pattern)
+**Requirements**: DIGEST-01, DIGEST-02
+**Success Criteria** (what must be TRUE):
+  1. Owner receives a monthly email digest covering occupancy, collected vs scheduled rent from the ledger, expiring leases, and open maintenance, with opt-out via notification settings
+  2. Digest generation is per-owner batched on the pg_cron → Edge Function → Resend rail with exactly-once delivery and suppression honoring
 **Plans**: TBD
 
-### Phase 49: Client State (Zustand)
-**Goal**: Client state is truthful across users and navigations — dead stores removed, persisted state clamped, and phantom selections pruned.
-**Depends on**: Phase 48 (merged)
-**Requirements**: STATE-01, STATE-02, STATE-03, STATE-04, STATE-05, STATE-06, STATE-07, STATE-08, STATE-09, STATE-10, STATE-11, STATE-12, STATE-13
+### Phase 63: Unit Turnover Workflow
+**Goal**: Owner can run a unit turnover that chains inspection → maintenance → deposit worksheet → unit-ready as an advisory (non-gating) orchestration over five existing subsystems, built last so every subsystem it chains already exists.
+**Depends on**: Phases 55 (deposit accounting), 57 (optional re-lease application link), 52 (notifications), plus existing inspection/maintenance/lease subsystems
+**Requirements**: TURN-01, TURN-02, TURN-03
 **Success Criteria** (what must be TRUE):
-  1. Sign-out resets all Zustand stores — no previous user's search terms, filters, selections, or in-memory entities leak to the next user in the same tab [STATE-02]
-  2. Persisted pagination is clamped to the recomputed `totalPages` (no stranding on an empty page) and stale dialog/lease snapshots don't reopen on back/forward navigation [STATE-01/03]
-  3. Selection sets are pruned on single-delete so a subsequent bulk edit cannot resurrect a soft-deleted property or target already-deleted tenants [STATE-05/12]
-  4. Dead stores/slices are removed (toast, loading, navigation-history, delete-dialog, duplicate view-preference, broken computed getter, untracked modal toast) and the maintenance view preference persists across reload [STATE-04/06/07/08/09/10/11/13]
-  5. Two consecutive zero-finding review cycles.
+  1. Owner can start a turnover for a unit that chains a move-out inspection into maintenance requests auto-drafted from flagged rooms
+  2. Turnover produces a deposit-deduction worksheet from inspection findings, saved to the document vault
+  3. Turnover completes into unit-ready status with an optional next step (new lease or application link)
 **Plans**: TBD
+**Research flag**: `/gsd-plan-phase 63 --research-phase` — highest orchestration surface; the advisory non-gating state-machine design must be worked out concretely against the live inspection/maintenance/lease schemas.
+**UI hint**: yes
 
-### Phase 50: Admin Surface
-**Goal**: The admin surface reports honest data, captures errors, and is reachable and accessible.
-**Depends on**: Phase 49 (merged)
-**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07
+### Phase 64: Claims Alignment & Marketing Truth
+**Goal**: The milestone's core promise is verified — every claim sold on the marketing surface now maps to shipped code — by confirming-or-softening the support claims (owner decision) and sweeping marketing/pricing to truthfully reflect the shipped v10.0 capabilities.
+**Depends on**: All prior v10.0 phases (marketing reflects everything shipped)
+**Requirements**: HONEST-03, HONEST-04
 **Success Criteria** (what must be TRUE):
-  1. Admin analytics RPC failures are captured (Sentry) instead of silently rendering "No data yet" empty states [ADMIN-01]
-  2. The review queue shows real data — no fabricated "0 words" — and the destructive Reject action requires confirmation [ADMIN-02/03]
-  3. `/admin` resolves (page or redirect) for authenticated admins and the admin shell's skip-to-content link works (`id="main-content"` present) [ADMIN-05/06]
-  4. Admin list queries are bounded (`.limit()`/`.range()`) and presentational tables drop the unnecessary `"use client"` directive [ADMIN-04/07]
-  5. Two consecutive zero-finding review cycles.
+  1. Growth/Max support claims (phone support, dedicated account manager) are either confirmed operationally real by the owner or the pricing/marketing copy is softened to match reality
+  2. Marketing/pricing surfaces truthfully reflect the shipped v10.0 capabilities (renewal reminders now real, e-sign metering real, storage quotas real, notification center, rent ledger, rental applications)
 **Plans**: TBD
-
-### Phase 51: Code Hygiene
-**Goal**: The codebase obeys the zero-tolerance rules — no duplicate types, string-literal query keys, module-level Supabase clients, inline styles, or emojis in code.
-**Depends on**: Phase 50 (merged)
-**Requirements**: HYG-01, HYG-02, HYG-03, HYG-04, HYG-05, HYG-06, HYG-07, HYG-08, HYG-09, HYG-10, HYG-11, HYG-12, HYG-13, HYG-14, HYG-15, HYG-16, HYG-17, HYG-18, HYG-19, HYG-20, HYG-21, HYG-22, HYG-23, HYG-24, HYG-25, HYG-26, HYG-27, HYG-28, HYG-29, HYG-30, HYG-31, HYG-32, HYG-33, HYG-34, HYG-35, HYG-36, HYG-37, HYG-38, HYG-39, HYG-40
-**Success Criteria** (what must be TRUE):
-  1. Every duplicate type definition is removed in favor of the canonical `src/types/` definitions (~25 shadows across components, hooks, lib/constants, lib/validation, stores) [HYG-03/06/07/09/10/11/12/15/16/17/18/19/20/21/22/24/26/27/31/33/34/35/36/37/38/39/40]
-  2. String-literal query keys are replaced with `queryOptions()` factories under `src/hooks/api/query-keys/` [HYG-02/04/05/13/25]
-  3. The module-level Supabase client is moved inside its call sites (no import-time `createClient()`) [HYG-14]
-  4. Inline styles become Tailwind utilities/tokens (including remote-image backgrounds) and emoji characters are removed from code strings [HYG-01/08/23/28/29/30/32]
-  5. Two consecutive zero-finding review cycles.
-**Plans**: TBD
-
----
+**Gate**: HONEST-03 owner decision — surface phone-support / dedicated-AM staffing reality as a `/gsd-discuss-phase 64` input; the copy direction (confirm vs soften) is an owner call, not a blocker to the rest of the milestone.
+**UI hint**: yes
 
 ## Progress
 
-**Execution Order:** Phases execute in strict numeric order 36 → 37 → … → 51, each branching only after the prior phase's PR merges to main.
+**Execution Order:**
+Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 → 58 → 59 → 60 → 61 → 62 → 63 → 64. Each phase branches only after the previous phase's PR is merged to main.
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 36. Billing & Subscription Lifecycle | v9.0 | 0/TBD | Not started | - |
-| 37. Auth Flows | v9.0 | 0/TBD | Not started | - |
-| 38. Forms & Validation | v9.0 | 0/TBD | Not started | - |
-| 39. Data Layer & Cache Integrity | v9.0 | 0/TBD | Not started | - |
-| 40. Type Boundaries (RPC/PostgREST) | v9.0 | 0/TBD | Not started | - |
-| 41. Component Logic & Analytics Correctness | v9.0 | 0/TBD | Not started | - |
-| 42. Dashboard UX & Navigation | v9.0 | 0/TBD | Not started | - |
-| 43. E-sign Flow | v9.0 | 0/TBD | Not started | - |
-| 44. Public Site UX | v9.0 | 0/TBD | Not started | - |
-| 45. Marketing Content Truthfulness | v9.0 | 0/TBD | Not started | - |
-| 46. Marketing UI Consistency | v9.0 | 0/TBD | Not started | - |
-| 47. Accessibility | v9.0 | 0/TBD | Not started | - |
-| 48. Routing, SEO & Performance | v9.0 | 0/TBD | Not started | - |
-| 49. Client State (Zustand) | v9.0 | 0/TBD | Not started | - |
-| 50. Admin Surface | v9.0 | 0/TBD | Not started | - |
-| 51. Code Hygiene | v9.0 | 0/TBD | Not started | - |
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete   | 2026-07-19 |
+| 53. Renewal Reminder Delivery | 0/TBD | Not started | - |
+| 54. E-sign & Storage Metering | 0/TBD | Not started | - |
+| 55. Rent Ledger | 0/TBD | Not started | - |
+| 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
+| 57. Rental Application Intake | 0/TBD | Not started | - |
+| 58. Tenant Communication Log | 0/TBD | Not started | - |
+| 59. State-Aware Notice Library | 0/TBD | Not started | - |
+| 60. Compliance & Key-Date Tracking | 0/TBD | Not started | - |
+| 61. Schedule E Expense Intelligence | 0/TBD | Not started | - |
+| 62. Scheduled Owner Digest | 0/TBD | Not started | - |
+| 63. Unit Turnover Workflow | 0/TBD | Not started | - |
+| 64. Claims Alignment & Marketing Truth | 0/TBD | Not started | - |
+
+## Execution Disciplines (binding, phases 52-64)
+
+1. **Strictly sequential** — each phase branches (`gsd/phase-{N}-{slug}`) only after the previous phase's PR is MERGED to main. Never stack phase branches. Many phases share surfaces (Settings, notification write-path, Resend rail, reporting export, money boundary) so a stacked branch could silently overwrite a prior fix.
+2. **Perfect-PR gate per phase** — merge only after two consecutive zero-finding deep review cycles on the frozen final state (a mid-streak edit resets the streak). Deep review = architectural + design-token + a11y.
+3. **Positioning invariants are load-bearing** — every phase must respect: tenants/applicants NEVER get accounts, NO rent-payment facilitation (ledger is record-keeping only), NO screening, no service worker with a fetch handler, no fabricated data, zero new npm runtime dependencies. A PR that violates any invariant fails review regardless of feature completeness.
+4. **Money boundary discipline** — Phases 55 and 61 touch integer money columns (`leases.rent_amount`, `expenses.amount`) against the `numeric(10,2)`-dollars convention. Convert exactly once at a typed mapper boundary with cent-exact allocation property tests — the v8.0 100× bug class must not recur.
+5. **Pre-flip gates before enabling delivery/enforcement** — REMIND-04 (backlog dry-run before reminder sends), METER-04 (over-quota grandfather report before upload enforcement), NOTICE-02 (counsel review before notices ship), HONEST-03 (owner decision before support-copy direction).
+6. **Owner-run deployment residuals** — every phase introducing an edge function deploys via `bun scripts/deploy-edge-functions.ts` (CLI-401 workaround); every phase applying a migration via MCP reconciles the repo filename to the prod-assigned timestamp via `list_migrations`, then regenerates `src/types/supabase.ts`.
 
 ---
-
-**Coverage:** 296 requirements → 16 phases (36-51), each requirement mapped to exactly one category phase by construction. No orphans, no double-mapping. Phase numbering continues the integer sequence across milestones (v8.0 ended at 35; v9.0 is 36-51).
+*Roadmap created 2026-07-19 for milestone v10.0. Phase numbers continue from v9.0 (ended Phase 51). 58 v10 requirements mapped across 13 phases (52-64) — 100% coverage, no orphans, no double-mapping. Note: the REQUIREMENTS.md coverage note previously read "46 total"; the enumerated REQ-IDs actually total 58 (all 16 categories counted), corrected during roadmap creation.*
