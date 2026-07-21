@@ -337,3 +337,11 @@ _Fixer: Claude (gsd-code-fixer)_
 
 - **Cycle 10: ZERO findings** (streak 1/2 on 094ff2ba0).
 - **Cycle 11 (deciding pass): 1 confirmed minor (fixed + prod-applied)** — LIKE INCLUDING ALL copied 3 redundant indexes onto notifications_archive (incl. the composite the PR itself condemned); pruned via `20260720185756`, archive keeps exactly {pkey, user_id_created_at_idx1}. Streak reset.
+
+## PERFECT-PR GATE CLOSED (2026-07-20, frozen head 5ee811067)
+
+- **Cycle 12: ZERO findings** (6/6 finders, genuine).
+- Cycle 13 voided (session-limit wipeout — all finders errored; not counted).
+- **Cycle 14 (deciding pass, fresh quota): ZERO code findings** — sole "uncertain" item was the required rls-security check red from a beforeAll sign-in timeout in a diff-untouched suite (environmental flake; passed identically on the two prior heads). Job rerun on the SAME head: PASS.
+- Final: two consecutive zero-code-finding cycles on 5ee811067 + all required checks green on that exact state (checks, e2e-smoke, rls-security, CodeQL, gitleaks). MERGEABLE/CLEAN.
+- Totals: 14 cycles run (12 genuine), 38 findings confirmed and resolved, ~50 adversarial verifier agents.

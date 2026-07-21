@@ -14,7 +14,7 @@ updated: 2026-07-19T21:20:00Z
 
 ### 1. E2E smoke run (notifications.spec.ts)
 expected: All 4 owner-axe tests pass in CI e2e-smoke — bell opens popover, mark-all-read clears badge, /notifications inbox renders, Settings shows no SMS/push toggles
-result: [pending — runs automatically on the phase PR]
+result: PASS — e2e-smoke green on PR #922 head 5ee811067 (2026-07-20)
 
 ### 2. Edge function redeploy (lease-signature + sign-lease-token)
 expected: After PAT refresh, `bun scripts/deploy-edge-functions.ts lease-signature sign-lease-token` succeeds; post-deploy `notifyFinalizeFailed` is live (finalize-failure paths create a "Lease signing needs attention" notification)
@@ -30,14 +30,14 @@ result: [pending — owner-run; non-blocking (no TS code references the new RPC)
 
 ### 5. Prod RLS integration tests (notifications + notifications-retention)
 expected: `rls-security` CI job green on the phase PR — owner isolation on notifications, create_notification not authenticated-callable, cleanup fn + archive table service_role-only
-result: [pending — runs automatically on the phase PR]
+result: PASS — rls-security green on PR #922 head 5ee811067 (2026-07-20; one environmental beforeAll-timeout flake in a diff-untouched suite, green on rerun)
 
 ## Summary
 
 total: 5
-passed: 0
+passed: 2
 issues: 0
-pending: 5
+pending: 3
 skipped: 0
 blocked: 0
 
