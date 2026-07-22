@@ -15,6 +15,8 @@
 //   - Resend send failure ({ok:false}) -> delivery_status='failed', in-app STILL created (A1), error captured
 //   - re-drain of an already-'sent' row (claim returns nothing) -> 0 sends (exactly-once)
 //   - multi-row batch: a failed middle row never aborts the batch; sent counts only successes
+//   - transient leases-lookup error -> row left 'claimed' (reaper retries), no failed stamp
+//   - genuine lease-not-found -> delivery_status='failed', no notification/email
 //   - bad/missing Bearer -> 401, 0 sends
 //
 // Run: deno test --allow-all --no-check \
@@ -72,6 +74,10 @@ interface Scenario {
 	claimed: ClaimedRow[];
 	/** lease_id -> lease+owner+property join row. */
 	leases: Record<string, LeaseJoinRow>;
+	/** Injected error for the leases lookup. A TRANSIENT error must leave the row
+	 *  'claimed' for the WR-02 reaper (NOT stamp 'failed'); null = no error, so an
+	 *  absent leases entry becomes a genuine not-found ({ data: null, error: null }). */
+	leasesError: { message: string } | null;
 	/** is_notification_suppressed(email) result. */
 	suppressed: boolean;
 	/** email_suppressions row (or null = not bounced/complained). */
@@ -132,6 +138,11 @@ function makeClient(scenario: Scenario): {
 					return { data: { value: scenario.flagValue }, error: null };
 				}
 				if (table === "leases") {
+					// Transient lookup blip: return the error so the drainer leaves the
+					// row 'claimed' for the reaper (never mistaken for a deleted lease).
+					if (scenario.leasesError) {
+						return { data: null, error: scenario.leasesError };
+					}
 					const id = filters.find(([c]) => c === "id")?.[1] as
 						| string
 						| undefined;
@@ -264,6 +275,7 @@ function baseScenario(overrides: Partial<Scenario> = {}): Scenario {
 		suppressedError: null,
 		emailSuppressionError: null,
 		notificationSettingsError: null,
+		leasesError: null,
 		...overrides,
 	};
 }
@@ -550,6 +562,51 @@ Deno.test(
 		assertEquals(stampFor("reminder-a")?.payload.delivery_status, "sent");
 		assertEquals(stampFor("reminder-b")?.payload.delivery_status, "failed");
 		assertEquals(stampFor("reminder-c")?.payload.delivery_status, "sent");
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: transient leases-lookup error -> row left 'claimed' (reaper retries), no failed stamp",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		// A TRANSIENT lookup error (network blip, PostgREST hiccup) must NOT be
+		// mistaken for a deleted lease. Stamping 'failed' would drop the reminder
+		// permanently (claim_lease_reminders never reclaims 'failed'); instead the
+		// drainer leaves the row 'claimed' so the >1h stale-claim reaper (WR-02)
+		// retries it on a later drain.
+		const scenario = baseScenario({
+			leasesError: { message: "leases read timed out" },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		// No email, no notification: the drainer `continue`s before either.
+		assertEquals(fetchCount(), 0);
+		assertEquals(findNotification(calls), undefined);
+		// Crucially: NO terminal stamp at all -- the row stays 'claimed' (as the claim
+		// RPC left it) for the reaper, rather than being marked 'failed'.
+		assertEquals(
+			calls.updates.find((u) => u.table === "lease_reminders"),
+			undefined,
+		);
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: genuine lease-not-found -> delivery_status='failed', no notification/email",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		// leasesError null + the claimed row's lease absent from the map => the lookup
+		// returns { data: null, error: null }: the lease genuinely vanished (deleted
+		// between queue + drain). Cannot notify or email, so stamp 'failed' and move on.
+		const scenario = baseScenario({ leases: {} });
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 0);
+		assertEquals(findNotification(calls), undefined);
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "failed");
 	}),
 );
 
