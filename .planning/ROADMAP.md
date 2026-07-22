@@ -70,8 +70,13 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
   3. Reminder delivery honors all suppression layers — `notification_settings` opt-out, `email_suppressions`, and the re-ported synthetic-CI-owner guard
   4. Each delivered reminder also creates an in-app notification via the Phase 52 write-path
   5. Delivery is only enabled after a backlog dry-run counts and expires/clears queued `lease_reminders` (no reminder storm)
-**Plans**: TBD
-**Gate**: REMIND-04 pre-flip backlog dry-run — delivery must not be enabled until the queued backlog is counted and cleared.
+**Plans**: 4 plans
+- [ ] 53-01-PLAN.md — Migration A: delivery-state columns + notification_type CHECK extension + reminders_delivery_enabled flag (default OFF) + claim_lease_reminders RPC
+- [ ] 53-02-PLAN.md — send-lease-reminders drainer (bearer auth, flag gate, ordered suppression, new reminder email template, create_notification) + Deno branch-matrix test + config.toml/TYPE_VISUALS wiring
+- [ ] 53-03-PLAN.md — Deploy the drainer + Migration B drain cron (invoke_send_lease_reminders + cron.schedule) + invoke-secret wiring (still flag-OFF no-op)
+- [ ] 53-04-PLAN.md — Migration C go-flip (count → expire backlog without sending → drop n8n trigger/fn → flip flag LAST) + RLS integration test, behind a blocking go-live checkpoint
+**Waves**: strictly sequential — Wave 1 (53-01) → Wave 2 (53-02) → Wave 3 (53-03 deploy) → Wave 4 (53-04 flip). Migration C physically cannot precede the deploy (encoded via depends_on).
+**Gate**: REMIND-04 pre-flip backlog dry-run — delivery must not be enabled until the queued backlog is counted and cleared (Migration C, Plan 04, gated by a blocking human-verify checkpoint).
 
 ### Phase 54: E-sign & Storage Metering
 **Goal**: The sold e-sign monthly cap and storage quotas are actually enforced with visible usage and upgrade prompts, while existing over-quota owners are grandfathered so nobody is retroactively locked out.
@@ -211,7 +216,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
-| 53. Renewal Reminder Delivery | 0/TBD | Not started | - |
+| 53. Renewal Reminder Delivery | 0/4 | Not started | - |
 | 54. E-sign & Storage Metering | 0/TBD | Not started | - |
 | 55. Rent Ledger | 0/TBD | Not started | - |
 | 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |

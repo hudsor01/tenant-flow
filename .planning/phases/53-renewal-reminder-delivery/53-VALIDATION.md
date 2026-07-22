@@ -37,4 +37,7 @@ created: 2026-07-21
 ## Prod Verification Evidence (pre-planning, 2026-07-21 MCP)
 - `lease_reminders` backlog = 0 (storm latent not current); columns lack delivery-state
 - single trigger `trg_lease_reminders_notify_n8n`; suppress fn checks only the CI-email CSV
-- notification type CHECK = 9 values (needs `lease_reminder` added); notification_settings has email + leases
+- notification type CHECK = 9 values (needs `lease_renewal_reminder` added); notification_settings has email + leases
+
+## Scope note (plan-checker warning, accepted)
+`delivery_status='failed'` rows have no automatic reclaim-to-pending retry path — this is deliberate for v10. REMIND-02 is exactly-once, not retry-guaranteed; a transient Resend outage strands affected reminders until a manual re-queue. A retry job is a future enhancement (surface if failed sends are observed).
