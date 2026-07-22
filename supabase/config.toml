@@ -476,6 +476,15 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+# Send lease reminders — cron-invoked renewal-reminder drainer. verify_jwt=false;
+# the function's own REMINDERS_INVOKE_SECRET Bearer check (constant-time via
+# timingSafeEqualStr) IS the auth boundary, mirroring the n8n shared-secret
+# discipline. pg_cron invokes it through net.http_post; it early-returns while
+# app_config.reminders_delivery_enabled != 'true'.
+[functions.send-lease-reminders]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import {
 	AlertTriangle,
 	Bell,
+	CalendarClock,
 	ChevronRight,
 	FileCheck,
 	FileSignature,
@@ -31,6 +32,7 @@ const TYPE_VISUALS: Record<string, TypeVisual> = {
 	},
 	maintenance_created: { Icon: Wrench, chip: "icon-bg-info" },
 	maintenance_status: { Icon: Wrench, chip: "icon-bg-info" },
+	lease_renewal_reminder: { Icon: CalendarClock, chip: "icon-bg-primary" },
 };
 
 // Neutral fallback for any future / unmapped notification_type (required by
