@@ -99,7 +99,7 @@ function buildReminderEmail(params: {
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;">
   <tr><td style="border-radius:6px;background:#2563eb;">
-    <a href="${params.ctaUrl}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Review lease and renewal options</a>
+    <a href="${escapeHtml(params.ctaUrl)}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Review lease and renewal options</a>
   </td></tr>
 </table>
 <p style="margin:0 0 8px;font-size:13px;color:#71717a;line-height:1.6;">
