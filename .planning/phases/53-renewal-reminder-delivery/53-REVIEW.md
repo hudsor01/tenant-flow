@@ -202,6 +202,39 @@ _Perfect-PR Cycle 1 fixed: 2026-07-22_
 
 ---
 
+## Perfect-PR Cycle 2
+
+A third review pass over the frozen final state surfaced six findings (F1 MAJOR,
+flagged by 3 dimensions; F2-F6 nit/test/doc). All six are resolved on
+`gsd/phase-53-renewal-reminder-delivery`. Commit hashes below.
+
+| Finding | Severity | Outcome | Resolution |
+|---------|----------|---------|------------|
+| F1 | Major | fixed | Cycle-1 F3's notification existence-guard matched `(user_id, entity_id=lease_id, notification_type='lease_renewal_reminder')` with NO time bound. All three 30/7/1-day reminders for a lease share those keys and notifications persist 90d+ (retention cron), so once the 30_days notification landed the 7_days (~23d later) and 1_day (~29d later) reminders found it and skipped `create_notification` — collapsing the series into ONE stale "ends in 30 days" notice (violates REMIND-05; worst for in-app-only Starter/trial owners, D-02). Time-bound the guard to the reclaim window only: added `.gt("created_at", dedupSince)` where `dedupSince = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()`. 3 days safely covers the reclaim delay (reaper threshold 1h, daily cron → reclaim ~24h) while staying below the 6-day minimum gap between distinct series reminders (7_days vs 1_day), so each distinct reminder still mints its own notification. A1 intact (notification still created for all tiers on the first pass). Added a `gt()` method to the Deno test fake so the new query is exercisable. Commit `b9cb63861`. |
+| F2 | Nit (tests) | fixed | `findNotification` matched only `p_type`. The happy-path test now also asserts `p_action_url === '/leases/lease-1'` (app-relative open-redirect guard), `p_entity_id === 'lease-1'`, and `p_entity_type === 'lease'`. Commit `4f378e4eb`. |
+| F3 | Minor (tests) | fixed | Every prior scenario claimed exactly one row, so the per-row try/catch + the `sent` accumulator were never exercised with >1 row. Added a 3-row batch (distinct leases/owners) whose MIDDLE row is a genuine not-found: rows 1 & 3 still fully process (notification + send), the batch does not abort (200, processed=3), the middle row stamps `failed` with no notification, and `sent` counts exactly the 2 successes. Commit `bea2c4994`. |
+| F4 | Minor (tests) | fixed | The leases-lookup error + lease/owner-not-found branches were structurally unreachable (the fake hardcoded `error:null` for `leases`). Added a `leasesError` injection to the `Scenario` + fake, then two cases: a transient lookup error leaves the row `claimed` (reaper retries) with no `failed` stamp and no notification/email; a genuine not-found stamps `delivery_status='failed'` with no notification/email. Commit `d7f4f6798`. |
+| F5 | Major (tests) | fixed (DEFERRED to CI) | The exactly-once claim + WR-02 stale-claim reaper had zero behavioral coverage. This authenticated dual-client RLS harness has no service_role path, so it can neither seed `lease_reminders` rows (no INSERT policy for authenticated) nor invoke `claim_lease_reminders` (service_role-only) — both already pinned uncallable by the privilege-boundary cases. Per the finding's fallback, pinned the closest owner-visible invariants (a `claimed` row always carries `claimed_at` + `attempt_count >= 1` — the reaper's 1h clock; a `sent` row is terminal-shaped: `delivered_at` + `resend_message_id` + `attempt_count >= 1`), skip-if-empty until go-live rows land, and documented the harness limitation in a comment. The state-transition assertions (pending→claimed, stale>1h reclaimed, recent<1h not reclaimed, sent never claimed) stay with the drainer's Deno unit tests + the SQL definition. Runs in CI `rls-security` (DEFERRED). Commit `dcacedcc8`. |
+| F6 | Minor (doc) | fixed | The `20260722020626_fix_reminder_drain_sentry_checkin.sql` header claimed repo-only / DEFERRED TO ORCHESTRATOR, but the migration IS applied to prod (version 20260722020626, verified). Header corrected to the applied + prod-verified note (matches the `20260722015716` sibling convention); no SQL change. Commit `6315f5bfe`. |
+
+**Accepted / out of scope (unchanged):** S2 (migration-ledger drift) was already
+reconciled by the orchestrator (`20260722012107` restored + `20260722012127`
+file created; commit `fae2881eb`), so no action here. Also unchanged (accepted):
+the WR-02 stale-claim reaper design, the at-least-once EMAIL residual on reclaim
+(collapsed by the Resend `Idempotency-Key` inside its 24h window), and the
+flag-off / C2 go-flip gate design.
+
+**Unblock note:** a pre-existing, unrelated flaky property test
+(`loading-timeout-wrapper.property.test.tsx`) failed the pre-commit hook whenever
+its random time-advances summed to exactly 3000ms — an off-by-one in the test's
+timeout boundary (`>= 3001` vs the wrapper's `setTimeout(timeoutMs=3000)`).
+Corrected the boundary to `>= 3000` (deterministic), so the hook passes without
+`--no-verify`. Commit `fc0b3124e`.
+
+_Perfect-PR Cycle 2 fixed: 2026-07-22_
+
+---
+
 _Reviewed: 2026-07-21_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
