@@ -1,0 +1,41 @@
+-- Migration C2 of the Phase 53 (Renewal Reminder Delivery) REMIND-04 go-live
+-- sequence - the OWNER-RUN go-live flip. THE REMIND-04 / D-07 GO-LIVE GATE.
+--
+-- ############################################################################
+-- # DO NOT APPLY IN THE PHASE PR. This file is committed to the repo but stays
+-- # UNAPPLIED until the owner completes the go-live runbook. It is the single
+-- # irreversible statement that turns real reminder email delivery ON.
+-- ############################################################################
+--
+-- Apply this ONLY after ALL of the following are true (53-GO-LIVE-RUNBOOK.md is
+-- the authoritative step-by-step):
+--
+--   1. send-lease-reminders is DEPLOYED live in prod with the full ordered
+--      shouldEmail() suppression stack (tier -> is_notification_suppressed ->
+--      email_suppressions -> notification_settings.email && .leases). The re-ported
+--      CI guard MUST be live BEFORE this flip (Pitfall 1: otherwise CI synthetic
+--      owners get spammed and per-owner lease opt-outs are bypassed):
+--        bun scripts/deploy-edge-functions.ts send-lease-reminders
+--      Verify with MCP get_edge_function (deployed version, ordered shouldEmail
+--      gate present) - never trust deploy stdout.
+--   2. The REMINDERS_INVOKE_SECRET function secret is set AND mirrored byte-for-byte
+--      into public.app_config.reminders.drain_secret (they MUST be equal - the fn
+--      constant-time-compares the incoming Bearer against the secret):
+--        update public.app_config set value='<secret>' where key='reminders.drain_secret';
+--   3. public.app_config.reminders.drain_url is set to the deployed fn URL
+--      (empty => invoke_send_lease_reminders() early-returns, so the 06:30 drain
+--      cron stays inert until this is filled):
+--        update public.app_config set value='https://<project>.supabase.co/functions/v1/send-lease-reminders'
+--        where key='reminders.drain_url';
+--   4. Migration C1 (20260722013000_lease_reminders_goflip.sql) has been applied:
+--      the backlog is expired (0 'pending') and the n8n trigger + fn are gone. This
+--      guarantees no storm (Pitfall 2) and no double-send (Pitfall 3) at go-live.
+--
+-- After this flip, the send-lease-reminders edge fn stops early-returning and the
+-- 06:30 drain cron begins delivering reminders queued AFTER go-live. Only
+-- post-go-live rows ever send (C1 expired everything prior). Auditable + reversible:
+-- set value='false' to disable delivery again at any time.
+
+update public.app_config
+set value = 'true'
+where key = 'reminders_delivery_enabled';
