@@ -11,6 +11,7 @@
 //   - email in email_suppressions -> 0 sends, create_notification STILL recorded
 //   - notification_settings.leases=false -> 0 sends, create_notification STILL recorded
 //   - entitled + all clear -> exactly 1 send with Idempotency-Key === row.id; delivery_status -> 'sent'
+//   - Resend send failure ({ok:false}) -> delivery_status='failed', in-app STILL created (A1), error captured
 //   - re-drain of an already-'sent' row (claim returns nothing) -> 0 sends (exactly-once)
 //   - bad/missing Bearer -> 401, 0 sends
 //
@@ -358,6 +359,40 @@ Deno.test(
 		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
 		assertEquals(stamp?.payload.delivery_status, "sent");
 		assertEquals(stamp?.payload.resend_message_id, "email-1");
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: Resend send failure -> delivery_status='failed', in-app STILL created (A1), error captured",
+	withResendStub({ ok: false }, async (fetchCount) => {
+		const scenario = baseScenario();
+		const { client, calls } = makeClient(scenario);
+		// Capture console.error so we can assert captureWebhookError fired for the
+		// failed send (it logs a structured JSON line via console.error).
+		const prevError = console.error;
+		const errorLogs: string[] = [];
+		console.error = (...args: unknown[]) => {
+			errorLogs.push(args.map((a) => String(a)).join(" "));
+		};
+		try {
+			await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+				createClient: () => client,
+			});
+		} finally {
+			console.error = prevError;
+		}
+		// The email was attempted exactly once (entitled + all clear) then failed.
+		assertEquals(fetchCount(), 1);
+		// A1: the in-app notification is created regardless of the send outcome.
+		assert(findNotification(calls), "in-app notification created despite send failure");
+		// Terminal stamp records the failure (never 'sent').
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "failed");
+		// captureWebhookError fired for the failed send (action 'send_reminder').
+		assert(
+			errorLogs.some((line) => line.includes('"action":"send_reminder"')),
+			"captureWebhookError logged the send failure",
+		);
 	}),
 );
 
