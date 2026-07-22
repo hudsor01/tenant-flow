@@ -119,32 +119,61 @@ async function shouldEmail(
 	owner: OwnerRow,
 ): Promise<boolean> {
 	// (1) tier: active/trialing AND Growth/Max (D-02). Reuse GROWTH_AND_MAX_PLANS
-	//     only; never call the per-request tier-gate helper.
+	//     only; never call the per-request tier-gate helper. Pure in-memory check
+	//     with no error path.
 	const entitled =
 		ACTIVE_SUB_STATUSES.has(owner.subscription_status ?? "") &&
 		GROWTH_AND_MAX_PLANS.has(owner.subscription_plan ?? "");
 	if (!entitled) return false;
 
+	// Every DB/RPC suppression layer below FAILS CLOSED (Pitfall 1): a suppression
+	// check that errors must never let an email through. If we cannot prove the
+	// address is safe, we treat the unknown state as suppressed (return false) and
+	// capture the error for observability (never a raw err.message to a client).
+	// The in-app notification (A1) is created upstream and is NOT gated by this.
+
 	// (2) CI-synthetic-owner guard (re-ported from notify_n8n_lease_reminder).
-	const { data: suppressed } = await supabase.rpc("is_notification_suppressed", {
-		p_email: owner.email,
-	});
+	const { data: suppressed, error: suppressedError } = await supabase.rpc(
+		"is_notification_suppressed",
+		{ p_email: owner.email },
+	);
+	if (suppressedError) {
+		captureWebhookError(suppressedError, {
+			action: "should_email_is_notification_suppressed",
+			owner_id: owner.id,
+		});
+		return false;
+	}
 	if (suppressed === true) return false;
 
 	// (3) hard bounce / complaint.
-	const { data: bounced } = await supabase
+	const { data: bounced, error: bouncedError } = await supabase
 		.from("email_suppressions")
 		.select("email")
 		.eq("email", owner.email)
 		.maybeSingle();
+	if (bouncedError) {
+		captureWebhookError(bouncedError, {
+			action: "should_email_email_suppressions",
+			owner_id: owner.id,
+		});
+		return false;
+	}
 	if (bounced) return false;
 
 	// (4) per-owner opt-out. An absent row = defaults true = send.
-	const { data: settings } = await supabase
+	const { data: settings, error: settingsError } = await supabase
 		.from("notification_settings")
 		.select("email, leases")
 		.eq("user_id", owner.id)
 		.maybeSingle();
+	if (settingsError) {
+		captureWebhookError(settingsError, {
+			action: "should_email_notification_settings",
+			owner_id: owner.id,
+		});
+		return false;
+	}
 	const ns = settings as { email: boolean; leases: boolean } | null;
 	if (ns && (ns.email === false || ns.leases === false)) return false;
 
