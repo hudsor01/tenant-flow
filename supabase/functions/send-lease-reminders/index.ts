@@ -295,20 +295,44 @@ export async function handleRequest(
 				// 4a. ALWAYS create the in-app notification (A1, all tiers) — the free
 				//     expiry-awareness channel is created before (and regardless of)
 				//     the email gate. action_url stays app-relative (open-redirect guard).
-				const { error: notifyError } = await supabase.rpc("create_notification", {
-					p_user_id: owner.id,
-					p_type: "lease_renewal_reminder",
-					p_title: "Lease renewal reminder",
-					p_message: `${propertyName ?? "A property"} — lease ends in ${daysLabel}`,
-					p_entity_type: "lease",
-					p_entity_id: row.lease_id,
-					p_action_url: "/leases/" + row.lease_id,
-				});
-				if (notifyError) {
-					captureWebhookError(notifyError, {
-						action: "create_notification",
+				//     Existence-guard first (F3): the WR-02 reaper reclaims rows stuck
+				//     'claimed' > 1h, and create_notification is a plain INSERT with no
+				//     dedup — a run that crashed after create_notification but before the
+				//     terminal stamp would otherwise duplicate this notification on
+				//     reclaim. Skip creation only when a matching row already exists; on an
+				//     existence-check error we fall through and create (fail open toward
+				//     the A1 guarantee).
+				const { data: existingNotification, error: existingNotifyError } =
+					await supabase
+						.from("notifications")
+						.select("id")
+						.eq("user_id", owner.id)
+						.eq("entity_id", row.lease_id)
+						.eq("notification_type", "lease_renewal_reminder")
+						.limit(1)
+						.maybeSingle();
+				if (existingNotifyError) {
+					captureWebhookError(existingNotifyError, {
+						action: "notification_existence_check",
 						reminder_id: row.id,
 					});
+				}
+				if (!existingNotification) {
+					const { error: notifyError } = await supabase.rpc("create_notification", {
+						p_user_id: owner.id,
+						p_type: "lease_renewal_reminder",
+						p_title: "Lease renewal reminder",
+						p_message: `${propertyName ?? "A property"} — lease ends in ${daysLabel}`,
+						p_entity_type: "lease",
+						p_entity_id: row.lease_id,
+						p_action_url: "/leases/" + row.lease_id,
+					});
+					if (notifyError) {
+						captureWebhookError(notifyError, {
+							action: "create_notification",
+							reminder_id: row.id,
+						});
+					}
 				}
 
 				// 4b. Email gate (REMIND-03). Any suppression -> stamp suppressed;

@@ -106,6 +106,7 @@ function makeClient(scenario: Scenario): {
 				filters.push([col, val]);
 				return b;
 			},
+			limit: () => b,
 			update: (payload: Record<string, unknown>) => {
 				updatePayload = payload;
 				return b;
