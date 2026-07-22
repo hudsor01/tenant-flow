@@ -19,7 +19,15 @@ findings:
   warning: 3
   info: 2
   total: 6
-status: issues
+status: fixed
+fixed: 2026-07-21T00:00:00Z
+fix_outcomes:
+  CR-01: fixed  # grant migration 20260722015716 applied + code fail-closed in shouldEmail
+  WR-01: fixed  # shouldEmail layers 3 & 4 fail closed on query error
+  WR-02: fixed  # migration 20260722015716 (claimed_at + stale-claim reclaim)
+  WR-03: fixed  # new migration 20260722020000_fix_reminder_drain_sentry_checkin.sql, prod-apply deferred to orchestrator
+  IN-01: fixed  # corrected C1 timestamp reference in C2 migration + go-live runbook
+  IN-02: fixed  # escapeHtml on ctaUrl href
 ---
 
 # Phase 53: Code Review Report
@@ -27,7 +35,18 @@ status: issues
 **Reviewed:** 2026-07-21
 **Depth:** deep (drainer traced end-to-end; migrations cross-checked against the edge fn, shared utilities, and prod grant state inferred from Phase 52 tests)
 **Files Reviewed:** 10
-**Status:** issues_found
+**Status:** fixed (2026-07-21)
+
+## Fix Outcomes
+
+| Finding | Severity | Outcome | Resolution |
+|---------|----------|---------|------------|
+| CR-01 | Critical | fixed | DB grant half applied in `20260722015716` (`grant execute on is_notification_suppressed(text) to service_role`); code half makes `shouldEmail()` layer 2 fail closed + capture the RPC error. |
+| WR-01 | Warning | fixed | `shouldEmail()` layers 3 (`email_suppressions`) & 4 (`notification_settings`) now inspect `error` and fail closed (return false + `captureWebhookError`). |
+| WR-02 | Warning | fixed | Migration `20260722015716` (applied): added `claimed_at` + `claim_lease_reminders` reclaims rows stuck `claimed > 1h` so a crashed run self-heals. (The `failed`-status no-retry gap is documented-accepted future scope.) |
+| WR-03 | Warning | fixed | New migration `20260722020000_fix_reminder_drain_sentry_checkin.sql` create-or-replaces `invoke_send_lease_reminders()` so the Sentry check-in posts `ok` only when the Bearer is configured AND `net.http_post` returned a request id, else `error`. **prod-apply DEFERRED TO ORCHESTRATOR.** |
+| IN-01 | Info | fixed | Corrected the stale `20260722013000` C1 reference to `20260722013850` in the C2 migration header and `53-GO-LIVE-RUNBOOK.md`. |
+| IN-02 | Info | fixed | `ctaUrl` now passed through `escapeHtml` in the reminder email `href`, matching the D-05 escape-every-value contract. |
 
 ## Summary
 
