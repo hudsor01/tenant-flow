@@ -54,9 +54,11 @@ interface LeaseJoinRow {
 	id: string;
 	end_date: string | null;
 	owner_user_id: string;
-	property_id: string | null;
 	users: OwnerRow | null;
-	properties: { name: string | null } | null;
+	// Property is reached via units.property_id — `leases` has NO property_id
+	// column (its FKs are owner_user_id, primary_tenant_id, unit_id). Mirrors the
+	// units:unit_id(properties:property_id(name)) embed used in the lookup below.
+	units: { properties: { name: string | null } | null } | null;
 }
 
 /** Dependency seam so the unit test can inject a fake SupabaseClient. */
@@ -249,18 +251,31 @@ export async function handleRequest(
 		for (const row of rows) {
 			// Per-row try/catch: one bad row never aborts the batch.
 			try {
-				const { data: leaseData } = await supabase
+				const { data: leaseData, error: leaseError } = await supabase
 					.from("leases")
 					.select(
-						"id, end_date, owner_user_id, property_id, users:owner_user_id(id, email, full_name, subscription_status, subscription_plan), properties:property_id(name)",
+						"id, end_date, owner_user_id, users:owner_user_id(id, email, full_name, subscription_status, subscription_plan), units:unit_id(properties:property_id(name))",
 					)
 					.eq("id", row.lease_id)
 					.maybeSingle();
 				const lease = leaseData as LeaseJoinRow | null;
 				const owner = lease?.users ?? null;
 
-				// The lease or owner vanished (deleted between queue + drain): can
-				// neither notify nor email. Stamp failed and move on.
+				// A TRANSIENT lookup error (network blip, PostgREST hiccup) must NOT be
+				// mistaken for a deleted lease: stamping 'failed' would drop the reminder
+				// permanently (claim_lease_reminders never reclaims 'failed'). Leave the
+				// row 'claimed' so the >1h stale-claim reaper (WR-02) retries it.
+				if (leaseError) {
+					captureWebhookError(leaseError, {
+						action: "drain_lookup_error",
+						reminder_id: row.id,
+						lease_id: row.lease_id,
+					});
+					continue;
+				}
+
+				// The lease or owner genuinely vanished (deleted between queue + drain):
+				// can neither notify nor email. Stamp failed and move on.
 				if (!lease || !owner) {
 					await supabase
 						.from("lease_reminders")
@@ -275,7 +290,7 @@ export async function handleRequest(
 				}
 
 				const daysLabel = reminderDaysLabel(row.reminder_type);
-				const propertyName = lease.properties?.name ?? null;
+				const propertyName = lease.units?.properties?.name ?? null;
 
 				// 4a. ALWAYS create the in-app notification (A1, all tiers) — the free
 				//     expiry-awareness channel is created before (and regardless of)

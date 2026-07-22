@@ -56,9 +56,10 @@ interface LeaseJoinRow {
 	id: string;
 	end_date: string | null;
 	owner_user_id: string;
-	property_id: string | null;
 	users: OwnerRow | null;
-	properties: { name: string | null } | null;
+	// property reached via units.property_id — mirrors the drainer's
+	// units:unit_id(properties:property_id(name)) embed (leases has no property_id).
+	units: { properties: { name: string | null } | null } | null;
 }
 
 interface Scenario {
@@ -228,9 +229,8 @@ function leaseRow(owner: OwnerRow): LeaseJoinRow {
 		id: "lease-1",
 		end_date: "2026-08-30",
 		owner_user_id: owner.id,
-		property_id: "property-1",
 		users: owner,
-		properties: { name: "Maple Court" },
+		units: { properties: { name: "Maple Court" } },
 	};
 }
 
