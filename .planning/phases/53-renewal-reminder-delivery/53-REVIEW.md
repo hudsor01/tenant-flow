@@ -176,6 +176,32 @@ where delivery_status in ('claimed', 'failed')
 
 ---
 
+## Perfect-PR Cycle 1
+
+A second review pass over the frozen final state surfaced five findings; all
+five are resolved on `gsd/phase-53-renewal-reminder-delivery`.
+
+| Finding | Severity | Outcome | Resolution |
+|---------|----------|---------|------------|
+| F1 | Critical | fixed | The drainer's lease lookup selected `leases.property_id` (plus `properties:property_id(name)`), but `leases` has no `property_id` column (FKs are `owner_user_id`, `primary_tenant_id`, `unit_id`). The embed 400'd in PostgREST, nulled the lease, and stamped every reminder `failed` — feature dead at go-live. Reworked the embed to reach the property via `units:unit_id(properties:property_id(name))` (mirrors `lease-keys.ts`), nested `properties` under `units` in `LeaseJoinRow`, and derive `propertyName` from `lease.units?.properties?.name`. Commit `fa1b4f364`. |
+| F2 | Minor | fixed | The lease lookup discarded its `error`, misrouting a transient DB error to a permanent `failed` drop (`claim_lease_reminders` never reclaims `failed`). Now destructures `leaseError`: a transient error is captured (`drain_lookup_error`) and the row is left `claimed` for the >1h stale-claim reaper; only a genuine `!error` deletion stamps `failed`. Folded into `fa1b4f364`. |
+| F3 | Minor | fixed | On stale-claim reclaim the loop re-called `create_notification` (plain INSERT, no dedup), duplicating the in-app notification if a prior run crashed after the notification but before the terminal stamp. Added an existence-guard (`user_id` + `entity_id` + `notification_type`) before create; A1 (notify all tiers on the first pass) is intact. Commit `2b3b75210`. |
+| F4 | Minor (tests) | fixed | The Resend send-failure branch (`result.success === false` → stamp `failed` + `captureWebhookError`) had no coverage (all 9 prior cases passed `{ok:true}`). Added a Deno case: `{ok:false}` for a fully-allowed owner asserts `delivery_status='failed'`, the in-app notification is STILL created (A1), and `captureWebhookError` fired. Commit `53e18937d`. |
+| F5 | Major (tests) | fixed | The fail-closed suppression-error paths (`shouldEmail` layers 2/3/4 each `return false` on error — the CR-01/WR-01 safety fix) had ZERO coverage; the fake client hardcoded `error: null`. Added per-layer error injection to the `Scenario` + fake client and a case for each layer asserting no email is sent (fail closed) while the in-app notification is created. Commit `c817ed69b`. |
+
+**Accepted (unchanged):** the at-least-once EMAIL residual on stale-claim reclaim
+— a crash in the sub-second window between Resend accepting a send and the
+terminal stamp lets the reaper re-drive the row; the Resend `Idempotency-Key =
+row.id` collapses the duplicate inside Resend's 24h window, so the owner still
+receives at most one email. Documented in a code comment near the send and under
+a "Known residual" note in `53-GO-LIVE-RUNBOOK.md` (commit `26156ce8c`) — no
+two-phase send. Also unchanged (accepted): the WR-02 stale-claim reaper design
+and the `failed`-status no-auto-retry (future scope).
+
+_Perfect-PR Cycle 1 fixed: 2026-07-22_
+
+---
+
 _Reviewed: 2026-07-21_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
