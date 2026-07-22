@@ -73,7 +73,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 **Plans**: 4 plans
 - [x] 53-01-PLAN.md — Migration A: delivery-state columns + notification_type CHECK extension + reminders_delivery_enabled flag (default OFF) + claim_lease_reminders RPC
 - [x] 53-02-PLAN.md — send-lease-reminders drainer (bearer auth, flag gate, ordered suppression, new reminder email template, create_notification) + Deno branch-matrix test + config.toml/TYPE_VISUALS wiring
-- [ ] 53-03-PLAN.md — Deploy the drainer + Migration B drain cron (invoke_send_lease_reminders + cron.schedule) + invoke-secret wiring (still flag-OFF no-op)
+- [x] 53-03-PLAN.md — Deploy the drainer + Migration B drain cron (invoke_send_lease_reminders + cron.schedule) + invoke-secret wiring (still flag-OFF no-op)
 - [ ] 53-04-PLAN.md — Migration C go-flip (count → expire backlog without sending → drop n8n trigger/fn → flip flag LAST) + RLS integration test, behind a blocking go-live checkpoint
 **Waves**: strictly sequential — Wave 1 (53-01) → Wave 2 (53-02) → Wave 3 (53-03 deploy) → Wave 4 (53-04 flip). Migration C physically cannot precede the deploy (encoded via depends_on).
 **Gate**: REMIND-04 pre-flip backlog dry-run — delivery must not be enabled until the queued backlog is counted and cleared (Migration C, Plan 04, gated by a blocking human-verify checkpoint).
@@ -216,7 +216,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
-| 53. Renewal Reminder Delivery | 2/4 | In Progress|  |
+| 53. Renewal Reminder Delivery | 3/4 | In Progress|  |
 | 54. E-sign & Storage Metering | 0/TBD | Not started | - |
 | 55. Rent Ledger | 0/TBD | Not started | - |
 | 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
