@@ -347,6 +347,13 @@ export async function handleRequest(
 				}
 
 				// 4c. Build + send the reminder email (D-04/D-05). CTA is absolute.
+				//     At-least-once residual (ACCEPTED): if the isolate is torn down in
+				//     the ms window between Resend accepting this send and the 4d stamp
+				//     below, the row stays 'claimed', the WR-02 reaper reclaims it, and
+				//     the next run re-sends. The Resend Idempotency-Key = row.id collapses
+				//     that duplicate inside Resend's 24h idempotency window, so the owner
+				//     still receives at most one email. Documented rather than guarded with
+				//     a two-phase send (over-engineering for a sub-second crash window).
 				const plainPropertyLabel = propertyName ?? "your property";
 				const result = await sendEmail({
 					to: [owner.email],

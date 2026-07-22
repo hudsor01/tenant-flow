@@ -190,6 +190,16 @@ Then confirm a real reminder queued AFTER go-live:
 - CI synthetic owners (`e2e-owner-a/b@tenantflow.app`) receive NO email
   (`is_notification_suppressed` layer).
 
+### Known residual (accepted)
+
+At-least-once email delivery on stale-claim reclaim: if the isolate is torn
+down in the sub-second window between Resend accepting a send and the terminal
+`delivery_status` stamp, the row remains `claimed`, the >1h stale-claim reaper
+reclaims it, and the next drain re-sends. The Resend `Idempotency-Key = row.id`
+collapses the duplicate inside Resend's 24h idempotency window, so the owner
+still receives at most one email. This is accepted (documented, not two-phase
+committed) — no operator action required.
+
 ### Rollback
 
 Delivery is reversible — disable at any time:
