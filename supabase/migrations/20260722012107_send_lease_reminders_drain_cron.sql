@@ -97,8 +97,3 @@ select cron.schedule(
   '30 6 * * *',
   $$select public.invoke_send_lease_reminders()$$
 );
-
--- Revoke default PUBLIC EXECUTE (pass-3 SECURITY DEFINER convention 20260602044104):
--- an authenticated user must not be able to trigger an out-of-band drain POST.
--- pg_cron runs this as the job owner, unaffected.
-revoke all on function public.invoke_send_lease_reminders() from public, anon, authenticated;
