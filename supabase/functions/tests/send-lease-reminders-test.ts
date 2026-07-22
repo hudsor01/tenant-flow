@@ -14,6 +14,7 @@
 //   - entitled + all clear -> exactly 1 send with Idempotency-Key === row.id; delivery_status -> 'sent'
 //   - Resend send failure ({ok:false}) -> delivery_status='failed', in-app STILL created (A1), error captured
 //   - re-drain of an already-'sent' row (claim returns nothing) -> 0 sends (exactly-once)
+//   - multi-row batch: a failed middle row never aborts the batch; sent counts only successes
 //   - bad/missing Bearer -> 401, 0 sends
 //
 // Run: deno test --allow-all --no-check \
@@ -491,6 +492,64 @@ Deno.test(
 		assertEquals(fetchCount(), 0);
 		assertEquals(findNotification(calls), undefined);
 		assert(calls.rpcs.some((r) => r.name === "claim_lease_reminders"));
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: multi-row batch — a failed middle row never aborts the batch, sent counts only successes",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		// Three claimed rows for three different leases/owners. The MIDDLE row's
+		// lease is absent from the join map (deleted between queue + drain) -> the
+		// genuine not-found branch stamps it 'failed' with no notification/email. The
+		// per-row try/catch + the `sent` accumulator must still fully process rows 1
+		// and 3 -- this is the only >1-row scenario, so it is the sole exercise of the
+		// batch isolation guarantee + the accumulator counting only successes.
+		const ownerA = ownerRow({ id: "owner-a", email: "a@example.com" });
+		const ownerC = ownerRow({ id: "owner-c", email: "c@example.com" });
+		const scenario = baseScenario({
+			claimed: [
+				{ id: "reminder-a", lease_id: "lease-a", reminder_type: "30_days", attempt_count: 1 },
+				{ id: "reminder-b", lease_id: "lease-b", reminder_type: "7_days", attempt_count: 1 },
+				{ id: "reminder-c", lease_id: "lease-c", reminder_type: "1_day", attempt_count: 1 },
+			],
+			leases: {
+				"lease-a": { ...leaseRow(ownerA), id: "lease-a" },
+				// lease-b intentionally absent -> not-found middle row
+				"lease-c": { ...leaseRow(ownerC), id: "lease-c" },
+			},
+		});
+		const { client, calls } = makeClient(scenario);
+		const res = await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+
+		// The batch processed all three rows and returned 200 (never aborted).
+		assertEquals(res.status, 200);
+		const body = (await res.json()) as { processed: number; sent: number };
+		assertEquals(body.processed, 3);
+		// Only the two good rows sent; the not-found middle row did not.
+		assertEquals(body.sent, 2);
+		assertEquals(fetchCount(), 2);
+
+		// Rows 1 and 3 each created their in-app notification; the vanished middle
+		// lease never did (cannot notify a lease that no longer exists).
+		const notifyLeaseIds = calls.rpcs
+			.filter((r) => r.name === "create_notification")
+			.map((r) => r.args.p_entity_id);
+		assert(notifyLeaseIds.includes("lease-a"), "row 1 notified");
+		assert(notifyLeaseIds.includes("lease-c"), "row 3 notified");
+		assert(!notifyLeaseIds.includes("lease-b"), "not-found row not notified");
+
+		// Terminal stamps: the good rows 'sent', the middle row 'failed'.
+		const stampFor = (id: string) =>
+			calls.updates.find(
+				(u) =>
+					u.table === "lease_reminders" &&
+					u.filters.some(([c, v]) => c === "id" && v === id),
+			);
+		assertEquals(stampFor("reminder-a")?.payload.delivery_status, "sent");
+		assertEquals(stampFor("reminder-b")?.payload.delivery_status, "failed");
+		assertEquals(stampFor("reminder-c")?.payload.delivery_status, "sent");
 	}),
 );
 
