@@ -10,6 +10,7 @@
 //   - is_notification_suppressed(email)=true -> 0 sends, create_notification STILL recorded
 //   - email in email_suppressions -> 0 sends, create_notification STILL recorded
 //   - notification_settings.leases=false -> 0 sends, create_notification STILL recorded
+//   - each suppression layer (2/3/4) ERRORS -> fail closed (0 sends), create_notification STILL recorded
 //   - entitled + all clear -> exactly 1 send with Idempotency-Key === row.id; delivery_status -> 'sent'
 //   - Resend send failure ({ok:false}) -> delivery_status='failed', in-app STILL created (A1), error captured
 //   - re-drain of an already-'sent' row (claim returns nothing) -> 0 sends (exactly-once)
@@ -76,6 +77,12 @@ interface Scenario {
 	emailSuppression: { email: string } | null;
 	/** notification_settings row (or null = absent = defaults true = send). */
 	notificationSettings: { email: boolean; leases: boolean } | null;
+	/** Injected error for the is_notification_suppressed rpc (layer 2 fail-closed). */
+	suppressedError: { message: string } | null;
+	/** Injected error for the email_suppressions select (layer 3 fail-closed). */
+	emailSuppressionError: { message: string } | null;
+	/** Injected error for the notification_settings select (layer 4 fail-closed). */
+	notificationSettingsError: { message: string } | null;
 }
 
 interface UpdateCall {
@@ -123,10 +130,10 @@ function makeClient(scenario: Scenario): {
 					return { data: id ? (scenario.leases[id] ?? null) : null, error: null };
 				}
 				if (table === "email_suppressions") {
-					return { data: scenario.emailSuppression, error: null };
+					return { data: scenario.emailSuppressionError ? null : scenario.emailSuppression, error: scenario.emailSuppressionError };
 				}
 				if (table === "notification_settings") {
-					return { data: scenario.notificationSettings, error: null };
+					return { data: scenario.notificationSettingsError ? null : scenario.notificationSettings, error: scenario.notificationSettingsError };
 				}
 				return { data: null, error: null };
 			},
@@ -155,7 +162,7 @@ function makeClient(scenario: Scenario): {
 				return { data: scenario.claimed, error: null };
 			}
 			if (name === "is_notification_suppressed") {
-				return { data: scenario.suppressed, error: null };
+				return { data: scenario.suppressedError ? null : scenario.suppressed, error: scenario.suppressedError };
 			}
 			if (name === "create_notification") {
 				return { data: "notification-1", error: null };
@@ -246,6 +253,9 @@ function baseScenario(overrides: Partial<Scenario> = {}): Scenario {
 		suppressed: false,
 		emailSuppression: null,
 		notificationSettings: null,
+		suppressedError: null,
+		emailSuppressionError: null,
+		notificationSettingsError: null,
 		...overrides,
 	};
 }
@@ -338,6 +348,64 @@ Deno.test(
 		});
 		assertEquals(fetchCount(), 0);
 		assert(findNotification(calls), "in-app notification created despite opt-out");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "suppressed");
+	}),
+);
+
+// The fail-closed safety property (CR-01/WR-01): if a suppression check cannot
+// PROVE the address is safe, the email must not go out. Each of the three DB/RPC
+// suppression layers, when it errors, must suppress the EMAIL while the in-app
+// notification (A1) is still created upstream.
+
+Deno.test(
+	"send-lease-reminders: layer 2 (is_notification_suppressed) ERRORS -> fail closed, 0 sends, in-app STILL created (A1)",
+	withResendStub({ ok: true }, async (fetchCount, _captured) => {
+		const scenario = baseScenario({
+			suppressedError: { message: "permission denied for function is_notification_suppressed" },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		// Fail closed: an unverifiable suppression state must NOT send.
+		assertEquals(fetchCount(), 0);
+		// A1 still holds — the notification is created before the email gate.
+		assert(findNotification(calls), "in-app notification created despite layer-2 error");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "suppressed");
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: layer 3 (email_suppressions) ERRORS -> fail closed, 0 sends, in-app STILL created (A1)",
+	withResendStub({ ok: true }, async (fetchCount, _captured) => {
+		const scenario = baseScenario({
+			emailSuppressionError: { message: "email_suppressions read failed" },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 0);
+		assert(findNotification(calls), "in-app notification created despite layer-3 error");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "suppressed");
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: layer 4 (notification_settings) ERRORS -> fail closed, 0 sends, in-app STILL created (A1)",
+	withResendStub({ ok: true }, async (fetchCount, _captured) => {
+		const scenario = baseScenario({
+			notificationSettingsError: { message: "notification_settings read failed" },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 0);
+		assert(findNotification(calls), "in-app notification created despite layer-4 error");
 		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
 		assertEquals(stamp?.payload.delivery_status, "suppressed");
 	}),
