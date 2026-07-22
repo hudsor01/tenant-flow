@@ -1,6 +1,6 @@
--- Phase 53 review fix WR-03. Repo-only until the orchestrator applies it via MCP
--- (apply DEFERRED TO ORCHESTRATOR; reconcile the filename to the prod-assigned
--- version afterward per migration-mcp-prod-drift).
+-- Phase 53 review fix WR-03. Applied to prod via MCP 2026-07-22 and verified
+-- (prod migration version 20260722020626; repo filename reconciled to the
+-- prod-assigned version per migration-mcp-prod-drift).
 --
 -- WR-03: invoke_send_lease_reminders() (authored in the ALREADY-APPLIED, immutable
 --   Migration B 20260722012107) posted an UNCONDITIONAL Sentry cron check-in with
