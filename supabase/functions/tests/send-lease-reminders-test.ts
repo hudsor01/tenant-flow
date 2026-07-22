@@ -430,7 +430,14 @@ Deno.test(
 		// The Idempotency-Key is the lease_reminders row id (exactly-once anchor).
 		assertEquals(captured.idempotencyKeys[0], "reminder-1");
 		// In-app notification is still created on the happy path.
-		assert(findNotification(calls), "in-app notification created on the send path");
+		const notification = findNotification(calls);
+		assert(notification, "in-app notification created on the send path");
+		// F2: the notification targets the app-relative lease URL (the open-redirect
+		// guard: never an absolute origin) and carries the lease entity id -- not just
+		// the notification_type findNotification already filters on.
+		assertEquals(notification?.args.p_action_url, "/leases/lease-1");
+		assertEquals(notification?.args.p_entity_id, "lease-1");
+		assertEquals(notification?.args.p_entity_type, "lease");
 		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
 		assertEquals(stamp?.payload.delivery_status, "sent");
 		assertEquals(stamp?.payload.resend_message_id, "email-1");
