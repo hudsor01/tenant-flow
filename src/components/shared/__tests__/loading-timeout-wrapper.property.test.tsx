@@ -230,8 +230,12 @@ describe("Property 3: Loading State Timeout", () => {
 							vi.advanceTimersByTime(totalTime);
 						});
 
-						// Check state based on total time elapsed
-						if (totalTime >= 3001) {
+						// Check state based on total time elapsed. The wrapper's
+						// setTimeout(timeoutMs=3000) fires exactly at 3000ms, so
+						// advanceTimersByTime(3000) already trips the timeout: the boundary
+						// is >= 3000, not >= 3001. The old off-by-one made this property
+						// test flake whenever the random advances summed to exactly 3000.
+						if (totalTime >= 3000) {
 							// Should show timeout error
 							expect(
 								screen.getByText(/taking longer than expected/i),
