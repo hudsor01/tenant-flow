@@ -27,7 +27,7 @@
 --      cron stays inert until this is filled):
 --        update public.app_config set value='https://<project>.supabase.co/functions/v1/send-lease-reminders'
 --        where key='reminders.drain_url';
---   4. Migration C1 (20260722013000_lease_reminders_goflip.sql) has been applied:
+--   4. Migration C1 (20260722013850_lease_reminders_goflip.sql) has been applied:
 --      the backlog is expired (0 'pending') and the n8n trigger + fn are gone. This
 --      guarantees no storm (Pitfall 2) and no double-send (Pitfall 3) at go-live.
 --

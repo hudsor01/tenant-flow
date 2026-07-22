@@ -27,7 +27,7 @@ below in order; do NOT apply C2 until steps 1-4 are green.
 - **Migration B** (`20260722012107_send_lease_reminders_drain_cron.sql`) — APPLIED.
   `invoke_send_lease_reminders()` + `cron.schedule('send-lease-reminders-drain','30 6 * * *')`.
   Inert: empty `drain_url` => early return, and the flag is still off.
-- **Migration C1** (`20260722013000_lease_reminders_goflip.sql`) — authored,
+- **Migration C1** (`20260722013850_lease_reminders_goflip.sql`) — authored,
   **prod-apply DEFERRED TO ORCHESTRATOR** (mechanical: expire backlog + drop n8n hop).
 - **Migration C2** (`20260722014000_lease_reminders_delivery_flip.sql`) — authored,
   **UNAPPLIED (this runbook is its gate)**.
@@ -45,7 +45,7 @@ drops the dead n8n hop. It never flips the flag, so it is safe to apply at any
 time after Migration B.
 
 ```
-# MCP apply_migration on 20260722013000_lease_reminders_goflip.sql, then reconcile
+# MCP apply_migration on 20260722013850_lease_reminders_goflip.sql, then reconcile
 # the repo filename to the prod-assigned version (migration-mcp-prod-drift).
 ```
 
