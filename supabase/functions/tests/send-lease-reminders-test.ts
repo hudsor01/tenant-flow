@@ -114,6 +114,13 @@ function makeClient(scenario: Scenario): {
 				filters.push([col, val]);
 				return b;
 			},
+			// The notification existence-guard time-bounds itself with
+			// .gt("created_at", dedupSince) (F1); record the filter so the chain
+			// resolves the same way as .eq (the notifications read returns null here).
+			gt: (col: string, val: unknown) => {
+				filters.push([col, val]);
+				return b;
+			},
 			limit: () => b,
 			update: (payload: Record<string, unknown>) => {
 				updatePayload = payload;

@@ -302,6 +302,23 @@ export async function handleRequest(
 				//     reclaim. Skip creation only when a matching row already exists; on an
 				//     existence-check error we fall through and create (fail open toward
 				//     the A1 guarantee).
+				//
+				//     TIME-BOUND the guard to the reclaim window ONLY (F1). All three
+				//     reminders in a lease's 30/7/1-day series share (user_id,
+				//     entity_id=lease_id, notification_type), and notifications persist
+				//     90d+ (the retention cron). An UNBOUNDED existence check would treat
+				//     the later 7_days (~23d after 30_days) and 1_day (~29d after) reminders
+				//     as duplicates of the first notification and collapse the whole series
+				//     into ONE stale "ends in 30 days" notice — violating REMIND-05 (each
+				//     delivered reminder creates its own in-app notification) and worst for
+				//     in-app-only Starter/trial owners (D-02). A 3-day window dedups only a
+				//     reclaim of the SAME reminder row (reaper threshold 1h, daily cron ->
+				//     reclaim ~24h) while staying well below the 6-day minimum gap between
+				//     distinct series reminders (7_days vs 1_day), so each distinct reminder
+				//     still creates its own notification.
+				const dedupSince = new Date(
+					Date.now() - 3 * 24 * 60 * 60 * 1000,
+				).toISOString();
 				const { data: existingNotification, error: existingNotifyError } =
 					await supabase
 						.from("notifications")
@@ -309,6 +326,7 @@ export async function handleRequest(
 						.eq("user_id", owner.id)
 						.eq("entity_id", row.lease_id)
 						.eq("notification_type", "lease_renewal_reminder")
+						.gt("created_at", dedupSince)
 						.limit(1)
 						.maybeSingle();
 				if (existingNotifyError) {
