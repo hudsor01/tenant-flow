@@ -12,11 +12,11 @@
 
 #### Renewal Reminder Delivery (REMIND)
 
-- [ ] **REMIND-01**: Growth/Max owner receives automated lease-renewal reminder emails, delivered in-house by a `send-lease-reminders` Edge Function draining `lease_reminders` on pg_cron (dead n8n hop `wf-lease-reminder` removed)
-- [ ] **REMIND-02**: Each reminder is delivered exactly once per (lease, reminder_type) — delivery-state column (`delivery_status`/`delivered_at`) added to `lease_reminders`, `FOR UPDATE SKIP LOCKED` drain, Resend Idempotency-Key
-- [ ] **REMIND-03**: Reminder delivery honors ALL suppression layers — `notification_settings` opt-out, `email_suppressions`, and the synthetic-CI-owner guard currently embedded in the `notify_n8n_lease_reminder` trigger (re-ported, not dropped)
+- [x] **REMIND-01**: Growth/Max owner receives automated lease-renewal reminder emails, delivered in-house by a `send-lease-reminders` Edge Function draining `lease_reminders` on pg_cron (dead n8n hop `wf-lease-reminder` removed)
+- [x] **REMIND-02**: Each reminder is delivered exactly once per (lease, reminder_type) — delivery-state column (`delivery_status`/`delivered_at`) added to `lease_reminders`, `FOR UPDATE SKIP LOCKED` drain, Resend Idempotency-Key
+- [x] **REMIND-03**: Reminder delivery honors ALL suppression layers — `notification_settings` opt-out, `email_suppressions`, and the synthetic-CI-owner guard currently embedded in the `notify_n8n_lease_reminder` trigger (re-ported, not dropped)
 - [ ] **REMIND-04**: Delivery flip is gated on a backlog dry-run — queued `lease_reminders` backlog counted and expired/cleared before enabling sends (no reminder storm)
-- [ ] **REMIND-05**: Each delivered reminder also creates an in-app notification via the notification write path
+- [x] **REMIND-05**: Each delivered reminder also creates an in-app notification via the notification write path
 
 #### Metering & Quotas (METER)
 
@@ -27,8 +27,8 @@
 
 #### Honesty (HONEST)
 
-- [ ] **HONEST-01**: SMS notification toggle removed from Settings (no SMS delivery infrastructure exists)
-- [ ] **HONEST-02**: Browser-push notification toggle removed (Web Push cut — requires a service worker; in-app notification center + email cover the need)
+- [x] **HONEST-01**: SMS notification toggle removed from Settings (no SMS delivery infrastructure exists)
+- [x] **HONEST-02**: Browser-push notification toggle removed (Web Push cut — requires a service worker; in-app notification center + email cover the need)
 - [ ] **HONEST-03**: Growth/Max support claims (phone support, dedicated account manager) confirmed by owner as operationally real, or pricing/marketing copy softened to match reality
 - [ ] **HONEST-04**: Marketing/pricing surfaces updated to truthfully reflect v10.0 capabilities as they ship (renewal reminders now real, e-sign metering real, storage quotas real, notification center, rent ledger, applications)
 
@@ -36,21 +36,21 @@
 
 #### Notification Center (NOTIF)
 
-- [ ] **NOTIF-01**: `create_notification` write-path RPC + owner-scoped RLS exist on the `notifications` table (mirrors `sign_lease_with_token` atomic-insert pattern) — the shared write path all v10.0 features use
-- [ ] **NOTIF-02**: Owner sees a notification bell with unread count in the app-shell header (client island, TanStack Query `refetchInterval` 60s — no Supabase Realtime)
-- [ ] **NOTIF-03**: Owner can open a notification inbox and mark items read/unread including mark-all-read
-- [ ] **NOTIF-04**: Product events generate notifications (lease signed, renewal reminder sent, application received, maintenance created, digest sent)
-- [ ] **NOTIF-05**: Notifications have bounded retention via an archive-then-delete cleanup cron (3 AM window, consistent with existing retention jobs)
+- [x] **NOTIF-01**: `create_notification` write-path RPC + owner-scoped RLS exist on the `notifications` table (mirrors `sign_lease_with_token` atomic-insert pattern) — the shared write path all v10.0 features use
+- [x] **NOTIF-02**: Owner sees a notification bell with unread count in the app-shell header (client island, TanStack Query `refetchInterval` 60s — no Supabase Realtime)
+- [x] **NOTIF-03**: Owner can open a notification inbox and mark items read/unread including mark-all-read
+- [x] **NOTIF-04**: Product events generate notifications (lease signed, renewal reminder sent, application received, maintenance created, digest sent)
+- [x] **NOTIF-05**: Notifications have bounded retention via an archive-then-delete cleanup cron (3 AM window, consistent with existing retention jobs)
 
 #### Activity Feed (ACT)
 
-- [ ] **ACT-01**: Owner sees a historical activity timeline on the dashboard sourced from the existing `activity` table / `get_user_dashboard_activities` RPC
-- [ ] **ACT-02**: One design pass disambiguates notification center (actionable, read/unread) from activity feed (historical timeline) so the two surfaces do not duplicate
+- [x] **ACT-01**: Owner sees a historical activity timeline on the dashboard sourced from the existing `activity` table / `get_user_dashboard_activities` RPC
+- [x] **ACT-02**: One design pass disambiguates notification center (actionable, read/unread) from activity feed (historical timeline) so the two surfaces do not duplicate
 
 #### Orphan Cleanup (CLEAN)
 
-- [ ] **CLEAN-01**: Orphaned `payout_events` table dropped (residual from demolished Stripe Connect payouts; archive-then-delete)
-- [ ] **CLEAN-02**: Dead `docuseal_document_url` column dropped from `leases` (DocuSeal integration fully replaced by token e-sign)
+- [x] **CLEAN-01**: Orphaned `payout_events` table dropped (residual from demolished Stripe Connect payouts; archive-then-delete)
+- [x] **CLEAN-02**: Dead `docuseal_document_url` column dropped from `leases` (DocuSeal integration fully replaced by token e-sign)
 
 ### Track C — Consolidation
 
@@ -154,22 +154,22 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NOTIF-01 | Phase 52 | Pending |
-| NOTIF-02 | Phase 52 | Pending |
-| NOTIF-03 | Phase 52 | Pending |
-| NOTIF-04 | Phase 52 | Pending |
-| NOTIF-05 | Phase 52 | Pending |
-| ACT-01 | Phase 52 | Pending |
-| ACT-02 | Phase 52 | Pending |
-| HONEST-01 | Phase 52 | Pending |
-| HONEST-02 | Phase 52 | Pending |
-| CLEAN-01 | Phase 52 | Pending |
-| CLEAN-02 | Phase 52 | Pending |
-| REMIND-01 | Phase 53 | Pending |
-| REMIND-02 | Phase 53 | Pending |
-| REMIND-03 | Phase 53 | Pending |
+| NOTIF-01 | Phase 52 | Complete |
+| NOTIF-02 | Phase 52 | Complete |
+| NOTIF-03 | Phase 52 | Complete |
+| NOTIF-04 | Phase 52 | Complete |
+| NOTIF-05 | Phase 52 | Complete |
+| ACT-01 | Phase 52 | Complete |
+| ACT-02 | Phase 52 | Complete |
+| HONEST-01 | Phase 52 | Complete |
+| HONEST-02 | Phase 52 | Complete |
+| CLEAN-01 | Phase 52 | Complete |
+| CLEAN-02 | Phase 52 | Complete |
+| REMIND-01 | Phase 53 | Complete |
+| REMIND-02 | Phase 53 | Complete |
+| REMIND-03 | Phase 53 | Complete |
 | REMIND-04 | Phase 53 | Pending |
-| REMIND-05 | Phase 53 | Pending |
+| REMIND-05 | Phase 53 | Complete |
 | METER-01 | Phase 54 | Pending |
 | METER-02 | Phase 54 | Pending |
 | METER-03 | Phase 54 | Pending |
