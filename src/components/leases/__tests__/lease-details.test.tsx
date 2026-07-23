@@ -42,6 +42,7 @@ const mockLease: Lease = {
 	tenant_signature_consent_at: null,
 	signed_document_path: null,
 	signed_document_hash: null,
+	signed_lease_emailed_at: null,
 	landlord_notice_address: null,
 	immediate_family_members: null,
 	owner_signed_at: "2023-12-20T10:00:00Z",

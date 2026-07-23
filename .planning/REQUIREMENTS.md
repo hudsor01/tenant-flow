@@ -15,7 +15,7 @@
 - [x] **REMIND-01**: Growth/Max owner receives automated lease-renewal reminder emails, delivered in-house by a `send-lease-reminders` Edge Function draining `lease_reminders` on pg_cron (dead n8n hop `wf-lease-reminder` removed)
 - [x] **REMIND-02**: Each reminder is delivered exactly once per (lease, reminder_type) — delivery-state column (`delivery_status`/`delivered_at`) added to `lease_reminders`, `FOR UPDATE SKIP LOCKED` drain, Resend Idempotency-Key
 - [x] **REMIND-03**: Reminder delivery honors ALL suppression layers — `notification_settings` opt-out, `email_suppressions`, and the synthetic-CI-owner guard currently embedded in the `notify_n8n_lease_reminder` trigger (re-ported, not dropped)
-- [ ] **REMIND-04**: Delivery flip is gated on a backlog dry-run — queued `lease_reminders` backlog counted and expired/cleared before enabling sends (no reminder storm)
+- [x] **REMIND-04**: Delivery flip is gated on a backlog dry-run — queued `lease_reminders` backlog counted and expired/cleared before enabling sends (no reminder storm)
 - [x] **REMIND-05**: Each delivered reminder also creates an in-app notification via the notification write path
 
 #### Metering & Quotas (METER)
@@ -168,7 +168,7 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | REMIND-01 | Phase 53 | Complete |
 | REMIND-02 | Phase 53 | Complete |
 | REMIND-03 | Phase 53 | Complete |
-| REMIND-04 | Phase 53 | Pending |
+| REMIND-04 | Phase 53 | Complete |
 | REMIND-05 | Phase 53 | Complete |
 | METER-01 | Phase 54 | Pending |
 | METER-02 | Phase 54 | Pending |
