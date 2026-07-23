@@ -235,6 +235,27 @@ _Perfect-PR Cycle 2 fixed: 2026-07-22_
 
 ---
 
+## Perfect-PR Cycle 3
+
+A fourth review pass over the frozen final state surfaced two test-coverage
+findings (F1 nit, F2 minor); both are resolved on
+`gsd/phase-53-renewal-reminder-delivery`. Commit hash below.
+
+| Finding | Severity | Outcome | Resolution |
+|---------|----------|---------|------------|
+| F1 | Nit (tests) | fixed | The email tier gate is BOTH halves — `ACTIVE_SUB_STATUSES.has(status) && GROWTH_AND_MAX_PLANS.has(plan)` (`index.ts` ~127) — but every scenario left `subscription_status='active'` and varied only `subscription_plan`, so a regression dropping the status half would let a canceled/`past_due` Growth/Max owner keep receiving the paid email uncaught. Added a case for a Growth-plan owner with `subscription_status='past_due'` (outside `ACTIVE_SUB_STATUSES = {active, trialing}`) asserting no email is sent and `delivery_status='suppressed'` while the in-app notification is STILL created (A1). Commit `1d43adf24`. |
+| F2 | Minor (tests) | fixed | The Resend stub recorded request bodies into `captured.bodies` but no test read them, so the send payload (subject, absolute CTA URL, escaping) was never asserted. The happy-path (fully-allowed owner) case now parses `captured.bodies[0]` and asserts (a) the CTA href is the ABSOLUTE `${APP_URL}/leases/lease-1` form (D-04) — guarding the exact regression class: never a relative link and never `/leases/undefined` — and (b) the subject carries the property label (`Maple Court`) plus days-remaining (`30 days`). Substring assertions, not brittle full-HTML equality. Commit `1d43adf24`. |
+
+**Accepted / handled (unchanged):** the `claim_lease_reminders` WHERE-clause
+behavioral test — the RPC is service_role-only and this authenticated RLS harness
+cannot invoke it; the owner-visible invariants are already pinned and the
+behavioral run is deferred to CI (the already-resolved Cycle-2 F5). The PR-body
+migration count was already corrected by the orchestrator. No action here.
+
+_Perfect-PR Cycle 3 fixed: 2026-07-22_
+
+---
+
 _Reviewed: 2026-07-21_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
