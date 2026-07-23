@@ -325,6 +325,28 @@ Deno.test(
 );
 
 Deno.test(
+	"send-lease-reminders: Growth/Max owner with inactive status (past_due) -> 0 sends, in-app STILL created (A1)",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		// The tier gate is BOTH halves: ACTIVE_SUB_STATUSES.has(status) AND
+		// GROWTH_AND_MAX_PLANS.has(plan). This owner is on the Growth plan but the
+		// subscription lapsed (past_due -- outside {active, trialing}), so the paid
+		// email must be suppressed. Guards the regression where dropping the status
+		// half of the check would let a canceled/past_due paid owner keep receiving
+		// the email; the in-app notification (A1) is still created for all tiers.
+		const owner = ownerRow({ subscription_status: "past_due" }); // plan stays 'growth'
+		const scenario = baseScenario({ leases: { "lease-1": leaseRow(owner) } });
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 0);
+		assert(findNotification(calls), "in-app notification created for lapsed paid owner");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "suppressed");
+	}),
+);
+
+Deno.test(
 	"send-lease-reminders: is_notification_suppressed=true -> 0 sends, in-app STILL created (A1)",
 	withResendStub({ ok: true }, async (fetchCount) => {
 		const scenario = baseScenario({ suppressed: true });
@@ -442,6 +464,23 @@ Deno.test(
 		assertEquals(fetchCount(), 1);
 		// The Idempotency-Key is the lease_reminders row id (exactly-once anchor).
 		assertEquals(captured.idempotencyKeys[0], "reminder-1");
+		// F2: inspect the actual Resend request body (subject + escaped HTML).
+		const rawBody = captured.bodies[0];
+		assert(rawBody, "the Resend send recorded a request body");
+		const payload = JSON.parse(rawBody) as { subject: string; html: string };
+		// (a) CTA deep-links the ABSOLUTE lease URL (D-04). Guards the exact
+		//     regression class: never a relative link and never /leases/undefined.
+		assert(
+			payload.html.includes(`href="${APP_URL}/leases/lease-1"`),
+			"email CTA deep-links the absolute lease URL",
+		);
+		assert(
+			!payload.html.includes("/leases/undefined"),
+			"CTA carries the real lease id, not undefined",
+		);
+		// (b) subject carries the property label + days-remaining.
+		assert(payload.subject.includes("Maple Court"), "subject names the property");
+		assert(payload.subject.includes("30 days"), "subject states days remaining");
 		// In-app notification is still created on the happy path.
 		const notification = findNotification(calls);
 		assert(notification, "in-app notification created on the send path");
