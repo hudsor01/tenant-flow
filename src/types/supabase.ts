@@ -12,6 +12,31 @@ export type Database = {
 	__InternalSupabase: {
 		PostgrestVersion: "14.5";
 	};
+	graphql_public: {
+		Tables: {
+			[_ in never]: never;
+		};
+		Views: {
+			[_ in never]: never;
+		};
+		Functions: {
+			graphql: {
+				Args: {
+					extensions?: Json;
+					operationName?: string;
+					query?: string;
+					variables?: Json;
+				};
+				Returns: Json;
+			};
+		};
+		Enums: {
+			[_ in never]: never;
+		};
+		CompositeTypes: {
+			[_ in never]: never;
+		};
+	};
 	public: {
 		Tables: {
 			activity: {
@@ -644,24 +669,39 @@ export type Database = {
 			};
 			lease_reminders: {
 				Row: {
+					attempt_count: number;
+					claimed_at: string | null;
 					created_at: string;
+					delivered_at: string | null;
+					delivery_status: string;
 					id: string;
 					lease_id: string;
 					reminder_type: string;
+					resend_message_id: string | null;
 					sent_at: string;
 				};
 				Insert: {
+					attempt_count?: number;
+					claimed_at?: string | null;
 					created_at?: string;
+					delivered_at?: string | null;
+					delivery_status?: string;
 					id?: string;
 					lease_id: string;
 					reminder_type: string;
+					resend_message_id?: string | null;
 					sent_at?: string;
 				};
 				Update: {
+					attempt_count?: number;
+					claimed_at?: string | null;
 					created_at?: string;
+					delivered_at?: string | null;
+					delivery_status?: string;
 					id?: string;
 					lease_id?: string;
 					reminder_type?: string;
+					resend_message_id?: string | null;
 					sent_at?: string;
 				};
 				Relationships: [
@@ -800,6 +840,7 @@ export type Database = {
 					sent_for_signature_at: string | null;
 					signed_document_hash: string | null;
 					signed_document_path: string | null;
+					signed_lease_emailed_at: string | null;
 					start_date: string;
 					tenant_responsible_utilities: string[] | null;
 					tenant_signature_consent_at: string | null;
@@ -844,6 +885,7 @@ export type Database = {
 					sent_for_signature_at?: string | null;
 					signed_document_hash?: string | null;
 					signed_document_path?: string | null;
+					signed_lease_emailed_at?: string | null;
 					start_date: string;
 					tenant_responsible_utilities?: string[] | null;
 					tenant_signature_consent_at?: string | null;
@@ -888,6 +930,7 @@ export type Database = {
 					sent_for_signature_at?: string | null;
 					signed_document_hash?: string | null;
 					signed_document_path?: string | null;
+					signed_lease_emailed_at?: string | null;
 					start_date?: string;
 					tenant_responsible_utilities?: string[] | null;
 					tenant_signature_consent_at?: string | null;
@@ -1230,6 +1273,48 @@ export type Database = {
 						referencedColumns: ["id"];
 					},
 				];
+			};
+			notifications_archive: {
+				Row: {
+					action_url: string | null;
+					created_at: string | null;
+					entity_id: string | null;
+					entity_type: string | null;
+					id: string;
+					is_read: boolean | null;
+					message: string | null;
+					notification_type: string;
+					read_at: string | null;
+					title: string;
+					user_id: string;
+				};
+				Insert: {
+					action_url?: string | null;
+					created_at?: string | null;
+					entity_id?: string | null;
+					entity_type?: string | null;
+					id?: string;
+					is_read?: boolean | null;
+					message?: string | null;
+					notification_type: string;
+					read_at?: string | null;
+					title: string;
+					user_id: string;
+				};
+				Update: {
+					action_url?: string | null;
+					created_at?: string | null;
+					entity_id?: string | null;
+					entity_type?: string | null;
+					id?: string;
+					is_read?: boolean | null;
+					message?: string | null;
+					notification_type?: string;
+					read_at?: string | null;
+					title?: string;
+					user_id?: string;
+				};
+				Relationships: [];
 			};
 			onboarding_funnel_events: {
 				Row: {
@@ -2415,6 +2500,27 @@ export type Database = {
 				Args: { p_feature: string; p_user_id: string };
 				Returns: boolean;
 			};
+			claim_lease_reminders: {
+				Args: { p_limit?: number };
+				Returns: {
+					attempt_count: number;
+					claimed_at: string | null;
+					created_at: string;
+					delivered_at: string | null;
+					delivery_status: string;
+					id: string;
+					lease_id: string;
+					reminder_type: string;
+					resend_message_id: string | null;
+					sent_at: string;
+				}[];
+				SetofOptions: {
+					from: "*";
+					to: "lease_reminders";
+					isOneToOne: false;
+					isSetofReturn: true;
+				};
+			};
 			cleanup_cron_job_run_details: { Args: never; Returns: number };
 			cleanup_old_email_deliverability: { Args: never; Returns: number };
 			cleanup_old_errors: { Args: never; Returns: number };
@@ -2422,6 +2528,7 @@ export type Database = {
 				Args: { days_to_keep?: number };
 				Returns: number;
 			};
+			cleanup_old_notifications: { Args: never; Returns: number };
 			cleanup_old_security_events: { Args: never; Returns: number };
 			cleanup_old_webhook_events: { Args: never; Returns: number };
 			cleanup_orphan_documents: { Args: never; Returns: undefined };
@@ -2430,6 +2537,18 @@ export type Database = {
 			confirm_lease_subscription: {
 				Args: { p_lease_id: string; p_subscription_id: string };
 				Returns: undefined;
+			};
+			create_notification: {
+				Args: {
+					p_action_url?: string;
+					p_entity_id?: string;
+					p_entity_type?: string;
+					p_message?: string;
+					p_title: string;
+					p_type: string;
+					p_user_id: string;
+				};
+				Returns: string;
 			};
 			custom_access_token_hook: { Args: { event: Json }; Returns: Json };
 			expire_leases: { Args: never; Returns: undefined };
@@ -2681,6 +2800,7 @@ export type Database = {
 				}[];
 			};
 			health_check: { Args: never; Returns: Json };
+			invoke_send_lease_reminders: { Args: never; Returns: undefined };
 			is_admin: { Args: never; Returns: boolean };
 			is_notification_suppressed: {
 				Args: { p_email: string };
@@ -2995,6 +3115,9 @@ export type CompositeTypes<
 		: never;
 
 export const Constants = {
+	graphql_public: {
+		Enums: {},
+	},
 	public: {
 		Enums: {},
 	},
