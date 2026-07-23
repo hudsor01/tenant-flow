@@ -18,7 +18,7 @@ result: PASS — e2e-smoke green on PR #922 head 5ee811067 (2026-07-20)
 
 ### 2. Edge function redeploy (lease-signature + sign-lease-token)
 expected: After PAT refresh, `bun scripts/deploy-edge-functions.ts lease-signature sign-lease-token` succeeds; post-deploy `notifyFinalizeFailed` is live (finalize-failure paths create a "Lease signing needs attention" notification)
-result: [pending — owner-run; current 401 is the stale PAT]
+result: DONE 2026-07-23 — lease-signature v9 + sign-lease-token v5 deployed (owner terminal, valid token + IPv4). notifyFinalizeFailed path now live.
 
 ### 3. Deno unit tests (lease-signing-test.ts)
 expected: `deno test` over supabase/functions/tests/lease-signing-test.ts passes, incl. the two new notifyFinalizeFailed branch assertions (upload-error, email-failure)

@@ -1,3 +1,5 @@
+> **UPDATE 2026-07-23: send-lease-reminders v1 is DEPLOYED (owner terminal, valid PAT + IPv4). The deploy step below is DONE. Remaining go-live = set the secret + drain_url + apply C2.**
+
 # Phase 53 — Renewal Reminder Delivery: Go-Live Runbook
 
 **Audience:** owner (rhudson42@yahoo.com / hudsor01). These are the exact,
