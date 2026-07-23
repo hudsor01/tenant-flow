@@ -256,6 +256,30 @@ _Perfect-PR Cycle 3 fixed: 2026-07-22_
 
 ---
 
+## Perfect-PR Cycle 4
+
+A fifth review pass over the frozen final state surfaced one test-coverage
+finding (F1 major); it is resolved on
+`gsd/phase-53-renewal-reminder-delivery`. Commit hash below.
+
+| Finding | Severity | Outcome | Resolution |
+|---------|----------|---------|------------|
+| F1 | Major (tests) | fixed | The notification reclaim-dedup / time-bound existence guard (`index.ts` ~319-338: `.from("notifications").select("id").eq(user_id).eq(entity_id).eq(notification_type,'lease_renewal_reminder').gt("created_at", dedupSince).maybeSingle()`) had ZERO coverage. The Deno fake's `maybeSingle` had branches for `app_config`/`leases`/`email_suppressions`/`notification_settings` but NO `notifications` branch, so the guard's existence read ALWAYS returned `{data:null}` in every test. Both the skip-on-existing branch AND the `.gt("created_at", dedupSince)` 3-day time-bound (the Cycle-2 F1 fix that stops the 30/7/1 series collapsing) were unexercised — a regression dropping the time-bound (series collapse → REMIND-05 violation) or removing the guard entirely (duplicate notifications on WR-02 reaper-reclaim) would pass the whole gate suite green. Added a `notifications` branch to the fake `maybeSingle` that models the `entity_id` lookup AND honors the `.gt("created_at", …)` window (returns an injected row only when its `createdAt` is strictly after `dedupSince`), plus an `existingNotifications: Record<string, { createdAt: string }>` `Scenario` field. Two new cases cross the 3-day boundary: (1) an existing notification created ~1 day ago (INSIDE the 3-day `dedupSince` window) → `create_notification` NOT called again while the email path still sends (`fetchCount()===1`, Idempotency-Key `reminder-1`, `delivery_status='sent'`) — pins the reclaim-dedup; (2) an existing notification created ~10 days ago (OUTSIDE the window) → a fresh `create_notification` IS minted for `lease-1` (`p_entity_id==='lease-1'`) while delivery proceeds — pins the time-bound series distinctness. Commit `225032966`. |
+
+**Refuted / killed (no change):** a proposed finding that the reminder-email
+escaping is only exercised with benign fixture values — so a regression removing
+an `escapeHtml` call would slip through — was refuted. Every user-derived value
+already flows through `escapeHtml` *unconditionally* at the template boundary
+(`buildReminderEmail`: `ownerName`, `propertyLabel`, `daysLabel`, and the CTA
+href via `escapeHtml(params.ctaUrl)`), so the escaping is structurally present
+regardless of input; a hostile-input assertion would exercise the shared
+`escapeHtml` utility (independently tested), not the drainer's contract. Not a
+defect — no code or test change warranted.
+
+_Perfect-PR Cycle 4 fixed: 2026-07-23_
+
+---
+
 _Reviewed: 2026-07-21_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
