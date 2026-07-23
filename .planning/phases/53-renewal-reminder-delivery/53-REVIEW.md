@@ -280,6 +280,58 @@ _Perfect-PR Cycle 4 fixed: 2026-07-23_
 
 ---
 
+## Perfect-PR Cycle 5 (exhaustive suppression + label sweep)
+
+A sixth pass surfaced two named test-coverage findings — the `shouldEmail` layer-4
+`email === false` disjunct and the `reminderDaysLabel` non-`30_days` arms. Rather
+than pin one value per cycle, this pass closed BOTH families exhaustively in one
+sweep so no future regression in any arm slips the gate. Test-only; `index.ts`
+unchanged (no bug found — both predicates already correct). All new cases were
+verified by structural inspection to inject values that truly cross their target
+boundary (`deno test` is unavailable locally); `bun run validate:quick` green
+(288 files / 106,815 unit tests). Six new `Deno.test` cases, **19 → 25 total**.
+Commit `8c2498e38`.
+
+### Family A — `shouldEmail()` layer-4 suppression matrix (`index.ts` ~179-180)
+
+Layer-4 predicate is a two-arm disjunct: `ns && (ns.email === false || ns.leases
+=== false)`. The base owner is `active` + `growth` (crosses the tier gate:
+`ACTIVE_SUB_STATUSES = {active, trialing}` ∧ `GROWTH_AND_MAX_PLANS ∋ growth`) with
+layers 2/3 clear, so the injected `notification_settings` row is the SOLE gate.
+
+| Arm | Injected value | Crosses boundary | Asserted outcome |
+|-----|----------------|------------------|------------------|
+| layer-4 `email === false` (disabled ALL email) — **the named finding** | `{email:false, leases:true}` | `leases` stays TRUE so only the `ns.email === false` half can suppress — a regression dropping that half would wrongly send | 0 sends, `delivery_status='suppressed'`, in-app notification STILL created (A1) |
+| layer-4 `leases === false` (per-category opt-out) — pre-existing | `{email:true, leases:false}` | only the `ns.leases === false` half suppresses | 0 sends, suppressed, in-app created (A1) |
+| explicit fully-ALLOWED control | `{email:true, leases:true}` | predicate IS evaluated (unlike the `null` happy-path which skips `ns && …`) and BOTH disjuncts false → `return true` — guards the inverse over-suppression regression | exactly 1 send, `delivery_status='sent'`, Idempotency-Key `reminder-1`, in-app created |
+
+The `null` (absent row → defaults true → send) happy-path was already covered and
+is NOT duplicated; the explicit `{true,true}` control is a distinct arm because it
+actually enters the `ns && (...)` branch.
+
+### Family B — `reminderDaysLabel()` per `reminder_type` (`index.ts` ~72-83 switch)
+
+Each arm is driven by a single-row, fully-allowed owner; the `reminder_type` on the
+claimed row is the injected value crossing each switch arm. `daysLabel` is the final
+interpolation of the subject, so `subject.endsWith(label)` is a precise boundary
+check (catches a `1 day` → `1 days` regression that `includes()` would miss), and the
+body's `<strong>{label}</strong>` is asserted too.
+
+| `reminder_type` | Switch arm | Expected label | Assertion |
+|-----------------|-----------|----------------|-----------|
+| `30_days` | `case "30_days"` | `30 days` | subject endsWith + body `<strong>30 days</strong>` |
+| `7_days` | `case "7_days"` | `7 days` | subject endsWith + body `<strong>7 days</strong>` |
+| `1_day` | `case "1_day"` | `1 day` (singular) | subject endsWith (`1 day`, not `1 days`) + body strong tag |
+| `final_renewal_notice` (unknown) | `default: replace(/_/g," ")` | `final renewal notice` | subject endsWith + body strong tag — the 3 underscores also prove the `/g` global flag replaces ALL of them |
+
+Every arm of both families is now pinned. No `index.ts` change was warranted — both
+the suppression predicate and the label switch were already correct; this pass only
+closed the test-coverage gap.
+
+_Perfect-PR Cycle 5 fixed: 2026-07-23_
+
+---
+
 _Reviewed: 2026-07-21_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
