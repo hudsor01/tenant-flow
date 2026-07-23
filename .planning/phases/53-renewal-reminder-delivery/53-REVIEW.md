@@ -335,3 +335,10 @@ _Perfect-PR Cycle 5 fixed: 2026-07-23_
 _Reviewed: 2026-07-21_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+
+## PERFECT-PR GATE CLOSED (2026-07-23, frozen head c69c4ca3e)
+
+- **Cycle 6: ZERO findings** (streak 1/2).
+- **Cycle 7 (deciding pass): ZERO findings** — two consecutive genuinely-clean cycles on the same frozen head.
+- All required CI green on that head: checks, e2e-smoke, rls-security, CodeQL, gitleaks. MERGEABLE/CLEAN.
+- Arc across 7 cycles: cycle 1 CRITICAL (leases.property_id embed — feature-dead, CI-invisible), cycle 2 MAJOR (dedup guard collapsed the 30/7/1 series — a regression from cycle 1's own fix), cycles 3-5 shrinking test-coverage gaps (drained by the cycle-5 exhaustive suppression+label sweep), cycles 6-7 clean. ~14 findings resolved.
