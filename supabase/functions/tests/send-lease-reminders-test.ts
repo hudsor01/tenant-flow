@@ -423,6 +423,31 @@ Deno.test(
 	}),
 );
 
+Deno.test(
+	"send-lease-reminders: notification_settings.email=false (disabled ALL email) -> 0 sends, in-app STILL created (A1)",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		// Layer 4 is a TWO-arm disjunct: `ns.email === false || ns.leases === false`.
+		// The sibling test above pins the `leases === false` (per-category opt-out) arm;
+		// this pins the `email === false` (owner disabled ALL transactional email) arm.
+		// leases stays TRUE so a regression that dropped the `ns.email === false` half of
+		// the predicate would wrongly let this email through -- the injected value crosses
+		// exactly that boundary. Every earlier layer is clear (entitled active+growth,
+		// not CI-suppressed, not bounced) so layer 4 is the sole gate. The in-app
+		// notification (A1) is still created for all tiers.
+		const scenario = baseScenario({
+			notificationSettings: { email: false, leases: true },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 0);
+		assert(findNotification(calls), "in-app notification created despite email-disabled opt-out");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "suppressed");
+	}),
+);
+
 // The fail-closed safety property (CR-01/WR-01): if a suppression check cannot
 // PROVE the address is safe, the email must not go out. Each of the three DB/RPC
 // suppression layers, when it errors, must suppress the EMAIL while the in-app
@@ -523,6 +548,83 @@ Deno.test(
 		assertEquals(stamp?.payload.resend_message_id, "email-1");
 	}),
 );
+
+Deno.test(
+	"send-lease-reminders: notification_settings explicitly {email:true, leases:true} + all clear -> email IS sent (positive control)",
+	withResendStub({ ok: true }, async (fetchCount, captured) => {
+		// The happy path above leaves notification_settings ABSENT (null -> defaults
+		// true), which never enters the layer-4 `ns && (...)` predicate. This positive
+		// control injects an EXPLICIT row with BOTH fields true so the predicate IS
+		// evaluated and both disjuncts are false -> shouldEmail falls through to
+		// `return true`. Guards the inverse regression of the email=false/leases=false
+		// arms: a gate that over-suppressed an explicitly-allowed owner. Every other
+		// layer is clear (entitled active+growth, not CI-suppressed, not bounced), so
+		// the email must go out exactly once.
+		const scenario = baseScenario({
+			notificationSettings: { email: true, leases: true },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 1);
+		assertEquals(captured.idempotencyKeys[0], "reminder-1");
+		assert(findNotification(calls), "in-app notification created on the send path");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "sent");
+	}),
+);
+
+// -----------------------------------------------------------------------------
+// reminderDaysLabel() family — the per-reminder_type day-label switch (index.ts
+// ~70-83). Every arm must render its EXACT label in both the email subject (the
+// daysLabel is the final interpolation, so endsWith is a precise boundary check
+// that catches a "1 day" vs "1 days" regression that includes() would miss) and
+// the body <strong> tag. Single-row, fully-allowed owner per type; the
+// reminder_type on the claimed row is the injected value that crosses each arm.
+// -----------------------------------------------------------------------------
+
+async function assertLabelForType(
+	reminderType: string,
+	expectedLabel: string,
+): Promise<void> {
+	await withResendStub({ ok: true }, async (fetchCount, captured) => {
+		const scenario = baseScenario({
+			claimed: [
+				{ id: "reminder-1", lease_id: "lease-1", reminder_type: reminderType, attempt_count: 1 },
+			],
+		});
+		const { client } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		// Fully-allowed owner -> exactly one send whose subject/body carry the label.
+		assertEquals(fetchCount(), 1);
+		const rawBody = captured.bodies[0];
+		assert(rawBody, "the Resend send recorded a request body");
+		const payload = JSON.parse(rawBody) as { subject: string; html: string };
+		assert(
+			payload.subject.endsWith(expectedLabel),
+			`subject ends with "${expectedLabel}" for ${reminderType}, got "${payload.subject}"`,
+		);
+		assert(
+			payload.html.includes(`<strong>${expectedLabel}</strong>`),
+			`body renders <strong>${expectedLabel}</strong> for ${reminderType}`,
+		);
+	})();
+}
+
+Deno.test("send-lease-reminders: reminder_type 30_days -> label '30 days'", () =>
+	assertLabelForType("30_days", "30 days"));
+
+Deno.test("send-lease-reminders: reminder_type 7_days -> label '7 days'", () =>
+	assertLabelForType("7_days", "7 days"));
+
+Deno.test("send-lease-reminders: reminder_type 1_day -> label '1 day' (singular, not '1 days')", () =>
+	assertLabelForType("1_day", "1 day"));
+
+Deno.test("send-lease-reminders: unknown reminder_type -> default replace(/_/g,' ') fallback label", () =>
+	assertLabelForType("final_renewal_notice", "final renewal notice"));
 
 Deno.test(
 	"send-lease-reminders: existing notification INSIDE dedup window -> in-app NOT re-created (reclaim dedup), email still sent",
