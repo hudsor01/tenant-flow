@@ -90,6 +90,11 @@ interface Scenario {
 	emailSuppressionError: { message: string } | null;
 	/** Injected error for the notification_settings select (layer 4 fail-closed). */
 	notificationSettingsError: { message: string } | null;
+	/** Existing lease_renewal_reminder notifications keyed by entity_id (lease_id),
+	 *  modelling the reclaim-dedup existence guard. `createdAt` (ISO) is compared
+	 *  against the drainer's .gt("created_at", dedupSince) 3-day window: a row inside
+	 *  the window dedups (skip create), a row outside it does NOT (series distinctness). */
+	existingNotifications: Record<string, { createdAt: string }>;
 }
 
 interface UpdateCall {
@@ -122,8 +127,9 @@ function makeClient(scenario: Scenario): {
 				return b;
 			},
 			// The notification existence-guard time-bounds itself with
-			// .gt("created_at", dedupSince) (F1); record the filter so the chain
-			// resolves the same way as .eq (the notifications read returns null here).
+			// .gt("created_at", dedupSince) (F1); record the filter so the
+			// notifications branch of maybeSingle can honor the 3-day window boundary
+			// (a scenario-injected notification dedups only when it falls inside it).
 			gt: (col: string, val: unknown) => {
 				filters.push([col, val]);
 				return b;
@@ -153,6 +159,27 @@ function makeClient(scenario: Scenario): {
 				}
 				if (table === "notification_settings") {
 					return { data: scenario.notificationSettingsError ? null : scenario.notificationSettings, error: scenario.notificationSettingsError };
+				}
+				if (table === "notifications") {
+					// The existence-guard reads (user_id, entity_id, notification_type)
+					// time-bound by .gt("created_at", dedupSince). Model the entity_id
+					// lookup AND the .gt window boundary so the 3-day dedup is actually
+					// tested: an injected notification dedups (returns a row) ONLY when its
+					// created_at is strictly AFTER dedupSince (inside the window); an
+					// out-of-window row returns null so a fresh notification is minted.
+					const entityId = filters.find(([c]) => c === "entity_id")?.[1] as
+						| string
+						| undefined;
+					const dedupSince = filters.find(([c]) => c === "created_at")?.[1] as
+						| string
+						| undefined;
+					const existing = entityId
+						? (scenario.existingNotifications[entityId] ?? null)
+						: null;
+					if (existing && dedupSince && existing.createdAt > dedupSince) {
+						return { data: { id: "existing-notification-1" }, error: null };
+					}
+					return { data: null, error: null };
 				}
 				return { data: null, error: null };
 			},
@@ -276,6 +303,7 @@ function baseScenario(overrides: Partial<Scenario> = {}): Scenario {
 		emailSuppressionError: null,
 		notificationSettingsError: null,
 		leasesError: null,
+		existingNotifications: {},
 		...overrides,
 	};
 }
@@ -493,6 +521,72 @@ Deno.test(
 		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
 		assertEquals(stamp?.payload.delivery_status, "sent");
 		assertEquals(stamp?.payload.resend_message_id, "email-1");
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: existing notification INSIDE dedup window -> in-app NOT re-created (reclaim dedup), email still sent",
+	withResendStub({ ok: true }, async (fetchCount, captured) => {
+		// The WR-02 reaper reclaims a row stuck 'claimed' > 1h, and create_notification
+		// is a plain INSERT with no dedup. A run that crashed after create_notification
+		// but before the terminal stamp would duplicate the notification on reclaim.
+		// The time-bound existence guard (.gt("created_at", now - 3d)) must SKIP
+		// re-creating a notification that already exists INSIDE that window. Inject a
+		// lease_renewal_reminder notification for lease-1 created ~1 day ago (well inside
+		// the 3-day dedupSince window).
+		const oneDayAgo = new Date(
+			Date.now() - 1 * 24 * 60 * 60 * 1000,
+		).toISOString();
+		const scenario = baseScenario({
+			existingNotifications: { "lease-1": { createdAt: oneDayAgo } },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		// The guard matched a recent existing row -> create_notification NOT called again.
+		assertEquals(findNotification(calls), undefined);
+		// Delivery is independent of the in-app dedup: the owner still gets exactly one
+		// email keyed to row.id and the row stamps 'sent'.
+		assertEquals(fetchCount(), 1);
+		assertEquals(captured.idempotencyKeys[0], "reminder-1");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "sent");
+	}),
+);
+
+Deno.test(
+	"send-lease-reminders: existing notification OUTSIDE dedup window -> in-app re-created (series distinctness, time-bound)",
+	withResendStub({ ok: true }, async (fetchCount, captured) => {
+		// The 30/7/1-day series shares (user_id, entity_id, notification_type); an
+		// UNBOUNDED existence check would treat the later 7_days/1_day reminders as
+		// duplicates of the first and collapse the whole series into one stale notice
+		// (REMIND-05 violation). The .gt("created_at", now - 3d) time-bound must let a
+		// notification created OUTSIDE the 3-day window through so each distinct series
+		// reminder mints its own notification. Inject one created ~10 days ago (a prior
+		// series reminder well outside the 3-day dedup window) -> a fresh one IS created.
+		const tenDaysAgo = new Date(
+			Date.now() - 10 * 24 * 60 * 60 * 1000,
+		).toISOString();
+		const scenario = baseScenario({
+			existingNotifications: { "lease-1": { createdAt: tenDaysAgo } },
+		});
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		// The stale notification is OUTSIDE the window -> a new notification IS minted.
+		const notification = findNotification(calls);
+		assert(
+			notification,
+			"a new in-app notification is created for the distinct series reminder",
+		);
+		assertEquals(notification?.args.p_entity_id, "lease-1");
+		// Delivery proceeds as usual.
+		assertEquals(fetchCount(), 1);
+		assertEquals(captured.idempotencyKeys[0], "reminder-1");
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "sent");
 	}),
 );
 
