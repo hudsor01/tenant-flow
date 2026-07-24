@@ -93,7 +93,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 - [x] 54-03-PLAN.md — Storage quota + usage DB layer: net-new `get_owner_storage_limit_gb` (Max -1) + path `storage_object_owner` resolver + `get_owner_storage_usage` SUM + `get_storage_usage_summary` read RPC (METER-03)
 - [x] 54-04-PLAN.md — Storage upload guard: BEFORE INSERT trigger on `storage.objects` + `users.storage_grandfathered_at` + `storage_enforcement_enabled` flag seeded OFF (METER-04)
 - [x] 54-05-PLAN.md — Settings usage widgets: e-sign + storage usage bars with 80% near-cap upgrade prompts + `formatBytes` GB fix (METER-02, METER-03)
-- [ ] 54-07-PLAN.md — Storage upload-CTA client wiring: `plan_limit_exceeded:` StorageApiError detector + proactive `usageQueries.storage` pre-check → Upgrade toast, wired into the 3 real upload sites (documents, images, avatar) (METER-04)
+- [x] 54-07-PLAN.md — Storage upload-CTA client wiring: `plan_limit_exceeded:` StorageApiError detector + proactive `usageQueries.storage` pre-check → Upgrade toast, wired into the 3 real upload sites (documents, images, avatar) (METER-04)
 - [ ] 54-06-PLAN.md — Grandfather snapshot go-flip gate: over-quota report → stamp grandfather → flip flag LAST, behind a blocking human-verify checkpoint (METER-04)
 **Waves**: Wave 1 (54-01) → Wave 2 (54-02 edge hook, 54-03 storage DB — parallel) → Wave 3 (54-04 guard, 54-05 Settings UI — parallel) → Wave 4 (54-07 upload-CTA client wiring) → Wave 5 (54-06 go-flip gate). Migrations apply sequentially (shared `src/types/supabase.ts` regen); the go-flip ships LAST — after the client Upgrade-prompt path (54-07) — behind a blocking checkpoint, so enforcement never goes live without the upgrade prompt.
 **Gate**: METER-04 pre-flip grandfather report — the over-quota owner population must be reported and grandfathered before upload enforcement flips on.
@@ -225,7 +225,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 |-------|----------------|--------|-----------|
 | 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
-| 54. E-sign & Storage Metering | 5/7 | In Progress|  |
+| 54. E-sign & Storage Metering | 6/7 | In Progress|  |
 | 55. Rent Ledger | 0/TBD | Not started | - |
 | 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
