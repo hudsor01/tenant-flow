@@ -26,7 +26,8 @@ Make the sold e-sign monthly cap and per-tier storage quotas **actually enforced
 ## Implementation Decisions
 
 ### Quota values (LOCKED by pricing claims — not open for discussion)
-- **D-00:** Values are fixed by the public pricing page (`src/config/pricing.ts`) because this milestone is claims-integrity. E-sign: Starter none · **Growth 25/mo** · Max unlimited. Storage: Trial 1 GB · Starter 10 GB · Growth 50 GB · **Max unlimited**. The only value change is fixing `get_user_plan_limits` Max storage `100 → -1` (unlimited) to match the "Unlimited document storage" claim.
+- **D-00:** Values are fixed by the public pricing page (`src/config/pricing.ts`) because this milestone is claims-integrity. E-sign: Starter none · **Growth 25/mo** · Max unlimited. Storage: Trial 1 GB · Starter 10 GB · Growth 50 GB · **Max unlimited**.
+- **D-00a (RESEARCH correction):** There is NO live "Max = 100 GB" storage bug to reconcile. The `get_user_plan_limits(text)` overload that carried `storage_gb` was dropped in `20260505230821_drop_legacy_get_user_plan_limits_text_overload.sql` and never recreated; the surviving `get_user_plan_limits(uuid)` returns only `{properties_limit, units_limit, is_admin}`. METER-03's storage-quota source is therefore **net-new** — a new `get_owner_storage_limit_gb` returning the pricing values with Max = `-1` (unlimited) — NOT an edit of an existing 100 GB value. See `54-RESEARCH.md`.
 
 ### E-sign metering (METER-01/02)
 - **D-01:** The 25/month cap resets on the **1st of the calendar month**. The atomic RPC counts the owner's metered send events where the event timestamp is in the current calendar month (`date_trunc('month', now())`). Simplest to compute and to display ("X of 25 used this month"); matches the literal "per month" pricing language.
