@@ -506,19 +506,22 @@ function mapLedgerSummaryRow(raw: Record<string, unknown>): LedgerSummary {
 
 **Confirm A3 and A6 with the user via discuss-phase before locking the plan** — they change the task list.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Past-dated track-since → which months get charges?**
    - What we know: opening balance captures pre-track-since state; no receipt backfill (D-04).
    - What's unclear: whether charges are generated for months between a *past* `ledger_start_date` and now.
    - Recommendation: bounded-range generation (A3) — generate each month from `ledger_start_date`'s month forward; this derives expected charges (from lease terms) without reconstructing historical receipts. Confirm in discuss-phase.
+   - **RESOLVED** - CONTEXT D-04 (bounded-range generation from ledger_start_date; no receipt backfill) + 55-06 track-since dialog copy warning the owner the tracked month's rent is auto-generated so the opening balance is sized to reconcile (W1).
 
 2. **Reversal of a charge that already has receipts (A6).**
    - Recommendation: post a paired receipt reversal; expose a single composed "reverse this charge" mutation that inserts both negations in one transaction. Confirm UX.
+   - **RESOLVED** - 55-02 reverse_charge posts the paired charge + receipt negation, and the new reverse_receipt RPC (W2) posts a standalone receipt's exact negation (reverses_id); 55-05's receipt-reversal path calls reverse_receipt instead of a raw negative insert.
 
 3. **Collection-rate placement on the dashboard.**
    - What we know: `getCollectionRateStatus()` exists; Phase 52 dashboard + `ownerDashboardKeys` are the surfaces.
    - Recommendation: a KPI card fed by `get_collection_rate()`; wire into `ownerDashboardKeys.financial`. Exact card position is a UI-planning detail.
+   - **RESOLVED** - 55-08 mounts <CollectionRateKpi /> on the dashboard, wired into ownerDashboardKeys.financial and fed by get_collection_rate.
 
 ## Environment Availability
 
