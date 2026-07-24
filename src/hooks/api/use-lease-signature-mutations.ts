@@ -8,6 +8,7 @@ import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { PaywallError } from "./query-keys/report-keys";
 import { unitQueries } from "./query-keys/unit-keys";
+import { usageQueries } from "./query-keys/usage-keys";
 
 /**
  * Over-cap e-sign send error handler. When the lease-signature edge fn returned
@@ -46,6 +47,14 @@ export function useSendLeaseForSignatureMutation() {
 			});
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() });
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
+			// A metered send consumes one of the owner's monthly e-sign slots
+			// (Plan 01 RPC). Refresh the Settings usage widget so the new count
+			// is reflected immediately. Wired here (wave 3) rather than in Plan
+			// 02 (wave 2) because usageQueries did not exist yet — importing it
+			// keeps this a factory key, not a string literal (CLAUDE.md rule 9).
+			queryClient.invalidateQueries({
+				queryKey: usageQueries.esign().queryKey,
+			});
 			logger.info("Lease sent for signature", { leaseId });
 		},
 		onError: (err) => {
