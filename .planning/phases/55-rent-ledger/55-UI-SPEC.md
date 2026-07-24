@@ -1,7 +1,7 @@
 ---
 phase: 55
 slug: rent-ledger
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york / slate / cssVariables (oklch)"
 created: 2026-07-24
@@ -233,11 +233,13 @@ Vetting gate: **not triggered** (no third-party block declared). If a future cha
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: FLAG (non-blocking) — see scoping note below
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Typography scoping note:** The Ledger tab's native type scale is exactly 4 sizes (12/14/16/20px). The 32px `typography-stat` value that appears on the collection-rate KPI tile is an *unmodified reuse* of the already-approved dashboard KPI bento token (from the prior dashboard `03-UI-SPEC`), not a new phase-native size — do not recount it as scale creep.
+
+**Approval:** approved 2026-07-24
