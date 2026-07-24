@@ -26,7 +26,7 @@ tech-stack:
 
 key-files:
   created:
-    - supabase/migrations/20260723130000_storage_quota_functions.sql
+    - supabase/migrations/20260724033540_storage_quota_functions.sql
     - tests/integration/rls/storage-metering.rls.test.ts
   modified: []
 
@@ -60,7 +60,7 @@ completed: 2026-07-24
 - **Files modified:** 2 created
 
 ## Accomplishments
-- Authored `20260723130000_storage_quota_functions.sql` with all four functions per plan: `get_owner_storage_limit_gb(uuid)` (net-new, Trial 1 / Starter 10 / Growth 50 / Max -1, both slugs + lowercased price ids, single uuid signature — no text overload), `storage_object_owner(text,text)` (5-bucket resolver; tenant-documents branches property/lease/tenant/maintenance_request/inspection by path[2]; blog-covers/bulk-imports/lease-documents return null), `get_owner_storage_usage(uuid)` (SUM over the bucket allowlist filtered by the resolver), and `get_storage_usage_summary()` (param-less, wraps `(select auth.uid())`, granted to authenticated).
+- Authored `20260724033540_storage_quota_functions.sql` with all four functions per plan: `get_owner_storage_limit_gb(uuid)` (net-new, Trial 1 / Starter 10 / Growth 50 / Max -1, both slugs + lowercased price ids, single uuid signature — no text overload), `storage_object_owner(text,text)` (5-bucket resolver; tenant-documents branches property/lease/tenant/maintenance_request/inspection by path[2]; blog-covers/bulk-imports/lease-documents return null), `get_owner_storage_usage(uuid)` (SUM over the bucket allowlist filtered by the resolver), and `get_storage_usage_summary()` (param-less, wraps `(select auth.uid())`, granted to authenticated).
 - Grant discipline mirrors 20260505213825 + 20260722005310: raw usage/limit/resolver functions are SECURITY DEFINER + `set search_path = public` + service_role-only; only the owner-guarded summary is authenticated-callable (T-54-09 mitigation).
 - Authored `storage-metering.rls.test.ts` (dual-client, sequential, hits prod): SUM correctness across avatars + tenant-documents, system-bucket exclusion (bulk-imports delta must be 0), cross-owner attribution isolation, service_role-only privilege boundary probe (REVOKED_CODES), and param-less summary returning max owner limit -1.
 - Plan grep `<automated>` verify passes (all required tokens present; no `(text)` overload).
@@ -72,7 +72,7 @@ completed: 2026-07-24
 **Plan metadata:** committed separately (docs: this SUMMARY)
 
 ## Files Created/Modified
-- `supabase/migrations/20260723130000_storage_quota_functions.sql` - The 4 storage quota/usage/resolver/summary functions
+- `supabase/migrations/20260724033540_storage_quota_functions.sql` - The 4 storage quota/usage/resolver/summary functions
 - `tests/integration/rls/storage-metering.rls.test.ts` - METER-03 SUM/exclusion/isolation/privilege RLS cases (extended by Plan 04)
 
 ## Pre-flight Findings (recorded per plan)
@@ -92,7 +92,7 @@ None. The null-size-row skip (in-flight uploads) is a SQL property of `coalesce(
 
 ## Deferred to Orchestrator (Task 2 — [BLOCKING], requires Supabase MCP + prod)
 The orchestrator must, after Plan 01's apply:
-1. Apply `supabase/migrations/20260723130000_storage_quota_functions.sql` via MCP `apply_migration` (name `storage_quota_functions`).
+1. Apply `supabase/migrations/20260724033540_storage_quota_functions.sql` via MCP `apply_migration` (name `storage_quota_functions`).
 2. Reconcile the repo filename to the prod-assigned version via `list_migrations` (migration-mcp-prod-drift).
 3. Regenerate `src/types/supabase.ts` (`bun run db:types`; on CLI 401 fall back to MCP `generate_typescript_types`) — confirm all four functions appear.
 4. `bun run typecheck` exits 0.
@@ -107,7 +107,7 @@ This agent did NOT apply the migration, did NOT run db:types / typecheck / test:
 - Blocker: the four functions are not live until the orchestrator runs Task 2.
 
 ## Self-Check: PASSED
-- FOUND: supabase/migrations/20260723130000_storage_quota_functions.sql
+- FOUND: supabase/migrations/20260724033540_storage_quota_functions.sql
 - FOUND: tests/integration/rls/storage-metering.rls.test.ts
 - FOUND: .planning/phases/54-e-sign-storage-metering/54-03-SUMMARY.md
 - FOUND: commit e8659a96a

@@ -177,6 +177,16 @@ grant execute on function public.storage_object_owner(text, text) to service_rol
 -- NULLs, so usage reflects only finalized bytes. The bucket IN (...) allowlist is
 -- the load-bearing exclusion of system buckets — blog-covers / bulk-imports /
 -- lease-documents are never summed regardless of the resolver.
+--
+-- Attribution = coalesce(storage.objects.owner, storage_object_owner(path)).
+-- PROD-DATA CORRECTION: path-parsing alone attributed only 1/877 real
+-- property-images because the live path convention is <uuid>/file.jpg, NOT
+-- <property_id>/... The native storage.objects.owner column (the uploader's
+-- auth.uid()) is populated on every client upload and — in this landlord-only
+-- app where every uploader IS the owning landlord — equals owner_user_id
+-- (verified 877/877 coverage, 0 ids outside public.users, and it agrees with the
+-- path resolver wherever both exist). owner is primary; the path resolver is the
+-- fallback for service-role uploads that leave owner null (e.g. signed-lease PDFs).
 create or replace function public.get_owner_storage_usage(p_owner uuid)
 returns bigint
 language sql
@@ -193,14 +203,16 @@ as $$
       'maintenance-photos',
       'tenant-documents'
     )
-    and public.storage_object_owner(o.bucket_id, o.name) = p_owner;
+    and coalesce(o.owner, public.storage_object_owner(o.bucket_id, o.name)) = p_owner;
 $$;
 
 comment on function public.get_owner_storage_usage(uuid) is
   'METER-03 storage usage in bytes: SUM((metadata->>''size'')::bigint) over the '
-  'owner-attributable buckets, attributed via storage_object_owner. Excludes '
-  'system buckets and skips null-size in-flight rows. service_role-only; read via '
-  'get_storage_usage_summary().';
+  'owner-attributable buckets. Attribution = coalesce(storage.objects.owner, '
+  'storage_object_owner(path)) — native uploader column primary (robust across '
+  'path conventions; every uploader is the owning landlord), path resolver '
+  'fallback for service-role uploads with null owner. Excludes system buckets and '
+  'skips null-size in-flight rows. service_role-only; read via get_storage_usage_summary().';
 
 revoke all on function public.get_owner_storage_usage(uuid) from public, anon, authenticated;
 grant execute on function public.get_owner_storage_usage(uuid) to service_role;

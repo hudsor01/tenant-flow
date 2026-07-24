@@ -2730,6 +2730,11 @@ export type Database = {
 				Args: { p_months?: number; p_owner_id: string };
 				Returns: Json;
 			};
+			get_owner_storage_limit_gb: {
+				Args: { p_owner: string };
+				Returns: number;
+			};
+			get_owner_storage_usage: { Args: { p_owner: string }; Returns: number };
 			get_property_performance_analytics: {
 				Args: {
 					p_limit?: number;
@@ -2779,6 +2784,13 @@ export type Database = {
 					mean_time_ms: number;
 					query_preview: string;
 					total_time_ms: number;
+				}[];
+			};
+			get_storage_usage_summary: {
+				Args: never;
+				Returns: {
+					limit_gb: number;
+					used_bytes: number;
 				}[];
 			};
 			get_stripe_customer_by_user_id: {
@@ -2982,6 +2994,10 @@ export type Database = {
 					lease_id: string;
 					success: boolean;
 				}[];
+			};
+			storage_object_owner: {
+				Args: { p_bucket: string; p_name: string };
+				Returns: string;
 			};
 		};
 		Enums: {
