@@ -1,11 +1,36 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { logger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
+import { PaywallError } from "./query-keys/report-keys";
 import { unitQueries } from "./query-keys/unit-keys";
+
+/**
+ * Over-cap e-sign send error handler. When the lease-signature edge fn returned
+ * a 402 (Growth owner past the 25/month cap), the wrapper throws a PaywallError
+ * carrying the upgrade_url — surface it as an actionable Upgrade toast CTA that
+ * navigates to /billing/plans?source=esign_quota (keeping the Stripe checkout
+ * source attribution). Any other error falls through to the shared handler.
+ */
+function handleSendSignatureError(err: unknown): void {
+	if (err instanceof PaywallError) {
+		toast.error("E-sign limit reached", {
+			description: err.message,
+			action: {
+				label: "Upgrade",
+				onClick: () => {
+					window.location.assign(err.upgradeUrl);
+				},
+			},
+		});
+		return;
+	}
+	handleMutationError(err, "Send lease for signature");
+}
 
 export function useSendLeaseForSignatureMutation() {
 	const queryClient = useQueryClient();
@@ -24,7 +49,7 @@ export function useSendLeaseForSignatureMutation() {
 			logger.info("Lease sent for signature", { leaseId });
 		},
 		onError: (err) => {
-			handleMutationError(err, "Send lease for signature");
+			handleSendSignatureError(err);
 		},
 	});
 }

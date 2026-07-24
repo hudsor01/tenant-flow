@@ -19,6 +19,7 @@ import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { LeaseCreate, LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
 import { mutationKeys } from "../mutation-keys";
+import { PaywallError } from "./report-keys";
 
 /**
  * Calls the lease-signature Edge Function with an action payload.
@@ -44,12 +45,21 @@ async function callLeaseSignatureEdgeFunction(
 	});
 
 	if (!response.ok) {
-		const error = await response
+		const error = (await response
 			.json()
-			.catch(() => ({ error: response.statusText }));
-		throw new Error(
-			(error as { error?: string }).error ?? "Signature request failed",
-		);
+			.catch(() => ({ error: response.statusText }))) as {
+			error?: string;
+			upgrade_url?: string;
+		};
+		const message = error.error ?? "Signature request failed";
+		// Over-cap e-sign metering block (402): the edge fn returns an actionable
+		// `upgrade_url`. Preserve it via PaywallError so the send mutation surfaces
+		// an Upgrade CTA instead of discarding the status + url into a bare toast
+		// (RESEARCH Pitfall 4). Every other error keeps the plain-message behavior.
+		if (typeof error.upgrade_url === "string") {
+			throw new PaywallError(message, error.upgrade_url, "esign");
+		}
+		throw new Error(message);
 	}
 
 	return response.json();
