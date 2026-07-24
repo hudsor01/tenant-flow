@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock toast + logger before importing the module so the toast spy captures
 // every call and logger noise doesn't pollute output.
@@ -153,6 +153,79 @@ describe("handleMutationError — plan-limit detection", () => {
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("some other raise_exception");
 		expect(opts?.action).toBeUndefined();
+	});
+});
+
+describe("handleMutationError — storage plan-limit (StorageApiError message prefix)", () => {
+	// StorageApiError carries only { name, message, status, statusCode } — no
+	// `.hint`/`.detail` — so the trigger's `plan_limit_exceeded:` message prefix
+	// is the ONLY quota signal that survives to the client (Plan 04 contract).
+	const originalLocation = window.location;
+
+	beforeEach(() => {
+		vi.mocked(toast.error).mockClear();
+		// Capture the Upgrade CTA navigation without hitting jsdom's unimplemented
+		// navigation. Plain object → `window.location.href = …` writes to `.href`.
+		Object.defineProperty(window, "location", {
+			configurable: true,
+			value: { href: "" },
+		});
+	});
+
+	afterEach(() => {
+		Object.defineProperty(window, "location", {
+			configurable: true,
+			value: originalLocation,
+		});
+	});
+
+	it("fires the 'Plan limit reached' Upgrade toast for a storage rejection (source=storage_quota_gate)", () => {
+		const storageError = {
+			name: "StorageApiError",
+			message:
+				"plan_limit_exceeded: storage quota reached (11811160064 / 10737418240 bytes used)",
+			status: 400,
+			statusCode: "400",
+		};
+
+		handleMutationError(storageError, "Upload document");
+
+		const [title, opts] = lastToastErrorCall();
+		expect(title).toBe("Plan limit reached");
+		const action = opts?.action as
+			| { label?: string; onClick?: () => void }
+			| undefined;
+		expect(action?.label).toBe("Upgrade");
+		// The CTA points at the storage-quota source (no DETAIL JSON on a
+		// StorageApiError, so the storage default is used).
+		action?.onClick?.();
+		expect(window.location.href).toBe(
+			"/billing/plans?source=storage_quota_gate",
+		);
+	});
+
+	it("still routes the PostgREST hint path to its parsed source (no regression)", () => {
+		const error = {
+			message: "plan_limit_exceeded: properties (1 / 1 used)",
+			code: "P0001",
+			hint: "plan_limit_exceeded",
+			details:
+				'{"resource":"properties","used":1,"limit":1,"upgrade_source":"property_limit_gate"}',
+		};
+
+		handleMutationError(error, "Create property");
+
+		const [title, opts] = lastToastErrorCall();
+		expect(title).toBe("Plan limit reached");
+		const action = opts?.action as
+			| { label?: string; onClick?: () => void }
+			| undefined;
+		expect(action?.label).toBe("Upgrade");
+		// DETAIL JSON still wins over the storage default for the PostgREST path.
+		action?.onClick?.();
+		expect(window.location.href).toBe(
+			"/billing/plans?source=property_limit_gate",
+		);
 	});
 });
 

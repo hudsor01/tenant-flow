@@ -17,6 +17,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { toast } from "sonner";
 import { createLogger } from "#lib/frontend-logger";
+import { isStoragePlanLimitError } from "#lib/storage-plan-limit";
 
 const logger = createLogger({ component: "MutationErrorHandler" });
 
@@ -161,12 +162,18 @@ export function handleMutationError(
 	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
 	const pgDetails =
 		typeof errObj?.details === "string" ? errObj.details : undefined;
-	const isPlanLimit = pgHint === "plan_limit_exceeded";
+	// Storage uploads go through `@supabase/storage-js`, so a quota rejection is
+	// a `StorageApiError` that strips `.hint`/`.detail` — the only quota signal
+	// is the Plan 04 trigger's `plan_limit_exceeded:` MESSAGE prefix. Route it
+	// through the same plan-limit Upgrade toast as the PostgREST `hint` path.
+	const isStorageQuota = isStoragePlanLimitError(error);
+	const isPlanLimit = pgHint === "plan_limit_exceeded" || isStorageQuota;
 
 	// Source attribution for analytics — DETAIL is JSON-encoded by the
 	// trigger's `format(...)` call. Treat parse failures as a soft default
-	// rather than blocking the toast.
-	let upgradeSource = "plan_limit_gate";
+	// rather than blocking the toast. A storage rejection never carries a
+	// DETAIL, so it defaults to `storage_quota_gate`.
+	let upgradeSource = isStorageQuota ? "storage_quota_gate" : "plan_limit_gate";
 	if (pgDetails) {
 		try {
 			const parsed = JSON.parse(pgDetails) as Record<string, unknown>;
