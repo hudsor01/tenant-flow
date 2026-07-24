@@ -20,6 +20,7 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { createLogger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
+import { isStoragePlanLimitError } from "#lib/storage-plan-limit";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { type DocumentCategory } from "#lib/validation/documents";
@@ -279,6 +280,11 @@ export const documentMutations = {
 						path: storagePath,
 						error: uploadError,
 					});
+					// A storage-quota rejection (Plan 04 trigger) carries the
+					// `plan_limit_exceeded:` message prefix — re-throw the ORIGINAL
+					// error so the consumer's handler can route it to the Upgrade
+					// toast, instead of swallowing it under the generic copy.
+					if (isStoragePlanLimitError(uploadError)) throw uploadError;
 					throw new Error("We couldn't save that file. Please try again.");
 				}
 

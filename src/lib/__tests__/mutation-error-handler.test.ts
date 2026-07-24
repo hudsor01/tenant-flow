@@ -192,6 +192,9 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
+		// Shares the stable dedupe id with the proactive pre-check so a batch
+		// upload never stacks duplicate 'Plan limit reached' toasts.
+		expect(opts?.id).toBe("storage-quota-upgrade");
 		const action = opts?.action as
 			| { label?: string; onClick?: () => void }
 			| undefined;
@@ -217,6 +220,9 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
+		// The PostgREST hint path keeps its prior identity-less toast (no dedupe
+		// id) so it is unchanged by the storage wiring.
+		expect(opts?.id).toBeUndefined();
 		const action = opts?.action as
 			| { label?: string; onClick?: () => void }
 			| undefined;

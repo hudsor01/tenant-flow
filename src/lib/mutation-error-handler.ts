@@ -100,6 +100,56 @@ const RAW_DB_INTERNALS =
 	/duplicate key value|violates (?:unique|check|foreign key|not-null|exclusion) constraint|null value in column|violates row-level security policy|invalid input syntax|value too long|out of range/i;
 
 /**
+ * Stable sonner toast id for the storage-quota Upgrade prompt (METER-04 / D-03).
+ * The PROACTIVE pre-check (before `.upload()`) and the REACTIVE detector
+ * (`handleMutationError` on a `StorageApiError` whose message begins with the
+ * `plan_limit_exceeded:` prefix) both render under this id, so a batch upload
+ * shows a SINGLE 'Plan limit reached' toast rather than one per rejected file.
+ */
+export const STORAGE_QUOTA_TOAST_ID = "storage-quota-upgrade";
+
+/**
+ * Render the shared 'Plan limit reached' Upgrade toast. When `toastId` is
+ * provided the toast dedupes against prior renders under the same id (storage
+ * quota); the PostgREST hint path passes no id, preserving prior behaviour.
+ */
+function showPlanLimitUpgradeToast(
+	description: string,
+	upgradeSource: string,
+	toastId?: string,
+): void {
+	const options = {
+		description,
+		action: {
+			label: "Upgrade",
+			onClick: () => {
+				window.location.href = `/billing/plans?source=${encodeURIComponent(upgradeSource)}`;
+			},
+		},
+	};
+	toast.error(
+		"Plan limit reached",
+		toastId ? { ...options, id: toastId } : options,
+	);
+}
+
+/**
+ * PROACTIVE storage-quota Upgrade prompt for the client-side pre-check at each
+ * upload site. NON-destructive: callers surface this BEFORE `.upload()` when the
+ * owner is at/over a finite quota WITHOUT aborting the upload (the DB trigger is
+ * authoritative and exempts grandfathered / Max / flag-off owners). Shares
+ * `STORAGE_QUOTA_TOAST_ID` with the reactive detector so the two dedupe, and
+ * does NOT report to Sentry (a UX gate, not an error).
+ */
+export function showStorageQuotaUpgradeToast(): void {
+	showPlanLimitUpgradeToast(
+		"You've reached your plan's storage limit. Upgrade for more space.",
+		"storage_quota_gate",
+		STORAGE_QUOTA_TOAST_ID,
+	);
+}
+
+/**
  * Handle mutation errors with consistent logging and user feedback
  *
  * @param error - The error from mutation onError callback
@@ -164,10 +214,14 @@ export function handleMutationError(
 		typeof errObj?.details === "string" ? errObj.details : undefined;
 	// Storage uploads go through `@supabase/storage-js`, so a quota rejection is
 	// a `StorageApiError` that strips `.hint`/`.detail` — the only quota signal
-	// is the Plan 04 trigger's `plan_limit_exceeded:` MESSAGE prefix. Route it
-	// through the same plan-limit Upgrade toast as the PostgREST `hint` path.
-	const isStorageQuota = isStoragePlanLimitError(error);
-	const isPlanLimit = pgHint === "plan_limit_exceeded" || isStorageQuota;
+	// is the Plan 04 trigger's `plan_limit_exceeded:` MESSAGE prefix. A PostgREST
+	// plan-limit error carries the SAME prefix but ALSO a `hint` + DETAIL JSON, so
+	// a genuine STORAGE rejection is "prefix matches AND no plan-limit hint". Both
+	// route through the same Upgrade toast; only the storage path uses the shared
+	// dedupe id + `storage_quota_gate` default source.
+	const hasPlanLimitHint = pgHint === "plan_limit_exceeded";
+	const isStorageQuota = isStoragePlanLimitError(error) && !hasPlanLimitHint;
+	const isPlanLimit = hasPlanLimitHint || isStorageQuota;
 
 	// Source attribution for analytics — DETAIL is JSON-encoded by the
 	// trigger's `format(...)` call. Treat parse failures as a soft default
@@ -192,15 +246,11 @@ export function handleMutationError(
 				displayMessage || "This item already exists or has been modified",
 		});
 	} else if (isPlanLimit) {
-		toast.error("Plan limit reached", {
-			description: displayMessage,
-			action: {
-				label: "Upgrade",
-				onClick: () => {
-					window.location.href = `/billing/plans?source=${encodeURIComponent(upgradeSource)}`;
-				},
-			},
-		});
+		showPlanLimitUpgradeToast(
+			displayMessage,
+			upgradeSource,
+			isStorageQuota ? STORAGE_QUOTA_TOAST_ID : undefined,
+		);
 	} else if (status === 403) {
 		toast.error("Access Denied", {
 			description:
