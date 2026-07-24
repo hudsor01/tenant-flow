@@ -26,7 +26,7 @@ tech-stack:
 
 key-files:
   created:
-    - supabase/migrations/20260723120000_esign_metering.sql
+    - supabase/migrations/20260724031533_esign_metering.sql
     - tests/integration/rls/esign-metering.rls.test.ts
   modified: []
 
@@ -58,7 +58,7 @@ completed: 2026-07-23
 - **Files created:** 2
 
 ## Accomplishments
-- Authored `20260723120000_esign_metering.sql` exactly per the plan's `<action>` and RESEARCH Pattern 2:
+- Authored `20260724031533_esign_metering.sql` exactly per the plan's `<action>` and RESEARCH Pattern 2:
   - `esign_events` append-only table — `owner_user_id`/`lease_id` FKs (on delete cascade), `event_type text` + `CHECK (event_type in ('send'))` (no PG enum), `created_at timestamptz`, `idx_esign_events_owner_month` index, RLS enabled, single `esign_events_select` policy (`owner_user_id = (select auth.uid())`), NO authenticated insert/update/delete policy.
   - `meter_esign_send(p_owner uuid, p_lease uuid)` — `pg_advisory_xact_lock(hashtextextended('esign:'||p_owner::text, 0))` FIRST, then Max branch (insert + `unlimited=true`) / Growth branch (count over `date_trunc('month', now())`, block at `>=25` with no insert, else insert + `used=v_used+1`). SECURITY DEFINER, `set search_path = public`, revoked from public/anon/authenticated, granted to service_role only.
   - `get_esign_usage_current_month()` — param-less, resolves `(select auth.uid())` internally (raises on null), returns `{used, cap=25, unlimited}`, revoked from public/anon, granted to authenticated.
@@ -71,7 +71,7 @@ completed: 2026-07-23
 **Plan metadata (SUMMARY):** committed separately (docs).
 
 ## Files Created/Modified
-- `supabase/migrations/20260723120000_esign_metering.sql` — esign_events table + owner-SELECT RLS + advisory-lock `meter_esign_send` RPC + param-less `get_esign_usage_current_month` read RPC
+- `supabase/migrations/20260724031533_esign_metering.sql` — esign_events table + owner-SELECT RLS + advisory-lock `meter_esign_send` RPC + param-less `get_esign_usage_current_month` read RPC
 - `tests/integration/rls/esign-metering.rls.test.ts` — dual-client (service_role + ownerA/ownerB) METER-01 coverage: cap, race, calendar-month, isolation, privilege
 
 ## Decisions Made
@@ -106,7 +106,7 @@ None. The pre-commit hook's `tsc --noEmit` passed even before types were regener
 
 ## Self-Check: PASSED
 
-- FOUND: supabase/migrations/20260723120000_esign_metering.sql
+- FOUND: supabase/migrations/20260724031533_esign_metering.sql
 - FOUND: tests/integration/rls/esign-metering.rls.test.ts
 - FOUND: .planning/phases/54-e-sign-storage-metering/54-01-SUMMARY.md
 - FOUND commit: 8b42cff22 (feat(54-01): author esign metering migration + dual-client RLS test)

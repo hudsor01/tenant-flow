@@ -397,6 +397,45 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			esign_events: {
+				Row: {
+					created_at: string;
+					event_type: string;
+					id: string;
+					lease_id: string;
+					owner_user_id: string;
+				};
+				Insert: {
+					created_at?: string;
+					event_type?: string;
+					id?: string;
+					lease_id: string;
+					owner_user_id: string;
+				};
+				Update: {
+					created_at?: string;
+					event_type?: string;
+					id?: string;
+					lease_id?: string;
+					owner_user_id?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "esign_events_lease_id_fkey";
+						columns: ["lease_id"];
+						isOneToOne: false;
+						referencedRelation: "leases";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "esign_events_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			expenses: {
 				Row: {
 					amount: number;
@@ -2619,6 +2658,14 @@ export type Database = {
 					unique_users: number;
 				}[];
 			};
+			get_esign_usage_current_month: {
+				Args: never;
+				Returns: {
+					cap: number;
+					unlimited: boolean;
+					used: number;
+				}[];
+			};
 			get_expense_summary: {
 				Args: { p_end_date?: string; p_start_date?: string; p_user_id: string };
 				Returns: Json;
@@ -2830,6 +2877,15 @@ export type Database = {
 					metadata: Json;
 					similarity: number;
 					source: string;
+				}[];
+			};
+			meter_esign_send: {
+				Args: { p_lease: string; p_owner: string };
+				Returns: {
+					allowed: boolean;
+					cap: number;
+					unlimited: boolean;
+					used: number;
 				}[];
 			};
 			process_account_deletions: { Args: never; Returns: undefined };
