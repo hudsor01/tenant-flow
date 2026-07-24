@@ -12,9 +12,14 @@
  *      prior batch's success — and clearing the file list resets the tracker.
  */
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { createElement } from "react";
 import type { FileError } from "react-dropzone";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { usageQueries } from "#hooks/api/query-keys/usage-keys";
+import { handleMutationError } from "#lib/mutation-error-handler";
 
 // Supabase client factory boundary — control upload success/error per call.
 const { mockUpload } = vi.hoisted(() => ({ mockUpload: vi.fn() }));
@@ -25,6 +30,19 @@ vi.mock("#lib/supabase/client", () => ({
 			from: () => ({ upload: mockUpload }),
 		},
 	}),
+}));
+
+// The storage-quota Upgrade toast is unit-tested in mutation-error-handler.test;
+// here we only assert the hook ROUTES a plan-limit rejection to the handler.
+vi.mock("#lib/mutation-error-handler", () => ({
+	handleMutationError: vi.fn(),
+	showStorageQuotaUpgradeToast: vi.fn(),
+}));
+
+// Pre-check reads usage via getCachedUser; resolve null so the pre-check query
+// throws 'Not authenticated' and is swallowed (non-destructive) in these tests.
+vi.mock("#lib/supabase/get-cached-user", () => ({
+	getCachedUser: vi.fn().mockResolvedValue(null),
 }));
 
 import { useSupabaseUpload } from "../use-supabase-upload";
@@ -38,9 +56,20 @@ function makeFile(name: string): TestFile {
 }
 
 function renderUploadHook() {
-	return renderHook(() =>
-		useSupabaseUpload({ bucketName: "property-images", maxFiles: 10 }),
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: { retry: false, gcTime: 0 },
+			mutations: { retry: false },
+		},
+	});
+	const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+	const wrapper = ({ children }: { children: ReactNode }) =>
+		createElement(QueryClientProvider, { client: queryClient }, children);
+	const { result } = renderHook(
+		() => useSupabaseUpload({ bucketName: "property-images", maxFiles: 10 }),
+		{ wrapper },
 	);
+	return { result, invalidateSpy };
 }
 
 beforeEach(() => {
@@ -183,5 +212,78 @@ describe("isSuccess — membership over the current batch", () => {
 			result.current.setFiles([c]);
 		});
 		expect(result.current.isSuccess).toBe(false);
+	});
+});
+
+describe("storage plan-limit — reactive Upgrade CTA + usage invalidation (METER-04)", () => {
+	it("routes a storage-quota rejection to handleMutationError AND keeps the inline error entry", async () => {
+		const a = makeFile("doc-a.jpg");
+		mockUpload.mockResolvedValue({
+			error: {
+				name: "StorageApiError",
+				message:
+					"plan_limit_exceeded: storage quota reached (11811160064 / 10737418240 bytes used)",
+				status: 400,
+				statusCode: "400",
+			},
+		});
+
+		const { result } = renderUploadHook();
+		await act(async () => {
+			result.current.setFiles([a]);
+		});
+		await act(async () => {
+			await result.current.onUpload();
+		});
+
+		// Reactive CTA: the shared handler renders the 'Plan limit reached' toast.
+		expect(vi.mocked(handleMutationError)).toHaveBeenCalledWith(
+			expect.objectContaining({
+				message: expect.stringContaining("plan_limit_exceeded:"),
+			}),
+			"Upload file",
+		);
+		// The dropzone still reflects the failed file via the inline errors[] entry.
+		expect(result.current.errors).toEqual([
+			{
+				name: "doc-a.jpg",
+				message: expect.stringContaining("plan_limit_exceeded:"),
+			},
+		]);
+	});
+
+	it("does NOT route an ordinary upload error to the plan-limit handler", async () => {
+		const a = makeFile("doc-b.jpg");
+		mockUpload.mockResolvedValue({ error: { message: "network blip" } });
+
+		const { result } = renderUploadHook();
+		await act(async () => {
+			result.current.setFiles([a]);
+		});
+		await act(async () => {
+			await result.current.onUpload();
+		});
+
+		expect(vi.mocked(handleMutationError)).not.toHaveBeenCalled();
+		expect(result.current.errors).toEqual([
+			{ name: "doc-b.jpg", message: "network blip" },
+		]);
+	});
+
+	it("invalidates usageQueries.storage() after a successful upload", async () => {
+		const a = makeFile("doc-c.jpg");
+		mockUpload.mockResolvedValue({ error: null });
+
+		const { result, invalidateSpy } = renderUploadHook();
+		await act(async () => {
+			result.current.setFiles([a]);
+		});
+		await act(async () => {
+			await result.current.onUpload();
+		});
+
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: usageQueries.storage().queryKey,
+		});
 	});
 });

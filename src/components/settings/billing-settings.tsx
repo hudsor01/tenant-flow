@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { BillingHistorySection } from "#components/settings/sections/billing-history-section";
 import { SubscriptionCancelSection } from "#components/settings/sections/subscription-cancel-section";
+import { UsageSection } from "#components/settings/sections/usage-section";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import { Skeleton } from "#components/ui/skeleton";
@@ -443,6 +444,7 @@ export function BillingSettings() {
 				</section>
 			</BlurFade>
 
+			<UsageSection />
 			<BillingHistorySection />
 			<SubscriptionCancelSection />
 		</div>

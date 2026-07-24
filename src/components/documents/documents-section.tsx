@@ -29,7 +29,16 @@ import {
 	LIST_DISPLAY_LIMIT,
 } from "#hooks/api/query-keys/document-keys";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
+import { usageQueries } from "#hooks/api/query-keys/usage-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
+import {
+	handleMutationError,
+	showStorageQuotaUpgradeToast,
+} from "#lib/mutation-error-handler";
+import {
+	isStoragePlanLimitError,
+	wouldExceedStorageQuota,
+} from "#lib/storage-plan-limit";
 import {
 	DEFAULT_CATEGORY_LABELS,
 	DEFAULT_CATEGORY_SLUGS,
@@ -147,6 +156,21 @@ export function DocumentsSection({
 
 		const { valid, rejected } = validateFiles(Array.from(fileList));
 
+		// PROACTIVE pre-check (the PRIMARY UX): surface the Upgrade prompt BEFORE
+		// uploading when this batch would push the owner at/over a finite quota.
+		// NON-destructive — never aborts (D-04: grandfathered / Max / flag-off
+		// owners must still upload; the DB trigger is authoritative). A usage-read
+		// failure must never block the upload either.
+		try {
+			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const totalIncomingBytes = valid.reduce((sum, f) => sum + f.size, 0);
+			if (wouldExceedStorageQuota(usage, totalIncomingBytes)) {
+				showStorageQuotaUpgradeToast();
+			}
+		} catch {
+			/* pre-check is a non-authoritative UX nicety; ignore read failures */
+		}
+
 		let uploaded = 0;
 		const failures: string[] = [];
 		for (const file of valid) {
@@ -163,14 +187,28 @@ export function DocumentsSection({
 				});
 				uploaded++;
 			} catch (err) {
-				failures.push(
-					`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
-				);
+				// A storage-quota rejection routes to the shared Upgrade toast
+				// (deduped with the pre-check via STORAGE_QUOTA_TOAST_ID), NOT the
+				// raw 'skipped' failure line. Everything else keeps the summary.
+				if (isStoragePlanLimitError(err)) {
+					handleMutationError(err, "Upload document");
+				} else {
+					failures.push(
+						`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
+					);
+				}
 			}
 		}
 
 		// Single invalidation after the whole batch (not once per file).
-		if (uploaded > 0) invalidateListAndDashboard();
+		if (uploaded > 0) {
+			invalidateListAndDashboard();
+			// A successful upload changes the owner's storage SUM — refresh the
+			// Settings usage bar (Plan 05) so it reflects the new bytes.
+			queryClient.invalidateQueries({
+				queryKey: usageQueries.storage().queryKey,
+			});
+		}
 
 		reportUploadSummary({ uploaded, failures, rejected });
 
