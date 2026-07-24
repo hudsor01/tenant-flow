@@ -110,7 +110,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
   4. Ledger entries are append-only — corrections are reversal entries, never edits or deletes
   5. Revenue analytics adopt one revenue definition (lease-derived = scheduled, ledger = collected, no double-counting) and the collection-rate KPI returns to the dashboard from ledger actuals
 **Plans**: 8 plans
-- [ ] 55-01-PLAN.md — Ledger schema (rent_charges/rent_receipts append-only + RLS + guard trigger + ledger_start_date) + charge-generation cron
+- [x] 55-01-PLAN.md — Ledger schema (rent_charges/rent_receipts append-only + RLS + guard trigger + ledger_start_date) + charge-generation cron
 - [ ] 55-02-PLAN.md — Ledger read/reverse/onboarding RPCs + revenue-collected integration (fill collections, get_collection_rate)
 - [ ] 55-03-PLAN.md — Ledger-math derivation module (TDD) + Wave 0 tests (balance/money-guard unit + isolation/append-only/generation RLS scaffolds)
 - [ ] 55-04-PLAN.md — [BLOCKING] Apply migrations via MCP + reconcile timestamps + db:types + run integration suite (owner-run gate)
@@ -235,7 +235,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 | 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
-| 55. Rent Ledger | 0/8 | Planned | - |
+| 55. Rent Ledger | 1/8 | In Progress|  |
 | 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |
