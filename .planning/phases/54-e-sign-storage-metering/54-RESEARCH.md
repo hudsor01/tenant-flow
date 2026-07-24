@@ -551,18 +551,13 @@ export const usageQueries = {
 | A5 | `properties.owner_user_id` is the live canonical owner column (not `property_owner_id`) | Pattern 3 / Pitfall 5 | Resolver join fails/returns wrong owner. Verify via `list_tables` before shipping. CLAUDE.md + newer migrations strongly indicate `owner_user_id`. |
 | A6 | The metering RPC placed up-front is acceptable given rare failed-send over-count | Pattern 2 | If the owner-hostility of a "wasted" reservation is unacceptable, move metering to after `emailResult.success`. Owner decision; default is up-front. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`tenant-documents` `tenant`-scoped branch** — does any live object use `tenant/{tenant_id}/...`, and if so how is its owner resolved (tenants have no `owner_user_id`; must join via `lease_tenants`→`leases`)?
-   - Known: `property/lease/maintenance/inspection` branches are shipped across `20260420030000` / `v24` / `v25` migrations.
-   - Unclear: whether a `tenant` branch exists live.
-   - Recommendation: `select distinct (storage.foldername(name))[1] from storage.objects where bucket_id='tenant-documents'` at plan time; add the branch only if present.
+1. **`tenant-documents` entity-type branches** — RESOLVED (planning-time verification vs live migrations + RLS test). The premise "tenants have no `owner_user_id`" was WRONG: `public.tenants` HAS its own `owner_user_id` column, used directly in the live tenant-documents RLS (`20260424140000`: `where owner_user_id = (select auth.uid())`). The live first-segments are EXACTLY `property`, `lease`, `tenant`, `maintenance_request`, `inspection` (verified vs `20260420030000` / `20260424140000` / `20260426040728` + `tests/integration/rls/documents-cross-entity.rls.test.ts:320-329`). The resolver implements ALL FIVE branches, each resolving owner by path[2]: property→properties, lease→leases, tenant→tenants, maintenance_request→maintenance_requests, inspection→inspections. Fixed in Plan 03 Task 1 (Blocker 2). Note the string is `maintenance_request`, NOT `maintenance`; NO `lease_tenants` join is needed.
 
-2. **Does the over-cap send need the client wrapper enhancement, or is a self-actionable message enough?** (Pitfall 4)
-   - Recommendation: enhance `callLeaseSignatureEdgeFunction` to preserve `upgrade_url` (small); the Settings widget is the primary upgrade surface either way.
+2. **Over-cap send client wrapper** — RESOLVED: enhance `callLeaseSignatureEdgeFunction` to preserve `upgrade_url` (Plan 02 Task 2), so the 402 surfaces an actionable Upgrade CTA (not a bare toast); the Settings widget (Plan 05) is the proactive upgrade surface either way.
 
-3. **`get_owner_storage_usage` GRANT surface** — is it `authenticated` (called directly for the signed-in owner with an internal `auth.uid()` guard) or wrapped in a `get_storage_usage_summary()` read RPC?
-   - Recommendation: wrap in a param-less `get_storage_usage_summary()` returning `{used_bytes, limit_gb}` for the current owner; keeps the raw functions service_role-only (RPC-auth-guard convention).
+3. **`get_owner_storage_usage` GRANT surface** — RESOLVED: the raw usage/limit functions stay service_role-only; a param-less `get_storage_usage_summary()` returning `{used_bytes, limit_gb}` (resolving `(select auth.uid())` internally) is the single authenticated read surface (Plan 03 summary RPC). Consumed by the Settings widget (Plan 05) and the Plan 07 upload pre-check.
 
 ## Environment Availability
 

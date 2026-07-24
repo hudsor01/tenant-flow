@@ -50,9 +50,12 @@ created: 2026-07-23
 | 04-T2 | 54-04 | 3 | METER-04 | T-54-17 | trigger live, flag still OFF (no-op) | rls + MCP | `bun run typecheck && bun run test:integration -- storage-metering.rls.test.ts` | ➡ 04-T1 | ⬜ pending |
 | 05-T1 | 54-05 | 3 | METER-02, METER-03 | T-54-18 | typed usage mappers (Max/unlimited); formatBytes GB | unit (creates) | `bun run test:unit -- --run src/hooks/api/query-keys/__tests__/usage-keys.test.ts src/lib/__tests__/format-bytes.test.ts` | ❌ W0 (this task creates it) | ⬜ pending |
 | 05-T2 | 54-05 | 3 | METER-02, METER-03 | T-54-18/19 | 80% near-cap prompt; Max=Unlimited; GB render | unit/component (creates) | `bun run test:unit -- --run src/components/settings/__tests__/usage-section.test.tsx` | ❌ W0 (this task creates it) | ⬜ pending |
-| 06-T1 | 54-06 | 4 | METER-04 | T-54-20/22 | count→stamp→flip-LAST; post-flip grandfather vs crosser | rls (extends) | `bun run test:integration -- storage-metering.rls.test.ts` | ➡ 03-T1 (extends) | ⬜ pending |
-| 06-T2 | 54-06 | 4 | METER-04 | T-54-23 | over-quota report reviewed before the irreversible flip | manual (blocking) | MCP `execute_sql` over-quota report + human-verify | n/a (checkpoint) | ⬜ pending |
-| 06-T3 | 54-06 | 4 | METER-04 | T-54-20/21 | flag ON; grandfathered stamped (no Max); crosser blocked | rls + MCP | `bun run typecheck && bun run test:integration -- storage-metering.rls.test.ts` | ➡ 06-T1 | ⬜ pending |
+| 07-T1 | 54-07 | 4 | METER-04 | T-54-24/26 | storage plan-limit detector (message-prefix) + non-destructive pre-check math + handleMutationError CTA | unit (creates) | `bun run test:unit -- --run src/lib/__tests__/storage-plan-limit.test.ts src/lib/__tests__/mutation-error-handler.test.ts` | ❌ W0 (creates storage-plan-limit.ts + extends handler test) | ⬜ pending |
+| 07-T2 | 54-07 | 4 | METER-04 | T-54-24/25 | document-vault upload: detector re-throw + proactive pre-check → Upgrade CTA | typecheck + lint | `bun run typecheck && bun run lint` | ➡ 07-T1 | ⬜ pending |
+| 07-T3 | 54-07 | 4 | METER-04 | T-54-24/25 | image + avatar upload: CTA on rejection + non-destructive pre-check | unit (extends) | `bun run test:unit -- --run src/hooks/__tests__/use-supabase-upload.test.ts src/hooks/api/__tests__/use-profile-avatar-mutations.test.tsx` | ➡ 07-T1 | ⬜ pending |
+| 06-T1 | 54-06 | 5 | METER-04 | T-54-20/22 | count→stamp→flip-LAST; post-flip grandfather vs crosser | rls (extends) | `bun run test:integration -- storage-metering.rls.test.ts` | ➡ 03-T1 (extends) | ⬜ pending |
+| 06-T2 | 54-06 | 5 | METER-04 | T-54-23 | over-quota report reviewed before the irreversible flip | manual (blocking) | MCP `execute_sql` over-quota report + human-verify | n/a (checkpoint) | ⬜ pending |
+| 06-T3 | 54-06 | 5 | METER-04 | T-54-20/21 | flag ON; grandfathered stamped (no Max); crosser blocked | rls + MCP | `bun run typecheck && bun run test:integration -- storage-metering.rls.test.ts` | ➡ 06-T1 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky. The planner MUST populate one row per task and map every METER-0x ID.*
 
@@ -64,9 +67,10 @@ created: 2026-07-23
 2. **METER-01 calendar-month reset** — a `send` on the last day of month N and the 1st of month N+1 fall in different windows; the cap frees on the 1st. Boundary test around `date_trunc('month', now())`.
 3. **METER-01 resend exemption** — `resend` never inserts an `esign_events` row / never decrements the cap (D-02).
 4. **METER-03 storage SUM correctness** — the RPC sums `(metadata->>'size')::bigint` only over owner-attributable buckets (avatars, property-images, inspection-photos, maintenance-photos, tenant-documents) and EXCLUDES system buckets (`blog-covers`, `bulk-imports`, unused `lease-documents`); attribution resolves each object to the correct owner.
-5. **METER-04 upload guard** — BEFORE-INSERT trigger on `storage.objects`: rejects a non-grandfathered over-quota owner's upload with the structured `plan_limit_exceeded` (client renders upgrade prompt), while ALLOWING (a) grandfathered owners, (b) Max/unlimited tier, (c) service-role/signed-lease inserts (`auth.uid() IS NULL`), (d) everyone while the `storage_enforcement_enabled` flag is OFF. Reads/downloads/deletes never blocked.
+5. **METER-04 upload guard** — BEFORE-INSERT trigger on `storage.objects`: rejects a non-grandfathered over-quota owner's upload with the structured `plan_limit_exceeded` (the trigger message BEGINS with `plan_limit_exceeded:` — the Plan 07 client detector renders the Upgrade prompt from that prefix, since the Storage API strips hint/detail), while ALLOWING (a) grandfathered owners, (b) Max/unlimited tier, (c) service-role/signed-lease inserts (`auth.uid() IS NULL`), (d) everyone while the `storage_enforcement_enabled` flag is OFF. Reads/downloads/deletes never blocked.
 6. **METER-04 grandfather snapshot** — the pre-flip report enumerates over-quota owners and stamps `users.storage_grandfathered_at` BEFORE the flag flips; a grandfathered owner keeps uploading, a post-launch crosser is blocked.
 7. **METER-02 usage read** — the Settings usage RPC returns current-month e-sign count vs 25 and storage bytes vs quota; near-cap prompt fires at 80%; formatBytes renders GB correctly (not capped at MB).
+8. **METER-04 storage upload CTA (client, Plan 07)** — a StorageApiError whose message begins with `plan_limit_exceeded:` maps to the 'Plan limit reached / Upgrade' toast (`?source=storage_quota_gate`) via `handleMutationError`; the proactive pre-check (`usageQueries.storage`) is NON-destructive (never client-side hard-blocks a grandfathered/Max/flag-off owner); all three real upload sites (documents, property/inspection images, avatar) are wired. Unit-covered; the real end-to-end Storage upload toast is manually verified (below).
 
 ---
 
@@ -75,6 +79,7 @@ created: 2026-07-23
 - [ ] Unit test stubs for the e-sign metering RPC wrapper + storage-usage mapper (typed boundary, no `as unknown as`).
 - [ ] RLS integration cases (`tests/integration/rls/`) for: `esign_events` owner-SELECT isolation + service_role-only INSERT; `storage.objects` upload guard behavior.
 - [ ] Edge-fn (Deno) case for the `lease-signature` `send` metering hook (26th-send 402 path) — requires `supabase functions serve`.
+- [ ] Unit tests for the storage plan-limit client detector + pre-check helper (`src/lib/__tests__/storage-plan-limit.test.ts`, created in 07-T1) and the `handleMutationError` storage-prefix extension (`src/lib/__tests__/mutation-error-handler.test.ts`, extended in 07-T1); hook/mutation CTA coverage in `use-supabase-upload.test.ts` + `use-profile-avatar-mutations.test.tsx` (07-T3).
 
 *Existing infrastructure (Vitest/Deno/RLS/Playwright) covers the frameworks; only new test files are needed.*
 
@@ -85,7 +90,7 @@ created: 2026-07-23
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Grandfather go-flip gate | METER-04 | Prod-only flag flip mirroring Phase 53 go-live; irreversible-by-design | Run the over-quota population report via MCP; stamp grandfather; flip `storage_enforcement_enabled` LAST; verify a post-launch crosser is blocked and a grandfathered owner is not |
-| Real over-quota upload block UX | METER-04 | Needs a real Storage upload from the client to see the upgrade toast | Upload past quota as a non-grandfathered Growth owner; confirm the `plan_limit_exceeded` → upgrade CTA (not a plain error) |
+| Real over-quota upload block UX (Plan 07 client path) | METER-04 | Needs a real Storage upload from the client to see the Upgrade toast end-to-end (unit-covered in 07-T1/T3; the live StorageApiError.message shape is the last mile) | Upload past quota as a non-grandfathered Growth owner; confirm the StorageApiError message prefix `plan_limit_exceeded:` → 'Plan limit reached' Upgrade CTA (`?source=storage_quota_gate`), NOT the raw 'We couldn't save that file' string; confirm a grandfathered owner is NOT client-side blocked |
 
 ---
 
@@ -93,7 +98,7 @@ created: 2026-07-23
 
 - [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
-- [x] Wave 0 covers all MISSING references (each test file is created by the task that first needs it: esign-metering.rls.test.ts in 01-T1, storage-metering.rls.test.ts in 03-T1, usage-keys/format-bytes/usage-section tests in 05-T1/T2, Deno branch in 02-T1)
+- [x] Wave 0 covers all MISSING references (each test file is created by the task that first needs it: esign-metering.rls.test.ts in 01-T1, storage-metering.rls.test.ts in 03-T1, usage-keys/format-bytes/usage-section tests in 05-T1/T2, Deno branch in 02-T1, storage-plan-limit.test.ts + mutation-error-handler.test.ts extension in 07-T1, upload-site hook tests in 07-T3)
 - [x] No watch-mode flags
 - [x] Feedback latency < 60s (unit ~30-60s; RLS/DB via MCP execute_sql)
 - [x] `nyquist_compliant: true` set in frontmatter
