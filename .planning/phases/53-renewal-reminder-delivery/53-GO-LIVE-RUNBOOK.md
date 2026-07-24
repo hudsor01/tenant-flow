@@ -1,4 +1,13 @@
-> **UPDATE 2026-07-23: send-lease-reminders v1 is DEPLOYED (owner terminal, valid PAT + IPv4). The deploy step below is DONE. Remaining go-live = set the secret + drain_url + apply C2.**
+> **GO-LIVE COMPLETE 2026-07-23.** All steps executed and verified live:
+> deploy DONE; `REMINDERS_INVOKE_SECRET` set + mirrored into
+> `app_config.reminders.drain_secret` (64-char, byte-for-byte); `drain_url` set;
+> C1 applied (backlog 0, n8n hop gone); pre-flip Bearer smoke `200 skipped:disabled`
+> (matches — not 401); **Migration C2 applied (prod version `20260723224440`) —
+> `reminders_delivery_enabled='true'`**; post-flip drain `200 {ok:true,processed:0,sent:0}`
+> (no retroactive storm, clean slate held). Renewal-reminder email delivery is ON;
+> the 06:30 drain cron now delivers reminders queued after go-live. Rollback: set
+> the flag `'false'` (Step 5 / Rollback below). The steps below are retained as the
+> historical procedure.
 
 # Phase 53 — Renewal Reminder Delivery: Go-Live Runbook
 
