@@ -89,8 +89,8 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
   4. Uploads are soft-enforced against the plan quota with an upgrade prompt; a pre-launch over-quota population report gates enforcement and existing over-quota owners are grandfathered (never blocked from reads/downloads/deletes)
 **Plans**: 7 plans
 - [x] 54-01-PLAN.md — E-sign metering DB layer: append-only `esign_events` + advisory-lock `meter_esign_send` RPC + `get_esign_usage_current_month` read RPC (METER-01)
-- [ ] 54-02-PLAN.md — E-sign edge-fn hook: `meter_esign_send` at the `lease-signature` send path (send-only, D-02) + 402 over-cap upgrade CTA wiring (METER-01)
-- [ ] 54-03-PLAN.md — Storage quota + usage DB layer: net-new `get_owner_storage_limit_gb` (Max -1) + path `storage_object_owner` resolver + `get_owner_storage_usage` SUM + `get_storage_usage_summary` read RPC (METER-03)
+- [x] 54-02-PLAN.md — E-sign edge-fn hook: `meter_esign_send` at the `lease-signature` send path (send-only, D-02) + 402 over-cap upgrade CTA wiring (METER-01)
+- [x] 54-03-PLAN.md — Storage quota + usage DB layer: net-new `get_owner_storage_limit_gb` (Max -1) + path `storage_object_owner` resolver + `get_owner_storage_usage` SUM + `get_storage_usage_summary` read RPC (METER-03)
 - [ ] 54-04-PLAN.md — Storage upload guard: BEFORE INSERT trigger on `storage.objects` + `users.storage_grandfathered_at` + `storage_enforcement_enabled` flag seeded OFF (METER-04)
 - [ ] 54-05-PLAN.md — Settings usage widgets: e-sign + storage usage bars with 80% near-cap upgrade prompts + `formatBytes` GB fix (METER-02, METER-03)
 - [ ] 54-07-PLAN.md — Storage upload-CTA client wiring: `plan_limit_exceeded:` StorageApiError detector + proactive `usageQueries.storage` pre-check → Upgrade toast, wired into the 3 real upload sites (documents, images, avatar) (METER-04)
@@ -225,7 +225,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 |-------|----------------|--------|-----------|
 | 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
-| 54. E-sign & Storage Metering | 1/7 | In Progress|  |
+| 54. E-sign & Storage Metering | 3/7 | In Progress|  |
 | 55. Rent Ledger | 0/TBD | Not started | - |
 | 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
