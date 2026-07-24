@@ -11,6 +11,7 @@
 //   cancel      — revoke tokens and reset the lease to draft
 //   sign-owner  — record the owner's in-app signature; finalize if both signed
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { validateBearerAuth } from "../_shared/auth.ts";
 import {
 	getCorsHeaders,
@@ -40,6 +41,15 @@ import {
 } from "../_shared/tier-gate.ts";
 
 const TOKEN_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+
+/**
+ * Injectable dependencies so the metering/send branches can be driven by a
+ * fake SupabaseClient in `deno test` without binding a real HTTP listener
+ * (mirrors send-lease-reminders/index.ts DrainDeps).
+ */
+export interface LeaseSignatureDeps {
+	createClient?: (url: string, key: string) => SupabaseClient;
+}
 
 interface OwnedLease {
 	id: string;
@@ -92,7 +102,12 @@ ${
 	return wrapEmailLayout(body);
 }
 
-Deno.serve(async (req: Request) => {
+/** Core request handler. Exported so the unit test can drive it with a fake
+ *  Request + injected client without binding a real HTTP listener. */
+export async function handleRequest(
+	req: Request,
+	deps: LeaseSignatureDeps = {},
+): Promise<Response> {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
 
@@ -105,7 +120,8 @@ Deno.serve(async (req: Request) => {
 			],
 		});
 		const appUrl = env["NEXT_PUBLIC_APP_URL"].replace(/\/$/, "");
-		const supabase = createAdminClient(
+		const makeClient = deps.createClient ?? createAdminClient;
+		const supabase = makeClient(
 			env["SUPABASE_URL"],
 			env["SUPABASE_SERVICE_ROLE_KEY"],
 		);
@@ -228,6 +244,45 @@ Deno.serve(async (req: Request) => {
 						error: "Tenant email is required to send for signature",
 					}),
 					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
+
+			// METER-01: reserve one e-sign against the owner's monthly cap. Send only —
+			// `resend` never meters (D-02). user.id is the confirmed owner
+			// (loadOwnedLease validated owner_user_id === user.id). Placed up-front,
+			// immediately BEFORE the draft -> pending_signature state change, so the
+			// 26th Growth send this calendar month is refused before any lease work.
+			// Max owners return unlimited=true and pass straight through. A rare later
+			// email failure reverts the lease to draft (below) but leaves the reserved
+			// event counted — an accepted conservative over-count, never a data trap.
+			const { data: meterRows, error: meterErr } = await supabase.rpc(
+				"meter_esign_send",
+				{ p_owner: user.id, p_lease: leaseId },
+			);
+			if (meterErr) {
+				return errorResponse(req, 500, meterErr, { action: "meter_esign" });
+			}
+			const meter = (
+				meterRows as
+					| Array<{
+							allowed: boolean;
+							used: number | null;
+							cap: number;
+							unlimited: boolean;
+					  }>
+					| null
+			)?.[0];
+			if (!meter?.allowed) {
+				// Over-cap block: a 402 carrying upgrade_url so the client wrapper can
+				// surface an actionable Upgrade CTA (not a bare error toast).
+				return new Response(
+					JSON.stringify({
+						error:
+							"You've used all 25 lease e-signs included in your plan this month. Upgrade to Max for unlimited e-signs.",
+						upgrade_required: true,
+						upgrade_url: "/billing/plans?source=esign_quota",
+					}),
+					{ status: 402, headers: getJsonHeaders(req) },
 				);
 			}
 
@@ -564,4 +619,12 @@ Deno.serve(async (req: Request) => {
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "lease-signature" });
 	}
-});
+}
+
+// The handler registers Deno.serve() as a module side-effect (like every edge fn
+// in this repo). The unit test sets DENO_TEST_NO_SERVE=1 and dynamic-imports this
+// module, driving handleRequest() directly — so no real listener binds during
+// `deno test`. In prod the var is never set, so Deno.serve always runs.
+if (!Deno.env.get("DENO_TEST_NO_SERVE")) {
+	Deno.serve((req: Request) => handleRequest(req));
+}
