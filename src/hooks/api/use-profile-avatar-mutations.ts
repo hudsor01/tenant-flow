@@ -14,11 +14,14 @@ import { logger } from "#lib/frontend-logger";
 import {
 	handleMutationError,
 	handleMutationSuccess,
+	showStorageQuotaUpgradeToast,
 } from "#lib/mutation-error-handler";
+import { wouldExceedStorageQuota } from "#lib/storage-plan-limit";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { AvatarUploadResponse, UserProfile } from "#types/api-contracts";
 import { mutationKeys } from "./mutation-keys";
+import { usageQueries } from "./query-keys/usage-keys";
 
 import { profileKeys } from "./use-profile";
 
@@ -102,8 +105,22 @@ export function useUploadAvatarMutation() {
 	return useMutation({
 		...avatarMutationFactories.upload(),
 
-		onMutate: async () => {
+		onMutate: async (file: File) => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() });
+
+			// PROACTIVE pre-check: surface the Upgrade prompt before uploading when
+			// the avatar would push the owner at/over a finite storage quota.
+			// NON-destructive — still proceed so a grandfathered / Max / flag-off
+			// owner's upload succeeds (the DB trigger is authoritative). Ignore
+			// usage-read failures so the pre-check can never block an upload.
+			try {
+				const usage = await queryClient.ensureQueryData(usageQueries.storage());
+				if (wouldExceedStorageQuota(usage, file.size)) {
+					showStorageQuotaUpgradeToast();
+				}
+			} catch {
+				/* pre-check is a non-authoritative UX nicety; ignore read failures */
+			}
 
 			const previousProfile = queryClient.getQueryData<UserProfile>(
 				profileKeys.detail(),
@@ -134,6 +151,12 @@ export function useUploadAvatarMutation() {
 					avatar_url: data.avatar_url,
 				});
 			}
+
+			// The avatar upload changed the owner's storage SUM — refresh the
+			// Settings usage bar (Plan 05) so it reflects the new bytes.
+			queryClient.invalidateQueries({
+				queryKey: usageQueries.storage().queryKey,
+			});
 
 			handleMutationSuccess("Upload avatar", "Your avatar has been updated");
 		},

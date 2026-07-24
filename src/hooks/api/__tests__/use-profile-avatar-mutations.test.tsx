@@ -53,6 +53,7 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 vi.mock("#lib/mutation-error-handler", () => ({
 	handleMutationError: vi.fn(),
 	handleMutationSuccess: vi.fn(),
+	showStorageQuotaUpgradeToast: vi.fn(),
 }));
 
 vi.mock("#lib/frontend-logger", () => ({
@@ -65,6 +66,7 @@ vi.mock("#lib/frontend-logger", () => ({
 	}),
 }));
 
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { useUploadAvatarMutation } from "../use-profile-avatar-mutations";
 
 function renderWithClient<TReturn>(hook: () => TReturn): {
@@ -131,6 +133,40 @@ describe("useUploadAvatarMutation — cache-busted avatar_url (UIX-05)", () => {
 			"user-123/avatar.jpg",
 			file,
 			{ upsert: true, contentType: "image/jpeg" },
+		);
+	});
+});
+
+describe("useUploadAvatarMutation — storage plan-limit Upgrade CTA (METER-04)", () => {
+	it("routes a storage-quota rejection through handleMutationError for the Upgrade toast", async () => {
+		const { result } = renderWithClient(() => useUploadAvatarMutation());
+		const file = new File(["x"], "me.png", { type: "image/png" });
+
+		// The Plan 04 trigger rejects the upload with the plan_limit_exceeded:
+		// message prefix (StorageApiError — no hint/detail); the mutationFn
+		// re-throws it, and onError forwards it to the shared handler.
+		mockStorageUpload.mockResolvedValueOnce({
+			error: {
+				name: "StorageApiError",
+				message:
+					"plan_limit_exceeded: storage quota reached (11811160064 / 10737418240 bytes used)",
+				status: 400,
+				statusCode: "400",
+			},
+		});
+
+		await expect(result.current.mutateAsync(file)).rejects.toMatchObject({
+			message: expect.stringContaining("plan_limit_exceeded:"),
+		});
+
+		// onError forwarded the prefixed storage error to the shared handler,
+		// which (unit-tested in mutation-error-handler.test) renders the
+		// 'Plan limit reached' Upgrade toast (source=storage_quota_gate).
+		expect(vi.mocked(handleMutationError)).toHaveBeenCalledWith(
+			expect.objectContaining({
+				message: expect.stringContaining("plan_limit_exceeded:"),
+			}),
+			"Upload avatar",
 		);
 	});
 });
