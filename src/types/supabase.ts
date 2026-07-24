@@ -397,6 +397,45 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			esign_events: {
+				Row: {
+					created_at: string;
+					event_type: string;
+					id: string;
+					lease_id: string;
+					owner_user_id: string;
+				};
+				Insert: {
+					created_at?: string;
+					event_type?: string;
+					id?: string;
+					lease_id: string;
+					owner_user_id: string;
+				};
+				Update: {
+					created_at?: string;
+					event_type?: string;
+					id?: string;
+					lease_id?: string;
+					owner_user_id?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "esign_events_lease_id_fkey";
+						columns: ["lease_id"];
+						isOneToOne: false;
+						referencedRelation: "leases";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "esign_events_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			expenses: {
 				Row: {
 					amount: number;
@@ -2183,6 +2222,7 @@ export type Database = {
 					onboarding_status: string | null;
 					phone: string | null;
 					status: string;
+					storage_grandfathered_at: string | null;
 					stripe_customer_id: string | null;
 					subscription_cancel_at_period_end: boolean | null;
 					subscription_current_period_end: string | null;
@@ -2216,6 +2256,7 @@ export type Database = {
 					onboarding_status?: string | null;
 					phone?: string | null;
 					status?: string;
+					storage_grandfathered_at?: string | null;
 					stripe_customer_id?: string | null;
 					subscription_cancel_at_period_end?: boolean | null;
 					subscription_current_period_end?: string | null;
@@ -2249,6 +2290,7 @@ export type Database = {
 					onboarding_status?: string | null;
 					phone?: string | null;
 					status?: string;
+					storage_grandfathered_at?: string | null;
 					stripe_customer_id?: string | null;
 					subscription_cancel_at_period_end?: boolean | null;
 					subscription_current_period_end?: string | null;
@@ -2619,6 +2661,14 @@ export type Database = {
 					unique_users: number;
 				}[];
 			};
+			get_esign_usage_current_month: {
+				Args: never;
+				Returns: {
+					cap: number;
+					unlimited: boolean;
+					used: number;
+				}[];
+			};
 			get_expense_summary: {
 				Args: { p_end_date?: string; p_start_date?: string; p_user_id: string };
 				Returns: Json;
@@ -2683,6 +2733,11 @@ export type Database = {
 				Args: { p_months?: number; p_owner_id: string };
 				Returns: Json;
 			};
+			get_owner_storage_limit_gb: {
+				Args: { p_owner: string };
+				Returns: number;
+			};
+			get_owner_storage_usage: { Args: { p_owner: string }; Returns: number };
 			get_property_performance_analytics: {
 				Args: {
 					p_limit?: number;
@@ -2732,6 +2787,13 @@ export type Database = {
 					mean_time_ms: number;
 					query_preview: string;
 					total_time_ms: number;
+				}[];
+			};
+			get_storage_usage_summary: {
+				Args: never;
+				Returns: {
+					limit_gb: number;
+					used_bytes: number;
 				}[];
 			};
 			get_stripe_customer_by_user_id: {
@@ -2832,6 +2894,15 @@ export type Database = {
 					source: string;
 				}[];
 			};
+			meter_esign_send: {
+				Args: { p_lease: string; p_owner: string };
+				Returns: {
+					allowed: boolean;
+					cap: number;
+					unlimited: boolean;
+					used: number;
+				}[];
+			};
 			process_account_deletions: { Args: never; Returns: undefined };
 			process_subscription_status_change: {
 				Args: {
@@ -2926,6 +2997,10 @@ export type Database = {
 					lease_id: string;
 					success: boolean;
 				}[];
+			};
+			storage_object_owner: {
+				Args: { p_bucket: string; p_name: string };
+				Returns: string;
 			};
 		};
 		Enums: {
