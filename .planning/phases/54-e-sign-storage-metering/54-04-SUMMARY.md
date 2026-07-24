@@ -26,7 +26,7 @@ tech-stack:
 
 key-files:
   created:
-    - supabase/migrations/20260723140000_storage_enforcement_guard.sql
+    - supabase/migrations/20260724041621_storage_enforcement_guard.sql
   modified:
     - tests/integration/rls/storage-metering.rls.test.ts
 
@@ -60,7 +60,7 @@ completed: 2026-07-23
 - **Files modified:** 1 created, 1 modified
 
 ## Accomplishments
-- Authored `20260723140000_storage_enforcement_guard.sql`: (1) `users.storage_grandfathered_at` (nullable timestamptz) + `comment on column` + a non-mutating allowlist-protection note; (2) `app_config` seed `storage_enforcement_enabled='false'` with `on conflict (key) do nothing`; (3) `enforce_storage_quota()` SECURITY DEFINER / `search_path=public` with the full ordered exemption ladder; (4) `drop trigger if exists` + `create trigger trg_enforce_storage_quota before insert on storage.objects`.
+- Authored `20260724041621_storage_enforcement_guard.sql`: (1) `users.storage_grandfathered_at` (nullable timestamptz) + `comment on column` + a non-mutating allowlist-protection note; (2) `app_config` seed `storage_enforcement_enabled='false'` with `on conflict (key) do nothing`; (3) `enforce_storage_quota()` SECURITY DEFINER / `search_path=public` with the full ordered exemption ladder; (4) `drop trigger if exists` + `create trigger trg_enforce_storage_quota before insert on storage.objects`.
 - Applied the orchestrator's prod attribution correction: owner = `coalesce(new.owner, (select auth.uid()))`; system-bucket exemption via a `bucket_id not in (five owner-attributable buckets)` allowlist. Consumes the LIVE `get_owner_storage_usage` / `get_owner_storage_limit_gb`; attribution is NOT re-derived in the trigger.
 - Left the live P0 `guard_user_self_update()` fail-closed allowlist untouched (no `create or replace` in the executable SQL); the new column is protected by omission from `allowed_cols`, documented in a full-line SQL comment.
 - Extended `tests/integration/rls/storage-metering.rls.test.ts` with a service-role-driven METER-04 `describe.skipIf` block covering all seven behaviors (enforce / grandfather / max / service_role / system-bucket / flag-OFF + reads-and-deletes unaffected), restoring the owner's real plan + clearing the grandfather stamp + leaving the prod flag `'false'` in teardown.
@@ -73,7 +73,7 @@ completed: 2026-07-23
 **Plan metadata:** committed separately (docs: this SUMMARY)
 
 ## Files Created/Modified
-- `supabase/migrations/20260723140000_storage_enforcement_guard.sql` - storage_grandfathered_at column + app_config kill-flag seed (OFF) + enforce_storage_quota() trigger fn + trg_enforce_storage_quota BEFORE INSERT on storage.objects
+- `supabase/migrations/20260724041621_storage_enforcement_guard.sql` - storage_grandfathered_at column + app_config kill-flag seed (OFF) + enforce_storage_quota() trigger fn + trg_enforce_storage_quota BEFORE INSERT on storage.objects
 - `tests/integration/rls/storage-metering.rls.test.ts` - appended the service-role-driven METER-04 enforcement matrix (fabricated over-quota seed; message-prefix assertion; reads/deletes-unaffected case)
 
 ## Decisions Made
@@ -87,7 +87,7 @@ completed: 2026-07-23
 - **Directed by:** the orchestrator's `<critical_boundary_and_correction>` (Wave-2 prod attribution correction).
 - **Change:** trigger uses `v_owner := coalesce(new.owner, (select auth.uid()))` and exempts system/unattributable buckets via `new.bucket_id not in (avatars, property-images, inspection-photos, maintenance-photos, tenant-documents)`, instead of the RESEARCH/PLAN §Pattern-4 `v_owner := storage_object_owner(new.bucket_id, new.name); if v_owner is null then return new`.
 - **Why:** path-parsing alone attributed 1/877 real objects; the native uploader column is the correct primary attribution. This does NOT re-implement attribution (that lives in the already-applied `get_owner_storage_usage`), it only fixes how the trigger names the uploading owner and how it detects system buckets.
-- **Files:** `supabase/migrations/20260723140000_storage_enforcement_guard.sql`
+- **Files:** `supabase/migrations/20260724041621_storage_enforcement_guard.sql`
 - **Committed in:** `fcc82e76e`
 
 ---
@@ -100,7 +100,7 @@ None during authoring. One risk surfaced and is delegated to Task 2 (below): the
 
 ## Deferred to Orchestrator (Task 2 — [BLOCKING], requires Supabase MCP + prod)
 This agent did NOT apply the migration, did NOT run `bun run db:types` / `typecheck` / `test:integration` / `supabase db push`, and did NOT modify `src/types/supabase.ts`, `STATE.md`, or `ROADMAP.md`. The orchestrator must:
-1. **Apply** `supabase/migrations/20260723140000_storage_enforcement_guard.sql` via MCP `apply_migration` (name `storage_enforcement_guard`). **A4 check:** confirm the BEFORE INSERT trigger creates on hosted Supabase (precedent `handle_property_image_upload` says yes); if role perms reject it, apply the `AS RESTRICTIVE` INSERT-policy fallback and record in the SUMMARY that the upgrade payload is lost.
+1. **Apply** `supabase/migrations/20260724041621_storage_enforcement_guard.sql` via MCP `apply_migration` (name `storage_enforcement_guard`). **A4 check:** confirm the BEFORE INSERT trigger creates on hosted Supabase (precedent `handle_property_image_upload` says yes); if role perms reject it, apply the `AS RESTRICTIVE` INSERT-policy fallback and record in the SUMMARY that the upgrade payload is lost.
 2. **Reconcile** the repo filename to the prod-assigned version via `list_migrations` (migration-mcp-prod-drift).
 3. **Regenerate** `src/types/supabase.ts` (`bun run db:types`; MCP `generate_typescript_types` fallback) → confirm `storage_grandfathered_at` on the users row type. Then `bun run typecheck` exits 0.
 4. **Run** `bun run test:integration -- storage-metering.rls.test.ts` (the extended METER-04 matrix). **Prerequisite:** confirm prod PostgREST exposes the `storage` schema to `service_role` (the seed uses `.schema('storage').from('objects')`); if not, add `storage` to the project's exposed schemas OR pre-seed the oversize rows via MCP `execute_sql` before running.
@@ -118,7 +118,7 @@ This agent did NOT apply the migration, did NOT run `bun run db:types` / `typech
 None. The `.schema('storage')` over-quota seed is a real (fabricated-size) row, not a stub; the grandfather column is wired into the trigger and the Plan 06 snapshot target.
 
 ## Self-Check: PASSED
-- FOUND: supabase/migrations/20260723140000_storage_enforcement_guard.sql
+- FOUND: supabase/migrations/20260724041621_storage_enforcement_guard.sql
 - FOUND: tests/integration/rls/storage-metering.rls.test.ts (METER-04 block appended)
 - FOUND: commit fcc82e76e
 - CONFIRMED: plan `<automated>` grep verify passes for both files

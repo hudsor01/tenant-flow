@@ -2222,6 +2222,7 @@ export type Database = {
 					onboarding_status: string | null;
 					phone: string | null;
 					status: string;
+					storage_grandfathered_at: string | null;
 					stripe_customer_id: string | null;
 					subscription_cancel_at_period_end: boolean | null;
 					subscription_current_period_end: string | null;
@@ -2255,6 +2256,7 @@ export type Database = {
 					onboarding_status?: string | null;
 					phone?: string | null;
 					status?: string;
+					storage_grandfathered_at?: string | null;
 					stripe_customer_id?: string | null;
 					subscription_cancel_at_period_end?: boolean | null;
 					subscription_current_period_end?: string | null;
@@ -2288,6 +2290,7 @@ export type Database = {
 					onboarding_status?: string | null;
 					phone?: string | null;
 					status?: string;
+					storage_grandfathered_at?: string | null;
 					stripe_customer_id?: string | null;
 					subscription_cancel_at_period_end?: boolean | null;
 					subscription_current_period_end?: string | null;

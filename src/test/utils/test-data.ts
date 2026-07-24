@@ -77,6 +77,7 @@ export const DEFAULT_USER: User = {
 	subscription_updated_at: null,
 	subscription_source: null,
 	trial_ends_at: null,
+	storage_grandfathered_at: null,
 };
 
 /**
