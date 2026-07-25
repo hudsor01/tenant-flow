@@ -39,7 +39,11 @@ export function RentalApplicationTemplate() {
 			],
 		},
 		validators: {
-			onBlur: ({ value }) => {
+			// `onChange`, not `onBlur` (D4): a form-level onBlur schema only
+			// re-evaluates on blur, so a value set programmatically never refreshes
+			// `canSubmit`, and FormApi.handleSubmit early-returns on that stale flag
+			// before it revalidates - the submit click then silently does nothing.
+			onChange: ({ value }) => {
 				const result = rentalApplicationSchema.safeParse(value);
 				if (!result.success) {
 					return z.treeifyError(result.error);

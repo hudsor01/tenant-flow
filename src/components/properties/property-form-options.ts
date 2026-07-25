@@ -46,8 +46,14 @@ export const propertyFormOptions = formOptions({
 		acquisition_cost: null as number | null,
 		acquisition_date: "",
 	},
+	// Single `onChange` validator, deliberately NOT `onBlur` + `onSubmit` (D4).
+	// A form-level `onBlur` schema only re-evaluates on blur, so any value set
+	// programmatically (a Select, a calendar popover) never refreshes `canSubmit`.
+	// `FormApi.handleSubmit` then early-returns on that stale flag BEFORE it calls
+	// `validateAllFields("submit")`, so the click silently does nothing.
+	// Registering the same schema under `onSubmit` as well would also write the
+	// identical message under two errorMap keys and render it twice.
 	validators: {
-		onBlur: validationSchema,
-		onSubmit: validationSchema,
+		onChange: validationSchema,
 	},
 });

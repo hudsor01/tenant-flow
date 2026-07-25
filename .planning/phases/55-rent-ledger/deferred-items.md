@@ -153,7 +153,49 @@ updates. Worth a follow-up plan, not an in-flight deviation.
 **Owning artifact:** `src/components/leases/lease-form-options.ts` and any other form
 using `validators: { onBlur: schema, onSubmit: schema }` with a `canSubmit`-disabled
 submit button
-**Status:** DEFERRED — fixed inside the three 55-06 dialogs only
+**Status:** ✅ RESOLVED — swept codebase-wide by the orchestrator after 55-06.
+
+The mechanism was verified directly against the installed `@tanstack/form-core`
+(`FormApi.js`) rather than taken on report — `handleSubmit` really does contain
+
+```js
+if (!this.state.canSubmit && !this._devtoolsSubmissionOverride) {
+  this.options.onSubmitInvalid?.({ ... });
+  return;                                 // early return on a STALE flag
+}
+...
+await this.validateAllFields("submit");   // revalidation only happens after
+```
+
+so a stale `canSubmit` short-circuits submission before anything revalidates.
+
+**Swept:** every form-level `onBlur` validator in `src/` is gone (grep now returns 0):
+
+- `src/components/leases/lease-form-options.ts` — `{onBlur, onSubmit}` → `{onChange}`
+- `src/components/properties/property-form-options.ts` — same
+- the four `documents/templates/components/*-template.client.tsx` — `onBlur` → `onChange`
+
+The two form-options files were the ones that actually bit: both pair the schema with
+Select/date fields whose values are set programmatically (no blur fires), and
+`lease-form.tsx` gates its button on `isSubmitting`, so the click reached
+`handleSubmit` and was silently swallowed — "the button does nothing". The four
+template clients were not reachable today (no `canSubmit` gating, no programmatic
+setters, all plain text inputs) but were converted anyway so that adding a Select
+later cannot silently re-arm the bug.
+
+**Deliberately NOT changed:** `src/lib/forms/form-components/submit-button.tsx` still
+gates on `canSubmit`. It is correct on its own — the deadlock needs a form-level
+`onBlur` partner, and none remain — and its contract is covered by a passing test
+("disables the submit button while the form cannot submit"). Changing it would break a
+documented, tested behaviour for no gain, so the interaction is documented in its
+docblock instead.
+
+Verified: lease + property suites 349 tests / 32 files green.
+
+<details>
+<summary>Original report (kept for context)</summary>
+
+**Status when found:** DEFERRED — fixed inside the three 55-06 dialogs only
 
 Two TanStack Form behaviours combine into a silent dead button, both reproduced and
 fixed locally in 55-06 (see the SUMMARY deviations):
@@ -175,3 +217,5 @@ only on `isSubmitting`). The same shapes exist elsewhere — `lease-form-options
 `onBlur` + `onSubmit` with the same schema, and several forms gate the submit button on
 `canSubmit`. Out of scope for a dialogs plan; worth a focused sweep since the symptom is
 "the button does nothing" rather than a visible error.
+
+</details>
