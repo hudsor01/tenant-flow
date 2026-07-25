@@ -153,7 +153,19 @@ export interface AnalyticsSummary {
 }
 
 export interface FinancialMetricSummary {
+	/**
+	 * SCHEDULED rent: lease-derived expected revenue, surfaced under the
+	 * explicit "Scheduled" label (D-07). Unchanged calculation — every downstream
+	 * derivation (netIncome, cashFlow, profitMargin) still uses THIS figure, not
+	 * `totalCollected`.
+	 */
 	totalRevenue: number;
+	/**
+	 * COLLECTED: receipts actually recorded in the rent ledger over the trailing
+	 * 12 months (D-07). A separate, separately-labeled figure — it is never added
+	 * to `totalRevenue` and never re-bases profit or NOI.
+	 */
+	totalCollected: number;
 	totalExpenses: number;
 	netIncome: number;
 	cashFlow: number;

@@ -70,6 +70,7 @@ export default function FinancialAnalyticsPage() {
 	const {
 		metrics = {
 			totalRevenue: 0,
+			totalCollected: 0,
 			totalExpenses: 0,
 			netIncome: 0,
 			cashFlow: 0,
