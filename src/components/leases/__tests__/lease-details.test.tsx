@@ -5,7 +5,7 @@
  * Tests the enhanced lease detail view including:
  * - Timeline rendering with events
  * - Status badges and expiring badges
- * - Tabbed content (Details, Timeline, Terms)
+ * - Tabbed content (Details, Ledger, Timeline, Terms)
  * - Responsive layout
  * - Loading and error states
  */
@@ -489,12 +489,39 @@ describe("LeaseDetails", () => {
 			const detailsTab = screen.getByRole("tab", { name: /details/i });
 			await user.click(detailsTab);
 
-			// Arrow right should move to next tab
+			// Tab order is Details, Ledger, Timeline, Terms (Phase 55 mounted the
+			// per-lease rent ledger between Details and Timeline).
+			await user.keyboard("{ArrowRight}");
+
+			await waitFor(() => {
+				expect(screen.getByRole("tab", { name: /ledger/i })).toHaveFocus();
+			});
+
 			await user.keyboard("{ArrowRight}");
 
 			await waitFor(() => {
 				expect(screen.getByRole("tab", { name: /timeline/i })).toHaveFocus();
 			});
+		});
+
+		test("the ledger tab shows the start-tracking empty state for an untracked lease", async () => {
+			const user = userEvent.setup();
+			render(<LeaseDetails id="lease-test-123" />);
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("tab", { name: /ledger/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("tab", { name: /ledger/i }));
+
+			// mockLease.ledger_start_date is null, so D-04 requires the empty state
+			// rather than an all-zero ledger.
+			expect(await screen.findByText("No rent ledger yet")).toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: "Start tracking rent" }),
+			).toBeInTheDocument();
 		});
 
 		test("links have accessible text", async () => {
