@@ -38,3 +38,30 @@ relaxing the guard is a schema decision (e.g. allow DELETE when the parent row
 is itself being deleted, or drop the cascade in favour of a restrict + explicit
 archival). Surface to the user in 55-04 before changing the immutability
 guarantee — it is the load-bearing LEDGER-06 control.
+
+---
+
+## D2 — Concurrent out-of-scope edits to `tests/**`, `package.json`, `biome.json`
+
+**Found during:** 55-05 (both tasks)
+**Owning artifact:** none in Phase 55 — a separate workstream
+**Verify in:** whoever owns that change (not Phase 55)
+
+While 55-05 was executing, the working tree acquired unstaged modifications that
+this plan did not make and did not commit:
+
+- `package.json` — `typecheck` widened from `tsc --noEmit` to also run
+  `tests/integration/tsconfig.json` and `tests/e2e/tsconfig.json`
+- `biome.json` — `linter.rules.recommended: false` replaced with `preset: "none"`
+- `tests/integration/tsconfig.json` — now extends the root tsconfig
+- ~15 files under `tests/integration/` and `tests/e2e/` — `noUnusedLocals` and
+  `exactOptionalPropertyTypes` fixes, including
+  `tests/integration/rls/rent-ledger-append-only.test.ts` (a 55-03 artifact)
+
+None of these are 55-05's scope, so per the executor scope boundary they were
+left unstaged and uncommitted; every 55-05 commit staged its files individually.
+One consequence worth recording: the widened `typecheck` script is what the
+lefthook pre-commit gate now runs, so `tests/**` type errors from that
+workstream will block unrelated commits. A first attempt at the Task 2 commit
+did fail its `lint` step mid-edit of `biome.json` and succeeded on retry once
+that file settled — a race, not a defect in the committed code.
