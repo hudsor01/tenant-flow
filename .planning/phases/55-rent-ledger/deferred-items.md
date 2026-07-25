@@ -5,11 +5,32 @@ found them (per the executor scope boundary).
 
 ---
 
-## D1 — The append-only guard trigger also blocks `ON DELETE CASCADE`
+## D1 — The append-only guard trigger also blocks `ON DELETE CASCADE` — ✅ RESOLVED
+
+**Status:** RESOLVED in 55-04 by `supabase/migrations/20260725131659_rent_ledger_cascade_delete_guard.sql`
+(applied to prod, prod version `20260725131659`).
+
+**Confirmed live before fixing:** inserting one charge against a real lease and then
+deleting that lease failed with `sqlstate=0A000`
+("rent ledger is append-only ... (row ...)") — exactly as predicted below.
+
+**Fix shipped:** `rent_ledger_append_only()` now discriminates by `pg_trigger_depth()`.
+UPDATE is still refused for every writer; a *direct* DELETE is still refused; a DELETE
+arriving from a parent FK cascade (`pg_trigger_depth() > 1`) is permitted. This preserves
+LEDGER-06 (corrections are reversal inserts, never edits or quiet removals) while letting
+whole-entity deletion work as the FKs declare — ledger rows cannot outlive their parent
+anyway, since the FK forbids orphans.
+
+**Verified live after fixing:** `update = blocked 0A000 | direct delete = blocked 0A000 |
+cascade delete = allowed`. Both the before and after probes ran inside deliberately-aborted
+transactions, so prod data was never mutated.
 
 **Found during:** 55-03 Task 3 (authoring the RLS integration scaffolds)
-**Owning artifact:** `supabase/migrations/20260724140000_rent_ledger_schema.sql` (55-01)
-**Verify in:** 55-04 (the apply + live-behavior gate)
+**Owning artifact:** `supabase/migrations/20260725020925_rent_ledger_schema.sql` (55-01)
+**Resolved in:** 55-04 (the apply + live-behavior gate)
+
+<details>
+<summary>Original report (kept for context)</summary>
 
 `rent_ledger_append_only()` is a `BEFORE UPDATE OR DELETE ... FOR EACH ROW`
 trigger that raises `0A000` unconditionally, for every writer. Both ledger
@@ -41,11 +62,35 @@ guarantee — it is the load-bearing LEDGER-06 control.
 
 ---
 
-## D2 — Concurrent out-of-scope edits to `tests/**`, `package.json`, `biome.json`
+## D2 — Concurrent edits to `tests/**`, `package.json`, `biome.json` — ✅ RESOLVED (correctly attributed)
 
 **Found during:** 55-05 (both tasks)
-**Owning artifact:** none in Phase 55 — a separate workstream
-**Verify in:** whoever owns that change (not Phase 55)
+**Owning artifact:** Phase 55 hygiene sweep — the orchestrator, not a separate workstream
+**Status:** RESOLVED. These edits were made deliberately by the orchestrator in parallel with
+55-05, under an explicit "fix everything no matter severity" directive, and are committed
+separately from the 55-05 plan commits.
+
+55-05's executor was right to leave them unstaged (they are outside its plan scope) and right
+to record them. The only correction to the note below is attribution: this is Phase 55 work,
+not an unrelated workstream. Rationale for each change:
+
+- **`tests/integration/tsconfig.json`** was dead — it declared `moduleResolution: "node"`
+  (node10), which hard-errors on this TypeScript version, and declared no `types`. So the RLS
+  suites were **never type-checked at all**; that is the true source of the recurring
+  "Cannot find name 'expect'/'describe'/'process'" diagnostics. It now extends the root config.
+- **`package.json` `typecheck`** was widened because both `tests/integration` and `tests/e2e`
+  had their own tsconfigs that nothing ever ran. Wiring them in is exactly what stops this
+  rotting again — and the executor's observation that `tests/**` errors now block commits is
+  the intended effect, not a side effect.
+- Enabling those two projects surfaced **43 previously-invisible type errors** (13 integration,
+  30 e2e), all fixed — including a genuine bug: a Playwright smoke test passed
+  `{ timeout: 120_000 }` as `TestDetails`, where Playwright silently ignores it, so a test
+  documented as needing 120s was still running on the default 30s budget.
+- **`biome.json`** — `linter.rules.recommended: false` is deprecated in Biome 2.5 and printed a
+  DEPRECATED warning on every lint and every commit; migrated to `preset: "none"` via the
+  official `biome migrate`.
+
+Original note follows.
 
 While 55-05 was executing, the working tree acquired unstaged modifications that
 this plan did not make and did not commit:

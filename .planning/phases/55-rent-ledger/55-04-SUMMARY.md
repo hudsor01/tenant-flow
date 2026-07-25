@@ -91,7 +91,36 @@ Regenerating types made `ledger_start_date` required on the `leases` Row type, b
 passed against stale types — exactly the false-positive state the plan warned about. Fixed by
 adding `ledger_start_date: null` to each fixture.
 
-## Deferred — not proven here
+## Live dollar-exact money proof — ✅ PROVEN (follow-up)
+
+Initially deferred (reasons preserved below), then **closed** with a rollback-guaranteed
+proof against the real deployed function and real production lease data.
+
+Method: a `DO` block that makes one real lease temporarily eligible, calls the live
+`generate_rent_charges()`, captures the result, then deliberately `raise`s — aborting the
+transaction so every effect is rolled back while the measurement rides out in the error
+message. Transaction rollback was verified beforehand with a throwaway probe table.
+
+```
+MONEYPROOF | rent_amount(int)=1800 | rows=3
+           | periods=[2026-05,2026-06,2026-07]
+           | amounts=[1800.00,1800.00,1800.00]
+           | ALL_DOLLAR_EXACT=t | any_100x=f
+```
+
+An integer `1800` produced `1800.00`, **not** `180000`. Multi-month generation is exercised
+too (three periods from track-since forward). Post-check confirmed zero persistence:
+0 charges, 0 receipts, 0 onboarded leases, probe lease still `draft` with
+`ledger_start_date = null`.
+
+This closes the LEDGER-01 money-boundary success criterion at the strongest available level:
+proven on the live engine with live data, with no prod mutation.
+
+The RLS integration suites remain CI-gated (they need `E2E_OWNER_*` GitHub secrets);
+`rls-security` runs them on the PR.
+
+<details>
+<summary>Original deferral note (superseded)</summary>
 
 **The live dollar-exact assertion (a real generated charge equals `rent_amount`) was not
 executed.** Two independent reasons:
@@ -110,6 +139,18 @@ executed.** Two independent reasons:
 the secrets exist. The money boundary is meanwhile defended by three independent layers that
 did pass: the deployed-function-body audit above, the static money-guard unit test (55-03),
 and the migration-file grep gates (55-01/55-02).
+
+</details>
+
+## Follow-up fix shipped in this plan — deferred item D1
+
+`rent_ledger_append_only()` blocked `ON DELETE CASCADE`, so a lease with any ledger history
+could not be deleted. Confirmed live (`sqlstate=0A000`), then fixed by
+`20260725131659_rent_ledger_cascade_delete_guard.sql`: UPDATE and direct DELETE stay refused
+for every writer, while a DELETE arriving from a parent FK cascade
+(`pg_trigger_depth() > 1`) is permitted. Verified live after apply —
+`update=blocked 0A000 | direct=blocked 0A000 | cascade=ALLOWED`. Both probes ran inside
+aborted transactions. See `deferred-items.md` D1.
 
 ## Files changed
 
