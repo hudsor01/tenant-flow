@@ -47,10 +47,19 @@ const BANNED_PHRASES = [
 // automated workflows engine, no native mobile app, no rent processing.
 // Matched case-insensitively. If a future product genuinely ships any of
 // these, remove the corresponding entry.
+// NOTE: "rent tracking" was removed from this list in Phase 55 (LEDGER-01..08),
+// per the "if a future product genuinely ships any of these, remove the
+// corresponding entry" rule above. The rent ledger ships: `rent_charges` /
+// `rent_receipts`, the `generate_rent_charges` cron, the read RPCs and the
+// per-lease ledger surface are live in production. Tracking rent as a
+// RECORD-KEEPING ledger is now a true claim. The facilitation phrases stay
+// banned in BANNED_PHRASES ("rent collection", "online rent", "autopay") and
+// below ("pay rent", "process rent", "rent processing"), because TenantFlow
+// still moves no money — the ledger records payments the owner already
+// received, and `method` is a text label, not a rail.
 const BANNED_FEATURE_CLAIMS = [
 	"tenant screening",
 	"automated workflow",
-	"rent tracking",
 	"mobile app access",
 	"record rent",
 	"paid rent",
