@@ -115,6 +115,7 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	lease_status: "active",
 	payment_day: 1,
 	grace_period_days: null,
+	ledger_start_date: null,
 	late_fee_amount: null,
 	late_fee_days: null,
 	created_at: "2024-01-01T00:00:00Z",

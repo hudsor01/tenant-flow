@@ -163,6 +163,7 @@ const mockLease: LeaseWithExtras = {
 	security_deposit: 150000,
 	lease_status: "active",
 	grace_period_days: null,
+	ledger_start_date: null,
 	late_fee_amount: null,
 	late_fee_days: null,
 	payment_day: 1,

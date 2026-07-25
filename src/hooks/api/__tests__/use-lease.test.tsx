@@ -1023,6 +1023,7 @@ describe("transformLease (LEASE-01 list embed shape)", () => {
 		lease_status: "active",
 		payment_day: 1,
 		grace_period_days: 3,
+		ledger_start_date: null,
 		late_fee_amount: 50,
 		late_fee_days: 5,
 		created_at: "2025-12-15T00:00:00Z",
