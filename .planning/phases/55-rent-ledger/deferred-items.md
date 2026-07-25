@@ -110,3 +110,37 @@ lefthook pre-commit gate now runs, so `tests/**` type errors from that
 workstream will block unrelated commits. A first attempt at the Task 2 commit
 did fail its `lint` step mid-edit of `biome.json` and succeeded on retry once
 that file settled — a race, not a defect in the committed code.
+
+---
+
+## D3 — The dashboard KPI bento still labels its lease-derived tile "Revenue"
+
+**Found during:** 55-08 Task 2 (Scheduled vs Collected relabel)
+**Owning artifact:** `src/components/dashboard/components/kpi-bento-row.tsx` (`buildKpiTileConfigs`, the `revenue` tile)
+**Status:** DEFERRED — deliberately NOT changed in 55-08
+
+55-UI-SPEC § Surface Layouts 6 names "dashboard revenue figures" alongside the
+financial overview as D-07 relabel sites. 55-08 relabeled the financial-overview
+card ("Total Revenue" -> "Scheduled" + a sibling "Collected") but left the
+dashboard bento's `Revenue / This month` tile alone. Two reasons, in order:
+
+1. **Different scheduled basis.** The bento tile renders
+   `stats.revenue.monthly` from `get_dashboard_stats` (active-lease MRR,
+   point-in-time). The collection-rate KPI mounted beside it derives its
+   `scheduled` from `rent_charges` rows for the current month. Those two numbers
+   legitimately differ for any owner who has not started tracking every lease.
+   Printing the word "Scheduled" on both would assert an equivalence that does
+   not hold, which is a worse honesty failure than the generic label.
+2. **Blast radius outside the plan.** The label is asserted in
+   `src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx` and in
+   `tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts`
+   (`readKpiTileNumber(page, "Revenue")`), the latter feeding the required
+   `e2e-smoke` CI gate. 55-08's plan scopes Task 2 to
+   `financial-overview-stats.tsx`.
+
+No double-count exists today: nothing on the dashboard sums the bento tile with
+any ledger figure, and the collection-rate KPI is a ratio, so D-07's hard rule
+holds. The remaining work is a labeling nicety that should be done together with
+either (a) re-basing the bento revenue tile on ledger `scheduled`, or (b)
+adding an explicit period/basis sublabel to both tiles — plus the two test
+updates. Worth a follow-up plan, not an in-flight deviation.

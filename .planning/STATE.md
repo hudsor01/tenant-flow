@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-07-25T13:18:13.641Z"
+last_updated: "2026-07-25T13:40:20.785Z"
 last_activity: 2026-07-25
 progress:
   total_phases: 13
   completed_phases: 3
   total_plans: 27
-  completed_plans: 24
+  completed_plans: 25
   percent: 23
 ---
 
@@ -30,7 +30,12 @@ Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-07-25
 
-Progress: [█████████░] 89%
+> **Out-of-order completion:** 55-08 (collection-rate KPI + Scheduled/Collected
+> relabel) executed ahead of 55-06/55-07. It is a wave-3 plan whose only
+> dependency is 55-04, which is live. 55-06 (ledger dialogs) and 55-07 (ledger
+> tab) are still outstanding, so the plan pointer stays at 6.
+
+Progress: [█████████░] 93%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
