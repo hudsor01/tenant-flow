@@ -144,3 +144,34 @@ holds. The remaining work is a labeling nicety that should be done together with
 either (a) re-basing the bento revenue tile on ledger `scheduled`, or (b)
 adding an explicit period/basis sublabel to both tiles — plus the two test
 updates. Worth a follow-up plan, not an in-flight deviation.
+
+---
+
+## D4 — Every app form with a form-level `onBlur` schema can swallow its own submit click
+
+**Found during:** 55-06 Task 1 (record-receipt dialog)
+**Owning artifact:** `src/components/leases/lease-form-options.ts` and any other form
+using `validators: { onBlur: schema, onSubmit: schema }` with a `canSubmit`-disabled
+submit button
+**Status:** DEFERRED — fixed inside the three 55-06 dialogs only
+
+Two TanStack Form behaviours combine into a silent dead button, both reproduced and
+fixed locally in 55-06 (see the SUMMARY deviations):
+
+1. A FORM-level `onBlur` validator validates the WHOLE form on every blur, so
+   `canSubmit` goes false while the user is still filling fields. A submit button
+   gated on `!canSubmit` therefore disables itself on the very blur that the submit
+   click causes, and the click never lands.
+2. `FormApi._handleSubmit` early-returns on a stale `canSubmit` BEFORE it revalidates.
+   So any value set programmatically (a chip, a calendar popover, a Select) leaves the
+   flag stale and the form refuses to submit even though it is now valid.
+
+Registering the same schema under both `onBlur`/`onChange` AND `onSubmit` also writes
+the same message under two `errorMap` keys, and `FieldError` renders a `<ul>` with the
+identical message twice.
+
+55-06 fixed all three inside its own dialogs (single `onChange` validator; submit gated
+only on `isSubmitting`). The same shapes exist elsewhere — `lease-form-options.ts` uses
+`onBlur` + `onSubmit` with the same schema, and several forms gate the submit button on
+`canSubmit`. Out of scope for a dialogs plan; worth a focused sweep since the symptom is
+"the button does nothing" rather than a visible error.
