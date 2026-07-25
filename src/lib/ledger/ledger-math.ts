@@ -62,8 +62,16 @@ export type LedgerEntry = {
 /** Derived per-charge state rendered as a badge. Never stored. */
 export type ChargeState = "paid" | "partial" | "unpaid" | "late";
 
-/** A ledger entry with its cumulative balance at that point in the stream. */
-export type LedgerEntryWithBalance = LedgerEntry & { runningBalance: number };
+/**
+ * A ledger entry with its cumulative balance at that point in the stream.
+ *
+ * Generic over the entry so a richer row (the mapper's `LedgerEntryRow`, which
+ * adds `description` / `method`) keeps its extra columns through the
+ * derivation instead of being narrowed back to the base contract.
+ */
+export type LedgerEntryWithBalance<T extends LedgerEntry = LedgerEntry> = T & {
+	runningBalance: number;
+};
 
 /**
  * Round a dollar figure to the numeric(10,2) scale the database stores, so
@@ -137,10 +145,14 @@ export function deriveChargeState(
  * charges add their signed amount (so a negative credit line reduces the
  * balance), receipts subtract theirs. Reversal rows carry the negated amount of
  * the entry they cancel, so a reversed pair nets back to zero (D-06).
+ *
+ * Generic over the entry type so the caller's row shape survives: the ledger
+ * table feeds this `LedgerEntryRow[]` and still reads `description` / `method`
+ * off the result, with no type assertion at the call site.
  */
-export function computeRunningBalance(
-	orderedEntries: LedgerEntry[],
-): LedgerEntryWithBalance[] {
+export function computeRunningBalance<T extends LedgerEntry>(
+	orderedEntries: readonly T[],
+): LedgerEntryWithBalance<T>[] {
 	let balance = 0;
 
 	return orderedEntries.map((entry) => {
