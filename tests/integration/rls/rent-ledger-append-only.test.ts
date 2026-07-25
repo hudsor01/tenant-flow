@@ -79,7 +79,9 @@ async function raises(
 	const { error } = await op;
 	if (error) {
 		const raised: Error & { code?: string } = new Error(error.message);
-		raised.code = error.code;
+		if (error.code !== undefined) {
+			raised.code = error.code;
+		}
 		throw raised;
 	}
 }
