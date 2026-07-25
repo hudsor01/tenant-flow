@@ -34,6 +34,10 @@ const LEDGER_PATHS: readonly string[] = [
 	"src/components/ledger",
 	"src/hooks/api/use-rent-ledger.ts",
 	"src/hooks/api/query-keys/rent-ledger-keys.ts",
+	// The write half of the data layer, split out of rent-ledger-keys.ts in
+	// 55-05 to stay under the 300-line cap. Listed explicitly so the split did
+	// not quietly move every ledger INSERT outside this guard's reach.
+	"src/hooks/api/query-keys/rent-ledger-mutation-options.ts",
 ];
 
 /**
