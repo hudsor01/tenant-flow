@@ -121,7 +121,7 @@ completed: 2026-07-25
 
 ### Out-of-scope discovery (logged, NOT fixed)
 
-A separate workstream modified `package.json` (`typecheck` widened to also run the two `tests/` tsconfigs), `biome.json` (`recommended: false` -> `preset: "none"`), `tests/integration/tsconfig.json`, and ~15 files under `tests/integration/` and `tests/e2e/` while this plan was running - including `tests/integration/rls/rent-ledger-append-only.test.ts`, a 55-03 artifact. None of it is 55-05's scope, so it was left unstaged and uncommitted; every commit here staged its files individually. Logged as **D2** in `deferred-items.md`.
+While this plan ran, the working tree acquired edits to `package.json` (`typecheck` widened to also run the two `tests/` tsconfigs), `biome.json` (`recommended: false` -> `preset: "none"`), `tests/integration/tsconfig.json`, and ~15 files under `tests/integration/` and `tests/e2e/` - including `tests/integration/rls/rent-ledger-append-only.test.ts`, a 55-03 artifact. None of it is 55-05's scope, so it was left unstaged and uncommitted; every commit here staged its files individually. Logged as **D2** in `deferred-items.md`, where the orchestrator has since annotated it: those edits are a deliberate Phase 55 hygiene sweep it owns and commits separately (the RLS suites were never type-checked at all because their tsconfig declared node10 `moduleResolution`; wiring the two projects into `typecheck` surfaced 43 real errors). The executor-side facts recorded here stand - the attribution is "orchestrator, same phase", not "unrelated workstream".
 
 ## Issues Encountered
 
