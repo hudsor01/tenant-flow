@@ -46,16 +46,14 @@ describe("mapCollectionRateRow", () => {
 				rate: 90,
 			};
 			delete row[field];
-			expect(() => mapCollectionRateRow(row)).toThrowError(
-				new RegExp(`'${field}'`),
-			);
+			expect(() => mapCollectionRateRow(row)).toThrow(new RegExp(`'${field}'`));
 		},
 	);
 
 	it("throws on a non-finite value", () => {
 		expect(() =>
 			mapCollectionRateRow({ scheduled: "abc", collected: 0, rate: 0 }),
-		).toThrowError(/scheduled/);
+		).toThrow(/scheduled/);
 	});
 });
 

@@ -91,7 +91,7 @@ describe("mapNotificationRow", () => {
 			expect(
 				() => mapNotificationRow(broken),
 				`expected throw when ${field} is missing`,
-			).toThrowError(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${field}'`));
 		}
 	});
 

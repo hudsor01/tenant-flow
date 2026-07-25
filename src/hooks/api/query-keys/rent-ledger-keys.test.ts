@@ -159,7 +159,7 @@ describe("mapLedgerSummaryRow", () => {
 	});
 
 	it("throws on a non-numeric aggregate rather than yielding NaN", () => {
-		expect(() => mapLedgerSummaryRow({ balance: "not-a-number" })).toThrowError(
+		expect(() => mapLedgerSummaryRow({ balance: "not-a-number" })).toThrow(
 			/'balance'/,
 		);
 	});
@@ -209,18 +209,18 @@ describe("mapLedgerEntryRow", () => {
 
 	it("throws when the NOT NULL id is missing", () => {
 		const { id: _id, ...withoutId } = chargeRow;
-		expect(() => mapLedgerEntryRow(withoutId)).toThrowError(/'id'/);
+		expect(() => mapLedgerEntryRow(withoutId)).toThrow(/'id'/);
 	});
 
 	it("throws when kind is not charge or receipt", () => {
-		expect(() =>
-			mapLedgerEntryRow({ ...chargeRow, kind: "transfer" }),
-		).toThrowError(/'kind'/);
+		expect(() => mapLedgerEntryRow({ ...chargeRow, kind: "transfer" })).toThrow(
+			/'kind'/,
+		);
 	});
 
 	it("throws when the NOT NULL amount is absent", () => {
 		const { amount: _amount, ...withoutAmount } = chargeRow;
-		expect(() => mapLedgerEntryRow(withoutAmount)).toThrowError(/'amount'/);
+		expect(() => mapLedgerEntryRow(withoutAmount)).toThrow(/'amount'/);
 	});
 
 	it("feeds ledger-math with a running balance in dollars", () => {

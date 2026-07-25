@@ -53,26 +53,26 @@ describe("mapDocumentCategoryRow", () => {
 			expect(
 				() => mapDocumentCategoryRow(broken),
 				`expected throw when ${field} is missing`,
-			).toThrowError(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${field}'`));
 		}
 	});
 
 	it("throws when sort_order is missing or non-number", () => {
 		expect(() =>
 			mapDocumentCategoryRow({ ...fullRow, sort_order: undefined }),
-		).toThrowError(/'sort_order'/);
+		).toThrow(/'sort_order'/);
 		expect(() =>
 			mapDocumentCategoryRow({ ...fullRow, sort_order: "10" }),
-		).toThrowError(/'sort_order'/);
+		).toThrow(/'sort_order'/);
 	});
 
 	it("throws when is_default is missing or non-boolean", () => {
 		expect(() =>
 			mapDocumentCategoryRow({ ...fullRow, is_default: undefined }),
-		).toThrowError(/'is_default'/);
+		).toThrow(/'is_default'/);
 		expect(() =>
 			mapDocumentCategoryRow({ ...fullRow, is_default: "true" }),
-		).toThrowError(/'is_default'/);
+		).toThrow(/'is_default'/);
 	});
 
 	it("throws when slug fails the format regex (defense-in-depth)", () => {
@@ -90,7 +90,7 @@ describe("mapDocumentCategoryRow", () => {
 			expect(
 				() => mapDocumentCategoryRow({ ...fullRow, slug }),
 				`expected throw when slug='${slug}'`,
-			).toThrowError(/malformed slug/);
+			).toThrow(/malformed slug/);
 		}
 	});
 });
