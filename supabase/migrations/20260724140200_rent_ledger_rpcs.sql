@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Rent ledger read / reverse / onboarding / collection-rate RPCs
--- (LEDGER-03/04/06/08) — the derived-state read layer over the append-only
+-- (LEDGER-03/04/06/08) - the derived-state read layer over the append-only
 -- rent_charges / rent_receipts tables created in 55-01.
 -- =============================================================================
 -- Purpose: one SQL source of truth for balance, late detection, the
@@ -11,7 +11,7 @@
 --
 -- Money boundary (D-00, load-bearing): every ledger amount is numeric(10,2)
 -- DOLLARS. These RPCs read the numeric dollars stored by 55-01 and return them
--- directly — no cents, no hundredfold scaling, no formatCents. The only
+-- directly - no cents, no hundredfold scaling, no formatCents. The only
 -- integer->numeric conversion in the whole subsystem happened once at charge
 -- generation (55-01 cron); the collection-rate denominator converts
 -- leases.rent_amount (integer dollars) with a single `::numeric(10,2)` cast.
@@ -19,7 +19,7 @@
 -- Late detection (D-03): a charge is late when it still has an unpaid remaining
 -- balance AND its due date is more than the fixed 5-day grace in the past
 -- (`due_date + interval '5 days' < current_date`). Grace is a single fixed
--- constant in v10 — the RPCs deliberately do NOT read any per-lease grace or
+-- constant in v10 - the RPCs deliberately do NOT read any per-lease grace or
 -- late-fee configuration columns (DIS-2); late is a DERIVED flag, never stored.
 --
 -- Reversals (D-06): corrections are append-only negation inserts, never edits.
@@ -35,15 +35,15 @@
 -- because SECURITY DEFINER bypasses RLS. Read/RPC functions are revoked from
 -- public/anon and granted to authenticated only. `(select auth.uid())` subselect.
 --
--- Analog: get_esign_usage_current_month (20260724031533 — param-less owner read
+-- Analog: get_esign_usage_current_month (20260724031533 - param-less owner read
 -- + 42501 guard + revoke/grant discipline) and get_revenue_trends_optimized
--- (20260709060533 — SECURITY DEFINER auth guard on a param-taking RPC).
+-- (20260709060533 - SECURITY DEFINER auth guard on a param-taking RPC).
 --
 -- Applied to prod in Plan 55-04 (the blocking gate), NOT here.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. get_lease_ledger_summary — per-lease derived totals + late derivation
+-- 1. get_lease_ledger_summary - per-lease derived totals + late derivation
 -- -----------------------------------------------------------------------------
 -- Returns the balance-strip figures for one lease: signed balance
 -- (Sum(charges) - Sum(receipts)), split charge/credit/receipt totals, and the
@@ -114,11 +114,11 @@ revoke all on function public.get_lease_ledger_summary(uuid) from public, anon;
 grant execute on function public.get_lease_ledger_summary(uuid) to authenticated;
 
 -- -----------------------------------------------------------------------------
--- 2. get_lease_ledger — ordered chronological entry stream for the ledger UI
+-- 2. get_lease_ledger - ordered chronological entry stream for the ledger UI
 -- -----------------------------------------------------------------------------
 -- Returns an ordered jsonb array of charge + receipt entries. The client
 -- computes running balance and per-charge paid/partial/unpaid badges via
--- ledger-math (55-03), so this RPC does NOT return running totals — only the
+-- ledger-math (55-03), so this RPC does NOT return running totals - only the
 -- raw ordered stream plus each charge's receipts_sum for the badge derivation.
 create or replace function public.get_lease_ledger(p_lease_id uuid)
 returns jsonb
@@ -205,12 +205,12 @@ revoke all on function public.get_lease_ledger(uuid) from public, anon;
 grant execute on function public.get_lease_ledger(uuid) to authenticated;
 
 -- -----------------------------------------------------------------------------
--- 3. reverse_charge — atomic paired negation (charge + its receipts)
+-- 3. reverse_charge - atomic paired negation (charge + its receipts)
 -- -----------------------------------------------------------------------------
 -- Posts a charge negation (reverses_id set, amount = -original) AND a negation
 -- for every non-reversal receipt allocated to that charge, in one function body
 -- (one transaction). This nets both streams to zero so the lease balance is
--- unchanged by an unpaid reversal and correctly credited by a paid one — no
+-- unchanged by an unpaid reversal and correctly credited by a paid one - no
 -- orphan receipts leaving a phantom credit (Pitfall 4 / A6). Double-reversal
 -- guarded: if the charge is already reversed the call is a no-op.
 create or replace function public.reverse_charge(p_charge_id uuid)
@@ -274,7 +274,7 @@ revoke all on function public.reverse_charge(uuid) from public, anon;
 grant execute on function public.reverse_charge(uuid) to authenticated;
 
 -- -----------------------------------------------------------------------------
--- 3a. reverse_receipt — exact negation of a standalone receipt
+-- 3a. reverse_receipt - exact negation of a standalone receipt
 -- -----------------------------------------------------------------------------
 -- Posts exactly one rent_receipts negation (reverses_id set, amount = -original)
 -- so the standalone receipt-reversal path (55-05) carries the same server-side
@@ -323,10 +323,10 @@ revoke all on function public.reverse_receipt(uuid) from public, anon;
 grant execute on function public.reverse_receipt(uuid) to authenticated;
 
 -- -----------------------------------------------------------------------------
--- 4. start_lease_ledger — "track since" onboarding (date + opening balance)
+-- 4. start_lease_ledger - "track since" onboarding (date + opening balance)
 -- -----------------------------------------------------------------------------
 -- Sets leases.ledger_start_date and inserts one type='opening' charge dated at
--- track-since, atomically (D-04). No history backfill — the opening balance
+-- track-since, atomically (D-04). No history backfill - the opening balance
 -- captures pre-track state as a single line; charge generation floors periods
 -- at ledger_start_date. The leases UPDATE rides the existing leases update
 -- policy (not the ledger append-only trigger).
@@ -373,7 +373,7 @@ revoke all on function public.start_lease_ledger(uuid, date, numeric) from publi
 grant execute on function public.start_lease_ledger(uuid, date, numeric) to authenticated;
 
 -- -----------------------------------------------------------------------------
--- 5. get_collection_rate — collection-rate KPI source (LEDGER-08)
+-- 5. get_collection_rate - collection-rate KPI source (LEDGER-08)
 -- -----------------------------------------------------------------------------
 -- Returns scheduled (Sum leases.rent_amount for leases active in p_month),
 -- collected (Sum receipts received in p_month), and rate = collected / scheduled

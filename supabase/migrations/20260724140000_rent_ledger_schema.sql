@@ -1,27 +1,27 @@
 -- =============================================================================
--- Rent ledger schema (LEDGER-02/04/05/06) — append-only persistence layer.
+-- Rent ledger schema (LEDGER-02/04/05/06) - append-only persistence layer.
 -- =============================================================================
 -- Purpose: create the two owner-scoped, append-only ledger tables that every
 -- downstream plan (RPCs, hooks, UI, KPI) reads from, plus the per-lease
 -- "track since" column.
 --
---   (1) public.rent_charges  — expected charges (auto-generated rent, manual
+--   (1) public.rent_charges  - expected charges (auto-generated rent, manual
 --       late-fee / other charges, credits, opening balances) and their
 --       reversals. Append-only.
---   (2) public.rent_receipts — owner-recorded receipts allocated against a
+--   (2) public.rent_receipts - owner-recorded receipts allocated against a
 --       specific charge (partials = multiple discrete rows) and their
 --       reversals. Append-only.
---   (3) leases.ledger_start_date — nullable "track since" onboarding date
+--   (3) leases.ledger_start_date - nullable "track since" onboarding date
 --       (Stessa pattern, D-04). Charge generation floors periods at this date.
 --
 -- Money boundary (D-00, load-bearing): every ledger amount is numeric(10,2)
 -- DOLLARS. leases.rent_amount is integer dollars in prod; the integer->numeric
 -- conversion happens EXACTLY ONCE at charge generation (see the companion cron
 -- migration). There are no cents and no hundredfold scaling anywhere in the
--- ledger — this is the exact boundary that produced the v8.0 100x bugs.
+-- ledger - this is the exact boundary that produced the v8.0 100x bugs.
 --
 -- Immutability (D-06): booked amounts must never change. Enforced by TWO
--- independent guards — (a) RLS grants authenticated only SELECT + INSERT (no
+-- independent guards - (a) RLS grants authenticated only SELECT + INSERT (no
 -- update / delete policy), and (b) a before-update-or-delete trigger that
 -- raises for EVERY writer, including service_role and the table owner (RLS
 -- alone does not stop those). Corrections are reversal inserts (reverses_id).
@@ -33,17 +33,17 @@
 --
 -- Conventions: all SQL lowercase; text + CHECK, never a PG enum (rule 6);
 -- owner_user_id is the canonical owner column, referenced directly for RLS
--- (DIS-4 — the owner column is compared to auth.uid() directly here, not via a
+-- (DIS-4 - the owner column is compared to auth.uid() directly here, not via a
 -- helper). One policy per operation per role. Does NOT revive the demolished
 -- legacy rent-facilitation table, and deliberately ignores the legacy per-lease
--- grace / late-fee / payment-day columns (DIS-1/2/3 — they exist but are unused;
+-- grace / late-fee / payment-day columns (DIS-1/2/3 - they exist but are unused;
 -- grace is a fixed 5 days computed in the read RPC, late fees are manual lines).
 --
 -- Applied to prod in Plan 55-04 (the blocking gate), NOT here.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. rent_charges — expected charges + credits + opening balances + reversals
+-- 1. rent_charges - expected charges + credits + opening balances + reversals
 -- -----------------------------------------------------------------------------
 -- Denormalized owner_user_id + lease_id enable direct RLS and cheap owner-scoped
 -- reads. amount is SIGNED dollars (charges positive, credits negative). A
@@ -74,18 +74,18 @@ create table if not exists public.rent_charges (
 -- Idempotency for the cron's auto rent charges ONLY (D-01): at most one 'rent'
 -- charge per lease per month. The partial predicate MUST exactly match the
 -- cron's `on conflict (lease_id, period_start) where type = 'rent'` arbiter
--- (RESEARCH Pitfall 2) — a manual line dated on the 1st must not collide.
+-- (RESEARCH Pitfall 2) - a manual line dated on the 1st must not collide.
 create unique index if not exists uq_rent_charges_lease_period_rent
   on public.rent_charges (lease_id, period_start) where type = 'rent';
 create index if not exists idx_rent_charges_lease on public.rent_charges (lease_id);
 create index if not exists idx_rent_charges_owner on public.rent_charges (owner_user_id);
 
 comment on table public.rent_charges is
-  'Append-only, owner-scoped ledger of expected rent charges, manual charges/credits, opening balances, and their reversals (LEDGER-02/05/06). amount is numeric(10,2) DOLLARS (no cents, no hundredfold scaling, D-00). Owners get SELECT + INSERT only; a before-update-or-delete trigger blocks mutation for every writer (append-only) — corrections are reversal inserts via reverses_id.';
+  'Append-only, owner-scoped ledger of expected rent charges, manual charges/credits, opening balances, and their reversals (LEDGER-02/05/06). amount is numeric(10,2) DOLLARS (no cents, no hundredfold scaling, D-00). Owners get SELECT + INSERT only; a before-update-or-delete trigger blocks mutation for every writer (append-only) - corrections are reversal inserts via reverses_id.';
 
 alter table public.rent_charges enable row level security;
 
--- One policy per operation per role (rls-policies skill). SELECT + INSERT only —
+-- One policy per operation per role (rls-policies skill). SELECT + INSERT only -
 -- deliberately no update / delete policy, so the table is append-only for
 -- authenticated owners. owner_user_id compared directly to auth.uid() (DIS-4).
 create policy rent_charges_select on public.rent_charges
@@ -94,11 +94,11 @@ create policy rent_charges_insert on public.rent_charges
   for insert to authenticated with check (owner_user_id = (select auth.uid()));
 
 -- -----------------------------------------------------------------------------
--- 2. rent_receipts — owner-recorded receipts allocated per-charge + reversals
+-- 2. rent_receipts - owner-recorded receipts allocated per-charge + reversals
 -- -----------------------------------------------------------------------------
 -- Per-charge allocation (D-02): each receipt references a specific charge.
 -- Partial payments are multiple discrete rows against one charge. method is a
--- text LABEL only (cash/check/zelle/...) — never a payment rail (facilitation
+-- text LABEL only (cash/check/zelle/...) - never a payment rail (facilitation
 -- stays demolished). amount is SIGNED dollars (positive = received, negative =
 -- receipt reversal via reverses_id).
 create table if not exists public.rent_receipts (
@@ -119,11 +119,11 @@ create index if not exists idx_rent_receipts_lease  on public.rent_receipts (lea
 create index if not exists idx_rent_receipts_owner  on public.rent_receipts (owner_user_id);
 
 comment on table public.rent_receipts is
-  'Append-only, owner-scoped ledger of rent receipts allocated per-charge and their reversals (LEDGER-02). amount is numeric(10,2) DOLLARS (no cents, no hundredfold scaling, D-00); method is a text LABEL only, never a payment rail (facilitation is demolished). Owners get SELECT + INSERT only; a before-update-or-delete trigger blocks mutation for every writer (append-only) — corrections are reversal inserts via reverses_id.';
+  'Append-only, owner-scoped ledger of rent receipts allocated per-charge and their reversals (LEDGER-02). amount is numeric(10,2) DOLLARS (no cents, no hundredfold scaling, D-00); method is a text LABEL only, never a payment rail (facilitation is demolished). Owners get SELECT + INSERT only; a before-update-or-delete trigger blocks mutation for every writer (append-only) - corrections are reversal inserts via reverses_id.';
 
 alter table public.rent_receipts enable row level security;
 
--- One policy per operation per role. SELECT + INSERT only — no update / delete
+-- One policy per operation per role. SELECT + INSERT only - no update / delete
 -- policy (append-only). Owners record receipts directly from the client.
 create policy rent_receipts_select on public.rent_receipts
   for select to authenticated using (owner_user_id = (select auth.uid()));
@@ -155,11 +155,11 @@ create trigger rent_receipts_no_mutate
   for each row execute function public.rent_ledger_append_only();
 
 -- -----------------------------------------------------------------------------
--- 4. leases.ledger_start_date — per-lease "track since" onboarding date (D-04)
+-- 4. leases.ledger_start_date - per-lease "track since" onboarding date (D-04)
 -- -----------------------------------------------------------------------------
 -- Nullable: a lease with no ledger onboarding shows no ledger until the owner
 -- sets track-since. Charge generation only produces charges on/after this date.
 alter table public.leases add column if not exists ledger_start_date date;
 
 comment on column public.leases.ledger_start_date is
-  'Per-lease "track since" onboarding date (LEDGER-04, D-04). Nullable — no ledger until set. Charge generation (generate_rent_charges) floors periods at this date; no history is backfilled before it.';
+  'Per-lease "track since" onboarding date (LEDGER-04, D-04). Nullable - no ledger until set. Charge generation (generate_rent_charges) floors periods at this date; no history is backfilled before it.';

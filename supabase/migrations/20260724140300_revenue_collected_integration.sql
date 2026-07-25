@@ -1,19 +1,19 @@
 -- =============================================================================
--- Revenue "collected" integration (LEDGER-07) — fill the collections placeholder
+-- Revenue "collected" integration (LEDGER-07) - fill the collections placeholder
 -- from ledger receipts; scheduled vs collected, no double-count.
 -- =============================================================================
 -- Purpose: since v2.0, get_revenue_trends_optimized has emitted a hardcoded
 -- `'collections', 0` because there was no honest source of collected rent. The
 -- rent ledger (55-01) now provides it. This migration fills collections from
 -- rent_receipts while keeping scheduled (lease-derived expected rent) and
--- collected (ledger receipts) as SEPARATE labeled figures — they are never
+-- collected (ledger receipts) as SEPARATE labeled figures - they are never
 -- summed (D-07 / Pitfall 5).
 --
 --   revenue     = coalesce(me.expected_revenue, 0)          -- SCHEDULED (unchanged calc)
 --   collections = coalesce(mc.collected, 0)                 -- COLLECTED (from ledger, NEW)
 --   outstanding = scheduled - collected                     -- what is still owed
 --
--- The `revenue` (scheduled) calculation is UNCHANGED — the UI relabels it
+-- The `revenue` (scheduled) calculation is UNCHANGED - the UI relabels it
 -- "Scheduled"; the math does not change. Nothing sums scheduled + collected.
 --
 -- Deliberately does NOT touch the revenue-stats composite type or
@@ -23,12 +23,12 @@
 -- get_collection_rate) instead of re-basing the dashboard composite (RESEARCH
 -- Pitfall 5). NOI / margin continue to derive from scheduled, not collected.
 --
--- Money boundary (D-00): collected sums numeric(10,2) ledger dollars directly —
+-- Money boundary (D-00): collected sums numeric(10,2) ledger dollars directly -
 -- no cents, no hundredfold scaling. The per-month object keys stay
 -- {month, revenue, collections, outstanding} so the frontend RevenueTrendRow
 -- contract (use-owner-dashboard-financial.ts) is unchanged.
 --
--- CREATE OR REPLACE with the identical RETURNS jsonb signature — no return-type
+-- CREATE OR REPLACE with the identical RETURNS jsonb signature - no return-type
 -- change, so existing grants (authenticated execute) are preserved. Body is the
 -- current 20260709060533 body reproduced in lowercase (repo SQL convention),
 -- with only the monthly_collected CTE + collections/outstanding fill added.
@@ -87,4 +87,4 @@ end;
 $function$;
 
 comment on function public.get_revenue_trends_optimized(uuid, integer) is
-  'Per-month revenue trend (LEDGER-07). revenue = SCHEDULED (Sum leases.rent_amount, calc unchanged); collections = COLLECTED (Sum rent_receipts.amount by month, filled from the ledger — no longer hardcoded 0); outstanding = scheduled - collected. Scheduled and collected are never summed. SECURITY DEFINER, owner-guarded. Keys stay {month, revenue, collections, outstanding} (RevenueTrendRow contract).';
+  'Per-month revenue trend (LEDGER-07). revenue = SCHEDULED (Sum leases.rent_amount, calc unchanged); collections = COLLECTED (Sum rent_receipts.amount by month, filled from the ledger - no longer hardcoded 0); outstanding = scheduled - collected. Scheduled and collected are never summed. SECURITY DEFINER, owner-guarded. Keys stay {month, revenue, collections, outstanding} (RevenueTrendRow contract).';

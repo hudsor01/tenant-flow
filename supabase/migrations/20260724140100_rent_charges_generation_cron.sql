@@ -1,10 +1,10 @@
 -- =============================================================================
--- Rent charge generation cron (LEDGER-01/04) — the ONE money conversion.
+-- Rent charge generation cron (LEDGER-01/04) - the ONE money conversion.
 -- =============================================================================
 -- Purpose: a daily SECURITY DEFINER pg_cron function that inserts each covered
 -- lease's rent charge for every tracked calendar month, converting the integer
 -- leases.rent_amount to numeric(10,2) DOLLARS EXACTLY ONCE (D-00). This is the
--- single integer->numeric boundary for the whole ledger — there is no cents
+-- single integer->numeric boundary for the whole ledger - there is no cents
 -- math and no hundredfold scaling; any such scaling here would reintroduce the
 -- v8.0 100x bug class.
 --
@@ -16,7 +16,7 @@
 --     AND the period overlaps [start_date, end_date] AND the lease has been
 --     onboarded (ledger_start_date is not null). Periods are floored at the
 --     later of ledger_start_date and start_date (track-since, D-04) and run
---     forward to the current month — NOT the naive lease_status = 'active'.
+--     forward to the current month - NOT the naive lease_status = 'active'.
 --   - Idempotent (D-01): the partial unique index
 --     uq_rent_charges_lease_period_rent (lease_id, period_start) where
 --     type = 'rent' plus `on conflict ... do nothing` make cron re-runs no-ops.
@@ -39,7 +39,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- generate_rent_charges() — idempotent monthly rent charge generation
+-- generate_rent_charges() - idempotent monthly rent charge generation
 -- -----------------------------------------------------------------------------
 create or replace function public.generate_rent_charges()
 returns integer                          -- count inserted (for cron logging)
@@ -52,7 +52,7 @@ declare
 begin
   -- One row per covered lease per tracked calendar month. generate_series is
   -- bounded from the later of the track-since month and the lease-start month
-  -- through the current month (RESEARCH A3 / D-04) — a bounded forward range,
+  -- through the current month (RESEARCH A3 / D-04) - a bounded forward range,
   -- never an unbounded backfill.
   with active_periods as (
     select
@@ -100,7 +100,7 @@ revoke all on function public.generate_rent_charges() from public, anon, authent
 grant execute on function public.generate_rent_charges() to service_role;
 
 -- -----------------------------------------------------------------------------
--- Register the pg_cron schedule (idempotent — replaces any job of the same name)
+-- Register the pg_cron schedule (idempotent - replaces any job of the same name)
 -- -----------------------------------------------------------------------------
 -- 05:00 UTC daily; verified clear of the 03:00-03:45 cleanup cluster and the
 -- 06:00/06:30 reminder slots.
