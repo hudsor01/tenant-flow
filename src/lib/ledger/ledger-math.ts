@@ -15,11 +15,14 @@
  * Grace period before an unpaid charge counts as late.
  *
  * SOURCE OF TRUTH: the SQL literal `interval '5 days'` in
- * `public.get_lease_ledger_summary` (migration
- * `20260724140200_rent_ledger_rpcs.sql`, 55-02), whose late predicate is
- * `due_date + interval '5 days' < current_date`. The DB owns the aggregate
- * summary + late count; this constant is the client-side MIRROR of that literal
- * for per-row badge rendering only (W3).
+ * `public.get_lease_ledger_summary`, whose late predicate is
+ * `due_date + interval '5 days' < current_date`. The function was introduced in
+ * `20260725021100_rent_ledger_rpcs.sql` (55-02) and last revised in
+ * `20260726020701_rent_ledger_verification_fixes.sql`, which also made a charge
+ * that HAS BEEN reversed stop counting as late (F1) - mirrored below by
+ * `deriveChargeState` treating a reversed entry as voided. The DB owns the
+ * aggregate summary + late count; this constant is the client-side MIRROR of
+ * that literal for per-row badge rendering only (W3).
  *
  * The two must never diverge: `rent-ledger-balance.test.ts` asserts
  * `GRACE_PERIOD_DAYS === 5` so a change to the SQL interval (or to this value)
