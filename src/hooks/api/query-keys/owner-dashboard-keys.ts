@@ -33,5 +33,16 @@ export const ownerDashboardKeys = {
 				timeRange,
 				months,
 			] as const,
+		/**
+		 * Ledger-derived collection rate for one month (`YYYY-MM`). Sits under
+		 * `financial` so every ledger mutation's `ownerDashboardKeys.all` fanout
+		 * (55-05) already flushes the dashboard KPI.
+		 */
+		collectionRate: (month: string) =>
+			[
+				...ownerDashboardKeys.financial.all(),
+				"collection-rate",
+				month,
+			] as const,
 	},
 };

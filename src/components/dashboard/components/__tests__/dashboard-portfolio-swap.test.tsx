@@ -42,6 +42,14 @@ vi.mock("next/dynamic", () => ({
 	},
 }));
 
+// The collection-rate KPI (55-08) fetches its own data, and this suite renders
+// Dashboard without a QueryClientProvider. Stub the tile so the portfolio swap
+// stays the subject; its own contract is pinned by
+// src/components/ledger/__tests__/collection-rate-kpi.test.tsx.
+vi.mock("#components/ledger/collection-rate-kpi", () => ({
+	CollectionRateKpi: () => <div data-testid="collection-rate-kpi-stub" />,
+}));
+
 const KPI_LOADING: KpiBentoRowProps = {
 	isLoading: true,
 	stats: null,

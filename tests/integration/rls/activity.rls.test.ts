@@ -5,7 +5,6 @@ describe("Activity RLS — cross-tenant isolation", () => {
 	let clientA: SupabaseClient;
 	let clientB: SupabaseClient;
 	let ownerAId: string;
-	let ownerBId: string;
 
 	beforeAll(async () => {
 		const { ownerA, ownerB } = getTestCredentials();
@@ -15,11 +14,7 @@ describe("Activity RLS — cross-tenant isolation", () => {
 		const {
 			data: { user: userA },
 		} = await clientA.auth.getUser();
-		const {
-			data: { user: userB },
-		} = await clientB.auth.getUser();
 		ownerAId = userA!.id;
-		ownerBId = userB!.id;
 	});
 
 	// ---------------------------------------------------------------------------

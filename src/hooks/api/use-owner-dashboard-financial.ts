@@ -12,17 +12,77 @@
  */
 
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { jsonArray } from "#lib/rpc-shape";
+import { jsonArray, jsonObject } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 export interface FinancialChartDatum {
 	date: string;
+	/**
+	 * SCHEDULED rent for the month: lease-derived expected revenue, unchanged
+	 * from what `get_revenue_trends_optimized` has always emitted. Relabeled
+	 * "Scheduled" on every revenue surface per D-07 — the calculation is the
+	 * same, only the label is explicit now.
+	 */
 	revenue: number;
+	/**
+	 * COLLECTED for the month: receipts actually recorded in the rent ledger
+	 * (D-07). A separate figure with a separate meaning — it is NEVER summed
+	 * with `revenue`, and `profit` deliberately stays revenue − expenses.
+	 */
+	collected: number;
 	expenses: number;
 	profit: number;
+}
+
+/**
+ * Current-month collection figures from ledger actuals (D-08). All money is
+ * DOLLARS and `rate` arrives from SQL as a 0-100 percentage already rounded to
+ * one decimal — never scale either again.
+ */
+export interface CollectionRateSummary {
+	scheduled: number;
+	collected: number;
+	rate: number;
+}
+
+/** No ledger rows yet: honest zeros, never a fabricated rate (D-08). */
+const EMPTY_COLLECTION_RATE: CollectionRateSummary = {
+	scheduled: 0,
+	collected: 0,
+	rate: 0,
+};
+
+function toFiniteNumber(raw: Record<string, unknown>, field: string): number {
+	const value = raw[field];
+	// PostgREST can serialise `numeric` as a JSON string to preserve precision.
+	const parsed = typeof value === "string" ? Number(value) : value;
+	if (typeof parsed !== "number" || !Number.isFinite(parsed)) {
+		throw new Error(
+			`mapCollectionRateRow: field '${field}' is missing or not a finite number`,
+		);
+	}
+	return parsed;
+}
+
+/** Typed boundary mapper for one `get_collection_rate` row — no blind casts. */
+export function mapCollectionRateRow(
+	raw: Record<string, unknown>,
+): CollectionRateSummary {
+	return {
+		scheduled: toFiniteNumber(raw, "scheduled"),
+		collected: toFiniteNumber(raw, "collected"),
+		rate: toFiniteNumber(raw, "rate"),
+	};
+}
+
+/** `YYYY-MM` cache bucket for the month the RPC resolves server-side. */
+function currentMonthKey(): string {
+	const now = new Date();
+	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
 export type FinancialTimeRange = "3m" | "6m" | "1y";
@@ -119,9 +179,14 @@ export const dashboardFinancialQueries = {
 				// Real expenses joined per month; profit = revenue - expenses.
 				// (Previously hardcoded `expenses: 0` / `profit: revenue`, which
 				// rendered a permanent, meaningless 100% margin.)
+				//
+				// D-07: `collected` rides alongside as a SEPARATE figure. It is not
+				// added to `revenue` and `profit` is deliberately NOT re-based on it
+				// — scheduled minus expenses stays the profit definition.
 				return trimmed.map((item) => ({
 					date: item.month,
 					revenue: item.revenue ?? 0,
+					collected: item.collections ?? 0,
 					expenses: expenseByMonth.get(item.month) ?? 0,
 					profit: (item.revenue ?? 0) - (expenseByMonth.get(item.month) ?? 0),
 				}));
@@ -131,6 +196,32 @@ export const dashboardFinancialQueries = {
 			structuralSharing: true,
 		});
 	},
+
+	/**
+	 * Current-month collection rate straight from ledger actuals (LEDGER-08,
+	 * D-08). `p_month` is omitted so SQL resolves the current month itself; the
+	 * `YYYY-MM` key is only a cache bucket.
+	 */
+	collectionRate: () =>
+		queryOptions({
+			queryKey: ownerDashboardKeys.financial.collectionRate(currentMonthKey()),
+			queryFn: async (): Promise<CollectionRateSummary> => {
+				const supabase = createClient();
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
+
+				const { data, error } = await supabase.rpc("get_collection_rate", {
+					p_user_id: user.id,
+				});
+				if (error) handlePostgrestError(error, "collection rate");
+
+				const row = data?.[0];
+				return row
+					? mapCollectionRateRow(jsonObject<Record<string, unknown>>(row))
+					: { ...EMPTY_COLLECTION_RATE };
+			},
+			...QUERY_CACHE_TIMES.STATS,
+		}),
 };
 
 /**
@@ -140,4 +231,13 @@ export const dashboardFinancialQueries = {
  */
 export function useFinancialChartData(timeRange: FinancialTimeRange = "6m") {
 	return useQuery(dashboardFinancialQueries.chartData(timeRange));
+}
+
+/**
+ * Collection rate (collected ÷ scheduled) for the current month, from ledger
+ * receipts. An owner with no ledger data gets an honest zero — the RPC returns
+ * `rate = 0` when nothing is scheduled rather than inventing a number (D-08).
+ */
+export function useCollectionRate() {
+	return useQuery(dashboardFinancialQueries.collectionRate());
 }

@@ -5,7 +5,6 @@ describe("Documents RLS — owner_user_id isolation", () => {
 	let clientA: SupabaseClient;
 	let clientB: SupabaseClient;
 	let ownerAId: string;
-	let ownerBId: string;
 
 	// Track IDs inserted by tests so afterAll can clean them up
 	const testInsertedIds: string[] = [];
@@ -18,11 +17,7 @@ describe("Documents RLS — owner_user_id isolation", () => {
 		const {
 			data: { user: userA },
 		} = await clientA.auth.getUser();
-		const {
-			data: { user: userB },
-		} = await clientB.auth.getUser();
 		ownerAId = userA!.id;
-		ownerBId = userB!.id;
 	});
 
 	afterAll(async () => {

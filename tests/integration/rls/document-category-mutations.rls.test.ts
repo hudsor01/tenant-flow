@@ -296,7 +296,6 @@ describe("Phase 66 category mutation RPCs", () => {
 	// banned `as unknown as` double-cast.
 	it("reassign_document_category: rejects null p_from_id", async () => {
 		const { error } = await clientA.rpc("reassign_document_category", {
-			// @ts-expect-error — intentionally null to exercise the runtime guard
 			p_from_id: null,
 			p_to_id: "00000000-0000-0000-0000-000000000001",
 		});
@@ -307,7 +306,6 @@ describe("Phase 66 category mutation RPCs", () => {
 	it("reassign_document_category: rejects null p_to_id", async () => {
 		const { error } = await clientA.rpc("reassign_document_category", {
 			p_from_id: "00000000-0000-0000-0000-000000000001",
-			// @ts-expect-error — intentionally null to exercise the runtime guard
 			p_to_id: null,
 		});
 		expect(error).not.toBeNull();
@@ -316,7 +314,6 @@ describe("Phase 66 category mutation RPCs", () => {
 
 	it("reorder_document_categories: rejects null p_orders", async () => {
 		const { error } = await clientA.rpc("reorder_document_categories", {
-			// @ts-expect-error — intentionally null to exercise the runtime guard
 			p_orders: null,
 		});
 		expect(error).not.toBeNull();

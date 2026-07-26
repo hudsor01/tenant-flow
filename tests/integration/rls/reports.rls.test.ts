@@ -29,7 +29,6 @@ describe("Reports RLS — cross-owner isolation", () => {
 	let clientA: SupabaseClient;
 	let clientB: SupabaseClient;
 	let ownerAId: string;
-	let ownerBId: string;
 
 	// ownerA's report that the cross-owner denial tests target. Created in
 	// beforeAll, removed in afterAll.
@@ -46,11 +45,7 @@ describe("Reports RLS — cross-owner isolation", () => {
 		const {
 			data: { user: userA },
 		} = await clientA.auth.getUser();
-		const {
-			data: { user: userB },
-		} = await clientB.auth.getUser();
 		ownerAId = userA!.id;
-		ownerBId = userB!.id;
 
 		// Fresh ownerA report the cross-owner tests target.
 		const { data: rA } = await clientA

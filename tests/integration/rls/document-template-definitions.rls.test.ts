@@ -45,7 +45,6 @@ describe("Document Template Definitions RLS — cross-owner isolation", () => {
 	let clientA: SupabaseClient;
 	let clientB: SupabaseClient;
 	let ownerAId: string;
-	let ownerBId: string;
 
 	// ownerA's fixture row the cross-owner denial tests target.
 	let definitionA: { id: string } | null = null;
@@ -58,11 +57,7 @@ describe("Document Template Definitions RLS — cross-owner isolation", () => {
 		const {
 			data: { user: userA },
 		} = await clientA.auth.getUser();
-		const {
-			data: { user: userB },
-		} = await clientB.auth.getUser();
 		ownerAId = userA!.id;
-		ownerBId = userB!.id;
 
 		// Clear any leftover rows for the keys this test owns so the inserts below
 		// don't trip the UNIQUE(owner_user_id, template_key) constraint on rerun.

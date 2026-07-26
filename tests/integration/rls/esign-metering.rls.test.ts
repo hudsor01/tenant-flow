@@ -66,7 +66,6 @@ describe.skipIf(skipReason)(
 		let clientA: SupabaseClient;
 		let clientB: SupabaseClient;
 		let ownerAId: string;
-		let ownerBId: string;
 
 		// ownerA fixture chain (property -> unit -> tenant -> lease). esign_events.
 		// lease_id is a NOT NULL FK to leases(id), so seeded/metered events need a
@@ -145,11 +144,7 @@ describe.skipIf(skipReason)(
 			const {
 				data: { user: userA },
 			} = await clientA.auth.getUser();
-			const {
-				data: { user: userB },
-			} = await clientB.auth.getUser();
 			ownerAId = userA!.id;
-			ownerBId = userB!.id;
 
 			// Capture the synthetic owner's real plan so we restore it, not a guess.
 			const { data: planRow } = await service

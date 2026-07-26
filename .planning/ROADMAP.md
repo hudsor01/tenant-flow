@@ -26,7 +26,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 - [x] **Phase 52: Notification Center, Activity Feed & Channel Honesty** - Surface the orphaned `notifications`/`activity` backend as a bell + inbox + dashboard timeline; remove dishonest SMS/push toggles; drop orphan schema (completed 2026-07-19)
 - [x] **Phase 53: Renewal Reminder Delivery** - Deliver the sold Growth/Max lease-renewal reminders in-house (edge fn draining `lease_reminders`), exactly-once, suppression-honoring, backlog dry-run gated (completed 2026-07-22)
 - [x] **Phase 54: E-sign & Storage Metering** - Enforce the sold e-sign (25/mo Growth) and storage quotas with visible usage + upgrade prompts; grandfather existing over-quota owners (completed 2026-07-24)
-- [ ] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation
+- [x] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation (completed 2026-07-25)
 - [ ] **Phase 56: Reporting Hub & Documents Landing** - Collapse `/financials/*` + `/analytics/financial` + `/reports/*` into one `/reports` hub with preserved tier-gating; make `/documents` a real landing page
 - [ ] **Phase 57: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
 - [ ] **Phase 58: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
@@ -109,7 +109,16 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
   3. Owner sees per-lease running balance (Σ charges − Σ receipts/credits) with unpaid past-due charges flagged late; ledger onboarding uses a "track since" date + opening balance (no history backfill)
   4. Ledger entries are append-only — corrections are reversal entries, never edits or deletes
   5. Revenue analytics adopt one revenue definition (lease-derived = scheduled, ledger = collected, no double-counting) and the collection-rate KPI returns to the dashboard from ledger actuals
-**Plans**: TBD
+**Plans**: 8 plans
+- [x] 55-01-PLAN.md — Ledger schema (rent_charges/rent_receipts append-only + RLS + guard trigger + ledger_start_date) + charge-generation cron
+- [x] 55-02-PLAN.md — Ledger read/reverse/onboarding RPCs + revenue-collected integration (fill collections, get_collection_rate)
+- [x] 55-03-PLAN.md — Ledger-math derivation module (TDD) + Wave 0 tests (balance/money-guard unit + isolation/append-only/generation RLS scaffolds)
+- [x] 55-04-PLAN.md — [BLOCKING] Apply migrations via MCP + reconcile timestamps + db:types + run integration suite (owner-run gate)
+- [x] 55-05-PLAN.md — Ledger data layer: query-key factories + typed mappers + record/add-line/track/reverse mutations + hooks
+- [x] 55-06-PLAN.md — Ledger action dialogs: record-receipt (per-charge partials) + add-line (manual charge/credit) + track-since onboarding
+- [x] 55-07-PLAN.md — Per-lease Ledger tab (balance strip + append-only table + badges + reverse) + mount in lease detail Tabs
+- [x] 55-08-PLAN.md — Collection-rate KPI from ledger actuals + Scheduled/Collected revenue relabel
+**Waves**: Wave 1 (55-01, 55-02, 55-03 — parallel) -> Wave 2 (55-04 [BLOCKING] apply+types) -> Wave 3 (55-05, 55-08 — parallel) -> Wave 4 (55-06 dialogs) -> Wave 5 (55-07 ledger tab). Migrations apply as one unit in 55-04 (shared src/types/supabase.ts regen); frontend builds only against the regenerated live types.
 **UI hint**: yes
 
 ### Phase 56: Reporting Hub & Documents Landing
@@ -226,7 +235,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 | 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
-| 55. Rent Ledger | 0/TBD | Not started | - |
+| 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
 | 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |

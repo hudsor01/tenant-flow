@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { ROUTES } from "../constants/routes";
-import { openModal, verifyModalIsOpen } from "../helpers/modal-helpers";
+import { verifyModalIsOpen } from "../helpers/modal-helpers";
 import { verifyPageLoaded } from "../helpers/navigation-helpers";
 import { verifyTableRenders } from "../helpers/ui-validation-helpers";
 

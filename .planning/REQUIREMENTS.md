@@ -69,14 +69,14 @@
 
 #### Rent Ledger (LEDGER)
 
-- [ ] **LEDGER-01**: Monthly rent charges auto-generate from active lease terms into `rent_charges` via pg_cron (dollars `numeric(10,2)`; the integer `leases.rent_amount` boundary converted exactly once at generation, no 100× regressions)
-- [ ] **LEDGER-02**: Owner can record a payment received against a charge into `rent_receipts` — date, amount, method label only (no payment rails); partial payments supported as discrete entries
-- [ ] **LEDGER-03**: Owner sees per-lease running balance (Σ charges − Σ receipts/credits) and unpaid-past-due charges flagged late
-- [ ] **LEDGER-04**: Ledger onboarding uses "track since" date + opening balance per lease (Stessa pattern — no history backfill required)
-- [ ] **LEDGER-05**: Owner can add manual charge/credit lines (late fee, other) — manual only, no auto-late-fee rules in v10
-- [ ] **LEDGER-06**: Ledger entries are append-only — corrections are reversal entries, never edits or deletes
-- [ ] **LEDGER-07**: Revenue analytics adopt a single revenue definition — dashboards/reports label lease-derived figures as scheduled and ledger figures as collected, with no double-counting
-- [ ] **LEDGER-08**: Collection-rate KPI restored to the dashboard from ledger actuals (the KPI v2.0 dropped for lack of honest data)
+- [x] **LEDGER-01**: Monthly rent charges auto-generate from active lease terms into `rent_charges` via pg_cron (dollars `numeric(10,2)`; the integer `leases.rent_amount` boundary converted exactly once at generation, no 100× regressions)
+- [x] **LEDGER-02**: Owner can record a payment received against a charge into `rent_receipts` — date, amount, method label only (no payment rails); partial payments supported as discrete entries
+- [x] **LEDGER-03**: Owner sees per-lease running balance (Σ charges − Σ receipts/credits) and unpaid-past-due charges flagged late
+- [x] **LEDGER-04**: Ledger onboarding uses "track since" date + opening balance per lease (Stessa pattern — no history backfill required)
+- [x] **LEDGER-05**: Owner can add manual charge/credit lines (late fee, other) — manual only, no auto-late-fee rules in v10
+- [x] **LEDGER-06**: Ledger entries are append-only — corrections are reversal entries, never edits or deletes
+- [x] **LEDGER-07**: Revenue analytics adopt a single revenue definition — dashboards/reports label lease-derived figures as scheduled and ledger figures as collected, with no double-counting
+- [x] **LEDGER-08**: Collection-rate KPI restored to the dashboard from ledger actuals (the KPI v2.0 dropped for lack of honest data)
 
 #### Rental Application Intake (APPLY)
 
@@ -174,14 +174,14 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | METER-02 | Phase 54 | Pending |
 | METER-03 | Phase 54 | Pending |
 | METER-04 | Phase 54 | Pending |
-| LEDGER-01 | Phase 55 | Pending |
-| LEDGER-02 | Phase 55 | Pending |
-| LEDGER-03 | Phase 55 | Pending |
-| LEDGER-04 | Phase 55 | Pending |
-| LEDGER-05 | Phase 55 | Pending |
-| LEDGER-06 | Phase 55 | Pending |
-| LEDGER-07 | Phase 55 | Pending |
-| LEDGER-08 | Phase 55 | Pending |
+| LEDGER-01 | Phase 55 | Complete |
+| LEDGER-02 | Phase 55 | Complete |
+| LEDGER-03 | Phase 55 | Complete |
+| LEDGER-04 | Phase 55 | Complete |
+| LEDGER-05 | Phase 55 | Complete |
+| LEDGER-06 | Phase 55 | Complete |
+| LEDGER-07 | Phase 55 | Complete |
+| LEDGER-08 | Phase 55 | Complete |
 | RPTHUB-01 | Phase 56 | Pending |
 | RPTHUB-02 | Phase 56 | Pending |
 | RPTHUB-03 | Phase 56 | Pending |

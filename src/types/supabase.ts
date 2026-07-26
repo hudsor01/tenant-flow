@@ -859,6 +859,7 @@ export type Database = {
 					late_fee_days: number | null;
 					lead_paint_disclosure_acknowledged: boolean | null;
 					lease_status: string;
+					ledger_start_date: string | null;
 					max_occupants: number | null;
 					owner_signature_consent_at: string | null;
 					owner_signature_ip: string | null;
@@ -904,6 +905,7 @@ export type Database = {
 					late_fee_days?: number | null;
 					lead_paint_disclosure_acknowledged?: boolean | null;
 					lease_status?: string;
+					ledger_start_date?: string | null;
 					max_occupants?: number | null;
 					owner_signature_consent_at?: string | null;
 					owner_signature_ip?: string | null;
@@ -949,6 +951,7 @@ export type Database = {
 					late_fee_days?: number | null;
 					lead_paint_disclosure_acknowledged?: boolean | null;
 					lease_status?: string;
+					ledger_start_date?: string | null;
 					max_occupants?: number | null;
 					owner_signature_consent_at?: string | null;
 					owner_signature_ip?: string | null;
@@ -1519,6 +1522,135 @@ export type Database = {
 						columns: ["property_id"];
 						isOneToOne: false;
 						referencedRelation: "properties";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			rent_charges: {
+				Row: {
+					amount: number;
+					created_at: string;
+					description: string | null;
+					due_date: string | null;
+					id: string;
+					lease_id: string;
+					owner_user_id: string;
+					period_start: string | null;
+					reverses_id: string | null;
+					type: string;
+				};
+				Insert: {
+					amount: number;
+					created_at?: string;
+					description?: string | null;
+					due_date?: string | null;
+					id?: string;
+					lease_id: string;
+					owner_user_id: string;
+					period_start?: string | null;
+					reverses_id?: string | null;
+					type: string;
+				};
+				Update: {
+					amount?: number;
+					created_at?: string;
+					description?: string | null;
+					due_date?: string | null;
+					id?: string;
+					lease_id?: string;
+					owner_user_id?: string;
+					period_start?: string | null;
+					reverses_id?: string | null;
+					type?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "rent_charges_lease_id_fkey";
+						columns: ["lease_id"];
+						isOneToOne: false;
+						referencedRelation: "leases";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rent_charges_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rent_charges_reverses_id_fkey";
+						columns: ["reverses_id"];
+						isOneToOne: false;
+						referencedRelation: "rent_charges";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			rent_receipts: {
+				Row: {
+					amount: number;
+					charge_id: string;
+					created_at: string;
+					description: string | null;
+					id: string;
+					lease_id: string;
+					method: string | null;
+					owner_user_id: string;
+					received_date: string;
+					reverses_id: string | null;
+				};
+				Insert: {
+					amount: number;
+					charge_id: string;
+					created_at?: string;
+					description?: string | null;
+					id?: string;
+					lease_id: string;
+					method?: string | null;
+					owner_user_id: string;
+					received_date: string;
+					reverses_id?: string | null;
+				};
+				Update: {
+					amount?: number;
+					charge_id?: string;
+					created_at?: string;
+					description?: string | null;
+					id?: string;
+					lease_id?: string;
+					method?: string | null;
+					owner_user_id?: string;
+					received_date?: string;
+					reverses_id?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "rent_receipts_charge_id_fkey";
+						columns: ["charge_id"];
+						isOneToOne: false;
+						referencedRelation: "rent_charges";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rent_receipts_lease_id_fkey";
+						columns: ["lease_id"];
+						isOneToOne: false;
+						referencedRelation: "leases";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rent_receipts_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rent_receipts_reverses_id_fkey";
+						columns: ["reverses_id"];
+						isOneToOne: false;
+						referencedRelation: "rent_receipts";
 						referencedColumns: ["id"];
 					},
 				];
@@ -2595,6 +2727,7 @@ export type Database = {
 			custom_access_token_hook: { Args: { event: Json }; Returns: Json };
 			expire_leases: { Args: never; Returns: undefined };
 			expire_trials: { Args: never; Returns: number };
+			generate_rent_charges: { Args: never; Returns: number };
 			get_billing_insights: {
 				Args: {
 					end_date_param?: string;
@@ -2609,6 +2742,14 @@ export type Database = {
 					name: string;
 					post_count: number;
 					slug: string;
+				}[];
+			};
+			get_collection_rate: {
+				Args: { p_month?: string; p_user_id: string };
+				Returns: {
+					collected: number;
+					rate: number;
+					scheduled: number;
 				}[];
 			};
 			get_common_errors: {
@@ -2699,6 +2840,18 @@ export type Database = {
 					compliant_leases: number;
 					non_compliant_leases: number;
 					total_pre_1978_leases: number;
+				}[];
+			};
+			get_lease_ledger: { Args: { p_lease_id: string }; Returns: Json };
+			get_lease_ledger_summary: {
+				Args: { p_lease_id: string };
+				Returns: {
+					balance: number;
+					charges_total: number;
+					credits_total: number;
+					late_amount: number;
+					late_count: number;
+					receipts_total: number;
 				}[];
 			};
 			get_lease_signing_context: {
@@ -2937,6 +3090,8 @@ export type Database = {
 			};
 			request_account_deletion: { Args: never; Returns: undefined };
 			require_stripe_schema: { Args: never; Returns: boolean };
+			reverse_charge: { Args: { p_charge_id: string }; Returns: undefined };
+			reverse_receipt: { Args: { p_receipt_id: string }; Returns: undefined };
 			revoke_user_session: {
 				Args: { p_session_id: string; p_user_id: string };
 				Returns: undefined;
@@ -2997,6 +3152,14 @@ export type Database = {
 					lease_id: string;
 					success: boolean;
 				}[];
+			};
+			start_lease_ledger: {
+				Args: {
+					p_lease_id: string;
+					p_opening_balance: number;
+					p_start_date: string;
+				};
+				Returns: undefined;
 			};
 			storage_object_owner: {
 				Args: { p_bucket: string; p_name: string };

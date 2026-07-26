@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: planning
-last_updated: "2026-07-24T01:23:30.053Z"
-last_activity: 2026-07-23
+status: "Phase 55 shipped - PR #927"
+last_updated: "2026-07-26T02:40:13.905Z"
+last_activity: 2026-07-25
 progress:
   total_phases: 13
-  completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
-  percent: 15
+  completed_phases: 4
+  total_plans: 27
+  completed_plans: 27
+  percent: 31
 ---
 
 # Project State
@@ -21,14 +21,21 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 54 — e sign & storage metering
+**Current focus:** Phase 55 — rent-ledger
 
 ## Current Position
 
-Phase: 54
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-23
+Phase: 55 (rent-ledger) — ALL PLANS EXECUTED
+Plan: 8 of 8
+Status: Phase 55 shipped - PR #927
+Last activity: 2026-07-25
+
+> **Phase 55 build surface complete.** All eight plans have SUMMARY files:
+> schema + cron (55-01), RPCs (55-02), derivation + guards (55-03), prod
+> migration + types (55-04), data layer (55-05), dialogs (55-06), ledger tab
+> (55-07), KPI + Scheduled/Collected relabel (55-08). 55-08 ran out of order
+> ahead of 55-06/55-07 — it is a wave-3 plan whose only dependency was 55-04.
+> Remaining: the phase-level human verification pass and the perfect-PR gate.
 
 Progress: [██████████] 100%
 

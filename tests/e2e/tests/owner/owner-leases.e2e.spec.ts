@@ -1,18 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { ROUTES } from "../constants/routes";
-import { fillTextInput } from "../helpers/form-helpers";
-import {
-	closeModalViaCloseButton,
-	openModal,
-	submitModalForm,
-	verifyModalIsClosed,
-	verifyModalIsOpen,
-} from "../helpers/modal-helpers";
+import { verifyModalIsOpen } from "../helpers/modal-helpers";
 import { verifyPageLoaded } from "../helpers/navigation-helpers";
-import {
-	verifyButtonExists,
-	verifyTableRenders,
-} from "../helpers/ui-validation-helpers";
+import { verifyTableRenders } from "../helpers/ui-validation-helpers";
 
 test.describe("Owner Leases", () => {
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3050";

@@ -10,6 +10,7 @@
 import type { OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import dynamic from "next/dynamic";
 import { useCallback } from "react";
+import { CollectionRateKpi } from "#components/ledger/collection-rate-kpi";
 import {
 	Card,
 	CardContent,
@@ -139,6 +140,13 @@ export function Dashboard({
 			<div data-testid="dashboard-stats">
 				<h1 className="typography-h1">Dashboard</h1>
 				<KpiBentoRow {...kpiData} />
+				{/* Ledger-derived collection rate (D-08). It is a RATIO of collected
+				    to scheduled, so it neither duplicates nor sums with any bento
+				    tile above it; it fetches its own data and participates in the
+				    `ownerDashboardKeys.financial` invalidation fanout. */}
+				<div className="mt-4 sm:max-w-xs">
+					<CollectionRateKpi />
+				</div>
 			</div>
 
 			{/* Main Content: Revenue chart (50%) + Occupancy donut (25%) + Quick Actions (25%) */}

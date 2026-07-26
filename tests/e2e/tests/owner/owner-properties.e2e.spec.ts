@@ -1,24 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { ROUTES } from "../constants/routes";
 import { createProperty } from "../fixtures/test-data";
-import {
-	fillForm,
-	fillTextInput,
-	submitForm,
-	verifyValidationError,
-} from "../helpers/form-helpers";
+import { fillTextInput } from "../helpers/form-helpers";
 import {
 	closeModalViaCancelButton,
 	closeModalViaCloseButton,
 	closeModalViaEscape,
-	fillModalForm,
 	openModal,
 	openModalViaRoute,
 	submitModalForm,
 	verifyModalIsClosed,
 	verifyModalIsOpen,
-	verifyModalValidationErrors,
-	verifySuccessToast,
 } from "../helpers/modal-helpers";
 import {
 	setupErrorMonitoring,
@@ -27,7 +19,6 @@ import {
 import {
 	verifyButtonExists,
 	verifySearchInputExists,
-	verifyTableHasRows,
 	verifyTableRenders,
 } from "../helpers/ui-validation-helpers";
 
@@ -247,9 +238,6 @@ test.describe("Owner Properties", () => {
 		const rowCount = await tableRows.count();
 
 		if (rowCount > 1) {
-			// Get property name from table
-			const propertyName = await page.getByRole("row").nth(1).textContent();
-
 			// Click edit
 			const editButton = page.getByRole("button", { name: /edit/i }).first();
 			if ((await editButton.count()) > 0) {
