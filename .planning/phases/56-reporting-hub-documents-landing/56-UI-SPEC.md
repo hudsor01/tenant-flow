@@ -161,7 +161,9 @@ BAND 3 — Printable forms (grid gap-4 sm:grid-cols-2 lg:grid-cols-4)
 **Why this fixes overlap (b) — two independent guarantees:**
 
 1. **Semantic:** nesting the list inside the vault panel, under a `Separator`, below the "Open the vault" CTA, makes it read unambiguously as *a preview of what is in the vault* rather than a second, competing document surface. It is subordinate by position, never a sibling band.
-2. **Structural — they cannot disagree, by construction:** the list calls `documentSearchQueries.list({ page: 0 })` from `#hooks/api/query-keys/document-search-keys` with **no filters** and slices the result to the first 5 client-side. That is the exact factory the vault client calls (`documents-vault.client.tsx:230`) → the same `search_documents` RPC → the same `mapDocumentRow` boundary mapper → the same TanStack Query cache entry (unfiltered page 0). The RPC's unfiltered ordering is `d.created_at desc` (verified: `20260426043911_v25_phase_63_search_documents_filter_extension.sql:108`), so "recent" is exactly the vault's own first rows. **Building a second query, a second mapper, or a direct `.from('documents')` select is a blocking violation of this contract.**
+2. **Structural — they cannot disagree, by construction:** the list calls `documentSearchQueries.list({ page: 0 })` from `#hooks/api/query-keys/document-search-keys` with **no filters** and slices the result to the first 5 client-side. That is the exact factory the vault client calls (`src/components/documents/documents-vault.client.tsx:230-238`) → the same `search_documents` RPC → the same `mapDocumentRow` boundary mapper → the same TanStack Query cache entry. The RPC's unfiltered ordering is `d.created_at desc` (verified: `20260426043911_v25_phase_63_search_documents_filter_extension.sql:110`), so "recent" is exactly the vault's own first rows.
+
+**Scope of the "same cache entry" claim (checker-verified):** it holds for the vault's *default, unfiltered landing state* — `queryParam=""`, `entityType=undefined`, `categories=[]`, `from`/`to=""`, `page=0` — which normalizes to the identical query key as `documentSearchQueries.list({ page: 0 })`. Once the owner types a search or applies a filter the vault moves to a different key, and the landing's list legitimately keeps showing unfiltered recents. That is correct behaviour, not drift: the two only ever share a cache entry when they are asking the same question. **Building a second query, a second mapper, or a direct `.from('documents')` select is a blocking violation of this contract.**
 
 ### Recent-document row anatomy
 
@@ -224,7 +226,7 @@ Also changed: core nav `Documents` retargets `/documents/vault` → **`/document
 
 ### Active-state rule — longest-prefix-wins, exactly one winner
 
-`main-nav.tsx:188` currently computes `pathname.startsWith(href)` per item in isolation. With two nested hrefs that makes **both** entries active on `/reports/analytics/*`. Replace it with a resolver that picks the single best match across the whole nav item set:
+`main-nav.tsx` currently computes `pathname.startsWith(href)` per item in isolation (`isActive` declared at `:188`, the `startsWith` call at `:190`). With two nested hrefs that makes **both** entries active on `/reports/analytics/*`. Replace it with a resolver that picks the single best match across the whole nav item set:
 
 > An entry is active **iff** `pathname === href` or `pathname` starts with `href + "/"`, **and** no other nav entry with a longer matching `href` also qualifies.
 
@@ -296,11 +298,13 @@ Only surfaces whose CTA provably reaches a gated `reportType`:
 | `/reports/tax-documents` | Download PDF | `generate-pdf` | `financial` | yes | **yes** |
 | `/reports/generate` | PDF / Excel buttons | none — client-side `jspdf` + `sheetjs` | n/a | **no** | **no** |
 | `/reports/year-end` | Year-End CSV, 1099 CSV | none — client-side `downloadCsv()` | n/a | **no** | **no** |
-| `/reports/income-statement`, `/reports/cash-flow` | (pages, no export CTA) | none | n/a | n/a | **no** |
+| `/reports/income-statement`, `/reports/cash-flow` | **dead** `Export`/`Download` button (rendered, no `onClick`) | none | n/a | n/a | **no** |
 
 `income-statement` and `cash-flow` appear in `PREMIUM_REPORT_TYPES` only as `export-report?type=` query values that no UI currently sends. Badging those tiles would be a false claim about what is gated. Do not badge them.
 
-**Recorded, out of scope:** `reportMutations.downloadYearEndCsv` and `download1099Csv` (`report-keys.ts:267,275`) call the gated `export-report` function but are wired to no UI — the year-end page does client-side CSV instead. Those two gate paths are therefore currently unexercised by the product. Note it in verification; do not "fix" it in this phase.
+**Correction (checker verification):** those two routes do NOT lack an export CTA — `income-statement-page-header.tsx` and `cash-flow-header.tsx` each render a visible `Export`/`Download` button **with no `onClick` handler at all**. The no-badge conclusion is unchanged (a dead button reaches no edge call and gates nothing), but the planner is inheriting a **non-functional CTA, not an absent one**, and moving these pages carries it along. Fixing it is out of scope — this phase moves and consolidates, it does not repair capability — but it must not be mistaken for working behaviour during E2E authoring.
+
+**Recorded, out of scope:** `reportMutations.downloadYearEndCsv` and `download1099Csv` (`report-keys.ts:268,276`) call the gated `export-report` function but are wired to no UI — the year-end page does client-side CSV instead. Those two gate paths are therefore currently unexercised by the product. Note it in verification; do not "fix" it in this phase.
 
 ---
 
@@ -315,6 +319,8 @@ D-06 merges the compliant source INTO the non-compliant target. Without this con
 
 1. The merged `/reports/analytics` inherits `financial-overview-stats.tsx` **verbatim**, including both tooltips and its pinning test.
 2. `analytics-stats-row.tsx`'s **"Total Revenue" card is removed**, not relabelled. Keeping it beside `Scheduled`/`Collected` would put two differently-derived revenue numbers on one page — the exact D-18 failure. Its `Payment Success` / occupancy siblings may stay.
+
+   **Why removal is the ONLY vocabulary-safe move (checker-verified):** the card's value is sourced from `paymentAnalytics.totalRevenue` — a **third, independently-derived figure** that is neither Scheduled (lease-derived) nor Collected (ledger-derived). Relabelling it to either name would therefore *misrepresent its actual derivation* and produce a number that silently disagrees with the label above it. Phase 55 (D-07) established that no figure may change meaning without changing label; a third derivation wearing one of the two locked labels is the same failure in the opposite direction. Delete the card — do not rename it, and do not attempt to re-derive it from the ledger in this phase.
 3. Chart series named `"Revenue"` rename to **`"Scheduled"`** — `analytics-revenue-chart.tsx:103` (`name="Revenue"`) and `revenue-expense-chart.tsx:28` (`revenue: { label: "Revenue" }`).
 4. Nothing on the merged page sums Scheduled and Collected. Net Income / ROI / Cash Flow keep deriving from Scheduled minus expenses exactly as the source comment at `financial-overview-stats.tsx:6-11` documents.
 5. `revenue-expense-chart.tsx:28-30` hard-codes `oklch(0.6 0.16 138)` / `oklch(0.75 0.08 20)` / `oklch(0.64 0.19 162)` instead of chart tokens. The merged page uses `var(--chart-1..5)` (the pattern `analytics-revenue-chart.tsx` already follows). Hard-coded oklch does not respond to the dark theme.
