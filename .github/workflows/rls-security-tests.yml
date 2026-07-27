@@ -1,11 +1,17 @@
 name: RLS Security Tests
 
 # Primary gate: run on every PR to main (catches RLS drift regardless of changed files).
-# Post-merge run on main re-executes the full suite under the Actions secret scope
-# so any Dependabot bump that bypassed the PR-level RLS gate (via the step-level
-# Dependabot short-circuit) fails loud immediately on merge instead of waiting
-# up to a week for the weekly cron.
-# Weekly cron is the backup safety net for policy drift between PRs.
+#
+# The post-merge run on main re-executes the full suite under the Actions secret
+# scope — but ONLY when the merge was performed by a human. Do not restate the
+# claim this header used to make, that a bump bypassing the PR-level gate "fails
+# loud immediately on merge": when dependabot-auto-merge.yml merges under
+# GITHUB_TOKEN, GitHub's recursion guard suppresses the resulting push entirely
+# and this workflow does not run at all. For that path the next real execution is
+# the weekly cron, up to a week later. See the job-level comment below.
+#
+# Weekly cron is the backup safety net for policy drift between PRs, and the ONLY
+# net for anything auto-merged.
 on:
   push:
     branches: [main]
