@@ -5,6 +5,33 @@ name: Dependabot Auto-Merge
 # deferred via `gh pr merge --auto`, which holds the PR until required CI
 # checks pass — branch protection on `main` requires checks / e2e-smoke /
 # rls-security before any PR can merge.
+#
+# ⚠️ THAT PROTECTION IS WEAKER THAN IT LOOKS ON DEPENDABOT PRs. Two holes,
+# both verified 2026-07-27:
+#
+#   1. `e2e-smoke` and `rls-security` report SUCCESS on Dependabot PRs
+#      WITHOUT RUNNING — Dependabot-triggered runs get no Actions secret
+#      scope, so they short-circuit (3-5s "passes"). Branch protection is
+#      satisfied by a check that never executed.
+#   2. When this workflow's auto-merge lands the commit, it is authored by
+#      github-actions[bot] under GITHUB_TOKEN. GitHub's recursion guard then
+#      suppresses the resulting push to `main` ENTIRELY — no CI, no e2e, no
+#      CodeQL, no gitleaks. `check-runs` for the auto-merged next 16.2.11
+#      bump (99cc8413) showed ONLY the post-deploy Sentry gate.
+#
+# Net effect: an auto-merged bump can reach production validated NOWHERE.
+# That is exactly what happened to next 16.2.10 -> 16.2.11 — a SECURITY
+# release fixing four HIGH advisories, one of them a Turbopack proxy bypass
+# in an app that gates auth in src/proxy.ts.
+#
+# Mitigation below: production-runtime dependencies are no longer eligible
+# for auto-merge, so anything that can reach the prod runtime needs a human
+# merge — which fires the push workflows normally (verified on #929).
+#
+# To restore full auto-merge safely (owner action, repo settings):
+# add the E2E_OWNER_* / SUPABASE vars as Dependabot-scoped secrets under
+# Settings > Secrets and variables > Dependabot. `gh secret list --app
+# dependabot` is currently EMPTY, which is why hole 1 exists at all.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -40,9 +67,27 @@ jobs:
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
 
       # Auto-merge rules (first-match wins):
-      # - Any patch update (npm or otherwise) — fetch-metadata's `update-type`
-      #   for grouped PRs returns the highest semver level in the group, so
-      #   `update-type == patch` means EVERY package in the group is a patch.
+      # - Any patch update that is NOT a direct:production dependency —
+      #   fetch-metadata's `update-type` for grouped PRs returns the highest
+      #   semver level in the group, so `update-type == patch` means EVERY
+      #   package in the group is a patch. `dependency-type` returns the
+      #   highest priority in the group (direct:production >
+      #   direct:development > indirect), so excluding `direct:production`
+      #   rejects any group containing a production-runtime package.
+      #
+      #   The `direct:production` exclusion was ADDED 2026-07-27 after
+      #   `next` 16.2.10 -> 16.2.11 auto-merged to production under the old
+      #   blanket patch rule with ZERO validation (see the header). It applies
+      #   the same test that already justifies the github_actions rule below:
+      #   "can a broken bump reach the production runtime?" For Actions the
+      #   answer is no, so they stay eligible. For a direct:production package
+      #   — the framework, the auth client, the payment SDK — the answer is
+      #   yes, and while e2e-smoke/rls-security are vacuous on Dependabot PRs
+      #   a human merge is the only thing that actually runs them.
+      #
+      #   This is deliberately conservative: patch bumps to prod deps now wait
+      #   for a human. Restore the blanket rule once Dependabot-scoped secrets
+      #   exist and the e2e-smoke skip branch in ci-cd.yml is deleted.
       # - Minor updates to direct devDependencies (dev tooling only) —
       #   `dependency-type` for grouped PRs returns the highest priority
       #   (direct:production > direct:development > indirect), so requiring
@@ -58,7 +103,8 @@ jobs:
       # security-sensitive vendor groups) falls through to manual review.
       - name: Auto-merge if eligible
         if: |
-          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          (steps.meta.outputs.update-type == 'version-update:semver-patch' &&
+           steps.meta.outputs.dependency-type != 'direct:production') ||
           (steps.meta.outputs.update-type == 'version-update:semver-minor' &&
            steps.meta.outputs.dependency-type == 'direct:development') ||
           (steps.meta.outputs.package-ecosystem == 'github_actions' &&
