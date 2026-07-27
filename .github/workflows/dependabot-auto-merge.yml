@@ -183,3 +183,53 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Auto-merge is a PER-PR FLAG, not a policy evaluated at merge time.
+      # Tightening the rule above does NOT retract flags already set — GitHub
+      # merges the PR the moment its required checks go green, whatever this
+      # workflow now says.
+      #
+      # That is not hypothetical. On 2026-07-27 PRs #935 and #936 were armed at
+      # 16:02; the rule that made them ineligible merged at 16:35. Both stayed
+      # armed, held back only by a failing `checks` — the routine bun.lock sync
+      # would have released them straight to main. They had to be disarmed by
+      # hand.
+      #
+      # And skipping the step above is NOT equivalent to retracting. On #928 a
+      # maintainer pushed a lockfile commit, which made THIS JOB skip (the job
+      # gates on actor == dependabot[bot], and the actor was the maintainer) —
+      # yet the PR still self-merged 4m41s later under app/github-actions,
+      # because the flag from the earlier Dependabot event was still set.
+      #
+      # So state the negative explicitly instead of relying on absence.
+      - name: Retract auto-merge if NOT eligible
+        if: |
+          !(steps.meta.outputs.package-ecosystem == 'github_actions' &&
+            (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+             steps.meta.outputs.update-type == 'version-update:semver-minor'))
+        run: |
+          if gh pr merge --disable-auto "$PR_URL" 2>/dev/null; then
+            echo "::warning title=Auto-merge retracted::This PR had auto-merge enabled but is not eligible under the current rule. The flag has been removed; merge it by hand after review."
+          else
+            echo "No auto-merge flag set on this PR; nothing to retract."
+          fi
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # RESIDUAL, known and accepted: this job gates on
+      # `actor == dependabot[bot]`, so the retraction above runs on Dependabot's
+      # own events (opened / synchronize / reopened — i.e. every rebase) but NOT
+      # on a maintainer push to a Dependabot PR. In practice Dependabot rebases
+      # its open PRs frequently, so a stale flag gets cleared on the next such
+      # event.
+      #
+      # It is NOT cleared if a PR is armed and thereafter receives only
+      # maintainer commits. After ANY tightening of the rule above, sweep by
+      # hand:
+      #
+      #   for N in $(gh pr list --limit 50 --json number -q '.[].number'); do
+      #     gh pr view "$N" --json number,autoMergeRequest \
+      #       -q 'select(.autoMergeRequest) | "ARMED #\(.number)"'
+      #   done
+      #   gh pr merge --disable-auto <N>   # for each one that should not be
