@@ -102,10 +102,45 @@ jobs:
     env:
       CI: true
     steps:
+      # NOTE: this job reports SUCCESS here without running anything. That is a
+      # vacuous green, and it is deliberate only because Dependabot-triggered
+      # runs get no Actions secret scope (see "Secret source: Dependabot" in the
+      # run log) so the suite physically cannot authenticate.
+      #
+      # A previous version of this notice claimed "full suite runs post-merge on
+      # main (push event sees Actions secret scope regardless of who triggered
+      # the merge)". THAT WAS FALSE and it was load-bearing. When
+      # dependabot-auto-merge.yml merges via GITHUB_TOKEN, GitHub's recursion
+      # guard suppresses the resulting push entirely — no workflow runs at all.
+      # Verified 2026-07-27: `gh api repos/.../commits/99cc8413/check-runs` for
+      # the auto-merged next 16.2.11 bump returned ONLY the post-deploy Sentry
+      # gate. No CI, no e2e-smoke, no rls-security, no CodeQL, no gitleaks.
+      # That bump reached production validated NOWHERE.
+      #
+      # Mitigation now in place: dependabot-auto-merge.yml no longer
+      # auto-merges `direct:production` dependencies, so anything that can reach
+      # the production runtime requires a human merge — and a human merge fires
+      # the push workflows normally (verified on #929, same day).
+      #
+      # Proper fix, requires a repo-settings change (owner action): add the
+      # E2E_OWNER_* / SUPABASE vars as **Dependabot-scoped secrets**
+      # (Settings > Secrets and variables > Dependabot). `gh secret list --app
+      # dependabot` is currently EMPTY. Populating it lets this job run for
+      # real on Dependabot PRs and this whole skip branch can be deleted.
       - name: Skip notice on Dependabot PRs
         if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
         run: |
-          echo "::notice::Skipping e2e-smoke on Dependabot PR. Required-status-check satisfied via job success; full suite runs post-merge on main (push event sees Actions secret scope regardless of who triggered the merge)."
+          echo "::warning title=e2e-smoke did not run::This job reported success WITHOUT executing. Dependabot PRs receive no Actions secret scope, so the suite cannot authenticate. This PR has NOT been e2e-tested."
+          {
+            echo "### e2e-smoke: SKIPPED (vacuous green)"
+            echo
+            echo "This job reported success **without running any tests**."
+            echo
+            echo "- Cause: Dependabot-triggered runs get no Actions secret scope."
+            echo "- This PR has **not** been e2e-tested by this check."
+            echo "- Auto-merge is restricted to non-production dependencies for exactly this reason."
+            echo "- To make this check real: add Dependabot-scoped secrets (see comment in ci-cd.yml)."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Suppress git default branch hint
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
