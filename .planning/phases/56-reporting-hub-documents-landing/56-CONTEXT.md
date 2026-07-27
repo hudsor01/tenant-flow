@@ -101,6 +101,59 @@ verification that `PREMIUM_REPORT_TYPES` gating still holds, and the `/documents
   this vocabulary exactly - the hub must not reintroduce a bare "Revenue" label or a third
   definition. See `.planning/phases/55-rent-ledger/55-CONTEXT.md` D-07/D-08.
 
+### Post-research decisions (locked 2026-07-26, after 56-RESEARCH.md)
+
+Research surfaced facts that changed or added decisions. These are as binding as D-01..D-18.
+
+- **D-19 (CORRECTS D-03): the redirect map is 13 entries, not ~21.** Because the UI-SPEC chose FLAT
+  slugs, `/reports`, `/reports/analytics`, `/reports/generate` and `/reports/year-end` keep their
+  exact current paths. D-03 anticipated redirects for the re-slotted `/reports/*` routes; with flat
+  slugs those become **identity no-ops**, and emitting them produces `ERR_TOO_MANY_REDIRECTS` on
+  routes that work today. **Emit exactly 13 entries and assert the 4 identity paths do NOT redirect.**
+  Redirect ordering is a non-issue: literal `source` values compile to both-ends-anchored regexes
+  (verified from `.next/routes-manifest.json`), so `/analytics` cannot shadow `/analytics/financial`.
+
+- **D-20: Accounts Receivable is PORTED into the hub, not dropped.** It is the one figure that
+  disappears when `/financials` is deleted (profit margin survives via
+  `financial-overview-stats.tsx:141`). v10.0 is a claims-integrity milestone and Phase 55 spent its
+  entire budget on not losing or fabricating numbers - silently dropping one contradicts that. Carry
+  it onto a hub route as a single card.
+
+- **D-21: the `ExportButtons` divergent paywall path IS fixed in this phase.** It POSTs to
+  `export-report` with no `type` param, so the function defaults `reportType` to `"financial"` - a
+  `PREMIUM_REPORT_TYPES` member - and it surfaces the 402 as `FINANCIAL_EXPORT_FAILED` rather than
+  `PaywallError`. The D-06 merge would import a second, divergent paywall pattern into the hub.
+  Small and contained; two ways to surface the same 402 on one surface is precisely the
+  inconsistency this consolidation exists to end.
+
+- **D-22: the merged analytics page gets ONE period control governing the whole page.** The two
+  source pages share zero state, so the merge inherits two independent controls. A `Select` that
+  silently governs only half the charts is the unacceptable outcome; a single control is the only
+  honest reading. (User delegated this to Claude's discretion; recorded here as locked.)
+
+- **D-23: the Analytics hub tile is NOT badged `Growth`.** The page is viewable on any tier and only
+  one export inside it is gated, so badging the whole tile would overstate the gate. This keeps the
+  UI-SPEC's approved tier-gate table unchanged - the contradicting evidence was considered and the
+  table stands.
+
+- **D-24: `app-shell.tsx` carries a SECOND complete route table.** The Cmd+K command palette holds 13
+  legacy hrefs and is absent from the UI-SPEC. It must be updated alongside the nav, or the palette
+  keeps deep-linking to deleted routes. The file's own comment records that a prior review already
+  caught this class of miss once.
+
+- **D-25 (RPTHUB-04 is not satisfiable the obvious way): CI runs only
+  `--project=smoke --project=public --project=owner-axe`** (`ci-cd.yml:162`). The `owner` Playwright
+  project NEVER executes, so a spec added under `tests/e2e/tests/owner/` gates nothing - which is
+  already true of `owner-financials.e2e.spec.ts` and `reports-gate.spec.ts`. Hub-route coverage MUST
+  land in **`owner-axe`**; redirect coverage in **`public`** (needs no auth - config redirects
+  resolve at Next.js step 2, before Proxy at step 3, which is also why RPTHUB-02's "no proxy
+  involvement" holds structurally).
+
+- **D-26 (CORRECTS the D-06 cost assumption): the two analytics pages do NOT overlap.** Zero shared
+  data sources, zero shared components (11 vs 5 children;
+  `analyticsQueries.financialPageData()` vs three `use-reports` hooks). Budget the merge as a
+  standalone plan, not a cheap dedup.
+
 ### Claude's Discretion
 - The exact sub-route slugs under `/reports` (e.g. `/reports/exports/year-end` vs
   `/reports/year-end`) - pick whatever keeps the redirect map smallest while reading coherently.
