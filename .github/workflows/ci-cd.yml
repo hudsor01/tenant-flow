@@ -131,17 +131,24 @@ jobs:
       # validated in neither place. That combination is what the auto-merge
       # allowlist exists to prevent.
       #
-      # Mitigation now in place: dependabot-auto-merge.yml is a positive
-      # allowlist (direct devDependency patch/minor, non-major GitHub Actions).
-      # Nothing that can reach the production runtime — including indirect
-      # dependencies — is eligible, so it requires a human merge, and a human
-      # merge fires the push workflows normally (verified on #929, same day).
+      # Mitigation now in place: dependabot-auto-merge.yml auto-merges GitHub
+      # Actions patch/minor ONLY. No npm package auto-merges in any position, so
+      # every npm bump requires a human merge, and a human merge fires the push
+      # workflows normally (verified on #929, same day).
       #
-      # Proper fix, requires a repo-settings change (owner action): add the
-      # E2E_OWNER_* / SUPABASE vars as **Dependabot-scoped secrets**
-      # (Settings > Secrets and variables > Dependabot). `gh secret list --app
-      # dependabot` is currently EMPTY. Populating it lets this job run for
-      # real on Dependabot PRs and this whole skip branch can be deleted.
+      # A maintainer commit pushed to a Dependabot PR ALSO un-vacuums this job —
+      # that is why PR #928 ran e2e-smoke for a real 235s. So a human merge is
+      # not the only path to real coverage, just the only one the auto-merge
+      # rule can depend on.
+      #
+      # Proper fix, requires a repo-settings change (owner action): finish
+      # populating the **Dependabot secret scope** (Settings > Secrets and
+      # variables > Dependabot). As of 2026-07-27 it holds
+      # NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      # E2E_OWNER_EMAIL and E2E_OWNER_B_EMAIL. The two still missing are
+      # E2E_OWNER_PASSWORD and E2E_OWNER_B_PASSWORD; without them the suite
+      # cannot authenticate and this skip branch has to stay. Add them and this
+      # whole branch can be deleted.
       - name: Skip notice on Dependabot PRs
         if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
         run: |

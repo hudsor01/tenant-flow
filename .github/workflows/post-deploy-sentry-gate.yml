@@ -20,8 +20,17 @@
 # Required repo secrets:
 #   SENTRY_AUTH_TOKEN  — Sentry Organization Token (Settings → Developer Settings
 #                        → Organization Tokens). Scopes needed: project:read, event:read.
-#   SENTRY_ORG         — Sentry org slug (matches next.config.ts:50)
-#   SENTRY_PROJECT     — Sentry project slug (matches next.config.ts:51)
+#   SENTRY_ORG         — Sentry org slug. Must match the value the Vercel BUILD
+#                        uses (next.config.ts reads process.env.SENTRY_ORG in the
+#                        withSentryConfig options), but note these are two
+#                        SEPARATE secret stores: the build reads Vercel's project
+#                        env, this workflow reads the GitHub Actions secret. They
+#                        can drift, and a mismatch shows up here as a 404.
+#   SENTRY_PROJECT     — Sentry project slug, same two-store caveat.
+#
+#   (Earlier revisions cited next.config.ts:50/:51 for these. Line numbers in
+#   that file drift with every edit — the options live in the withSentryConfig
+#   call at the bottom; grep for SENTRY_ORG rather than trusting a line number.)
 #
 # Required repo variables (all tunable without code change via `gh variable set`):
 #   SENTRY_GATE_NEW_ISSUE_EVENT_THRESHOLD  (default 10)
@@ -84,10 +93,16 @@ jobs:
 
       # Validate credentials BEFORE the 30-minute observation sleep.
       #
-      # This gate has failed 40 times out of 40 — it has never once passed. Every
-      # one of those runs slept the full observation window first and then blamed
-      # the application build, which is roughly 20 hours of runner time spent
-      # producing a misleading error.
+      # This gate has NEVER once passed. Measured 2026-07-27 over the most recent
+      # 200 runs the API returns: 199 failures, 0 successes, 144.6 hours of
+      # cumulative runtime. (An earlier revision of this comment said "40 out of
+      # 40" and "roughly 20 hours" — those came from a `gh run list --limit 40`
+      # that silently capped at its own limit. The real figures are ~5x and ~7x
+      # worse; re-measure with an explicit high limit rather than trusting a
+      # default.)
+      #
+      # Nearly all of that runtime is this job sleeping the full observation
+      # window and then blaming the application build.
       #
       # The release lookup below is org-scoped, so a wrong SENTRY_ORG or a token
       # belonging to a different org returns 404 — indistinguishable from "the
@@ -106,21 +121,34 @@ jobs:
           # false diagnosis for another. The releases list needs exactly the
           # scope the real check below already needs, so a pass here means the
           # real check can authenticate, and a failure here is genuine.
+          # `|| echo 000` is load-bearing. GitHub Actions runs `run:` blocks as
+          # `bash -e`, so on a curl TRANSPORT failure (DNS, TLS, connection reset)
+          # the non-zero exit would abort this step immediately — before the case
+          # statement — and the job would fail with no ::error:: annotation at all,
+          # which is the exact silent-failure mode this step exists to remove.
+          # Substituting a sentinel keeps the diagnosis on the happy path.
           STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
             "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/?per_page=1" \
-            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || echo "000")
           case "${STATUS}" in
             200)
-              echo "Sentry org resolved; token has access."
+              echo "Sentry credentials verified; token can read this org's releases."
+              ;;
+            000)
+              echo "::error::Could not reach the Sentry API at all (curl transport failure)."
+              echo "::error::Network/DNS/TLS problem on the runner, or a Sentry outage."
+              echo "::error::This is NOT an application build problem."
+              exit 1
               ;;
             401)
               echo "::error::SENTRY_AUTH_TOKEN was rejected (401) — invalid or expired."
+              echo "::error::Reissue it: Sentry > Settings > Developer Settings > Organization Tokens."
               echo "::error::This is a CI credentials problem, NOT an application build problem."
               exit 1
               ;;
             403)
-              echo "::error::SENTRY_AUTH_TOKEN cannot access this org (403)."
-              echo "::error::Required scopes: org:read and project:read."
+              echo "::error::SENTRY_AUTH_TOKEN cannot read releases for this org (403)."
+              echo "::error::Required scope for this endpoint: project:read."
               echo "::error::This is a CI credentials problem, NOT an application build problem."
               exit 1
               ;;
@@ -462,12 +490,16 @@ jobs:
       # `always()` alone made this step fire on runs that failed BEFORE the
       # snapshot was written — every credentials or release-lookup failure — and
       # `if-no-files-found: error` then added a second, misleading "no files"
-      # error on top of the real one. That has been happening on all 40 failed
-      # runs to date, not just since the preflight was added.
+      # error on top of the real one, on every failed run to date.
       #
       # Guarding on the file existing keeps `if-no-files-found: error` meaningful
       # (it still catches a genuinely empty snapshot after the evaluate step ran)
       # while letting a real failure report only its own cause.
+      #
+      # hashFiles() resolves relative to GITHUB_WORKSPACE, and snapshot.json is
+      # written by the evaluate step with a bare relative path, i.e. into the
+      # step's working directory, which is GITHUB_WORKSPACE. So the guard sees
+      # the same file the upload would.
       - name: Upload baseline artifact
         if: always() && hashFiles('snapshot.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
