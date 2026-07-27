@@ -11,7 +11,7 @@
 - ⏸ **v7.0 TanStack Form Migration** — Phases 20-24 (paused: 20-22 merged)
 - ✅ **v8.0 Correctness Restoration** — Phases 25-35 (shipped 2026-07-10)
 - ✅ **v9.0 Full-Surface Remediation** — Phases 36-51 (shipped 2026-07-17)
-- 🚧 **v10.0 Claims Integrity + Canonical Feature Expansion** — Phases 52-64 (active)
+- 🚧 **v10.0 Claims Integrity + Canonical Feature Expansion** — Phases 52-65 (active)
 
 Archived roadmaps/requirements for v1.0–v9.0 live in `.planning/milestones/` (v9.0 at `milestones/v9.0-ROADMAP.md`).
 
@@ -21,13 +21,16 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 
 ## Phases
 
-**Phase Numbering:** Integer phases only (project convention — never decimals). Phase numbers continue across milestones; v9.0 ended at Phase 51, so v10.0 runs 52-64.
+**Phase Numbering:** Integer phases only (project convention — never decimals). Phase numbers continue across milestones; v9.0 ended at Phase 51, so v10.0 runs 52-65.
+
+**Numbering is append-only (2026-07-26):** the Phase 56 split created **Phase 65: Documents Landing**. Because 57-64 were already planned and are never renumbered, and because decimals are forbidden by project convention, the new phase takes the next free integer (65) but **executes immediately after Phase 56** — the one deliberate departure from strict numeric execution order. Both the phase list and Phase Details below are ordered by *execution* order, so Phase 65 appears between 56 and 57.
 
 - [x] **Phase 52: Notification Center, Activity Feed & Channel Honesty** - Surface the orphaned `notifications`/`activity` backend as a bell + inbox + dashboard timeline; remove dishonest SMS/push toggles; drop orphan schema (completed 2026-07-19)
 - [x] **Phase 53: Renewal Reminder Delivery** - Deliver the sold Growth/Max lease-renewal reminders in-house (edge fn draining `lease_reminders`), exactly-once, suppression-honoring, backlog dry-run gated (completed 2026-07-22)
 - [x] **Phase 54: E-sign & Storage Metering** - Enforce the sold e-sign (25/mo Growth) and storage quotas with visible usage + upgrade prompts; grandfather existing over-quota owners (completed 2026-07-24)
 - [x] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation (completed 2026-07-25)
-- [ ] **Phase 56: Reporting Hub & Documents Landing** - Collapse `/financials/*` + `/analytics/financial` + `/reports/*` into one `/reports` hub with preserved tier-gating; make `/documents` a real landing page
+- [ ] **Phase 56: Reporting Hub** - Collapse `/financials/*` + `/analytics/financial` + `/reports/*` into one `/reports` hub with preserved tier-gating; `/analytics` stays its own section
+- [ ] **Phase 65: Documents Landing** - Make `/documents` a real landing page (vault + lease template builder + printable templates) instead of a bare redirect *(executes immediately after Phase 56)*
 - [ ] **Phase 57: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
 - [ ] **Phase 58: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
 - [ ] **Phase 59: State-Aware Notice Library** - Counsel-reviewed, state-aware notices on the lease-template rails, saved to the vault with a service date (curated launch states)
@@ -121,17 +124,30 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 **Waves**: Wave 1 (55-01, 55-02, 55-03 — parallel) -> Wave 2 (55-04 [BLOCKING] apply+types) -> Wave 3 (55-05, 55-08 — parallel) -> Wave 4 (55-06 dialogs) -> Wave 5 (55-07 ledger tab). Migrations apply as one unit in 55-04 (shared src/types/supabase.ts regen); frontend builds only against the regenerated live types.
 **UI hint**: yes
 
-### Phase 56: Reporting Hub & Documents Landing
-**Goal**: The three duplicated financial-reporting surfaces collapse into one `/reports` hub with tier-gating provably intact, and `/documents` becomes a real landing page instead of a bare redirect.
+### Phase 56: Reporting Hub
+**Goal**: The three duplicated financial-reporting surfaces (`/financials/*`, `/analytics/financial`, `/reports/*`) collapse into one `/reports` hub with tier-gating provably intact, while operational analytics stays a separate, untouched product section.
 **Depends on**: Phase 55 (hub launches with real ledger actuals, not a re-fabricated `collection_rate`)
-**Requirements**: RPTHUB-01, RPTHUB-02, RPTHUB-03, RPTHUB-04, DOCS-01
+**Requirements**: RPTHUB-01, RPTHUB-02, RPTHUB-03, RPTHUB-04
 **Success Criteria** (what must be TRUE):
-  1. One unified `/reports` hub absorbs `/financials/*` and `/analytics/financial` under a single navigation entry (statements + analytics + exports in one surface)
-  2. Every legacy financial/reporting URL (~15 routes) permanently 308-redirects to its hub equivalent via `next.config.ts` `redirects()` — no 404s, no `proxy.ts` involvement
-  3. Premium report export tier-gating (`export-report` `PREMIUM_REPORT_TYPES`) is verified intact after consolidation, and E2E covers hub routes before legacy routes are removed
-  4. `/documents` renders a real landing page (vault + lease template builder + printable templates entry points) instead of a bare redirect
+  1. One unified `/reports` hub is the single navigation entry for reporting — statements + analytics + exports in one surface — absorbing `/financials/*` and the one financial analytics page (`/analytics/financial` → `/reports/analytics`)
+  2. `/analytics` remains its own navigation section: the index plus `leases`, `maintenance`, `occupancy`, `overview`, `property-performance` keep their URLs and are not absorbed (Reports = financial statements + exports; Analytics = operational insight). The `/analytics` index cross-links its former financial entry to the hub
+  3. All seven moved URLs (six `/financials/*` + `/analytics/financial`) permanently 308-redirect to their exact hub equivalents via `next.config.ts` `redirects()` — no 404s, no `proxy.ts` involvement; routes that are not moving (`/reports` itself and the six surviving `/analytics/*` pages) emit no redirect
+  4. Premium report export tier-gating (`export-report` `PREMIUM_REPORT_TYPES`) is verified intact after consolidation, and E2E covers hub routes before legacy routes are removed
 **Plans**: TBD
 **UI hint**: yes
+**Revision (2026-07-26 — user scope correction, supersedes the pre-split phase definition):** Phase 56 was previously "Reporting Hub & Documents Landing" and previously absorbed all of `/analytics/*`. Two corrections: (a) only `/analytics/financial` moves — analytics stays a separate section for navigational clarity, so the redirect map is 7 entries, not ~15; (b) DOCS-01 and the entire `/documents` landing moved out to **Phase 65**. The two shipped surfaces share no code, no routes and no tests.
+
+### Phase 65: Documents Landing
+**Goal**: `/documents` stops being a bare redirect and becomes a real landing page — a navigation surface with entry points to the document vault, the lease template builder, and the printable templates.
+**Depends on**: Nothing. Sequenced immediately after Phase 56 for release order only — it shares no code, no routes and no tests with the reporting hub.
+**Requirements**: DOCS-01
+**Success Criteria** (what must be TRUE):
+  1. `/documents` renders a real landing page with entry points to the vault, the lease template builder and the printable templates — the existing `permanentRedirect('/documents/vault')` is deliberately reversed, and the reversal is recorded in-code as superseding the earlier decision
+  2. `/documents/vault` stays the canonical vault URL — the landing links to it; no sidebar, marketing or deep-link target outside this phase changes
+  3. The landing's recent-documents panel reuses the vault's existing query/mapper rather than a second data source, so the two surfaces can never disagree
+**Plans**: TBD
+**UI hint**: yes
+**Numbering note:** created 2026-07-26 by splitting Phase 56. Integer numbering is append-only (decimals are forbidden by project convention and 57-64 are never renumbered), so this phase takes 65 while executing directly after 56.
 
 ### Phase 57: Rental Application Intake
 **Goal**: Owner can collect standardized rental applications via a public hashed-token link — no applicant accounts, no SSN, no screening — and convert approved applicants into tenant records, with a real PII retention path.
@@ -228,7 +244,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 ## Progress
 
 **Execution Order:**
-Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 → 58 → 59 → 60 → 61 → 62 → 63 → 64. Each phase branches only after the previous phase's PR is merged to main.
+Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 → 58 → 59 → 60 → 61 → 62 → 63 → 64. Each phase branches only after the previous phase's PR is merged to main. Phase 65 (Documents Landing) is the single non-numeric position — it was split out of Phase 56 on 2026-07-26 and took the next free integer because 57-64 are never renumbered and decimals are forbidden; it ships right after the reporting hub.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -236,7 +252,8 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
 | 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
-| 56. Reporting Hub & Documents Landing | 0/TBD | Not started | - |
+| 56. Reporting Hub | 0/TBD | Not started | - |
+| 65. Documents Landing (executes after 56) | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |
 | 59. State-Aware Notice Library | 0/TBD | Not started | - |
@@ -246,7 +263,7 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 | 63. Unit Turnover Workflow | 0/TBD | Not started | - |
 | 64. Claims Alignment & Marketing Truth | 0/TBD | Not started | - |
 
-## Execution Disciplines (binding, phases 52-64)
+## Execution Disciplines (binding, phases 52-65)
 
 1. **Strictly sequential** — each phase branches (`gsd/phase-{N}-{slug}`) only after the previous phase's PR is MERGED to main. Never stack phase branches. Many phases share surfaces (Settings, notification write-path, Resend rail, reporting export, money boundary) so a stacked branch could silently overwrite a prior fix.
 2. **Perfect-PR gate per phase** — merge only after two consecutive zero-finding deep review cycles on the frozen final state (a mid-streak edit resets the streak). Deep review = architectural + design-token + a11y.
@@ -256,4 +273,6 @@ Phases execute in strict numeric order: 52 → 53 → 54 → 55 → 56 → 57 �
 6. **Owner-run deployment residuals** — every phase introducing an edge function deploys via `bun scripts/deploy-edge-functions.ts` (CLI-401 workaround); every phase applying a migration via MCP reconciles the repo filename to the prod-assigned timestamp via `list_migrations`, then regenerates `src/types/supabase.ts`.
 
 ---
-*Roadmap created 2026-07-19 for milestone v10.0. Phase numbers continue from v9.0 (ended Phase 51). 58 v10 requirements mapped across 13 phases (52-64) — 100% coverage, no orphans, no double-mapping. Note: the REQUIREMENTS.md coverage note previously read "46 total"; the enumerated REQ-IDs actually total 58 (all 16 categories counted), corrected during roadmap creation.*
+*Roadmap created 2026-07-19 for milestone v10.0. Phase numbers continue from v9.0 (ended Phase 51). 58 v10 requirements mapped across 14 phases (52-65) — 100% coverage, no orphans, no double-mapping. Note: the REQUIREMENTS.md coverage note previously read "46 total"; the enumerated REQ-IDs actually total 58 (all 16 categories counted), corrected during roadmap creation.*
+
+*Revised 2026-07-26 (user scope correction): Phase 56 split into **Phase 56 Reporting Hub** (RPTHUB-01..04) and **Phase 65 Documents Landing** (DOCS-01), taking the milestone from 13 to 14 phases; `/analytics` is no longer absorbed by the hub (only `/analytics/financial` moves). Phases 57-64 were not renumbered and their scope is unchanged.*

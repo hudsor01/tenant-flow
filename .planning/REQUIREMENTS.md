@@ -57,7 +57,7 @@
 #### Reporting Hub (RPTHUB)
 
 - [ ] **RPTHUB-01**: One unified reporting hub at `/reports` absorbs `/financials/*` and `/analytics/financial` (single navigation entry, statements + analytics + exports in one surface)
-- [ ] **RPTHUB-02**: Every legacy financial/reporting URL (~15 routes) permanently redirects (308, `next.config.ts` `redirects()`) to its hub equivalent — no 404s, no proxy.ts involvement
+- [ ] **RPTHUB-02**: Every moved financial/reporting URL (7 routes — six `/financials/*` plus `/analytics/financial`) permanently redirects (308, `next.config.ts` `redirects()`) to its hub equivalent — no 404s, no proxy.ts involvement; routes that are not moving (`/reports/*` itself, the six surviving `/analytics/*` pages) emit no redirect
 - [ ] **RPTHUB-03**: Tier-gating on premium report exports (`export-report` `PREMIUM_REPORT_TYPES`) verified intact after consolidation — no route rewrite bypasses the gate
 - [ ] **RPTHUB-04**: E2E coverage exists for hub routes before legacy routes are removed
 
@@ -150,7 +150,7 @@
 
 ## Traceability
 
-Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactly one phase (52-64). No orphans, no double-mapping.
+Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactly one phase (52-65). No orphans, no double-mapping.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -186,7 +186,7 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | RPTHUB-02 | Phase 56 | Pending |
 | RPTHUB-03 | Phase 56 | Pending |
 | RPTHUB-04 | Phase 56 | Pending |
-| DOCS-01 | Phase 56 | Pending |
+| DOCS-01 | Phase 65 | Pending |
 | APPLY-01 | Phase 57 | Pending |
 | APPLY-02 | Phase 57 | Pending |
 | APPLY-03 | Phase 57 | Pending |
@@ -219,8 +219,10 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 - Unmapped: 0 ✓
 - Double-mapped: 0 ✓
 
-> **Count correction (2026-07-19):** the prior coverage note read "46 total." The actual enumerated REQ-IDs total **58**. All 58 are mapped across phases 52-64. The stale "46" figure is superseded.
+> **Count correction (2026-07-19):** the prior coverage note read "46 total." The actual enumerated REQ-IDs total **58**. All 58 are mapped across phases 52-65. The stale "46" figure is superseded.
+
+> **Phase 56 split (2026-07-26, user scope correction):** DOCS-01 moved from Phase 56 to the new **Phase 65: Documents Landing**; Phase 56 now carries RPTHUB-01..04 only. Phase 65 takes the next free integer (project convention forbids decimals; phases 57-64 are never renumbered) but executes immediately after Phase 56. RPTHUB-02's route count was corrected from "~15" to the actual 7 moved routes — `/analytics` is no longer absorbed by the hub, only `/analytics/financial` moves. Requirement count and mapping are unchanged at 58/58.
 
 ---
 *Requirements defined: 2026-07-19*
-*Last updated: 2026-07-19 — traceability populated by roadmap creation; 58/58 mapped across phases 52-64; corrected the stale "46 total" coverage count to the actual 58.*
+*Last updated: 2026-07-26 — Phase 56 split: DOCS-01 remapped to Phase 65, RPTHUB-02 route count corrected to 7; 58/58 still mapped, now across phases 52-65. (2026-07-19: traceability populated by roadmap creation; corrected the stale "46 total" coverage count to the actual 58.)*
