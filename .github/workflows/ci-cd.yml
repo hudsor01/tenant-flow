@@ -89,12 +89,17 @@ jobs:
     # the skip step below for the check-runs evidence.
     #
     # Auto-merge classes (see .github/workflows/dependabot-auto-merge.yml for
-    # the authoritative conditional): patch OR minor bumps to direct
-    # devDependencies, and non-major GitHub Actions bumps. Everything else —
-    # all production deps direct AND indirect, all majors, supabase, stripe,
-    # and anything with unrecognised metadata — flows through manual review.
-    # A human merge is currently the only thing that actually executes this
-    # suite on a Dependabot change.
+    # the authoritative conditional): GitHub Actions patch/minor ONLY. No npm
+    # package auto-merges in any position — not production, not indirect, not
+    # dev tooling — so every npm bump flows through manual review.
+    #
+    # A `direct:development` npm rule was tried and removed: `indirect` ranks
+    # BELOW `direct:development` in fetch-metadata's priority list and is masked
+    # by any dev dep sharing the PR, so the scalar cannot express the rule.
+    #
+    # A human merge is the reliable way to execute this suite on a Dependabot
+    # change, though not the only one — a maintainer commit pushed to the PR
+    # also un-vacuums it, which is what happened on #928.
     runs-on: ubuntu-latest
     concurrency:
       group: e2e-${{ github.ref }}
@@ -160,7 +165,8 @@ jobs:
             echo
             echo "- Cause: Dependabot-triggered runs get no Actions secret scope."
             echo "- This PR has **not** been e2e-tested by this check."
-            echo "- Auto-merge is restricted to non-production dependencies for exactly this reason."
+            echo "- Auto-merge is restricted to GitHub Actions patch/minor for exactly this reason."
+            echo "  **No npm package auto-merges**, so this PR needs a human merge."
             echo "- To make this check real: add Dependabot-scoped secrets (see comment in ci-cd.yml)."
           } >> "$GITHUB_STEP_SUMMARY"
 
