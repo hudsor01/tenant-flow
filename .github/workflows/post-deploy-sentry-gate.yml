@@ -82,6 +82,53 @@ jobs:
             exit 1
           fi
 
+      # Validate credentials BEFORE the 30-minute observation sleep.
+      #
+      # This gate has failed 40 times out of 40 — it has never once passed. Every
+      # one of those runs slept the full observation window first and then blamed
+      # the application build, which is roughly 20 hours of runner time spent
+      # producing a misleading error.
+      #
+      # The release lookup below is org-scoped, so a wrong SENTRY_ORG or a token
+      # belonging to a different org returns 404 — indistinguishable from "the
+      # build never created the release" unless the org is checked separately.
+      # Verified 2026-07-27: release 6d7cfb8e07cd… DOES exist in Sentry (org
+      # hudson-digital-solutions, project tenant-flow, created 14:10:43Z), and
+      # so does every earlier deploy back to June. The builds were always fine.
+      - name: Verify Sentry credentials resolve
+        run: |
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
+          case "${STATUS}" in
+            200)
+              echo "Sentry org resolved; token has access."
+              ;;
+            401)
+              echo "::error::SENTRY_AUTH_TOKEN was rejected (401) — invalid or expired."
+              echo "::error::This is a CI credentials problem, NOT an application build problem."
+              exit 1
+              ;;
+            403)
+              echo "::error::SENTRY_AUTH_TOKEN cannot access this org (403)."
+              echo "::error::Required scopes: org:read and project:read."
+              echo "::error::This is a CI credentials problem, NOT an application build problem."
+              exit 1
+              ;;
+            404)
+              echo "::error::The org in SENTRY_ORG did not resolve (404)."
+              echo "::error::Either SENTRY_ORG is wrong, or SENTRY_AUTH_TOKEN belongs to a different"
+              echo "::error::org — Sentry returns 404 rather than 403 so it does not confirm whether"
+              echo "::error::an org exists to a caller that cannot see it."
+              echo "::error::This is a CI credentials problem, NOT an application build problem."
+              exit 1
+              ;;
+            *)
+              echo "::error::Sentry organizations API returned HTTP ${STATUS}."
+              exit 1
+              ;;
+          esac
+
       - name: Resolve release SHA
         id: release
         env:
@@ -117,11 +164,19 @@ jobs:
             "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
           if [ "${STATUS}" = "404" ]; then
-            echo "::error::Sentry release ${RELEASE_SHA} not found - the Vercel build did not create it."
-            echo "::error::Check release.name in next.config.ts withSentryConfig options. The plugin auto-detects a"
-            echo "::error::release name only on Cordova/Heroku/CodeBuild/CircleCI/Xcode/Gradle, otherwise falling back"
-            echo "::error::to the git HEAD SHA, which needs a real .git directory. Vercel builds have none, so no"
-            echo "::error::release is created. Pin it: release.name = process.env.VERCEL_GIT_COMMIT_SHA"
+            # Credentials were validated before the observation window, so the org
+            # and token are known good by this point and a 404 here really does mean
+            # the release is absent. Do not re-assert that without that preflight —
+            # an org-scoped 404 was previously misread as a build failure for 40
+            # consecutive runs.
+            echo "::error::Sentry release ${RELEASE_SHA} not found, though the org and token resolved."
+            echo "::error::So the Vercel build genuinely did not create a release for this commit."
+            echo "::error::Check, in order:"
+            echo "::error::  1. SENTRY_ORG / SENTRY_PROJECT / SENTRY_AUTH_TOKEN exist in the Vercel"
+            echo "::error::     Production environment (the build uses those, NOT these GitHub secrets)"
+            echo "::error::  2. release.name is set in next.config.ts withSentryConfig options — on"
+            echo "::error::     Vercel there is no .git directory, so auto-detection finds nothing"
+            echo "::error::  3. the Vercel build log for this commit, which names any plugin error"
             exit 1
           fi
           if [ "${STATUS}" != "200" ]; then
@@ -346,7 +401,10 @@ jobs:
               exit 0
               ;;
             *)
-              echo "::error::Gate status not set — evaluate step may have failed. Treating as FAIL."
+              # Reached when an earlier step exited non-zero, which has already
+              # printed a specific ::error:: line. Repeating "evaluate step may
+              # have failed" on top of that buried the real message.
+              echo "::error::Gate did not reach evaluation — an earlier step failed and reported the reason above."
               exit 1
               ;;
           esac
