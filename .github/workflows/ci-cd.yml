@@ -113,15 +113,29 @@ jobs:
       # the merge)". THAT WAS FALSE and it was load-bearing. When
       # dependabot-auto-merge.yml merges via GITHUB_TOKEN, GitHub's recursion
       # guard suppresses the resulting push entirely — no workflow runs at all.
-      # Verified 2026-07-27: `gh api repos/.../commits/99cc8413/check-runs` for
-      # the auto-merged next 16.2.11 bump returned ONLY the post-deploy Sentry
-      # gate. No CI, no e2e-smoke, no rls-security, no CodeQL, no gitleaks.
-      # That bump reached production validated NOWHERE.
+      # Verified 2026-07-27: `gh api repos/.../commits/99cc8413/check-runs` (the
+      # merge commit for the auto-merged next 16.2.11 bump) returned ONLY the
+      # post-deploy Sentry gate. So there is no post-merge safety net.
       #
-      # Mitigation now in place: dependabot-auto-merge.yml no longer
-      # auto-merges `direct:production` dependencies, so anything that can reach
-      # the production runtime requires a human merge — and a human merge fires
-      # the push workflows normally (verified on #929, same day).
+      # PRECISION, because an earlier revision of this comment overstated it:
+      # that does NOT mean the 16.2.11 bump shipped untested. Its PR head
+      # (3d1f4d8b, PR #928) ran e2e-smoke for 235s and rls-security for 122s —
+      # real executions, not the 3-5s vacuous pass. A maintainer bun.lock commit
+      # had been pushed to that PR, and a maintainer commit changes the trigger
+      # context so the suites run for real. The merge commit showing only the
+      # gate is explained by the recursion guard, NOT by absence of testing.
+      #
+      # The hole is nonetheless real, for the case that has no maintainer
+      # commit: a pure Dependabot PR gets vacuous 3-5s greens here, and if it is
+      # then auto-merged under GITHUB_TOKEN the push is suppressed, so it is
+      # validated in neither place. That combination is what the auto-merge
+      # allowlist exists to prevent.
+      #
+      # Mitigation now in place: dependabot-auto-merge.yml is a positive
+      # allowlist (direct devDependency patch/minor, non-major GitHub Actions).
+      # Nothing that can reach the production runtime — including indirect
+      # dependencies — is eligible, so it requires a human merge, and a human
+      # merge fires the push workflows normally (verified on #929, same day).
       #
       # Proper fix, requires a repo-settings change (owner action): add the
       # E2E_OWNER_* / SUPABASE vars as **Dependabot-scoped secrets**

@@ -459,8 +459,17 @@ jobs:
           echo "Snapshot written:"
           cat snapshot.json
 
+      # `always()` alone made this step fire on runs that failed BEFORE the
+      # snapshot was written — every credentials or release-lookup failure — and
+      # `if-no-files-found: error` then added a second, misleading "no files"
+      # error on top of the real one. That has been happening on all 40 failed
+      # runs to date, not just since the preflight was added.
+      #
+      # Guarding on the file existing keeps `if-no-files-found: error` meaningful
+      # (it still catches a genuinely empty snapshot after the evaluate step ran)
+      # while letting a real failure report only its own cause.
       - name: Upload baseline artifact
-        if: always()
+        if: always() && hashFiles('snapshot.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sentry-baseline-${{ steps.release.outputs.sha }}

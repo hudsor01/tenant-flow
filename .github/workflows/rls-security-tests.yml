@@ -41,13 +41,22 @@ jobs:
     # PR", so any regression fails loud before affecting users. THAT IS FALSE.
     # When dependabot-auto-merge.yml merges via GITHUB_TOKEN, GitHub's recursion
     # guard suppresses the resulting push ENTIRELY — no workflow runs at all.
-    # Verified 2026-07-27: `gh api repos/.../commits/99cc8413/check-runs` for the
-    # auto-merged next 16.2.11 bump returned ONLY the post-deploy Sentry gate. No
-    # CI, no e2e-smoke, no rls-security, no CodeQL, no gitleaks.
+    # Verified 2026-07-27: `gh api repos/.../commits/99cc8413/check-runs` (the
+    # merge commit for the auto-merged next 16.2.11 bump) returned ONLY the
+    # post-deploy Sentry gate. No CI, no e2e-smoke, no rls-security, no CodeQL.
     #
-    # So on an auto-merged Dependabot PR this suite runs NOWHERE until the weekly
-    # Monday cron. That is why auto-merge is now a narrow positive allowlist that
-    # excludes everything able to reach the production runtime.
+    # PRECISION: that does not mean that bump shipped untested. Its PR head
+    # (3d1f4d8b, PR #928) ran rls-security for 122s and e2e-smoke for 235s —
+    # real executions — because a maintainer bun.lock commit had been pushed to
+    # it, and a maintainer commit changes the trigger context so the suites run
+    # for real. The merge commit showing only the gate is the recursion guard,
+    # not absence of testing.
+    #
+    # The hole is real for the case with NO maintainer commit: a pure Dependabot
+    # PR gets a vacuous green here, and if auto-merged under GITHUB_TOKEN the
+    # push is suppressed, so this suite runs nowhere until the weekly Monday
+    # cron. That is why auto-merge is now a narrow positive allowlist excluding
+    # everything able to reach the production runtime.
     #
     # See e2e-smoke comment in ci-cd.yml for the full rationale.
     steps:
