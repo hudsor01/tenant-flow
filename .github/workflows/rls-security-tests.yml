@@ -33,19 +33,48 @@ jobs:
     # and the job reports `success` to satisfy required-status-checks.
     #
     # The guards check BOTH `event_name == 'pull_request'` AND `actor ==
-    # 'dependabot[bot]'` so the post-merge `push: branches: [main]` run
-    # is NEVER short-circuited (push events always run under the Actions
-    # scope, even when Dependabot auto-merge finalized the PR). The full
-    # RLS suite runs on the post-merge push, on the weekly Monday cron,
-    # and on manual workflow_dispatch — any regression a Dependabot bump
-    # introduces fails loud before affecting users.
+    # 'dependabot[bot]'`, so a `push: branches: [main]` run is not
+    # short-circuited.
+    #
+    # DO NOT restore the claim this comment used to make — that the post-merge
+    # push run always happens "even when Dependabot auto-merge finalized the
+    # PR", so any regression fails loud before affecting users. THAT IS FALSE.
+    # When dependabot-auto-merge.yml merges via GITHUB_TOKEN, GitHub's recursion
+    # guard suppresses the resulting push ENTIRELY — no workflow runs at all.
+    # Verified 2026-07-27: `gh api repos/.../commits/99cc8413/check-runs` (the
+    # merge commit for the auto-merged next 16.2.11 bump) returned ONLY the
+    # post-deploy Sentry gate. No CI, no e2e-smoke, no rls-security, no CodeQL.
+    #
+    # PRECISION: that does not mean that bump shipped untested. Its PR head
+    # (3d1f4d8b, PR #928) ran rls-security for 122s and e2e-smoke for 235s —
+    # real executions — because a maintainer bun.lock commit had been pushed to
+    # it, and a maintainer commit changes the trigger context so the suites run
+    # for real. The merge commit showing only the gate is the recursion guard,
+    # not absence of testing.
+    #
+    # The hole is real for the case with NO maintainer commit: a pure Dependabot
+    # PR gets a vacuous green here, and if auto-merged under GITHUB_TOKEN the
+    # push is suppressed, so this suite runs nowhere until the weekly Monday
+    # cron. That is why auto-merge is now a narrow positive allowlist excluding
+    # everything able to reach the production runtime.
     #
     # See e2e-smoke comment in ci-cd.yml for the full rationale.
     steps:
       - name: Skip notice on Dependabot PRs
         if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
         run: |
-          echo "::notice::Skipping rls-security on Dependabot PR. Required-status-check satisfied via job success; full suite runs post-merge on main (push event sees Actions secret scope regardless of who triggered the merge), on the weekly Monday cron, and on manual workflow_dispatch."
+          echo "::warning title=rls-security did not run::This job reported success WITHOUT executing. Dependabot PRs receive no Actions secret scope, so the suite cannot authenticate. This PR has NOT been RLS-tested."
+          {
+            echo "### rls-security: SKIPPED (vacuous green)"
+            echo
+            echo "This job reported success **without running any tests**."
+            echo
+            echo "- Cause: Dependabot-triggered runs get no Actions secret scope."
+            echo "- If this PR is auto-merged, the post-merge push is suppressed by GitHub's"
+            echo "  \`GITHUB_TOKEN\` recursion guard, so the suite will not run then either."
+            echo "- Next real execution is the weekly Monday cron."
+            echo "- To make this check real: add Dependabot-scoped secrets (see ci-cd.yml)."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Suppress git default branch hint
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'

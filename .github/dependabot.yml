@@ -6,16 +6,28 @@ version: 2
 # carefully when editing — the auto-merge workflow keys off the resulting
 # group's `update-type` and `dependency-type` outputs from fetch-metadata.
 #
-# Auto-merge wiring (.github/workflows/dependabot-auto-merge.yml):
-#   - Any patch                       → auto-merge
-#   - dev minor (direct only)         → auto-merge
+# Auto-merge wiring (.github/workflows/dependabot-auto-merge.yml) — that file
+# is authoritative; this is a mirror, keep the two in sync:
+#   - dev patch/minor (direct only)   → auto-merge
 #   - GitHub Actions non-major        → auto-merge
-#   - prod minor / vendor / any major → manual review
+#   - EVERYTHING else                 → manual review
+#     (all production deps direct AND indirect, all majors, vendor groups,
+#      and any PR whose dependency-type metadata is unrecognised)
 #
 # Note on transitive patches: groups without `dependency-type` capture both
-# direct and indirect dependencies. `npm-patches` therefore auto-merges
-# transitive patches too — this is the Dependabot default and matches how
-# security advisories propagate.
+# direct and indirect dependencies, so `npm-patches` contains transitive
+# packages. Those are production-runtime code — they are transitive deps of
+# next / react / @supabase/* / stripe and they execute in the Vercel runtime.
+# They are therefore NOT auto-merge eligible: the workflow requires
+# `dependency-type == 'direct:development'`, and fetch-metadata reports the
+# highest type in a group, so any group containing an indirect or production
+# package is routed to manual review.
+#
+# This was previously wrong in both files — the guard excluded only
+# `direct:production`, which let indirect patches through. Dependabot security
+# updates are not covered by these version-update groups (no
+# `applies-to: security-updates`), so a transitive advisory fix arrives
+# ungrouped as `indirect` + `semver-patch` and was auto-merged with no CI.
 #
 # Security-sensitive package families: the same `exclude-patterns` list is
 # duplicated across all 3 npm groups (npm-patches, npm-dev-minor,

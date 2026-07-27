@@ -16,17 +16,32 @@ name: Dependabot Auto-Merge
 #   2. When this workflow's auto-merge lands the commit, it is authored by
 #      github-actions[bot] under GITHUB_TOKEN. GitHub's recursion guard then
 #      suppresses the resulting push to `main` ENTIRELY — no CI, no e2e, no
-#      CodeQL, no gitleaks. `check-runs` for the auto-merged next 16.2.11
-#      bump (99cc8413) showed ONLY the post-deploy Sentry gate.
+#      CodeQL, no gitleaks. `check-runs` on the MERGE COMMIT for the
+#      auto-merged next 16.2.11 bump (99cc8413) showed ONLY the post-deploy
+#      Sentry gate. So there is no post-merge safety net.
 #
-# Net effect: an auto-merged bump can reach production validated NOWHERE.
-# That is exactly what happened to next 16.2.10 -> 16.2.11 — a SECURITY
-# release fixing four HIGH advisories, one of them a Turbopack proxy bypass
-# in an app that gates auth in src/proxy.ts.
+# Net effect: a Dependabot PR that hits hole 1 AND is then auto-merged reaches
+# production validated in neither place.
 #
-# Mitigation below: production-runtime dependencies are no longer eligible
-# for auto-merge, so anything that can reach the prod runtime needs a human
-# merge — which fires the push workflows normally (verified on #929).
+# PRECISION, because an earlier revision of this header overstated it: the
+# next 16.2.11 bump was NOT such a case. Its PR head (3d1f4d8b, PR #928) ran
+# e2e-smoke for 235s and rls-security for 122s — real executions — because a
+# maintainer bun.lock commit had been pushed to it, and a maintainer commit
+# changes the trigger context so the suites run for real. The empty merge-commit
+# check-runs are explained by the recursion guard, not by absence of testing.
+# The hole is real; that bump was not an instance of it. Do not re-cite it as
+# one.
+#
+# Mitigation below: auto-merge is a POSITIVE ALLOWLIST — direct devDependency
+# patch/minor bumps, and non-major GitHub Actions bumps. Nothing that can reach
+# the production runtime is eligible, INCLUDING indirect (transitive) npm
+# dependencies, and anything with unrecognised metadata fails closed. Everything
+# else needs a human merge, which fires the push workflows normally (verified
+# on #929).
+#
+# An earlier revision of this file excluded only `direct:production`. That still
+# auto-merged `indirect` patches — which are production-runtime code — and failed
+# open on `unknown`. See the rule comment on the auto-merge step for the detail.
 #
 # To restore full auto-merge safely (owner action, repo settings):
 # add the E2E_OWNER_* / SUPABASE vars as Dependabot-scoped secrets under
@@ -66,47 +81,60 @@ jobs:
         id: meta
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
 
-      # Auto-merge rules (first-match wins):
-      # - Any patch update that is NOT a direct:production dependency —
-      #   fetch-metadata's `update-type` for grouped PRs returns the highest
-      #   semver level in the group, so `update-type == patch` means EVERY
-      #   package in the group is a patch. `dependency-type` returns the
-      #   highest priority in the group (direct:production >
-      #   direct:development > indirect), so excluding `direct:production`
-      #   rejects any group containing a production-runtime package.
+      # Auto-merge rules — a POSITIVE ALLOWLIST. Anything not named here needs a
+      # human merge.
       #
-      #   The `direct:production` exclusion was ADDED 2026-07-27 after
-      #   `next` 16.2.10 -> 16.2.11 auto-merged to production under the old
-      #   blanket patch rule with ZERO validation (see the header). It applies
-      #   the same test that already justifies the github_actions rule below:
-      #   "can a broken bump reach the production runtime?" For Actions the
-      #   answer is no, so they stay eligible. For a direct:production package
-      #   — the framework, the auth client, the payment SDK — the answer is
-      #   yes, and while e2e-smoke/rls-security are vacuous on Dependabot PRs
-      #   a human merge is the only thing that actually runs them.
+      # It was previously a negative match (`dependency-type != direct:production`)
+      # and that leaked twice over:
       #
-      #   This is deliberately conservative: patch bumps to prod deps now wait
-      #   for a human. Restore the blanket rule once Dependabot-scoped secrets
-      #   exist and the e2e-smoke skip branch in ci-cd.yml is deleted.
-      # - Minor updates to direct devDependencies (dev tooling only) —
-      #   `dependency-type` for grouped PRs returns the highest priority
-      #   (direct:production > direct:development > indirect), so requiring
-      #   `direct:development` rejects any group containing a direct:production
-      #   minor and reroutes it to manual review.
-      # - GitHub Actions non-major updates — workflow files are CI-only and
-      #   never ship to prod artifacts, so a broken bump can't reach
-      #   production. The required-checks gate (checks / e2e-smoke /
-      #   rls-security) catches anything that breaks CI itself before merge.
-      #   Majors are still excluded because a major Actions bump can break
-      #   the merge gate for every other PR until it's reverted.
-      # Everything else (prod minor including indirect, all majors,
-      # security-sensitive vendor groups) falls through to manual review.
+      #   1. `indirect` still passed. fetch-metadata's `maxDependencyTypes()`
+      #      resolves a grouped PR to the HIGHEST type present
+      #      (direct:production > direct:development > indirect), so a patch group
+      #      containing no direct-prod package resolves to `direct:development` or
+      #      `indirect` — both of which satisfy `!= 'direct:production'`. Indirect
+      #      npm dependencies are production-runtime code: they are transitive deps
+      #      of next / react / @supabase/* / stripe and they execute in the Vercel
+      #      runtime. dependabot.yml says so itself — `npm-patches` declares no
+      #      `dependency-type`, so it captures indirect deps too.
+      #
+      #      This mattered most for the exact case the rule was written for.
+      #      Dependabot SECURITY updates are not covered by the version-update
+      #      groups (no `applies-to: security-updates`), so a transitive advisory
+      #      fix arrives ungrouped as `indirect` + `semver-patch` — which the old
+      #      guard auto-merged. That is the `next` 16.2.11 failure mode one
+      #      dependency-graph level down.
+      #
+      #   2. It failed OPEN on unknown values. `maxDependencyTypes()` returns the
+      #      literal string `unknown` when no dependency carries a recognised
+      #      `dependency-type` (absent or unparseable Dependabot metadata), and
+      #      `'unknown' != 'direct:production'` is true. A negative match fails
+      #      open for every value nobody thought of.
+      #
+      # Both are fixed by naming what IS allowed:
+      #
+      # - Patch or minor updates to direct devDependencies. Dev tooling does not
+      #   ship in the production bundle. Because `dependency-type` reports the
+      #   highest type in the group, requiring `direct:development` rejects any
+      #   group containing a production or indirect package.
+      # - GitHub Actions non-major updates. Workflow files are CI-only and never
+      #   reach prod artifacts, so a broken bump cannot affect users. The
+      #   required-checks gate catches anything that breaks CI itself before
+      #   merge. Majors stay excluded because a major Actions bump can break the
+      #   merge gate for every other PR until reverted.
+      #
+      # Everything else — all production deps direct or indirect, all majors,
+      # security-sensitive vendor groups, and anything with `unknown` metadata —
+      # falls through to manual review. A human merge is currently the ONLY thing
+      # that actually runs e2e-smoke and rls-security on a Dependabot change, so
+      # "falls through" is the safe state, not a degraded one.
+      #
+      # Relax this only once Dependabot-scoped secrets exist AND the e2e-smoke
+      # skip branch in ci-cd.yml is deleted — i.e. once the checks are real.
       - name: Auto-merge if eligible
         if: |
-          (steps.meta.outputs.update-type == 'version-update:semver-patch' &&
-           steps.meta.outputs.dependency-type != 'direct:production') ||
-          (steps.meta.outputs.update-type == 'version-update:semver-minor' &&
-           steps.meta.outputs.dependency-type == 'direct:development') ||
+          (steps.meta.outputs.dependency-type == 'direct:development' &&
+           (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+            steps.meta.outputs.update-type == 'version-update:semver-minor')) ||
           (steps.meta.outputs.package-ecosystem == 'github_actions' &&
            steps.meta.outputs.update-type != 'version-update:semver-major')
         # `--merge` matches the repo's allow_merge_commit=true /
