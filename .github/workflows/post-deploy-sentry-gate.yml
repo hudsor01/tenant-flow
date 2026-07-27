@@ -117,7 +117,11 @@ jobs:
             "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
           if [ "${STATUS}" = "404" ]; then
-            echo "::error::Sentry release ${RELEASE_SHA} not found. Check that @sentry/nextjs setCommits succeeded in the Vercel build. See next.config.ts:65-70."
+            echo "::error::Sentry release ${RELEASE_SHA} not found - the Vercel build did not create it."
+            echo "::error::Check release.name in next.config.ts withSentryConfig options. The plugin auto-detects a"
+            echo "::error::release name only on Cordova/Heroku/CodeBuild/CircleCI/Xcode/Gradle, otherwise falling back"
+            echo "::error::to the git HEAD SHA, which needs a real .git directory. Vercel builds have none, so no"
+            echo "::error::release is created. Pin it: release.name = process.env.VERCEL_GIT_COMMIT_SHA"
             exit 1
           fi
           if [ "${STATUS}" != "200" ]; then
