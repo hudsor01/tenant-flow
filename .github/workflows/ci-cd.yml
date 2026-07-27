@@ -76,24 +76,25 @@ jobs:
     # secret-dependent step short-circuits and the job reports `success`
     # to satisfy required-status-checks.
     #
-    # Critical: the guards check BOTH `event_name == 'pull_request'`
-    # AND `actor == 'dependabot[bot]'`. The post-merge `push` event to
-    # `main` always runs under the Actions secret scope regardless of
-    # who triggered the merge — so even when Dependabot's auto-merge
-    # finalizes a PR (and `github.actor` on the resulting push event
-    # is `dependabot[bot]`), the post-merge run is NOT short-circuited.
-    # Only short-circuiting `pull_request` events keeps the post-merge
-    # safety net intact.
+    # The guards check BOTH `event_name == 'pull_request'` AND
+    # `actor == 'dependabot[bot]'`, so a `push` event to `main` is not
+    # short-circuited.
     #
-    # Auto-merge classes (see .github/workflows/dependabot-auto-merge.yml
-    # for the full conditional): patches across any ecosystem, minor
-    # bumps to direct devDependencies only, and non-major GitHub Actions
-    # bumps. All other classes (prod-minor, supabase, stripe, npm
-    # majors, GHA majors) flow through manual review.
+    # DO NOT restore the claim this block used to make — that the post-merge
+    # push "always runs regardless of who triggered the merge", so the
+    # post-merge safety net stays intact. THAT IS FALSE, and it was the
+    # load-bearing justification for skipping. When dependabot-auto-merge.yml
+    # merges via GITHUB_TOKEN, GitHub's recursion guard suppresses the push
+    # ENTIRELY — there is no post-merge run to be a safety net. See the NOTE on
+    # the skip step below for the check-runs evidence.
     #
-    # Post-merge CI on main re-executes the full E2E suite under the
-    # Actions secret scope so a broken bump fails loud before it can
-    # affect any user.
+    # Auto-merge classes (see .github/workflows/dependabot-auto-merge.yml for
+    # the authoritative conditional): patch OR minor bumps to direct
+    # devDependencies, and non-major GitHub Actions bumps. Everything else —
+    # all production deps direct AND indirect, all majors, supabase, stripe,
+    # and anything with unrecognised metadata — flows through manual review.
+    # A human merge is currently the only thing that actually executes this
+    # suite on a Dependabot change.
     runs-on: ubuntu-latest
     concurrency:
       group: e2e-${{ github.ref }}

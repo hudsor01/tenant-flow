@@ -97,8 +97,17 @@ jobs:
       # so does every earlier deploy back to June. The builds were always fine.
       - name: Verify Sentry credentials resolve
         run: |
+          # Probe the RELEASES LIST endpoint, not `/organizations/{org}/`.
+          #
+          # Org details requires the `org:read` scope, which is NOT in this
+          # workflow's documented required scopes (project:read, event:read).
+          # Probing it would have failed a correctly-scoped token with 403 and
+          # reported a credentials problem that did not exist — trading one
+          # false diagnosis for another. The releases list needs exactly the
+          # scope the real check below already needs, so a pass here means the
+          # real check can authenticate, and a failure here is genuine.
           STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
-            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/" \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/?per_page=1" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
           case "${STATUS}" in
             200)
