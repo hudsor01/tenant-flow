@@ -170,7 +170,33 @@ const isProduction =
 export default withSentryConfig(nextConfig, {
 	org: process.env.SENTRY_ORG ?? "",
 	project: process.env.SENTRY_PROJECT ?? "",
-	silent: true,
+	// Quiet for local/preview builds, VERBOSE for production builds.
+	//
+	// `silent: true` everywhere made a hard failure invisible. The post-deploy
+	// Sentry gate queries `/organizations/{org}/releases/{sha}/` and has 404'd
+	// on every production deploy. Pinning `release.name` (below) was necessary
+	// but did NOT fix it, and the build log was completely silent about why —
+	// the plugin swallowed whatever error `createRelease()` hit.
+	//
+	// Everything externally checkable is already ruled out (verified 2026-07-27):
+	//   - Vercel built the right commit and the gate queried that same SHA
+	//   - SENTRY_ORG / SENTRY_PROJECT / SENTRY_AUTH_TOKEN all exist in the
+	//     Vercel Production environment
+	//   - `autoExposeSystemEnvs: true`, so VERCEL_GIT_COMMIT_SHA is defined
+	//     at build time and `release.name` does get a value
+	//   - @sentry/nextjs 10.53.1 honours `release.name` and calls
+	//     `createRelease()` on the Turbopack path (handleRunAfterProductionCompile)
+	//
+	// What remains can only be seen from inside the build: a token without
+	// release-write scope, or an org/project mismatch between the Vercel build
+	// env and the gate's own SENTRY_ORG/SENTRY_PROJECT secrets. Both are
+	// invisible while the plugin is silent, so the next production build log
+	// must name the error.
+	//
+	// Note `org`/`project` above fall back to "" rather than throwing, which is
+	// the same class of silent failure — an unset var yields an empty org and a
+	// doomed API call with no complaint.
+	silent: !isProduction,
 	sourcemaps: {
 		// Only upload on production deploys, skip previews
 		disable: !isProduction,
