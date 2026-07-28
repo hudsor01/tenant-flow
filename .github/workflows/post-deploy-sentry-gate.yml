@@ -181,26 +181,50 @@ jobs:
       - name: Resolve Sentry project ID
         id: project
         run: |
+          # Use the PROJECT-scoped details endpoint
+          # (/projects/{org}/{project}/), NOT the org-scoped project LIST
+          # (/organizations/{org}/projects/).
+          #
+          # The list endpoint requires `org:read`, which this workflow
+          # deliberately does not require — and it 403'd on the first run that
+          # reached it (30360756947). That is the same org-vs-project scope
+          # mistake already fixed once in the credentials preflight above;
+          # do not reintroduce it a third time. If a step here needs a scope
+          # beyond `project:read` + `event:read`, the step is wrong, not the
+          # token.
           RESP=$(curl -sS -w '\n%{http_code}' \
-            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/projects/" \
-            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || echo $'\n000')
+            "https://sentry.io/api/0/projects/${SENTRY_ORG}/${SENTRY_PROJECT}/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || printf '\n000')
           CODE=$(printf '%s' "$RESP" | tail -1)
           BODY=$(printf '%s' "$RESP" | sed '$d')
 
-          if [ "$CODE" != "200" ]; then
-            echo "::error::Could not list Sentry projects (HTTP ${CODE})."
-            echo "::error::The credentials preflight passed, so this is unexpected — check that"
-            echo "::error::SENTRY_AUTH_TOKEN still carries project:read."
-            exit 1
+          PID=""
+          if [ "${CODE}" = "200" ]; then
+            PID=$(printf '%s' "$BODY" | jq -r '.id // empty')
           fi
 
-          PID=$(printf '%s' "$BODY" | jq -r --arg slug "${SENTRY_PROJECT}" \
-            '.[] | select(.slug == $slug) | .id' | head -1)
+          # FALLBACK: derive the id from the RELEASES list.
+          #
+          # Whatever scope set this token carries, the credentials preflight
+          # above already proved it can read /organizations/{org}/releases/ —
+          # and each release object embeds `projects: [{id, slug, ...}]`. So
+          # this path needs no scope the gate does not already depend on, which
+          # makes it immune to the org-vs-project scope trap that has now bitten
+          # this workflow twice.
+          if [ -z "${PID}" ]; then
+            echo "Project details returned HTTP ${CODE}; deriving id from the releases list instead."
+            REL=$(curl -sS "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/?per_page=50" \
+              -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || printf '[]')
+            PID=$(printf '%s' "$REL" | jq -r --arg slug "${SENTRY_PROJECT}" \
+              '[.[].projects[]? | select(.slug == $slug) | .id] | first // empty')
+          fi
 
-          if [ -z "$PID" ] || [ "$PID" = "null" ]; then
-            echo "::error::No project with slug '${SENTRY_PROJECT}' in org '${SENTRY_ORG}'."
-            echo "::error::Available slugs: $(printf '%s' "$BODY" | jq -r '[.[].slug] | join(", ")')"
-            echo "::error::Fix the SENTRY_PROJECT secret to match one of those."
+          if [ -z "${PID}" ] || [ "${PID}" = "null" ]; then
+            echo "::error::Could not resolve a numeric project id for slug '${SENTRY_PROJECT}'."
+            echo "::error::Project-details endpoint returned HTTP ${CODE}, and no release in this"
+            echo "::error::org referenced that slug."
+            echo "::error::Check the SENTRY_PROJECT secret against the slug shown in the Sentry UI,"
+            echo "::error::and confirm the token carries project:read."
             exit 1
           fi
 
