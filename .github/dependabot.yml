@@ -8,20 +8,22 @@ version: 2
 #
 # Auto-merge wiring (.github/workflows/dependabot-auto-merge.yml) — that file
 # is authoritative; this is a mirror, keep the two in sync:
-#   - dev patch/minor (direct only)   → auto-merge
-#   - GitHub Actions non-major        → auto-merge
+#   - GitHub Actions patch/minor      → auto-merge
 #   - EVERYTHING else                 → manual review
-#     (all production deps direct AND indirect, all majors, vendor groups,
-#      and any PR whose dependency-type metadata is unrecognised)
+#     (every npm package in every position — production, indirect AND dev
+#      tooling — plus all majors and any unrecognised metadata)
 #
 # Note on transitive patches: groups without `dependency-type` capture both
 # direct and indirect dependencies, so `npm-patches` contains transitive
 # packages. Those are production-runtime code — they are transitive deps of
 # next / react / @supabase/* / stripe and they execute in the Vercel runtime.
-# They are therefore NOT auto-merge eligible: the workflow requires
-# `dependency-type == 'direct:development'`, and fetch-metadata reports the
-# highest type in a group, so any group containing an indirect or production
-# package is routed to manual review.
+# They are therefore NOT auto-merge eligible — and neither is anything else
+# in npm. A `dependency-type == 'direct:development'` guard was tried and does
+# NOT work: fetch-metadata's priority list is ORDERED
+# ['direct:production','direct:development','indirect'] and returns the FIRST
+# match, so `indirect` ranks BELOW `direct:development` and is masked by any
+# dev dep sharing the PR. The scalar cannot express "contains no indirect",
+# so npm auto-merge is disabled outright.
 #
 # This was previously wrong in both files — the guard excluded only
 # `direct:production`, which let indirect patches through. Dependabot security
@@ -68,9 +70,13 @@ updates:
 
     # ── Grouped PRs ──────────────────────────
     groups:
-      # Patch updates across the tree — auto-merged.
+      # Patch updates across the tree — MANUAL REVIEW (not auto-merged).
+      # This group declares no `dependency-type`, so it mixes direct and
+      # indirect packages. fetch-metadata collapses that to a single scalar
+      # which cannot express "contains no indirect", so no npm group is
+      # auto-merge eligible. See dependabot-auto-merge.yml.
       # Excludes security-sensitive vendors so any patch to those families
-      # always lands in its own PR for manual review.
+      # always lands in its own PR.
       npm-patches:
         update-types:
           - patch
@@ -88,7 +94,8 @@ updates:
           - 'dompurify'
           - 'crypto-js'
 
-      # Dev-only minor bumps — auto-merged.
+      # Dev-only minor bumps — MANUAL REVIEW (not auto-merged).
+      # npm auto-merge is disabled entirely; see dependabot-auto-merge.yml.
       npm-dev-minor:
         dependency-type: development
         update-types:
@@ -155,7 +162,8 @@ updates:
 
   # ─────────────────────────────────────────
   # GitHub Actions — monthly
-  # Non-major updates auto-merged; majors fall through to manual review.
+  # Patch/minor auto-merged (matched positively, since an absent update-type
+# would satisfy a `!= major` test); majors fall through to manual review.
   # ─────────────────────────────────────────
   - package-ecosystem: github-actions
     directory: /
