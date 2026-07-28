@@ -56,6 +56,11 @@ on:
         description: 'Git SHA to audit (for smoke tests or manual re-runs against a known-good release)'
         required: true
         type: string
+      skip_observation:
+        description: 'Skip the observation window (smoke-testing the gate wiring only — the data will be thinner than a real post-deploy run)'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: sentry-gate-${{ github.event.client_payload.git.sha || inputs.release_sha }}
@@ -253,10 +258,20 @@ jobs:
           echo "short_sha=${SHORT}" >> "$GITHUB_OUTPUT"
           echo "Release SHA: ${SHA} (short: ${SHORT})"
 
+      # Skippable on workflow_dispatch ONLY, and never on a real post-deploy
+      # repository_dispatch. Smoke-testing this gate used to cost 30 minutes per
+      # attempt, so every defect in the steps below took a full cycle to surface
+      # — which is precisely why several shipped undetected for months.
       - name: Observation window
+        if: github.event_name != 'workflow_dispatch' || inputs.skip_observation != true
         run: |
           echo "Sleeping ${OBSERVATION_WINDOW_MINUTES} minute(s) for Sentry to receive error/session signal..."
           sleep "${OBSERVATION_WINDOW_MINUTES}m"
+
+      - name: Observation window SKIPPED
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_observation == true
+        run: |
+          echo "::warning title=Observation window skipped::Wiring smoke test only. Issue/session counts reflect whatever Sentry already holds, not a fresh post-deploy window, so the PASS/FAIL verdict is NOT meaningful as a regression signal."
 
       - name: Confirm release exists in Sentry
         env:
@@ -294,14 +309,25 @@ jobs:
           PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
-          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
+          curl -sS -G -w '\n%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
             --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA} is:unresolved age:-${OBSERVATION_WINDOW_MINUTES}m" \
             --data-urlencode "sort=new" \
             --data-urlencode "limit=100" \
-            -o current-issues.json
+            -o /tmp/ISSUES_RESP.raw 2>/tmp/ISSUES_RESP.err || true
+          # `-f` was removed above: it hid Sentry's error body and turned every
+          # HTTP failure into a bare `exit 22`. Capture the status explicitly and
+          # print what Sentry actually said, so a 400 names the bad parameter.
+          HTTP_CODE=$(tail -1 /tmp/ISSUES_RESP.raw 2>/dev/null || echo 000)
+          sed '$d' /tmp/ISSUES_RESP.raw > current-issues.json 2>/dev/null || true
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Sentry API returned HTTP ${HTTP_CODE} for current-issues.json"
+            echo "::error::Response body: $(head -c 600 current-issues.json 2>/dev/null)"
+            echo "::error::curl stderr: $(head -c 200 /tmp/ISSUES_RESP.err 2>/dev/null)"
+            exit 1
+          fi
           EVENT_COUNT=$(jq '[.[] | .count | tonumber] | add // 0' current-issues.json)
           NEW_ISSUE_COUNT=$(jq 'length' current-issues.json)
           echo "event_count_new_issues=${EVENT_COUNT}" >> "$GITHUB_OUTPUT"
@@ -315,7 +341,7 @@ jobs:
           PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
-          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
+          curl -sS -G -w '\n%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
             --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
@@ -323,7 +349,16 @@ jobs:
             --data-urlencode "field=crash_free_rate(session)" \
             --data-urlencode "statsPeriod=1h" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
-            -o current-sessions.json
+            -o /tmp/sessions.raw 2>/tmp/sessions.err || true
+          # `-w` appends the status as a final line, so split it off before jq
+          # ever sees the payload.
+          HTTP_CODE=$(tail -1 /tmp/sessions.raw 2>/dev/null || echo 000)
+          sed '$d' /tmp/sessions.raw > current-sessions.json 2>/dev/null || true
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Sentry sessions API returned HTTP ${HTTP_CODE}."
+            echo "::error::Response body: $(head -c 600 current-sessions.json 2>/dev/null)"
+            exit 1
+          fi
           # Default crash_free_rate to 1.0 if no sessions recorded yet (avoid false positive).
           CRASH_FREE=$(jq '[.groups[]? | select((.by // {}) | length == 0) | .totals["crash_free_rate(session)"]] | first // 1' current-sessions.json)
           ERROR_RATE_PCT=$(awk -v cf="${CRASH_FREE}" 'BEGIN { printf "%.4f", (1 - cf) * 100 }')
@@ -339,14 +374,18 @@ jobs:
           set -euo pipefail
           # Baseline metric only — not gated per 43-RESEARCH.md line 654. Captured for
           # post-mortem trend analysis via the 90-day artifact.
-          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
+          curl -sS -G -w '\n%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
             --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
             --data-urlencode "yAxis=p95(transaction.duration)" \
             --data-urlencode "statsPeriod=1h" \
-            -o current-transactions.json || true
+            -o /tmp/transactions.raw 2>/dev/null || true
+          # Best-effort by design (p95 is recorded for the baseline but never
+          # enforced), so this one does NOT fail the gate on a bad status — it
+          # just avoids feeding the status line into jq.
+          sed '$d' /tmp/transactions.raw > current-transactions.json 2>/dev/null || echo '{}' > current-transactions.json
           # events-stats response shape: { data: [[timestamp, [{count: <ms>}]], ...] }.
           # If query returns no data (low traffic), default to null.
           P95_MS=$(jq '[.data[]? | .[1][0].count // empty] | if length == 0 then 0 else (add / length) end' current-transactions.json 2>/dev/null || echo "0")
