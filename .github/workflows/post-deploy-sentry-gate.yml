@@ -309,23 +309,23 @@ jobs:
           PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
-          curl -sS -G -w '\n%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
+          HTTP_CODE=$(curl -sS -G -w '%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
             --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA} is:unresolved age:-${OBSERVATION_WINDOW_MINUTES}m" \
             --data-urlencode "sort=new" \
             --data-urlencode "limit=100" \
-            -o /tmp/ISSUES_RESP.raw 2>/tmp/ISSUES_RESP.err || true
-          # `-f` was removed above: it hid Sentry's error body and turned every
-          # HTTP failure into a bare `exit 22`. Capture the status explicitly and
-          # print what Sentry actually said, so a 400 names the bad parameter.
-          HTTP_CODE=$(tail -1 /tmp/ISSUES_RESP.raw 2>/dev/null || echo 000)
-          sed '$d' /tmp/ISSUES_RESP.raw > current-issues.json 2>/dev/null || true
+            -o current-issues.json 2>/tmp/issues.err) || true
+          # curl writes the BODY to -o and the -w status to STDOUT, so the status
+          # is captured from the command substitution, NOT read back out of the
+          # body file. An earlier revision did `tail -1` on the -o file, which
+          # returns the last line of the JSON and therefore never equals 200 —
+          # it failed unconditionally regardless of what Sentry returned.
           if [ "${HTTP_CODE}" != "200" ]; then
-            echo "::error::Sentry API returned HTTP ${HTTP_CODE} for current-issues.json"
-            echo "::error::Response body: $(head -c 600 current-issues.json 2>/dev/null)"
-            echo "::error::curl stderr: $(head -c 200 /tmp/ISSUES_RESP.err 2>/dev/null)"
+            echo "::error::Sentry issues API returned HTTP ${HTTP_CODE:-000}."
+            echo "::error::Response body: $(head -c 700 current-issues.json 2>/dev/null)"
+            echo "::error::curl stderr: $(head -c 200 /tmp/issues.err 2>/dev/null)"
             exit 1
           fi
           EVENT_COUNT=$(jq '[.[] | .count | tonumber] | add // 0' current-issues.json)
@@ -341,7 +341,7 @@ jobs:
           PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
-          curl -sS -G -w '\n%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
+          HTTP_CODE=$(curl -sS -G -w '%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
             --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
@@ -349,14 +349,10 @@ jobs:
             --data-urlencode "field=crash_free_rate(session)" \
             --data-urlencode "statsPeriod=1h" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
-            -o /tmp/sessions.raw 2>/tmp/sessions.err || true
-          # `-w` appends the status as a final line, so split it off before jq
-          # ever sees the payload.
-          HTTP_CODE=$(tail -1 /tmp/sessions.raw 2>/dev/null || echo 000)
-          sed '$d' /tmp/sessions.raw > current-sessions.json 2>/dev/null || true
+            -o current-sessions.json 2>/tmp/sessions.err) || true
           if [ "${HTTP_CODE}" != "200" ]; then
-            echo "::error::Sentry sessions API returned HTTP ${HTTP_CODE}."
-            echo "::error::Response body: $(head -c 600 current-sessions.json 2>/dev/null)"
+            echo "::error::Sentry sessions API returned HTTP ${HTTP_CODE:-000}."
+            echo "::error::Response body: $(head -c 700 current-sessions.json 2>/dev/null)"
             exit 1
           fi
           # Default crash_free_rate to 1.0 if no sessions recorded yet (avoid false positive).
@@ -374,18 +370,21 @@ jobs:
           set -euo pipefail
           # Baseline metric only — not gated per 43-RESEARCH.md line 654. Captured for
           # post-mortem trend analysis via the 90-day artifact.
-          curl -sS -G -w '\n%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
+          TX_CODE=$(curl -sS -G -w '%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
             --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
             --data-urlencode "yAxis=p95(transaction.duration)" \
             --data-urlencode "statsPeriod=1h" \
-            -o /tmp/transactions.raw 2>/dev/null || true
+            -o current-transactions.json 2>/dev/null || true
           # Best-effort by design (p95 is recorded for the baseline but never
-          # enforced), so this one does NOT fail the gate on a bad status — it
-          # just avoids feeding the status line into jq.
-          sed '$d' /tmp/transactions.raw > current-transactions.json 2>/dev/null || echo '{}' > current-transactions.json
+          # enforced), so a bad status does NOT fail the gate — it just leaves a
+          # non-JSON body that the guarded jq below falls back to 0 for.
+          if [ "${TX_CODE}" != "200" ]; then
+            echo "::warning::Sentry events-stats returned HTTP ${TX_CODE:-000}; p95 recorded as 0."
+            echo '{}' > current-transactions.json
+          fi
           # events-stats response shape: { data: [[timestamp, [{count: <ms>}]], ...] }.
           # If query returns no data (low traffic), default to null.
           P95_MS=$(jq '[.data[]? | .[1][0].count // empty] | if length == 0 then 0 else (add / length) end' current-transactions.json 2>/dev/null || echo "0")
