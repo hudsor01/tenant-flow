@@ -166,6 +166,47 @@ jobs:
               ;;
           esac
 
+      # Resolve the project SLUG to its NUMERIC ID.
+      #
+      # The three Sentry query steps below hit org-scoped endpoints
+      # (/organizations/{org}/issues/, /sessions/, /events/) whose `project`
+      # parameter is a numeric project ID. Passing a slug returns HTTP 400, and
+      # because those steps use `curl -f` that surfaced only as `exit code 22`
+      # with no explanation. Observed 2026-07-28 on the first run that ever got
+      # past the credentials check.
+      #
+      # Resolved at runtime rather than by changing the SENTRY_PROJECT secret to
+      # a number, so the secret keeps matching the slug the Vercel build uses in
+      # next.config.ts. One value, one meaning, in both stores.
+      - name: Resolve Sentry project ID
+        id: project
+        run: |
+          RESP=$(curl -sS -w '\n%{http_code}' \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/projects/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || echo $'\n000')
+          CODE=$(printf '%s' "$RESP" | tail -1)
+          BODY=$(printf '%s' "$RESP" | sed '$d')
+
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Could not list Sentry projects (HTTP ${CODE})."
+            echo "::error::The credentials preflight passed, so this is unexpected — check that"
+            echo "::error::SENTRY_AUTH_TOKEN still carries project:read."
+            exit 1
+          fi
+
+          PID=$(printf '%s' "$BODY" | jq -r --arg slug "${SENTRY_PROJECT}" \
+            '.[] | select(.slug == $slug) | .id' | head -1)
+
+          if [ -z "$PID" ] || [ "$PID" = "null" ]; then
+            echo "::error::No project with slug '${SENTRY_PROJECT}' in org '${SENTRY_ORG}'."
+            echo "::error::Available slugs: $(printf '%s' "$BODY" | jq -r '[.[].slug] | join(", ")')"
+            echo "::error::Fix the SENTRY_PROJECT secret to match one of those."
+            exit 1
+          fi
+
+          echo "project_id=${PID}" >> "$GITHUB_OUTPUT"
+          echo "Resolved project '${SENTRY_PROJECT}' -> id ${PID}"
+
       - name: Resolve release SHA
         id: release
         env:
@@ -226,11 +267,12 @@ jobs:
         id: sentry_issues
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
           curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
-            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA} is:unresolved age:-${OBSERVATION_WINDOW_MINUTES}m" \
             --data-urlencode "sort=new" \
@@ -246,11 +288,12 @@ jobs:
         id: sentry_sessions
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
           curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
-            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "field=sum(session)" \
             --data-urlencode "field=crash_free_rate(session)" \
@@ -267,13 +310,14 @@ jobs:
         id: sentry_transactions
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
           # Baseline metric only — not gated per 43-RESEARCH.md line 654. Captured for
           # post-mortem trend analysis via the 90-day artifact.
           curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
-            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
             --data-urlencode "yAxis=p95(transaction.duration)" \
@@ -446,8 +490,25 @@ jobs:
               ;;
           esac
 
+      # Only snapshot REAL data.
+      #
+      # This was `if: always()`, and the defaults below (`${EVENT_COUNT:-0}`,
+      # `${ERROR_RATE:-0}`) meant a run that failed BEFORE the queries still
+      # wrote a snapshot asserting zero errors and zero error-rate — then
+      # uploaded it as `sentry-baseline-<sha>`. The next run picks the most
+      # recent baseline as its comparison point, so a failed run silently became
+      # the baseline for the following one, and real numbers measured against a
+      # fabricated zero read as a regression.
+      #
+      # Observed 2026-07-28: the first run to clear the credentials check failed
+      # at the issues query and still uploaded a 329-byte all-zero baseline.
+      #
+      # Guarding on the two query steps means a snapshot exists only when
+      # event_count and error_rate were actually measured. A failed run now
+      # leaves the previous good baseline in place instead of overwriting the
+      # comparison with fiction.
       - name: Build snapshot JSON
-        if: always()
+        if: always() && steps.sentry_issues.outcome == 'success' && steps.sentry_sessions.outcome == 'success'
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
@@ -497,9 +558,13 @@ jobs:
       # while letting a real failure report only its own cause.
       #
       # hashFiles() resolves relative to GITHUB_WORKSPACE, and snapshot.json is
-      # written by the evaluate step with a bare relative path, i.e. into the
-      # step's working directory, which is GITHUB_WORKSPACE. So the guard sees
-      # the same file the upload would.
+      # written by the "Build snapshot JSON" step above with a bare relative
+      # path, i.e. into the step's working directory, which is GITHUB_WORKSPACE.
+      # So the guard sees the same file the upload would. (An earlier revision
+      # of this comment said the evaluate step writes it — it does not.)
+      #
+      # This guard is now belt-and-braces: the build step's own condition
+      # already prevents a snapshot from existing unless the queries succeeded.
       - name: Upload baseline artifact
         if: always() && hashFiles('snapshot.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
