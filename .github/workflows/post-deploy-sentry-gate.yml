@@ -18,8 +18,23 @@
 #   # Expect green exit, PASS summary, and artifact `sentry-baseline-<sha>` uploaded.
 #
 # Required repo secrets:
-#   SENTRY_AUTH_TOKEN  — Sentry Organization Token (Settings → Developer Settings
-#                        → Organization Tokens). Scopes needed: project:read, event:read.
+#   SENTRY_AUTH_TOKEN  — MUST be a PERSONAL TOKEN, not an Organization Token.
+#                        Create at sentry.io → Account dropdown (top left) →
+#                        Personal Tokens. Scopes: event:read, project:read,
+#                        org:read.
+#
+#                        This line previously said "Organization Token", and that
+#                        is WRONG in a way that fails confusingly. Organization
+#                        Tokens have FIXED, non-editable permissions scoped to
+#                        "CI-related tasks" — releases and source-map upload —
+#                        and cannot read issues or events. Verified 2026-07-28
+#                        against a freshly issued org token:
+#                          /organizations/{org}/releases/  -> 200
+#                          /organizations/{org}/issues/    -> 403
+#                          /projects/{org}/{project}/      -> 403
+#                        The gate's whole job is reading issues, so an org token
+#                        gets through the credentials check and then dies at the
+#                        first real query.
 #   SENTRY_ORG         — Sentry org slug. Must match the value the Vercel BUILD
 #                        uses (next.config.ts reads process.env.SENTRY_ORG in the
 #                        withSentryConfig options), but note these are two
@@ -117,15 +132,16 @@ jobs:
       # so does every earlier deploy back to June. The builds were always fine.
       - name: Verify Sentry credentials resolve
         run: |
-          # Probe the RELEASES LIST endpoint, not `/organizations/{org}/`.
+          # Probe the ISSUES endpoint — the one the gate actually depends on.
           #
-          # Org details requires the `org:read` scope, which is NOT in this
-          # workflow's documented required scopes (project:read, event:read).
-          # Probing it would have failed a correctly-scoped token with 403 and
-          # reported a credentials problem that did not exist — trading one
-          # false diagnosis for another. The releases list needs exactly the
-          # scope the real check below already needs, so a pass here means the
-          # real check can authenticate, and a failure here is genuine.
+          # This probed /releases/ until 2026-07-28, and that was too weak a
+          # test. An Organization Token can read releases but NOT issues, so the
+          # preflight reported "credentials verified" for a token that could not
+          # do the gate's job, and the run then died 30 minutes later at the
+          # first real query. A preflight that passes for a token the gate cannot
+          # use is worse than none: it moves the failure further from its cause.
+          #
+          # `limit=1` keeps it cheap; only the status code is examined.
           # `|| echo 000` is load-bearing. GitHub Actions runs `run:` blocks as
           # `bash -e`, so on a curl TRANSPORT failure (DNS, TLS, connection reset)
           # the non-zero exit would abort this step immediately — before the case
@@ -133,11 +149,11 @@ jobs:
           # which is the exact silent-failure mode this step exists to remove.
           # Substituting a sentinel keeps the diagnosis on the happy path.
           STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
-            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/?per_page=1" \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/?limit=1" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || echo "000")
           case "${STATUS}" in
             200)
-              echo "Sentry credentials verified; token can read this org's releases."
+              echo "Sentry credentials verified; token can read this org's issues."
               ;;
             000)
               echo "::error::Could not reach the Sentry API at all (curl transport failure)."
@@ -152,8 +168,12 @@ jobs:
               exit 1
               ;;
             403)
-              echo "::error::SENTRY_AUTH_TOKEN cannot read releases for this org (403)."
-              echo "::error::Required scope for this endpoint: project:read."
+              echo "::error::SENTRY_AUTH_TOKEN cannot read issues for this org (403)."
+              echo "::error::MOST LIKELY CAUSE: it is an ORGANIZATION token. Those have fixed,"
+              echo "::error::non-editable CI permissions and cannot read issues or events."
+              echo "::error::Create a PERSONAL TOKEN instead: sentry.io > Account dropdown"
+              echo "::error::(top left) > Personal Tokens, scopes event:read + project:read +"
+              echo "::error::org:read. Then run: gh secret set SENTRY_AUTH_TOKEN"
               echo "::error::This is a CI credentials problem, NOT an application build problem."
               exit 1
               ;;
