@@ -84,7 +84,8 @@
 		"smol-toml": ">=1.6.1",
 		"uuid": ">=14.0.0",
 		"postcss": ">=8.5.18",
-		"ip-address": ">=10.2.0"
+		"ip-address": ">=10.2.0",
+		"playwright-core": "1.62.0"
 	},
 	"trustedDependencies": [
 		"@sentry/cli",
@@ -132,7 +133,7 @@
 		"react": "19.2.8",
 		"react-day-picker": "^10.0.0",
 		"react-dom": "19.2.8",
-		"react-dropzone": "^15.0.0",
+		"react-dropzone": "^19.1.1",
 		"react-error-boundary": "^6.1.1",
 		"react-intersection-observer": "^10.0.3",
 		"react-markdown": "^10.1.0",
@@ -154,7 +155,7 @@
 		"@commitlint/cli": "^21.0.1",
 		"@commitlint/config-conventional": "^21.0.1",
 		"@faker-js/faker": "^10.4.0",
-		"@playwright/test": "1.61.1",
+		"@playwright/test": "1.62.0",
 		"@tailwindcss/postcss": "^4.3.0",
 		"@tailwindcss/typography": "^0.5.19",
 		"@testing-library/dom": "^10.4.1",
@@ -174,7 +175,7 @@
 		"knip": "^6.13.1",
 		"lefthook": "^2.1.6",
 		"msw": "2.15.0",
-		"playwright": "1.61.1",
+		"playwright": "1.62.0",
 		"postcss": ">=8.5.18",
 		"schema-dts": "^2.0.0",
 		"tailwindcss": "^4.3.0",
