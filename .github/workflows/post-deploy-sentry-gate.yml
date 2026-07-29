@@ -586,6 +586,17 @@ jobs:
             exit 0
           fi
 
+          # A degraded snapshot recorded placeholders, not measurements. Comparing
+          # a real number against one would invent a regression — the exact
+          # failure mode that produced 516 fabricated baselines before. Older
+          # snapshots predate this field; treat a missing `degraded` as true so
+          # the unsafe direction is the default.
+          PREV_DEGRADED=$(jq -r 'if has("degraded") then (.degraded | tostring) else "true" end' previous-snapshot.json)
+          if [ "${PREV_DEGRADED}" = "true" ]; then
+            echo "::warning::Previous baseline was recorded in degraded mode; its error-rate value is a placeholder, so the error-rate rule is skipped for this comparison."
+            DEGRADED=1
+          fi
+
           PREV_ERROR_RATE=$(jq -r '.error_rate_pct // 0' previous-snapshot.json)
           PREV_EVENT_COUNT=$(jq -r '.event_count_new_issues // 0' previous-snapshot.json)
           PREV_P95=$(jq -r '.transactions_p95_ms // 0' previous-snapshot.json)
@@ -678,6 +689,7 @@ jobs:
         if: always()
         env:
           GATE_STATUS: ${{ steps.gate.outputs.gate_status }}
+          SNAPSHOT_DEGRADED: ${{ steps.creds.outputs.can_read_issues == 'true' && 'false' || 'true' }}
         run: |
           case "${GATE_STATUS}" in
             FAIL)
@@ -746,6 +758,7 @@ jobs:
             --arg p95 "${P95_MS:-0}" \
             --arg gs "${GATE_STATUS:-UNKNOWN}" \
             --arg gr "${GATE_REASON:-no reason recorded}" \
+            --arg dg "${SNAPSHOT_DEGRADED:-true}" \
             '{
               release_sha: $sha,
               captured_at: $captured,
@@ -754,7 +767,8 @@ jobs:
               error_rate_pct: ($er | tonumber),
               transactions_p95_ms: ($p95 | tonumber),
               gate_status: $gs,
-              gate_reason: $gr
+              gate_reason: $gr,
+              degraded: ($dg == "true")
             }' > snapshot.json
           echo "Snapshot written:"
           cat snapshot.json
