@@ -50,19 +50,29 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		files.every((f) => successes.includes(f.name));
 
 	const onDrop = (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+		// Object.assign rather than mutate-then-cast. react-dropzone v19 made
+		// `path` REQUIRED on FileWithPath and added a required `relativePath`, so
+		// FileWithPath and FileWithPreview no longer overlap in either direction
+		// and `file as FileWithPreview` became a hard TS2352. Assigning lets TS
+		// DERIVE the result type — File & { preview, errors } — which satisfies
+		// FileWithPreview structurally, so no assertion is needed at all. Runtime
+		// behaviour is unchanged: Object.assign mutates and returns the same File,
+		// exactly as the previous code did.
 		const validFiles = acceptedFiles
 			.filter((file) => !files.find((x) => x.name === file.name))
-			.map((file) => {
-				(file as FileWithPreview).preview = URL.createObjectURL(file);
-				(file as FileWithPreview).errors = [];
-				return file as FileWithPreview;
-			});
+			.map((file) =>
+				Object.assign(file, {
+					preview: URL.createObjectURL(file),
+					errors: [] as readonly FileError[],
+				}),
+			);
 
-		const invalidFiles = fileRejections.map(({ file, errors }) => {
-			(file as FileWithPreview).preview = URL.createObjectURL(file);
-			(file as FileWithPreview).errors = errors;
-			return file as FileWithPreview;
-		});
+		const invalidFiles = fileRejections.map(({ file, errors }) =>
+			Object.assign(file, {
+				preview: URL.createObjectURL(file),
+				errors,
+			}),
+		);
 
 		const newFiles = [...files, ...validFiles, ...invalidFiles];
 

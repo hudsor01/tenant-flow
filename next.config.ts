@@ -48,6 +48,16 @@ const nextConfig: NextConfig = {
 	reactCompiler: true,
 
 	experimental: {
+		// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript
+		// compiler API — createProgram and transpileModule are undefined. Next
+		// uses that API for its build-time type check, so `next build` exits 1
+		// with: "TypeScript 7.0.2 does not provide the compiler API required by
+		// Next.js. Enable experimental.useTypeScriptCli..."
+		//
+		// This flag is exactly the support next 16.2.12 backported. It makes
+		// Next shell out to the tsc CLI instead. Build-time only: TypeScript is
+		// a devDependency and none of this reaches the production bundle.
+		useTypeScriptCli: true,
 		optimizePackageImports: [
 			"@tanstack/react-query",
 			"@tanstack/react-form",

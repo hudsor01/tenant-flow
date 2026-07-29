@@ -32,21 +32,28 @@ name: Dependabot Auto-Merge
 # The hole is real; that bump was not an instance of it. Do not re-cite it as
 # one.
 #
-# Mitigation below: auto-merge is a POSITIVE ALLOWLIST — direct devDependency
-# patch/minor bumps, and non-major GitHub Actions bumps. Nothing that can reach
-# the production runtime is eligible, INCLUDING indirect (transitive) npm
-# dependencies, and anything with unrecognised metadata fails closed. Everything
-# else needs a human merge, which fires the push workflows normally (verified
-# on #929).
+# Mitigation below: auto-merge is a POSITIVE ALLOWLIST, and as of 2026-07-27 it
+# covers GitHub Actions patch/minor ONLY. No npm package auto-merges, in any
+# ecosystem position — not production, not indirect, not dev tooling. Everything
+# npm needs a human merge, which fires the push workflows normally (verified on
+# #929).
 #
-# An earlier revision of this file excluded only `direct:production`. That still
-# auto-merged `indirect` patches — which are production-runtime code — and failed
-# open on `unknown`. See the rule comment on the auto-merge step for the detail.
+# Two earlier revisions of this file got the npm rule wrong, in the same
+# direction both times:
+#   - the first excluded only `direct:production`, so `indirect` patches — which
+#     ARE production-runtime code — still auto-merged, and `unknown` failed open;
+#   - the second required `direct:development`, which does NOT mean "no indirect
+#     deps present", because `indirect` ranks BELOW `direct:development` in
+#     fetch-metadata's priority list and is masked by any dev dep in the same PR.
+# The scalar `dependency-type` cannot express the property this guard needs. See
+# the rule comment on the auto-merge step.
 #
-# To restore full auto-merge safely (owner action, repo settings):
-# add the E2E_OWNER_* / SUPABASE vars as Dependabot-scoped secrets under
-# Settings > Secrets and variables > Dependabot. `gh secret list --app
-# dependabot` is currently EMPTY, which is why hole 1 exists at all.
+# To restore npm auto-merge safely (owner action, repo settings):
+# add the two missing E2E passwords to the Dependabot secret scope under
+# Settings > Secrets and variables > Dependabot. As of 2026-07-27 that scope
+# holds NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+# E2E_OWNER_EMAIL and E2E_OWNER_B_EMAIL; E2E_OWNER_PASSWORD and
+# E2E_OWNER_B_PASSWORD are still missing, so hole 1 remains open.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -74,9 +81,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # Pinned by commit SHA per supply-chain best practice. v2.5.0 release.
-      # Bump alongside any `dependabot/fetch-metadata` Dependabot bump in
-      # the github-actions group.
+      # Pinned by commit SHA per supply-chain best practice. SHA
+      # 25dd0e34f4fe68f24cc83900b1fe3fe149efef98 is the v3.1.0 release — an
+      # earlier comment here said v2.5.0, which did not match the pin.
+      #
+      # Bumping this action is NOT self-service: it arrives in the
+      # github-actions group, which the rule below auto-merges for non-majors.
+      # A non-major bump of fetch-metadata therefore lands without anyone
+      # re-reading the semantics its outputs are relied on for. If the
+      # `dependency-type` collapsing behaviour ever changes, review this file's
+      # rule by hand before letting that bump merge.
       - name: Fetch Dependabot metadata
         id: meta
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
@@ -110,33 +124,58 @@ jobs:
       #      `'unknown' != 'direct:production'` is true. A negative match fails
       #      open for every value nobody thought of.
       #
-      # Both are fixed by naming what IS allowed:
+      #   3. AND — found 2026-07-27, after the allowlist above had already been
+      #      written and merged — `direct:development` does NOT mean "no indirect
+      #      deps present". The priority list is ORDERED
+      #      ['direct:production','direct:development','indirect'] and
+      #      `maxDependencyTypes()` returns the FIRST entry present, so `indirect`
+      #      ranks BELOW `direct:development` and is MASKED by any dev dep sharing
+      #      the PR. A group of {direct:development, indirect} reports
+      #      `direct:development`.
       #
-      # - Patch or minor updates to direct devDependencies. Dev tooling does not
-      #   ship in the production bundle. Because `dependency-type` reports the
-      #   highest type in the group, requiring `direct:development` rejects any
-      #   group containing a production or indirect package.
-      # - GitHub Actions non-major updates. Workflow files are CI-only and never
-      #   reach prod artifacts, so a broken bump cannot affect users. The
-      #   required-checks gate catches anything that breaks CI itself before
-      #   merge. Majors stay excluded because a major Actions bump can break the
-      #   merge gate for every other PR until reverted.
+      #      Upstream's own test asserts exactly this — output.test.ts feeds
+      #      [rspec direct:development, coffee-rails indirect, coffeescript
+      #      indirect, rspec-coffeescript indirect] and expects
+      #      `dependency-type == 'direct:development'`. Three indirect deps, and
+      #      the scalar hides all of them.
       #
-      # Everything else — all production deps direct or indirect, all majors,
-      # security-sensitive vendor groups, and anything with `unknown` metadata —
-      # falls through to manual review. A human merge is currently the ONLY thing
-      # that actually runs e2e-smoke and rls-security on a Dependabot change, so
-      # "falls through" is the safe state, not a degraded one.
+      #      `npm-patches` is precisely such a group: it declares no
+      #      `dependency-type`, so it mixes direct and indirect freely. Any month
+      #      whose patch batch contained one dev dep plus transitive production
+      #      code would have auto-merged that transitive code.
       #
-      # Relax this only once Dependabot-scoped secrets exist AND the e2e-smoke
-      # skip branch in ci-cd.yml is deleted — i.e. once the checks are real.
+      # THE SCALAR CANNOT EXPRESS WHAT THIS GUARD NEEDS. "Contains no indirect"
+      # is not derivable from a value that reports only the highest-ranked type.
+      # A `contains(updated-dependencies-json, '"dependencyType":"indirect"')`
+      # test would work but fails OPEN if that JSON's shape ever shifts, which is
+      # the same class of bug three times over.
+      #
+      # So npm auto-merge is REMOVED entirely. What remains:
+      #
+      # - GitHub Actions patch/minor. Workflow files are CI-only and never reach
+      #   prod artifacts, so a broken bump cannot affect users, and the ecosystem
+      #   test does not depend on dependency-type at all. Matched POSITIVELY
+      #   (== patch || == minor) rather than `!= major`, because `update-type` is
+      #   empty when Dependabot's metadata trailer is absent and `'' != major`
+      #   would have auto-merged it.
+      #
+      # Everything npm — including dev tooling — now falls through to manual
+      # review. That is a real cost, paid deliberately: while e2e-smoke and
+      # rls-security are vacuous on Dependabot PRs, a merge that a person
+      # performs is the reliable way to get them executed. (A maintainer commit
+      # pushed to the PR also un-vacuums them — that is what happened on #928 —
+      # but that is not something the auto-merge path can rely on.)
+      #
+      # Restore npm auto-merge once BOTH hold, and prefer the
+      # updated-dependencies-json test over the scalar when you do:
+      #   - E2E_OWNER_PASSWORD / E2E_OWNER_B_PASSWORD exist in the Dependabot
+      #     secret scope (the other four are already there)
+      #   - the e2e-smoke and rls-security skip branches are deleted
       - name: Auto-merge if eligible
         if: |
-          (steps.meta.outputs.dependency-type == 'direct:development' &&
-           (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
-            steps.meta.outputs.update-type == 'version-update:semver-minor')) ||
-          (steps.meta.outputs.package-ecosystem == 'github_actions' &&
-           steps.meta.outputs.update-type != 'version-update:semver-major')
+          steps.meta.outputs.package-ecosystem == 'github_actions' &&
+          (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+           steps.meta.outputs.update-type == 'version-update:semver-minor')
         # `--merge` matches the repo's allow_merge_commit=true /
         # allow_squash_merge=false setting (verified via the GitHub API).
         # Switching to `--squash` would 422 on the enable-auto-merge mutation.
@@ -144,3 +183,53 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Auto-merge is a PER-PR FLAG, not a policy evaluated at merge time.
+      # Tightening the rule above does NOT retract flags already set — GitHub
+      # merges the PR the moment its required checks go green, whatever this
+      # workflow now says.
+      #
+      # That is not hypothetical. On 2026-07-27 PRs #935 and #936 were armed at
+      # 16:02; the rule that made them ineligible merged at 16:35. Both stayed
+      # armed, held back only by a failing `checks` — the routine bun.lock sync
+      # would have released them straight to main. They had to be disarmed by
+      # hand.
+      #
+      # And skipping the step above is NOT equivalent to retracting. On #928 a
+      # maintainer pushed a lockfile commit, which made THIS JOB skip (the job
+      # gates on actor == dependabot[bot], and the actor was the maintainer) —
+      # yet the PR still self-merged 4m41s later under app/github-actions,
+      # because the flag from the earlier Dependabot event was still set.
+      #
+      # So state the negative explicitly instead of relying on absence.
+      - name: Retract auto-merge if NOT eligible
+        if: |
+          !(steps.meta.outputs.package-ecosystem == 'github_actions' &&
+            (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+             steps.meta.outputs.update-type == 'version-update:semver-minor'))
+        run: |
+          if gh pr merge --disable-auto "$PR_URL" 2>/dev/null; then
+            echo "::warning title=Auto-merge retracted::This PR had auto-merge enabled but is not eligible under the current rule. The flag has been removed; merge it by hand after review."
+          else
+            echo "No auto-merge flag set on this PR; nothing to retract."
+          fi
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # RESIDUAL, known and accepted: this job gates on
+      # `actor == dependabot[bot]`, so the retraction above runs on Dependabot's
+      # own events (opened / synchronize / reopened — i.e. every rebase) but NOT
+      # on a maintainer push to a Dependabot PR. In practice Dependabot rebases
+      # its open PRs frequently, so a stale flag gets cleared on the next such
+      # event.
+      #
+      # It is NOT cleared if a PR is armed and thereafter receives only
+      # maintainer commits. After ANY tightening of the rule above, sweep by
+      # hand:
+      #
+      #   for N in $(gh pr list --limit 50 --json number -q '.[].number'); do
+      #     gh pr view "$N" --json number,autoMergeRequest \
+      #       -q 'select(.autoMergeRequest) | "ARMED #\(.number)"'
+      #   done
+      #   gh pr merge --disable-auto <N>   # for each one that should not be
