@@ -168,12 +168,41 @@ jobs:
               exit 1
               ;;
             403)
+              # Fingerprint what the token CAN do, so the operator is told which
+              # specific scope is missing instead of re-guessing the token type.
+              # Each endpoint maps to exactly one scope, so the pattern of
+              # 200s and 403s identifies both the token kind and the gap.
+              probe() {
+                curl -sS -o /dev/null -w "%{http_code}" \
+                  "https://sentry.io/api/0/$1" \
+                  -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" 2>/dev/null || echo "000"
+              }
+              P_ORG=$(probe "organizations/${SENTRY_ORG}/")
+              P_PROJ=$(probe "projects/${SENTRY_ORG}/${SENTRY_PROJECT}/")
+              P_REL=$(probe "organizations/${SENTRY_ORG}/releases/?per_page=1")
+
               echo "::error::SENTRY_AUTH_TOKEN cannot read issues for this org (403)."
-              echo "::error::MOST LIKELY CAUSE: it is an ORGANIZATION token. Those have fixed,"
-              echo "::error::non-editable CI permissions and cannot read issues or events."
-              echo "::error::Create a PERSONAL TOKEN instead: sentry.io > Account dropdown"
-              echo "::error::(top left) > Personal Tokens, scopes event:read + project:read +"
-              echo "::error::org:read. Then run: gh secret set SENTRY_AUTH_TOKEN"
+              echo "::error::"
+              echo "::error::Scope fingerprint (200 = granted, 403 = missing):"
+              echo "::error::  org:read         ${P_ORG}   (/organizations/{org}/)"
+              echo "::error::  project:read     ${P_PROJ}   (/projects/{org}/{project}/)"
+              echo "::error::  project:releases ${P_REL}   (/organizations/{org}/releases/)"
+              echo "::error::  event:read       403   (/organizations/{org}/issues/) <-- REQUIRED, MISSING"
+              echo "::error::"
+              if [ "${P_REL}" = "200" ] && [ "${P_PROJ}" != "200" ]; then
+                echo "::error::Releases readable but project details not: this is the signature of an"
+                echo "::error::ORGANIZATION token. Those have FIXED CI-only permissions and can never"
+                echo "::error::read issues, no matter which boxes you tick."
+              else
+                echo "::error::This looks like a PERSONAL token that is simply missing event:read."
+                echo "::error::Edit the token and tick that scope, or create a new one."
+              fi
+              echo "::error::"
+              echo "::error::Required: a PERSONAL token from"
+              echo "::error::  https://sentry.io/settings/account/api/auth-tokens/"
+              echo "::error::with event:read + project:read + org:read, then:"
+              echo "::error::  gh secret set SENTRY_AUTH_TOKEN"
+              echo "::error::(NOT https://sentry.io/settings/auth-tokens/ — that page is org tokens.)"
               echo "::error::This is a CI credentials problem, NOT an application build problem."
               exit 1
               ;;
