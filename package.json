@@ -84,7 +84,8 @@
 		"smol-toml": ">=1.6.1",
 		"uuid": ">=14.0.0",
 		"postcss": ">=8.5.18",
-		"ip-address": ">=10.2.0"
+		"ip-address": ">=10.2.0",
+		"playwright-core": "1.62.0"
 	},
 	"trustedDependencies": [
 		"@sentry/cli",
