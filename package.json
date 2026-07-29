@@ -133,7 +133,7 @@
 		"react": "19.2.8",
 		"react-day-picker": "^10.0.0",
 		"react-dom": "19.2.8",
-		"react-dropzone": "^15.0.0",
+		"react-dropzone": "^19.1.1",
 		"react-error-boundary": "^6.1.1",
 		"react-intersection-observer": "^10.0.3",
 		"react-markdown": "^10.1.0",
