@@ -31,10 +31,6 @@ vi.mock("#components/seo/json-ld-script", () => ({
 	JsonLdScript: () => null,
 }));
 
-vi.mock("#components/sections/testimonials-section", () => ({
-	TestimonialsSection: () => null,
-}));
-
 vi.mock("../_components/pricing-section", () => ({
 	PricingSection: () => null,
 }));

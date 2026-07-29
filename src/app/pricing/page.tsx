@@ -4,13 +4,11 @@ import type { SoftwareApplication, WithContext } from "schema-dts";
 import { PageLayout } from "#components/layout/page-layout";
 import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
-import { TestimonialsSection } from "#components/sections/testimonials-section";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { getSoftwareApplicationJsonLd } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { realTestimonials } from "../../data/testimonials";
 import { PricingSection } from "./_components/pricing-section";
 import {
 	PricingCtaSection,
@@ -84,11 +82,6 @@ export default async function PricingPage() {
 				</div>
 			</section>
 			<PricingStatsGrid />
-			<TestimonialsSection
-				className="animate-in fade-in duration-700 delay-200"
-				testimonials={realTestimonials}
-				variant="grid"
-			/>
 			<PricingFaqSection />
 			<PricingCtaSection />
 			<StickyConversionCta primaryHref="#plans" />
