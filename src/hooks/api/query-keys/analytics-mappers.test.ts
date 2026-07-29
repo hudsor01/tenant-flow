@@ -141,6 +141,51 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 			expect(mapped.monthlyMetrics).toEqual([]);
 		}
 	});
+
+	// D-07: Scheduled (lease-derived) and Collected (ledger receipts) are two
+	// distinct figures. Summing them, or re-basing profit on Collected, is the
+	// double-count this phase exists to prevent.
+	it("sums Collected from ledger receipts WITHOUT folding it into Scheduled", () => {
+		const mapped = mapFinancialOverview(
+			{
+				overview: {
+					total_revenue: 120000,
+					total_expenses: 30000,
+					net_income: 90000,
+				},
+			},
+			{
+				revenueRows: [
+					{ month: "2024-01", revenue: 10000, collections: 9000 },
+					{ month: "2024-02", revenue: 10000, collections: 8500 },
+				],
+			},
+		);
+		expect(mapped.metrics.totalCollected).toBe(17500);
+		// Scheduled is untouched, and nothing anywhere equals scheduled+collected.
+		expect(mapped.metrics.totalRevenue).toBe(120000);
+		expect(mapped.metrics.netIncome).toBe(90000);
+		expect(mapped.metrics.cashFlow).toBe(90000);
+		for (const value of Object.values(mapped.metrics)) {
+			expect(value).not.toBe(137500);
+		}
+	});
+
+	it("reports an honest zero Collected when the ledger has no receipts", () => {
+		const mapped = mapFinancialOverview(
+			{ overview: { total_revenue: 120000 } },
+			{ revenueRows: [{ month: "2024-01", revenue: 10000, collections: 0 }] },
+		);
+		expect(mapped.metrics.totalCollected).toBe(0);
+	});
+
+	it("treats a missing collections field as zero, never as scheduled", () => {
+		const mapped = mapFinancialOverview(
+			{ overview: { total_revenue: 120000 } },
+			{ revenueRows: [{ month: "2024-01", revenue: 10000 }] },
+		);
+		expect(mapped.metrics.totalCollected).toBe(0);
+	});
 });
 
 describe("mapMaintenanceAnalytics (TYPE-03)", () => {

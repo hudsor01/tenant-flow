@@ -77,6 +77,7 @@ export const DEFAULT_USER: User = {
 	subscription_updated_at: null,
 	subscription_source: null,
 	trial_ends_at: null,
+	storage_grandfathered_at: null,
 };
 
 /**
@@ -133,6 +134,7 @@ export const DEFAULT_LEASE: Lease = {
 	lease_status: "active",
 	payment_day: 1,
 	grace_period_days: null,
+	ledger_start_date: null,
 	late_fee_amount: null,
 	late_fee_days: null,
 	created_at: "2024-01-01T00:00:00Z",
@@ -152,6 +154,7 @@ export const DEFAULT_LEASE: Lease = {
 	sent_for_signature_at: null,
 	signed_document_path: null,
 	signed_document_hash: null,
+	signed_lease_emailed_at: null,
 	landlord_notice_address: null,
 	immediate_family_members: null,
 	// Lease detail fields

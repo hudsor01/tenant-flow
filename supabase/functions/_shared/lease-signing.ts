@@ -272,6 +272,44 @@ async function releaseSignedLeaseEmailClaim(
 }
 
 /**
+ * Best-effort "Lease signing needs attention" notification (NOTIF-04,
+ * lease_finalize_failed) for the lease owner. Finalize is best-effort — every
+ * failure exit swallows the error and returns without surfacing it. This single
+ * shared helper is invoked at ALL five finalize failure exits so the type/title/
+ * action_url stay identical everywhere. It runs the service_role create_notification
+ * RPC inside its OWN try/catch: the notification path must NEVER throw and must
+ * never mask the original finalize error (T-52-08). action_url is app-relative.
+ */
+async function notifyFinalizeFailed(
+	supabase: SupabaseClient,
+	ownerUserId: string,
+	leaseId: string,
+): Promise<void> {
+	try {
+		const { error } = await supabase.rpc("create_notification", {
+			p_user_id: ownerUserId,
+			p_type: "lease_finalize_failed",
+			p_title: "Lease signing needs attention",
+			p_message: null,
+			p_entity_type: "lease",
+			p_entity_id: leaseId,
+			p_action_url: "/leases/" + leaseId,
+		});
+		if (error) {
+			captureWebhookError(error, {
+				action: "finalize_notify_failed",
+				lease_id: leaseId,
+			});
+		}
+	} catch (err) {
+		captureWebhookError(err, {
+			action: "finalize_notify_failed",
+			lease_id: leaseId,
+		});
+	}
+}
+
+/**
  * Ensure-email step: email the tenant the executed PDF exactly once. Atomically
  * claims the send (null -> now() on signed_lease_emailed_at) so concurrent
  * finalizes never double-email; on send failure the claim is released so a
@@ -302,6 +340,7 @@ async function ensureSignedLeaseEmail(
 			action: "finalize_email_claim",
 			lease_id: leaseId,
 		});
+		await notifyFinalizeFailed(supabase, record.ownerUserId, leaseId);
 		return;
 	}
 	if (!claimed || claimed.length === 0) return;
@@ -318,6 +357,7 @@ async function ensureSignedLeaseEmail(
 					new Error("Signed lease PDF download returned no data"),
 				{ action: "finalize_email_download", lease_id: leaseId },
 			);
+			await notifyFinalizeFailed(supabase, record.ownerUserId, leaseId);
 			return;
 		}
 		pdfBytes = new Uint8Array(await blob.arrayBuffer());
@@ -344,6 +384,7 @@ async function ensureSignedLeaseEmail(
 			action: "finalize_email_send",
 			lease_id: leaseId,
 		});
+		await notifyFinalizeFailed(supabase, record.ownerUserId, leaseId);
 	}
 }
 
@@ -389,6 +430,7 @@ export async function finalizeSignedLease(
 					action: "finalize_upload",
 					lease_id: leaseId,
 				});
+				await notifyFinalizeFailed(supabase, record.ownerUserId, leaseId);
 				return;
 			}
 			// Only the first finalize writes the pointer (idempotent under retries).
@@ -404,6 +446,7 @@ export async function finalizeSignedLease(
 				action: "finalize_render",
 				lease_id: leaseId,
 			});
+			await notifyFinalizeFailed(supabase, record.ownerUserId, leaseId);
 			return;
 		}
 	}

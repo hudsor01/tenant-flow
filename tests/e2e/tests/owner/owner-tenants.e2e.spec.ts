@@ -1,30 +1,19 @@
 import { expect, test } from "@playwright/test";
 import { ROUTES } from "../constants/routes";
 import { createTenant } from "../fixtures/test-data";
-import {
-	fillTextInput,
-	selectComboboxOption,
-	submitForm,
-} from "../helpers/form-helpers";
+import { fillTextInput } from "../helpers/form-helpers";
 import {
 	closeModalViaCancelButton,
 	closeModalViaCloseButton,
-	fillModalForm,
-	openModal,
 	submitModalForm,
 	verifyModalIsClosed,
 	verifyModalIsOpen,
-	verifySuccessToast,
 } from "../helpers/modal-helpers";
 import {
 	setupErrorMonitoring,
 	verifyPageLoaded,
 } from "../helpers/navigation-helpers";
-import {
-	verifyButtonExists,
-	verifySearchInputExists,
-	verifyTableRenders,
-} from "../helpers/ui-validation-helpers";
+import { verifyTableRenders } from "../helpers/ui-validation-helpers";
 
 /**
  * Owner Tenants E2E Tests

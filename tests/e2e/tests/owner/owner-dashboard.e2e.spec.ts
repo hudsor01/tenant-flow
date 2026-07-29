@@ -8,10 +8,7 @@ import {
 import {
 	verifyButtonExists,
 	verifyCanvasChartRenders,
-	verifyCardRenders,
-	verifyChartRenders,
 	verifyLoadingComplete,
-	verifyStatCard,
 	verifySVGChartRenders,
 	verifyTableHasRows,
 	verifyTableRenders,

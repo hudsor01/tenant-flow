@@ -34,8 +34,17 @@ describe("date formatters", () => {
 
 	it("formats relative distance with suffix", () => {
 		const base = new Date("2025-03-01T00:00:00Z");
+		// Calendar-day distance verbatim: yesterday is "1 day ago" (the
+		// historical +1 pinned here previously overstated ages by one day).
 		expect(formatRelativeDate("2025-02-28", { baseDate: base })).toBe(
-			"2 days ago",
+			"1 day ago",
+		);
+		expect(formatRelativeDate("2025-02-26", { baseDate: base })).toBe(
+			"3 days ago",
+		);
+		expect(formatRelativeDate("2025-03-01", { baseDate: base })).toBe("Today");
+		expect(formatRelativeDate("2025-03-03", { baseDate: base })).toBe(
+			"In 2 days",
 		);
 	});
 });

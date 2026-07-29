@@ -5,6 +5,7 @@ import { Suspense, useEffect } from "react";
 import { toast } from "sonner";
 import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
 import { Dashboard } from "#components/dashboard/dashboard";
+import { DashboardActivityCard } from "#components/dashboard/dashboard-activity-card";
 import { ExpiringLeasesWidget } from "#components/dashboard/expiring-leases-widget";
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
 import { OnboardingWizard } from "#components/onboarding/onboarding-wizard";
@@ -154,8 +155,9 @@ function DashboardContent() {
 				onAddTenant={onAddTenant}
 				onCreateMaintenanceRequest={onCreateMaintenanceRequest}
 			/>
-			<div className="px-6 lg:px-8 pb-6 lg:pb-8">
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-6 lg:px-8 pb-6 lg:pb-8">
 				<ExpiringLeasesWidget />
+				<DashboardActivityCard />
 			</div>
 		</div>
 	);

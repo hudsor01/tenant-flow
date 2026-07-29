@@ -43,7 +43,6 @@ describe("Expenses RLS — cross-owner isolation (indirect via maintenance_reque
 	let clientA: SupabaseClient;
 	let clientB: SupabaseClient;
 	let ownerAId: string;
-	let ownerBId: string;
 
 	// Fixture chain under ownerA. FK-safe teardown deletes child-before-parent.
 	let propertyA: { id: string } | null = null;
@@ -60,11 +59,7 @@ describe("Expenses RLS — cross-owner isolation (indirect via maintenance_reque
 		const {
 			data: { user: userA },
 		} = await clientA.auth.getUser();
-		const {
-			data: { user: userB },
-		} = await clientB.auth.getUser();
 		ownerAId = userA!.id;
-		ownerBId = userB!.id;
 
 		// Build ownerA's chain through the authenticated client. Each step guards
 		// on the previous one so a partial failure surfaces as a graceful skip

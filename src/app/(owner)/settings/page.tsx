@@ -73,7 +73,7 @@ const sections: SettingsSection[] = [
 		id: "notifications",
 		label: "Notifications",
 		icon: <Bell className="h-4 w-4" />,
-		description: "Email, SMS, and push settings",
+		description: "Email and in-app notification settings",
 	},
 	{
 		id: "security",

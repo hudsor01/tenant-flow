@@ -147,6 +147,16 @@ export const mutationKeys = {
 		delete: ["mutations", "expenses", "delete"] as const,
 	},
 
+	// Rent ledger (v10.0 Phase 55) — append-only bookkeeping. `reverseEntry`
+	// covers both reversal RPCs (reverse_charge / reverse_receipt) because they
+	// are one user-facing action: post an offsetting entry.
+	rentLedger: {
+		recordReceipt: ["mutations", "rentLedger", "recordReceipt"] as const,
+		addLine: ["mutations", "rentLedger", "addLine"] as const,
+		startTracking: ["mutations", "rentLedger", "startTracking"] as const,
+		reverseEntry: ["mutations", "rentLedger", "reverseEntry"] as const,
+	},
+
 	// Reports
 	reports: {
 		delete: ["mutations", "reports", "delete"] as const,

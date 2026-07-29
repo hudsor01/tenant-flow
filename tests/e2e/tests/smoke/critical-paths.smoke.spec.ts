@@ -201,7 +201,12 @@ test.describe
 		// single-page tests above. 5s per page flaked under CI cold-start
 		// (P0 Navigation works failure, PR #737) — the page renders well
 		// within 20s but not always within 5s.
-		test("🔥 P0: Navigation works", { timeout: 120_000 }, async () => {
+		test("🔥 P0: Navigation works", async () => {
+			// Playwright's 3-arg test(title, details, body) only accepts
+			// { tag, annotation } - a `timeout` key there is silently ignored,
+			// so this budget must be set from inside the test body.
+			test.setTimeout(120_000);
+
 			const pages = [
 				{ url: "/", name: "Homepage" },
 				{ url: "/properties", name: "Properties" },

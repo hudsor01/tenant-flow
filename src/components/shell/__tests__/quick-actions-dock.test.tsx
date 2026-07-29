@@ -39,7 +39,7 @@ describe("QuickActionsDock", () => {
 			);
 			expect(screen.getByLabelText("Notifications")).toHaveAttribute(
 				"href",
-				"/settings?tab=notifications",
+				"/notifications",
 			);
 		});
 	});

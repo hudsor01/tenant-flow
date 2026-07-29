@@ -9,6 +9,7 @@ import {
 	DollarSign,
 } from "lucide-react";
 import { DocumentsSection } from "#components/documents/documents-section";
+import { LedgerTab } from "#components/ledger/ledger-tab";
 import { Card, CardContent } from "#components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
@@ -181,14 +182,25 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 
 					{/* Tabbed content */}
 					<Tabs defaultValue="details" className="w-full">
-						<TabsList className="grid w-full grid-cols-3">
+						<TabsList className="grid w-full grid-cols-4">
 							<TabsTrigger value="details">Details</TabsTrigger>
+							<TabsTrigger value="ledger">Ledger</TabsTrigger>
 							<TabsTrigger value="timeline">Timeline</TabsTrigger>
 							<TabsTrigger value="terms">Terms</TabsTrigger>
 						</TabsList>
 
 						<TabsContent value="details" className="mt-4">
 							<LeaseDetailsTab lease={lease} tenant={tenant} unit={unit} />
+						</TabsContent>
+
+						<TabsContent value="ledger" className="mt-4">
+							{/* No ledger_start_date means the owner has not started tracking
+							    this lease, so the tab shows its empty state instead of an
+							    all-zero ledger (D-04). */}
+							<LedgerTab
+								leaseId={lease.id}
+								isTracked={lease.ledger_start_date != null}
+							/>
 						</TabsContent>
 
 						<TabsContent value="timeline" className="mt-4">

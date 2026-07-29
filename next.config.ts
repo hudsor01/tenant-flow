@@ -189,7 +189,29 @@ export default withSentryConfig(nextConfig, {
 		excludeReplayWorker: true,
 	},
 	// Release tracking
+	//
+	// `release.name` MUST be set explicitly. The plugin's auto-detection only
+	// covers Cordova / Heroku / AWS CodeBuild / CircleCI / Xcode / Gradle, and
+	// otherwise falls back to the git HEAD commit SHA — which "requires access
+	// to git CLI and for the root directory to be a valid repository"
+	// (@sentry/nextjs types, `release.name`). Vercel builds have NO `.git`
+	// directory (source is uploaded, not cloned), so detection finds nothing,
+	// and per the same docs: "If you didn't provide a value and the plugin
+	// can't automatically detect one, NO RELEASE WILL BE CREATED."
+	//
+	// That silently broke the post-deploy Sentry regression gate on every
+	// production deploy — it queries
+	// `/organizations/{org}/releases/{sha}/` with the 40-char SHA from the
+	// Vercel deployment webhook and got a 404 every time, because the release
+	// never existed. Pinning the name to VERCEL_GIT_COMMIT_SHA makes the
+	// created release match exactly what the gate looks up.
+	//
+	// Spread-conditional so non-Vercel builds (local, CI) keep the previous
+	// auto-detect behaviour instead of creating a release named "undefined".
 	release: {
+		...(process.env.VERCEL_GIT_COMMIT_SHA
+			? { name: process.env.VERCEL_GIT_COMMIT_SHA }
+			: {}),
 		setCommits: {
 			auto: true,
 			ignoreMissing: true,

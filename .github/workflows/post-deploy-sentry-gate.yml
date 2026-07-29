@@ -18,10 +18,34 @@
 #   # Expect green exit, PASS summary, and artifact `sentry-baseline-<sha>` uploaded.
 #
 # Required repo secrets:
-#   SENTRY_AUTH_TOKEN  — Sentry Organization Token (Settings → Developer Settings
-#                        → Organization Tokens). Scopes needed: project:read, event:read.
-#   SENTRY_ORG         — Sentry org slug (matches next.config.ts:50)
-#   SENTRY_PROJECT     — Sentry project slug (matches next.config.ts:51)
+#   SENTRY_AUTH_TOKEN  — MUST be a PERSONAL TOKEN, not an Organization Token.
+#                        Create at sentry.io → Account dropdown (top left) →
+#                        Personal Tokens. Scopes: event:read, project:read,
+#                        org:read.
+#
+#                        This line previously said "Organization Token", and that
+#                        is WRONG in a way that fails confusingly. Organization
+#                        Tokens have FIXED, non-editable permissions scoped to
+#                        "CI-related tasks" — releases and source-map upload —
+#                        and cannot read issues or events. Verified 2026-07-28
+#                        against a freshly issued org token:
+#                          /organizations/{org}/releases/  -> 200
+#                          /organizations/{org}/issues/    -> 403
+#                          /projects/{org}/{project}/      -> 403
+#                        The gate's whole job is reading issues, so an org token
+#                        gets through the credentials check and then dies at the
+#                        first real query.
+#   SENTRY_ORG         — Sentry org slug. Must match the value the Vercel BUILD
+#                        uses (next.config.ts reads process.env.SENTRY_ORG in the
+#                        withSentryConfig options), but note these are two
+#                        SEPARATE secret stores: the build reads Vercel's project
+#                        env, this workflow reads the GitHub Actions secret. They
+#                        can drift, and a mismatch shows up here as a 404.
+#   SENTRY_PROJECT     — Sentry project slug, same two-store caveat.
+#
+#   (Earlier revisions cited next.config.ts:50/:51 for these. Line numbers in
+#   that file drift with every edit — the options live in the withSentryConfig
+#   call at the bottom; grep for SENTRY_ORG rather than trusting a line number.)
 #
 # Required repo variables (all tunable without code change via `gh variable set`):
 #   SENTRY_GATE_NEW_ISSUE_EVENT_THRESHOLD  (default 10)
@@ -47,6 +71,11 @@ on:
         description: 'Git SHA to audit (for smoke tests or manual re-runs against a known-good release)'
         required: true
         type: string
+      skip_observation:
+        description: 'Skip the observation window (smoke-testing the gate wiring only — the data will be thinner than a real post-deploy run)'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: sentry-gate-${{ github.event.client_payload.git.sha || inputs.release_sha }}
@@ -82,6 +111,202 @@ jobs:
             exit 1
           fi
 
+      # Validate credentials BEFORE the 30-minute observation sleep.
+      #
+      # This gate has NEVER once passed. Measured 2026-07-27 over the most recent
+      # 200 runs the API returns: 199 failures, 0 successes, 144.6 hours of
+      # cumulative runtime. (An earlier revision of this comment said "40 out of
+      # 40" and "roughly 20 hours" — those came from a `gh run list --limit 40`
+      # that silently capped at its own limit. The real figures are ~5x and ~7x
+      # worse; re-measure with an explicit high limit rather than trusting a
+      # default.)
+      #
+      # Nearly all of that runtime is this job sleeping the full observation
+      # window and then blaming the application build.
+      #
+      # The release lookup below is org-scoped, so a wrong SENTRY_ORG or a token
+      # belonging to a different org returns 404 — indistinguishable from "the
+      # build never created the release" unless the org is checked separately.
+      # Verified 2026-07-27: release 6d7cfb8e07cd… DOES exist in Sentry (org
+      # hudson-digital-solutions, project tenant-flow, created 14:10:43Z), and
+      # so does every earlier deploy back to June. The builds were always fine.
+      - name: Verify Sentry credentials resolve
+        id: creds
+        run: |
+          # Probe the ISSUES endpoint — the one the gate actually depends on.
+          #
+          # This probed /releases/ until 2026-07-28, and that was too weak a
+          # test. An Organization Token can read releases but NOT issues, so the
+          # preflight reported "credentials verified" for a token that could not
+          # do the gate's job, and the run then died 30 minutes later at the
+          # first real query. A preflight that passes for a token the gate cannot
+          # use is worse than none: it moves the failure further from its cause.
+          #
+          # `limit=1` keeps it cheap; only the status code is examined.
+          # `|| echo 000` is load-bearing. GitHub Actions runs `run:` blocks as
+          # `bash -e`, so on a curl TRANSPORT failure (DNS, TLS, connection reset)
+          # the non-zero exit would abort this step immediately — before the case
+          # statement — and the job would fail with no ::error:: annotation at all,
+          # which is the exact silent-failure mode this step exists to remove.
+          # Substituting a sentinel keeps the diagnosis on the happy path.
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/?limit=1" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || echo "000")
+          case "${STATUS}" in
+            200)
+              echo "Sentry credentials verified; token can read this org's issues."
+              echo "can_read_issues=true" >> "$GITHUB_OUTPUT"
+              ;;
+            000)
+              echo "::error::Could not reach the Sentry API at all (curl transport failure)."
+              echo "::error::Network/DNS/TLS problem on the runner, or a Sentry outage."
+              echo "::error::This is NOT an application build problem."
+              exit 1
+              ;;
+            401)
+              echo "::error::SENTRY_AUTH_TOKEN was rejected (401) — invalid or expired."
+              echo "::error::Reissue it: Sentry > Settings > Developer Settings > Organization Tokens."
+              echo "::error::This is a CI credentials problem, NOT an application build problem."
+              exit 1
+              ;;
+            403)
+              # NOT FATAL. The gate degrades to release-level signal instead.
+              #
+              # `event:read` is only obtainable from a PERSONAL token or an
+              # internal integration. An ORGANIZATION token — which is all some
+              # Sentry orgs surface in their UI — has fixed CI-only permissions
+              # and can never read issues. Failing here would make the gate
+              # permanently unusable for those orgs, which is how it sat broken
+              # for months.
+              #
+              # The primary signal survives without that scope: the RELEASES
+              # endpoint (readable with an org token, proven 200) returns
+              # `newGroups` per release, i.e. the count of new issues that
+              # release introduced. That is exactly what the first threshold
+              # tests. Only the per-issue detail and the crash-free-rate delta
+              # need `event:read`, and both are downgraded to warnings.
+              probe() {
+                curl -sS -o /dev/null -w "%{http_code}" \
+                  "https://sentry.io/api/0/$1" \
+                  -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" 2>/dev/null || echo "000"
+              }
+              P_PROJ=$(probe "projects/${SENTRY_ORG}/${SENTRY_PROJECT}/")
+              P_REL=$(probe "organizations/${SENTRY_ORG}/releases/?per_page=1")
+
+              echo "can_read_issues=false" >> "$GITHUB_OUTPUT"
+
+              if [ "${P_REL}" != "200" ]; then
+                echo "::error::Token cannot read issues (403) AND cannot read releases (${P_REL})."
+                echo "::error::Nothing usable is reachable — the gate cannot run at all."
+                echo "::error::Set SENTRY_AUTH_TOKEN to a token with at least project:read."
+                exit 1
+              fi
+
+              echo "::warning title=Sentry gate running in DEGRADED mode::The token cannot read issues (event:read missing), so this gate checks the release-level new-issue count only. Per-issue detail and crash-free-rate delta are unavailable."
+              {
+                echo "### Sentry gate: DEGRADED mode"
+                echo
+                echo "The configured \`SENTRY_AUTH_TOKEN\` lacks \`event:read\`, so this run checks"
+                echo "the **release-level new-issue count** only."
+                echo
+                echo "| Scope | Endpoint | Status |"
+                echo "|---|---|---|"
+                echo "| project:read | \`/projects/{org}/{project}/\` | ${P_PROJ} |"
+                echo "| project:releases | \`/organizations/{org}/releases/\` | ${P_REL} |"
+                echo "| event:read | \`/organizations/{org}/issues/\` | 403 |"
+                echo
+                if [ "${P_REL}" = "200" ] && [ "${P_PROJ}" != "200" ]; then
+                  echo "Releases readable but project details not — the signature of an **organization"
+                  echo "token**. Those carry fixed CI-only permissions and can never read issues."
+                else
+                  echo "Looks like a **personal token missing \`event:read\`** — that scope is editable."
+                fi
+                echo
+                echo "To get full fidelity, use a personal token from"
+                echo "<https://sentry.io/settings/account/api/auth-tokens/> with \`event:read\`,"
+                echo "or create an internal integration under Settings > Developer Settings."
+                echo "The gate remains useful without it."
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            404)
+              echo "::error::The org in SENTRY_ORG did not resolve (404)."
+              echo "::error::Either SENTRY_ORG is wrong, or SENTRY_AUTH_TOKEN belongs to a different"
+              echo "::error::org — Sentry returns 404 rather than 403 so it does not confirm whether"
+              echo "::error::an org exists to a caller that cannot see it."
+              echo "::error::This is a CI credentials problem, NOT an application build problem."
+              exit 1
+              ;;
+            *)
+              echo "::error::Sentry organizations API returned HTTP ${STATUS}."
+              exit 1
+              ;;
+          esac
+
+      # Resolve the project SLUG to its NUMERIC ID.
+      #
+      # The three Sentry query steps below hit org-scoped endpoints
+      # (/organizations/{org}/issues/, /sessions/, /events/) whose `project`
+      # parameter is a numeric project ID. Passing a slug returns HTTP 400, and
+      # because those steps use `curl -f` that surfaced only as `exit code 22`
+      # with no explanation. Observed 2026-07-28 on the first run that ever got
+      # past the credentials check.
+      #
+      # Resolved at runtime rather than by changing the SENTRY_PROJECT secret to
+      # a number, so the secret keeps matching the slug the Vercel build uses in
+      # next.config.ts. One value, one meaning, in both stores.
+      - name: Resolve Sentry project ID
+        id: project
+        run: |
+          # Use the PROJECT-scoped details endpoint
+          # (/projects/{org}/{project}/), NOT the org-scoped project LIST
+          # (/organizations/{org}/projects/).
+          #
+          # The list endpoint requires `org:read`, which this workflow
+          # deliberately does not require — and it 403'd on the first run that
+          # reached it (30360756947). That is the same org-vs-project scope
+          # mistake already fixed once in the credentials preflight above;
+          # do not reintroduce it a third time. If a step here needs a scope
+          # beyond `project:read` + `event:read`, the step is wrong, not the
+          # token.
+          RESP=$(curl -sS -w '\n%{http_code}' \
+            "https://sentry.io/api/0/projects/${SENTRY_ORG}/${SENTRY_PROJECT}/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || printf '\n000')
+          CODE=$(printf '%s' "$RESP" | tail -1)
+          BODY=$(printf '%s' "$RESP" | sed '$d')
+
+          PID=""
+          if [ "${CODE}" = "200" ]; then
+            PID=$(printf '%s' "$BODY" | jq -r '.id // empty')
+          fi
+
+          # FALLBACK: derive the id from the RELEASES list.
+          #
+          # Whatever scope set this token carries, the credentials preflight
+          # above already proved it can read /organizations/{org}/releases/ —
+          # and each release object embeds `projects: [{id, slug, ...}]`. So
+          # this path needs no scope the gate does not already depend on, which
+          # makes it immune to the org-vs-project scope trap that has now bitten
+          # this workflow twice.
+          if [ -z "${PID}" ]; then
+            echo "Project details returned HTTP ${CODE}; deriving id from the releases list instead."
+            REL=$(curl -sS "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/?per_page=50" \
+              -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" || printf '[]')
+            PID=$(printf '%s' "$REL" | jq -r --arg slug "${SENTRY_PROJECT}" \
+              '[.[].projects[]? | select(.slug == $slug) | .id] | first // empty')
+          fi
+
+          if [ -z "${PID}" ] || [ "${PID}" = "null" ]; then
+            echo "::error::Could not resolve a numeric project id for slug '${SENTRY_PROJECT}'."
+            echo "::error::Project-details endpoint returned HTTP ${CODE}, and no release in this"
+            echo "::error::org referenced that slug."
+            echo "::error::Check the SENTRY_PROJECT secret against the slug shown in the Sentry UI,"
+            echo "::error::and confirm the token carries project:read."
+            exit 1
+          fi
+
+          echo "project_id=${PID}" >> "$GITHUB_OUTPUT"
+          echo "Resolved project '${SENTRY_PROJECT}' -> id ${PID}"
+
       - name: Resolve release SHA
         id: release
         env:
@@ -104,10 +329,20 @@ jobs:
           echo "short_sha=${SHORT}" >> "$GITHUB_OUTPUT"
           echo "Release SHA: ${SHA} (short: ${SHORT})"
 
+      # Skippable on workflow_dispatch ONLY, and never on a real post-deploy
+      # repository_dispatch. Smoke-testing this gate used to cost 30 minutes per
+      # attempt, so every defect in the steps below took a full cycle to surface
+      # — which is precisely why several shipped undetected for months.
       - name: Observation window
+        if: github.event_name != 'workflow_dispatch' || inputs.skip_observation != true
         run: |
           echo "Sleeping ${OBSERVATION_WINDOW_MINUTES} minute(s) for Sentry to receive error/session signal..."
           sleep "${OBSERVATION_WINDOW_MINUTES}m"
+
+      - name: Observation window SKIPPED
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_observation == true
+        run: |
+          echo "::warning title=Observation window skipped::Wiring smoke test only. Issue/session counts reflect whatever Sentry already holds, not a fresh post-deploy window, so the PASS/FAIL verdict is NOT meaningful as a regression signal."
 
       - name: Confirm release exists in Sentry
         env:
@@ -117,7 +352,19 @@ jobs:
             "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
           if [ "${STATUS}" = "404" ]; then
-            echo "::error::Sentry release ${RELEASE_SHA} not found. Check that @sentry/nextjs setCommits succeeded in the Vercel build. See next.config.ts:65-70."
+            # Credentials were validated before the observation window, so the org
+            # and token are known good by this point and a 404 here really does mean
+            # the release is absent. Do not re-assert that without that preflight —
+            # an org-scoped 404 was previously misread as a build failure for 40
+            # consecutive runs.
+            echo "::error::Sentry release ${RELEASE_SHA} not found, though the org and token resolved."
+            echo "::error::So the Vercel build genuinely did not create a release for this commit."
+            echo "::error::Check, in order:"
+            echo "::error::  1. SENTRY_ORG / SENTRY_PROJECT / SENTRY_AUTH_TOKEN exist in the Vercel"
+            echo "::error::     Production environment (the build uses those, NOT these GitHub secrets)"
+            echo "::error::  2. release.name is set in next.config.ts withSentryConfig options — on"
+            echo "::error::     Vercel there is no .git directory, so auto-detection finds nothing"
+            echo "::error::  3. the Vercel build log for this commit, which names any plugin error"
             exit 1
           fi
           if [ "${STATUS}" != "200" ]; then
@@ -126,20 +373,71 @@ jobs:
           fi
           echo "Release ${RELEASE_SHA} confirmed in Sentry."
 
-      - name: Query Sentry issues (new unresolved)
-        id: sentry_issues
+      # Release-level new-issue count — the gate's PRIMARY signal, and the only
+      # one that works without `event:read`.
+      #
+      # Sentry's release object carries `newGroups`: the number of new issue
+      # groups that release introduced. That is precisely what the first
+      # threshold tests, and the releases endpoint is readable by an
+      # organization token (proven 200 in the preflight). Relying on
+      # /organizations/{org}/issues/ for this number is what made the whole gate
+      # require a scope some Sentry orgs cannot even issue.
+      - name: Release-level new-issue count
+        id: release_summary
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
-          set -euo pipefail
-          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
+          HTTP_CODE=$(curl -sS -G -w '%{http_code}' \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
-            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "query=${RELEASE_SHA}" \
+            --data-urlencode "per_page=5" \
+            -o release-summary.json 2>/tmp/relsum.err) || true
+
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Sentry releases API returned HTTP ${HTTP_CODE:-000}."
+            echo "::error::Response body: $(head -c 500 release-summary.json 2>/dev/null)"
+            exit 1
+          fi
+
+          NEW_GROUPS=$(jq -r --arg sha "${RELEASE_SHA}" \
+            '[.[] | select(.version == $sha) | .newGroups] | first // empty' release-summary.json)
+
+          if [ -z "${NEW_GROUPS}" ] || [ "${NEW_GROUPS}" = "null" ]; then
+            echo "::warning::Release ${RELEASE_SHA} carried no newGroups field; treating as 0."
+            NEW_GROUPS=0
+          fi
+
+          echo "new_groups=${NEW_GROUPS}" >> "$GITHUB_OUTPUT"
+          echo "Release ${RELEASE_SHA} introduced ${NEW_GROUPS} new issue group(s)."
+
+      - name: Query Sentry issues (new unresolved)
+        if: steps.creds.outputs.can_read_issues == 'true'
+        id: sentry_issues
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROJECT_ID: ${{ steps.project.outputs.project_id }}
+        run: |
+          set -euo pipefail
+          HTTP_CODE=$(curl -sS -G -w '%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA} is:unresolved age:-${OBSERVATION_WINDOW_MINUTES}m" \
             --data-urlencode "sort=new" \
             --data-urlencode "limit=100" \
-            -o current-issues.json
+            -o current-issues.json 2>/tmp/issues.err) || true
+          # curl writes the BODY to -o and the -w status to STDOUT, so the status
+          # is captured from the command substitution, NOT read back out of the
+          # body file. An earlier revision did `tail -1` on the -o file, which
+          # returns the last line of the JSON and therefore never equals 200 —
+          # it failed unconditionally regardless of what Sentry returned.
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Sentry issues API returned HTTP ${HTTP_CODE:-000}."
+            echo "::error::Response body: $(head -c 700 current-issues.json 2>/dev/null)"
+            echo "::error::curl stderr: $(head -c 200 /tmp/issues.err 2>/dev/null)"
+            exit 1
+          fi
           EVENT_COUNT=$(jq '[.[] | .count | tonumber] | add // 0' current-issues.json)
           NEW_ISSUE_COUNT=$(jq 'length' current-issues.json)
           echo "event_count_new_issues=${EVENT_COUNT}" >> "$GITHUB_OUTPUT"
@@ -147,20 +445,27 @@ jobs:
           echo "Captured ${NEW_ISSUE_COUNT} new unresolved issue(s) with ${EVENT_COUNT} total events."
 
       - name: Query Sentry sessions (crash-free rate)
+        if: steps.creds.outputs.can_read_issues == 'true'
         id: sentry_sessions
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
-          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
+          HTTP_CODE=$(curl -sS -G -w '%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
-            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "field=sum(session)" \
             --data-urlencode "field=crash_free_rate(session)" \
             --data-urlencode "statsPeriod=1h" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
-            -o current-sessions.json
+            -o current-sessions.json 2>/tmp/sessions.err) || true
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Sentry sessions API returned HTTP ${HTTP_CODE:-000}."
+            echo "::error::Response body: $(head -c 700 current-sessions.json 2>/dev/null)"
+            exit 1
+          fi
           # Default crash_free_rate to 1.0 if no sessions recorded yet (avoid false positive).
           CRASH_FREE=$(jq '[.groups[]? | select((.by // {}) | length == 0) | .totals["crash_free_rate(session)"]] | first // 1' current-sessions.json)
           ERROR_RATE_PCT=$(awk -v cf="${CRASH_FREE}" 'BEGIN { printf "%.4f", (1 - cf) * 100 }')
@@ -168,21 +473,30 @@ jobs:
           echo "Crash-free rate: ${CRASH_FREE} → error rate ${ERROR_RATE_PCT}%"
 
       - name: Query Sentry transactions (p95 — baseline only)
+        if: steps.creds.outputs.can_read_issues == 'true'
         id: sentry_transactions
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          PROJECT_ID: ${{ steps.project.outputs.project_id }}
         run: |
           set -euo pipefail
           # Baseline metric only — not gated per 43-RESEARCH.md line 654. Captured for
           # post-mortem trend analysis via the 90-day artifact.
-          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
+          TX_CODE=$(curl -sS -G -w '%{http_code}' "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
             -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
-            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "project=${PROJECT_ID}" \
             --data-urlencode "environment=production" \
             --data-urlencode "query=release:${RELEASE_SHA}" \
             --data-urlencode "yAxis=p95(transaction.duration)" \
             --data-urlencode "statsPeriod=1h" \
-            -o current-transactions.json || true
+            -o current-transactions.json 2>/dev/null || true
+          # Best-effort by design (p95 is recorded for the baseline but never
+          # enforced), so a bad status does NOT fail the gate — it just leaves a
+          # non-JSON body that the guarded jq below falls back to 0 for.
+          if [ "${TX_CODE}" != "200" ]; then
+            echo "::warning::Sentry events-stats returned HTTP ${TX_CODE:-000}; p95 recorded as 0."
+            echo '{}' > current-transactions.json
+          fi
           # events-stats response shape: { data: [[timestamp, [{count: <ms>}]], ...] }.
           # If query returns no data (low traffic), default to null.
           P95_MS=$(jq '[.data[]? | .[1][0].count // empty] | if length == 0 then 0 else (add / length) end' current-transactions.json 2>/dev/null || echo "0")
@@ -224,12 +538,29 @@ jobs:
           SHORT_SHA: ${{ steps.release.outputs.short_sha }}
           CURRENT_EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
           CURRENT_NEW_ISSUE_COUNT: ${{ steps.sentry_issues.outputs.new_issue_count }}
+          RELEASE_NEW_GROUPS: ${{ steps.release_summary.outputs.new_groups }}
+          CAN_READ_ISSUES: ${{ steps.creds.outputs.can_read_issues }}
           CURRENT_ERROR_RATE_PCT: ${{ steps.sentry_sessions.outputs.error_rate_pct }}
           CURRENT_P95_MS: ${{ steps.sentry_transactions.outputs.transactions_p95_ms }}
           FIRST_RUN: ${{ steps.baseline.outputs.first_run }}
           PREVIOUS_SHA: ${{ steps.baseline.outputs.previous_sha }}
         run: |
           set -euo pipefail
+
+          # DEGRADED mode: the token cannot read issues, so the per-issue and
+          # sessions queries were skipped and their outputs are empty. Fall back
+          # to the release-level newGroups count — the same quantity at lower
+          # resolution — and disable the error-rate rule rather than evaluating
+          # it against a fabricated zero, which is how this gate previously
+          # manufactured phantom regressions.
+          DEGRADED=0
+          if [ "${CAN_READ_ISSUES:-}" != "true" ]; then
+            DEGRADED=1
+            CURRENT_EVENT_COUNT="${RELEASE_NEW_GROUPS:-0}"
+            CURRENT_NEW_ISSUE_COUNT="${RELEASE_NEW_GROUPS:-0}"
+            CURRENT_ERROR_RATE_PCT="0"
+            CURRENT_P95_MS="0"
+          fi
 
           # Render current snapshot markdown for the summary / issue body.
           {
@@ -255,6 +586,17 @@ jobs:
             exit 0
           fi
 
+          # A degraded snapshot recorded placeholders, not measurements. Comparing
+          # a real number against one would invent a regression — the exact
+          # failure mode that produced 516 fabricated baselines before. Older
+          # snapshots predate this field; treat a missing `degraded` as true so
+          # the unsafe direction is the default.
+          PREV_DEGRADED=$(jq -r 'if has("degraded") then (.degraded | tostring) else "true" end' previous-snapshot.json)
+          if [ "${PREV_DEGRADED}" = "true" ]; then
+            echo "::warning::Previous baseline was recorded in degraded mode; its error-rate value is a placeholder, so the error-rate rule is skipped for this comparison."
+            DEGRADED=1
+          fi
+
           PREV_ERROR_RATE=$(jq -r '.error_rate_pct // 0' previous-snapshot.json)
           PREV_EVENT_COUNT=$(jq -r '.event_count_new_issues // 0' previous-snapshot.json)
           PREV_P95=$(jq -r '.transactions_p95_ms // 0' previous-snapshot.json)
@@ -262,17 +604,37 @@ jobs:
           # Rule 1: new-issue event-count absolute threshold.
           EVENT_BREACH=$(awk -v c="${CURRENT_EVENT_COUNT}" -v t="${NEW_ISSUE_EVENT_THRESHOLD}" 'BEGIN { exit !(c > t) }' && echo "1" || echo "0")
 
-          # Rule 2: error-rate delta.
+          # Rule 2: error-rate delta. Skipped in degraded mode — sessions were
+          # never queried, so any delta computed here would be against a made-up
+          # zero rather than a measurement.
           DELTA=$(awk -v c="${CURRENT_ERROR_RATE_PCT}" -v p="${PREV_ERROR_RATE}" 'BEGIN { printf "%.4f", c - p }')
-          RATE_BREACH=$(awk -v d="${DELTA}" -v t="${ERROR_RATE_DELTA_PCT}" 'BEGIN { exit !(d > t) }' && echo "1" || echo "0")
+          if [ "${DEGRADED}" = "1" ]; then
+            RATE_BREACH=0
+          else
+            RATE_BREACH=$(awk -v d="${DELTA}" -v t="${ERROR_RATE_DELTA_PCT}" 'BEGIN { exit !(d > t) }' && echo "1" || echo "0")
+          fi
 
-          {
-            echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
-            echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | ${PREV_ERROR_RATE} | Δ > ${ERROR_RATE_DELTA_PCT} (actual Δ: ${DELTA}) |"
-            echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | ${PREV_P95} | (baseline only) |"
-            echo ""
-            echo "**Previous release:** \`${PREVIOUS_SHA}\`"
-          } >> gate-summary.md
+          if [ "${DEGRADED}" = "1" ]; then
+            {
+              echo "| New issue groups (release-level) | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
+              echo "| Error rate % | _unavailable_ | ${PREV_ERROR_RATE} | _rule skipped_ |"
+              echo "| p95 transaction (ms) | _unavailable_ | ${PREV_P95} | (baseline only) |"
+              echo ""
+              echo "> **DEGRADED:** the token lacks \`event:read\`, so only the release-level"
+              echo "> new-issue count was checked. Per-issue detail and the error-rate rule"
+              echo "> are unavailable."
+              echo ""
+              echo "**Previous release:** \`${PREVIOUS_SHA}\`"
+            } >> gate-summary.md
+          else
+            {
+              echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
+              echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | ${PREV_ERROR_RATE} | Δ > ${ERROR_RATE_DELTA_PCT} (actual Δ: ${DELTA}) |"
+              echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | ${PREV_P95} | (baseline only) |"
+              echo ""
+              echo "**Previous release:** \`${PREVIOUS_SHA}\`"
+            } >> gate-summary.md
+          fi
 
           if [ "${EVENT_BREACH}" = "1" ]; then
             STATUS="FAIL"
@@ -327,6 +689,7 @@ jobs:
         if: always()
         env:
           GATE_STATUS: ${{ steps.gate.outputs.gate_status }}
+          SNAPSHOT_DEGRADED: ${{ steps.creds.outputs.can_read_issues == 'true' && 'false' || 'true' }}
         run: |
           case "${GATE_STATUS}" in
             FAIL)
@@ -342,13 +705,33 @@ jobs:
               exit 0
               ;;
             *)
-              echo "::error::Gate status not set — evaluate step may have failed. Treating as FAIL."
+              # Reached when an earlier step exited non-zero, which has already
+              # printed a specific ::error:: line. Repeating "evaluate step may
+              # have failed" on top of that buried the real message.
+              echo "::error::Gate did not reach evaluation — an earlier step failed and reported the reason above."
               exit 1
               ;;
           esac
 
+      # Only snapshot REAL data.
+      #
+      # This was `if: always()`, and the defaults below (`${EVENT_COUNT:-0}`,
+      # `${ERROR_RATE:-0}`) meant a run that failed BEFORE the queries still
+      # wrote a snapshot asserting zero errors and zero error-rate — then
+      # uploaded it as `sentry-baseline-<sha>`. The next run picks the most
+      # recent baseline as its comparison point, so a failed run silently became
+      # the baseline for the following one, and real numbers measured against a
+      # fabricated zero read as a regression.
+      #
+      # Observed 2026-07-28: the first run to clear the credentials check failed
+      # at the issues query and still uploaded a 329-byte all-zero baseline.
+      #
+      # Guarding on the two query steps means a snapshot exists only when
+      # event_count and error_rate were actually measured. A failed run now
+      # leaves the previous good baseline in place instead of overwriting the
+      # comparison with fiction.
       - name: Build snapshot JSON
-        if: always()
+        if: always() && steps.release_summary.outcome == 'success' && steps.gate.outcome == 'success'
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
@@ -375,6 +758,7 @@ jobs:
             --arg p95 "${P95_MS:-0}" \
             --arg gs "${GATE_STATUS:-UNKNOWN}" \
             --arg gr "${GATE_REASON:-no reason recorded}" \
+            --arg dg "${SNAPSHOT_DEGRADED:-true}" \
             '{
               release_sha: $sha,
               captured_at: $captured,
@@ -383,13 +767,31 @@ jobs:
               error_rate_pct: ($er | tonumber),
               transactions_p95_ms: ($p95 | tonumber),
               gate_status: $gs,
-              gate_reason: $gr
+              gate_reason: $gr,
+              degraded: ($dg == "true")
             }' > snapshot.json
           echo "Snapshot written:"
           cat snapshot.json
 
+      # `always()` alone made this step fire on runs that failed BEFORE the
+      # snapshot was written — every credentials or release-lookup failure — and
+      # `if-no-files-found: error` then added a second, misleading "no files"
+      # error on top of the real one, on every failed run to date.
+      #
+      # Guarding on the file existing keeps `if-no-files-found: error` meaningful
+      # (it still catches a genuinely empty snapshot after the evaluate step ran)
+      # while letting a real failure report only its own cause.
+      #
+      # hashFiles() resolves relative to GITHUB_WORKSPACE, and snapshot.json is
+      # written by the "Build snapshot JSON" step above with a bare relative
+      # path, i.e. into the step's working directory, which is GITHUB_WORKSPACE.
+      # So the guard sees the same file the upload would. (An earlier revision
+      # of this comment said the evaluate step writes it — it does not.)
+      #
+      # This guard is now belt-and-braces: the build step's own condition
+      # already prevents a snapshot from existing unless the queries succeeded.
       - name: Upload baseline artifact
-        if: always()
+        if: always() && hashFiles('snapshot.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sentry-baseline-${{ steps.release.outputs.sha }}

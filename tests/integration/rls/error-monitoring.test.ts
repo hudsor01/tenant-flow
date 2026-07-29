@@ -10,7 +10,7 @@ describe("Error monitoring RPCs — access control", () => {
 	});
 
 	it("rejects get_error_summary for non-admin user", async () => {
-		const { data, error } = await clientA.rpc("get_error_summary", {
+		const { error } = await clientA.rpc("get_error_summary", {
 			hours_back: 24,
 		});
 
@@ -19,7 +19,7 @@ describe("Error monitoring RPCs — access control", () => {
 	});
 
 	it("rejects get_common_errors for non-admin user", async () => {
-		const { data, error } = await clientA.rpc("get_common_errors", {
+		const { error } = await clientA.rpc("get_common_errors", {
 			hours_back: 24,
 			limit_count: 10,
 		});
@@ -29,7 +29,7 @@ describe("Error monitoring RPCs — access control", () => {
 	});
 
 	it("rejects get_error_prone_users for non-admin user", async () => {
-		const { data, error } = await clientA.rpc("get_error_prone_users", {
+		const { error } = await clientA.rpc("get_error_prone_users", {
 			hours_back: 24,
 			min_errors: 1,
 		});

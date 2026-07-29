@@ -53,16 +53,16 @@ describe("mapDocumentRow", () => {
 	});
 
 	it("throws when document_type is null (column is NOT NULL since Phase 61)", () => {
-		expect(() =>
-			mapDocumentRow({ ...fullRow, document_type: null }),
-		).toThrowError(/'document_type'/);
+		expect(() => mapDocumentRow({ ...fullRow, document_type: null })).toThrow(
+			/'document_type'/,
+		);
 	});
 
 	it("throws when a NOT NULL field is missing from the PostgREST response", () => {
 		// Drop `id` — a future hand-edited `.select(...)` typo is the
 		// realistic regression scenario this guards against.
 		const { id: _id, ...withoutId } = fullRow;
-		expect(() => mapDocumentRow(withoutId)).toThrowError(/'id'/);
+		expect(() => mapDocumentRow(withoutId)).toThrow(/'id'/);
 	});
 
 	it("throws on each NOT NULL field independently", () => {
@@ -80,7 +80,7 @@ describe("mapDocumentRow", () => {
 			expect(
 				() => mapDocumentRow(broken),
 				`expected throw when ${field} is missing`,
-			).toThrowError(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${field}'`));
 		}
 	});
 

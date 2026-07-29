@@ -1,0 +1,11 @@
+-- Reconciles the prod migration ledger (migration-mcp-prod-drift): the revoke of
+-- invoke_send_lease_reminders()'s default PUBLIC EXECUTE was applied to prod as a
+-- standalone migration (prod version 20260722012127) AFTER Migration B, then
+-- mistakenly folded into the 012107 repo file. This file restores the 1:1
+-- ledger match: 012107 is now exactly what was applied (no revoke), and this
+-- file is the standalone revoke that prod's ledger records.
+--
+-- pass-3 SECURITY DEFINER convention (20260602044104): an authenticated user must
+-- not be able to trigger an out-of-band drain POST. pg_cron runs the fn as the job
+-- owner, unaffected. Idempotent.
+revoke all on function public.invoke_send_lease_reminders() from public, anon, authenticated;

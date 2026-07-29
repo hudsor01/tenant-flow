@@ -196,6 +196,24 @@ describe("proxy routing", () => {
 			expect(redirectUrl.searchParams.get("redirect")).toBe("/dashboard");
 		});
 
+		it("redirects unauthenticated user on /notifications to /login (Phase 52 gate pin)", async () => {
+			// PRIVATE_ROUTE_PREFIXES membership is the inbox route's ONLY auth
+			// barrier ((owner)/layout does no auth check) — this pin makes its
+			// removal fail the gate suite instead of silently exposing the route.
+			mockUpdateSession.mockResolvedValue({
+				user: null,
+				supabaseResponse: makeSupabaseResponse(),
+			});
+
+			await proxy(buildRequest("/notifications"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/notifications");
+		});
+
 		it("preserves the destination query string in the redirect param (AUTH-12)", async () => {
 			// AUTH-12: buildLoginRedirect keeps pathname + search so post-login
 			// navigation restores `?page=2`-style state instead of truncating it.

@@ -1,9 +1,19 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
 	type FileError,
 	type FileRejection,
 	useDropzone,
 } from "react-dropzone";
+import { usageQueries } from "#hooks/api/query-keys/usage-keys";
+import {
+	handleMutationError,
+	showStorageQuotaUpgradeToast,
+} from "#lib/mutation-error-handler";
+import {
+	isStoragePlanLimitError,
+	wouldExceedStorageQuota,
+} from "#lib/storage-plan-limit";
 import { createClient } from "#lib/supabase/client";
 
 interface FileWithPreview extends File {
@@ -27,6 +37,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		autoUpload = false,
 	} = options;
 
+	const queryClient = useQueryClient();
 	const [files, setFiles] = useState<FileWithPreview[]>([]);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [errors, setErrors] = useState<{ name: string; message: string }[]>([]);
@@ -80,6 +91,21 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 			(f) => f.errors.length === 0 && !successes.includes(f.name),
 		);
 
+		// PROACTIVE pre-check (PRIMARY UX): surface the Upgrade prompt BEFORE
+		// uploading when this batch would push the owner at/over a finite quota.
+		// NON-destructive — never aborts (grandfathered / Max / flag-off owners
+		// must still upload; the DB trigger is authoritative). Ignore usage-read
+		// failures so the pre-check can never block an upload.
+		try {
+			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const totalBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
+			if (wouldExceedStorageQuota(usage, totalBytes)) {
+				showStorageQuotaUpgradeToast();
+			}
+		} catch {
+			/* pre-check is a non-authoritative UX nicety; ignore read failures */
+		}
+
 		const responses = await Promise.all(
 			filesToUpload.map(async (file) => {
 				// Generate unique filename to prevent "resource already exists" errors
@@ -93,6 +119,12 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 						upsert,
 					});
 				if (error) {
+					// A storage-quota rejection ALSO surfaces the shared Upgrade toast
+					// (deduped with the pre-check via STORAGE_QUOTA_TOAST_ID); the inline
+					// errors[] entry is kept so the dropzone still marks the failed file.
+					if (isStoragePlanLimitError(error)) {
+						handleMutationError(error, "Upload file");
+					}
 					return { name: file.name, message: error.message };
 				} else {
 					return { name: file.name, message: undefined };
@@ -109,6 +141,14 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 			new Set([...successes, ...responseSuccesses.map((x) => x.name)]),
 		);
 		setSuccesses(newSuccesses);
+
+		// A successful upload changes the owner's storage SUM — refresh the
+		// Settings usage bar (Plan 05) so it reflects the new bytes.
+		if (responseSuccesses.length > 0) {
+			queryClient.invalidateQueries({
+				queryKey: usageQueries.storage().queryKey,
+			});
+		}
 
 		setLoading(false);
 	};

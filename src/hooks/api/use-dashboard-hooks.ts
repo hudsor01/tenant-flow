@@ -12,6 +12,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import type { ActivityItem } from "#types/activity";
 import type { PropertyPerformance } from "#types/core";
 import {
 	DASHBOARD_BASE_QUERY_OPTIONS,
@@ -45,6 +46,12 @@ const selectPropertyPerformance = (
 	data: OwnerDashboardData,
 ): PropertyPerformance[] => data.propertyPerformance;
 
+// ACT-01: derive the historical activity slice from the shared dashboard cache
+// (get_dashboard_data_v2 already returns it). Selector-only — no new fetch,
+// so surfacing the activity card costs zero additional network calls (T-52-20).
+const selectActivity = (data: OwnerDashboardData): ActivityItem[] =>
+	data.activity;
+
 export function useDashboardStats() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
@@ -66,5 +73,18 @@ export function usePropertyPerformance() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
 		select: selectPropertyPerformance,
+	});
+}
+
+/**
+ * Recent activity — derives the activity slice from the unified dashboard
+ * cache via select (ACT-01). Reuses `DASHBOARD_BASE_QUERY_OPTIONS`, so it
+ * shares the single get_dashboard_data_v2 query with the stats/charts hooks
+ * and never issues its own fetch.
+ */
+export function useDashboardActivity() {
+	return useQuery({
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectActivity,
 	});
 }

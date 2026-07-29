@@ -88,7 +88,7 @@ api_url = "http://127.0.0.1"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
+[local_smtp]
 enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
@@ -473,6 +473,15 @@ import_map = "./functions/deno.json"
 # Generate PDF — function calls `validateBearerAuth()` internally,
 # gateway gate off.
 [functions.generate-pdf]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Send lease reminders — cron-invoked renewal-reminder drainer. verify_jwt=false;
+# the function's own REMINDERS_INVOKE_SECRET Bearer check (constant-time via
+# timingSafeEqualStr) IS the auth boundary, mirroring the n8n shared-secret
+# discipline. pg_cron invokes it through net.http_post; it early-returns while
+# app_config.reminders_delivery_enabled != 'true'.
+[functions.send-lease-reminders]
 verify_jwt = false
 import_map = "./functions/deno.json"
 

@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
-import { Bell, ChevronRight, Menu } from "lucide-react";
+import { ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
+import { NotificationBell } from "#components/notifications/notification-bell";
 import { GlobalSyncIndicator } from "#components/ui/global-sync-indicator";
 import { UserProfileMenu } from "./user-profile-menu";
 
@@ -128,13 +129,7 @@ export function AppShellHeader({
 			{/* Right side - sync status, notifications, user */}
 			<div className="flex items-center gap-2">
 				<GlobalSyncIndicator />
-				<Link
-					href="/settings?tab=notifications"
-					className="p-2 rounded-md hover:bg-muted transition-colors"
-					aria-label="View notifications"
-				>
-					<Bell className="w-5 h-5 text-muted-foreground" />
-				</Link>
+				<NotificationBell />
 
 				{/* User profile */}
 				{user && (

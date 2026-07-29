@@ -56,6 +56,10 @@ vi.mock("#components/dashboard/expiring-leases-widget", () => ({
 	ExpiringLeasesWidget: () => null,
 }));
 
+vi.mock("#components/dashboard/dashboard-activity-card", () => ({
+	DashboardActivityCard: () => null,
+}));
+
 // Onboarding chrome rendered by the default export — render-null stubs.
 vi.mock("#components/onboarding/onboarding-wizard", () => ({
 	OnboardingWizard: () => null,
