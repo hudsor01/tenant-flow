@@ -131,6 +131,7 @@ jobs:
       # hudson-digital-solutions, project tenant-flow, created 14:10:43Z), and
       # so does every earlier deploy back to June. The builds were always fine.
       - name: Verify Sentry credentials resolve
+        id: creds
         run: |
           # Probe the ISSUES endpoint — the one the gate actually depends on.
           #
@@ -154,6 +155,7 @@ jobs:
           case "${STATUS}" in
             200)
               echo "Sentry credentials verified; token can read this org's issues."
+              echo "can_read_issues=true" >> "$GITHUB_OUTPUT"
               ;;
             000)
               echo "::error::Could not reach the Sentry API at all (curl transport failure)."
@@ -168,43 +170,63 @@ jobs:
               exit 1
               ;;
             403)
-              # Fingerprint what the token CAN do, so the operator is told which
-              # specific scope is missing instead of re-guessing the token type.
-              # Each endpoint maps to exactly one scope, so the pattern of
-              # 200s and 403s identifies both the token kind and the gap.
+              # NOT FATAL. The gate degrades to release-level signal instead.
+              #
+              # `event:read` is only obtainable from a PERSONAL token or an
+              # internal integration. An ORGANIZATION token — which is all some
+              # Sentry orgs surface in their UI — has fixed CI-only permissions
+              # and can never read issues. Failing here would make the gate
+              # permanently unusable for those orgs, which is how it sat broken
+              # for months.
+              #
+              # The primary signal survives without that scope: the RELEASES
+              # endpoint (readable with an org token, proven 200) returns
+              # `newGroups` per release, i.e. the count of new issues that
+              # release introduced. That is exactly what the first threshold
+              # tests. Only the per-issue detail and the crash-free-rate delta
+              # need `event:read`, and both are downgraded to warnings.
               probe() {
                 curl -sS -o /dev/null -w "%{http_code}" \
                   "https://sentry.io/api/0/$1" \
                   -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" 2>/dev/null || echo "000"
               }
-              P_ORG=$(probe "organizations/${SENTRY_ORG}/")
               P_PROJ=$(probe "projects/${SENTRY_ORG}/${SENTRY_PROJECT}/")
               P_REL=$(probe "organizations/${SENTRY_ORG}/releases/?per_page=1")
 
-              echo "::error::SENTRY_AUTH_TOKEN cannot read issues for this org (403)."
-              echo "::error::"
-              echo "::error::Scope fingerprint (200 = granted, 403 = missing):"
-              echo "::error::  org:read         ${P_ORG}   (/organizations/{org}/)"
-              echo "::error::  project:read     ${P_PROJ}   (/projects/{org}/{project}/)"
-              echo "::error::  project:releases ${P_REL}   (/organizations/{org}/releases/)"
-              echo "::error::  event:read       403   (/organizations/{org}/issues/) <-- REQUIRED, MISSING"
-              echo "::error::"
-              if [ "${P_REL}" = "200" ] && [ "${P_PROJ}" != "200" ]; then
-                echo "::error::Releases readable but project details not: this is the signature of an"
-                echo "::error::ORGANIZATION token. Those have FIXED CI-only permissions and can never"
-                echo "::error::read issues, no matter which boxes you tick."
-              else
-                echo "::error::This looks like a PERSONAL token that is simply missing event:read."
-                echo "::error::Edit the token and tick that scope, or create a new one."
+              echo "can_read_issues=false" >> "$GITHUB_OUTPUT"
+
+              if [ "${P_REL}" != "200" ]; then
+                echo "::error::Token cannot read issues (403) AND cannot read releases (${P_REL})."
+                echo "::error::Nothing usable is reachable — the gate cannot run at all."
+                echo "::error::Set SENTRY_AUTH_TOKEN to a token with at least project:read."
+                exit 1
               fi
-              echo "::error::"
-              echo "::error::Required: a PERSONAL token from"
-              echo "::error::  https://sentry.io/settings/account/api/auth-tokens/"
-              echo "::error::with event:read + project:read + org:read, then:"
-              echo "::error::  gh secret set SENTRY_AUTH_TOKEN"
-              echo "::error::(NOT https://sentry.io/settings/auth-tokens/ — that page is org tokens.)"
-              echo "::error::This is a CI credentials problem, NOT an application build problem."
-              exit 1
+
+              echo "::warning title=Sentry gate running in DEGRADED mode::The token cannot read issues (event:read missing), so this gate checks the release-level new-issue count only. Per-issue detail and crash-free-rate delta are unavailable."
+              {
+                echo "### Sentry gate: DEGRADED mode"
+                echo
+                echo "The configured \`SENTRY_AUTH_TOKEN\` lacks \`event:read\`, so this run checks"
+                echo "the **release-level new-issue count** only."
+                echo
+                echo "| Scope | Endpoint | Status |"
+                echo "|---|---|---|"
+                echo "| project:read | \`/projects/{org}/{project}/\` | ${P_PROJ} |"
+                echo "| project:releases | \`/organizations/{org}/releases/\` | ${P_REL} |"
+                echo "| event:read | \`/organizations/{org}/issues/\` | 403 |"
+                echo
+                if [ "${P_REL}" = "200" ] && [ "${P_PROJ}" != "200" ]; then
+                  echo "Releases readable but project details not — the signature of an **organization"
+                  echo "token**. Those carry fixed CI-only permissions and can never read issues."
+                else
+                  echo "Looks like a **personal token missing \`event:read\`** — that scope is editable."
+                fi
+                echo
+                echo "To get full fidelity, use a personal token from"
+                echo "<https://sentry.io/settings/account/api/auth-tokens/> with \`event:read\`,"
+                echo "or create an internal integration under Settings > Developer Settings."
+                echo "The gate remains useful without it."
+              } >> "$GITHUB_STEP_SUMMARY"
               ;;
             404)
               echo "::error::The org in SENTRY_ORG did not resolve (404)."
@@ -351,7 +373,46 @@ jobs:
           fi
           echo "Release ${RELEASE_SHA} confirmed in Sentry."
 
+      # Release-level new-issue count — the gate's PRIMARY signal, and the only
+      # one that works without `event:read`.
+      #
+      # Sentry's release object carries `newGroups`: the number of new issue
+      # groups that release introduced. That is precisely what the first
+      # threshold tests, and the releases endpoint is readable by an
+      # organization token (proven 200 in the preflight). Relying on
+      # /organizations/{org}/issues/ for this number is what made the whole gate
+      # require a scope some Sentry orgs cannot even issue.
+      - name: Release-level new-issue count
+        id: release_summary
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          HTTP_CODE=$(curl -sS -G -w '%{http_code}' \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "query=${RELEASE_SHA}" \
+            --data-urlencode "per_page=5" \
+            -o release-summary.json 2>/tmp/relsum.err) || true
+
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Sentry releases API returned HTTP ${HTTP_CODE:-000}."
+            echo "::error::Response body: $(head -c 500 release-summary.json 2>/dev/null)"
+            exit 1
+          fi
+
+          NEW_GROUPS=$(jq -r --arg sha "${RELEASE_SHA}" \
+            '[.[] | select(.version == $sha) | .newGroups] | first // empty' release-summary.json)
+
+          if [ -z "${NEW_GROUPS}" ] || [ "${NEW_GROUPS}" = "null" ]; then
+            echo "::warning::Release ${RELEASE_SHA} carried no newGroups field; treating as 0."
+            NEW_GROUPS=0
+          fi
+
+          echo "new_groups=${NEW_GROUPS}" >> "$GITHUB_OUTPUT"
+          echo "Release ${RELEASE_SHA} introduced ${NEW_GROUPS} new issue group(s)."
+
       - name: Query Sentry issues (new unresolved)
+        if: steps.creds.outputs.can_read_issues == 'true'
         id: sentry_issues
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
@@ -384,6 +445,7 @@ jobs:
           echo "Captured ${NEW_ISSUE_COUNT} new unresolved issue(s) with ${EVENT_COUNT} total events."
 
       - name: Query Sentry sessions (crash-free rate)
+        if: steps.creds.outputs.can_read_issues == 'true'
         id: sentry_sessions
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
@@ -411,6 +473,7 @@ jobs:
           echo "Crash-free rate: ${CRASH_FREE} → error rate ${ERROR_RATE_PCT}%"
 
       - name: Query Sentry transactions (p95 — baseline only)
+        if: steps.creds.outputs.can_read_issues == 'true'
         id: sentry_transactions
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
@@ -475,12 +538,29 @@ jobs:
           SHORT_SHA: ${{ steps.release.outputs.short_sha }}
           CURRENT_EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
           CURRENT_NEW_ISSUE_COUNT: ${{ steps.sentry_issues.outputs.new_issue_count }}
+          RELEASE_NEW_GROUPS: ${{ steps.release_summary.outputs.new_groups }}
+          CAN_READ_ISSUES: ${{ steps.creds.outputs.can_read_issues }}
           CURRENT_ERROR_RATE_PCT: ${{ steps.sentry_sessions.outputs.error_rate_pct }}
           CURRENT_P95_MS: ${{ steps.sentry_transactions.outputs.transactions_p95_ms }}
           FIRST_RUN: ${{ steps.baseline.outputs.first_run }}
           PREVIOUS_SHA: ${{ steps.baseline.outputs.previous_sha }}
         run: |
           set -euo pipefail
+
+          # DEGRADED mode: the token cannot read issues, so the per-issue and
+          # sessions queries were skipped and their outputs are empty. Fall back
+          # to the release-level newGroups count — the same quantity at lower
+          # resolution — and disable the error-rate rule rather than evaluating
+          # it against a fabricated zero, which is how this gate previously
+          # manufactured phantom regressions.
+          DEGRADED=0
+          if [ "${CAN_READ_ISSUES:-}" != "true" ]; then
+            DEGRADED=1
+            CURRENT_EVENT_COUNT="${RELEASE_NEW_GROUPS:-0}"
+            CURRENT_NEW_ISSUE_COUNT="${RELEASE_NEW_GROUPS:-0}"
+            CURRENT_ERROR_RATE_PCT="0"
+            CURRENT_P95_MS="0"
+          fi
 
           # Render current snapshot markdown for the summary / issue body.
           {
@@ -513,17 +593,37 @@ jobs:
           # Rule 1: new-issue event-count absolute threshold.
           EVENT_BREACH=$(awk -v c="${CURRENT_EVENT_COUNT}" -v t="${NEW_ISSUE_EVENT_THRESHOLD}" 'BEGIN { exit !(c > t) }' && echo "1" || echo "0")
 
-          # Rule 2: error-rate delta.
+          # Rule 2: error-rate delta. Skipped in degraded mode — sessions were
+          # never queried, so any delta computed here would be against a made-up
+          # zero rather than a measurement.
           DELTA=$(awk -v c="${CURRENT_ERROR_RATE_PCT}" -v p="${PREV_ERROR_RATE}" 'BEGIN { printf "%.4f", c - p }')
-          RATE_BREACH=$(awk -v d="${DELTA}" -v t="${ERROR_RATE_DELTA_PCT}" 'BEGIN { exit !(d > t) }' && echo "1" || echo "0")
+          if [ "${DEGRADED}" = "1" ]; then
+            RATE_BREACH=0
+          else
+            RATE_BREACH=$(awk -v d="${DELTA}" -v t="${ERROR_RATE_DELTA_PCT}" 'BEGIN { exit !(d > t) }' && echo "1" || echo "0")
+          fi
 
-          {
-            echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
-            echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | ${PREV_ERROR_RATE} | Δ > ${ERROR_RATE_DELTA_PCT} (actual Δ: ${DELTA}) |"
-            echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | ${PREV_P95} | (baseline only) |"
-            echo ""
-            echo "**Previous release:** \`${PREVIOUS_SHA}\`"
-          } >> gate-summary.md
+          if [ "${DEGRADED}" = "1" ]; then
+            {
+              echo "| New issue groups (release-level) | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
+              echo "| Error rate % | _unavailable_ | ${PREV_ERROR_RATE} | _rule skipped_ |"
+              echo "| p95 transaction (ms) | _unavailable_ | ${PREV_P95} | (baseline only) |"
+              echo ""
+              echo "> **DEGRADED:** the token lacks \`event:read\`, so only the release-level"
+              echo "> new-issue count was checked. Per-issue detail and the error-rate rule"
+              echo "> are unavailable."
+              echo ""
+              echo "**Previous release:** \`${PREVIOUS_SHA}\`"
+            } >> gate-summary.md
+          else
+            {
+              echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
+              echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | ${PREV_ERROR_RATE} | Δ > ${ERROR_RATE_DELTA_PCT} (actual Δ: ${DELTA}) |"
+              echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | ${PREV_P95} | (baseline only) |"
+              echo ""
+              echo "**Previous release:** \`${PREVIOUS_SHA}\`"
+            } >> gate-summary.md
+          fi
 
           if [ "${EVENT_BREACH}" = "1" ]; then
             STATUS="FAIL"
@@ -619,7 +719,7 @@ jobs:
       # leaves the previous good baseline in place instead of overwriting the
       # comparison with fiction.
       - name: Build snapshot JSON
-        if: always() && steps.sentry_issues.outcome == 'success' && steps.sentry_sessions.outcome == 'success'
+        if: always() && steps.release_summary.outcome == 'success' && steps.gate.outcome == 'success'
         env:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
