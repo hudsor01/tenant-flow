@@ -31,6 +31,40 @@ const REPORT_DATA_CODE = REPORT_DATA_SRC.replace(
 	"",
 ).replace(/\/\/.*$/gm, "");
 
+/**
+ * Isolate one top-level function body.
+ *
+ * The must-survive assertions below MUST scan only `executiveKeyMetricsRows`,
+ * never the whole file. Every one of the six labels it emits also appears in a
+ * sibling helper — Total Income / Total Expenses / Net Income / Cash Flow in
+ * `financialSummaryRows`, Occupied Units in `propertyPortfolioSummaryRows`,
+ * Occupancy Rate as a table header. A whole-file `toContain` therefore passes
+ * with the function gutted to `return []`, which is exactly the outcome those
+ * assertions were added to catch. The absence assertions can stay whole-file:
+ * the tokens they ban must not appear anywhere in this module.
+ */
+function functionBody(source: string, name: string): string {
+	const start = source.indexOf(`function ${name}(`);
+	if (start === -1) {
+		throw new Error(`${name} not found — rename or deletion must fail loudly`);
+	}
+	const open = source.indexOf("{", start);
+	let depth = 0;
+	for (let i = open; i < source.length; i++) {
+		if (source[i] === "{") depth++;
+		else if (source[i] === "}") {
+			depth--;
+			if (depth === 0) return source.slice(open, i + 1);
+		}
+	}
+	throw new Error(`unbalanced braces reading ${name}`);
+}
+
+const EXECUTIVE_KEY_METRICS_BODY = functionBody(
+	REPORT_DATA_CODE,
+	"executiveKeyMetricsRows",
+);
+
 describe("isMissingRelationError", () => {
 	it("returns true for Postgres 42P01 by error code", () => {
 		expect(isMissingRelationError({ code: "42P01", message: "anything" })).toBe(
@@ -183,8 +217,10 @@ describe("D-37: the permanently-zero payment counts stay excised", () => {
 	});
 
 	it("still emits the six honest executive key metrics", () => {
-		// Absence assertions alone would also pass against an empty function, so
-		// pin what must survive.
+		// Scanned against the FUNCTION BODY, not the file. See functionBody().
+		// The whole-file form of this assertion was vacuous: all six labels also
+		// live in sibling helpers, so it passed with the function gutted to
+		// `return []` — the precise outcome it was written to catch.
 		for (const label of [
 			"Total Income",
 			"Total Expenses",
@@ -193,7 +229,18 @@ describe("D-37: the permanently-zero payment counts stay excised", () => {
 			"Occupancy Rate",
 			"Occupied Units",
 		]) {
-			expect(REPORT_DATA_CODE).toContain(label);
+			expect(EXECUTIVE_KEY_METRICS_BODY).toContain(label);
 		}
+	});
+
+	it("the must-survive scan is scoped to the function, not the file", () => {
+		// A body that no longer emits the rows must fail the assertion above.
+		// Proven here rather than asserted, because the vacuous version of this
+		// guard looked identical from the outside.
+		for (const label of ["Total Income", "Occupancy Rate"]) {
+			expect("{\n\treturn [];\n}").not.toContain(label);
+		}
+		// And the extractor must fail loudly if the function is renamed away.
+		expect(() => functionBody(REPORT_DATA_CODE, "noSuchFunction")).toThrow();
 	});
 });
