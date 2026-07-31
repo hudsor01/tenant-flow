@@ -1,260 +1,61 @@
-"use client";
+/**
+ * The `/reports` hub index — a summary strip over a directory of 7 destinations
+ * in 2 labelled groups (D-30, D-31).
+ *
+ * SERVER COMPONENT. No `"use client"`, no hooks, no `dynamic()` import. The one
+ * and only client island is `<ReportsSummaryStrip />`, which is also the page's
+ * one and only data dependency (D-30). The tile grid fetches nothing and does
+ * not know the viewer's tier — the `Growth` badge is derived statically from
+ * `hasGrowthBadge`, so no subscription state can leak into server-rendered HTML.
+ *
+ * D-34 ZERO CHARTS: nothing under `src/app/(owner)/reports/**` may import
+ * `recharts`, `ChartContainer` or `ResponsiveContainer`. The four chart-bearing
+ * sections this page used to dynamic-import are deleted, not relocated — moving
+ * them anywhere inside `/reports` would violate the same invariant. Enforced by
+ * `__tests__/reports-hub-purity.test.ts`.
+ *
+ * No error boundary wraps the tile grid: the strip degrades in place, and an
+ * outer boundary would let a strip failure remove the directory, which is this
+ * page's fallback purpose.
+ */
 
-import { BarChart3, Calendar, FileText } from "lucide-react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
-import { DateRangeSelector } from "#components/reports/sections/date-range-selector";
-import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
-import { Button } from "#components/ui/button";
-import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
-import {
-	useFinancialReport,
-	useMaintenanceReport,
-	usePropertyReport,
-	useTenantReport,
-} from "#hooks/api/use-reports";
-
-const FinancialReportSection = dynamic(
-	() =>
-		import("#components/reports/sections/financial-report-section").then(
-			(mod) => mod.FinancialReportSection,
-		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
-const MaintenanceReportSection = dynamic(
-	() =>
-		import("#components/reports/sections/maintenance-report-section").then(
-			(mod) => mod.MaintenanceReportSection,
-		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
-const PropertyReportSection = dynamic(
-	() =>
-		import("#components/reports/sections/property-report-section").then(
-			(mod) => mod.PropertyReportSection,
-		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
-const TenantReportSection = dynamic(
-	() =>
-		import("#components/reports/sections/tenant-report-section").then(
-			(mod) => mod.TenantReportSection,
-		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
-import { Download } from "lucide-react";
-import { getDefaultDateRange } from "#components/reports/reports-utils";
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "#components/ui/empty";
-
-function buildReportPdfHtml(
-	title: string,
-	startDate: string,
-	endDate: string,
-	payload: unknown,
-): string {
-	const rows =
-		payload !== null && typeof payload === "object"
-			? Object.entries(payload as Record<string, unknown>)
-			: [];
-	const tableRows = rows
-		.map(([key, value]) => {
-			const displayValue =
-				value === null || value === undefined
-					? ""
-					: typeof value === "object"
-						? JSON.stringify(value)
-						: String(value);
-			return `<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500">${key}</td><td style="border:1px solid #ccc;padding:6px 10px">${displayValue}</td></tr>`;
-		})
-		.join("");
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>${title}</title>
-</head>
-<body style="font-family:Arial,sans-serif;margin:32px;color:#222">
-  <h1 style="font-size:20px;margin-bottom:4px">${title}</h1>
-  <p style="color:#666;font-size:13px;margin-bottom:16px">Period: ${startDate} to ${endDate} &mdash; Generated: ${new Date().toLocaleDateString()}</p>
-  <table style="border-collapse:collapse;width:100%;font-size:13px">
-    <thead><tr>
-      <th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left">Metric</th>
-      <th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left">Value</th>
-    </tr></thead>
-    <tbody>${tableRows}</tbody>
-  </table>
-</body>
-</html>`;
-}
+import { ReportHubTile } from "./report-hub-tile";
+import { REPORTS_HUB_ENTRIES, REPORTS_HUB_GROUPS } from "./reports-hub-entries";
+import { ReportsSummaryStrip } from "./reports-summary-strip";
 
 export default function ReportsPage() {
-	const defaultRange = getDefaultDateRange();
-	const [startDate, setStartDate] = useState(defaultRange.start);
-	const [endDate, setEndDate] = useState(defaultRange.end);
-	const [isExporting, setIsExporting] = useState<string | null>(null);
-
-	const { data: financialReport, isLoading: financialLoading } =
-		useFinancialReport(startDate, endDate);
-	const { data: propertyReport, isLoading: propertyLoading } =
-		usePropertyReport(startDate, endDate);
-	const { data: tenantReport, isLoading: tenantLoading } = useTenantReport(
-		startDate,
-		endDate,
-	);
-	const { data: maintenanceReport, isLoading: maintenanceLoading } =
-		useMaintenanceReport(startDate, endDate);
-
-	const hasAnyData =
-		financialReport || propertyReport || tenantReport || maintenanceReport;
-
-	const handlePdfExport = async (
-		reportKey: string,
-		title: string,
-		payload: unknown,
-	) => {
-		setIsExporting(reportKey);
-		try {
-			const filename = `${reportKey}-${startDate}-${endDate}.pdf`;
-			const html = buildReportPdfHtml(title, startDate, endDate, payload);
-			await callGeneratePdfFromHtml(html, filename);
-			toast.success("Report exported");
-		} catch {
-			toast.error("Failed to export report");
-		} finally {
-			setIsExporting(null);
-		}
-	};
-
-	const handleResetDateRange = () => {
-		const range = getDefaultDateRange();
-		setStartDate(range.start);
-		setEndDate(range.end);
-	};
-
 	return (
-		<div className="p-6 lg:p-8 bg-background min-h-full">
-			{/* Header */}
-			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-				<div>
-					<h1 className="text-2xl font-semibold text-foreground">
-						Reports & Analytics
-					</h1>
-					<p className="text-muted-foreground">
-						Generate financial, property, tenant, and maintenance reports.
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<Link href="/reports/year-end">
-						<Button variant="outline" size="sm">
-							<Calendar className="size-4 mr-2" />
-							Year-End
-						</Button>
-					</Link>
-					<Link href="/reports/analytics">
-						<Button variant="outline" size="sm">
-							<BarChart3 className="size-4 mr-2" />
-							Analytics
-						</Button>
-					</Link>
-					<Link href="/reports/generate">
-						<Button size="sm">
-							<FileText className="size-4 mr-2" />
-							Generate Reports
-						</Button>
-					</Link>
-				</div>
+		<div className="p-6 lg:p-8 bg-background min-h-full space-y-8">
+			<div>
+				<h1 className="typography-h1">Reports</h1>
+				<p className="text-sm text-muted-foreground">
+					Every financial statement and export in one place.
+				</p>
 			</div>
 
-			<div className="mx-auto max-w-400">
-				<DateRangeSelector
-					startDate={startDate}
-					endDate={endDate}
-					onStartDateChange={setStartDate}
-					onEndDateChange={setEndDate}
-					onReset={handleResetDateRange}
-				/>
+			<ReportsSummaryStrip />
 
-				{!hasAnyData ? (
-					<Empty>
-						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
-							<FileText />
-						</EmptyMedia>
-						<EmptyHeader>
-							<EmptyTitle>No report data yet</EmptyTitle>
-							<EmptyDescription>
-								Once payments, leases, and maintenance activity are recorded,
-								reports will populate here.
-							</EmptyDescription>
-						</EmptyHeader>
-						<div className="flex items-center gap-3 mt-2">
-							<Button asChild className="gap-2">
-								<Link href="/reports/generate">
-									<Download className="size-4" />
-									Generate a report
-								</Link>
-							</Button>
-						</div>
-					</Empty>
-				) : (
-					<div className="flex flex-col gap-8">
-						<FinancialReportSection
-							data={financialReport}
-							isLoading={financialLoading}
-							isExporting={isExporting === "financial"}
-							onExport={() =>
-								handlePdfExport(
-									"financial",
-									"Financial Report",
-									financialReport,
-								)
-							}
-						/>
-
-						<PropertyReportSection
-							data={propertyReport}
-							isLoading={propertyLoading}
-							isExporting={isExporting === "properties"}
-							onExport={() =>
-								handlePdfExport("properties", "Property Report", propertyReport)
-							}
-						/>
-
-						<TenantReportSection
-							data={tenantReport}
-							isLoading={tenantLoading}
-							isExporting={isExporting === "tenants"}
-							onExport={() =>
-								handlePdfExport("tenants", "Tenant Report", tenantReport)
-							}
-						/>
-
-						<MaintenanceReportSection
-							data={maintenanceReport}
-							isLoading={maintenanceLoading}
-							isExporting={isExporting === "maintenance"}
-							onExport={() =>
-								handlePdfExport(
-									"maintenance",
-									"Maintenance Report",
-									maintenanceReport,
-								)
-							}
-						/>
+			{REPORTS_HUB_GROUPS.map((group) => (
+				<section
+					key={group.id}
+					aria-labelledby={group.headingId}
+					className="flex flex-col gap-4"
+				>
+					<div>
+						<h2 id={group.headingId} className="font-semibold text-foreground">
+							{group.title}
+						</h2>
+						<p className="text-sm text-muted-foreground">{group.description}</p>
 					</div>
-				)}
-			</div>
+					<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+						{REPORTS_HUB_ENTRIES.filter(
+							(entry) => entry.group === group.id,
+						).map((entry) => (
+							<ReportHubTile key={entry.id} entry={entry} />
+						))}
+					</div>
+				</section>
+			))}
 		</div>
 	);
 }
