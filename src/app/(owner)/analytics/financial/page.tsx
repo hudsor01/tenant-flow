@@ -149,7 +149,7 @@ export default function FinancialAnalyticsPage() {
 								<BreakdownList
 									title="Revenue Sources"
 									rows={breakdown.revenue}
-									detailsHref="/financials/income-statement"
+									detailsHref="/reports/income-statement"
 								/>
 							</div>
 						</BlurFade>
@@ -168,7 +168,7 @@ export default function FinancialAnalyticsPage() {
 								<BreakdownList
 									title="Expense Categories"
 									rows={breakdown.expenses}
-									detailsHref="/financials/expenses"
+									detailsHref="/reports/expenses"
 								/>
 							</div>
 						</BlurFade>

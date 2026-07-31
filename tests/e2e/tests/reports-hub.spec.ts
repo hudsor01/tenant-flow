@@ -5,10 +5,10 @@ import { ROUTES } from "./constants/routes";
 /**
  * Reporting hub route smoke (Phase 56 — RPTHUB-04).
  *
- * THIS SPEC IS THE RPTHUB-04 GATE. Plan 56-07 deletes the entire legacy
- * `src/app/(owner)/financials/` tree, and it is permitted to do so ONLY because
- * the replacement `/reports/*` routes were proven to render first. Until these
- * tests are green, no legacy financial route may be removed.
+ * THIS SPEC IS THE RPTHUB-04 GATE. Plan 56-07 deleted the entire legacy
+ * financials route tree under `src/app/(owner)/`, and it was permitted to do so
+ * ONLY because the replacement `/reports/*` routes were proven to render first.
+ * Until these tests are green, no legacy financial route may be removed.
  *
  * PLACEMENT IS LOAD-BEARING. This file sits at the ROOT of `tests/e2e/tests/`,
  * not under `tests/e2e/tests/owner/`. Any path carrying an `owner/` segment is
@@ -79,7 +79,7 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
 	// NOTE: the "Export" controls in the income-statement and cash-flow page
 	// headers (`income-statement-page-header.tsx:59`, `cash-flow-header.tsx:58`)
 	// are rendered with NO click handler attached. That is a recorded
-	// pre-existing defect carried over verbatim from the legacy `/financials`
+	// pre-existing defect carried over verbatim from the legacy financials route
 	// tree, not this phase's to repair — so they must never be clicked here, nor
 	// asserted as functional. Doing either would turn a known-dead control into
 	// a passing claim that it works.

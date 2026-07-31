@@ -184,7 +184,8 @@ export default defineConfig({
 				// `--project=owner-axe` e2e-smoke run rather than only matching the
 				// non-CI `chromium` project. This project is an explicit filename
 				// allowlist, not a glob: dropping this entry silently removes the
-				// gate that permits deleting the legacy /financials routes.
+				// gate that permitted deleting the legacy financials route tree
+				// (plan 56-07) and that still guards the hub replacing it.
 				"**/reports-hub.spec.ts",
 			],
 		},

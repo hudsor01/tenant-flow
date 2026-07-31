@@ -7,18 +7,27 @@ import {
 } from "../helpers/ui-validation-helpers";
 
 /**
- * Owner Financials E2E Tests
+ * Owner Reports E2E Tests
  *
  * Uses official Playwright auth pattern: storageState provides authentication.
  * Tests start authenticated - no manual login required.
  * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ *
+ * COVERAGE CAVEAT (D-25). This spec runs under the `owner` Playwright project,
+ * which CI NEVER invokes — `e2e-smoke` runs
+ * `--project=smoke --project=public --project=owner-axe`. Nothing here gates a
+ * PR. The PR-gating coverage for these same routes lives in
+ * `tests/e2e/tests/reports-hub.spec.ts`, which is registered in the `owner-axe`
+ * project's explicit filename allowlist. Treat this file as a local
+ * exploratory harness, not as proof that the hub renders.
  */
-test.describe("Owner Financials", () => {
+test.describe("Owner Reports", () => {
 	const financialPages = [
-		{ path: ROUTES.FINANCIALS_INCOME_STATEMENT, heading: "Income Statement" },
-		{ path: ROUTES.FINANCIALS_CASH_FLOW, heading: "Cash Flow" },
-		{ path: ROUTES.FINANCIALS_BALANCE_SHEET, heading: "Balance Sheet" },
-		{ path: ROUTES.FINANCIALS_TAX_DOCUMENTS, heading: "Tax Documents" },
+		{ path: ROUTES.REPORTS_INCOME_STATEMENT, heading: "Income Statement" },
+		{ path: ROUTES.REPORTS_CASH_FLOW, heading: "Cash Flow" },
+		{ path: ROUTES.REPORTS_BALANCE_SHEET, heading: "Balance Sheet" },
+		{ path: ROUTES.REPORTS_EXPENSES, heading: "Expenses" },
+		{ path: ROUTES.REPORTS_TAX_DOCUMENTS, heading: "Tax Documents" },
 	];
 
 	for (const page of financialPages) {
@@ -68,7 +77,7 @@ test.describe("Owner Financials", () => {
 	}
 
 	test("should display income statement table", async ({ page }) => {
-		await page.goto(ROUTES.FINANCIALS_INCOME_STATEMENT);
+		await page.goto(ROUTES.REPORTS_INCOME_STATEMENT);
 		await verifyLoadingComplete(page);
 
 		const tableExists = (await page.getByRole("table").count()) > 0;
@@ -78,7 +87,7 @@ test.describe("Owner Financials", () => {
 	});
 
 	test("should display date range selector", async ({ page }) => {
-		await page.goto(ROUTES.FINANCIALS_CASH_FLOW);
+		await page.goto(ROUTES.REPORTS_CASH_FLOW);
 		await verifyLoadingComplete(page);
 
 		const dateSelector = page.getByLabel(/date|period|range/i);

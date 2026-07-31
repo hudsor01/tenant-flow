@@ -30,7 +30,7 @@ describe("authentication redirects", () => {
 			"/leases",
 			"/payments",
 			"/maintenance",
-			"/financials",
+			"/reports",
 			"/settings",
 			"/profile",
 		];
@@ -59,7 +59,7 @@ describe("authentication redirects", () => {
 			"/leases",
 			"/payments",
 			"/maintenance",
-			"/financials",
+			"/reports",
 			"/settings",
 			"/profile",
 		];
@@ -80,7 +80,7 @@ describe("authentication redirects", () => {
 			"/leases",
 			"/payments",
 			"/maintenance",
-			"/financials",
+			"/reports",
 			"/settings",
 			"/profile",
 		];
