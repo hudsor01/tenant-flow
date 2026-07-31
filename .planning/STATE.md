@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-07-31T13:26:39.010Z"
+last_updated: "2026-07-31T13:43:40.466Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 14
   completed_phases: 4
   total_plans: 35
-  completed_plans: 31
+  completed_plans: 32
   percent: 29
 ---
 
@@ -26,9 +26,42 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 56 (reporting-hub-documents-landing) — EXECUTING
-Plan: 5 of 8
-Status: Wave 2 complete — 56-03 (hub index + legacy deletion) and 56-04 (tier-gate drift guard) done; wave 3 (56-05 statement routes) next
-Last activity: 2026-07-31 — executed 56-04 (2 tasks, 2 commits, 1 test file + 2 config widenings)
+Plan: 6 of 8
+Status: Wave 3 complete — 56-05 copied the five statement route trees into `/reports`; wave 4 (56-06 E2E proof) next
+Last activity: 2026-07-31 — executed 56-05 (2 tasks, 2 commits, 36 copied files + 6 E2E route constants)
+
+> **Both route trees are live right now, and that is the point.** The five
+> statement routes were **copied**, not `git mv`d: `/financials/{balance-sheet,
+> cash-flow,expenses,income-statement,tax-documents}` and their `/reports/*`
+> twins are byte-identical (`diff -r` clean on all five pairs) and all eleven
+> routes compile into the same Next.js build, verified from
+> `.next/server/app-paths-manifest.json`. A `git mv` is an atomic
+> delete-plus-create, which would make RPTHUB-04's "prove the hub in CI BEFORE
+> removing the legacy URLs" impossible to audit. **56-06 proves, then 56-07
+> deletes.** Nothing may edit either tree in between, or the duplication
+> diverges (threat T-56-19).
+>
+> **56-07 must delete the ORIGINALS.** `src/app/(owner)/financials/` only.
+> After deletion, confirm the five `/reports/*` trees survive intact.
+
+> **The purity guard's D-18 label scan is now path-scoped, and the scoping is
+> self-invalidating.** The copied income statement carries a GAAP "Total
+> Revenue" subtotal — itemised on its own face from `get_income_statement`, not
+> a third undefined derivation — so `/reports/income-statement/` is exempt from
+> the D-18 *label* check. It was paid for: the JSX matcher was widened to span
+> newlines in the same edit, so everywhere else under `/reports` D-18 is now
+> stricter than 56-03 shipped it. Three assertions bound the exemption — it must
+> resolve to a real directory, it must still be flagging something, and it can
+> never reach `page.tsx`, `reports-hub-entries.ts`, `report-hub-tile.tsx` or
+> `reports-summary-strip.tsx`. **Do not widen `D18_EXEMPT_DIRS` to silence a new
+> failure**; a Revenue label on any other hub surface is exactly the defect D-18
+> exists to catch. The D-34 zero-charts block was never touched and is green.
+
+> **`bun run dev` and `next build` cannot run in this working copy.**
+> `.env.local` is missing the app vars, so dev fails env validation and a
+> `SKIP_ENV_VALIDATION=true` build dies in `/blog/[slug]`'s build-time Supabase
+> fetch. Never edit `.env.local`. Local verification must use the unit suite,
+> typecheck, lint and the build manifest — not a running server.
 
 > **Requirements still NOT marked complete — including RPTHUB-03, which 56-04
 > does deliver.** RPTHUB-01 is listed in 56-01's and 56-03's frontmatter,
@@ -68,7 +101,7 @@ Last activity: 2026-07-31 — executed 56-04 (2 tasks, 2 commits, 1 test file + 
 > `accounts_receivable`), the permanently-zero analytics cards, and the same
 > broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 91%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 

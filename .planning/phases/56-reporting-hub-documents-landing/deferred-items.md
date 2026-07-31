@@ -34,3 +34,28 @@ are now dead weight.
 
 **Owner:** a later Phase 56 plan or a follow-up cleanup. Do not sweep blindly —
 item 1 of the table trades dead code against real test coverage.
+
+## From 56-05 (statement route copy)
+
+### 3. Two colocated tests execute twice until 56-07 lands
+
+`expenses-csv.test.ts` and `income-statement-date-range.test.ts` now exist under
+both `/financials` and `/reports`. This is threat **T-56-20**, dispositioned
+**accept** by the plan: both are fast pure-function tests, and the suite went
+from 308 to 310 files with no measurable runtime change (27.3s vs 28.1s across
+two runs — inside normal variance). It resolves itself when 56-07 deletes the
+legacy tree. No action needed; recorded so a reviewer seeing a duplicate test
+name knows it is intentional and time-boxed.
+
+### 4. `next build` cannot complete in this working copy
+
+`SKIP_ENV_VALIDATION=true bun run build` compiles successfully and finishes
+TypeScript, then dies in `Collecting page data for /blog/[slug]`. That route's
+`generateStaticParams` opens an anon-key Supabase client at build time, and the
+local `.env.local` is missing the app vars (the same gap that makes `bun run dev`
+fail env validation — a known, documented condition; never edit `.env.local`).
+Unrelated to this plan: no blog file appears in its diff. CI supplies the vars,
+so this does not affect the pipeline. Recorded because it blocks any local
+build-based verification for the rest of the phase.
+
+**Owner:** nobody — environment condition, not a code defect.
