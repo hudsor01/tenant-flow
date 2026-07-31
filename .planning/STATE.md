@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: executing
-last_updated: "2026-07-31T14:33:27.399Z"
+status: verifying
+last_updated: "2026-07-31T14:58:01.807Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 14
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 35
-  completed_plans: 34
-  percent: 29
+  completed_plans: 35
+  percent: 36
 ---
 
 # Project State
@@ -25,10 +25,41 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 56 (reporting-hub-documents-landing) — EXECUTING
+Phase: 56 (reporting-hub-documents-landing) — ALL 8 PLANS EXECUTED
 Plan: 8 of 8
-Status: Wave 5 complete — the RPTHUB-04 gate is DISCHARGED and the legacy `/financials` tree is deleted. Only 56-08 (wave 6, the global sweep) remains.
-Last activity: 2026-07-31 — executed 56-07 (3 tasks, 3 commits: `51192fdf0` deletion, `4d0c39526` next.config.ts wiring, `e2c2fa1d9` the 17 redirect assertions)
+Status: Phase complete — ready for verification
+Last activity: 2026-07-31 — executed 56-08 (3 tasks, 3 commits: `71eb083ef` route tables + breadcrumbs + links, `f6b8a4df2` D-35 fabricated A/R deletion, `1676b0a10` D-37 zero-payment-count export deletion)
+
+> **THE SWEEP IS AT 0, AND THE FILTER WAS NEVER WIDENED.**
+> `grep -rn '/financials' src tests | grep -v 'reporting-redirects'` returns
+> **0 lines**. Both route tables, the breadcrumb LABEL_MAP, the e2e route
+> constants and the two newly-found `detailsHref` values on
+> `/analytics/financial` all point at the hub. The `grep -v` exclusion covers
+> exactly the three redirect-machinery files it covered when 56-02 wrote it, and
+> its companion bound still holds: `grep -c 'source: "/financials'` on the map
+> returns **6**, its 20-test equality suite passes.
+>
+> Two matches survived the first pass — both were 56-08's OWN new assertions
+> naming the dead token. They were rewritten as ALLOWLISTS (`main-nav`: "exactly
+> two collapsible sections"; `app-shell-nav`: "targets only route trees that
+> still exist"), which is strictly stronger than a denylist of the one deleted
+> prefix and also catches the next tree that gets consolidated away. **This is
+> the pattern to reuse: never widen an exclusion filter to clear a sweep.**
+>
+> The three 56-06 comment lines were **reworded, not deleted** — "the legacy
+> financials route tree" carries the same information without the token.
+
+> **Both verified false claims are excised at the source.** D-35: the
+> `accounts_receivable: monthlyRevenue` assignment, its interface field and its
+> early-return field are gone from `financial-keys.ts`; the count went 4 → **1**,
+> the survivor being the UNRELATED `get_billing_insights` balance-sheet read.
+> The camelCase count is still exactly 2 — no balance-sheet line was touched.
+> D-37: both permanently-zero export rows, the fetch, `PAYMENTS_FALLBACK`, the
+> type import and the parameter are gone, and the positional `Promise.all`
+> destructure was corrected from four bindings to three. A permuted-tuple probe
+> exits typecheck 1, so the surviving order is compiler-confirmed.
+> **`report-analytics-keys.ts` was NOT touched** — fixing the key casing would
+> surface subscription-billing figures under rental-revenue labels (D-33).
 
 > **THE RPTHUB-04 GATE IS GREEN. This supersedes the block that stood here
 > after 56-06.** PR #957's `e2e-smoke` job executed
@@ -113,13 +144,13 @@ Last activity: 2026-07-31 — executed 56-07 (3 tasks, 3 commits: `51192fdf0` de
 > 56-04's, RPTHUB-04 in 56-06's and 56-07's. **RPTHUB-03** (56-04's drift guard,
 > proven against six perturbations) and **RPTHUB-04** (PR #957's `e2e-smoke`
 > proving the hub green before 56-07's deletion) are now genuinely satisfied.
-> RPTHUB-01 and RPTHUB-02 are NOT: 56-08 still has to repoint the nav, the Cmd+K
-> palette and the breadcrumb LABEL_MAP, all of which still deep-link into
-> `/financials`. `.planning/REQUIREMENTS.md` remains untouched by all seven plans
-> — 56-04 onward were explicitly instructed not to run
-> `requirements.mark-complete`, because 56-01's reflexive run flipped
-> RPTHUB-01/03 to Complete while both were still false and had to be reverted.
-> **The phase-level verifier marks all four, after 56-08.**
+> **As of 56-08, RPTHUB-01 and RPTHUB-02 are satisfied too** — the nav, the Cmd+K
+> palette, the breadcrumb LABEL_MAP and the e2e route constants no longer name a
+> legacy URL anywhere, and the sweep proves it. `.planning/REQUIREMENTS.md`
+> remains untouched by **all eight** plans — 56-04 onward were explicitly
+> instructed not to run `requirements.mark-complete`, because 56-01's reflexive
+> run flipped RPTHUB-01/03 to Complete while both were still false and had to be
+> reverted. **The phase-level verifier marks all four now.**
 
 > **D-34 is now enforced, not just decided.** `/reports` holds zero charts:
 > `/reports/analytics` and its five children are deleted, the four recharts
@@ -130,8 +161,15 @@ Last activity: 2026-07-31 — executed 56-07 (3 tasks, 3 commits: `51192fdf0` de
 > that guard plus the D-30 index-purity, D-33 broken-key and D-18 no-bare-Revenue
 > assertions.
 
-> **Phase 56 is mid-execution: 7 of 8 plans done, gate DISCHARGED.**
+> **Phase 56 execution is COMPLETE: 8 of 8 plans done, gate DISCHARGED.**
 > Branch `gsd/phase-56-reporting-hub-documents-landing`, PR #957 open.
+> Full unit suite after 56-08: **309 files, 106187 tests passed** (56-07 left it
+> at 308 / 106181; the +1 file and +6 tests reconcile exactly to
+> `app-shell-nav.test.tsx` +4, `main-nav.test.tsx` net +1, `breadcrumbs.test.ts`
+> net +1). `bun run validate:quick` exits 0. CI's three-project Playwright
+> selection is **unchanged at 106 tests in 10 files** — 56-08 touched nothing CI
+> runs, and 56-07's 17 redirect assertions are still awaiting their first
+> execution on the next push.
 >
 > **Local E2E execution remains impossible and that has not changed.**
 > `E2E_OWNER_*` are `e2e-smoke` GitHub secrets, and
@@ -157,7 +195,7 @@ Last activity: 2026-07-31 — executed 56-07 (3 tasks, 3 commits: `51192fdf0` de
 > `accounts_receivable`), the permanently-zero analytics cards, and the same
 > broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [██████████] 97%
+Progress: [██████████] 100%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
@@ -213,20 +251,49 @@ Progress: [██████████] 97%
 
 ## Next Action
 
-Execute **56-08**, the final plan of Phase 56, on branch
-`gsd/phase-56-reporting-hub-documents-landing` (PR #957 open). Wave order is
-discharged: 56-06 proved the hub in CI, 56-07 deleted `/financials`.
+**Run `/gsd-verify-work 56`.** All 8 plans are executed and committed on
+`gsd/phase-56-reporting-hub-documents-landing` (PR #957 open). Nothing remains to
+execute.
 
-Four things 56-08 must not get wrong:
+Five things the verifier needs:
 
-1. **The `/financials` sweep carries a deliberate `grep -v 'reporting-redirects'` exclusion.** Three files must permanently name the six legacy `/financials` sources — the redirect map (`src/lib/seo/reporting-redirects.ts`), its unit test, and 56-07's E2E spec (`tests/e2e/tests/public/reporting-redirects.spec.ts`). Without the filter the sweep is unsatisfiable in any order. The filter is bounded by a companion assertion that the map still holds all 6 sources; do not drop that assertion, and do not rename any of those three files.
-2. **Expect 39 remaining matches, not 36.** `grep -rn '/financials' src tests | grep -v 'reporting-redirects'` returns 39 across 10 files: breadcrumbs.test.ts 12, main-nav.tsx 5, app-shell.tsx 5, e2e routes.ts 4, auth-redirect.test.ts 3, main-nav.test.tsx 3, reports-hub.spec.ts 2, analytics/financial/page.tsx 2, breakdown-list.test.tsx 2, playwright.config.ts 1. The 3 over the planned 36 are 56-06 comment lines added after 56-02 took its baseline — do NOT delete them, they explain the gate.
-3. **Do not remove `experimental.useTypeScriptCli` from `next.config.ts`.** TypeScript 7 is the Go-native compiler and ships no JS compiler API; without the flag `next build` exits 1 immediately.
-4. **`tests/e2e/tests/constants/routes.ts` still carries 4 `FINANCIALS_*` keys plus `REPORTS_ANALYTICS`, all pointing at deleted routes.** `owner/owner-financials.e2e.spec.ts` consumes the four; it is superseded by `reports-hub.spec.ts` and runs only in the `owner` project CI never invokes (D-25). Deleting the spec and its constants together is the clean move.
+1. **Mark all four requirements.** RPTHUB-01..04 are now genuinely satisfied and
+   `.planning/REQUIREMENTS.md` is untouched by all eight plans — that was
+   deliberate (56-01's reflexive `requirements.mark-complete` flipped RPTHUB-01/03
+   to Complete while both were still false, and had to be reverted). The marks are
+   the verifier's to make.
+2. **The `/financials` sweep is at 0 and its exclusion filter is load-bearing.**
+   `grep -rn '/financials' src tests | grep -v 'reporting-redirects'` returns 0.
+   The filter excludes exactly three files that must permanently name the six
+   legacy sources: the map (`src/lib/seo/reporting-redirects.ts`), its unit test,
+   and `tests/e2e/tests/public/reporting-redirects.spec.ts`. **Do not rename any
+   of the three** — all three basenames must keep the `reporting-redirects`
+   substring. The bound that keeps the filter honest is
+   `grep -c 'source: "/financials'` on the map = **6**, plus its source-array
+   EQUALITY assertion (20/20 passing).
+3. **Two acceptance criteria in 56-08-PLAN.md are arithmetically wrong and were
+   reported rather than reworded.** `grep -c 'ANALYTICS_' routes.ts` returns 6, not
+   ≥7 (the bare `ANALYTICS:` key has no trailing underscore — it was 6 at HEAD
+   too, and all 7 keys survive). `grep -c '41667'` in
+   `use-financial-overview.test.ts` returns 2, not 0 (both are mock RPC payloads;
+   the assertion that pinned the fabricated value is gone). See 56-08-SUMMARY.md
+   "Acceptance Criteria NOT Met As Literally Written".
+4. **No Playwright spec in this repo has ever run locally, by design.**
+   `tests/e2e/playwright.config.ts:284`'s webServer command begins
+   `rm -rf .next && rm -f .env.local`. `--list` is safe and is how 56-06, 56-07 and
+   56-08 all proved selection. CI's `e2e-smoke` is the only execution path, and
+   56-07's 17 redirect assertions are still awaiting their first run.
+5. **Do not remove `experimental.useTypeScriptCli` from `next.config.ts`.**
+   TypeScript 7 is the Go-native compiler and ships no JS compiler API; without the
+   flag `next build` exits 1 immediately.
+
+After verification: perfect-PR gate on #957 (two consecutive zero-finding review
+cycles on the frozen final state), then merge, then Phase 65 "Documents Landing"
+(DOCS-01) — which executes immediately after 56 despite its number (D-27).
 
 ## Overrides
 
 (none active)
 
 ---
-*Last updated: 2026-07-19 — v10.0 "Claims Integrity + Canonical Feature Expansion" roadmap authored; REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64). Integer phase numbers continue across milestones. Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*
+*Last updated: 2026-07-31 — Phase 56 execution complete (8/8 plans). v10.0 "Claims Integrity + Canonical Feature Expansion" roadmap authored 2026-07-19; REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64). Integer phase numbers continue across milestones. Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*

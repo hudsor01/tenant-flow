@@ -29,7 +29,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 - [x] **Phase 53: Renewal Reminder Delivery** - Deliver the sold Growth/Max lease-renewal reminders in-house (edge fn draining `lease_reminders`), exactly-once, suppression-honoring, backlog dry-run gated (completed 2026-07-22)
 - [x] **Phase 54: E-sign & Storage Metering** - Enforce the sold e-sign (25/mo Growth) and storage quotas with visible usage + upgrade prompts; grandfather existing over-quota owners (completed 2026-07-24)
 - [x] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation (completed 2026-07-25)
-- [ ] **Phase 56: Reporting Hub** - Collapse `/financials/*` into one chart-free `/reports` hub (statements + exports) with preserved tier-gating; **all** analytics including `/analytics/financial` stays its own peer section
+- [x] **Phase 56: Reporting Hub** - Collapse `/financials/*` into one chart-free `/reports` hub (statements + exports) with preserved tier-gating; **all** analytics including `/analytics/financial` stays its own peer section (completed 2026-07-31)
 - [ ] **Phase 65: Documents Landing** - Make `/documents` a real landing page (vault + lease template builder + printable templates) instead of a bare redirect *(executes immediately after Phase 56)*
 - [ ] **Phase 57: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
 - [ ] **Phase 58: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
@@ -148,7 +148,7 @@ Plans:
     `E2E_OWNER_*` secrets. **Wave 5 is gated on CI `e2e-smoke` reporting 9 passing tests**, not on
     this checkbox. See `56-06-SUMMARY.md`.
 - [x] 56-07-PLAN.md — Legacy /financials deletion, next.config.ts wiring, 17 live redirect assertions
-- [ ] 56-08-PLAN.md — Nav/palette/breadcrumb repointing plus the D-35 and D-37 claims excisions (wave 6 — depends on 56-07; it owns the global /financials sweep, which spans both plans' file sets)
+- [x] 56-08-PLAN.md — Nav/palette/breadcrumb repointing plus the D-35 and D-37 claims excisions (wave 6 — depends on 56-07; it owns the global /financials sweep, which spans both plans' file sets)
 **UI hint**: yes
 **Revision (2026-07-26 — user scope correction, supersedes the pre-split phase definition):** Phase 56 was previously "Reporting Hub & Documents Landing" and previously absorbed all of `/analytics/*`. Two corrections: (a) the analytics absorption was cut back — analytics stays a separate section for navigational clarity; (b) DOCS-01 and the entire `/documents` landing moved out to **Phase 65**. The two shipped surfaces share no code, no routes and no tests.
 **Revision (2026-07-30 — FULL SEPARATION, supersedes the 2026-07-26 partial separation):** The 2026-07-26 position — "only `/analytics/financial` moves into the hub" — was put to the user again as the RECOMMENDED option and **rejected** in favour of full separation. **NO analytics moves into the hub.** `/reports` holds financial statements + exports with **zero charts**; `/analytics/financial` **stays live at its current route and is not redirected**; `/reports/analytics` is **deleted** and 308s **into `/analytics/overview`** — the one redirect in this phase pointing away from the hub. Reports and Analytics are two peer top-level nav entries. The map is still 7 entries, but the 7th **inverts direction**, and `/analytics/financial` moves from the source column to the do-not-redirect guard set. Additionally, the permanently-zero `get_billing_insights`-backed analytics cards (`analytics-stats-row.tsx`, `analytics-payment-methods-chart.tsx`) are **deleted** rather than relocated — a verified live production defect (snake_case parse vs camelCase RPC payload, zero key overlap) compounded by the data being TenantFlow subscription billing, not rental revenue. **The Phase 65 split is unchanged.**
@@ -268,7 +268,7 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 �
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
 | 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
-| 56. Reporting Hub | 7/8 | In Progress|  |
+| 56. Reporting Hub | 8/8 | Complete   | 2026-07-31 |
 | 65. Documents Landing (executes after 56) | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |
