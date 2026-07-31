@@ -845,4 +845,96 @@ protect. But the hollowness is real and worth its own cleanup phase.
 *Reconciled: 2026-07-30 - FULL SEPARATION supersedes partial separation. D-29..D-34 added;
 D-05 REVISED / D-06 / D-08 REVISED / D-19 REVISED / D-04 / D-28 superseded; D-21 / D-22 / D-23 moot;
 D-24 reduced 6->5 hrefs; D-02 grouping and D-26 reframed. D-27 and the Phase 65 block unchanged.*
+
+---
+
+<pattern_mapper_conflicts>
+## Pattern-Mapper Conflicts RESOLVED (2026-07-30) — D-41..D-44
+
+The pattern mapper found two contradictions and three stale citations in the
+decisions above. Verified and resolved here so the planner receives one coherent
+position.
+
+### D-41 (resolves CONFLICT-1) — the `/reports` index is a NEW composition. D-07 is NARROWED.
+
+**The contradiction:** D-07 said "move and rename all six `financials-*` components."
+D-30/UI-SPEC says the index carries a NEW three-tile ledger strip (Scheduled /
+Collected / Outstanding from one `get_collection_rate` payload). Those are two
+different components competing for the same slot. Verified importer counts:
+
+| Component | Imported by |
+|---|---|
+| `financials-header` | `financials/page.tsx` ONLY |
+| `financials-highlights` | `financials/page.tsx` ONLY |
+| `financials-quick-links` | `financials/page.tsx` ONLY |
+| `financials-summary-stats` | `financials/page.tsx` **AND `financials/expenses/_components/expense-stats.tsx`** |
+
+So moving all six blindly after deleting `financials/page.tsx` would ship dead files.
+
+**Resolution — per-component disposition, not a blanket move:**
+
+- `financials-header` -> **MOVE + RENAME** to `reports-header.tsx`. Still the page header.
+- `financials-quick-links` -> **MOVE + RENAME** to `reports-statement-list.tsx`. This becomes
+  the D-06 statement list. Apply the four UI-SPEC deltas the pattern mapper tabulated on
+  `QuickLinkCard` (drop `value`/`trend` props, drop the `bg-primary/10` medallion, drop
+  `font-medium`, replace raw `text-emerald-600`/`text-red-600` with token classes).
+- `financials-loading` / `financials-error` -> **MOVE + RENAME**. Still the route boundaries.
+- `financials-summary-stats` -> **DO NOT MOVE. STAYS PUT.** It has a second live consumer
+  (`expenses/_components/expense-stats.tsx`) that is NOT in this phase's scope. Moving it
+  would break that import for no benefit. Apply ONLY the D-35 edit in place: drop the
+  `accountsReceivable` prop and its `Stat`, fix the orphaned `Clock` import, and change
+  `lg:grid-cols-4` -> 3 columns.
+- `financials-highlights` -> **PLANNER'S CALL.** Evaluate whether the `/reports` index wants
+  it alongside the new strip, or whether the strip supersedes it. If superseded, DELETE
+  rather than move — do not ship a dead file.
+
+**The new summary strip is NEW CODE, not a move.** Analog is
+`src/components/ledger/ledger-balance-strip.tsx` + `collection-rate-kpi.tsx` +
+`useCollectionRate()` — a complete shipped three-part reference. Per the pattern mapper the
+phase writes **zero new query keys**; the `get_collection_rate` `queryOptions()` factory and
+its typed mapper already exist.
+
+### D-42 (resolves CONFLICT-2) — update BOTH `/reports/analytics` references.
+
+Two live references to the route D-29 deletes:
+
+1. `src/app/(owner)/reports/page.tsx:165` — a `<Link href="/reports/analytics">`. Dies with
+   the index rewrite; no separate action needed, but the planner must not leave it behind.
+2. `src/components/maintenance/maintenance-view.client.tsx:119` —
+   `router.push("/reports/analytics")`. **Outside the phase's obvious surface.** The 308 would
+   catch it, so it is not broken, but a client-side push through a redirect is sloppy and the
+   indirection will outlive anyone's memory of why. **Repoint it directly to
+   `/analytics/overview`.**
+
+RESEARCH.md's claim that this call site is "VERIFIED SAFE" is **stale** — it was written
+under partial separation, where `/reports/analytics` survived.
+
+### D-43 — corrected citations (the decisions stand; the line numbers were wrong)
+
+- **D-37**: the two broken export rows are at `report-data.ts:268-272`, NOT `:412-416`.
+  `:412-416` is the call site. Both locations still need editing; the row deletion is at
+  `:268-272`.
+- **D-32 / Guard counts**: RESEARCH.md's E2E section still says 4 Guard A / 6 Guard B / 9 hub
+  routes. Under D-32 it is **3 Guard A / 7 Guard B / 8 hub routes**. RESEARCH is stale here;
+  D-32 governs.
+- **`PREMIUM_REPORT_TYPES`**: re-verified byte-identical across `export-report/index.ts` and
+  `generate-pdf/index.ts` — no drift. RPTHUB-03 still requires verifying both, but there is
+  no divergence to repair.
+
+### D-44 — deletions cascade into `noUnusedLocals`. Treat as part of each deletion task.
+
+The repo compiles with `noUnusedLocals` + `noUnusedParameters`, so every deletion leaves a
+compile error if its orphans are not cleaned in the same change:
+
+- **D-35** orphans the `Clock` import in `financials-summary-stats.tsx` and requires the
+  `lg:grid-cols-4` -> 3-column change.
+- **D-37** orphans `PAYMENTS_FALLBACK`, the `ReportPaymentAnalytics` type import, and the
+  `payments` function parameter — AND shifts a positional `Promise.all` tuple index, which is
+  a silent-wrong-data risk if missed rather than a compile error.
+
+Each deletion task must include its orphan cleanup in the same task, not a follow-up.
+
+</pattern_mapper_conflicts>
+
 *Open questions resolved: 2026-07-30 - D-35..D-40 added; D-20 amended, D-21 moot, D-02 superseded by D-36.*
+*Pattern-mapper conflicts resolved: 2026-07-30 - D-41..D-44; D-07 narrowed to a per-component disposition.*
