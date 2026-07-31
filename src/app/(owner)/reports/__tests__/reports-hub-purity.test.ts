@@ -234,8 +234,14 @@ describe("D-30 hub index is a data-free Server Component", () => {
 	});
 
 	it("composes the strip, which owns the index's one data dependency", () => {
-		const source = readFileSync(join(cwd, HUB_INDEX), "utf8");
-		expect(source).toContain("ReportsSummaryStrip");
+		// stripComments, and the JSX element rather than the bare token. Matching
+		// raw source made this pin vacuous: page.tsx's own doc block names
+		// `<ReportsSummaryStrip />`, so deleting BOTH the import and the island
+		// left the hub rendering no Scheduled/Collected/Outstanding figures at all
+		// while this assertion still passed. Verified by simulation.
+		const code = stripComments(readFileSync(join(cwd, HUB_INDEX), "utf8"));
+		expect(code).toContain("<ReportsSummaryStrip");
+		expect(code).toContain('from "./reports-summary-strip"');
 	});
 });
 
