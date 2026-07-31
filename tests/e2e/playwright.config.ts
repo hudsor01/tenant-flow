@@ -179,6 +179,13 @@ export default defineConfig({
 				// `--project=owner-axe` e2e-smoke run rather than only matching the
 				// non-CI `chromium` project.
 				"**/notifications.spec.ts",
+				// Phase 56 reporting-hub smoke (RPTHUB-04) — self-authenticates via
+				// loginAsOwner (no storageState), so it gates the PR under CI's
+				// `--project=owner-axe` e2e-smoke run rather than only matching the
+				// non-CI `chromium` project. This project is an explicit filename
+				// allowlist, not a glob: dropping this entry silently removes the
+				// gate that permits deleting the legacy /financials routes.
+				"**/reports-hub.spec.ts",
 			],
 		},
 
@@ -199,6 +206,7 @@ export default defineConfig({
 				// Owns its own in-test loginAsOwner; runs under owner-axe only so it
 				// does not double-execute under the storageState chromium project.
 				"**/notifications.spec.ts",
+				"**/reports-hub.spec.ts",
 			],
 		},
 
