@@ -22,7 +22,6 @@ import type {
 	MaintenanceReport,
 	OccupancyMetrics,
 	PropertyReport,
-	ReportPaymentAnalytics,
 	RevenueData,
 	TenantReport,
 	YearEndSummary,
@@ -142,16 +141,6 @@ const OCCUPANCY_FALLBACK: OccupancyMetrics = {
 	byProperty: [],
 };
 
-const PAYMENTS_FALLBACK: ReportPaymentAnalytics = {
-	totalPayments: 0,
-	successfulPayments: 0,
-	failedPayments: 0,
-	totalRevenue: 0,
-	averagePayment: 0,
-	paymentsByMethod: { card: 0, ach: 0 },
-	paymentsByStatus: { completed: 0, pending: 0, failed: 0 },
-};
-
 const PROPERTY_FALLBACK: PropertyReport = {
 	summary: {
 		totalProperties: 0,
@@ -247,10 +236,22 @@ const baseHeader = (
 
 // ─── Per-section row helpers (keep build* under the 50-line cap) ────────────
 
+/**
+ * D-37: this used to emit two more rows — payment counts read from a mapper
+ * that parses snake_case keys off a `get_billing_insights` payload returning
+ * only camelCase ones. Zero key overlap, so every lookup was `undefined`, every
+ * `?? 0` fired, and both counts were permanently 0 in a customer-facing
+ * generated file. `executive-monthly` is NOT in `PREMIUM_REPORT_TYPES`, so that
+ * reached every owner who exported, not only paying ones.
+ *
+ * The rows were DELETED rather than repaired. Fixing the key casing would
+ * surface TenantFlow subscription-billing figures under rental-revenue labels —
+ * a worse claim than rendering zero (D-33). TenantFlow facilitates no rent
+ * payments, so there is no payment-count data to render here at all.
+ */
 function executiveKeyMetricsRows(
 	financial: FinancialReport,
 	occupancy: OccupancyMetrics,
-	payments: ReportPaymentAnalytics,
 ): ReportRow[] {
 	return [
 		{ label: "Total Income", value: fmtMoney(financial.summary.totalIncome) },
@@ -264,11 +265,6 @@ function executiveKeyMetricsRows(
 		{
 			label: "Occupied Units",
 			value: `${fmtNumber(occupancy.occupiedUnits)} of ${fmtNumber(occupancy.totalUnits)}`,
-		},
-		{ label: "Total Payments", value: fmtNumber(payments.totalPayments) },
-		{
-			label: "Successful Payments",
-			value: fmtNumber(payments.successfulPayments),
 		},
 	];
 }
@@ -360,6 +356,17 @@ function taxSummaryRows(yearEnd: YearEndSummary): ReportRow[] {
 
 // ─── Builders (one per ReportType) ──────────────────────────────────────────
 
+/**
+ * Returns a POSITIONAL tuple. D-37 removed what used to be element index 2 (the
+ * payment-analytics fetch), which shifted the monthly-revenue element from
+ * index 3 to index 2. TypeScript will not flag a stale four-binding destructure
+ * against this three-element tuple in every arrangement, so the destructure in
+ * `buildExecutiveMonthly` below must be read against THIS list, in order, on
+ * every future change here. A silent mismatch renders the wrong dataset with a
+ * green build.
+ *
+ * Order: [financial, occupancy, monthlyRevenue].
+ */
 async function fetchExecutiveMonthly(
 	qc: QueryClient,
 	start: string,
@@ -376,11 +383,6 @@ async function fetchExecutiveMonthly(
 			reportAnalyticsQueries.occupancyMetrics(),
 			OCCUPANCY_FALLBACK,
 		),
-		safeFetch(
-			qc,
-			reportAnalyticsQueries.paymentAnalytics(start, end),
-			PAYMENTS_FALLBACK,
-		),
 		safeFetch(qc, reportQueries.monthlyRevenue(12), [] as RevenueData[]),
 	]);
 }
@@ -390,7 +392,8 @@ async function buildExecutiveMonthly(
 	start: string,
 	end: string,
 ): Promise<ReportData> {
-	const [financial, occupancy, payments, monthly] = await fetchExecutiveMonthly(
+	// Three bindings against the three-element tuple above, in its exact order.
+	const [financial, occupancy, monthly] = await fetchExecutiveMonthly(
 		queryClient,
 		start,
 		end,
@@ -400,20 +403,13 @@ async function buildExecutiveMonthly(
 		fmtMoney(m.revenue),
 	]);
 	const allAvailable =
-		financial.available &&
-		occupancy.available &&
-		payments.available &&
-		monthly.available;
+		financial.available && occupancy.available && monthly.available;
 	return {
 		...baseHeader("Executive Monthly Report", "Portfolio summary", start, end),
 		sections: [
 			{
 				heading: "Key Metrics",
-				rows: executiveKeyMetricsRows(
-					financial.data,
-					occupancy.data,
-					payments.data,
-				),
+				rows: executiveKeyMetricsRows(financial.data, occupancy.data),
 			},
 			{
 				heading: "Monthly Revenue (last 12 months)",
