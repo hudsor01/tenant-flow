@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-07-31T13:11:09.752Z"
+last_updated: "2026-07-31T13:26:39.010Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 14
   completed_phases: 4
   total_plans: 35
-  completed_plans: 30
+  completed_plans: 31
   percent: 29
 ---
 
@@ -26,19 +26,21 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 56 (reporting-hub-documents-landing) — EXECUTING
-Plan: 4 of 8
-Status: Wave 2 in progress — 56-03 (hub index + legacy deletion) done; 56-04 (tier-gate drift guard) next
-Last activity: 2026-07-31 — executed 56-03 (3 tasks, 3 commits, 10 files deleted)
+Plan: 5 of 8
+Status: Wave 2 complete — 56-03 (hub index + legacy deletion) and 56-04 (tier-gate drift guard) done; wave 3 (56-05 statement routes) next
+Last activity: 2026-07-31 — executed 56-04 (2 tasks, 2 commits, 1 test file + 2 config widenings)
 
-> **Requirements NOT yet marked complete.** RPTHUB-01 and RPTHUB-03 are listed
-> in 56-01's frontmatter, RPTHUB-02 in 56-02's and RPTHUB-01 in 56-03's, but no
-> plan so far delivers any of them — the five statement routes do not exist yet
-> (56-05), `/financials` is not absorbed (56-07), the tier-gate drift guard is
-> unwritten (56-04), and the redirect map is authored but deliberately unwired
-> from `next.config.ts` until 56-07 (D-11). Marking RPTHUB-01/03 complete in
-> 56-01 was reverted as a false claim; 56-02 and 56-03 did not mark theirs for
-> the same reason. The last plan that actually delivers each requirement marks
-> it. `.planning/REQUIREMENTS.md` is untouched by all three plans so far.
+> **Requirements still NOT marked complete — including RPTHUB-03, which 56-04
+> does deliver.** RPTHUB-01 is listed in 56-01's and 56-03's frontmatter,
+> RPTHUB-02 in 56-02's, RPTHUB-03 in 56-01's and 56-04's. Of these only
+> **RPTHUB-03 is now genuinely satisfied** (56-04's drift guard, proven to fail
+> against six perturbations). The rest are not: the five statement routes do not
+> exist yet (56-05), `/financials` is not absorbed (56-07), and the redirect map
+> is authored but deliberately unwired from `next.config.ts` until 56-07 (D-11).
+> `.planning/REQUIREMENTS.md` remains untouched by all four plans — 56-04 was
+> explicitly instructed not to run `requirements.mark-complete`, because 56-01's
+> reflexive run flipped RPTHUB-01/03 to Complete while both were still false and
+> had to be reverted. The phase-level verifier marks RPTHUB-03.
 
 > **D-34 is now enforced, not just decided.** `/reports` holds zero charts:
 > `/reports/analytics` and its five children are deleted, the four recharts
@@ -66,7 +68,7 @@ Last activity: 2026-07-31 — executed 56-03 (3 tasks, 3 commits, 10 files delet
 > `accounts_receivable`), the permanently-zero analytics cards, and the same
 > broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 89%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
