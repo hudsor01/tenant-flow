@@ -67,6 +67,22 @@ describe("ReportsSummaryStrip", () => {
 		expect(screen.queryByText("$3,750.00")).not.toBeInTheDocument();
 	});
 
+	it("clamps Outstanding at zero when collected exceeds scheduled", () => {
+		// `scheduled` and `collected` are not drawn over the same obligations:
+		// get_collection_rate sums scheduled from leases overlapping the month but
+		// sums collected by rent_receipts.received_date, and a receipt's charge_id
+		// may point at a prior month. Tenant skips January, pays both months on
+		// Feb 5 -> February collects 4000 against 2000 scheduled.
+		mockResult({ data: { scheduled: 2000, collected: 4000, rate: 200 } });
+		render(<ReportsSummaryStrip />);
+
+		// Never "-$2,000.00" — a negative Outstanding claims the owner owes the
+		// tenant, which is not what this figure can ever mean.
+		expect(screen.getByText("$0.00")).toBeInTheDocument();
+		expect(screen.queryByText("-$2,000.00")).not.toBeInTheDocument();
+		expect(screen.queryByText("−$2,000.00")).not.toBeInTheDocument();
+	});
+
 	it("passes dollars straight through with no 100x scaling", () => {
 		mockResult({ data: { scheduled: 95, collected: 95, rate: 100 } });
 		render(<ReportsSummaryStrip />);

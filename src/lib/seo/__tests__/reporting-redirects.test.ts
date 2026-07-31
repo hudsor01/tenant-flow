@@ -39,9 +39,16 @@ describe("REPORTING_REDIRECTS — map shape", () => {
 	it("source array EQUALS the seven D-32 sources, in order", () => {
 		// EQUALITY, never a subset check. A stale pre-2026-07-30 entry
 		// { source: "/analytics/financial", destination: "/reports/analytics" }
-		// passes every per-path .not.toContain() guard further down: it does not
-		// loop, uses no wildcard and collides with nothing. This assertion is
-		// the ONLY structural defence against it.
+		// does not loop, uses no wildcard and collides with nothing, so it slips
+		// past the per-path `.not.toContain()` guards further down.
+		//
+		// It does NOT slip past everything. Measured by injecting that entry and
+		// running the suite: 4 failed | 16 passed. The four that fire are this
+		// assertion, "maps every source to its exact D-32 destination", "holds
+		// exactly seven entries", and "/analytics/financial is NEVER a source" —
+		// that last one catches it because it is a `.filter()` over the map, not
+		// a subset check. Do not weaken any of the four believing the others
+		// carry it.
 		expect(REPORTING_REDIRECTS.map((r) => r.source)).toEqual([
 			"/financials",
 			"/financials/balance-sheet",

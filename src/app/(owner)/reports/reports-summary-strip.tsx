@@ -86,7 +86,18 @@ export function ReportsSummaryStrip() {
 	}
 
 	// Single-source rule: every figure below reads off this one payload.
-	const outstanding = data ? data.scheduled - data.collected : 0;
+	//
+	// Clamped at zero because `scheduled` and `collected` are not drawn over the
+	// same set of obligations. `get_collection_rate` sums `scheduled` from leases
+	// overlapping the month, but sums `collected` from `rent_receipts.received_date`
+	// within it — and a receipt's `charge_id` may point at a PRIOR month's charge.
+	// So the ordinary late-payment flow (tenant skips January, pays both months on
+	// Feb 5) makes February's collected exceed its scheduled, and the raw
+	// difference goes negative. "Outstanding -$2,000.00" is not a smaller debt; it
+	// is a claim that the owner owes the tenant, which is never what this figure
+	// means. Nothing outstanding is the honest reading, and the overpayment is
+	// still visible on the collection-rate KPI that reads the same payload.
+	const outstanding = data ? Math.max(0, data.scheduled - data.collected) : 0;
 
 	return (
 		<div

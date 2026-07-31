@@ -38,8 +38,12 @@
 //     That entry does not loop and uses no wildcard, so every per-path subset
 //     check passes it — it would simply 308 a live, correct page into a URL
 //     that will not exist, and entry 7 would then bounce it straight back out.
-//     Only the source-array EQUALITY assertion in
-//     __tests__/reporting-redirects.test.ts catches it.
+//     Four assertions in __tests__/reporting-redirects.test.ts catch it,
+//     measured by injecting the entry (4 failed | 16 passed): the source-array
+//     equality check, the source-to-destination pair check, the seven-entry
+//     length check, and the dedicated "/analytics/financial is NEVER a source"
+//     guard, which works because it filters the map rather than asserting a
+//     subset.
 
 export interface ReportingRedirect {
 	readonly source: string;
