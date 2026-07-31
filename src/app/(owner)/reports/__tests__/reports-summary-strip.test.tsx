@@ -67,6 +67,26 @@ describe("ReportsSummaryStrip", () => {
 		expect(screen.queryByText("$3,750.00")).not.toBeInTheDocument();
 	});
 
+	it("discloses the period, because every figure is current-month only", () => {
+		// useCollectionRate() omits p_month, so get_collection_rate defaults to
+		// date_trunc('month', current_date). The strip sits above the Statements
+		// group ("for a period you choose") and annual tiles, so an unqualified
+		// dollar figure here reads as year- or portfolio-scope.
+		mockResult({ data: { scheduled: 2000, collected: 1750, rate: 87.5 } });
+		render(<ReportsSummaryStrip />);
+
+		expect(screen.getByText(/this month/i)).toBeInTheDocument();
+
+		// Screen readers must get the scope on the figure itself — the visible
+		// caption is not adjacent enough in the accessibility tree.
+		expect(
+			screen.getByLabelText("Scheduled this month: $2,000.00"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByLabelText("Outstanding this month: $250.00"),
+		).toBeInTheDocument();
+	});
+
 	it("clamps Outstanding at zero when collected exceeds scheduled", () => {
 		// `scheduled` and `collected` are not drawn over the same obligations:
 		// get_collection_rate sums scheduled from leases overlapping the month but
