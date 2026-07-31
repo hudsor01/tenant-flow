@@ -57,6 +57,9 @@ function readRepoSource(relativePath: string): string {
 
 const EXPORT_REPORT_SOURCE = readRepoSource("../export-report/index.ts");
 const GENERATE_PDF_SOURCE = readRepoSource("../generate-pdf/index.ts");
+const REPORT_KEYS_SOURCE = readRepoSource(
+	"../../../src/hooks/api/query-keys/report-keys.ts",
+);
 
 /**
  * Matches `const PREMIUM_REPORT_TYPES<any annotation> = new Set([ ... ])`.
@@ -228,5 +231,51 @@ describe("D-13 export call-site values survive the route consolidation", () => {
 
 		expect(EXPORT_REPORT_TYPES).toContain("financial");
 		expect(EXPORT_REPORT_TYPES).toContain("year-end");
+	});
+});
+
+/**
+ * RECORDED FINDINGS — verified facts this phase deliberately does NOT repair.
+ *
+ * Both items below are recorded, not defects this plan fixes. Phase 56 moves and
+ * consolidates surfaces; it does not add reporting capability. Reading either
+ * omission as an oversight would be wrong.
+ *
+ * 1. TWO GATED EXPORT PATHS ARE UNEXERCISED BY THE PRODUCT.
+ *    `reportMutations.downloadYearEndCsv` and `reportMutations.download1099Csv`
+ *    (src/hooks/api/query-keys/report-keys.ts) POST to the gated `export-report`
+ *    edge function with reportType "year-end" and "1099" respectively. Verified
+ *    this session: neither has a call site anywhere in `src/` outside its own
+ *    declaration. `/reports/year-end/page.tsx` builds its CSV client-side with a
+ *    local `downloadCsv` helper instead, so those two 402 paths never fire in the
+ *    shipped product. The sibling PDF mutations (`downloadYearEndPdf`,
+ *    `downloadTaxDocumentPdf`) ARE wired, via `use-report-mutations.ts`. The test
+ *    below pins that the two CSV exports still exist, so deleting them is a
+ *    deliberate act rather than an incidental cleanup. They are NOT wired to UI
+ *    here.
+ *
+ * 2. TWO EXPORT BUTTONS ARE RENDERED WITH no onClick HANDLER.
+ *    The `Export` buttons in the income-statement and cash-flow page headers
+ *    (`income-statement-page-header.tsx` renders a `<Button variant="outline">`,
+ *    `cash-flow-header.tsx` a raw `<button>`) carry no handler at all — verified
+ *    by inspection. They reach no edge function and gate nothing, which is
+ *    precisely why neither tile carries a `Growth` badge in REPORTS_HUB_ENTRIES.
+ *    An E2E author must not mistake a dead button for working behaviour: clicking
+ *    it produces no request and no download. No handler is added here.
+ *
+ *    These two files are not asserted against by path because Phase 56 relocates
+ *    the `/financials` tree in a later wave; a path assertion would break the
+ *    suite mid-phase for a fact that is not about the tier gate.
+ */
+describe("recorded findings (not repaired by this phase)", () => {
+	it("report-keys.ts still declares both unexercised gated CSV exports", () => {
+		expect(REPORT_KEYS_SOURCE).toMatch(/\bdownloadYearEndCsv:\s*\(\)\s*=>/);
+		expect(REPORT_KEYS_SOURCE).toMatch(/\bdownload1099Csv:\s*\(\)\s*=>/);
+		expect(REPORT_KEYS_SOURCE).toContain(
+			'callExportEdgeFunction("year-end", "csv", year)',
+		);
+		expect(REPORT_KEYS_SOURCE).toContain(
+			'callExportEdgeFunction("1099", "csv", year)',
+		);
 	});
 });
