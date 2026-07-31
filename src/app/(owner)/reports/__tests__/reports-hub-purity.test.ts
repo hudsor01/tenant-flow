@@ -27,6 +27,26 @@
  * (scheduled minus collected, from that same payload). A bare user-facing
  * "Revenue" label is a third, undefined derivation wearing a locked name.
  *
+ * D-18 SCOPE, narrowed by plan 56-05 and simultaneously made stricter. The
+ * income statement is a GAAP financial statement whose revenue line is defined
+ * on its own face — it itemises Rental Income, Late Fees and Other Income and
+ * totals them from `get_income_statement`. That is not an undefined third
+ * derivation hiding behind a locked name; it is the statement's own named
+ * subtotal. Relabelling it "Collected" would be a NEW claims violation (it is
+ * not ledger receipts) and "Scheduled" would be equally false. D-18's subject,
+ * per the phase CONTEXT, is the hub's own revenue figures — "D-18 governs the
+ * summary strip directly". 56-03 applied the scan subtree-wide because at that
+ * point the subtree held only the index; the statement routes arrived in 56-05.
+ *
+ * So the label scan skips exactly one route directory, `/reports/income-statement/`,
+ * and the JSX matcher is widened to span newlines in exchange. Outside that one
+ * route D-18 is now enforced MORE strictly than before: the old one-line-only
+ * matcher let a multi-line JSX text run through. The exemption is bounded by
+ * three assertions below — it must resolve to a real directory, it must still
+ * be flagging something (a stale exemption fails), and it can never cover the
+ * hub index, the tile directory or the summary strip, which are the surfaces
+ * D-18 actually governs.
+ *
  * Two behaviours are carried over verbatim from the `rent-ledger-money.test.ts`
  * analog, and both are load-bearing: comments are stripped before matching, so
  * a source comment restating a rule cannot self-trigger the guard it documents;
@@ -72,6 +92,10 @@ const BROKEN_BILLING_KEYS: readonly string[] = [
  * a JSX text run. Deliberately NOT a bare `/Revenue/`, which would flag the
  * identifiers `totalRevenue` / `revenue` that legitimately name RPC fields.
  * `\b` already excludes `totalRevenue` (no word boundary after `l`).
+ *
+ * The JSX matcher spans newlines on purpose: a label written as its own
+ * indented line between the tags is the commonest shape in this codebase and
+ * the one-line-only form of this pattern missed every one of them.
  */
 const REVENUE_LABEL_PATTERNS: readonly { name: string; pattern: RegExp }[] = [
 	{
@@ -80,9 +104,22 @@ const REVENUE_LABEL_PATTERNS: readonly { name: string; pattern: RegExp }[] = [
 	},
 	{
 		name: "JSX text Revenue label",
-		pattern: />[^<>{}\n]*\bRevenue\b[^<>{}\n]*</,
+		pattern: />[^<>{}]*\bRevenue\b[^<>{}]*</,
 	},
 ];
+
+/**
+ * The one D-18 label exemption: the GAAP income statement (see the header).
+ * Trailing slash so it can only ever match the route directory, never a
+ * sibling file whose name merely starts with the same characters.
+ */
+const D18_EXEMPT_DIRS: readonly string[] = [
+	`${REPORTS_ROOT}/income-statement/`,
+];
+
+function isD18Exempt(relPath: string): boolean {
+	return D18_EXEMPT_DIRS.some((dir) => relPath.startsWith(dir));
+}
 
 /** D-30: the hub index must stay a data-free Server Component. */
 const HUB_INDEX_FORBIDDEN: readonly { name: string; pattern: RegExp }[] = [
@@ -227,9 +264,41 @@ describe("D-18 revenue vocabulary under /reports", () => {
 				path: relPaths[index] ?? abs,
 				violations: findRevenueLabelViolations(readFileSync(abs, "utf8")),
 			}))
-			.filter(({ violations }) => violations.length > 0)
+			.filter(
+				({ path, violations }) => violations.length > 0 && !isD18Exempt(path),
+			)
 			.map(({ path, violations }) => `${path}: ${violations.join(", ")}`);
 		expect(offenders).toEqual([]);
+	});
+});
+
+describe("D-18 the accounting exemption stays bounded", () => {
+	it("can never excuse the surfaces D-18 actually governs", () => {
+		// The hub index, the tile data module and the summary strip are the
+		// Scheduled/Collected surfaces. No exemption may ever reach them.
+		expect(isD18Exempt(HUB_INDEX)).toBe(false);
+		expect(isD18Exempt(`${REPORTS_ROOT}/reports-summary-strip.tsx`)).toBe(
+			false,
+		);
+		expect(isD18Exempt(`${REPORTS_ROOT}/reports-hub-entries.ts`)).toBe(false);
+		expect(isD18Exempt(`${REPORTS_ROOT}/report-hub-tile.tsx`)).toBe(false);
+	});
+
+	it.each(D18_EXEMPT_DIRS)("%s is a real route directory", (dir) => {
+		expect(existsSync(join(cwd, dir))).toBe(true);
+	});
+
+	it("is not stale — the exempt route still carries a label the scan would flag", () => {
+		// If this fails the exemption has outlived its cause and must be deleted,
+		// not kept "just in case".
+		const flagged = relPaths.filter(
+			(rel, index) =>
+				isD18Exempt(rel) &&
+				findRevenueLabelViolations(
+					readFileSync(reportsFiles[index] ?? "", "utf8"),
+				).length > 0,
+		);
+		expect(flagged.length).toBeGreaterThan(0);
 	});
 });
 
@@ -267,6 +336,10 @@ describe("reports hub purity detector", () => {
 		["quoted label", 'const label = "Total Revenue";'],
 		["JSX text", "return <StatLabel>Revenue</StatLabel>;"],
 		["chart series name", 'const series = { name: "Revenue" };'],
+		[
+			"JSX text broken across lines",
+			["<CardTitle>", "\tTotal Revenue", "</CardTitle>"].join("\n"),
+		],
 	])("flags a user-facing Revenue label: %s", (_label, source) => {
 		expect(findRevenueLabelViolations(source).length).toBeGreaterThan(0);
 	});
