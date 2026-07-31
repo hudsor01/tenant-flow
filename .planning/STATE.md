@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: "Phase 55 shipped - PR #927"
-last_updated: "2026-07-26T18:22:15.717Z"
-last_activity: 2026-07-25
+status: executing
+last_updated: "2026-07-31T12:45:56.878Z"
+last_activity: 2026-07-31
 progress:
-  total_phases: 13
+  total_phases: 14
   completed_phases: 4
-  total_plans: 27
-  completed_plans: 27
-  percent: 31
+  total_plans: 35
+  completed_plans: 28
+  percent: 29
 ---
 
 # Project State
@@ -21,14 +21,20 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 56 — reporting-hub
+**Current focus:** Phase 56 — reporting-hub-documents-landing
 
 ## Current Position
 
-Phase: 56 (reporting-hub) — PLANNED, VERIFIED, NOT STARTED
-Plan: 0 of 8 executed
-Status: 8 plans across 6 waves; plan-checker clean on re-verification
-Last activity: 2026-07-30
+Phase: 56 (reporting-hub-documents-landing) — EXECUTING
+Plan: 2 of 8
+Status: Wave 1 in progress — 56-01 complete (hub primitives), 56-02 next
+Last activity: 2026-07-31 — executed 56-01 (3 tasks, 5 files, 3 commits)
+
+> **Requirements NOT yet marked complete.** RPTHUB-01 and RPTHUB-03 are listed
+> in 56-01's frontmatter but 56-01 delivers primitives only — no hub index
+> exists (56-03), `/financials` is not absorbed (56-07), and the tier-gate
+> drift guard is unwritten (56-04). Marking them complete here was reverted as
+> a false claim; the last plan that actually delivers each requirement marks it.
 
 > **Phase 56 is planned and gate-clean.** Branch `gsd/phase-56-reconciled`.
 > Two planning lines were reconciled to full separation (D-29): `/reports`
@@ -47,7 +53,7 @@ Last activity: 2026-07-30
 > `accounts_receivable`), the permanently-zero analytics cards, and the same
 > broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 80%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
