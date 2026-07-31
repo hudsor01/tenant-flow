@@ -59,3 +59,51 @@ so this does not affect the pipeline. Recorded because it blocks any local
 build-based verification for the rest of the phase.
 
 **Owner:** nobody — environment condition, not a code defect.
+
+## From 56-07 (legacy deletion + redirect wiring)
+
+### 5. Item 3 is RESOLVED; item 4 is CONFIRMED and has a workaround
+
+**Item 3 resolved as predicted.** Deleting the legacy tree removed both duplicate
+colocated tests. Suite went 310 -> 308 files, 112160 -> 106181 tests. Threat
+T-56-20 is closed.
+
+**Item 4 confirmed, and proven pre-existing rather than caused by this plan.**
+`SKIP_ENV_VALIDATION=true bun run build` fails identically at `HEAD` with this
+plan's `next.config.ts` change reverted — same
+`TypeError: Cannot read properties of undefined (reading 'includes')` inside
+`Failed to collect page data for /blog/[slug]`. Because the build aborts before
+writing `.next/routes-manifest.json`, that artifact cannot be produced by the
+full build locally.
+
+**Workaround for any later plan needing the routes manifest:**
+`SKIP_ENV_VALIDATION=true bunx next build --experimental-build-mode compile`
+exits 0 and writes `.next/routes-manifest.json`. Compile-only mode skips the
+page-data collection step that hits the missing env vars. This is how 56-07
+verified its redirect wiring.
+
+Also note `next build` (either mode) rewrites `next-env.d.ts`, flipping the
+generated reference between `./.next/dev/types/routes.d.ts` and
+`./.next/types/routes.d.ts`. Revert with `git checkout -- next-env.d.ts` — 56-05
+hit the same thing.
+
+**Owner:** nobody — environment condition. Recorded with the workaround so the
+next plan does not re-derive it.
+
+### 6. Item 2's orphan table re-verified after the deletion, and it grew by one
+
+Re-measured this session against the post-deletion tree. All of item 2's entries
+still hold, plus:
+
+| Module | Orphaned export | Status after 56-07 |
+|---|---|---|
+| `src/hooks/api/query-keys/report-analytics-keys.ts` | `reportAnalyticsQueries.paymentAnalytics` | Two consumers remain: `use-reports.ts:19` (itself only test-consumed) and `src/lib/reports/report-data.ts:381`, the executive-monthly export. **D-37 removes the latter in 56-08**, at which point this query has no production consumer at all. |
+| `src/components/reports/sections/date-range-selector.tsx` | `DateRangeSelector` | Zero importers AND zero test coverage — the only orphan in the set that could be deleted without also deleting tests. |
+| `src/components/reports/reports-utils.ts` | `getDefaultDateRange` | Zero consumers, zero tests. Same as above. |
+
+None is a build error: `noUnusedLocals` does not flag unused *exports*. Deleting
+the four `use-reports` hooks still means deleting roughly 1100 lines of live test
+file, which remains a separate deliberate change rather than a sweep.
+
+**Owner:** a follow-up cleanup, not 56-08 — 56-08 owns the `/financials` string
+sweep, and none of these modules contains that string.
