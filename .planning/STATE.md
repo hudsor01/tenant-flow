@@ -25,7 +25,38 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 56 (reporting-hub-documents-landing) — ALL 8 PLANS EXECUTED
+Phase: 56 (reporting-hub-documents-landing) — COMPLETE, PERFECT-PR GATE CLOSED
+
+> **Gate closed on cycles 12 and 13** — two consecutive zero-finding review
+> cycles on frozen code (`8a23e088a`). 13 cycles total: 137 candidates, 121
+> refuted (88%), 16 real findings fixed.
+>
+> **Read the cycle-11 lesson before running this gate again.** It reported
+> CLEAN and was not. The harness extracted findings with a greedy
+> `/\[[\s\S]*\]/`, which matched from a `[owner-axe]` label in a reviewer's
+> prose to the last `]` of its fenced JSON, failed to parse, and the `catch`
+> treated that as ZERO FINDINGS. A real finding was dropped and the cycle looked
+> green because the PARSER failed. Fixed: prefer a fenced block, else scan for
+> the first substring that parses as an array, and never coerce a parse failure
+> to zero — emit a blocking `harness-parse-failure` instead. **Audit
+> `journal.jsonl` every cycle; do not trust the summary verdict.**
+>
+> **`gh pr checks` is not sufficient here.** This repo runs a doc-only companion
+> workflow sharing the same job names, so a 2s `e2e-smoke pass` can sit beside
+> the real 217s run. Verify via
+> `gh api repos/<o>/<r>/commits/<sha>/check-runs` and pick the long-duration
+> entry. Real run on the final SHA: **105 passed + 1 skipped = 106**, matching
+> the local `--list` count (9 `reports-hub` + 17 `reporting-redirects`), which is
+> how execution is proven — Playwright's CI reporter never names passing tests.
+>
+> Of the 16 findings, 3 were in shipped product code (a negative Outstanding, a
+> Cash Flow tile claiming month-over-month and running balances that do not
+> exist, an orphaned module retaining a recharts import). The other 13 were
+> guards that looked correct and were not — a pin satisfied by a comment, an
+> `aria-label` the `paragraph` role prohibits, a scan rooted where the risk is
+> not, a must-survive assertion matching a sibling function, and an exemption
+> whose per-entry staleness check REWARDED the silencing edit it existed to
+> block. That last one now uses an equality pin, the only bound that survives.
 Plan: 8 of 8
 Status: Phase complete - all 8 plans executed, CI green on PR #957
 
