@@ -27,7 +27,19 @@ See: .planning/PROJECT.md
 
 Phase: 56 (reporting-hub-documents-landing) — ALL 8 PLANS EXECUTED
 Plan: 8 of 8
-Status: Phase complete — ready for verification
+Status: Phase complete - all 8 plans executed, CI green on PR #957
+
+> **BOTH E2E SPECS ARE CONFIRMED EXECUTING IN CI, not merely registered.**
+> Second `e2e-smoke` run (after 56-07 + 56-08): **105 passed + 1 skipped = 106**.
+> A local `--list` under CI's exact
+> `--project=smoke --project=public --project=owner-axe` selection resolves to
+> the same **106 tests in 10 files** - **9 `reports-hub` + 17
+> `reporting-redirects`**. The single skip is a conditional in
+> `critical-paths`/`seo-smoke`; neither phase-56 spec contains a skip.
+>
+> This matters because a green `e2e-smoke` says nothing about WHICH tests ran.
+> Playwright's CI reporter does not name passing tests and the workflow uploads
+> a report only on failure, so the count comparison is the proof, not the badge.
 Last activity: 2026-07-31 — executed 56-08 (3 tasks, 3 commits: `71eb083ef` route tables + breadcrumbs + links, `f6b8a4df2` D-35 fabricated A/R deletion, `1676b0a10` D-37 zero-payment-count export deletion)
 
 > **THE SWEEP IS AT 0, AND THE FILTER WAS NEVER WIDENED.**
