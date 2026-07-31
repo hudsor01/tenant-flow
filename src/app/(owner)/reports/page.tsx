@@ -8,11 +8,13 @@
  * not know the viewer's tier — the `Growth` badge is derived statically from
  * `hasGrowthBadge`, so no subscription state can leak into server-rendered HTML.
  *
- * D-34 ZERO CHARTS: nothing under `src/app/(owner)/reports/**` may import
- * `recharts`, `ChartContainer` or `ResponsiveContainer`. The four chart-bearing
- * sections this page used to dynamic-import are deleted, not relocated — moving
- * them anywhere inside `/reports` would violate the same invariant. Enforced by
- * `__tests__/reports-hub-purity.test.ts`.
+ * D-34 ZERO CHARTS: no charting library or chart primitive may be imported
+ * anywhere under `src/app/(owner)/reports/**`. The four chart-bearing sections
+ * this page used to dynamic-import are deleted, not relocated — moving them
+ * anywhere inside `/reports` would violate the same invariant. The exact banned
+ * identifiers and the enforcement live in `__tests__/reports-hub-purity.test.ts`;
+ * they are deliberately not spelled out here, so that a repo-wide grep for them
+ * returns only real violations.
  *
  * No error boundary wraps the tile grid: the strip degrades in place, and an
  * outer boundary would let a strip failure remove the directory, which is this
