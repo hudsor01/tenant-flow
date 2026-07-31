@@ -41,17 +41,28 @@
  * So the label scan skips exactly one route directory, `/reports/income-statement/`,
  * and the JSX matcher is widened to span newlines in exchange. Outside that one
  * route D-18 is now enforced MORE strictly than before: the old one-line-only
- * matcher let a multi-line JSX text run through. The exemption is bounded by
- * three assertions below, and the first two run PER ENTRY: every entry must
- * resolve to a real directory, and every entry must still be flagging something
- * (a stale or over-reaching entry fails). The third asserts no entry can ever
- * cover the hub index, the tile directory or the summary strip, which are the
- * surfaces D-18 actually governs.
+ * matcher let a multi-line JSX text run through.
  *
- * The per-entry form matters and the aggregate form was not good enough: with
- * `income-statement/` permanently flagging, an aggregate check would let the
- * list be widened to every route directory while still passing, which is how a
- * real D-18 violation gets silenced by a one-line edit that reads as routine.
+ * THE EXEMPTION LIST IS PINNED BY EQUALITY, and that is the only bound that
+ * actually holds. Two weaker forms were tried and both failed:
+ *
+ *   1. An aggregate "some exempt dir still carries a flagged label" check. With
+ *      `income-statement/` permanently flagging, every entry appended after it
+ *      was checked for nothing but `existsSync`.
+ *   2. The same check applied PER ENTRY. Still defeated, and in the worst
+ *      possible way: the silencing edit is "add a bare Revenue label, watch the
+ *      scan fail, append that directory to the exemption" — and a per-entry
+ *      staleness check PASSES on that, because the newly added label is exactly
+ *      the thing it looks for. It rewards the edit it exists to block.
+ *
+ * No property-based bound survives, because every property the exemption should
+ * have is also a property the silencing edit produces. Equality is the only
+ * assertion that fails on ANY widening. It cannot stop someone with commit
+ * access — nothing can — but it forces the diff to edit a literal list, which
+ * reads in review as "widened the D-18 exemption" instead of as maintenance.
+ *
+ * The per-entry existsSync and never-covers-the-hub-surfaces assertions are
+ * kept below as defence in depth, not as the primary bound.
  *
  * Two behaviours are carried over verbatim from the `rent-ledger-money.test.ts`
  * analog, and both are load-bearing: comments are stripped before matching, so
@@ -339,6 +350,27 @@ describe("D-18 revenue vocabulary under /reports", () => {
 });
 
 describe("D-18 the accounting exemption stays bounded", () => {
+	it("is EXACTLY this list — widening it must be a deliberate, visible edit", () => {
+		// EQUALITY, never a subset or a property check. This is the repo's own
+		// established pattern for a list that must not drift (see
+		// `reporting-redirects.test.ts`: "EQUALITY, never a subset check").
+		//
+		// Every property-based bound is defeatable by the same one-line edit it
+		// is supposed to block, and the staleness check is worse than useless
+		// against it: appending a directory BECAUSE it just started carrying a
+		// Revenue label makes that check PASS, since the newly added label is
+		// exactly what it looks for. So the silencing edit — add a bare Revenue
+		// label, watch the scan fail, append its directory here — satisfies every
+		// property assertion below.
+		//
+		// Nothing can stop a maintainer with commit access from widening this.
+		// The point is to make widening impossible to do QUIETLY: appending a
+		// directory now also fails this assertion, so the diff must additionally
+		// edit a list literal named "the exemption", which reads in review as
+		// "widened the D-18 exemption" rather than as routine maintenance.
+		expect(D18_EXEMPT_DIRS).toEqual([`${REPORTS_ROOT}/income-statement/`]);
+	});
+
 	it("can never excuse the surfaces D-18 actually governs", () => {
 		// The hub index, the tile data module and the summary strip are the
 		// Scheduled/Collected surfaces. No exemption may ever reach them.
