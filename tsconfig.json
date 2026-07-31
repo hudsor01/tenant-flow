@@ -72,7 +72,8 @@
 		".next/dev/types/**/*.ts",
 		"next.config.ts",
 		"scripts/**/*.ts",
-		".next/dev/dev/types/**/*.ts"
+		".next/dev/dev/types/**/*.ts",
+		"supabase/functions/__tests__/**/*.ts"
 	],
 	"exclude": [
 		"node_modules",

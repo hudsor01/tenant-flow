@@ -80,6 +80,12 @@ export default defineConfig({
 					include: [
 						"src/**/*.{test,spec}.{ts,tsx}",
 						"scripts/**/*.{test,spec}.{ts,tsx}",
+						// Node-side guards over the Deno edge functions. The edge
+						// functions themselves are NOT importable from Vitest (explicit
+						// `.ts` specifiers + `Deno.serve`), so these tests read their
+						// source from disk. `supabase/functions/tests/` is the separate
+						// Deno test directory and stays out of this pattern.
+						"supabase/functions/__tests__/**/*.{test,spec}.ts",
 					],
 					exclude: [
 						"node_modules",
