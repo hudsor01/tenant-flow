@@ -42,10 +42,16 @@
  * and the JSX matcher is widened to span newlines in exchange. Outside that one
  * route D-18 is now enforced MORE strictly than before: the old one-line-only
  * matcher let a multi-line JSX text run through. The exemption is bounded by
- * three assertions below — it must resolve to a real directory, it must still
- * be flagging something (a stale exemption fails), and it can never cover the
- * hub index, the tile directory or the summary strip, which are the surfaces
- * D-18 actually governs.
+ * three assertions below, and the first two run PER ENTRY: every entry must
+ * resolve to a real directory, and every entry must still be flagging something
+ * (a stale or over-reaching entry fails). The third asserts no entry can ever
+ * cover the hub index, the tile directory or the summary strip, which are the
+ * surfaces D-18 actually governs.
+ *
+ * The per-entry form matters and the aggregate form was not good enough: with
+ * `income-statement/` permanently flagging, an aggregate check would let the
+ * list be widened to every route directory while still passing, which is how a
+ * real D-18 violation gets silenced by a one-line edit that reads as routine.
  *
  * Two behaviours are carried over verbatim from the `rent-ledger-money.test.ts`
  * analog, and both are load-bearing: comments are stripped before matching, so
@@ -348,18 +354,30 @@ describe("D-18 the accounting exemption stays bounded", () => {
 		expect(existsSync(join(cwd, dir))).toBe(true);
 	});
 
-	it("is not stale — the exempt route still carries a label the scan would flag", () => {
-		// If this fails the exemption has outlived its cause and must be deleted,
-		// not kept "just in case".
-		const flagged = relPaths.filter(
-			(rel, index) =>
-				isD18Exempt(rel) &&
-				findRevenueLabelViolations(
-					readFileSync(reportsFiles[index] ?? "", "utf8"),
-				).length > 0,
-		);
-		expect(flagged.length).toBeGreaterThan(0);
-	});
+	it.each(D18_EXEMPT_DIRS)(
+		"is not stale — %s still carries a label the scan would flag",
+		(dir) => {
+			// PER ENTRY, not aggregated. An aggregate `flagged.length > 0` bounds
+			// only the list as a whole: with `income-statement/` permanently
+			// flagging, every entry appended after it is checked for nothing but
+			// existsSync, so the list could be widened to all seven route dirs and
+			// still pass. Silencing a real D-18 violation by appending one line
+			// reads as routine maintenance in review, whereas deleting this test
+			// reads as deleting a test — which is exactly why the weaker form was
+			// not good enough.
+			//
+			// If this fails, the exemption has outlived its cause and must be
+			// deleted, not kept "just in case".
+			const flagged = relPaths.filter(
+				(rel, index) =>
+					rel.startsWith(dir) &&
+					findRevenueLabelViolations(
+						readFileSync(reportsFiles[index] ?? "", "utf8"),
+					).length > 0,
+			);
+			expect(flagged.length).toBeGreaterThan(0);
+		},
+	);
 });
 
 describe("reports hub purity detector", () => {
