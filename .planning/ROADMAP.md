@@ -137,7 +137,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 
 Plans:
 - [x] 56-01-PLAN.md — Hub building blocks: 7-entry directory, uniform tile, D-30 summary strip, premium-slug mirror
-- [ ] 56-02-PLAN.md — The 7-entry redirect map module plus its 17 pinned invariants
+- [x] 56-02-PLAN.md — The 7-entry redirect map module plus its 17 pinned invariants
 - [ ] 56-03-PLAN.md — Hub index RSC rewrite, /reports/analytics deletion, zero-charts guard
 - [ ] 56-04-PLAN.md — Tier-gate drift guard across both edge functions and the frontend mirror
 - [ ] 56-05-PLAN.md — Five statement routes copied into the hub (copy, not move — RPTHUB-04 ordering)
@@ -263,7 +263,7 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 �
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
 | 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
-| 56. Reporting Hub | 1/8 | In Progress|  |
+| 56. Reporting Hub | 2/8 | In Progress|  |
 | 65. Documents Landing (executes after 56) | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |

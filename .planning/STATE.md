@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-07-31T12:45:56.878Z"
+last_updated: "2026-07-31T12:56:45.846Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 14
   completed_phases: 4
   total_plans: 35
-  completed_plans: 28
+  completed_plans: 29
   percent: 29
 ---
 
@@ -26,15 +26,18 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 56 (reporting-hub-documents-landing) — EXECUTING
-Plan: 2 of 8
-Status: Wave 1 in progress — 56-01 complete (hub primitives), 56-02 next
-Last activity: 2026-07-31 — executed 56-01 (3 tasks, 5 files, 3 commits)
+Plan: 3 of 8
+Status: Wave 1 complete — 56-01 (hub primitives) + 56-02 (redirect map) done; wave 2 (56-03, 56-04) next
+Last activity: 2026-07-31 — executed 56-02 (2 tasks, 2 files, 2 commits)
 
 > **Requirements NOT yet marked complete.** RPTHUB-01 and RPTHUB-03 are listed
-> in 56-01's frontmatter but 56-01 delivers primitives only — no hub index
-> exists (56-03), `/financials` is not absorbed (56-07), and the tier-gate
-> drift guard is unwritten (56-04). Marking them complete here was reverted as
-> a false claim; the last plan that actually delivers each requirement marks it.
+> in 56-01's frontmatter, and RPTHUB-02 in 56-02's, but neither plan delivers
+> them — no hub index exists (56-03), `/financials` is not absorbed (56-07),
+> the tier-gate drift guard is unwritten (56-04), and the redirect map is
+> authored but deliberately unwired from `next.config.ts` until 56-07 (D-11).
+> Marking RPTHUB-01/03 complete in 56-01 was reverted as a false claim, and
+> 56-02 did not mark RPTHUB-02 for the same reason; the last plan that
+> actually delivers each requirement marks it.
 
 > **Phase 56 is planned and gate-clean.** Branch `gsd/phase-56-reconciled`.
 > Two planning lines were reconciled to full separation (D-29): `/reports`
@@ -53,7 +56,7 @@ Last activity: 2026-07-31 — executed 56-01 (3 tasks, 5 files, 3 commits)
 > `accounts_receivable`), the permanently-zero analytics cards, and the same
 > broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 83%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
