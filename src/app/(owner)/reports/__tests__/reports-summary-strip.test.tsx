@@ -75,16 +75,28 @@ describe("ReportsSummaryStrip", () => {
 		mockResult({ data: { scheduled: 2000, collected: 1750, rate: 87.5 } });
 		render(<ReportsSummaryStrip />);
 
-		expect(screen.getByText(/this month/i)).toBeInTheDocument();
+		// Exact match, not /this month/i — the regex also matches the three
+		// sr-only figure labels below, which is a multiple-match error.
+		expect(screen.getByText("this month")).toBeInTheDocument();
 
 		// Screen readers must get the scope on the figure itself — the visible
 		// caption is not adjacent enough in the accessibility tree.
+		//
+		// Asserted via getByText, not getByLabelText. getByLabelText matches the
+		// raw attribute rather than computing an accessible name, so it passed
+		// against an `aria-label` on a `<p>` — an attribute the implicit
+		// `paragraph` role PROHIBITS, which AT discards.
 		expect(
-			screen.getByLabelText("Scheduled this month: $2,000.00"),
+			screen.getByText("Scheduled this month: $2,000.00"),
 		).toBeInTheDocument();
 		expect(
-			screen.getByLabelText("Outstanding this month: $250.00"),
+			screen.getByText("Outstanding this month: $250.00"),
 		).toBeInTheDocument();
+
+		// The prohibited shape must not come back.
+		expect(
+			document.querySelector("p[aria-label], p[aria-labelledby]"),
+		).toBeNull();
 	});
 
 	it("clamps Outstanding at zero when collected exceeds scheduled", () => {

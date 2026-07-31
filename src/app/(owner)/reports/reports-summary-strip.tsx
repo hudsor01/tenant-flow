@@ -75,11 +75,22 @@ function MetricCard({
 							"text-xl font-semibold tabular-nums leading-snug",
 							valueClassName,
 						)}
-						// Screen readers get the period on the figure itself; the
-						// visible caption below is not adjacent enough in the a11y tree.
-						aria-label={`${label} ${PERIOD_LABEL}: ${value}`}
 					>
-						{value}
+						{/*
+						 * Screen readers get the period on the figure itself; the
+						 * visible caption is not adjacent enough in the a11y tree.
+						 *
+						 * Carried by sr-only text, NOT `aria-label` on this `<p>`.
+						 * The implicit `paragraph` role prohibits `aria-label` and
+						 * `aria-labelledby` (axe-core `prohibitedAttrs`), so an
+						 * `aria-label` here is discarded by AT and the scoping never
+						 * reaches the user it was added for. A unit test cannot catch
+						 * that on its own: `getByLabelText` matches the raw attribute
+						 * rather than computing an accessible name, so the prohibited
+						 * version passed green.
+						 */}
+						<span className="sr-only">{`${label} ${PERIOD_LABEL}: ${value}`}</span>
+						<span aria-hidden="true">{value}</span>
 					</p>
 				)}
 			</CardContent>

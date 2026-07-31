@@ -68,6 +68,24 @@ const DELETED_D33_FILES: readonly string[] = [
 	`${REPORTS_ROOT}/analytics/analytics-payment-methods-chart.tsx`,
 ];
 
+/**
+ * The four chart-bearing report sections this phase deleted. They lived OUTSIDE
+ * `REPORTS_ROOT`, so the token scan below cannot see them — and the pre-PR hub
+ * reached them by dynamic import (`dynamic(() => import(
+ * "#components/reports/sections/financial-report-section"))`), a string that
+ * matches none of CHART_PATTERNS. Without this list, reverting to exactly the
+ * configuration this phase removed passes the guard green.
+ *
+ * `year-end-report-section.tsx` is deliberately absent: it survives, is
+ * chart-free, and is genuinely imported by `/reports/year-end`.
+ */
+const DELETED_CHART_SECTIONS: readonly string[] = [
+	"src/components/reports/sections/financial-report-section.tsx",
+	"src/components/reports/sections/property-report-section.tsx",
+	"src/components/reports/sections/tenant-report-section.tsx",
+	"src/components/reports/sections/maintenance-report-section.tsx",
+];
+
 /** D-34: charting must not exist under the hub in any form. */
 const CHART_PATTERNS: readonly { name: string; pattern: RegExp }[] = [
 	{ name: "recharts import", pattern: /from\s+["']recharts["']/ },
@@ -76,6 +94,14 @@ const CHART_PATTERNS: readonly { name: string; pattern: RegExp }[] = [
 	{
 		name: "ResponsiveContainer identifier",
 		pattern: /\bResponsiveContainer\b/,
+	},
+	// Reaching a chart through an out-of-subtree module is the evasion the
+	// token patterns above structurally cannot catch, because the `recharts`
+	// string lives in the imported file, not the importing one.
+	{
+		name: "import of a deleted chart section",
+		pattern:
+			/["'][^"']*reports\/sections\/(financial|property|tenant|maintenance)-report-section["']/,
 	},
 ];
 
@@ -224,6 +250,27 @@ describe("D-34 zero charts under /reports", () => {
 			.filter(({ violations }) => violations.length > 0)
 			.map(({ path, violations }) => `${path}: ${violations.join(", ")}`);
 		expect(offenders).toEqual([]);
+	});
+
+	it.each(DELETED_CHART_SECTIONS)(
+		"keeps the chart-bearing section %s deleted",
+		(rel) => {
+			// The token scan cannot reach these — they live outside REPORTS_ROOT,
+			// and the pre-PR hub imported them dynamically, which matches no
+			// recharts token in the importing file. Absence is the only pin.
+			expect(existsSync(join(cwd, rel))).toBe(false);
+		},
+	);
+
+	it("the deleted-section importer pattern actually fires", () => {
+		// The pre-PR hub's exact shape. A pattern that never fires is not a guard.
+		const preFixShape = `const FinancialReportSection = dynamic(() => import("#components/reports/sections/financial-report-section"));`;
+		expect(findChartViolations(preFixShape)).toContain(
+			"import of a deleted chart section",
+		);
+		// year-end survives and is chart-free — it must NOT be flagged.
+		const survivor = `import { YearEndReportSection } from "#components/reports/sections/year-end-report-section";`;
+		expect(findChartViolations(survivor)).toEqual([]);
 	});
 });
 
