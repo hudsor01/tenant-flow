@@ -2,125 +2,235 @@
 
 **Gathered:** 2026-07-26
 **Revised:** 2026-07-26 (user scope correction - see D-27; directory name retains the pre-split slug)
+**Reconciled:** 2026-07-30 (FULL SEPARATION - see `<scope_correction>`; supersedes the 2026-07-26
+partial-separation position)
 **Status:** Ready for planning
+
+<scope_correction>
+## FULL SEPARATION supersedes partial separation - READ BEFORE PLANNING
+
+**What changed.** On 2026-07-26 this phase settled on *partial* separation: `/analytics` kept its
+six operational routes, but the one page `/analytics/financial` still folded into the hub and merged
+into `/reports/analytics`, so `/reports` kept a chart page. **That position was put to the user again
+on 2026-07-30 as the RECOMMENDED option and the user REJECTED it.**
+
+The 2026-07-30 discussion offered three readings of RPTHUB-01 (see 56-DISCUSSION-LOG.md, Session 2,
+"Analytics boundary" Q1):
+
+| Option | This was... | Chosen |
+|---|---|:---:|
+| **Financial-only absorb** - only `/analytics/financial` moves; operational analytics stay | **exactly the 2026-07-26 position**, offered as the recommendation | |
+| **Full separation** - `/reports` holds statements + exports only; ALL analytics including financial stays at `/analytics` | contradicts RPTHUB-01 as written | **YES** |
+| Total absorb - all of `/analytics/*` folds into `/reports` | the original pre-correction scope | |
+
+**The locked position is FULL SEPARATION:**
+
+1. **`/reports` holds financial statements + exports ONLY. ZERO charts anywhere under
+   `/reports/**`.** No `recharts` import, no `ChartContainer`, no `ResponsiveContainer` may survive
+   under `src/app/(owner)/reports/**` after this phase.
+2. **`/analytics/financial` STAYS LIVE at its current route.** It is NOT moved, NOT merged, NOT
+   redirected, NOT deleted. Under full separation it is a destination, not a legacy URL.
+3. **`/reports/analytics` is DELETED** and 308-redirects **INTO `/analytics/overview`** - the one
+   redirect in this phase that points *away* from the hub.
+4. **Reports and Analytics are two peer top-level nav entries.**
+
+**Conceptual line - use as the tiebreaker whenever it is unclear which surface a view belongs to:**
+**Reports** answers *"what do I owe / what did I collect"*. **Analytics** answers *"how is the
+portfolio trending"*.
+
+**What this changes mechanically.** The redirect map's 7th entry **INVERTS**: the old
+`/analytics/financial -> /reports/analytics` becomes `/reports/analytics -> /analytics/overview`.
+Count stays 7; direction and guard sets do not. See D-32 for the restated map.
+
+**Rationale (user, verbatim from the 2026-07-26 session and re-affirmed by the 2026-07-30 choice):**
+*"take the split seriously because analytics and the other scope is supposed to be separate for
+better navigation and ultimately a better user experience"*. The 2026-07-26 revision honoured the
+letter of that and left one chart page inside `/reports`; the 2026-07-30 choice removes the
+exception. **Do not silently re-merge the surfaces by following stale requirement text** -
+RPTHUB-01/RPTHUB-02 have been amended in `.planning/REQUIREMENTS.md` to match, and ROADMAP.md
+Phase 56 carries a dated revision note.
+
+**Unaffected by this correction:** the Phase 56 / Phase 65 split (D-27). DOCS-01 and the entire
+`/documents` landing remain Phase 65's property. Phase 56 carries RPTHUB-01..04 only. Do not
+re-add any `/documents` scope here.
+</scope_correction>
 
 <domain>
 ## Phase Boundary
 
-Collapse the duplicated financial-reporting surfaces (`/financials/*`, `/analytics/financial`,
-`/reports/*`) into one `/reports` hub with real sub-routes, redirect every legacy financial URL
-308 via `next.config.ts`, and prove the premium-export tier gate survives the consolidation.
+Collapse the duplicated financial-statement surfaces (`/financials/*` and the chart-bearing
+`/reports/*` index) into one `/reports` hub that holds **statements and exports only**, redirect
+every legacy financial URL 308 via `next.config.ts`, retire the hub's chart page into `/analytics`,
+and prove the premium-export tier gate survives the consolidation.
 Requirements: RPTHUB-01, RPTHUB-02, RPTHUB-03, RPTHUB-04.
 
-`/analytics` is **not** part of this phase's URL space, and `/documents` has moved out of this
-phase entirely (D-27). Reports = financial statements + exports. Analytics = operational insight.
-Two distinct product surfaces, two nav sections, two URL trees.
+`/analytics` is **not** part of this phase's URL space beyond receiving one inbound redirect, and
+`/documents` has moved out of this phase entirely (D-27). **Reports = financial statements +
+exports, zero charts. Analytics = every chart, operational and financial.** Two distinct product
+surfaces, two peer nav entries, two URL trees.
 
-**In scope:** the `/reports` hub IA (Statements / Analytics / Exports), absorbing `/financials/*`
-plus the single page `/analytics/financial` into hub sub-routes, the 7-entry `next.config.ts`
-redirect map, deletion of the superseded route files, E2E coverage on hub routes before any
-removal, and verification that `PREMIUM_REPORT_TYPES` gating still holds.
+**In scope:** the `/reports` hub IA (Statements / Exports), absorbing all six `/financials/*` routes
+into hub sub-routes, deleting `/reports/analytics` and the chart sections on the current `/reports`
+index, the 7-entry `next.config.ts` redirect map (six inbound + one outbound), deletion of the
+superseded route files and of the permanently-zero analytics cards (D-33), E2E coverage on hub
+routes before any removal, and verification that `PREMIUM_REPORT_TYPES` gating still holds.
 
 **Out of scope (do not build):**
-- **Absorbing the rest of `/analytics/*`.** `/analytics` (index), `/analytics/leases`,
-  `/analytics/maintenance`, `/analytics/occupancy`, `/analytics/overview` and
-  `/analytics/property-performance` KEEP their URLs, keep their nav section, and are not touched,
-  not redirected and not E2E-covered here. (Reverses the earlier D-05 expansion - see D-05 REVISED.)
+- **Absorbing any part of `/analytics/*`.** All seven analytics routes - `/analytics` (index),
+  `/analytics/financial`, `/analytics/leases`, `/analytics/maintenance`, `/analytics/occupancy`,
+  `/analytics/overview`, `/analytics/property-performance` - KEEP their URLs, keep their nav
+  section, and are not moved, not redirected and not deleted. (D-29.)
+- **Any chart under `/reports/**`.** Not relocated within the hub, not rebuilt, not "kept for now".
+  (D-34.)
 - **The `/documents` landing (DOCS-01).** Moved to its own phase (D-27). Nothing about
   `/documents`, the vault, the lease-template builder or the printable templates is built here.
 - **A longest-prefix-wins nav active-state resolver.** No longer needed and explicitly not in
   scope - see D-07 REVISED.
-- New report types or new analytics visualizations - this phase MOVES and CONSOLIDATES existing
-  surfaces, it does not add reporting capability.
+- New report types or new analytics visualizations - this phase MOVES, CONSOLIDATES and DELETES
+  existing surfaces, it does not add reporting capability.
 - De-duplicating `PREMIUM_REPORT_TYPES` across the two edge functions (deferred, see below).
 - Any change to `proxy.ts` - RPTHUB-02 explicitly routes redirects through `next.config.ts` only.
 - Re-deriving revenue figures. Phase 55 already fixed the vocabulary; the hub consumes it.
+- **Editing `/analytics/financial`.** It stays exactly as it is. Its `ExportButtons` paywall
+  divergence is a real defect but it is on a route this phase does not touch - see D-21 MOOT.
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
+> **Reading guide.** Decision IDs are preserved so downstream references still resolve. A decision
+> that no longer holds is marked **SUPERSEDED by D-nn** or **MOOT** with the reason stated -
+> never silently rewritten. D-29..D-34 are the 2026-07-30 full-separation decisions.
+
+### The load-bearing decision (2026-07-30)
+
+- **D-29: FULL SEPARATION. Supersedes D-05 REVISED, D-06 and D-08 REVISED.**
+  `/reports` holds financial **statements + exports only**. **ALL** analytics - operational *and*
+  financial - lives at `/analytics`.
+  - **`/analytics/financial` stays live at its current URL.** Not moved, not merged, not redirected,
+    not deleted, not edited by this phase.
+  - **`/reports/analytics` is deleted** and 308-redirects into `/analytics/overview` (D-32).
+  - **Two peer top-level nav entries**, `Reports -> /reports` and `Analytics -> /analytics`.
+  - Tiebreaker: Reports = *"what do I owe / what did I collect"*; Analytics = *"how is the portfolio
+    trending"*.
+
+  **Which earlier decisions this kills, and why:**
+
+  | Was | Now |
+  |---|---|
+  | **D-05 REVISED** - only `/analytics/financial` folds into the hub | **SUPERSEDED.** *Nothing* folds into the hub. |
+  | **D-06** - `/analytics/financial` merges into the existing `/reports/analytics` page | **SUPERSEDED.** There is no merge and no merge target: `/reports/analytics` is deleted. |
+  | **D-08 REVISED** - the `/analytics` index survives and its financial entry becomes a cross-link to `/reports/analytics` | **SUPERSEDED, and it was factually wrong.** `src/app/(owner)/analytics/page.tsx` is four lines - `redirect("/analytics/overview")`. **There is no rendered `/analytics` index and no "financial entry" to cross-link** (56-RESEARCH.md Finding X1 already recorded this). Under D-29 that file is untouched. |
+
+- **D-34: ZERO-CHARTS INVARIANT under `/reports/**`.** After this phase, no `recharts` import, no
+  `ChartContainer` and no `ResponsiveContainer` may appear anywhere under
+  `src/app/(owner)/reports/**`. Grep-checkable, and it must be asserted as a test.
+  **Verified current violations that this phase must clear:**
+  - `src/app/(owner)/reports/analytics/analytics-revenue-chart.tsx`
+  - `src/app/(owner)/reports/analytics/analytics-occupancy-chart.tsx`
+  - `src/app/(owner)/reports/analytics/analytics-payment-methods-chart.tsx`
+  - `src/app/(owner)/reports/page.tsx` dynamic-imports four chart-bearing sections from
+    `#components/reports/sections/` - `financial-report-section` (recharts `AreaChart`),
+    `property-report-section` (`BarChart`), `tenant-report-section` (`LineChart`),
+    `maintenance-report-section` (`BarChart` + `LineChart`). **Verified: those four are imported by
+    `src/app/(owner)/reports/page.tsx` and by nothing else**, so replacing the index orphans them
+    cleanly. `year-end-report-section.tsx` is chart-free and stays (used by
+    `/reports/year-end/page.tsx`).
+
+  **This corrects line A's UI-SPEC discretion ruling** that the current `/reports` index content
+  "relocates to `/reports/generate`". Relocating chart sections to another route *inside* `/reports`
+  violates D-34. The date-range selector may move to `/reports/generate`; the four chart sections
+  may not.
+
 ### Hub structure (RPTHUB-01)
 - **D-01:** The hub uses **real sub-routes**, not tabs or a single scrolling page:
   `/reports/income-statement`, `/reports/cash-flow`, etc. Chosen because it gives every legacy URL
   a 1:1 redirect target, keeps deep links and E2E simple, and matches the sub-routes `/reports`
-  already has.
-- **D-02:** The hub index groups reports as **Statements / Analytics / Exports**. Statements =
-  income-statement, balance-sheet, cash-flow, tax-documents, expenses. Analytics = the absorbed
-  analytics views. Exports = generate + year-end. *(Grouping stands unchanged. The Analytics group
-  now holds exactly ONE entry - the merged `/reports/analytics` - because D-05 was reverted. Tile
-  inventory: see D-28.)*
-- **D-03:** The existing `/reports/generate`, `/reports/year-end` and `/reports/analytics` are
-  **re-slotted into the new grouping** rather than left in place. This means these three already-
-  correct URLs ALSO need redirect entries - the redirect map is not limited to the legacy
-  `/financials` and `/analytics` trees. *(Superseded on the redirect point by D-19 REVISED: flat
-  slugs make those three identity no-ops, so they get NO redirect entries. The re-slotting into the
-  grouping still stands - it is a hub-index concern, not a URL concern.)*
-- **D-04:** The `/reports` index is **navigation only** - a directory of available reports, no KPI
-  tiles, no data fetching. Rationale: nothing to keep honest, no risk of restating a dashboard
-  figure differently.
+  already has. **STANDS.**
+- **D-02 SUPERSEDED by D-31 on the grouping.** The Statements / Analytics / Exports grouping assumed
+  an Analytics group existed inside the hub. Under D-29 it has zero members. The grouping becomes
+  **Statements / Exports**.
+- **D-03:** The existing `/reports/generate` and `/reports/year-end` are **re-slotted into the new
+  grouping** rather than left in place. *(Superseded on the redirect point by D-32: flat slugs make
+  those two identity no-ops, so they get NO redirect entries. The re-slotting into the grouping
+  still stands - it is a hub-index concern, not a URL concern. The third re-slot target,
+  `/reports/analytics`, is deleted by D-29 and is no longer part of this decision.)*
+- **D-04 SUPERSEDED by D-30.** "`/reports` index is navigation only - no KPI tiles, no data
+  fetching."
+- **D-30 (supersedes D-04): the `/reports` index carries a summary strip ABOVE the statement
+  list.** Recorded 2026-07-30 from the user's selection in 56-DISCUSSION-LOG.md Session 2, "Hub
+  information architecture" Q2 - *"Summary strip + statement list"*, chosen over "Statement list
+  only (pure navigation index)". A Scheduled / Collected / Outstanding strip for the current period
+  sits above the statement entry points. **Rationale, in the user's framing:** the hub index should
+  *earn* being a page rather than being a menu, and it is the natural home for the roadmap's "real
+  ledger actuals, not a re-fabricated `collection_rate`".
 
-### The /analytics section (scope REVERTED to RPTHUB-01 as written)
+  **Why D-04 could not simply be preserved.** D-04's own consequence chain broke under D-29: D-20
+  ports Accounts Receivable *because* it is the one figure lost when `/financials` is deleted, and
+  the only reason it was pinned to `/reports/analytics` rather than the index was that D-04 forbade
+  data on the index. D-29 deletes `/reports/analytics`. Keeping D-04 would leave the ported figure
+  with nowhere to land. D-04 is therefore affected by the analytics question, not independent of it.
 
-The three decisions below were rewritten on 2026-07-26 on the user's explicit direction, after the
-original artifacts were written. The user's rationale, verbatim: *"take the split seriously because
-analytics and the other scope is supposed to be separate for better navigation and ultimately a
-better user experience"*, followed by the selection *"Revert D-05 - /analytics stays where it is"*.
-Reports and Analytics are two genuinely distinct product surfaces - financial statements and
-exports on one side, operational insight on the other - and collapsing them into one URL tree
-degraded navigation rather than simplifying it.
+  **Binding constraints on the strip** (all three inherited from Phase 55, none re-litigated here):
+  1. All three figures come from **one** payload. Outstanding is `scheduled - collected` **from that
+     same payload** - never sourced from `get_financial_overview.accounts_receivable`, which is a
+     different, lease-derived notion of outstanding. Two derivations wearing one label is exactly
+     the D-18 failure.
+  2. Scheduled and Collected are **never summed** (D-18). Subtraction within one period is the
+     defined complement of the collection rate and is permitted.
+  3. Values are dollars. Any `* 100`, `/ 100` or `formatCents` on them is a bug (this caused a real
+     100x overstatement in v8.0).
+- **D-31 (supersedes D-02's grouping and D-28's count): the hub index carries 7 tiles in 2 groups.**
+  **Statements (5)** = balance-sheet, cash-flow, expenses, income-statement, tax-documents;
+  **Exports (2)** = generate, year-end. **There is no Analytics group and no Analytics tile** - a
+  tile pointing at `/reports/analytics` would point at a redirect, and a tile pointing at
+  `/analytics/*` would rebuild inside the hub the cross-section overlap this phase exists to remove.
+  Any artifact still saying 13 tiles or 8 tiles is stale.
 
-- **D-05 REVISED (supersedes the original D-05 "absorb all of `/analytics/*`"):** Only
-  **`/analytics/financial`** folds into the hub - exactly the one page RPTHUB-01 names, no more.
-  The other six analytics routes (`/analytics` index, `/analytics/leases`,
-  `/analytics/maintenance`, `/analytics/occupancy`, `/analytics/overview`,
-  `/analytics/property-performance`) **keep their URLs and remain their own section**. They are not
-  moved, not redirected, not deleted and not re-covered by this phase's E2E. The original D-05
-  expansion (~6 extra redirects, ~6 extra E2E routes) is **withdrawn** - planners must NOT budget
-  for it.
-- **D-06:** `/analytics/financial` **merges into the existing `/reports/analytics`** page rather
-  than becoming a sibling sub-route. Read both `page.tsx` files first - they may already overlap
-  heavily, which determines how much merging is real work vs deletion. *(Unchanged - D-26 already
-  corrected the cost assumption.)*
-- **D-07 REVISED (supersedes the original D-07 "two entries, both pointing into the hub"):** The
-  navigation carries **two REAL sections, not two doors into one hub**:
-  `Reports -> /reports` and `Analytics -> /analytics`. Each section owns its own URL tree.
-  **Consequence - the nav active-state problem DISSOLVES.** The double-active bug the UI-SPEC
-  found (`src/components/shell/main-nav.tsx`, `isActive` at :188 / `startsWith` at :190 marking
-  both entries active on `/reports/analytics/*`) existed *only* because the original D-07 pointed
-  both hrefs into `/reports`. With `/reports` and `/analytics` there is **no prefix overlap**, so
-  the existing `startsWith` resolver is already correct. **The longest-prefix-wins resolver work
-  and its 6 pinned cases are DELETED from this phase** - from the UI-SPEC's active-state rule and
-  from RESEARCH N1. Do not carry it forward as a "latent bug fix"; it is out of scope now.
-- **D-08 REVISED (supersedes the original D-08 "the `/analytics` index is absorbed"):** The
-  `/analytics` index page **SURVIVES** at `/analytics`. Its financial entry becomes a **cross-link
-  pointing at the hub** (`/reports/analytics`), so owners who learned the old location still find
-  the financial view after it moves. That cross-link is the only edit `/analytics/page.tsx`
-  receives in this phase.
+### The /analytics section (D-29)
+- **D-07 REVISED - STANDS, and is strengthened.** The navigation carries **two REAL peer sections,
+  not two doors into one hub**: `Reports -> /reports` and `Analytics -> /analytics`. Each section
+  owns its own URL tree.
+  **Consequence - the nav active-state problem DISSOLVES.** The double-active bug the UI-SPEC found
+  (`src/components/shell/main-nav.tsx`, `isActive` declared at :188 / `startsWith` at :190) existed
+  *only* because the original D-07 pointed both hrefs into `/reports`. With `/reports` and
+  `/analytics` there is **no prefix overlap**, so the existing `startsWith` resolver is already
+  correct. **The longest-prefix-wins resolver work and its 6 pinned cases remain DELETED from this
+  phase** - from the UI-SPEC's active-state rule and from RESEARCH N1. Do not carry it forward as a
+  "latent bug fix"; it is out of scope.
+  **Correction under D-29:** line A's revision removed the `Financial` child from the Analytics nav
+  entry. **That removal is reverted.** `main-nav.tsx:60` (`{ label: "Financial", href:
+  "/analytics/financial" }`) **stays exactly as it is** - the route stays live, so removing its nav
+  entry would orphan a working page. The `Analytics` nav section is untouched by this phase.
+- **D-08 REVISED - SUPERSEDED by D-29** (see the table above; there is no rendered `/analytics`
+  index to edit).
 
 ### Legacy route removal (RPTHUB-02, RPTHUB-04)
 - **D-09:** Old route files are **deleted**; redirects live **only** in `next.config.ts`
   `redirects()`. Config redirects are evaluated before filesystem routing, so a leftover
   `page.tsx` would be dead code. One redirect map, one source of truth. Follow the existing
-  `permanent: true` entries in `next.config.ts` as the pattern.
+  `permanent: true` entries in `next.config.ts` as the pattern. **STANDS** - and under D-29 it now
+  applies to `src/app/(owner)/reports/analytics/` as well as `src/app/(owner)/financials/`.
 - **D-10:** Redirect targets are **1:1 to the exact equivalent**, never group-level:
-  `/financials/cash-flow -> /reports/cash-flow`, `/analytics/financial -> /reports/analytics`.
-  Bookmarks and search results land on what they asked for. *(Decision unchanged; the original
-  second example `/analytics/occupancy -> /reports/analytics/occupancy` was replaced because that
-  route no longer moves - D-05 REVISED.)*
+  `/financials/cash-flow -> /reports/cash-flow`. Bookmarks and search results land on what they
+  asked for. **STANDS.** *(The example `/analytics/financial -> /reports/analytics` is withdrawn -
+  that route no longer moves. The inverted 7th entry `/reports/analytics -> /analytics/overview`
+  targets the concrete route rather than `/analytics` precisely to honour this decision without a
+  redirect chain - see D-32.)*
 - **D-11:** Sequencing is enforced **inside this phase** by wave ordering:
   **build the hub -> E2E-cover the hub routes -> only then add redirects and delete legacy files.**
   There must never be a commit where a legacy route is gone and its hub replacement is unproven.
-  This is how RPTHUB-04 is satisfied.
+  This is how RPTHUB-04 is satisfied. **STANDS.**
 
 ### Tier gating (RPTHUB-03)
 - **D-12:** Verify the gate holds **in both** `supabase/functions/export-report/index.ts` (the
   `PREMIUM_REPORT_TYPES` set at :24, checked at :72) and
   `supabase/functions/generate-pdf/index.ts` (the mirror at :31, checked at :322), with a test.
   The duplication is **left in place** - consolidating shared Deno code across two deployed edge
-  functions is its own change, not "verify intact". Recorded as a deferred idea.
+  functions is its own change, not "verify intact". Recorded as a deferred idea. **STANDS.**
 - **D-13:** No route rewrite may bypass the gate. The hub's export CTAs must reach the same edge
   functions with the same `reportType` values - confirm the values still match after re-slotting.
+  **STANDS.**
 
 ### MOVED OUT OF PHASE 56 -> Phase 65 "Documents Landing" (DOCS-01)
 
@@ -130,7 +240,7 @@ degraded navigation rather than simplifying it.
 > planned, built, tested or shipped by Phase 56. Phase 56 planners: skip to "Carried forward from
 > Phase 55". Everything about the `/documents` landing - the three-band ladder, the six tiles, the
 > nested recent-documents panel, the vault-canonical decision and the reversed `permanentRedirect`
-> - travels with them.
+> - travels with them. **The 2026-07-30 full-separation correction does not touch this block.**
 
 - **D-14:** The landing shows **entry points plus a recent-documents list**. Entry points are the
   vault, the lease template builder, and the four printable templates. **Concern recorded (user
@@ -154,77 +264,96 @@ degraded navigation rather than simplifying it.
   vs **Collected** (ledger receipts). Nothing sums them. Any revenue figure the hub renders inherits
   this vocabulary exactly - the hub must not reintroduce a bare "Revenue" label or a third
   definition. See `.planning/phases/55-rent-ledger/55-CONTEXT.md` D-07/D-08.
+  **STANDS, and gains force under D-30** - the hub index now renders revenue figures, so D-18
+  governs the summary strip directly rather than only a downstream chart page.
 
-### Post-research decisions (locked 2026-07-26, after 56-RESEARCH.md)
+### Post-research decisions (locked 2026-07-26, reconciled 2026-07-30)
 
-Research surfaced facts that changed or added decisions. These are as binding as D-01..D-18.
+- **D-19 REVISED - SUPERSEDED by D-32.** The 7-entry map it defined was built on
+  `/analytics/financial -> /reports/analytics`. That entry inverts.
 
-- **D-19 REVISED (CORRECTS D-03; supersedes the 13-entry map): the redirect map is exactly 7
-  entries.** The 13-entry version assumed the withdrawn D-05 (all of `/analytics/*` absorbed). With
-  D-05 REVISED, only the six `/financials/*` routes and the single `/analytics/financial` route
-  move. **Emit exactly these 7, all `permanent: true` (308):**
+- **D-32 (supersedes D-19 REVISED): the redirect map is exactly 7 entries - six INTO the hub and
+  one OUT of it.** Emit exactly these 7, all `permanent: true` (308):
 
-  | source | destination |
-  |---|---|
-  | `/financials` | `/reports` |
-  | `/financials/balance-sheet` | `/reports/balance-sheet` |
-  | `/financials/cash-flow` | `/reports/cash-flow` |
-  | `/financials/expenses` | `/reports/expenses` |
-  | `/financials/income-statement` | `/reports/income-statement` |
-  | `/financials/tax-documents` | `/reports/tax-documents` |
-  | `/analytics/financial` | `/reports/analytics` |
+  | # | source | destination | direction |
+  |---|---|---|---|
+  | 1 | `/financials` | `/reports` | into hub |
+  | 2 | `/financials/balance-sheet` | `/reports/balance-sheet` | into hub |
+  | 3 | `/financials/cash-flow` | `/reports/cash-flow` | into hub |
+  | 4 | `/financials/expenses` | `/reports/expenses` | into hub |
+  | 5 | `/financials/income-statement` | `/reports/income-statement` | into hub |
+  | 6 | `/financials/tax-documents` | `/reports/tax-documents` | into hub |
+  | 7 | `/reports/analytics` | `/analytics/overview` | **OUT of hub** |
 
-  **The identity-no-op guard from the original D-19 STILL APPLIES.** Because the UI-SPEC chose FLAT
-  slugs, `/reports`, `/reports/analytics`, `/reports/generate` and `/reports/year-end` keep their
-  exact current paths. D-03 anticipated redirects for the re-slotted `/reports/*` routes; with flat
-  slugs those become **identity no-ops**, and emitting them produces `ERR_TOO_MANY_REDIRECTS` on
-  routes that work today. **Assert those 4 identity paths do NOT redirect.**
+  **Entry 7 is the only redirect in this phase that points away from `/reports`. Call it out in the
+  map's own comment so it is not "corrected" later by someone assuming all arrows point at
+  `/reports`.**
 
-  **Additionally, the six non-financial `/analytics/*` routes must ALSO not be emitted** -
-  `/analytics`, `/analytics/leases`, `/analytics/maintenance`, `/analytics/occupancy`,
-  `/analytics/overview`, `/analytics/property-performance` are not moving at all (D-05 REVISED).
-  A redirect on any of them breaks a live, correct route. Assert their absence the same way.
+  **Why the target is `/analytics/overview` and not `/analytics`.** Verified:
+  `src/app/(owner)/analytics/page.tsx` is `redirect("/analytics/overview")`. Targeting `/analytics`
+  would produce a 308 -> 307 chain on every legacy hit. Target the concrete route.
+
+  **Guard A - identity no-ops, must NOT be emitted (3 paths, down from 4).** Because the UI-SPEC
+  chose FLAT slugs, `/reports`, `/reports/generate` and `/reports/year-end` keep their exact current
+  paths; emitting them produces `ERR_TOO_MANY_REDIRECTS` on routes that work today.
+  **`/reports/analytics` LEAVES this guard set** - it is now map entry 7.
+
+  **Guard B - not moving, must NOT be emitted (7 paths, up from 6).** `/analytics`,
+  **`/analytics/financial`**, `/analytics/leases`, `/analytics/maintenance`, `/analytics/occupancy`,
+  `/analytics/overview`, `/analytics/property-performance`. A redirect on any of them breaks a live,
+  correct route. **`/analytics/financial` JOINS this guard set** - it is the single highest-risk
+  entry in the whole map, because a stale pre-correction `/analytics/financial -> /reports/analytics`
+  entry would 308 a live page into a URL that will no longer exist, *and* the D-32 entry-7 redirect
+  would then chain it back out. Assert the source array by **equality**, not subset.
+
+  Total assertions: **7 positive + 3 Guard A + 7 Guard B = 17.**
 
   Redirect ordering remains a non-issue: literal `source` values compile to both-ends-anchored
   regexes (verified from `.next/routes-manifest.json`), so `/analytics` cannot shadow
-  `/analytics/financial` - and with only `/analytics/financial` emitted, the question is moot.
+  `/analytics/financial`.
 
-- **D-20: Accounts Receivable is PORTED into the hub, not dropped.** It is the one figure that
-  disappears when `/financials` is deleted (profit margin survives via
-  `financial-overview-stats.tsx:141`). v10.0 is a claims-integrity milestone and Phase 55 spent its
-  entire budget on not losing or fabricating numbers - silently dropping one contradicts that. Carry
-  it onto a hub route as a single card.
+- **D-20: Accounts Receivable is PORTED, not dropped. STANDS on the principle; its landing surface
+  is now an OPEN QUESTION.** It is the one figure that disappears when `/financials` is deleted
+  (`financials-summary-stats.tsx:117-132` renders it; profit margin survives via
+  `financial-overview-stats.tsx:141`). v10.0 is a claims-integrity milestone - silently dropping one
+  figure contradicts that. **What changed:** line A pinned it to `/reports/analytics`, which D-29
+  deletes. **It cannot be folded into D-30's Outstanding tile** - A/R is `get_financial_overview`
+  lease-derived, Outstanding is `scheduled - collected` from the collection-rate payload, and
+  conflating them is the D-18 failure. See Open Questions.
 
-- **D-21: the `ExportButtons` divergent paywall path IS fixed in this phase.** It POSTs to
-  `export-report` with no `type` param, so the function defaults `reportType` to `"financial"` - a
-  `PREMIUM_REPORT_TYPES` member - and it surfaces the 402 as `FINANCIAL_EXPORT_FAILED` rather than
-  `PaywallError`. The D-06 merge would import a second, divergent paywall pattern into the hub.
-  Small and contained; two ways to surface the same 402 on one surface is precisely the
-  inconsistency this consolidation exists to end.
+- **D-21 MOOT for Phase 56 - the finding survives, the phase assignment does not.** D-21 required
+  fixing `ExportButtons`' divergent paywall path (POSTs to `export-report` with no `type` param, so
+  the function defaults `reportType` to `"financial"` - a `PREMIUM_REPORT_TYPES` member - and it
+  surfaces the 402 as `FINANCIAL_EXPORT_FAILED` rather than `PaywallError`). **Its entire
+  justification was "the D-06 merge would import a second, divergent paywall pattern into the hub."
+  D-29 removes the merge.** Verified: `ExportButtons` has exactly one call site,
+  `src/app/(owner)/analytics/financial/page.tsx:103` - a route this phase does not touch. Fixing it
+  here would mean editing a file outside the phase boundary. **The defect is real and is recorded in
+  Deferred Ideas and Open Questions; it is not silently dropped.**
 
-- **D-22: the merged analytics page gets ONE period control governing the whole page.** The two
-  source pages share zero state, so the merge inherits two independent controls. A `Select` that
-  silently governs only half the charts is the unacceptable outcome; a single control is the only
-  honest reading. (User delegated this to Claude's discretion; recorded here as locked.)
+- **D-22 MOOT.** "The merged analytics page gets ONE period control governing the whole page."
+  There is no merged page (D-29). Recorded rather than deleted so the reasoning is not re-derived:
+  the two source pages shared zero state, so a merge would have inherited two independent controls.
 
-- **D-23: the Analytics hub tile is NOT badged `Growth`.** The page is viewable on any tier and only
-  one export inside it is gated, so badging the whole tile would overstate the gate. This keeps the
-  UI-SPEC's approved tier-gate table unchanged - the contradicting evidence was considered and the
-  table stands.
+- **D-23 MOOT.** "The Analytics hub tile is NOT badged `Growth`." There is no Analytics hub tile
+  (D-31). The underlying rule survives inside the Tier Gate Contract: badge only entries whose CTA
+  provably reaches a gated `reportType`.
 
-- **D-24 AMENDED (reduced href set): `app-shell.tsx` carries a SECOND complete route table.** The
-  Cmd+K `commandGroups` route table is absent from the UI-SPEC and must be updated alongside the
-  nav, or the palette keeps deep-linking to deleted routes. The file's own comment records that a
-  prior review already caught this class of miss once. **With D-05 REVISED, exactly 6 hrefs change**
-  (verified against `src/components/shell/app-shell.tsx`): the **five** `/financials*` palette rows
-  at `:145` (`/financials`), `:148` (income-statement), `:151` (cash-flow), `:154` (balance-sheet),
-  `:159` (tax-documents), plus `:115` (`/analytics/financial`). **Note the palette has no
-  `/financials/expenses` row** - the route exists but was never added to the command palette, which
-  is why this is 6 and not 7. The five surviving analytics hrefs (`/analytics/overview` `:110`,
-  `/analytics/property-performance` `:120`, `/analytics/leases` `:125`,
-  `/analytics/maintenance` `:130`, `/analytics/occupancy` `:135`) **stay exactly as they are** - editing
-  them would point the palette away from live routes. The earlier "13 legacy hrefs" figure is
-  withdrawn along with D-05.
+- **D-24 AMENDED AGAIN (reduced from 6 hrefs to 5): `app-shell.tsx` carries a SECOND complete route
+  table.** The Cmd+K `commandGroups` route table is absent from the UI-SPEC and must be updated
+  alongside the nav, or the palette keeps deep-linking to deleted routes. The file's own comment
+  records that a prior review already caught this class of miss once. **With D-29, exactly 5 hrefs
+  change** (verified against `src/components/shell/app-shell.tsx`): the **five** `/financials*`
+  palette rows at `:145` (`/financials`), `:148` (income-statement), `:151` (cash-flow), `:154`
+  (balance-sheet), `:159` (tax-documents).
+  **`:115` (`/analytics/financial`) NO LONGER CHANGES** - the route stays live, so repointing it
+  would break a working deep link. That is the delta from the previous "6 hrefs".
+  **All six `/analytics/*` palette rows stay exactly as they are:** `/analytics/overview` `:110`,
+  `/analytics/financial` `:115`, `/analytics/property-performance` `:120`, `/analytics/leases`
+  `:125`, `/analytics/maintenance` `:130`, `/analytics/occupancy` `:135`.
+  **Note the palette has no `/financials/expenses` row, no `/reports/analytics` row and no
+  `/reports/year-end` row** - only `/reports` `:138` and `/reports/generate` `:139`, both of which
+  keep their paths. This is why the count is 5.
 
 - **D-25 (RPTHUB-04 is not satisfiable the obvious way): CI runs only
   `--project=smoke --project=public --project=owner-axe`** (`ci-cd.yml:162`). The `owner` Playwright
@@ -232,19 +361,62 @@ Research surfaced facts that changed or added decisions. These are as binding as
   already true of `owner-financials.e2e.spec.ts` and `reports-gate.spec.ts`. Hub-route coverage MUST
   land in **`owner-axe`**; redirect coverage in **`public`** (needs no auth - config redirects
   resolve at Next.js step 2, before Proxy at step 3, which is also why RPTHUB-02's "no proxy
-  involvement" holds structurally).
+  involvement" holds structurally). **STANDS UNCHANGED** - this is the single most likely way to
+  ship a green PR with zero real coverage.
 
-- **D-26 (CORRECTS the D-06 cost assumption): the two analytics pages do NOT overlap.** Zero shared
-  data sources, zero shared components (11 vs 5 children;
-  `analyticsQueries.financialPageData()` vs three `use-reports` hooks). Budget the merge as a
-  standalone plan, not a cheap dedup.
+- **D-26 REFRAMED (the cost argument is moot; the underlying fact is now supporting evidence).**
+  The finding was: `/reports/analytics` and `/analytics/financial` have **zero shared data sources
+  and zero shared components** (11 vs 5 children; `analyticsQueries.financialPageData()` vs three
+  `use-reports` hooks), so the D-06 merge was a standalone plan, not a cheap dedup. **There is no
+  merge to cost under D-29.** The fact is retained because it now argues the *other* way: two
+  surfaces that share nothing were never one surface pretending to be two, and deleting the weaker
+  one (D-33) rather than merging it is the cheaper and more honest move.
+
+- **D-33 (NEW, 2026-07-30): the permanently-zero analytics cards are DELETED, not carried into
+  `/analytics`.** `src/app/(owner)/reports/analytics/analytics-stats-row.tsx` and
+  `src/app/(owner)/reports/analytics/analytics-payment-methods-chart.tsx` are deleted as part of
+  this phase.
+
+  **Evidence - this is a VERIFIED LIVE PRODUCTION DEFECT, confirmed against the production
+  database:**
+  1. `src/hooks/api/query-keys/report-analytics-keys.ts:74-103` parses **snake_case** keys off the
+     `get_billing_insights` payload: `total_payments`, `successful_payments`, `failed_payments`,
+     `total_revenue`, `average_payment`, `payments_by_method`, `payments_by_status`.
+  2. The live `get_billing_insights` RPC returns ONLY these **camelCase** keys, verified by querying
+     prod: `churnRate`, `lateFeeTotal`, `mrr`, `tenantCount`, `totalRevenue`, `unpaidCount`,
+     `unpaidTotal`.
+  3. **Zero key overlap.** Every `insights?.<snake_case>` lookup is `undefined`, every `?? 0` fires,
+     and **every figure renders permanently 0 in production** - presented with confident labels:
+     *"Total Revenue / All payments / Successful collections"* and *"Payment Success - 0 of 0
+     payments"* and *"ACH Adoption / Lower fees"*.
+  4. **The underlying data is the wrong data anyway.** `get_billing_insights` returns the owner's
+     **TenantFlow subscription billing** (`mrr`, `churnRate`, `unpaidTotal`), not rental revenue.
+  5. **"Payment Methods: card vs ACH" is a claim this product cannot make.** TenantFlow is
+     landlord-only and **facilitates no rent payments** - a core product boundary. There is no
+     payment-method data to chart, and there never will be under the current product definition.
+
+  **Therefore:** delete both files. Do not relocate them to `/analytics`, do not relabel them, do
+  not "fix the key casing" - fixing the casing would surface subscription-billing figures under
+  rental-revenue labels, which is a worse claims violation than rendering zero.
+
+  **Two consequences the planner must handle, not skip:**
+  - `analytics-stats-row.tsx` contains **four** cards, and the third - **Occupancy Rate** - is NOT
+    part of the defect: it is sourced from `occupancyMetrics` (`get_occupancy_trends_optimized`,
+    real data), and it duplicates what `/analytics/occupancy` already renders. Deleting the file
+    deletes that card too. Confirm `/analytics/occupancy` covers it before deleting; if it does not,
+    that is a figure lost, and D-20's "nothing is silently dropped" rule applies.
+  - `src/lib/reports/report-data.ts:381` also consumes
+    `reportAnalyticsQueries.paymentAnalytics(start, end)` (via `safeFetch` with a
+    `PAYMENTS_FALLBACK`) to build the **executive-monthly export**. That export therefore renders
+    the same permanently-zero figures into a generated PDF/Excel. **This is a second instance of the
+    same defect on a different surface.** See Open Questions - it is not resolved here.
+
+  **This subsumes the old D-18 vocabulary-guard item** that required removing
+  `analytics-stats-row.tsx`'s "Total Revenue" card: the whole file goes, so the card cannot survive.
 
 ### Scope corrections (locked 2026-07-26, user directive - binding, post-artifact)
 
-These were issued by the user AFTER 56-CONTEXT/RESEARCH/UI-SPEC/VALIDATION were written and
-override anything already committed in them.
-
-- **D-27: THE PHASE IS SPLIT IN TWO.**
+- **D-27: THE PHASE IS SPLIT IN TWO. STANDS UNCHANGED - re-affirmed 2026-07-30.**
   - **Phase 56 = Reporting Hub.** Requirements **RPTHUB-01, RPTHUB-02, RPTHUB-03, RPTHUB-04**.
   - **Phase 65 = Documents Landing.** Requirement **DOCS-01**. Directory
     `.planning/phases/65-documents-landing/`.
@@ -264,23 +436,74 @@ override anything already committed in them.
   `permanentRedirect`. D-14/D-15/D-16/D-17 are quarantined above in a marked block for Phase 65
   to inherit verbatim. **The two phases share no code, no routes and no tests**, which is the whole
   justification for the split - shipping them together only coupled two unrelated reviews.
-  ROADMAP.md, REQUIREMENTS.md and the remaining 56-* artifacts must be reconciled to this split.
 
-- **D-28: the hub index carries 8 tiles, not 13.** Direct consequence of D-05 REVISED:
-  **Statements (5)** = balance-sheet, cash-flow, expenses, income-statement, tax-documents;
-  **Analytics (1)** = one entry pointing at `/reports/analytics`; **Exports (2)** = generate,
-  year-end. Plus wherever the D-20 Accounts Receivable card lands. Any artifact still saying 13
-  tiles is stale.
+- **D-28 SUPERSEDED by D-31.** "The hub index carries 8 tiles." It carries 7 - the Analytics group
+  and its single tile are gone with D-29.
 
 ### Claude's Discretion
 - The exact sub-route slugs under `/reports` (e.g. `/reports/exports/year-end` vs
   `/reports/year-end`) - pick whatever keeps the redirect map smallest while reading coherently.
-- Whether `/reports/analytics` needs its own index or routes straight to a default view.
-- Layout/composition of the hub index cards (defer to the UI phase if one runs).
-- Placement/wording of the `/analytics` index cross-link to `/reports/analytics` (D-08 REVISED).
+  The UI-SPEC has resolved this to **flat slugs**; a planner deviating must restate D-32's guard
+  sets.
+- Whether `/reports/generate` and `/reports/year-end` keep their current URLs or get renamed for
+  consistency with the statement routes - preserve deep links either way.
+- Whether the `/financials` component set (`financials-header`, `-highlights`, `-summary-stats`,
+  `-quick-links`, `-loading`, `-error`) is **moved and renamed** into the `/reports` tree or
+  reused in place. Recommended: move and rename - they already encode working loading/error
+  boundaries, and leaving them behind creates a directory whose routes are all redirects.
+- Where the `/reports` index's existing date-range selector lands (`/reports/generate` is the
+  natural home). **The four chart sections do not land anywhere inside `/reports` - D-34.**
 - *(Documents-landing discretion items - tile layout balance, server-rendered vs client-fetched
   recent list - moved to Phase 65 with D-14..D-17.)*
 </decisions>
+
+<open_questions>
+## Open Questions - NOT resolved here, do not resolve silently
+
+These are consequences of the 2026-07-30 correction that no recorded user decision covers. A
+planner may propose an answer; none may be treated as already decided.
+
+- **OQ-1: Where does the D-20 Accounts Receivable figure land?** Its previous home
+  (`/reports/analytics`) is deleted by D-29, and it **must not** be folded into D-30's Outstanding
+  tile (different derivation - `get_financial_overview` lease-derived A/R vs
+  `scheduled - collected`; conflating them is the D-18 failure). Candidates: a fourth tile on the
+  `/reports` summary strip carrying its own derivation-accurate label; a line item on
+  `/reports/balance-sheet` (where receivables belong in accounting terms); or `/reports/income-statement`.
+  Requires a diff of `financials-summary-stats.tsx` against `financial-overview-stats.tsx` to
+  confirm no *other* unique figure is also being dropped.
+
+- **OQ-2: What happens to the three surviving `/reports/analytics` children?**
+  D-33 deletes `analytics-stats-row.tsx` and `analytics-payment-methods-chart.tsx`. That leaves
+  `analytics-revenue-chart.tsx`, `analytics-occupancy-chart.tsx` and `analytics-property-table.tsx`
+  orphaned when the page is deleted. The 2026-07-30 discussion (Session 2, Analytics boundary Q2)
+  chose *"Move to `/analytics`, delete from hub"* with the explicit note that **the researcher must
+  diff the moved charts against what `/analytics/*` already renders and merge rather than
+  duplicate**. That diff has not been done. Known facts to seed it:
+  - `analytics-occupancy-chart.tsx` vs the existing `/analytics/occupancy` route - likely duplicate.
+  - `analytics-revenue-chart.tsx` (`useMonthlyRevenue`) vs `/analytics/financial`'s
+    `revenue-expense-chart.tsx` - likely overlapping, different data source.
+  - `analytics-property-table.tsx` is **provably dead code today**: it renders only when
+    `occupancyMetrics.byProperty.length > 0`, and the mapper at
+    `report-analytics-keys.ts` hard-codes `byProperty: []` with the comment *"the RPC has NO
+    top-level totals and NO per-property breakdown, so byProperty stays []"*. It has never
+    rendered. `/analytics/property-performance` already ships `top-properties-table.tsx` and
+    `active-units-table.tsx`.
+
+- **OQ-3: `ExportButtons`' divergent paywall path (the old D-21).** Real defect, on
+  `/analytics/financial` - a route this phase does not touch. Fix it as a deliberate drive-by, or
+  defer it to its own change? Recommendation: **defer**, because "this phase moves and consolidates,
+  it does not repair capability" is already the phase's own stated boundary. Recorded so the choice
+  is made rather than forgotten.
+
+- **OQ-4: the executive-monthly export consumes the same broken `paymentAnalytics` query.**
+  `src/lib/reports/report-data.ts:381`. D-33 deletes the two UI surfaces but not this one. Does
+  Phase 56 also strip the zero figures from the generated export, or is that a separate claims-
+  integrity fix? The figures are equally false in both places.
+
+- **OQ-5: the Occupancy Rate card inside the deleted `analytics-stats-row.tsx`.** It is real data
+  (see D-33). Confirm `/analytics/occupancy` renders an equivalent before deleting, or the
+  "nothing is silently dropped" rule is violated.
+</open_questions>
 
 <canonical_refs>
 ## Canonical References
@@ -288,28 +511,31 @@ override anything already committed in them.
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Requirements & roadmap
-- `.planning/ROADMAP.md` §"Phase 56: Reporting Hub" - **reconciled to D-27 (no longer stale).** The
-  section is retitled "Reporting Hub", lists only RPTHUB-01..04, and its success criteria now read:
-  SC-1 the hub is the single navigation entry for reporting; SC-2 `/analytics` remains its own
-  section with the six surviving pages untouched and its index cross-linking to the hub; **SC-3 all
-  seven moved URLs 308-redirect, and routes that are not moving emit no redirect**; SC-4 tier-gating
-  verified with E2E before legacy removal. A dated Revision note records what the pre-split
-  definition said and why it changed.
+- `.planning/ROADMAP.md` §"Phase 56: Reporting Hub" - **reconciled to D-27 and D-29.** The section
+  is titled "Reporting Hub", lists only RPTHUB-01..04, and its success criteria read: SC-1 the hub
+  is the single navigation entry for reporting and holds **zero charts**; SC-2 `/analytics` remains
+  its own peer section with **all seven** pages untouched, including `/analytics/financial`; SC-3
+  all seven redirects resolve (six into the hub, one out of it) and routes that are not moving emit
+  no redirect; SC-4 tier-gating verified with E2E before legacy removal. Dated Revision notes record
+  both the 2026-07-26 split and the 2026-07-30 full-separation correction.
 - `.planning/ROADMAP.md` §"Phase 65: Documents Landing" - owns DOCS-01 and the entire `/documents`
   landing. See also ROADMAP.md:24 and :26 for the integer-only, append-only numbering rule that put
   the split at 65 rather than a decimal.
-- `.planning/REQUIREMENTS.md` - RPTHUB-01..04 exact wording; its requirement→phase mapping table
-  points DOCS-01 at Phase 65.
+- `.planning/REQUIREMENTS.md` - RPTHUB-01..04 exact wording, **amended 2026-07-30 for full
+  separation**; its requirement->phase mapping table points DOCS-01 at Phase 65.
 - **SC-1 note:** ROADMAP SC-1 and RPTHUB-01 both say "a single navigation entry". With `/analytics`
-  staying separate (D-05 REVISED), **Reports IS a single entry for reporting** - there is no
-  tension to reconcile and no reconciliation paragraph is needed. Any artifact carrying one should
-  drop it.
+  staying separate, **Reports IS a single entry for reporting** - "single navigation entry" applies
+  to the reporting hub itself, not to a merged Reports+Analytics super-entry. No reconciliation
+  paragraph is needed; any artifact carrying one should drop it.
 
 ### Redirect mechanics (RPTHUB-02)
 - `next.config.ts` - the existing `redirects()` block (~line 85) with `permanent: true` entries is
   the pattern to follow. Note the surrounding comment about keeping the FULL map so a Supabase blip
   cannot break redirects.
-- `src/lib/seo/blog-redirects.ts` - the established precedent for a large maintained redirect map.
+- `src/lib/seo/blog-redirects.ts` - the established precedent for a large maintained redirect map
+  (`DELETED_BLOG_REDIRECTS` + `filterActiveRedirects`).
+- `src/app/(owner)/analytics/page.tsx` - four lines, `redirect("/analytics/overview")`. This is why
+  D-32 entry 7 targets `/analytics/overview` and not `/analytics`.
 
 ### Tier gating (RPTHUB-03)
 - `supabase/functions/export-report/index.ts` - `PREMIUM_REPORT_TYPES` set at :24, gate at :72.
@@ -318,46 +544,66 @@ override anything already committed in them.
 
 ### Surfaces being consolidated
 - `src/app/(owner)/financials/` - 6 pages: index, balance-sheet, cash-flow, expenses,
-  income-statement, tax-documents. **All 6 move.**
-- `src/app/(owner)/analytics/` - 7 pages. **Only `financial/` moves.** The other 6 (index, leases,
-  maintenance, occupancy, overview, property-performance) stay put; `index` gets a one-line
-  cross-link edit only (D-08 REVISED). Do not delete or redirect them.
-- `src/app/(owner)/reports/` - 4 pages: index, analytics, generate, year-end. Paths unchanged
-  (identity no-ops, D-19 REVISED).
-- `src/components/shell/main-nav.tsx` - two independent sections (`Reports -> /reports`,
-  `Analytics -> /analytics`); the existing `startsWith` `isActive` at :188-191 is **already
-  correct** and must not be replaced (D-07 REVISED).
+  income-statement, tax-documents. **All 6 move.** Plus 6 shared components
+  (`financials-header/-highlights/-summary-stats/-quick-links/-loading/-error`).
+- `src/app/(owner)/reports/` - 4 pages: index, analytics, generate, year-end. **`analytics/` is
+  DELETED** (D-29) and its 5 children disposed of per D-33 / OQ-2. The index is rebuilt (D-30) and
+  loses its four chart sections (D-34). `generate` and `year-end` keep their paths (identity
+  no-ops, D-32 Guard A).
+- `src/app/(owner)/analytics/` - 7 pages. **NONE move.** index, financial, leases, maintenance,
+  occupancy, overview, property-performance all stay, unedited by this phase. Do not delete, do not
+  redirect, do not repoint their nav or palette entries.
+- `src/components/shell/main-nav.tsx` - the `Financials` section (`:76-83`) is removed and its
+  children move under `Reports` (`:70-73`); the `Analytics` section (`:55-65`) including its
+  `Financial` child (`:60`) is **untouched**. The existing `startsWith` `isActive` at :188-191 is
+  **already correct** and must not be replaced (D-07 REVISED).
+- `src/components/shell/app-shell.tsx` `commandGroups` - 5 hrefs change (D-24 amended).
 - *(Phase 65 only, NOT this phase: `src/app/(owner)/documents/page.tsx` and the vault /
   lease-template / templates surfaces.)*
 
 ### Revenue vocabulary (inherited)
-- `.planning/phases/55-rent-ledger/55-CONTEXT.md` D-07/D-08 - Scheduled vs Collected, never summed.
+- `.planning/phases/55-rent-ledger/55-CONTEXT.md` D-00 (money boundary: `leases.rent_amount` is
+  **integer dollars**, ledger amounts are `numeric(10,2)` dollars, any `* 100` is a bug) and
+  D-07/D-08 (Scheduled vs Collected, never summed).
 - `.planning/phases/55-rent-ledger/VERIFICATION.md` - notes the open question about the
-  collection-rate denominator basis, which the hub may surface.
+  collection-rate denominator basis, which the D-30 summary strip may surface.
+- `src/components/ledger/ledger-balance-strip.tsx` - the shipped house metric-value treatment the
+  D-30 summary strip reuses.
 </canonical_refs>
 
 <code_context>
 ## Existing Code Insights
 
-### Full legacy URL inventory (7 route files move -> 7 redirect entries)
+### Full route inventory (verified 2026-07-30 by directory listing)
+
 ```
-MOVES (7 redirects)              STAYS - do NOT redirect (10)
-/financials                      /reports            /analytics
-/financials/balance-sheet        /reports/analytics  /analytics/leases
-/financials/cash-flow            /reports/generate   /analytics/maintenance
-/financials/expenses             /reports/year-end   /analytics/occupancy
-/financials/income-statement                         /analytics/overview
-/financials/tax-documents                            /analytics/property-performance
-/analytics/financial
+MOVES / DELETED (7 redirect entries)      STAYS - do NOT redirect (10 paths)
+--- six INTO the hub ---                  Guard A: identity no-ops (3)
+/financials                               /reports
+/financials/balance-sheet                 /reports/generate
+/financials/cash-flow                     /reports/year-end
+/financials/expenses
+/financials/income-statement              Guard B: not moving at all (7)
+/financials/tax-documents                 /analytics
+--- one OUT of the hub ---                /analytics/financial   <- NOW A GUARD, not a source
+/reports/analytics -> /analytics/overview /analytics/leases
+                                          /analytics/maintenance
+                                          /analytics/occupancy
+                                          /analytics/overview
+                                          /analytics/property-performance
 ```
-The four `/reports/*` paths are identity no-ops (D-19 REVISED, correcting D-03's re-slotting
-assumption). The six non-financial `/analytics/*` paths are not moving at all (D-05 REVISED).
-Emitting a redirect for any of the 10 breaks a working route.
+
+Emitting a redirect for any of the 10 guarded paths breaks a working route.
+`/analytics/financial` moved from the *source* column to the *guard* column on 2026-07-30 - that
+inversion is the single highest-risk stale-artifact hazard in this phase.
 
 ### Reusable assets
 - `next.config.ts` `redirects()` already exists with `permanent: true` entries - extend, do not
   invent a new mechanism.
-- `/reports/analytics/page.tsx` already exists - `/analytics/financial` merges INTO it (D-06).
+- The `financials-*` component set - a complete, working financial-landing surface with loading and
+  error boundaries already encoded. Move and rename rather than rebuild.
+- `src/components/ledger/ledger-balance-strip.tsx` - the shipped metric-tile shape for D-30's
+  summary strip.
 - Existing E2E patterns in `tests/e2e/tests/owner/` for owner-route smoke coverage (but land the
   new specs in `owner-axe` / `public` per D-25).
 - `main-nav.tsx`'s existing `startsWith` active-state resolver - reuse as-is, no rewrite (D-07
@@ -365,38 +611,57 @@ Emitting a redirect for any of the 10 breaks a working route.
 - *(Phase 65: the vault's document query/mapper for the landing's recent list - D-14.)*
 
 ### Integration points
-- `src/components/shell/main-nav.tsx` - two independent sections, `Reports -> /reports` and
-  `Analytics -> /analytics` (D-07 REVISED). Only the financial hrefs inside the Analytics section
-  change.
-- `app-shell.tsx` `commandGroups` - 6 hrefs change (5 `/financials*` + `/analytics/financial`); the
-  five surviving `/analytics/*` rows stay (D-24 AMENDED).
-- `src/app/(owner)/analytics/page.tsx` - the surviving index; financial entry becomes a cross-link
-  to `/reports/analytics` (D-08 REVISED).
-- `next.config.ts` redirect map (7 entries).
+- `src/components/shell/main-nav.tsx` - remove the `Financials` section, move its children under
+  `Reports`, leave `Analytics` entirely alone (D-07 REVISED + D-29).
+- `app-shell.tsx` `commandGroups` - 5 hrefs change (the `/financials*` rows only); all six
+  `/analytics/*` rows stay (D-24 amended).
+- `next.config.ts` redirect map (7 entries, one inverted).
+- Phase 55's ledger RPCs - single source for the D-30 summary strip's Scheduled / Collected /
+  Outstanding.
 - Both export edge functions (verification only).
+- `src/lib/breadcrumbs.ts` `LABEL_MAP` - add `expenses`, `year-end`; remove the now-dead
+  `financials`. **Retain `analytics` and `financial`** - those segments stay live.
 
 ### Landmines
-- **Over-redirecting.** The single most expensive mistake available here is emitting redirects for
-  the four `/reports/*` identity paths (`ERR_TOO_MANY_REDIRECTS`) or for the six surviving
-  `/analytics/*` routes (breaks live pages). Both classes must be asserted absent (D-19 REVISED).
+- **Over-redirecting - and now, mis-directing.** The most expensive mistakes available here are
+  (a) emitting redirects for the three `/reports/*` identity paths (`ERR_TOO_MANY_REDIRECTS`),
+  (b) emitting a redirect for any of the seven `/analytics/*` routes (breaks live pages), and
+  (c) **shipping the stale `/analytics/financial -> /reports/analytics` entry**, which would 308 a
+  live page into a URL that no longer exists. All three classes must be asserted absent (D-32), with
+  the source array checked by **equality**, not subset.
+- **Relocating a chart inside `/reports`** instead of deleting it - violates D-34. The four
+  chart-bearing report sections on the current `/reports` index go away; only the date-range
+  selector may move to `/reports/generate`.
+- **"Fixing" the `get_billing_insights` key casing** instead of deleting the cards (D-33). That
+  would surface subscription-billing figures under rental-revenue labels - a worse claims violation
+  than rendering zero.
 - Config `redirects()` shadow filesystem routes - deleting the old `page.tsx` is required for
-  clarity, not optional (D-09). Applies to the 7 moving routes ONLY.
+  clarity, not optional (D-09). Applies to the 6 `/financials/*` routes and `/reports/analytics`.
 - `PREMIUM_REPORT_TYPES` exists twice and can drift silently (D-12).
-- Phase 55's Scheduled/Collected vocabulary must not regress into a bare "Revenue" label (D-18).
-- Stale artifacts: RESEARCH N1 and the UI-SPEC's "longest-prefix-wins, exactly one winner"
-  active-state rule (56-UI-SPEC.md:227) both describe work that D-07 REVISED **deletes**. Do not
-  implement from them.
+- Phase 55's Scheduled/Collected vocabulary must not regress into a bare "Revenue" label (D-18) -
+  now directly governing the D-30 summary strip on the hub index.
+- **Stale artifacts.** 56-RESEARCH.md and 56-VALIDATION.md were written pre-full-separation; both
+  carry a dated correction block at the top listing exactly which conclusions the 2026-07-30 change
+  invalidates. RESEARCH N1 and the UI-SPEC's original "longest-prefix-wins" active-state rule
+  describe work that D-07 REVISED **deletes**. Do not implement from them.
 </code_context>
 
 <specifics>
 ## Specific Ideas
 - The hub is a CONSOLIDATION, not a feature: no new report types, no new charts. Success is that
   the duplicated financial surfaces become one with nothing lost and no URL 404ing.
-- **Reports and Analytics are two products, not one.** Financial statements and exports belong to
-  Reports; operational insight belongs to Analytics. The separation is the point (D-05/D-07/D-08
-  REVISED) - a consolidation that flattened both into one tree made navigation worse, not better.
+- **Reports and Analytics are two products, not one.** Statements and exports belong to Reports;
+  every chart belongs to Analytics. The separation is the point (D-29) - a consolidation that
+  flattened them into one tree, or that left one chart page behind as an exception, made navigation
+  worse rather than better.
+- The hub index should **earn being a page**. The summary strip is what makes it more than a menu
+  (D-30).
 - The redirect map is the contract with search engines and bookmarks - 1:1 exactness matters more
-  than map size, and *not* redirecting a live route matters more than either.
+  than map size, and *not* redirecting a live route matters more than either. One entry points the
+  other way; that is deliberate, not a bug to be "corrected".
+- **A confidently-labelled zero is a claims violation, not a cosmetic one.** D-33 deletes surfaces
+  that have been telling every owner in production that they collected $0 across 0 payments. In a
+  claims-integrity milestone, that is the defect, not the styling.
 - E2E before removal is a hard ordering constraint, not a preference (D-11).
 </specifics>
 
@@ -405,12 +670,24 @@ Emitting a redirect for any of the 10 breaks a working route.
 - **Consolidate `PREMIUM_REPORT_TYPES` into a shared `supabase/functions/_shared/` module** so the
   two edge functions cannot drift. Requires redeploying both functions; out of scope for "verify
   intact" (D-12).
+- **Fix `ExportButtons`' divergent paywall path** (the old D-21): it POSTs to `export-report` with
+  no `type` param so the function defaults `reportType` to `"financial"` - a `PREMIUM_REPORT_TYPES`
+  member - and surfaces the 402 as `FINANCIAL_EXPORT_FAILED` rather than `PaywallError`. Single call
+  site: `src/app/(owner)/analytics/financial/page.tsx:103`. Outside this phase's route boundary
+  under D-29. See OQ-3.
+- **Strip the permanently-zero `paymentAnalytics` figures from the executive-monthly export**
+  (`src/lib/reports/report-data.ts:381`) - same defect as D-33 on a different surface. See OQ-4.
 - Adding new report types or analytics visualizations to the hub.
 - Revisiting the collection-rate denominator basis raised in Phase 55's verification.
+- Renaming `/reports/generate` and `/reports/year-end` for naming consistency with the statement
+  routes - a broader nav-naming pass is its own concern.
+- **Visual-regression coverage for the new hub** - the repo's live visual spec never runs in CI and
+  has no baselines; making it real needs the `chromium` Playwright project added to CI plus Linux
+  baselines. Noted because a consolidation is exactly when you would want it.
 - **The `/documents` landing (DOCS-01)** - not deferred, *relocated*: it is Phase 65's entire
   scope (D-27), with D-14..D-17 preserved above for that phase to inherit.
-- Absorbing the six operational `/analytics/*` routes into the hub - **withdrawn, not deferred**
-  (D-05 REVISED). The separation is the intended end state, not a postponed step.
+- Absorbing any `/analytics/*` route into the hub - **withdrawn, not deferred** (D-29). The
+  separation is the intended end state, not a postponed step.
 
 ### Reviewed Todos (not folded)
 None - `todo.match-phase 56` returned zero matches.
@@ -423,3 +700,6 @@ None - `todo.match-phase 56` returned zero matches.
 *Context gathered: 2026-07-26*
 *Revised: 2026-07-26 - user scope correction: D-05/D-07/D-08/D-19/D-24 revised, D-27/D-28 added,
 D-14..D-17 moved to Phase 65*
+*Reconciled: 2026-07-30 - FULL SEPARATION supersedes partial separation. D-29..D-34 added;
+D-05 REVISED / D-06 / D-08 REVISED / D-19 REVISED / D-04 / D-28 superseded; D-21 / D-22 / D-23 moot;
+D-24 reduced 6->5 hrefs; D-02 grouping and D-26 reframed. D-27 and the Phase 65 block unchanged.*

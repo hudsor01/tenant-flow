@@ -2,12 +2,59 @@
 
 **Researched:** 2026-07-26
 **Rescoped:** 2026-07-26 (see Post-Research Rescope below)
+**Rescoped again:** 2026-07-30 (FULL SEPARATION — see the block immediately below, which supersedes the 2026-07-26 rescope wherever the two conflict)
 **Domain:** Next.js 16 App Router information architecture — route consolidation, `next.config.ts` redirects, E2E sequencing, tier-gate preservation
-**Confidence:** HIGH (nearly every claim verified against this repo's own source, build artifacts, or official Next.js 16.2.12 docs)
+**Confidence:** HIGH on codebase facts (nearly every claim verified against this repo's own source, build artifacts, or official Next.js 16.2.12 docs). **The SCOPE this document was written against is stale — see below.**
 
 ---
 
-## Post-Research Rescope (2026-07-26) — READ FIRST
+## ⚠ SECOND RESCOPE (2026-07-30) — FULL SEPARATION — READ BEFORE ANYTHING ELSE
+
+**This document was written PRE-FULL-SEPARATION.** Its *codebase facts* remain accurate and are the
+reason it is retained substantially intact. Its *scope premise* — that `/analytics/financial` folds
+into the hub and merges into `/reports/analytics` — was **rejected by the user on 2026-07-30**, after
+being presented as the recommended option. See `56-DISCUSSION-LOG.md` Session 2, "Analytics
+boundary" Q1.
+
+**The locked position:** `/reports` holds financial statements + exports with **ZERO charts**.
+**`/analytics/financial` stays live and is NOT redirected.** `/reports/analytics` is **DELETED** and
+308s **INTO `/analytics/overview`**. Reports and Analytics are two peer top-level nav entries.
+Canonical decisions: `56-CONTEXT.md` **D-29 through D-34**.
+
+### Which conclusions in this document the scope change affects
+
+| # | Conclusion in this document | Status after 2026-07-30 | Sections |
+|---|---|---|---|
+| S2-1 | Only `/analytics/financial` folds into the hub | **INVALID.** *Nothing* folds in. `/analytics/financial` stays live and joins the do-not-redirect guard set. | Post-Research Rescope, User Constraints, Redirect Map, Non-Route Map, E2E, Merge Cost Analysis |
+| S2-2 | `/reports/analytics` is the merge target and renders the merged financial view | **INVALID.** It is deleted and redirected out. | Merge Cost Analysis (D-06), Architecture, Pitfall 5 |
+| S2-3 | The 7-entry redirect map: six `/financials/*` + `/analytics/financial → /reports/analytics` | **REVISED — still 7, but the 7th INVERTS** to `/reports/analytics → /analytics/overview`. Target the concrete route: `analytics/page.tsx` is `redirect("/analytics/overview")`, so `/analytics` would chain. | §"The 7-entry map", Code Examples, Pitfalls 3-4 |
+| S2-4 | Guard A = 4 identity paths (`/reports`, `/reports/analytics`, `/reports/generate`, `/reports/year-end`) | **REVISED — 3.** `/reports/analytics` leaves the guard set; it is now map entry 7. | §"The two non-emitting guards", Validation Architecture |
+| S2-5 | Guard B = 6 unmoved `/analytics/*` routes | **REVISED — 7.** `/analytics/financial` **joins** the guard set. This is now the single highest-risk stale-artifact hazard in the phase: a leftover `/analytics/financial → /reports/analytics` entry would 308 a live page into a URL that will not exist. Assert the source array by **equality**, not subset. | §"The two non-emitting guards", Pitfall 3b |
+| S2-6 | D-24: 6 Cmd+K hrefs change (five `/financials*` + `/analytics/financial`) | **REVISED — 5.** `app-shell.tsx:115` (`/analytics/financial`) no longer changes; the route stays live. All six `/analytics/*` palette rows stay. | Non-Route Map N2, Pitfall 1 |
+| S2-7 | The nav `Analytics` entry loses its `Financial` child | **INVALID.** `main-nav.tsx:60` is **not edited**. Removing it would orphan a live route. | Non-Route Map, Architecture |
+| S2-8 | Finding X1 — "there is no rendered `/analytics` index" | **STILL TRUE, and now decisive.** It is why D-08's cross-link ruling was struck: there is no index to edit and nothing in the hub to link to. `analytics/page.tsx` is four lines of `redirect()`. | Finding X1 |
+| S2-9 | Hub renders 8 tiles (Statements 5 + Analytics 1 + Exports 2) | **REVISED — 7 tiles in 2 groups.** No Analytics group. | Architecture, Validation |
+| S2-10 | The `/reports` index is navigation-only, zero data (D-04) | **SUPERSEDED by D-30.** The index carries a Scheduled / Collected / Outstanding summary strip. User selection, 2026-07-30, "Hub information architecture" Q2. | Architecture, Validation Architecture |
+| S2-11 | Merge Cost Analysis (D-06 / D-26): the two analytics pages share nothing, so budget the merge as a standalone plan | **MOOT as a cost estimate** — there is no merge. **The underlying fact is retained and now argues the other way:** two surfaces sharing zero data sources and zero components were never one surface, so deleting the weaker one is cheaper and more honest than merging it. | Merge Cost Analysis |
+| S2-12 | D-21: fix `ExportButtons`' divergent paywall path in this phase | **MOOT for Phase 56.** Its justification was "the D-06 merge would import a second paywall pattern into the hub." No merge. Verified: `ExportButtons` has one call site, `src/app/(owner)/analytics/financial/page.tsx:103` — outside this phase. Finding preserved as a deferred item + `56-CONTEXT.md` OQ-3. | Tier Gate Ground Truth |
+| S2-13 | D-22 (one period control on the merged page), D-23 (Analytics tile not badged) | **MOOT.** No merged page, no Analytics tile. | Tier Gate, Validation |
+| S2-14 | *(not researched)* zero-charts under `/reports/**` | **NEW (D-34).** The current `/reports/page.tsx` dynamic-imports four recharts-bearing sections (`financial-`, `property-`, `tenant-`, `maintenance-report-section`), imported by that file and nothing else. They are **deleted, not relocated to `/reports/generate`** — that is still inside `/reports`. `year-end-report-section.tsx` is chart-free and stays. | new |
+| S2-15 | *(not researched)* the permanently-zero analytics cards | **NEW (D-33).** `report-analytics-keys.ts:74-103` parses **snake_case** keys; the live `get_billing_insights` RPC returns only **camelCase** (`churnRate`, `lateFeeTotal`, `mrr`, `tenantCount`, `totalRevenue`, `unpaidCount`, `unpaidTotal`). **Zero key overlap → every figure renders 0 in production** under confident labels. The data is TenantFlow subscription billing, not rental revenue, and "card vs ACH" is unclaimable in a landlord-only product that facilitates no rent payments. `analytics-stats-row.tsx` and `analytics-payment-methods-chart.tsx` are **DELETED**. | new |
+
+**Still valid and unchanged by this rescope:** every redirect *mechanic* (execution order,
+both-ends-anchored source regexes, `has`/`missing` not needed, ordering non-issue), the entire E2E
+Reality Check (D-25 — CI runs only `smoke`/`public`/`owner-axe`; the `owner` project never
+executes; `owner-axe` uses a filename allowlist), the Tier Gate Ground Truth (the two
+`PREMIUM_REPORT_TYPES` sets are identical; the gate is structurally immune to this phase; Finding
+G3), Finding M2, the Phase 65 documents-landing research block, the Architecture Patterns, the
+Don't-Hand-Roll list, and the Security Domain section.
+
+**Everything in the 2026-07-26 rescope below remains historically accurate as a record of that
+correction — but where it conflicts with this block, this block wins.**
+
+---
+
+## Post-Research Rescope (2026-07-26) — superseded on the analytics question by the block above
 
 This document was written against the pre-correction scope. The user issued **two binding
 corrections after it was committed**. They supersede the original text everywhere the two conflict;
@@ -450,13 +497,16 @@ break the SEO contract (a crawler without the cookie would see a different respo
 
 Two independent reductions land on the same table:
 
-1. **The UI-SPEC's flat-slug decision** (`/reports/generate`, `/reports/year-end`,
-   `/reports/analytics` keep their exact current paths) turns D-03's re-slot entries into
-   **identity no-ops**. `source === destination` is an infinite redirect loop and **must not be
-   emitted**. *(This is D-19's original reasoning and it still stands.)*
-2. **The D-05 revert** removes the six non-financial `/analytics/*` entries. Those routes are not
+1. **The UI-SPEC's flat-slug decision** (`/reports/generate` and `/reports/year-end` keep their exact
+   current paths) turns D-03's re-slot entries into **identity no-ops**. `source === destination` is
+   an infinite redirect loop and **must not be emitted**. *(This is D-19's original reasoning and it
+   still stands. 2026-07-30: `/reports/analytics` is no longer part of this set — it is deleted and
+   becomes map entry 7.)*
+2. **The D-05 revert** removes the non-financial `/analytics/*` entries. Those routes are not
    moving, so emitting a redirect for any of them would 308 a working URL into a `/reports/*` path
    that will never exist — silently deleting a surviving product section from the URL space.
+   *(2026-07-30: full separation extends this to **all seven** `/analytics/*` routes, including
+   `/analytics/financial`.)*
 
 | # | `source` | `destination` | Note |
 |---|----------|---------------|------|
@@ -466,34 +516,60 @@ Two independent reductions land on the same table:
 | 4 | `/financials/expenses` | `/reports/expenses` | |
 | 5 | `/financials/income-statement` | `/reports/income-statement` | |
 | 6 | `/financials/tax-documents` | `/reports/tax-documents` | Gated CTA (`generate-pdf`, `financial`) |
-| 7 | `/analytics/financial` | `/reports/analytics` | D-06 merge target — the **only** analytics route that moves |
+| 7 | ~~`/analytics/financial`~~ → **`/reports/analytics`** | ~~`/reports/analytics`~~ → **`/analytics/overview`** | **INVERTED 2026-07-30 (S2-3).** See below. |
 
 All seven are `permanent: true` → **308**.
 
+> **⚠ ENTRY 7 INVERTED (2026-07-30, full separation — D-32).** The row above is struck through
+> because the direction reversed, not because the count changed.
+>
+> | | Was (2026-07-26) | Is (2026-07-30) |
+> |---|---|---|
+> | source | `/analytics/financial` | **`/reports/analytics`** |
+> | destination | `/reports/analytics` | **`/analytics/overview`** |
+> | direction | into the hub | **out of the hub** |
+>
+> **`/analytics/financial` stays live and is NOT redirected** — under full separation it is a
+> destination, not a legacy URL. **`/reports/analytics` is deleted** and points out.
+>
+> **Why the target is `/analytics/overview` and not `/analytics`:** `src/app/(owner)/analytics/page.tsx`
+> is `redirect("/analytics/overview")`, so targeting `/analytics` yields a 308 → 307 chain on every
+> legacy hit. Target the concrete route.
+>
+> **This is the only redirect in the phase pointing away from `/reports`.** The map module's own
+> comment must say so, or someone will "correct" it later on the assumption that all arrows point
+> at the hub.
+
 ### The two non-emitting guards — both are `ERR_TOO_MANY_REDIRECTS`/route-loss hazards
 
-**Guard A — identity no-ops (4 paths). NOT emitted; would loop.**
-`/reports`, `/reports/analytics`, `/reports/generate`, `/reports/year-end`.
+**Guard A — identity no-ops. REVISED 2026-07-30: 3 paths, down from 4. NOT emitted; would loop.**
+`/reports`, `/reports/generate`, `/reports/year-end`.
 These keep their current paths (flat slugs), so a D-03-literal re-slot entry would be
 `source === destination` — `ERR_TOO_MANY_REDIRECTS` on routes that work today.
+**`/reports/analytics` LEFT this guard set** — it is now map entry 7 and must 308.
 
-**Guard B — REVISED 2026-07-26, new: the six unmoved `/analytics/*` routes. NOT emitted; they are
-not moving at all.**
-`/analytics`, `/analytics/leases`, `/analytics/maintenance`, `/analytics/occupancy`,
-`/analytics/overview`, `/analytics/property-performance`.
-These are not identity no-ops — they are simply **out of the map**. Under the reverted D-05 they
-were entries 7 and 9-13 of the old table; every one of those lines is now **deleted, not
-retargeted**. Emitting any of them would 308 a live, unchanged product section into a `/reports/*`
-URL that will not exist.
+**Guard B — REVISED TWICE. 2026-07-26: the six unmoved `/analytics/*` routes. 2026-07-30: SEVEN,
+because `/analytics/financial` joins them. NOT emitted; they are not moving at all.**
+`/analytics`, **`/analytics/financial`**, `/analytics/leases`, `/analytics/maintenance`,
+`/analytics/occupancy`, `/analytics/overview`, `/analytics/property-performance`.
+These are not identity no-ops — they are simply **out of the map**. Emitting any of them would 308 a
+live, unchanged product section into a `/reports/*` URL that will not exist.
 
-Both guards are testable and both must be tested — see §Validation Architecture. Guard B's failure
-mode is the more dangerous of the two: a stale entry from the pre-correction map does not loop, it
-just quietly 404s a surviving section, which a "did every redirect fire?" test would happily pass.
+Both guards are testable and both must be tested — see §Validation Architecture. **Guard B is by
+far the more dangerous, and `/analytics/financial` is its single highest-risk member:** a stale
+`/analytics/financial → /reports/analytics` entry left over from the 2026-07-26 map does not loop,
+is a literal (not a wildcard), and passes both the identity guard and the literal-source guard — it
+just silently 308s a live page into a URL that will not exist, **and then entry 7 would bounce it
+back out**, producing a chain that ends nowhere useful. The unit-level source-array **equality**
+assertion (not a subset check) is the only structural defence.
 
-> **`/analytics` specifically:** the old map sent it to `/reports/analytics/overview` because
-> `analytics/page.tsx` is a 4-line `redirect("/analytics/overview")`. That entry is **deleted**.
-> The in-page `redirect()` stays exactly as it is — it is a filesystem-step redirect inside a
-> surviving tree, not a config redirect, and this phase does not touch it.
+Total assertions: **7 positive + 3 Guard A + 7 Guard B = 17.**
+
+> **`/analytics` specifically:** the pre-correction map sent it to `/reports/analytics/overview`
+> because `analytics/page.tsx` is a 4-line `redirect("/analytics/overview")`. That entry is
+> **deleted**. The in-page `redirect()` stays exactly as it is — it is a filesystem-step redirect
+> inside a surviving tree, not a config redirect, and this phase does not touch it. It is also the
+> reason map entry 7 targets `/analytics/overview` rather than `/analytics`.
 
 **No redirect for `/documents`** — that whole surface is **Phase 65**; Phase 56 emits nothing for
 it, and D-15 keeps `/documents/vault` canonical with no redirect either.
