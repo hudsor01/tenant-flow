@@ -21,23 +21,33 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 55 — rent-ledger
+**Current focus:** Phase 56 — reporting-hub
 
 ## Current Position
 
-Phase: 55 (rent-ledger) — ALL PLANS EXECUTED
-Plan: 8 of 8
-Status: Phase 55 shipped - PR #927
-Last activity: 2026-07-25
+Phase: 56 (reporting-hub) — PLANNED, VERIFIED, NOT STARTED
+Plan: 0 of 8 executed
+Status: 8 plans across 6 waves; plan-checker clean on re-verification
+Last activity: 2026-07-30
 
-> **Phase 55 build surface complete.** All eight plans have SUMMARY files:
-> schema + cron (55-01), RPCs (55-02), derivation + guards (55-03), prod
-> migration + types (55-04), data layer (55-05), dialogs (55-06), ledger tab
-> (55-07), KPI + Scheduled/Collected relabel (55-08). 55-08 ran out of order
-> ahead of 55-06/55-07 — it is a wave-3 plan whose only dependency was 55-04.
-> Remaining: the phase-level human verification pass and the perfect-PR gate.
+> **Phase 56 is planned and gate-clean.** Branch `gsd/phase-56-reconciled`.
+> Two planning lines were reconciled to full separation (D-29): `/reports`
+> becomes the hub, `/analytics` stays a peer section, `/financials` is deleted
+> behind 308s. DOCS-01 and the whole `/documents` landing split out to
+> **Phase 65** — no Phase 56 plan, task or test may claim it.
+>
+> Waves: 1 = 56-01 (hub scaffold) + 56-02 (redirect map); 2 = 56-03, 56-04;
+> 3 = 56-05; 4 = 56-06 (E2E proof); 5 = 56-07 (legacy deletion); 6 = 56-08
+> (second route table + A/R and export deletions). Waves 3-6 are strictly
+> serial by design — the phase's central requirement is an ordering guarantee
+> (prove the new surface green BEFORE deleting the old one).
+>
+> Three live production defects are fixed by deletion in this phase: the
+> fabricated A/R tile (`financial-keys.ts:153` assigns monthly revenue to
+> `accounts_receivable`), the permanently-zero analytics cards, and the same
+> broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
@@ -93,7 +103,12 @@ Progress: [██████████] 100%
 
 ## Next Action
 
-Plan **Phase 52** (Notification Center, Activity Feed & Channel Honesty). It establishes the shared `create_notification` write-path RPC that nearly every later phase calls, so it lands first. Run `/gsd-plan-phase 52`. Branch (`gsd/phase-52-...`) only after confirming main is at the v9.0 end-state. This phase is primarily UI + write-path wiring over existing `notifications`/`activity` tables, folds in the SMS/push toggle removal (HONEST-01/02) and orphan schema cleanup (CLEAN-01/02), and ships the retention cron.
+Execute **Phase 56** (Reporting Hub). Run `/gsd-execute-phase 56` on branch `gsd/phase-56-reconciled`.
+
+Two things the executor must not get wrong:
+
+1. **Wave order is load-bearing, not a scheduling nicety.** 56-06 proves the new `/reports` surface green in E2E; only then does 56-07 delete `/financials`. Running them concurrently, or reordering, means deleting the old surface before the new one is proven.
+2. **The `/financials` sweep in 56-08 carries a deliberate `grep -v 'reporting-redirects'` exclusion.** Three files must permanently name the six legacy `/financials` sources — the redirect map (`src/lib/seo/reporting-redirects.ts`), its unit test, and the E2E spec. Without the filter the sweep is unsatisfiable in any order. The filter is bounded by a companion assertion that the map still holds all 6 sources; do not drop that assertion, and do not rename any of those three files.
 
 ## Overrides
 
