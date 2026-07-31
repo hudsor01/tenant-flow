@@ -142,11 +142,13 @@ Plans:
 - [x] 56-04-PLAN.md — Tier-gate drift guard across both edge functions and the frontend mirror
 - [x] 56-05-PLAN.md — Five statement routes copied into the hub (copy, not move — RPTHUB-04 ordering)
 - [x] 56-06-PLAN.md — E2E hub-route gate in owner-axe (RPTHUB-04 — must be green before wave 5)
-  - **AUTHORED + REGISTERED, NOT YET GREEN.** The 9-test spec is registered in `owner-axe` (proven by
-    `--list` under CI's exact three-project invocation) but has **never executed** — local runs are
-    blocked by `playwright.config.ts:284-286` deleting `.env.local` and by the absence of the
-    `E2E_OWNER_*` secrets. **Wave 5 is gated on CI `e2e-smoke` reporting 9 passing tests**, not on
-    this checkbox. See `56-06-SUMMARY.md`.
+  - **GREEN IN CI.** Supersedes the "never executed" note that stood here while the gate was pending.
+    CI executed it at `d2f00c4f8`: `e2e-smoke` reported 88 passed + 1 skipped = 89, matching a local
+    `--list` under CI's exact three-project invocation — and `src/app/(owner)/financials` was still
+    present in that build, so the replacement was proven BEFORE the deletion, which is RPTHUB-04
+    itself. At HEAD the same selection lists 106 (89 + 17 redirect assertions) and CI ran 105 + 1
+    skipped. Still not runnable locally: `playwright.config.ts` deletes `.env.local` and the
+    `E2E_OWNER_*` secrets are CI-only. See `56-06-SUMMARY.md` and `56-VERIFICATION.md`.
 - [x] 56-07-PLAN.md — Legacy /financials deletion, next.config.ts wiring, 17 live redirect assertions
 - [x] 56-08-PLAN.md — Nav/palette/breadcrumb repointing plus the D-35 and D-37 claims excisions (wave 6 — depends on 56-07; it owns the global /financials sweep, which spans both plans' file sets)
 **UI hint**: yes
