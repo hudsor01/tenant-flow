@@ -116,7 +116,20 @@ Last activity: 2026-07-31 — executed 56-06 (2 tasks, 2 commits: `19a3e8453` sp
 > that guard plus the D-30 index-purity, D-33 broken-key and D-18 no-bare-Revenue
 > assertions.
 
-> **Phase 56 is planned and gate-clean.** Branch `gsd/phase-56-reconciled`.
+> **Phase 56 is mid-execution: 6 of 8 plans done, HELD at the RPTHUB-04 gate.**
+> Branch `gsd/phase-56-reporting-hub-documents-landing`.
+>
+> **Why held:** 56-06 authored and registered the 8-route hub E2E spec in the
+> `owner-axe` project (which CI's `e2e-smoke` does invoke), but the spec has
+> NEVER EXECUTED and is not known green. It cannot run locally: `E2E_OWNER_*`
+> are `e2e-smoke` GitHub secrets, and `tests/e2e/playwright.config.ts:284`'s
+> webServer command begins `rm -rf .next && rm -f .env.local` — running the
+> suite locally DELETES `.env.local`. CI is the only place this gate can run.
+>
+> 56-07 deletes `src/app/(owner)/financials/`. It must not run until CI has
+> proven the hub renders, because that ordering IS RPTHUB-04. A PR is open at
+> 6/8 specifically so `e2e-smoke` discharges the gate while the legacy surface
+> still exists.
 > Two planning lines were reconciled to full separation (D-29): `/reports`
 > becomes the hub, `/analytics` stays a peer section, `/financials` is deleted
 > behind 308s. DOCS-01 and the whole `/documents` landing split out to
