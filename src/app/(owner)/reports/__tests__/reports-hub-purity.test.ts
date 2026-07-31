@@ -96,6 +96,13 @@ const BROKEN_BILLING_KEYS: readonly string[] = [
  * The JSX matcher spans newlines on purpose: a label written as its own
  * indented line between the tags is the commonest shape in this codebase and
  * the one-line-only form of this pattern missed every one of them.
+ *
+ * It also tolerates `{}` inside the text run. Excluding them let any label
+ * carrying an interpolation slip through — `<CardTitle>Revenue {year}</...>`,
+ * `<CardTitle>{scope} Revenue</...>` and the `<h3>… for {taxYear}</h3>` shape
+ * already used at `tax-documents/page.tsx` all evaded it. Only `<` and `>`
+ * terminate the run now. `\b` still keeps `totalRevenue` and lowercase
+ * `revenue` from matching, so widening adds no false positives.
  */
 const REVENUE_LABEL_PATTERNS: readonly { name: string; pattern: RegExp }[] = [
 	{
@@ -104,7 +111,7 @@ const REVENUE_LABEL_PATTERNS: readonly { name: string; pattern: RegExp }[] = [
 	},
 	{
 		name: "JSX text Revenue label",
-		pattern: />[^<>{}]*\bRevenue\b[^<>{}]*</,
+		pattern: />[^<>]*\bRevenue\b[^<>]*</,
 	},
 ];
 
@@ -339,6 +346,18 @@ describe("reports hub purity detector", () => {
 		[
 			"JSX text broken across lines",
 			["<CardTitle>", "\tTotal Revenue", "</CardTitle>"].join("\n"),
+		],
+		[
+			"JSX text with a trailing interpolation",
+			"<CardTitle>Revenue {year}</CardTitle>",
+		],
+		[
+			"JSX text with a leading interpolation",
+			"<CardTitle>{scope} Revenue</CardTitle>",
+		],
+		[
+			"JSX heading with an interpolation",
+			'<h3 className="text-lg font-medium">Revenue for {taxYear}</h3>',
 		],
 	])("flags a user-facing Revenue label: %s", (_label, source) => {
 		expect(findRevenueLabelViolations(source).length).toBeGreaterThan(0);

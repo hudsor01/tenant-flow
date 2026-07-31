@@ -82,7 +82,10 @@ export const REPORTS_HUB_ENTRIES: readonly ReportsHubEntry[] = [
 		title: "Cash Flow",
 		href: "/reports/cash-flow",
 		icon: TrendingUp,
-		description: "Money movement month over month, with running balances.",
+		// Not "month over month, with running balances": the page renders ONE
+		// period, and `beginningCash` is a hardcoded 0 in both branches of
+		// `financialQueries.cashFlow`, so no balance is ever carried forward.
+		description: "Where cash came from and where it went, for a period.",
 		gatedReportType: null,
 	},
 	{
