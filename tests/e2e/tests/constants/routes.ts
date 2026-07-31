@@ -65,10 +65,20 @@ export const ROUTES = {
 	FINANCIALS_INCOME_STATEMENT: "/financials/income-statement",
 	FINANCIALS_TAX_DOCUMENTS: "/financials/tax-documents",
 
-	// Reports
+	// Reports — the 8 hub routes (D-31: 5 statements + 2 exports, under the index).
+	// The 5 statement routes were copied up from the legacy tree in plan 56-05;
+	// both trees resolve until 56-06 proves these green and 56-07 removes the
+	// originals. REPORTS_ANALYTICS points at a route deleted in 56-03 and has no
+	// consumer; it is retired in 56-08 alongside the legacy keys above.
 	REPORTS: "/reports",
 	REPORTS_ANALYTICS: "/reports/analytics",
+	REPORTS_BALANCE_SHEET: "/reports/balance-sheet",
+	REPORTS_CASH_FLOW: "/reports/cash-flow",
+	REPORTS_EXPENSES: "/reports/expenses",
+	REPORTS_INCOME_STATEMENT: "/reports/income-statement",
+	REPORTS_TAX_DOCUMENTS: "/reports/tax-documents",
 	REPORTS_GENERATE: "/reports/generate",
+	REPORTS_YEAR_END: "/reports/year-end",
 } as const;
 
 /**
