@@ -550,7 +550,7 @@ planner may propose an answer; none may be treated as already decided.
   DELETED** (D-29) and its 5 children disposed of per D-33 / OQ-2. The index is rebuilt (D-30) and
   loses its four chart sections (D-34). `generate` and `year-end` keep their paths (identity
   no-ops, D-32 Guard A).
-- `src/app/(owner)/analytics/` - 7 pages. **NONE move.** index, financial, leases, maintenance,
+- `src/app/(owner)/analytics/` - 3 real analytics pages + 4 redirect shims (D-40). **NONE move.** index, financial, leases, maintenance,
   occupancy, overview, property-performance all stay, unedited by this phase. Do not delete, do not
   redirect, do not repoint their nav or palette entries.
 - `src/components/shell/main-nav.tsx` - the `Financials` section (`:76-83`) is removed and its
@@ -700,6 +700,149 @@ None - `todo.match-phase 56` returned zero matches.
 *Context gathered: 2026-07-26*
 *Revised: 2026-07-26 - user scope correction: D-05/D-07/D-08/D-19/D-24 revised, D-27/D-28 added,
 D-14..D-17 moved to Phase 65*
+
+---
+
+<open_question_resolutions>
+## Open Questions RESOLVED (2026-07-30, evidence-verified)
+
+OQ-1..OQ-5 from the reconciliation are now closed. Two of them turned out to rest on
+false premises, and closing them surfaced a NEW production defect. Decisions D-35..D-40.
+
+### D-35 (closes OQ-1) — DELETE the "Outstanding / accounts receivable" tile. Do NOT port it.
+
+OQ-1 asked where Accounts Receivable should live once `/reports/analytics` is deleted.
+**The premise was wrong twice over, and correcting it inverts the answer.**
+
+1. **A/R never rendered on `/reports/analytics`.** That page renders a stats row (Total
+   Revenue, Payment Success, Occupancy Rate, ACH Adoption) plus four charts. No receivable.
+   D-20's "A/R is pinned to /reports/analytics" described an intended port that was never
+   built. Deleting the route costs A/R nothing.
+
+2. **The A/R figure that DOES ship is fabricated.** VERIFIED at
+   `src/hooks/api/query-keys/financial-keys.ts:153`:
+
+       accounts_receivable: monthlyRevenue,
+       accounts_payable: 0,
+
+   `financials-summary-stats.tsx:115-133` renders that value as
+   `StatLabel "Outstanding"` / `StatDescription "accounts receivable"`. **It prints monthly
+   revenue under the label "accounts receivable"** — opposite accounting concepts (money
+   earned vs money owed to the owner). `accounts_payable` is a hardcoded 0.
+
+   It also claims the exact word **"Outstanding"** that D-30 assigns to the summary strip's
+   `scheduled - collected`. Porting it would ship TWO different "Outstanding" figures
+   meaning different things on the same hub — precisely what D-04/D-30's single-source rule
+   forbids.
+
+**Decision:** when `financials-summary-stats.tsx` moves and becomes the `/reports` index
+strip (D-07), DROP the `accountsReceivable` prop and its `Stat`. Also drop the
+`accounts_receivable: monthlyRevenue` assignment at `financial-keys.ts:153`.
+
+**D-20 is AMENDED, not preserved.** Its premise ("A/R is the one figure that would be lost")
+does not survive verification: the figure is not A/R. Removing it is the claims-integrity
+action; keeping it is the violation. A real A/R, if wanted later, should be derived from the
+Phase 55 ledger (unpaid charge balances) — that is a NEW capability and belongs in its own
+phase, not a port.
+
+### D-36 (closes OQ-2) — ALL SIX files under `/reports/analytics/` are DELETED. Nothing moves.
+
+D-02's "move the charts to /analytics" is superseded. Per-file verification:
+
+| File | Disposition | Why |
+|---|---|---|
+| `page.tsx` | DELETE | route removal (D-29); covered by `/analytics/overview` + `/analytics/financial` |
+| `analytics-stats-row.tsx` | DELETE | cards 1/2/4 read the broken `paymentAnalytics` (D-33); Occupancy Rate is already rendered by `analytics/overview/analytics-stat-cards.tsx:48` |
+| `analytics-payment-methods-chart.tsx` | DELETE | broken source AND claims card-vs-ACH in a product that facilitates no rent payments (D-33) |
+| `analytics-property-table.tsx` | DELETE | **provably dead** — its mapper hard-codes `byProperty: []`; covered by `analytics/property-performance/top-properties-table.tsx` |
+| `analytics-occupancy-chart.tsx` | DELETE | same always-empty guard; has only ever rendered its empty state |
+| `analytics-revenue-chart.tsx` | DELETE | triplicated by live `/analytics` charts |
+
+Nothing is relocated to `/analytics`. This SIMPLIFIES the phase: the migration is a pure
+deletion plus one redirect, with no component move to review.
+
+### D-37 (closes OQ-4) — fix the executive-monthly export IN this phase, by deletion.
+
+VERIFIED: `src/lib/reports/report-data.ts:379-383` calls
+`safeFetch(qc, reportAnalyticsQueries.paymentAnalytics(start, end), PAYMENTS_FALLBACK)` —
+the same broken mapper. `executiveKeyMetricsRows` (`report-data.ts:412-416`) then emits:
+
+    { label: "Total Payments",      value: fmtNumber(payments.totalPayments) }
+    { label: "Successful Payments", value: fmtNumber(payments.successfulPayments) }
+
+Both permanently 0. Correction to the earlier framing: the broken export rows are payment
+**counts**, not revenue dollars. The chain is client-side (`/reports/generate` ->
+`buildReportData`), NOT an edge function. `executive-monthly` is **NOT** in
+`PREMIUM_REPORT_TYPES` (`year-end`, `1099`, `financial`, `income-statement`, `cash-flow`),
+so this is not exclusively a paying-customer defect — it reaches everyone who exports.
+
+**Decision: remove those two rows and the `paymentAnalytics` fetch from the
+executive-monthly path, inside Phase 56.** Frontend only — no migration, no RPC change.
+
+Rationale: the phase already deletes two of the three consumers of this mapper. Shipping as
+otherwise scoped would leave the export as the SOLE surviving consumer of code this phase
+has just declared dead — a known-false claim in a customer-facing document, orphaned behind
+a route nobody else touches. Deleting the last consumer is the same operation the phase is
+already performing, not scope expansion.
+
+### D-38 (closes OQ-3) — the `ExportButtons` paywall divergence is DEFERRED.
+
+D-21's justification was that the D-06 merge would import a divergent paywall into the hub.
+Under full separation that merge does not happen, and `ExportButtons`' only call site is
+`analytics/financial/page.tsx:103` — OUTSIDE this phase's boundary. **D-21 is moot, not
+preserved.** Recorded as a deferred item so it is not lost.
+
+### D-39 (closes OQ-5) — deleting `analytics-stats-row.tsx` loses nothing.
+
+The Occupancy Rate card inside it reads real data (`occupancyMetrics`), so wholesale
+deletion looked risky. VERIFIED SAFE: `analytics/overview/analytics-stat-cards.tsx:48`
+already renders an equivalent "Occupancy Rate" card from the same metric. No relocation
+needed.
+
+### D-40 (new finding) — `/analytics` is 3 real pages + 4 redirect shims. Correct the count.
+
+Audited every route under `src/app/(owner)/analytics/`:
+
+| Route | Reality |
+|---|---|
+| `/analytics` | REDIRECT -> `/analytics/overview` (5 lines) |
+| `/analytics/overview` | **REAL** (235 lines) |
+| `/analytics/financial` | **REAL** (252 lines + 9 components + 5 charts) |
+| `/analytics/property-performance` | **REAL** (215 lines + 6 components) |
+| `/analytics/leases` | REDIRECT -> `/leases?tab=insights` |
+| `/analytics/maintenance` | REDIRECT -> `/maintenance?tab=insights` |
+| `/analytics/occupancy` | REDIRECT -> `/properties?tab=insights` |
+
+**Only 3 of 7 are real pages.** Any success criterion or doc claiming "3 real analytics pages + 4 redirect shims (D-40)" is provably false and must be reworded to: *"`/analytics` keeps its URL space —
+3 pages (overview, financial, property-performance) plus 4 legacy redirect shims."*
+Applies to ROADMAP SC-2 and every "3 real analytics pages + 4 redirect shims (D-40)" phrasing in this CONTEXT and the UI-SPEC.
+
+**Guard B stays at 7 paths** — it is the correct tripwire for a stale `next.config.ts` 308,
+but it proves "no config redirect matched", NOT "these are 7 live pages". Document that
+distinction so the assertion is not misread as page-existence coverage.
+
+**Does this invalidate the two-peer-nav decision?** No. The section's real substance
+(`/analytics/financial` + `/analytics/property-performance` + `/analytics/overview`) is
+genuine and is exactly the "how is the portfolio trending" surface the separation exists to
+protect. But the hollowness is real and worth its own cleanup phase.
+
+</open_question_resolutions>
+
+<deferred_additions>
+## Added to Deferred (2026-07-30)
+
+- **`ExportButtons` divergent paywall path** (was D-21) — only call site is
+  `analytics/financial/page.tsx:103`, outside this phase.
+- **A real Accounts Receivable figure**, derived from Phase 55 ledger unpaid balances. New
+  capability, not a port. See D-35.
+- **`/analytics` redirect-shim cleanup** — 4 of 7 routes are shims to `?tab=insights`
+  surfaces. See D-40.
+- **`accounts_payable` is hardcoded 0** in `financial-keys.ts:154` — same class of defect as
+  D-35, not surfaced in this phase's scope but should not be forgotten.
+
+</deferred_additions>
+
 *Reconciled: 2026-07-30 - FULL SEPARATION supersedes partial separation. D-29..D-34 added;
 D-05 REVISED / D-06 / D-08 REVISED / D-19 REVISED / D-04 / D-28 superseded; D-21 / D-22 / D-23 moot;
 D-24 reduced 6->5 hrefs; D-02 grouping and D-26 reframed. D-27 and the Phase 65 block unchanged.*
+*Open questions resolved: 2026-07-30 - D-35..D-40 added; D-20 amended, D-21 moot, D-02 superseded by D-36.*
