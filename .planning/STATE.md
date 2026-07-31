@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-07-31T13:43:40.466Z"
+last_updated: "2026-07-31T13:59:42.935Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 14
   completed_phases: 4
   total_plans: 35
-  completed_plans: 32
+  completed_plans: 33
   percent: 29
 ---
 
@@ -26,9 +26,41 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 56 (reporting-hub-documents-landing) — EXECUTING
-Plan: 6 of 8
-Status: Wave 3 complete — 56-05 copied the five statement route trees into `/reports`; wave 4 (56-06 E2E proof) next
-Last activity: 2026-07-31 — executed 56-05 (2 tasks, 2 commits, 36 copied files + 6 E2E route constants)
+Plan: 7 of 8
+Status: Wave 4 complete on paper — 56-06 authored and registered the hub E2E spec, but it HAS NOT RUN. Wave 5 (56-07 legacy deletion) is BLOCKED on a CI result, not on 56-06's completion.
+Last activity: 2026-07-31 — executed 56-06 (2 tasks, 2 commits: `19a3e8453` spec, `e3e63f8aa` config registration)
+
+> **THE RPTHUB-04 GATE IS NOT GREEN. Do not let 56-07 delete `/financials`.**
+> 56-06 created `tests/e2e/tests/reports-hub.spec.ts` (9 tests: 8 hub routes +
+> 1 D-31 index check) and registered it in the `owner-axe` Playwright project —
+> one of the three CI's `e2e-smoke` job actually invokes
+> (`--project=smoke --project=public --project=owner-axe`). Registration is
+> **proven**: `--list` under that exact invocation enumerates all 9 tests, and
+> `--project=chromium --list` enumerates 0 (no double-execution). Pre-registration
+> the numbers were the reverse (chromium 9, owner-axe 0), so the entry is
+> load-bearing.
+>
+> **But the spec has never executed.** Two independent blockers, both recorded
+> with evidence in 56-06-SUMMARY.md:
+> 1. `tests/e2e/playwright.config.ts:284-286` — the `webServer` command begins
+>    `rm -rf .next && rm -f .env.local`. Running `playwright test` locally
+>    **deletes the gitignored `.env.local`**, which is unrecoverable and
+>    forbidden. Nothing was listening on :3050, so `reuseExistingServer` would
+>    not have applied. The run was deliberately declined. (`--list` is safe and
+>    was proven non-destructive: `.env.local` stat unchanged across all runs.)
+> 2. No `tests/e2e/.env.test`, no `E2E_OWNER_EMAIL`/`E2E_OWNER_PASSWORD` in the
+>    env or `.env.local`, no Supabase URL/key (falls back to
+>    `127.0.0.1:54321`, nothing listening). `loginAsOwner` throws at
+>    `auth-helpers.ts:277-279` before the first navigation. Those values are
+>    GitHub Actions secrets, `e2e-smoke`-only.
+>
+> There is also **no CI run to cite**: the branch has no upstream and
+> `gh pr list` returns `[]` — it has never been pushed.
+>
+> **The one action that closes the gate:** push the branch, open the PR, confirm
+> `e2e-smoke` reports **9 passing `Reports hub routes` tests**. Only then may
+> 56-07 remove `src/app/(owner)/financials/`. Shipping the deletion without that
+> makes RPTHUB-04 a false claim inside a claims-integrity milestone.
 
 > **Both route trees are live right now, and that is the point.** The five
 > statement routes were **copied**, not `git mv`d: `/financials/{balance-sheet,
@@ -101,7 +133,7 @@ Last activity: 2026-07-31 — executed 56-05 (2 tasks, 2 commits, 36 copied file
 > `accounts_receivable`), the permanently-zero analytics cards, and the same
 > broken mapper reaching customer-facing executive-monthly exports.
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 94%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 

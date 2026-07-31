@@ -141,7 +141,12 @@ Plans:
 - [x] 56-03-PLAN.md — Hub index RSC rewrite, /reports/analytics deletion, zero-charts guard
 - [x] 56-04-PLAN.md — Tier-gate drift guard across both edge functions and the frontend mirror
 - [x] 56-05-PLAN.md — Five statement routes copied into the hub (copy, not move — RPTHUB-04 ordering)
-- [ ] 56-06-PLAN.md — E2E hub-route gate in owner-axe (RPTHUB-04 — must be green before wave 5)
+- [x] 56-06-PLAN.md — E2E hub-route gate in owner-axe (RPTHUB-04 — must be green before wave 5)
+  - **AUTHORED + REGISTERED, NOT YET GREEN.** The 9-test spec is registered in `owner-axe` (proven by
+    `--list` under CI's exact three-project invocation) but has **never executed** — local runs are
+    blocked by `playwright.config.ts:284-286` deleting `.env.local` and by the absence of the
+    `E2E_OWNER_*` secrets. **Wave 5 is gated on CI `e2e-smoke` reporting 9 passing tests**, not on
+    this checkbox. See `56-06-SUMMARY.md`.
 - [ ] 56-07-PLAN.md — Legacy /financials deletion, next.config.ts wiring, 17 live redirect assertions
 - [ ] 56-08-PLAN.md — Nav/palette/breadcrumb repointing plus the D-35 and D-37 claims excisions (wave 6 — depends on 56-07; it owns the global /financials sweep, which spans both plans' file sets)
 **UI hint**: yes
@@ -263,7 +268,7 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 �
 | 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
 | 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
-| 56. Reporting Hub | 5/8 | In Progress|  |
+| 56. Reporting Hub | 6/8 | In Progress|  |
 | 65. Documents Landing (executes after 56) | 0/TBD | Not started | - |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |
