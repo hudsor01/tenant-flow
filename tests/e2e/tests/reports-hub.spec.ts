@@ -14,7 +14,7 @@ import { ROUTES } from "./constants/routes";
  * not under `tests/e2e/tests/owner/`. Any path carrying an `owner/` segment is
  * claimed by the `owner` Playwright project's testMatch glob, and CI never
  * invokes that project — a spec placed there reports coverage it does not
- * provide, which is already true of `owner/owner-financials.e2e.spec.ts` and
+ * provide, which is already true of `owner/owner-reports.e2e.spec.ts` and
  * `owner/reports-gate.spec.ts`.
  *
  * REGISTRATION IS ALSO LOAD-BEARING. The `owner-axe` project uses an explicit
