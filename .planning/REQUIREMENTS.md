@@ -56,8 +56,8 @@
 
 #### Reporting Hub (RPTHUB)
 
-- [ ] **RPTHUB-01**: One unified reporting hub at `/reports` absorbs `/financials/*` and `/analytics/financial` (single navigation entry, statements + analytics + exports in one surface)
-- [ ] **RPTHUB-02**: Every legacy financial/reporting URL (~15 routes) permanently redirects (308, `next.config.ts` `redirects()`) to its hub equivalent — no 404s, no proxy.ts involvement
+- [ ] **RPTHUB-01** *(amended 2026-07-30 — full separation)*: One unified reporting hub at `/reports` absorbs `/financials/*` **only**. It holds **statements + exports, ZERO charts** — no `recharts` / `ChartContainer` / `ResponsiveContainer` anywhere under `src/app/(owner)/reports/**`. **`/analytics/financial` is NOT absorbed**; all analytics stays at `/analytics` as a peer top-level nav entry. "Single navigation entry" applies to the reporting hub itself, not to a merged Reports+Analytics super-entry
+- [ ] **RPTHUB-02** *(amended 2026-07-30 — full separation)*: Every moved reporting URL (7 entries) permanently redirects (308, `next.config.ts` `redirects()`) — **six INTO the hub** (`/financials`, `/financials/balance-sheet`, `/financials/cash-flow`, `/financials/expenses`, `/financials/income-statement`, `/financials/tax-documents`) and **one OUT of it** (`/reports/analytics` → `/analytics/overview`, the opposite direction from every other redirect in this phase; it targets the concrete route because `/analytics` itself in-page-redirects there). No 404s, no proxy.ts involvement. Routes that are not moving emit no redirect: the 3 identity no-ops (`/reports`, `/reports/generate`, `/reports/year-end`) and **all 7 `/analytics/*` routes including `/analytics/financial`**, which is a destination, not a legacy URL
 - [ ] **RPTHUB-03**: Tier-gating on premium report exports (`export-report` `PREMIUM_REPORT_TYPES`) verified intact after consolidation — no route rewrite bypasses the gate
 - [ ] **RPTHUB-04**: E2E coverage exists for hub routes before legacy routes are removed
 
@@ -150,7 +150,7 @@
 
 ## Traceability
 
-Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactly one phase (52-64). No orphans, no double-mapping.
+Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactly one phase (52-65). No orphans, no double-mapping.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -186,7 +186,7 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | RPTHUB-02 | Phase 56 | Pending |
 | RPTHUB-03 | Phase 56 | Pending |
 | RPTHUB-04 | Phase 56 | Pending |
-| DOCS-01 | Phase 56 | Pending |
+| DOCS-01 | Phase 65 | Pending |
 | APPLY-01 | Phase 57 | Pending |
 | APPLY-02 | Phase 57 | Pending |
 | APPLY-03 | Phase 57 | Pending |
@@ -219,8 +219,12 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 - Unmapped: 0 ✓
 - Double-mapped: 0 ✓
 
-> **Count correction (2026-07-19):** the prior coverage note read "46 total." The actual enumerated REQ-IDs total **58**. All 58 are mapped across phases 52-64. The stale "46" figure is superseded.
+> **Count correction (2026-07-19):** the prior coverage note read "46 total." The actual enumerated REQ-IDs total **58**. All 58 are mapped across phases 52-65. The stale "46" figure is superseded.
+
+> **Phase 56 split (2026-07-26, user scope correction):** DOCS-01 moved from Phase 56 to the new **Phase 65: Documents Landing**; Phase 56 now carries RPTHUB-01..04 only. Phase 65 takes the next free integer (project convention forbids decimals; phases 57-64 are never renumbered) but executes immediately after Phase 56. RPTHUB-02's route count was corrected from "~15" to the actual 7 entries. Requirement count and mapping are unchanged at 58/58.
+
+> **RPTHUB-01/02 amendment (2026-07-30, user scope correction — FULL SEPARATION):** The 2026-07-26 reading ("only `/analytics/financial` moves into the hub") was presented to the user as the recommended option and **rejected**. The locked position is full separation: the hub absorbs `/financials/*` only and holds **zero charts**; `/analytics/financial` **stays live and is not redirected**; `/reports/analytics` is **deleted** and 308s **into `/analytics/overview`**. The map is still 7 entries, but the 7th **inverts direction** and `/analytics/financial` moves from the source column into the do-not-redirect guard set. **This is a deliberate product decision, not a scope reduction to be quietly absorbed — do not re-merge the surfaces by following older text.** DOCS-01 → Phase 65 is unchanged. Requirement count and mapping are unchanged at 58/58.
 
 ---
 *Requirements defined: 2026-07-19*
-*Last updated: 2026-07-19 — traceability populated by roadmap creation; 58/58 mapped across phases 52-64; corrected the stale "46 total" coverage count to the actual 58.*
+*Last updated: 2026-07-30 — RPTHUB-01/02 amended for full separation (hub is chart-free; `/analytics/financial` stays live; `/reports/analytics` → `/analytics/overview` inverts the 7th redirect). 58/58 still mapped across phases 52-65. (2026-07-26: Phase 56 split, DOCS-01 remapped to Phase 65, RPTHUB-02 route count corrected to 7. 2026-07-19: traceability populated by roadmap creation; corrected the stale "46 total" coverage count to the actual 58.)*

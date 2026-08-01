@@ -116,7 +116,11 @@ export function MaintenanceViewClient() {
 	})();
 
 	const handleViewAnalytics = () => {
-		router.push("/reports/analytics");
+		// Phase 56 (D-29/D-42): the legacy hub analytics route was deleted and now
+		// 308s here. Target the live route directly — a client-side push through a
+		// config redirect is a wasted hop, and the indirection outlives the memory
+		// of why it existed.
+		router.push("/analytics/overview");
 	};
 
 	if (isLoading) {

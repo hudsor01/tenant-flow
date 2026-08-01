@@ -404,10 +404,10 @@ describe("AppShell", () => {
 			// Check for group headings (some text may appear multiple times)
 			expect(screen.getByText("Navigation")).toBeInTheDocument();
 			expect(screen.getByText("Analytics & Reports")).toBeInTheDocument();
-			// "Financials" appears in both sidebar nav and command palette - use getAllByText
-			expect(screen.getAllByText("Financials").length).toBeGreaterThanOrEqual(
-				1,
-			);
+			// Phase 56 (D-29): the separate statements heading is gone — its rows
+			// folded into "Analytics & Reports" when the legacy tree was deleted.
+			// The palette's full href list is pinned in app-shell-nav.test.tsx.
+			expect(screen.getByText("Income Statement")).toBeInTheDocument();
 			// v2.4 Phase 60 renamed the legacy "Documents" command-palette
 			// heading to "Templates" — the new top-level "Documents" core
 			// nav item points at /documents/vault.

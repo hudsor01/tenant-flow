@@ -21,12 +21,15 @@ const LABEL_MAP: Record<string, string> = {
 	"property-performance": "Property Performance",
 	occupancy: "Occupancy",
 
-	// Financials routes
-	financials: "Financials",
+	// Reports hub sub-routes (D-29: the statements + exports live under /reports;
+	// `analytics` and `financial` above stay because /analytics/financial is a
+	// live destination, not a legacy URL)
 	"income-statement": "Income Statement",
 	"cash-flow": "Cash Flow",
 	"balance-sheet": "Balance Sheet",
+	expenses: "Expenses",
 	"tax-documents": "Tax Documents",
+	"year-end": "Year-End",
 
 	// Documents routes
 	documents: "Documents",

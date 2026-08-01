@@ -257,7 +257,7 @@ export function OwnerOnboardingTour({
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
 								? "Access Properties, Tenants, Leases, and more from the menu."
-								: "Use the sidebar to access Properties, Tenants, Leases, Maintenance, Financials, and Reports. You're all set to manage your properties!"}
+								: "Use the sidebar to access Properties, Tenants, Leases, Maintenance, Documents, Analytics, and Reports. You're all set to manage your properties!"}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>

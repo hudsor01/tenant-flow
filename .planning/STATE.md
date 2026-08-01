@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: "Phase 55 shipped - PR #927"
-last_updated: "2026-07-26T02:40:13.905Z"
-last_activity: 2026-07-25
+status: verifying
+last_updated: "2026-07-31T14:58:01.807Z"
+last_activity: 2026-07-31
 progress:
-  total_phases: 13
-  completed_phases: 4
-  total_plans: 27
-  completed_plans: 27
-  percent: 31
+  total_phases: 14
+  completed_phases: 5
+  total_plans: 35
+  completed_plans: 35
+  percent: 36
 ---
 
 # Project State
@@ -21,21 +21,222 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 55 — rent-ledger
+**Current focus:** Phase 56 — reporting-hub-documents-landing
 
 ## Current Position
 
-Phase: 55 (rent-ledger) — ALL PLANS EXECUTED
-Plan: 8 of 8
-Status: Phase 55 shipped - PR #927
-Last activity: 2026-07-25
+Phase: 56 (reporting-hub-documents-landing) — COMPLETE, PERFECT-PR GATE CLOSED
 
-> **Phase 55 build surface complete.** All eight plans have SUMMARY files:
-> schema + cron (55-01), RPCs (55-02), derivation + guards (55-03), prod
-> migration + types (55-04), data layer (55-05), dialogs (55-06), ledger tab
-> (55-07), KPI + Scheduled/Collected relabel (55-08). 55-08 ran out of order
-> ahead of 55-06/55-07 — it is a wave-3 plan whose only dependency was 55-04.
-> Remaining: the phase-level human verification pass and the perfect-PR gate.
+> **Gate closed on cycles 12 and 13** — two consecutive zero-finding review
+> cycles on frozen code (`8a23e088a`). 13 cycles total: 137 candidates, 121
+> refuted (88%), 16 real findings fixed.
+>
+> **Read the cycle-11 lesson before running this gate again.** It reported
+> CLEAN and was not. The harness extracted findings with a greedy
+> `/\[[\s\S]*\]/`, which matched from a `[owner-axe]` label in a reviewer's
+> prose to the last `]` of its fenced JSON, failed to parse, and the `catch`
+> treated that as ZERO FINDINGS. A real finding was dropped and the cycle looked
+> green because the PARSER failed. Fixed: prefer a fenced block, else scan for
+> the first substring that parses as an array, and never coerce a parse failure
+> to zero — emit a blocking `harness-parse-failure` instead. **Audit
+> `journal.jsonl` every cycle; do not trust the summary verdict.**
+>
+> **`gh pr checks` is not sufficient here.** This repo runs a doc-only companion
+> workflow sharing the same job names, so a 2s `e2e-smoke pass` can sit beside
+> the real 217s run. Verify via
+> `gh api repos/<o>/<r>/commits/<sha>/check-runs` and pick the long-duration
+> entry. Real run on the final SHA: **105 passed + 1 skipped = 106**, matching
+> the local `--list` count (9 `reports-hub` + 17 `reporting-redirects`), which is
+> how execution is proven — Playwright's CI reporter never names passing tests.
+>
+> Of the 16 findings, 3 were in shipped product code (a negative Outstanding, a
+> Cash Flow tile claiming month-over-month and running balances that do not
+> exist, an orphaned module retaining a recharts import). The other 13 were
+> guards that looked correct and were not — a pin satisfied by a comment, an
+> `aria-label` the `paragraph` role prohibits, a scan rooted where the risk is
+> not, a must-survive assertion matching a sibling function, and an exemption
+> whose per-entry staleness check REWARDED the silencing edit it existed to
+> block. That last one now uses an equality pin, the only bound that survives.
+Plan: 8 of 8
+Status: Phase complete - all 8 plans executed, CI green on PR #957
+
+> **BOTH E2E SPECS ARE CONFIRMED EXECUTING IN CI, not merely registered.**
+> Second `e2e-smoke` run (after 56-07 + 56-08): **105 passed + 1 skipped = 106**.
+> A local `--list` under CI's exact
+> `--project=smoke --project=public --project=owner-axe` selection resolves to
+> the same **106 tests in 10 files** - **9 `reports-hub` + 17
+> `reporting-redirects`**. The single skip is a conditional in
+> `critical-paths`/`seo-smoke`; neither phase-56 spec contains a skip.
+>
+> This matters because a green `e2e-smoke` says nothing about WHICH tests ran.
+> Playwright's CI reporter does not name passing tests and the workflow uploads
+> a report only on failure, so the count comparison is the proof, not the badge.
+Last activity: 2026-07-31 — executed 56-08 (3 tasks, 3 commits: `71eb083ef` route tables + breadcrumbs + links, `f6b8a4df2` D-35 fabricated A/R deletion, `1676b0a10` D-37 zero-payment-count export deletion)
+
+> **THE SWEEP IS AT 0, AND THE FILTER WAS NEVER WIDENED.**
+> `grep -rn '/financials' src tests | grep -v 'reporting-redirects'` returns
+> **0 lines**. Both route tables, the breadcrumb LABEL_MAP, the e2e route
+> constants and the two newly-found `detailsHref` values on
+> `/analytics/financial` all point at the hub. The `grep -v` exclusion covers
+> exactly the three redirect-machinery files it covered when 56-02 wrote it, and
+> its companion bound still holds: `grep -c 'source: "/financials'` on the map
+> returns **6**, its 20-test equality suite passes.
+>
+> Two matches survived the first pass — both were 56-08's OWN new assertions
+> naming the dead token. They were rewritten as ALLOWLISTS (`main-nav`: "exactly
+> two collapsible sections"; `app-shell-nav`: "targets only route trees that
+> still exist"), which is strictly stronger than a denylist of the one deleted
+> prefix and also catches the next tree that gets consolidated away. **This is
+> the pattern to reuse: never widen an exclusion filter to clear a sweep.**
+>
+> The three 56-06 comment lines were **reworded, not deleted** — "the legacy
+> financials route tree" carries the same information without the token.
+
+> **Both verified false claims are excised at the source.** D-35: the
+> `accounts_receivable: monthlyRevenue` assignment, its interface field and its
+> early-return field are gone from `financial-keys.ts`; the count went 4 → **1**,
+> the survivor being the UNRELATED `get_billing_insights` balance-sheet read.
+> The camelCase count is still exactly 2 — no balance-sheet line was touched.
+> D-37: both permanently-zero export rows, the fetch, `PAYMENTS_FALLBACK`, the
+> type import and the parameter are gone, and the positional `Promise.all`
+> destructure was corrected from four bindings to three. A permuted-tuple probe
+> exits typecheck 1, so the surviving order is compiler-confirmed.
+> **`report-analytics-keys.ts` was NOT touched** — fixing the key casing would
+> surface subscription-billing figures under rental-revenue labels (D-33).
+
+> **THE RPTHUB-04 GATE IS GREEN. This supersedes the block that stood here
+> after 56-06.** PR #957's `e2e-smoke` job executed
+> `tests/e2e/tests/reports-hub.spec.ts`: **PASS in 3m53s, 88 passed + 1 skipped
+> = 89 tests.** A local `--list` under CI's exact
+> `--project=smoke --project=public --project=owner-axe` selection resolves to
+> the same 89 tests in 9 files, 9 of them `reports-hub`. The hub spec contains
+> **zero** skips — the single skip is a conditional in
+> `critical-paths`/`seo-smoke`. All 8 hub routes render for an authenticated
+> owner.
+>
+> **56-07 therefore deleted `src/app/(owner)/financials/` legitimately**, after
+> the proof rather than with it, which is exactly what RPTHUB-04 requires. The
+> ordering is auditable in the commit graph: the CI run precedes `51192fdf0`.
+
+> **The duplication is over — `/financials` is gone and `/reports` is the only
+> tree.** 44 files deleted, `"/financials"` removed from
+> `PRIVATE_ROUTE_PREFIXES` (a `0 insertions / 1 deletion` diff), and
+> `grep -c 'financials' .next/server/app-paths-manifest.json` returns **0** while
+> all 8 `/(owner)/reports/**/page` keys remain. Threat T-56-19 (the two trees
+> diverging) and T-56-20 (doubled colocated tests) are both closed — the unit
+> suite went 310 → **308 files, 106181 tests passed**.
+>
+> **All six `financials-*` components were DELETED, not moved — D-41 overridden
+> with evidence.** D-41 claimed `financials-summary-stats.tsx` had a second
+> consumer at `expenses/_components/expense-stats.tsx`. **False:** that is a code
+> COMMENT (`// Match financials-summary-stats: dollars, two decimals...`), not an
+> import, and it exists in *both* the legacy and 56-05's copied tree.
+> `financials/page.tsx` was the sole importer of all six, so moving any of them
+> would have shipped dead files.
+
+> **The 7 redirects are wired and compiled — verified from
+> `.next/routes-manifest.json`, not asserted.** All 7 sources present as **308**
+> with exact destinations, **0 of the 10 guard paths leaked**. Every compiled
+> regex is both-ends-anchored (`^(?!/_next)/financials/cash-flow(?:/)?$`), so
+> D-32's ordering non-issue holds. The check script was proven to *detect*: fed a
+> synthetic manifest with the stale `/analytics/financial -> /reports/analytics`
+> entry it exited 1 naming the leak.
+>
+> `next.config.ts` gained **+23 / -0** — all 5 pre-existing literal entries, the
+> blog spread and `fetchPublishedBlogSlugs` are byte-unchanged, `rewrites` count
+> is 0, and `experimental.useTypeScriptCli` is intact (**never remove it** —
+> TypeScript 7 is the Go-native compiler and ships no JS compiler API).
+>
+> The 17 live assertions are in `tests/e2e/tests/public/reporting-redirects.spec.ts`,
+> selected by the `public` project (`-g "RPTHUB-02"` → 17 tests; CI's three-project
+> selection went 89 → **106 tests in 10 files**). **They have not executed yet** —
+> `e2e-smoke` on the next push is their first run.
+>
+> **56-07 must delete the ORIGINALS.** `src/app/(owner)/financials/` only.
+> After deletion, confirm the five `/reports/*` trees survive intact.
+
+> **The purity guard's D-18 label scan is now path-scoped, and the scoping is
+> self-invalidating.** The copied income statement carries a GAAP "Total
+> Revenue" subtotal — itemised on its own face from `get_income_statement`, not
+> a third undefined derivation — so `/reports/income-statement/` is exempt from
+> the D-18 *label* check. It was paid for: the JSX matcher was widened to span
+> newlines in the same edit, so everywhere else under `/reports` D-18 is now
+> stricter than 56-03 shipped it. Three assertions bound the exemption — it must
+> resolve to a real directory, it must still be flagging something, and it can
+> never reach `page.tsx`, `reports-hub-entries.ts`, `report-hub-tile.tsx` or
+> `reports-summary-strip.tsx`. **Do not widen `D18_EXEMPT_DIRS` to silence a new
+> failure**; a Revenue label on any other hub surface is exactly the defect D-18
+> exists to catch. The D-34 zero-charts block was never touched and is green.
+
+> **`bun run dev` and `next build` cannot run in this working copy.**
+> `.env.local` is missing the app vars, so dev fails env validation and a
+> `SKIP_ENV_VALIDATION=true` build dies in `/blog/[slug]`'s build-time Supabase
+> fetch. Never edit `.env.local`. Local verification must use the unit suite,
+> typecheck, lint and the build manifest — not a running server.
+>
+> **Workaround found by 56-07 for the manifest case:**
+> `SKIP_ENV_VALIDATION=true bunx next build --experimental-build-mode compile`
+> exits **0** and writes `.next/routes-manifest.json`; compile-only mode skips
+> the page-data collection step that hits the missing env. The full-build failure
+> was proven pre-existing by reproducing it at HEAD with 56-07's `next.config.ts`
+> change reverted. Note either build mode rewrites `next-env.d.ts` — revert with
+> `git checkout -- next-env.d.ts`.
+
+> **Requirements still NOT marked complete.** RPTHUB-01 is listed in 56-01's and
+> 56-03's frontmatter, RPTHUB-02 in 56-02's and 56-07's, RPTHUB-03 in 56-01's and
+> 56-04's, RPTHUB-04 in 56-06's and 56-07's. **RPTHUB-03** (56-04's drift guard,
+> proven against six perturbations) and **RPTHUB-04** (PR #957's `e2e-smoke`
+> proving the hub green before 56-07's deletion) are now genuinely satisfied.
+> **As of 56-08, RPTHUB-01 and RPTHUB-02 are satisfied too** — the nav, the Cmd+K
+> palette, the breadcrumb LABEL_MAP and the e2e route constants no longer name a
+> legacy URL anywhere, and the sweep proves it. `.planning/REQUIREMENTS.md`
+> remains untouched by **all eight** plans — 56-04 onward were explicitly
+> instructed not to run `requirements.mark-complete`, because 56-01's reflexive
+> run flipped RPTHUB-01/03 to Complete while both were still false and had to be
+> reverted. **The phase-level verifier marks all four now.**
+
+> **D-34 is now enforced, not just decided.** `/reports` holds zero charts:
+> `/reports/analytics` and its five children are deleted, the four recharts
+> report sections are deleted, and
+> `src/app/(owner)/reports/__tests__/reports-hub-purity.test.ts` scans the whole
+> subtree on every unit run. It was proven to fail against a planted `recharts`
+> import. Any later plan adding a file under `src/app/(owner)/reports/` inherits
+> that guard plus the D-30 index-purity, D-33 broken-key and D-18 no-bare-Revenue
+> assertions.
+
+> **Phase 56 execution is COMPLETE: 8 of 8 plans done, gate DISCHARGED.**
+> Branch `gsd/phase-56-reporting-hub-documents-landing`, PR #957 open.
+> Full unit suite after 56-08: **309 files, 106187 tests passed** (56-07 left it
+> at 308 / 106181; the +1 file and +6 tests reconcile exactly to
+> `app-shell-nav.test.tsx` +4, `main-nav.test.tsx` net +1, `breadcrumbs.test.ts`
+> net +1). `bun run validate:quick` exits 0. CI's three-project Playwright
+> selection is **unchanged at 106 tests in 10 files** — 56-08 touched nothing CI
+> runs, and 56-07's 17 redirect assertions are still awaiting their first
+> execution on the next push.
+>
+> **Local E2E execution remains impossible and that has not changed.**
+> `E2E_OWNER_*` are `e2e-smoke` GitHub secrets, and
+> `tests/e2e/playwright.config.ts:284`'s webServer command begins
+> `rm -rf .next && rm -f .env.local` — running the suite locally DELETES
+> `.env.local`. **CI is the only place any Playwright spec in this repo can
+> run.** `--list` is safe and is how 56-06 and 56-07 both proved selection.
+> Only 56-07's 17 redirect assertions are still awaiting a first execution.
+>
+> Two planning lines were reconciled to full separation (D-29): `/reports`
+> becomes the hub, `/analytics` stays a peer section, `/financials` is deleted
+> behind 308s. DOCS-01 and the whole `/documents` landing split out to
+> **Phase 65** — no Phase 56 plan, task or test may claim it.
+>
+> Waves: 1 = 56-01 (hub scaffold) + 56-02 (redirect map); 2 = 56-03, 56-04;
+> 3 = 56-05; 4 = 56-06 (E2E proof); 5 = 56-07 (legacy deletion); 6 = 56-08
+> (second route table + A/R and export deletions). Waves 3-6 are strictly
+> serial by design — the phase's central requirement is an ordering guarantee
+> (prove the new surface green BEFORE deleting the old one).
+>
+> Three live production defects are fixed by deletion in this phase: the
+> fabricated A/R tile (`financial-keys.ts:153` assigns monthly revenue to
+> `accounts_receivable`), the permanently-zero analytics cards, and the same
+> broken mapper reaching customer-facing executive-monthly exports.
 
 Progress: [██████████] 100%
 
@@ -93,11 +294,49 @@ Progress: [██████████] 100%
 
 ## Next Action
 
-Plan **Phase 52** (Notification Center, Activity Feed & Channel Honesty). It establishes the shared `create_notification` write-path RPC that nearly every later phase calls, so it lands first. Run `/gsd-plan-phase 52`. Branch (`gsd/phase-52-...`) only after confirming main is at the v9.0 end-state. This phase is primarily UI + write-path wiring over existing `notifications`/`activity` tables, folds in the SMS/push toggle removal (HONEST-01/02) and orphan schema cleanup (CLEAN-01/02), and ships the retention cron.
+**Run `/gsd-verify-work 56`.** All 8 plans are executed and committed on
+`gsd/phase-56-reporting-hub-documents-landing` (PR #957 open). Nothing remains to
+execute.
+
+Five things the verifier needs:
+
+1. **Mark all four requirements.** RPTHUB-01..04 are now genuinely satisfied and
+   `.planning/REQUIREMENTS.md` is untouched by all eight plans — that was
+   deliberate (56-01's reflexive `requirements.mark-complete` flipped RPTHUB-01/03
+   to Complete while both were still false, and had to be reverted). The marks are
+   the verifier's to make.
+2. **The `/financials` sweep is at 0 and its exclusion filter is load-bearing.**
+   `grep -rn '/financials' src tests | grep -v 'reporting-redirects'` returns 0.
+   The filter excludes exactly three files that must permanently name the six
+   legacy sources: the map (`src/lib/seo/reporting-redirects.ts`), its unit test,
+   and `tests/e2e/tests/public/reporting-redirects.spec.ts`. **Do not rename any
+   of the three** — all three basenames must keep the `reporting-redirects`
+   substring. The bound that keeps the filter honest is
+   `grep -c 'source: "/financials'` on the map = **6**, plus its source-array
+   EQUALITY assertion (20/20 passing).
+3. **Two acceptance criteria in 56-08-PLAN.md are arithmetically wrong and were
+   reported rather than reworded.** `grep -c 'ANALYTICS_' routes.ts` returns 6, not
+   ≥7 (the bare `ANALYTICS:` key has no trailing underscore — it was 6 at HEAD
+   too, and all 7 keys survive). `grep -c '41667'` in
+   `use-financial-overview.test.ts` returns 2, not 0 (both are mock RPC payloads;
+   the assertion that pinned the fabricated value is gone). See 56-08-SUMMARY.md
+   "Acceptance Criteria NOT Met As Literally Written".
+4. **No Playwright spec in this repo has ever run locally, by design.**
+   `tests/e2e/playwright.config.ts:284`'s webServer command begins
+   `rm -rf .next && rm -f .env.local`. `--list` is safe and is how 56-06, 56-07 and
+   56-08 all proved selection. CI's `e2e-smoke` is the only execution path, and
+   56-07's 17 redirect assertions are still awaiting their first run.
+5. **Do not remove `experimental.useTypeScriptCli` from `next.config.ts`.**
+   TypeScript 7 is the Go-native compiler and ships no JS compiler API; without the
+   flag `next build` exits 1 immediately.
+
+After verification: perfect-PR gate on #957 (two consecutive zero-finding review
+cycles on the frozen final state), then merge, then Phase 65 "Documents Landing"
+(DOCS-01) — which executes immediately after 56 despite its number (D-27).
 
 ## Overrides
 
 (none active)
 
 ---
-*Last updated: 2026-07-19 — v10.0 "Claims Integrity + Canonical Feature Expansion" roadmap authored; REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64). Integer phase numbers continue across milestones. Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*
+*Last updated: 2026-07-31 — Phase 56 execution complete (8/8 plans). v10.0 "Claims Integrity + Canonical Feature Expansion" roadmap authored 2026-07-19; REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64). Integer phase numbers continue across milestones. Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*

@@ -3,7 +3,7 @@ import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
 export const metadata = ownerPageMetadata(
 	"Reports",
-	"Generate financial, property, tenant, and maintenance reports",
+	"Every financial statement and export in one place",
 );
 
 export default function Layout({ children }: { children: ReactNode }) {

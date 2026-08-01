@@ -15,6 +15,8 @@ import {
 	DELETED_BLOG_REDIRECTS,
 	filterActiveRedirects,
 } from "./src/lib/seo/blog-redirects";
+// 308 map for the Phase 56 reporting-hub consolidation (RPTHUB-02).
+import { REPORTING_REDIRECTS } from "./src/lib/seo/reporting-redirects";
 
 // Build-time fetch of the published blog slug set (anon PostgREST read — RLS
 // exposes only status=published). Used to drop ghost 301s whose slug has been
@@ -162,6 +164,27 @@ const nextConfig: NextConfig = {
 				DELETED_BLOG_REDIRECTS,
 				(await fetchPublishedBlogSlugs()) ?? new Set<string>(),
 			).map((r) => ({
+				source: r.source,
+				destination: r.destination,
+				permanent: true,
+			})),
+			// Phase 56 reporting-hub consolidation: 7 entries, six pointing INTO
+			// /reports and exactly one pointing OUT — /reports/analytics ->
+			// /analytics/overview. That outbound entry is deliberate (D-29 full
+			// separation: /reports holds statements and exports, every chart lives
+			// under /analytics) and must NOT be "corrected" by anyone assuming
+			// every arrow points at the hub.
+			//
+			// The map module's own header documents the two guard sets that must
+			// never appear as sources: Guard A, the 3 identity no-ops (/reports,
+			// /reports/generate, /reports/year-end — a self-redirect is
+			// ERR_TOO_MANY_REDIRECTS on a route that works today), and Guard B, the
+			// 7 /analytics/* paths that are not moving at all.
+			//
+			// No filterActiveRedirects here — that exists only because the blog map
+			// is build-time-filtered against a live Supabase slug set. This map is
+			// static, so `permanent: true` is applied uniformly at this spread site.
+			...REPORTING_REDIRECTS.map((r) => ({
 				source: r.source,
 				destination: r.destination,
 				permanent: true,

@@ -43,7 +43,7 @@ describe("MainNav", () => {
 				screen.getByRole("link", { name: /maintenance/i }),
 			).toBeInTheDocument();
 			// Anchored regex avoids matching the "Tax Documents" sub-link
-			// once the Financials section is expanded.
+			// once the Reports section is expanded.
 			expect(
 				screen.getByRole("link", { name: /^documents$/i }),
 			).toBeInTheDocument();
@@ -128,13 +128,18 @@ describe("MainNav", () => {
 			expect(reportsButton).toBeInTheDocument();
 		});
 
-		it("should render Financials as expandable button", () => {
-			render(<MainNav />);
+		// D-29 FULL SEPARATION: this block carries exactly TWO peer sections —
+		// Analytics and Reports. Asserted as an exhaustive list rather than as the
+		// absence of the one section just deleted, so a third section reappearing
+		// under any name fails here.
+		it("should render exactly two collapsible sections", () => {
+			const { container } = render(<MainNav />);
 
-			const financialsButton = screen.getByRole("button", {
-				name: /financials/i,
-			});
-			expect(financialsButton).toBeInTheDocument();
+			const sectionLabels = Array.from(
+				container.querySelectorAll('button[aria-controls^="nav-section-"]'),
+			).map((button) => button.textContent?.trim());
+
+			expect(sectionLabels).toEqual(["Analytics", "Reports"]);
 		});
 
 		it("should toggle Analytics children visibility on click", async () => {
@@ -154,27 +159,50 @@ describe("MainNav", () => {
 			).toBeInTheDocument();
 		});
 
-		it("should show Financials children when expanded", async () => {
+		// The Analytics section is untouched by the consolidation (D-07 REVISED):
+		// /analytics/financial stays live, so removing its child would orphan a
+		// working page.
+		it("should still list all three Analytics children including Financial", async () => {
 			const user = userEvent.setup();
 			render(<MainNav />);
 
-			const financialsButton = screen.getByRole("button", {
-				name: /financials/i,
-			});
-			await user.click(financialsButton);
+			await user.click(screen.getByRole("button", { name: /analytics/i }));
 
+			expect(screen.getByRole("link", { name: /^overview$/i })).toHaveAttribute(
+				"href",
+				"/analytics/overview",
+			);
 			expect(
-				screen.getByRole("link", { name: /income statement/i }),
-			).toBeInTheDocument();
+				screen.getByRole("link", { name: /^financial$/i }),
+			).toHaveAttribute("href", "/analytics/financial");
 			expect(
-				screen.getByRole("link", { name: /cash flow/i }),
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("link", { name: /balance sheet/i }),
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("link", { name: /tax documents/i }),
-			).toBeInTheDocument();
+				screen.getByRole("link", { name: /property performance/i }),
+			).toHaveAttribute("href", "/analytics/property-performance");
+		});
+
+		it("should show the seven Reports children when expanded", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
+
+			const reportsButton = screen.getByRole("button", { name: /reports/i });
+			await user.click(reportsButton);
+
+			const expected = [
+				[/income statement/i, "/reports/income-statement"],
+				[/cash flow/i, "/reports/cash-flow"],
+				[/balance sheet/i, "/reports/balance-sheet"],
+				[/^expenses$/i, "/reports/expenses"],
+				[/tax documents/i, "/reports/tax-documents"],
+				[/generate reports/i, "/reports/generate"],
+				[/year-end/i, "/reports/year-end"],
+			] as const;
+
+			for (const [name, href] of expected) {
+				expect(screen.getByRole("link", { name })).toHaveAttribute(
+					"href",
+					href,
+				);
+			}
 		});
 	});
 
@@ -313,11 +341,9 @@ describe("MainNav", () => {
 			const onNavigate = vi.fn();
 			render(<MainNav onNavigate={onNavigate} />);
 
-			// Expand Financials
-			const financialsButton = screen.getByRole("button", {
-				name: /financials/i,
-			});
-			await user.click(financialsButton);
+			// Expand Reports
+			const reportsButton = screen.getByRole("button", { name: /reports/i });
+			await user.click(reportsButton);
 
 			// Click a child link
 			const incomeStatementLink = screen.getByRole("link", {

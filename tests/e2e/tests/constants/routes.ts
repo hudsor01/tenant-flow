@@ -59,16 +59,20 @@ export const ROUTES = {
 	ANALYTICS_OCCUPANCY: "/analytics/occupancy",
 	ANALYTICS_PROPERTY_PERFORMANCE: "/analytics/property-performance",
 
-	// Financials
-	FINANCIALS_BALANCE_SHEET: "/financials/balance-sheet",
-	FINANCIALS_CASH_FLOW: "/financials/cash-flow",
-	FINANCIALS_INCOME_STATEMENT: "/financials/income-statement",
-	FINANCIALS_TAX_DOCUMENTS: "/financials/tax-documents",
-
-	// Reports
+	// Reports — the 8 hub routes (D-31: 5 statements + 2 exports, under the index).
+	// The 5 statement routes were copied up from the legacy tree in plan 56-05 and
+	// the originals were removed in 56-07, so these are now the only financial
+	// statement URLs in the app. The four legacy statement keys and the hub's old
+	// analytics key were retired here in 56-08 — every route they named is gone
+	// and now 308-redirects, so a constant for it could only mislead.
 	REPORTS: "/reports",
-	REPORTS_ANALYTICS: "/reports/analytics",
+	REPORTS_BALANCE_SHEET: "/reports/balance-sheet",
+	REPORTS_CASH_FLOW: "/reports/cash-flow",
+	REPORTS_EXPENSES: "/reports/expenses",
+	REPORTS_INCOME_STATEMENT: "/reports/income-statement",
+	REPORTS_TAX_DOCUMENTS: "/reports/tax-documents",
 	REPORTS_GENERATE: "/reports/generate",
+	REPORTS_YEAR_END: "/reports/year-end",
 } as const;
 
 /**

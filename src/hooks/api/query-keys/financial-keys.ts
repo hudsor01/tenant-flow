@@ -29,7 +29,12 @@ export interface FinancialOverviewData {
 		total_revenue: number;
 		total_expenses: number;
 		net_income: number;
-		accounts_receivable: number;
+		/**
+		 * DEFERRED, recorded not forgotten (Phase 56 CONTEXT, "Added to
+		 * Deferred"): this is a hardcoded 0 with no source behind it — the same
+		 * class of defect as the fabricated receivable field D-35 removed from
+		 * this interface, but explicitly out of Phase 56's scope.
+		 */
 		accounts_payable: number;
 	};
 	highlights: Array<{ label: string; value: number; trend: number | null }>;
@@ -123,7 +128,6 @@ export const financialQueries = {
 							total_revenue: 0,
 							total_expenses: 0,
 							net_income: 0,
-							accounts_receivable: 0,
 							accounts_payable: 0,
 						},
 						highlights: [],
@@ -150,7 +154,14 @@ export const financialQueries = {
 						total_revenue: totalRevenue,
 						total_expenses: totalExpenses,
 						net_income: totalRevenue - totalExpenses,
-						accounts_receivable: monthlyRevenue,
+						// D-35: a receivable field assigned `monthlyRevenue` used to sit
+						// here. It published money EARNED under a name meaning money
+						// OWED, and the deleted `financials-summary-stats.tsx` rendered
+						// it as "Outstanding" — the same word D-30 assigns to the hub
+						// strip's `scheduled - collected`. Two derivations wearing one
+						// label is the D-18 failure, so the figure was removed rather
+						// than relocated. A real receivable belongs to a later phase,
+						// derived from the Phase 55 ledger's unpaid charge balances.
 						accounts_payable: 0,
 					},
 					highlights: [

@@ -89,7 +89,13 @@ describe("useFinancialOverview", () => {
 		expect(result.current.data?.overview?.total_revenue).toBe(500000);
 		expect(result.current.data?.overview?.total_expenses).toBe(120000);
 		expect(result.current.data?.overview?.net_income).toBe(380000);
-		expect(result.current.data?.overview?.accounts_receivable).toBe(41667);
+		// D-35: this block used to assert a receivable figure equal to the mocked
+		// MONTHLY REVENUE above — money earned, published under a field name
+		// meaning money owed. Asserting the key's ABSENCE rather than deleting
+		// the assertion outright is what stops it returning silently.
+		expect(Object.keys(result.current.data?.overview ?? {})).not.toContain(
+			"accounts_receivable",
+		);
 		expect(result.current.data?.highlights?.length).toBe(3);
 		expect(mockRpc).toHaveBeenCalledWith("get_dashboard_stats", {
 			p_user_id: "user-1",

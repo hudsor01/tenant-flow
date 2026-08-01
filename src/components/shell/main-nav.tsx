@@ -13,7 +13,6 @@ import {
 	Home,
 	Keyboard,
 	type LucideIcon,
-	Receipt,
 	Settings,
 	Users,
 	Wrench,
@@ -67,20 +66,21 @@ const analyticsItems: NavigationItem[] = [
 		],
 	},
 	{
+		// D-29 FULL SEPARATION: Reports and Analytics are two peer sections, each
+		// owning its own URL tree. Reports = statements + exports ("what do I owe /
+		// what did I collect"); Analytics = charts ("how is the portfolio
+		// trending"). The children mirror REPORTS_HUB_ENTRIES order exactly.
 		label: "Reports",
 		href: "/reports",
 		icon: FileText,
-		children: [{ label: "Generate Reports", href: "/reports/generate" }],
-	},
-	{
-		label: "Financials",
-		href: "/financials",
-		icon: Receipt,
 		children: [
-			{ label: "Income Statement", href: "/financials/income-statement" },
-			{ label: "Cash Flow", href: "/financials/cash-flow" },
-			{ label: "Balance Sheet", href: "/financials/balance-sheet" },
-			{ label: "Tax Documents", href: "/financials/tax-documents" },
+			{ label: "Income Statement", href: "/reports/income-statement" },
+			{ label: "Cash Flow", href: "/reports/cash-flow" },
+			{ label: "Balance Sheet", href: "/reports/balance-sheet" },
+			{ label: "Expenses", href: "/reports/expenses" },
+			{ label: "Tax Documents", href: "/reports/tax-documents" },
+			{ label: "Generate Reports", href: "/reports/generate" },
+			{ label: "Year-End", href: "/reports/year-end" },
 		],
 	},
 ];

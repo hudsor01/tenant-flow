@@ -10,7 +10,6 @@ import {
 	FolderArchive,
 	HelpCircle,
 	Home,
-	Receipt,
 	Settings,
 	Users,
 	Wrench,
@@ -136,29 +135,28 @@ export function AppShell({
 					icon: BarChart3,
 				},
 				{ label: "Reports", href: "/reports", icon: FileText },
-				{ label: "Generate Report", href: "/reports/generate", icon: FileText },
-			],
-		},
-		{
-			heading: "Financials",
-			items: [
-				{ label: "Financials", href: "/financials", icon: Receipt },
+				// D-29 FULL SEPARATION: the statement routes are hub sub-routes now,
+				// so they belong in this group rather than a separate one. There is
+				// no bare hub-index row here because "Reports" above already is it.
 				{
 					label: "Income Statement",
-					href: "/financials/income-statement",
-					icon: Receipt,
+					href: "/reports/income-statement",
+					icon: FileText,
 				},
-				{ label: "Cash Flow", href: "/financials/cash-flow", icon: Receipt },
+				{ label: "Cash Flow", href: "/reports/cash-flow", icon: FileText },
 				{
 					label: "Balance Sheet",
-					href: "/financials/balance-sheet",
-					icon: Receipt,
+					href: "/reports/balance-sheet",
+					icon: FileText,
 				},
+				{ label: "Expenses", href: "/reports/expenses", icon: FileText },
 				{
 					label: "Tax Documents",
-					href: "/financials/tax-documents",
-					icon: Receipt,
+					href: "/reports/tax-documents",
+					icon: FileText,
 				},
+				{ label: "Generate Report", href: "/reports/generate", icon: FileText },
+				{ label: "Year-End", href: "/reports/year-end", icon: FileText },
 			],
 		},
 		{

@@ -60,34 +60,57 @@ describe("generateBreadcrumbs", () => {
 			]);
 		});
 
-		it("should map financials routes correctly", () => {
+		// D-29: the statement routes are hub sub-routes now, so every one of them
+		// resolves under the `Reports` parent rather than a separate section.
+		it("should map reports hub routes correctly", () => {
 			const testCases = [
 				{
-					path: "/financials/income-statement",
+					path: "/reports/income-statement",
 					expected: [
-						{ href: "/financials", label: "Financials" },
-						{ href: "/financials/income-statement", label: "Income Statement" },
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/income-statement", label: "Income Statement" },
 					],
 				},
 				{
-					path: "/financials/cash-flow",
+					path: "/reports/cash-flow",
 					expected: [
-						{ href: "/financials", label: "Financials" },
-						{ href: "/financials/cash-flow", label: "Cash Flow" },
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/cash-flow", label: "Cash Flow" },
 					],
 				},
 				{
-					path: "/financials/balance-sheet",
+					path: "/reports/balance-sheet",
 					expected: [
-						{ href: "/financials", label: "Financials" },
-						{ href: "/financials/balance-sheet", label: "Balance Sheet" },
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/balance-sheet", label: "Balance Sheet" },
 					],
 				},
 				{
-					path: "/financials/tax-documents",
+					path: "/reports/expenses",
 					expected: [
-						{ href: "/financials", label: "Financials" },
-						{ href: "/financials/tax-documents", label: "Tax Documents" },
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/expenses", label: "Expenses" },
+					],
+				},
+				{
+					path: "/reports/tax-documents",
+					expected: [
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/tax-documents", label: "Tax Documents" },
+					],
+				},
+				{
+					path: "/reports/year-end",
+					expected: [
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/year-end", label: "Year-End" },
+					],
+				},
+				{
+					path: "/reports/generate",
+					expected: [
+						{ href: "/reports", label: "Reports" },
+						{ href: "/reports/generate", label: "Generate" },
 					],
 				},
 			];
@@ -96,6 +119,16 @@ describe("generateBreadcrumbs", () => {
 				const result = generateBreadcrumbs(path);
 				expect(result).toEqual(expected);
 			}
+		});
+
+		// /analytics/financial stays live under full separation, so BOTH segments
+		// must keep resolving to real labels rather than falling through to the
+		// capitalize-the-slug default.
+		it("should still map the live /analytics/financial route", () => {
+			expect(generateBreadcrumbs("/analytics/financial")).toEqual([
+				{ href: "/analytics", label: "Analytics" },
+				{ href: "/analytics/financial", label: "Financial" },
+			]);
 		});
 
 		it("should capitalize unknown segments", () => {

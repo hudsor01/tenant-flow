@@ -24,12 +24,12 @@ describe("BreakdownList", () => {
 			<BreakdownList
 				title="Revenue Sources"
 				rows={[]}
-				detailsHref="/financials/income-statement"
+				detailsHref="/reports/income-statement"
 			/>,
 		);
 		expect(screen.getByRole("link", { name: "View details" })).toHaveAttribute(
 			"href",
-			"/financials/income-statement",
+			"/reports/income-statement",
 		);
 	});
 
