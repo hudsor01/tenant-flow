@@ -21,7 +21,7 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 56 — reporting-hub-documents-landing
+**Current focus:** Phase 65 — documents-landing (Phase 56 shipped 2026-08-01)
 
 ## Current Position
 
@@ -47,6 +47,13 @@ Last activity: 2026-08-01 — live redirect verification + Sentry gate PASS
 > `page.tsx` present) and by the CI production build manifest, both recorded in
 > `56-VERIFICATION.md`. `/dashboardxyz` and `/financials/nonexistent` 404 only
 > because neither sits under a private prefix.
+>
+> **The perfect-PR gate record lives in `56-REVIEW.md`** — 15 cycles, and
+> specifically the cycle-11 FALSE CLEAN where the harness coerced its own parse
+> failure into zero findings. That file carries the standing instruction to audit
+> `journal.jsonl` rather than the summary verdict, and the taxonomy of the 13
+> guard-shaped findings. The harness is authored per phase, so the fix does not
+> carry forward - only the written lesson does. Read it before running a gate.
 >
 > **Sentry post-deploy gate PASS — read the caveat.** Release `ee6d48519`
 > introduced **0 new issue groups** against a threshold of 10, compared to
@@ -149,4 +156,4 @@ deliberately did NOT apply (`56-UI-SPEC.md:261`).
 (none active)
 
 ---
-*Last updated: 2026-07-31 — Phase 56 execution complete (8/8 plans). v10.0 "Claims Integrity + Canonical Feature Expansion" roadmap authored 2026-07-19; REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64). Integer phase numbers continue across milestones. Trust `git log main` + `gh pr list --state merged` + `.planning/ROADMAP.md` as source of truth over this cache.*
+*Last updated: 2026-08-01 - Phase 56 shipped, merged (ee6d48519), deployed and verified in production; RPTHUB-01..04 marked Complete. Roadmap is 14 phases (52-65). Next: Phase 65 Documents Landing.*
