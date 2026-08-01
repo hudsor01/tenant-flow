@@ -285,6 +285,33 @@ describe("useDownloadYearEndPdf", () => {
 			expect.objectContaining({ description: "Upgrade to export PDFs." }),
 		);
 		expect(mockToastSuccess).not.toHaveBeenCalled();
+
+		// The ACTION is what makes this an upgrade prompt rather than an error
+		// message, and it carries the `?source=` attribution the gate analytics
+		// depend on. Asserting only the title/description passed with the entire
+		// action block deleted — so the half of the contract that actually gets
+		// the user to plans was unverified.
+		const [, opts] = mockToastError.mock.calls[0] as [
+			string,
+			{ action?: { label?: string; onClick?: () => void } },
+		];
+		expect(opts.action?.label).toBe("See plans");
+
+		const assign = vi.fn();
+		const original = globalThis.window.location;
+		Object.defineProperty(globalThis.window, "location", {
+			configurable: true,
+			value: { ...original, assign },
+		});
+		try {
+			opts.action?.onClick?.();
+			expect(assign).toHaveBeenCalledWith("/billing/plans?source=reports_gate");
+		} finally {
+			Object.defineProperty(globalThis.window, "location", {
+				configurable: true,
+				value: original,
+			});
+		}
 	});
 });
 
