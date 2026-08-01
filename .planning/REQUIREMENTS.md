@@ -56,10 +56,10 @@
 
 #### Reporting Hub (RPTHUB)
 
-- [ ] **RPTHUB-01** *(amended 2026-07-30 — full separation)*: One unified reporting hub at `/reports` absorbs `/financials/*` **only**. It holds **statements + exports, ZERO charts** — no `recharts` / `ChartContainer` / `ResponsiveContainer` anywhere under `src/app/(owner)/reports/**`. **`/analytics/financial` is NOT absorbed**; all analytics stays at `/analytics` as a peer top-level nav entry. "Single navigation entry" applies to the reporting hub itself, not to a merged Reports+Analytics super-entry
-- [ ] **RPTHUB-02** *(amended 2026-07-30 — full separation)*: Every moved reporting URL (7 entries) permanently redirects (308, `next.config.ts` `redirects()`) — **six INTO the hub** (`/financials`, `/financials/balance-sheet`, `/financials/cash-flow`, `/financials/expenses`, `/financials/income-statement`, `/financials/tax-documents`) and **one OUT of it** (`/reports/analytics` → `/analytics/overview`, the opposite direction from every other redirect in this phase; it targets the concrete route because `/analytics` itself in-page-redirects there). No 404s, no proxy.ts involvement. Routes that are not moving emit no redirect: the 3 identity no-ops (`/reports`, `/reports/generate`, `/reports/year-end`) and **all 7 `/analytics/*` routes including `/analytics/financial`**, which is a destination, not a legacy URL
-- [ ] **RPTHUB-03**: Tier-gating on premium report exports (`export-report` `PREMIUM_REPORT_TYPES`) verified intact after consolidation — no route rewrite bypasses the gate
-- [ ] **RPTHUB-04**: E2E coverage exists for hub routes before legacy routes are removed
+- [x] **RPTHUB-01** *(amended 2026-07-30 — full separation)*: One unified reporting hub at `/reports` absorbs `/financials/*` **only**. It holds **statements + exports, ZERO charts** — no `recharts` / `ChartContainer` / `ResponsiveContainer` anywhere under `src/app/(owner)/reports/**`. **`/analytics/financial` is NOT absorbed**; all analytics stays at `/analytics` as a peer top-level nav entry. "Single navigation entry" applies to the reporting hub itself, not to a merged Reports+Analytics super-entry
+- [x] **RPTHUB-02** *(amended 2026-07-30 — full separation)*: Every moved reporting URL (7 entries) permanently redirects (308, `next.config.ts` `redirects()`) — **six INTO the hub** (`/financials`, `/financials/balance-sheet`, `/financials/cash-flow`, `/financials/expenses`, `/financials/income-statement`, `/financials/tax-documents`) and **one OUT of it** (`/reports/analytics` → `/analytics/overview`, the opposite direction from every other redirect in this phase; it targets the concrete route because `/analytics` itself in-page-redirects there). No 404s, no proxy.ts involvement. Routes that are not moving emit no redirect: the 3 identity no-ops (`/reports`, `/reports/generate`, `/reports/year-end`) and **all 7 `/analytics/*` routes including `/analytics/financial`**, which is a destination, not a legacy URL
+- [x] **RPTHUB-03**: Tier-gating on premium report exports (`export-report` `PREMIUM_REPORT_TYPES`) verified intact after consolidation — no route rewrite bypasses the gate
+- [x] **RPTHUB-04**: E2E coverage exists for hub routes before legacy routes are removed
 
 #### Documents Landing (DOCS)
 
@@ -182,10 +182,10 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | LEDGER-06 | Phase 55 | Complete |
 | LEDGER-07 | Phase 55 | Complete |
 | LEDGER-08 | Phase 55 | Complete |
-| RPTHUB-01 | Phase 56 | Pending |
-| RPTHUB-02 | Phase 56 | Pending |
-| RPTHUB-03 | Phase 56 | Pending |
-| RPTHUB-04 | Phase 56 | Pending |
+| RPTHUB-01 | Phase 56 | Complete |
+| RPTHUB-02 | Phase 56 | Complete |
+| RPTHUB-03 | Phase 56 | Complete |
+| RPTHUB-04 | Phase 56 | Complete |
 | DOCS-01 | Phase 65 | Pending |
 | APPLY-01 | Phase 57 | Pending |
 | APPLY-02 | Phase 57 | Pending |
@@ -227,4 +227,17 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 
 ---
 *Requirements defined: 2026-07-19*
+> **RPTHUB-01..04 marked Complete 2026-08-01, after production verification —
+> not on plan completion.** All eight phase-56 plans deliberately left this file
+> untouched: 56-01's reflexive `requirements.mark-complete` flipped RPTHUB-01/03
+> to Complete while both were still false and had to be reverted, so every later
+> plan was instructed not to mark. Evidence for each is in `56-VERIFICATION.md`
+> (4/4 verified) plus live production probes against `ee6d48519`: all six hub
+> redirects return 308 to their exact targets, `/reports/analytics` inverts to
+> `/analytics/overview`, none of the ten guard paths leaked a 308,
+> `/financials/nonexistent` 404s so the prefix is not over-matched, and all eight
+> hub routes resolve. RPTHUB-04's ordering was proven by CI rather than commit
+> order: at `d2f00c4f8` the hub spec ran green while `/financials` was still in
+> that build.
+
 *Last updated: 2026-07-30 — RPTHUB-01/02 amended for full separation (hub is chart-free; `/analytics/financial` stays live; `/reports/analytics` → `/analytics/overview` inverts the 7th redirect). 58/58 still mapped across phases 52-65. (2026-07-26: Phase 56 split, DOCS-01 remapped to Phase 65, RPTHUB-02 route count corrected to 7. 2026-07-19: traceability populated by roadmap creation; corrected the stale "46 total" coverage count to the actual 58.)*
