@@ -236,7 +236,10 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 > redirects return 308 to their exact targets, `/reports/analytics` inverts to
 > `/analytics/overview`, none of the ten guard paths leaked a 308,
 > `/financials/nonexistent` 404s so the prefix is not over-matched, and all eight
-> hub routes resolve. RPTHUB-04's ordering was proven by CI rather than commit
+> hub route files are present in the git tree at that SHA and in the CI build
+> manifest. (Route existence is NOT evidenced by the 307-to-login probe: the
+> proxy gates on the `/reports` prefix before routing, so a nonexistent path
+> under it 307s identically.) RPTHUB-04's ordering was proven by CI rather than commit
 > order: at `d2f00c4f8` the hub spec ran green while `/financials` was still in
 > that build.
 

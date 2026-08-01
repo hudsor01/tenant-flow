@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: verifying
-last_updated: "2026-07-31T14:58:01.807Z"
-last_activity: 2026-07-31
+status: completed
+last_updated: "2026-08-01T15:30:00.000Z"
+last_activity: 2026-08-01
 progress:
   total_phases: 14
   completed_phases: 5
@@ -34,9 +34,19 @@ Last activity: 2026-08-01 — live redirect verification + Sentry gate PASS
 > to their exact targets; `/reports/analytics` inverts to `/analytics/overview`;
 > none of the ten guard paths leaked a 308; `/financials/nonexistent` 404s, so
 > the six entries do not over-match the prefix; all eight hub routes resolve
-> (307 to login = exists + gated, not 404); chains terminate in 2 hops at
+> — see the caveat below; chains terminate in 2 hops at
 > `/login?redirect=` carrying the NEW path, so a bookmarked legacy URL survives
 > sign-in and lands on the hub.
+>
+> **A 307 to /login does NOT prove a hub route exists — do not reuse that
+> inference.** `proxy.ts` matches `PRIVATE_ROUTE_PREFIXES` on the path PREFIX
+> before Next routing, so `/reports/definitely-not-a-route` returns the same
+> `307 -> /login?redirect=...` as every real route (verified live). The probe
+> proves the routes are auth-gated and emit no stale permanent redirect, nothing
+> more. Route EXISTENCE is established by the git tree at `ee6d48519` (all eight
+> `page.tsx` present) and by the CI production build manifest, both recorded in
+> `56-VERIFICATION.md`. `/dashboardxyz` and `/financials/nonexistent` 404 only
+> because neither sits under a private prefix.
 >
 > **Sentry post-deploy gate PASS — read the caveat.** Release `ee6d48519`
 > introduced **0 new issue groups** against a threshold of 10, compared to
@@ -45,8 +55,16 @@ Last activity: 2026-08-01 — live redirect verification + Sentry gate PASS
 > unavailable, and the prior baseline's error-rate value is a placeholder — the
 > **error-rate rule was skipped entirely**. "All thresholds within bounds" is
 > true of the one rule it evaluated, not of two. Swapping `SENTRY_AUTH_TOKEN`
-> for a PERSONAL token with `event:read` restores the second rule; Organization
-> tokens structurally cannot read issues.
+> for a PERSONAL token with `event:read` is necessary but NOT sufficient to
+> restore the rule on the next run. `post-deploy-sentry-gate.yml` sets
+> `DEGRADED=1` from TWO independent causes — `CAN_READ_ISSUES != true` (:557)
+> and `PREV_DEGRADED` read from the previous snapshot (:594-597) — and either
+> forces `RATE_BREACH=0` (:612). The baseline this deploy just wrote carries
+> `"degraded": true`, so the FIRST deploy after a token swap still trips the
+> `PREV_DEGRADED` branch and skips the rule again. It takes two deploys, and the
+> degraded summary hard-codes "the token lacks `event:read`", which would
+> wrongly implicate the new token. Organization tokens structurally cannot read
+> issues, so the swap itself is still required.
 >
 > **Two human-verification items remain open** (`56-VERIFICATION.md`), neither
 > blocking Phase 65, both now easier because the hub is live: the free-tier 402
