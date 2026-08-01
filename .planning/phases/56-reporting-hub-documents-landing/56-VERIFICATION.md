@@ -23,9 +23,9 @@ human_verification:
   - test: "Open /reports in a browser at desktop and 375px. Review the new hub index: page header, the 3-card summary strip (Scheduled / Collected / Outstanding), and 7 tiles in the Statements (5) and Exports (2) groups."
     expected: "Brand-consistent tiles, correct spacing, no truncation or overflow at 375px, `Growth` badge legible on Tax Documents and Year-End, summary strip degrading to a single line of copy (not a broken grid) when the RPC errors."
     why_human: "ROADMAP marks Phase 56 `UI hint: yes`. The hub index is a brand-new surface. The owner-axe E2E asserts only that an h1 and two h2s are visible; there is no visual-regression or a11y sweep registered for /reports, so appearance and responsive quality are unverified."
-  - test: "Decide whether the `Growth` badge on the /reports/year-end tile is acceptable given that the page's two CSV buttons bypass the tier gate."
-    expected: "An explicit owner decision: accept as-is (badge reflects the gated PDF path), or open follow-up work to route the CSV exports through export-report."
-    why_human: "This is a product/claims judgement, not a code fact. Evidence below under RPTHUB-03 W-1."
+  - test: "RESOLVED 2026-08-01 — no human action required. See W-1 RESOLUTION below."
+    expected: "Closed as no-defect. The badge is correct as contracted; the ungated CSV is not a gate bypass. The one real inaccuracy was a marketing claim in src/data/faqs.ts:78, fixed in this PR."
+    why_human: "Was a product/claims judgement. Canonical research (4 independent readers + synthesis, 2026-08-01) resolved it against the written contract rather than by owner preference, so no decision is outstanding."
 ---
 
 # Phase 56: Reporting Hub — Verification Report
@@ -489,3 +489,72 @@ phase.
 
 _Verified: 2026-07-31T21:22:07Z_
 _Verifier: Claude (gsd-verifier), goal-backward, adversarial stance_
+
+---
+
+## W-1 RESOLUTION (2026-08-01) — closed as NO DEFECT
+
+W-1 was raised above as a warning: the `/reports/year-end` tile carries a `Growth` badge while
+the page's two CSV buttons never reach the tier gate. Canonical research (four independent
+readers plus a verifying synthesis) resolved it against the written contract. **The badge is
+correct, the gate is correct, and no code changed.**
+
+### The warning rested on a quantifier the contract does not contain
+
+`reports-hub-entries.ts:139-143` states the rule: *"an entry is badged **only when** its CTA
+provably reaches a gated `reportType`."* That is a NECESSARY condition — it exists to prevent
+false badges. It is not an "if and only if" over every control on the page. The badge asserts
+*something behind this tile is Growth*; it never asserts *everything behind it is*. W-1's word
+"overstated" imported a universal quantifier from nowhere in the contract.
+
+The UI-SPEC agrees at `:315` — *"Only surfaces whose CTA provably reaches a gated `reportType`"*
+— which is existential over a surface's CTAs. The compliance test at `:325` forbids badging
+`income-statement`/`cash-flow` because *"badging those tiles would be a false claim about what
+is gated."* Year-End's badge is not a false claim: a Starter owner who clicks Download PDF
+receives a 402 and the upgrade toast (`use-report-mutations.ts:24-38`).
+
+### The ungated CSV is not a bypass
+
+Three verified facts:
+
+1. **The data carries no tier dimension.** All five reporting RPCs are `SECURITY DEFINER` with an
+   `auth.uid()` guard, granted to `authenticated`/`service_role` only, and **none references
+   `subscription`**. Tier has never been a read-authorization dimension for these figures.
+2. **The CSV serializes what is already on screen** (`year-end-report-section.tsx:106-125`, `:173`,
+   `:281+`). An owner reproduces it by copy-paste or one PostgREST call under their own JWT.
+3. **Reaching the page requires a paid subscription at all.** `proxy.ts:358-364` gates the route on
+   `subscription_status IN ('active','trialing')`, so the user in question is a paying Starter
+   customer, not an anonymous visitor. What Growth buys is the server-generated PDF artifact — a
+   packaging capability — not the numbers. The PDF path does not even read the same source
+   (`generate-pdf/index.ts:127-131` calls `get_financial_overview`).
+
+### Gating the CSV would reduce coherence, not increase it
+
+`/reports/generate` ships a client-side Excel **"Tax Preparation"** export
+(`generate/components/report-types.ts:80-125`) on a tile the contract deliberately leaves
+unbadged (`reports-hub-entries.ts:126`). Gating Year-End's CSV would make it inconsistent with a
+larger ungated tax export one tile away.
+
+Changing the badge was also not available: the label is fixed by the UI-SPEC (`:306`, `:472`) and
+per-control badging is forbidden by `:311` ("must not introduce a second paywall pattern").
+
+### What WAS wrong, and is now fixed
+
+`src/data/faqs.ts:78` claimed *"Growth and Max can export financial, year-end, and 1099 reports as
+CSV."* The **financial** clause is true — `ExportButtons` POSTs without a `type` param and
+`export-report/index.ts:63` defaults `reportType` to `"financial"`, which is in
+`PREMIUM_REPORT_TYPES`, so the gate at `:72` fires. The **year-end and 1099 clauses were false in
+both directions**: Starter gets both CSVs, and the 1099 CSV is empty on *every* tier because
+`get_expense_summary` emits no `vendor_payments` (verified against the production database).
+
+Corrected by minimal removal. A broader rewrite would have meant asserting something new about
+tiers, which is the failure mode this milestone exists to remove.
+
+### Residual
+
+None for this phase. If the owner later confirms that year-end/1099 CSV export was *intended* to
+be Growth-only, the correct fix inverts: wire `year-end/page.tsx:83-159` to the two dormant
+mutations at `report-keys.ts:268-282`, first fixing `export-report/index.ts:90-92` to accept and
+pass the year boundaries (it currently calls `get_financial_overview` with no date arguments while
+naming the file `year-end-${year}`), then redeploy both edge functions. That is a phase of its own,
+not a PR #957 amendment.
