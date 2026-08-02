@@ -1,7 +1,29 @@
 # Phase 56 — Perfect-PR Gate Record
 
 **PR #957 · 15 cycles · 154 candidates · 138 refuted (90%) · 16 findings fixed**
-Closed on two consecutive verified-clean cycles over frozen code.
+
+## Which tree the gate actually closed on — and where it fell short
+
+The two consecutive zero-finding cycles required by Execution Discipline #2 were
+**cycles 12 and 13, both frozen at `8a23e088a`**. That is the tree the gate closed on.
+
+**It is not the tree that merged.** Seven commits followed, and two of them touched `src/`:
+
+| Commit | Change | Cycles after it |
+|---|---|---|
+| `e223c75c2` | `src/data/faqs.ts` — removed the false year-end/1099 CSV tier claim | 1 |
+| `a20ea9803` | `use-report-mutations.test.tsx` — asserted the paywall CTA | 1 |
+
+Discipline #2 says a mid-streak edit **resets** the streak. Each of those edits reset it, and
+each was followed by **one** confirming clean cycle rather than a new pair. So the merged
+state `e5ed87aec` carries one clean cycle since its last source change, not two.
+
+Recorded rather than smoothed over. Both changes were small and independently verified, and
+neither review found anything — but "the gate closed" was stated during the run without this
+qualification, and the distinction is the whole content of the discipline. A future auditor
+reconciling counts (main's record said 13 cycles at `8a23e088a`; this file says 15) needs the
+SHAs to tell whether cycles 14-15 re-closed the gate or merely re-checked a changed tree.
+They re-checked.
 
 This file exists because the lessons below lived only in `STATE.md`'s Current Position
 block, which the close-out deleted as "execution scaffolding". Most of it was. This was not:
