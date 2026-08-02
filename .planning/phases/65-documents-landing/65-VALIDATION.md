@@ -78,7 +78,7 @@ the planner must cover. Every row maps to DOCS-01 or one of the three ROADMAP su
       (entry-data pins + RSC purity guard + no-redirect guard)
 - [ ] `src/app/(owner)/documents/__tests__/recent-documents-panel.test.tsx` — SC-3, D-03, D-12
 - [ ] Existing-file edits, planned as deliberate work rather than incidental:
-      `main-nav.test.tsx` (6 tests), `app-shell-nav.test.tsx` (+assertions),
+      `main-nav.test.tsx` (**3** tests — see the measured blast radius below), `app-shell-nav.test.tsx` (+assertions),
       `breadcrumbs.test.ts` (+4 cases), `__tests__/documents-section.test.tsx` (+1 case)
 - [ ] Framework install: **none needed**
 
