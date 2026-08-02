@@ -47,31 +47,47 @@ read it — see Canonical References — and must NOT re-derive it.
   `templates`, `rental-application`, `property-inspection`, `maintenance-request`,
   `tenant-notice`.
 
-### Navigation — AMENDS the inherited discretion ruling
+### Navigation — the inherited flat ruling STANDS (D-08 was amended, then REVERTED)
 
-- **D-08:** **`Documents` becomes a nav PARENT with children**, mirroring the shape Phase 56
-  shipped for `Reports`:
+- **D-08:** **`Documents` is a FLAT nav entry pointing at `/documents`** — no children.
+  This is the inherited ruling, restored.
 
-  ```
-  Documents          → /documents            (the new landing)
-    Vault            → /documents/vault
-    Lease Template   → /documents/lease-template
-  ```
+  **History, recorded so it is not re-litigated.** During discussion I amended this to a
+  parent+children shape mirroring `Reports`, on the rationale that it would keep the vault
+  at one click while still making the landing navigable. **The second half of that rationale
+  is false, and research caught it.** `renderNavItem`'s `hasChildren` branch
+  (`main-nav.tsx:211-230`) renders the parent as a `<button onClick={toggleExpanded}>` with
+  **no `<Link>` at all**; `item.href` is consumed only by `isActive(item.href)` at `:208`,
+  which that branch never reads. A parent's href is decorative.
 
-  **This supersedes the inherited ruling** ("nav `Documents` target → `/documents`", flat).
-  The inherited version satisfied DOCS-01's "entry points must be navigable" but pushed the
-  vault to two clicks, and search/filter is the daily task. The parent+children shape keeps
-  the vault at one click, makes the landing navigable, and matches the pattern already
-  established at `main-nav.tsx:73-81` (`Reports` → `/reports` with children).
+  So mirroring `Reports` would have made `/documents` **unreachable from the sidebar** —
+  defeating DOCS-01's "entry point" requirement outright. Flat items render as `<Link>`
+  (`main-nav.tsx` non-children branch), so flat is the only shape in the current component
+  that satisfies the requirement without changing shared nav behaviour.
 
-- **D-09:** The one-item `Templates` nav section is **deleted**; its `Lease Template` entry
-  becomes a child of `Documents`. This part of the inherited ruling stands. Precedent is
-  recorded four lines above it at `main-nav.tsx:88-91` — "Generate Lease" was removed from
-  this same section for duplicating a CTA surfaced elsewhere.
+  **Accepted cost:** the vault becomes two clicks — sidebar → landing → "Open the vault".
+  The inherited contract knew this and accepted it; Band 1 is a full-width panel whose
+  primary Button is the vault, so the second click is the page's single loudest affordance.
+
+- **D-09:** The one-item `Templates` nav section is **deleted**. Unchanged by the revert —
+  Band 2 surfaces the lease builder, and the precedent sits four lines above it at
+  `main-nav.tsx:88-91` ("Generate Lease" removed from this same section for duplicating a
+  CTA surfaced elsewhere). With D-08 flat, `Lease Template` has no parent to become a child
+  of; it is simply removed and reached from the landing.
 
 - **D-10:** Both `Documents` entries change: `main-nav.tsx:48` AND the Cmd+K palette at
-  `app-shell.tsx:101`. Missing the second would leave the command palette pointing at the
-  old target.
+  `app-shell.tsx:101`. Missing the second leaves the command palette on the old target.
+  Research additionally found a **Cmd+K `Templates` group at `app-shell.tsx:162-176`** that
+  D-09 did not account for — it must be handled consistently with the sidebar section being
+  deleted. See 65-RESEARCH.md L-04.
+
+- **D-08b (NEW, out of scope — recorded for follow-up):** The same mechanism means the
+  **`/reports` hub index shipped by Phase 56 is unreachable from the sidebar.** Clicking
+  "Reports" expands seven children, none of which is `/reports`. It remains reachable by
+  breadcrumb from any child (`app-shell-header.tsx:59-65` renders ancestor crumbs as
+  `<Link>`) and by the Cmd+K entry at `app-shell.tsx:137`. Not a Phase 65 concern and not
+  fixed here; the fix is a shared `renderNavItem` change affecting Reports and Analytics,
+  which needs its own phase. Recorded in `<deferred>`.
 
 ### Recent-list freshness — NEW, resolves a pre-existing defect this phase would expose
 
@@ -79,11 +95,16 @@ read it — see Canonical References — and must NOT re-derive it.
   to `invalidateListAndDashboard`** in `src/components/documents/documents-section.tsx:137-142`
   (plus the import). One line and one import.
 
-  **Why, and why not the alternative.** Nothing currently invalidates
-  `documentSearchQueries`. `invalidateListAndDashboard` invalidates the ENTITY-scoped
+  **Why, and why not the alternative.** *(Corrected 2026-08-02 by 65-RESEARCH.md — my
+  original wording here was wrong twice.)* It is NOT true that "nothing invalidates
+  `documentSearchQueries`": `categories-settings.tsx:69` does, via
+  `documentQueries.all()` = `["documents"]`, which prefix-matches
+  `["documents","search",…]` — its comment at `:62-68` says so explicitly. The accurate
+  claim is narrower: **no UPLOAD or DELETE mutation invalidates it.**
+  `invalidateListAndDashboard` invalidates the ENTITY-scoped
   `documentQueries.list({entityType, entityId})` — key `["documents","list",…]` — which
-  cannot prefix-match the search key `["documents","search",…]`. So after an upload the
-  search entry stays fresh-by-staleTime for 45 minutes.
+  cannot prefix-match the search key. So after an upload the search entry stays
+  fresh-by-staleTime for 45 minutes.
 
   Giving the landing its own shorter `staleTime` was considered and REJECTED. Per-observer
   `staleTime` is real (verified against query-core 5.100.10 source: no read of
@@ -101,8 +122,17 @@ read it — see Canonical References — and must NOT re-derive it.
   which would have been a mount-fetch anyway. It fires once per batch inside the existing
   callback, preserving the deliberate no-`onSuccess` design at `:144-147`.
 
-  **House precedent:** `src/components/settings/categories-settings.tsx:62-69` already does
-  this in the same subsystem, with a comment naming the `['documents','search',…]` prefix.
+  **House precedent — read the mechanism, it differs from ours.**
+  `src/components/settings/categories-settings.tsx:62-69` establishes that document
+  mutations should reach the vault-search prefix, and its comment names that prefix. But it
+  invalidates the BROAD `documentQueries.all()` (`["documents"]`), not
+  `documentSearchQueries.all()` (`["documents","search"]`). A planner grepping for a line
+  matching the one being added will not find one.
+
+  **Use the narrow key deliberately.** `invalidateListAndDashboard` already invalidates the
+  entity-scoped list, so the broad key would duplicate that and additionally invalidate
+  every OTHER entity's list — which an upload to property A does not affect. The narrow
+  `documentSearchQueries.all()` closes exactly the gap and nothing more.
 
   **Do NOT change `LIST_STALE_TIME_MS`.** The 45/55-minute pair is load-bearing, not
   arbitrary: commit `757c271d3` records *"45 min (well under the 1h signed-URL TTL) and
@@ -238,6 +268,12 @@ phase was authored before the Phase 56/65 split and preserved verbatim. Do not r
 
 <deferred>
 ## Deferred Ideas
+
+- **Navigable nav parents.** `renderNavItem`'s `hasChildren` branch renders a toggle with no
+  `<Link>`, so every parent href is decorative. Harmless for `Analytics` (its index is a
+  `redirect()`), but it means Phase 56's `/reports` hub index cannot be reached from the
+  sidebar — only via breadcrumb or Cmd+K. Fixing it means a link + separate chevron toggle in
+  the shared component, changing behaviour for Reports and Analytics. Own phase.
 
 - **A `/documents` upload path.** Neither the vault nor the landing can upload today;
   `DocumentsSection` mounts only on the five detail routes. Adding upload to the landing is a
