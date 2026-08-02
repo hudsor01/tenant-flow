@@ -1,5 +1,25 @@
 # Phase 65: Documents Landing — Research
 
+> ## ⛔ L-02 / S-01 RESOLVED 2026-08-02 — `Documents` is FLAT, not parent+children
+>
+> The researcher correctly found that D-08's rationale was refuted by the code:
+> `renderNavItem`'s `hasChildren` branch renders a `<button>` toggle with **no `<Link>`**,
+> so a parent's `href` is decorative and mirroring `Reports` would leave `/documents`
+> **unreachable from the sidebar** — defeating DOCS-01's entry-point requirement.
+>
+> **Resolution: Option B — revert to the inherited FLAT ruling.** `Documents → /documents`,
+> no children. The `Templates` section is still deleted (D-09). The vault becomes two
+> clicks, which the inherited contract knowingly accepted.
+>
+> **Every reference below to a parent+children shape for `Documents` is SUPERSEDED**,
+> including the Test Map's D-08/D-09 row and the §L-02 options table. They are retained so
+> the reasoning is auditable, not because they describe what to build. `65-CONTEXT.md` D-08
+> is authoritative.
+>
+> Option C (making parent rows link+toggle) is **deferred** — it would fix `/reports` being
+> unreachable too, but changes shared nav behaviour for Reports and Analytics. Own phase.
+
+
 **Researched:** 2026-08-02
 **Domain:** Next.js 16 App Router RSC composition + TanStack Query cache sharing + sidebar/palette navigation surgery
 **Confidence:** HIGH (every structural claim re-verified against HEAD; two claims corrected, one design rationale refuted)
@@ -1545,7 +1565,7 @@ landing needs either a working local env (owner-provided) or a preview deploy.
 | SC-3 | The recent panel calls `documentSearchQueries.list` with **exactly** `{ page: 0 }` | unit | `bun run test:unit -- src/app/\(owner\)/documents/__tests__/recent-documents-panel.test.tsx` — `vi.spyOn(documentSearchQueries, "list")`, mirroring `documents-vault.test.tsx:406` | ❌ Wave 0 |
 | SC-3 / §I-3 | All four panel states render correctly (loading → 5 Skeletons; empty → D-12 copy; error → inline + Retry; success → 5 rows max) | unit | same file — mock `useQuery` per state, mirroring `documents-vault.test.tsx:202-230` | ❌ Wave 0 |
 | §I-3 / D-03 | Recent rows contain **no** `<a>` and **no** `<button>` | unit | same file — `container.querySelectorAll("li a, li button")` → length 0 | ❌ Wave 0 |
-| D-08 / D-09 | `Documents` is a collapsible parent; sections are exactly `["Documents","Analytics","Reports"]`; `Vault` child href is `/documents/vault`; no `Templates` section header | unit | `bun run test:unit -- src/components/shell/__tests__/main-nav.test.tsx` | ✅ EXISTS — **6 tests need deliberate edits, see S-02** |
+| D-08 / D-09 | **(SUPERSEDED — flat)** `Documents` is a FLAT entry whose href is `/documents` and which renders as a `<Link>`; sections remain exactly `["Analytics","Reports"]`; no `Templates` section header; no `Documents` children | unit | `bun run test:unit -- src/components/shell/__tests__/main-nav.test.tsx` | ✅ EXISTS — **6 tests need deliberate edits, see S-02** |
 | D-10 | The Cmd+K `Documents` entry href is `/documents` | unit | `bun run test:unit -- src/components/shell/__tests__/app-shell-nav.test.tsx` | ✅ EXISTS and already passes; **add an explicit `toContain("/documents")` assertion** so the repoint is pinned rather than incidentally allowed |
 | D-07 | The four hyphenated template slugs resolve to proper labels | unit | `bun run test:unit -- src/lib/__tests__/breadcrumbs.test.ts` | ✅ EXISTS — add cases mirroring `:188-201` |
 | D-11 | Upload/delete invalidates `["documents","search"]` | unit | `bun run test:unit -- src/components/documents/__tests__/documents-section.test.tsx` — assert `queryClient.invalidateQueries` was called with `{ queryKey: ["documents","search"] }` | ✅ FILE EXISTS — add the case |
