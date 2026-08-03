@@ -196,6 +196,60 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		expect(screen.queryByText("No documents yet")).not.toBeInTheDocument();
 	});
 
+	// Perfect-PR cycle 1. §I-2 calls for a truncating title, but `truncate` alone
+	// on ItemTitle is INERT: the primitive is `flex w-fit` (item.tsx:118-128), and
+	// text-overflow:ellipsis does not apply to a flex container's anonymous text
+	// child, while w-fit sizes the box to its text so overflow:hidden never clips.
+	// The parent ItemContent is `flex flex-1` with no min-width, so the line cannot
+	// shrink either. A ~100-char file_path (rendered whenever title is null, which
+	// the schema allows) then overflowed the card and scrolled the page sideways.
+	//
+	// jsdom runs no layout engine, so this pins the CLASS CONTRACT that produces
+	// truncation rather than the rendered ellipsis. Stated plainly so the test is
+	// not mistaken for a visual assertion.
+	describe("long titles can actually truncate (§I-2)", () => {
+		const LONG_PATH =
+			"maintenance_request/9f3c1e2a-1b4d-4c5e-8f2a-0d7b6c5a4e31/1754236800000-inspection-report-final-v3.pdf";
+
+		it("gives the title a block box that can shrink and clip", () => {
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ title: null, file_path: LONG_PATH })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+
+			const title = container.querySelector('[data-slot="item-title"]');
+			expect(title).not.toBeNull();
+			const cls = title?.getAttribute("class") ?? "";
+
+			// Present: the combination that makes truncation effective.
+			for (const required of ["truncate", "block", "w-full", "min-w-0"]) {
+				expect(cls.split(/\s+/)).toContain(required);
+			}
+			// Absent: the two primitive defaults that made `truncate` inert.
+			expect(cls.split(/\s+/)).not.toContain("flex");
+			expect(cls.split(/\s+/)).not.toContain("w-fit");
+		});
+
+		it("lets the content column shrink below its min-content width", () => {
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ title: null, file_path: LONG_PATH })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+			const content = container.querySelector('[data-slot="item-content"]');
+			expect(content?.getAttribute("class")?.split(/\s+/)).toContain("min-w-0");
+		});
+
+		// Non-vacuity: the fallback path this guards must really be reachable —
+		// documents.title is nullable while file_path is NOT NULL.
+		it("renders the file_path when title is null", () => {
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ title: null, file_path: LONG_PATH })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+			expect(container.textContent).toContain(LONG_PATH);
+		});
+	});
+
 	// WR-02. Category slugs are owner-created and the validating regex
 	// /^[a-z0-9_]+$/ admits these two, which resolve off Object.prototype on a
 	// bare index read — putting the Object constructor or [object Object] into a

@@ -176,11 +176,37 @@ function RecentList({ rows }: { rows: DocumentRow[] }) {
 									aria-hidden="true"
 								/>
 							</ItemMedia>
-							<ItemContent>
-								{/* Both overrides are required: the primitives default to
-								    `font-medium` and `text-sm`, and these rows are metadata
-								    (§I-8), not headings. */}
-								<ItemTitle className="font-normal truncate">
+							{/*
+							 * `min-w-0` is load-bearing, not defensive. ItemContent is
+							 * `flex flex-1` (item.tsx:105-115) with no min-width of its
+							 * own, so its `min-width: auto` resolves to the min-content
+							 * width of a `whitespace-nowrap` title and the flex line
+							 * cannot shrink — the row then overflows the card instead of
+							 * ellipsising, and with no overflow-x clamp on <main> the
+							 * whole page scrolls sideways on mobile.
+							 */}
+							<ItemContent className="min-w-0">
+								{/*
+								 * `font-normal`/`text-xs` overrides: the primitives default
+								 * to `font-medium` and `text-sm`, and these rows are
+								 * metadata (§I-8), not headings.
+								 *
+								 * `block w-full min-w-0` is what makes §I-2's `truncate`
+								 * actually work. ItemTitle is `flex w-fit`
+								 * (item.tsx:118-128), and `text-overflow: ellipsis` does
+								 * not apply to a flex container's anonymous text child,
+								 * while `w-fit` sizes the box to the text so
+								 * `overflow: hidden` has nothing to clip — `truncate`
+								 * alone is inert here. tailwind-merge resolves
+								 * flex->block and w-fit->w-full (verified). Same shape the
+								 * vault row uses at document-row.tsx:67-68.
+								 *
+								 * This matters because `documents.title` is nullable while
+								 * `file_path` is NOT NULL, so the fallback renders a
+								 * storage path — `{entity_type}/{entity_id}/{ts}-{name}`,
+								 * around 100 characters.
+								 */}
+								<ItemTitle className="font-normal block w-full min-w-0 truncate">
 									{doc.title ?? doc.file_path}
 								</ItemTitle>
 								<ItemDescription className="text-xs">
