@@ -44,8 +44,21 @@ read it — see Canonical References — and must NOT re-derive it.
   decision, so the reversal reads as deliberate.
 - **D-07:** Tile icons and copy per the inherited icon table (FolderArchive, FileCheck,
   ClipboardList, ClipboardCheck, Wrench, FileWarning). Breadcrumb LABEL_MAP gains `vault`,
-  `templates`, `rental-application`, `property-inspection`, `maintenance-request`,
-  `tenant-notice`.
+  ~~`templates`~~, `rental-application`, `property-inspection`, `maintenance-request`,
+  `tenant-notice` — **FIVE entries, not six.**
+
+  **`templates` is deliberately OMITTED (amended 2026-08-02, planner L-06, accepted).**
+  Verified: `src/app/(owner)/documents/templates/` contains only subdirectories and a
+  `components/` folder — **no `page.tsx`** — so `/documents/templates` is a live 404, and
+  `app-shell-header.tsx:83-96` renders that middle crumb as a real `<Link>`. Adding the entry
+  is a pure rendering no-op: the capitalize fallback at `breadcrumbs.ts:65-66` already yields
+  "Templates". So its ONLY effect would be to make an intentional-looking map entry point at
+  a dead route, on a Claims Integrity milestone.
+
+  The dead crumb is pre-existing and out of DOCS-01's scope — this declines to bless it
+  rather than fixing it. Guarded two-sided: the omission assertion fails if the entry is
+  added, and a paired `existsSync` assertion fails if `/documents/templates` ever ships a
+  page, forcing the decision to be revisited rather than silently outliving its reason.
 
 ### Navigation — the inherited flat ruling STANDS (D-08 was amended, then REVERTED)
 

@@ -62,7 +62,7 @@ the planner must cover. Every row maps to DOCS-01 or one of the three ROADMAP su
 | SC-3 | The recent panel calls `documentSearchQueries.list` with **exactly** `{ page: 0 }` — the shared-cache-entry contract | T-65-02 | unit | `bun run test:unit -- "src/app/(owner)/documents/__tests__/recent-documents-panel.test.tsx"` — `vi.spyOn(documentSearchQueries, "list")` | ❌ Wave 0 |
 | SC-3 | All four panel states render: loading → 5 Skeletons, empty → D-12 copy, error → inline + `Retry`, success → max 5 rows | — | unit | same file, mock `useQuery` per state | ❌ Wave 0 |
 | D-03 | Recent rows contain **no** `<a>` and **no** `<button>` — preview, not a control surface | T-65-03 | unit | same file — `container.querySelectorAll("li a, li button")` length 0 | ❌ Wave 0 |
-| D-08 / D-09 | **FLAT nav (L-02 resolved):** `Documents` renders as a `<Link>` with href `/documents`; collapsible sections stay exactly `["Analytics","Reports"]`; no `Templates` section header; `Documents` has no children | — | unit | `bun run test:unit -- src/components/shell/__tests__/main-nav.test.tsx` | ✅ EXISTS — **3** tests need edits, measured (S-02's "6" was scoped to the reverted parent+children shape) |
+| D-08 / D-09 | **FLAT nav (L-02 resolved):** `Documents` renders as a `<Link>` with href `/documents`; collapsible sections stay exactly `["Analytics","Reports"]`; no `Templates` section header; `Documents` has no children | — | unit | `bun run test:unit -- src/components/shell/__tests__/main-nav.test.tsx` | ✅ EXISTS — **4** tests need edits (see the corrected blast radius below) |
 | D-10 | Cmd+K `Documents` entry href is `/documents`, and the Cmd+K `Templates` group is handled consistently with the sidebar deletion | — | unit | `bun run test:unit -- src/components/shell/__tests__/app-shell-nav.test.tsx` | ✅ EXISTS — add explicit assertions |
 | D-07 | The four hyphenated template slugs resolve to proper breadcrumb labels | — | unit | `bun run test:unit -- src/lib/__tests__/breadcrumbs.test.ts` | ✅ EXISTS — add cases |
 | D-11 | Upload **and** delete invalidate `["documents","search"]` | T-65-01 | unit | `bun run test:unit -- "src/components/documents/__tests__/documents-section.test.tsx"` | ✅ EXISTS — add the case |
@@ -78,15 +78,22 @@ the planner must cover. Every row maps to DOCS-01 or one of the three ROADMAP su
       (entry-data pins + RSC purity guard + no-redirect guard)
 - [ ] `src/app/(owner)/documents/__tests__/recent-documents-panel.test.tsx` — SC-3, D-03, D-12
 - [ ] Existing-file edits, planned as deliberate work rather than incidental:
-      `main-nav.test.tsx` (**3** tests — see the measured blast radius below), `app-shell-nav.test.tsx` (+assertions),
+      `main-nav.test.tsx` (**4** tests — see the corrected blast radius below), `app-shell-nav.test.tsx` (+assertions),
       `breadcrumbs.test.ts` (+4 cases), `__tests__/documents-section.test.tsx` (+1 case)
 - [ ] Framework install: **none needed**
 
-> **Measured blast radius under FLAT nav — 3 tests in `main-nav.test.tsx`:**
+> **Blast radius under FLAT nav — 4 tests in `main-nav.test.tsx`** (corrected 2026-08-02 by
+> the planner; my earlier count of 3 was wrong):
 > `:76` (asserts `href="/documents/vault"` → becomes `/documents`), `:210-213`
-> ("should render Templates section header" → the section is deleted), and `:357`
-> ("onNavigate when a Templates link is clicked" → that link is gone). The research's
-> "6 tests" was correct for the parent+children shape and is superseded by the flat revert.
+> ("should render Templates section header" → section deleted), `:224-235`
+> ("should render Lease Template link" → **the link is deleted outright**), and `:357`
+> ("onNavigate when a Templates link is clicked" → that link is gone).
+>
+> **Why I missed `:224-235`:** I grepped for `Templates` (plural — the section header) and
+> the test names the item singular, `Lease Template`. One character. It matters because the
+> two nav shapes differ on exactly this test: under parent+children the link would have
+> SURVIVED as a child and the test would still pass; under flat it has no parent, so
+> deleting `documentItems` removes it. The research's "6" was for the parent+children shape.
 >
 > **`main-nav.test.tsx:135-143` is a designed tripwire and needs NO edit.** It asserts
 > `toEqual(["Analytics","Reports"])` with a comment stating it was written so "a third
