@@ -174,6 +174,50 @@ describe("documents hub hrefs reach real routes", () => {
 	});
 });
 
+// Perfect-PR cycle 1 (fifth frozen state). globals.css @layer base carries
+// `a:not([role="button"]):not(.button):not([class*="button"])` with
+// `text-decoration: underline #0000`, which turns visible on :hover via
+// `text-decoration-color: currentColor` and propagates to in-flow block
+// descendants. Both anchors this phase renders satisfy all three :not() guards —
+// the tile declares no role and no "button" substring, and `buttonVariants`'
+// class string contains none either — so both needed an explicit opt-out.
+//
+// Source-scanned rather than rendered because that is this file's established
+// idiom, and because the defect is a missing class rather than a wrong tree.
+describe("phase anchors opt out of the global underline", () => {
+	// Comment-stripped: both files EXPLAIN the base rule in prose, so a raw
+	// substring scan would match the explanation instead of the class.
+	const tileSource = stripComments(
+		readFileSync(
+			join(cwd, `${OWNER_ROOT}/documents/document-hub-tile.tsx`),
+			"utf8",
+		),
+	);
+	const pageSource = stripComments(readFileSync(join(cwd, HUB_INDEX), "utf8"));
+
+	it("the whole-card tile link carries no-underline", () => {
+		expect(tileSource).toContain("no-underline");
+	});
+
+	it("the Open the vault CTA carries no-underline", () => {
+		// On the Link, not the Button: `asChild` makes the anchor the rendered
+		// element, so the class has to land there.
+		expect(pageSource).toMatch(
+			/<Link\s+className="no-underline"[\s\S]*?Open the vault/,
+		);
+	});
+
+	// Non-vacuity: the base rule's three :not() guards really are unsatisfied, so
+	// the rule really does match these anchors and the opt-out really is
+	// load-bearing rather than belt-and-braces.
+	it("neither anchor evades the base rule some other way", () => {
+		for (const source of [tileSource, pageSource]) {
+			expect(source).not.toContain('role="button"');
+			expect(source).not.toContain("className={buttonVariants");
+		}
+	});
+});
+
 /** D-04 / D-06: the landing stays a data-free Server Component. */
 const HUB_INDEX_FORBIDDEN: readonly { name: string; pattern: RegExp }[] = [
 	{ name: 'client directive ("use client")', pattern: /["']use client["']/ },

@@ -99,8 +99,23 @@ function VaultBand() {
 							{DOCUMENTS_VAULT_ENTRY.description}
 						</p>
 					</div>
+					{/*
+					 * `no-underline` on the Link, not the Button. `asChild` means the
+					 * rendered element is an <a>, and `buttonVariants`' class string
+					 * contains no "button" substring while Button sets no
+					 * `role="button"` — so this anchor satisfies every :not() guard on
+					 * globals.css's base `a` rule and picks up its always-present
+					 * underline, drawn in a fully transparent colour that turns visible
+					 * on hover via `text-decoration-color: currentColor`. On a filled primary
+					 * button that reads as a stray white underline across the label.
+					 * Every `<Button asChild><Link>` in the app has this; fixing it in
+					 * `buttonVariants` would be the systemic fix but reaches far
+					 * outside DOCS-01, so it is scoped here.
+					 */}
 					<Button asChild>
-						<Link href={DOCUMENTS_VAULT_ENTRY.href}>Open the vault</Link>
+						<Link className="no-underline" href={DOCUMENTS_VAULT_ENTRY.href}>
+							Open the vault
+						</Link>
 					</Button>
 				</div>
 			</div>
