@@ -477,3 +477,55 @@ both degrade together.
 _Reviewed: 2026-08-03T14:48:57Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+
+---
+
+## Resolution log (orchestrator, post-review)
+
+Applied during `/gsd-execute-phase 65`, each fix mutation-verified and committed
+through full pre-commit hooks (gitleaks, lockfile-verify, lint, typecheck,
+coverage-gated unit suite). No hook bypassed.
+
+| ID | Verdict | Disposition | Commit |
+|----|---------|-------------|--------|
+| CR-01 | CONFIRMED | Fixed — `isPending` in BOTH the panel and the vault | `e29128270` |
+| CR-02 | CONFIRMED | Fixed — `NON_ROUTABLE_SEGMENTS` emits a non-navigable crumb | `7059d1aa9` |
+| WR-01 | CONFIRMED | Fixed — dropped the `Separator` client boundary, restated the error-boundary claim | `df1e8a82e` |
+| WR-02 | CONFIRMED | Fixed — `Object.hasOwn` guard + `it.each` over both prototype slugs | `df1e8a82e` |
+| WR-03 | CONFIRMED | **Deferred — needs an owner decision.** See below. |  |
+| WR-04 | CONFIRMED | **Deferred — cross-cutting refactor.** See below. |  |
+
+### CR-01 scope note
+
+The review scoped CR-01 to the landing panel. It was fixed in
+`documents-vault.client.tsx` as well, because the two surfaces share one cache
+entry precisely so they cannot disagree (SC-3) — they were wrong together, and
+fixing only the panel would have made them disagree in exactly the offline and
+cache-restoring states the finding is about. `isLoading` is retained at the
+vault's background-refresh indicator, where `isFetching && !isLoading` correctly
+means "refetching over data we already have".
+
+### WR-03 — deferred, requires a decision
+
+The `["documents","search",…]` cache entry carries up to 50 one-hour Storage
+signed URLs and is persisted to IndexedDB for 24h, surviving sign-out. Phase 65
+did not create this — the vault already did it — but it widened *who* it happens
+to, from vault visitors to every owner who opens the Documents section.
+
+Both remedies trade something real, so neither is the orchestrator's call:
+
+1. Add `documents` to the non-persisted namespaces — smallest change, but gives
+   up the offline read of the documents cache.
+2. Call `removeClient()` + `queryClient.clear()` on sign-out — the broader and
+   more correct fix, since it also covers every other owner-scoped cache
+   surviving a logout on a shared machine, but it is a cross-cutting auth change
+   that belongs in its own phase.
+
+### WR-04 — deferred, cross-cutting refactor
+
+`main-nav.tsx`'s `coreItems` and `app-shell.tsx`'s `commandGroups[0].items` are
+two hand-maintained tables holding the same six destinations. This phase edited
+both correctly and pinned each, but nothing asserts they *agree*, so the next
+addition can still miss one with a green suite. The fix — extract
+`CORE_NAV_ITEMS` and derive both — touches shell components beyond DOCS-01's
+scope and should be its own change.
