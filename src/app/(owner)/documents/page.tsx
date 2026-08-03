@@ -177,7 +177,25 @@ function PrintablesBand() {
 				>
 					{band.title}
 				</h2>
-				<p className="text-sm text-muted-foreground">{band.description}</p>
+				{/*
+				 * `mb-0` because THIS wrapper is a flex item. The section above is
+				 * `flex flex-col gap-4`, so this `<div>` establishes an independent
+				 * formatting context and the base `p { margin-bottom: 1rem }` from
+				 * globals.css cannot collapse out of it — it is added to the item's
+				 * height, and then `gap-4` adds its own 16px on top. Without this the
+				 * heading-to-grid gap renders 32px, double BuildBand's identical
+				 * `gap-4` one band up (whose `<h2>` is a direct flex item and headings
+				 * carry no base margin), and equal to the 32px §I-7 reserves for
+				 * separating bands from each other.
+				 *
+				 * The two other `<p>`s on this page correctly go WITHOUT it: both sit
+				 * in plain block parents, so their margin collapses out and is
+				 * absorbed by an equal-or-larger `space-y-*` rung (VaultBand's by
+				 * `space-y-4`'s 1rem, the page header's by `space-y-8`'s 2rem). Adding
+				 * `mb-0` there would be inert; the asymmetry is the formatting
+				 * context, not an oversight.
+				 */}
+				<p className="text-sm text-muted-foreground mb-0">{band.description}</p>
 			</div>
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{DOCUMENTS_HUB_ENTRIES.filter(

@@ -184,17 +184,18 @@ describe("documents hub hrefs reach real routes", () => {
 //
 // Source-scanned rather than rendered because that is this file's established
 // idiom, and because the defect is a missing class rather than a wrong tree.
-describe("phase anchors opt out of the global underline", () => {
-	// Comment-stripped: both files EXPLAIN the base rule in prose, so a raw
-	// substring scan would match the explanation instead of the class.
-	const tileSource = stripComments(
-		readFileSync(
-			join(cwd, `${OWNER_ROOT}/documents/document-hub-tile.tsx`),
-			"utf8",
-		),
-	);
-	const pageSource = stripComments(readFileSync(join(cwd, HUB_INDEX), "utf8"));
+// Comment-stripped: both files EXPLAIN these base rules in prose, so a raw
+// substring scan would match the explanation instead of the class. Module-scoped
+// because two describe blocks below both read them.
+const tileSource = stripComments(
+	readFileSync(
+		join(cwd, `${OWNER_ROOT}/documents/document-hub-tile.tsx`),
+		"utf8",
+	),
+);
+const pageSource = stripComments(readFileSync(join(cwd, HUB_INDEX), "utf8"));
 
+describe("phase anchors opt out of the global underline", () => {
 	it("the whole-card tile link carries no-underline", () => {
 		expect(tileSource).toContain("no-underline");
 	});
@@ -215,6 +216,43 @@ describe("phase anchors opt out of the global underline", () => {
 			expect(source).not.toContain('role="button"');
 			expect(source).not.toContain("className={buttonVariants");
 		}
+	});
+});
+
+// globals.css:499 gives every bare `<p>` a 1rem bottom margin in @layer base.
+// Whether that is a defect depends entirely on the parent's box, so this is
+// asserted per element rather than blanket-applied:
+//
+//   trapped (needs mb-0)   flex item, or last child of a padded box — the margin
+//                          cannot collapse out, so it adds height
+//   absorbed (must not)    plain block parent — the margin collapses out and an
+//                          equal-or-larger space-y-* rung swallows it, so mb-0
+//                          would be inert noise
+//
+// Both directions are pinned so a later "consistency" pass cannot flatten the
+// distinction in either direction.
+describe("the base p margin is zeroed exactly where the box traps it", () => {
+	it("zeroes it on the printables band description (flex item wrapper)", () => {
+		expect(pageSource).toMatch(
+			/<p className="text-sm text-muted-foreground mb-0">\s*\{band\.description\}/,
+		);
+	});
+
+	it("zeroes it on the tile description (last child of a padded anchor)", () => {
+		expect(tileSource).toMatch(
+			/<p className="text-sm text-muted-foreground mb-0">\{entry\.description\}<\/p>/,
+		);
+	});
+
+	it("leaves it alone where a block parent lets it collapse", () => {
+		// VaultBand's description and the page header's subtitle. Both sit in plain
+		// block parents inside space-y-4 / space-y-8 respectively.
+		expect(pageSource).toContain(
+			'<p className="text-sm text-muted-foreground">',
+		);
+		expect(pageSource).toMatch(
+			/<p className="text-sm text-muted-foreground">\{PAGE_SUBTITLE\}<\/p>/,
+		);
 	});
 });
 

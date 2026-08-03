@@ -73,7 +73,15 @@ export function DocumentHubTile({
 			<h3 className="text-base font-semibold text-foreground mb-1">
 				{entry.title}
 			</h3>
-			<p className="text-sm text-muted-foreground">{entry.description}</p>
+			{/*
+			 * `mb-0` because this `<p>` is the LAST child of a padded box. The anchor
+			 * above carries `p-5`/`p-4`, and padding on the bottom edge prevents a
+			 * child's bottom margin from collapsing out — so globals.css's base
+			 * `p { margin-bottom: 1rem }` was adding 16px of dead space inside every
+			 * tile, giving each card ~36px below the description against 20px above
+			 * the icon row.
+			 */}
+			<p className="text-sm text-muted-foreground mb-0">{entry.description}</p>
 		</Link>
 	);
 }
