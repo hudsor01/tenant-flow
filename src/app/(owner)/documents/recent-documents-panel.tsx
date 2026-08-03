@@ -32,6 +32,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { File } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { Button } from "#components/ui/button";
 import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty";
 import {
@@ -44,6 +45,7 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import type { DocumentRow } from "#hooks/api/query-keys/document-keys";
 import { documentSearchQueries } from "#hooks/api/query-keys/document-search-keys";
+import { useDocumentCategories } from "#hooks/api/use-document-categories";
 import { formatRelativeDate } from "#lib/formatters/date";
 import { DEFAULT_CATEGORY_LABELS } from "#lib/validation/documents";
 
@@ -57,6 +59,39 @@ const RECENT_LIMIT = 5;
  * under `noUncheckedIndexedAccess` and falls through to the prettifier below.
  */
 const CATEGORY_LABELS: Record<string, string> = DEFAULT_CATEGORY_LABELS;
+
+/**
+ * Resolve a category slug to the label the OWNER sees, not the seed default.
+ *
+ * `document_categories.label` is mutable for every row including the seeded
+ * defaults — `documentCategoryMutations.update()` gates on nothing but
+ * ownership ("Only `label` is mutable"; there is no `is_default` guard). So an
+ * owner who renames `insurance` to "Insurance Certificates", or adds a custom
+ * `hoa_dues` / "HOA Dues", gets the right label everywhere the per-owner table
+ * is read and the wrong one everywhere the static map is.
+ *
+ * The vault already reads that table (`documents-vault.client.tsx:168`, whose
+ * own Phase 65 comment records the move off the static map), so a panel reading
+ * DEFAULT_CATEGORY_LABELS would contradict a decision this same phase made one
+ * file over: "Insurance · 3 days ago" here against "Insurance Certificates" in
+ * the vault filter and the upload Select, in the same session.
+ *
+ * This does NOT fork the document cache and so does not touch SC-3 — it is the
+ * same `documentCategoryQueries.list()` entry the vault already warms (5-min
+ * staleTime, categories change rarely), so the two surfaces agree by sharing a
+ * cache entry here exactly as they do for rows.
+ */
+function ownerCategoryLabel(
+	slug: string,
+	bySlug: ReadonlyMap<string, string>,
+): string {
+	// Map#get, so no prototype-chain hazard on this path regardless of slug.
+	const owned = bySlug.get(slug);
+	if (owned) return owned;
+	// Fallback while the categories query is pending, or if the row references a
+	// slug the owner has since deleted: seed default, then the prettifier.
+	return categoryLabel(slug);
+}
 
 function categoryLabel(slug: string): string {
 	// `Object.hasOwn`, not a bare index read. `CATEGORY_LABELS` is a plain object
@@ -82,8 +117,11 @@ function categoryLabel(slug: string): string {
  * than rendered as a dangling separator. The separator is a middle dot, never
  * an em-dash (`document-row.tsx:72` sets the house convention).
  */
-function metaLine(doc: DocumentRow): string {
-	const label = categoryLabel(doc.document_type);
+function metaLine(
+	doc: DocumentRow,
+	bySlug: ReadonlyMap<string, string>,
+): string {
+	const label = ownerCategoryLabel(doc.document_type, bySlug);
 	const relative = doc.created_at ? formatRelativeDate(doc.created_at) : "";
 	return relative ? `${label} · ${relative}` : label;
 }
@@ -155,29 +193,44 @@ function RecentEmpty() {
  * gates its hover background behind `[a]:hover:bg-accent/50`, so a non-anchor
  * row gets no hover affordance and D-03 holds by construction.
  */
-function RecentList({ rows }: { rows: DocumentRow[] }) {
+function RecentList({
+	rows,
+	categoryBySlug,
+}: {
+	rows: DocumentRow[];
+	categoryBySlug: ReadonlyMap<string, string>;
+}) {
 	return (
 		<>
 			{/*
-			 * `pl-0 my-0 [&>li]:mb-0` neutralizes a GLOBAL base rule, it is not
-			 * defensive noise. `globals.css:517-524` declares unscoped
+			 * These four utilities neutralize GLOBAL base rules; none is defensive
+			 * noise. `globals.css:517-524` declares unscoped
 			 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
-			 * `li { margin-bottom: 0.25rem }` inside `@layer base`. Tailwind v4's
-			 * preflight only resets `list-style` for lists — verified in the
-			 * compiled bundle, where `ol,ul,menu{list-style:none}` appears well
-			 * BEFORE `ul,ol{margin:1rem 0;padding-left:1.5rem}` and there is no
-			 * universal margin/padding reset at all — so the base rule wins.
-			 * Without these overrides the five rows sit 24px right of the
-			 * "Recently added" label and the "View all documents" link, which
-			 * 65-UI-SPEC §I-1 and §I-7 put flush with them, and the list adds
-			 * vertical margin no §I-7 rung accounts for.
+			 * `li { margin-bottom: 0.25rem }` inside `@layer base`, and Tailwind
+			 * v4's preflight resets only `list-style` for lists (verified in the
+			 * compiled bundle: `ol,ul,menu{list-style:none}` with no universal
+			 * margin/padding reset anywhere), so the base rule stands.
 			 *
-			 * Scoped here deliberately rather than changing the global rule: that
-			 * `ul, ol` styling is prose styling for marketing and blog content.
-			 * Note the vault's own lists carry the same indent for the same
-			 * reason — pre-existing, out of DOCS-01's scope, not fixed here.
+			 * `gap-1`, NOT `space-y-1`, is the row rhythm. v4 wraps space utilities
+			 * in `:where()` to make them specificity-0 — compiled as
+			 * `:where(.space-y-1>:not(:last-child))` — so the `[&>li]:mb-0` needed
+			 * to kill the base `li` margin (specificity 0,1,1) outranks it and
+			 * silently flattens the gap to 0. `gap` is not a margin, so it cannot
+			 * be beaten by a margin override; that removes the conflict instead of
+			 * trading one override for another.
+			 *
+			 * `mt-0`, NOT `my-0`, for the same reason in the other direction. This
+			 * `<ul>` is a non-last child of the `space-y-4` wrapper below, so the
+			 * parent supplies its bottom margin via another specificity-0
+			 * `:where()` rule; `my-0` (0,1,0) would beat it and pull the "View all
+			 * documents" link flush against the last row. Only the base rule's TOP
+			 * margin needs killing — the bottom is already governed.
+			 *
+			 * Scoped here rather than editing the global rule: that `ul, ol` block
+			 * is prose styling for marketing and blog content. The vault's own
+			 * lists carry the same indent — pre-existing, out of DOCS-01's scope.
 			 */}
-			<ul className="space-y-1 pl-0 my-0 [&>li]:mb-0">
+			<ul className="flex flex-col gap-1 pl-0 mt-0 [&>li]:mb-0">
 				{rows.map((doc) => (
 					<Item key={doc.id} asChild variant="default" size="sm">
 						<li>
@@ -229,7 +282,7 @@ function RecentList({ rows }: { rows: DocumentRow[] }) {
 									{doc.title ?? doc.file_path}
 								</ItemTitle>
 								<ItemDescription className="text-xs">
-									{metaLine(doc)}
+									{metaLine(doc, categoryBySlug)}
 								</ItemDescription>
 							</ItemContent>
 						</li>
@@ -269,6 +322,18 @@ export function RecentDocumentsPanel() {
 	);
 	const rows = (data?.rows ?? []).slice(0, RECENT_LIMIT);
 
+	// Same `documentCategoryQueries.list()` entry the vault reads, so the two
+	// surfaces show one owner's labels rather than one owner's and one seed's.
+	// Deliberately NOT gated on its loading state: categories are decoration on a
+	// metadata line, so a pending category query must never hold back rows that
+	// have already loaded — `ownerCategoryLabel` falls back to the seed default
+	// and then the prettifier until it resolves.
+	const { categories } = useDocumentCategories();
+	const categoryBySlug = useMemo(
+		() => new Map(categories.map((c) => [c.slug, c.label])),
+		[categories],
+	);
+
 	return (
 		// `mt-4` is §I-7's 16px offset below the band rule that `page.tsx` renders
 		// above this island; that rule's own `mt-6` supplies the 24px above it.
@@ -285,7 +350,7 @@ export function RecentDocumentsPanel() {
 			) : rows.length === 0 ? (
 				<RecentEmpty />
 			) : (
-				<RecentList rows={rows} />
+				<RecentList rows={rows} categoryBySlug={categoryBySlug} />
 			)}
 		</div>
 	);

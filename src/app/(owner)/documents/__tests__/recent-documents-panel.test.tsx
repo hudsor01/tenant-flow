@@ -31,6 +31,19 @@ vi.mock("@tanstack/react-query", async () => {
 	return { ...actual, useQuery: () => mockUseQuery() };
 });
 
+/**
+ * The panel reads the owner's real category labels so it cannot disagree with
+ * the vault, which reads the same `documentCategoryQueries.list()` entry. Mocked
+ * separately from `useQuery` above so the document-params pin stays exact — the
+ * blanket `useQuery` mock would otherwise answer this hook too and make the
+ * `toEqual({ page: 0 })` assertion count calls it should not see.
+ */
+const mockUseDocumentCategories = vi.fn();
+
+vi.mock("#hooks/api/use-document-categories", () => ({
+	useDocumentCategories: () => mockUseDocumentCategories(),
+}));
+
 /** The raw PostgREST string the panel must never surface (T-65-06). */
 const DRIVER_ERROR_MESSAGE = 'PGRST116: relation "documents" does not exist';
 
@@ -121,6 +134,13 @@ describe("RecentDocumentsPanel — the shared-cache guarantee (SC-3, D-02)", () 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		rowSeq = 0;
+		// Default: categories resolved and matching the seed labels, so existing
+		// assertions read the same as before the owner-label lookup was added.
+		mockUseDocumentCategories.mockReturnValue({
+			categories: [],
+			isLoading: false,
+			isError: false,
+		});
 	});
 
 	it("calls documentSearchQueries.list with exactly { page: 0 } on every render", () => {
@@ -166,6 +186,13 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		rowSeq = 0;
+		// Default: categories resolved and matching the seed labels, so existing
+		// assertions read the same as before the owner-label lookup was added.
+		mockUseDocumentCategories.mockReturnValue({
+			categories: [],
+			isLoading: false,
+			isError: false,
+		});
 	});
 
 	it("renders exactly five skeleton rows while loading, never a spinner", () => {
@@ -203,16 +230,31 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	// that base rule wins and indents the rows 24px out of alignment with the
 	// panel's own label and footer link. jsdom loads no stylesheet, so this pins
 	// the neutralizing classes rather than a measured offset.
-	it("neutralizes the global ul indent so rows align with the panel label", () => {
+	it("neutralizes the global ul indent without defeating the spacing rungs", () => {
 		mockUseQuery.mockReturnValue(successState(makeRows(3)));
 		const { container } = render(<RecentDocumentsPanel />);
 		const list = container.querySelector("ul");
 		const cls = list?.getAttribute("class")?.split(/\s+/) ?? [];
+
+		// Kills the base rule's 24px indent and its top margin.
 		expect(cls).toContain("pl-0");
-		expect(cls).toContain("my-0");
+		expect(cls).toContain("mt-0");
+		// Kills the base `li { margin-bottom: .25rem }` bleed.
 		expect(cls).toContain("[&>li]:mb-0");
-		// Non-vacuity: the row spacing rung must survive the neutralization.
-		expect(cls).toContain("space-y-1");
+
+		// The two anti-regressions, and the reason this list uses gap rather than
+		// space-y. Tailwind v4 compiles space utilities inside `:where()`, making
+		// them specificity-0, so BOTH of the neutralizing utilities above would
+		// outrank them:
+		//   :where(.space-y-1>:not(:last-child))  (0,0,0)
+		//   .[&>li]:mb-0>li                       (0,1,1)  -> row rhythm becomes 0
+		//   :where(.space-y-4>:not(:last-child))  (0,0,0)  on this <ul>
+		//   .my-0                                 (0,1,0)  -> footer link goes flush
+		// `gap` is not a margin so it cannot be beaten by a margin override, and
+		// `mt-0` leaves the parent's space-y-4 bottom margin alone.
+		expect(cls).toContain("gap-1");
+		expect(cls).not.toContain("space-y-1");
+		expect(cls).not.toContain("my-0");
 	});
 
 	// Perfect-PR cycle 1. §I-2 calls for a truncating title, but `truncate` alone
@@ -266,6 +308,62 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 			);
 			const { container } = render(<RecentDocumentsPanel />);
 			expect(container.textContent).toContain(LONG_PATH);
+		});
+	});
+
+	// Perfect-PR cycle 1 (third frozen state). `document_categories.label` is
+	// mutable for every row including the seeded defaults — update() gates on
+	// ownership only, with no is_default guard — and the vault reads that table
+	// (documents-vault.client.tsx:168). A panel reading the static seed map would
+	// show "Insurance · 3 days ago" while the vault filter and the upload Select
+	// showed "Insurance Certificates", in the same session, for the same document.
+	describe("category labels come from the owner's table, not the seed map", () => {
+		it("uses a renamed default category's label", () => {
+			mockUseDocumentCategories.mockReturnValue({
+				categories: [
+					{ slug: "insurance", label: "Insurance Certificates" },
+					{ slug: "lease", label: "Lease" },
+				],
+				isLoading: false,
+				isError: false,
+			});
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ document_type: "insurance" })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+			expect(container.textContent).toContain("Insurance Certificates");
+		});
+
+		it("uses a custom slug's label instead of the prettifier", () => {
+			mockUseDocumentCategories.mockReturnValue({
+				categories: [{ slug: "hoa_dues", label: "HOA Dues" }],
+				isLoading: false,
+				isError: false,
+			});
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ document_type: "hoa_dues" })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+			expect(container.textContent).toContain("HOA Dues");
+			// The prettifier's output, which is what the static map fell back to.
+			expect(container.textContent).not.toContain("Hoa dues");
+		});
+
+		// Rows must not be withheld while categories load — the label is decoration
+		// on a metadata line, so it degrades to the seed default and then the
+		// prettifier rather than gating the list.
+		it("still renders rows with a fallback label while categories are pending", () => {
+			mockUseDocumentCategories.mockReturnValue({
+				categories: [],
+				isLoading: true,
+				isError: false,
+			});
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ title: "Q1 Lease", document_type: "lease" })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+			expect(container.textContent).toContain("Q1 Lease");
+			expect(container.textContent).toContain("Lease");
 		});
 	});
 
@@ -336,6 +434,13 @@ describe("RecentDocumentsPanel — the success state", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		rowSeq = 0;
+		// Default: categories resolved and matching the seed labels, so existing
+		// assertions read the same as before the owner-label lookup was added.
+		mockUseDocumentCategories.mockReturnValue({
+			categories: [],
+			isLoading: false,
+			isError: false,
+		});
 	});
 
 	it("shows the first five rows in server order and drops the rest", () => {
