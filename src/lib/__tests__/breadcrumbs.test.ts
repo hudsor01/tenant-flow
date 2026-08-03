@@ -264,6 +264,38 @@ describe("generateBreadcrumbs", () => {
 		});
 	});
 
+	// UF-01 from the phase-65 security audit. generateBreadcrumbs takes raw URL
+	// segments, and LABEL_MAP is a plain object literal carrying Object.prototype.
+	// `/properties/__proto__` matches `properties/[id]/page.tsx` and is not a UUID,
+	// so a bare `LABEL_MAP[segment]` read resolved Object.prototype into a slot
+	// typed `: string`. React refuses to render an object as a child, so a crafted
+	// URL took down the owner shell header. `constructor` and `toString` resolve to
+	// functions the same way.
+	describe("prototype-chain segments cannot escape the string contract", () => {
+		it.each([
+			"__proto__",
+			"constructor",
+			"toString",
+			"valueOf",
+			"hasOwnProperty",
+		])("returns a string label for the segment %s", (segment) => {
+			const crumbs = generateBreadcrumbs(`/properties/${segment}`);
+			const leaf = crumbs[crumbs.length - 1];
+			expect(typeof leaf?.label).toBe("string");
+			expect(leaf?.label).not.toContain("[object Object]");
+			expect(leaf?.label).not.toContain("native code");
+		});
+
+		// Non-vacuity: a real mapped segment must still resolve through LABEL_MAP,
+		// or the guard above would pass against a function that ignored the map.
+		it("still resolves genuine LABEL_MAP entries", () => {
+			expect(generateBreadcrumbs("/properties")[0]).toEqual({
+				href: "/properties",
+				label: "Properties",
+			});
+		});
+	});
+
 	describe("Phase 65 L-06: the templates label is deliberately absent", () => {
 		const source = readFileSync(
 			join(process.cwd(), "src/lib/breadcrumbs.ts"),

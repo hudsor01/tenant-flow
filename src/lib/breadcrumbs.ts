@@ -91,9 +91,19 @@ export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
 	segments.forEach((segment, index) => {
 		currentPath += `/${segment}`;
 
-		// Use mapped label or capitalize segment
-		const label =
-			LABEL_MAP[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+		// `Object.hasOwn`, not a bare index read. LABEL_MAP is a plain object
+		// literal, so it carries Object.prototype, and this function is called with
+		// raw URL segments. `/properties/__proto__` matches `properties/[id]`, is
+		// not a UUID, and a bare read would resolve `Object.prototype` — an object
+		// returned from a `: string` slot, which React then refuses to render as a
+		// child ("Objects are not valid as a React child"), taking down the shell
+		// header on a crafted URL. `constructor` and `toString` resolve to
+		// functions the same way. Same defect class as `categoryLabel` in
+		// `recent-documents-panel.tsx`; fixed in both rather than one at a time.
+		const mapped = Object.hasOwn(LABEL_MAP, segment)
+			? LABEL_MAP[segment]
+			: undefined;
+		const label = mapped || segment.charAt(0).toUpperCase() + segment.slice(1);
 
 		// Skip UUIDs (typical format: 8-4-4-4-12 characters)
 		const isUUID =
