@@ -227,7 +227,15 @@ export function DocumentsVaultClient() {
 		setToParam,
 	]);
 
-	const { data, isLoading, isFetching, isError, refetch } = useQuery(
+	// `isPending`, NOT `isLoading`, drives the skeleton branch below.
+	// `isLoading === isPending && isFetching`, so an offline (`fetchStatus:
+	// "paused"`) or cache-restoring (`fetchStatus: "idle"`) query reports
+	// `isLoading: false` with `data: undefined` and falls through to the
+	// "No documents uploaded yet" branch. `isLoading` is still correct at the
+	// background-refresh indicator, where `isFetching && !isLoading` is exactly
+	// "refetching over data we already have". The recent-documents panel on
+	// /documents branches identically — same cache entry, so same answer (SC-3).
+	const { data, isPending, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({
 			...(queryParam ? { query: queryParam } : {}),
 			...(entityType ? { entityType } : {}),
@@ -481,7 +489,7 @@ export function DocumentsVaultClient() {
 					</div>
 				</CardHeader>
 				<CardContent>
-					{isLoading ? (
+					{isPending ? (
 						<div className="space-y-2">
 							{Array.from({ length: 5 }).map((_, i) => (
 								<Skeleton key={i} className="h-12 w-full" />

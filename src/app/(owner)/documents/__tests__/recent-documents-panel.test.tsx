@@ -64,10 +64,29 @@ function makeRow(overrides: Partial<DocumentRow> = {}): DocumentRow {
 	};
 }
 
+// The panel branches on `isPending`, not `isLoading` (CR-01). These fixtures
+// carry BOTH flags with the real TanStack v5 relationship (`isLoading ===
+// isPending && isFetching`) so they stay honest if the component's predicate is
+// ever changed back.
 function loadingState() {
 	return {
 		data: undefined,
+		isPending: true,
 		isLoading: true,
+		isError: false,
+		refetch: vi.fn(),
+	};
+}
+
+// Pending but NOT fetching — the state `isLoading` cannot see. Reachable two
+// ways in this app: `networkMode: "online"` parks an offline query at
+// `fetchStatus: "paused"`, and PersistQueryClientProvider's `isRestoring`
+// window forces `fetchStatus: "idle"` on every cold load.
+function pausedState() {
+	return {
+		data: undefined,
+		isPending: true,
+		isLoading: false,
 		isError: false,
 		refetch: vi.fn(),
 	};
@@ -76,6 +95,7 @@ function loadingState() {
 function errorState(refetch: () => void) {
 	return {
 		data: undefined,
+		isPending: false,
 		isLoading: false,
 		isError: true,
 		error: new Error(DRIVER_ERROR_MESSAGE),
@@ -86,6 +106,7 @@ function errorState(refetch: () => void) {
 function successState(rows: DocumentRow[]) {
 	return {
 		data: { rows, totalCount: rows.length, page: 0, pageSize: 50 },
+		isPending: false,
 		isLoading: false,
 		isError: false,
 		refetch: vi.fn(),
@@ -160,6 +181,19 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		// tree, plus the §I-3 "never a spinner" rule.
 		expect(screen.getByText("Recently added")).toBeInTheDocument();
 		expect(container.querySelectorAll(".animate-spin")).toHaveLength(0);
+	});
+
+	// CR-01. The empty copy is a positive claim — "you have no documents" — and a
+	// pending-but-paused query has not earned it. `isLoading` is false here, so
+	// branching on it renders RecentEmpty with no error and no Retry: permanently
+	// while offline, and as a flash on every cold load during cache restore.
+	it("shows skeletons, never the empty copy, while pending but not fetching", () => {
+		mockUseQuery.mockReturnValue(pausedState());
+		const { container } = render(<RecentDocumentsPanel />);
+		expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(
+			5,
+		);
+		expect(screen.queryByText("No documents yet")).not.toBeInTheDocument();
 	});
 
 	it("renders the D-12 empty copy and names no entity type", () => {

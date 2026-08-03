@@ -198,7 +198,17 @@ function RecentList({ rows }: { rows: DocumentRow[] }) {
 }
 
 export function RecentDocumentsPanel() {
-	const { data, isLoading, isError, refetch } = useQuery(
+	// `isPending`, NOT `isLoading`. `isLoading === isPending && isFetching`, so a
+	// query that is pending but not fetching reports `isLoading: false` with
+	// `data: undefined` and falls through to `RecentEmpty` — claiming the owner
+	// has no documents when we simply have not loaded them. Two reachable
+	// triggers: `networkMode: "online"` (query-provider.tsx:75) parks an offline
+	// query at `fetchStatus: "paused"`, and `PersistQueryClientProvider` mounts
+	// from an async effect (query-provider.tsx:244) so every cold load passes
+	// through an `isRestoring` window that forces `fetchStatus: "idle"`.
+	// `documents-vault.client.tsx` branches on the same predicate for the same
+	// reason — the two surfaces share one cache entry and must agree (SC-3).
+	const { data, isPending, isError, refetch } = useQuery(
 		documentSearchQueries.list({ page: 0 }),
 	);
 	const rows = (data?.rows ?? []).slice(0, RECENT_LIMIT);
@@ -208,7 +218,7 @@ export function RecentDocumentsPanel() {
 		// above this island; the Separator's own `mt-6` supplies the 24px above it.
 		<div className="mt-4 space-y-4">
 			<p className="text-xs text-muted-foreground">Recently added</p>
-			{isLoading ? (
+			{isPending ? (
 				<RecentSkeletons />
 			) : isError ? (
 				<RecentError
