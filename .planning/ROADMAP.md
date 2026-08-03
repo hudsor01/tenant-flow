@@ -163,7 +163,11 @@ Plans:
   1. `/documents` renders a real landing page with entry points to the vault, the lease template builder and the printable templates — the existing `permanentRedirect('/documents/vault')` is deliberately reversed, and the reversal is recorded in-code as superseding the earlier decision
   2. `/documents/vault` stays the canonical vault URL — the landing links to it; no sidebar, marketing or deep-link target outside this phase changes
   3. The landing's recent-documents panel reuses the vault's existing query/mapper rather than a second data source, so the two surfaces can never disagree
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+Plans:
+- [ ] 65-01-PLAN.md — Reverse the redirect; hub entries module + tile + RSC landing shell (wave 1)
+- [ ] 65-02-PLAN.md — Recent-documents client island wired into Band 1, plus the D-11 search-key invalidation that makes "Recently" true (wave 2 — depends on 65-01; both touch page.tsx)
+- [ ] 65-03-PLAN.md — Sidebar flat Documents entry + Templates section deletion, Cmd+K repoint, breadcrumb labels (wave 1, parallel with 65-01)
 **UI hint**: yes
 **Numbering note:** created 2026-07-26 by splitting Phase 56. Integer numbering is append-only (decimals are forbidden by project convention and 57-64 are never renumbered), so this phase takes 65 while executing directly after 56.
 
