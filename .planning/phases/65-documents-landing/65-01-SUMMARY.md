@@ -176,6 +176,12 @@ None. Every tile links to a route with a `page.tsx` on disk (asserted), and the 
 
 None. No new network endpoint, auth path, file-access pattern or schema change was introduced. `/documents` already existed inside the `(owner)` group and is already covered by `PRIVATE_ROUTE_PREFIXES` in `src/proxy.ts`; no proxy or config file was modified. T-65-09 (information disclosure) is mitigated as planned — the page has zero data dependencies, enforced by the Group C scan.
 
+## Self-Check: PASSED
+
+- All 4 source files claimed above exist on disk.
+- All 4 commit hashes (`27601ef8c`, `8ba898f3f`, `b9483c191`, `f7d4520da`) are present in the branch history.
+- ZT-2 re-verified by listing every `export` in `documents-hub-entries.ts`: 6 exports, all own declarations, zero `export * from` / `export { … } from`.
+
 ---
 *Phase: 65-documents-landing*
 *Completed: 2026-08-03*
