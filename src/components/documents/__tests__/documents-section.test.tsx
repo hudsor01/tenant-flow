@@ -7,7 +7,9 @@ import { mutationKeys } from "#hooks/api/mutation-keys";
 import {
 	DOCUMENT_ENTITY_TYPES,
 	type DocumentEntityType,
+	documentQueries,
 } from "#hooks/api/query-keys/document-keys";
+import { documentSearchQueries } from "#hooks/api/query-keys/document-search-keys";
 import { DocumentsSection } from "../documents-section";
 
 const mockUseQuery = vi.fn();
@@ -29,6 +31,15 @@ vi.mock("#hooks/api/use-document-categories", () => ({
 // Shape used by useMutation mock — lets individual tests override
 // `isPending` to exercise the uploading-state branch.
 let uploadPending = false;
+
+/**
+ * The delete mutation reaches `invalidateListAndDashboard` through
+ * `onSuccess`, but the `useMutation` mock below returns a hand-built object and
+ * has always dropped `opts.onSuccess` on the floor — so no test ever exercised
+ * that path. Capturing it is additive: the mock still returns exactly what it
+ * returned before, and all pre-existing tests are unaffected.
+ */
+let capturedDeleteOnSuccess: (() => void) | undefined;
 
 function mutationKeyMatches(
 	actual: readonly unknown[] | undefined,
@@ -52,6 +63,10 @@ vi.mock("@tanstack/react-query", async () => {
 				optsRecord.mutationKey,
 				mutationKeys.documents.upload,
 			);
+			if (!isUpload) {
+				capturedDeleteOnSuccess = (opts as { onSuccess?: () => void })
+					.onSuccess;
+			}
 			return {
 				mutate: vi.fn(),
 				mutateAsync: isUpload ? mockUploadMutate : mockDeleteMutate,
@@ -71,6 +86,8 @@ vi.mock("sonner", () => ({
 	},
 }));
 
+const ENTITY_ID = "00000000-0000-0000-0000-000000000001";
+
 function renderSection(
 	entityType: DocumentEntityType = "property",
 ): ReturnType<typeof render> {
@@ -79,10 +96,7 @@ function renderSection(
 	});
 	const ui: ReactElement = (
 		<QueryClientProvider client={queryClient}>
-			<DocumentsSection
-				entityType={entityType}
-				entityId="00000000-0000-0000-0000-000000000001"
-			/>
+			<DocumentsSection entityType={entityType} entityId={ENTITY_ID} />
 		</QueryClientProvider>
 	);
 	return render(ui);
@@ -181,6 +195,7 @@ describe("DocumentsSection", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		uploadPending = false;
+		capturedDeleteOnSuccess = undefined;
 		mockUseDocumentCategories.mockReturnValue({
 			categories: SEVEN_DEFAULTS,
 			isLoading: false,
@@ -474,6 +489,91 @@ describe("DocumentsSection", () => {
 		expect(
 			screen.getByRole("button", { name: /try again/i }),
 		).toBeInTheDocument();
+	});
+
+	/**
+	 * D-11 — the two mutations that change what "Recently added" should show.
+	 *
+	 * Scope, stated precisely: it is NOT true that nothing invalidated
+	 * `documentSearchQueries` before this. `categories-settings.tsx:69` reaches it
+	 * indirectly through the broad `["documents"]` prefix (its comment names the
+	 * search key but its actual call is `documentQueries.all()`). The gap these
+	 * two tests close is that no document UPLOAD or DELETE mutation reached it —
+	 * and those are exactly the two mutations that make the /documents landing's
+	 * preview wrong.
+	 *
+	 * Both assert BOTH keys. The entity-scoped assertion is what proves the
+	 * change is ADDITIVE: `["documents","search"]` does not prefix-match
+	 * `["documents","list",…]` in either direction, so dropping the original
+	 * call would silently break this detail page's own list.
+	 */
+	function invalidatedKeys(
+		calls: readonly (readonly unknown[])[],
+	): unknown[][] {
+		return calls
+			.map((call) => (call[0] as { queryKey?: unknown } | undefined)?.queryKey)
+			.filter((key): key is unknown[] => Array.isArray(key));
+	}
+
+	it("invalidates the document-search key after an upload (D-11)", async () => {
+		mockUseQuery.mockReturnValue(emptyList());
+		mockUploadMutate.mockResolvedValue({});
+		// Spy the PROTOTYPE: `renderSection` builds its QueryClient internally and
+		// the component reaches it through `useQueryClient()`, so there is no
+		// instance to spy on from out here.
+		const spy = vi.spyOn(QueryClient.prototype, "invalidateQueries");
+		try {
+			renderSection();
+			const input = document.querySelector(
+				'input[type="file"]',
+			) as HTMLInputElement;
+			const file = new File(["fake pdf"], "lease.pdf", {
+				type: "application/pdf",
+			});
+			fireEvent.change(input, { target: { files: [file] } });
+
+			await waitFor(() => {
+				expect(mockUploadMutate).toHaveBeenCalledTimes(1);
+			});
+			await waitFor(() => {
+				expect(invalidatedKeys(spy.mock.calls).length).toBeGreaterThan(0);
+			});
+
+			const keys = invalidatedKeys(spy.mock.calls);
+			// Real factories, never literal arrays (ZT-9).
+			expect(keys).toContainEqual(documentSearchQueries.all());
+			expect(keys).toContainEqual(
+				documentQueries.list({ entityType: "property", entityId: ENTITY_ID })
+					.queryKey,
+			);
+		} finally {
+			spy.mockRestore();
+		}
+	});
+
+	it("invalidates the same keys on the delete path (D-11)", () => {
+		mockUseQuery.mockReturnValue(emptyList());
+		const spy = vi.spyOn(QueryClient.prototype, "invalidateQueries");
+		try {
+			renderSection();
+			// This assertion alone is the wiring pin: it fails if anyone removes
+			// `onSuccess: invalidateListAndDashboard` from `deleteMutation`.
+			expect(capturedDeleteOnSuccess).toBeDefined();
+			capturedDeleteOnSuccess?.();
+
+			// Deliberately narrower than the upload test: this proves the delete
+			// path REACHES the shared callback and that the callback invalidates
+			// both keys. It does not re-prove the callback's body through a real
+			// interaction — the upload test above already does that.
+			const keys = invalidatedKeys(spy.mock.calls);
+			expect(keys).toContainEqual(documentSearchQueries.all());
+			expect(keys).toContainEqual(
+				documentQueries.list({ entityType: "property", entityId: ENTITY_ID })
+					.queryKey,
+			);
+		} finally {
+			spy.mockRestore();
+		}
 	});
 
 	// v2.4 Phase 59 widened beyond property to lease/tenant/maintenance_request.

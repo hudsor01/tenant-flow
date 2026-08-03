@@ -28,6 +28,7 @@ import {
 	documentQueries,
 	LIST_DISPLAY_LIMIT,
 } from "#hooks/api/query-keys/document-keys";
+import { documentSearchQueries } from "#hooks/api/query-keys/document-search-keys";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { usageQueries } from "#hooks/api/query-keys/usage-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
@@ -137,6 +138,24 @@ export function DocumentsSection({
 	const invalidateListAndDashboard = useCallback(() => {
 		queryClient.invalidateQueries({
 			queryKey: documentQueries.list({ entityType, entityId }).queryKey,
+		});
+		// D-11. The /documents landing's "Recently added" preview and the vault
+		// both read the ["documents","search",…] entry, and the entity-scoped
+		// ["documents","list",…] key above cannot prefix-match it. Without this
+		// line an upload or a delete leaves the preview showing pre-upload rows
+		// for LIST_STALE_TIME_MS — 45 minutes — while a panel labelled
+		// "Recently added" makes a claim that is simply false.
+		//
+		// The NARROW key is deliberate: `documentQueries.all()` (the broad
+		// ["documents"] prefix the categories-settings precedent uses) would both
+		// duplicate the line above and invalidate every OTHER entity's document
+		// list, which an upload to this property does not affect.
+		//
+		// Costs nothing: `refetchType` defaults to 'active', and neither the vault
+		// nor the landing is mounted on the five detail routes where this
+		// component lives, so this marks the entry stale with zero network.
+		queryClient.invalidateQueries({
+			queryKey: documentSearchQueries.all(),
 		});
 		queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 	}, [queryClient, entityType, entityId]);
