@@ -14,9 +14,9 @@
  * one obvious click away.
  *
  * SERVER COMPONENT. No client directive, no hooks, no database client, no
- * navigation-side-effect import. Its one and only client island will be
- * `<RecentDocumentsPanel />`, nested inside the Band 1 panel by plan 65-02.
- * The enforcement of that purity is a source scan in
+ * navigation-side-effect import. Its one and only client island is
+ * `<RecentDocumentsPanel />`, nested inside the Band 1 panel below the
+ * Separator. The enforcement of that purity is a source scan in
  * `__tests__/documents-hub.test.ts`, not a convention.
  *
  * NO ERROR BOUNDARY wraps this page, on purpose (65-UI-SPEC §I-10). The recent
@@ -27,6 +27,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
+import { Separator } from "#components/ui/separator";
 import { DocumentHubTile } from "./document-hub-tile";
 import {
 	DOCUMENTS_HUB_BANDS,
@@ -35,6 +36,7 @@ import {
 	type DocumentsHubBand,
 	type DocumentsHubBandId,
 } from "./documents-hub-entries";
+import { RecentDocumentsPanel } from "./recent-documents-panel";
 
 /** Declared once so the meta description and the visible subtitle cannot drift. */
 const PAGE_SUBTITLE =
@@ -94,7 +96,15 @@ function VaultBand() {
 					</Button>
 				</div>
 			</div>
-			{/* Plan 65-02 inserts the Separator and the recent-documents island here. */}
+			{/*
+			 * §I-7: 24px from the CTA to the Separator, and the panel's own `mt-4`
+			 * supplies the 16px below it. The Separator sits outside the flex row
+			 * above so it spans the panel's full width, which is what makes the
+			 * recent list read as a preview OF the vault rather than a sibling
+			 * surface competing with it.
+			 */}
+			<Separator className="mt-6" />
+			<RecentDocumentsPanel />
 		</section>
 	);
 }

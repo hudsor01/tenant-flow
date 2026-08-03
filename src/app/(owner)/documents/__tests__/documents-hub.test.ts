@@ -15,8 +15,11 @@
  * reversed 308, so a raw-source scan would be self-satisfying on the positives
  * and self-failing on the negatives.
  *
- * Deliberately absent: any assertion about `<RecentDocumentsPanel`. It does not
- * exist yet — plan 65-02 adds that pin to this same file.
+ * Plan 65-02 added the `<RecentDocumentsPanel` pin below. It is deliberately
+ * TWO needles — the usage and the import — because `page.tsx`'s doc block names
+ * the component, so a raw-source scan of the usage alone would let someone
+ * delete both the import and the island and still pass. That exact failure was
+ * found and fixed in Phase 56 (`reports-hub-purity.test.ts:300-309`).
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -197,6 +200,11 @@ const HUB_INDEX_REQUIRED: readonly string[] = [
 	'from "./documents-hub-entries"',
 	"<DocumentHubTile",
 	"Open the vault",
+	// 65-02: the single client island, pinned as usage AND import. Both halves
+	// are load-bearing, and both are checked against COMMENT-STRIPPED source —
+	// the doc block above `DocumentsPage` names the component in prose.
+	"<RecentDocumentsPanel",
+	'from "./recent-documents-panel"',
 ];
 
 const strippedHubIndex = stripComments(
