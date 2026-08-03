@@ -59,7 +59,18 @@ const RECENT_LIMIT = 5;
 const CATEGORY_LABELS: Record<string, string> = DEFAULT_CATEGORY_LABELS;
 
 function categoryLabel(slug: string): string {
-	const known = CATEGORY_LABELS[slug];
+	// `Object.hasOwn`, not a bare index read. `CATEGORY_LABELS` is a plain object
+	// literal, so it carries `Object.prototype`, and document category slugs are
+	// owner-created — validated only by `documentCategorySlugSchema`'s
+	// /^[a-z0-9_]+$/, which admits `constructor` and `__proto__`. A bare read
+	// resolves those off the prototype chain and returns a truthy non-string, so
+	// this `: string` function would hand `metaLine` the `Object` constructor and
+	// the row would render `function Object() { [native code] } · 3 days ago`.
+	// The widening to `Record<string, string>` keeps unknown slugs an honest
+	// `undefined` for own-property misses only; this closes the rest.
+	const known = Object.hasOwn(CATEGORY_LABELS, slug)
+		? CATEGORY_LABELS[slug]
+		: undefined;
 	if (known) return known;
 	const spaced = slug.replace(/_/g, " ");
 	return spaced.charAt(0).toUpperCase() + spaced.slice(1);
@@ -214,8 +225,8 @@ export function RecentDocumentsPanel() {
 	const rows = (data?.rows ?? []).slice(0, RECENT_LIMIT);
 
 	return (
-		// `mt-4` is §I-7's 16px offset below the Separator that `page.tsx` renders
-		// above this island; the Separator's own `mt-6` supplies the 24px above it.
+		// `mt-4` is §I-7's 16px offset below the band rule that `page.tsx` renders
+		// above this island; that rule's own `mt-6` supplies the 24px above it.
 		<div className="mt-4 space-y-4">
 			<p className="text-xs text-muted-foreground">Recently added</p>
 			{isPending ? (

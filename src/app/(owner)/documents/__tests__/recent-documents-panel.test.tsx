@@ -196,6 +196,22 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		expect(screen.queryByText("No documents yet")).not.toBeInTheDocument();
 	});
 
+	// WR-02. Category slugs are owner-created and the validating regex
+	// /^[a-z0-9_]+$/ admits these two, which resolve off Object.prototype on a
+	// bare index read — putting the Object constructor or [object Object] into a
+	// landlord's document list.
+	it.each(["__proto__", "constructor"])(
+		"falls back to the prettifier for the prototype-chain slug %s",
+		(slug) => {
+			mockUseQuery.mockReturnValue(
+				successState([makeRow({ document_type: slug })]),
+			);
+			const { container } = render(<RecentDocumentsPanel />);
+			expect(container.textContent).not.toContain("[object Object]");
+			expect(container.textContent).not.toContain("native code");
+		},
+	);
+
 	it("renders the D-12 empty copy and names no entity type", () => {
 		mockUseQuery.mockReturnValue(successState([]));
 		const { container } = render(<RecentDocumentsPanel />);

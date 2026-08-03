@@ -15,19 +15,27 @@
  *
  * SERVER COMPONENT. No client directive, no hooks, no database client, no
  * navigation-side-effect import. Its one and only client island is
- * `<RecentDocumentsPanel />`, nested inside the Band 1 panel below the
- * Separator. The enforcement of that purity is a source scan in
- * `__tests__/documents-hub.test.ts`, not a convention.
+ * `<RecentDocumentsPanel />`, nested inside the Band 1 panel below the rule.
+ * The band rule is a plain `<div>`, NOT `#components/ui/separator` — that
+ * primitive is `"use client"`, so importing it for a decorative line would
+ * ship a second client boundary and make the sentence above false.
  *
- * NO ERROR BOUNDARY wraps this page, on purpose (65-UI-SPEC §I-10). The recent
- * list degrades in place; an outer boundary would let a failed document fetch
- * take down "Open the vault", which is this page's whole reason to exist.
+ * Note what the purity guard in `__tests__/documents-hub.test.ts` does and does
+ * not do: it greps THIS file for a `"use client"` directive, so it catches the
+ * page itself going client. It cannot see a client component reached through an
+ * import — that is why the `Separator` swap above is load-bearing rather than
+ * cosmetic, and why this comment states the constraint the test cannot.
+ *
+ * This page adds no `error.tsx` of its own; it inherits `(owner)/error.tsx`,
+ * which wraps every owner page including this one. What keeps a failed document
+ * fetch from taking down "Open the vault" is `throwOnError: false`
+ * (`query-provider.tsx:78`), which keeps query failures out of render entirely
+ * so the recent list degrades in place (65-UI-SPEC §I-10).
  */
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
-import { Separator } from "#components/ui/separator";
 import { DocumentHubTile } from "./document-hub-tile";
 import {
 	DOCUMENTS_HUB_BANDS,
@@ -97,13 +105,22 @@ function VaultBand() {
 				</div>
 			</div>
 			{/*
-			 * §I-7: 24px from the CTA to the Separator, and the panel's own `mt-4`
-			 * supplies the 16px below it. The Separator sits outside the flex row
+			 * §I-7: 24px from the CTA to the rule, and the panel's own `mt-4`
+			 * supplies the 16px below it. The rule sits outside the flex row
 			 * above so it spans the panel's full width, which is what makes the
 			 * recent list read as a preview OF the vault rather than a sibling
 			 * surface competing with it.
+			 *
+			 * A plain div, not `<Separator>`: the primitive is `"use client"` and
+			 * this line is decorative, so radix would buy a second client boundary
+			 * on an RSC page for nothing. Classes and `role="none"` reproduce what
+			 * a decorative horizontal `SeparatorPrimitive.Root` renders.
 			 */}
-			<Separator className="mt-6" />
+			<div
+				role="none"
+				data-orientation="horizontal"
+				className="bg-border shrink-0 h-px w-full mt-6"
+			/>
 			<RecentDocumentsPanel />
 		</section>
 	);
