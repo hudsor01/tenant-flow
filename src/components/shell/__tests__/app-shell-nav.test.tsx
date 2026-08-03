@@ -124,6 +124,22 @@ describe("AppShell command palette route table", () => {
 		).toEqual([]);
 	});
 
+	// Phase 65 (DOCS-01 / D-10 + L-04). The allowlist test above does NOT cover
+	// this: it matches on live route ROOTS, and `/documents` is already on that
+	// allowlist, so it would accept `/documents/vault` equally happily. This
+	// exhaustive equality pins three things at once — the Navigation row was
+	// repointed to the landing, `/documents/vault` is gone from the palette, and
+	// the L-04 decision to KEEP the Templates row is executable rather than merely
+	// written down. Order is the `commandGroups` flatMap order: Navigation is
+	// group 0, Templates is group 2.
+	it("points the palette Documents row at the landing and keeps the Templates row", () => {
+		const hrefs = paletteHrefs();
+
+		expect(
+			hrefs.filter((h) => h === "/documents" || h.startsWith("/documents/")),
+		).toEqual(["/documents", "/documents/lease-template"]);
+	});
+
 	// D-29 / D-24 amended: `/analytics/financial` is a GUARD, not a source. The
 	// route stays live under full separation, so repointing its palette row would
 	// break a working deep link — the single highest-risk edit in this phase.

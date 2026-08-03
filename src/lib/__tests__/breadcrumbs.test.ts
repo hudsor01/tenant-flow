@@ -5,6 +5,8 @@
  * pathname strings into breadcrumb items for navigation.
  */
 
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { generateBreadcrumbs } from "../breadcrumbs";
 
@@ -199,6 +201,81 @@ describe("generateBreadcrumbs", () => {
 				{ href: "/documents", label: "Documents" },
 				{ href: "/documents/lease-template", label: "Lease Template" },
 			]);
+		});
+	});
+
+	// Phase 65 (DOCS-01, D-07). Each case asserts the FULL crumb array rather than
+	// just the leaf: the middle crumb is where the L-06 omission shows up, so
+	// pinning it makes that decision visible in the test output.
+	describe("documents sub-routes (Phase 65)", () => {
+		it("should label the four printable template slugs", () => {
+			const testCases = [
+				{ slug: "rental-application", expected: "Rental Application" },
+				{ slug: "property-inspection", expected: "Property Inspection" },
+				{ slug: "maintenance-request", expected: "Maintenance Request" },
+				{ slug: "tenant-notice", expected: "Tenant Notice" },
+			];
+
+			for (const { slug, expected } of testCases) {
+				expect(generateBreadcrumbs(`/documents/templates/${slug}`)).toEqual([
+					{ href: "/documents", label: "Documents" },
+					// L-06: no LABEL_MAP entry — this resolves via the capitalize
+					// fallback, which already yields "Templates".
+					{ href: "/documents/templates", label: "Templates" },
+					{ href: `/documents/templates/${slug}`, label: expected },
+				]);
+			}
+		});
+
+		// This one PASSES today via the capitalize fallback. It is added for D-07
+		// coverage of a real route, not because it changes behaviour — stated
+		// explicitly so the suite does not imply coverage it did not add.
+		it("should label the vault route", () => {
+			expect(generateBreadcrumbs("/documents/vault")).toEqual([
+				{ href: "/documents", label: "Documents" },
+				{ href: "/documents/vault", label: "Vault" },
+			]);
+		});
+	});
+
+	describe("Phase 65 L-06: the templates label is deliberately absent", () => {
+		const source = readFileSync(
+			join(process.cwd(), "src/lib/breadcrumbs.ts"),
+			"utf8",
+		);
+
+		// Anchored on `^\s*templates:\s*"` rather than a bare includes(): the loose
+		// form would match the four "…-template…"-shaped keys and the route strings.
+		it("does not map the templates segment", () => {
+			expect(/^\s*templates:\s*"/m.test(source)).toBe(false);
+		});
+
+		// The paired positive — without it the assertion above passes against an
+		// emptied file.
+		it("does map the five keys that were added", () => {
+			for (const key of [
+				"vault",
+				"rental-application",
+				"property-inspection",
+				"maintenance-request",
+				"tenant-notice",
+			]) {
+				expect(new RegExp(`^\\s*"?${key}"?:\\s*"`, "m").test(source)).toBe(
+					true,
+				);
+			}
+		});
+
+		// The CONDITION for the omission: /documents/templates has no page.tsx, so
+		// that crumb is a live 404 and the map declines to bless it. If the route
+		// ever ships, this fails and forces the label decision to be revisited
+		// rather than silently inherited. That coupling is the point of the guard.
+		it("omits the label only because the route does not exist", () => {
+			expect(
+				existsSync(
+					join(process.cwd(), "src/app/(owner)/documents/templates/page.tsx"),
+				),
+			).toBe(false);
 		});
 	});
 });

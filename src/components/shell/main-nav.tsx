@@ -6,7 +6,6 @@ import {
 	ChevronDown,
 	ChevronUp,
 	ClipboardList,
-	FileCheck,
 	FileText,
 	FolderArchive,
 	HelpCircle,
@@ -28,12 +27,6 @@ export interface NavigationItem {
 	children?: { label: string; href: string }[];
 }
 
-export interface DocumentItem {
-	label: string;
-	href: string;
-	icon: LucideIcon;
-}
-
 interface MainNavProps {
 	onNavigate?: () => void;
 }
@@ -45,7 +38,11 @@ const coreItems: NavigationItem[] = [
 	{ label: "Tenants", href: "/tenants", icon: Users },
 	{ label: "Leases", href: "/leases", icon: ClipboardList },
 	{ label: "Maintenance", href: "/maintenance", icon: Wrench },
-	{ label: "Documents", href: "/documents/vault", icon: FolderArchive },
+	// Phase 65 (DOCS-01): deliberately FLAT — no `children`. `renderNavItem`'s
+	// hasChildren branch renders a parent as a <button> toggle with NO <Link> at
+	// all, so giving Documents children would make /documents unreachable from
+	// the sidebar and defeat the entry-point requirement this phase exists for.
+	{ label: "Documents", href: "/documents", icon: FolderArchive },
 ];
 
 // Collapsible sections
@@ -82,19 +79,6 @@ const analyticsItems: NavigationItem[] = [
 			{ label: "Generate Reports", href: "/reports/generate" },
 			{ label: "Year-End", href: "/reports/year-end" },
 		],
-	},
-];
-
-// Document items
-//
-// Session 11 P3 #36: "Generate Lease" used to live here and duplicated
-// the primary New Lease CTA on the Leases tab — same workflow surfaced
-// twice in the sidebar. Removed; users reach the wizard from /leases.
-const documentItems: DocumentItem[] = [
-	{
-		label: "Lease Template",
-		href: "/documents/lease-template",
-		icon: FileCheck,
 	},
 ];
 
@@ -296,29 +280,6 @@ export function MainNav({ onNavigate }: MainNavProps) {
 			{/* Analytics & Reports section */}
 			<div className="mt-6 pt-4 border-t border-border space-y-0.5">
 				{analyticsItems.map(renderNavItem)}
-			</div>
-
-			{/* Templates section */}
-			<div className="mt-6 pt-4 border-t border-border">
-				<p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-					Templates
-				</p>
-				<div className="space-y-0.5">
-					{documentItems.map((item) => {
-						const Icon = item.icon;
-						return (
-							<Link
-								key={item.href}
-								href={item.href}
-								onClick={handleNavigate}
-								className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
-							>
-								<Icon className="w-5 h-5 text-muted-foreground" />
-								{item.label}
-							</Link>
-						);
-					})}
-				</div>
 			</div>
 
 			{/* Settings with upward dropdown */}

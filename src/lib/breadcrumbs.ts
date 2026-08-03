@@ -36,6 +36,26 @@ const LABEL_MAP: Record<string, string> = {
 	"lease-template": "Lease Template",
 	generate: "Generate",
 
+	// Documents sub-routes (Phase 65, DOCS-01)
+	//
+	// `vault` is a fallback no-op — the capitalize-default already yields "Vault"
+	// — but /documents/vault is a REAL route, so the entry is honest. Do not
+	// "clean up" what looks like a redundant line.
+	//
+	// `templates` is deliberately ABSENT. src/app/(owner)/documents/templates/
+	// has no page.tsx, so that middle crumb is a live 404 today, and every crumb
+	// this function emits renders as a real <Link>. The capitalize-fallback
+	// already renders it as "Templates", so adding the entry would change nothing
+	// on screen and would only make the map appear to bless a dead route. The
+	// dead crumb is pre-existing and out of DOCS-01's scope; this is a deliberate
+	// one-entry deviation from D-07's literal six, pinned by a two-sided guard in
+	// breadcrumbs.test.ts so it is revisited if that route ever ships.
+	vault: "Vault",
+	"rental-application": "Rental Application",
+	"property-inspection": "Property Inspection",
+	"maintenance-request": "Maintenance Request",
+	"tenant-notice": "Tenant Notice",
+
 	// Help and search
 	help: "Get Help",
 	search: "Search",
