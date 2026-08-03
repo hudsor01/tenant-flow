@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: completed
-last_updated: "2026-08-01T15:30:00.000Z"
-last_activity: 2026-08-01
+status: executing
+last_updated: "2026-08-03T13:48:17.373Z"
+last_activity: 2026-08-03 -- Phase 65 execution started
 progress:
   total_phases: 14
   completed_phases: 5
-  total_plans: 35
+  total_plans: 38
   completed_plans: 35
   percent: 36
 ---
@@ -21,14 +21,14 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 65 — documents-landing (Phase 56 shipped 2026-08-01)
+**Current focus:** Phase 65 — documents-landing
 
 ## Current Position
 
-Phase: 56 (reporting-hub) — SHIPPED, MERGED, DEPLOYED, VERIFIED IN PRODUCTION
-Plan: 8 of 8
-Status: PR #957 merged as `ee6d48519`; production deploy READY from that SHA
-Last activity: 2026-08-01 — live redirect verification + Sentry gate PASS
+Phase: 65 (documents-landing) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 65
+Last activity: 2026-08-03 -- Phase 65 execution started
 
 > **Verified against production, not just CI.** All six hub redirects return 308
 > to their exact targets; `/reports/analytics` inverts to `/analytics/overview`;
