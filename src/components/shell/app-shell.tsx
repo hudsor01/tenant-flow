@@ -98,7 +98,7 @@ export function AppShell({
 				{ label: "Tenants", href: "/tenants", icon: Users },
 				{ label: "Leases", href: "/leases", icon: ClipboardList },
 				{ label: "Maintenance", href: "/maintenance", icon: Wrench },
-				{ label: "Documents", href: "/documents/vault", icon: FolderArchive },
+				{ label: "Documents", href: "/documents", icon: FolderArchive },
 			],
 		},
 		{
@@ -167,6 +167,14 @@ export function AppShell({
 				// Cycle 1 review caught that removing the sidebar entry alone
 				// left the same workflow discoverable via Cmd+K. Now there's
 				// one canonical entry point (the Leases tab's New Lease button).
+				//
+				// Phase 65 (D-09/L-04) KEEP: D-09 deletes the SIDEBAR Templates
+				// section only. Under that flat-nav change the sidebar no longer
+				// surfaces the lease builder at all, so deleting this row too would
+				// leave /documents/lease-template reachable only from the /documents
+				// landing — a discoverability regression shipped alongside a
+				// discoverability feature. The palette is a search surface, where
+				// duplication is a feature rather than a nav hierarchy.
 				{
 					label: "Lease Template",
 					href: "/documents/lease-template",
