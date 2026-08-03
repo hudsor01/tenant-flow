@@ -405,12 +405,21 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 				isLoading: true,
 				isError: false,
 			});
+			// The title must share NO substring with the expected label. With
+			// `title: "Q1 Lease"` / label "Lease" the label assertion was implied by
+			// the title assertion, so regressing ownerCategoryLabel to return "" left
+			// the test green — it pinned only the row-not-withheld half.
 			mockUseQuery.mockReturnValue(
-				successState([makeRow({ title: "Q1 Lease", document_type: "lease" })]),
+				successState([
+					makeRow({ title: "Q1 Statement", document_type: "insurance" }),
+				]),
 			);
 			const { container } = render(<RecentDocumentsPanel />);
-			expect(container.textContent).toContain("Q1 Lease");
-			expect(container.textContent).toContain("Lease");
+			expect(container.textContent).toContain("Q1 Statement");
+			// Asserted on the meta line itself, not the whole tree, so the label
+			// cannot be satisfied by text belonging to some other element.
+			const meta = container.querySelector('[data-slot="item-description"]');
+			expect(meta?.textContent).toContain("Insurance");
 		});
 	});
 
@@ -418,15 +427,29 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	// /^[a-z0-9_]+$/ admits these two, which resolve off Object.prototype on a
 	// bare index read — putting the Object constructor or [object Object] into a
 	// landlord's document list.
-	it.each(["__proto__", "constructor"])(
+	// Second column is what the prettifier must produce, so each case asserts a
+	// concrete label rather than only the absence of a prototype leak. Note
+	// `__proto__` yields "proto" surrounded by spaces, because the prettifier
+	// replaces underscores with spaces BEFORE capitalising — the point is that it
+	// is an ordinary string, not that it is pretty.
+	it.each([
+		["__proto__", "proto"],
+		["constructor", "Constructor"],
+	])(
 		"falls back to the prettifier for the prototype-chain slug %s",
-		(slug) => {
+		(slug, expectedLabel) => {
 			mockUseQuery.mockReturnValue(
 				successState([makeRow({ document_type: slug })]),
 			);
 			const { container } = render(<RecentDocumentsPanel />);
-			expect(container.textContent).not.toContain("[object Object]");
-			expect(container.textContent).not.toContain("native code");
+			const meta = container.querySelector('[data-slot="item-description"]');
+
+			// The positive first. Negative-only assertions would pass against an
+			// empty tree — if the row failed to render at all, "[object Object]"
+			// would be absent for the wrong reason.
+			expect(meta?.textContent).toContain(expectedLabel);
+			expect(meta?.textContent).not.toContain("[object Object]");
+			expect(meta?.textContent).not.toContain("native code");
 		},
 	);
 
