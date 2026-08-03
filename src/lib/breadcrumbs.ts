@@ -43,13 +43,12 @@ const LABEL_MAP: Record<string, string> = {
 	// "clean up" what looks like a redundant line.
 	//
 	// `templates` is deliberately ABSENT. src/app/(owner)/documents/templates/
-	// has no page.tsx, so that middle crumb is a live 404 today, and every crumb
-	// this function emits renders as a real <Link>. The capitalize-fallback
-	// already renders it as "Templates", so adding the entry would change nothing
-	// on screen and would only make the map appear to bless a dead route. The
-	// dead crumb is pre-existing and out of DOCS-01's scope; this is a deliberate
-	// one-entry deviation from D-07's literal six, pinned by a two-sided guard in
-	// breadcrumbs.test.ts so it is revisited if that route ever ships.
+	// has no page.tsx, so the capitalize-fallback already renders it as
+	// "Templates" and adding the entry would change nothing on screen while
+	// making the map appear to bless a dead route. This is a deliberate
+	// one-entry deviation from D-07's literal six, pinned by a two-sided guard
+	// in breadcrumbs.test.ts so it is revisited if that route ever ships.
+	// The 404 itself is handled by NON_ROUTABLE_SEGMENTS below, not by the map.
 	vault: "Vault",
 	"rental-application": "Rental Application",
 	"property-inspection": "Property Inspection",
@@ -60,6 +59,17 @@ const LABEL_MAP: Record<string, string> = {
 	help: "Get Help",
 	search: "Search",
 };
+
+// Segments that are real URL path components but have no page.tsx behind them.
+//
+// `app-shell-header.tsx` renders every middle crumb as `crumb.href ? <Link> :
+// <span>`, so an empty href is the supported "present but not navigable"
+// signal. Without this, /documents/templates/<slug> offers a one-click trip to
+// a hard 404. Phase 65's Band 3 is the first surface in the app to link the
+// four printable templates at all, so it is also the first phase in which that
+// crumb is reachable — the dead crumb predates DOCS-01, its reachability does
+// not. Delete the entry if and when templates/page.tsx ships.
+const NON_ROUTABLE_SEGMENTS = new Set(["templates"]);
 
 /**
  * Generates breadcrumb items from a URL pathname
@@ -98,7 +108,10 @@ export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
 				label: `${previousLabel} Details`,
 			});
 		} else {
-			breadcrumbs.push({ href: currentPath, label });
+			breadcrumbs.push({
+				href: NON_ROUTABLE_SEGMENTS.has(segment) ? "" : currentPath,
+				label,
+			});
 		}
 	});
 

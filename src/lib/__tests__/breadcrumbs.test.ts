@@ -220,11 +220,37 @@ describe("generateBreadcrumbs", () => {
 				expect(generateBreadcrumbs(`/documents/templates/${slug}`)).toEqual([
 					{ href: "/documents", label: "Documents" },
 					// L-06: no LABEL_MAP entry — this resolves via the capitalize
-					// fallback, which already yields "Templates".
-					{ href: "/documents/templates", label: "Templates" },
+					// fallback, which already yields "Templates". The empty href is
+					// NON_ROUTABLE_SEGMENTS: /documents/templates has no page.tsx, and
+					// app-shell-header renders `crumb.href ? <Link> : <span>`, so an
+					// empty href is what keeps this crumb from linking to a 404.
+					{ href: "", label: "Templates" },
 					{ href: `/documents/templates/${slug}`, label: expected },
 				]);
 			}
+		});
+
+		// CR-02. Phase 65's Band 3 is the first surface in the app to link the four
+		// printable templates, so it is the first phase in which this middle crumb
+		// is reachable at all. Asserted as its own case, separately from the label
+		// test above, so a future edit that restores `currentPath` here fails with
+		// "links to a 404" rather than looking like a label regression.
+		it("emits the templates crumb as non-navigable, not as a link to a 404", () => {
+			const [, middle] = generateBreadcrumbs(
+				"/documents/templates/tenant-notice",
+			);
+			expect(middle).toEqual({ href: "", label: "Templates" });
+			expect(middle?.href).not.toBe("/documents/templates");
+		});
+
+		// The paired non-vacuity check: a sibling segment with a real page.tsx must
+		// still get a real href, or the assertion above would pass against a
+		// generateBreadcrumbs that returned "" for everything.
+		it("still emits a real href for segments that do have a route", () => {
+			expect(generateBreadcrumbs("/documents/vault")[1]).toEqual({
+				href: "/documents/vault",
+				label: "Vault",
+			});
 		});
 
 		// This one PASSES today via the capitalize fallback. It is added for D-07
@@ -276,6 +302,15 @@ describe("generateBreadcrumbs", () => {
 					join(process.cwd(), "src/app/(owner)/documents/templates/page.tsx"),
 				),
 			).toBe(false);
+		});
+
+		// The same condition governs NON_ROUTABLE_SEGMENTS (CR-02). Pinned on the
+		// source so that shipping templates/page.tsx forces BOTH decisions — the
+		// label and the non-navigability — to be revisited together.
+		it("marks templates non-routable for the same reason", () => {
+			expect(
+				/NON_ROUTABLE_SEGMENTS\s*=\s*new Set\(\["templates"\]\)/.test(source),
+			).toBe(true);
 		});
 	});
 });
