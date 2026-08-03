@@ -180,7 +180,15 @@ function RecentEmpty() {
 	return (
 		<Empty className="py-6 md:py-6">
 			<EmptyTitle>No documents yet</EmptyTitle>
-			<EmptyDescription>
+			{/*
+			 * `mb-0` for the same reason as the row meta line: EmptyDescription is a
+			 * bare `<p>` (empty.tsx:72-81) and `globals.css:499` gives every `<p>` a
+			 * 1rem bottom margin. `Empty` lays out with `gap-6`, which does not
+			 * cancel margins, and this is its LAST child — so the 16px landed
+			 * directly on top of the `py-6` this component sets, making the panel
+			 * read as 24px above and 40px below.
+			 */}
+			<EmptyDescription className="mb-0">
 				Documents you upload appear here, newest first.
 			</EmptyDescription>
 		</Empty>
@@ -281,7 +289,25 @@ function RecentList({
 								<ItemTitle className="font-normal block w-full min-w-0 truncate">
 									{doc.title ?? doc.file_path}
 								</ItemTitle>
-								<ItemDescription className="text-xs">
+								{/*
+								 * `mb-0` neutralizes the third rule from the same unscoped
+								 * `@layer base` block as the `<ul>` overrides above:
+								 * `globals.css:499-502` sets `p { margin-bottom: 1rem }`,
+								 * and ItemDescription renders a bare `<p>` (item.tsx:130-142)
+								 * with no margin utility of its own. ItemContent lays its
+								 * children out with `gap-1`, and gap does not cancel
+								 * margins, so without this each row carried 16px of dead
+								 * space under the meta line — swamping the 4px rung the
+								 * list's own `gap-1` establishes.
+								 *
+								 * Safe here precisely because ItemContent uses gap. Do NOT
+								 * copy this onto the `<p>` in RecentError or the "Recently
+								 * added" label: both are non-last children of `space-y-*`
+								 * wrappers, whose margins Tailwind emits at specificity 0
+								 * inside `:where()`, so an `mb-0` would outrank and flatten
+								 * those rungs instead of protecting them.
+								 */}
+								<ItemDescription className="text-xs mb-0">
 									{metaLine(doc, categoryBySlug)}
 								</ItemDescription>
 							</ItemContent>

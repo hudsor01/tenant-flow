@@ -230,6 +230,53 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	// that base rule wins and indents the rows 24px out of alignment with the
 	// panel's own label and footer link. jsdom loads no stylesheet, so this pins
 	// the neutralizing classes rather than a measured offset.
+	// Perfect-PR cycle 2. globals.css:499-502 gives every bare `<p>` a 1rem bottom
+	// margin in @layer base — the third rule from that block to leak into this
+	// panel, after `ul,ol` and `li`. Both of these `<p>`s sit in gap-based
+	// containers (ItemContent's gap-1, Empty's gap-6), and gap does not cancel
+	// margins, so each carried 16px of dead space.
+	//
+	// The inverse assertions are the load-bearing half: the OTHER two `<p>`s are
+	// non-last children of `space-y-*` wrappers, whose margins Tailwind emits at
+	// specificity 0 inside `:where()`. An `mb-0` there would outrank and flatten
+	// the rung rather than protect it — the exact regression cycle 1 caught.
+	it("zeroes the base p margin only where gap, not space-y, does the spacing", () => {
+		mockUseQuery.mockReturnValue(successState(makeRows(2)));
+		const { container } = render(<RecentDocumentsPanel />);
+
+		const metas = container.querySelectorAll('[data-slot="item-description"]');
+		expect(metas.length).toBeGreaterThan(0);
+		for (const meta of metas) {
+			expect(meta.getAttribute("class")?.split(/\s+/)).toContain("mb-0");
+		}
+
+		// The "Recently added" label is a non-last child of the space-y-4 wrapper.
+		const label = screen.getByText("Recently added");
+		expect(label.getAttribute("class")?.split(/\s+/) ?? []).not.toContain(
+			"mb-0",
+		);
+	});
+
+	it("zeroes the base p margin on the empty-state description", () => {
+		mockUseQuery.mockReturnValue(successState([]));
+		const { container } = render(<RecentDocumentsPanel />);
+		const desc = container.querySelector('[data-slot="empty-description"]');
+		expect(desc?.getAttribute("class")?.split(/\s+/)).toContain("mb-0");
+	});
+
+	it("leaves the error copy's margin to its space-y-2 parent", () => {
+		mockUseQuery.mockReturnValue(errorState(vi.fn()));
+		render(<RecentDocumentsPanel />);
+		// By text, not `querySelector("p")` — the first <p> in the tree is the
+		// "Recently added" label, which is a different element with a different
+		// spacing owner.
+		const copy = screen.getByText(/load recent documents/i);
+		expect(copy.tagName).toBe("P");
+		expect(copy.getAttribute("class")?.split(/\s+/) ?? []).not.toContain(
+			"mb-0",
+		);
+	});
+
 	it("neutralizes the global ul indent without defeating the spacing rungs", () => {
 		mockUseQuery.mockReturnValue(successState(makeRows(3)));
 		const { container } = render(<RecentDocumentsPanel />);
