@@ -158,7 +158,26 @@ function RecentEmpty() {
 function RecentList({ rows }: { rows: DocumentRow[] }) {
 	return (
 		<>
-			<ul className="space-y-1">
+			{/*
+			 * `pl-0 my-0 [&>li]:mb-0` neutralizes a GLOBAL base rule, it is not
+			 * defensive noise. `globals.css:517-524` declares unscoped
+			 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+			 * `li { margin-bottom: 0.25rem }` inside `@layer base`. Tailwind v4's
+			 * preflight only resets `list-style` for lists — verified in the
+			 * compiled bundle, where `ol,ul,menu{list-style:none}` appears well
+			 * BEFORE `ul,ol{margin:1rem 0;padding-left:1.5rem}` and there is no
+			 * universal margin/padding reset at all — so the base rule wins.
+			 * Without these overrides the five rows sit 24px right of the
+			 * "Recently added" label and the "View all documents" link, which
+			 * 65-UI-SPEC §I-1 and §I-7 put flush with them, and the list adds
+			 * vertical margin no §I-7 rung accounts for.
+			 *
+			 * Scoped here deliberately rather than changing the global rule: that
+			 * `ul, ol` styling is prose styling for marketing and blog content.
+			 * Note the vault's own lists carry the same indent for the same
+			 * reason — pre-existing, out of DOCS-01's scope, not fixed here.
+			 */}
+			<ul className="space-y-1 pl-0 my-0 [&>li]:mb-0">
 				{rows.map((doc) => (
 					<Item key={doc.id} asChild variant="default" size="sm">
 						<li>

@@ -196,6 +196,25 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		expect(screen.queryByText("No documents yet")).not.toBeInTheDocument();
 	});
 
+	// Perfect-PR cycle 1 (second frozen state). globals.css:517-524 declares
+	// unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+	// `li { margin-bottom: 0.25rem }` in @layer base. Tailwind v4 preflight resets
+	// only `list-style` for lists and ships no universal margin/padding reset, so
+	// that base rule wins and indents the rows 24px out of alignment with the
+	// panel's own label and footer link. jsdom loads no stylesheet, so this pins
+	// the neutralizing classes rather than a measured offset.
+	it("neutralizes the global ul indent so rows align with the panel label", () => {
+		mockUseQuery.mockReturnValue(successState(makeRows(3)));
+		const { container } = render(<RecentDocumentsPanel />);
+		const list = container.querySelector("ul");
+		const cls = list?.getAttribute("class")?.split(/\s+/) ?? [];
+		expect(cls).toContain("pl-0");
+		expect(cls).toContain("my-0");
+		expect(cls).toContain("[&>li]:mb-0");
+		// Non-vacuity: the row spacing rung must survive the neutralization.
+		expect(cls).toContain("space-y-1");
+	});
+
 	// Perfect-PR cycle 1. §I-2 calls for a truncating title, but `truncate` alone
 	// on ItemTitle is INERT: the primitive is `flex w-fit` (item.tsx:118-128), and
 	// text-overflow:ellipsis does not apply to a flex container's anonymous text
