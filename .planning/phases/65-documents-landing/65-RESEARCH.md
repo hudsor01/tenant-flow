@@ -1424,7 +1424,7 @@ against HEAD on 2026-08-02.**
 
 ---
 
-## Open Questions
+## Open Questions (ALL RESOLVED — see each item's resolution)
 
 1. **L-02 / A5 — Should the sidebar give `/documents` a one-click link?**
    - What we know: mirroring `Reports` exactly (D-08 as literally written) does **not** produce a

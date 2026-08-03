@@ -1,8 +1,8 @@
 ---
 phase: 65
 slug: documents-landing
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-08-02
 ---
@@ -120,11 +120,11 @@ the planner must cover. Every row maps to DOCS-01 or one of the three ROADMAP su
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or a Wave 0 dependency
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all ❌ references above
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s per task
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or a Wave 0 dependency
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all ❌ references above
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s per task
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-08-03 — plan-checker verified all 9 tasks across 3 plans carry a concrete `<automated>` verify command, no watch-mode flags, no full-E2E gates, 100% task coverage.
