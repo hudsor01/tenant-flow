@@ -4,14 +4,14 @@ milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
 last_updated: 2026-08-04T14:43:51.788Z
-last_activity: 2026-08-04 -- Phase 65 complete (PR #960 open, awaiting merge)
+last_activity: 2026-08-04 -- Phase 65 MERGED (#960) and deployed to production
 progress:
   total_phases: 14
   completed_phases: 6
   total_plans: 38
   completed_plans: 38
   percent: 43
-stopped_at: Phase 65 complete and verified; PR #960 open. Next by EXECUTION order is Phase 57.
+stopped_at: Phase 65 merged (#960) and live in production. Next by EXECUTION order is Phase 57.
 ---
 
 <!--
@@ -41,13 +41,39 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 65 (documents-landing) — COMPLETE, verified, PR #960 open awaiting merge
+Phase: 65 (documents-landing) — SHIPPED, MERGED (#960), DEPLOYED
 Plan: 3 of 3 complete
 Status: Between phases. Next by EXECUTION order is Phase 57 (Rental Application
 Intake), not "milestone complete" — 57-64 remain. See the correction note in the
 frontmatter above.
 Last activity: 2026-08-04 -- Phase 65 verified passed (11/11), UAT 2/2, security 15/15,
-perfect-PR two consecutive clean cycles
+perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
+(`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
+
+> **Phase 65 production state — what is and is NOT verified live.** Confirmed
+> against production: the deployed commit is `8dce5c6d6`; `/documents`,
+> `/documents/vault`, `/documents/lease-template` and all four
+> `/documents/templates/*` routes resolve to the auth gate rather than 404, so
+> every Band 2 and Band 3 tile href points at a real route in the deployed tree;
+> and `/documents` now carries `redirect=%2Fdocuments` into `/login` — its own
+> path — so a bookmarked link returns to the landing after sign-in instead of
+> bouncing to the vault as it did pre-65.
+>
+> **NOT verified: the rendered landing itself.** `/documents` sits behind the
+> proxy auth + subscription gate, which fires before Next routing, so an
+> unauthenticated check only ever observes the 307. The three bands, the
+> medallion ladder and the recent-documents panel were measured pre-merge
+> against the real compiled stylesheet (65-HUMAN-UAT.md test 2), NOT against
+> production HTML. One logged-in load of `/documents` closes this.
+>
+> **Also shipped 2026-08-04, outside Phase 65** (production audit): the
+> `www.tenantflow.app` certificate incident — www had never been added as a
+> Vercel project domain, so no cert was ever provisioned and the leftover
+> wildcard expired 2026-07-21. Domain added (cert valid to 2026-11-02) and the
+> www -> apex redirect committed to `next.config.ts` (#962), verified live at
+> 308 with path and query preserved, one hop, apex unaffected. Cron-failure
+> dedupe shipped (#961). The `/blog` soft-404 was investigated and deliberately
+> NOT fixed — see #961's body for why `dynamicParams = false` would be worse.
 
 > **Verified against production, not just CI.** All six hub redirects return 308
 > to their exact targets; `/reports/analytics` inverts to `/analytics/overview`;
