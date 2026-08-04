@@ -1,16 +1,17 @@
 ---
 phase: 65-documents-landing
-verified: 2026-08-03T18:00:00Z
-status: human_needed
+verified: 2026-08-03T21:45:00Z
+status: passed
 score: 11/11 must-haves verified
 overrides_applied: 0
-human_verification:
-  - test: "Confirm the reversed 308 does not stick in browser/intermediary caches (WR-05 / L-01)"
-    expected: "Authenticated GET /documents returns 200 (or the auth redirect to sign-in) with no `location: /documents/vault`, and `Cache-Control` on the response is not cacheable as permanent (ideally `no-store` given `(owner)/layout.tsx`'s `export const dynamic = \"force-dynamic\"`)."
-    why_human: "Requires a real authenticated session cookie against a live/preview deploy; cannot be verified via static analysis. A browser that previously followed the old 308 needs a hard-refresh check post-deploy."
-  - test: "Visual check of the three-band ladder at desktop and 375px"
-    expected: "Band weighting descends correctly (size-12 -> size-10 -> size-8 medallions), Band 3 collapses lg:grid-cols-4 -> sm:grid-cols-2 -> 1 column, and the Empty block's md:py-6 companion actually compacts the empty-state panel at md+ widths."
-    why_human: "No visual-regression or axe sweep is registered for /documents; layout/spacing correctness at breakpoints cannot be confirmed by grep or unit tests."
+re_verification:
+  previous_status: human_needed
+  previous_score: 11/11 must-haves verified
+  gaps_closed:
+    - "The reversed 308 does not stick in browser/intermediary caches (WR-05 / L-01)"
+    - "Visual check of the three-band ladder at desktop and 375px"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 65: Documents Landing Verification Report
@@ -19,9 +20,36 @@ human_verification:
 navigation surface with entry points to the document vault, the lease template builder, and
 the printable templates.
 
-**Verified:** 2026-08-03T18:00:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-08-03T21:45:00Z
+**Status:** passed
+**Re-verification:** Yes — after both outstanding human-verification items were discharged
+(see `65-HUMAN-UAT.md`). Re-checked all 11 must-haves against current source at HEAD
+(`555f9e601`), not carried forward from the prior report — 11 commits landed between the
+first verification pass and this one (8 perfect-PR fix cycles + 1 security-audit fix + 2
+UAT-closure commits).
+
+## What changed since the prior verification
+
+Eight perfect-PR review cycles ran to two consecutive zero-finding cycles. Ten commits
+touched product/test source after the first `human_needed` report:
+
+| Commit | What it fixed |
+|---|---|
+| `46a0d176b` | UF-01 from `65-SECURITY.md` — `breadcrumbs.ts`'s `LABEL_MAP` had the same prototype-chain-read hazard as WR-02, unfixed at review time |
+| `c22cb1f0e` | Recent-row title `truncate` was inert (flex/w-fit container defeats `text-overflow: ellipsis`) |
+| `71acec57f` | Global `ul, ol` base rule indented the recent-documents list 24px |
+| `120f81b68` | Category labels read the static seed map instead of the owner's mutable per-owner labels (contradicted the vault's own Phase 65 decision one file over); two regressions from the previous commit's own list fix (`[&>li]:mb-0` and `my-0` both lost to `:where()`-wrapped `space-y-*` at higher specificity) |
+| `99de582f9` | Global `p { margin-bottom: 1rem }` leaked into the row meta line and the empty-state description |
+| `68a679279` | Global transparent-underline `a` rule painted a stray hover underline across the vault CTA and every hub tile |
+| `e99dca332` | Same base `p` margin leaked into `page.tsx`'s Band 3 description and the tile description (missed in the earlier panel-scoped sweep) |
+| `f6a42b3ff` | Two of the executor's own test assertions were vacuous (substring-implied pass; negative-only assertion) |
+| `3412b3095` / `555f9e601` | Closed the two `human_needed` UAT items (analysis + measurement, detailed below) |
+
+None of these are new functional gaps against the three roadmap Success Criteria — they are
+CSS-specificity leaks from the app's unscoped `@layer base` rules and one data-source
+correction (category labels), all caught by perfect-PR review cycles and fixed with
+regression tests. I re-ran the full suite and the production build at HEAD rather than
+trusting the commit messages.
 
 ## Goal Achievement
 
@@ -29,114 +57,218 @@ the printable templates.
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 (SC-1) | `/documents` renders a real landing page with entry points to the vault, the lease template builder and the printable templates; the `permanentRedirect` is reversed and the reversal is recorded in-code as superseding the earlier decision | VERIFIED | `src/app/(owner)/documents/page.tsx` is a Server Component (no `permanentRedirect`, no `next/navigation` import, no `"use client"`); its header doc block states "DOCS-01 SUPERSEDES what this file used to be (D-06)" and quotes the superseded rationale ("no plan to bring back a /documents index"). `documents-hub.test.ts` Group C source-scans for 9 forbidden patterns (incl. `permanentRedirect`, `redirect`, `from "next/navigation"`) on comment-stripped source and asserts `toEqual([])`; ran green (52 tests / 2 files). `next build --experimental-build-mode compile` manifest lists `/documents` as its own route, not a redirect target. |
-| 2 (SC-2) | `/documents/vault` stays the canonical vault URL — the landing links to it; no sidebar, marketing or deep-link target outside this phase changes | VERIFIED | `grep -rln "/documents/vault"` across `src/` returns only the documents-landing files + their tests, `document-search-keys.ts`, and `breadcrumbs.ts`/its test — `main-nav.tsx` and `app-shell.tsx` no longer reference `/documents/vault` (both repointed to `/documents`, confirmed by direct read). Sidebar's collected `/documents*` href set pinned exactly `["/documents"]` (`main-nav.test.tsx:262`, passing). Palette's set pinned exactly `["/documents", "/documents/lease-template"]` (`app-shell-nav.test.tsx:140`, passing). Sidebar section count still exactly `["Analytics", "Reports"]` (`main-nav.test.tsx:159`, byte-identical to base, passing). `src/lib/routes/private-routes.ts` already listed `/documents` as a private prefix before this phase — no proxy/route-table change was needed or made. |
-| 3 (SC-3) | The landing's recent-documents panel reuses the vault's existing query/mapper rather than a second data source, so the two surfaces can never disagree | VERIFIED | `recent-documents-panel.tsx` contains exactly one `useQuery` call in the whole `src/app/(owner)/documents/` tree (excluding the unrelated `templates/components/template-definition.ts`), calling `documentSearchQueries.list({ page: 0 })` with no second argument and no observer overrides — the SAME factory `documents-vault.client.tsx:239` calls, whose default-unfiltered state (all 5 spreads empty, `pageParam` 0) reduces to the identical params object. No `.from("documents")` select, no second mapper, anywhere under the landing. `recent-documents-panel.test.tsx` pins `toEqual({ page: 0 })` over every recorded spy call AND spells out the literal shared queryKey `["documents","search","",null,null,null,null,0]`; both tests pass. |
-| 4 | Every one of the six hub hrefs resolves to a route directory that has a `page.tsx` on disk | VERIFIED | `documents-hub.test.ts` Group B `existsSync` assertions pass; independently confirmed on disk: `vault/page.tsx`, `lease-template/page.tsx`, and all four `templates/{slug}/page.tsx` exist; `templates/page.tsx` itself does NOT exist (correctly not linked by any tile). |
-| 5 | `page.tsx` is a genuine Server Component — no client directive, hooks, Supabase client, or navigation-redirect import reach the page's own boundary; the review's WR-01 correction (dropped `Separator` import, restated error-boundary claim) is real | VERIFIED | Direct read of `page.tsx`: no `"use client"`, no hook, no Supabase import; the band-rule divider is a plain `<div role="none">`, not `#components/ui/separator` (which is itself `"use client"`); the doc block now states the page's *only* client island is `<RecentDocumentsPanel />` and correctly describes inheriting `(owner)/error.tsx` (confirmed that file exists) rather than the previous false "no error boundary" claim. |
-| 6 | The recent-documents panel's 4-state machine does not falsely claim "No documents yet" while the query is pending-but-not-fetching (CR-01), and does not leak a non-string category value from a prototype-polluted slug (WR-02) | VERIFIED | `recent-documents-panel.tsx:222` destructures `isPending` (not `isLoading`) from `useQuery` and branches on it; `documents-vault.client.tsx:238` was fixed identically (both surfaces share one cache entry per SC-3, confirmed by reading both files). `categoryLabel()` uses `Object.hasOwn(CATEGORY_LABELS, slug)` before indexing. Regression tests present and passing: `"shows skeletons, never the empty copy, while pending but not fetching"` and `it.each(["__proto__","constructor"])` in `recent-documents-panel.test.tsx`. |
-| 7 | The breadcrumb for the four hyphenated printable-template slugs renders a real label, and the phase does not newly make a 404 (`/documents/templates`) reachable via a live link (CR-02) | VERIFIED | `breadcrumbs.ts` LABEL_MAP gained the 5 entries (`vault`, 4 hyphenated slugs); `NON_ROUTABLE_SEGMENTS = new Set(["templates"])` emits `href: ""` for the `templates` middle crumb instead of a link, confirmed by direct read and by `breadcrumbs.test.ts` asserting `{ href: "", label: "Templates" }` and a source-level guard on `/NON_ROUTABLE_SEGMENTS\s*=\s*new Set\(\["templates"\]\)/`. |
-| 8 | Uploading or deleting a document on any of the five detail routes marks the vault-search cache entry (`["documents","search"]`) stale (D-11) | VERIFIED | `documents-section.tsx`'s `invalidateListAndDashboard` contains exactly three `invalidateQueries` calls in order (entity list, `documentSearchQueries.all()`, `ownerDashboardKeys.all`), confirmed by direct read at `:140-159`. Two regression tests (upload path via file-input interaction, delete path via captured `onSuccess`) both assert `toContainEqual(documentSearchQueries.all())` alongside the retained entity-scoped key; both pass. |
-| 9 | The sidebar `Documents` entry is a flat `<Link>` at `/documents`; the one-item `Templates` section (interface, array, render block, icon import) is gone | VERIFIED | Direct read of `main-nav.tsx`: `coreItems` has `{ label: "Documents", href: "/documents", icon: FolderArchive }` with no `children`; no `DocumentItem` interface, `documentItems` array, `Templates` render block, or `FileCheck` import remain. `grep -c 'DocumentItem\|documentItems\|FileCheck'` returns 0. |
-| 10 | The Cmd+K palette `Documents` row points at `/documents`; the `Templates` group is deliberately kept with its rationale recorded in-source (L-04) | VERIFIED | `app-shell.tsx:101` — `{ label: "Documents", href: "/documents", icon: FolderArchive }`; `:163-181` — `Templates` heading retained, `/documents/lease-template` entry present, comment block records the 3-reason L-04 keep decision. `app-shell-nav.test.tsx` pins the palette's `/documents*` set to exactly `["/documents", "/documents/lease-template"]`; passes. |
-| 11 | The sidebar still has exactly two collapsible sections, Analytics and Reports — Documents did not become a third | VERIFIED | `main-nav.test.tsx:159` — `expect(sectionLabels).toEqual(["Analytics", "Reports"])`, unmodified from base and passing; `Documents` renders through `renderNavItem`'s non-children branch as a `<Link>`, confirmed by direct read (no `children` array on the `Documents` entry). |
+| 1 (SC-1) | `/documents` renders a real landing page with entry points to the vault, the lease template builder and the printable templates; the `permanentRedirect` is reversed and the reversal is recorded in-code as superseding the earlier decision | VERIFIED | Direct read of `src/app/(owner)/documents/page.tsx` at HEAD: still a Server Component, no `"use client"`, no `next/navigation` import. Header doc block still states "DOCS-01 SUPERSEDES what this file used to be (D-06)". `bunx next build --experimental-build-mode compile` run fresh in this pass lists `/documents` as its own route (`ƒ /documents`), not a redirect target. |
+| 2 (SC-2) | `/documents/vault` stays the canonical vault URL — the landing links to it; no sidebar, marketing or deep-link target outside this phase changes | VERIFIED | Re-ran `grep -rln "/documents/vault" src/` at HEAD: only phase files, their tests, `document-search-keys.ts`, and `breadcrumbs.ts`/its test. `main-nav.tsx`/`app-shell.tsx` unmodified since the original phase commits (`git log e29128270^..HEAD -- main-nav.tsx app-shell.tsx` is empty) — directly re-read both, `Documents` entries still flat `/documents`. |
+| 3 (SC-3) | The landing's recent-documents panel reuses the vault's existing query/mapper rather than a second data source, so the two surfaces can never disagree | VERIFIED | `recent-documents-panel.tsx` at HEAD still has exactly one `useQuery(documentSearchQueries.list({ page: 0 }))` for document data — the same factory/params the vault uses. A second hook, `useDocumentCategories()`, was added in `120f81b68` for category-LABEL enrichment only (not document rows); it reads the same `documentCategoryQueries.list()` entry the vault already warms, so it does not fork the document cache SC-3 is about. The test file mocks `useDocumentCategories` separately from `useQuery` specifically to keep the `toEqual({ page: 0 })` document-params pin exact — confirmed by reading the test's own header comment and running it (passes). |
+| 4 | Every one of the six hub hrefs resolves to a route directory that has a `page.tsx` on disk | VERIFIED | Unchanged since first pass; independently re-confirmed via the fresh build manifest (all 6 destinations listed as real routes). |
+| 5 | `page.tsx` is a genuine Server Component; WR-01's correction (dropped `Separator`, restated error-boundary claim) is real | VERIFIED | Direct read at HEAD: no `"use client"`, no hook, no Supabase import, band rule is `<div role="none">` not `Separator`. Doc block states the panel is the only client island and correctly describes inheriting `(owner)/error.tsx`. |
+| 6 | The recent-documents panel's 4-state machine does not falsely claim "No documents yet" while pending-but-not-fetching (CR-01); does not leak a non-string category value from a prototype-polluted slug (WR-02) | VERIFIED | `recent-documents-panel.tsx:346` still destructures `isPending` and branches on it. `categoryLabel()` still gates on `Object.hasOwn`. New in this window: `ownerCategoryLabel()` reads a `Map#get` (no prototype hazard by construction) before falling back to `categoryLabel()`. Full test file re-run: passes (part of the 231/231 phase-scoped run below). |
+| 7 | The breadcrumb for the four hyphenated printable-template slugs renders a real label; `/documents/templates` is not reachable via a live link (CR-02) | VERIFIED | `breadcrumbs.ts` unchanged on this point since first pass; `NON_ROUTABLE_SEGMENTS = new Set(["templates"])` confirmed present at HEAD. Additionally hardened in this window (`46a0d176b`): `LABEL_MAP` lookups now use `Object.hasOwn` too, closing the sibling prototype-chain hazard the security audit caught (UF-01) after the first verification pass. |
+| 8 | Uploading or deleting a document on any of the five detail routes marks the vault-search cache entry stale (D-11) | VERIFIED | `documents-section.tsx` untouched since the original phase commits; re-confirmed 3 `invalidateQueries` calls in `invalidateListAndDashboard`. |
+| 9 | The sidebar `Documents` entry is a flat `<Link>` at `/documents`; the one-item `Templates` section is gone | VERIFIED | `main-nav.tsx` unmodified since `e29128270`; re-read directly, confirmed flat entry, no `DocumentItem`/`documentItems`/`FileCheck` remnants. |
+| 10 | The Cmd+K palette `Documents` row points at `/documents`; the `Templates` group is kept with rationale recorded in-source (L-04) | VERIFIED | `app-shell.tsx` unmodified since `e29128270`; re-read directly, confirmed. |
+| 11 | The sidebar still has exactly two collapsible sections, Analytics and Reports | VERIFIED | Unchanged; `main-nav.test.tsx` re-run, passes. |
 
 **Score:** 11/11 truths verified
+
+### Human Verification — Both Items Resolved
+
+Both items the prior report left open were closed in `65-HUMAN-UAT.md` (status: complete,
+2/2 passed). I re-derived each conclusion independently against current source rather than
+accepting the resolution's prose — see the audit trail below.
+
+#### 1. The reversed 308 does not stick in browser/intermediary caches (WR-05 / L-01)
+
+**Resolution's claim:** the old `permanentRedirect` was never a cacheable 308 in the first
+place — closed by root-cause analysis, not live observation.
+
+**Independent re-verification of the five evidence lines:**
+
+1. **Streaming context.** `src/app/(owner)/loading.tsx` exists and is inherited by
+   `/documents` — confirmed by direct read. Next 16.2.12 does document a client-side
+   meta-tag fallback for redirects thrown after a stream has already started. I could not
+   fully confirm this specific old page (a synchronous, zero-`await` component) actually hit
+   that fallback path rather than the standard synchronous-redirect path in
+   `app-render.js` — reading the source myself (lines 1979-1991 and 4292-4297, both
+   confirmed present at those line numbers) shows a catch handler that sets `res.statusCode`
+   + `location` directly, which is consistent with either a genuine 308 OR the error-path
+   fallback for a meta-tag case; the exact trigger condition for which path Next takes isn't
+   fully resolved by static reading alone. **This one sub-claim is therefore treated as
+   unverified, not confirmed.**
+2. **No historical window.** Independently re-derived with a *different* and more complete
+   history than the resolution cites (its `80fea490c` citation is a pure monorepo-flatten
+   rename, not the commit that introduced either file). Actual timeline: `(owner)/loading.tsx`
+   was added 2025-12-04 (`e6a89fc26`); `(owner)/layout.tsx` gained
+   `export const dynamic = "force-dynamic"` on 2026-03-06 (`6e036280a`); `permanentRedirect`
+   was only introduced on 2026-05-15 (`acd33dcc6`, upgrading a prior plain 307 `redirect()`).
+   So for the **entire lifetime** of `permanentRedirect` on this route, both `loading.tsx`
+   and `force-dynamic` already governed it — confirmed by `git log`, not asserted.
+3. **Never a config redirect.** Re-ran `git log -S'"/documents"' -- next.config.ts`: empty.
+4. **Next never attaches a long-lived Cache-Control on this path.** Confirmed by direct read
+   of `app-render.js` at the cited line numbers: only `res.statusCode` and `location` are
+   set, no `Cache-Control` header.
+5. **Force-dynamic, confirmed live — I reproduced this independently.** `curl -sSI
+   https://tenantflow.app/documents` (production still runs the pre-65 code; this branch is
+   unmerged) returned, in this verification pass: `HTTP/2 307` to `/login?redirect=%2Fdocuments`
+   with `cache-control: public, max-age=0, must-revalidate` — byte-for-byte the header the
+   resolution reports. (This is the proxy's unauthenticated redirect, not the page's former
+   308, as the resolution itself notes — it exercises the same `force-dynamic` layout,
+   which is the relevant fact.)
+
+**Verdict: the failure mode is closed, on narrower grounds than claimed.** Evidence line 1's
+"never a real 308, always a meta-tag" claim is not something I can fully stand behind from
+static analysis alone. But the practical risk WR-05 named — a cached redirect that keeps
+bouncing users to `/documents/vault` forever — does not depend on that claim being true.
+Whether the old page emitted a genuine 308 or a 200-with-meta-tag, evidence lines 2-5
+establish that (a) `force-dynamic` governed every response this route ever served during
+`permanentRedirect`'s entire life, (b) Next's redirect-handling code path never attaches its
+own cache directive, and (c) the resulting `max-age=0, must-revalidate` header — independently
+reproduced live just now — obligates every compliant cache to revalidate with the origin
+before reuse, for either a 308 or a 200. That forecloses the "stuck redirect" risk regardless
+of which code path fired. Closed.
+
+#### 2. Visual check of the three-band ladder at desktop and 375px
+
+**Resolution's claim:** measured (not eyeballed) — real components rendered to markup,
+served against the real compiled stylesheet, measured with Playwright at 1280/900/375;
+medallions 48/40/32px, Band 3 grid 4/2/1 columns, Empty 24px padding top+bottom at 1280.
+
+**Independent cross-check against static source (no committed script/artifact exists to
+re-run — the measurement was ephemeral, which is itself worth flagging as a reproducibility
+gap, though not one that changes the verdict):**
+
+- Medallion rungs: `page.tsx` VaultBand uses `size-12` (confirmed by direct read);
+  `document-hub-tile.tsx` uses `size-10`/`size-8` for `isMedium` true/false (confirmed).
+  Tailwind's default spacing scale (unmodified — `grep` of `globals.css`'s `@theme` block
+  found no `--breakpoint-*` or spacing overrides) puts `size-12/10/8` at exactly 48/40/32px.
+  Matches the reported measurement deterministically, independent of viewport.
+- Band 3 grid: `page.tsx` PrintablesBand renders
+  `className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"` (confirmed). Default Tailwind
+  breakpoints (sm=640px, lg=1024px, unmodified per the same `@theme` check) resolve to 4
+  columns at 1280px, 2 at 900px, 1 at 375px — matches the reported table exactly.
+- Empty padding: `components/ui/empty.tsx`'s base classes are `p-6 ... md:p-12` (confirmed);
+  `RecentEmpty` passes `className="py-6 md:py-6"`. Tailwind-merge resolves `py-*` as
+  conflicting with the y-component of `p-*` at each modifier tier independently, so the
+  explicit `md:py-6` overrides `md:p-12`'s y-contribution specifically, leaving computed
+  padding-top/bottom at 24px at md+ (1280px is well above the 768px `md` default) while
+  padding-left/right stays governed by `md:p-12` (48px, unaffected). This matches the
+  reported "24px top and bottom at 1280" and independently explains why `py-6` alone
+  (without the `md:` companion) would NOT have compacted it, which is exactly what L-07
+  warned and what the fix commit (`120f81b68`'s antecedent list) added.
+- The six "confirmed in a real browser" specificity fixes (list indent, `mt-0`/`my-0`, `li`
+  margin, row gap, meta-line margin, printables description-to-grid gap) all correspond
+  1:1 to commits `71acec57f`, `120f81b68`, `99de582f9`, `e99dca332` — each commit message
+  independently documents the exact same CSS-specificity mechanism (unscoped `@layer base`
+  rules losing to/beating `:where()`-wrapped Tailwind v4 space utilities) that the
+  measurement's resolution narrative describes. The two accounts are consistent with each
+  other and with the source, not merely restating one another.
+
+**Verdict: closed.** Every specific numeric claim in the measurement is independently
+derivable from the current compiled-CSS-affecting source and matches exactly; the underlying
+mechanism (Tailwind v4 `:where()` specificity zero for `space-y-*`/`gap` utilities vs. plain
+utility classes) was independently re-derived by reading the six fix commits' own diffs and
+messages, not merely trusted from the resolution's prose. The one caveat: no committed
+Playwright script exists to literally re-run the measurement — it was ephemeral. That is a
+process gap (repeatability), not a substance gap; the numbers it reported are the numbers the
+current source deterministically produces.
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/app/(owner)/documents/documents-hub-entries.ts` | 6 entries / 3 bands, `DOCUMENTS_VAULT_ENTRY` exported, re-exports nothing | VERIFIED | Confirmed by direct read: 6 entries, 3 bands in order, 6 distinct icons, no barrel re-export. |
-| `src/app/(owner)/documents/document-hub-tile.tsx` | Whole-card `<Link>` tile, 2 size rungs, no client directive | VERIFIED | Confirmed: single `<Link>` wrapping card, `size="md"`/`"sm"` rungs, no hooks. |
-| `src/app/(owner)/documents/page.tsx` | RSC landing shell, 3 bands, single primary CTA, D-06 supersession recorded | VERIFIED | Confirmed by direct read (see Truth 1/5 evidence). |
-| `src/app/(owner)/documents/recent-documents-panel.tsx` | Single client island, 4-state, shared cache entry | VERIFIED | Confirmed by direct read + passing 13-test suite (`recent-documents-panel.test.tsx`). |
-| `src/app/(owner)/documents/__tests__/documents-hub.test.ts` | Composition/purity/SC-2 pins | VERIFIED | 40+ assertions across groups A-D; suite passes. |
-| `src/components/documents/documents-section.tsx` | D-11 additional invalidation | VERIFIED | Confirmed at `:140-159`; 3 invalidations in `invalidateListAndDashboard`. |
-| `src/components/shell/main-nav.tsx` | Flat Documents entry, no Templates section | VERIFIED | Confirmed by direct read. |
-| `src/components/shell/app-shell.tsx` | Cmd+K Documents row repointed, Templates kept w/ rationale | VERIFIED | Confirmed by direct read. |
-| `src/lib/breadcrumbs.ts` | 5 new LABEL_MAP entries, `templates` omitted, `NON_ROUTABLE_SEGMENTS` guard | VERIFIED | Confirmed by direct read. |
+| `src/app/(owner)/documents/documents-hub-entries.ts` | 6 entries / 3 bands, `DOCUMENTS_VAULT_ENTRY` exported, no barrel re-export | VERIFIED | Re-read at HEAD: unchanged in structure since first pass. |
+| `src/app/(owner)/documents/document-hub-tile.tsx` | Whole-card `<Link>` tile, 2 size rungs, no client directive | VERIFIED | Re-read at HEAD: gained `no-underline` (`68a679279`) and `mb-0` (`e99dca332`) fixes; still no client directive, no hooks. |
+| `src/app/(owner)/documents/page.tsx` | RSC landing shell, 3 bands, single primary CTA, D-06 supersession recorded | VERIFIED | Re-read at HEAD: gained `no-underline` on the CTA link and `mb-0` on the Band 3 description; supersession doc block intact. |
+| `src/app/(owner)/documents/recent-documents-panel.tsx` | Single client island, 4-state, shared cache entry | VERIFIED | Re-read at HEAD: substantially expanded (145→383 lines) with CSS-specificity fixes and the owner-category-label read, but still one `useQuery` for documents, still 4-state on `isPending`/`isError`/empty/list. |
+| `src/app/(owner)/documents/__tests__/documents-hub.test.ts` | Composition/purity/SC-2 pins | VERIFIED | Re-run: passes, now also covers the anchor-underline source-scan. |
+| `src/components/documents/documents-section.tsx` | D-11 additional invalidation | VERIFIED | Unmodified since original phase commits; unchanged evidence. |
+| `src/components/shell/main-nav.tsx` | Flat Documents entry, no Templates section | VERIFIED | Unmodified since `e29128270`; re-confirmed by direct read. |
+| `src/components/shell/app-shell.tsx` | Cmd+K Documents row repointed, Templates kept w/ rationale | VERIFIED | Unmodified since `e29128270`; re-confirmed by direct read. |
+| `src/lib/breadcrumbs.ts` | 5 new LABEL_MAP entries, `templates` omitted, `NON_ROUTABLE_SEGMENTS` guard | VERIFIED | Re-read at HEAD: gained the `Object.hasOwn` guard (`46a0d176b`, UF-01 fix) on top of the state verified in the first pass. |
 
 ### Key Link Verification
 
-| From | To | Via | Status | Details |
-|------|-----|-----|--------|---------|
-| `page.tsx` | `documents-hub-entries.ts` | import of `DOCUMENTS_HUB_ENTRIES`/`BANDS`/`VAULT_ENTRY` | WIRED | Confirmed import + filter usage in `VaultBand`/`BuildBand`/`PrintablesBand`. |
-| `page.tsx` | `document-hub-tile.tsx` | `<DocumentHubTile entry={...} size={...} />` | WIRED | 2 usages confirmed (Band 2 `size="md"`, Band 3 `size="sm"`). |
-| `page.tsx` | `recent-documents-panel.tsx` | `<RecentDocumentsPanel />` inside Band 1 | WIRED | Confirmed at end of `VaultBand()`; pinned by `documents-hub.test.ts` (`<RecentDocumentsPanel` + `from "./recent-documents-panel"` needles), both passing. |
-| `recent-documents-panel.tsx` | `document-search-keys.ts` | `useQuery(documentSearchQueries.list({ page: 0 }))` | WIRED | Confirmed single call site; params pinned by test. |
-| `documents-section.tsx` | `["documents","search"]` cache prefix | `queryClient.invalidateQueries(documentSearchQueries.all())` | WIRED | Confirmed inside `invalidateListAndDashboard`; regression-tested for both upload and delete paths. |
-| `main-nav.tsx` `coreItems` | `/documents` | flat `NavigationItem` rendered as `<Link>` | WIRED | Confirmed; exhaustive href-set test passes. |
-| `app-shell.tsx` `commandGroups` | `/documents` | Cmd+K route table | WIRED | Confirmed; exhaustive href-set test passes. |
-| `breadcrumbs.ts` `LABEL_MAP`/`NON_ROUTABLE_SEGMENTS` | 4 template leaf routes + non-navigable `templates` crumb | `generateBreadcrumbs` segment lookup | WIRED | Confirmed; behavioral + source-guard tests pass. |
+All 8 links from the prior report re-checked at HEAD by direct read; all remain WIRED. No
+new links introduced except `RecentDocumentsPanel` → `useDocumentCategories()` →
+`documentCategoryQueries.list()`, confirmed WIRED and confirmed to share the vault's existing
+category-query cache entry (not a new/second data source for SC-3 purposes, which is scoped
+to document rows).
 
-### Data-Flow Trace (Level 4)
+### Anti-Patterns Found
 
-| Artifact | Data Variable | Source | Produces Real Data | Status |
-|----------|---------------|--------|---------------------|--------|
-| `recent-documents-panel.tsx` | `data` / `rows` | `useQuery(documentSearchQueries.list({ page: 0 }))` → `search_documents` RPC via the shared factory's real `queryFn` | Yes — same factory the vault uses; not a static/empty stub | FLOWING |
-| `page.tsx` (VaultBand/BuildBand/PrintablesBand) | `DOCUMENTS_HUB_ENTRIES` / `DOCUMENTS_HUB_BANDS` | Static typed data module (deliberately static — this is navigation-surface data, not user data) | N/A (static by design, not user-scoped) | FLOWING (static-by-design, not a stub: every href independently verified `existsSync` against a real route) |
+None. Re-scanned all 16 phase-modified files at HEAD (the original 8 plus
+`documents-vault.client.tsx`, `documents-section.test.tsx`, `documents-vault.test.tsx`, and
+the four test files touched by the fix cycles) for `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/
+`PLACEHOLDER` and "coming soon"/"not yet implemented" phrasing — zero hits. Confirmed the
+gate files (`proxy.ts`, `src/lib/routes/`, `next.config.ts`, `vercel.json`, `package.json`,
+`bun.lock`) are still untouched across the full `90526195a..HEAD` diff.
 
-### Behavioral Spot-Checks
+### Behavioral Spot-Checks (re-run fresh in this pass, not reused from the prior report)
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| `/documents` is a real route, not a redirect target, in the production build manifest | `SKIP_ENV_VALIDATION=true bunx next build --experimental-build-mode compile` then grep manifest for `documents` | All 6 destinations listed as their own routes (`/documents`, `/documents/vault`, `/documents/lease-template`, `/documents/templates/{4 slugs}`) | PASS |
+| `/documents` and its 5 siblings are real routes in the production build manifest | `SKIP_ENV_VALIDATION=true bunx next build --experimental-build-mode compile` then grep manifest | All 6 destinations listed as `ƒ` (dynamic) routes, no redirect | PASS |
 | Typecheck across all 3 tsconfigs | `bun run typecheck` | exit 0, no output | PASS |
-| Lint across all touched dirs | `bunx biome check src/app/(owner)/documents src/components/shell src/lib/breadcrumbs.ts src/components/documents` | "Checked 50 files in 15ms. No fixes applied." | PASS |
-| Phase-scoped unit suites | `bun run test:unit -- documents-hub.test.ts recent-documents-panel.test.tsx main-nav.test.tsx app-shell-nav.test.tsx app-shell.test.tsx breadcrumbs.test.ts src/components/documents` | 9 files, 195 tests, all passed | PASS |
-| Full unit suite + coverage (repo-wide gate) | `bun run test:unit -- --coverage` | 310 files / 106,413 tests passed | PASS |
-| Working tree clean after build (next-env.d.ts not left dirty) | `git checkout -- next-env.d.ts; git status --short` | Only pre-existing untracked `.agents/`, `.github/instructions/`, `skills-lock.json` (unrelated to this phase) remain | PASS |
+| Lint across all touched dirs | `bunx biome check "src/app/(owner)/documents" src/components/shell src/lib/breadcrumbs.ts src/components/documents` | "Checked 50 files in 15ms. No fixes applied." | PASS |
+| Phase-scoped unit suites | `bun run test:unit -- documents-hub.test.ts recent-documents-panel.test.tsx main-nav.test.tsx app-shell-nav.test.tsx app-shell.test.tsx breadcrumbs.test.ts src/components/documents` | 10 files, 231 tests, all passed | PASS |
+| Full unit suite + coverage (repo-wide gate) | `bun run test:unit -- --coverage` | 310 files / 106,435 tests passed | PASS |
+| Working tree clean after build | `git checkout -- next-env.d.ts; git status --short` | Only pre-existing untracked `.agents/`, `.github/instructions/`, `skills-lock.json` remain | PASS |
+| Live Cache-Control header on the pre-65 code path | `curl -sSI https://tenantflow.app/documents` | `307` to `/login`, `cache-control: public, max-age=0, must-revalidate` | PASS — corroborates WR-05 closure |
 
 ### Probe Execution
 
-No `scripts/*/tests/probe-*.sh` probes exist for this phase and none are declared in the PLAN/SUMMARY files. Step 7c: SKIPPED (no probes declared or discovered).
+No `scripts/*/tests/probe-*.sh` probes exist for this phase and none are declared in the
+PLAN/SUMMARY files. Step 7c: SKIPPED (no probes declared or discovered).
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|--------------|--------|----------|
-| DOCS-01 | 65-01, 65-02, 65-03 (all three declare it) | `/documents` renders a real landing page (vault + lease template builder + printable templates entry points) instead of a bare redirect | SATISFIED | All 3 roadmap Success Criteria verified TRUE (see Truths 1-3); REQUIREMENTS.md still shows DOCS-01 as "Pending" at line 189 — consistent with this repo's established pattern of marking requirements Complete only after production verification (see RPTHUB-01..04's precedent, which stayed unchecked through its own phase-completion and was marked Complete separately after live verification). Not a gap. |
+| DOCS-01 | 65-01, 65-02, 65-03 (all three declare it) | `/documents` renders a real landing page (vault + lease template builder + printable templates entry points) instead of a bare redirect | SATISFIED | All 3 roadmap Success Criteria verified TRUE (Truths 1-3). `REQUIREMENTS.md` line 189 still shows DOCS-01 as "Pending" — consistent with this repo's established pattern (RPTHUB-01..04 precedent) of marking requirements Complete only after production/live verification, not at phase-completion. Not a gap. |
 
-No orphaned requirements: `grep -n "Phase 65" REQUIREMENTS.md` shows only DOCS-01 mapped to this phase, and all 3 plans declare it.
+No orphaned requirements: `grep -n "Phase 65" REQUIREMENTS.md` shows only DOCS-01 mapped to
+this phase, and all 3 plans declare it (re-confirmed this pass).
 
-### Anti-Patterns Found
+### Security (carried forward from 65-SECURITY.md, independently spot-checked)
 
-None. Scanned all 8 phase-modified source files (`documents-hub-entries.ts`, `document-hub-tile.tsx`, `page.tsx`, `recent-documents-panel.tsx`, `documents-section.tsx`, `main-nav.tsx`, `app-shell.tsx`, `breadcrumbs.ts`) for `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` and "coming soon"/"not yet implemented" phrasing — zero hits. No commented-out dead code (CLAUDE.md ZT-4 compliance confirmed by direct read, matching the plan's explicit instruction to delete rather than comment out the old redirect and the old Templates section).
-
-### Recorded Deferrals (not gaps — explicit review resolution, confirmed by direct read of the review log)
-
-These two review Warnings were deliberately deferred by the orchestrator as decisions requiring a human call, not left unaddressed by oversight. Neither blocks any of the three roadmap Success Criteria:
-
-| ID | Finding | Why deferred | Where recorded |
-|----|---------|---------------|-----------------|
-| WR-03 | The `["documents","search",…]` cache entry carries up to 50 one-hour Storage signed URLs and persists to IndexedDB for 24h, surviving sign-out. Pre-existing in the vault; Phase 65 widens *who* triggers the mint (every Documents-section visitor, not only vault visitors). | Both remedies (exclude the namespace from persistence, or clear the persisted client on sign-out) trade something real and the second is a cross-cutting auth change belonging in its own phase — the orchestrator's own resolution log states this explicitly. | `65-REVIEW.md` resolution log, "WR-03 — deferred, requires a decision" |
-| WR-04 | `main-nav.tsx`'s `coreItems` and `app-shell.tsx`'s `commandGroups[0].items` are two hand-maintained tables with no cross-table assertion that they agree; a future addition to one could silently miss the other with a green suite. | The fix (extract a shared `CORE_NAV_ITEMS` module) touches shell components beyond DOCS-01's scope. | `65-REVIEW.md` resolution log, "WR-04 — deferred, cross-cutting refactor" |
-
-Both fixed findings (CR-01, CR-02, WR-01, WR-02) were independently re-verified in this pass by reading the current source and re-running their regression tests — not accepted on the review's or SUMMARY's word alone.
-
-### Human Verification Required
-
-### 1. The reversed 308 does not stick in caches (WR-05)
-
-**Test:** Post-deploy, `curl -sSI` an authenticated request to `/documents` (or hard-refresh from a browser that previously followed the old 308 to `/documents/vault`) and inspect `HTTP` status + `Cache-Control` + `location` headers.
-**Expected:** `HTTP/2 200` (or the sign-in redirect), no `location: /documents/vault`, and ideally `Cache-Control` is not permanently cacheable (ADR: `(owner)/layout.tsx` sets `export const dynamic = "force-dynamic"`, which normally yields `no-store`).
-**Why human:** Requires a real authenticated session cookie against a live/preview deploy — the unauthenticated path only exercises the proxy's 307 to `/login`, not the page's former 308. This was already flagged by the review (WR-05) and separately by both 65-01 and 65-02 plans as a manual, non-automatable check.
-
-### 2. Three-band ladder visual check at desktop and 375px
-
-**Test:** On a preview deploy, signed in, view `/documents` at desktop width and at 375px.
-**Expected:** Band weighting descends correctly (medallion rungs `size-12` → `size-10` → `size-8`), Band 3 collapses `lg:grid-cols-4` → `sm:grid-cols-2` → 1 column at narrower widths, and the `Empty` block's `md:py-6` companion class actually compacts the empty-state panel at `md` and above (its base class carries `md:p-12`, which `py-6` alone does not override per Tailwind-merge behavior).
-**Expected outcome if broken:** A layout that either doesn't step down in visual weight across bands, doesn't collapse the printable-forms grid at narrow widths, or renders an oversized empty-state panel.
-**Why human:** No visual-regression or axe sweep is registered for `/documents`; this is a rendering/spacing property that unit tests (jsdom) cannot observe.
+`65-SECURITY.md` reports 15/15 threats CLOSED at commit `3412b3095`, with one item (UF-01,
+the `breadcrumbs.ts` prototype-chain hazard) explicitly flagged unfixed at audit time. I
+directly confirmed UF-01 was fixed one commit later (`46a0d176b`, same day) with the
+`Object.hasOwn` guard now present in `breadcrumbs.ts` at HEAD. The two remaining accepted
+risks (AR-01 signed-URL persistence surface, WR-03/WR-04 nav-table duplication) are
+deliberate owner-decision deferrals, not phase-65 blockers, and do not affect any of the
+three roadmap Success Criteria — same disposition as the prior verification pass.
 
 ### Gaps Summary
 
-No gaps. All three ROADMAP Success Criteria and all eight plan-level must-have truths were independently verified against the current codebase (not accepted from SUMMARY.md claims): the redirect reversal is real and recorded in-code, the vault stays canonical with no unintended nav/breadcrumb drift, and the recent-documents panel is proven — by direct source reading, by its own test suite, and by the shared-cache-key literal — to read the exact same TanStack Query cache entry as the vault, with no second query, mapper, or `.from("documents")` select anywhere in the landing's code path. Two review-confirmed blockers (CR-01 pending-state false-empty, CR-02 breadcrumb-to-404 link) and two warnings (WR-01 false doc-block invariants, WR-02 prototype-pollution fallback) were fixed post-review and are independently re-verified here as present and regression-tested, not merely claimed. Two further warnings (WR-03 signed-URL persistence surface, WR-04 nav-table duplication) were deliberately deferred by the orchestrator with recorded rationale and do not block any of the three roadmap Success Criteria.
+None. All three roadmap Success Criteria and all eleven plan-level must-have truths were
+re-verified against current source at HEAD (`555f9e601`), not carried forward from the
+earlier report or accepted from SUMMARY/UAT prose. Eleven commits landed between the two
+verification passes — eight perfect-PR fix cycles (all CSS-specificity leaks from unscoped
+`@layer base` rules, plus one data-source correction that made category labels agree with the
+vault's own decision), one security-audit fix (UF-01, closed same day), and two UAT-closure
+commits. Nothing regressed: the full 310-file / 106,435-test suite passes, typecheck and lint
+are clean, the production build manifest lists all 6 destinations as real routes, and the
+gate files (proxy, route tables, next.config, vercel.json, lockfile) remain untouched across
+the entire phase diff.
 
-Status is `human_needed` rather than `passed` solely because two manual/visual checks — both already anticipated and documented by the executing plans themselves — cannot be verified by static analysis and require a live/preview deployment.
+Both previously-outstanding human-verification items are discharged. WR-05 (cache-stickiness)
+is closed on narrower grounds than its own resolution claims — I could not independently
+confirm the "meta-tag, never a real 308" sub-claim from static analysis — but the practical
+risk it was written to catch is foreclosed regardless, by evidence I independently reproduced
+live in this pass (`curl` against the still-pre-65 production route returns
+`max-age=0, must-revalidate`, and that header derives from a `force-dynamic` layout setting
+that predates `permanentRedirect`'s introduction by two months, so no window ever existed
+where the route was both a 308 and genuinely cacheable). The visual-breakpoint item is closed
+by measurement whose every specific numeric claim I independently re-derived from current
+Tailwind-affecting source and found to match exactly; the one gap is process, not substance —
+no script was committed to make the measurement re-runnable.
+
+Status is `passed`: 11/11 must-haves verified, zero gaps, zero pending human-verification
+items, no regressions found across the eleven-commit window.
 
 ---
 
-_Verified: 2026-08-03T18:00:00Z_
+_Verified: 2026-08-03T21:45:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification of: 2026-08-03T18:00:00Z pass (status was human_needed, 11/11 must-haves, 2 pending human items)_
