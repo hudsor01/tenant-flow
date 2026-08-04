@@ -187,6 +187,15 @@ export default defineConfig({
 				// gate that permitted deleting the legacy financials route tree
 				// (plan 56-07) and that still guards the hub replacing it.
 				"**/reports-hub.spec.ts",
+				// Phase 65 documents-landing smoke (DOCS-01) — self-authenticates via
+				// loginAsOwner (no storageState). Before this entry the landing had
+				// NO rendered coverage anywhere: its layout was checked once by a
+				// throwaway harness that was never committed, and /documents sits
+				// behind the auth gate so an unauthenticated probe can only ever see
+				// the 307. It carries the only assertions on measured geometry (the
+				// medallion ladder and the Band 3 column collapse), which jsdom
+				// cannot produce at all.
+				"**/documents-hub.spec.ts",
 			],
 		},
 
@@ -208,6 +217,7 @@ export default defineConfig({
 				// does not double-execute under the storageState chromium project.
 				"**/notifications.spec.ts",
 				"**/reports-hub.spec.ts",
+				"**/documents-hub.spec.ts",
 			],
 		},
 
