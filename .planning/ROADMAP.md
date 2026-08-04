@@ -275,7 +275,7 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 �
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
 | 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
 | 56. Reporting Hub | 8/8 | Complete   | 2026-07-31 |
-| 65. Documents Landing (executes after 56) | 3/3 | Complete   | 2026-08-03 |
+| 65. Documents Landing (executes after 56) | 3/3 | Complete    | 2026-08-04 |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |
 | 59. State-Aware Notice Library | 0/TBD | Not started | - |

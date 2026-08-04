@@ -63,7 +63,7 @@
 
 #### Documents Landing (DOCS)
 
-- [ ] **DOCS-01**: `/documents` renders a real landing page (vault + lease template builder + printable templates entry points) instead of a bare redirect
+- [x] **DOCS-01**: `/documents` renders a real landing page (vault + lease template builder + printable templates entry points) instead of a bare redirect
 
 ### Track D — Canonical Landlord Features
 
@@ -186,7 +186,7 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | RPTHUB-02 | Phase 56 | Complete |
 | RPTHUB-03 | Phase 56 | Complete |
 | RPTHUB-04 | Phase 56 | Complete |
-| DOCS-01 | Phase 65 | Pending |
+| DOCS-01 | Phase 65 | Complete |
 | APPLY-01 | Phase 57 | Pending |
 | APPLY-02 | Phase 57 | Pending |
 | APPLY-03 | Phase 57 | Pending |
