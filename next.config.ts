@@ -97,6 +97,42 @@ const nextConfig: NextConfig = {
 	async redirects() {
 		return [
 			{
+				// Canonical host: www -> apex. FIRST in the array because it is a
+				// host-level rule, not a path rule — every entry below it is about
+				// which path you land on, this one is about which hostname you are
+				// on at all.
+				//
+				// Why this exists: `www.tenantflow.app` was serving an expired
+				// wildcard certificate (2026-08-04 production audit). Root cause was
+				// that www had never been added as a project domain, so Vercel never
+				// provisioned or renewed a cert for it. Adding the domain fixed TLS
+				// but made www a full alias — it now serves the site at 200, so the
+				// same content answers on two hostnames.
+				//
+				// `rel=canonical` already points at the apex on every page, so search
+				// consolidates correctly either way; this closes it at the HTTP layer
+				// so there is one reachable origin rather than two.
+				//
+				// In code rather than the Vercel dashboard deliberately: version
+				// controlled, reviewable in a diff, and it survives a project being
+				// re-created — which is exactly the class of silent config drift that
+				// caused the expired-certificate incident in the first place.
+				//
+				// `permanent: true` (308) is safe HERE in a way it was not for
+				// `/documents` in Phase 65. That was a route whose PURPOSE changed, so
+				// the permanent redirect had to be reversed. A canonical hostname does
+				// not reverse — apex stays apex. Every self-reference in the app
+				// already uses the apex (`grep -rn "www\.tenantflow\.app" src/` returns
+				// nothing; canonicals, OG tags, sitemap and robots `Host:` all agree).
+				//
+				// No loop: the `has` host condition matches ONLY www, and the
+				// destination is the apex, which does not match the condition.
+				source: "/:path*",
+				has: [{ type: "host", value: "www.tenantflow.app" }],
+				destination: "https://tenantflow.app/:path*",
+				permanent: true,
+			},
+			{
 				// Password-manager well-known endpoint (W3C draft, consumed
 				// by 1Password, Bitwarden, iCloud Keychain, Chrome, Firefox,
 				// Edge). Password managers issue a GET when a user clicks
