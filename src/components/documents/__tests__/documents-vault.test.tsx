@@ -222,6 +222,7 @@ describe("DocumentsVaultClient", () => {
 	it("renders skeletons during loading", () => {
 		mockUseQuery.mockReturnValue({
 			data: undefined,
+			isPending: true,
 			isLoading: true,
 			isError: false,
 		});
@@ -230,6 +231,26 @@ describe("DocumentsVaultClient", () => {
 		// each renders with `data-slot="skeleton"` (stable test hook,
 		// independent of CSS class drift).
 		expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBe(5);
+	});
+
+	// CR-01. The vault branches on `isPending`, not `isLoading`, so a query that
+	// is pending but parked (offline `fetchStatus: "paused"`, or the
+	// PersistQueryClientProvider `isRestoring` window) shows skeletons instead of
+	// asserting "No documents uploaded yet". The recent-documents panel on
+	// /documents reads the same cache entry and must give the same answer (SC-3);
+	// fixing only one surface would make them disagree exactly here.
+	it("shows skeletons, not the empty copy, while pending but not fetching", () => {
+		mockUseQuery.mockReturnValue({
+			data: undefined,
+			isPending: true,
+			isLoading: false,
+			isError: false,
+		});
+		const { container } = renderVault();
+		expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBe(5);
+		expect(
+			screen.queryByText("No documents uploaded yet."),
+		).not.toBeInTheDocument();
 	});
 
 	it("renders error-state with Try again on query failure", () => {

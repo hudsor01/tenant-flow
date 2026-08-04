@@ -2,16 +2,32 @@
 gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
-status: completed
-last_updated: "2026-08-01T15:30:00.000Z"
-last_activity: 2026-08-01
+status: executing
+last_updated: 2026-08-04T14:43:51.788Z
+last_activity: 2026-08-04 -- Phase 65 complete (PR #960 open, awaiting merge)
 progress:
   total_phases: 14
-  completed_phases: 5
-  total_plans: 35
-  completed_plans: 35
-  percent: 36
+  completed_phases: 6
+  total_plans: 38
+  completed_plans: 38
+  percent: 43
+stopped_at: Phase 65 complete and verified; PR #960 open. Next by EXECUTION order is Phase 57.
 ---
+
+<!--
+CORRECTED BY HAND after `gsd-sdk query phase.complete 65`. The CLI wrote
+`status: milestone_complete` with `stopped_at: "Milestone complete (Phase 65 was
+final phase)"`, which is false: it sorts phases NUMERICALLY, and 65 is the highest
+integer, but ROADMAP.md line 275 fixes the EXECUTION order as
+52 → 53 → 54 → 55 → 56 → 65 → 57 → … Phases 57-64 are all still `[ ]` and read
+"Not started" in the ROADMAP progress table. The same frontmatter contradicted
+itself — 6 of 14 phases done cannot be a complete milestone.
+
+`completed_phases` and `percent` were also left stale at 5 / 36% (52, 53, 54, 55,
+56, 65 is six; 6/14 = 43%). Re-run of `phase.complete` on any later phase will
+likely reintroduce the milestone_complete error — check this block first.
+-->
+
 
 # Project State
 
@@ -21,14 +37,17 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 65 — documents-landing (Phase 56 shipped 2026-08-01)
+**Current focus:** Phase 57 — Rental Application Intake (next by execution order)
 
 ## Current Position
 
-Phase: 56 (reporting-hub) — SHIPPED, MERGED, DEPLOYED, VERIFIED IN PRODUCTION
-Plan: 8 of 8
-Status: PR #957 merged as `ee6d48519`; production deploy READY from that SHA
-Last activity: 2026-08-01 — live redirect verification + Sentry gate PASS
+Phase: 65 (documents-landing) — COMPLETE, verified, PR #960 open awaiting merge
+Plan: 3 of 3 complete
+Status: Between phases. Next by EXECUTION order is Phase 57 (Rental Application
+Intake), not "milestone complete" — 57-64 remain. See the correction note in the
+frontmatter above.
+Last activity: 2026-08-04 -- Phase 65 verified passed (11/11), UAT 2/2, security 15/15,
+perfect-PR two consecutive clean cycles
 
 > **Verified against production, not just CI.** All six hub redirects return 308
 > to their exact targets; `/reports/analytics` inverts to `/analytics/overview`;

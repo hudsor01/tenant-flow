@@ -73,7 +73,24 @@ describe("MainNav", () => {
 			).toHaveAttribute("href", "/maintenance");
 			expect(
 				screen.getByRole("link", { name: /^documents$/i }),
-			).toHaveAttribute("href", "/documents/vault");
+			).toHaveAttribute("href", "/documents");
+		});
+
+		// Phase 65 (DOCS-01), A-1: pins the Documents entry as FLAT *structurally*.
+		// `renderNavItem`'s hasChildren branch renders a parent as a <button> toggle
+		// with no <Link> at all, so if Documents ever gained children the landing
+		// would lose its one-click sidebar door. Both halves are required: the
+		// absence of the button alone would also pass against a sidebar that renders
+		// no Documents entry whatsoever.
+		it("should render Documents as a flat link, never as an expandable button", () => {
+			render(<MainNav />);
+
+			expect(
+				screen.queryByRole("button", { name: /^documents$/i }),
+			).not.toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /^documents$/i }),
+			).toHaveAttribute("href", "/documents");
 		});
 	});
 
@@ -206,11 +223,14 @@ describe("MainNav", () => {
 		});
 	});
 
-	describe("templates section", () => {
-		it("should render Templates section header", () => {
+	describe("templates section removal (Phase 65 D-09)", () => {
+		// `getByText`'s default string match is EXACT, so the "Lease Template" label
+		// elsewhere would not satisfy this query even if it survived. After D-09 no
+		// "Templates" text exists anywhere in this component at all.
+		it("should NOT render a Templates section header", () => {
 			render(<MainNav />);
 
-			expect(screen.getByText("Templates")).toBeInTheDocument();
+			expect(screen.queryByText("Templates")).not.toBeInTheDocument();
 		});
 
 		it("should NOT render Generate Lease link (Session 11 P3 #36: duplicate of Leases tab New Lease CTA)", () => {
@@ -221,17 +241,25 @@ describe("MainNav", () => {
 			).not.toBeInTheDocument();
 		});
 
-		it("should render Lease Template link", () => {
-			render(<MainNav />);
+		// One exhaustive assertion pinning THREE things at once: the core entry was
+		// repointed to /documents, the Lease Template link is gone, and no new
+		// /documents/* sidebar entry crept in. It cannot pass vacuously — an empty
+		// sidebar yields [], not ["/documents"].
+		//
+		// Collapsed nav children ARE queryable here (jsdom does not implement
+		// `inert`), so the Reports and Analytics children genuinely appear in this
+		// collected set and genuinely contribute no /documents* href. The assertion
+		// is not passing because they were hidden.
+		it("should surface exactly one /documents href in the whole sidebar", () => {
+			const { container } = render(<MainNav />);
 
-			const leaseTemplateLink = screen.getByRole("link", {
-				name: /lease template/i,
-			});
-			expect(leaseTemplateLink).toBeInTheDocument();
-			expect(leaseTemplateLink).toHaveAttribute(
-				"href",
-				"/documents/lease-template",
-			);
+			const documentHrefs = Array.from(container.querySelectorAll("a"))
+				.map((a) => a.getAttribute("href") ?? "")
+				.filter(
+					(href) => href === "/documents" || href.startsWith("/documents/"),
+				);
+
+			expect(documentHrefs).toEqual(["/documents"]);
 		});
 	});
 
@@ -354,15 +382,18 @@ describe("MainNav", () => {
 			expect(onNavigate).toHaveBeenCalledTimes(1);
 		});
 
-		it("should call onNavigate when a Templates link is clicked", async () => {
+		// Phase 65 D-09 retargeted this from the deleted Lease Template link to the
+		// entry this phase actually changed. Anchored regex so it does not match the
+		// "Tax Documents" child once Reports is expanded.
+		it("should call onNavigate when the Documents link is clicked", async () => {
 			const user = userEvent.setup();
 			const onNavigate = vi.fn();
 			render(<MainNav onNavigate={onNavigate} />);
 
-			const leaseTemplateLink = screen.getByRole("link", {
-				name: /lease template/i,
+			const documentsLink = screen.getByRole("link", {
+				name: /^documents$/i,
 			});
-			await user.click(leaseTemplateLink);
+			await user.click(documentsLink);
 
 			expect(onNavigate).toHaveBeenCalledTimes(1);
 		});

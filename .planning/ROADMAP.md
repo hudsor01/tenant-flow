@@ -30,7 +30,7 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 - [x] **Phase 54: E-sign & Storage Metering** - Enforce the sold e-sign (25/mo Growth) and storage quotas with visible usage + upgrade prompts; grandfather existing over-quota owners (completed 2026-07-24)
 - [x] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation (completed 2026-07-25)
 - [x] **Phase 56: Reporting Hub** - Collapse `/financials/*` into one chart-free `/reports` hub (statements + exports) with preserved tier-gating; **all** analytics including `/analytics/financial` stays its own peer section (completed 2026-07-31)
-- [ ] **Phase 65: Documents Landing** *(NEXT)* - Make `/documents` a real landing page (vault + lease template builder + printable templates) instead of a bare redirect *(executes immediately after Phase 56)*
+- [x] **Phase 65: Documents Landing** *(NEXT)* - Make `/documents` a real landing page (vault + lease template builder + printable templates) instead of a bare redirect *(executes immediately after Phase 56)* (completed 2026-08-03)
 - [ ] **Phase 57: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
 - [ ] **Phase 58: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
 - [ ] **Phase 59: State-Aware Notice Library** - Counsel-reviewed, state-aware notices on the lease-template rails, saved to the vault with a service date (curated launch states)
@@ -163,7 +163,11 @@ Plans:
   1. `/documents` renders a real landing page with entry points to the vault, the lease template builder and the printable templates — the existing `permanentRedirect('/documents/vault')` is deliberately reversed, and the reversal is recorded in-code as superseding the earlier decision
   2. `/documents/vault` stays the canonical vault URL — the landing links to it; no sidebar, marketing or deep-link target outside this phase changes
   3. The landing's recent-documents panel reuses the vault's existing query/mapper rather than a second data source, so the two surfaces can never disagree
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+Plans:
+- [x] 65-01-PLAN.md — Reverse the redirect; hub entries module + tile + RSC landing shell (wave 1)
+- [x] 65-02-PLAN.md — Recent-documents client island wired into Band 1, plus the D-11 search-key invalidation that makes "Recently" true (wave 2 — depends on 65-01; both touch page.tsx)
+- [x] 65-03-PLAN.md — Sidebar flat Documents entry + Templates section deletion, Cmd+K repoint, breadcrumb labels (wave 1, parallel with 65-01)
 **UI hint**: yes
 **Numbering note:** created 2026-07-26 by splitting Phase 56. Integer numbering is append-only (decimals are forbidden by project convention and 57-64 are never renumbered), so this phase takes 65 while executing directly after 56.
 
@@ -271,7 +275,7 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 �
 | 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
 | 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
 | 56. Reporting Hub | 8/8 | Complete   | 2026-07-31 |
-| 65. Documents Landing (executes after 56) | 0/TBD | Not started | - |
+| 65. Documents Landing (executes after 56) | 3/3 | Complete    | 2026-08-04 |
 | 57. Rental Application Intake | 0/TBD | Not started | - |
 | 58. Tenant Communication Log | 0/TBD | Not started | - |
 | 59. State-Aware Notice Library | 0/TBD | Not started | - |
