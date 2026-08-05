@@ -187,31 +187,31 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | RPTHUB-03 | Phase 56 | Complete |
 | RPTHUB-04 | Phase 56 | Complete |
 | DOCS-01 | Phase 65 | Complete |
-| APPLY-01 | Phase 57 | Pending |
-| APPLY-02 | Phase 57 | Pending |
-| APPLY-03 | Phase 57 | Pending |
-| APPLY-04 | Phase 57 | Pending |
-| APPLY-05 | Phase 57 | Pending |
-| APPLY-06 | Phase 57 | Pending |
-| COMMS-01 | Phase 58 | Pending |
-| COMMS-02 | Phase 58 | Pending |
-| COMMS-03 | Phase 58 | Pending |
-| NOTICE-01 | Phase 59 | Pending |
-| NOTICE-02 | Phase 59 | Pending |
-| NOTICE-03 | Phase 59 | Pending |
-| COMPLY-01 | Phase 60 | Pending |
-| COMPLY-02 | Phase 60 | Pending |
-| TAX-01 | Phase 61 | Pending |
-| TAX-02 | Phase 61 | Pending |
-| TAX-03 | Phase 61 | Pending |
-| TAX-04 | Phase 61 | Pending |
-| DIGEST-01 | Phase 62 | Pending |
-| DIGEST-02 | Phase 62 | Pending |
-| TURN-01 | Phase 63 | Pending |
-| TURN-02 | Phase 63 | Pending |
-| TURN-03 | Phase 63 | Pending |
-| HONEST-03 | Phase 64 | Pending |
-| HONEST-04 | Phase 64 | Pending |
+| APPLY-01 | Phase 66 | Pending |
+| APPLY-02 | Phase 66 | Pending |
+| APPLY-03 | Phase 66 | Pending |
+| APPLY-04 | Phase 66 | Pending |
+| APPLY-05 | Phase 66 | Pending |
+| APPLY-06 | Phase 66 | Pending |
+| COMMS-01 | Phase 67 | Pending |
+| COMMS-02 | Phase 67 | Pending |
+| COMMS-03 | Phase 67 | Pending |
+| NOTICE-01 | Phase 68 | Pending |
+| NOTICE-02 | Phase 68 | Pending |
+| NOTICE-03 | Phase 68 | Pending |
+| COMPLY-01 | Phase 69 | Pending |
+| COMPLY-02 | Phase 69 | Pending |
+| TAX-01 | Phase 70 | Pending |
+| TAX-02 | Phase 70 | Pending |
+| TAX-03 | Phase 70 | Pending |
+| TAX-04 | Phase 70 | Pending |
+| DIGEST-01 | Phase 71 | Pending |
+| DIGEST-02 | Phase 71 | Pending |
+| TURN-01 | Phase 72 | Pending |
+| TURN-02 | Phase 72 | Pending |
+| TURN-03 | Phase 72 | Pending |
+| HONEST-03 | Phase 73 | Pending |
+| HONEST-04 | Phase 73 | Pending |
 
 **Coverage:**
 - v10 requirements: 58 total (enumerated REQ-IDs across all 16 categories: REMIND 5, METER 4, HONEST 4, NOTIF 5, ACT 2, CLEAN 2, RPTHUB 4, DOCS 1, LEDGER 8, APPLY 6, COMMS 3, NOTICE 3, COMPLY 2, TAX 4, DIGEST 2, TURN 3)
@@ -221,7 +221,7 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 
 > **Count correction (2026-07-19):** the prior coverage note read "46 total." The actual enumerated REQ-IDs total **58**. All 58 are mapped across phases 52-65. The stale "46" figure is superseded.
 
-> **Phase 56 split (2026-07-26, user scope correction):** DOCS-01 moved from Phase 56 to the new **Phase 65: Documents Landing**; Phase 56 now carries RPTHUB-01..04 only. Phase 65 takes the next free integer (project convention forbids decimals; phases 57-64 are never renumbered) but executes immediately after Phase 56. RPTHUB-02's route count was corrected from "~15" to the actual 7 entries. Requirement count and mapping are unchanged at 58/58.
+> **Phase 56 split (2026-07-26, user scope correction):** DOCS-01 moved from Phase 56 to the new **Phase 65: Documents Landing**; Phase 56 now carries RPTHUB-01..04 only. Phase 65 takes the next free integer because project convention forbids decimals, and at the time it executed out of numeric sequence, immediately after Phase 56. That was resolved on 2026-08-04 by renumbering the then-unstarted phases 57-64 → 66-73, so numeric order now matches execution order; requirement mappings were carried across unchanged. RPTHUB-02's route count was corrected from "~15" to the actual 7 entries. Requirement count and mapping are unchanged at 58/58.
 
 > **RPTHUB-01/02 amendment (2026-07-30, user scope correction — FULL SEPARATION):** The 2026-07-26 reading ("only `/analytics/financial` moves into the hub") was presented to the user as the recommended option and **rejected**. The locked position is full separation: the hub absorbs `/financials/*` only and holds **zero charts**; `/analytics/financial` **stays live and is not redirected**; `/reports/analytics` is **deleted** and 308s **into `/analytics/overview`**. The map is still 7 entries, but the 7th **inverts direction** and `/analytics/financial` moves from the source column into the do-not-redirect guard set. **This is a deliberate product decision, not a scope reduction to be quietly absorbed — do not re-merge the surfaces by following older text.** DOCS-01 → Phase 65 is unchanged. Requirement count and mapping are unchanged at 58/58.
 

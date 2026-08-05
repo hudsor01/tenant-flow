@@ -23,7 +23,11 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 
 **Phase Numbering:** Integer phases only (project convention — never decimals). Phase numbers continue across milestones; v9.0 ended at Phase 51, so v10.0 runs 52-65.
 
-**Numbering is append-only (2026-07-26):** the Phase 56 split created **Phase 65: Documents Landing**. Because 57-64 were already planned and are never renumbered, and because decimals are forbidden by project convention, the new phase takes the next free integer (65) but **executes immediately after Phase 56** — the one deliberate departure from strict numeric execution order. Both the phase list and Phase Details below are ordered by *execution* order, so Phase 65 appears between 56 and 57.
+**Numbering (2026-07-26, revised 2026-08-04):** the Phase 56 split created **Phase 65: Documents Landing**, which took the next free integer because decimals are forbidden by project convention. That left 65 executing between 56 and the then-57, so numeric order and execution order disagreed.
+
+On **2026-08-04**, after Phase 65 shipped, the eight still-unstarted phases were renumbered **57-64 → 66-73** so the two orders agree again. This was not cosmetic: GSD derives execution order from the phase-number integer and nothing else, so `phase.complete 65` had declared the whole milestone finished with eight phases outstanding, and every later phase would have pointed `next_phase` at the already-shipped 65. Renumbering removed the cause instead of hand-correcting each symptom.
+
+None of the renumbered phases had a directory, plan, summary or PR, so nothing shipped was touched and Phase 65 keeps its number. Numeric order is now the execution order — there is no longer a special case to remember.
 
 - [x] **Phase 52: Notification Center, Activity Feed & Channel Honesty** - Surface the orphaned `notifications`/`activity` backend as a bell + inbox + dashboard timeline; remove dishonest SMS/push toggles; drop orphan schema (completed 2026-07-19)
 - [x] **Phase 53: Renewal Reminder Delivery** - Deliver the sold Growth/Max lease-renewal reminders in-house (edge fn draining `lease_reminders`), exactly-once, suppression-honoring, backlog dry-run gated (completed 2026-07-22)
@@ -31,14 +35,14 @@ v10.0 closes the four verified claims-vs-code gaps from the 2026-07-19 feature a
 - [x] **Phase 55: Rent Ledger** - Record-keeping ledger (expected charges, recorded receipts, running balance, late flags) that unlocks honest revenue analytics — no payment facilitation (completed 2026-07-25)
 - [x] **Phase 56: Reporting Hub** - Collapse `/financials/*` into one chart-free `/reports` hub (statements + exports) with preserved tier-gating; **all** analytics including `/analytics/financial` stays its own peer section (completed 2026-07-31)
 - [x] **Phase 65: Documents Landing** *(NEXT)* - Make `/documents` a real landing page (vault + lease template builder + printable templates) instead of a bare redirect *(executes immediately after Phase 56)* (completed 2026-08-03)
-- [ ] **Phase 57: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
-- [ ] **Phase 58: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
-- [ ] **Phase 59: State-Aware Notice Library** - Counsel-reviewed, state-aware notices on the lease-template rails, saved to the vault with a service date (curated launch states)
-- [ ] **Phase 60: Compliance & Key-Date Tracking** - Track per-property key dates (insurance/license/tax/inspection) with reminders through the shared reminder rail
-- [ ] **Phase 61: Schedule E Expense Intelligence** - Map expenses to Schedule E lines, attach receipt photos, export a Schedule E annual report; reconcile the expenses money-type mismatch
-- [ ] **Phase 62: Scheduled Owner Digest** - Monthly ledger-backed email digest (occupancy, collected vs scheduled, expiring leases, open maintenance), exactly-once, opt-out honored
-- [ ] **Phase 63: Unit Turnover Workflow** - Chain move-out inspection → auto-drafted maintenance → deposit worksheet → unit-ready, orchestrating existing subsystems
-- [ ] **Phase 64: Claims Alignment & Marketing Truth** - Confirm-or-soften support claims (owner decision) and sweep marketing/pricing to truthfully reflect every shipped v10.0 capability
+- [ ] **Phase 66: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
+- [ ] **Phase 67: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
+- [ ] **Phase 68: State-Aware Notice Library** - Counsel-reviewed, state-aware notices on the lease-template rails, saved to the vault with a service date (curated launch states)
+- [ ] **Phase 69: Compliance & Key-Date Tracking** - Track per-property key dates (insurance/license/tax/inspection) with reminders through the shared reminder rail
+- [ ] **Phase 70: Schedule E Expense Intelligence** - Map expenses to Schedule E lines, attach receipt photos, export a Schedule E annual report; reconcile the expenses money-type mismatch
+- [ ] **Phase 71: Scheduled Owner Digest** - Monthly ledger-backed email digest (occupancy, collected vs scheduled, expiring leases, open maintenance), exactly-once, opt-out honored
+- [ ] **Phase 72: Unit Turnover Workflow** - Chain move-out inspection → auto-drafted maintenance → deposit worksheet → unit-ready, orchestrating existing subsystems
+- [ ] **Phase 73: Claims Alignment & Marketing Truth** - Confirm-or-soften support claims (owner decision) and sweep marketing/pricing to truthfully reflect every shipped v10.0 capability
 
 ## Phase Details
 
@@ -169,9 +173,9 @@ Plans:
 - [x] 65-02-PLAN.md — Recent-documents client island wired into Band 1, plus the D-11 search-key invalidation that makes "Recently" true (wave 2 — depends on 65-01; both touch page.tsx)
 - [x] 65-03-PLAN.md — Sidebar flat Documents entry + Templates section deletion, Cmd+K repoint, breadcrumb labels (wave 1, parallel with 65-01)
 **UI hint**: yes
-**Numbering note:** created 2026-07-26 by splitting Phase 56. Integer numbering is append-only (decimals are forbidden by project convention and 57-64 are never renumbered), so this phase takes 65 while executing directly after 56.
+**Numbering note:** created 2026-07-26 by splitting Phase 56, taking the next free integer because decimals are forbidden by project convention. It executed directly after 56. The unstarted phases that followed were renumbered 57-64 → 66-73 on 2026-08-04, so this phase's number is no longer out of order — see the numbering section at the top.
 
-### Phase 57: Rental Application Intake
+### Phase 66: Rental Application Intake
 **Goal**: Owner can collect standardized rental applications via a public hashed-token link — no applicant accounts, no SSN, no screening — and convert approved applicants into tenant records, with a real PII retention path.
 **Depends on**: Phase 52 (owner notification on submission); independent of ledger/reporting
 **Requirements**: APPLY-01, APPLY-02, APPLY-03, APPLY-04, APPLY-05, APPLY-06
@@ -184,7 +188,7 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 58: Tenant Communication Log
+### Phase 67: Tenant Communication Log
 **Goal**: Owner has an owner-side communication history on each tenant record — manually logged notes/calls plus email sent from the app that auto-logs — with no two-way tenant messaging surface.
 **Depends on**: Phase 52 (notification write-path) + Phase 53 (Resend delivery rail)
 **Requirements**: COMMS-01, COMMS-02, COMMS-03
@@ -195,9 +199,9 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 59: State-Aware Notice Library
+### Phase 68: State-Aware Notice Library
 **Goal**: Owner can generate state-aware notices on the lease-template rails for a curated launch set of states, every notice carrying counsel-reviewed disclaimer copy, saved to the vault with a recordable service date.
-**Depends on**: Phase 58 (notice delivery events write into the comms log); lease-template/PDF rails proven stable
+**Depends on**: Phase 67 (notice delivery events write into the comms log); lease-template/PDF rails proven stable
 **Requirements**: NOTICE-01, NOTICE-02, NOTICE-03
 **Success Criteria** (what must be TRUE):
   1. Owner can generate state-aware notices (pay-or-quit, cure-or-quit, notice-of-entry, non-renewal) for a curated launch set of states on the lease-template rails
@@ -208,7 +212,7 @@ Plans:
 **Research flag**: `/gsd-plan-phase 59 --research-phase` — per-state notice-period data + UPL-safe disclaimer language are jurisdiction-specific (MEDIUM confidence); align with the resolved ToS governing-law jurisdiction (Texas, MKTUI-02).
 **UI hint**: yes
 
-### Phase 60: Compliance & Key-Date Tracking
+### Phase 69: Compliance & Key-Date Tracking
 **Goal**: Owner can track key property dates and receive reminders through the exact same queue-drain-Resend rail proven in Phase 53, with each date attachable to the document vault.
 **Depends on**: Phase 53 (reuses the reminder-drain/suppression infrastructure) + Phase 52 (in-app reminders)
 **Requirements**: COMPLY-01, COMPLY-02
@@ -218,7 +222,7 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 61: Schedule E Expense Intelligence
+### Phase 70: Schedule E Expense Intelligence
 **Goal**: Expense categories map to the canonical Schedule E line set, owners can attach receipt photos (metered against storage), a Schedule E annual report exports through the hub, and the expenses money-type mismatch is reconciled without a 100× regression.
 **Depends on**: Phase 54 (receipts consume the storage quota) + Phase 56 (export rides the reporting-hub export rails)
 **Requirements**: TAX-01, TAX-02, TAX-03, TAX-04
@@ -231,7 +235,7 @@ Plans:
 **Research flag**: `/gsd-plan-phase 61 --research-phase` — the `expenses.amount` integer-vs-numeric reconciliation (migrate the column vs handle at a typed-mapper boundary) is a planning-time decision.
 **UI hint**: yes
 
-### Phase 62: Scheduled Owner Digest
+### Phase 71: Scheduled Owner Digest
 **Goal**: Owner receives a monthly email digest built from real ledger-backed numbers, delivered exactly once with opt-out honored, reusing the proven drain + PDF rails.
 **Depends on**: Phase 55 (ledger actuals) + Phase 56 (single revenue definition) + Phase 53 (drain pattern)
 **Requirements**: DIGEST-01, DIGEST-02
@@ -240,7 +244,7 @@ Plans:
   2. Digest generation is per-owner batched on the pg_cron → Edge Function → Resend rail with exactly-once delivery and suppression honoring
 **Plans**: TBD
 
-### Phase 63: Unit Turnover Workflow
+### Phase 72: Unit Turnover Workflow
 **Goal**: Owner can run a unit turnover that chains inspection → maintenance → deposit worksheet → unit-ready as an advisory (non-gating) orchestration over five existing subsystems, built last so every subsystem it chains already exists.
 **Depends on**: Phases 55 (deposit accounting), 57 (optional re-lease application link), 52 (notifications), plus existing inspection/maintenance/lease subsystems
 **Requirements**: TURN-01, TURN-02, TURN-03
@@ -252,7 +256,7 @@ Plans:
 **Research flag**: `/gsd-plan-phase 63 --research-phase` — highest orchestration surface; the advisory non-gating state-machine design must be worked out concretely against the live inspection/maintenance/lease schemas.
 **UI hint**: yes
 
-### Phase 64: Claims Alignment & Marketing Truth
+### Phase 73: Claims Alignment & Marketing Truth
 **Goal**: The milestone's core promise is verified — every claim sold on the marketing surface now maps to shipped code — by confirming-or-softening the support claims (owner decision) and sweeping marketing/pricing to truthfully reflect the shipped v10.0 capabilities.
 **Depends on**: All prior v10.0 phases (marketing reflects everything shipped)
 **Requirements**: HONEST-03, HONEST-04
@@ -266,24 +270,24 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 → 58 → 59 → 60 → 61 → 62 → 63 → 64. Each phase branches only after the previous phase's PR is merged to main. Phase 65 (Documents Landing) is the single non-numeric position — it was split out of Phase 56 on 2026-07-26 and took the next free integer because 57-64 are never renumbered and decimals are forbidden; it ships right after the reporting hub.
+Phases execute in this order: 52 → 53 → 54 → 55 → 56 → 65 → 66 → 67 → 68 → 69 → 70 → 71 → 72 → 73. Each phase branches only after the previous phase's PR is merged to main. This is now plain ascending order — Phase 65 was split out of Phase 56 on 2026-07-26 and briefly sat out of sequence, which the 2026-08-04 renumber of 57-64 → 66-73 resolved.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 52. Notification Center, Activity Feed & Channel Honesty | 8/8 | Complete    | 2026-07-21 |
-| 53. Renewal Reminder Delivery | 4/4 | Complete    | 2026-07-23 |
-| 54. E-sign & Storage Metering | 7/7 | Complete   | 2026-07-24 |
-| 55. Rent Ledger | 8/8 | Complete   | 2026-07-25 |
-| 56. Reporting Hub | 8/8 | Complete   | 2026-07-31 |
-| 65. Documents Landing (executes after 56) | 3/3 | Complete    | 2026-08-04 |
-| 57. Rental Application Intake | 0/TBD | Not started | - |
-| 58. Tenant Communication Log | 0/TBD | Not started | - |
-| 59. State-Aware Notice Library | 0/TBD | Not started | - |
-| 60. Compliance & Key-Date Tracking | 0/TBD | Not started | - |
-| 61. Schedule E Expense Intelligence | 0/TBD | Not started | - |
-| 62. Scheduled Owner Digest | 0/TBD | Not started | - |
-| 63. Unit Turnover Workflow | 0/TBD | Not started | - |
-| 64. Claims Alignment & Marketing Truth | 0/TBD | Not started | - |
+| 52 | 8/8 | Complete    | 2026-07-21 |
+| 53 | 4/4 | Complete    | 2026-07-23 |
+| 54 | 7/7 | Complete   | 2026-07-24 |
+| 55 | 8/8 | Complete   | 2026-07-25 |
+| 56 | 8/8 | Complete   | 2026-07-31 |
+| 65 | 3/3 | Complete    | 2026-08-04 |
+| 66 | 0/TBD | Not started | - |
+| 67 | 0/TBD | Not started | - |
+| 68 | 0/TBD | Not started | - |
+| 69 | 0/TBD | Not started | - |
+| 70 | 0/TBD | Not started | - |
+| 71 | 0/TBD | Not started | - |
+| 72 | 0/TBD | Not started | - |
+| 73 | 0/TBD | Not started | - |
 
 ## Execution Disciplines (binding, phases 52-65)
 
@@ -297,6 +301,8 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → **65** → 57 �
 ---
 *Roadmap created 2026-07-19 for milestone v10.0. Phase numbers continue from v9.0 (ended Phase 51). 58 v10 requirements mapped across 14 phases (52-65) — 100% coverage, no orphans, no double-mapping. Note: the REQUIREMENTS.md coverage note previously read "46 total"; the enumerated REQ-IDs actually total 58 (all 16 categories counted), corrected during roadmap creation.*
 
-*Revised 2026-07-26 (user scope correction): Phase 56 split into **Phase 56 Reporting Hub** (RPTHUB-01..04) and **Phase 65 Documents Landing** (DOCS-01), taking the milestone from 13 to 14 phases. Phases 57-64 were not renumbered and their scope is unchanged.*
+*Revised 2026-07-26 (user scope correction): Phase 56 split into **Phase 56 Reporting Hub** (RPTHUB-01..04) and **Phase 65 Documents Landing** (DOCS-01), taking the milestone from 13 to 14 phases.*
+
+*Revised 2026-08-04: the eight unstarted phases were renumbered 57-64 → 66-73 so numeric order matches execution order. Numbers only — every goal, requirement mapping and success criterion is unchanged, and no shipped phase was touched.*
 
 *Revised 2026-07-30 (user scope correction — FULL SEPARATION): **no** analytics is absorbed by the hub. `/reports` holds statements + exports with zero charts; `/analytics/financial` stays live; `/reports/analytics` is deleted and 308s into `/analytics/overview`. Supersedes the 2026-07-26 "only `/analytics/financial` moves" position, which the user was shown as the recommended option and rejected. The Phase 56/65 split is unchanged.*

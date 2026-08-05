@@ -11,21 +11,36 @@ progress:
   total_plans: 38
   completed_plans: 38
   percent: 43
-stopped_at: Phase 65 merged (#960) and live in production. Next by EXECUTION order is Phase 57.
+stopped_at: Phase 65 merged (#960) and live in production. Next by EXECUTION order is Phase 66.
 ---
 
 <!--
-CORRECTED BY HAND after `gsd-sdk query phase.complete 65`. The CLI wrote
-`status: milestone_complete` with `stopped_at: "Milestone complete (Phase 65 was
-final phase)"`, which is false: it sorts phases NUMERICALLY, and 65 is the highest
-integer, but ROADMAP.md line 275 fixes the EXECUTION order as
-52 → 53 → 54 → 55 → 56 → 65 → 57 → … Phases 57-64 are all still `[ ]` and read
-"Not started" in the ROADMAP progress table. The same frontmatter contradicted
-itself — 6 of 14 phases done cannot be a complete milestone.
+NUMERIC ORDER NOW EQUALS EXECUTION ORDER — the hand-correction this block used to
+carry is no longer needed, because the cause was removed rather than patched.
 
-`completed_phases` and `percent` were also left stale at 5 / 36% (52, 53, 54, 55,
-56, 65 is six; 6/14 = 43%). Re-run of `phase.complete` on any later phase will
-likely reintroduce the milestone_complete error — check this block first.
+GSD derives execution order from the phase-number integer and nothing else.
+`isLastPhase` starts true (sdk/src/query/phase-lifecycle.ts:1189) and is cleared only
+by `comparePhaseNum(...) > 0`, which reads integer + letter suffix + decimal segments
+(helpers.ts:231-261). ROADMAP's `**Depends on:**` and its execution-order sentence are
+display metadata that no ordering code reads. So when 65 completed, nothing exceeded
+it numerically and the CLI stamped `milestone_complete` with 8 phases outstanding.
+
+Renumbering the unstarted phases 57-64 -> 66-73 (2026-08-04) makes the tool's only
+ordering input agree with the intended order. Phase 65 keeps its number; the append-only
+integer convention recorded in PROJECT.md is honoured, not reopened.
+
+Progress-table first cells are BARE NUMBERS deliberately. The read side
+(phase-lifecycle.ts:1309) matches `\|\s*\d+[A-Z]?\S*\s*\|...`, which a cell containing
+spaces can never satisfy — that is why `completed_phases`/`percent` silently stopped
+deriving and sat stale at 5 / 36%. The write side (:1105-1121) has an explicit 4-cell
+branch, so bare numbers still update correctly on completion. Do NOT restore names to
+this table, and do NOT use slug cells — a slug satisfies the read side but breaks the
+write side, which requires whitespace immediately after the number. Phase names live in
+the checklist and the `### Phase N:` headings.
+
+Still hand-maintained: `total_phases`. The header regex expects `| Phase | Plans | ... |`
+and this table reads `Plans Complete`, so `derivedTotalPhases` is null either way;
+`percent` derives from the frontmatter fallback.
 -->
 
 
@@ -37,15 +52,15 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 57 — Rental Application Intake (next by execution order)
+**Current focus:** Phase 66 — Rental Application Intake (next by execution order)
 
 ## Current Position
 
 Phase: 65 (documents-landing) — SHIPPED, MERGED (#960), DEPLOYED
 Plan: 3 of 3 complete
-Status: Between phases. Next by EXECUTION order is Phase 57 (Rental Application
-Intake), not "milestone complete" — 57-64 remain. See the correction note in the
-frontmatter above.
+Status: Between phases. Next is Phase 66 (Rental Application Intake); 66-73 remain.
+Numeric order now equals execution order, so the tool and the roadmap agree — see
+the note in the frontmatter above for why that matters.
 Last activity: 2026-08-04 -- Phase 65 verified passed (11/11), UAT 2/2, security 15/15,
 perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 (`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
@@ -157,9 +172,9 @@ Progress: [██████████] 100%
 
 ## Research Flags (deeper research at plan time)
 
-- **Phase 59 (Notice Library):** per-state notice-period data + UPL-safe disclaimer language are jurisdiction-specific (MEDIUM confidence). Run `/gsd-plan-phase 59 --research-phase`; align with resolved ToS governing-law (Texas, MKTUI-02).
-- **Phase 61 (Schedule E):** `expenses.amount` integer-vs-`numeric(10,2)` reconciliation (migrate column vs mapper boundary) is a planning-time decision. Run `/gsd-plan-phase 61 --research-phase`.
-- **Phase 63 (Unit Turnover):** highest orchestration surface; advisory non-gating state-machine design must be worked out against the live inspection/maintenance/lease schemas. Run `/gsd-plan-phase 63 --research-phase`.
+- **Phase 68 (Notice Library):** per-state notice-period data + UPL-safe disclaimer language are jurisdiction-specific (MEDIUM confidence). Run `/gsd-plan-phase 59 --research-phase`; align with resolved ToS governing-law (Texas, MKTUI-02).
+- **Phase 70 (Schedule E):** `expenses.amount` integer-vs-`numeric(10,2)` reconciliation (migrate column vs mapper boundary) is a planning-time decision. Run `/gsd-plan-phase 61 --research-phase`.
+- **Phase 72 (Unit Turnover):** highest orchestration surface; advisory non-gating state-machine design must be worked out against the live inspection/maintenance/lease schemas. Run `/gsd-plan-phase 63 --research-phase`.
 
 ## Blockers
 

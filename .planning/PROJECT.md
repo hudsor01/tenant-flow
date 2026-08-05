@@ -71,9 +71,9 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 <!-- Shipped and confirmed valuable. Locked — changing requires explicit discussion. -->
 
 - ✓ **Document vault with per-entity branches** (5: property/lease/tenant/maintenance/inspection) — v2.4
-- ✓ **Global vault search with full-text matching** — v2.4 (Phase 60)
-- ✓ **Multi-select category filters with date-range picker (timezone-aware)** — v2.5 (Phase 63)
-- ✓ **Bulk zip download (500 doc cap, streaming)** — v2.6 (Phase 64)
+- ✓ **Global vault search with full-text matching** — v2.4 (Phase 69)
+- ✓ **Multi-select category filters with date-range picker (timezone-aware)** — v2.5 (Phase 72)
+- ✓ **Bulk zip download (500 doc cap, streaming)** — v2.6 (Phase 73)
 - ✓ **Per-owner custom category taxonomy with 7 seeded defaults** — v2.6 (Phases 65–66)
 - ✓ **Auth via Supabase SSR (`getAll`/`setAll` cookies)** — pre-v1
 - ✓ **Stripe subscriptions billing with `subscription_status` gate (active/trialing)** — pre-v1
