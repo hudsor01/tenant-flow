@@ -782,7 +782,7 @@ exported `APPLICATION_STATUS` module so they cannot drift.
   │    right: status Badge  +  overflow DropdownMenu (MoreVertical, aria-label="Application actions")
   ├─ action bar   (§B-6)
   ├─ detail cards (one Card per applicant-form section, same order and same headings)
-  └─ owner notes  (Textarea + Save)
+  └─ owner notes  (Textarea className="min-h-24!"  +  Button "Save notes")
 ```
 
 **Detail cards** — one `<Card>` per form section, `CardHeader` + `CardContent`, containing:
@@ -906,9 +906,20 @@ otherwise.
 | Detail — blank optional value | **Not provided** |
 | Detail — owner notes label | **Private notes** |
 | Detail — owner notes helper | **Only you can see these. They are removed when applicant details are anonymized.** |
+| Detail — owner notes save | **Save notes** |
 | Detail — anonymized banner | **This application has been anonymized.** + **TenantFlow removes applicant details two years after a decision. The unit, dates, status and recorded reason are kept.** |
 | Decline dialog | per §B-7 |
 | Delete confirm | per §B-7 |
+
+**On the short trigger labels `Decline` and `Revoke`.** These are deliberate, not oversights,
+and a reviewer should not "fix" them into `Decline application` / `Revoke link`. Both are
+triggers that open a confirm surface, and the confirm button there IS explicit
+(`Decline application`, `Revoke link` — §B-7, §C). Naming the object twice in a row reads as a
+stutter, and each trigger already sits in a container that supplies the object unambiguously:
+`Decline` next to `Approve and open tenant form` on one application's detail page, `Revoke` in
+the row of the link it revokes. This differs from the banned generic labels (`Save`, `Submit`,
+`OK`, `Cancel`), which name no domain action at all — `Decline` and `Revoke` each name exactly
+one. The explicit noun belongs on the button that commits the change, which is where it is.
 
 ---
 
@@ -996,6 +1007,13 @@ v4 emits utilities into `@layer utilities`. Therefore at ≤768px these rules be
 | `Checkbox` (a `<button role="checkbox">`) → **44×44** on mobile, 16×16 on desktop | the attestation control is large on phones | `Field className="items-start gap-3"` so it top-aligns against a two-line label. `[UAT]` visual check at 375px. |
 | `Button size="sm"` and `size="default"` are **the same height** at ≤768px | both floor at 44px | do not chase a phantom size difference on mobile |
 
+**D-1 is viewport-scoped, not surface-scoped.** The media query keys off width alone, so it fires
+on the OWNER surfaces too whenever the window is ≤768px — `/applications` is documented as
+phone-supported in the surface table. Every `Input`, `Textarea`, `Select` and `Checkbox` this phase
+renders inherits it, on either surface. Concretely this means the owner-notes `Textarea` in §B-5
+carries `className="min-h-24!"` for exactly the same reason the `/apply` textareas do. When adding
+any control not listed in the table above, check it against the two selector lists first.
+
 **Do not "fix" `globals.css` in this phase.** Moving that block into `@layer base` would change
 every form, button and input in the app at ≤768px. It is a real systemic defect and belongs in its
 own phase with its own regression sweep. Record it; do not touch it.
@@ -1076,7 +1094,7 @@ Every row below is a geometric or ordering assertion, not a class check.
 | E-5 | Card width `=== 672` (the `max-w-2xl` cap) | 1280 | `/apply` |
 | E-6 | Honeypot: `not.toBeInViewport()` **and** `getBoundingClientRect().right < 0` | 375 | `/apply` |
 | E-7 | Honeypot: Tab from the attestation checkbox lands on the submit button, never on `#apply-company-website` | 375 | `/apply` |
-| E-8 | No element on the page matches `input[name*="ssn" i], input[name*="social" i], input[type="file"], input[name*="dob" i], input[name*="birth" i]` | any | `/apply` |
+| E-8 | No element on the page matches `input[name*="ssn" i], input[name*="social" i], input[type="file"], input[name*="dob" i], input[name*="birth" i], input[name*="bank" i], input[name*="account" i], input[name*="routing" i], input[name*="card" i], input[name*="license" i], input[name*="passport" i], input[name*="govid" i], input[name*="government" i]` | any | `/apply` |
 | E-9 | `<meta name="robots" content="noindex, nofollow">` present in the **rendered** head | any | `/apply` |
 | E-10 | `/apply/<garbage>` returns **HTTP 200** and renders the unavailable card; its text is byte-identical to the expired-token render | any | `/apply` |
 | E-11 | Income: the required total field's `<label>` precedes every employer-field label in DOM order, and there is exactly **one** `(optional)` group heading between the total and the end of the section | any | `/apply` |
