@@ -211,3 +211,460 @@ comment on function public.revoke_application_link(uuid) is
 
 revoke all on function public.revoke_application_link(uuid) from public;
 grant execute on function public.revoke_application_link(uuid) to authenticated;
+
+-- =============================================================================
+-- 3. get_application_context - what /apply/[token] renders above the form.
+--
+--    SERVICE-ROLE ONLY. Called by the verify_jwt=false Edge Function. Never by a
+--    browser, never by a signed-in user.
+--
+--    Read-only, and every failure path returns THE SAME SHAPE: valid=false, a
+--    reason code, and NULL for every detail column. The uniformity is the
+--    control, not a convenience. Returning a property label alongside
+--    valid=false would let anyone still holding a revoked or expired link
+--    confirm which property it belonged to, and would let a brute-force attempt
+--    distinguish "wrong token" from "right token, wrong state" (T-66-01,
+--    T-66-02). sign-lease-token answers 200 with a reason for the same purpose;
+--    the caller collapses every reason into one uniform unavailable screen
+--    (UI-SPEC A-5 state 2, A-7).
+--
+--    Lookup is by token_hash and only ever by token_hash. That is the whole
+--    reason token_hash survives D-03a alongside the stored raw value: the
+--    unauthenticated path never queries by a raw credential.
+-- =============================================================================
+create or replace function public.get_application_context(p_token_hash text)
+  returns table (
+    valid              boolean,
+    reason             text,
+    property_label     text,
+    unit_label         text,
+    rent_amount        numeric,
+    owner_display_name text
+  )
+  language plpgsql
+  stable
+  security definer
+  set search_path = public
+as $function$
+declare
+  v_link record;
+  v_ctx  record;
+begin
+  if p_token_hash is null or btrim(p_token_hash) = '' then
+    return query select false, 'invalid_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  select l.id, l.unit_id, l.owner_user_id, l.expires_at, l.revoked_at
+  into v_link
+  from public.rental_application_links l
+  where l.token_hash = p_token_hash;
+
+  if not found then
+    return query select false, 'invalid_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  if v_link.revoked_at is not null then
+    return query select false, 'revoked_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  if v_link.expires_at <= now() then
+    return query select false, 'expired_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  -- The owner display name is the ONLY owner attribute this function may ever
+  -- return (UI-20). This page renders for anyone holding the capability URL - it
+  -- is published to Zillow, Craigslist and Facebook - so an owner's contact
+  -- details here would be an unforced disclosure to the entire internet. D-10
+  -- also puts the owner in control of first contact, so the applicant has no use
+  -- for them: the confirmation screen tells them the owner will reach out.
+  --
+  -- Selecting any further column from public.users is a review-blocking change,
+  -- not a tweak.
+  select pr.name        as property_name,
+         un.unit_number as unit_number,
+         un.rent_amount as unit_rent,
+         ow.full_name   as owner_name
+  into v_ctx
+  from public.units un
+  join public.properties pr on pr.id = un.property_id
+  join public.users ow      on ow.id = v_link.owner_user_id
+  where un.id = v_link.unit_id;
+
+  -- A deleted unit must be INDISTINGUISHABLE from a bad token. Reporting
+  -- something more specific here would confirm that the token was real.
+  if not found then
+    return query select false, 'invalid_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  return query select true,
+                      null::text,
+                      coalesce(v_ctx.property_name, 'Property'),
+                      v_ctx.unit_number,
+                      v_ctx.unit_rent::numeric,
+                      coalesce(v_ctx.owner_name, 'The property owner');
+end;
+$function$;
+
+comment on function public.get_application_context(text) is
+  'Service-role-only read path for the public /apply/[token] page. Looks a link up by SHA-256 hash and returns the listing summary, or valid=false with one of invalid_token / revoked_token / expired_token and NULL for every detail column. Returns the owner display name only - never owner email or phone (UI-20), because this page renders for anyone holding the capability URL.';
+
+revoke all on function public.get_application_context(text) from public;
+grant execute on function public.get_application_context(text) to service_role;
+
+-- =============================================================================
+-- 4. submit_rental_application - the only INSERT into public.rental_applications.
+--
+--    SERVICE-ROLE ONLY, called by the verify_jwt=false Edge Function.
+--
+--    This function is the phase's fail-closed abuse bound. The Upstash limiter
+--    in supabase/functions/_shared/rate-limit.ts lives in a different failure
+--    domain and returns null when Upstash is unreachable (:159) - by design,
+--    availability over strict limiting - so it can only ever fail OPEN. The
+--    honeypot and the form-timing check are client-supplied signals and are
+--    trivially forged by anyone who reads the source. None of the three is a
+--    gate. The caps below are, because they are evaluated inside this
+--    transaction under the token row's own lock, in the same failure domain as
+--    the write they bound (D-04a, F-6).
+--
+--    Reason codes are the closed set shared with get_application_context:
+--    invalid_token | expired_token | revoked_token | link_capped | rate_capped |
+--    invalid_payload | duplicate.
+-- =============================================================================
+create or replace function public.submit_rental_application(
+  p_token_hash    text,
+  p_submission_id uuid,
+  p_payload       jsonb,
+  p_ip            text,
+  p_user_agent    text
+)
+  returns table (success boolean, reason text, application_id uuid)
+  language plpgsql
+  security definer
+  set search_path = public
+as $function$
+declare
+  v_required constant text[] := array[
+    'first_name', 'last_name', 'email', 'phone', 'desired_move_in_date',
+    'current_street', 'current_city', 'current_state', 'current_postal_code',
+    'gross_monthly_income', 'occupant_count', 'reference_1_name',
+    'reference_1_phone', 'certified'
+  ];
+  v_link            record;
+  v_ctx             record;
+  v_key             text;
+  v_scratch         text;
+  v_recent          integer;
+  v_app_id          uuid;
+  v_occupants       integer;
+  v_income          numeric;
+  v_other_income    numeric;
+  v_employer_months integer;
+  v_move_in         date;
+  v_message         text;
+begin
+  -- ---------------------------------------------------------------------------
+  -- THE LOCK. Take it FIRST, before evaluating anything.
+  --
+  -- Under D-01 the link is reusable, so N strangers race this one row by
+  -- construction. FOR UPDATE serializes them: every concurrent submission
+  -- against the same token queues here, so the cap reads below see every
+  -- increment that has already committed. Reading the caps outside this lock is
+  -- the classic check-then-act race - two submissions both read
+  -- submission_count = 249, both pass, both insert - and it is INVISIBLE to any
+  -- single-threaded test. Plan 66-10's parallel-RPC integration test is the
+  -- behavioural check that this line is really here.
+  --
+  -- Moving any cap evaluation above this select, or replacing the select with an
+  -- unlocked read, silently removes the only fail-closed control in the phase.
+  -- ---------------------------------------------------------------------------
+  select l.id, l.owner_user_id, l.unit_id, l.expires_at, l.revoked_at,
+         l.submission_count
+  into v_link
+  from public.rental_application_links l
+  where l.token_hash = p_token_hash
+  for update;
+
+  if not found then
+    return query select false, 'invalid_token'::text, null::uuid;
+    return;
+  end if;
+
+  if v_link.revoked_at is not null then
+    return query select false, 'revoked_token'::text, null::uuid;
+    return;
+  end if;
+
+  if v_link.expires_at <= now() then
+    return query select false, 'expired_token'::text, null::uuid;
+    return;
+  end if;
+
+  -- Lifetime cap. Replaces the natural ceiling that dropping the single-use
+  -- consumption stamp removed (D-01 -> D-04a).
+  if v_link.submission_count >= 250 then
+    return query select false, 'link_capped'::text, null::uuid;
+    return;
+  end if;
+
+  -- Rolling-hour cap. Bounds a burst without permanently killing a legitimate
+  -- listing, and is counted from the applications themselves rather than a
+  -- second counter so it cannot drift out of step with reality.
+  select count(*)
+  into v_recent
+  from public.rental_applications ra
+  where ra.link_id = v_link.id
+    and ra.created_at > now() - interval '1 hour';
+
+  if v_recent >= 25 then
+    return query select false, 'rate_capped'::text, null::uuid;
+    return;
+  end if;
+
+  -- ---------------------------------------------------------------------------
+  -- Payload validation - DEFENCE IN DEPTH, deliberately duplicating the strict
+  -- validator in supabase/functions/_shared/application-guards.ts.
+  --
+  -- The Edge Function is the only caller today. It is not the only conceivable
+  -- caller, and it is not the only way this function can be reached with a
+  -- malformed body. What is written here is a fair-housing record that the
+  -- landlord may have to stand behind for two years, so a payload missing a
+  -- required answer must be REFUSED rather than stored half-empty.
+  --
+  -- Every failure returns invalid_payload rather than raising. A raise would
+  -- abort the transaction and surface to the applicant as a 500 that loses the
+  -- form they just filled in - the same abort class as the Phase 52 C6 bug.
+  -- ---------------------------------------------------------------------------
+  if p_submission_id is null or jsonb_typeof(p_payload) is distinct from 'object' then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+
+  foreach v_key in array v_required loop
+    if nullif(btrim(coalesce(p_payload ->> v_key, '')), '') is null then
+      return query select false, 'invalid_payload'::text, null::uuid;
+      return;
+    end if;
+  end loop;
+
+  -- The UI-05 attestation. Anything other than a true attestation is a refusal:
+  -- an application recorded without it is not evidence of anything.
+  if p_payload ->> 'certified' <> 'true' then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+
+  -- Numeric and date bounds mirror NUMBER_FIELDS in application-guards.ts. They
+  -- are checked with a pattern before any cast: an unchecked cast of attacker
+  -- text raises 22P02 or 22003 mid-transaction, which is the abort this whole
+  -- block exists to avoid.
+  v_scratch := btrim(p_payload ->> 'occupant_count');
+  if v_scratch !~ '^[0-9]+$' then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+  v_occupants := v_scratch::integer;
+  if v_occupants < 1 or v_occupants > 50 then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+
+  v_scratch := btrim(p_payload ->> 'gross_monthly_income');
+  if v_scratch !~ '^[0-9]+(\.[0-9]+)?$' then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+  v_income := v_scratch::numeric;
+  if v_income > 10000000 then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+
+  v_scratch := btrim(p_payload ->> 'desired_move_in_date');
+  if v_scratch !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then
+    return query select false, 'invalid_payload'::text, null::uuid;
+    return;
+  end if;
+  v_move_in := v_scratch::date;
+
+  v_scratch := nullif(btrim(coalesce(p_payload ->> 'other_income_amount', '')), '');
+  if v_scratch is not null then
+    if v_scratch !~ '^[0-9]+(\.[0-9]+)?$' or v_scratch::numeric > 10000000 then
+      return query select false, 'invalid_payload'::text, null::uuid;
+      return;
+    end if;
+    v_other_income := v_scratch::numeric;
+  end if;
+
+  v_scratch := nullif(btrim(coalesce(p_payload ->> 'employer_months', '')), '');
+  if v_scratch is not null then
+    if v_scratch !~ '^[0-9]+$' or v_scratch::integer > 1200 then
+      return query select false, 'invalid_payload'::text, null::uuid;
+      return;
+    end if;
+    v_employer_months := v_scratch::integer;
+  end if;
+
+  -- Denormalized label snapshot, taken at submission time. These are the reason
+  -- rental_applications.unit_id is `on delete set null` rather than cascade:
+  -- units are hard-deletable, and the row still has to read correctly to the
+  -- owner after the unit it was for is gone.
+  select pr.name        as property_name,
+         un.unit_number as unit_number
+  into v_ctx
+  from public.units un
+  left join public.properties pr on pr.id = un.property_id
+  where un.id = v_link.unit_id;
+
+  insert into public.rental_applications (
+    owner_user_id,
+    link_id,
+    unit_id,
+    property_label,
+    unit_label,
+    submission_id,
+    status,
+    occupant_count,
+    certified_at,
+    applicant_first_name,
+    applicant_last_name,
+    applicant_email,
+    applicant_phone,
+    desired_move_in_date,
+    current_street,
+    current_city,
+    current_state,
+    current_postal_code,
+    current_landlord_name,
+    current_landlord_phone,
+    reason_for_moving,
+    gross_monthly_income,
+    employer_name,
+    employer_role,
+    employer_months,
+    other_income_source,
+    other_income_amount,
+    pet_details,
+    vehicle_details,
+    reference_1_name,
+    reference_1_relationship,
+    reference_1_phone,
+    reference_2_name,
+    reference_2_relationship,
+    reference_2_phone,
+    submitted_ip,
+    submitted_user_agent
+  )
+  values (
+    v_link.owner_user_id,
+    v_link.id,
+    v_link.unit_id,
+    coalesce(v_ctx.property_name, 'Property'),
+    v_ctx.unit_number,
+    p_submission_id,
+    'new',
+    v_occupants,
+    -- Stamped server-side, never read from the client, so an attestation cannot
+    -- be backdated by whoever built the request.
+    now(),
+    btrim(p_payload ->> 'first_name'),
+    btrim(p_payload ->> 'last_name'),
+    lower(btrim(p_payload ->> 'email')),
+    btrim(p_payload ->> 'phone'),
+    v_move_in,
+    btrim(p_payload ->> 'current_street'),
+    btrim(p_payload ->> 'current_city'),
+    upper(btrim(p_payload ->> 'current_state')),
+    btrim(p_payload ->> 'current_postal_code'),
+    nullif(btrim(coalesce(p_payload ->> 'current_landlord_name', '')), ''),
+    nullif(btrim(coalesce(p_payload ->> 'current_landlord_phone', '')), ''),
+    nullif(btrim(coalesce(p_payload ->> 'reason_for_moving', '')), ''),
+    v_income,
+    nullif(btrim(coalesce(p_payload ->> 'employer_name', '')), ''),
+    nullif(btrim(coalesce(p_payload ->> 'employer_role', '')), ''),
+    v_employer_months,
+    nullif(btrim(coalesce(p_payload ->> 'other_income_source', '')), ''),
+    v_other_income,
+    nullif(btrim(coalesce(p_payload ->> 'pet_details', '')), ''),
+    nullif(btrim(coalesce(p_payload ->> 'vehicle_details', '')), ''),
+    btrim(p_payload ->> 'reference_1_name'),
+    nullif(btrim(coalesce(p_payload ->> 'reference_1_relationship', '')), ''),
+    btrim(p_payload ->> 'reference_1_phone'),
+    nullif(btrim(coalesce(p_payload ->> 'reference_2_name', '')), ''),
+    nullif(btrim(coalesce(p_payload ->> 'reference_2_relationship', '')), ''),
+    nullif(btrim(coalesce(p_payload ->> 'reference_2_phone', '')), ''),
+    left(p_ip, 100),
+    left(coalesce(p_user_agent, ''), 500)
+  )
+  on conflict (submission_id) do nothing
+  returning id into v_app_id;
+
+  -- ---------------------------------------------------------------------------
+  -- Idempotency. A double-click and a network retry are ONE submission, and the
+  -- client mints submission_id once per form load, so the retry carries the same
+  -- key and lands here. Report success: the applicant's data is already stored
+  -- and telling them otherwise would make them submit again.
+  --
+  -- Deliberately does NOT increment submission_count and does NOT notify. An
+  -- idempotency path that still incremented would let a flaky connection walk
+  -- the lifetime cap down toward zero without a single extra application being
+  -- stored, and would notify the owner repeatedly about one applicant.
+  --
+  -- A genuine second application from the same person still works: reloading the
+  -- page mints a new submission_id.
+  -- ---------------------------------------------------------------------------
+  if v_app_id is null then
+    return query select true, 'duplicate'::text, null::uuid;
+    return;
+  end if;
+
+  update public.rental_application_links
+  set submission_count = submission_count + 1
+  where id = v_link.id;
+
+  -- NOTIF-01 single-writer invariant: notifications are written by
+  -- create_notification and by nothing else, ever. A direct insert here would
+  -- bypass the one place that knows the row shape.
+  --
+  -- The message names the unit and property and NEVER the applicant.
+  -- Notification bodies are not covered by the 730-day retention sweep, so an
+  -- applicant name in this string would outlive the anonymization of the very
+  -- row it describes - PII surviving in a place nobody thinks to look.
+  --
+  -- 'application_received' must exist in notifications_notification_type_check.
+  -- Plan 66-01 extends that constraint in the migration that precedes this one.
+  -- If it did not, this call raises 23514 INSIDE this transaction and destroys
+  -- the applicant's entire submission rather than merely losing a notification.
+  v_message := 'A new application was submitted for '
+               || coalesce(v_ctx.property_name, 'a property')
+               || coalesce(' unit ' || v_ctx.unit_number, '')
+               || '.';
+
+  perform public.create_notification(
+    v_link.owner_user_id,
+    'application_received',
+    'New rental application',
+    v_message,
+    'rental_application',
+    v_app_id,
+    '/applications/' || v_app_id::text
+  );
+
+  return query select true, null::text, v_app_id;
+end;
+$function$;
+
+comment on function public.submit_rental_application(text, uuid, jsonb, text, text) is
+  'Service-role-only write path for the public /apply/[token] form, and the only INSERT into public.rental_applications. Locks the link row FOR UPDATE before evaluating the 250 lifetime and 25 rolling-hour caps, so neither can be raced (D-04a, F-6). Idempotent on submission_id: a repeat returns success with reason=duplicate and neither increments the counter nor re-notifies. Notifies the owner through create_notification only (NOTIF-01).';
+
+revoke all on function public.submit_rental_application(text, uuid, jsonb, text, text) from public;
+grant execute on function public.submit_rental_application(text, uuid, jsonb, text, text) to service_role;
