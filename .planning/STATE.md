@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: 2026-08-04T14:43:51.788Z
-last_activity: 2026-08-04 -- Phase 65 MERGED (#960) and deployed to production
+last_updated: 2026-08-06T15:25:00.000Z
+last_activity: 2026-08-06 -- Phase 66 PLANNED (17 plans, 7 waves); plan-checker VERIFICATION PASSED
 progress:
   total_phases: 14
   completed_phases: 6
-  total_plans: 38
+  total_plans: 55
   completed_plans: 38
   percent: 43
-stopped_at: Phase 65 merged (#960) and live in production. Next by EXECUTION order is Phase 66.
+stopped_at: Phase 66 planned and verified. Ready for /gsd-execute-phase 66 on branch gsd/phase-66-rental-application-intake.
 ---
 
 <!--
@@ -56,9 +56,32 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 65 (documents-landing) — SHIPPED, MERGED (#960), DEPLOYED
-Plan: 3 of 3 complete
-Status: Between phases. Next is Phase 66 (Rental Application Intake); 66-73 remain.
+Phase: 66 (rental-application-intake) — PLANNED, not yet executed
+Plan: 0 of 17 complete (7 waves)
+Status: Planning complete and verified. Branch `gsd/phase-66-rental-application-intake`
+is 8 doc commits ahead of `origin/main` with nothing missing from main. Phase 65 shipped,
+merged (#960) and is live; 66-73 remain.
+
+**Phase 66 planning artifacts** — CONTEXT (D-01..D-17) · RESEARCH · UI-SPEC (approved by
+gsd-ui-checker after one BLOCK + adversarial re-verify) · VALIDATION · 66-01..66-17 PLAN.md
+(plan-checker: VERIFICATION PASSED, 2 non-blocking warnings, one of which is now closed).
+Requirements coverage independently re-checked: APPLY-01..06 all covered, 6/6.
+
+**Two owner-gated plans** (`autonomous: false`) — 66-06 applies migrations to PRODUCTION
+via Supabase MCP (there is no local stack; `supabase db push` would hit prod directly, and
+the CLI has a standing auth failure here), then reconciles repo filenames against the
+prod-assigned timestamps and regenerates types. 66-08 deploys the edge function. Neither
+runs unattended, and build/typecheck pass WITHOUT the migration ever being applied — that
+false-green already happened once in v9.0, where three migrations sat unapplied behind
+green CI.
+
+**Two upstream corrections made during planning** — ROADMAP SC-1 and REQUIREMENTS APPLY-01
+both said the public route is "added to proxy `PUBLIC_ROUTES`". No such list exists: gating
+is a DENY-list (`PRIVATE_ROUTE_PREFIXES` in `src/lib/routes/private-routes.ts`), so `/apply`
+is public by absence and `/applications` must be ADDED or the owner review queue ships
+publicly reachable. ROADMAP was corrected; CLAUDE.md still carries the stale wording.
+Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwright visibility
+is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
 Last activity: 2026-08-04 -- Phase 65 verified passed (11/11), UAT 2/2, security 15/15,
