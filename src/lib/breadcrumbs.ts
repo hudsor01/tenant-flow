@@ -8,6 +8,14 @@ const LABEL_MAP: Record<string, string> = {
 	tenants: "Tenants",
 	units: "Units",
 	leases: "Leases",
+	// Phase 66 (APPLY-03). A fallback no-op — the capitalize default already
+	// yields "Applications" — added for the same honesty reason `vault` was in
+	// Phase 65: this map is where a reader looks for a segment's label, and an
+	// absent key reads as an oversight rather than a decision. /applications is a
+	// real route (shipping in plan 66-13), so the entry is honest. Note this is
+	// the owner review queue, not the `rental-application` document template
+	// below, which is a different segment entirely.
+	applications: "Applications",
 	maintenance: "Maintenance",
 	analytics: "Analytics",
 	financial: "Financial",

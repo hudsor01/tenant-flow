@@ -106,6 +106,14 @@ describe("AppShell command palette route table", () => {
 			"/properties",
 			"/tenants",
 			"/leases",
+			// Phase 66 (APPLY-03). The allowlist exists to catch palette rows left
+			// pointing at a tree that was consolidated AWAY, which is the failure
+			// this root is not: /applications ships in plan 66-13 of this same
+			// phase, and the nav entry is deliberately wired in wave 1 so the route
+			// is auth-gated before it exists. The link is dead until 66-13 lands —
+			// mid-phase and intentional, not an oversight to "fix" with a
+			// placeholder page. Delete this entry only if the queue is cut.
+			"/applications",
 			"/maintenance",
 			"/documents",
 			"/analytics",
