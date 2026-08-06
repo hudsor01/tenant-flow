@@ -1610,7 +1610,18 @@ Directives this phase will actually collide with — the planner should verify e
 
 ---
 
-## Open Questions
+## Open Questions (ALL RESOLVED — see 66-CONTEXT.md)
+
+> Back-annotated after planning. None of these blocked plan work; each was decided in a
+> higher-precedence artifact and is recorded here so a later reader does not reopen a
+> settled question from the lowest-precedence document.
+>
+> | Q | Resolution |
+> |---|---|
+> | 1 — hash-only vs re-copyable token storage | **D-03a** — store the raw token owner-readable, so the owner can re-copy the link over the weeks a listing runs |
+> | 2 — retention window | **D-11a** — 730 days, config-driven |
+> | 3 — (see below) | **Deferred** — 66-UI-SPEC.md §F |
+> | 4 — disposition reason capture | **D-11d** — closed-vocabulary `disposition_reason` captured at decision time |
 
 1. **F-4 — hash-only vs. re-copyable token storage.**
    - **What we know:** the `/apply` token is a public capability URL published to listing sites; a
