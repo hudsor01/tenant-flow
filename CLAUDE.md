@@ -182,7 +182,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 ## Proxy Middleware
 - `src/proxy.ts` (Next.js 16; replaces deprecated root `middleware.ts`)
 - `updateSession` in `src/lib/supabase/middleware.ts` handles Supabase token refresh with `getAll`/`setAll` cookie pattern
-- Public routes skip auth (see `PUBLIC_ROUTES` in `proxy.ts` for the current set)
+- Route gating is a **deny-list, not an allow-list**: `PRIVATE_ROUTE_PREFIXES` in `src/lib/routes/private-routes.ts`. A route is public by **absence** from that array, so a new authenticated route ships publicly reachable unless you add it. (There is no `PUBLIC_ROUTES`.) `src/app/robots.ts` reads the same array, so one edit keeps both consumers in sync — that is why the file says never to edit it without updating both.
 - Authenticated users must have `subscription_status IN ('active', 'trialing')` to access dashboard routes
 - `redirectWithCookies` helper preserves session cookies on every redirect
 
