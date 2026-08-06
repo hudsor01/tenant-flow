@@ -326,3 +326,134 @@ create trigger trg_rental_applications_updated_at
   before update on public.rental_applications
   for each row
   execute function public.set_updated_at();
+
+-- =============================================================================
+-- 5. Row level security
+--
+--    Posture copied from public.lease_signing_tokens
+--    (20260617142623_token_based_lease_esignature.sql:41-56): a single owner
+--    read policy and deliberately NO write policies, because every write is a
+--    service_role SECURITY DEFINER RPC. This phase extends that posture rather
+--    than relaxing it.
+--
+--    One policy per operation per role. Never a FOR-ALL policy on an
+--    authenticated table - that already cost this project a review finding
+--    (C5, 20260720001657).
+--
+--    Every policy wraps auth.uid() in a subselect per CLAUDE.md, so the planner
+--    evaluates it once as an InitPlan rather than once per candidate row.
+-- =============================================================================
+
+alter table public.rental_applications      enable row level security;
+alter table public.rental_application_links enable row level security;
+
+-- -----------------------------------------------------------------------------
+-- public.rental_applications
+-- -----------------------------------------------------------------------------
+create policy rental_applications_select
+  on public.rental_applications
+  for select
+  to authenticated
+  using (owner_user_id = (select auth.uid()));
+
+create policy rental_applications_delete
+  on public.rental_applications
+  for delete
+  to authenticated
+  using (owner_user_id = (select auth.uid()));
+
+-- THERE IS NO INSERT POLICY AND NO UPDATE POLICY ON THIS TABLE, FOR ANY ROLE.
+-- Both omissions are deliberate. A reviewer will otherwise read them as gaps, so
+-- both are recorded here:
+--
+--   NO INSERT POLICY. APPLY-02 mandates that every applicant row is written by
+--   the verify_jwt=false Edge Function through a SECURITY DEFINER RPC. An
+--   anonymous insert policy is not merely forbidden by that requirement, it is
+--   structurally incapable of doing the job: a row-level policy cannot enforce
+--   the per-link submission cap atomically (that needs the token row's lock, in
+--   the same transaction as the write), cannot rate-limit anything, and cannot
+--   see the honeypot field or the form-timing signal. Granting one would expose
+--   a writable PostgREST surface that bypasses the honeypot, the timing guard
+--   and both caps entirely - i.e. it would hand an attacker a direct table
+--   write and route them around every abuse control the phase builds.
+--
+--   NO UPDATE POLICY. This is a deliberate hardening BEYOND what 66-RESEARCH.md
+--   proposed; research suggested an owner update policy with a WITH CHECK clause
+--   guarding owner_user_id. Routing every owner mutation (status transitions,
+--   notes, conversion) through owner-gated SECURITY DEFINER RPCs in plan 66-04
+--   instead removes the row-re-parenting threat class outright rather than
+--   guarding it, and it prevents an owner from rewriting applicant_email or any
+--   other applicant-typed field - which is the fair-housing record the 720-day
+--   retention window exists to preserve. An audit trail an owner can silently
+--   edit is not an audit trail.
+
+-- -----------------------------------------------------------------------------
+-- public.rental_application_links
+-- -----------------------------------------------------------------------------
+-- This is the policy that makes the D-03a re-copyable raw_token owner-only. It
+-- is the entire confidentiality boundary around a stored raw credential, which
+-- is why the grant revoke below is not redundant with it.
+create policy rental_application_links_select
+  on public.rental_application_links
+  for select
+  to authenticated
+  using (owner_user_id = (select auth.uid()));
+
+-- No insert, update or delete policy. Link creation and revocation are
+-- owner-gated SECURITY DEFINER RPCs (plan 66-04), and the unauthenticated
+-- lookup path reads through the submit RPC, never through PostgREST.
+
+-- =============================================================================
+-- 6. Grant lockdown
+--
+--    Supabase's schema default privileges hand anon and authenticated
+--    table-level DML on every new table in `public`. RLS still gates rows, but
+--    the stated posture has to hold at the GRANT layer too - defence in depth
+--    against a future migration that adds a permissive policy, and against
+--    anything that runs with RLS bypassed. Precedent: 20260720001657 ran the
+--    same revoke on notifications_archive.
+--
+--    The authenticated grants stay: the owner reads both tables through
+--    PostgREST, gated by the select policies above.
+-- =============================================================================
+
+revoke all on table public.rental_applications      from anon;
+revoke all on table public.rental_application_links from anon;
+
+-- =============================================================================
+-- 7. Extend notifications_notification_type_check with 'application_received'
+--
+--    D-17, verified against production 2026-08-06: the live constraint allows
+--    exactly the ten values reproduced below and has no application value.
+--
+--    Without this, create_notification(..., 'application_received', ...) raises
+--    23514 INSIDE submit_rental_application and aborts the entire submission
+--    transaction - the applicant loses the form they just filled in and no row
+--    is written at all. That is the Phase 52 review-C6 abort class, which this
+--    project has already hit once.
+--
+--    Idempotent drop-then-add form copied verbatim from
+--    20260722005310_lease_reminders_delivery_state.sql:71-87. The ten existing
+--    values are preserved in their existing order; the new value is appended.
+--    notifications_archive is intentionally NOT re-extended - its copied CHECK
+--    was dropped in 20260720015620.
+-- =============================================================================
+
+alter table public.notifications
+  drop constraint if exists notifications_notification_type_check;
+
+alter table public.notifications
+  add constraint notifications_notification_type_check
+  check (notification_type = any (array[
+    'maintenance'::text,
+    'lease'::text,
+    'payment'::text,
+    'system'::text,
+    'lease_signed'::text,
+    'lease_executed'::text,
+    'lease_finalize_failed'::text,
+    'maintenance_created'::text,
+    'maintenance_status'::text,
+    'lease_renewal_reminder'::text,
+    'application_received'::text
+  ]));
