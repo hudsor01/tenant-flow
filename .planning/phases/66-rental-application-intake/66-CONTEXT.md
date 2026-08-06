@@ -41,6 +41,30 @@ every applicant before they apply, which inverts the funnel.
 - **D-03:** Default expiry 60 days, owner-revocable at any time. Listings run for weeks,
   so `/sign`'s short window is wrong here; an unbounded link is worse.
 
+- **D-03a (resolves research finding F-4 — token re-copyability):** Store the **raw token**
+  in an owner-readable column alongside `token_hash`; the owner can re-copy the link at any
+  time. Do NOT use `/sign`'s shown-once-then-discard model here.
+
+  Research flagged this for an owner decision; the owner has delegated, so it is decided:
+
+  `/sign`'s hash-only storage protects a **secret credential held by one tenant**. This
+  token is the opposite — it is a link the owner *publishes*, pasting it to Zillow, then
+  Craigslist, then Facebook over a 60-day listing. Confidentiality is not the security
+  property; **unguessability** is, and a 256-bit token keeps that whether or not the raw
+  value is stored. Shown-once would force a rotation every time the owner needs the link
+  again, silently breaking every listing already posted — a guaranteed, recurring failure
+  traded against a hypothetical one.
+
+  `token_hash` is retained as the public lookup path so the unauthenticated route never
+  queries by a raw value.
+
+  **Residual risk, stated rather than hidden:** a DB leak exposes links for units not yet
+  posted publicly. The blast radius is spam applications — bounded by D-04a's fail-closed
+  DB cap and the honeypot — not data exfiltration, since the applications table is
+  owner-scoped by RLS. That is an acceptable trade for a link whose entire purpose is to be
+  public. If the owner disagrees, the fix is shown-once plus an explicit "regenerate"
+  action, and the listing-breakage cost moves to them.
+
 ### Abuse defence — load-bearing, not belt-and-braces
 
 Dropping `used_at` removes the natural submission cap, so the rate limit and honeypot ARE
@@ -49,16 +73,40 @@ the defence rather than a backstop. This matters more than it looks:
 - **D-04:** `rateLimit()` in `supabase/functions/_shared/rate-limit.ts` **fails open** when
   Upstash is unreachable (`:159`, deliberate — availability over strict limiting). With a
   reusable link that means an Upstash outage removes the only throttle. The honeypot must
-  therefore be a genuine independent layer that works with zero external dependencies, not
-  decoration. Research should determine whether a DB-side per-unit submission cap is also
-  warranted as a fail-closed floor.
+  therefore be a genuine independent layer that works with zero external dependencies.
+
+- **D-04a (ANSWERED by research):** Yes — a DB-side cap is warranted, and it is the
+  **PRIMARY** control, not a floor. A limiter living in a *different failure domain* than
+  the write can only ever fail open; a cap enforced inside the SECURITY DEFINER RPC, under
+  the token row's existing `FOR UPDATE` lock, is **fail-closed by construction**. Upstash
+  becomes the cheap outer layer, not the gate.
+
+- **D-04b (BUG PREVENTED — would have shipped):** The submit rate limit MUST key on **client
+  IP**, never on the token hash. `sign-lease-token/index.ts:142` deliberately passes
+  `identifier: tokenHash` because those fetches all share the Next.js egress IP — correct
+  there, catastrophic here. Under D-01 every applicant for a unit shares ONE token by
+  construction, so a token-keyed bucket lets a single applicant (or attacker) lock out every
+  other applicant for that unit. Do not copy that line.
+
+  Size the IP limits for NAT and household traffic — a couple applying from one home, or
+  applicants on shared coffee-shop/library wifi, must not read as abuse.
 
 ### Application fields
 
-- **D-05:** Collect: name, email, phone; current address + current landlord contact +
-  reason for moving; employment (employer, role, gross monthly income, tenure); household
-  (occupant count, pets, vehicles); 1-2 references (name, relationship, phone); desired
-  move-in date.
+- **D-05 (CORRECTED 2026-08-05):** Collect: name, email, phone; current address + current
+  landlord contact + reason for moving; **income from all sources** with employer/role/tenure
+  as OPTIONAL fields plus neutral other-income fields; household **occupant count only**;
+  pets; vehicles; 1-2 references (name, relationship, phone); desired move-in date.
+
+  > **Research overturned the original employment-centric framing.** Requiring employer and
+  > employment income as the primary income signal is a **source-of-income discrimination
+  > risk** in CA, WA, NY and roughly 20 other jurisdictions — it disadvantages applicants on
+  > housing vouchers, benefits, alimony, or retirement income. And 42 U.S.C. § 3604(c) makes
+  > the application form ITSELF a regulated surface, so this is a **schema constraint, not
+  > copy review**: the field list has to be right, not just the wording around it.
+  >
+  > Household is occupant COUNT only — no ages, no relationships, no names. Familial status
+  > is a protected class, and per-occupant detail invites exactly that inference.
 - **D-06:** Explicitly NOT collected, and this list is a contract: **no SSN** (APPLY-02),
   no date of birth, no bank or card details, no government ID number, no document/pay-stub
   upload. Every one of those raises the PII retention obligation and the first three are
@@ -88,22 +136,45 @@ the defence rather than a backstop. This matters more than it looks:
 
   The confirmation screen should say the owner will make contact directly.
 
-### Retention — FLAGGED, validate before building
+### Retention — CORRECTED 2026-08-05 after research
 
-- **D-11:** Non-converted applications are **anonymized, not hard-deleted**, 180 days after
-  submission: PII fields replaced with `[deleted]` placeholders, a minimal non-PII stub
-  retained (unit, submitted date, final status). This mirrors the established
-  `anonymize_deleted_user()` pattern, which already anonymizes PII while preserving records.
+> **D-11 was flagged for validation and research overturned it. The original decision
+> (180 days) is WRONG and superseded. Recorded rather than silently edited, because the
+> flag doing its job is the point.**
 
-  **Why not a hard purge:** fair-housing practice generally expects a housing provider to
-  retain application records to defend a discrimination claim. A hard delete at 90 days
-  could destroy the landlord's own evidence — protecting privacy by damaging the user.
-  Anonymize-with-stub satisfies APPLY-05's "auto-purge PII" while leaving a defensible
-  audit trail.
+- **D-11 (SUPERSEDED):** ~~anonymize at 180 days~~. The window was shorter than the
+  *shortest* fair-housing filing period that exists — verified from primary statute, not
+  a summary:
+  - HUD administrative complaint: **1 year** — 42 U.S.C. § 3610(a)(1)(A)(i)
+  - Federal civil action: **2 years** — § 3613(a)(1)(A), *"not later than 2 years after the
+    occurrence or the termination of an alleged discriminatory housing practice"*
+  - § 3613(a)(1)(B) **tolls** that 2-year clock for the entire duration of any pending HUD
+    proceeding, so real exposure runs past 3 years.
 
-  **RESEARCH MUST VALIDATE the 180-day figure and the anonymize-vs-delete choice against
-  actual fair-housing recordkeeping guidance.** I picked a defensible default; I did not
-  verify it against a legal source. If the guidance says otherwise, change it and say so.
+  Three practitioner sources across WI, CA and WA converge on 2-4 years, and an explicit
+  negative search found nothing capping retention. So the original justification was
+  directionally right — a short purge destroys the landlord's own defence — but the number
+  was off by roughly 4x.
+
+- **D-11a (REPLACES D-11):** Anonymize non-converted applications **730 days** after
+  `coalesce(decided_at, created_at)` — decision date where one exists, submission date
+  otherwise. The window is **config-driven via the existing `app_config` table**, not
+  hardcoded: CA/WA guidance supports 1,460 days, and the right value is jurisdictional.
+
+- **D-11b:** The stated *justification* for anonymize-over-delete was also wrong, though the
+  mechanism survives. A stub of (unit, date, status) cannot answer *"why did you deny this
+  applicant"*, so anonymize-at-N and delete-at-N are legally equivalent — **the window is
+  what matters, not the mechanism.** Keep anonymize anyway for three honest reasons:
+  codebase consistency with `anonymize_deleted_user()`, referential integrity for converted
+  rows, and non-PII aggregate self-audit.
+
+- **D-11c:** **Create NO archive table**, and this overrides the "archive-then-delete"
+  instruction inherited from the other retention jobs. Archiving would preserve verbatim
+  the exact PII the sweep exists to remove — the Phase 52 C2 bug in a new costume.
+
+- **D-11d:** Retain a fixed-list `disposition_reason` on the stub. It partially restores the
+  defensibility the stub otherwise lacks, at negligible cost, and it is a closed vocabulary
+  so it cannot itself become free-text PII.
 
 - **D-12:** Applications cascade on owner GDPR deletion via `anonymize_deleted_user()`
   (`supabase/migrations/20260720015620_retention_gdpr_and_writer_hardening.sql:25`).
@@ -194,8 +265,11 @@ and the review queue.
 - New Edge Function for the applicant insert (`verify_jwt=false`)
 - New owner-side review queue under `src/app/(owner)/`
 - New table(s) + RLS; owner-scoped via `owner_user_id` per project convention
-- pg_cron job for the 180-day anonymize sweep, 3 AM UTC window, archive-then-delete
-  discipline consistent with existing retention jobs
+- pg_cron job for the 730-day anonymize sweep (window read from `app_config`, per D-11a),
+  3 AM UTC window, named SECURITY DEFINER function with `SET search_path = public`,
+  `FOR UPDATE SKIP LOCKED`, `LIMIT 10000` — consistent with existing retention jobs EXCEPT
+  that it writes **no archive table** (D-11c: archiving would preserve the very PII the
+  sweep exists to remove)
 - `anonymize_deleted_user()` extended to cover applications
 
 </code_context>
