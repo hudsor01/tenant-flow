@@ -284,6 +284,14 @@ documentation/
 .temp/
 .tmp/
 
+# `*-copy.*` above targets editor/OS duplicate-file artifacts, but it also
+# swallows legitimate source modules whose name ends in "-copy" in the
+# copywriting sense. Without this negation `application-copy.ts` is silently
+# untracked: `git add` refuses it and biome (vcs.useIgnoreFile) skips it, so it
+# neither ships nor gets linted while every local check still passes.
+!src/lib/applications/application-copy.ts
+!src/lib/applications/__tests__/application-copy.test.ts
+
 # Monitoring
 monitoring/
 
