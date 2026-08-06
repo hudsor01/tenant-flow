@@ -668,3 +668,287 @@ comment on function public.submit_rental_application(text, uuid, jsonb, text, te
 
 revoke all on function public.submit_rental_application(text, uuid, jsonb, text, text) from public;
 grant execute on function public.submit_rental_application(text, uuid, jsonb, text, text) to service_role;
+
+-- =============================================================================
+-- 5. set_application_status - move an application through the D-07 queue.
+--
+--    Owner-gated. This is the ONLY way a status or a disposition reason ever
+--    changes, because plan 66-01 ships no UPDATE policy on the table.
+--
+--    It also owns the retention clock. anonymize_old_rental_applications()
+--    (plan 66-05) ages rows from coalesce(decided_at, created_at), so the
+--    decided_at written here decides the date on which this applicant's PII is
+--    erased. Getting it wrong does not raise anything - it silently sweeps the
+--    row early, destroying the landlord's own fair-housing evidence inside the
+--    2-year federal window (42 U.S.C. 3613(a)(1)(A)), or late, retaining PII
+--    past policy.
+-- =============================================================================
+create or replace function public.set_application_status(
+  p_application_id     uuid,
+  p_status             text,
+  p_disposition_reason text default null
+)
+  returns void
+  language plpgsql
+  security definer
+  set search_path = public
+as $function$
+declare
+  v_owner uuid := (select auth.uid());
+  v_app   record;
+begin
+  if v_owner is null then
+    raise exception 'not authenticated';
+  end if;
+
+  -- Validate against the D-07 vocabulary HERE rather than letting the CHECK
+  -- constraint do it. A constraint violation reaches the owner as an opaque
+  -- 23514 PostgREST error naming a constraint they have never heard of; this
+  -- raises something the UI can show.
+  if p_status is null or p_status not in ('new', 'reviewing', 'approved', 'rejected') then
+    raise exception 'invalid application status';
+  end if;
+
+  -- A decline with no recorded reason is precisely the record the retention
+  -- window exists to preserve (D-11d): the stub that outlives anonymization
+  -- carries the reason and nothing else, so an empty one leaves the landlord
+  -- unable to show why a decision was made. The vocabulary is closed so it can
+  -- never itself become free-text PII.
+  if p_status = 'rejected' then
+    if p_disposition_reason is null then
+      raise exception 'a decline reason is required';
+    end if;
+    if p_disposition_reason not in (
+      'unit_no_longer_available',
+      'income_requirement',
+      'rental_history_requirement',
+      'incomplete_application',
+      'applicant_withdrew',
+      'another_applicant_selected',
+      'other'
+    ) then
+      raise exception 'invalid decline reason';
+    end if;
+  elsif p_disposition_reason is not null then
+    raise exception 'a decline reason applies only to a declined application';
+  end if;
+
+  select a.id, a.status, a.converted_tenant_id
+  into v_app
+  from public.rental_applications a
+  where a.id = p_application_id
+    and a.owner_user_id = v_owner
+  for update;
+
+  -- Ownership lives in the WHERE clause, so another owner's application matches
+  -- zero rows and produces the same message as one that does not exist.
+  if not found then
+    raise exception 'application not found';
+  end if;
+
+  -- Once an application has become a tenant, its status is settled. Allowing a
+  -- flip to rejected here would leave a live tenant record whose originating
+  -- application says the applicant was declined.
+  if v_app.converted_tenant_id is not null and p_status <> 'approved' then
+    raise exception 'application already converted to a tenant';
+  end if;
+
+  if p_status in ('approved', 'rejected') then
+    -- coalesce, NEVER a bare now(). Re-stamping decided_at on a later flip -
+    -- approved, then reviewing, then approved again - would push the retention
+    -- clock forward each time and hold applicant PII past the policy window.
+    -- The first decision is the one the clock runs from.
+    update public.rental_applications
+    set status = p_status,
+        disposition_reason = case when p_status = 'rejected' then p_disposition_reason else null end,
+        decided_at = coalesce(decided_at, now())
+    where id = p_application_id
+      and owner_user_id = v_owner;
+  else
+    -- Back to a non-terminal status: clear the decision record entirely. The
+    -- decided_at CHECK in plan 66-01 permits null only here, and leaving a stale
+    -- timestamp would age an undecided row from a decision that was withdrawn.
+    update public.rental_applications
+    set status = p_status,
+        disposition_reason = null,
+        decided_at = null
+    where id = p_application_id
+      and owner_user_id = v_owner;
+  end if;
+end;
+$function$;
+
+comment on function public.set_application_status(uuid, text, text) is
+  'Owner-gated status transition across the D-07 vocabulary, and the only writer of decided_at and disposition_reason. Requires a closed-vocabulary reason for rejected and forbids one otherwise (D-11d). Stamps decided_at with coalesce so the retention clock runs from the FIRST decision, and clears it when returning to new/reviewing. Refuses any change other than approved once the application has been converted.';
+
+revoke all on function public.set_application_status(uuid, text, text) from public;
+grant execute on function public.set_application_status(uuid, text, text) to authenticated;
+
+-- =============================================================================
+-- 6. set_application_notes - the owner's private notes on an applicant.
+--
+--    Owner-gated, and needed as an RPC for exactly one reason: plan 66-01 ships
+--    no UPDATE policy, so without this function there is no way to save a note
+--    at all. It is the write most easily forgotten when reading that schema,
+--    because a notes field looks like something PostgREST would handle.
+-- =============================================================================
+create or replace function public.set_application_notes(
+  p_application_id uuid,
+  p_notes          text
+)
+  returns void
+  language plpgsql
+  security definer
+  set search_path = public
+as $function$
+declare
+  v_owner uuid := (select auth.uid());
+  v_rows  integer;
+begin
+  if v_owner is null then
+    raise exception 'not authenticated';
+  end if;
+
+  -- Notes are cleared by the retention sweep alongside the applicant's own
+  -- answers, because an owner writing free text about an applicant is writing
+  -- applicant PII - and often the most sensitive kind on the row. UI-SPEC B-8's
+  -- helper line tells the owner this before they type.
+  --
+  -- Capped and normalized: an empty or whitespace-only note is stored as NULL so
+  -- "no notes" has one representation rather than two.
+  update public.rental_applications
+  set owner_notes = nullif(btrim(left(coalesce(p_notes, ''), 5000)), '')
+  where id = p_application_id
+    and owner_user_id = v_owner;
+
+  get diagnostics v_rows = row_count;
+
+  if v_rows = 0 then
+    raise exception 'application not found';
+  end if;
+end;
+$function$;
+
+comment on function public.set_application_notes(uuid, text) is
+  'Owner-gated write of rental_applications.owner_notes, capped at 5000 characters and normalized to NULL when blank. Exists because plan 66-01 ships no UPDATE policy, so this is the only path by which a note can be saved. Notes are cleared by the retention sweep because they hold applicant PII.';
+
+revoke all on function public.set_application_notes(uuid, text) from public;
+grant execute on function public.set_application_notes(uuid, text) to authenticated;
+
+-- =============================================================================
+-- 7. record_application_conversion - point an application at the tenant it became.
+--
+--    Owner-gated. Called by the tenant create form after it saves, per D-08:
+--    approving opens the existing form prefilled, and the tenant record is not
+--    created until the owner submits it. This function records the outcome; it
+--    never creates a tenant itself.
+--
+--    D-09, and the reason this direction is safe: NOTHING points from
+--    public.tenants back to public.rental_applications. Deleting an application
+--    therefore cannot cascade into a tenant. In the other direction
+--    converted_tenant_id is `on delete set null`, so deleting a tenant leaves
+--    the application intact with a null pointer - which the detail page renders
+--    honestly ("The tenant record created from this application no longer
+--    exists") rather than as an error.
+-- =============================================================================
+create or replace function public.record_application_conversion(
+  p_application_id uuid,
+  p_tenant_id      uuid
+)
+  returns table (success boolean, reason text)
+  language plpgsql
+  security definer
+  set search_path = public
+as $function$
+declare
+  v_owner uuid := (select auth.uid());
+  v_app   record;
+begin
+  if v_owner is null then
+    raise exception 'not authenticated';
+  end if;
+
+  select a.id, a.converted_tenant_id
+  into v_app
+  from public.rental_applications a
+  where a.id = p_application_id
+    and a.owner_user_id = v_owner
+  for update;
+
+  if not found then
+    raise exception 'application not found';
+  end if;
+
+  -- BOTH rows are checked, not just the application. Verifying only the
+  -- application would let an owner point their own application at another
+  -- owner's tenant id, creating a cross-owner reference that leaks the
+  -- existence of that tenant and corrupts the other owner's records
+  -- (T-66-14). tenants.owner_user_id is nullable, so this comparison also
+  -- correctly excludes any unowned tenant row.
+  if not exists (
+    select 1
+    from public.tenants t
+    where t.id = p_tenant_id
+      and t.owner_user_id = v_owner
+  ) then
+    raise exception 'tenant not found';
+  end if;
+
+  -- Returned, not raised. A second call is a double-click on a slow network or a
+  -- retried navigation, and the UI has already relabelled its primary control to
+  -- "View tenant" for this state - so raising would surface an error toast for
+  -- something entirely benign. Enforcing this in the RPC rather than only in the
+  -- UI is what stops a double submit minting a second tenant (T-66-20).
+  if v_app.converted_tenant_id is not null then
+    return query select false, 'already_converted'::text;
+    return;
+  end if;
+
+  update public.rental_applications
+  set converted_tenant_id = p_tenant_id,
+      converted_at = now(),
+      status = 'approved',
+      decided_at = coalesce(decided_at, now())
+  where id = p_application_id
+    and owner_user_id = v_owner;
+
+  return query select true, null::text;
+end;
+$function$;
+
+comment on function public.record_application_conversion(uuid, uuid) is
+  'Owner-gated recorder for D-08/D-09 conversion: stamps converted_tenant_id, converted_at, status=approved and decided_at on an application the caller owns, pointing at a tenant the caller also owns. Returns (false, already_converted) rather than raising on a repeat, so a double-click is benign. Never creates a tenant, and nothing points from tenants back to applications, so no delete in either direction can cascade.';
+
+revoke all on function public.record_application_conversion(uuid, uuid) from public;
+grant execute on function public.record_application_conversion(uuid, uuid) to authenticated;
+
+-- =============================================================================
+-- GRANT LEDGER - the whole lockdown, checkable without reading seven bodies.
+--
+--   Every function below is SECURITY DEFINER with search_path pinned to public,
+--   and every one is revoked from PUBLIC before its grant. The revoke is the
+--   load-bearing half: PostgreSQL auto-grants EXECUTE to PUBLIC at creation and
+--   anon inherits PUBLIC, so a missing revoke leaves the function callable by an
+--   unauthenticated request regardless of what its body checks.
+--
+--   #  Function                                          Grant          Gate
+--   -  ------------------------------------------------  -------------  ---------------
+--   1  create_application_link(uuid, integer)            authenticated  auth.uid + unit ownership
+--   2  revoke_application_link(uuid)                     authenticated  auth.uid + link ownership
+--   3  get_application_context(text)                     service_role   token_hash only, read-only
+--   4  submit_rental_application(text,uuid,jsonb,        service_role   token_hash + FOR UPDATE caps
+--         text,text)
+--   5  set_application_status(uuid, text, text)          authenticated  auth.uid + row ownership
+--   6  set_application_notes(uuid, text)                 authenticated  auth.uid + row ownership
+--   7  record_application_conversion(uuid, uuid)         authenticated  auth.uid + BOTH row ownerships
+--
+--   3 and 4 are the public-boundary functions and are service_role ONLY. An
+--   authenticated grant on either would let any signed-in user read link context
+--   for, or submit applications against, any token hash they can observe - which
+--   is the entire surface the Edge Function exists to mediate.
+--
+--   The owner write surface is closed by this file plus one policy: every owner
+--   mutation is 1, 2, 5, 6 or 7 above, and deleting an application goes through
+--   the rental_applications_delete policy from plan 66-01. There is no other
+--   write path into either table for any role.
+-- =============================================================================
