@@ -180,12 +180,35 @@ Plans:
 **Depends on**: Phase 52 (owner notification on submission); independent of ledger/reporting
 **Requirements**: APPLY-01, APPLY-02, APPLY-03, APPLY-04, APPLY-05, APPLY-06
 **Success Criteria** (what must be TRUE):
-  1. Owner generates a shareable application link for a vacant unit — 256-bit token stored SHA-256-hashed, public `/apply/[token]` page (mirrors `/sign/[token]`; route added to proxy `PUBLIC_ROUTES`)
+  1. Owner generates a shareable application link for a vacant unit — 256-bit token stored SHA-256-hashed, public `/apply/[token]` page (mirrors `/sign/[token]`)
   2. An applicant submits without an account via a `verify_jwt=false` Edge-Function-mediated insert (never an anonymous RLS INSERT) with per-IP rate limit + honeypot; SSN is never collected
   3. Owner reviews applications per unit through a new / reviewing / approved / rejected workflow, and approving converts the applicant into a tenant record with prefilled fields
   4. Applicant PII auto-purges for non-converted applications after a defined window (cron) and cascades on owner GDPR deletion
   5. The application surface explicitly discloses that screening/FCRA duties sit with the landlord and TenantFlow performs no screening
-**Plans**: TBD
+
+**Requirement-text correction (D-13):** SC-1 previously said the route is "added to proxy `PUBLIC_ROUTES`". `PUBLIC_ROUTES` does not exist in this codebase — `grep -rn "PUBLIC_ROUTES" src/` returns nothing. The proxy gates on `PRIVATE_ROUTE_PREFIXES`, a deny-list, so `/apply/[token]` is public by NOT being added to it. The phrase is struck rather than implemented; `/applications` (the owner queue) IS added to the deny-list.
+
+**Plans**: 17 plans
+Plans:
+- [ ] 66-01-PLAN.md — Migration A: tables, CHECK constraints, indexes, RLS, anon revokes, notification_type extension (APPLY-01/02/03/05)
+- [ ] 66-02-PLAN.md — Shared contracts: strict zod schema, Deno bot guards + payload validator, locked copy constants (APPLY-02/03/06)
+- [ ] 66-03-PLAN.md — Route gating, robots drift guard, nav + breadcrumb + notification visual (APPLY-01/03)
+- [ ] 66-04-PLAN.md — Migration B: the seven RPCs, fail-closed caps under FOR UPDATE, grant lockdown (APPLY-01/02/03/04)
+- [ ] 66-05-PLAN.md — Migration C/D: 730-day anonymize sweep + cron + GDPR cascade (APPLY-05)
+- [ ] 66-06-PLAN.md — **[BLOCKING, owner-gated]** apply migrations via MCP, reconcile filenames, `db:types`, production smokes
+- [ ] 66-07-PLAN.md — `apply-token` Edge Function (verify_jwt=false) + config.toml + contract guard (APPLY-02)
+- [ ] 66-08-PLAN.md — **[owner-gated]** deploy `apply-token` + boundary verification (APPLY-02)
+- [ ] 66-09-PLAN.md — Owner data layer: queryOptions factories, typed mappers, mutation options (APPLY-01/03/04)
+- [ ] 66-10-PLAN.md — RLS integration suites: anon denial, owner isolation, caps under concurrency, retention (APPLY-01..05)
+- [ ] 66-11-PLAN.md — Public `/apply/[token]` RSC page + apply-context (APPLY-01/06)
+- [ ] 66-12-PLAN.md — The applicant form: 5 sections, honeypot, disclaimer, attestation, six states (APPLY-02/06)
+- [ ] 66-13-PLAN.md — `/applications` queue page, filters, pagination, status badge (APPLY-03)
+- [ ] 66-14-PLAN.md — Application-links band: create, copy, revoke (APPLY-01)
+- [ ] 66-15-PLAN.md — `/applications/[id]` detail, decline dialog, delete, anonymized treatment (APPLY-03/04)
+- [ ] 66-16-PLAN.md — Convert to tenant: prefill at BOTH call sites + conversion recording (APPLY-04)
+- [ ] 66-17-PLAN.md — E2E: 16 public + 5 owner geometry/order assertions (APPLY-01/02/03/04/06)
+**Waves**: 1 → {01, 02, 03} · 2 → {04, 05} · 3 → {06, 07} · 4 → {08, 09, 11} · 5 → {10, 12, 13, 16} · 6 → {14, 15} · 7 → {17}
+**Gate**: 66-06 is a blocking owner-gated production migration (`autonomous: false`); 66-08 is a blocking owner-run Edge Function deploy. No wave-4 plan may start before 66-06 is green — build and typecheck both pass against a stale generated `supabase.ts`, so a green CI is not evidence the schema exists.
 **UI hint**: yes
 
 ### Phase 67: Tenant Communication Log
