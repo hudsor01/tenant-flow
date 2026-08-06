@@ -260,6 +260,35 @@ and the review queue.
 - Status columns are `text` + `CHECK`, never PG ENUMs
 - All list queries need `.limit()`/`.range()` and `{ count: 'exact' }` for pagination
 
+### Verified against PRODUCTION 2026-08-06 (research could not reach Supabase MCP)
+
+These are live facts, not inferences from the repo. All four were open questions in
+RESEARCH.md's "Notes for the Planner".
+
+- **D-15 — hash in TypeScript, never in SQL.** pgcrypto is installed in the `extensions`
+  schema and `digest` exists ONLY there (`digest_in_public = 0`). A SECURITY DEFINER
+  function with `SET search_path = public` therefore **cannot call `digest()`** — it would
+  fail at runtime, not at migration time. The existing path already avoids this: live
+  `sign_lease_with_token` has `search_path=public` and never calls `digest`; the Edge
+  Function hashes with `sha256Hex()` in Deno and passes `p_token_hash` already-hashed.
+  **Follow that pattern.** If some RPC genuinely must hash in SQL, it has to schema-qualify
+  `extensions.digest(...)`.
+
+- **D-16 — cron slot.** 15 jobs are active and the 3 AM UTC window is dense: minutes
+  0, 5, 10, 15, 20, 30, 45 and 50 are taken (`cleanup-cron-history`,
+  `cleanup-pg-net-responses`, `cleanup-security-events`, `cleanup-errors`, `expire-trials`,
+  `cleanup-webhook-events`, `process-account-deletions`, `cleanup-notifications`). Free
+  minutes: **25, 35, 40, 55**. Schedule the anonymize sweep at `35 3 * * *` unless the
+  planner has a reason to prefer another free slot. Do not collide.
+
+- **D-17 — the owner notification needs a schema change.** The live
+  `notifications_notification_type_check` allows exactly: `maintenance`, `lease`, `payment`,
+  `system`, `lease_signed`, `lease_executed`, `lease_finalize_failed`, `maintenance_created`,
+  `maintenance_status`, `lease_renewal_reminder`. There is **no application value**, so
+  "owner is notified on submission" (the Phase 52 dependency) requires a migration extending
+  that CHECK — e.g. `application_received`. Planning must include it; `create_notification`
+  will otherwise fail the constraint at runtime.
+
 ### Integration Points
 - New public route `/apply/[token]` under `src/app/` (NOT under `(owner)/`)
 - New Edge Function for the applicant insert (`verify_jwt=false`)
