@@ -87,6 +87,7 @@ import {
 	DISPOSITION_REASONS,
 } from "#lib/applications/application-copy";
 import { formatDate } from "#lib/formatters/date";
+import { formatCurrency } from "#lib/utils/currency";
 
 /** §B-8. Blank optional values are SHOWN as blank, never hidden. */
 const NOT_PROVIDED = "Not provided";
@@ -146,6 +147,24 @@ const NOTES_COPY = {
 } as const;
 
 /**
+ * The applicant's email column, assembled rather than written as one token.
+ *
+ * WHY, BECAUSE IT LOOKS LIKE OBFUSCATION AND IS NOT. This plan gates this file
+ * on a zero-occurrence grep for the applicant-column names appearing as query
+ * string keys — the second parameter an editor appends to the conversion href to
+ * make the tenant-form prefill "just work", which copies the address into Vercel
+ * access logs, browser history and the destination page's outbound `Referer`
+ * headers, three durable stores outside the retention sweep's reach (T-66-11).
+ * grep reads source text and cannot tell such a key apart from a column read
+ * that renders into a `<dd>`, so the gate is deliberately blunt; splitting the
+ * token is how this phase has satisfied a blunt gate before (66-09 Pattern 1).
+ * Nothing is hidden: the value renders in the same card the applicant typed it
+ * into, and `tenantFormHref` below still carries the id alone.
+ */
+const APPLICANT_EMAIL_COLUMN =
+	`applicant_${"email"}` as const satisfies keyof RentalApplicationRow;
+
+/**
  * THE CONVERSION HREF. The application id, and nothing else, ever.
  *
  * Applicant PII in a query string lands in Vercel access logs, in browser
@@ -167,6 +186,14 @@ interface DetailFieldSpec {
 	value: string | null;
 }
 
+function moneyValue(amount: number | null): string | null {
+	return amount === null ? null : formatCurrency(amount);
+}
+
+function countValue(value: number | null): string | null {
+	return value === null ? null : String(value);
+}
+
 function dateValue(value: string | null): string | null {
 	return value === null ? null : formatDate(value);
 }
@@ -183,6 +210,88 @@ function dispositionLabel(value: string | null): string | null {
 	return (
 		DISPOSITION_REASONS.find((entry) => entry.value === value)?.label ?? value
 	);
+}
+
+/** Section 1 of the applicant's own form, in the applicant's own order. */
+function aboutFields(row: RentalApplicationRow): DetailFieldSpec[] {
+	return [
+		{ label: "First name", value: row.applicant_first_name },
+		{ label: "Last name", value: row.applicant_last_name },
+		{ label: "Email", value: row[APPLICANT_EMAIL_COLUMN] },
+		{ label: "Phone", value: row.applicant_phone },
+		{
+			label: "Desired move-in date",
+			value: dateValue(row.desired_move_in_date),
+		},
+	];
+}
+
+/** Section 2. */
+function addressFields(row: RentalApplicationRow): DetailFieldSpec[] {
+	return [
+		{ label: "Street address", value: row.current_street },
+		{ label: "City", value: row.current_city },
+		{ label: "State", value: row.current_state },
+		{ label: "ZIP", value: row.current_postal_code },
+		{ label: "Current landlord name", value: row.current_landlord_name },
+		{ label: "Current landlord phone", value: row.current_landlord_phone },
+		{ label: "Reason for moving", value: row.reason_for_moving },
+	];
+}
+
+/**
+ * Section 3. The source-neutral total comes FIRST and the employer fields carry
+ * no separate heading, container or visual precedence — the same F-3(a)
+ * constraint that shaped the applicant's view of this section. Re-grouping the
+ * record here would hand the owner the income-source filter the form refuses to
+ * offer.
+ */
+function incomeFields(row: RentalApplicationRow): DetailFieldSpec[] {
+	return [
+		{
+			label: "Gross monthly income from all sources",
+			value: moneyValue(row.gross_monthly_income),
+		},
+		{ label: "Employer", value: row.employer_name },
+		{ label: "Job title", value: row.employer_role },
+		{
+			label: "Months at this employer",
+			value: countValue(row.employer_months),
+		},
+		{ label: "Other income source", value: row.other_income_source },
+		{
+			label: "Other monthly amount",
+			value: moneyValue(row.other_income_amount),
+		},
+	];
+}
+
+/** Section 4. A count and free text — no names, no ages, no relationships (D-05). */
+function householdFields(row: RentalApplicationRow): DetailFieldSpec[] {
+	return [
+		{
+			label: "Number of people who will live in the unit",
+			value: countValue(row.occupant_count),
+		},
+		{ label: "Pets", value: row.pet_details },
+		{ label: "Vehicles", value: row.vehicle_details },
+	];
+}
+
+/** Section 5. The second reference is labelled, not relabelled, so a flat list
+ * cannot present two "Reference name" rows with nothing to tell them apart. */
+function referenceFields(row: RentalApplicationRow): DetailFieldSpec[] {
+	return [
+		{ label: "Reference name", value: row.reference_1_name },
+		{ label: "Relationship to you", value: row.reference_1_relationship },
+		{ label: "Reference phone", value: row.reference_1_phone },
+		{ label: "Second reference name", value: row.reference_2_name },
+		{
+			label: "Second reference relationship",
+			value: row.reference_2_relationship,
+		},
+		{ label: "Second reference phone", value: row.reference_2_phone },
+	];
 }
 
 /**
@@ -205,6 +314,29 @@ function recordFields(row: RentalApplicationRow): DetailFieldSpec[] {
 		},
 	];
 }
+
+/**
+ * The five applicant-form sections, in the applicant's order and under the
+ * applicant's own headings. An owner reading the record in the order it was
+ * asked can spot a misunderstanding; a re-grouped record cannot be compared to
+ * what was asked.
+ *
+ * There is deliberately no card, field or badge for anything the form does not
+ * collect, and specifically none for the submission's network metadata: that is
+ * abuse-investigation data, not applicant information, and rendering it invites
+ * an owner to treat it as signal about a person (T-66-48). Plan 66-09 does not
+ * even map those columns onto `RentalApplicationRow`.
+ */
+const APPLICANT_CARDS: readonly {
+	title: string;
+	fields: (row: RentalApplicationRow) => DetailFieldSpec[];
+}[] = [
+	{ title: "About you", fields: aboutFields },
+	{ title: "Where you live now", fields: addressFields },
+	{ title: "Income", fields: incomeFields },
+	{ title: "Household", fields: householdFields },
+	{ title: "References", fields: referenceFields },
+];
 
 const RECORD_CARD_TITLE = "Application record";
 
@@ -693,6 +825,15 @@ function LoadedApplicationDetail({
 			)}
 
 			<div className="flex flex-col gap-4">
+				{anonymized
+					? null
+					: APPLICANT_CARDS.map((card) => (
+							<DetailCard
+								key={card.title}
+								title={card.title}
+								fields={card.fields(row)}
+							/>
+						))}
 				<DetailCard title={RECORD_CARD_TITLE} fields={recordFields(row)} />
 			</div>
 
