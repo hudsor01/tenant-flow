@@ -780,13 +780,22 @@ function LoadedApplicationDetail({
 		},
 	});
 
+	/**
+	 * NO `onSuccess` ON ANY OF THESE THREE OPTIONS OBJECTS. An options-level
+	 * callback REPLACES the factory's; only a callback passed to `mutate(vars,
+	 * { onSuccess })` runs alongside it. The factories are where plan 66-09's
+	 * invalidation of `applicationKeys.all` and `ownerDashboardKeys.all` lives, so
+	 * an options-level `onSuccess` here writes to the database and refreshes
+	 * nothing — with `staleTime: 5 * 60 * 1000` on the detail query, the notes
+	 * textarea visibly reverted to the old note and a deleted application stayed
+	 * in the queue with the pager still counting it.
+	 *
+	 * `onError` is safe in this position because none of the three factories
+	 * defines one. Every success-side side effect is at its call site below,
+	 * matching `application-decline-dialog.tsx` and `application-link-panel.tsx`.
+	 */
 	const saveNotes = useMutation({
 		...setApplicationNotesMutationOptions(queryClient),
-		onSuccess: () => {
-			toast.success("Notes saved");
-			// Drop the local draft so the field goes back to tracking the server.
-			setNotesDraft(null);
-		},
 		onError: () => {
 			toast.error("Couldn't save your notes. Try again.");
 		},
@@ -794,11 +803,6 @@ function LoadedApplicationDetail({
 
 	const deleteApplication = useMutation({
 		...deleteApplicationMutationOptions(queryClient),
-		onSuccess: () => {
-			toast.success("Application deleted");
-			setDeleteOpen(false);
-			router.push("/applications");
-		},
 		onError: () => {
 			toast.error("Couldn't delete this application. Try again.");
 		},
@@ -867,7 +871,19 @@ function LoadedApplicationDetail({
 					saving={saveNotes.isPending}
 					dirty={notesValue !== savedNotes}
 					onSave={() => {
-						saveNotes.mutate({ applicationId, notes: notesValue });
+						// The per-call callback runs ALONGSIDE the factory's own onSuccess,
+						// so plan 66-09's invalidation still fires.
+						saveNotes.mutate(
+							{ applicationId, notes: notesValue },
+							{
+								onSuccess: () => {
+									toast.success("Notes saved");
+									// Drop the local draft so the field goes back to tracking
+									// the server value the invalidation just refetched.
+									setNotesDraft(null);
+								},
+							},
+						);
 					}}
 				/>
 			)}
@@ -885,7 +901,17 @@ function LoadedApplicationDetail({
 				onOpenChange={setDeleteOpen}
 				loading={deleteApplication.isPending}
 				onConfirm={() => {
-					deleteApplication.mutate(applicationId);
+					// The per-call callback runs ALONGSIDE the factory's own onSuccess.
+					// This is the one direct-table write in the phase, so without that
+					// invalidation the row is gone server-side while every cached read
+					// still shows it in the queue.
+					deleteApplication.mutate(applicationId, {
+						onSuccess: () => {
+							toast.success("Application deleted");
+							setDeleteOpen(false);
+							router.push("/applications");
+						},
+					});
 				}}
 			/>
 		</div>

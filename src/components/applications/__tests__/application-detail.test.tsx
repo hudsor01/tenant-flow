@@ -39,13 +39,41 @@ import {
 	within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mutationKeys } from "#hooks/api/mutation-keys";
-import type { RentalApplicationRow } from "#hooks/api/query-keys/application-keys";
+import {
+	applicationKeys,
+	type RentalApplicationRow,
+} from "#hooks/api/query-keys/application-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { ApplicationDetail } from "../application-detail";
 
-const mockUseQuery = vi.fn();
-const mockUseMutation = vi.fn();
+/**
+ * The options object the component hands `useMutation`. Captured rather than
+ * merely dispatched on, because WHICH `onSuccess` survives the spread is the
+ * whole question: an options-level callback REPLACES the factory's, while one
+ * passed to `mutate(vars, { onSuccess })` runs alongside it.
+ */
+interface CapturedMutation {
+	mutationKey?: readonly unknown[];
+	onSuccess?: (
+		data: unknown,
+		variables: unknown,
+		context: unknown,
+	) => unknown | Promise<unknown>;
+	onError?: (
+		error: unknown,
+		variables: unknown,
+		context: unknown,
+	) => unknown | Promise<unknown>;
+}
+
+const { mockUseQuery, mockUseMutation, invalidateSpy } = vi.hoisted(() => ({
+	mockUseQuery: vi.fn(),
+	mockUseMutation: vi.fn(),
+	invalidateSpy: vi.fn(),
+}));
 
 vi.mock("@tanstack/react-query", async () => {
 	const actual = await vi.importActual<typeof import("@tanstack/react-query")>(
@@ -55,11 +83,12 @@ vi.mock("@tanstack/react-query", async () => {
 		...actual,
 		useQuery: (options: { queryKey: readonly unknown[] }) =>
 			mockUseQuery(options),
-		useMutation: (options: { mutationKey?: readonly unknown[] }) =>
-			mockUseMutation(options),
-		// The real one needs a provider. The factories only ever hand it to their
-		// own `onSuccess`, which a mocked `useMutation` never runs.
-		useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+		useMutation: (options: CapturedMutation) => mockUseMutation(options),
+		// The real one needs a provider. A STABLE spy, not a fresh `vi.fn()` per
+		// call: the factories hand this client to their own `onSuccess`, and the
+		// tests below invoke that callback directly to prove the invalidation is
+		// still attached.
+		useQueryClient: () => ({ invalidateQueries: invalidateSpy }),
 	};
 });
 
@@ -220,20 +249,34 @@ const setStatusSpy = vi.fn();
 const setNotesSpy = vi.fn();
 const deleteSpy = vi.fn();
 
+/** Every options object the component handed `useMutation`, keyed by its key. */
+const capturedMutations = new Map<string, CapturedMutation>();
+
 /** Dispatch on the mutation key so each of the three writes has its own spy. */
 function mockMutations() {
-	mockUseMutation.mockImplementation(
-		(options: { mutationKey?: readonly unknown[] }) => {
-			const key = JSON.stringify(options.mutationKey ?? []);
-			const mutate =
-				key === JSON.stringify(mutationKeys.applications.setStatus)
-					? setStatusSpy
-					: key === JSON.stringify(mutationKeys.applications.setNotes)
-						? setNotesSpy
-						: deleteSpy;
-			return { mutate, isPending: false };
-		},
-	);
+	capturedMutations.clear();
+	mockUseMutation.mockImplementation((options: CapturedMutation) => {
+		const key = JSON.stringify(options.mutationKey ?? []);
+		capturedMutations.set(key, options);
+		const mutate =
+			key === JSON.stringify(mutationKeys.applications.setStatus)
+				? setStatusSpy
+				: key === JSON.stringify(mutationKeys.applications.setNotes)
+					? setNotesSpy
+					: deleteSpy;
+		return { mutate, isPending: false };
+	});
+}
+
+/** The options the component passed for one mutation key. Throws if absent. */
+function capturedFor(mutationKey: readonly unknown[]): CapturedMutation {
+	const captured = capturedMutations.get(JSON.stringify(mutationKey));
+	if (captured === undefined) {
+		throw new Error(
+			`The component never called useMutation for ${JSON.stringify(mutationKey)} — the parser, not the source, may be wrong.`,
+		);
+	}
+	return captured;
 }
 
 function renderDetail() {
@@ -733,6 +776,92 @@ describe("ApplicationDetail — loading, failure and a row that is not there", (
 		await user.click(screen.getByRole("button", { name: "Retry" }));
 		expect(refetch).toHaveBeenCalledTimes(1);
 		expect(container.textContent ?? "").not.toContain("PGRST");
+	});
+});
+
+/**
+ * THE OPTIONS-LEVEL `onSuccess` TRAP.
+ *
+ * `useMutation({ ...factory(queryClient), onSuccess })` REPLACES the factory's
+ * own `onSuccess` — the object spread does exactly what it says. Only a callback
+ * handed to `mutate(vars, { onSuccess })` runs ALONGSIDE it. The factories are
+ * where plan 66-09's invalidation of `applicationKeys.all` and
+ * `ownerDashboardKeys.all` lives, so the trap writes to the database and
+ * refreshes nothing: with `staleTime: 5 * 60 * 1000` the notes textarea reverted
+ * to the old note, and a deleted application stayed in the queue with the pager
+ * still counting it.
+ *
+ * A TEST THAT ONLY ASSERTED "THE TOAST APPEARED" WOULD HAVE PASSED BEFORE THE
+ * FIX, because the toast is exactly what the replacing callback did. So these
+ * invoke the surviving `onSuccess` and assert the invalidation itself.
+ */
+describe("ApplicationDetail — every write invalidates what it changed", () => {
+	it.each([
+		["the status write", mutationKeys.applications.setStatus],
+		["the notes write", mutationKeys.applications.setNotes],
+		["the delete", mutationKeys.applications.delete],
+	])("keeps the factory's invalidation on %s", async (_label, mutationKey) => {
+		mockQueries(makeRow());
+		renderDetail();
+
+		const options = capturedFor(mutationKey);
+		// Positive control: there IS a surviving success callback to run. Without
+		// this, a component that passed none would satisfy the assertions below by
+		// invalidating nothing and never being called.
+		expect(options.onSuccess).toBeTypeOf("function");
+		await options.onSuccess?.(undefined, undefined, undefined);
+
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: applicationKeys.all,
+		});
+		expect(invalidateSpy).toHaveBeenCalledWith({
+			queryKey: ownerDashboardKeys.all,
+		});
+	});
+
+	it("puts the notes toast and draft reset on the CALL, not on the options", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ owner_notes: "Called Tuesday." }));
+		renderDetail();
+
+		await user.type(screen.getByLabelText("Private notes"), " Left a message.");
+		await waitFor(() => {
+			expect(screen.getByRole("button", { name: "Save notes" })).toBeEnabled();
+		});
+		await user.click(screen.getByRole("button", { name: "Save notes" }));
+
+		const perCall = setNotesSpy.mock.calls[0]?.[1] as
+			| { onSuccess?: () => void }
+			| undefined;
+		expect(perCall?.onSuccess).toBeTypeOf("function");
+		expect(toast.success).not.toHaveBeenCalled();
+		perCall?.onSuccess?.();
+		expect(toast.success).toHaveBeenCalledWith("Notes saved");
+	});
+
+	it("puts the delete toast and the navigation on the CALL, not on the options", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow());
+		renderDetail();
+
+		await user.click(
+			screen.getByRole("button", { name: "Application actions" }),
+		);
+		await user.click(
+			await screen.findByRole("menuitem", { name: "Delete application" }),
+		);
+		const dialog = await screen.findByRole("alertdialog");
+		await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+		const perCall = deleteSpy.mock.calls[0]?.[1] as
+			| { onSuccess?: () => void }
+			| undefined;
+		expect(perCall?.onSuccess).toBeTypeOf("function");
+		// The navigation must not fire until the delete actually resolved.
+		expect(pushSpy).not.toHaveBeenCalled();
+		perCall?.onSuccess?.();
+		expect(toast.success).toHaveBeenCalledWith("Application deleted");
+		expect(pushSpy).toHaveBeenCalledWith("/applications");
 	});
 });
 
