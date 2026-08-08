@@ -134,17 +134,46 @@ function toApplicationValues(raw: unknown): unknown {
 }
 
 /**
- * The form-level validator, and the single source of the submitted
- * `application` object.
+ * The single source of the submitted `application` object.
  *
  * It is a `preprocess` over `rentalApplicationSchema`, not a rewrite of it: the
- * inner schema's issue paths survive the pipe unchanged, so TanStack still lands
- * every message on the field it belongs to. Its parsed OUTPUT is what gets
- * posted, which means the trimming, the lowercased email and the uppercased
- * state code are applied once, by the schema, rather than restated at the fetch
- * call.
+ * inner schema's issue paths survive the pipe unchanged. Its parsed OUTPUT is
+ * what gets posted, which means the trimming, the lowercased email and the
+ * uppercased state code are applied once, by the schema, rather than restated at
+ * the fetch call.
  */
 export const applicationSubmissionSchema = z.preprocess(
 	toApplicationValues,
 	rentalApplicationSchema,
 );
+
+/**
+ * The form-level validator, expressed as a FUNCTION rather than handed to
+ * TanStack as a Standard Schema.
+ *
+ * The reason is a type fact, not a preference. TanStack's form-level slot is
+ * `StandardSchemaV1<TFormData, unknown>` — the schema's declared INPUT must be
+ * the form's value type. A `preprocess` pipe declares its input as `unknown`
+ * (that is the whole point of a preprocessor), so it does not fit that slot, and
+ * the only ways to make it fit are a cast or a hand-written second schema over
+ * the form shape. Both are worse than this: a cast hides a real mismatch, and a
+ * second schema is the contract restated in a place free to drift from it.
+ *
+ * This maps one message per field, keyed by the issue's first path segment,
+ * which is the same mapping TanStack performs internally for a Standard Schema.
+ */
+export function validateApplicationForm(
+	value: ApplicationFormValues,
+): { fields: Record<string, string> } | undefined {
+	const result = applicationSubmissionSchema.safeParse(value);
+	if (result.success) return undefined;
+	const fields: Record<string, string> = {};
+	for (const issue of result.error.issues) {
+		const key = issue.path[0];
+		// Only top-level fields exist in this contract; a nested path would have
+		// nowhere to render and is skipped rather than silently flattened.
+		if (typeof key !== "string") continue;
+		if (fields[key] === undefined) fields[key] = issue.message;
+	}
+	return { fields };
+}

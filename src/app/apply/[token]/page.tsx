@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react";
 import type { Metadata } from "next";
+import { RentalApplicationForm } from "#components/applications/rental-application-form";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { TOKEN_UNAVAILABLE_COPY } from "#lib/applications/application-copy";
 import {
@@ -97,7 +98,7 @@ export default async function ApplyPage({
 					</div>
 				</header>
 
-				<ApplyCard context={context} />
+				<ApplyCard context={context} token={token} />
 
 				{/* mb-0: this <p> is a flex item of the gap-6 page column, so the base
 				    <p> margin would be added to the shell's height rather than
@@ -114,8 +115,17 @@ export default async function ApplyPage({
 /**
  * The single card slot. Three branches and no fourth.
  */
-function ApplyCard({ context }: { context: ApplyContextResponse }) {
-	if (context.valid) return <ListingCard listing={context.listing} />;
+function ApplyCard({
+	context,
+	token,
+}: {
+	context: ApplyContextResponse;
+	token: string;
+}) {
+	// `token` is threaded down solely so the form can post it back; the shell
+	// itself never renders it, and it must never appear in page output (T-66-02).
+	if (context.valid)
+		return <ListingCard listing={context.listing} token={token} />;
 
 	// The only branch that renders differently, and it earns that by being the
 	// only reason that carries no information about the token: our fetch failed,
@@ -136,7 +146,13 @@ function ApplyCard({ context }: { context: ApplyContextResponse }) {
 	return <NoticeCard {...TOKEN_UNAVAILABLE_COPY} />;
 }
 
-function ListingCard({ listing }: { listing: ApplyListing }) {
+function ListingCard({
+	listing,
+	token,
+}: {
+	listing: ApplyListing;
+	token: string;
+}) {
 	return (
 		<Card>
 			{/* px-4 sm:px-6 is Spacing exception 3: it reclaims 16px of field width
@@ -162,11 +178,13 @@ function ListingCard({ listing }: { listing: ApplyListing }) {
 					<SummaryRow label="Delivered to" value={listing.owner_display_name} />
 				</dl>
 
-				{/* Plan 66-12 inserts the 26-field client island here
-				    (<RentalApplicationForm token={token} />) and threads `token` down
-				    from ApplyPage. Deliberately NOT stubbed: a placeholder form would
-				    render a submit affordance that submits nothing, which is worse on
-				    this surface than an obviously unfinished one. */}
+				{/* The only client island on this page. Everything above it is
+				    server-rendered and holds no state at all. */}
+				<RentalApplicationForm
+					token={token}
+					propertyLabel={listing.property_label}
+					unitLabel={listing.unit_label}
+				/>
 			</CardContent>
 		</Card>
 	);
