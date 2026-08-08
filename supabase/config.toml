@@ -485,6 +485,14 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+# Rental application intake — PUBLIC: the applicant has no account. The
+# reusable posting token in the /apply/<token> URL is the capability. Validated
+# by SHA-256-hashed lookup inside a SECURITY DEFINER RPC that also enforces the
+# fail-closed per-link submission caps. Per-IP rate-limited. NOT Supabase JWT.
+[functions.apply-token]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
