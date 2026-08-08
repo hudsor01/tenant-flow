@@ -530,4 +530,41 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 			"min-w-0",
 		);
 	});
+
+	/**
+	 * THE STATUS TAB STRIP, AND THE ONE ASSERTION THAT IS NOT MERE SPELLING.
+	 *
+	 * `overflow-x-auto scrollbar-hide` shipped alone and was INERT: `TabsList`'s
+	 * own base carries `w-fit`, the overflow utilities live in a different
+	 * tailwind-merge group, so the box kept `width: fit-content` and could never
+	 * be narrower than its five `whitespace-nowrap` triggers. At 375px it grew
+	 * past its container and the DOCUMENT scrolled sideways while the strip itself
+	 * never moved.
+	 *
+	 * The `w-fit` absence below is a genuine tailwind-merge RESOLUTION check, not
+	 * a presence check: `w-fit` is written in the primitive's base string and only
+	 * disappears from the rendered attribute if a same-group utility actually beat
+	 * it. Whether the resulting box then scrolls is geometry, and jsdom computes
+	 * none — that half is E-22 in `tests/e2e/tests/owner/applications.spec.ts`,
+	 * which measures the strip's scrollWidth and the document's at 375px.
+	 */
+	it("resolves the tab strip's width away from the primitive's w-fit", () => {
+		mockQueries(successState(makeRows(2), 2));
+		render(<ApplicationQueue />);
+
+		const strip = screen.getByRole("tablist", { name: "Filter by status" });
+		const classes = strip.getAttribute("class")?.split(/\s+/) ?? [];
+
+		// Positive control: the primitive's OWN base classes are in this string, so
+		// the absence assertion below is being made against a merged result rather
+		// than against an element that never received the base at all.
+		expect(classes).toContain("inline-flex");
+		expect(classes).toContain("h-11");
+
+		expect(classes).not.toContain("w-fit");
+		expect(classes).toContain("w-full");
+		expect(classes).toContain("sm:w-fit");
+		expect(classes).toContain("max-w-full");
+		expect(classes).toContain("overflow-x-auto");
+	});
 });

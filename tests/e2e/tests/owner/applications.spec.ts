@@ -232,6 +232,60 @@ test.describe("/applications — the owner review queue", () => {
 		expect(computed.itemMarginBottom).toBe("0px");
 	});
 
+	/**
+	 * E-22: the status tab strip scrolls, the PAGE does not.
+	 *
+	 * `overflow-x-auto scrollbar-hide` shipped on `TabsList` and was inert.
+	 * `TabsList`'s own base carries `w-fit` and the overflow utilities are in a
+	 * different tailwind-merge group, so the box kept `width: fit-content` and
+	 * could never be narrower than its five `whitespace-nowrap` triggers: at 375px
+	 * it grew past its container and the DOCUMENT scrolled sideways while the
+	 * strip itself never moved.
+	 *
+	 * A class assertion cannot decide this — the classes were present in the
+	 * broken build too, which is the whole §D lesson. Only the measurement can.
+	 */
+	test("E-22: the status tabs scroll in place at 375px, and the page does not", async ({
+		page,
+	}) => {
+		test.skip(
+			application === null,
+			`no application fixture: ${applicationReason ?? "unknown"}`,
+		);
+		await openQueue(page, 375);
+
+		const strip = page.getByRole("tablist", { name: "Filter by status" });
+		await expect(strip).toBeVisible({ timeout: 20000 });
+
+		const measured = await strip.evaluate((node) => {
+			const parent = node.parentElement;
+			return {
+				triggers: node.querySelectorAll('[role="tab"]').length,
+				scrollWidth: node.scrollWidth,
+				clientWidth: node.clientWidth,
+				parentWidth: parent ? parent.getBoundingClientRect().width : 0,
+				documentScrollWidth: document.documentElement.scrollWidth,
+				viewport: window.innerWidth,
+			};
+		});
+
+		// Positive controls FIRST. All five tabs must be mounted and their combined
+		// width must genuinely exceed the viewport, or the two assertions below are
+		// satisfied by a strip that had nothing to overflow.
+		expect(measured.triggers).toBe(5);
+		expect(measured.scrollWidth).toBeGreaterThan(measured.clientWidth);
+
+		// The box is capped by its container rather than growing past it...
+		expect(measured.clientWidth).toBeLessThanOrEqual(
+			Math.ceil(measured.parentWidth),
+		);
+		// ...so the overflow is absorbed by the strip and never by the document.
+		// One pixel of slack for sub-pixel rounding, and no more.
+		expect(measured.documentScrollWidth).toBeLessThanOrEqual(
+			measured.viewport + 1,
+		);
+	});
+
 	test("E-19: the link URL survives a reload and is re-copyable (D-03a)", async ({
 		page,
 	}) => {

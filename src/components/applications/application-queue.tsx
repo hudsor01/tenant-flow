@@ -432,10 +432,23 @@ export function ApplicationQueue() {
 				 * globals.css:1797) so five triggers scroll horizontally at 375px
 				 * instead of wrapping. No counts on the tabs this phase — a per-status
 				 * count needs a query nothing else on this page issues (§F).
+				 *
+				 * `w-full sm:w-fit max-w-full` IS WHAT MAKES THAT OVERFLOW REAL.
+				 * `TabsList`'s own base carries `w-fit` (ui/tabs.tsx), and the overflow
+				 * utilities sit in a different tailwind-merge group, so they do not
+				 * touch it: the box kept `width: fit-content` and could never be
+				 * narrower than its five `whitespace-nowrap` triggers. At 375px it
+				 * simply grew past its container and the DOCUMENT scrolled sideways
+				 * while the strip itself never moved — the overflow classes were
+				 * present and inert. `w-full` is in the same group as `w-fit` and does
+				 * remove it (verified against tailwind-merge, not assumed); `sm:w-fit`
+				 * restores hug-to-content once the row layout has the room; and
+				 * `max-w-full` is the belt that caps the box at its container in both
+				 * cases, which is what turns the overflow into a scroll of the strip.
 				 */}
 				<TabsList
 					aria-label="Filter by status"
-					className="overflow-x-auto scrollbar-hide"
+					className="w-full sm:w-fit max-w-full overflow-x-auto scrollbar-hide"
 				>
 					{STATUS_TABS.map((tab) => (
 						<TabsTrigger key={tab.value} value={tab.value}>
