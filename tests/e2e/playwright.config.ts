@@ -156,6 +156,11 @@ export default defineConfig({
 			testIgnore: [
 				"**/owner/dashboard-a11y.e2e.spec.ts",
 				"**/owner/dashboard-smoke.e2e.spec.ts",
+				// Phase 66 applications spec: same in-test loginAsOwner pattern, and
+				// its beforeAll seeds a PRODUCTION row. Running it once under
+				// owner-axe rather than three times across owner/firefox/mobile-chrome
+				// is both the CI-gating placement and the bound on that write.
+				"**/owner/applications.spec.ts",
 			],
 		},
 
@@ -196,6 +201,16 @@ export default defineConfig({
 				// medallion ladder and the Band 3 column collapse), which jsdom
 				// cannot produce at all.
 				"**/documents-hub.spec.ts",
+				// Phase 66 owner-surface geometry (plan 66-17, UI-SPEC §E rows E-17 to
+				// E-21) — self-authenticates via loginAsOwner (no storageState). It
+				// carries the ONLY computed-style assertions on the queue row's colour
+				// and text-decoration and on the list's padding/margin, which is the
+				// exact defect class Phase 65 shipped and which a class-presence unit
+				// test cannot decide: the classes were present in the broken build too,
+				// and the question is only ever whether they beat the unscoped
+				// `@layer base` rules in globals.css. Listing it here is what makes it
+				// gate a PR — CI runs `--project=owner-axe` and never runs `owner`.
+				"**/owner/applications.spec.ts",
 			],
 		},
 
@@ -262,6 +277,8 @@ export default defineConfig({
 			testIgnore: [
 				"**/owner/dashboard-a11y.e2e.spec.ts",
 				"**/owner/dashboard-smoke.e2e.spec.ts",
+				// Phase 66 applications spec — owner-axe only, see the note there.
+				"**/owner/applications.spec.ts",
 			],
 		},
 
@@ -281,6 +298,8 @@ export default defineConfig({
 			testIgnore: [
 				"**/owner/dashboard-a11y.e2e.spec.ts",
 				"**/owner/dashboard-smoke.e2e.spec.ts",
+				// Phase 66 applications spec — owner-axe only, see the note there.
+				"**/owner/applications.spec.ts",
 			],
 		},
 	],
