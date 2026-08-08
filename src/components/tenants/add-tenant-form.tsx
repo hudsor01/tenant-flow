@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
+import type { RentalApplicationRow } from "#hooks/api/query-keys/application-keys";
 import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm } from "#lib/forms/form-hook";
@@ -18,10 +19,63 @@ import { AddTenantPropertyFields } from "./add-tenant-property-fields";
 
 const logger = createLogger({ component: "AddTenantForm" });
 
+/** The six controlled fields this form owns. */
+export type AddTenantFormValues = typeof addTenantFormOptions.defaultValues;
+
+/**
+ * The four application columns the conversion reads. A `Pick` rather than the
+ * whole row so a future field cannot be added to the mapping by accident.
+ */
+export type ApplicationPrefillSource = Pick<
+	RentalApplicationRow,
+	| "applicant_email"
+	| "applicant_first_name"
+	| "applicant_last_name"
+	| "applicant_phone"
+>;
+
+/**
+ * Application row -> tenant-form prefill (APPLY-04). Defined ONCE and called
+ * from BOTH `/tenants/new` and its intercepting-route twin — two independent
+ * copies of this mapping is precisely the drift research Pitfall 6 describes.
+ *
+ * FOUR keys, and deliberately no more. `tenants` has no column for an
+ * applicant's address, income, employer or references, and widening it to
+ * absorb them would stand up a SECOND retention surface for applicant PII
+ * outside the 730-day sweep (T-66-51). The rest of the application stays on the
+ * application row and is reachable from the tenant through `converted_tenant_id`.
+ *
+ * The fifth prefilled tenant column, `name`, is NOT a key here because it is
+ * not a field on this form: `onSubmit` derives it from first + last exactly as
+ * it did before any application existed.
+ */
+export function applicationToTenantInitialValues(
+	row: ApplicationPrefillSource,
+): Partial<AddTenantFormValues> {
+	return {
+		email: row.applicant_email,
+		first_name: row.applicant_first_name,
+		last_name: row.applicant_last_name,
+		// A null phone becomes the empty string, never `undefined` and never the
+		// literal "null": an undefined would survive the defaults spread below and
+		// hand TanStack Form an uncontrolled input that React warns about
+		// mid-typing.
+		phone: row.applicant_phone ?? "",
+	};
+}
+
 interface AddTenantFormProps {
 	properties: Property[];
 	units: Unit[];
 	onSuccess?: () => void;
+	/**
+	 * Prefill from a rental application (APPLY-04). Spread OVER
+	 * `addTenantFormOptions.defaultValues` — never replaces them, so any key
+	 * absent here keeps its `""` default rather than becoming `undefined`.
+	 */
+	initialValues?: Partial<AddTenantFormValues> | undefined;
+	/** When set, the created tenant is recorded against this application. */
+	applicationId?: string | undefined;
 }
 
 /**
@@ -43,6 +97,7 @@ export function AddTenantForm({
 	properties,
 	units,
 	onSuccess,
+	initialValues,
 }: AddTenantFormProps) {
 	const router = useRouter();
 	const [selectedPropertyId, setSelectedPropertyId] = useState("");
@@ -51,6 +106,11 @@ export function AddTenantForm({
 
 	const form = useAppForm({
 		...addTenantFormOptions,
+		// Spread OVER the defaults, never a replacement: a replacement missing a
+		// key yields `undefined` where the form expects `""` under
+		// `exactOptionalPropertyTypes`, and TanStack Form then renders an
+		// uncontrolled input.
+		defaultValues: { ...addTenantFormOptions.defaultValues, ...initialValues },
 		onSubmit: async ({ value }) => {
 			try {
 				// Landlord-managed tenant record — contact info lives on the tenants row.
