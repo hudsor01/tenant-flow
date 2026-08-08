@@ -9,9 +9,12 @@
  * whole gate. Shipping the page first would have served an authenticated
  * surface publicly for however many commits it took to notice.
  *
- * A SERVER COMPONENT. No hooks, no database client, no browser API. Its one and
- * only island is `<ApplicationQueue />`, which holds the filter state and the
- * query. The band plan 66-14 adds below will be the second.
+ * A SERVER COMPONENT. No hooks, no database client, no browser API. It mounts
+ * exactly two client islands — `<ApplicationQueue />`, which holds the filter
+ * state and the queue query, and `<ApplicationLinkPanel />`, which holds the
+ * clipboard, the revoke dialog and the two link mutations. The band shell around
+ * the second one stays here on the server because a `<section>`, an `<h2>` and a
+ * paragraph need no interactivity.
  *
  * BAND ORDER: QUEUE FIRST, LINKS SECOND. A returning owner opens this page to
  * read applications; a brand-new owner has none. Weight follows the common
@@ -29,6 +32,7 @@
  */
 
 import type { Metadata } from "next";
+import { ApplicationLinkPanel } from "#components/applications/application-link-panel";
 import { ApplicationQueue } from "#components/applications/application-queue";
 
 /** Declared once so the meta description and the visible subtitle cannot drift. */
@@ -62,7 +66,49 @@ export default function ApplicationsPage() {
 
 			<ApplicationQueue />
 
-			{/* BAND 2 — plan 66-14 inserts the application-links band (id="application-links") here. */}
+			{/*
+			 * BAND 2 — application links (§C).
+			 *
+			 * The `id` is load-bearing, not decorative: the queue's zero-applications
+			 * empty state carries the primary `Create an application link` button,
+			 * and that button resolves this element by id, scrolls to it and focuses
+			 * it. Renaming the id silently turns that CTA into a no-op — the handler
+			 * guards on a missing element rather than throwing, so nothing would
+			 * fail visibly.
+			 *
+			 * `tabIndex={-1}` is what makes the second half of that CTA real. A
+			 * `<section>` is not focusable by default, so `.focus()` on it is a
+			 * silent no-op: a sighted mouse user sees the smooth scroll while a
+			 * keyboard or screen-reader user is left at the top of the page with
+			 * focus unmoved, which is the failure mode "scroll to" affordances
+			 * classically ship. `aria-labelledby` then gives the landed-on region a
+			 * name to announce instead of an anonymous group.
+			 */}
+			<section
+				id="application-links"
+				tabIndex={-1}
+				aria-labelledby="application-links-heading"
+				className="rounded-lg border bg-card p-6 flex flex-col gap-4"
+			>
+				<h2
+					id="application-links-heading"
+					className="text-base font-semibold text-foreground"
+				>
+					Application links
+				</h2>
+				{/*
+				 * `mb-0`: this `<p>` is a flex item of the band's own `gap-4` box, and
+				 * a flex item establishes an independent formatting context, so the
+				 * unscoped base `p { margin-bottom: 1rem }` at globals.css:499 cannot
+				 * collapse out of it — the 16px is added to the item's height on top
+				 * of the 16px gap that already spaces it (§D-3).
+				 */}
+				<p className="text-sm text-muted-foreground mb-0">
+					Post one link per vacant unit. Anyone with the link can apply. You can
+					revoke a link at any time.
+				</p>
+				<ApplicationLinkPanel />
+			</section>
 		</div>
 	);
 }
