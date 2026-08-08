@@ -1,12 +1,16 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
-import type { RentalApplicationRow } from "#hooks/api/query-keys/application-keys";
+import {
+	type RentalApplicationRow,
+	recordApplicationConversionMutationOptions,
+} from "#hooks/api/query-keys/application-keys";
 import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm } from "#lib/forms/form-hook";
@@ -18,6 +22,14 @@ import { AddTenantInfoFields } from "./add-tenant-info-fields";
 import { AddTenantPropertyFields } from "./add-tenant-property-fields";
 
 const logger = createLogger({ component: "AddTenantForm" });
+
+/**
+ * Both facts, in one line. The tenant exists and cannot be rolled back — there
+ * is no delete to undo a create the owner asked for — so a failed link has to
+ * say what did happen as well as what did not.
+ */
+const CONVERSION_NOT_RECORDED =
+	"Tenant created. The application could not be marked as converted — open the application and try again.";
 
 /** The six controlled fields this form owns. */
 export type AddTenantFormValues = typeof addTenantFormOptions.defaultValues;
@@ -98,11 +110,53 @@ export function AddTenantForm({
 	units,
 	onSuccess,
 	initialValues,
+	applicationId,
 }: AddTenantFormProps) {
 	const router = useRouter();
 	const [selectedPropertyId, setSelectedPropertyId] = useState("");
 	const createTenant = useCreateTenantMutation();
 	const isSubmitting = createTenant.isPending;
+	const queryClient = useQueryClient();
+	const recordConversion = useMutation(
+		recordApplicationConversionMutationOptions(queryClient),
+	);
+
+	/**
+	 * APPLY-04 / D-08: the application row is marked converted AFTER the tenant
+	 * exists. This records an outcome — it never creates a tenant, and it never
+	 * removes one. Invalidation (applications, tenants, owner dashboard) is
+	 * inherited from the mutation options, not re-declared here.
+	 */
+	const linkApplicationToTenant = async (tenantId: string) => {
+		if (!applicationId) return;
+		try {
+			const result = await recordConversion.mutateAsync({
+				applicationId,
+				tenantId,
+			});
+			if (result.success) return;
+			if (result.reason === "already_converted") {
+				// NOT an error, which is why the RPC returns rather than raising:
+				// this is what a double-click on a slow network looks like. The
+				// tenant was created and the application already points at one.
+				// An error toast here would tell the owner that a creation which
+				// succeeded had failed, so the normal success flow continues.
+				logger.info("Application was already converted", { applicationId });
+				return;
+			}
+			logger.warn("Application conversion not recorded", {
+				applicationId,
+				reason: result.reason ?? "unknown",
+			});
+			toast.warning(CONVERSION_NOT_RECORDED);
+		} catch (error) {
+			logger.error("Failed to record application conversion", {
+				applicationId,
+				error: error instanceof Error ? error.message : String(error),
+			});
+			toast.warning(CONVERSION_NOT_RECORDED);
+		}
+	};
 
 	const form = useAppForm({
 		...addTenantFormOptions,
@@ -125,6 +179,8 @@ export function AddTenantForm({
 				const created = await createTenant.mutateAsync(payload);
 
 				logger.info("Tenant added", { email: value.email });
+				// APPLY-04: record the conversion once the tenant is real (D-08).
+				await linkApplicationToTenant(created.id);
 				// FORMFIX-08: the create mutation's createMutationCallbacks already
 				// fires the single success toast ("Tenant created successfully") — no
 				// form-level duplicate here.

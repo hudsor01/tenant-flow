@@ -7,11 +7,13 @@ import {
 	AddTenantForm,
 	applicationToTenantInitialValues,
 } from "#components/tenants/add-tenant-form";
+import { ApplicationPrefillNotice } from "#components/tenants/application-prefill-notice";
 import { DialogDescription, DialogTitle } from "#components/ui/dialog";
 import { RouteModal } from "#components/ui/route-modal";
 import { Skeleton } from "#components/ui/skeleton";
 import { applicationQueries } from "#hooks/api/query-keys/application-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 
 /**
@@ -74,6 +76,13 @@ function AddTenantModalBody() {
 		unitQueries.list(),
 	);
 	const applicationQuery = useQuery(applicationQueries.detail(applicationId));
+	// UI-SPEC §B-6: the duplicate-tenant check belongs on the DESTINATION page,
+	// where the tenant is about to be created. Its result is a notice above the
+	// form and never a gate on it — a repeat applicant for a second unit is a
+	// normal case.
+	const { data: duplicateTenant } = useQuery(
+		tenantQueries.byEmail(applicationQuery.data?.applicant_email ?? ""),
+	);
 
 	const properties = propertiesResponse?.data ?? [];
 	const units = unitsResponse?.data ?? [];
@@ -98,11 +107,19 @@ function AddTenantModalBody() {
 		: undefined;
 
 	return (
-		<AddTenantForm
-			properties={properties}
-			units={units}
-			initialValues={initialValues}
-			applicationId={applicationId}
-		/>
+		<div className="flex flex-col gap-4">
+			{duplicateTenant ? (
+				<ApplicationPrefillNotice
+					matchedTenantId={duplicateTenant.id}
+					matchedTenantName={duplicateTenant.name}
+				/>
+			) : null}
+			<AddTenantForm
+				properties={properties}
+				units={units}
+				initialValues={initialValues}
+				applicationId={applicationId}
+			/>
+		</div>
 	);
 }
