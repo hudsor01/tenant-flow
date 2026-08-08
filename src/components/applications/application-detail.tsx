@@ -62,7 +62,7 @@ import {
 	BreadcrumbSeparator,
 } from "#components/ui/breadcrumb";
 import { Button } from "#components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Card, CardContent, CardHeader } from "#components/ui/card";
 import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import {
 	DropdownMenu,
@@ -356,10 +356,33 @@ function DetailCard({
 	title: string;
 	fields: DetailFieldSpec[];
 }) {
+	// Derived from the title rather than passed in, so a card can never be added
+	// without one and two cards can never share an id.
+	const headingId = `application-card-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
 	return (
-		<Card>
+		/*
+		 * `role="group"` + `aria-labelledby`, not a bare div. A `<dl>` of related
+		 * answers under a heading IS a group, and naming it is what lets a screen
+		 * reader announce "References" on entry instead of dropping the user into
+		 * an anonymous list of six terms. `group` rather than `region` on purpose:
+		 * six landmarks on one page dilutes the landmark list that the app shell's
+		 * nav and main already occupy.
+		 */
+		<Card role="group" aria-labelledby={headingId}>
 			<CardHeader>
-				<CardTitle className="text-base">{title}</CardTitle>
+				{/*
+				 * A REAL `<h2>`, not `CardTitle`. That primitive renders a `<div>`
+				 * (card.tsx:50), so a page of six cards would expose exactly one
+				 * heading — the `<h1>` — and a screen-reader user would have no way to
+				 * move between the sections of a 26-field record. The class string is
+				 * byte-identical to the applicant form's own section headings
+				 * (`application-fields-about.tsx:33`), which is the point: these cards
+				 * mirror those sections and should read the same way.
+				 */}
+				<h2 id={headingId} className="text-base font-semibold text-foreground">
+					{title}
+				</h2>
 			</CardHeader>
 			<CardContent>
 				<dl className="grid gap-3 sm:grid-cols-2">
