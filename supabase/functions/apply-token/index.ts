@@ -57,10 +57,20 @@
 // imported. If that ever changes, escapeHtml from _shared/escape-html.ts
 // becomes mandatory for every applicant-supplied value.
 
+import {
+	HONEYPOT_FIELD,
+	isHoneypotTripped,
+	isTimingSuspicious,
+	parseSubmissionPayload,
+} from "../_shared/application-guards.ts";
 import { getJsonHeaders, handleCorsOptions } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
-import { sha256Hex } from "../_shared/lease-signing.ts";
+import {
+	clientIp,
+	clientUserAgent,
+	sha256Hex,
+} from "../_shared/lease-signing.ts";
 import { rateLimit } from "../_shared/rate-limit.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
@@ -73,7 +83,17 @@ interface ApplicationContextRow {
 	owner_display_name: string | null;
 }
 
+interface SubmitResultRow {
+	success: boolean;
+	reason: string | null;
+	application_id: string | null;
+}
+
 type AdminClient = ReturnType<typeof createAdminClient>;
+
+/** A client-minted idempotency key: one per form load, not one per attempt. */
+const UUID_V4_RE =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Every genuine outcome of both actions is HTTP 200. The status code must never
@@ -166,6 +186,102 @@ async function handleContext(
 	});
 }
 
+/**
+ * The submit action. THE ORDER BELOW IS THE DESIGN, not an accident of
+ * authorship:
+ *
+ *   honeypot -> timing -> address limit -> envelope -> strict payload -> RPC
+ *
+ * The two client-supplied bot filters run first so a flood costs one string
+ * comparison rather than an Upstash round trip, and both answer with an
+ * ordinary success so nothing teaches a bot which layer caught it. Neither is a
+ * security control. The fail-closed bound is the per-link cap evaluated under
+ * the token row's FOR UPDATE lock inside submit_rental_application (D-04a,
+ * F-6); the Upstash limiter fails OPEN when Upstash is unreachable
+ * (_shared/rate-limit.ts:159, deliberate) and can only ever be the outer layer.
+ */
+async function handleSubmit(
+	req: Request,
+	supabase: AdminClient,
+	body: Record<string, unknown>,
+): Promise<Response> {
+	// 1. Honeypot. Success, never a 400: a 400 tells the bot which field is the
+	//    trap. Zero rows are written and nothing naming the applicant is logged.
+	if (isHoneypotTripped(body[HONEYPOT_FIELD])) {
+		return jsonOk(req, { success: true });
+	}
+
+	// 2. Timing. A BOT FILTER, NOT A SECURITY CONTROL — `form_loaded_at` is
+	//    client-supplied and anyone who reads this file can forge it. Read it as
+	//    spam filtering; the actual bound is the fail-closed DB cap named above.
+	if (isTimingSuspicious(body.form_loaded_at, Date.now())) {
+		return jsonOk(req, { success: true });
+	}
+
+	// 3. Rate limit, keyed on the client address by default and deliberately
+	//    given no per-token key override. Under D-01 every applicant for a unit
+	//    shares ONE token by construction, so a token-keyed bucket would let a
+	//    single applicant — or one attacker — lock out every other applicant for
+	//    that unit. sign-lease-token/index.ts:142 passes such an override and is
+	//    correct to; copying that line into this call is the D-04b bug. 5/hour
+	//    is sized for NAT: a couple applying from one household, or a group on
+	//    library wifi, must not read as abuse.
+	const limited = await rateLimit(req, {
+		maxRequests: 5,
+		windowMs: 3_600_000,
+		prefix: "apply-submit",
+	});
+	if (limited) return limited;
+
+	// 4. Envelope. The submission id is minted by the client once per form load;
+	//    generating one here would defeat idempotency across a retry.
+	const token = readToken(body);
+	if (token === null) {
+		return jsonOk(req, { success: false, reason: "invalid_token" });
+	}
+	const submissionId = body.submission_id;
+	if (typeof submissionId !== "string" || !UUID_V4_RE.test(submissionId)) {
+		return jsonOk(req, { success: false, reason: "invalid_payload" });
+	}
+
+	// 5. Strict payload. The offending field name is NOT echoed back: it maps
+	//    the schema for an attacker, and a real applicant never sees this
+	//    response because the browser validated against the same contract. It is
+	//    logged server-side so genuine drift stays observable.
+	const parsed = parseSubmissionPayload(body.application);
+	if (!parsed.ok) {
+		console.log(
+			JSON.stringify({
+				level: "info",
+				event: "apply_payload_rejected",
+				reason: parsed.reason,
+				field: parsed.field,
+			}),
+		);
+		return jsonOk(req, { success: false, reason: "invalid_payload" });
+	}
+
+	// 6. RPC. Only contract keys reach the database — `parsed.value` is passed,
+	//    never the raw body.
+	const tokenHash = await sha256Hex(token);
+	const { data, error } = await supabase.rpc("submit_rental_application", {
+		p_token_hash: tokenHash,
+		p_submission_id: submissionId,
+		p_payload: parsed.value,
+		p_ip: clientIp(req),
+		p_user_agent: clientUserAgent(req),
+	});
+	if (error) return errorResponse(req, 500, error, { action: "submit" });
+
+	const row = (data as SubmitResultRow[] | null)?.[0];
+	if (!row) return jsonOk(req, { success: false, reason: "invalid_token" });
+	// The RPC's `duplicate` branch already arrives as success=true — the
+	// applicant's data is stored and telling them otherwise would make them
+	// submit again. Reasons pass through unchanged so the client collapses all
+	// of them into one screen.
+	return jsonOk(req, { success: row.success, reason: row.reason });
+}
+
 Deno.serve(async (req: Request) => {
 	// FIRST, before anything that can throw. A preflight handled after
 	// validateEnv would fail whenever an env var is missing, turning a config
@@ -210,6 +326,7 @@ Deno.serve(async (req: Request) => {
 		const action = typeof body.action === "string" ? body.action : "";
 
 		if (action === "context") return await handleContext(req, supabase, body);
+		if (action === "submit") return await handleSubmit(req, supabase, body);
 
 		return new Response(JSON.stringify({ error: "Unknown action" }), {
 			status: 400,
