@@ -113,7 +113,25 @@ Reads are unaffected: the link panel's URL and `raw_token`, the queue and the de
 - **The public read path leaks nothing.** All four failure paths in `get_application_context` (`invalid_token`, `revoked_token`, `expired_token`, and a missing unit mapped to `invalid_token`) return NULL for all four detail columns, so a revoked link cannot confirm which property it belonged to.
 - **Zero references to owner contact details.** `users.email` / `users.phone` count is 0; only `full_name` is selected (UI-20).
 - **Non-enumerating errors throughout.** "unit not found", "link not found", "application not found" and "tenant not found" each cover both "does not exist" and "not yours", so no signed-in owner can probe another owner's ids.
-- **The retention clock is stamped with `coalesce`** in both writers, so a status flipped approved -> reviewing -> approved does not push the anonymization date forward and hold applicant PII past policy.
+- ~~**The retention clock is stamped with `coalesce`** in both writers, so a status flipped approved -> reviewing -> approved does not push the anonymization date forward and hold applicant PII past policy.~~
+  **CORRECTED 2026-08-07 — this claim was false.** Plan 66-10 caught it and the orchestrator
+  verified it against the live `pg_get_functiondef`. The `coalesce` is real, but the
+  **non-terminal branch sets `decided_at = null` outright**, so it never survives to be
+  coalesced against. `approved(T1) -> reviewing(null) -> approved(coalesce(null, now()) = T2)`
+  **does** move the clock forward. The migration comment asserting otherwise names the exact
+  scenario it fails to handle, and that comment is live in production.
+
+  **The SQL was NOT changed, deliberately.** The shipped behaviour is defensible on its own
+  terms and arguably better than the commented intent: under 42 U.S.C. 3613(a)(1)(A) the
+  operative decision is the one that affected the applicant, so clocking from the LATEST
+  decision preserves the landlord's defence window rather than shortening it. Re-migrating
+  production to change a comment, with zero behavioural difference, is not worth an
+  owner-gated prod apply.
+
+  What stands: the code is right, this summary line was wrong, and the in-migration comment
+  overstates. 66-10 pins BOTH behaviours - `D3` covers the terminal->terminal case where the
+  coalesce genuinely holds, `D4` pins the round-trip re-stamp with the contradiction named
+  in-comment. A future comment-only migration may correct the prose; nothing depends on it.
 
 ## Verification
 
