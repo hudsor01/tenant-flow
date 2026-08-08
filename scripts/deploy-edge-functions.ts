@@ -29,6 +29,7 @@ const FUNCTIONS: Array<{
 	entrypoint: string;
 	verify_jwt: boolean;
 }> = [
+	{ slug: "apply-token", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "auth-email-send", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "download-documents-zip", entrypoint: "index.ts", verify_jwt: true },
 	{ slug: "export-report", entrypoint: "index.ts", verify_jwt: false },
