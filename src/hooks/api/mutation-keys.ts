@@ -157,6 +157,23 @@ export const mutationKeys = {
 		reverseEntry: ["mutations", "rentLedger", "reverseEntry"] as const,
 	},
 
+	// Rental applications (v10.0 Phase 66) — the complete owner write surface.
+	// `rental_applications` has no INSERT or UPDATE policy for any role, so every
+	// entry here is a SECURITY DEFINER RPC except `delete`, which is the one
+	// direct-table write the DELETE policy covers.
+	applications: {
+		setStatus: ["mutations", "applications", "setStatus"] as const,
+		setNotes: ["mutations", "applications", "setNotes"] as const,
+		recordConversion: [
+			"mutations",
+			"applications",
+			"recordConversion",
+		] as const,
+		delete: ["mutations", "applications", "delete"] as const,
+		createLink: ["mutations", "applications", "createLink"] as const,
+		revokeLink: ["mutations", "applications", "revokeLink"] as const,
+	},
+
 	// Reports
 	reports: {
 		delete: ["mutations", "reports", "delete"] as const,
