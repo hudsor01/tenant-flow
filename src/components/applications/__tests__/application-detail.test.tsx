@@ -1,0 +1,762 @@
+/**
+ * `ApplicationDetail` — the owner's decision surface (APPLY-03, APPLY-04,
+ * UI-SPEC §B-5/§B-6/§B-7).
+ *
+ * WHAT THIS FILE DOES NOT PROVE. jsdom computes no layout and loads no
+ * stylesheet, so nothing here decides geometry, computed style or the cascade.
+ * Specifically NOT decided here and owned by plan 66-17's Playwright spec:
+ *
+ *   E-21  the conversion href asserted against a real rendered DOM
+ *
+ * The href assertion below is the earlier, cheaper half of that pair: it reads
+ * the attribute React produced, which catches a second parameter added in
+ * source but cannot catch one a client-side router appends. Both halves exist
+ * on purpose.
+ *
+ * EVERY ABSENCE ASSERTION CARRIES A POSITIVE CONTROL in the same test. "Mark
+ * reviewing is absent", "no `[deleted]` appears" and "the mutation was not
+ * called" all pass against an empty render, a crashed render and a mistyped
+ * selector, so each is paired with a query that must find something first. Plan
+ * 66-16's mutation campaign found three assertions of exactly that shape,
+ * including the one its own plan nominated as load-bearing.
+ *
+ * `useQuery` and `useMutation` are both mocked and both dispatch on a key — the
+ * query key's root for the reads (the component issues two: the application and
+ * the converted tenant's name) and the mutation key for the writes (it holds
+ * three). A blanket mock would answer every call with the same object, which is
+ * how a test ends up asserting that "a mutation fired" without knowing which.
+ * The `queryOptions()` and `mutationOptions()` factories themselves stay REAL,
+ * which is what makes the argument assertions mean anything. No Supabase mock is
+ * needed: `createClient()` lives inside each factory's `queryFn`/`mutationFn`,
+ * and neither mock ever invokes those.
+ */
+
+import {
+	cleanup,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mutationKeys } from "#hooks/api/mutation-keys";
+import type { RentalApplicationRow } from "#hooks/api/query-keys/application-keys";
+import { ApplicationDetail } from "../application-detail";
+
+const mockUseQuery = vi.fn();
+const mockUseMutation = vi.fn();
+
+vi.mock("@tanstack/react-query", async () => {
+	const actual = await vi.importActual<typeof import("@tanstack/react-query")>(
+		"@tanstack/react-query",
+	);
+	return {
+		...actual,
+		useQuery: (options: { queryKey: readonly unknown[] }) =>
+			mockUseQuery(options),
+		useMutation: (options: { mutationKey?: readonly unknown[] }) =>
+			mockUseMutation(options),
+		// The real one needs a provider. The factories only ever hand it to their
+		// own `onSuccess`, which a mocked `useMutation` never runs.
+		useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+	};
+});
+
+const pushSpy = vi.fn();
+vi.mock("next/navigation", () => ({
+	useRouter: () => ({ push: pushSpy }),
+}));
+
+vi.mock("sonner", () => ({
+	toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+/** The application id every fixture uses. Thirty-six characters, as E-21 asserts. */
+const APPLICATION_ID = "3f1a7c2e-9b4d-4f81-a6c5-0d2e8b7a1f34";
+const TENANT_ID = "8c2b5d41-77ae-4e39-9f10-2a6c4b8d0e75";
+
+/** The placeholder `anonymize_old_rental_applications` writes into the three
+ *  NOT NULL applicant columns. It must never reach the screen. */
+const SENTINEL = "[deleted]";
+
+/**
+ * A fully populated row. The type is IMPORTED, never redeclared — a local
+ * duplicate would be a ZT-3 violation and would stop tracking plan 66-09's real
+ * column contract the moment it changes.
+ *
+ * Every optional field is populated on purpose, so a test that needs a blank can
+ * create exactly ONE and assert against it without competing matches.
+ */
+function makeRow(
+	overrides: Partial<RentalApplicationRow> = {},
+): RentalApplicationRow {
+	return {
+		id: APPLICATION_ID,
+		owner_user_id: "00000000-0000-4000-8000-0000000000ff",
+		link_id: "11111111-0000-4000-8000-000000000001",
+		unit_id: "22222222-0000-4000-8000-000000000002",
+		property_label: "Pecan Street Duplex",
+		unit_label: "A",
+		status: "new",
+		decided_at: null,
+		disposition_reason: null,
+		converted_tenant_id: null,
+		converted_at: null,
+		occupant_count: 2,
+		anonymized_at: null,
+		created_at: "2026-08-01T00:00:00Z",
+		owner_notes: null,
+		applicant_first_name: "Dana",
+		applicant_last_name: "Reyes",
+		applicant_email: "dana@example.com",
+		applicant_phone: "512-555-0134",
+		desired_move_in_date: "2026-09-01",
+		current_street: "18 Mesquite Row",
+		current_city: "Austin",
+		current_state: "TX",
+		current_postal_code: "78702",
+		current_landlord_name: "Ana Vega",
+		current_landlord_phone: "512-555-0177",
+		reason_for_moving: "Closer to work",
+		gross_monthly_income: 5400,
+		employer_name: "Bluebonnet Labs",
+		employer_role: "Technician",
+		employer_months: 26,
+		other_income_source: "Freelance",
+		other_income_amount: 300,
+		pet_details: "One cat, 9 lbs",
+		vehicle_details: "2019 Civic, TX ABC-1234",
+		reference_1_name: "Marisol Cruz",
+		reference_1_relationship: "Former landlord",
+		reference_1_phone: "512-555-0199",
+		reference_2_name: "Ben Ortiz",
+		reference_2_relationship: "Colleague",
+		reference_2_phone: "512-555-0122",
+		...overrides,
+	};
+}
+
+/** The swept stub: three placeholders, everything else cleared. */
+function makeAnonymizedRow(): RentalApplicationRow {
+	return makeRow({
+		status: "rejected",
+		decided_at: "2024-07-04T00:00:00Z",
+		disposition_reason: "another_applicant_selected",
+		anonymized_at: "2026-07-04T00:00:00Z",
+		applicant_first_name: SENTINEL,
+		applicant_last_name: SENTINEL,
+		applicant_email: SENTINEL,
+		applicant_phone: null,
+		desired_move_in_date: null,
+		current_street: null,
+		current_city: null,
+		current_state: null,
+		current_postal_code: null,
+		current_landlord_name: null,
+		current_landlord_phone: null,
+		reason_for_moving: null,
+		gross_monthly_income: null,
+		employer_name: null,
+		employer_role: null,
+		employer_months: null,
+		other_income_source: null,
+		other_income_amount: null,
+		pet_details: null,
+		vehicle_details: null,
+		reference_1_name: null,
+		reference_1_relationship: null,
+		reference_1_phone: null,
+		reference_2_name: null,
+		reference_2_relationship: null,
+		reference_2_phone: null,
+		owner_notes: null,
+	});
+}
+
+interface QueryResult {
+	data: unknown;
+	isPending: boolean;
+	/**
+	 * Carried alongside `isPending` with the real TanStack v5 relationship
+	 * (`isLoading === isPending && isFetching`) so these fixtures stay honest if
+	 * the component's predicate is ever changed to the derived flag.
+	 */
+	isLoading: boolean;
+	isError: boolean;
+	refetch: () => void;
+}
+
+function resolved(data: unknown): QueryResult {
+	return {
+		data,
+		isPending: false,
+		isLoading: false,
+		isError: false,
+		refetch: vi.fn(),
+	};
+}
+
+/**
+ * Route the application read to `row` and the tenant-name read to `tenant`. The
+ * root segment is the discriminator: `applicationKeys.all` is `["applications"]`
+ * and `tenantQueries.all()` is `["tenants"]`.
+ */
+function mockQueries(
+	row: RentalApplicationRow | null,
+	tenant: {
+		id: string;
+		first_name: string | null;
+		last_name: string | null;
+	} | null = null,
+) {
+	mockUseQuery.mockImplementation(
+		(options: { queryKey: readonly unknown[] }) =>
+			options.queryKey[0] === "applications" ? resolved(row) : resolved(tenant),
+	);
+}
+
+const setStatusSpy = vi.fn();
+const setNotesSpy = vi.fn();
+const deleteSpy = vi.fn();
+
+/** Dispatch on the mutation key so each of the three writes has its own spy. */
+function mockMutations() {
+	mockUseMutation.mockImplementation(
+		(options: { mutationKey?: readonly unknown[] }) => {
+			const key = JSON.stringify(options.mutationKey ?? []);
+			const mutate =
+				key === JSON.stringify(mutationKeys.applications.setStatus)
+					? setStatusSpy
+					: key === JSON.stringify(mutationKeys.applications.setNotes)
+						? setNotesSpy
+						: deleteSpy;
+			return { mutate, isPending: false };
+		},
+	);
+}
+
+function renderDetail() {
+	return render(<ApplicationDetail applicationId={APPLICATION_ID} />);
+}
+
+/** The one control the whole action bar exists to place. */
+function primaryLink(name: string): HTMLElement {
+	return screen.getByRole("link", { name });
+}
+
+beforeEach(() => {
+	vi.clearAllMocks();
+	mockMutations();
+});
+
+afterEach(() => {
+	cleanup();
+});
+
+describe("ApplicationDetail — the action bar has three states, not one", () => {
+	// State 1 of the §B-6 table.
+	it("offers approve-and-open plus Mark reviewing on a new application", () => {
+		mockQueries(makeRow({ status: "new" }));
+		renderDetail();
+
+		expect(primaryLink("Approve and open tenant form")).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Mark reviewing" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Decline" })).toBeInTheDocument();
+		// The helper is the thing that stops the primary reading as "a tenant now
+		// exists". It renders in this state and in the two below.
+		expect(
+			screen.getByText(/The tenant record is not created until you submit/),
+		).toBeInTheDocument();
+	});
+
+	// Still state 1, minus one control. The absence below is the whole claim, so
+	// the primary control is proven present first — otherwise an empty render,
+	// a thrown render and a renamed button all satisfy it equally.
+	it("drops Mark reviewing once the application is already reviewing", () => {
+		mockQueries(makeRow({ status: "reviewing" }));
+		renderDetail();
+
+		expect(primaryLink("Approve and open tenant form")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Decline" })).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Mark reviewing" }),
+		).not.toBeInTheDocument();
+	});
+
+	// State 2. The label loses "Approve" because the application already is
+	// approved; the helper must NOT go with it.
+	it("reads Open tenant form once approved, and keeps the helper", () => {
+		mockQueries(
+			makeRow({ status: "approved", decided_at: "2026-08-02T00:00:00Z" }),
+		);
+		renderDetail();
+
+		expect(primaryLink("Open tenant form")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("link", { name: "Approve and open tenant form" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByText(/The tenant record is not created until you submit/),
+		).toBeInTheDocument();
+	});
+
+	// State 3. Both halves are asserted: a control that reads "View tenant" while
+	// the helper still promises to create something is the failure this pins.
+	it("reads View tenant once converted, and says who it converted to", () => {
+		mockQueries(
+			makeRow({
+				status: "approved",
+				decided_at: "2026-08-02T00:00:00Z",
+				converted_tenant_id: TENANT_ID,
+				converted_at: "2026-08-04T00:00:00Z",
+			}),
+			{ id: TENANT_ID, first_name: "Dana", last_name: "Reyes" },
+		);
+		renderDetail();
+
+		const view = primaryLink("View tenant");
+		expect(view).toHaveAttribute("href", `/tenants/${TENANT_ID}`);
+		expect(
+			screen.getByText("Converted to tenant Dana Reyes on Aug 4, 2026."),
+		).toBeInTheDocument();
+		// Converting settles the application; there is nothing left to decline.
+		expect(
+			screen.queryByRole("button", { name: "Decline" }),
+		).not.toBeInTheDocument();
+	});
+
+	// `converted_tenant_id` is `on delete set null`, so a converted row whose
+	// tenant was later deleted is normal rather than broken. Saying so beats a
+	// dangling link or a silent blank.
+	it("says the tenant is gone when the conversion outlived the tenant", () => {
+		mockQueries(
+			makeRow({
+				status: "approved",
+				decided_at: "2026-08-02T00:00:00Z",
+				converted_tenant_id: null,
+				converted_at: "2026-08-04T00:00:00Z",
+			}),
+		);
+		renderDetail();
+
+		expect(primaryLink("Open tenant form")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"The tenant record created from this application no longer exists.",
+			),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("link", { name: "View tenant" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("marks the application approved when the approve control is used", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ status: "new" }));
+		renderDetail();
+
+		await user.click(primaryLink("Approve and open tenant form"));
+
+		// The vars object, read positionally: `mutate` is called with one argument
+		// here and with two in the decline dialog, and asserting the shape of the
+		// call rather than the payload is how a test passes without knowing what
+		// was sent.
+		expect(setStatusSpy.mock.calls[0]?.[0]).toEqual({
+			applicationId: APPLICATION_ID,
+			status: "approved",
+		});
+	});
+
+	it("moves a new application to reviewing without a reason", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ status: "new" }));
+		renderDetail();
+
+		await user.click(screen.getByRole("button", { name: "Mark reviewing" }));
+
+		expect(setStatusSpy.mock.calls[0]?.[0]).toEqual({
+			applicationId: APPLICATION_ID,
+			status: "reviewing",
+		});
+	});
+});
+
+describe("ApplicationDetail — the conversion href carries the id and nothing else", () => {
+	// T-66-11. `toContain("/tenants/new?application=")` would pass with `&email=`
+	// appended, which is the exact leak this phase forbids — so the regex is
+	// anchored at both ends and the id is proven present before the absence of
+	// everything else is claimed.
+	it("matches the anchored E-21 shape with no second parameter", () => {
+		mockQueries(makeRow({ status: "new" }));
+		renderDetail();
+
+		const href = primaryLink("Approve and open tenant form").getAttribute(
+			"href",
+		);
+
+		// POSITIVE CONTROL: the id really is in the URL. Without this, an href of
+		// "/tenants/new" alone would satisfy every "carries no PII" assertion.
+		expect(href).toContain(APPLICATION_ID);
+		expect(href).toBe(`/tenants/new?application=${APPLICATION_ID}`);
+		expect(href).toMatch(/^\/tenants\/new\?application=[0-9a-f-]{36}$/);
+		expect(href).not.toContain("&");
+		expect(href).not.toContain("dana@example.com");
+		expect(href).not.toContain("Dana");
+		expect(href).not.toContain("512-555-0134");
+	});
+
+	it("keeps the same shape on the approved state's control", () => {
+		mockQueries(
+			makeRow({ status: "approved", decided_at: "2026-08-02T00:00:00Z" }),
+		);
+		renderDetail();
+
+		const href = primaryLink("Open tenant form").getAttribute("href");
+		expect(href).toContain(APPLICATION_ID);
+		expect(href).toMatch(/^\/tenants\/new\?application=[0-9a-f-]{36}$/);
+	});
+});
+
+describe("ApplicationDetail — the record, in the applicant's own order", () => {
+	it("renders the five form sections under the applicant's own headings", () => {
+		mockQueries(makeRow());
+		renderDetail();
+
+		const headings = screen
+			.getAllByRole("heading", { level: 2 })
+			.map((node) => node.textContent);
+		expect(headings.slice(0, 5)).toEqual([
+			"About you",
+			"Where you live now",
+			"Income",
+			"Household",
+			"References",
+		]);
+	});
+
+	// The blank is SHOWN, never hidden: an owner has to be able to see that a
+	// field was offered and skipped. The fixture leaves exactly one field blank,
+	// so a single match proves it is that field and not a coincidence.
+	it("renders Not provided for a blank optional value rather than omitting it", () => {
+		mockQueries(makeRow({ reference_2_name: null }));
+		renderDetail();
+
+		// POSITIVE CONTROL: the label really is on screen, so the value read below
+		// is provably the one belonging to it.
+		const label = screen.getByText("Second reference name");
+		expect(label).toBeInTheDocument();
+		expect(label.nextElementSibling?.textContent).toBe("Not provided");
+
+		// Scoped to the References card, where the fixture leaves exactly one field
+		// blank. An unscoped count would also pick up the record card's own blanks
+		// (an undecided row has no decision date and no reason) and would pass
+		// against an implementation that rendered "Not provided" for everything.
+		const references = screen.getByRole("group", { name: "References" });
+		expect(within(references).getAllByText("Not provided")).toHaveLength(1);
+		// Positive control on the same card: the populated reference fields really
+		// did render their own values, so the single blank is a blank and not the
+		// only thing that rendered.
+		expect(within(references).getByText("Marisol Cruz")).toBeInTheDocument();
+		expect(within(references).getByText("512-555-0122")).toBeInTheDocument();
+	});
+
+	it("renders the applicant's email in the record it was submitted with", () => {
+		mockQueries(makeRow());
+		renderDetail();
+
+		const label = screen.getByText("Email");
+		expect(label.nextElementSibling?.textContent).toBe("dana@example.com");
+	});
+
+	// T-66-09. Applicant free text is attacker-controlled and lands inside a
+	// logged-in dashboard; React escaping it is the whole mitigation.
+	it("escapes an injection payload in a free-text answer", () => {
+		const payload = '<img src=x onerror="alert(1)">';
+		mockQueries(makeRow({ reason_for_moving: payload }));
+		const { container } = renderDetail();
+
+		expect(container.querySelector("img")).toBeNull();
+		expect(screen.getByText(payload)).toBeInTheDocument();
+	});
+
+	// The reason is the evidence the two-year window exists to keep. Rendering
+	// the raw column would show `another_applicant_selected` to a landlord.
+	it("renders a recorded decline reason through its label", () => {
+		mockQueries(
+			makeRow({
+				status: "rejected",
+				decided_at: "2026-08-03T00:00:00Z",
+				disposition_reason: "another_applicant_selected",
+			}),
+		);
+		renderDetail();
+
+		const label = screen.getByText("Recorded reason");
+		expect(label.nextElementSibling?.textContent).toBe(
+			"Another applicant was selected",
+		);
+		expect(screen.queryByText("another_applicant_selected")).toBeNull();
+	});
+});
+
+describe("ApplicationDetail — an anonymized row is a stub, not a person", () => {
+	// T-66-50. A banner-only implementation still renders the placeholder in the
+	// name card and in the <h1>, so the absence assertion is the real claim and
+	// the banner is its positive control.
+	it("renders the banner and no placeholder anywhere in the output", () => {
+		mockQueries(makeAnonymizedRow());
+		const { container } = renderDetail();
+
+		expect(
+			screen.getByText("This application has been anonymized."),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(/TenantFlow removes applicant details two years/),
+		).toBeInTheDocument();
+		expect(container.textContent ?? "").not.toContain(SENTINEL);
+		// The stub the spec requires: the unit, the dates, the status and the
+		// reason survive, and they are what this page still has to show.
+		expect(screen.getByText("Pecan Street Duplex")).toBeInTheDocument();
+		expect(
+			screen.getByText("Another applicant was selected"),
+		).toBeInTheDocument();
+	});
+
+	it("offers no conversion control and no notes editor on a swept row", () => {
+		mockQueries(makeAnonymizedRow());
+		renderDetail();
+
+		// POSITIVE CONTROL first: the page really rendered.
+		expect(
+			screen.getByText("This application has been anonymized."),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("link", { name: /tenant form/ }),
+		).not.toBeInTheDocument();
+		expect(screen.queryByLabelText("Private notes")).not.toBeInTheDocument();
+	});
+
+	it("renders none of the five applicant cards", () => {
+		mockQueries(makeAnonymizedRow());
+		renderDetail();
+
+		const headings = screen
+			.getAllByRole("heading", { level: 2 })
+			.map((node) => node.textContent);
+		expect(headings).toEqual(["Application record"]);
+	});
+});
+
+describe("ApplicationDetail — declining captures a reason before it commits", () => {
+	async function openDeclineDialog(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(screen.getByRole("button", { name: "Decline" }));
+		return screen.findByRole("dialog");
+	}
+
+	function confirmButton(): HTMLElement {
+		return screen.getByRole("button", { name: "Decline application" });
+	}
+
+	it("keeps the confirm inert until a reason is chosen, then enables it", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ status: "reviewing" }));
+		renderDetail();
+
+		await openDeclineDialog(user);
+
+		// The disabled state is the claim, and "disabled" is satisfied by a button
+		// that is broken for unrelated reasons — so the test does not stop here.
+		expect(confirmButton()).toBeDisabled();
+		expect(setStatusSpy).not.toHaveBeenCalled();
+
+		await user.click(screen.getByRole("combobox", { name: "Reason" }));
+		await user.click(
+			await screen.findByRole("option", {
+				name: "Income did not meet the stated requirement",
+			}),
+		);
+
+		// The control genuinely becomes usable. Without this the assertion above
+		// would pass against a permanently inert button.
+		await waitFor(() => {
+			expect(confirmButton()).toBeEnabled();
+		});
+	});
+
+	it("sends the chosen reason, not merely a status change", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ status: "reviewing" }));
+		renderDetail();
+
+		await openDeclineDialog(user);
+		await user.click(screen.getByRole("combobox", { name: "Reason" }));
+		await user.click(
+			await screen.findByRole("option", { name: "Applicant withdrew" }),
+		);
+		await waitFor(() => {
+			expect(confirmButton()).toBeEnabled();
+		});
+		await user.click(confirmButton());
+
+		// The RPC raises without a reason, and the DB value is `rejected` while the
+		// label the owner read was "Declined" (UI-14). Both are asserted.
+		expect(setStatusSpy.mock.calls[0]?.[0]).toEqual({
+			applicationId: APPLICATION_ID,
+			status: "rejected",
+			dispositionReason: "applicant_withdrew",
+		});
+	});
+
+	it("offers only the seven closed-vocabulary reasons", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ status: "reviewing" }));
+		renderDetail();
+
+		await openDeclineDialog(user);
+		await user.click(screen.getByRole("combobox", { name: "Reason" }));
+
+		const options = await screen.findAllByRole("option");
+		expect(options).toHaveLength(7);
+		// A free-text escape hatch here would be applicant PII living in the one
+		// column the anonymize sweep deliberately preserves (D-11d).
+		expect(screen.queryByRole("textbox", { name: /reason/i })).toBeNull();
+	});
+});
+
+describe("ApplicationDetail — delete is confirmed before anything happens", () => {
+	it("calls no mutation until the confirm itself is clicked", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow());
+		renderDetail();
+
+		await user.click(
+			screen.getByRole("button", { name: "Application actions" }),
+		);
+		await user.click(
+			await screen.findByRole("menuitem", { name: "Delete application" }),
+		);
+
+		// POSITIVE CONTROL: the confirm surface really opened, so the absence
+		// assertion beneath it is being made against a live dialog and not against
+		// a menu that never rendered.
+		const dialog = await screen.findByRole("alertdialog");
+		expect(
+			within(dialog).getByText(/TenantFlow keeps applications for two years/),
+		).toBeInTheDocument();
+		expect(deleteSpy).not.toHaveBeenCalled();
+
+		await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+		expect(deleteSpy.mock.calls[0]?.[0]).toBe(APPLICATION_ID);
+	});
+
+	// D-09: nothing points from `tenants` back to `rental_applications`, so no
+	// cascade is possible. A warning implying otherwise would stop owners from
+	// tidying up records they are entitled to remove.
+	it("makes no claim about the converted tenant in the confirm copy", async () => {
+		const user = userEvent.setup();
+		mockQueries(
+			makeRow({
+				status: "approved",
+				decided_at: "2026-08-02T00:00:00Z",
+				converted_tenant_id: TENANT_ID,
+				converted_at: "2026-08-04T00:00:00Z",
+			}),
+			{ id: TENANT_ID, first_name: "Dana", last_name: "Reyes" },
+		);
+		renderDetail();
+
+		await user.click(
+			screen.getByRole("button", { name: "Application actions" }),
+		);
+		await user.click(
+			await screen.findByRole("menuitem", { name: "Delete application" }),
+		);
+
+		const dialog = await screen.findByRole("alertdialog");
+		const copy = dialog.textContent ?? "";
+		expect(copy).toContain("This cannot be undone.");
+		expect(copy).not.toContain("tenant record");
+		expect(copy).not.toContain("Dana Reyes");
+	});
+});
+
+describe("ApplicationDetail — loading, failure and a row that is not there", () => {
+	// The not-found copy is a positive claim about the owner's data, and a query
+	// that is pending but not in flight has not earned it. Reachable twice in
+	// this app: `networkMode: "online"` parks an offline query at a paused fetch
+	// status, and PersistQueryClientProvider mounts from an async effect.
+	it("shows skeletons while pending but not fetching, never the 404", () => {
+		mockUseQuery.mockImplementation(() => ({
+			data: undefined,
+			isPending: true,
+			isLoading: false,
+			isError: false,
+			refetch: vi.fn(),
+		}));
+		const { container } = renderDetail();
+
+		expect(
+			container.querySelectorAll('[data-slot="skeleton"]').length,
+		).toBeGreaterThan(0);
+		expect(screen.queryByText("Page not found")).not.toBeInTheDocument();
+	});
+
+	// RLS makes "not yours" and "does not exist" the same null, deliberately.
+	it("renders the shared not-found page for a null row", () => {
+		mockQueries(null);
+		renderDetail();
+
+		expect(screen.getByText("Page not found")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: /Back to applications/ }),
+		).toHaveAttribute("href", "/applications");
+	});
+
+	it("renders an inline retry and leaks no PostgREST string", async () => {
+		const user = userEvent.setup();
+		const refetch = vi.fn();
+		mockUseQuery.mockImplementation(() => ({
+			data: undefined,
+			isPending: false,
+			isLoading: false,
+			isError: true,
+			refetch,
+		}));
+		const { container } = renderDetail();
+
+		expect(
+			screen.getByText("Couldn't load this application."),
+		).toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: "Retry" }));
+		expect(refetch).toHaveBeenCalledTimes(1);
+		expect(container.textContent ?? "").not.toContain("PGRST");
+	});
+});
+
+describe("ApplicationDetail — the owner's private notes", () => {
+	it("sends what is in the field, and only once it differs from the server", async () => {
+		const user = userEvent.setup();
+		mockQueries(makeRow({ owner_notes: "Called Tuesday." }));
+		renderDetail();
+
+		const save = screen.getByRole("button", { name: "Save notes" });
+		// Nothing has changed yet, so there is nothing to save.
+		expect(save).toBeDisabled();
+
+		const field = screen.getByLabelText("Private notes");
+		await user.type(field, " Left a message.");
+
+		await waitFor(() => {
+			expect(save).toBeEnabled();
+		});
+		await user.click(save);
+
+		expect(setNotesSpy.mock.calls[0]?.[0]).toEqual({
+			applicationId: APPLICATION_ID,
+			notes: "Called Tuesday. Left a message.",
+		});
+	});
+});
