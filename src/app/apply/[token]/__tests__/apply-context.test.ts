@@ -18,6 +18,7 @@
  * @vitest-environment jsdom
  */
 
+import { type ComponentProps, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TOKEN_UNAVAILABLE_COPY } from "#lib/applications/application-copy";
@@ -28,7 +29,36 @@ import {
 } from "../apply-context";
 import ApplyPage, { dynamic, metadata } from "../page";
 
-const { fetchMock } = vi.hoisted(() => ({ fetchMock: vi.fn() }));
+const { fetchMock, formProps } = vi.hoisted(() => ({
+	fetchMock: vi.fn(),
+	formProps: [] as Array<Record<string, unknown>>,
+}));
+
+/**
+ * The REAL form still renders — this wrapper only records what the page handed
+ * it. `issuedAt` is the server clock reading the applicant's browser echoes back
+ * as `form_loaded_at`, and it has exactly one legitimate source: the context
+ * response. A page that minted it locally, or dropped it, would leave the timing
+ * filter comparing two different clocks again, and every drop it caused would be
+ * answered as an ordinary success with zero rows written.
+ */
+vi.mock(
+	"#components/applications/rental-application-form",
+	async (original) => {
+		const actual =
+			await original<
+				typeof import("#components/applications/rental-application-form")
+			>();
+		return {
+			RentalApplicationForm: (
+				props: ComponentProps<typeof actual.RentalApplicationForm>,
+			) => {
+				formProps.push({ ...props });
+				return createElement(actual.RentalApplicationForm, props);
+			},
+		};
+	},
+);
 
 const SUPABASE_URL = "https://example.supabase.co";
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/apply-token`;
@@ -101,10 +131,16 @@ describe("fetchApplyContext", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("returns a valid 200 body unchanged", async () => {
+	it("returns a valid 200 body unchanged, including the server's stamp", async () => {
 		const body: ApplyContextResponse = {
 			valid: true,
 			reason: null,
+			// The server's own clock reading, which the form echoes back on submit
+			// so the timing filter compares one clock against itself. Dropping it
+			// here is silent: the form would fall back to the DEVICE clock and a
+			// skewed device would have every submission answered as a success with
+			// zero rows written.
+			issued_at: 1_500_000_000_000,
 			listing: {
 				property_label: "123 Main St",
 				unit_label: "2B",
@@ -114,7 +150,9 @@ describe("fetchApplyContext", () => {
 		};
 		fetchMock.mockResolvedValue({ ok: true, json: async () => body });
 
-		await expect(fetchApplyContext("tok")).resolves.toEqual(body);
+		const response = await fetchApplyContext("tok");
+		expect(response).toEqual(body);
+		expect(response.valid && response.issued_at).toBe(1_500_000_000_000);
 	});
 
 	it("passes a 200 + reason body through without translating the reason", async () => {
@@ -367,6 +405,51 @@ describe("the rendered page (Server Component)", () => {
 		expect(text).toContain(
 			"Delivered directly to the property owner. TenantFlow does not screen applicants.",
 		);
+	});
+
+	it("hands the form the SERVER's stamp, never a locally-minted one", async () => {
+		formProps.length = 0;
+		const ISSUED_AT = 1_500_000_000_000;
+		mockContext({
+			valid: true,
+			reason: null,
+			issued_at: ISSUED_AT,
+			listing: {
+				property_label: "123 Main St",
+				unit_label: "2B",
+				rent_amount: 1850,
+				owner_display_name: "Dana Owner",
+			},
+		});
+
+		await renderApplyPage("tok");
+
+		expect(formProps).toHaveLength(1);
+		expect(formProps[0]?.issuedAt).toBe(ISSUED_AT);
+		// Positive control: the wrapper really did see the page's own props.
+		expect(formProps[0]?.token).toBe("tok");
+	});
+
+	it("hands the form a null stamp when the deployed function sent none", async () => {
+		// The deploy window. `null` is what tells the form to fall back to the
+		// device clock — the pre-existing behaviour — rather than post `undefined`
+		// and have every submission dropped as an absent stamp.
+		formProps.length = 0;
+		mockContext({
+			valid: true,
+			reason: null,
+			listing: {
+				property_label: "123 Main St",
+				unit_label: null,
+				rent_amount: null,
+				owner_display_name: "Dana Owner",
+			},
+		});
+
+		await renderApplyPage("tok");
+
+		expect(formProps).toHaveLength(1);
+		expect(formProps[0]?.issuedAt).toBeNull();
 	});
 
 	it("declares noindex/nofollow and force-dynamic at the module level", () => {

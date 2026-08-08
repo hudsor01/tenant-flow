@@ -56,6 +56,30 @@ function requiredText(max: number, missing: string, label: string) {
 		.max(max, `${label} cannot exceed ${max} characters`);
 }
 
+/**
+ * `YYYY-MM-DD` that names a real day. The shape regex alone accepts
+ * `2026-02-31`, `2024-13-01` and `0000-01-01`, none of which Postgres will cast
+ * — and the cast lives inside `submit_rental_application`, where a raise aborts
+ * the transaction and costs the applicant the whole form. `isCalendarDate` in
+ * `application-guards.ts` is the same check on the authoritative side; this half
+ * keeps the browser from ever putting one on the wire.
+ *
+ * `Date.UTC` maps years 0-99 onto 1900-1999, so the round-trip below rejects
+ * year 0000 as well, which is correct: Postgres has no year zero.
+ */
+function isCalendarDate(value: string): boolean {
+	const [yearPart, monthPart, dayPart] = value.split("-");
+	const year = Number(yearPart);
+	const month = Number(monthPart);
+	const day = Number(dayPart);
+	const utc = new Date(Date.UTC(year, month - 1, day));
+	return (
+		utc.getUTCFullYear() === year &&
+		utc.getUTCMonth() === month - 1 &&
+		utc.getUTCDate() === day
+	);
+}
+
 const rentalApplicationObject = z
 	.object({
 		// --- Section 1: about you -------------------------------------------
@@ -68,7 +92,9 @@ const rentalApplicationObject = z
 			.regex(
 				/^\d{4}-\d{2}-\d{2}$/,
 				"Choose the date you would like to move in.",
-			),
+			)
+			// After the shape check, never instead of it.
+			.refine(isCalendarDate, "Choose the date you would like to move in."),
 
 		// --- Section 2: where you live now ----------------------------------
 		current_street: requiredText(

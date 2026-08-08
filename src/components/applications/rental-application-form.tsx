@@ -1,7 +1,7 @@
 "use client";
 
 import { useStore } from "@tanstack/react-form";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm, withForm } from "#lib/forms/form-hook";
 import { HONEYPOT_FIELD } from "../../../supabase/functions/_shared/application-guards";
@@ -55,6 +55,17 @@ import {
  * own click causes and the click never lands, with no error anywhere. See the
  * note in `submit-button.tsx`.
  *
+ * AND THE SUBMIT CONTROL IS NEVER DISABLED FOR BEING INVALID. `onChange` fixes
+ * the blur deadlock but not the one underneath it: a form-level validator that
+ * reports every unfilled required field holds `isValid` false from first render,
+ * so the moment one field is touched `canSubmit` is false for the rest of the
+ * session — and per-field errors render only for TOUCHED fields, which a
+ * form-level validator does not touch. That is a permanently dead control with
+ * no explanation anywhere on the page. `canSubmitWhenInvalid` below lets the
+ * attempt through; the attempt is what marks every field touched, surfaces the
+ * errors, and fires the A-5 state 5 summary. An applicant must always be able to
+ * find out what is missing.
+ *
  * THE SUBMIT CONTROL SITS IN NORMAL FLOW, DIRECTLY BELOW THE DISCLAIMER
  * (UI-06). A floating bar would let an applicant submit without the APPLY-06
  * disclaimer ever entering the viewport, which defeats the requirement and
@@ -71,6 +82,12 @@ interface RentalApplicationFormProps {
 	token: string;
 	propertyLabel: string | null;
 	unitLabel: string | null;
+	/**
+	 * The SERVER's clock reading at the moment `apply-token`'s context action
+	 * built this page, posted back untouched as `form_loaded_at`. `null` only
+	 * when the deployed function predates the change that mints it.
+	 */
+	issuedAt: number | null;
 }
 
 type SubmitOutcome = "ok" | "capped" | "failed";
@@ -113,7 +130,7 @@ type SubmitResult =
 async function submitApplication(context: {
 	token: string;
 	submissionId: string;
-	mountedAt: number;
+	formLoadedAt: number;
 	values: ApplicationFormValues;
 }): Promise<SubmitResult> {
 	const parsed = applicationSubmissionSchema.safeParse(context.values);
@@ -129,7 +146,7 @@ async function submitApplication(context: {
 		action: "submit",
 		token: context.token,
 		submission_id: context.submissionId,
-		form_loaded_at: context.mountedAt,
+		form_loaded_at: context.formLoadedAt,
 		// Lifted to the ENVELOPE: the strict validator rejects unknown keys, so a
 		// trap field left inside `application` would fail every single submit.
 		[HONEYPOT_FIELD]: context.values[HONEYPOT_FIELD],
@@ -138,7 +155,16 @@ async function submitApplication(context: {
 	return { kind: outcome };
 }
 
-/** A-5 state 5: focus lands on the first invalid control in DOM order. */
+/**
+ * A-5 state 5: focus lands on the first invalid control in DOM order.
+ *
+ * ALWAYS CALLED FROM AN EFFECT, NEVER FROM A SUBMIT CALLBACK. Both callbacks run
+ * while the field area is still wrapped in `fieldset[disabled]` — `handleSubmit`
+ * flips `isSubmitting` on before it validates and off again in the same
+ * synchronous run, so React has not re-rendered by the time either callback
+ * executes — and `.focus()` on a control inside a disabled fieldset is a no-op.
+ * An effect runs after the commit that re-enables it.
+ */
 function focusFirstInvalid(
 	root: HTMLFormElement | null,
 	invalid: ReadonlySet<string>,
@@ -197,34 +223,88 @@ export function RentalApplicationForm({
 	token,
 	propertyLabel,
 	unitLabel,
+	issuedAt,
 }: RentalApplicationFormProps) {
-	// Both minted ONCE per mount, via lazy initializers rather than a value
+	// Minted ONCE per mount, via a lazy initializer rather than a value
 	// recomputed on every render. The submission id is what makes a double-click
 	// or a network retry the same submission at the RPC's `on conflict do
 	// nothing`; regenerating it per attempt would defeat that, while a page
 	// refresh correctly mints a new one so a genuine re-application still works.
 	const [submissionId] = useState(() => crypto.randomUUID());
-	const [mountedAt] = useState(() => Date.now());
+	// THE DEVICE CLOCK IS THE FALLBACK, NEVER THE SOURCE. `issuedAt` is the
+	// server's own reading, threaded from the context response, and it is what
+	// the timing filter compares against the server's clock on submit. A browser
+	// `Date.now()` here makes `elapsed` the real elapsed time PLUS the device's
+	// clock offset, so a phone running fast fails every submission it will ever
+	// make while being shown the confirmation screen each time. The fallback
+	// exists solely for a deployed `apply-token` that predates `issued_at`; that
+	// function's own guard is the pre-existing one, so this is no worse than what
+	// shipped and is unreachable once it is deployed.
+	const [deviceLoadedAt] = useState(() => Date.now());
+	const formLoadedAt = issuedAt ?? deviceLoadedAt;
 	const [notice, setNotice] = useState<SubmitNotice | null>(null);
 	const [confirmed, setConfirmed] = useState(false);
 	const formRef = useRef<HTMLFormElement>(null);
+	// The A-5 state 5 focus target. Held as state rather than moved directly from
+	// the submit callbacks, and carrying a per-attempt sequence number so two
+	// consecutive failures on the SAME field still re-run the effect. See the note
+	// on focusFirstInvalid for why a direct call cannot work.
+	const [focusTarget, setFocusTarget] = useState<{
+		fields: ReadonlySet<string>;
+		attempt: number;
+	} | null>(null);
+
+	useEffect(() => {
+		if (focusTarget === null) return;
+		focusFirstInvalid(formRef.current, focusTarget.fields);
+	}, [focusTarget]);
+
+	const reportInvalid = (fields: ReadonlySet<string>) => {
+		setNotice({ kind: "invalid", count: fields.size });
+		setFocusTarget((previous) => ({
+			fields,
+			attempt: (previous?.attempt ?? 0) + 1,
+		}));
+	};
 
 	const form = useAppForm({
 		...applicationFormOptions,
 		// onChange, never onBlur — see the header note. The validator itself lives
 		// in application-form-options.ts; this file states no rule of its own.
 		validators: { onChange: ({ value }) => validateApplicationForm(value) },
+		// THE APPLICANT CAN ALWAYS ATTEMPT A SUBMIT. Without this, form-core's
+		// `canSubmit` is
+		//   (submissionAttempts === 0 && !isTouched && !hasOnMountError)
+		//   || (!isValidating && !isSubmitting && isValid)
+		// and a form-level validator that reports every empty required field keeps
+		// `isValid` false from the first render. So the FIRST keystroke kills the
+		// left clause and the button is disabled for the rest of the session —
+		// while each field renders its error only once that field is touched, and a
+		// form-level validator touches nothing. An applicant who scrolled past one
+		// required field was left with a dead grey control and no error anywhere on
+		// the page, which is not a state anyone can recover from.
+		//
+		// `handleSubmit` marks every mounted field touched BEFORE it consults
+		// `canSubmit`, so allowing the attempt is what makes the per-field errors
+		// appear at all. The 'submit' cause re-runs the onChange validator, so they
+		// are the same messages, and `onSubmitInvalid` below adds the A-5 state 5
+		// summary and moves focus. Double-submit is bounded by the disabled
+		// fieldset during flight and by the idempotent `submission_id` behind it.
+		canSubmitWhenInvalid: true,
+		onSubmitInvalid: ({ value }) => {
+			const invalid = validateApplicationForm(value);
+			reportInvalid(new Set(Object.keys(invalid?.fields ?? {})));
+		},
 		onSubmit: async ({ value, formApi }) => {
 			setNotice(null);
 			const result = await submitApplication({
 				token,
 				submissionId,
-				mountedAt,
+				formLoadedAt,
 				values: value,
 			});
 			if (result.kind === "invalid") {
-				setNotice({ kind: "invalid", count: result.fields.size });
-				focusFirstInvalid(formRef.current, result.fields);
+				reportInvalid(result.fields);
 				return;
 			}
 			if (result.kind === "ok") {

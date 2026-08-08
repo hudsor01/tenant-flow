@@ -65,12 +65,20 @@ const REQUIRED_VALUES: ReadonlyArray<readonly [string, string]> = [
 
 const fetchMock = vi.fn();
 
-function renderForm() {
+/**
+ * A server-minted `issued_at`, deliberately nothing like a plausible reading of
+ * this machine's clock, so a component that fell back to `Date.now()` cannot
+ * accidentally produce it.
+ */
+const SERVER_ISSUED_AT = 1_500_000_000_000;
+
+function renderForm(issuedAt: number | null = SERVER_ISSUED_AT) {
 	return render(
 		<RentalApplicationForm
 			token="tok_live_abcdef"
 			propertyLabel="Pecan Grove"
 			unitLabel="4B"
+			issuedAt={issuedAt}
 		/>,
 	);
 }
@@ -88,10 +96,18 @@ function submitButton(): HTMLButtonElement {
 }
 
 /** Fills every required field. Leaves the attestation deliberately unchecked. */
-function fillRequiredFields(): void {
+function fillRequiredFields(skip?: string): void {
 	for (const [name, value] of REQUIRED_VALUES) {
+		if (name === skip) continue;
 		fireEvent.change(control(name), { target: { value } });
 	}
+}
+
+/** Whatever the per-field `FieldError` primitive rendered, if anything. */
+function fieldErrors(container: HTMLElement): string[] {
+	return Array.from(
+		container.querySelectorAll<HTMLElement>('[data-slot="field-error"]'),
+	).map((node) => node.textContent ?? "");
 }
 
 function checkAttestation(): void {
@@ -146,6 +162,9 @@ beforeEach(() => {
 afterEach(() => {
 	cleanup();
 	vi.unstubAllGlobals();
+	// The stamp tests spy on Date.now. Leaving one installed would freeze the
+	// clock for every file that runs after this one in the same worker.
+	vi.restoreAllMocks();
 });
 
 describe("RentalApplicationForm — the D-06 forbidden-field contract", () => {
@@ -351,22 +370,105 @@ describe("RentalApplicationForm — the UI-10 household contract", () => {
 	});
 });
 
-describe("RentalApplicationForm — the UI-05 attestation gate", () => {
-	it("keeps submit disabled until the attestation is checked, then enables it", () => {
+/**
+ * A-5 state 5. The applicant must always be able to ATTEMPT a submit and be told
+ * what is missing.
+ *
+ * The bug this replaces: `canSubmit` in form-core 1.32 is
+ * `(submissionAttempts === 0 && !isTouched && !hasOnMountError) || (!isValidating
+ * && !isSubmitting && isValid)`, and the form-level validator reports every
+ * unfilled required field, so `isValid` is false until all fourteen are correct.
+ * The FIRST keystroke killed the left clause, and the button was then disabled
+ * for the rest of the session — while each field shows its error only once
+ * TOUCHED, and a form-level validator touches nothing. An applicant who scrolled
+ * past one required field faced a dead grey control with no error anywhere.
+ *
+ * Every test below therefore asserts the RECOVERY PATH, not the gate: the click
+ * lands, the offending field says so, and the summary counts it.
+ */
+describe("RentalApplicationForm — no unreachable submit (A-5 state 5)", () => {
+	it("still lets an applicant attempt a submit with one required field never touched", async () => {
+		const { container } = renderForm();
+		// `phone` is skipped entirely — never typed in, never blurred, so its own
+		// `isTouched` is false and it renders no error of its own.
+		fillRequiredFields("phone");
+		checkAttestation();
+
+		// Positive control: the rest of the form really is filled, so the failure
+		// below is about `phone` and not about an empty render.
+		expect(control("email").value).toBe(APPLICANT_EMAIL);
+		expect(control("phone").value).toBe("");
+		expect(fieldErrors(container)).toEqual([]);
+
+		// The control is reachable. This is the assertion the shipped build failed.
+		expect(submitButton().disabled).toBe(false);
+		fireEvent.click(submitButton());
+
+		// And the attempt TELLS the applicant what is missing, in both places
+		// A-5 state 5 requires: the field, and a summary above the button.
+		expect(
+			await screen.findByText("1 answer needs your attention"),
+		).toBeInTheDocument();
+		expect(fieldErrors(container).length).toBeGreaterThan(0);
+		expect(fetchMock).not.toHaveBeenCalled();
+	});
+
+	it("counts every missing answer, not just the first", async () => {
+		renderForm();
+		// Nothing filled at all: 13 text/number fields plus the attestation.
+		fireEvent.click(submitButton());
+
+		expect(
+			await screen.findByText("14 answers need your attention"),
+		).toBeInTheDocument();
+		expect(fetchMock).not.toHaveBeenCalled();
+	});
+
+	it("moves focus to the first invalid control in DOM order", async () => {
+		renderForm();
+		fillRequiredFields("current_city");
+		checkAttestation();
+
+		fireEvent.click(submitButton());
+		await screen.findByText("1 answer needs your attention");
+
+		expect(document.activeElement).toBe(control("current_city"));
+	});
+
+	it("clears the summary and submits once the missing answer is supplied", async () => {
+		renderForm();
+		fillRequiredFields("phone");
+		checkAttestation();
+
+		fireEvent.click(submitButton());
+		await screen.findByText("1 answer needs your attention");
+
+		fireEvent.change(control("phone"), { target: { value: "5125550143" } });
+		fireEvent.click(submitButton());
+
+		expect(await screen.findByText("Application received")).toBeInTheDocument();
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("keeps the UI-05 attestation genuinely required", async () => {
+		// The gate did not go away — it moved from a disabled control to a stated
+		// error. Without this the change above could have dropped the attestation.
 		renderForm();
 		fillRequiredFields();
-
-		// The negative half.
 		expect(screen.getByRole("checkbox")).toHaveAttribute(
 			"data-state",
 			"unchecked",
 		);
-		expect(submitButton().disabled).toBe(true);
 
-		// The positive half. Without it, the disabled assertion above would also
-		// pass against a button that is permanently disabled.
+		fireEvent.click(submitButton());
+		expect(
+			await screen.findByText("1 answer needs your attention"),
+		).toBeInTheDocument();
+		expect(fetchMock).not.toHaveBeenCalled();
+
 		checkAttestation();
-		expect(submitButton().disabled).toBe(false);
+		fireEvent.click(submitButton());
+		expect(await screen.findByText("Application received")).toBeInTheDocument();
 	});
 });
 
@@ -396,6 +498,52 @@ describe("RentalApplicationForm — the submitted envelope", () => {
 		// The trap is an ENVELOPE field; the strict validator rejects unknown keys.
 		expect(HONEYPOT_FIELD in application).toBe(false);
 		expect(Object.keys(application)).not.toContain("action");
+	});
+
+	/**
+	 * THE TIMING STAMP IS THE SERVER'S CLOCK, ECHOED — NEVER THE DEVICE'S.
+	 *
+	 * `apply-token` drops a submission whose elapsed time reads implausible, and
+	 * that drop answers HTTP 200 `success: true`: the applicant sees the
+	 * confirmation screen, the form resets, no row is written and the owner is
+	 * never told. When the stamp came from `Date.now()` in this component, elapsed
+	 * was the real elapsed time PLUS the device's clock offset, so a phone running
+	 * a minute fast failed every submission it would ever make, permanently and
+	 * invisibly.
+	 *
+	 * The device clock is stubbed to a value 20 years away from the server's, so
+	 * an implementation that reads it cannot coincidentally pass.
+	 */
+	it("posts the server-minted stamp, not this device's clock", async () => {
+		const DEVICE_CLOCK = 2_000_000_000_000;
+		vi.spyOn(Date, "now").mockReturnValue(DEVICE_CLOCK);
+
+		renderForm(SERVER_ISSUED_AT);
+		fillRequiredFields();
+		checkAttestation();
+
+		fireEvent.click(submitButton());
+		await screen.findByText("Application received");
+
+		expect(lastRequestBody().form_loaded_at).toBe(SERVER_ISSUED_AT);
+		expect(lastRequestBody().form_loaded_at).not.toBe(DEVICE_CLOCK);
+	});
+
+	it("falls back to the device clock only when the function sent no stamp", async () => {
+		// The deploy window, and nothing else: an `apply-token` older than the
+		// change that mints `issued_at` sends none, and the pre-existing behaviour
+		// is the only thing available. Once deployed this branch is unreachable.
+		const DEVICE_CLOCK = 2_000_000_000_000;
+		vi.spyOn(Date, "now").mockReturnValue(DEVICE_CLOCK);
+
+		renderForm(null);
+		fillRequiredFields();
+		checkAttestation();
+
+		fireEvent.click(submitButton());
+		await screen.findByText("Application received");
+
+		expect(lastRequestBody().form_loaded_at).toBe(DEVICE_CLOCK);
 	});
 
 	it("reuses one submission id across a retry so the RPC can deduplicate (T-66-20)", async () => {

@@ -125,7 +125,13 @@ function ApplyCard({
 	// `token` is threaded down solely so the form can post it back; the shell
 	// itself never renders it, and it must never appear in page output (T-66-02).
 	if (context.valid)
-		return <ListingCard listing={context.listing} token={token} />;
+		return (
+			<ListingCard
+				listing={context.listing}
+				token={token}
+				issuedAt={context.issued_at ?? null}
+			/>
+		);
 
 	// The only branch that renders differently, and it earns that by being the
 	// only reason that carries no information about the token: our fetch failed,
@@ -149,9 +155,13 @@ function ApplyCard({
 function ListingCard({
 	listing,
 	token,
+	issuedAt,
 }: {
 	listing: ApplyListing;
 	token: string;
+	// The server clock reading the form posts back as `form_loaded_at`. `null`
+	// only when the deployed Edge Function predates the change that mints it.
+	issuedAt: number | null;
 }) {
 	return (
 		<Card>
@@ -184,6 +194,7 @@ function ListingCard({
 					token={token}
 					propertyLabel={listing.property_label}
 					unitLabel={listing.unit_label}
+					issuedAt={issuedAt}
 				/>
 			</CardContent>
 		</Card>

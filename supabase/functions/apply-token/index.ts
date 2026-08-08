@@ -109,6 +109,20 @@ function jsonOk(req: Request, body: Record<string, unknown>): Response {
 	});
 }
 
+/**
+ * Every branch that answers success while writing zero rows logs here.
+ *
+ * The silent 200 is deliberate and stays — a bot must not learn which layer
+ * caught it. What is NOT acceptable is that the drop is invisible to US as well:
+ * both bot filters are heuristics over client-supplied values, so their
+ * false-positive rate is a number somebody has to be able to look up, and until
+ * this existed the only observable drop in the whole submit path was the payload
+ * branch. Nothing naming the applicant is ever logged.
+ */
+function logSilentDrop(event: string, detail: Record<string, unknown>): void {
+	console.log(JSON.stringify({ level: "info", event, ...detail }));
+}
+
 /** The URL token, or null when the envelope carries no usable one. */
 function readToken(body: Record<string, unknown>): string | null {
 	const token = body.token;
@@ -174,9 +188,18 @@ async function handleContext(
 	}
 	// Built field-by-field, never spread from the row: spreading would forward
 	// any column the RPC later gains, including one that should not be public.
+	//
+	// `issued_at` IS THE FORM'S CLOCK. The page echoes it back as
+	// `form_loaded_at` on submit, so the timing filter compares this server's
+	// clock against this server's clock. Minting it in the browser instead —
+	// which is what shipped — makes `elapsed` the sum of the real elapsed time
+	// and the device's clock offset, and a phone whose clock runs a minute fast
+	// then fails every submission it will ever make while being shown the
+	// confirmation screen every time.
 	return jsonOk(req, {
 		valid: true,
 		reason: null,
+		issued_at: Date.now(),
 		listing: {
 			property_label: row.property_label,
 			unit_label: row.unit_label,
@@ -208,13 +231,26 @@ async function handleSubmit(
 	// 1. Honeypot. Success, never a 400: a 400 tells the bot which field is the
 	//    trap. Zero rows are written and nothing naming the applicant is logged.
 	if (isHoneypotTripped(body[HONEYPOT_FIELD])) {
+		logSilentDrop("apply_honeypot_tripped", { filled: true });
 		return jsonOk(req, { success: true });
 	}
 
 	// 2. Timing. A BOT FILTER, NOT A SECURITY CONTROL — `form_loaded_at` is
 	//    client-supplied and anyone who reads this file can forge it. Read it as
 	//    spam filtering; the actual bound is the fail-closed DB cap named above.
-	if (isTimingSuspicious(body.form_loaded_at, Date.now())) {
+	//
+	//    Both operands are SERVER-CLOCK milliseconds: `form_loaded_at` is the
+	//    `issued_at` handleContext minted, echoed back by the page. There is no
+	//    upper bound — an open tab is not a bot (application-guards.ts note b2).
+	//    Both values are logged on a drop so the false-positive rate of a
+	//    heuristic that answers success is a number somebody can look up.
+	const serverNow = Date.now();
+	if (isTimingSuspicious(body.form_loaded_at, serverNow)) {
+		logSilentDrop("apply_timing_dropped", {
+			form_loaded_at:
+				typeof body.form_loaded_at === "number" ? body.form_loaded_at : null,
+			server_now: serverNow,
+		});
 		return jsonOk(req, { success: true });
 	}
 

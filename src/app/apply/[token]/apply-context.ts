@@ -56,9 +56,22 @@ export interface ApplyListing {
  * A `valid: false` response carries NO `listing` key at all — the union is
  * discriminated so a render cannot reach listing data on a dead token without a
  * type error.
+ *
+ * `issued_at` is the SERVER's `Date.now()` at the moment the context was built.
+ * The form echoes it back as `form_loaded_at` on submit so `apply-token`'s
+ * timing filter compares one clock against itself; a stamp the browser minted
+ * carries the device's clock offset, and a phone running a minute fast then has
+ * every submission it will ever make silently dropped behind a confirmation
+ * screen. It is OPTIONAL because a deployed `apply-token` that predates this
+ * change does not send it — see the fallback in `rental-application-form.tsx`.
  */
 export type ApplyContextResponse =
-	| { valid: true; reason: null; listing: ApplyListing }
+	| {
+			valid: true;
+			reason: null;
+			listing: ApplyListing;
+			issued_at?: number;
+	  }
 	| { valid: false; reason: string | null };
 
 /**

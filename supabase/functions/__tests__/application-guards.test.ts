@@ -32,7 +32,6 @@ import {
 	HONEYPOT_FIELD,
 	isHoneypotTripped,
 	isTimingSuspicious,
-	MAX_ELAPSED_MS,
 	MAX_FIELD_LENGTHS,
 	MIN_ELAPSED_MS,
 	parseSubmissionPayload,
@@ -145,8 +144,25 @@ describe("isTimingSuspicious", () => {
 		expect(isTimingSuspicious(now - 600_000, now)).toBe(false);
 	});
 
-	it("rejects a stale load beyond the 24 hour ceiling", () => {
-		expect(isTimingSuspicious(now - 90_000_000, now)).toBe(true);
+	/**
+	 * THE OPEN TAB. An applicant opens the form from a listing on Monday and
+	 * finishes it on Tuesday — a deterministic case needing no clock skew at all.
+	 * The 24-hour ceiling that used to live here answered "suspicious", and
+	 * `apply-token` answers a silent HTTP 200 success to a suspicious submission,
+	 * so the applicant saw the confirmation screen, the form reset, no row was
+	 * written and the owner was never told. The page persists nothing on the
+	 * device, so all 26 fields were gone.
+	 *
+	 * Every value below is over the old ceiling. There is no upper bound any more;
+	 * slow is not evidence of a bot.
+	 */
+	it("accepts a stamp older than the day it was minted, however old", () => {
+		// 25 hours, just past the old ceiling.
+		expect(isTimingSuspicious(now - 90_000_000, now)).toBe(false);
+		// Two days.
+		expect(isTimingSuspicious(now - 172_800_000, now)).toBe(false);
+		// A fortnight.
+		expect(isTimingSuspicious(now - 1_209_600_000, now)).toBe(false);
 	});
 
 	it("rejects an unparseable or absent timestamp", () => {
@@ -159,11 +175,18 @@ describe("isTimingSuspicious", () => {
 		expect(isTimingSuspicious(now + 60_000, now)).toBe(true);
 	});
 
-	it("uses the documented bounds", () => {
+	it("uses the one documented bound, and exports no ceiling to reinstate", async () => {
 		expect(MIN_ELAPSED_MS).toBe(3_000);
-		expect(MAX_ELAPSED_MS).toBe(86_400_000);
 		expect(isTimingSuspicious(now - MIN_ELAPSED_MS, now)).toBe(false);
 		expect(isTimingSuspicious(now - (MIN_ELAPSED_MS - 1), now)).toBe(true);
+
+		// A ceiling constant is the thing a future edit reaches for. Its absence is
+		// asserted rather than merely true: the module exports one elapsed bound.
+		const guards = await import("../_shared/application-guards");
+		const elapsedExports = Object.keys(guards).filter((name) =>
+			name.includes("ELAPSED"),
+		);
+		expect(elapsedExports).toEqual(["MIN_ELAPSED_MS"]);
 	});
 });
 
@@ -392,6 +415,43 @@ describe("parseSubmissionPayload — types, bounds and lengths", () => {
 			}).ok,
 		).toBe(false);
 	});
+
+	/**
+	 * SHAPE IS NOT VALIDITY. Each string below satisfies `^\d{4}-\d{2}-\d{2}$`
+	 * and names no day that exists. `'2026-02-31'::date` raises 22008, and that
+	 * cast sits inside `submit_rental_application` where a raise aborts the whole
+	 * transaction: the Edge Function answers 500 and the applicant loses all 26
+	 * fields. A regex-only check let every one of these through to SQL.
+	 */
+	it.each([
+		["a day past the end of the month", "2026-02-31"],
+		["a leap day in a common year", "2026-02-29"],
+		["a thirteenth month", "2024-13-01"],
+		["a zeroth month", "2026-00-10"],
+		["a zeroth day", "2026-01-00"],
+		["year zero", "0000-01-01"],
+	])("rejects %s before it can reach a ::date cast", (_label, value) => {
+		expect(
+			parseSubmissionPayload({
+				...VALID_PAYLOAD,
+				desired_move_in_date: value,
+			}).ok,
+		).toBe(false);
+	});
+
+	// The non-vacuity half: real calendar edges still parse, so the rejections
+	// above are about validity rather than about the field being broken.
+	it.each(["2024-02-29", "2026-12-31", "2026-01-01"])(
+		"still accepts the real date %s",
+		(value) => {
+			expect(
+				parseSubmissionPayload({
+					...VALID_PAYLOAD,
+					desired_move_in_date: value,
+				}).ok,
+			).toBe(true);
+		},
+	);
 });
 
 describe("parseSubmissionPayload — the second reference", () => {

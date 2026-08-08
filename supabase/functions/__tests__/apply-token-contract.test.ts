@@ -331,6 +331,47 @@ describe("4. the submit branch runs its checks in the required order", () => {
 		}
 	});
 
+	/**
+	 * THE SILENT 200 STAYS; THE SILENCE TOWARD US DOES NOT.
+	 *
+	 * Both filters above are heuristics over client-supplied values and both
+	 * answer success while writing zero rows, so a false positive destroys a real
+	 * 26-field application and tells the applicant it worked. Until these logs
+	 * existed the ONLY observable drop in the whole submit path was the payload
+	 * branch, which means the false-positive rate of the two filters that answer
+	 * success was not a number anyone could look up in Supabase logs or Sentry.
+	 */
+	it("every silent-drop branch logs, so the false-positive rate is observable", () => {
+		const honeypotBranch = SUBMIT_BODY.slice(honeypotIndex, timingIndex);
+		const timingBranch = SUBMIT_BODY.slice(timingIndex, limitIndex);
+		const payloadBranch = SUBMIT_BODY.slice(payloadIndex, rpcIndex);
+
+		// The payload branch is the positive control: it always logged, so if this
+		// matcher can miss a log line the two assertions after it mean nothing.
+		expect(payloadBranch).toMatch(/logSilentDrop\(|console\.log\(/);
+		expect(honeypotBranch).toMatch(/logSilentDrop\(|console\.log\(/);
+		expect(timingBranch).toMatch(/logSilentDrop\(|console\.log\(/);
+	});
+
+	it("the timing filter compares one clock against itself", () => {
+		// `form_loaded_at` carries the `issued_at` the context action minted from
+		// THIS server's clock. Comparing a browser's `Date.now()` against the
+		// server's makes elapsed the real time plus the device's clock offset, so a
+		// phone running fast fails every submission it will ever make — silently,
+		// behind a confirmation screen. The stamp has to be minted here.
+		expect(CONTEXT_BODY).toContain("issued_at: Date.now()");
+
+		const timingCall = extractCallContaining(
+			SUBMIT_BODY,
+			"body.form_loaded_at",
+			"isTimingSuspicious(",
+		);
+		expect(timingCall).toContain("body.form_loaded_at");
+		// Not `Date.now()` inline: the same reading is logged alongside the stamp
+		// on a drop, which is only possible if it is named.
+		expect(timingCall).not.toContain("Date.now()");
+	});
+
 	it("the payload rejection does not name the offending field to the client", () => {
 		const rejection = SUBMIT_BODY.slice(payloadIndex, rpcIndex);
 		expect(rejection).toContain('reason: "invalid_payload"');
