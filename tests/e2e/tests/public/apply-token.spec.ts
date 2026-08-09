@@ -6,6 +6,7 @@ import {
 	readSeedCredentials,
 	signInAsOwner,
 } from "../../lib/application-fixtures";
+import { boxOf as measuredBoxOf } from "../../lib/measure";
 
 /**
  * `/apply/[token]` in a real browser — Phase 66, plan 66-17, UI-SPEC §E rows
@@ -172,23 +173,22 @@ test.afterAll(async () => {
  * taken while the page was still settling after `setViewportSize()` is the
  * whole defect.
  *
- * `toBeVisible()` polls until the element genuinely has a non-empty box, which
- * is precisely the precondition `boundingBox()` requires, so the window closes.
- * This weakens nothing: it ADDS an assertion, and a element that never becomes
- * visible now fails as a visibility assertion naming the locator rather than as
- * a bare "no bounding box" from a helper three frames up the stack.
+ * A `toBeVisible()` gate was the first fix, and it is NOT sufficient. This repo
+ * had already recorded why, in `public/mobile-nav-375px.spec.ts:8-11`:
+ *
+ *   "observed on Vercel previews where toBeVisible() passes but boundingBox()
+ *    returns null and onClick handlers aren't attached."
+ *
+ * Visibility and a committed layout box are different states, and the gap
+ * between them is exactly the window this failure lives in. Narrowing the race
+ * is not closing it.
+ *
+ * The measurement is therefore delegated to the shared `boxOf` in
+ * `tests/e2e/lib/measure.ts`, which POLLS for a non-null box the way
+ * mobile-nav-375px.spec.ts:57-64 already does for its hit-target reads. Same
+ * helper, same guarantee, one place to fix it next time.
  */
-async function boxOf(locator: Locator): Promise<{
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}> {
-	await expect(locator).toBeVisible();
-	const box = await locator.boundingBox();
-	if (!box) throw new Error("element has no bounding box (not rendered)");
-	return box;
-}
+const boxOf = measuredBoxOf;
 
 /** Loads a token and waits for the branch that token produces to be on screen. */
 async function openApply(page: Page, token: string) {

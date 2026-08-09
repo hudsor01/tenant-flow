@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../auth-helpers";
+import { widthOf } from "../lib/measure";
 import { ROUTES } from "./constants/routes";
 
 /**
@@ -79,11 +80,17 @@ function medallion(root: Locator): Locator {
 	return root.locator('svg[aria-hidden="true"]').first().locator("xpath=..");
 }
 
-async function widthOf(locator: Locator): Promise<number> {
-	const box = await locator.boundingBox();
-	if (!box) throw new Error("element has no bounding box (not rendered)");
-	return box.width;
-}
+/**
+ * Measurement is delegated to `tests/e2e/lib/measure.ts`, which polls until the
+ * browser has committed a layout box.
+ *
+ * The local version of this helper took a single, non-retrying `boundingBox()`
+ * and threw "element has no bounding box (not rendered)" on `null`. That is what
+ * failed on `main` from 2026-08-05 onward — 3/3 attempts, not a flake — because
+ * the medallion test is the only test in this file that measures straight out of
+ * `beforeEach` with no `toBeVisible()` wait, while every other test here waits up
+ * to 15s first. The element was never missing; the read was simply too early.
+ */
 
 test.describe("Documents landing (Phase 65, DOCS-01)", () => {
 	test.beforeEach(async ({ page }) => {
