@@ -42,6 +42,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ApplicationsPage from "#app/(owner)/applications/page";
 import type { ApplicationLinkRow } from "#hooks/api/query-keys/application-link-keys";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { ApplicationLinkPanel } from "../application-link-panel";
 
 const {
@@ -667,6 +668,61 @@ describe("ApplicationLinkPanel — a link whose unit is no longer listed", () =>
 				name: "Links not attached to a listed unit",
 			}),
 		).toBeNull();
+	});
+});
+
+/**
+ * THE COMPUTED VALUE, NOT THE CLASS STRING. This band renders TWO `<ul>`s — the
+ * listed-unit rows and the orphaned-link rows — and both shipped
+ * `pl-0 mt-0 [&>li]:mb-0`, every class present and correct, while both still
+ * carried a 16px bottom margin: `margin: 1rem 0` at globals.css:517-524 is a
+ * SHORTHAND writing both vertical margins, `mt-0` cancels only the top, and
+ * `[&>li]:mb-0` targets the child `<li>` rather than the list. A class-presence
+ * assertion passes against that build, which is precisely why this one reads
+ * `getComputedStyle`. See `#test/utils/base-rule-cascade` for what the harness
+ * does and does not prove.
+ */
+describe("ApplicationLinkPanel — the lists defeat the ul/ol base rules", () => {
+	const ORPHAN_ID = "00000000-0000-4000-8000-0000000000fa";
+
+	it("zeroes padding-left and BOTH vertical margins on each of the two lists", () => {
+		// Both lists at once, so neither can be fixed while the other regresses.
+		mockQueries(
+			linksState([
+				makeLink(),
+				makeLink({
+					id: ORPHAN_ID,
+					unit_id: "00000000-0000-4000-8000-0000000000c9",
+					raw_token: "orphan-token",
+				}),
+			]),
+			propertiesState(),
+		);
+		const { container } = render(<ApplicationLinkPanel />);
+
+		const lists = [...container.querySelectorAll("ul")];
+		// Positive control on the fixture itself: one list for the listed unit and
+		// one for the orphan. With a single list the loop below would silently
+		// assert half of what this test claims.
+		expect(lists).toHaveLength(2);
+
+		for (const list of lists) {
+			const { neutralized, baseline } = computeListCascade(list);
+
+			// Positive control on the harness: an unclassed <ul> in the same document
+			// under the same stylesheet. If globals.css never reached the document
+			// these would read "0px" and every assertion below would prove nothing.
+			expect(baseline.paddingLeft).toBe("24px");
+			expect(baseline.marginTop).toBe("16px");
+			expect(baseline.marginBottom).toBe("16px");
+			expect(baseline.firstChildMarginBottom).toBe("4px");
+
+			expect(neutralized.paddingLeft).toBe("0px");
+			expect(neutralized.marginTop).toBe("0px");
+			expect(neutralized.marginBottom).toBe("0px");
+			expect(neutralized.firstChildTag).toBe("li");
+			expect(neutralized.firstChildMarginBottom).toBe("0px");
+		}
 	});
 });
 

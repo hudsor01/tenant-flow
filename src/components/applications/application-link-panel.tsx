@@ -409,8 +409,11 @@ function OrphanedLinkSection({
 					stop it accepting applications.
 				</p>
 			</div>
-			{/* All three neutralizers, for the same reason as the list above (§D-3). */}
-			<ul className="flex flex-col gap-3 pl-0 mt-0 [&>li]:mb-0">
+			{/* All four neutralizers, for the same reason as the list above (§D-3) —
+			    including `mb-0`, because `margin: 1rem 0` writes the bottom margin
+			    too and this list is a flex item of a `flex flex-col gap-3` section,
+			    so a surviving 16px would add to that gap rather than collapse. */}
+			<ul className="flex flex-col gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0">
 				{links.map((link) => (
 					<li key={link.id}>
 						<div className="flex flex-col gap-2 rounded-md border p-4">
@@ -620,17 +623,25 @@ export function ApplicationLinkPanel() {
 				<>
 					{rows.length > 0 ? (
 						/*
-						 * All three neutralizers are mandatory (§D-3): globals.css:517-524
+						 * All four neutralizers are mandatory (§D-3): globals.css:517-524
 						 * declares unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
 						 * and `li { margin-bottom: 0.25rem }` inside @layer base, and a
 						 * utility beats a base rule by layer order — but only if it is
 						 * written.
 						 *
+						 * `mb-0` IS NOT REDUNDANT WITH `mt-0`. `margin: 1rem 0` is a
+						 * SHORTHAND writing BOTH vertical margins, `mt-0` cancels only the
+						 * top, and `[&>li]:mb-0` targets the child `<li>` rather than the
+						 * list — so the list's own 16px bottom margin survived all three.
+						 * This band is `flex flex-col gap-4`, so that margin added to the
+						 * gap between this list and `OrphanedLinkSection` below instead of
+						 * collapsing out.
+						 *
 						 * `gap-3`, never the margin-based spacing utility: Tailwind v4 emits
 						 * that one inside `:where()` at specificity 0, so the `[&>li]:mb-0`
 						 * here (0,1,1) would outrank it and flatten the rhythm to zero (§D-2).
 						 */
-						<ul className="flex flex-col gap-3 pl-0 mt-0 [&>li]:mb-0">
+						<ul className="flex flex-col gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{rows.map((row) => (
 								<li key={row.unitId}>
 									<LinkRow

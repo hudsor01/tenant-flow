@@ -44,6 +44,7 @@ import {
 	applicationKeys,
 	applicationQueries,
 } from "#hooks/api/query-keys/application-keys";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { ApplicationQueue } from "../application-queue";
 
 const mockUseQuery = vi.fn();
@@ -491,9 +492,46 @@ describe("ApplicationQueue — the rows", () => {
  * this proves only that the class survives an edit — not that the cascade
  * resolved. The computed values are plan 66-17's E-18 and E-20, and that
  * distinction is the whole reason those two rows exist in UI-SPEC §E.
+ *
+ * THE ONE EXCEPTION IS THE LIST'S OWN BOX, and it is here because a class check
+ * demonstrably could not decide it. `pl-0 mt-0 [&>li]:mb-0` was shipped on this
+ * list and every one of those classes was present and correct — and the list
+ * still carried a 16px bottom margin, because `margin: 1rem 0` is a shorthand
+ * writing BOTH margin-top and margin-bottom and nothing cancelled the second
+ * half. `computeListCascade` applies globals.css's real base rules against the
+ * neutralizers the component actually rendered, so it answers the only question
+ * that matters: is the property zero, or is it merely spelled at.
  */
 describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", () => {
-	it("keeps the four classes that stop the base rules from reaching the queue", () => {
+	it("zeroes the list's own padding-left and BOTH vertical margins", () => {
+		mockQueries(successState(makeRows(2), 2));
+		const { container } = render(<ApplicationQueue />);
+
+		const list = container.querySelector("ul");
+		if (!list) throw new Error("the queue rendered no <ul>");
+		const { neutralized, baseline } = computeListCascade(list);
+
+		// POSITIVE CONTROL, and it is not decoration. An unclassed <ul> in the same
+		// document under the same stylesheet. If the harness ever failed to apply
+		// globals.css at all, every value below would read "0px" and the four
+		// neutralization assertions would pass against nothing.
+		expect(baseline.paddingLeft).toBe("24px");
+		expect(baseline.marginTop).toBe("16px");
+		expect(baseline.marginBottom).toBe("16px");
+		expect(baseline.firstChildMarginBottom).toBe("4px");
+
+		expect(neutralized.paddingLeft).toBe("0px");
+		expect(neutralized.marginTop).toBe("0px");
+		// The assertion `mt-0` alone cannot satisfy. `TabsContent` is
+		// `flex flex-col gap-4` and this list and `QueuePager` are both flex items,
+		// so a surviving bottom margin does not collapse — it ADDS to the gap and
+		// renders 32px where the layout declares 16px.
+		expect(neutralized.marginBottom).toBe("0px");
+		expect(neutralized.firstChildTag).toBe("li");
+		expect(neutralized.firstChildMarginBottom).toBe("0px");
+	});
+
+	it("keeps the five classes that stop the base rules from reaching the queue", () => {
 		mockQueries(successState(makeRows(2), 2));
 		const { container } = render(<ApplicationQueue />);
 
@@ -503,6 +541,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 		// and `li { margin-bottom: 0.25rem }`.
 		expect(listClasses).toContain("pl-0");
 		expect(listClasses).toContain("mt-0");
+		// `mb-0` is the other half of `margin: 1rem 0`. The computed-value test
+		// above is what decides it; this line only stops a silent deletion.
+		expect(listClasses).toContain("mb-0");
 		expect(listClasses).toContain("[&>li]:mb-0");
 		// `gap`, not a margin-based rung: the `[&>li]:mb-0` above is (0,1,1) and
 		// would outrank a specificity-0 `:where()` margin rule, flattening the row

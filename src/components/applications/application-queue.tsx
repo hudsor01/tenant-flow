@@ -227,7 +227,7 @@ function QueueFilteredEmpty() {
 function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 	return (
 		/*
-		 * All three neutralizers are mandatory (§D-3). globals.css:517-524 declares
+		 * All four neutralizers are mandatory (§D-3). globals.css:517-524 declares
 		 * unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 		 * `li { margin-bottom: 0.25rem }` inside @layer base, and a utility beats a
 		 * base rule by layer order — but only if it is written. Without `pl-0` the
@@ -235,12 +235,24 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 		 * it gains a 16px top margin the band's own gap did not ask for; without
 		 * `[&>li]:mb-0` the 8px row rhythm renders at 12px.
 		 *
+		 * `mb-0` IS NOT REDUNDANT WITH `mt-0`, AND SHIPPING WITHOUT IT WAS A REAL
+		 * DEFECT. `margin: 1rem 0` is a SHORTHAND writing margin-top AND
+		 * margin-bottom; `mt-0` compiles to `margin-top: 0` alone and
+		 * `[&>li]:mb-0` targets the child `<li>`, so the list's own 16px bottom
+		 * margin survived both. `TabsContent` below is `flex flex-col gap-4` and
+		 * this list and `QueuePager` are both flex items, so that margin could not
+		 * collapse — it ADDED to the gap and rendered 32px where the layout
+		 * declares 16px. `mt-0 mb-0` rather than `my-0`: both are physical
+		 * longhands, which is what `getComputedStyle` reports and what the unit
+		 * harness can therefore decide, while v4's `my-*` emits logical
+		 * `margin-block`.
+		 *
 		 * `gap-2`, not the margin-based spacing utility: Tailwind v4 emits that one
 		 * inside `:where()` at specificity 0, so the `[&>li]:mb-0` above (0,1,1)
 		 * would outrank it and flatten the row rhythm to zero. `gap` is not a
 		 * margin, so it cannot be beaten by a margin override at all (§D-2).
 		 */
-		<ul className="flex flex-col gap-2 pl-0 mt-0 [&>li]:mb-0">
+		<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0">
 			{rows.map((row) => (
 				<li key={row.id}>
 					<Item size="default" asChild>

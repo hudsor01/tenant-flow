@@ -25,10 +25,14 @@ import {
  *     `no-underline text-foreground` are PRESENT passes against the broken build
  *     too, because the classes were present there as well — the question is only
  *     ever whether they won the cascade.
- *   - E-20 catches the unscoped `ul, ol { padding-left: 1.5rem }` and
- *     `li { margin-bottom: 0.25rem }` at `globals.css:517-524`. Asserting `pl-0`
- *     and `[&>li]:mb-0` are in the class string cannot tell you whether they beat
- *     a base rule; reading the computed value can.
+ *   - E-20 catches the unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
+ *     and `li { margin-bottom: 0.25rem }` at `globals.css:517-524`. Asserting
+ *     `pl-0` and `[&>li]:mb-0` are in the class string cannot tell you whether
+ *     they beat a base rule; reading the computed value can. It reads the list's
+ *     OWN `margin-bottom` as well, which the first version of this test did not:
+ *     `margin: 1rem 0` is a shorthand writing both vertical margins, and a test
+ *     that reads only `margin-top` passes against a list that cancelled half of
+ *     it. That is exactly what shipped.
  *   - E-17's non-overlap check is what catches a collapsed `gap` or a flattened
  *     list rung, which a minimum-height assertion alone would not.
  *
@@ -220,6 +224,7 @@ test.describe("/applications — the owner review queue", () => {
 			return {
 				paddingLeft: list.paddingLeft,
 				marginTop: list.marginTop,
+				marginBottom: list.marginBottom,
 				itemTag: item ? item.tagName.toLowerCase() : null,
 				itemMarginBottom: item ? getComputedStyle(item).marginBottom : null,
 			};
@@ -229,6 +234,16 @@ test.describe("/applications — the owner review queue", () => {
 		expect(computed.itemTag).toBe("li");
 		expect(computed.paddingLeft).toBe("0px");
 		expect(computed.marginTop).toBe("0px");
+		// THE LIST'S OWN BOTTOM MARGIN, WHICH THIS TEST DID NOT USED TO READ AND
+		// WHICH IS THE HALF THAT SHIPPED BROKEN. `margin: 1rem 0` is a shorthand
+		// writing BOTH vertical margins; the neutralizer set was `pl-0 mt-0
+		// [&>li]:mb-0`, so `margin-top` was cancelled, the `<li>`'s own margin was
+		// cancelled, and the `<ul>`'s 16px `margin-bottom` survived all three.
+		// Reading only the three values above passed against that build — the
+		// assertion was written to match the incomplete fix. `TabsContent` is
+		// `flex flex-col gap-4`, so the surviving margin could not collapse: it
+		// added to the gap and put 32px between the last row and the pager.
+		expect(computed.marginBottom).toBe("0px");
 		expect(computed.itemMarginBottom).toBe("0px");
 	});
 

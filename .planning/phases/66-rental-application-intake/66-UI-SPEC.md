@@ -1113,7 +1113,7 @@ Every row below is a geometric or ordering assertion, not a class check.
 | E-17 | Queue row height `>= 64` and rows do not overlap (`row[n].y >= row[n-1].y + row[n-1].height`) | 375 | `/applications` |
 | E-18 | Queue row `<a>` computed `text-decoration-line === "none"` and computed `color` equals the `--color-foreground` resolved value | 1280 | `/applications` |
 | E-19 | The link-panel URL `<input>` is visible with a non-empty `value` on **second** page load (proves re-copyability, D-03a) | 1280 | `/applications` |
-| E-20 | The queue `<ul>` has computed `padding-left === "0px"` and its first `<li>` `margin-bottom === "0px"` | 1280 | `/applications` |
+| E-20 | The queue `<ul>` has computed `padding-left === "0px"`, `margin-top === "0px"` **and `margin-bottom === "0px"`** (`margin: 1rem 0` is a shorthand — cancelling only the top leaves 16px that adds to the `TabsContent` gap), and its first `<li>` `margin-bottom === "0px"` | 1280 | `/applications` |
 | E-21 | The conversion link's `href` matches `^/tenants/new\?application=[0-9a-f-]{36}$` and contains no other query parameter | any | `/applications/[id]` |
 
 E-1, E-6, E-7, E-8, E-9 and E-10 are **requirement-level** assertions (APPLY-06, APPLY-02,
