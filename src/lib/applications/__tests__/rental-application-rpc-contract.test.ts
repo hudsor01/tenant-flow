@@ -1,15 +1,19 @@
 /**
- * The three rental-application RPCs that plan 66-04 shipped with defects, pinned
+ * The four rental-application RPCs that plan 66-04 shipped with defects, pinned
  * against the definition that is actually in force.
  *
  * WHAT THIS FILE CAN AND CANNOT DECIDE. It reads SQL text off disk. It cannot
  * execute a statement, so it cannot tell you that two concurrent
  * `create_application_link` calls really do serialize, that `'2026-02-31'::date`
- * really is caught, or that a converted row really loses its decline reason.
- * Those need the migration applied, which is an owner-gated step outside this
- * repo's reach; the same split is why `apply-token-contract.test.ts` reads the
- * Edge Function's source rather than importing it, and why
- * `inspections.test.ts` reads a CHECK constraint out of its migration.
+ * really is caught, that a converted row really loses its decline reason, or
+ * that a soft-deleted unit really does close its public link. There is NO
+ * PostgreSQL in this repo's test environment and no way to fake one honestly, so
+ * every SQL claim here is a claim about the text a fresh database will end up
+ * executing and nothing more. The behavioural half of F1 needs the migration
+ * applied, which is an owner-gated step; the same split is why
+ * `apply-token-contract.test.ts` reads the Edge Function's source rather than
+ * importing it, and why `inspections.test.ts` reads a CHECK constraint out of
+ * its migration.
  *
  * WHAT IT DOES DECIDE, AND WHY THAT IS WORTH HAVING. Every assertion below runs
  * against the LAST `create or replace` of each function across the whole
@@ -107,6 +111,140 @@ describe("the parser is not vacuous", () => {
 		expect(effectiveDefinition("record_application_conversion")).toContain(
 			"disposition_reason = null",
 		);
+	});
+});
+
+/**
+ * The closed reason vocabulary the two public-boundary functions share
+ * (20260807003555 header, section 4). F1's fix has to live INSIDE this set: the
+ * uniform failure shape is the control, and a caller that could tell "the unit
+ * was removed" apart from "that token never existed" learns both that the token
+ * is real and which listing it belonged to (T-66-01/T-66-02).
+ */
+const PUBLIC_REASONS = [
+	"invalid_token",
+	"expired_token",
+	"revoked_token",
+	"link_capped",
+	"rate_capped",
+	"invalid_payload",
+	"duplicate",
+];
+
+/** Every `'...'::text` reason literal a function can return. */
+function reasonLiterals(code: string): string[] {
+	return (code.match(/'([a-z_]+)'::text/g) ?? []).map((raw) =>
+		raw.slice(1, raw.indexOf("'", 1)),
+	);
+}
+
+/**
+ * F1. A SOFT-DELETED UNIT LEFT ITS PUBLIC LINK LIVE.
+ *
+ * `rental_application_links.unit_id` is `on delete cascade` and the schema
+ * justified that with "units are hard-deletable". They are not: both deletes in
+ * this product write `status = 'inactive'` and leave the row in place
+ * (`unitMutations.delete`, `propertyMutations.delete`), so the cascade never
+ * fires and no trigger on `public.units` touches links either. Neither RPC
+ * carried a status predicate, so an owner who rented the unit and removed it
+ * kept a link that answered valid=true with the property name and the rent, kept
+ * accepting applicant PII and kept notifying them, for the rest of the 60 days.
+ */
+describe("a removed unit closes its public link", () => {
+	const contextDefinition = effectiveDefinition("get_application_context");
+	const contextCode = stripComments(contextDefinition);
+	const submitCode = stripComments(
+		effectiveDefinition("submit_rental_application"),
+	);
+
+	it("gates the listing lookup on BOTH statuses in get_application_context", () => {
+		const selectIndex = contextCode.indexOf("from public.units un");
+		const notFoundIndex = contextCode.indexOf("if not found", selectIndex);
+
+		// Positive controls: the lookup and its failure branch both exist, so the
+		// containment claims below are made against a real statement.
+		expect(selectIndex).toBeGreaterThan(-1);
+		expect(notFoundIndex).toBeGreaterThan(selectIndex);
+
+		// The predicates must be part of THAT select, not merely present somewhere
+		// in the function — a status check after the row has already been returned
+		// would change nothing.
+		const statement = contextCode.slice(selectIndex, notFoundIndex);
+		expect(statement).toContain("un.status is distinct from 'inactive'");
+		expect(statement).toContain("pr.status is distinct from 'inactive'");
+	});
+
+	it("refuses a removed unit BEFORE the caps in submit_rental_application", () => {
+		const lockIndex = submitCode.indexOf("for update;");
+		const gateIndex = submitCode.indexOf(
+			"un.status is distinct from 'inactive'",
+		);
+		const capIndex = submitCode.indexOf("v_link.submission_count >= 250");
+
+		// All three anchors first: an ordering assertion over a missing index is
+		// satisfied trivially at -1, which is the vacuous shape this file exists to
+		// avoid.
+		expect(lockIndex).toBeGreaterThan(-1);
+		expect(gateIndex).toBeGreaterThan(-1);
+		expect(capIndex).toBeGreaterThan(-1);
+
+		// Under the link row's own lock, and ahead of every cap read.
+		expect(lockIndex).toBeLessThan(gateIndex);
+		expect(gateIndex).toBeLessThan(capIndex);
+
+		// The property half travels with it, because deleting a property soft-deletes
+		// the property row and leaves its units untouched.
+		const gate = submitCode.slice(gateIndex - 400, capIndex);
+		expect(gate).toContain("pr.status is distinct from 'inactive'");
+		expect(gate).toContain("'invalid_token'::text");
+	});
+
+	it("keeps the label snapshot a left join, so no submission is discarded", () => {
+		// The gate above decides whether the link may be used. The snapshot 100
+		// lines below only decides what goes into property_label, and tightening it
+		// into an inner join would silently drop a submission whenever a property
+		// row was unreachable — which is a strictly worse failure than the one F1
+		// fixes. Both facts have to hold at once.
+		const snapshotIndex = submitCode.indexOf(
+			"left join public.properties pr on pr.id = un.property_id",
+		);
+		const gateIndex = submitCode.indexOf(
+			"un.status is distinct from 'inactive'",
+		);
+
+		// BOTH anchors are asserted present before the ordering claim. Without the
+		// gate assertion this test passes on the DEFECTIVE source: `gateIndex` is
+		// -1 there and every index beats -1, so "the snapshot comes after the gate"
+		// would hold in a function that has no gate at all.
+		expect(snapshotIndex).toBeGreaterThan(-1);
+		expect(gateIndex).toBeGreaterThan(-1);
+		expect(snapshotIndex).toBeGreaterThan(gateIndex);
+		expect(submitCode).toContain("coalesce(v_ctx.property_name, 'Property')");
+	});
+
+	it("adds no new reason code to either public-boundary function", () => {
+		const context = reasonLiterals(contextCode);
+		const submit = reasonLiterals(submitCode);
+
+		// Positive control: the extractor really finds literals, so the subset
+		// assertions below are not passing over two empty arrays.
+		expect(context).toContain("invalid_token");
+		expect(submit).toContain("invalid_token");
+
+		for (const reason of [...context, ...submit]) {
+			expect(PUBLIC_REASONS).toContain(reason);
+		}
+	});
+
+	it("no longer claims units are hard-deletable", () => {
+		// The false premise is what made the cascade look sufficient. Left in place
+		// it persuades the next reader that the link goes away on its own.
+		const submitDefinition = effectiveDefinition("submit_rental_application");
+		expect(submitDefinition).not.toContain("units are hard-deletable");
+		// Positive control: the comments really did survive into `definition`, so
+		// the absence above is a claim about the wording and not about a stripped
+		// string.
+		expect(submitDefinition).toContain("Denormalized label snapshot");
 	});
 });
 

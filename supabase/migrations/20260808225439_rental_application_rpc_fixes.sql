@@ -1,5 +1,5 @@
 -- =============================================================================
--- Phase 66 - three corrections to the rental-application RPCs.
+-- Phase 66 - four corrections to the rental-application RPCs.
 --
 -- WHY THIS IS A NEW FILE RATHER THAN AN EDIT.
 --   20260807003555_rental_application_rpcs.sql is APPLIED IN PRODUCTION and its
@@ -8,11 +8,39 @@
 --   about what is deployed. Every function below is therefore a full
 --   `create or replace` that can be applied on top of what is live.
 --
---   Each body is the 20260807003555 body with ONE change, marked FIX in place.
+--   Each body is the 20260807003555 body with its change marked FIX in place.
 --   Nothing else - not a grant, not a comment, not a bound - is altered except
 --   where the comment stated something that was not true.
 --
--- THE THREE CORRECTIONS.
+-- THE FOUR CORRECTIONS.
+--   F1  A SOFT-DELETED UNIT LEFT ITS PUBLIC LINK LIVE AND ACCEPTING PII.
+--       rental_application_links.unit_id is `on delete cascade`, and the schema
+--       justified that with "units are hard-deletable". THEY ARE NOT. Both
+--       deletes in this product are soft: `unitMutations.delete` writes
+--       `status = 'inactive'` (src/hooks/api/query-keys/unit-keys.ts) and
+--       `propertyMutations.delete` does the same on properties. The row never
+--       leaves public.units, so the cascade never fires, and no trigger on
+--       public.units touches links either (verified live: only set_updated_at
+--       and trg_enforce_unit_plan_limit).
+--
+--       Neither RPC below knew. get_application_context joined units and
+--       properties with NO status predicate, and submit_rental_application
+--       gated only on revoked_at, expires_at and the two caps. So an owner who
+--       posted a link to Zillow, rented the unit on day 5 and then deleted the
+--       unit kept a link that answered valid=true with the property name and
+--       rent, kept accepting applicant PII, and kept notifying them - for the
+--       remaining 55 days of the expiry, with no way to stop it, because the
+--       owner panel builds its rows from a query that filters inactive units
+--       and so rendered no row and therefore no Revoke button.
+--
+--       Both functions now treat an inactive unit OR an inactive property as
+--       `invalid_token`. NOT a new reason code: the uniform failure shape is the
+--       control (T-66-01/T-66-02), and a distinguishable "unit removed" would
+--       confirm to anyone holding the URL that the token was real and tell them
+--       which listing it belonged to. The FK is deliberately left alone - `on
+--       delete cascade` is unreachable, not wrong, and a hard delete of a unit
+--       should still take its links with it.
+--
 --   F6  submit_rental_application accepted a calendar-IMPOSSIBLE move-in date.
 --       `desired_move_in_date` was shape-checked with
 --       `^[0-9]{4}-[0-9]{2}-[0-9]{2}$` and then cast `::date`. `2026-02-31`,
@@ -55,7 +83,120 @@
 -- =============================================================================
 
 -- =============================================================================
--- 1. create_application_link - F7: serialize the one-active-link guard.
+-- 1. get_application_context - F1: an inactive unit or property closes the link.
+-- =============================================================================
+
+create or replace function public.get_application_context(p_token_hash text)
+  returns table (
+    valid              boolean,
+    reason             text,
+    property_label     text,
+    unit_label         text,
+    rent_amount        numeric,
+    owner_display_name text
+  )
+  language plpgsql
+  stable
+  security definer
+  set search_path = public
+as $function$
+declare
+  v_link record;
+  v_ctx  record;
+begin
+  if p_token_hash is null or btrim(p_token_hash) = '' then
+    return query select false, 'invalid_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  select l.id, l.unit_id, l.owner_user_id, l.expires_at, l.revoked_at
+  into v_link
+  from public.rental_application_links l
+  where l.token_hash = p_token_hash;
+
+  if not found then
+    return query select false, 'invalid_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  if v_link.revoked_at is not null then
+    return query select false, 'revoked_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  if v_link.expires_at <= now() then
+    return query select false, 'expired_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  -- The owner display name is the ONLY owner attribute this function may ever
+  -- return (UI-20). This page renders for anyone holding the capability URL - it
+  -- is published to Zillow, Craigslist and Facebook - so an owner's contact
+  -- details here would be an unforced disclosure to the entire internet. D-10
+  -- also puts the owner in control of first contact, so the applicant has no use
+  -- for them: the confirmation screen tells them the owner will reach out.
+  --
+  -- Selecting any further column from public.users is a review-blocking change,
+  -- not a tweak.
+  --
+  -- ---------------------------------------------------------------------------
+  -- FIX F1: THE TWO STATUS PREDICATES. A REMOVED UNIT MUST CLOSE ITS LINK.
+  --
+  -- Without them this join matched a unit the owner had deleted, because both
+  -- deletes in this product are SOFT - `update({ status: 'inactive' })` on the
+  -- row, never a DELETE - so the `on delete cascade` on
+  -- rental_application_links.unit_id never fires and the row that is supposed to
+  -- have taken the link with it is still sitting there. The owner rented the
+  -- unit, removed it, and the link kept answering valid=true with the property
+  -- name and the rent for the rest of its 60 days.
+  --
+  -- `is distinct from`, never `<>`: both columns are NOT NULL today, and a `<>`
+  -- against a column that ever becomes nullable evaluates to NULL and silently
+  -- drops the row, which here would fail the link CLOSED rather than open - but
+  -- for the property predicate on a hypothetically-null status that is a
+  -- self-inflicted outage on live listings. This form fails open only for NULL
+  -- and closed for the value that matters.
+  -- ---------------------------------------------------------------------------
+  select pr.name        as property_name,
+         un.unit_number as unit_number,
+         un.rent_amount as unit_rent,
+         ow.full_name   as owner_name
+  into v_ctx
+  from public.units un
+  join public.properties pr on pr.id = un.property_id
+  join public.users ow      on ow.id = v_link.owner_user_id
+  where un.id = v_link.unit_id
+    and un.status is distinct from 'inactive'
+    and pr.status is distinct from 'inactive';
+
+  -- A deleted unit must be INDISTINGUISHABLE from a bad token, and that is now
+  -- load-bearing for the soft-deleted case as well as the hard-deleted one.
+  -- Reporting something more specific here would confirm that the token was real
+  -- and would name the listing to anyone still holding the URL.
+  if not found then
+    return query select false, 'invalid_token'::text,
+                        null::text, null::text, null::numeric, null::text;
+    return;
+  end if;
+
+  return query select true,
+                      null::text,
+                      coalesce(v_ctx.property_name, 'Property'),
+                      v_ctx.unit_number,
+                      v_ctx.unit_rent::numeric,
+                      coalesce(v_ctx.owner_name, 'The property owner');
+end;
+$function$;
+
+comment on function public.get_application_context(text) is
+  'Service-role-only read path for the public /apply/[token] page. Looks a link up by SHA-256 hash and returns the listing summary, or valid=false with one of invalid_token / revoked_token / expired_token and NULL for every detail column. A unit or property whose status is inactive - this product soft-deletes both - answers invalid_token, indistinguishable from a bad token, so removing a unit closes its public link (F-1). Returns the owner display name only - never owner email or phone (UI-20), because this page renders for anyone holding the capability URL.';
+
+-- =============================================================================
+-- 2. create_application_link - F7: serialize the one-active-link guard.
 -- =============================================================================
 
 create or replace function public.create_application_link(
@@ -174,8 +315,9 @@ comment on function public.create_application_link(uuid, integer) is
   'Mints the reusable public application link for a unit the caller owns (D-01/D-03a). Raw token is 32 bytes from extensions.gen_random_bytes, hex-encoded; token_hash is its SHA-256 and is the public lookup key. Refuses a unit the caller does not own and refuses while an unexpired unrevoked link already exists for that unit; that one-active-link guard is serialized per unit by a transaction-scoped advisory lock, because a bare exists() check under READ COMMITTED lets two concurrent calls both pass. Expiry defaults to 60 days (D-03) and is clamped to [1, 365].';
 
 -- =============================================================================
--- 2. submit_rental_application - F6: reject a calendar-impossible move-in date
---    instead of aborting the transaction on the cast.
+-- 3. submit_rental_application - F1: refuse a removed unit. F6: reject a
+--    calendar-impossible move-in date instead of aborting the transaction on
+--    the cast.
 -- =============================================================================
 
 create or replace function public.submit_rental_application(
@@ -244,6 +386,45 @@ begin
 
   if v_link.expires_at <= now() then
     return query select false, 'expired_token'::text, null::uuid;
+    return;
+  end if;
+
+  -- ---------------------------------------------------------------------------
+  -- FIX F1: A REMOVED UNIT CLOSES THE LINK, AND THE CHECK LIVES HERE.
+  --
+  -- This is its OWN existence gate rather than a predicate bolted onto the label
+  -- snapshot 130 lines below, and the separation is deliberate. That snapshot
+  -- `left join`s properties on purpose - a submission must never be discarded
+  -- because a label lookup came back empty - so tightening it into the gate
+  -- would either make the join inner (silently dropping submissions the moment a
+  -- property row is unreachable) or leave the gate unenforced. Two statements,
+  -- two jobs: this one decides whether the link is usable at all, that one only
+  -- decides what to write into property_label.
+  --
+  -- The failure is `invalid_token`, the same code a token that never existed
+  -- gets, and NOT a new reason. get_application_context is the function the
+  -- applicant actually hits first and it is bound by the same uniformity rule
+  -- (T-66-01/T-66-02); a submit path that answered something more specific would
+  -- hand the difference straight back to whoever is probing.
+  --
+  -- Placed after revoked_at and expires_at so a link that is both revoked and
+  -- orphaned still reports the fact the owner caused deliberately.
+  --
+  -- `is distinct from`, never `<>` - see the note in get_application_context.
+  -- The join to properties is INNER here because units.property_id is NOT NULL
+  -- with an FK, so a unit without a property row cannot exist; if that ever
+  -- stopped being true this gate fails CLOSED, which is the correct direction
+  -- for a public write surface.
+  -- ---------------------------------------------------------------------------
+  if not exists (
+    select 1
+    from public.units un
+    join public.properties pr on pr.id = un.property_id
+    where un.id = v_link.unit_id
+      and un.status is distinct from 'inactive'
+      and pr.status is distinct from 'inactive'
+  ) then
+    return query select false, 'invalid_token'::text, null::uuid;
     return;
   end if;
 
@@ -387,9 +568,19 @@ begin
   end if;
 
   -- Denormalized label snapshot, taken at submission time. These are the reason
-  -- rental_applications.unit_id is `on delete set null` rather than cascade:
-  -- units are hard-deletable, and the row still has to read correctly to the
-  -- owner after the unit it was for is gone.
+  -- rental_applications.unit_id is `on delete set null` rather than cascade: the
+  -- row still has to read correctly to the owner after the unit it was for is
+  -- gone, and it must read correctly whether the unit was removed by the soft
+  -- delete this product actually ships or by a hard DELETE run against the
+  -- database directly. (The original comment here asserted that units are
+  -- hard-deletable. They are not - see the F1 note at the head of this file -
+  -- which is exactly how the link stayed live above.)
+  --
+  -- STILL A `left join`, and that is not an oversight left over from F1. An
+  -- application must never be discarded because a label lookup came back empty;
+  -- the coalesce below is what turns a missing property row into the string
+  -- 'Property' rather than a lost submission. Whether the link may be used at
+  -- all was already decided by the F1 gate above, under the link's own lock.
   select pr.name        as property_name,
          un.unit_number as unit_number
   into v_ctx
@@ -536,10 +727,10 @@ end;
 $function$;
 
 comment on function public.submit_rental_application(text, uuid, jsonb, text, text) is
-  'Service-role-only write path for the public /apply/[token] form, and the only INSERT into public.rental_applications. Locks the link row FOR UPDATE before evaluating the 250 lifetime and 25 rolling-hour caps, so neither can be raced (D-04a, F-6). Every payload failure - including a calendar-impossible desired_move_in_date, whose cast runs inside a subtransaction - returns invalid_payload rather than raising, because a raise aborts the transaction and costs the applicant the whole form. Idempotent on submission_id: a repeat returns success with reason=duplicate and neither increments the counter nor re-notifies. Notifies the owner through create_notification only (NOTIF-01).';
+  'Service-role-only write path for the public /apply/[token] form, and the only INSERT into public.rental_applications. Locks the link row FOR UPDATE before evaluating the 250 lifetime and 25 rolling-hour caps, so neither can be raced (D-04a, F-6). Refuses with invalid_token when the unit or its property has status inactive - this product soft-deletes both, so the FK cascade never fires and a removed unit would otherwise keep collecting applicant PII (F-1). Every payload failure - including a calendar-impossible desired_move_in_date, whose cast runs inside a subtransaction - returns invalid_payload rather than raising, because a raise aborts the transaction and costs the applicant the whole form. Idempotent on submission_id: a repeat returns success with reason=duplicate and neither increments the counter nor re-notifies. Notifies the owner through create_notification only (NOTIF-01).';
 
 -- =============================================================================
--- 3. record_application_conversion - F8: an approved row carries no decline
+-- 4. record_application_conversion - F8: an approved row carries no decline
 --    reason.
 -- =============================================================================
 

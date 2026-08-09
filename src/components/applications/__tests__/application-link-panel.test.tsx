@@ -37,6 +37,7 @@ import {
 	fireEvent,
 	render,
 	screen,
+	within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ApplicationsPage from "#app/(owner)/applications/page";
@@ -542,6 +543,130 @@ describe("ApplicationLinkPanel — revoke is gated behind the confirmation", () 
 
 		expect(revokeMutate).not.toHaveBeenCalled();
 		expect(screen.queryByRole("alertdialog")).toBeNull();
+	});
+});
+
+/**
+ * F-1. A LINK WHOSE UNIT WAS SOFT-DELETED HAD NO REVOKE BUTTON ANYWHERE.
+ *
+ * The rows come from `propertyQueries.listWithDetails()`, which filters
+ * `.neq('units.status','inactive')`. Both deletes in this product are soft
+ * (`update({ status: 'inactive' })`), so removing a unit removes its row from
+ * this panel — and `revoke_application_link` has exactly ONE call site, the
+ * button inside that row. The link itself was untouched: `revoked_at` stayed
+ * null and the 60-day expiry kept running, so the owner had a live public form
+ * they could neither see nor stop.
+ *
+ * The unit-list fixture is the thing under test. `linksState([...])` carries a
+ * link and `propertiesState([])` carries no unit for it, which is exactly the
+ * shape the query returns the moment `unitMutations.delete` runs.
+ */
+describe("ApplicationLinkPanel — a link whose unit is no longer listed", () => {
+	/** A link for a unit the properties query does not return. */
+	const ORPHANED_ID = "00000000-0000-4000-8000-0000000000f9";
+	function orphanedLink(
+		overrides: Partial<ApplicationLinkRow> = {},
+	): ApplicationLinkRow {
+		return makeLink({
+			id: ORPHANED_ID,
+			unit_id: "00000000-0000-4000-8000-0000000000c9",
+			...overrides,
+		});
+	}
+
+	it("surfaces it with a working Revoke, instead of dropping it", () => {
+		mockQueries(linksState([orphanedLink()]), propertiesState([]));
+		render(<ApplicationLinkPanel />);
+
+		// The region is named, so a keyboard or screen-reader user lands on
+		// something that says what these rows are rather than an anonymous group.
+		const region = screen.getByRole("region", {
+			name: "Links not attached to a listed unit",
+		});
+		// The URL is the only identifier available — the unit's own label lives
+		// behind the query that filtered it out — and it is the string the owner
+		// pasted into the listing, so it is the one they will recognize.
+		expect(within(region).getByText(EXPECTED_URL)).toBeInTheDocument();
+
+		// THE WHOLE POINT. Before the fix this button did not exist on any surface
+		// in the application for this link.
+		fireEvent.click(within(region).getByRole("button", { name: "Revoke" }));
+		expect(revokeMutate).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole("button", { name: "Revoke link" }));
+		expect(revokeMutate).toHaveBeenCalledTimes(1);
+		expect(revokeMutate.mock.calls[0]?.[0]).toEqual({ linkId: ORPHANED_ID });
+	});
+
+	it("shows it even when the removed unit was the owner's only one", () => {
+		mockQueries(linksState([orphanedLink()]), propertiesState([]));
+		const { container } = render(<ApplicationLinkPanel />);
+
+		// `rows.length === 0` is true here, so an empty-state branch gated on the
+		// units alone renders "No units yet" over the top of the one control that
+		// can close this link — the same disappearance, one branch higher.
+		expect(screen.queryByText("No units yet")).not.toBeInTheDocument();
+		expect(panelText(container)).toContain(EXPECTED_URL);
+	});
+
+	it("promises no replacement link, because there is no row to create one on", () => {
+		mockQueries(linksState([orphanedLink()]), propertiesState([]));
+		render(<ApplicationLinkPanel />);
+
+		fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
+		const dialog = screen.getByRole("alertdialog");
+
+		// Positive control: the shared promise really is on this dialog, so the
+		// absence below is a claim about one sentence and not about an empty node.
+		expect(
+			within(dialog).getByText(
+				/Applications you have already received are not affected/,
+			),
+		).toBeInTheDocument();
+		expect(dialog.textContent ?? "").not.toContain("create a new link");
+	});
+
+	it("lists only the orphans an owner can still act on", () => {
+		mockQueries(
+			linksState([
+				orphanedLink({ id: ORPHANED_ID, revoked_at: "2026-08-07T12:00:00Z" }),
+				orphanedLink({
+					id: "00000000-0000-4000-8000-0000000000fa",
+					unit_id: "00000000-0000-4000-8000-0000000000ca",
+					expires_at: "2020-01-01T00:00:00.000Z",
+				}),
+			]),
+			propertiesState(),
+		);
+		const { container } = render(<ApplicationLinkPanel />);
+
+		// Positive control: the listed unit's own row rendered, so the absence
+		// below is read out of a populated tree.
+		expect(screen.getByText(UNIT_LABEL)).toBeInTheDocument();
+		// A revoked orphan and an expired orphan are both already closed. Listing
+		// rows whose only control would do nothing turns a recovery surface into a
+		// graveyard.
+		expect(
+			screen.queryByRole("region", {
+				name: "Links not attached to a listed unit",
+			}),
+		).toBeNull();
+		expect(panelText(container)).not.toContain(EXPECTED_URL);
+	});
+
+	it("leaves a link alone while its unit is still listed", () => {
+		mockQueries(linksState([makeLink()]), propertiesState());
+		render(<ApplicationLinkPanel />);
+
+		// Positive control: the ordinary active row rendered with its URL field.
+		expect(screen.getByRole("textbox")).toHaveValue(EXPECTED_URL);
+		// The orphan filter keys on the unit being absent from the list, so a
+		// filter that keyed on anything else would double every active link into
+		// both surfaces.
+		expect(
+			screen.queryByRole("region", {
+				name: "Links not attached to a listed unit",
+			}),
+		).toBeNull();
 	});
 });
 

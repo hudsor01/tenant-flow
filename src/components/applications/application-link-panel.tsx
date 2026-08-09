@@ -67,6 +67,9 @@ interface UnitLinkRow {
 	link: ApplicationLinkRow | null;
 }
 
+/** The heading the orphaned-link region is named by. */
+const ORPHANED_HEADING_ID = "application-links-unlisted-heading";
+
 const COPY_IDLE_LABEL = "Copy application link";
 /**
  * The label the icon-only button ANNOUNCES after a copy. The glyph swap alone is
@@ -93,6 +96,23 @@ const REVOKE_COPY = {
 	title: "Revoke this link?",
 	description:
 		"Anyone who opens it, including from a listing you have already posted, will see that the link is no longer available. Applications you have already received are not affected. You can create a new link afterward.",
+	confirmText: "Revoke link",
+} as const;
+
+/**
+ * The same promise for an orphaned link, minus its last sentence. That unit is
+ * not in the list above, so it has no row and therefore no Create button — the
+ * offer to make a new link is one this panel cannot keep for these rows, and a
+ * confirm dialog is the wrong place to learn that.
+ *
+ * Declared as its own object rather than assembled from `REVOKE_COPY` by
+ * trimming the string, so both versions read as prose at their definition and
+ * neither can be changed without the other being looked at.
+ */
+const REVOKE_UNLISTED_COPY = {
+	title: "Revoke this link?",
+	description:
+		"Anyone who opens it, including from a listing you have already posted, will see that the link is no longer available. Applications you have already received are not affected.",
 	confirmText: "Revoke link",
 } as const;
 
@@ -330,6 +350,116 @@ function LinkRow({
 	);
 }
 
+/**
+ * THE RECOVERY PATH FOR A LINK WHOSE UNIT IS GONE (F-1).
+ *
+ * The rows above are built from `propertyQueries.listWithDetails()`, which
+ * filters `.neq('status','inactive')` on properties AND `.neq('units.status',
+ * 'inactive')` on the embedded units. Both of this product's deletes are SOFT —
+ * `unitMutations.delete` and `propertyMutations.delete` write
+ * `status = 'inactive'` and leave the row in place — so removing a unit removes
+ * it from that query, removes its row from this panel, and with it removes the
+ * ONLY Revoke button in the application: `revoke_application_link` has exactly
+ * one call site and it is the button in `ActiveLinkControls`.
+ *
+ * The link itself was untouched by any of that. `revoked_at` stayed null, the
+ * 60-day expiry kept running, and until the F1 migration lands the RPCs kept
+ * answering valid=true and kept inserting applicant PII. So an owner who rented
+ * the unit and tidied up had a live public form they could neither see nor stop.
+ *
+ * This section is the fix for the owner half. It needs NO new data access: the
+ * links query is already unfiltered by unit status, so these rows are already in
+ * hand and are simply being dropped by the join against the unit list.
+ *
+ * WHY THE COPY DOES NOT SAY "REMOVED". A second cause reaches this branch: a
+ * link whose unit sits past the 50-property page `listWithDetails()` bounds. The
+ * owner action is identical either way, so the heading states the fact that is
+ * always true — the unit is not in the list above — and names removal as the
+ * usual reason rather than the certain one.
+ *
+ * ONLY REVOCABLE LINKS APPEAR HERE. An expired or already-revoked orphan is not
+ * actionable, and listing rows whose only control would be disabled turns a
+ * recovery surface into a graveyard.
+ */
+function OrphanedLinkSection({
+	links,
+	onRevoke,
+}: {
+	links: ApplicationLinkRow[];
+	onRevoke: (linkId: string) => void;
+}) {
+	return (
+		<section
+			aria-labelledby={ORPHANED_HEADING_ID}
+			className="flex flex-col gap-3"
+		>
+			<div className="flex flex-col gap-1">
+				{/* `text-sm`, because the base `h3` rule is a card-heading size and this
+				    sits UNDER the band's own `<h2>` (§D-3). */}
+				<h3
+					id={ORPHANED_HEADING_ID}
+					className="text-sm font-medium text-foreground"
+				>
+					Links not attached to a listed unit
+				</h3>
+				{/* `mb-0`: bare `<p>` in a flex parent (§D-3). */}
+				<p className="text-xs text-muted-foreground mb-0">
+					The unit each of these was created for is no longer shown above, most
+					often because the unit or its property was removed. Revoke a link to
+					stop it accepting applications.
+				</p>
+			</div>
+			{/* All three neutralizers, for the same reason as the list above (§D-3). */}
+			<ul className="flex flex-col gap-3 pl-0 mt-0 [&>li]:mb-0">
+				{links.map((link) => (
+					<li key={link.id}>
+						<div className="flex flex-col gap-2 rounded-md border p-4">
+							{/*
+							 * The URL is the identifier, and the only one available: the
+							 * unit's own label lives behind a query that filters exactly the
+							 * rows this section exists for. It is also the string the owner
+							 * recognizes, because it is what they pasted into the listing.
+							 * Rendered as text and NOT as the copyable field the active rows
+							 * use — offering to copy a link whose next step is Revoke would
+							 * be the wrong affordance.
+							 */}
+							<span className="text-xs font-mono text-muted-foreground min-w-0 break-all">
+								{applicationLinkUrl(link.raw_token)}
+							</span>
+							{/* `mb-0`: bare `<p>` in a flex parent (§D-3). */}
+							<p className="text-xs text-muted-foreground mb-0">
+								{`Created ${formatDate(link.created_at)} · ${link.submission_count} ${
+									link.submission_count === 1 ? "application" : "applications"
+								} received`}
+							</p>
+							<div className="flex">
+								{/*
+								 * The bare "Revoke", exactly like the active row's trigger and
+								 * for the recorded §B-8 reason: this control only OPENS the
+								 * confirm surface, and the button that commits the change is
+								 * the one that carries the noun. Naming it "Revoke link" here
+								 * would also collide with that confirm button's own accessible
+								 * name, which is how an unambiguous role query turns into an
+								 * ambiguous one.
+								 */}
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										onRevoke(link.id);
+									}}
+								>
+									Revoke
+								</Button>
+							</div>
+						</div>
+					</li>
+				))}
+			</ul>
+		</section>
+	);
+}
+
 /** §C: three skeleton rows at the row's own height. Never a spinner. */
 function PanelSkeletons() {
 	return (
@@ -420,6 +550,11 @@ export function ApplicationLinkPanel() {
 		},
 	});
 
+	// One clock per render, so the chip, the control block and the expiry line of
+	// every row are derived against the same instant — and so the orphan filter
+	// below agrees with the rows about what "active" means.
+	const now = new Date();
+
 	const rows = useMemo<UnitLinkRow[]>(() => {
 		// The query orders newest first, so the FIRST link seen for a unit is its
 		// most recent one and every later one is history.
@@ -436,11 +571,30 @@ export function ApplicationLinkPanel() {
 		);
 	}, [links.data, properties.data]);
 
+	/**
+	 * Links the rows above cannot render, because the unit they point at is not
+	 * in the unit list — almost always because it was soft-deleted (F-1). Derived
+	 * from `rows` rather than from `properties.data` a second time, so the two
+	 * can never disagree about which units are listed.
+	 *
+	 * `applicationLinkState`, never a hand-rolled comparison: re-deriving it here
+	 * would create a second copy that drifts from the server's `<=` expiry
+	 * boundary and from the revoked-beats-expired ordering.
+	 *
+	 * Deliberately NOT memoized on `now`. A `new Date()` is a fresh identity on
+	 * every render, so a `useMemo` keyed on it would recompute every time anyway
+	 * while implying it does not; and keying on anything else would freeze the
+	 * expiry evaluation at the first render.
+	 */
+	const listedUnitIds = new Set(rows.map((row) => row.unitId));
+	const orphanedLinks = (links.data ?? []).filter(
+		(link) =>
+			!listedUnitIds.has(link.unit_id) &&
+			applicationLinkState(link, now) === "active",
+	);
+
 	const isPending = links.isPending || properties.isPending;
 	const isError = links.isError || properties.isError;
-	// One clock per render, so the chip, the control block and the expiry line of
-	// every row are derived against the same instant.
-	const now = new Date();
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -453,48 +607,68 @@ export function ApplicationLinkPanel() {
 						void properties.refetch();
 					}}
 				/>
-			) : rows.length === 0 ? (
+			) : /*
+			 * The empty state is gated on BOTH lists. An owner whose only unit was
+			 * removed has `rows.length === 0` and a live orphaned link, and
+			 * short-circuiting on the units alone would render "No units yet" over
+			 * the top of the one control that can close that link — the same
+			 * disappearance F-1 is about, reintroduced one branch higher.
+			 */
+			rows.length === 0 && orphanedLinks.length === 0 ? (
 				<PanelEmpty />
 			) : (
-				/*
-				 * All three neutralizers are mandatory (§D-3): globals.css:517-524
-				 * declares unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
-				 * and `li { margin-bottom: 0.25rem }` inside @layer base, and a utility
-				 * beats a base rule by layer order — but only if it is written.
-				 *
-				 * `gap-3`, never the margin-based spacing utility: Tailwind v4 emits
-				 * that one inside `:where()` at specificity 0, so the `[&>li]:mb-0`
-				 * here (0,1,1) would outrank it and flatten the rhythm to zero (§D-2).
-				 */
-				<ul className="flex flex-col gap-3 pl-0 mt-0 [&>li]:mb-0">
-					{rows.map((row) => (
-						<li key={row.unitId}>
-							<LinkRow
-								row={row}
-								// Derived in ONE place (plan 66-09). Re-deriving the
-								// comparison here would create a second, untested copy that
-								// drifts from the server's `<=` expiry boundary and from the
-								// revoked-beats-expired ordering.
-								state={applicationLinkState(row.link, now)}
-								createDisabled={createLink.isPending}
-								createMessage={
-									createRejection?.unitId === row.unitId
-										? createRejection.message
-										: null
-								}
-								onCreate={(unitId) => {
-									setCreateRejection(null);
-									createLink.mutate({ unitId });
-								}}
-								onRevoke={setPendingRevokeId}
-							/>
-						</li>
-					))}
-				</ul>
+				<>
+					{rows.length > 0 ? (
+						/*
+						 * All three neutralizers are mandatory (§D-3): globals.css:517-524
+						 * declares unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
+						 * and `li { margin-bottom: 0.25rem }` inside @layer base, and a
+						 * utility beats a base rule by layer order — but only if it is
+						 * written.
+						 *
+						 * `gap-3`, never the margin-based spacing utility: Tailwind v4 emits
+						 * that one inside `:where()` at specificity 0, so the `[&>li]:mb-0`
+						 * here (0,1,1) would outrank it and flatten the rhythm to zero (§D-2).
+						 */
+						<ul className="flex flex-col gap-3 pl-0 mt-0 [&>li]:mb-0">
+							{rows.map((row) => (
+								<li key={row.unitId}>
+									<LinkRow
+										row={row}
+										// Derived in ONE place (plan 66-09). Re-deriving the
+										// comparison here would create a second, untested copy that
+										// drifts from the server's `<=` expiry boundary and from the
+										// revoked-beats-expired ordering.
+										state={applicationLinkState(row.link, now)}
+										createDisabled={createLink.isPending}
+										createMessage={
+											createRejection?.unitId === row.unitId
+												? createRejection.message
+												: null
+										}
+										onCreate={(unitId) => {
+											setCreateRejection(null);
+											createLink.mutate({ unitId });
+										}}
+										onRevoke={setPendingRevokeId}
+									/>
+								</li>
+							))}
+						</ul>
+					) : null}
+					{orphanedLinks.length > 0 ? (
+						<OrphanedLinkSection
+							links={orphanedLinks}
+							onRevoke={setPendingRevokeId}
+						/>
+					) : null}
+				</>
 			)}
 
 			<ConfirmDialog
-				{...REVOKE_COPY}
+				{...(orphanedLinks.some((link) => link.id === pendingRevokeId)
+					? REVOKE_UNLISTED_COPY
+					: REVOKE_COPY)}
 				confirmVariant="destructive"
 				open={pendingRevokeId !== null}
 				onOpenChange={(open) => {
