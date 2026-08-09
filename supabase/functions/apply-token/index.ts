@@ -71,7 +71,7 @@ import {
 	clientUserAgent,
 	sha256Hex,
 } from "../_shared/lease-signing.ts";
-import { rateLimit } from "../_shared/rate-limit.ts";
+import { getClientIp, rateLimit } from "../_shared/rate-limit.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
 interface ApplicationContextRow {
@@ -150,15 +150,41 @@ async function handleContext(
 	// D-15: hash in Deno, never in SQL — see the auth-model note above.
 	const tokenHash = await sha256Hex(token);
 
-	// Two buckets, mirroring /sign. The token-keyed bucket is correct HERE and
-	// forbidden on submit: this call originates from the Next.js server, so
-	// every context request in the world shares one egress address and an
-	// address-only bucket would throttle every applicant globally. The token
-	// bucket is the per-listing bound. On submit the request comes from the
-	// applicant's own browser, so the address is real, and a token bucket would
-	// let one applicant lock out every other applicant for that unit (D-04b,
-	// F-5). The coarse ceiling runs first so a limited caller never charges a
-	// token bucket.
+	// Two buckets, mirroring /sign. The coarse ceiling runs first so a limited
+	// caller never charges the finer bucket.
+	//
+	// THE SECOND KEY IS COMPOSITE, AND THE TOKEN ALONE WOULD BE A KILL SWITCH.
+	//
+	// The original reasoning for a token-keyed bucket was half right: this call
+	// originates from the Next.js server, so every context request in the world
+	// shares one egress address, and an address-ONLY bucket would throttle every
+	// applicant on every listing at once. That part still holds, and it is why
+	// the token component stays.
+	//
+	// What it missed is who else can charge that bucket. This function is
+	// `verify_jwt = false`, and under D-03a the token is PUBLISHED — to Zillow,
+	// Craigslist, Facebook — so possession is the normal state of the world, not
+	// a compromise. A bucket keyed on the token alone is therefore shared with
+	// the entire internet: 60 unauthenticated POSTs a minute, one per second,
+	// empties it, `fetchApplyContext` starts seeing 429, and every genuine
+	// applicant gets the context_error card instead of the form. The 300/60s
+	// address ceiling above does not bound that at all — it is keyed on the
+	// ATTACKER's address and gives 5x the headroom needed. The owner cannot
+	// recover either: D-03a rejects rotation because it silently breaks every
+	// listing already posted, and a re-minted token is re-readable from the same
+	// ad. That is T-66-06 exactly, and it contradicts plan 66-07's own criterion
+	// that "one applicant cannot lock out another".
+	//
+	// Composing token + address keeps both properties. Real applicants all
+	// arrive via the shared server egress, so they land in one bucket per
+	// listing and the per-listing bound is unchanged. Anyone calling the
+	// function directly arrives from their own address and can only ever drain
+	// their own bucket.
+	//
+	// Submit still keys on the address ALONE (no identifier override): that
+	// request comes from the applicant's own browser, so the address is real,
+	// and adding a token component there would recreate this same lockout per
+	// unit (D-04b, F-5).
 	const ipLimited = await rateLimit(req, {
 		maxRequests: 300,
 		windowMs: 60_000,
@@ -170,7 +196,7 @@ async function handleContext(
 		maxRequests: 60,
 		windowMs: 60_000,
 		prefix: "apply-context",
-		identifier: tokenHash,
+		identifier: `${tokenHash}:${getClientIp(req)}`,
 	});
 	if (tokenLimited) return tokenLimited;
 

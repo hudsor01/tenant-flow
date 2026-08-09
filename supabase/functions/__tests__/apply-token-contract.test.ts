@@ -404,13 +404,32 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 	);
 
 	it("the extractor can see a key override when one is there", () => {
-		// The non-vacuity pair for the assertion below. The context action's
-		// per-token bucket is CORRECT — that call is fetched server-side, so every
-		// context request in the world shares one egress address and an
-		// address-only bucket would throttle every applicant globally. If this
-		// assertion ever fails, the negative one below has stopped meaning
-		// anything.
-		expect(contextLimitCall).toContain("identifier: tokenHash");
+		// The non-vacuity pair for the assertions below. If this ever fails, the
+		// negative one below has stopped meaning anything.
+		expect(contextLimitCall).toContain("identifier:");
+	});
+
+	it("the context bucket keys on token AND address, never the token alone", () => {
+		// T-66-06, and the defect this assertion replaced. The earlier version of
+		// this test asserted the exact string `identifier: tokenHash` — it was
+		// written to match the code and therefore certified the vulnerable form.
+		//
+		// A token-ONLY key is a public kill switch. This function is
+		// verify_jwt=false and D-03a PUBLISHES the token to Zillow/Craigslist/
+		// Facebook, so the bucket would be shared with the entire internet: 60
+		// unauthenticated POSTs a minute empties it and every genuine applicant
+		// gets the context_error card instead of the form, indefinitely, with no
+		// owner recovery (D-03a rejects rotation, and a re-minted token is
+		// re-readable from the same ad).
+		//
+		// The token component still has to be there: this call is made from the
+		// Next.js server, so all real traffic shares one egress address and an
+		// address-only key would throttle every listing at once. Both, or neither
+		// property holds.
+		expect(contextLimitCall).toContain("identifier: `${tokenHash}:");
+		expect(contextLimitCall).toContain("getClientIp(req)");
+		// The bare form must not come back.
+		expect(contextLimitCall).not.toContain("identifier: tokenHash,");
 	});
 
 	it("the submit bucket keys on the client address, with no override", () => {
@@ -423,10 +442,13 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 		expect(submitLimitCall).not.toContain("identifier");
 	});
 
-	it("the whole file carries exactly one token-hash limit key", () => {
-		const occurrences = [...CODE.matchAll(/identifier: tokenHash/g)];
-		expect(occurrences.length).toBe(1);
-		expect(CONTEXT_BODY).toContain("identifier: tokenHash");
+	it("the whole file carries exactly one token-derived limit key", () => {
+		// Scoped to the composite form. A bare `identifier: tokenHash` anywhere is
+		// the kill-switch shape and must not reappear on either action.
+		const composite = [...CODE.matchAll(/identifier: `\$\{tokenHash\}:/g)];
+		expect(composite.length).toBe(1);
+		const bare = [...CODE.matchAll(/identifier: tokenHash\s*,/g)];
+		expect(bare.length).toBe(0);
 		expect(SUBMIT_BODY).not.toContain("identifier");
 	});
 });

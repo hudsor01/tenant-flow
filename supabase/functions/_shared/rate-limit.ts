@@ -88,7 +88,7 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
  *      falls open for per-IP isolation but stays closed for
  *      aggregate-traffic ceilings.
  */
-function getClientIp(req: Request): string {
+export function getClientIp(req: Request): string {
 	const cfIp = req.headers.get("cf-connecting-ip");
 	if (cfIp) return cfIp;
 
