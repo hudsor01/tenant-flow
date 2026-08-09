@@ -47,6 +47,7 @@ import {
 	type RentalApplicationRow,
 } from "#hooks/api/query-keys/application-keys";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { ApplicationDetail } from "../application-detail";
 
 /**
@@ -562,6 +563,51 @@ describe("ApplicationDetail — the record, in the applicant's own order", () =>
 			"Another applicant was selected",
 		);
 		expect(screen.queryByText("another_applicant_selected")).toBeNull();
+	});
+});
+
+/**
+ * THE BREADCRUMB IS A LIST, AND IT IS THE ONE THIS PHASE FORGOT.
+ *
+ * `BreadcrumbList` renders a bare `<ol>` whose only classes are layout
+ * (`ui/breadcrumb.tsx:11-21`), so all three unscoped `@layer base` declarations
+ * at `globals.css:517-524` landed on it: `padding-left: 1.5rem`,
+ * `margin-top: 1rem` and — from the same `margin: 1rem 0` shorthand —
+ * `margin-bottom: 1rem`, plus `margin-bottom: 0.25rem` on each `<li>`.
+ *
+ * The page shell is `p-6 lg:p-8 … flex flex-col gap-6` and the breadcrumb is its
+ * FIRST flex item, so nothing collapses: the trail sat 16px below where the
+ * padding declares, and its text started 24px to the RIGHT of the `<h1>`
+ * directly beneath it. This phase neutralizes the same trap correctly on three
+ * `<ul>`s; the `<ol>` got nothing.
+ *
+ * Computed values, not classes, for the reason recorded in
+ * `#test/utils/base-rule-cascade`.
+ */
+describe("ApplicationDetail — the breadcrumb ol defeats the base rules", () => {
+	it("zeroes padding-left, both vertical margins and the crumb margins", () => {
+		mockQueries(makeRow({ status: "new" }));
+		const { container } = renderDetail();
+
+		const trail = container.querySelector("nav[aria-label='Breadcrumb'] ol");
+		if (!trail) throw new Error("the detail page rendered no breadcrumb <ol>");
+		const { neutralized, baseline } = computeListCascade(trail);
+
+		// Positive control on the harness: an unclassed list in the same document
+		// under the same stylesheet. Without it every assertion below would pass
+		// against a stylesheet that never applied.
+		expect(baseline.paddingLeft).toBe("24px");
+		expect(baseline.marginTop).toBe("16px");
+		expect(baseline.marginBottom).toBe("16px");
+		expect(baseline.firstChildMarginBottom).toBe("4px");
+
+		// The 24px indent is the visible one: it pushes the trail out of alignment
+		// with the `<h1>` immediately below it.
+		expect(neutralized.paddingLeft).toBe("0px");
+		expect(neutralized.marginTop).toBe("0px");
+		expect(neutralized.marginBottom).toBe("0px");
+		expect(neutralized.firstChildTag).toBe("li");
+		expect(neutralized.firstChildMarginBottom).toBe("0px");
 	});
 });
 
