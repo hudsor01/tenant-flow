@@ -233,19 +233,36 @@ test.describe("/applications — the owner review queue", () => {
 	});
 
 	/**
-	 * E-22: the status tab strip scrolls, the PAGE does not.
+	 * E-22: the status tab strip scrolls, the PAGE does not, and NO LABEL CLIPS.
 	 *
-	 * `overflow-x-auto scrollbar-hide` shipped on `TabsList` and was inert.
-	 * `TabsList`'s own base carries `w-fit` and the overflow utilities are in a
-	 * different tailwind-merge group, so the box kept `width: fit-content` and
-	 * could never be narrower than its five `whitespace-nowrap` triggers: at 375px
-	 * it grew past its container and the DOCUMENT scrolled sideways while the
-	 * strip itself never moved.
+	 * THE THIRD CLAUSE IS THE ONE THIS TEST DID NOT USED TO MAKE, AND IT IS THE
+	 * ONE THAT MATTERED. The first version measured only the two scrollWidths, and
+	 * the fix it was written to guard shipped a strip that clipped three of its
+	 * five labels at every width from 320px to 768px.
 	 *
-	 * A class assertion cannot decide this — the classes were present in the
-	 * broken build too, which is the whole §D lesson. Only the measurement can.
+	 * The mechanism, measured in a real Chrome against the compiled bundle at
+	 * 375px before the second fix: `TabsTrigger`'s base carries `flex-1`, i.e.
+	 * `flex: 1 1 0%`, so the triggers size to the box rather than the box sizing to
+	 * them. A flex item's `min-width: auto` would normally floor each one at its
+	 * min-content width and force the overflow, but the UNLAYERED
+	 * `@media (max-width: 768px)` block at globals.css:1536 sets an explicit
+	 * `min-width: var(--touch-target-min)` on every `button`, and an explicit
+	 * min-width REPLACES `auto`. Measured result: strip scrollWidth 327 ===
+	 * clientWidth 327 (nothing to scroll) with every trigger at 64.2px around a
+	 * 38px content box, so "Reviewing" (60.7px of text), "Approved" (56px) and
+	 * "Declined" (50.5px) each overflowed their own box and were clipped by the
+	 * scroll container they were supposed to be scrolling. `justify-center` put
+	 * half of that overflow at the unreachable left end for good measure.
+	 *
+	 * After `flex-none` on the triggers and `justify-start` on the strip, the same
+	 * harness reads scrollWidth 348 / clientWidth 327 at 375px, 348 / 272 at 320px,
+	 * and zero clipped labels at 320, 375, 414, 640, 768 and 1280.
+	 *
+	 * A CLASS ASSERTION CANNOT DECIDE ANY OF THIS. The classes were present in
+	 * both broken builds. Only the measurement can, and only if it measures the
+	 * text as well as the boxes.
 	 */
-	test("E-22: the status tabs scroll in place at 375px, and the page does not", async ({
+	test("E-22: the status tabs scroll in place at 375px, the page does not, and no label clips", async ({
 		page,
 	}) => {
 		test.skip(
@@ -259,19 +276,40 @@ test.describe("/applications — the owner review queue", () => {
 
 		const measured = await strip.evaluate((node) => {
 			const parent = node.parentElement;
+			const triggers = [...node.querySelectorAll('[role="tab"]')];
 			return {
-				triggers: node.querySelectorAll('[role="tab"]').length,
+				triggers: triggers.length,
 				scrollWidth: node.scrollWidth,
 				clientWidth: node.clientWidth,
 				parentWidth: parent ? parent.getBoundingClientRect().width : 0,
 				documentScrollWidth: document.documentElement.scrollWidth,
 				viewport: window.innerWidth,
+				// Per trigger: the box the label has to live in, and the label's own
+				// rendered width. A Range over the node's contents is the only way to
+				// get the second one — `scrollWidth` on an `overflow: visible` box is
+				// clamped to `clientWidth` in Chrome and would report no overflow at
+				// exactly the moment the text is spilling out of it.
+				labels: triggers.map((el) => {
+					const style = getComputedStyle(el);
+					const range = document.createRange();
+					range.selectNodeContents(el);
+					return {
+						text: el.textContent ?? "",
+						// clientWidth is the padding box; the padding is not available to
+						// the text, so it is subtracted rather than counted as slack.
+						contentBox:
+							el.clientWidth -
+							Number.parseFloat(style.paddingLeft) -
+							Number.parseFloat(style.paddingRight),
+						textWidth: range.getBoundingClientRect().width,
+					};
+				}),
 			};
 		});
 
 		// Positive controls FIRST. All five tabs must be mounted and their combined
-		// width must genuinely exceed the viewport, or the two assertions below are
-		// satisfied by a strip that had nothing to overflow.
+		// width must genuinely exceed the box, or the assertions below are satisfied
+		// by a strip that had nothing to overflow.
 		expect(measured.triggers).toBe(5);
 		expect(measured.scrollWidth).toBeGreaterThan(measured.clientWidth);
 
@@ -284,6 +322,16 @@ test.describe("/applications — the owner review queue", () => {
 		expect(measured.documentScrollWidth).toBeLessThanOrEqual(
 			measured.viewport + 1,
 		);
+
+		// THE ASSERTION THE PREVIOUS VERSION LACKED. Every label must fit the box it
+		// was given. A strip that scrolls while its triggers clip is not fixed, and
+		// the two scrollWidth assertions above cannot tell the difference.
+		for (const label of measured.labels) {
+			// Positive control per row: a Range over an empty node reports 0 and would
+			// satisfy the comparison beneath it for every possible box.
+			expect(label.textWidth).toBeGreaterThan(0);
+			expect(label.contentBox).toBeGreaterThanOrEqual(label.textWidth - 1);
+		}
 	});
 
 	test("E-19: the link URL survives a reload and is re-copyable (D-03a)", async ({

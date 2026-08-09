@@ -428,30 +428,66 @@ export function ApplicationQueue() {
 					</SelectContent>
 				</Select>
 				{/*
-				 * `overflow-x-auto scrollbar-hide` (the existing @utility at
-				 * globals.css:1797) so five triggers scroll horizontally at 375px
-				 * instead of wrapping. No counts on the tabs this phase — a per-status
-				 * count needs a query nothing else on this page issues (§F).
+				 * THE TAB STRIP SCROLLS. THE PAGE DOES NOT. THE LABELS DO NOT CLIP.
 				 *
-				 * `w-full sm:w-fit max-w-full` IS WHAT MAKES THAT OVERFLOW REAL.
-				 * `TabsList`'s own base carries `w-fit` (ui/tabs.tsx), and the overflow
-				 * utilities sit in a different tailwind-merge group, so they do not
-				 * touch it: the box kept `width: fit-content` and could never be
-				 * narrower than its five `whitespace-nowrap` triggers. At 375px it
-				 * simply grew past its container and the DOCUMENT scrolled sideways
-				 * while the strip itself never moved — the overflow classes were
-				 * present and inert. `w-full` is in the same group as `w-fit` and does
-				 * remove it (verified against tailwind-merge, not assumed); `sm:w-fit`
-				 * restores hug-to-content once the row layout has the room; and
-				 * `max-w-full` is the belt that caps the box at its container in both
-				 * cases, which is what turns the overflow into a scroll of the strip.
+				 * Three separate things had to be true for that, and the first attempt
+				 * at this fix got one of them. Measured in a real Chrome against the
+				 * compiled bundle at 375px, that attempt (`w-full sm:w-fit max-w-full
+				 * overflow-x-auto`) produced: strip scrollWidth 327 === clientWidth 327
+				 * — nothing to scroll — with every trigger rendered at 64.2px against a
+				 * 38px content box, so "Reviewing" (60.7px of text), "Approved" (56px)
+				 * and "Declined" (50.5px) all overflowed their own boxes and were
+				 * clipped by the scroll container they were supposed to be scrolling.
+				 *
+				 * WHY `w-full` WAS NOT ENOUGH. It does beat the base `w-fit` in
+				 * tailwind-merge, and the box really did become 327px. But the five
+				 * triggers carry `flex-1` from `TabsTrigger`'s own base (ui/tabs.tsx),
+				 * i.e. `flex: 1 1 0%`, so they size to the box rather than the box
+				 * sizing to them. Normally that still overflows, because a flex item's
+				 * `min-width: auto` floors it at its min-content width — but the
+				 * UNLAYERED `@media (max-width: 768px)` block at globals.css:1536 sets
+				 * an explicit `min-width: var(--touch-target-min)` on every `button`,
+				 * and an explicit min-width REPLACES `auto`. The floor became 44px, the
+				 * triggers shrank to 64.2px each, and there was nothing left to
+				 * overflow. No utility can take that rule back: it is unlayered, and
+				 * unlayered beats every `@layer utilities` declaration regardless of
+				 * specificity — which is why the fix does not try.
+				 *
+				 * `flex-none` on the trigger is what defeats BOTH. `flex: 0 0 auto`
+				 * means the basis is the content width and the shrink factor is zero,
+				 * so a trigger cannot be squeezed below its label no matter what floor
+				 * is imposed, and the 44px min-width degrades to a harmless floor under
+				 * the one short label ("All", 33.9px of box). It is passed per instance
+				 * so tailwind-merge resolves it against the base `flex-1` rather than
+				 * appending to it.
+				 *
+				 * With nothing shrinkable inside it, the base `w-fit` is now the RIGHT
+				 * width — the box hugs its tabs when they fit and `max-w-full` clamps
+				 * it to the container when they do not, which is what turns the
+				 * overflow into a scroll of the strip instead of a scroll of the
+				 * document. `w-full sm:w-fit` is gone because it existed only to
+				 * compensate for triggers that could shrink.
+				 *
+				 * `justify-start` is not cosmetic. `TabsList`'s base is
+				 * `justify-center`, and centred content in a scroll container overflows
+				 * equally at both ends — the left overflow of a centred flex line is
+				 * unreachable by scrolling in LTR, so the first tabs would be
+				 * permanently cut off.
+				 *
+				 * `scrollbar-hide` is the existing @utility at globals.css:1797. No
+				 * counts on the tabs this phase — a per-status count needs a query
+				 * nothing else on this page issues (§F).
 				 */}
 				<TabsList
 					aria-label="Filter by status"
-					className="w-full sm:w-fit max-w-full overflow-x-auto scrollbar-hide"
+					className="max-w-full justify-start overflow-x-auto scrollbar-hide"
 				>
 					{STATUS_TABS.map((tab) => (
-						<TabsTrigger key={tab.value} value={tab.value}>
+						<TabsTrigger
+							key={tab.value}
+							value={tab.value}
+							className="flex-none"
+						>
 							{tab.label}
 						</TabsTrigger>
 					))}

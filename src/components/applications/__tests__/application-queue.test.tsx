@@ -532,39 +532,61 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 	});
 
 	/**
-	 * THE STATUS TAB STRIP, AND THE ONE ASSERTION THAT IS NOT MERE SPELLING.
+	 * THE STATUS TAB STRIP — THE CHEAP HALF. THE GEOMETRY IS E-22'S.
 	 *
-	 * `overflow-x-auto scrollbar-hide` shipped alone and was INERT: `TabsList`'s
-	 * own base carries `w-fit`, the overflow utilities live in a different
-	 * tailwind-merge group, so the box kept `width: fit-content` and could never
-	 * be narrower than its five `whitespace-nowrap` triggers. At 375px it grew
-	 * past its container and the DOCUMENT scrolled sideways while the strip itself
-	 * never moved.
+	 * THIS TEST CANNOT DECIDE THE DEFECT AND MUST NOT BE READ AS IF IT COULD.
+	 * jsdom computes no layout and loads no stylesheet, so nothing here knows
+	 * that a trigger is 64.2px wide around 60.7px of text. The previous version of
+	 * this test asserted class presence, passed, and the strip shipped clipping
+	 * its labels at every width from 320px to 768px. The decider is E-22 in
+	 * `tests/e2e/tests/owner/applications.spec.ts`, which measures every trigger's
+	 * content box against its own text.
 	 *
-	 * The `w-fit` absence below is a genuine tailwind-merge RESOLUTION check, not
-	 * a presence check: `w-fit` is written in the primitive's base string and only
-	 * disappears from the rendered attribute if a same-group utility actually beat
-	 * it. Whether the resulting box then scrolls is geometry, and jsdom computes
-	 * none — that half is E-22 in `tests/e2e/tests/owner/applications.spec.ts`,
-	 * which measures the strip's scrollWidth and the document's at 375px.
+	 * WHAT IT DOES DECIDE is the one question that IS answerable without layout:
+	 * whether the per-instance utilities actually beat the primitive's base
+	 * through tailwind-merge, or merely sit alongside them. `flex-1` and
+	 * `justify-center` are written in `ui/tabs.tsx`'s own base strings and can only
+	 * disappear from a rendered attribute if a same-group utility displaced them.
+	 * That is a resolution check, not a spelling check — and it is exactly the
+	 * question the first fix pass got wrong in the other direction, where `w-full`
+	 * did displace `w-fit` and still changed nothing that mattered.
 	 */
-	it("resolves the tab strip's width away from the primitive's w-fit", () => {
+	it("resolves flex-1 off the triggers and justify-center off the strip", () => {
 		mockQueries(successState(makeRows(2), 2));
 		render(<ApplicationQueue />);
 
 		const strip = screen.getByRole("tablist", { name: "Filter by status" });
-		const classes = strip.getAttribute("class")?.split(/\s+/) ?? [];
+		const stripClasses = strip.getAttribute("class")?.split(/\s+/) ?? [];
 
 		// Positive control: the primitive's OWN base classes are in this string, so
-		// the absence assertion below is being made against a merged result rather
-		// than against an element that never received the base at all.
-		expect(classes).toContain("inline-flex");
-		expect(classes).toContain("h-11");
+		// the absence assertions below are being made against a merged result
+		// rather than against an element that never received the base at all.
+		expect(stripClasses).toContain("inline-flex");
+		expect(stripClasses).toContain("h-11");
 
-		expect(classes).not.toContain("w-fit");
-		expect(classes).toContain("w-full");
-		expect(classes).toContain("sm:w-fit");
-		expect(classes).toContain("max-w-full");
-		expect(classes).toContain("overflow-x-auto");
+		// Centred content in a scroll container overflows at BOTH ends and the left
+		// end is unreachable by scrolling, so the first tabs would be permanently
+		// cut off.
+		expect(stripClasses).not.toContain("justify-center");
+		expect(stripClasses).toContain("justify-start");
+		// The box hugs its tabs (the base `w-fit`, correct once nothing inside can
+		// shrink) and is clamped to its container, which is what makes the overflow
+		// the strip's rather than the document's.
+		expect(stripClasses).toContain("w-fit");
+		expect(stripClasses).toContain("max-w-full");
+		expect(stripClasses).toContain("overflow-x-auto");
+
+		const triggers = screen.getAllByRole("tab");
+		expect(triggers).toHaveLength(5);
+		for (const trigger of triggers) {
+			const classes = trigger.getAttribute("class")?.split(/\s+/) ?? [];
+			// Positive control on each trigger, for the same reason as above.
+			expect(classes).toContain("whitespace-nowrap");
+			// `flex: 1 1 0%` is what let the unlayered `min-width: 44px` at
+			// globals.css:1557 squeeze a trigger to 64.2px around 60.7px of text.
+			// `flex: 0 0 auto` makes the label the floor instead.
+			expect(classes).not.toContain("flex-1");
+			expect(classes).toContain("flex-none");
+		}
 	});
 });
