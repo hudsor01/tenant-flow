@@ -155,12 +155,36 @@ test.afterAll(async () => {
 	await seedClient?.auth.signOut();
 });
 
+/**
+ * Read an element's box, GATED ON AN AUTO-RETRYING VISIBILITY ASSERTION.
+ *
+ * The gate is not tidiness, it is the fix for a real CI failure. `boundingBox()`
+ * answers `null` the instant an element is not visible — that is its documented
+ * contract, not an error path — and alone among the reads in this file it does
+ * NOT retry. Every `expect()` here polls; this one call took a single snapshot.
+ *
+ * E-1 failed in CI with "element has no bounding box (not rendered)" against a
+ * disclaimer that is emphatically rendered: measured against the compiled
+ * bundle it is 309x434 at 375px and its bottom sits 88px above the submit
+ * button's top. Playwright classed that same test FLAKY in that same run,
+ * because a later attempt read the very same element successfully. So the
+ * element was never missing and the selector was never wrong — a one-shot read
+ * taken while the page was still settling after `setViewportSize()` is the
+ * whole defect.
+ *
+ * `toBeVisible()` polls until the element genuinely has a non-empty box, which
+ * is precisely the precondition `boundingBox()` requires, so the window closes.
+ * This weakens nothing: it ADDS an assertion, and a element that never becomes
+ * visible now fails as a visibility assertion naming the locator rather than as
+ * a bare "no bounding box" from a helper three frames up the stack.
+ */
 async function boxOf(locator: Locator): Promise<{
 	x: number;
 	y: number;
 	width: number;
 	height: number;
 }> {
+	await expect(locator).toBeVisible();
 	const box = await locator.boundingBox();
 	if (!box) throw new Error("element has no bounding box (not rendered)");
 	return box;
