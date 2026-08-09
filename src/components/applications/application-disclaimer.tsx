@@ -66,7 +66,7 @@ export const ApplicationAttestation = withForm({
 				{(field) => (
 					<div className="flex flex-col gap-2">
 						{/* items-start, not the primitive's items-center: the label wraps
-						    to two lines at the 311px field width 375px leaves, and the
+						    to two lines at the 309px field width 375px leaves, and the
 						    shared Checkbox renders 44x44 rather than 16x16 under the
 						    unlayered mobile block (D-1), so a centred 44px control against
 						    a two-line label sits visibly low. */}

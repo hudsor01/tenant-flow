@@ -365,7 +365,7 @@ test.describe("/apply — the rendered applicant form", () => {
 		expect(offenders).toEqual([]);
 	});
 
-	test("E-4: field containers keep at least 311px of width at 375px", async ({
+	test("E-4: every field container is exactly 309px wide at 375px", async ({
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 900 });
@@ -375,7 +375,30 @@ test.describe("/apply — the rendered applicant form", () => {
 				nodes.map((node) => Math.round(node.getBoundingClientRect().width)),
 			);
 		expect(widths.length).toBeGreaterThanOrEqual(20);
-		expect(Math.min(...widths)).toBeGreaterThanOrEqual(311);
+
+		// 309, AND THE DERIVATION IS THE ASSERTION:
+		//    375   the viewport
+		//   − 32   `main`'s px-4 gutter, 16 + 16      → 343, the Card's BORDER box
+		//   −  2   the Card's own 1px border, both sides (`cardVariants` ships a
+		//          bare `border`, and the box is `border-box`) → 341, its content box
+		//   − 32   `CardContent`'s px-4 below `sm`, 16 + 16    → 309
+		//
+		// THIS CONSTANT WAS 311 AND 311 WAS ARITHMETICALLY WRONG. UI-SPEC
+		// §"Measurable geometry" derived it as 343 − 16 − 16 and never subtracted
+		// the Card's own border, so the number named a width the box model cannot
+		// produce and the assertion could not pass against any correct build. That
+		// row is corrected alongside this line, for all three of its viewports. The
+		// layout is NOT changed to reach 311: the border and both paddings are
+		// deliberate (§"Spacing exception 3" buys the mobile px-4 precisely to
+		// widen this rail), so moving them to satisfy a miscalculation would damage
+		// a correct design.
+		//
+		// Equality rather than the old floor, and that is a STRENGTHENING. A floor
+		// cannot distinguish a correct single-column rail from one that lost the
+		// page gutter and now runs edge to edge — both clear it. One exact number
+		// pins every term in the chain above, so any change to the gutter, the
+		// border or the card padding fails here and names itself.
+		expect([...new Set(widths)]).toEqual([309]);
 	});
 
 	test("E-13: every field container shares one x at 375px (single column)", async ({

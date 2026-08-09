@@ -257,11 +257,18 @@ export const dynamic = "force-dynamic";      // the token must reflect live stat
 
 **Measurable geometry (asserted in §E):**
 
-| Viewport | Page gutter | Card width | `CardContent` padding | Field width |
-|----------|-------------|------------|----------------------|-------------|
-| 375px | `px-4` = 16px | 343px | `px-4` = 16px | **311px** |
-| 640px | `px-4` = 16px | 608px | `px-6` = 24px | 560px |
-| ≥ 704px | `px-4` = 16px | **672px** (`max-w-2xl` cap) | `px-6` = 24px | **624px** |
+| Viewport | Page gutter | Card width | Card border | `CardContent` padding | Field width |
+|----------|-------------|------------|-------------|----------------------|-------------|
+| 375px | `px-4` = 16px | 343px | 1px × 2 | `px-4` = 16px | **309px** |
+| 640px | `px-4` = 16px | 608px | 1px × 2 | `px-6` = 24px | 558px |
+| ≥ 704px | `px-4` = 16px | **672px** (`max-w-2xl` cap) | 1px × 2 | `px-6` = 24px | **622px** |
+
+> **The card border is a term in this table and was missing from it.** The three field widths
+> originally read 311 / 560 / 624 — card width minus the two paddings, with `cardVariants`' bare
+> `border` never subtracted. `Card`'s box is `border-box`, so the quoted card width is its BORDER
+> box and 2px of it is border; the content box is 2px narrower. E-4 asserted the uncorrected 311
+> and therefore could not pass against any correct build. Corrected here and in E-4; all three
+> figures verified by measuring the real page against the compiled Tailwind bundle in Chrome.
 
 - No app shell, no sidebar, no breadcrumb, no `page-offset-navbar`, no marketing navbar/footer.
   `/apply` sits outside both `(owner)` and the marketing `page-layout`.
@@ -302,7 +309,7 @@ Four independent reasons, in order of weight:
 before every field group is pure added friction on the exact device this form targets.
 
 **Rejected: multi-step.** Also: `Stepper`'s `StepperList` renders 4 indicators plus 3 separators
-horizontally; at 375px minus gutters and card padding that is 311px of rail, which crowds even
+horizontally; at 375px minus gutters, the card border and card padding that is 309px of rail, which crowds even
 with `StepperDescription` hidden below `sm` (the lease wizard's own compromise).
 
 **Length mitigations, all required:**
@@ -527,7 +534,7 @@ Immediately below the disclaimer block, above submit:
 </Field>
 ```
 
-- `items-start`, not the primitive's `items-center` — the label wraps to two lines at 311px.
+- `items-start`, not the primitive's `items-center` — the label wraps to two lines at 309px.
 - `font-normal` overrides `Label`'s `font-medium`; this is a sentence, not a field label.
 - Required. `SubmitButton` stays disabled until it is checked (the form-level `onChange` zod
   schema requires `certified: true`), and the server schema requires it too.
@@ -1090,7 +1097,7 @@ Every row below is a geometric or ordering assertion, not a class check.
 | E-1 | Disclaimer block bottom ≤ submit button top: `d.y + d.height <= s.y` | 375 **and** 1280 | `/apply` |
 | E-2 | Every `input` on the form has `getBoundingClientRect().height === 48` | 375 | `/apply` |
 | E-3 | Every `textarea` has `height >= 96` | 375 | `/apply` |
-| E-4 | Form field container width `>= 311` | 375 | `/apply` |
+| E-4 | Every form field container width `=== 309` (see the geometry table — 343 card border box − 2 border − 32 padding) | 375 | `/apply` |
 | E-5 | Card width `=== 672` (the `max-w-2xl` cap) | 1280 | `/apply` |
 | E-6 | Honeypot: `not.toBeInViewport()` **and** `getBoundingClientRect().right < 0` | 375 | `/apply` |
 | E-7 | Honeypot: Tab from the attestation checkbox lands on the submit button, never on `#apply-company-website` | 375 | `/apply` |
