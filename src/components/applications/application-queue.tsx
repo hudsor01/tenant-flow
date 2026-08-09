@@ -67,9 +67,11 @@ import {
 	type ApplicationListFilters,
 	type ApplicationSummaryRow,
 	applicationQueries,
+	isAnonymized,
 } from "#hooks/api/query-keys/application-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import {
+	ANONYMIZED_HEADING,
 	APPLICATION_STATUS,
 	APPLICATION_STATUSES,
 	type ApplicationStatus,
@@ -104,6 +106,29 @@ const STATUS_TABS: readonly { value: StatusTab; label: string }[] = [
 /** Narrows radix's `string` without a cast; an unknown value fails safe to "all". */
 function toStatusTab(value: string): StatusTab {
 	return STATUS_TABS.find((tab) => tab.value === value)?.value ?? "all";
+}
+
+/**
+ * The row's title — T-66-50, and the reason it is a function rather than an
+ * inline template.
+ *
+ * `anonymize_old_rental_applications` writes the literal `[deleted]` into all
+ * three NOT NULL applicant columns, so reading the name columns unconditionally
+ * puts a swept row in the queue as a person named "[deleted] [deleted]", under a
+ * normal user icon and a normal status chip, indistinguishable from a live
+ * applicant. `anonymized_at` is already selected by `LIST_SELECT_COLUMNS` and
+ * already mapped by `mapRentalApplicationSummaryRow` for exactly this — and
+ * `isAnonymized`'s own docstring says it accepts anything carrying the column so
+ * the queue row and the detail row can both ask. This is the queue asking.
+ *
+ * `ANONYMIZED_HEADING` is the SHARED constant the detail page's `<h1>` and
+ * breadcrumb also read, so the row and the page it opens cannot disagree about
+ * the same application.
+ */
+function rowHeading(row: ApplicationSummaryRow): string {
+	return isAnonymized(row)
+		? ANONYMIZED_HEADING
+		: `${row.applicant_first_name} ${row.applicant_last_name}`;
 }
 
 /** `{property} · Unit {n} · {relative date}` — middle dots, never an em-dash. */
@@ -300,7 +325,7 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 								 * stay inside this phase's two-weight contract.
 								 */}
 								<ItemTitle className="block w-full min-w-0 truncate font-normal">
-									{row.applicant_first_name} {row.applicant_last_name}
+									{rowHeading(row)}
 								</ItemTitle>
 								{/*
 								 * `mb-0`: ItemDescription is a bare `<p>` (item.tsx:131-143)

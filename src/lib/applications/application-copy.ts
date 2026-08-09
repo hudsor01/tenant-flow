@@ -116,6 +116,19 @@ export const APPLICATION_STATUS: Record<
 	rejected: { label: "Declined", badgeVariant: "outline" },
 };
 
+/**
+ * D-11. The heading a swept row is shown under, on BOTH surfaces that render one.
+ *
+ * `anonymize_old_rental_applications` writes the literal `[deleted]` into the
+ * three NOT NULL applicant columns, so any surface that reads
+ * `applicant_first_name` unconditionally presents a sentinel as a person's name.
+ * The detail page uses this for its `<h1>` and its breadcrumb; the queue uses it
+ * for the row title. It lives here rather than in either component because the
+ * owner clicks the row and lands on the page — two copies of the string would let
+ * the list and the page it opens disagree about the same application.
+ */
+export const ANONYMIZED_HEADING = "Anonymized application";
+
 export type DispositionReasonValue =
 	| "unit_no_longer_available"
 	| "income_requirement"

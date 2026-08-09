@@ -732,7 +732,7 @@ Each `<li>` holds one `Item size="default"` (`p-4 gap-4`), `asChild` over a `<Li
 |------|-----------|------|
 | Row link | `<Link className="no-underline text-foreground">` | **Both classes are required.** `no-underline` defeats the base `a:not(...)` transparent-underline rule; `text-foreground` defeats that same rule's `color: var(--color-primary)`, which would otherwise tint the whole row accent-blue. Phase 65 hit exactly this. |
 | Icon | `ItemMedia variant="icon"` | lucide `User`, `size-4 text-muted-foreground`, `aria-hidden="true"` |
-| Title | `ItemTitle` | applicant name · 14px / **400** (`font-normal`, overriding the primitive's `font-medium`) · `block w-full min-w-0 truncate` |
+| Title | `ItemTitle` | applicant name, or `ANONYMIZED_HEADING` when `isAnonymized(row)` (see §B-5's anonymized-rows note) · 14px / **400** (`font-normal`, overriding the primitive's `font-medium`) · `block w-full min-w-0 truncate` |
 | Meta | `ItemDescription` | `{property} · Unit {n} · {relative date}` · `text-xs mb-0 line-clamp-none` · via `formatRelativeDate` from `#lib/formatters/date` |
 | Content wrapper | `ItemContent` | **`min-w-0`** — load-bearing, not defensive |
 | Action | `ItemActions` | the status `Badge` (§B-4). No buttons in the row — the whole row is the affordance. |
@@ -816,7 +816,11 @@ exported `APPLICATION_STATUS` module so they cannot drift.
 - **`mb-0` on every `<dd>`** — `<dd>` is not a `<p>`, but each is the last child of a
   `flex flex-col gap-1` wrapper; verify against §D-3's parent-box rule before adding or removing it.
 
-**Breadcrumb** — the `<nav>` requires `aria-label="Breadcrumb"` (CLAUDE.md accessibility).
+**Breadcrumb** — the `<nav>` requires `aria-label="Breadcrumb"` (CLAUDE.md accessibility), and
+`BreadcrumbList` needs the same `pl-0 mt-0 mb-0 [&>li]:mb-0` set as every other list on this
+surface: it renders a bare `<ol>` whose own classes are all layout, so §D-3's unscoped `ul, ol`
+and `li` base rules land on it in full. It is the first flex item of a `flex flex-col gap-6`
+shell, so none of those margins collapse.
 
 **Anonymized rows.** After the 730-day sweep an application still exists as a stub. The detail
 page must render that honestly rather than showing `[deleted]` placeholders as if they were data:
@@ -827,6 +831,16 @@ a full-width `Alert` above the detail cards —
 
 — and the PII cards are **not rendered at all**. Only the stub card (unit, dates, status,
 `disposition_reason`) renders.
+
+**The queue row must ask the same question.** A swept row still appears in the queue, and reading
+`applicant_first_name`/`applicant_last_name` unconditionally renders it as a person named
+`[deleted] [deleted]` under a normal icon and a normal status chip — indistinguishable from a live
+applicant. The row title reads `ANONYMIZED_HEADING` from `#lib/applications/application-copy`
+whenever `isAnonymized(row)`, which is the same constant the detail page's `<h1>` and breadcrumb
+read, so the list and the page it opens cannot disagree. `anonymized_at` is already in
+`LIST_SELECT_COLUMNS` and already mapped by `mapRentalApplicationSummaryRow` for exactly this. The
+meta line is untouched: the sweep clears applicant columns only, so the property, unit and applied
+date are still real.
 
 ## B-6. The approve / convert affordance (UI-15)
 

@@ -44,6 +44,7 @@ import {
 	applicationKeys,
 	applicationQueries,
 } from "#hooks/api/query-keys/application-keys";
+import { ANONYMIZED_HEADING } from "#lib/applications/application-copy";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { ApplicationQueue } from "../application-queue";
 
@@ -483,6 +484,84 @@ describe("ApplicationQueue — the rows", () => {
 
 		expect(container.querySelector("img")).toBeNull();
 		expect(screen.getByText(new RegExp("onerror"))).toBeInTheDocument();
+	});
+});
+
+/**
+ * T-66-50 ON THE QUEUE, WHICH IS WHERE IT WAS MISSING.
+ *
+ * `anonymize_old_rental_applications` writes the literal `[deleted]` into all
+ * three NOT NULL applicant columns, and the queue rendered
+ * `{applicant_first_name} {applicant_last_name}` unconditionally — so a swept row
+ * appeared as a person named "[deleted] [deleted]", with a normal user icon and a
+ * normal status chip, indistinguishable from a live applicant. The detail page
+ * has guarded this from the start; the queue never asked, even though
+ * `anonymized_at` was already in `LIST_SELECT_COLUMNS`, already mapped by
+ * `mapRentalApplicationSummaryRow`, and `isAnonymized`'s own docstring says it
+ * "accepts anything carrying the column so the queue row and the detail row can
+ * both ask".
+ */
+describe("ApplicationQueue — a swept row is a stub, not a person", () => {
+	/** The literal `anonymize_old_rental_applications` writes. */
+	const SENTINEL = "[deleted]";
+
+	function anonymizedRow(): ApplicationSummaryRow {
+		return makeRow({
+			status: "rejected",
+			applicant_first_name: SENTINEL,
+			applicant_last_name: SENTINEL,
+			applicant_email: SENTINEL,
+			anonymized_at: "2028-07-04T00:00:00Z",
+		});
+	}
+
+	it("renders no placeholder anywhere in the row", () => {
+		mockQueries(successState([anonymizedRow()], 1));
+		const { container } = render(<ApplicationQueue />);
+
+		// POSITIVE CONTROL. The absence assertion below passes against an empty
+		// render and a crashed one, so the row has to be proven present first — and
+		// the meta line is the half of it the sweep deliberately leaves intact.
+		expect(screen.getByRole("link")).toBeInTheDocument();
+		expect(
+			container.querySelector('[data-slot="item-description"]')?.textContent,
+		).toContain("Pecan Street Duplex");
+
+		expect(container.textContent ?? "").not.toContain(SENTINEL);
+	});
+
+	it("uses the same heading the detail page shows for the same row", () => {
+		mockQueries(successState([anonymizedRow()], 1));
+		const { container } = render(<ApplicationQueue />);
+
+		// Asserted against `ANONYMIZED_HEADING` itself rather than a literal: the
+		// owner clicks this row and lands on a page whose <h1> and breadcrumb read
+		// the same constant, and two copies of the string would let them drift.
+		expect(
+			container.querySelector('[data-slot="item-title"]')?.textContent,
+		).toBe(ANONYMIZED_HEADING);
+	});
+
+	it("leaves a live applicant's name alone", () => {
+		// The other half of the branch. Without this, deleting the name entirely
+		// would satisfy both assertions above.
+		mockQueries(
+			successState(
+				[
+					makeRow({
+						applicant_first_name: "Dana",
+						applicant_last_name: "Reyes",
+						anonymized_at: null,
+					}),
+				],
+				1,
+			),
+		);
+		const { container } = render(<ApplicationQueue />);
+
+		expect(
+			container.querySelector('[data-slot="item-title"]')?.textContent,
+		).toBe("Dana Reyes");
 	});
 });
 

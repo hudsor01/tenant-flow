@@ -83,6 +83,7 @@ import {
 } from "#hooks/api/query-keys/application-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import {
+	ANONYMIZED_HEADING,
 	APPLICATION_STATUS,
 	DISPOSITION_REASONS,
 } from "#lib/applications/application-copy";
@@ -130,14 +131,6 @@ const ANONYMIZED_COPY = {
 	title: "This application has been anonymized.",
 	body: "TenantFlow removes applicant details two years after a decision. The unit, dates, status and recorded reason are kept.",
 } as const;
-
-/**
- * The heading and breadcrumb label for a swept row. The name columns are NOT
- * NULL and hold a placeholder after the sweep, so reading them here would put a
- * sentinel in the `<h1>` and in the breadcrumb of a page whose entire point is
- * that the applicant's details are gone.
- */
-const ANONYMIZED_HEADING = "Anonymized application";
 
 const NOTES_COPY = {
 	label: "Private notes",
@@ -825,6 +818,10 @@ function LoadedApplicationDetail({
 	});
 
 	const anonymized = isAnonymized(row);
+	// `ANONYMIZED_HEADING` is the SHARED constant in `#lib/applications/
+	// application-copy`, not a local literal: the queue row the owner clicked to
+	// get here renders the same string for the same application, and two copies
+	// would let the list and the page it opens disagree.
 	const heading = anonymized
 		? ANONYMIZED_HEADING
 		: `${row.applicant_first_name} ${row.applicant_last_name}`;
