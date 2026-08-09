@@ -69,11 +69,14 @@ interface CapturedMutation {
 	) => unknown | Promise<unknown>;
 }
 
-const { mockUseQuery, mockUseMutation, invalidateSpy } = vi.hoisted(() => ({
-	mockUseQuery: vi.fn(),
-	mockUseMutation: vi.fn(),
-	invalidateSpy: vi.fn(),
-}));
+const { mockUseQuery, mockUseMutation, invalidateSpy, removeSpy } = vi.hoisted(
+	() => ({
+		mockUseQuery: vi.fn(),
+		mockUseMutation: vi.fn(),
+		invalidateSpy: vi.fn(),
+		removeSpy: vi.fn(),
+	}),
+);
 
 vi.mock("@tanstack/react-query", async () => {
 	const actual = await vi.importActual<typeof import("@tanstack/react-query")>(
@@ -84,11 +87,15 @@ vi.mock("@tanstack/react-query", async () => {
 		useQuery: (options: { queryKey: readonly unknown[] }) =>
 			mockUseQuery(options),
 		useMutation: (options: CapturedMutation) => mockUseMutation(options),
-		// The real one needs a provider. A STABLE spy, not a fresh `vi.fn()` per
+		// The real one needs a provider. STABLE spies, not fresh `vi.fn()`s per
 		// call: the factories hand this client to their own `onSuccess`, and the
 		// tests below invoke that callback directly to prove the invalidation is
-		// still attached.
-		useQueryClient: () => ({ invalidateQueries: invalidateSpy }),
+		// still attached — and, for the delete, that the deleted row's detail entry
+		// is REMOVED before that invalidation can refetch it to null.
+		useQueryClient: () => ({
+			invalidateQueries: invalidateSpy,
+			removeQueries: removeSpy,
+		}),
 	};
 });
 
@@ -104,6 +111,14 @@ vi.mock("sonner", () => ({
 /** The application id every fixture uses. Thirty-six characters, as E-21 asserts. */
 const APPLICATION_ID = "3f1a7c2e-9b4d-4f81-a6c5-0d2e8b7a1f34";
 const TENANT_ID = "8c2b5d41-77ae-4e39-9f10-2a6c4b8d0e75";
+
+/**
+ * The key the detail read is mounted under. Built from the FACTORY, never
+ * written out as a literal — the whole reason the delete could refetch a deleted
+ * row is that `applicationKeys.all` prefixes this, and a hand-written copy would
+ * stop tracking that relationship the moment it changed.
+ */
+const detailKey = applicationKeys.detail(APPLICATION_ID);
 
 /** The placeholder `anonymize_old_rental_applications` writes into the three
  *  NOT NULL applicant columns. It must never reach the screen. */
@@ -290,6 +305,11 @@ function primaryLink(name: string): HTMLElement {
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	// `clearAllMocks` clears calls but KEEPS implementations, and the delete test
+	// below installs one on each of these to model what the real cache does. A
+	// reset here stops that leaking into every test that runs after it.
+	invalidateSpy.mockReset();
+	removeSpy.mockReset();
 	mockMutations();
 });
 
@@ -837,6 +857,103 @@ describe("ApplicationDetail — every write invalidates what it changed", () => 
 		expect(toast.success).not.toHaveBeenCalled();
 		perCall?.onSuccess?.();
 		expect(toast.success).toHaveBeenCalledWith("Notes saved");
+	});
+
+	/**
+	 * A SUCCESSFUL DELETE MUST NEVER SHOW THE OWNER A 404.
+	 *
+	 * Moving the delete's side effects to the per-call `onSuccess` restored the
+	 * factory's invalidation (the test above) and introduced an ordering defect the
+	 * broken version did not have. React Query awaits the OPTIONS-level `onSuccess`
+	 * to completion before running the per-call one. The options-level callback is
+	 * the factory's, and it awaited `invalidateQueries({ queryKey:
+	 * applicationKeys.all })` — which matches the mounted
+	 * `applicationQueries.detail(id)`, because `detail()` is prefixed with `all` on
+	 * purpose. That query is active, so it refetched, and the row had just been
+	 * deleted, so it resolved to `null`, and `ApplicationDetail` renders
+	 * `<NotFoundPage />` for a null row. The navigation is in the per-call
+	 * callback, which had not run yet. Confirm delete -> "Page not found" -> "
+	 * Application deleted" -> redirect.
+	 *
+	 * THE CACHE IS SIMULATED, AND ONLY ITS TWO DOCUMENTED BEHAVIOURS ARE. The
+	 * harness mocks `useQuery`, so this file has no real cache to invalidate;
+	 * what is modelled here is exactly (a) an invalidation of a key that prefixes
+	 * the mounted detail refetches it and (b) a refetch of a deleted row yields
+	 * null. Both are properties of TanStack Query and of
+	 * `applicationQueries.detail`'s `.limit(1)` + `[0]`, not of this test. The
+	 * cache-level half — that `removeQueries` really does take the entry out of
+	 * the invalidation's match set — is proved against a real `QueryClient` and a
+	 * real `QueryObserver` in `query-keys/__tests__/application-keys.test.ts`.
+	 *
+	 * A TEST ASSERTING ONLY THE TOAST AND THE NAVIGATION PASSES IN THE BROKEN
+	 * STATE — both of those fire, just after the 404. That is the shape of
+	 * assertion that let this through, so the assertion here is the absence of the
+	 * not-found copy at the moment the invalidation resolves.
+	 */
+	it("never renders the not-found page for a delete that succeeded", async () => {
+		const user = userEvent.setup();
+		let row: RentalApplicationRow | null = makeRow();
+		mockUseQuery.mockImplementation(
+			(options: { queryKey: readonly unknown[] }) =>
+				options.queryKey[0] === "applications" ? resolved(row) : resolved(null),
+		);
+		const { rerender } = renderDetail();
+
+		// Positive control: the loaded detail really rendered, so the absence
+		// assertion below is read out of a populated tree and not an empty one.
+		expect(primaryLink("Approve and open tenant form")).toBeInTheDocument();
+		expect(screen.queryByText("Page not found")).not.toBeInTheDocument();
+
+		let detailRemoved = false;
+		removeSpy.mockImplementation(
+			(filters: { queryKey: readonly unknown[] }) => {
+				if (JSON.stringify(filters.queryKey) === JSON.stringify(detailKey)) {
+					detailRemoved = true;
+				}
+			},
+		);
+		invalidateSpy.mockImplementation(
+			(filters: { queryKey: readonly unknown[] }) => {
+				// An invalidation refetches every ACTIVE query the key prefixes. The
+				// detail is active and is prefixed by `applicationKeys.all` — unless it
+				// was removed from the cache first, in which case there is nothing left
+				// to match.
+				const prefixes = detailKey
+					.slice(0, filters.queryKey.length)
+					.every((segment, index) => segment === filters.queryKey[index]);
+				if (prefixes && !detailRemoved) {
+					row = null;
+					rerender(<ApplicationDetail applicationId={APPLICATION_ID} />);
+				}
+			},
+		);
+
+		await user.click(
+			screen.getByRole("button", { name: "Application actions" }),
+		);
+		await user.click(
+			await screen.findByRole("menuitem", { name: "Delete application" }),
+		);
+		const dialog = await screen.findByRole("alertdialog");
+		await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+		// React Query's ordering, reproduced: the factory's callback first, awaited
+		// to completion, and only then the per-call one.
+		const options = capturedFor(mutationKeys.applications.delete);
+		await options.onSuccess?.(undefined, APPLICATION_ID, undefined);
+
+		// THE ASSERTION. On the defective version the invalidation has by now
+		// refetched the deleted row to null and the tree is showing the 404, with
+		// the toast and the redirect still to come.
+		expect(screen.queryByText("Page not found")).not.toBeInTheDocument();
+		expect(pushSpy).not.toHaveBeenCalled();
+
+		const perCall = deleteSpy.mock.calls[0]?.[1] as
+			| { onSuccess?: () => void }
+			| undefined;
+		perCall?.onSuccess?.();
+		expect(screen.queryByText("Page not found")).not.toBeInTheDocument();
+		expect(pushSpy).toHaveBeenCalledWith("/applications");
 	});
 
 	it("puts the delete toast and the navigation on the CALL, not on the options", async () => {

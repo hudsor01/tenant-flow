@@ -15,7 +15,7 @@
  *       'already_converted')` is a RESOLVED result, not a thrown error.
  */
 
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
@@ -707,6 +707,104 @@ describe("owner mutations", () => {
 
 		expect(invalidatedKeys()).toEqual(
 			expect.arrayContaining([tenantQueries.all()]),
+		);
+	});
+});
+
+/**
+ * THE DELETE MUST NOT REFETCH THE ROW IT JUST DELETED.
+ *
+ * `applicationKeys.detail(id)` is prefixed with `applicationKeys.all`, which is
+ * deliberate — one invalidation reaches the queue and every mounted detail. It
+ * also means an invalidation of `all` matches the row the delete just removed,
+ * refetches it, and resolves it to `null`; `ApplicationDetail` renders
+ * `<NotFoundPage />` for a null row. React Query awaits the options-level
+ * `onSuccess` to completion BEFORE the per-call one, and the per-call one is
+ * where the navigation lives, so the owner saw "Page not found" between
+ * confirming the delete and being told it worked.
+ *
+ * A REAL `QueryClient` AND A REAL `QueryObserver`, not the invalidation spy the
+ * suite above uses. The whole claim is about what the cache DOES with an active
+ * query, and a spy that records the key it was handed cannot answer that: the
+ * defect and the fix call `invalidateQueries` with exactly the same argument.
+ * The observer is what makes the detail query active, which is what made it
+ * refetchable, which is the bug.
+ */
+describe("deleteApplication and the detail query it invalidates", () => {
+	it("removes the deleted row's detail entry instead of refetching it to null", async () => {
+		const queryClient = new QueryClient({
+			defaultOptions: {
+				queries: { retry: false, gcTime: Number.POSITIVE_INFINITY },
+			},
+		});
+
+		// First call answers with the row, every later call with null — exactly what
+		// `applicationQueries.detail` returns once the row is gone (`.limit(1)` +
+		// `[0]`, never `.single()`). So a second call IS the 404 the owner saw.
+		const detailFn = vi
+			.fn<() => Promise<Record<string, unknown> | null>>()
+			.mockResolvedValueOnce(fullRow)
+			.mockResolvedValue(null);
+
+		const observer = new QueryObserver(queryClient, {
+			queryKey: applicationKeys.detail(APP_ID),
+			queryFn: detailFn,
+			retry: false,
+		});
+		const results: (Record<string, unknown> | null | undefined)[] = [];
+		const unsubscribe = observer.subscribe((result) => {
+			if (!result.isPending) results.push(result.data);
+		});
+
+		// Positive controls: the query really is mounted, really fetched once, and
+		// really holds the row. Without these the assertions below are satisfied by
+		// an observer that never ran.
+		await vi.waitFor(() => {
+			expect(observer.getCurrentResult().data).toEqual(fullRow);
+		});
+		expect(detailFn).toHaveBeenCalledTimes(1);
+		expect(
+			queryClient.getQueryState(applicationKeys.detail(APP_ID)),
+		).toBeDefined();
+
+		const options = deleteApplicationMutationOptions(queryClient);
+		await callbackOf(options, "onSuccess")(undefined, APP_ID, undefined);
+
+		// THE ASSERTION. The deleted row's entry is gone from the cache, so the
+		// invalidation of `applicationKeys.all` had nothing to match and scheduled
+		// no refetch. On the defective version this is 2, the second call resolves
+		// null, and the observer publishes a settled `data: null` — which is
+		// precisely what `ApplicationDetail` turns into `<NotFoundPage />`.
+		expect(detailFn).toHaveBeenCalledTimes(1);
+		expect(
+			queryClient.getQueryState(applicationKeys.detail(APP_ID)),
+		).toBeUndefined();
+		// No settled result ever carried null: the owner cannot have been shown the
+		// not-found page for a delete that succeeded.
+		expect(results).not.toContain(null);
+
+		unsubscribe();
+		queryClient.clear();
+	});
+
+	it("still invalidates a DIFFERENT application's detail, and the queue", async () => {
+		// The narrowing must be surgical. Removing the whole `details()` subtree, or
+		// dropping the `all` invalidation to dodge the refetch, would leave a second
+		// open application and the queue itself reading a stale cache — which is the
+		// cycle-1 defect this file's `onSuccess` suite exists to catch, arriving by
+		// a different route.
+		const { queryClient, invalidatedKeys } = spiedClient();
+		const options = deleteApplicationMutationOptions(queryClient);
+		const removed: unknown[] = [];
+		queryClient.removeQueries = vi.fn((filters?: { queryKey?: unknown }) => {
+			removed.push(filters?.queryKey);
+		});
+
+		await callbackOf(options, "onSuccess")(undefined, APP_ID, undefined);
+
+		expect(removed).toEqual([applicationKeys.detail(APP_ID)]);
+		expect(invalidatedKeys()).toEqual(
+			expect.arrayContaining([applicationKeys.all, ownerDashboardKeys.all]),
 		);
 	});
 });

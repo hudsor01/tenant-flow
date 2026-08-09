@@ -557,7 +557,34 @@ export function deleteApplicationMutationOptions(queryClient: QueryClient) {
 				);
 			}
 		},
-		onSuccess: async () => {
+		onSuccess: async (_result, applicationId) => {
+			// ---------------------------------------------------------------------
+			// REMOVE THE DELETED ROW'S DETAIL ENTRY. NEVER INVALIDATE IT.
+			//
+			// This runs on the DETAIL page — that is where the delete control lives —
+			// so `applicationQueries.detail(applicationId)` is mounted and active.
+			// `applicationKeys.all` is `["applications"]` and `detail()` is prefixed
+			// with it, which is deliberate and is what makes one invalidation reach
+			// the queue and every detail at once. It also means the invalidation
+			// below matches the row that was just deleted, refetches it, and
+			// resolves it to `null` — and `ApplicationDetail` renders
+			// `<NotFoundPage />` for a null row. React Query awaits an options-level
+			// `onSuccess` to completion BEFORE running the per-call one, and the
+			// per-call one is where the navigation is, so the owner watched their
+			// successful delete turn into "Page not found" and only then get the
+			// success toast and the redirect.
+			//
+			// `removeQueries` rather than a narrower invalidation, because the row
+			// does not exist any more: there is nothing to refetch and no state worth
+			// keeping. Removing it from the cache also takes it out of the match set
+			// for the invalidation on the next line, so no refetch is even scheduled.
+			//
+			// ORDER IS THE FIX. Removing after the invalidation would delete a cache
+			// entry that had already been refetched to null and already rendered.
+			// ---------------------------------------------------------------------
+			queryClient.removeQueries({
+				queryKey: applicationKeys.detail(applicationId),
+			});
 			await queryClient.invalidateQueries({ queryKey: applicationKeys.all });
 			await queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 		},
