@@ -733,7 +733,7 @@ Each `<li>` holds one `Item size="default"` (`p-4 gap-4`), `asChild` over a `<Li
 | Row link | `<Link className="no-underline text-foreground">` | **Both classes are required.** `no-underline` defeats the base `a:not(...)` transparent-underline rule; `text-foreground` defeats that same rule's `color: var(--color-primary)`, which would otherwise tint the whole row accent-blue. Phase 65 hit exactly this. |
 | Icon | `ItemMedia variant="icon"` | lucide `User`, `size-4 text-muted-foreground`, `aria-hidden="true"` |
 | Title | `ItemTitle` | applicant name · 14px / **400** (`font-normal`, overriding the primitive's `font-medium`) · `block w-full min-w-0 truncate` |
-| Meta | `ItemDescription` | `{property} · Unit {n} · {relative date}` · `text-xs mb-0` · via `formatRelativeDate` from `#lib/formatters/date` |
+| Meta | `ItemDescription` | `{property} · Unit {n} · {relative date}` · `text-xs mb-0 line-clamp-none` · via `formatRelativeDate` from `#lib/formatters/date` |
 | Content wrapper | `ItemContent` | **`min-w-0`** — load-bearing, not defensive |
 | Action | `ItemActions` | the status `Badge` (§B-4). No buttons in the row — the whole row is the affordance. |
 
@@ -746,6 +746,12 @@ Each `<li>` holds one `Item size="default"` (`p-4 gap-4`), `asChild` over a `<Li
 declared leadings) ≈ **72px per row**, `gap-2` (8px) between rows. At 375px the meta line will
 wrap for long property names; the row grows, and that is correct — no fixed height, no
 `line-clamp` on the meta line.
+
+> **`line-clamp-none` is required to deliver that, not optional.** `ItemDescription`'s base
+> string is `… line-clamp-2 …` (`item.tsx:131-143`), and `text-xs mb-0` is in no conflicting
+> tailwind-merge group, so the clamp survives unless it is explicitly displaced. At 375px
+> `ItemContent` resolves to ~165px and a long meta line runs to three lines — the clipped one
+> being the applied date, the row's only time-ordering signal.
 
 **Row states:**
 

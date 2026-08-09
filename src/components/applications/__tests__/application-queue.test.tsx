@@ -573,6 +573,36 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 	});
 
 	/**
+	 * A RESOLUTION CHECK, NOT A SPELLING ONE — the same shape as the `w-fit`
+	 * assertion above, and answerable without layout for the same reason.
+	 * `line-clamp-2` is written in `ItemDescription`'s own base string
+	 * (`item.tsx:131-143`) and can only be absent from a rendered attribute if a
+	 * same-group utility displaced it through tailwind-merge.
+	 *
+	 * THE ROW DECLARES NO CLAMP AND MUST NOT HAVE ONE. UI-SPEC §B-3: "no fixed
+	 * height, no `line-clamp` on the meta line" — at 375px a long property name
+	 * wraps and the row grows, which is correct. The className the row passed was
+	 * `text-xs mb-0`, nothing in a conflicting group, so the primitive's
+	 * `line-clamp-2` survived and applied `overflow: hidden` with
+	 * `-webkit-line-clamp: 2`. `ItemContent` resolves to ~165px at 375px, where a
+	 * meta line of "{long property} · Unit 12B · 3 days ago" runs to three lines —
+	 * so the clipped line was the applied date, the row's only time-ordering
+	 * signal, on the one viewport where it mattered most.
+	 */
+	it("resolves the primitive's line-clamp off the meta line", () => {
+		mockQueries(successState(makeRows(2), 2));
+		const { container } = render(<ApplicationQueue />);
+
+		const meta = container.querySelector('[data-slot="item-description"]');
+		const metaClasses = meta?.getAttribute("class")?.split(/\s+/) ?? [];
+		// Positive control: the meta line really rendered, so the absence below is
+		// read out of a populated attribute rather than an empty one.
+		expect(metaClasses).toContain("text-xs");
+		expect(metaClasses).toContain("line-clamp-none");
+		expect(metaClasses).not.toContain("line-clamp-2");
+	});
+
+	/**
 	 * THE STATUS TAB STRIP — THE CHEAP HALF. THE GEOMETRY IS E-22'S.
 	 *
 	 * THIS TEST CANNOT DECIDE THE DEFECT AND MUST NOT BE READ AS IF IT COULD.

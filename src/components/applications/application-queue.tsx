@@ -222,7 +222,10 @@ function QueueFilteredEmpty() {
  * breaks keyboard navigation.
  *
  * No fixed height and no line clamp on the meta line: at 375px a long property
- * name wraps and the row grows, which is correct.
+ * name wraps and the row grows, which is correct (§B-3). That is not free —
+ * `ItemDescription`'s own base string carries `line-clamp-2`, so the meta line
+ * below carries an explicit `line-clamp-none` to take it back. Without it this
+ * paragraph described the opposite of what shipped.
  */
 function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 	return (
@@ -305,8 +308,21 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 								 * spaces its children with `gap-1`, which does not cancel
 								 * margins. Without it every row carried 16px of dead space
 								 * under the meta line.
+								 *
+								 * `line-clamp-none` IS WHAT MAKES THIS COMPONENT'S OWN DOC
+								 * COMMENT TRUE. `ItemDescription`'s base string carries
+								 * `line-clamp-2` (item.tsx:131-143), and `text-xs mb-0` is in
+								 * no conflicting tailwind-merge group, so that clamp survived
+								 * and applied `overflow: hidden` with `-webkit-line-clamp: 2`
+								 * while the comment above claimed there was no clamp. At 375px
+								 * `ItemContent` resolves to ~165px and a meta line like
+								 * "{long property} · Unit 12B · 3 days ago" runs to three
+								 * lines, so the clipped line was the applied date — the row's
+								 * only time-ordering signal, lost on the one viewport where
+								 * the row is hardest to scan. §B-3 declares no clamp here;
+								 * this is the class that delivers it.
 								 */}
-								<ItemDescription className="text-xs mb-0">
+								<ItemDescription className="text-xs mb-0 line-clamp-none">
 									{metaLine(row)}
 								</ItemDescription>
 							</ItemContent>
