@@ -6,9 +6,9 @@ import {
 	ensureApplication,
 	ensureApplyTokens,
 	readSeedCredentials,
-	removeSeededApplication,
 	type SeededApplication,
 	signInAsOwner,
+	supabaseApplicationStore,
 } from "../../lib/application-fixtures";
 import { boxesOf, polledRead, widthOf } from "../../lib/measure";
 
@@ -47,12 +47,17 @@ import { boxesOf, polledRead, widthOf } from "../../lib/measure";
  * `playwright.config.ts` carries this filename in the `owner-axe` allowlist and
  * in the other three projects' testIgnore so it executes exactly once.
  *
- * SEEDING WRITES TO PRODUCTION AND IS REUSE-FIRST. See
- * `lib/application-fixtures.ts`. An application row IS deletable by its owner, so
- * one submitted here is removed in `afterAll` together with the owner
- * notification the RPC raises; a row that already existed is reused and left
- * alone, because it belongs to the account rather than to this suite. Link rows
- * are never deleted because no DELETE policy exists for any role.
+ * SEEDING WRITES TO PRODUCTION AND NOTHING HERE DELETES IT. See
+ * `lib/application-fixtures.ts`. An application row IS deletable by its owner and
+ * this suite deliberately does not delete it: reusing that row is the ONLY thing
+ * stopping `rental_application_links.submission_count` from advancing once per
+ * PR toward a fail-closed lifetime cap of 250 that no role can reset. The
+ * previous `afterAll` deleted exactly the row it had just seeded, so the reuse
+ * branch was never once taken — production showed `submission_count = 9` against
+ * ZERO surviving rows. Link rows are likewise never deleted, because no DELETE
+ * policy exists for them at all.
+ *
+ * A MISSING FIXTURE IS NOT AUTOMATICALLY A SKIP — see `gateOnApplication` below.
  *
  * Serial mode guarantees one sign-in and one seed rather than one per worker.
  */
@@ -77,6 +82,8 @@ let fixtures: ApplyTokenFixtures = {
 };
 let application: SeededApplication | null = null;
 let applicationReason: string | null = "fixture resolution has not run";
+/** Set when the fixture is missing because the SUITE spent something. */
+let applicationExhausted = false;
 
 test.beforeAll(async () => {
 	const credentials = readSeedCredentials();
@@ -97,22 +104,54 @@ test.beforeAll(async () => {
 		applicationReason = fixtures.reason;
 		return;
 	}
-	const result = await ensureApplication(
-		seedClient,
-		credentials.url,
-		fixtures.active.rawToken,
-	);
+	const result = await ensureApplication({
+		store: supabaseApplicationStore(seedClient),
+		baseUrl: credentials.url,
+		activeToken: fixtures.active.rawToken,
+	});
 	application = result.application;
 	applicationReason = result.reason;
+	applicationExhausted = result.exhausted;
+
+	if (result.application?.seeded) {
+		// SAID OUT LOUD, on purpose. This branch spends one of the link's 250
+		// lifetime submissions, and it is supposed to run once for the life of the
+		// suite. Seeing it in a CI log on a second run means the reuse branch has
+		// stopped working and the counter has started marching again.
+		console.warn(
+			`[applications.spec] seeded rental application ${result.application.id}. This consumed one of the link's 250 lifetime submissions and the row is deliberately NOT deleted — reusing it is what stops every later run consuming another.`,
+		);
+	}
 });
 
 test.afterAll(async () => {
-	if (seedClient) {
-		// Removes ONLY a row this run submitted. A reused row is left in place.
-		await removeSeededApplication(seedClient, application);
-		await seedClient.auth.signOut();
-	}
+	// Sign out only. The application row is a durable fixture, exactly like the
+	// link rows: deleting it would make `ensureApplication`'s reuse branch
+	// unreachable and put `submission_count` back on a once-per-PR climb toward a
+	// cap nothing can reset.
+	await seedClient?.auth.signOut();
 });
+
+/**
+ * Gate for every row that needs the application fixture.
+ *
+ * A MISSING FIXTURE IS NOT ALWAYS A SKIP, and treating it as one is how E-17,
+ * E-18, E-20, E-21 and E-22 stopped running with CI still green. An absent
+ * credential or an undeployed function is an environment gap and skipping is
+ * correct. A capped link is this suite having spent something it cannot get
+ * back, and the only honest response is a failure that says so.
+ */
+function gateOnApplication(): void {
+	if (applicationExhausted) {
+		throw new Error(
+			`the application fixture is exhausted, which is a SUITE defect rather than an environment gap: ${applicationReason ?? "unknown"}. Five geometry assertions measure nothing until it is resolved.`,
+		);
+	}
+	test.skip(
+		application === null,
+		`no application fixture: ${applicationReason ?? "unknown"}`,
+	);
+}
 
 async function openQueue(page: Page, width: number) {
 	await page.setViewportSize({ width, height: 900 });
@@ -152,10 +191,7 @@ test.describe("/applications — the owner review queue", () => {
 	test("E-17: rows are at least 64px tall and never overlap at 375px", async ({
 		page,
 	}) => {
-		test.skip(
-			application === null,
-			`no application fixture: ${applicationReason ?? "unknown"}`,
-		);
+		gateOnApplication();
 		await openQueue(page, 375);
 		const rows = page.locator(QUEUE_ROWS);
 		await expect(rows.first()).toBeVisible({ timeout: 20000 });
@@ -183,10 +219,7 @@ test.describe("/applications — the owner review queue", () => {
 	test("E-18: a queue row is undecorated and foreground-coloured at 1280px", async ({
 		page,
 	}) => {
-		test.skip(
-			application === null,
-			`no application fixture: ${applicationReason ?? "unknown"}`,
-		);
+		gateOnApplication();
 		await openQueue(page, 1280);
 		const link = rowLink(page);
 		await expect(link).toBeVisible({ timeout: 20000 });
@@ -209,10 +242,7 @@ test.describe("/applications — the owner review queue", () => {
 	test("E-20: the queue list defeats the unscoped ul/li base rules at 1280px", async ({
 		page,
 	}) => {
-		test.skip(
-			application === null,
-			`no application fixture: ${applicationReason ?? "unknown"}`,
-		);
+		gateOnApplication();
 		await openQueue(page, 1280);
 		await expect(rowLink(page)).toBeVisible({ timeout: 20000 });
 
@@ -278,10 +308,7 @@ test.describe("/applications — the owner review queue", () => {
 	test("E-22: the status tabs scroll in place at 375px, the page does not, and no label clips", async ({
 		page,
 	}) => {
-		test.skip(
-			application === null,
-			`no application fixture: ${applicationReason ?? "unknown"}`,
-		);
+		gateOnApplication();
 		await openQueue(page, 375);
 
 		const strip = page.getByRole("tablist", { name: "Filter by status" });
@@ -421,10 +448,7 @@ test.describe("/applications/[id] — the conversion href", () => {
 	test("E-21: the conversion link carries the id and no other parameter", async ({
 		page,
 	}) => {
-		test.skip(
-			application === null,
-			`no application fixture: ${applicationReason ?? "unknown"}`,
-		);
+		gateOnApplication();
 		const seeded = application;
 		if (!seeded) return;
 

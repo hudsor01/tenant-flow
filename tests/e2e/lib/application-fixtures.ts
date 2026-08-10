@@ -16,9 +16,17 @@
  *     them. Creating a fresh link per run would accumulate permanent rows in a
  *     production table on every PR.
  *   - `rental_applications` DOES have an owner DELETE policy
- *     (`rental_applications_delete`), so an application this suite submits is
- *     fully reversible and is deleted in teardown along with the owner
- *     notification the RPC raises.
+ *     (`rental_applications_delete`) — AND THIS SUITE DELIBERATELY DOES NOT USE
+ *     IT. An application row is the ONLY thing bounding `submission_count`, and
+ *     the bound is that the row SURVIVES: `ensureApplication` reuses any
+ *     unconverted application the owner already holds and only submits when
+ *     there is none. A teardown that deleted the row it had just seeded made the
+ *     reuse branch unreachable, so every run submitted again, and each submit
+ *     permanently increments a counter with no decrement path, no UPDATE policy
+ *     and a fail-closed refusal at 250. Production proved it: one link reached
+ *     `submission_count = 9` with ZERO surviving `rental_applications` rows.
+ *     `ApplicationStore` below therefore exposes no delete at all — the
+ *     capability is removed rather than merely unused.
  *
  * NOTHING HERE RUNS IN A BROWSER. The `public` Playwright project pins
  * `storageState: { cookies: [], origins: [] }`, which constrains the BROWSER, not
@@ -26,11 +34,19 @@
  * from Node and hands the spec a raw token; the browser still visits
  * `/apply/<token>` with no cookies at all, which is the point of the surface.
  *
- * EVERY FAILURE PATH RETURNS `null` WITH A REASON RATHER THAN THROWING. A missing
- * credential, a missing unit, an undeployed Edge Function or a capped link must
- * SKIP the dependent assertions, not fail them — the same probe-and-skip
- * discipline `lease-signing-tokens.rls.test.ts` uses for its deploy gate. The
- * reason string is surfaced by the caller so a skip is never silent.
+ * A MISSING FIXTURE RETURNS A REASON RATHER THAN THROWING, BUT NOT EVERY MISSING
+ * FIXTURE IS A SKIP. An absent credential, a missing unit, an undeployed Edge
+ * Function or a dead network is an ENVIRONMENT GAP, and skipping the dependent
+ * assertions is right — the same probe-and-skip discipline
+ * `lease-signing-tokens.rls.test.ts` uses for its deploy gate.
+ *
+ * A CAPPED LINK IS NOT AN ENVIRONMENT GAP. Reaching the deployed function and
+ * being refused means this suite spent something it cannot get back, and the
+ * consequence is that five geometry assertions stop running while CI stays
+ * green — the same green-but-vacuous failure as a permanently skipped security
+ * test. `ApplicationSeedResult.exhausted` marks that case so the caller can FAIL
+ * instead of skipping. A gate that silently stops running is worse than one that
+ * fails.
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -119,9 +135,10 @@ export async function signInAsOwner(
  */
 export async function isApplyFunctionDeployed(
 	baseUrl: string,
+	fetchImpl: typeof fetch = fetch,
 ): Promise<boolean> {
 	try {
-		const probe = await fetch(`${baseUrl}/functions/v1/apply-token`, {
+		const probe = await fetchImpl(`${baseUrl}/functions/v1/apply-token`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ action: "context", token: "not-a-real-token" }),
@@ -322,8 +339,65 @@ export async function ensureApplyTokens(
 
 export interface SeededApplication {
 	id: string;
-	/** True only when THIS run inserted it, which is what teardown keys on. */
+	/**
+	 * True only when THIS run submitted it — i.e. when this run spent one of the
+	 * link's 250 lifetime submissions. It is NOT a teardown flag: nothing deletes
+	 * this row. It exists so a run that unexpectedly re-seeds says so out loud in
+	 * the CI log instead of quietly advancing a counter nobody is watching.
+	 */
 	seeded: boolean;
+}
+
+/**
+ * The reads the seeder needs, and NOTHING ELSE.
+ *
+ * THE ABSENCE OF A DELETE IS THE DESIGN. The reuse bound is only real while the
+ * seeded row survives, so removing the capability is stronger than documenting
+ * that it must not be used — there is no method here that a future edit could
+ * reach for. The port also lets `application-seed-reuse.test.ts` prove the bound
+ * across several simulated runs without a production sign-in.
+ */
+export interface ApplicationStore {
+	/** Ids of unconverted applications the owner already holds, newest first. */
+	listUnconverted(limit: number): Promise<string[]>;
+	/** The id written for `submissionId`, or `null` when the RPC wrote no row. */
+	findBySubmission(submissionId: string): Promise<string | null>;
+}
+
+/**
+ * The PostgREST adapter. Rows converted to a tenant are excluded here rather
+ * than by the caller: `/applications/[id]` swaps the conversion link for
+ * "View tenant" once `converted_tenant_id` is set, so E-21 would have no href to
+ * assert against one.
+ */
+export function supabaseApplicationStore(
+	client: SupabaseClient,
+): ApplicationStore {
+	return {
+		async listUnconverted(limit) {
+			const { data } = await client
+				.from("rental_applications")
+				.select("id,converted_tenant_id")
+				.is("converted_tenant_id", null)
+				.order("created_at", { ascending: false })
+				.limit(limit);
+			const rows: RawRow[] = Array.isArray(data) ? (data as RawRow[]) : [];
+			return rows.flatMap((row) => {
+				const id = readString(row, "id");
+				return id ? [id] : [];
+			});
+		},
+		async findBySubmission(submissionId) {
+			const { data } = await client
+				.from("rental_applications")
+				.select("id")
+				.eq("submission_id", submissionId)
+				.limit(1);
+			const rows: RawRow[] = Array.isArray(data) ? (data as RawRow[]) : [];
+			const first = rows[0];
+			return first ? readString(first, "id") : null;
+		},
+	};
 }
 
 /** The D-05 field contract, exactly as `parseSubmissionPayload` expects it. */
@@ -346,45 +420,70 @@ function applicationPayload(tag: string): Record<string, unknown> {
 	};
 }
 
+/** How many of the owner's recent applications are considered for reuse. */
+const REUSE_LOOKBACK = 5;
+
+export interface ApplicationSeedResult {
+	application: SeededApplication | null;
+	reason: string | null;
+	/**
+	 * True when the fixture is missing because the SUITE spent something it cannot
+	 * get back, rather than because the environment lacks something.
+	 *
+	 * The caller must FAIL on this rather than skip. Every `exhausted` outcome
+	 * means the deployed function was reached and refused — a capped link, a
+	 * rate-capped hour, a payload that no longer matches the contract — and each
+	 * of those silently disables E-17, E-18, E-20, E-21 and E-22 while the run
+	 * stays green.
+	 */
+	exhausted: boolean;
+}
+
 /**
  * Give the owner queue at least one row.
  *
- * REUSE-FIRST, and not merely as an optimisation. Every submit permanently
- * increments `rental_application_links.submission_count` toward the fail-closed
- * lifetime cap of 250, and that counter has no decrement path. Reusing any
- * application the owner already holds means a suite that runs on every PR
- * consumes the cap at most once rather than once per run.
+ * REUSE-FIRST, AND THE REUSE IS THE ONLY THING BOUNDING THE COUNTER. Every
+ * submit permanently increments `rental_application_links.submission_count`
+ * toward the fail-closed lifetime cap of 250, and that column has no decrement
+ * path, no UPDATE policy and no DELETE policy for any role. So the row this
+ * function writes is DURABLE: nothing in this module removes it, `ApplicationStore`
+ * offers no way to, and every later run finds it here and returns before the
+ * fetch below. One submission for the life of the suite, not one per PR.
  *
- * Rows converted to a tenant are excluded: `/applications/[id]` swaps the
- * conversion link for "View tenant" once `converted_tenant_id` is set, so E-21
- * would have no href to assert.
+ * The bound survives retention, which anonymizes in place rather than deleting
+ * (`anonymize_old_rental_applications`, 730 days) and leaves `converted_tenant_id`
+ * null — so an aged fixture is still found by `listUnconverted` and still not
+ * re-seeded.
  */
-export async function ensureApplication(
-	client: SupabaseClient,
-	baseUrl: string,
-	activeToken: string,
-): Promise<{ application: SeededApplication | null; reason: string | null }> {
-	const { data } = await client
-		.from("rental_applications")
-		.select("id,converted_tenant_id")
-		.is("converted_tenant_id", null)
-		.order("created_at", { ascending: false })
-		.limit(5);
-	const existing: RawRow[] = Array.isArray(data) ? (data as RawRow[]) : [];
-	for (const row of existing) {
-		const id = readString(row, "id");
-		if (id) return { application: { id, seeded: false }, reason: null };
+export async function ensureApplication(options: {
+	store: ApplicationStore;
+	baseUrl: string;
+	activeToken: string;
+	/** Injected so the reuse bound is provable without a network. */
+	fetchImpl?: typeof fetch;
+}): Promise<ApplicationSeedResult> {
+	const { store, baseUrl, activeToken, fetchImpl = fetch } = options;
+
+	const existing = await store.listUnconverted(REUSE_LOOKBACK);
+	const reusable = existing[0];
+	if (reusable !== undefined) {
+		return {
+			application: { id: reusable, seeded: false },
+			reason: null,
+			exhausted: false,
+		};
 	}
 
-	if (!(await isApplyFunctionDeployed(baseUrl))) {
+	if (!(await isApplyFunctionDeployed(baseUrl, fetchImpl))) {
 		return {
 			application: null,
 			reason: "the apply-token Edge Function is not deployed",
+			exhausted: false,
 		};
 	}
 
 	const submissionId = crypto.randomUUID();
-	const response = await fetch(`${baseUrl}/functions/v1/apply-token`, {
+	const response = await fetchImpl(`${baseUrl}/functions/v1/apply-token`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -402,53 +501,43 @@ export async function ensureApplication(
 	}).catch(() => null);
 
 	if (!response) {
-		return { application: null, reason: "the apply-token submit call failed" };
+		// The network, not the suite. Skippable.
+		return {
+			application: null,
+			reason: "the apply-token submit call failed",
+			exhausted: false,
+		};
 	}
 	const body = (await response.json().catch(() => ({}))) as {
 		success?: boolean;
 		reason?: string;
 	};
 	if (body.success !== true) {
+		// The function was REACHED and refused. `link_capped` is the case this whole
+		// design exists to prevent, and `invalid_payload` means the fixture's own
+		// payload has drifted from the contract. Neither is an environment gap.
 		return {
 			application: null,
 			reason: `apply-token refused the seed submission (${body.reason ?? "unknown"})`,
+			exhausted: true,
 		};
 	}
 
-	const { data: written } = await client
-		.from("rental_applications")
-		.select("id")
-		.eq("submission_id", submissionId)
-		.limit(1);
-	const writtenRows: RawRow[] = Array.isArray(written)
-		? (written as RawRow[])
-		: [];
-	const firstRow = writtenRows[0];
-	const id = firstRow ? readString(firstRow, "id") : null;
+	const id = await store.findBySubmission(submissionId);
 	if (!id) {
 		// A 200 with no row is the honeypot/timing branch answering success. Say so
-		// rather than reporting a fixture that does not exist.
+		// rather than reporting a fixture that does not exist — and say it loudly,
+		// because it means this run consumed nothing but is also about to disable
+		// five assertions.
 		return {
 			application: null,
 			reason: "apply-token answered success but wrote no row",
+			exhausted: true,
 		};
 	}
-	return { application: { id, seeded: true }, reason: null };
-}
-
-/**
- * Remove ONLY what this run created. A reused row belongs to the account, not to
- * the suite, and deleting it would destroy a fixture every later run depends on.
- *
- * The notification goes first: `create_notification` fires inside the submit RPC
- * and nothing cascades from `rental_applications` to it, so deleting the
- * application alone leaves an orphan pointing at a dead id.
- */
-export async function removeSeededApplication(
-	client: SupabaseClient,
-	application: SeededApplication | null,
-): Promise<void> {
-	if (!application || !application.seeded) return;
-	await client.from("notifications").delete().eq("entity_id", application.id);
-	await client.from("rental_applications").delete().eq("id", application.id);
+	return {
+		application: { id, seeded: true },
+		reason: null,
+		exhausted: false,
+	};
 }
