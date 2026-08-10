@@ -96,6 +96,16 @@ export default defineConfig({
 						// broken and stayed broken. The `.spec.ts` files themselves stay
 						// OUT — they import `@playwright/test` and are not runnable here.
 						"tests/e2e/lib/__tests__/**/*.test.ts",
+						// The same argument one level over: pure, network-free decision
+						// helpers used by the RLS integration suite. The one that lives
+						// here decides which retention window R7 may install against
+						// PRODUCTION, and it is the part that can be wrong — but it
+						// cannot be exercised by running the global, irreversible sweep
+						// it exists to bound. It runs here, off-network, with no
+						// credentials, so the decision is proved without invoking the
+						// thing it guards. `_helpers/__tests__` only; every test that
+						// actually touches production stays excluded below.
+						"tests/integration/**/_helpers/__tests__/**/*.test.ts",
 					],
 					exclude: [
 						"node_modules",
@@ -110,8 +120,17 @@ export default defineConfig({
 						// blanket existed to keep out are named explicitly instead: the
 						// Playwright specs, which need a browser, and the RLS
 						// integration suite, which has its own project below.
+						//
+						// `tests/integration/**` was itself a blanket for the same
+						// reason, and swallowed the `_helpers/__tests__` include above.
+						// The suites that actually sign in to production are enumerated
+						// by their real depth instead — one file at the root, and the
+						// `rls/` directory — so a helper test nested deeper is reachable
+						// while nothing that touches production ever is.
 						"tests/**/*.spec.ts",
-						"tests/integration/**",
+						"tests/integration/*.test.ts",
+						"tests/integration/rls/*.test.ts",
+						"tests/integration/setup/**",
 						"e2e/**",
 						"src/**/*.component.test.tsx",
 					],
@@ -165,6 +184,10 @@ export default defineConfig({
 					globals: true,
 					testTimeout: 30000,
 					include: ["tests/integration/**/*.test.ts"],
+					// The pure decision helpers belong to the unit project. Running them
+					// here too would put a network-free test behind a production
+					// sign-in and make it ambiguous which project owns them.
+					exclude: ["tests/integration/**/_helpers/__tests__/**"],
 					setupFiles: ["./tests/integration/setup/env-loader.ts"],
 					// One-time auth sign-in for the whole suite. Caches sessions to
 					// a tmp file so each test file's `createTestClient` restores

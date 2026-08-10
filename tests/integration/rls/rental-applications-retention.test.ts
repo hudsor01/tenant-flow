@@ -31,11 +31,27 @@
  *
  * The restore is necessary but NOT sufficient: the sweep those tests invoke
  * runs against the whole table, not just this file's fixtures, and it is
- * irreversible. So every invocation is preceded by `foreignDueIds(window)`,
- * which enumerates the rows that would become due at that window and are NOT
- * this file's own, and the test SKIPS when that list is non-empty. Fail-closed:
- * if the guard cannot prove the blast radius is limited to rows created here,
- * the test does not run at all.
+ * irreversible. So every invocation is preceded by `foreignDueCount(window)`,
+ * which counts the rows that would become due at that window and are NOT this
+ * file's own, and the test SKIPS when that count is not zero. Fail-closed: if
+ * the guard cannot prove the blast radius is limited to rows created here, the
+ * test does not run at all. An unreadable guard counts as a populated one.
+ *
+ * THE GUARD IS EXACT, NOT SAMPLED. It was a `limit(1000)` read with no ordering,
+ * which silently under-reports the blast radius the moment the table holds more
+ * than a thousand rows — and this number is the only thing standing between the
+ * suite and another owner's PII. It is now two `count: "exact"` head queries
+ * with no row limit, one per branch of the sweep's `coalesce(decided_at,
+ * created_at)` clock, minus the same count restricted to this file's own ids.
+ * And it is measured at the window the sweep will ACTUALLY run under rather than
+ * at a hardcoded 730, so an operator who lowers `applications.retention_days`
+ * cannot widen the blast radius past what the guard checked.
+ *
+ * R7 NARROWS THE WINDOW, AND ITS WINDOW IS COMPUTED RATHER THAN HARDCODED. See
+ * the note on that test: a fixed one-day window is unsatisfiable against a
+ * database that contains any row older than a day, which the durable E2E seeder
+ * row permanently is. `_helpers/retention-window.ts` derives a window that puts
+ * no foreign row in range at all, and is unit-tested off-network.
  * ─────────────────────────────────────────────────────────────────────────────
  *
  * RUNS AGAINST PRODUCTION (CLAUDE.md). Synthetic owners only, plus one
@@ -47,6 +63,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { planNarrowedWindow } from "./_helpers/retention-window";
 import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -246,27 +263,169 @@ describe.skipIf(skipReason)(
 		}
 
 		/**
-		 * Enumerate rows that would become due at `days` and are NOT this file's
-		 * fixtures. The sweep is irreversible and global; if anyone else's data is
-		 * in range, the caller SKIPS rather than running it.
+		 * The retention window that is live RIGHT NOW, in days.
+		 *
+		 * Every guard below is measured against this rather than against the 730
+		 * literal. Guarding at 730 while the sweep runs at, say, 400 checks a
+		 * strictly smaller due set than the one the sweep will actually touch —
+		 * a fail-OPEN in the one place that must not have one.
 		 */
-		async function foreignDueIds(days: number): Promise<string[]> {
-			const cutoff = Date.now() - days * 864e5;
-			const { data } = await service
-				.from("rental_applications")
-				.select("id, decided_at, created_at")
-				.is("anonymized_at", null)
-				.is("converted_tenant_id", null)
-				.limit(1000);
-			return (data ?? [])
-				.filter((row) => {
-					const clock = row.decided_at ?? row.created_at;
-					return (
-						typeof clock === "string" && new Date(clock).getTime() < cutoff
-					);
-				})
-				.map((row) => String(row.id))
-				.filter((id) => !createdAppIds.has(id));
+		function liveWindowDays(): number {
+			const parsed = Number(retentionRestoreValue());
+			return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_DAYS;
+		}
+
+		/**
+		 * The window every unnarrowed guard is measured at.
+		 *
+		 * The NARROWER of the live setting and the 730 fallback, because R8 deletes
+		 * the config row and sweeps under the fallback while the others sweep under
+		 * the live value. A due set only SHRINKS as the window widens, so guarding
+		 * at the smaller of the two covers both invocations with one number.
+		 */
+		function sweepGuardDays(): number {
+			return Math.min(liveWindowDays(), DEFAULT_DAYS);
+		}
+
+		/** Why a skip happened, so a skipping CI run is diagnosable rather than quiet. */
+		const FOREIGN_SKIP_NOTE =
+			"blast-radius guard: rows this suite does not own are in range of the sweep";
+
+		/**
+		 * How many rows would the sweep anonymize at `days` that are NOT this
+		 * file's fixtures. The sweep is irreversible and global; if anyone else's
+		 * data is in range, the caller SKIPS rather than running it.
+		 *
+		 * EXACT, NEVER SAMPLED. Two `count: "exact"` head reads per side, with no
+		 * row limit at all, because the previous `limit(1000)` page silently
+		 * under-reported the blast radius as soon as the table outgrew it.
+		 *
+		 * TWO READS BECAUSE THE SWEEP CLOCK IS `coalesce(decided_at, created_at)`.
+		 * `decided_at < cutoff` is never true when `decided_at` is NULL — SQL
+		 * comparison against NULL is NULL — so the `decided_at is null` read is the
+		 * exact complement of the first, not an overlap, and no row is counted
+		 * twice. Own rows are subtracted through the same two reads restricted to
+		 * `createdAppIds`, so the arithmetic is over identical predicates.
+		 */
+		async function foreignDueCount(days: number): Promise<number> {
+			const cutoff = new Date(Date.now() - days * 864e5).toISOString();
+			const own = [...createdAppIds];
+
+			const dueCount = async (
+				restrictToOwn: boolean,
+			): Promise<number | null> => {
+				let total = 0;
+				for (const clockedByDecision of [true, false]) {
+					const base = service
+						.from("rental_applications")
+						.select("id", { count: "exact", head: true })
+						.is("anonymized_at", null)
+						.is("converted_tenant_id", null);
+					let query = clockedByDecision
+						? base.lt("decided_at", cutoff)
+						: base.is("decided_at", null).lt("created_at", cutoff);
+					if (restrictToOwn) query = query.in("id", own);
+					const { count, error } = await query;
+					if (error !== null || count === null) return null;
+					total += count;
+				}
+				return total;
+			};
+
+			// OUR SIDE IS READ FIRST, DELIBERATELY. The two reads are milliseconds
+			// apart, and a row that crosses the due boundary in between is counted
+			// by whichever read happened later. Reading ours first means such a row
+			// can only INFLATE the difference, which makes the caller skip. The
+			// other order could cancel a genuinely foreign row out to zero.
+			const ours = own.length === 0 ? 0 : await dueCount(true);
+			const total = await dueCount(false);
+			// FAIL CLOSED. An unreadable guard is an UNKNOWN blast radius, and an
+			// unknown blast radius is treated as a populated one.
+			if (total === null || ours === null) return Number.POSITIVE_INFINITY;
+			return total - ours;
+		}
+
+		/** A page large enough that this file's own rows cannot fill it. */
+		const OLDEST_PAGE_SIZE = 200;
+
+		type ForeignClock =
+			| { kind: "none" }
+			| { kind: "oldest"; epochMs: number }
+			| { kind: "unknown" };
+
+		/**
+		 * The EARLIEST sweep clock among rows that are still sweepable and are not
+		 * this file's own — the number that decides how far R7 may narrow.
+		 *
+		 * Two ordered reads for the same reason `foreignDueCount` needs two: the
+		 * clock is an expression PostgREST cannot order by. `nullsFirst: false`
+		 * sorts rows with no value in the ordering column to the END, so the page's
+		 * prefix is exactly that branch's clocked rows in ascending clock order and
+		 * the FIRST foreign row in that prefix is the branch's minimum.
+		 *
+		 * Own rows are filtered here rather than in SQL, which is why the page is
+		 * sized far above the dozen rows this file inserts — and why a page that
+		 * came back full with nothing foreign in it reports `unknown` instead of
+		 * `none`. Fail closed: an unknown oldest age makes the planner skip.
+		 */
+		async function oldestForeignClock(): Promise<ForeignClock> {
+			const branch = async (
+				clockedByDecision: boolean,
+			): Promise<ForeignClock> => {
+				const base = service
+					.from("rental_applications")
+					.select("id, decided_at, created_at")
+					.is("anonymized_at", null)
+					.is("converted_tenant_id", null);
+				const query = clockedByDecision
+					? base.order("decided_at", { ascending: true, nullsFirst: false })
+					: base
+							.is("decided_at", null)
+							.order("created_at", { ascending: true, nullsFirst: false });
+				const { data, error } = await query.limit(OLDEST_PAGE_SIZE);
+				if (error !== null) return { kind: "unknown" };
+
+				const rows: Record<string, unknown>[] = data ?? [];
+				const column = clockedByDecision ? "decided_at" : "created_at";
+				const clocked = rows.filter((row) => typeof row[column] === "string");
+				const foreign = clocked.find(
+					(row) => !createdAppIds.has(String(row["id"])),
+				);
+				if (foreign) {
+					return {
+						kind: "oldest",
+						epochMs: new Date(String(foreign[column])).getTime(),
+					};
+				}
+				// Nothing foreign among this branch's rows. Conclusive only if the
+				// page actually reached the end of them — either because the unclocked
+				// tail started inside it, or because the page came back short.
+				return clocked.length < rows.length || rows.length < OLDEST_PAGE_SIZE
+					? { kind: "none" }
+					: { kind: "unknown" };
+			};
+
+			const [decided, undecided] = await Promise.all([
+				branch(true),
+				branch(false),
+			]);
+			if (decided.kind === "unknown" || undecided.kind === "unknown") {
+				return { kind: "unknown" };
+			}
+			if (decided.kind === "none") return undecided;
+			if (undecided.kind === "none") return decided;
+			return {
+				kind: "oldest",
+				epochMs: Math.min(decided.epochMs, undecided.epochMs),
+			};
+		}
+
+		/** The oldest foreign age in days: `null` = none, `NaN` = unknown. */
+		async function oldestForeignAgeDays(): Promise<number | null> {
+			const clock = await oldestForeignClock();
+			if (clock.kind === "none") return null;
+			if (clock.kind === "unknown") return Number.NaN;
+			return (Date.now() - clock.epochMs) / 864e5;
 		}
 
 		beforeAll(async () => {
@@ -424,8 +583,8 @@ describe.skipIf(skipReason)(
 		// ── the sweep ────────────────────────────────────────────────────────────
 
 		it("R1: clears every PII column on a due row, column by column", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const appId = await insertApp();
 
@@ -458,8 +617,8 @@ describe.skipIf(skipReason)(
 		}, 60_000);
 
 		it("R2: retains the non-PII stub", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const appId = await insertApp();
 			const before = await readApp(appId);
@@ -478,8 +637,8 @@ describe.skipIf(skipReason)(
 		}, 60_000);
 
 		it("R3: never anonymizes a converted row", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const email = `${RUN_TAG}-converted@example.com`;
 			const appId = await insertApp({
@@ -501,8 +660,8 @@ describe.skipIf(skipReason)(
 		}, 60_000);
 
 		it("R4: does not re-stamp a row it already anonymized", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const appId = await insertApp();
 			await runSweep();
@@ -517,8 +676,8 @@ describe.skipIf(skipReason)(
 		}, 60_000);
 
 		it("R5: leaves an in-window row alone", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const inWindow = await insertApp({
 				decided_at: daysAgo(700),
@@ -536,8 +695,8 @@ describe.skipIf(skipReason)(
 		}, 60_000);
 
 		it("R6: falls back to created_at when decided_at is null", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			// An IGNORED application is clocked from submission. status must stay
 			// non-terminal or rental_applications_decided_at_check refuses the row.
@@ -554,22 +713,81 @@ describe.skipIf(skipReason)(
 			expect((await readApp(appId))["applicant_email"]).toBe("[deleted]");
 		}, 60_000);
 
+		/**
+		 * R7 IS THE ONLY TEST THAT PROVES THE CONFIGURED WINDOW IS READ AT ALL, and
+		 * it was silently disabled.
+		 *
+		 * It used to narrow to a HARDCODED one day and gate itself on "no foreign
+		 * row is due at one day". That guard is correct and stays. What broke is
+		 * that it became permanently unsatisfiable: the E2E seeder now deliberately
+		 * keeps one `rental_applications` row alive forever, because that row is
+		 * what stops every CI run marching an un-resettable `submission_count`. It
+		 * is owner-held, status `new` (so `decided_at` is null and the clock runs
+		 * from `created_at`), never converted, and not anonymized for 730 days. One
+		 * day after the first run that seeded it, R7 skipped on every run, forever.
+		 *
+		 * THE WINDOW IS NOW COMPUTED, AND THE GUARD IS UNCHANGED IN STRENGTH. What
+		 * separates "a row this suite may safely age" from "someone else's data" is
+		 * not ownership — the sweep reads neither owner nor label, so neither can
+		 * bound it. The only thing that bounds a global sweep is the WINDOW. So the
+		 * window is derived from the oldest foreign sweepable row in the table plus
+		 * a clearance day: every foreign row is then strictly younger than the
+		 * window and none is in range at all. The fixture is then aged past that
+		 * window but kept INSIDE the live one, so the sweep must ignore it before
+		 * the narrowing and clear it after.
+		 *
+		 * The arithmetic is `_helpers/retention-window.ts`, proved off-network in
+		 * its own unit test — including the counter-example that the old hardcoded
+		 * window really did put the seeder row in range.
+		 *
+		 * NOTHING HERE WEAKENS THE BLAST-RADIUS CHECK. `foreignDueCount` is still
+		 * consulted, still fail-closed, and is now consulted at the window this
+		 * test is actually about to install rather than at a literal. If it is not
+		 * zero, this still does not run.
+		 */
 		it("R7: honours a narrowed app_config window, and restores it", async (ctx) => {
-			// A one-day window makes almost every application in the database due.
-			// Refuse to run unless the blast radius is provably this file's rows.
-			const foreign = await foreignDueIds(1);
-			if (foreign.length > 0) ctx.skip();
+			const live = liveWindowDays();
+			const plan = planNarrowedWindow({
+				oldestForeignAgeDays: await oldestForeignAgeDays(),
+				liveWindowDays: live,
+			});
+			if (plan.kind === "skip") ctx.skip(plan.reason);
+			if (plan.kind !== "run") return;
+
+			// THE GUARD, at the window about to be installed. Fail-closed and
+			// unchanged in intent: if the sweep could reach a row this file does not
+			// own, it does not run.
+			const foreign = await foreignDueCount(plan.windowDays);
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
+			// ...and at the LIVE window too, because the positive control below
+			// sweeps once before narrowing. Implied by the line above — a due set
+			// only shrinks as the window widens, and `plan.windowDays < live` — but
+			// asserted rather than left to be re-derived by the next reader.
+			const foreignAtLive = await foreignDueCount(live);
+			if (foreignAtLive > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const recent = await insertApp({
-				decided_at: daysAgo(2),
-				created_at: daysAgo(3),
-				certified_at: daysAgo(3),
+				decided_at: daysAgo(plan.fixtureAgeDays),
+				created_at: daysAgo(plan.fixtureAgeDays + 1),
+				certified_at: daysAgo(plan.fixtureAgeDays + 1),
 			});
+
+			// POSITIVE CONTROL, BEFORE ANY NARROWING. The fixture is younger than
+			// the window that is live right now, so the sweep must leave it alone.
+			// Without this the assertion after the narrowing proves only that SOME
+			// sweep anonymized the row — which an 800-day fixture would satisfy
+			// under the default window, and the test would pass while proving
+			// nothing about `app_config` being read.
+			await runSweep();
+			expect(
+				(await readApp(recent))["anonymized_at"],
+				"the fixture must not be due before the window is narrowed",
+			).toBeNull();
 
 			try {
 				const { error } = await service
 					.from("app_config")
-					.update({ value: "1" })
+					.update({ value: String(plan.windowDays) })
 					.eq("key", RETENTION_KEY);
 				expect(error).toBeNull();
 
@@ -577,10 +795,12 @@ describe.skipIf(skipReason)(
 				expect((await readApp(recent))["anonymized_at"]).not.toBeNull();
 				expect((await readApp(recent))["applicant_email"]).toBe("[deleted]");
 			} finally {
-				// try/finally, not a trailing statement: a failed assertion above
-				// must not leave production on a one-day retention window, which
-				// would start destroying real applicant records at the next 3 AM run
-				// (T-66-37).
+				// try/finally, not a trailing statement: a failed assertion above must
+				// not leave production on the narrowed retention window, which would
+				// start destroying real applicant records at the next 3 AM run
+				// (T-66-37). The window is narrower than the live one by
+				// construction, so leaking it is destructive regardless of how few
+				// days it happens to be.
 				await service.from("app_config").upsert(
 					{
 						key: RETENTION_KEY,
@@ -599,8 +819,8 @@ describe.skipIf(skipReason)(
 		}, 60_000);
 
 		it("R8: falls back to 730 days when the config row is absent", async (ctx) => {
-			const foreign = await foreignDueIds(DEFAULT_DAYS);
-			if (foreign.length > 0) ctx.skip();
+			const foreign = await foreignDueCount(sweepGuardDays());
+			if (foreign > 0) ctx.skip(FOREIGN_SKIP_NOTE);
 
 			const inWindow = await insertApp({
 				decided_at: daysAgo(700),
