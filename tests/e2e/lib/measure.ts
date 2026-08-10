@@ -102,23 +102,59 @@ const NOT_READ = Symbol("measure/not-read");
  * value) rather than a hand-rolled "not rendered" throw that discards it.
  */
 export async function boxOf(locator: Locator, timeout = 15_000): Promise<Box> {
+	// RETURN THE SNAPSHOT THAT SATISFIED THE POLL. DO NOT RE-READ.
+	//
+	// The first version of this function polled for a non-null box and then called
+	// `boundingBox()` a SECOND time, discarding the observation it had just waited
+	// for. It carried a comment asserting the second read could not fail —
+	// "Unreachable in practice: the poll above just observed a non-null box."
+	//
+	// That comment was wrong in exactly the way this whole module exists to warn
+	// about: non-null at time T says nothing about time T+epsilon. The two reads
+	// are separate round trips to the browser, and a React commit between them
+	// makes the second answer `null`. So the helper written to close the
+	// poll-then-race hole reopened it inside itself, one line below the poll.
+	//
+	// It was not hypothetical. On commit 8783cbde8 — the commit that shipped this
+	// file — CI run 31393429771 job 93470421874 recorded:
+	//
+	//   E-5 and E-14: the card caps at 672px and pairs the name fields at 1280px
+	//   Error: boundingBox() returned null immediately after polling observed a box
+	//     at boxOf (tests/e2e/lib/measure.ts:117:9)
+	//
+	// and the required `e2e-smoke` check still reported SUCCESS, because
+	// `retries: 2` reclassified it as one of "3 flaky". That is the precise
+	// laundering this module's header names — produced by the module's own code.
+	//
+	// `boxesOf` and `polledRead` below never had this defect: both capture inside
+	// the poll callback and return what they captured. This now matches them.
+	//
 	// Poll on a non-null box rather than on a dimension: an element can legitimately
 	// measure 0 wide (a collapsed rail is a real layout outcome worth asserting),
 	// so polling on `width > 0` would hang on a case the caller wants to observe.
+	let captured: Box | null = null;
+
 	await expect
-		.poll(async () => (await locator.boundingBox()) !== null, { timeout })
+		.poll(
+			async () => {
+				captured = await locator.boundingBox();
+				return captured !== null;
+			},
+			{ timeout },
+		)
 		.toBe(true);
 
-	const box = await locator.boundingBox();
-	if (!box) {
-		// Unreachable in practice: the poll above just observed a non-null box. Kept
-		// because boundingBox()'s type is nullable and a narrowing cast here would
-		// hide a genuine regression behind a runtime crash somewhere further away.
-		throw new Error(
-			"boundingBox() returned null immediately after polling observed a box",
-		);
+	if (captured === null) {
+		// Genuinely unreachable — `expect.poll` resolving true means the callback
+		// returned true, which requires `captured` to be non-null at that moment,
+		// and nothing reassigns it afterwards. Kept because `boundingBox()`'s type
+		// is nullable and a cast here would hide a real regression behind a crash
+		// somewhere further away. Unlike the version this replaced, the invariant
+		// is now established by the same statement that returns the value.
+		throw new Error("boxOf: the poll resolved without capturing a box");
 	}
-	return box;
+
+	return captured;
 }
 
 /** Rendered width in CSS pixels, measured after layout has committed. */
