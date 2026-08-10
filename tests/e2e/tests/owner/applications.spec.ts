@@ -10,6 +10,7 @@ import {
 	type SeededApplication,
 	signInAsOwner,
 } from "../../lib/application-fixtures";
+import { boxesOf, polledRead, widthOf } from "../../lib/measure";
 
 /**
  * `/applications` and `/applications/[id]` in a real browser — Phase 66, plan
@@ -159,13 +160,10 @@ test.describe("/applications — the owner review queue", () => {
 		const rows = page.locator(QUEUE_ROWS);
 		await expect(rows.first()).toBeVisible({ timeout: 20000 });
 
-		const boxes = await rows.evaluateAll((nodes) =>
-			nodes.map((node) => {
-				const rect = node.getBoundingClientRect();
-				return { y: rect.y, height: rect.height };
-			}),
-		);
-		// Positive control: an empty list satisfies both loops below vacuously.
+		// Polled, and `min: 1` is the positive control rather than a comment: an
+		// empty list satisfies both loops below vacuously, so the measurement
+		// refuses to answer until at least one row has a committed layout box.
+		const boxes = await boxesOf(rows, { min: 1 });
 		expect(boxes.length).toBeGreaterThan(0);
 
 		for (const box of boxes) {
@@ -289,49 +287,72 @@ test.describe("/applications — the owner review queue", () => {
 		const strip = page.getByRole("tablist", { name: "Filter by status" });
 		await expect(strip).toBeVisible({ timeout: 20000 });
 
-		const measured = await strip.evaluate((node) => {
-			const parent = node.parentElement;
-			const triggers = [...node.querySelectorAll('[role="tab"]')];
-			return {
-				triggers: triggers.length,
-				scrollWidth: node.scrollWidth,
-				clientWidth: node.clientWidth,
-				parentWidth: parent ? parent.getBoundingClientRect().width : 0,
-				documentScrollWidth: document.documentElement.scrollWidth,
-				viewport: window.innerWidth,
-				// Per trigger: the box the label has to live in, and the label's own
-				// rendered width. A Range over the node's contents is the only way to
-				// get the second one — `scrollWidth` on an `overflow: visible` box is
-				// clamped to `clientWidth` in Chrome and would report no overflow at
-				// exactly the moment the text is spilling out of it.
-				labels: triggers.map((el) => {
-					const style = getComputedStyle(el);
-					const range = document.createRange();
-					range.selectNodeContents(el);
+		// The strip's container, measured through the shared polled helper rather
+		// than inside the composite read below. `xpath=..` is the same structural
+		// parent handle `documents-hub.spec.ts` uses for its medallions.
+		const parentWidth = await widthOf(strip.locator("xpath=.."));
+
+		// ONE ATOMIC SNAPSHOT, POLLED UNTIL LAYOUT HAS COMMITTED. Every number here
+		// has to come from the same moment — a scrollWidth read before the strip
+		// laid out and a label width read after it would describe two different
+		// pages — so this cannot be decomposed into per-element `boxOf` calls. The
+		// gate is `polledRead`'s, and it is made of THIS TEST'S OWN POSITIVE
+		// CONTROLS: some tabs mounted, the box has width, every label measured
+		// non-zero. The assertions that can actually fail stay below as assertions.
+		const measured = await polledRead(
+			() =>
+				strip.evaluate((node) => {
+					const triggers = [...node.querySelectorAll('[role="tab"]')];
 					return {
-						text: el.textContent ?? "",
-						// clientWidth is the padding box; the padding is not available to
-						// the text, so it is subtracted rather than counted as slack.
-						contentBox:
-							el.clientWidth -
-							Number.parseFloat(style.paddingLeft) -
-							Number.parseFloat(style.paddingRight),
-						textWidth: range.getBoundingClientRect().width,
+						triggers: triggers.length,
+						scrollWidth: node.scrollWidth,
+						clientWidth: node.clientWidth,
+						documentScrollWidth: document.documentElement.scrollWidth,
+						viewport: window.innerWidth,
+						// Per trigger: the box the label has to live in, and the label's
+						// own rendered width. A Range over the node's contents is the only
+						// way to get the second one — `scrollWidth` on an
+						// `overflow: visible` box is clamped to `clientWidth` in Chrome and
+						// would report no overflow at exactly the moment the text is
+						// spilling out of it.
+						labels: triggers.map((el) => {
+							const style = getComputedStyle(el);
+							const range = document.createRange();
+							range.selectNodeContents(el);
+							return {
+								text: el.textContent ?? "",
+								// clientWidth is the padding box; the padding is not available
+								// to the text, so it is subtracted rather than counted as
+								// slack.
+								contentBox:
+									el.clientWidth -
+									Number.parseFloat(style.paddingLeft) -
+									Number.parseFloat(style.paddingRight),
+								textWidth: range.getBoundingClientRect().width,
+							};
+						}),
 					};
 				}),
-			};
-		});
+			// Deliberately NOT `triggers === 5`. Gating on the exact count would make
+			// the `toBe(5)` assertion below unable to fail — a strip that lost a tab
+			// would time out with "expected true, received false" instead of naming
+			// the missing tab. `> 0` is a layout-commitment signal; `=== 5` is the
+			// property under test, and those belong on opposite sides of the poll.
+			(value) =>
+				value.triggers > 0 &&
+				value.clientWidth > 0 &&
+				value.labels.every((label) => label.textWidth > 0),
+		);
 
-		// Positive controls FIRST. All five tabs must be mounted and their combined
-		// width must genuinely exceed the box, or the assertions below are satisfied
-		// by a strip that had nothing to overflow.
+		// Positive controls FIRST. All five tabs must be mounted, the container must
+		// have measured, and their combined width must genuinely exceed the box, or
+		// the assertions below are satisfied by a strip that had nothing to overflow.
 		expect(measured.triggers).toBe(5);
+		expect(parentWidth).toBeGreaterThan(0);
 		expect(measured.scrollWidth).toBeGreaterThan(measured.clientWidth);
 
 		// The box is capped by its container rather than growing past it...
-		expect(measured.clientWidth).toBeLessThanOrEqual(
-			Math.ceil(measured.parentWidth),
-		);
+		expect(measured.clientWidth).toBeLessThanOrEqual(Math.ceil(parentWidth));
 		// ...so the overflow is absorbed by the strip and never by the document.
 		// One pixel of slack for sub-pixel rounding, and no more.
 		expect(measured.documentScrollWidth).toBeLessThanOrEqual(

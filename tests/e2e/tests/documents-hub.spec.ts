@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../auth-helpers";
-import { widthOf } from "../lib/measure";
+import { boxesOf, widthOf } from "../lib/measure";
 import { ROUTES } from "./constants/routes";
 
 /**
@@ -170,15 +170,20 @@ test.describe("Documents landing (Phase 65, DOCS-01)", () => {
 	});
 });
 
-/** Distinct y-positions of the four printable tiles == number of rendered rows. */
+/**
+ * Distinct y-positions of the four printable tiles == number of rendered rows.
+ *
+ * `min: PRINTABLE_TILES.length` replaces the old `toBeVisible()` gate on the
+ * FIRST tile, and it is strictly stronger in both directions. Visibility and a
+ * committed layout box are different states (see `lib/measure.ts`), and one
+ * visible tile said nothing about the other three — a band that rendered two of
+ * four would have reported a row count derived from half the grid.
+ */
 async function distinctRowCount(page: Page): Promise<number> {
 	const tiles = band(page, PRINTABLES).getByRole("link");
-	await expect(tiles.first()).toBeVisible();
-	const boxes = await tiles.evaluateAll((nodes) =>
-		nodes.map((n) => Math.round(n.getBoundingClientRect().y)),
-	);
+	const boxes = await boxesOf(tiles, { min: PRINTABLE_TILES.length });
 	// Tolerate sub-pixel drift: bucket to the nearest 2px before de-duplicating.
-	return new Set(boxes.map((y) => Math.round(y / 2))).size;
+	return new Set(boxes.map((box) => Math.round(Math.round(box.y) / 2))).size;
 }
 
 test.describe("Documents landing at 375px", () => {

@@ -6,7 +6,7 @@ import {
 	readSeedCredentials,
 	signInAsOwner,
 } from "../../lib/application-fixtures";
-import { boxOf as measuredBoxOf } from "../../lib/measure";
+import { boxesOf, boxOf as measuredBoxOf } from "../../lib/measure";
 
 /**
  * `/apply/[token]` in a real browser — Phase 66, plan 66-17, UI-SPEC §E rows
@@ -355,14 +355,9 @@ test.describe("/apply — the rendered applicant form", () => {
 		// against a page that failed to render at all.
 		expect(await inputs.count()).toBeGreaterThanOrEqual(20);
 
-		const offenders = await inputs.evaluateAll((nodes) =>
-			nodes
-				.map((node) => ({
-					id: node.id,
-					height: Math.round(node.getBoundingClientRect().height),
-				}))
-				.filter((entry) => entry.height !== 48),
-		);
+		const offenders = (await boxesOf(inputs, { min: 20 }))
+			.map((box) => ({ id: box.id, height: Math.round(box.height) }))
+			.filter((entry) => entry.height !== 48);
 		// 48, measured. `inputSize="lg"` being present in the class string cannot
 		// decide this: the unlayered mobile block outranks every layered utility.
 		expect(offenders).toEqual([]);
@@ -375,14 +370,9 @@ test.describe("/apply — the rendered applicant form", () => {
 		const areas = page.locator("form textarea");
 		expect(await areas.count()).toBeGreaterThanOrEqual(3);
 
-		const offenders = await areas.evaluateAll((nodes) =>
-			nodes
-				.map((node) => ({
-					id: node.id,
-					height: Math.round(node.getBoundingClientRect().height),
-				}))
-				.filter((entry) => entry.height < 96),
-		);
+		const offenders = (await boxesOf(areas, { min: 3 }))
+			.map((box) => ({ id: box.id, height: Math.round(box.height) }))
+			.filter((entry) => entry.height < 96);
 		// The layered `min-h-24!` beating the unlayered `min-height: 2.75rem`. An
 		// important author declaration outranks a normal one regardless of layer, so
 		// 96 is the number that proves the override actually landed.
@@ -393,11 +383,10 @@ test.describe("/apply — the rendered applicant form", () => {
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 900 });
-		const widths = await page
-			.locator('form [data-slot="field"]')
-			.evaluateAll((nodes) =>
-				nodes.map((node) => Math.round(node.getBoundingClientRect().width)),
-			);
+		const fields = await boxesOf(page.locator('form [data-slot="field"]'), {
+			min: 20,
+		});
+		const widths = fields.map((box) => Math.round(box.width));
 		expect(widths.length).toBeGreaterThanOrEqual(20);
 
 		// 309, AND THE DERIVATION IS THE ASSERTION:
@@ -429,11 +418,10 @@ test.describe("/apply — the rendered applicant form", () => {
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 900 });
-		const xs = await page
-			.locator('form [data-slot="field"]')
-			.evaluateAll((nodes) =>
-				nodes.map((node) => Math.round(node.getBoundingClientRect().x)),
-			);
+		const fields = await boxesOf(page.locator('form [data-slot="field"]'), {
+			min: 20,
+		});
+		const xs = fields.map((box) => Math.round(box.x));
 		expect(xs.length).toBeGreaterThanOrEqual(20);
 		expect(new Set(xs).size).toBe(1);
 	});
@@ -455,6 +443,15 @@ test.describe("/apply — the rendered applicant form", () => {
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 900 });
+
+		// POSITIVE CONTROL, AND IT COMES FIRST NOW. `not.toBeInViewport()` also
+		// passes on a page where nothing rendered, so a real field has to be in the
+		// viewport at the same moment. This assertion used to sit at the BOTTOM of
+		// this test, which made it useless: Playwright aborts at the first failing
+		// expect, so on the one path where the control was needed — the path where
+		// the measurement below failed — it never ran at all.
+		await expect(page.locator("#first_name")).toBeInViewport();
+
 		const honeypot = page.locator("#apply-company-website");
 		await expect(honeypot).toBeAttached();
 
@@ -464,14 +461,28 @@ test.describe("/apply — the rendered applicant form", () => {
 		// `toBeHidden()` would fail against a correct implementation while passing
 		// against a `display:none` one that a bot can trivially detect.
 		await expect(honeypot).not.toBeInViewport();
-		const right = await honeypot.evaluate(
-			(node) => node.getBoundingClientRect().right,
-		);
-		expect(right).toBeLessThan(0);
 
-		// Positive control: `not.toBeInViewport()` also passes on a page where
-		// nothing rendered. A real field must be in the viewport at the same moment.
-		await expect(page.locator("#first_name")).toBeInViewport();
+		// `display: none` IS THE OTHER THING THAT PRODUCES AN ALL-ZERO RECT, and it
+		// is a real APPLY-02 regression rather than a race: a trap taken out of the
+		// layout is skipped by any bot that reads computed style, so the field it
+		// guards stops guarding anything. Asserted separately, and asserted with an
+		// auto-retrying matcher, so that the geometry check below means "positioned
+		// off-screen" rather than "has no box, for one of two very different
+		// reasons". Without this the two states are indistinguishable — which is
+		// how a regression here would be laundered by `retries: 2` into a green run.
+		await expect(honeypot).not.toHaveCSS("display", "none");
+
+		// POLLED. This was a one-shot `evaluate()` and it read `right === 0` in CI
+		// run 31331577238 (job 93290566169, sha 0acca6644) — an all-zero rect from a
+		// node with no committed layout box, not a mispositioned trap. `boxOf` polls
+		// until the browser has committed one; `expect(<number>)` never retried and
+		// never could.
+		const box = await boxOf(honeypot);
+		// Both halves. `width > 0` is what a `display:none` regression cannot
+		// produce, and the right edge is what proves the box is entirely off-screen
+		// rather than merely narrow.
+		expect(box.width).toBeGreaterThan(0);
+		expect(box.x + box.width).toBeLessThan(0);
 	});
 
 	test("E-7: Tab from the attestation lands on submit, never the trap (APPLY-02)", async ({

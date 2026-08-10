@@ -86,6 +86,16 @@ export default defineConfig({
 						// source from disk. `supabase/functions/tests/` is the separate
 						// Deno test directory and stays out of this pattern.
 						"supabase/functions/__tests__/**/*.{test,spec}.ts",
+						// Node-side guards over the Playwright SUPPORT modules — the
+						// measurement helpers and the production seeder in
+						// `tests/e2e/lib/`. Those modules carry real invariants (every
+						// geometry read polls; the seeder must not march an
+						// un-resettable production counter) that nothing else can
+						// assert: the Playwright specs cannot check them without a
+						// browser and a production sign-in, so the invariants shipped
+						// broken and stayed broken. The `.spec.ts` files themselves stay
+						// OUT — they import `@playwright/test` and are not runnable here.
+						"tests/e2e/lib/__tests__/**/*.test.ts",
 					],
 					exclude: [
 						"node_modules",
@@ -94,7 +104,14 @@ export default defineConfig({
 						"out",
 						"build",
 						"coverage",
-						"tests/**",
+						// Narrower than the previous blanket `tests/**`, which also
+						// swallowed the `tests/e2e/lib/__tests__` include above (a
+						// Vitest exclude always beats an include). The two things that
+						// blanket existed to keep out are named explicitly instead: the
+						// Playwright specs, which need a browser, and the RLS
+						// integration suite, which has its own project below.
+						"tests/**/*.spec.ts",
+						"tests/integration/**",
 						"e2e/**",
 						"src/**/*.component.test.tsx",
 					],

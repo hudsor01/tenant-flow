@@ -1,27 +1,25 @@
 import { expect, test } from "@playwright/test";
+import { boxOf } from "../../lib/measure";
 
 test.describe("Mobile nav at 375px viewport", () => {
 	test.use({ viewport: { width: 375, height: 667 } });
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto("/", { waitUntil: "networkidle" });
-		// Wait for the toggle button to be hydrated and laid out before any test runs.
-		// This guards against server-rendered-but-not-yet-interactive failure modes
-		// observed on Vercel previews where toBeVisible() passes but boundingBox()
-		// returns null and onClick handlers aren't attached.
-		await page.waitForFunction(
-			() => {
-				const btn = document.querySelector<HTMLButtonElement>(
-					'[data-testid="mobile-nav-toggle"]',
-				);
-				return (
-					btn !== null &&
-					btn.offsetParent !== null &&
-					btn.getBoundingClientRect().width > 0
-				);
-			},
-			{ timeout: 10_000 },
-		);
+		// Wait for the toggle button to be hydrated and laid out before any test
+		// runs. This guards against server-rendered-but-not-yet-interactive failure
+		// modes observed on Vercel previews where toBeVisible() passes but the
+		// element still has no layout box and onClick handlers aren't attached.
+		//
+		// This was a hand-rolled `waitForFunction` reading `offsetParent !== null &&
+		// getBoundingClientRect().width > 0`. It polled correctly — `waitForFunction`
+		// re-invokes its predicate — but it was the only remaining place in this
+		// tree that derived its own layout gate instead of using the shared one, and
+		// the shared one is where the next fix will land. `boxOf` polls for a
+		// committed box; `width > 0` is the same floor, asserted rather than folded
+		// into a truthiness check that reports "timeout" and nothing else on failure.
+		const toggle = await boxOf(page.getByTestId("mobile-nav-toggle"), 10_000);
+		expect(toggle.width).toBeGreaterThan(0);
 	});
 
 	test("hero does not horizontally overflow viewport", async ({ page }) => {
@@ -41,10 +39,12 @@ test.describe("Mobile nav at 375px viewport", () => {
 		// unscoped /Start free/i matches 3 links and trips strict mode.
 		const cta = page.getByRole("link", { name: /Start free/i }).first();
 		await expect(cta).toBeVisible();
-		const box = await cta.boundingBox();
-		expect(box).not.toBeNull();
-		expect(box!.x).toBeGreaterThanOrEqual(0);
-		expect(box!.x + box!.width).toBeLessThanOrEqual(375 + 1);
+		// Polled, which also retires the two `box!` non-null assertions: `boxOf`
+		// returns a `Box`, never `Box | null`, because it does not answer until the
+		// browser has committed one.
+		const box = await boxOf(cta);
+		expect(box.x).toBeGreaterThanOrEqual(0);
+		expect(box.x + box.width).toBeLessThanOrEqual(375 + 1);
 	});
 
 	test("hamburger toggle is visible top-right with 44x44 hit target", async ({
@@ -54,14 +54,15 @@ test.describe("Mobile nav at 375px viewport", () => {
 		await expect(toggle).toBeVisible();
 		await expect(toggle).toHaveAttribute("aria-label", "Open navigation menu");
 
-		// Poll for the layout box to materialize. expect.poll() retries until success
-		// or timeout — robust against late hydration / browser layout races.
-		await expect
-			.poll(async () => (await toggle.boundingBox())?.width)
-			.toBeGreaterThanOrEqual(44);
-		await expect
-			.poll(async () => (await toggle.boundingBox())?.height)
-			.toBeGreaterThanOrEqual(44);
+		// Polled for the layout box to materialize, robust against late hydration and
+		// browser layout races. Two hand-rolled `expect.poll` reads before; one
+		// `boxOf` now, which is the same guarantee from the shared helper and reads
+		// the two dimensions from a SINGLE snapshot rather than two — a hit target
+		// is a property of one box, not of whatever two boxes happened to exist at
+		// two different instants.
+		const box = await boxOf(toggle);
+		expect(box.width).toBeGreaterThanOrEqual(44);
+		expect(box.height).toBeGreaterThanOrEqual(44);
 	});
 
 	test("tapping hamburger opens drawer with all 7 items", async ({ page }) => {

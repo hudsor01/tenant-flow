@@ -14,6 +14,7 @@
 	},
 	"include": [
 		"tests/**/*.ts",
+		"lib/**/*.ts",
 		"auth-helpers.ts",
 		"../frontend/tests/fixtures/**/*.ts",
 		"global.d.ts"
