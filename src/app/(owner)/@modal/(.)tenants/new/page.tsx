@@ -36,7 +36,17 @@ export default function AddTenantModal() {
 			<div className="flex flex-col gap-4">
 				<div>
 					<DialogTitle>Add Tenant</DialogTitle>
-					<DialogDescription>
+					{/* mb-0: Radix renders DialogDescription as a <p>, and `ui/dialog.tsx`
+					    adds only `text-muted-foreground text-sm`, so globals.css's
+					    unscoped `p { margin-bottom: 1rem }` lands on it. It is the LAST
+					    child of this unstyled box, so that margin collapses through the
+					    box's bottom edge and onto the box itself — and the box is a flex
+					    item of the `gap-4` column above, where margins are ADDITIVE
+					    rather than collapsing. Under the `space-y-4` this replaced the
+					    same margin collapsed away; without this neutralizer the
+					    header-to-body gap renders 16px larger than the `gap-4` declares
+					    (D-3, and the cycle-4 list-margin finding in the same family). */}
+					<DialogDescription className="mb-0">
 						Add a tenant record. You can assign them to a property now or attach
 						them to a lease later.
 					</DialogDescription>

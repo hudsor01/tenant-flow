@@ -108,3 +108,30 @@ existing retries already absorb it. Ruled out: bad credentials (a sign-in failur
 throws a different, earlier error), and the subscription gate (that path throws its
 own distinct `/pricing` message, and both synthetic owners are `active` with
 `trial_ends_at: null`).
+
+## D4 — `DialogHeader` gives every dialog in the app the same additive `<p>` margin
+
+Found while fixing the cycle-8 F2 finding on `@modal/(.)tenants/new/page.tsx`.
+
+`ui/dialog.tsx:102-110` renders `DialogHeader` as `flex flex-col gap-2`. Radix
+renders `DialogDescription` as a `<p>`, `DialogDescription` adds only
+`text-muted-foreground text-sm`, and `globals.css:499` declares an unscoped
+`p { margin-bottom: 1rem }` inside `@layer base`. The description is the LAST
+child of that flex column in essentially every dialog in the app, so its 16px
+bottom margin is **additive** to the header's own box rather than collapsing —
+the same mechanism as F2, one level up.
+
+Roughly 20 call sites are affected: `settings/category-*-dialog.tsx`,
+`ledger/{add-line,record-receipt,track-since}-dialog.tsx`,
+`auth/{two-factor-setup,change-password,mfa-verification,forgot-password}*.tsx`,
+`leases/{rent-increase-notice,send-for-signature,renew-lease}*.tsx`,
+`bulk-import/bulk-import-dialog.tsx`, `properties/units/*`, and others.
+
+**Deliberately not changed here.** It is entirely pre-existing — no part of it
+was introduced or touched by phase 66 — and it belongs in `DialogHeader` itself
+(a one-line `[&>p]:mb-0` or an `mb-0` on `DialogDescription`'s own `cn()` base),
+not in twenty call sites. Changing a shared primitive that every dialog in the
+product renders through is not a change to make inside a phase-66 review cycle
+with no visual UAT available (Vercel builds `main` only). The correct home is a
+dedicated PR with a `computeParagraphCascade` guard test on `DialogHeader`, using
+the harness added in `src/test/utils/base-rule-cascade.ts`.

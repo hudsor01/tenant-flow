@@ -33,6 +33,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import type { RentalApplicationRow } from "#hooks/api/query-keys/application-keys";
 import type { TenantEmailMatch } from "#hooks/api/query-keys/tenant-keys";
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import AddTenantModal from "./page";
 
 const APPLICATION_ID = "11111111-2222-3333-4444-555555555555";
@@ -189,6 +190,63 @@ describe("AddTenantModal - Dialog Accessibility", () => {
 
 		consoleWarnSpy.mockRestore();
 		consoleErrorSpy.mockRestore();
+	});
+});
+
+/**
+ * THE HEADER-TO-BODY RUNG IS `gap-4` AND NOTHING MAY ADD TO IT.
+ *
+ * This page's wrapper moved from `space-y-4` to `flex flex-col gap-4`. Radix
+ * renders `DialogDescription` as a `<p>`, `ui/dialog.tsx` gives it only
+ * `text-muted-foreground text-sm`, and `globals.css` declares an unscoped
+ * `p { margin-bottom: 1rem }` inside `@layer base`. That paragraph is the LAST
+ * child of the unstyled header box, so its bottom margin collapses through the
+ * box's bottom edge onto the box — and the box is a flex item, where margins are
+ * ADDITIVE rather than collapsing. Under `space-y-4` the same margin collapsed
+ * away; under flex it renders 16px on top of the declared 16px.
+ *
+ * ASSERTED ON THE COMPUTED VALUE, NOT ON THE CLASS STRING. `expect(class).toContain("mb-0")`
+ * passes against every member of this defect family — the class is always
+ * present and always spelled right, and the only real question is whether
+ * anything cancels the base declaration at all. `computeParagraphCascade`
+ * answers that by applying globals.css's REAL `p` rule at run time and reading
+ * `getComputedStyle`.
+ */
+describe("AddTenantModal - the flex rung above the form (D-3)", () => {
+	it("cancels the unscoped p margin on the description, which flex would otherwise add to gap-4", () => {
+		renderModal();
+
+		const description = screen.getByText(/Add a tenant record/);
+		expect(description.tagName.toLowerCase()).toBe("p");
+
+		// THE STRUCTURAL HALF, which is what makes the margin load-bearing rather
+		// than harmless. jsdom computes no layout, so it is asserted as DOM facts:
+		// the description is the last child of its box, and that box is a child of
+		// a flex column. Either one changing turns the assertion below from
+		// necessary into merely harmless, so both are pinned here.
+		const box = description.parentElement;
+		expect(box).not.toBeNull();
+		if (box === null) return;
+		expect(box.lastElementChild).toBe(description);
+		const column = box.parentElement;
+		expect(column).not.toBeNull();
+		if (column === null) return;
+		const columnClasses = column.className.split(/\s+/);
+		expect(columnClasses).toContain("flex");
+		expect(columnClasses).toContain("flex-col");
+		expect(columnClasses).toContain("gap-4");
+
+		const { neutralized, baseline } = computeParagraphCascade(description);
+
+		// Positive control on the harness: an unclassed <p> in the same document
+		// under the same stylesheet. If globals.css never reached the document this
+		// would read "0px" and the assertion below would prove nothing — it would
+		// pass against a build that neutralizes nothing.
+		expect(baseline.marginBottom).toBe("16px");
+
+		// The assertion. Without `mb-0` this reads "16px" — the same as the
+		// baseline — and the rung renders at 32px instead of the declared 16px.
+		expect(neutralized.marginBottom).toBe("0px");
 	});
 });
 

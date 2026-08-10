@@ -1,7 +1,7 @@
 /**
- * A jsdom harness that decides whether a rendered list ACTUALLY defeats the
- * unscoped `ul, ol` and `li` base rules in `globals.css` — by reading the
- * computed value, never the class string.
+ * A jsdom harness that decides whether a rendered list or paragraph ACTUALLY
+ * defeats the unscoped `ul, ol`, `li` and `p` base rules in `globals.css` — by
+ * reading the computed value, never the class string.
  *
  * NOT A BARREL FILE. Everything below is declared here and nothing is
  * re-exported (CLAUDE.md zero-tolerance rule 2).
@@ -47,6 +47,7 @@ const GLOBALS_CSS_PATH = resolve(process.cwd(), "src/app/globals.css");
  */
 const LIST_SELECTOR_SOURCE = "ul,\\s*ol";
 const ITEM_SELECTOR_SOURCE = "li";
+const PARAGRAPH_SELECTOR_SOURCE = "p";
 
 /**
  * The neutralizer utilities this harness understands, mapped to the declarations
@@ -188,6 +189,72 @@ export function computeListCascade(list: Element): ListCascadeResult {
 
 	try {
 		return { neutralized: readValues(list), baseline: readValues(probe) };
+	} finally {
+		probe.remove();
+		style.remove();
+	}
+}
+
+export interface ParagraphBoxValues {
+	marginBottom: string;
+}
+
+export interface ParagraphCascadeResult {
+	/** The paragraph under test, carrying only the neutralizers it rendered. */
+	neutralized: ParagraphBoxValues;
+	/** An unclassed `<p>` in the same document under the same stylesheet. */
+	baseline: ParagraphBoxValues;
+}
+
+function readParagraphValues(paragraph: Element): ParagraphBoxValues {
+	const view = paragraph.ownerDocument.defaultView;
+	if (!view) {
+		throw new Error("base-rule-cascade: element is not attached to a window");
+	}
+	return { marginBottom: view.getComputedStyle(paragraph).marginBottom };
+}
+
+/**
+ * The `<p>` counterpart of `computeListCascade`, for the OTHER unscoped base
+ * rule in `globals.css`: `p { margin-bottom: 1rem }`.
+ *
+ * WHY IT EXISTS SEPARATELY FROM THE LIST HARNESS. That margin is invisible in a
+ * plain block container, where it collapses with whatever follows. It stops
+ * being invisible the moment the paragraph's box becomes — or is collapsed
+ * through onto — a FLEX ITEM, because flex items' margins do not collapse: the
+ * 1rem is then ADDED to the container's own `gap-*`, and the rung renders 16px
+ * larger than the class string says. That is the same failure the list harness
+ * catches on `ul, ol`, and it is worth the same treatment: reading the computed
+ * value rather than asserting `mb-0` is present, because a class-presence check
+ * passes against every member of the family.
+ *
+ * The caller supplies the structural half — that the paragraph really is the
+ * last child of a flex item — because jsdom computes no layout and this harness
+ * therefore cannot decide it.
+ */
+export function computeParagraphCascade(
+	paragraph: Element,
+): ParagraphCascadeResult {
+	const tag = paragraph.tagName.toLowerCase();
+	if (tag !== "p") {
+		throw new Error(`base-rule-cascade: expected a p, received <${tag}>`);
+	}
+	const doc = paragraph.ownerDocument;
+	const style = doc.createElement("style");
+	style.textContent = [
+		`p { ${extractBaseDeclarations(PARAGRAPH_SELECTOR_SOURCE)} }`,
+		utilityRules(paragraph),
+	].join("\n");
+	doc.head.appendChild(style);
+
+	const probe = doc.createElement("p");
+	doc.body.appendChild(probe);
+
+	try {
+		return {
+			neutralized: readParagraphValues(paragraph),
+			baseline: readParagraphValues(probe),
+		};
 	} finally {
 		probe.remove();
 		style.remove();
