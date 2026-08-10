@@ -92,15 +92,44 @@ interface RentalApplicationFormProps {
 
 type SubmitOutcome = "ok" | "capped" | "failed";
 
+/**
+ * THIS FUNCTION NEVER REJECTS, AND THAT IS THE WHOLE POINT.
+ *
+ * `fetch` rejects — it does not resolve with an error status — when the request
+ * never reaches a server at all: offline, DNS failure, TLS failure, a blocked
+ * CORS preflight, a dropped mobile connection mid-flight. Neither
+ * `submitApplication` nor `onSubmit` catches, form-core's `_handleSubmit`
+ * re-throws after its `done()`, and the only call site is `void
+ * form.handleSubmit()` — so a rejection here became an UNHANDLED PROMISE
+ * REJECTION and no state was written anywhere. The applicant saw the button
+ * return to "Submit application" and nothing else: no confirmation, no notice,
+ * no alert. On a 26-field public form with no draft, no autosave and no resume
+ * link, that leaves them unable to tell a lost submission from a slow one, with
+ * nothing to recover.
+ *
+ * The JSON parse below was already guarded and the transport was not, which is
+ * an omission rather than a decision — and the copy for exactly this case
+ * already exists (`application-outcome.tsx`, "Check your connection and try
+ * again"), it was simply unreachable for the one outcome it names.
+ *
+ * A transport failure is `failed` and NOT `capped`: nothing reached the
+ * limiter, so "this listing is busy" would be a claim about the server that
+ * this branch has no evidence for.
+ */
 async function postApplication(
 	body: Record<string, unknown>,
 ): Promise<SubmitOutcome> {
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	const response = await fetch(`${baseUrl}/functions/v1/apply-token`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(body),
-	});
+	let response: Response;
+	try {
+		response = await fetch(`${baseUrl}/functions/v1/apply-token`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
+		});
+	} catch {
+		return "failed";
+	}
 	if (response.status === 429) return "capped";
 	const data = (await response.json().catch(() => ({}))) as {
 		success?: boolean;

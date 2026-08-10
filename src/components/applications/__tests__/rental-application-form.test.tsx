@@ -17,7 +17,13 @@
  * something using the same mechanism.
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HONEYPOT_FIELD } from "../../../../supabase/functions/_shared/application-guards";
 import { RentalApplicationForm } from "../rental-application-form";
@@ -603,6 +609,111 @@ describe("RentalApplicationForm — a rate limit costs nothing typed (A-5 state 
 		);
 		expect(control("email").value).toBe(APPLICANT_EMAIL);
 		expect(submitButton().disabled).toBe(false);
+	});
+
+	/**
+	 * THE ONLY OUTCOME THIS SUITE NEVER STUBBED.
+	 *
+	 * Every other stub in this file is `mockResolvedValue` — 500, 429,
+	 * `link_capped`, `duplicate` — so A-5 state 6 was asserted exclusively along
+	 * the route where the server ANSWERED. `fetch` does not resolve with an error
+	 * status when the request never lands; it REJECTS. That rejection escaped
+	 * `postApplication`, `submitApplication` and `onSubmit`, form-core re-threw it
+	 * after `done()`, and `void form.handleSubmit()` swallowed it as an unhandled
+	 * promise rejection with NO state written: no confirmation, no notice, no
+	 * alert, and a button that quietly re-read "Submit application".
+	 *
+	 * The broken state each assertion below catches is named inline. Without the
+	 * transport catch in `postApplication`, the `findByRole("alert")` times out —
+	 * there is nothing in the tree to find.
+	 */
+	it("surfaces the failure notice when the request never reaches the server", async () => {
+		// A rejected fetch, which is what offline, DNS failure, a dead TLS
+		// handshake and a blocked preflight all look like from here.
+		fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+		renderForm();
+		fillRequiredFields();
+		checkAttestation();
+
+		// Positive control before the failure: the values really are in the form,
+		// so "nothing you typed has been lost" is a claim about the failure.
+		expect(control("email").value).toBe(APPLICANT_EMAIL);
+
+		fireEvent.click(submitButton());
+
+		const alert = await screen.findByRole("alert");
+		expect(alert.textContent).toContain("We could not submit your application");
+		// The copy that names THIS route specifically, and was unreachable for it.
+		expect(alert.textContent).toContain("Check your connection and try again");
+
+		// The request was attempted exactly once — the notice is about a real
+		// failed attempt, not about a submit that never fired.
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		// ...and it is NOT reported as a success. The shipped bug rendered neither,
+		// so both halves are asserted.
+		expect(screen.queryByText("Application received")).not.toBeInTheDocument();
+
+		// D-04b: everything typed survives and the control is live again, so the
+		// applicant can retry rather than refill 26 fields.
+		expect(control("email").value).toBe(APPLICANT_EMAIL);
+		expect(control("first_name").value).toBe("Dana");
+		await waitFor(() => {
+			expect(submitButton().disabled).toBe(false);
+			expect(submitButton().textContent).toContain("Submit application");
+		});
+	});
+
+	it("keeps the notice on a retry whose request also never reaches the server", async () => {
+		// THE AGGRAVATING HALF. `onSubmit` opens with `setNotice(null)`. With the
+		// rejection escaping, the second attempt ERASED the notice the first had
+		// rendered and wrote nothing back — so a retry on a still-dead connection
+		// blanked the outcome area entirely and the applicant was told less than
+		// they had been told a moment earlier.
+		fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+		renderForm();
+		fillRequiredFields();
+		checkAttestation();
+
+		fireEvent.click(submitButton());
+		await screen.findByText("We could not submit your application");
+
+		fireEvent.click(submitButton());
+
+		// Wait for the SECOND attempt to have fully settled before reading the
+		// notice — the button label going back to "Submit application" is that
+		// signal, and it flips in the broken build too, so this wait cannot hide
+		// the defect. Reading the notice any earlier would find the FIRST
+		// attempt's alert still in the tree and prove nothing.
+		await waitFor(() => {
+			expect(fetchMock).toHaveBeenCalledTimes(2);
+			expect(submitButton().textContent).toContain("Submit application");
+		});
+
+		expect(
+			screen.getByText("We could not submit your application"),
+		).toBeInTheDocument();
+		expect(control("email").value).toBe(APPLICANT_EMAIL);
+	});
+
+	it("recovers on a retry once the connection comes back", async () => {
+		// The failure is not sticky: the same submission id goes back out and the
+		// applicant reaches the confirmation without retyping anything. Also the
+		// positive control on the two tests above — a form left permanently stuck
+		// after a rejected fetch would pass them and fail here.
+		fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+		renderForm();
+		fillRequiredFields();
+		checkAttestation();
+
+		fireEvent.click(submitButton());
+		await screen.findByText("We could not submit your application");
+		const first = lastRequestBody().submission_id;
+
+		fetchMock.mockResolvedValueOnce(jsonResponse({ success: true }));
+		fireEvent.click(submitButton());
+
+		expect(await screen.findByText("Application received")).toBeInTheDocument();
+		expect(lastRequestBody().submission_id).toBe(first);
 	});
 
 	it("reports a duplicate as success, because the row is already stored", async () => {
