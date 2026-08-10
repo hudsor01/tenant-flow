@@ -43,6 +43,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ApplicationsPage from "#app/(owner)/applications/page";
 import type { ApplicationLinkRow } from "#hooks/api/query-keys/application-link-keys";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
+import { computeFontSizeAt } from "#test/utils/responsive-font-size-cascade";
 import { ApplicationLinkPanel } from "../application-link-panel";
 
 const {
@@ -723,6 +724,77 @@ describe("ApplicationLinkPanel — the lists defeat the ul/ol base rules", () =>
 			expect(neutralized.firstChildTag).toBe("li");
 			expect(neutralized.firstChildMarginBottom).toBe("0px");
 		}
+	});
+});
+
+/**
+ * THE URL FIELD IS 12px AT EVERY WIDTH, AND `text-xs` ALONE DOES NOT DELIVER IT.
+ *
+ * `Input`'s cva base ends `… text-base … md:text-sm …` (`ui/input.tsx:8`) — the
+ * shadcn 16px-on-mobile / 14px-on-desktop pattern that stops iOS zooming on
+ * focus. The panel passes `font-mono text-xs` for §C row "Active", and
+ * `tailwind-merge` puts an unmodified utility and a variant-modified one in
+ * DIFFERENT buckets: running the real strings through the repo's own `cn()`
+ * yields `… md:text-sm … font-mono text-xs`. `text-base` was dropped;
+ * `md:text-sm` was not. Above 768px the variant wins and the field renders 14px,
+ * not the 12px `66-UI-SPEC.md:975` declares.
+ *
+ * NO ASSERTION IN THIS REPO COULD SEE THAT. E-19 reads `inputValue()` at 1280px
+ * and never a computed size, and every other check here is about text or roles.
+ * A `toContain("text-xs")` check would have been worse than nothing: the broken
+ * build contains `text-xs`, so the assertion passes and certifies the defect.
+ * That is the failure this whole describe block exists to not repeat — see
+ * `#test/utils/responsive-font-size-cascade` for what the harness does and does
+ * not prove.
+ */
+describe("ApplicationLinkPanel — the link URL is 12px at every viewport", () => {
+	it("models the defect it is checking for, on a probe with the broken classes", () => {
+		// POSITIVE CONTROL ON THE HARNESS, and it is the load-bearing one. Without
+		// it, a harness that always answered "12px" would pass the real assertion
+		// below while being unable to detect anything. This probe carries EXACTLY
+		// the class set the panel shipped, and the harness must report the broken
+		// 14px for it — proving it can tell the two builds apart.
+		const probe = document.createElement("input");
+		probe.className = "font-mono text-xs md:text-sm";
+		document.body.appendChild(probe);
+
+		try {
+			expect(computeFontSizeAt(probe, 375).computed).toBe("12px");
+			expect(computeFontSizeAt(probe, 1280).computed).toBe("14px");
+		} finally {
+			probe.remove();
+		}
+	});
+
+	it("renders 12px at 375px AND at 1280px, not 14px above the md breakpoint", () => {
+		mockQueries(linksState([makeLink()]), propertiesState());
+		render(<ApplicationLinkPanel />);
+
+		const field = screen.getByRole("textbox");
+		// Positive control: this is the field that holds the published URL, not some
+		// other textbox that happened to render.
+		expect(field).toHaveValue(EXPECTED_URL);
+
+		const mobile = computeFontSizeAt(field, 375);
+		const desktop = computeFontSizeAt(field, 1280);
+
+		// Positive control on the stylesheet: an unclassed <input> in the same
+		// document reads the UA default. If the harness had failed to attach its
+		// rules, both `computed` values below would equal this and the assertions
+		// would be measuring nothing.
+		expect(mobile.baseline).toBe("16px");
+		expect(desktop.baseline).toBe("16px");
+		expect(mobile.computed).not.toBe(mobile.baseline);
+
+		// `--text-xs: 0.75rem` = 12px. BOTH widths, because one width is exactly
+		// what the broken build satisfied.
+		expect(mobile.computed).toBe("12px");
+		expect(desktop.computed).toBe("12px");
+
+		// And the mechanism, named. A future `Input` base that reintroduces a
+		// responsive size on this field fails here with the offending class in the
+		// message rather than as an unexplained pixel count.
+		expect(desktop.applied).not.toContain("md:text-sm");
 	});
 });
 

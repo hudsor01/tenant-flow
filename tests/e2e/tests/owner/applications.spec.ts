@@ -387,6 +387,21 @@ test.describe("/applications — the owner review queue", () => {
 		expect(first.length).toBeGreaterThan(0);
 		expect(first).toContain("/apply/");
 
+		// 1280px IS THE VIEWPORT WHERE THIS FIELD WAS THE WRONG SIZE, and this test
+		// was already standing here reading `inputValue()` at exactly that width
+		// without ever looking at the typography. §C row "Active" specifies
+		// `font-mono text-xs`; `--text-xs` is 0.75rem, so 12px. The shipped class
+		// string said `text-xs` and rendered 14px, because `Input`'s cva base ends
+		// `… text-base … md:text-sm …` and tailwind-merge keeps an unmodified
+		// utility and a variant-modified one in separate buckets — `text-base` was
+		// dropped, `md:text-sm` survived, and above 768px the variant wins.
+		//
+		// This is the REAL-BROWSER half. `application-link-panel.test.tsx` computes
+		// the same cascade in jsdom, which is fast and runs on every commit but
+		// models Tailwind's emission order rather than reading it. Only this one
+		// reads the compiled bundle.
+		await expect(urlField).toHaveCSS("font-size", "12px");
+
 		// The assertion a shown-once implementation fails. `/sign` stores only the
 		// token hash and reveals it once; this token is PUBLISHED to a listing and
 		// has to be retrievable for the life of the link, so the value must be

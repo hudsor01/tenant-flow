@@ -258,7 +258,15 @@ function ActiveLinkControls({
 				// onto every input and outranks any layered utility, so the 44px
 				// default leaves an 18px content box. 48px restores the headroom.
 				inputSize="lg"
-				className="flex-1 min-w-40 font-mono text-xs"
+				// `md:text-xs` IS NOT REDUNDANT WITH `text-xs`. `Input`'s cva base
+				// ends `… text-base … md:text-sm …`, and `tailwind-merge` buckets an
+				// unmodified utility separately from a variant-modified one — so
+				// passing `text-xs` alone drops `text-base` and LEAVES `md:text-sm`
+				// standing. Above 768px the variant wins and this field renders 14px
+				// while the class string says 12px. Naming the variant explicitly is
+				// what lets tailwind-merge collapse it: the merged result becomes
+				// `text-xs md:text-xs`, with no `md:text-sm` left to win.
+				className="flex-1 min-w-40 font-mono text-xs md:text-xs"
 				// A readonly field with no visible label is an unlabeled control; the
 				// unit is what disambiguates it when an owner has several rows.
 				aria-label={`Application link for ${row.label}`}
