@@ -134,27 +134,9 @@ export default defineConfig({
 						"e2e/**",
 						"src/**/*.component.test.tsx",
 					],
-					coverage: {
-						provider: "v8",
-						reporter: ["text", "json", "html", "lcov"],
-						exclude: [
-							"node_modules/",
-							"src/test/",
-							"**/*.d.ts",
-							"**/*.config.{ts,js}",
-							"**/generated/**",
-							"**/__mocks__/**",
-							"src/types/**",
-							"tests/**",
-							"scripts/**",
-						],
-						thresholds: {
-							lines: 80,
-							functions: 80,
-							branches: 80,
-							statements: 80,
-						},
-					},
+					// NO `coverage` KEY HERE. It lived at this depth and did nothing —
+					// see the root-level block at the foot of this file for what that
+					// cost and how it was found.
 					testTimeout: 10000,
 					hookTimeout: 10000,
 				},
@@ -197,5 +179,64 @@ export default defineConfig({
 				},
 			},
 		],
+
+		// =====================================================================
+		// COVERAGE. ROOT LEVEL, AND THAT PLACEMENT IS THE WHOLE POINT.
+		//
+		// This block previously sat INSIDE `projects[0].test`, where Vitest
+		// silently discards it: `coverage` is a member of Vitest's
+		// `NonProjectOptions`, and `ProjectConfig = Omit<InlineConfig,
+		// NonProjectOptions | ...>` (vitest 4, reporters.d.ts:3571,3596), so a
+		// `coverage` key at project depth is not a config error — it is simply
+		// not read. TypeScript did flag it ("'coverage' does not exist in type
+		// 'ProjectConfig'"), but `vitest.config.ts` is in no tsconfig project,
+		// so `bun run typecheck` never saw it.
+		//
+		// The consequence: the 80% threshold this repo believed it enforced on
+		// every commit was never applied. Measured at the moment it was found,
+		// the suite reported 64.19% statements and EXITED 0. CLAUDE.md said
+		// "80% coverage threshold (enforced via lefthook pre-commit)"; lefthook
+		// did run `--coverage`, the report printed, and nothing was gated. Every
+		// "the full suite passes" claim in this repo was measured against a gate
+		// that was not running.
+		//
+		// THE NUMBERS BELOW ARE THE MEASURED TRUTH, NOT AN ASPIRATION.
+		// Restoring the block at 80% would have failed instantly at 64% and
+		// blocked every commit in the repo, so the thresholds are set to the
+		// real floor (measured values rounded DOWN to whole percent, which also
+		// stops sub-point noise from flapping the gate):
+		//
+		//     statements 64.19 -> 64      branches  56.10 -> 56
+		//     functions  63.62 -> 63      lines     66.28 -> 66
+		//
+		// This is a RATCHET, not a target. It cannot rise on its own — raising
+		// it is a deliberate act, and the 80% goal is a real one that is now
+		// honestly recorded as unmet rather than falsely recorded as enforced.
+		// What it buys immediately is that coverage can no longer SILENTLY
+		// regress, which is the property the repo thought it had all along.
+		//
+		// Do not move this key back inside `projects[]`.
+		// =====================================================================
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json", "html", "lcov"],
+			exclude: [
+				"node_modules/",
+				"src/test/",
+				"**/*.d.ts",
+				"**/*.config.{ts,js}",
+				"**/generated/**",
+				"**/__mocks__/**",
+				"src/types/**",
+				"tests/**",
+				"scripts/**",
+			],
+			thresholds: {
+				statements: 64,
+				branches: 56,
+				functions: 63,
+				lines: 66,
+			},
+		},
 	},
 });
