@@ -135,3 +135,43 @@ product renders through is not a change to make inside a phase-66 review cycle
 with no visual UAT available (Vercel builds `main` only). The correct home is a
 dedicated PR with a `computeParagraphCascade` guard test on `DialogHeader`, using
 the harness added in `src/test/utils/base-rule-cascade.ts`.
+
+## D5 — Per-client rate limiting for `/apply/[token]` belongs in the proxy, not the edge function
+
+**Status:** deferred, needs an owner decision. Currently INERT (Upstash is down), becomes
+relevant the moment that connection is repaired.
+
+**What was established (perfect-PR cycle 9, after two wrong fixes):**
+
+The `context` action of `apply-token` is called ONLY server-side, from the RSC
+(`src/app/apply/[token]/apply-context.ts`, not a client module; the page is `force-dynamic`
+and the fetch is `cache: "no-store"`). So one applicant page view is exactly one call, and
+`getClientIp(req)` returns the **Next.js egress address for 100% of genuine traffic**. The
+applicant's own address never reaches the function, and forwarding it would not be safe —
+`verify_jwt = false` means a forged header would let a direct caller charge any bucket.
+
+Two attempts to make that limiter mitigate T-66-06 both failed:
+
+1. Keyed on the token alone -> a public kill switch, because D-03a publishes the token.
+2. Keyed on `${tokenHash}:${getClientIp(req)}` -> defeated by simply GETting the public page,
+   which lands the attacker in the same egress-keyed bucket real applicants share.
+
+**The general result:** at this function an attacker and an applicant are indistinguishable —
+same address, same shape, same arrival path. No key it can compute separates them, so no
+configuration of this limiter mitigates T-66-06. The bucket has therefore been re-scoped to an
+honest per-listing capacity ceiling (3,000/min, far above organic) and the address-only
+product-wide ceiling was removed.
+
+**What an actual mitigation requires — an owner decision between:**
+
+- **Proxy-level limiting.** `src/proxy.ts` sees the real client address before the RSC runs.
+  It currently has NO rate limiting at all. This is the natural home, but it is a different
+  layer with its own blast radius (every route, every authenticated user) and needs its own
+  design and review cycle.
+- **A WAF/CDN rule** in front of the app, which never touches application code.
+- **Accepting the risk.** The realistic impact is denial of service to applicants on one
+  listing; there is no data exposure, and the DB-side per-link cap under the token row's
+  `FOR UPDATE` lock remains the fail-closed abuse bound regardless.
+
+**Do not** re-attempt this inside `apply-token`. Two attempts have now proven it cannot work
+there, and both shipped a test that certified the property the code did not have.

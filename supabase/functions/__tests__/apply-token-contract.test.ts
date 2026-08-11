@@ -409,27 +409,45 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 		expect(contextLimitCall).toContain("identifier:");
 	});
 
-	it("the context bucket keys on token AND address, never the token alone", () => {
-		// T-66-06, and the defect this assertion replaced. The earlier version of
-		// this test asserted the exact string `identifier: tokenHash` — it was
-		// written to match the code and therefore certified the vulnerable form.
+	it("the context bucket is a per-listing capacity ceiling, not a per-caller gate", () => {
+		// THIS ASSERTION HAS NOW BEEN WRONG TWICE, IN OPPOSITE DIRECTIONS, AND THAT
+		// IS THE POINT OF THE COMMENT.
 		//
-		// A token-ONLY key is a public kill switch. This function is
-		// verify_jwt=false and D-03a PUBLISHES the token to Zillow/Craigslist/
-		// Facebook, so the bucket would be shared with the entire internet: 60
-		// unauthenticated POSTs a minute empties it and every genuine applicant
-		// gets the context_error card instead of the form, indefinitely, with no
-		// owner recovery (D-03a rejects rotation, and a re-minted token is
-		// re-readable from the same ad).
+		// v1 pinned the literal `identifier: tokenHash` — written to match the code,
+		// so it certified a public kill switch: the token is PUBLISHED under D-03a,
+		// so a token-only bucket is shared with the entire internet.
 		//
-		// The token component still has to be there: this call is made from the
-		// Next.js server, so all real traffic shares one egress address and an
-		// address-only key would throttle every listing at once. Both, or neither
-		// property holds.
-		expect(contextLimitCall).toContain("identifier: `${tokenHash}:");
-		expect(contextLimitCall).toContain("getClientIp(req)");
-		// The bare form must not come back.
-		expect(contextLimitCall).not.toContain("identifier: tokenHash,");
+		// v2 pinned `${tokenHash}:${getClientIp(req)}` and asserted that the address
+		// component confined an attacker to their own bucket. Also false. The
+		// context action runs ONLY server-side (`apply-context.ts` is not a client
+		// module; the page is force-dynamic and fetched no-store), so
+		// `getClientIp(req)` is the Next.js EGRESS for all genuine traffic — and an
+		// attacker reaches that same bucket just by GETting the public page. The
+		// address component is free to them.
+		//
+		// The general result: an attacker and an applicant are INDISTINGUISHABLE at
+		// this function. No key it can compute separates them, so no configuration
+		// of this limiter mitigates T-66-06. Per-client limiting belongs in
+		// `src/proxy.ts`, which sees the real client address (deferred-items.md).
+		//
+		// So this bucket is a CAPACITY ceiling per listing, and the property worth
+		// pinning is that it is sized above organic traffic rather than into it. A
+		// widely-shared listing plus link-preview crawlers can exceed 60/min on its
+		// own; locking an applicant out of the form is worse than the database load
+		// it would have prevented.
+		expect(contextLimitCall).toContain('prefix: "apply-context"');
+		expect(contextLimitCall).toContain("identifier: tokenHash");
+
+		// The ceiling must stay far above organic. Parsed, not string-matched, so
+		// this fails if someone tightens it back toward the lockout range.
+		const maxRequests = Number(
+			/maxRequests:\s*([\d_]+)/.exec(contextLimitCall)?.[1]?.replace(/_/g, ""),
+		);
+		expect(maxRequests).toBeGreaterThanOrEqual(1000);
+
+		// The address-only ceiling must not come back. Keyed on the shared egress it
+		// was a single product-wide cap across every listing, needing no token.
+		expect(CODE).not.toContain('prefix: "apply-context-ip"');
 	});
 
 	it("the submit bucket keys on the client address, with no override", () => {
@@ -442,13 +460,14 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 		expect(submitLimitCall).not.toContain("identifier");
 	});
 
-	it("the whole file carries exactly one token-derived limit key", () => {
-		// Scoped to the composite form. A bare `identifier: tokenHash` anywhere is
-		// the kill-switch shape and must not reappear on either action.
-		const composite = [...CODE.matchAll(/identifier: `\$\{tokenHash\}:/g)];
-		expect(composite.length).toBe(1);
-		const bare = [...CODE.matchAll(/identifier: tokenHash\s*,/g)];
-		expect(bare.length).toBe(0);
+	it("exactly one action carries a token-derived limit key, and it is context", () => {
+		// The token component must appear ONCE and only on the context action. On
+		// submit it would recreate the per-unit lockout D-04b/F-5 forbid: that
+		// request comes from the applicant's own browser, so the address is real
+		// and is the correct key there.
+		const tokenKeyed = [...CODE.matchAll(/identifier: tokenHash\b/g)];
+		expect(tokenKeyed.length).toBe(1);
+		expect(CONTEXT_BODY).toContain("identifier: tokenHash");
 		expect(SUBMIT_BODY).not.toContain("identifier");
 	});
 });

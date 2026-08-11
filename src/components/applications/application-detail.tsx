@@ -708,7 +708,12 @@ function DetailBreadcrumb({ heading }: { heading: string }) {
 /** Never a spinner, and never a full-page loader. */
 function DetailSkeletons() {
 	return (
-		<div className="flex flex-col gap-4">
+		// Same page shell as the loaded branch below (`p-6 lg:p-8 bg-background
+		// min-h-full`). Without it the skeleton renders on the AppShell's own
+		// `p-4 lg:p-6` and `bg-muted/30`, so the page shifts 24px and changes
+		// background the instant data lands — and every other owner surface's
+		// loading state already carries this wrapper (tenants, properties).
+		<div className="p-6 lg:p-8 bg-background min-h-full flex flex-col gap-4">
 			<Skeleton className="h-10 w-64 rounded-lg" />
 			<Skeleton className="h-11 w-full rounded-lg" />
 			{Array.from({ length: 3 }).map((_, index) => (
@@ -742,7 +747,8 @@ function tenantDisplayName(
  */
 function DetailError({ onRetry }: { onRetry: () => void }) {
 	return (
-		<div className="flex flex-col items-start gap-2">
+		// Same page shell as the loaded and skeleton branches — see DetailSkeletons.
+		<div className="p-6 lg:p-8 bg-background min-h-full flex flex-col items-start gap-2">
 			{/* `mb-0`: bare `<p>` in a flex column (§D-3). */}
 			<p className="text-sm text-muted-foreground mb-0">
 				Couldn&apos;t load this application.

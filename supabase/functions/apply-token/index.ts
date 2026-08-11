@@ -71,7 +71,7 @@ import {
 	clientUserAgent,
 	sha256Hex,
 } from "../_shared/lease-signing.ts";
-import { getClientIp, rateLimit } from "../_shared/rate-limit.ts";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
 interface ApplicationContextRow {
@@ -150,53 +150,60 @@ async function handleContext(
 	// D-15: hash in Deno, never in SQL — see the auth-model note above.
 	const tokenHash = await sha256Hex(token);
 
-	// Two buckets, mirroring /sign. The coarse ceiling runs first so a limited
-	// caller never charges the finer bucket.
+	// THIS LIMITER IS A CAPACITY CEILING. IT IS NOT, AND CANNOT BE, THE T-66-06
+	// MITIGATION — AND TWO EARLIER ATTEMPTS TO MAKE IT ONE WERE BOTH WRONG.
 	//
-	// THE SECOND KEY IS COMPOSITE, AND THE TOKEN ALONE WOULD BE A KILL SWITCH.
+	// The context action is called ONLY from the RSC (`apply-context.ts`), which
+	// is not a client module, against a `force-dynamic` page fetched
+	// `cache: "no-store"`. So one applicant page view == one call here, and
+	// `getClientIp(req)` is the NEXT.JS EGRESS ADDRESS for 100% of genuine
+	// traffic. The applicant's own address never reaches this function, and it
+	// could not be forwarded safely either: `verify_jwt = false` means a forged
+	// header would let a direct caller charge any bucket it liked.
 	//
-	// The original reasoning for a token-keyed bucket was half right: this call
-	// originates from the Next.js server, so every context request in the world
-	// shares one egress address, and an address-ONLY bucket would throttle every
-	// applicant on every listing at once. That part still holds, and it is why
-	// the token component stays.
+	// Attempt 1 keyed on the token alone. That was a public kill switch: under
+	// D-03a the token is PUBLISHED to listing sites, so the bucket was shared
+	// with the entire internet.
 	//
-	// What it missed is who else can charge that bucket. This function is
-	// `verify_jwt = false`, and under D-03a the token is PUBLISHED — to Zillow,
-	// Craigslist, Facebook — so possession is the normal state of the world, not
-	// a compromise. A bucket keyed on the token alone is therefore shared with
-	// the entire internet: 60 unauthenticated POSTs a minute, one per second,
-	// empties it, `fetchApplyContext` starts seeing 429, and every genuine
-	// applicant gets the context_error card instead of the form. The 300/60s
-	// address ceiling above does not bound that at all — it is keyed on the
-	// ATTACKER's address and gives 5x the headroom needed. The owner cannot
-	// recover either: D-03a rejects rotation because it silently breaks every
-	// listing already posted, and a re-minted token is re-readable from the same
-	// ad. That is T-66-06 exactly, and it contradicts plan 66-07's own criterion
-	// that "one applicant cannot lock out another".
+	// Attempt 2 keyed on `${tokenHash}:${getClientIp(req)}`, reasoning that a
+	// direct caller "arrives from their own address and can only ever drain
+	// their own bucket". True — and irrelevant, because nobody has to call
+	// directly. `curl https://tenantflow.app/apply/<token>` renders the page,
+	// which fires this call FROM THE EGRESS, landing in the exact bucket real
+	// applicants share. The attacker obtains the address component for free by
+	// using the front door.
 	//
-	// Composing token + address keeps both properties. Real applicants all
-	// arrive via the shared server egress, so they land in one bucket per
-	// listing and the per-listing bound is unchanged. Anyone calling the
-	// function directly arrives from their own address and can only ever drain
-	// their own bucket.
+	// THE GENERAL RESULT: an attacker and an applicant are INDISTINGUISHABLE
+	// here. Same address, same shape, same arrival path. Any threshold low
+	// enough to stop a 1 req/s flood also locks out a listing that gets shared
+	// into a group chat. No key derived from what this function can observe
+	// separates them, so no configuration of this limiter mitigates T-66-06.
 	//
-	// Submit still keys on the address ALONE (no identifier override): that
-	// request comes from the applicant's own browser, so the address is real,
-	// and adding a token component there would recreate this same lockout per
-	// unit (D-04b, F-5).
-	const ipLimited = await rateLimit(req, {
-		maxRequests: 300,
-		windowMs: 60_000,
-		prefix: "apply-context-ip",
-	});
-	if (ipLimited) return ipLimited;
-
+	// WHAT THIS BUCKET IS FOR, THEN: bounding `get_application_context` calls per
+	// listing so one runaway link cannot saturate the database. That is a
+	// capacity guard, and it is sized so organic traffic cannot trip it —
+	// deliberately far above the ~60/min that a widely-shared listing plus
+	// link-preview crawlers can reach on its own. Locking an applicant out of a
+	// form is a worse outcome than the load it would have prevented.
+	//
+	// The old 300/60s address-only ceiling is GONE. Keyed on the shared egress it
+	// was a single product-wide cap across every listing, needing no token at
+	// all — strictly a chokepoint with nothing to show for it.
+	//
+	// WHERE THE REAL PER-CLIENT LIMIT BELONGS: `src/proxy.ts`, which sees the
+	// actual client address before the RSC ever runs, or a WAF/CDN rule in front
+	// of it. `src/proxy.ts` currently has no rate limiting at all. That is
+	// recorded in deferred-items.md rather than bolted on here, because it is a
+	// different layer with its own blast radius and needs its own review.
+	//
+	// Submit is unaffected and still keys on the address ALONE: that request
+	// comes from the applicant's own browser, so the address is real and a token
+	// component there would recreate the lockout per unit (D-04b, F-5).
 	const tokenLimited = await rateLimit(req, {
-		maxRequests: 60,
+		maxRequests: 3_000,
 		windowMs: 60_000,
 		prefix: "apply-context",
-		identifier: `${tokenHash}:${getClientIp(req)}`,
+		identifier: tokenHash,
 	});
 	if (tokenLimited) return tokenLimited;
 
