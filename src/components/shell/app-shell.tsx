@@ -10,6 +10,7 @@ import {
 	FolderArchive,
 	HelpCircle,
 	Home,
+	Inbox,
 	Settings,
 	Users,
 	Wrench,
@@ -97,6 +98,11 @@ export function AppShell({
 				{ label: "Properties", href: "/properties", icon: Building2 },
 				{ label: "Tenants", href: "/tenants", icon: Users },
 				{ label: "Leases", href: "/leases", icon: ClipboardList },
+				// Twin of `coreItems` in main-nav.tsx — these two arrays are
+				// duplicated by design and must stay in sync, same entry, same
+				// position. Adding a nav destination to only one of them ships a
+				// route that is reachable from the sidebar but not from Cmd+K.
+				{ label: "Applications", href: "/applications", icon: Inbox },
 				{ label: "Maintenance", href: "/maintenance", icon: Wrench },
 				{ label: "Documents", href: "/documents", icon: FolderArchive },
 			],

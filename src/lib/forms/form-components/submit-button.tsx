@@ -28,6 +28,15 @@ type SubmitButtonProps = Omit<
  * before it calls `validateAllFields("submit")`, so a programmatically-set value
  * (Select, calendar popover) leaves the form permanently unsubmittable with no
  * visible error. Use a form-level `onChange` validator instead.
+ *
+ * A form-level `onChange` validator that reports EVERY unfilled required field
+ * needs one more thing: `canSubmitWhenInvalid: true` on the form. `canSubmit` is
+ * `(submissionAttempts === 0 && !isTouched && ...) || (... && isValid)`, so with
+ * such a validator the first keystroke kills the left clause and `isValid` never
+ * arrives — this button then stays disabled for the whole session while field
+ * errors stay hidden behind `isTouched`. `handleSubmit` marks every field touched
+ * before it consults `canSubmit`, so letting the attempt through is what makes
+ * the errors visible. See `rental-application-form.tsx`.
  */
 export function SubmitButton({
 	label,

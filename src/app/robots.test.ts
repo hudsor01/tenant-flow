@@ -4,7 +4,10 @@ vi.mock("#lib/generate-metadata", () => ({
 	getSiteUrl: () => "https://tenantflow.app",
 }));
 
-import { PRIVATE_ROUTE_PREFIXES } from "#lib/routes/private-routes";
+import {
+	PRIVATE_ROUTE_PREFIXES,
+	ROBOTS_ONLY_PRIVATE_PATHS,
+} from "#lib/routes/private-routes";
 // Import the source-of-truth arrays from robots.ts directly so any
 // addition OR removal there triggers the per-bot / per-path assertions
 // below. A previous version of this file duplicated the lists, which
@@ -163,5 +166,63 @@ describe("robots()", () => {
 		expect(named).not.toContain("Bytespider");
 		expect(named).not.toContain("Diffbot");
 		expect(named).not.toContain("cohere-ai");
+	});
+});
+
+// The exact predicate `proxy.ts#isPrivateRoute` uses. Duplicated here on
+// purpose: importing proxy.ts would pull in @supabase/ssr, next/server and the
+// validated env module, none of which this suite needs. The predicate is three
+// lines and pinned by the assertions below, so a drift in proxy.ts's matching
+// rule surfaces as a behavioural test failure elsewhere rather than silently.
+function matchesPrefix(
+	pathname: string,
+	prefixes: readonly string[],
+): string[] {
+	return prefixes.filter(
+		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
+	);
+}
+
+// Assertions 3 and 4 below are a PAIR, and neither means much alone: one proves
+// the public applicant route stays reachable, the other proves the owner review
+// queue is gated. Both are evaluated with the SAME boundary predicate the proxy
+// uses, so they cannot disagree with proxy.ts about what "/applications" does
+// and does not capture. A plain `includes("/apply")` membership check would
+// pass while a future "/app" entry silently redirected every applicant holding
+// a listing link to /login; the predicate form fails loudly instead.
+describe("/apply is public by absence (D-13/D-14)", () => {
+	it("does not appear in PRIVATE_ROUTE_PREFIXES", () => {
+		expect(
+			PRIVATE_ROUTE_PREFIXES,
+			"/apply must never be auth-gated — the applicant has no account",
+		).not.toContain("/apply");
+	});
+
+	it("does not appear in ROBOTS_ONLY_PRIVATE_PATHS", () => {
+		expect(
+			ROBOTS_ONLY_PRIVATE_PATHS,
+			"a robots.txt disallow would stop crawlers reading the page's own noindex meta, making indexing MORE likely",
+		).not.toContain("/apply");
+	});
+
+	it("no private path is a boundary prefix of a token URL", () => {
+		const captured = matchesPrefix("/apply/abc123", PRIVATE_PATHS);
+		expect(
+			captured,
+			`these private prefixes would gate the public applicant route: ${captured.join(", ")}`,
+		).toEqual([]);
+	});
+
+	it("but /applications IS gated, at the route and at a detail id", () => {
+		expect(PRIVATE_PATHS).toContain("/applications");
+		expect(matchesPrefix("/applications", PRIVATE_PATHS)).toContain(
+			"/applications",
+		);
+		expect(
+			matchesPrefix(
+				"/applications/00000000-0000-0000-0000-000000000000",
+				PRIVATE_PATHS,
+			),
+		).toContain("/applications");
 	});
 });

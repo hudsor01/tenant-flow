@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../auth-helpers";
+import { boxesOf, widthOf } from "../lib/measure";
 import { ROUTES } from "./constants/routes";
 
 /**
@@ -79,11 +80,17 @@ function medallion(root: Locator): Locator {
 	return root.locator('svg[aria-hidden="true"]').first().locator("xpath=..");
 }
 
-async function widthOf(locator: Locator): Promise<number> {
-	const box = await locator.boundingBox();
-	if (!box) throw new Error("element has no bounding box (not rendered)");
-	return box.width;
-}
+/**
+ * Measurement is delegated to `tests/e2e/lib/measure.ts`, which polls until the
+ * browser has committed a layout box.
+ *
+ * The local version of this helper took a single, non-retrying `boundingBox()`
+ * and threw "element has no bounding box (not rendered)" on `null`. That is what
+ * failed on `main` from 2026-08-05 onward — 3/3 attempts, not a flake — because
+ * the medallion test is the only test in this file that measures straight out of
+ * `beforeEach` with no `toBeVisible()` wait, while every other test here waits up
+ * to 15s first. The element was never missing; the read was simply too early.
+ */
 
 test.describe("Documents landing (Phase 65, DOCS-01)", () => {
 	test.beforeEach(async ({ page }) => {
@@ -163,15 +170,20 @@ test.describe("Documents landing (Phase 65, DOCS-01)", () => {
 	});
 });
 
-/** Distinct y-positions of the four printable tiles == number of rendered rows. */
+/**
+ * Distinct y-positions of the four printable tiles == number of rendered rows.
+ *
+ * `min: PRINTABLE_TILES.length` replaces the old `toBeVisible()` gate on the
+ * FIRST tile, and it is strictly stronger in both directions. Visibility and a
+ * committed layout box are different states (see `lib/measure.ts`), and one
+ * visible tile said nothing about the other three — a band that rendered two of
+ * four would have reported a row count derived from half the grid.
+ */
 async function distinctRowCount(page: Page): Promise<number> {
 	const tiles = band(page, PRINTABLES).getByRole("link");
-	await expect(tiles.first()).toBeVisible();
-	const boxes = await tiles.evaluateAll((nodes) =>
-		nodes.map((n) => Math.round(n.getBoundingClientRect().y)),
-	);
+	const boxes = await boxesOf(tiles, { min: PRINTABLE_TILES.length });
 	// Tolerate sub-pixel drift: bucket to the nearest 2px before de-duplicating.
-	return new Set(boxes.map((y) => Math.round(y / 2))).size;
+	return new Set(boxes.map((box) => Math.round(Math.round(box.y) / 2))).size;
 }
 
 test.describe("Documents landing at 375px", () => {

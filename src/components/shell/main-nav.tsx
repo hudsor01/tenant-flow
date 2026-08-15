@@ -10,6 +10,7 @@ import {
 	FolderArchive,
 	HelpCircle,
 	Home,
+	Inbox,
 	Keyboard,
 	type LucideIcon,
 	Settings,
@@ -37,6 +38,13 @@ const coreItems: NavigationItem[] = [
 	{ label: "Properties", href: "/properties", icon: Building2 },
 	{ label: "Tenants", href: "/tenants", icon: Users },
 	{ label: "Leases", href: "/leases", icon: ClipboardList },
+	// Phase 66 (APPLY-03, UI-11): FLAT for the same reason Documents is — see the
+	// note below. No unread badge this phase: a per-status count needs its own
+	// query nothing else on this page issues. `Inbox` is unused elsewhere in src/;
+	// ClipboardList is Leases, ClipboardCheck is the property-inspection tile, and
+	// UserSearch was rejected because it reads as screening, which this product
+	// does not do (APPLY-06 disclaims it).
+	{ label: "Applications", href: "/applications", icon: Inbox },
 	{ label: "Maintenance", href: "/maintenance", icon: Wrench },
 	// Phase 65 (DOCS-01): deliberately FLAT — no `children`. `renderNavItem`'s
 	// hasChildren branch renders a parent as a <button> toggle with NO <Link> at

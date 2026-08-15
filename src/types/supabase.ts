@@ -1655,6 +1655,243 @@ export type Database = {
 					},
 				];
 			};
+			rental_application_links: {
+				Row: {
+					created_at: string;
+					created_by: string;
+					expires_at: string;
+					id: string;
+					owner_user_id: string;
+					raw_token: string;
+					revoked_at: string | null;
+					submission_count: number;
+					token_hash: string;
+					unit_id: string;
+				};
+				Insert: {
+					created_at?: string;
+					created_by: string;
+					expires_at: string;
+					id?: string;
+					owner_user_id: string;
+					raw_token: string;
+					revoked_at?: string | null;
+					submission_count?: number;
+					token_hash: string;
+					unit_id: string;
+				};
+				Update: {
+					created_at?: string;
+					created_by?: string;
+					expires_at?: string;
+					id?: string;
+					owner_user_id?: string;
+					raw_token?: string;
+					revoked_at?: string | null;
+					submission_count?: number;
+					token_hash?: string;
+					unit_id?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "rental_application_links_created_by_fkey";
+						columns: ["created_by"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rental_application_links_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rental_application_links_unit_id_fkey";
+						columns: ["unit_id"];
+						isOneToOne: false;
+						referencedRelation: "units";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			rental_applications: {
+				Row: {
+					anonymized_at: string | null;
+					applicant_email: string;
+					applicant_first_name: string;
+					applicant_last_name: string;
+					applicant_phone: string | null;
+					certified_at: string;
+					converted_at: string | null;
+					converted_tenant_id: string | null;
+					created_at: string;
+					current_city: string | null;
+					current_landlord_name: string | null;
+					current_landlord_phone: string | null;
+					current_postal_code: string | null;
+					current_state: string | null;
+					current_street: string | null;
+					decided_at: string | null;
+					desired_move_in_date: string | null;
+					disposition_reason: string | null;
+					employer_months: number | null;
+					employer_name: string | null;
+					employer_role: string | null;
+					gross_monthly_income: number | null;
+					id: string;
+					link_id: string | null;
+					occupant_count: number;
+					other_income_amount: number | null;
+					other_income_source: string | null;
+					owner_notes: string | null;
+					owner_user_id: string;
+					pet_details: string | null;
+					property_label: string;
+					reason_for_moving: string | null;
+					reference_1_name: string | null;
+					reference_1_phone: string | null;
+					reference_1_relationship: string | null;
+					reference_2_name: string | null;
+					reference_2_phone: string | null;
+					reference_2_relationship: string | null;
+					status: string;
+					submission_id: string;
+					submitted_ip: string | null;
+					submitted_user_agent: string | null;
+					unit_id: string | null;
+					unit_label: string | null;
+					updated_at: string;
+					vehicle_details: string | null;
+				};
+				Insert: {
+					anonymized_at?: string | null;
+					applicant_email: string;
+					applicant_first_name: string;
+					applicant_last_name: string;
+					applicant_phone?: string | null;
+					certified_at: string;
+					converted_at?: string | null;
+					converted_tenant_id?: string | null;
+					created_at?: string;
+					current_city?: string | null;
+					current_landlord_name?: string | null;
+					current_landlord_phone?: string | null;
+					current_postal_code?: string | null;
+					current_state?: string | null;
+					current_street?: string | null;
+					decided_at?: string | null;
+					desired_move_in_date?: string | null;
+					disposition_reason?: string | null;
+					employer_months?: number | null;
+					employer_name?: string | null;
+					employer_role?: string | null;
+					gross_monthly_income?: number | null;
+					id?: string;
+					link_id?: string | null;
+					occupant_count: number;
+					other_income_amount?: number | null;
+					other_income_source?: string | null;
+					owner_notes?: string | null;
+					owner_user_id: string;
+					pet_details?: string | null;
+					property_label: string;
+					reason_for_moving?: string | null;
+					reference_1_name?: string | null;
+					reference_1_phone?: string | null;
+					reference_1_relationship?: string | null;
+					reference_2_name?: string | null;
+					reference_2_phone?: string | null;
+					reference_2_relationship?: string | null;
+					status?: string;
+					submission_id: string;
+					submitted_ip?: string | null;
+					submitted_user_agent?: string | null;
+					unit_id?: string | null;
+					unit_label?: string | null;
+					updated_at?: string;
+					vehicle_details?: string | null;
+				};
+				Update: {
+					anonymized_at?: string | null;
+					applicant_email?: string;
+					applicant_first_name?: string;
+					applicant_last_name?: string;
+					applicant_phone?: string | null;
+					certified_at?: string;
+					converted_at?: string | null;
+					converted_tenant_id?: string | null;
+					created_at?: string;
+					current_city?: string | null;
+					current_landlord_name?: string | null;
+					current_landlord_phone?: string | null;
+					current_postal_code?: string | null;
+					current_state?: string | null;
+					current_street?: string | null;
+					decided_at?: string | null;
+					desired_move_in_date?: string | null;
+					disposition_reason?: string | null;
+					employer_months?: number | null;
+					employer_name?: string | null;
+					employer_role?: string | null;
+					gross_monthly_income?: number | null;
+					id?: string;
+					link_id?: string | null;
+					occupant_count?: number;
+					other_income_amount?: number | null;
+					other_income_source?: string | null;
+					owner_notes?: string | null;
+					owner_user_id?: string;
+					pet_details?: string | null;
+					property_label?: string;
+					reason_for_moving?: string | null;
+					reference_1_name?: string | null;
+					reference_1_phone?: string | null;
+					reference_1_relationship?: string | null;
+					reference_2_name?: string | null;
+					reference_2_phone?: string | null;
+					reference_2_relationship?: string | null;
+					status?: string;
+					submission_id?: string;
+					submitted_ip?: string | null;
+					submitted_user_agent?: string | null;
+					unit_id?: string | null;
+					unit_label?: string | null;
+					updated_at?: string;
+					vehicle_details?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "rental_applications_converted_tenant_id_fkey";
+						columns: ["converted_tenant_id"];
+						isOneToOne: false;
+						referencedRelation: "tenants";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rental_applications_link_id_fkey";
+						columns: ["link_id"];
+						isOneToOne: false;
+						referencedRelation: "rental_application_links";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rental_applications_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "rental_applications_unit_id_fkey";
+						columns: ["unit_id"];
+						isOneToOne: false;
+						referencedRelation: "units";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			report_runs: {
 				Row: {
 					completed_at: string | null;
@@ -2613,6 +2850,7 @@ export type Database = {
 				Args: { p_user_id: string };
 				Returns: undefined;
 			};
+			anonymize_old_rental_applications: { Args: never; Returns: number };
 			audit_for_all_policies: {
 				Args: { p_role: string };
 				Returns: {
@@ -2712,6 +2950,14 @@ export type Database = {
 				Args: { p_lease_id: string; p_subscription_id: string };
 				Returns: undefined;
 			};
+			create_application_link: {
+				Args: { p_expires_days?: number; p_unit_id: string };
+				Returns: {
+					expires_at: string;
+					link_id: string;
+					raw_token: string;
+				}[];
+			};
 			create_notification: {
 				Args: {
 					p_action_url?: string;
@@ -2728,6 +2974,17 @@ export type Database = {
 			expire_leases: { Args: never; Returns: undefined };
 			expire_trials: { Args: never; Returns: number };
 			generate_rent_charges: { Args: never; Returns: number };
+			get_application_context: {
+				Args: { p_token_hash: string };
+				Returns: {
+					owner_display_name: string;
+					property_label: string;
+					reason: string;
+					rent_amount: number;
+					unit_label: string;
+					valid: boolean;
+				}[];
+			};
 			get_billing_insights: {
 				Args: {
 					end_date_param?: string;
@@ -3070,6 +3327,13 @@ export type Database = {
 				Args: { p_from_id: string; p_to_id: string };
 				Returns: undefined;
 			};
+			record_application_conversion: {
+				Args: { p_application_id: string; p_tenant_id: string };
+				Returns: {
+					reason: string;
+					success: boolean;
+				}[];
+			};
 			record_lease_signature: {
 				Args: {
 					p_lease_id: string;
@@ -3092,6 +3356,10 @@ export type Database = {
 			require_stripe_schema: { Args: never; Returns: boolean };
 			reverse_charge: { Args: { p_charge_id: string }; Returns: undefined };
 			reverse_receipt: { Args: { p_receipt_id: string }; Returns: undefined };
+			revoke_application_link: {
+				Args: { p_link_id: string };
+				Returns: undefined;
+			};
 			revoke_user_session: {
 				Args: { p_session_id: string; p_user_id: string };
 				Returns: undefined;
@@ -3138,6 +3406,18 @@ export type Database = {
 				Args: { p_owner_user_id: string };
 				Returns: undefined;
 			};
+			set_application_notes: {
+				Args: { p_application_id: string; p_notes: string };
+				Returns: undefined;
+			};
+			set_application_status: {
+				Args: {
+					p_application_id: string;
+					p_disposition_reason?: string;
+					p_status: string;
+				};
+				Returns: undefined;
+			};
 			sign_lease_with_token: {
 				Args: {
 					p_signature_ip: string;
@@ -3164,6 +3444,20 @@ export type Database = {
 			storage_object_owner: {
 				Args: { p_bucket: string; p_name: string };
 				Returns: string;
+			};
+			submit_rental_application: {
+				Args: {
+					p_ip: string;
+					p_payload: Json;
+					p_submission_id: string;
+					p_token_hash: string;
+					p_user_agent: string;
+				};
+				Returns: {
+					application_id: string;
+					reason: string;
+					success: boolean;
+				}[];
 			};
 		};
 		Enums: {

@@ -43,7 +43,8 @@ bun run validate:quick               # types + lint + unit tests
 Full strict mode incl. `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `checkJs`. Prefix unused callback params with `_` or remove. Prefetch-only `useQuery()` calls go without variable assignment.
 
 ## Testing
-- **Unit:** Vitest 4 + jsdom, 80% coverage threshold (enforced via lefthook pre-commit). `vi.hoisted()` for any mock variable referenced in `vi.mock()`. `.rejects.toMatchObject({ message: expect.stringContaining(...) })` instead of `.rejects.toThrow('string')` (chai 6 bug).
+- **Unit:** Vitest 4 + jsdom, enforced via lefthook pre-commit. `vi.hoisted()` for any mock variable referenced in `vi.mock()`. `.rejects.toMatchObject({ message: expect.stringContaining(...) })` instead of `.rejects.toThrow('string')` (chai 6 bug).
+- **Coverage thresholds are a RATCHET at the measured floor, not 80%.** Currently statements 64 / branches 56 / functions 63 / lines 66, declared at the ROOT of `vitest.config.ts`. They were 80% and **enforced nothing**: the `coverage` block sat inside `projects[]`, where Vitest discards it (`coverage` is in `NonProjectOptions`), so the suite reported 64% and exited 0 for as long as that was true. `vitest.config.ts` is in no tsconfig project, so `bun run typecheck` never saw the type error that said so. Raising these is a deliberate act — 80% remains the goal, now recorded as unmet rather than falsely recorded as met. Never move `coverage` back inside `projects[]`.
 - **RLS integration:** `tests/integration/rls/` — dual-client (ownerA/ownerB) authenticated against prod. Sequential. Synthetic test accounts only — never personal credentials.
 - **E2E:** Playwright in `tests/e2e/`.
 - **Edge Function tests:** Deno in `supabase/functions/tests/`, requires `supabase functions serve` running.
@@ -182,7 +183,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 ## Proxy Middleware
 - `src/proxy.ts` (Next.js 16; replaces deprecated root `middleware.ts`)
 - `updateSession` in `src/lib/supabase/middleware.ts` handles Supabase token refresh with `getAll`/`setAll` cookie pattern
-- Public routes skip auth (see `PUBLIC_ROUTES` in `proxy.ts` for the current set)
+- Route gating is a **deny-list, not an allow-list**: `PRIVATE_ROUTE_PREFIXES` in `src/lib/routes/private-routes.ts`. A route is public by **absence** from that array, so a new authenticated route ships publicly reachable unless you add it. (There is no `PUBLIC_ROUTES`.) `src/app/robots.ts` reads the same array, so one edit keeps both consumers in sync — that is why the file says never to edit it without updating both.
 - Authenticated users must have `subscription_status IN ('active', 'trialing')` to access dashboard routes
 - `redirectWithCookies` helper preserves session cookies on every redirect
 

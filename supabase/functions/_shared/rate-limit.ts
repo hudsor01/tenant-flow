@@ -53,6 +53,32 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
 		limiter: Ratelimit.slidingWindow(maxRequests, windowMs),
 		analytics: false,
 		prefix: "@upstash/ratelimit",
+		// FAIL OPEN FAST, NOT SLOW. This bounds the whole limiter call, including
+		// the SDK's internal retries.
+		//
+		// This module already fails open on error (see the catch below) — that is
+		// deliberate: availability beats strict limiting on these surfaces. But
+		// without a timeout, "fails open" meant "fails open ~4.4 SECONDS LATER",
+		// because an unreachable Upstash is not a fast error, it is a hang.
+		//
+		// Measured against deployed apply-token v3 on 2026-08-09:
+		//   unknown action, zero limiter calls .... 0.28-0.38s
+		//   context action, TWO limiter calls ..... 9.0-9.2s
+		// and sign-lease-token, which has called this module since long before
+		// Phase 66, showed 9.4-9.6s in the same edge-function logs. So every
+		// caller has been paying ~4.4s per limiter call for the WORST possible
+		// trade: full latency cost, zero enforcement. /apply/[token] is the only
+		// page a prospective tenant ever sees, and it was wearing 9s of that.
+		//
+		// 800ms is well above a healthy Upstash round trip (tens of ms) and far
+		// below anything a user should wait on. Past it the request is allowed
+		// through — identical to the existing fail-open posture, just prompt.
+		//
+		// This does NOT fix the underlying Upstash connectivity: while that is
+		// broken the limits are still no-ops, and the fail-closed bound remains
+		// the per-link DB cap taken under the token row's lock. It stops the
+		// outage from also being a latency disaster.
+		timeout: 800,
 	});
 
 	cachedLimiters.set(key, limiter);
@@ -88,7 +114,7 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
  *      falls open for per-IP isolation but stays closed for
  *      aggregate-traffic ceilings.
  */
-function getClientIp(req: Request): string {
+export function getClientIp(req: Request): string {
 	const cfIp = req.headers.get("cf-connecting-ip");
 	if (cfIp) return cfIp;
 

@@ -86,6 +86,26 @@ export default defineConfig({
 						// source from disk. `supabase/functions/tests/` is the separate
 						// Deno test directory and stays out of this pattern.
 						"supabase/functions/__tests__/**/*.{test,spec}.ts",
+						// Node-side guards over the Playwright SUPPORT modules — the
+						// measurement helpers and the production seeder in
+						// `tests/e2e/lib/`. Those modules carry real invariants (every
+						// geometry read polls; the seeder must not march an
+						// un-resettable production counter) that nothing else can
+						// assert: the Playwright specs cannot check them without a
+						// browser and a production sign-in, so the invariants shipped
+						// broken and stayed broken. The `.spec.ts` files themselves stay
+						// OUT — they import `@playwright/test` and are not runnable here.
+						"tests/e2e/lib/__tests__/**/*.test.ts",
+						// The same argument one level over: pure, network-free decision
+						// helpers used by the RLS integration suite. The one that lives
+						// here decides which retention window R7 may install against
+						// PRODUCTION, and it is the part that can be wrong — but it
+						// cannot be exercised by running the global, irreversible sweep
+						// it exists to bound. It runs here, off-network, with no
+						// credentials, so the decision is proved without invoking the
+						// thing it guards. `_helpers/__tests__` only; every test that
+						// actually touches production stays excluded below.
+						"tests/integration/**/_helpers/__tests__/**/*.test.ts",
 					],
 					exclude: [
 						"node_modules",
@@ -94,31 +114,29 @@ export default defineConfig({
 						"out",
 						"build",
 						"coverage",
-						"tests/**",
+						// Narrower than the previous blanket `tests/**`, which also
+						// swallowed the `tests/e2e/lib/__tests__` include above (a
+						// Vitest exclude always beats an include). The two things that
+						// blanket existed to keep out are named explicitly instead: the
+						// Playwright specs, which need a browser, and the RLS
+						// integration suite, which has its own project below.
+						//
+						// `tests/integration/**` was itself a blanket for the same
+						// reason, and swallowed the `_helpers/__tests__` include above.
+						// The suites that actually sign in to production are enumerated
+						// by their real depth instead — one file at the root, and the
+						// `rls/` directory — so a helper test nested deeper is reachable
+						// while nothing that touches production ever is.
+						"tests/**/*.spec.ts",
+						"tests/integration/*.test.ts",
+						"tests/integration/rls/*.test.ts",
+						"tests/integration/setup/**",
 						"e2e/**",
 						"src/**/*.component.test.tsx",
 					],
-					coverage: {
-						provider: "v8",
-						reporter: ["text", "json", "html", "lcov"],
-						exclude: [
-							"node_modules/",
-							"src/test/",
-							"**/*.d.ts",
-							"**/*.config.{ts,js}",
-							"**/generated/**",
-							"**/__mocks__/**",
-							"src/types/**",
-							"tests/**",
-							"scripts/**",
-						],
-						thresholds: {
-							lines: 80,
-							functions: 80,
-							branches: 80,
-							statements: 80,
-						},
-					},
+					// NO `coverage` KEY HERE. It lived at this depth and did nothing —
+					// see the root-level block at the foot of this file for what that
+					// cost and how it was found.
 					testTimeout: 10000,
 					hookTimeout: 10000,
 				},
@@ -148,6 +166,10 @@ export default defineConfig({
 					globals: true,
 					testTimeout: 30000,
 					include: ["tests/integration/**/*.test.ts"],
+					// The pure decision helpers belong to the unit project. Running them
+					// here too would put a network-free test behind a production
+					// sign-in and make it ambiguous which project owns them.
+					exclude: ["tests/integration/**/_helpers/__tests__/**"],
 					setupFiles: ["./tests/integration/setup/env-loader.ts"],
 					// One-time auth sign-in for the whole suite. Caches sessions to
 					// a tmp file so each test file's `createTestClient` restores
@@ -157,5 +179,64 @@ export default defineConfig({
 				},
 			},
 		],
+
+		// =====================================================================
+		// COVERAGE. ROOT LEVEL, AND THAT PLACEMENT IS THE WHOLE POINT.
+		//
+		// This block previously sat INSIDE `projects[0].test`, where Vitest
+		// silently discards it: `coverage` is a member of Vitest's
+		// `NonProjectOptions`, and `ProjectConfig = Omit<InlineConfig,
+		// NonProjectOptions | ...>` (vitest 4, reporters.d.ts:3571,3596), so a
+		// `coverage` key at project depth is not a config error — it is simply
+		// not read. TypeScript did flag it ("'coverage' does not exist in type
+		// 'ProjectConfig'"), but `vitest.config.ts` is in no tsconfig project,
+		// so `bun run typecheck` never saw it.
+		//
+		// The consequence: the 80% threshold this repo believed it enforced on
+		// every commit was never applied. Measured at the moment it was found,
+		// the suite reported 64.19% statements and EXITED 0. CLAUDE.md said
+		// "80% coverage threshold (enforced via lefthook pre-commit)"; lefthook
+		// did run `--coverage`, the report printed, and nothing was gated. Every
+		// "the full suite passes" claim in this repo was measured against a gate
+		// that was not running.
+		//
+		// THE NUMBERS BELOW ARE THE MEASURED TRUTH, NOT AN ASPIRATION.
+		// Restoring the block at 80% would have failed instantly at 64% and
+		// blocked every commit in the repo, so the thresholds are set to the
+		// real floor (measured values rounded DOWN to whole percent, which also
+		// stops sub-point noise from flapping the gate):
+		//
+		//     statements 64.19 -> 64      branches  56.10 -> 56
+		//     functions  63.62 -> 63      lines     66.28 -> 66
+		//
+		// This is a RATCHET, not a target. It cannot rise on its own — raising
+		// it is a deliberate act, and the 80% goal is a real one that is now
+		// honestly recorded as unmet rather than falsely recorded as enforced.
+		// What it buys immediately is that coverage can no longer SILENTLY
+		// regress, which is the property the repo thought it had all along.
+		//
+		// Do not move this key back inside `projects[]`.
+		// =====================================================================
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json", "html", "lcov"],
+			exclude: [
+				"node_modules/",
+				"src/test/",
+				"**/*.d.ts",
+				"**/*.config.{ts,js}",
+				"**/generated/**",
+				"**/__mocks__/**",
+				"src/types/**",
+				"tests/**",
+				"scripts/**",
+			],
+			thresholds: {
+				statements: 64,
+				branches: 56,
+				functions: 63,
+				lines: 66,
+			},
+		},
 	},
 });

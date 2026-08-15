@@ -8,6 +8,7 @@ import {
 	ChevronRight,
 	FileCheck,
 	FileSignature,
+	Inbox,
 	type LucideIcon,
 	Wrench,
 } from "lucide-react";
@@ -33,6 +34,14 @@ const TYPE_VISUALS: Record<string, TypeVisual> = {
 	maintenance_created: { Icon: Wrench, chip: "icon-bg-info" },
 	maintenance_status: { Icon: Wrench, chip: "icon-bg-info" },
 	lease_renewal_reminder: { Icon: CalendarClock, chip: "icon-bg-primary" },
+	// Phase 66 (D-17). `Inbox` is the same glyph the sidebar Applications entry
+	// uses, so the notification and its destination read as one feature. This is
+	// POLISH, not correctness: without the entry the row still renders via
+	// FALLBACK_VISUAL's neutral Bell. The correctness half lives in plan 66-01 —
+	// the live notifications_notification_type_check has no application value, so
+	// create_notification raises 23514 and aborts the applicant's whole
+	// submission transaction until that CHECK is extended.
+	application_received: { Icon: Inbox, chip: "icon-bg-primary" },
 };
 
 // Neutral fallback for any future / unmapped notification_type (required by

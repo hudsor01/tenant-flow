@@ -43,6 +43,17 @@ interface TenantNameSnapshot {
 	last_name: string | null;
 }
 
+/**
+ * One existing tenant whose address matches an applicant's (APPLY-04).
+ * Deliberately just an id and a display name — the duplicate notice needs
+ * nothing else, and the conversion surface has no reason to hold a second copy
+ * of a tenant record.
+ */
+export interface TenantEmailMatch {
+	id: string;
+	name: string;
+}
+
 // Landlord-managed tenants are records, never auth users, so the dead
 // tenants.user_id FK embed was removed (LEGACY-TENANT-06). Display fields come
 // from the tenant's own first_name/last_name/email/phone columns.
@@ -257,6 +268,50 @@ export const tenantQueries = {
 					)
 					.sort((a, b) => a.last_name.localeCompare(b.last_name));
 			},
+		}),
+
+	/**
+	 * Case-insensitive address lookup for the application -> tenant conversion
+	 * (APPLY-04, UI-SPEC §B-6). Answers one question: does this owner already
+	 * hold a tenant with the applicant's address? A match is a NOTICE on the
+	 * destination page, never a gate — the same person legitimately applies for
+	 * a second unit.
+	 */
+	byEmail: (email: string) =>
+		queryOptions({
+			queryKey: [
+				...tenantQueries.lists(),
+				"by-email",
+				email.trim().toLowerCase(),
+			],
+			queryFn: async (): Promise<TenantEmailMatch | null> => {
+				const supabase = createClient();
+				const normalized = email.trim().toLowerCase();
+				// `ilike` takes a PATTERN, and an applicant-supplied address
+				// containing `%` or `_` would quietly widen an equality check into a
+				// wildcard match against the owner's whole tenant list. Escape the
+				// metacharacters, then re-check the returned address exactly below
+				// so the pattern is a lookup hint and never the decision.
+				const pattern = normalized.replace(/[\\%_]/g, (char) => `\\${char}`);
+
+				const { data, error } = await supabase
+					.from("tenants")
+					.select("id, name, first_name, last_name, email")
+					.neq("status", "inactive")
+					.ilike("email", pattern)
+					.limit(1);
+
+				if (error) handlePostgrestError(error, "tenants");
+
+				const row = (data ?? [])[0];
+				if (!row) return null;
+				if ((row.email ?? "").trim().toLowerCase() !== normalized) return null;
+
+				const fullName =
+					row.name ?? `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim();
+				return { id: row.id, name: fullName || (row.email ?? "") };
+			},
+			enabled: email.trim().length > 0,
 		}),
 
 	/**

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: 2026-08-04T14:43:51.788Z
-last_activity: 2026-08-04 -- Phase 65 MERGED (#960) and deployed to production
+last_updated: 2026-08-08T00:00:00.000Z
+last_activity: 2026-08-08 -- Phase 66 EXECUTED, all 17 plans across 7 waves; DB + edge fn LIVE in prod
 progress:
   total_phases: 14
   completed_phases: 6
-  total_plans: 38
-  completed_plans: 38
+  total_plans: 55
+  completed_plans: 55
   percent: 43
-stopped_at: Phase 65 merged (#960) and live in production. Next by EXECUTION order is Phase 66.
+stopped_at: Phase 66 executed (17/17). NOT yet verified or shipped -- next is /gsd-verify-work 66, then the perfect-PR gate and a PR. Branch gsd/phase-66-rental-application-intake.
 ---
 
 <!--
@@ -56,9 +56,92 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 65 (documents-landing) — SHIPPED, MERGED (#960), DEPLOYED
-Plan: 3 of 3 complete
-Status: Between phases. Next is Phase 66 (Rental Application Intake); 66-73 remain.
+Phase: 66 (rental-application-intake) — EXECUTED, not yet verified or shipped
+Plan: 17 of 17 complete (7 waves)
+
+**Production changes are ALREADY LIVE** (all owner-approved at their blocking gates):
+- 4 migrations applied 2026-08-07 via Supabase MCP. Prod-assigned versions `20260807003342`
+  (schema) / `003555` (7 RPCs) / `003630` (retention + cron `35 3 * * *`) / `003639` (GDPR
+  cascade). Repo filenames reconciled to match. `src/types/supabase.ts` regenerated.
+- **5th migration `20260808225439_rental_application_rpc_fixes` applied 2026-08-09** — the four
+  perfect-PR corrections (F1 soft-delete link closure, F6 calendar-invalid date, F7 advisory
+  lock, F8 disposition_reason clear).
+- Edge function `apply-token` deployed **v2 ACTIVE**, `verify_jwt=false`. All 13 bundled files
+  sha256-identical to disk on both deploys.
+
+**The 5th migration was applied WITHOUT MCP, deliberately, and there is no filename drift.**
+It is 817 lines / 38KB across four full `create or replace` bodies. MCP `apply_migration` takes
+SQL as a string parameter, so every one of those bytes would have passed through model
+re-emission — the failure class recorded in [[edge-deploy-mcp-fidelity]]. Instead the file was
+POSTed from disk via the Management API (`POST /v1/projects/{ref}/database/query`, `jq -Rs` to
+slurp it verbatim, HTTP 201), and the version row was then inserted into
+`supabase_migrations.schema_migrations` by hand. That endpoint executes SQL but does NOT record
+a migration version, so the insert is required — and because the version was chosen rather than
+prod-assigned, it matches the repo filename exactly. **No reconcile was needed for this one.**
+Reusable for any migration large enough that re-emission is the dominant risk.
+
+All four fixes verified BEHAVIOURALLY against production in a rolled-back transaction, not by
+string match: `2026-02-31` returns `invalid_payload` instead of raising 22008 (and a real date
+still submits); soft-deleting a unit flips `get_application_context` from `valid=t` to
+`valid=f / invalid_token` with a null label AND blocks submissions; a declined application's
+`disposition_reason` goes to NULL on conversion. Zero rows persisted.
+
+Smoke-verified against prod in rolled-back transactions: `create_application_link` returns a
+64-char hex token (proves the `extensions.digest` qualification resolves — the one line that
+applies clean and fails only at first call), and `create_notification` accepts
+`application_received` without 23514. Zero rows persisted.
+
+**Not yet exercised end-to-end.** No valid application has ever been submitted. The E2E and
+RLS suites are authored but have never run locally — see the env note below.
+
+**Local test-env blockers (pre-existing, NOT introduced by this phase):**
+- `.env.local` holds only `VERCEL_OIDC_TOKEN`, so `bun run test:integration` dies in
+  globalSetup and `next build` fails at `/blog/[slug]` page-data collection. Confirmed
+  pre-existing by running an untouched suite. **Never edit `.env.local`.**
+- `tests/e2e/playwright.config.ts:323` starts its webServer with
+  `rm -rf .next && rm -f .env.local` — running the E2E suite locally DELETES `.env.local`.
+  Both suites run in CI, where `e2e-smoke` and `rls-security` fail hard on missing secrets.
+
+**Three upstream defects this phase found and fixed:**
+1. ROADMAP SC-1 / REQUIREMENTS APPLY-01 specified a `PUBLIC_ROUTES` allow-list that does not
+   exist — gating is a DENY-list, so implementing it as written would have shipped
+   `/applications` publicly reachable. ROADMAP and CLAUDE.md both corrected.
+2. 66-04's summary claimed `coalesce` stops `approved -> reviewing -> approved` re-stamping
+   the retention clock. Verified false against the live function; the non-terminal branch
+   nulls `decided_at`. SQL deliberately unchanged (clocking from the latest decision is
+   defensible under 42 USC 3613(a)(1)(A)); the summary was corrected.
+3. 66-17 found the owner E2E spec would have run in NO CI project — CI runs
+   `smoke`/`public`/`owner-axe` and never `owner`. Re-wired into `owner-axe`; verified 16
+   tests land in `[public]` and 5 in `[owner-axe]`.
+
+**Carried-forward hazards:** `scripts/deploy-edge-functions.ts` duplicates the `verify_jwt`
+matrix from `config.toml` and pins itself to a superseded commit — both must be edited for
+any new function. And 29 production migration versions have no repo file, which blocks
+`supabase db push` project-wide (a history repair would falsely claim they never ran; not done).
+Status: Planning complete and verified. Branch `gsd/phase-66-rental-application-intake`
+is 8 doc commits ahead of `origin/main` with nothing missing from main. Phase 65 shipped,
+merged (#960) and is live; 66-73 remain.
+
+**Phase 66 planning artifacts** — CONTEXT (D-01..D-17) · RESEARCH · UI-SPEC (approved by
+gsd-ui-checker after one BLOCK + adversarial re-verify) · VALIDATION · 66-01..66-17 PLAN.md
+(plan-checker: VERIFICATION PASSED, 2 non-blocking warnings, one of which is now closed).
+Requirements coverage independently re-checked: APPLY-01..06 all covered, 6/6.
+
+**Two owner-gated plans** (`autonomous: false`) — 66-06 applies migrations to PRODUCTION
+via Supabase MCP (there is no local stack; `supabase db push` would hit prod directly, and
+the CLI has a standing auth failure here), then reconciles repo filenames against the
+prod-assigned timestamps and regenerates types. 66-08 deploys the edge function. Neither
+runs unattended, and build/typecheck pass WITHOUT the migration ever being applied — that
+false-green already happened once in v9.0, where three migrations sat unapplied behind
+green CI.
+
+**Two upstream corrections made during planning** — ROADMAP SC-1 and REQUIREMENTS APPLY-01
+both said the public route is "added to proxy `PUBLIC_ROUTES`". No such list exists: gating
+is a DENY-list (`PRIVATE_ROUTE_PREFIXES` in `src/lib/routes/private-routes.ts`), so `/apply`
+is public by absence and `/applications` must be ADDED or the owner review queue ships
+publicly reachable. ROADMAP was corrected; CLAUDE.md still carries the stale wording.
+Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwright visibility
+is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
 Last activity: 2026-08-04 -- Phase 65 verified passed (11/11), UAT 2/2, security 15/15,
