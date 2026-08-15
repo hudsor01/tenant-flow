@@ -211,6 +211,33 @@ Plans:
 **Gate**: 66-06 is a blocking owner-gated production migration (`autonomous: false`); 66-08 is a blocking owner-run Edge Function deploy. No wave-4 plan may start before 66-06 is green — build and typecheck both pass against a stale generated `supabase.ts`, so a green CI is not evidence the schema exists.
 **UI hint**: yes
 
+### Phase 66.1: Postgres-backed rate limiting with trusted client-IP forwarding (INSERTED)
+
+**Goal**: Every rate limit in the product actually enforces something. Move the limiter off Upstash into the Supabase Postgres this project already pays for — putting it in the SAME failure domain as the write it guards, so it fails CLOSED instead of open — and give it a real per-client key on `/apply/[token]` by having the RSC forward the true client address under a shared-secret Bearer.
+
+**Depends on**: Phase 66 (merged — the surface being protected)
+**Requirements**: RATE-01, RATE-02, RATE-03, RATE-04
+
+**Why this is inserted rather than queued**: the limiter has been a no-op product-wide for months and nobody noticed. Upstash's free-tier database was reaped for inactivity, and the tier permits only one database per account — one already serves another purpose — so the dependency cannot simply be restored. The failure was silent because the limiter lives in a different failure domain from the thing it protects, which is also why it was written to fail open.
+
+**Success Criteria** (what must be TRUE):
+  1. `_shared/rate-limit.ts` calls a Postgres `check_rate_limit` RPC instead of Upstash, keeping its exported signature so all five deployed edge functions inherit the change with no call-site edits
+  2. The limiter fails CLOSED — if the database is unreachable the guarded write fails anyway, so there is no fail-open branch left to hide an outage
+  3. `/apply/[token]` gets a genuine per-client rate-limit key: the RSC forwards the real client address, authenticated by a constant-time shared-secret Bearer (the pattern `send-lease-reminders` already uses), and `getClientIp` trusts a forwarded address ONLY when that secret validates
+  4. The forwarding path is non-regressive by construction: absent/invalid secret, or missing header, falls back to the connection address — today's exact behaviour — so the change can never be worse than the status quo
+  5. A limiter outage is OBSERVABLE: the existing structured `rate_limit_error` event reaches Sentry, so the next failure is noticed rather than discovered by review months later
+  6. Deferred item D5 is closed, and `deferred-items.md` records how
+
+**Scope notes**:
+- New `public.rate_limits` table + SECURITY DEFINER `check_rate_limit(text, int, int)` with `search_path = public`, service_role only. One atomic `INSERT … ON CONFLICT DO UPDATE` — no read-then-write race, matching the discipline `submit_rental_application` already uses.
+- pg_cron cleanup at **3:25 UTC** (verified free; 3:35 is the Phase 66 retention sweep).
+- The 800ms Upstash timeout hack in `_shared/rate-limit.ts` goes away — a same-region round trip is ~10-30ms, not 4.4s.
+- Redeploys: `apply-token`, `sign-lease-token`, `lease-signature`, `newsletter-subscribe`, `send-contact-email`.
+- **New trust boundary**: if the forwarding secret leaks, an attacker can spoof their rate-limit identity. Handled exactly like `REMINDERS_INVOKE_SECRET` — a Supabase function secret plus a Vercel env var, never in the repo. This must be stated in the phase's threat model, not discovered in review.
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 66.1 to break down)
+
 ### Phase 67: Tenant Communication Log
 **Goal**: Owner has an owner-side communication history on each tenant record — manually logged notes/calls plus email sent from the app that auto-logs — with no two-way tenant messaging surface.
 **Depends on**: Phase 52 (notification write-path) + Phase 53 (Resend delivery rail)
