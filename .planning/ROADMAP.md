@@ -229,14 +229,18 @@ Plans:
   6. Deferred item D5 is closed, and `deferred-items.md` records how
 
 **Scope notes**:
-- New `public.rate_limits` table + SECURITY DEFINER `check_rate_limit(text, int, int)` with `search_path = public`, service_role only. One atomic `INSERT … ON CONFLICT DO UPDATE` — no read-then-write race, matching the discipline `submit_rental_application` already uses.
+- New `public.rate_limit_counters` table + SECURITY DEFINER `check_rate_limit(text, int, int)` with `search_path = public`, service_role only. One atomic `INSERT … ON CONFLICT DO UPDATE` — no read-then-write race, matching the discipline `submit_rental_application` already uses.
 - pg_cron cleanup at **3:25 UTC** (verified free; 3:35 is the Phase 66 retention sweep).
 - The 800ms Upstash timeout hack in `_shared/rate-limit.ts` goes away — a same-region round trip is ~10-30ms, not 4.4s.
 - Redeploys: `apply-token`, `sign-lease-token`, `lease-signature`, `newsletter-subscribe`, `send-contact-email`.
 - **New trust boundary**: if the forwarding secret leaks, an attacker can spoof their rate-limit identity. Handled exactly like `REMINDERS_INVOKE_SECRET` — a Supabase function secret plus a Vercel env var, never in the repo. This must be stated in the phase's threat model, not discovered in review.
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 66.1 to break down)
+- [ ] 66.1-01-PLAN.md — `rate_limit_counters` + two-guard `check_rate_limit` + pg_cron cleanup at 3:25 UTC; 64-client concurrency test (RATE-01, RATE-02)
+- [ ] 66.1-02-PLAN.md — OWNER-GATED: apply to production via the Management API, verify behaviourally, reconcile the filename (RATE-01, RATE-02)
+- [ ] 66.1-03-PLAN.md — Rewrite `_shared/rate-limit.ts` fail-closed; bind Sentry in `_shared/errors.ts` (RATE-01, RATE-02, RATE-04)
+- [ ] 66.1-04-PLAN.md — Trusted client-IP forwarding, RSC and `getClientIp` in one plan (RATE-03)
+- [ ] 66.1-05-PLAN.md — OWNER-GATED: secrets, five redeploys, and every proof that needs a deployment (RATE-02, RATE-03, RATE-04)
 
 ### Phase 67: Tenant Communication Log
 **Goal**: Owner has an owner-side communication history on each tenant record — manually logged notes/calls plus email sent from the app that auto-logs — with no two-way tenant messaging surface.
