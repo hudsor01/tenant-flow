@@ -236,7 +236,7 @@ Plans:
 - **New trust boundary**: if the forwarding secret leaks, an attacker can spoof their rate-limit identity. Handled exactly like `REMINDERS_INVOKE_SECRET` — a Supabase function secret plus a Vercel env var, never in the repo. This must be stated in the phase's threat model, not discovered in review.
 
 Plans:
-- [ ] 66.1-01-PLAN.md — `rate_limit_counters` + two-guard `check_rate_limit` + pg_cron cleanup at 3:25 UTC; 64-client concurrency test (RATE-01, RATE-02)
+- [x] 66.1-01-PLAN.md — `rate_limit_counters` + two-guard `check_rate_limit` + pg_cron cleanup at 3:25 UTC; 64-client concurrency test (RATE-01, RATE-02)
 - [ ] 66.1-02-PLAN.md — OWNER-GATED: apply to production via the Management API, verify behaviourally, reconcile the filename (RATE-01, RATE-02)
 - [ ] 66.1-03-PLAN.md — Rewrite `_shared/rate-limit.ts` fail-closed; bind Sentry in `_shared/errors.ts` (RATE-01, RATE-02, RATE-04)
 - [ ] 66.1-04-PLAN.md — Trusted client-IP forwarding, RSC and `getClientIp` in one plan (RATE-03)

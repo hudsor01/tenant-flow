@@ -3,16 +3,30 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: 2026-08-08T00:00:00.000Z
-last_activity: 2026-08-08 -- Phase 66 EXECUTED, all 17 plans across 7 waves; DB + edge fn LIVE in prod
+last_updated: "2026-08-17T23:22:47.725Z"
+last_activity: 2026-08-17 -- Phase 66.1 plan 01 EXECUTED (migration + 2 test files AUTHORED; nothing applied to prod)
 progress:
-  total_phases: 14
-  completed_phases: 6
-  total_plans: 55
-  completed_plans: 55
-  percent: 43
-stopped_at: Phase 66 executed (17/17). NOT yet verified or shipped -- next is /gsd-verify-work 66, then the perfect-PR gate and a PR. Branch gsd/phase-66-rental-application-intake.
+  total_phases: 15
+  completed_phases: 7
+  total_plans: 60
+  completed_plans: 56
+  percent: 47
+stopped_at: Phase 66.1 plan 01 of 05 complete. Next is 66.1-02, the owner-gated apply of supabase/migrations/20260816010000_rate_limit_counters.sql (re-check that cron minute :25 is still free, apply, reconcile the filename to the prod-assigned version, then run the two RLS suites). Branch gsd/phase-66.1-postgres-rate-limiting. Phase 66 itself remains EXECUTED-but-unverified.
 ---
+
+<!--
+`status` AND `stopped_at` ARE HAND-CORRECTED, 2026-08-17, AND THE CORRECTION MUST GO LAST.
+
+`state.advance-plan` at the end of 66.1-01 acted on the STALE position (Phase 66, plan 17 of
+17), returned `reason: last_plan`, and stamped `status: verifying` -- false; Phase 66.1 is
+mid-flight at 1 of 5. It also dropped `stopped_at`. And `state.record-metric`,
+`state.add-decision` and `state.record-session` are all no-ops against this file (it has no
+Performance Metrics, Decisions or Session section) yet each still REWRITES this frontmatter,
+reverting any hand edit made before them.
+
+Same family as the recorded phase.complete numeric-sort bug. ALWAYS diff STATE.md after any
+state.* write, and apply hand corrections after the last one.
+-->
 
 <!--
 NUMERIC ORDER NOW EQUALS EXECUTION ORDER — the hand-correction this block used to
@@ -43,7 +57,6 @@ and this table reads `Plans Complete`, so `derivedTotalPhases` is null either wa
 `percent` derives from the frontmatter fallback.
 -->
 
-
 # Project State
 
 ## Project Reference
@@ -52,20 +65,37 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 66 — Rental Application Intake (next by execution order)
+**Current focus:** Phase 66.1 — Postgres-backed rate limiting + trusted client-IP forwarding
 
 ## Current Position
+
+Phase: 66.1 (postgres-backed-rate-limiting-with-trusted-client-ip-forward) — EXECUTING
+Plan: 1 of 5 complete
+
+66.1-01 AUTHORED and committed `supabase/migrations/20260816010000_rate_limit_counters.sql`
+(rate_limit_counters + the two-guard `check_rate_limit` RPC + bounded cleanup on pg_cron at
+3:25 UTC), `tests/integration/rls/rate-limit-concurrency.rls.test.ts`, and the RATE-02 grant
+pins in `tests/integration/rls/anon-rpc-grants.rls.test.ts`.
+
+**NOTHING WAS APPLIED TO PRODUCTION.** No SQL in that migration has been parsed by a
+PostgreSQL server yet, and both test files are authored-but-unrun by design (every RPC call
+returns PGRST202 until the apply). Plan 66.1-02 is the owner-gated apply and the real gate.
+
+---
 
 Phase: 66 (rental-application-intake) — EXECUTED, not yet verified or shipped
 Plan: 17 of 17 complete (7 waves)
 
 **Production changes are ALREADY LIVE** (all owner-approved at their blocking gates):
+
 - 4 migrations applied 2026-08-07 via Supabase MCP. Prod-assigned versions `20260807003342`
   (schema) / `003555` (7 RPCs) / `003630` (retention + cron `35 3 * * *`) / `003639` (GDPR
   cascade). Repo filenames reconciled to match. `src/types/supabase.ts` regenerated.
+
 - **5th migration `20260808225439_rental_application_rpc_fixes` applied 2026-08-09** — the four
   perfect-PR corrections (F1 soft-delete link closure, F6 calendar-invalid date, F7 advisory
   lock, F8 disposition_reason clear).
+
 - Edge function `apply-token` deployed **v2 ACTIVE**, `verify_jwt=false`. All 13 bundled files
   sha256-identical to disk on both deploys.
 
@@ -95,21 +125,26 @@ applies clean and fails only at first call), and `create_notification` accepts
 RLS suites are authored but have never run locally — see the env note below.
 
 **Local test-env blockers (pre-existing, NOT introduced by this phase):**
+
 - `.env.local` holds only `VERCEL_OIDC_TOKEN`, so `bun run test:integration` dies in
   globalSetup and `next build` fails at `/blog/[slug]` page-data collection. Confirmed
   pre-existing by running an untouched suite. **Never edit `.env.local`.**
+
 - `tests/e2e/playwright.config.ts:323` starts its webServer with
   `rm -rf .next && rm -f .env.local` — running the E2E suite locally DELETES `.env.local`.
   Both suites run in CI, where `e2e-smoke` and `rls-security` fail hard on missing secrets.
 
 **Three upstream defects this phase found and fixed:**
+
 1. ROADMAP SC-1 / REQUIREMENTS APPLY-01 specified a `PUBLIC_ROUTES` allow-list that does not
    exist — gating is a DENY-list, so implementing it as written would have shipped
    `/applications` publicly reachable. ROADMAP and CLAUDE.md both corrected.
+
 2. 66-04's summary claimed `coalesce` stops `approved -> reviewing -> approved` re-stamping
    the retention clock. Verified false against the live function; the non-terminal branch
    nulls `decided_at`. SQL deliberately unchanged (clocking from the latest decision is
    defensible under 42 USC 3613(a)(1)(A)); the summary was corrected.
+
 3. 66-17 found the owner E2E spec would have run in NO CI project — CI runs
    `smoke`/`public`/`owner-axe` and never `owner`. Re-wired into `owner-axe`; verified 16
    tests land in `[public]` and 5 in `[owner-axe]`.
@@ -118,7 +153,7 @@ RLS suites are authored but have never run locally — see the env note below.
 matrix from `config.toml` and pins itself to a superseded commit — both must be edited for
 any new function. And 29 production migration versions have no repo file, which blocks
 `supabase db push` project-wide (a history repair would falsely claim they never ran; not done).
-Status: Planning complete and verified. Branch `gsd/phase-66-rental-application-intake`
+Status: Phase complete — ready for verification
 is 8 doc commits ahead of `origin/main` with nothing missing from main. Phase 65 shipped,
 merged (#960) and is live; 66-73 remain.
 
@@ -144,7 +179,7 @@ Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwrig
 is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
-Last activity: 2026-08-04 -- Phase 65 verified passed (11/11), UAT 2/2, security 15/15,
+Last activity: 2026-08-17
 perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 (`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
 
@@ -222,7 +257,7 @@ perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 > itself is proven to fire in production (3 `gate_events` denials) and the
 > frontend upgrade CTA is now automated.
 
-Progress: [██████████] 100%
+Progress: [█████████░] 93%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
