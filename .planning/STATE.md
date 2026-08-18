@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-08-18T03:37:12.785Z"
-last_activity: 2026-08-18 -- Phase 66.1 plan 03 COMPLETE (limiter rewritten onto check_rate_limit, fail-closed, Upstash removed, Sentry client bound in _shared/errors.ts; nothing deployed)
+last_updated: "2026-08-18T03:57:50.362Z"
+last_activity: 2026-08-18 -- Phase 66.1 plan 04 COMPLETE (trusted client-IP forward: RSC forwards Vercel's attested address under a constant-time-verified secret; apply-token consumes it in a GATED per-client bucket; nothing deployed, no secret set)
 progress:
   total_phases: 15
   completed_phases: 7
   total_plans: 60
-  completed_plans: 58
+  completed_plans: 59
   percent: 47
-stopped_at: "Phase 66.1 plan 03 COMPLETE (3 of 5). supabase/functions/_shared/rate-limit.ts now calls public.check_rate_limit through a lazily cached service-role client and DENIES on every error path -- exactly one `return null`, the admit path. The 800ms timeout and both @upstash imports are gone (deno.json too). New pure leaf _shared/rate-limit-decision.ts carries the 7-class taxonomy and is EXECUTED by supabase/functions/__tests__/rate-limit.test.ts (38 tests). _shared/errors.ts now lazily binds a guarded Sentry client, which had never been bound outside stripe-webhooks -- captureException was a no-op in 16 of the 17 importing functions. NOTHING WAS DEPLOYED; the five live isolates still run the old admitting module until 66.1-05, so RATE-01/02/04 are deliberately left Pending. ONE UNVERIFIED ITEM: no Deno runtime on this machine, so supabase/functions/tests/rate-limit-sentry-test.ts (new) and lease-signature-metering-test.ts (modified -- it breaks without the fix) are shipped UNEXECUTED; run `brew install deno` then the two `deno test` commands recorded in 66.1-03-SUMMARY.md. Next: 66.1-04 (trusted client-IP forward; it edits getClientIp, which this plan left byte-identical on purpose). Branch gsd/phase-66.1-postgres-rate-limiting."
+stopped_at: "Phase 66.1 plan 04 COMPLETE (4 of 5). RATE-03's trust boundary is built and has a consumer. src/app/apply/[token]/apply-context.ts forwards Vercel's PLATFORM-ATTESTED x-vercel-forwarded-for (falling back to x-forwarded-for, never x-real-ip, refusing any multi-segment value) as x-tf-client-ip under x-tf-forward-secret; supabase/functions/_shared/rate-limit-decision.ts gained decideForwardedClientIp + normalizeForwardedIp -- still zero imports, comparator INJECTED -- so the whole trust matrix is EXECUTED by Vitest against the real timingSafeEqualStr (rate-limit.test.ts now 98 tests). getTrustedClientIp is step 0 of an otherwise byte-identical getClientIp, and apply-token/index.ts enters a 60/60s `apply-context-client` bucket ONLY when verification succeeds -- ungated it would key on the Vercel egress and cap every apply page load product-wide. The 3,000/min tokenHash ceiling is kept (it bounds the SUM that per-client buckets cannot) with its obsolete `per-client is impossible here` justification rewritten in both index.ts and the contract test. timing-safe.ts: comments only, zero code lines changed, now recording which branch runs as UNVERIFIED. NOTHING DEPLOYED AND NO SECRET SET: CLIENT_IP_FORWARD_SECRET exists on neither side, so every path resolves to today's exact behaviour -- all four provisioning orders were WALKED BY EXECUTION and every one falls back, so 66.1-05 may provision in any order. RATE-03 deliberately left Pending (source has the mechanism, production does not). 66.1-05 handoffs: reconcile deferred-items.md's D5 + `proxy.ts` notes (superseded), run an explicit FORGED x-forwarded-for check against prod /apply/[token], decide whether rate_limit_hit's `key` field should narrow now that it carries a true client IP on the trusted path, and probe `typeof crypto.subtle.timingSafeEqual` from a deployed isolate. Branch gsd/phase-66.1-postgres-rate-limiting."
 ---
 
 <!--
@@ -70,7 +70,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 66.1 (postgres-backed-rate-limiting-with-trusted-client-ip-forward) — EXECUTING
-Plan: 3 of 5 complete
+Plan: 4 of 5 complete
 
 66.1-01 authored the migration; **66.1-02 APPLIED IT TO PRODUCTION** as version
 `20260818031338` (see that plan's ADDENDUM — the earlier "BLOCKED on a dead PAT" body is
@@ -193,7 +193,7 @@ Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwrig
 is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
-Last activity: 2026-08-17
+Last activity: 2026-08-18
 perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 (`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
 
@@ -271,7 +271,7 @@ perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 > itself is proven to fire in production (3 `gate_events` denials) and the
 > frontend upgrade CTA is now automated.
 
-Progress: [██████████] 97%
+Progress: [██████████] 98%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
