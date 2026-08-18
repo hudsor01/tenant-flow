@@ -90,14 +90,37 @@ Deno.test({
 		});
 
 		const client = Sentry.getClient();
-		assert(
-			client,
-			"first capture must bind a Sentry client — before 66.1-03 this was undefined, which is why every rate_limit_error in sixteen functions went nowhere",
-		);
-		assertEquals(
-			client?.getOptions().dsn,
-			PROBE_DSN,
-			"the bound client must carry the DSN this isolate was configured with",
-		);
+		try {
+			assert(
+				client,
+				"first capture must bind a Sentry client — before 66.1-03 this was undefined, which is why every rate_limit_error in sixteen functions went nowhere",
+			);
+			assertEquals(
+				client?.getOptions().dsn,
+				PROBE_DSN,
+				"the bound client must carry the DSN this isolate was configured with",
+			);
+		} finally {
+			// UNBIND, AND NOT AS TIDINESS -- THIS TEST CORRUPTS ITS SIBLINGS WITHOUT IT.
+			//
+			// Sentry.getClient() is ISOLATE-global, not per-module: the ?probe= query
+			// string gives this file a fresh copy of errors.ts, but the client it binds
+			// is shared with every other test file `deno test` loads into the same
+			// isolate.
+			//
+			// A bound client TRANSMITS OVER globalThis.fetch. Sibling suites stub fetch
+			// and assert on the call count -- withResendStub's fetchCount() in
+			// send-lease-reminders-test.ts, and the same pattern in lease-signing-test.ts.
+			// Leaving a client bound made Sentry's own transport land in those counters,
+			// so a batch expecting fetchCount() === 2 saw 3 and failed. Measured: both
+			// files pass alone (25 and 12), and both fail when this file runs first.
+			//
+			// The failure is also NOT self-evident from the diff -- it appears in files
+			// this plan never touched, which is precisely how it survived local runs of
+			// this file on its own.
+			await Sentry.close(0);
+			Sentry.getCurrentScope().setClient(undefined);
+			Deno.env.delete("SENTRY_DSN");
+		}
 	},
 });
