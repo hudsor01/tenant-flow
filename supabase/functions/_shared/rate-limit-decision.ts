@@ -242,3 +242,217 @@ export function decideRateLimit(
 		retryAfterSec: Math.max(1, Math.ceil((row.reset_at_ms - options.nowMs) / 1000)),
 	};
 }
+
+// -----------------------------------------------------------------------------
+// RATE-03 -- the trust decision for a FORWARDED client address.
+//
+// WHY IT LIVES HERE AND NOWHERE ELSE. Header note (a) applies verbatim:
+// `_shared/rate-limit.ts` cannot be imported from Vitest, so anything placed
+// there can only ever be source-grepped. The six-row trust matrix is the single
+// most important evidence in this plan -- D5 has been attempted twice and shipped
+// a passing test for a property the code did not have BOTH times -- so the matrix
+// has to be EXECUTED. That means the logic lives in this leaf.
+//
+// AND THE ZERO-IMPORTS INVARIANT SURVIVES BY DEPENDENCY INJECTION. The
+// constant-time comparator is a PARAMETER, not an import of `./timing-safe.ts`.
+// Importing it would be more convenient and would demote every assertion below
+// back to a grep. The cost of injection is that this leaf will accept any
+// comparator, including `===`; that is bought back by a source assertion in
+// `__tests__/rate-limit.test.ts` pinning the production call site to
+// `timingSafeEqualStr` (T-66.1-28).
+// -----------------------------------------------------------------------------
+
+/**
+ * Every way a forwarded address can fail to earn trust. All of them fall back to
+ * the connection address, which is today's exact behaviour (D-05).
+ */
+export const FORWARD_REJECT_REASONS = [
+	/** No secret is configured on this side -- the mechanism is not provisioned. */
+	"no_configured_secret",
+	/** The caller presented no secret. */
+	"no_presented_secret",
+	/** The caller presented a secret but no address. */
+	"no_forwarded_address",
+	/** The presented secret is not the configured one. */
+	"secret_mismatch",
+	/** The address is not a well-formed IPv4 or IPv6 textual address. */
+	"malformed_address",
+] as const;
+
+export type ForwardRejectReason = (typeof FORWARD_REJECT_REASONS)[number];
+
+/** The longest IPv6 textual form, counting an IPv4-mapped tail. */
+export const MAX_FORWARDED_IP_LENGTH = 45;
+
+/** One 16-bit IPv6 group, lowercased. */
+function isHexGroup(value: string): boolean {
+	return /^[0-9a-f]{1,4}$/.test(value);
+}
+
+/**
+ * A dotted quad with four octets in 0-255 and NO leading zeros.
+ *
+ * Leading zeros are rejected rather than stripped: `010.0.0.1` is octal to some
+ * parsers and decimal to others, so accepting both spellings splits ONE client
+ * across TWO buckets and silently doubles their quota.
+ */
+function isIpv4(value: string): boolean {
+	const octets = value.split(".");
+	if (octets.length !== 4) return false;
+	for (const octet of octets) {
+		if (!/^\d{1,3}$/.test(octet)) return false;
+		if (octet.length > 1 && octet.startsWith("0")) return false;
+		if (Number(octet) > 255) return false;
+	}
+	return true;
+}
+
+/**
+ * Colon-separated 16-bit groups: at most 8, at most one `::`, and an optional
+ * final group that is itself a dotted quad.
+ *
+ * IPv4-mapped forms (`::ffff:192.0.2.1`) are real and arrive from real clients.
+ * Dropping them silently would push those clients into the shared fallback
+ * bucket, which is the opposite of what a per-client key is for.
+ */
+function isIpv6(value: string): boolean {
+	if (!value.includes(":")) return false;
+	// At most one `::`. Two would make the expansion ambiguous.
+	if (value.split("::").length - 1 > 1) return false;
+
+	let body = value;
+	const lastColon = body.lastIndexOf(":");
+	const tail = body.slice(lastColon + 1);
+	if (tail.includes(".")) {
+		if (!isIpv4(tail)) return false;
+		// The dotted quad occupies exactly two 16-bit groups; substituting two
+		// hex groups lets the group arithmetic below stay in one form.
+		body = `${body.slice(0, lastColon + 1)}0:0`;
+	}
+
+	if (body.includes("::")) {
+		const [left = "", right = ""] = body.split("::");
+		const leftGroups = left.length === 0 ? [] : left.split(":");
+		const rightGroups = right.length === 0 ? [] : right.split(":");
+		if (!leftGroups.every(isHexGroup)) return false;
+		if (!rightGroups.every(isHexGroup)) return false;
+		// `::` stands for AT LEAST one omitted group, so the explicit groups have
+		// to leave room for it.
+		return leftGroups.length + rightGroups.length <= 7;
+	}
+
+	const groups = body.split(":");
+	if (groups.length !== 8) return false;
+	return groups.every(isHexGroup);
+}
+
+/**
+ * The canonical form of a forwarded address, or `null`.
+ *
+ * WHAT THIS IS: a KEY-SHAPE BOUND. The secret is what authorizes; this is what
+ * stops the holder of a valid secret -- or a future bug on the forwarding side --
+ * from turning `p_bucket_key` or a log field into an arbitrary string.
+ *
+ * WHAT THIS IS NOT: proof that the address is genuine. Nothing here can
+ * establish that, and reading it as if it could is how a shape check ends up
+ * substituting for the compare.
+ *
+ * Lowercasing is done HERE and only here, so `2001:DB8::1` and `2001:db8::1`
+ * are one bucket rather than two.
+ */
+export function normalizeForwardedIp(raw: string | null | undefined): string | null {
+	if (typeof raw !== "string") return null;
+	const trimmed = raw.trim();
+	if (trimmed.length === 0) return null;
+	// A comma means a list, which contradicts the single-address contract the
+	// forwarding side refuses to guess at. Whitespace inside the value is
+	// header-injection shaped.
+	if (trimmed.includes(",")) return null;
+	if (/\s/.test(trimmed)) return null;
+	if (trimmed.length > MAX_FORWARDED_IP_LENGTH) return null;
+
+	const lowered = trimmed.toLowerCase();
+	if (isIpv4(lowered)) return lowered;
+	if (isIpv6(lowered)) return lowered;
+	return null;
+}
+
+export interface ForwardedClientIpInput {
+	/** The secret the caller presented, verbatim. */
+	presentedSecret: string | null;
+	/** The address the caller asked us to believe. */
+	forwardedIp: string | null;
+	/** The secret this side has configured, verbatim. */
+	configuredSecret: string | null;
+}
+
+export interface ForwardedClientIpDecision {
+	trusted: boolean;
+	clientIp: string | null;
+	reason: ForwardRejectReason | null;
+}
+
+/**
+ * Decide whether to believe a forwarded client address.
+ *
+ * THE INVARIANT, the same one `decideRateLimit` carries: trust is granted at
+ * exactly ONE `return`, never as an `else` and never as a default branch, and
+ * reaching it requires ALL FIVE conditions below. Any missing piece is a
+ * fallback to the connection address -- which is why no provisioning order of
+ * `CLIENT_IP_FORWARD_SECRET` can produce a window of changed behaviour (D-05).
+ *
+ * @param compare a CONSTANT-TIME string equality function. Injected rather than
+ * imported to keep this module dependency-free; see the section header.
+ */
+export function decideForwardedClientIp(
+	input: ForwardedClientIpInput,
+	compare: (a: string, b: string) => boolean,
+): ForwardedClientIpDecision {
+	// 1. THIS RUNS BEFORE ANY COMPARISON, AND THAT ORDER IS THE WHOLE ROW.
+	//    Two empty strings are EQUAL to any comparator, constant-time or not. If
+	//    an unconfigured secret reached `compare`, every caller sending two empty
+	//    headers would be trusted -- a complete bypass produced by NOT configuring
+	//    the secret, making the system more permissive unprovisioned than
+	//    provisioned. `send-lease-reminders` escapes this only because its secret
+	//    is in `validateEnv({ required })` and the isolate dies first; D-05 makes
+	//    this one OPTIONAL by design, so it cannot inherit that protection and
+	//    needs the explicit guard (T-66.1-26).
+	if (
+		typeof input.configuredSecret !== "string" ||
+		input.configuredSecret.trim().length === 0
+	) {
+		return { trusted: false, clientIp: null, reason: "no_configured_secret" };
+	}
+
+	// 2. Nothing to compare against.
+	if (
+		typeof input.presentedSecret !== "string" ||
+		input.presentedSecret.length === 0
+	) {
+		return { trusted: false, clientIp: null, reason: "no_presented_secret" };
+	}
+
+	// 3. A secret with no address asks us to trust nothing in particular.
+	if (typeof input.forwardedIp !== "string" || input.forwardedIp.length === 0) {
+		return { trusted: false, clientIp: null, reason: "no_forwarded_address" };
+	}
+
+	// 4. The authorization itself. `compare` is constant-time in production; the
+	//    length-mismatch early return inside it is deliberate and documented
+	//    (`./timing-safe.ts`) -- the secret's length is not itself secret.
+	if (!compare(input.presentedSecret, input.configuredSecret)) {
+		return { trusted: false, clientIp: null, reason: "secret_mismatch" };
+	}
+
+	// 5. THIS RUNS AFTER THE SECRET CHECK AND STILL REJECTS. A validated secret
+	//    does not buy the right to inject an arbitrary rate-limit key. This is
+	//    the row that gets dropped when the two checks are collapsed into one
+	//    "the caller is trusted, so the value is fine" step (T-66.1-23).
+	const clientIp = normalizeForwardedIp(input.forwardedIp);
+	if (clientIp === null) {
+		return { trusted: false, clientIp: null, reason: "malformed_address" };
+	}
+
+	// THE ONLY GRANT OF TRUST IN THIS FILE.
+	return { trusted: true, clientIp, reason: null };
+}

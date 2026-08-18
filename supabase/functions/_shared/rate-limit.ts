@@ -23,11 +23,13 @@
 import { getCorsHeaders } from "./cors.ts";
 import { captureWebhookError } from "./errors.ts";
 import {
+	decideForwardedClientIp,
 	decideRateLimit,
 	type RateLimitDecision,
 	type RateLimitRpcOutcome,
 } from "./rate-limit-decision.ts";
 import { createAdminClient } from "./supabase-client.ts";
+import { timingSafeEqualStr } from "./timing-safe.ts";
 
 interface RateLimitOptions {
 	/** Maximum requests allowed in the window */
@@ -89,7 +91,72 @@ function getRateLimitClient(): ReturnType<typeof createAdminClient> {
 }
 
 /**
+ * RATE-03 -- the address a trusted caller forwarded, or `null`.
+ *
+ * WHY THIS EXISTS AT ALL. The `context` action of `apply-token` is called only
+ * from a Server Component, so `getClientIp` returns the Next.js EGRESS address
+ * for 100% of genuine traffic -- and an attacker reaches that same value just by
+ * GETting the public page. At that function an attacker and an applicant are
+ * indistinguishable, and two attempts to fix it with a cleverer key both failed
+ * for that reason. The information that separates them exists exactly one hop
+ * earlier, and this carries it across that hop WITH AUTHENTICATION rather than
+ * guessing at it.
+ *
+ * The mechanism is D-06's: the same `timingSafeEqualStr` that
+ * `send-lease-reminders` uses for `REMINDERS_INVOKE_SECRET`. The deliberate
+ * divergence is the header -- a dedicated `x-tf-forward-secret` rather than
+ * `Authorization`, which already carries user JWTs at `lease-signature`; and
+ * with a dedicated header, a `Bearer ` prefix would be a constant on both sides
+ * of a constant-time compare, which is ceremony rather than security.
+ *
+ * NEVER THROWS AND NEVER LOGS THE ADDRESS (T-66.1-24). On the trusted path this
+ * value is a true client IP, which makes it more precisely personal than the
+ * shared-egress key it replaces, so the no-logging rule tightens here.
+ *
+ * Until `CLIENT_IP_FORWARD_SECRET` is provisioned on BOTH sides (66.1-05), the
+ * configured secret is absent, this returns `null` for every request, and every
+ * caller behaves exactly as it does today. That is D-05, and it is structural:
+ * `decideForwardedClientIp` grants trust at exactly one return requiring all
+ * five of its conditions, so any missing piece is a fallback rather than a
+ * partial state.
+ */
+export function getTrustedClientIp(req: Request): string | null {
+	const decision = decideForwardedClientIp(
+		{
+			presentedSecret: req.headers.get("x-tf-forward-secret"),
+			forwardedIp: req.headers.get("x-tf-client-ip"),
+			configuredSecret: Deno.env.get("CLIENT_IP_FORWARD_SECRET") ?? null,
+		},
+		// The production comparator, pinned by a source assertion in
+		// `__tests__/rate-limit.test.ts`: the leaf takes this as a parameter to stay
+		// dependency-free, so it would accept `===` just as happily, and that swap
+		// passes every behavioural test while making the compare timing-variable.
+		timingSafeEqualStr,
+	);
+
+	return decision.trusted ? decision.clientIp : null;
+}
+
+/**
  * Extract the trusted client IP from request headers.
+ *
+ * Step 0. `getTrustedClientIp` -- an address forwarded by a caller that proved
+ *   it holds `CLIENT_IP_FORWARD_SECRET`, validated into an address shape before
+ *   it is believed. Absent, unproven or malformed falls straight through to the
+ *   three steps below, unchanged.
+ *
+ * STEP 0 IS THE OPPOSITE RULE FROM STEP 2 ON PURPOSE, AND THE TWO MUST NOT BE
+ * RECONCILED. `src/app/apply/[token]/apply-context.ts` prefers the
+ * PLATFORM-ATTESTED Vercel-specific forwarding header over the conventional one,
+ * because Vercel OVERWRITES `x-forwarded-for` to prevent spoofing and does not
+ * forward external IPs at all. (That header's literal name is deliberately not
+ * written in this file: a cross-file assertion pins it to the Vercel side alone
+ * so the two hops cannot quietly converge on one header name. Read it there.)
+ * Here at the Supabase edge no such guarantee exists -- `x-forwarded-for` is
+ * attacker-supplied and the gateway appends to it, so the LAST segment is the
+ * closest-to-us hop and the FIRST is free for anyone to choose. Same header
+ * name, opposite correct answer, because the two hops have opposite trust
+ * properties. A reviewer who "fixes" one to match the other reopens the bypass.
  *
  * Supabase Edge Functions run on Deno Deploy. Whether `cf-connecting-ip`
  * is populated depends on whether the request transits Cloudflare's
@@ -118,6 +185,9 @@ function getRateLimitClient(): ReturnType<typeof createAdminClient> {
  *      aggregate-traffic ceilings.
  */
 export function getClientIp(req: Request): string {
+	const forwarded = getTrustedClientIp(req);
+	if (forwarded) return forwarded;
+
 	const cfIp = req.headers.get("cf-connecting-ip");
 	if (cfIp) return cfIp;
 
