@@ -51,3 +51,38 @@ creep this project's discipline warns against.
 **Severity:** the tests are not wrong about the product — the component is fine. They are wrong
 about themselves. A gate that fails on unrelated commits and passes on retry trains everyone to
 re-run rather than read, which is how a real failure eventually gets waved through.
+
+---
+
+## D2 - The Supabase PAT value is cached in plaintext in `.next/dev/cache/turbopack/*.sst`
+
+**Found during:** 66.1-02 Task 1, while running the plan's own credential-hygiene sweep.
+
+**What was found.** Four Turbopack dev-cache files contain the literal value of
+`SUPABASE_ACCESS_TOKEN` (an `sbp_` project-admin PAT):
+
+```
+.next/dev/cache/turbopack/ee6e79b1/00000240.sst
+.next/dev/cache/turbopack/ee6e79b1/00000291.sst
+.next/dev/cache/turbopack/v16.2.10/00000524.sst
+.next/dev/cache/turbopack/v16.2.10/00000526.sst
+```
+
+**Why it is not fixed here.** Pre-existing, produced by `bun run dev`, entirely unrelated to rate
+limiting. Nothing this plan wrote contains the value; the scratchpad is clean.
+
+**Blast radius is bounded, and this is why it is D-severity rather than an incident:**
+- `.next/` is git-ignored at `.gitignore:3` and `git ls-files .next` returns zero tracked files,
+  so the value has never been committed and cannot reach the remote.
+- The token is currently REJECTED by the Supabase Management API (401 on every endpoint,
+  including read-only `GET /v1/projects`), so the cached copy is almost certainly a stale
+  credential that has already been rotated or revoked.
+
+**What the fix looks like:** `rm -rf .next` clears it. The durable fix is not feeding a
+project-admin PAT into the Next.js dev process environment at all -- it is needed by the Supabase
+CLI and management tooling, never by the app, so it belongs in a shell profile scoped to those
+commands rather than in the dev server's inherited environment.
+
+**Owner action required either way:** the 401 means the PAT needs rotating before 66.1-02 can
+apply its migration (see that plan's SUMMARY). When it is rotated, clear `.next` in the same pass
+so the old value does not linger on disk.

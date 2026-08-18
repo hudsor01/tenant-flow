@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-08-17T23:22:47.725Z"
-last_activity: 2026-08-17 -- Phase 66.1 plan 01 EXECUTED (migration + 2 test files AUTHORED; nothing applied to prod)
+last_updated: "2026-08-18T03:03:09.575Z"
+last_activity: 2026-08-18 -- Phase 66.1 plan 02 BLOCKED (PAT rejected 401; migration NOT applied; rollback script authored + committed)
 progress:
   total_phases: 15
   completed_phases: 7
   total_plans: 60
   completed_plans: 56
   percent: 47
-stopped_at: Phase 66.1 plan 01 of 05 complete. Next is 66.1-02, the owner-gated apply of supabase/migrations/20260816010000_rate_limit_counters.sql (re-check that cron minute :25 is still free, apply, reconcile the filename to the prod-assigned version, then run the two RLS suites). Branch gsd/phase-66.1-postgres-rate-limiting. Phase 66 itself remains EXECUTED-but-unverified.
+stopped_at: "Phase 66.1 plan 02 BLOCKED, not complete. The owner APPROVED the production apply on 2026-08-17 and that approval still stands, but SUPABASE_ACCESS_TOKEN is rejected with 401 on every Management API endpoint (including read-only GET /v1/projects), so supabase/migrations/20260816010000_rate_limit_counters.sql was NOT applied and nothing was written to production. The apply helper was proven correct against a local listener, so the credential is the fault, not the mechanism. Two further blockers found: MCP tools are unreachable in-session (so Task 3's list_migrations reconcile cannot run either), and the integration-test Supabase credentials do not resolve through tests/integration/setup/env-loader.ts (so Task 4's zero-skip gate cannot clear). Task 1 IS done -- the migration is certified additive-only by inspection and the rollback script is committed at f53333518. RESUME NEEDS A ROTATED PAT, then Task 1(c)/(d) re-reads (cron minute :25 still free? five-way baseline still 0?) and Tasks 3-4. Do NOT re-run the owner gate. Branch gsd/phase-66.1-postgres-rate-limiting."
 ---
 
 <!--
@@ -297,6 +297,7 @@ Progress: [█████████░] 93%
 ## Blockers
 
 - Phase 53 go-live is owner-run: apply C1 (orchestrator) then run 53-GO-LIVE-RUNBOOK.md (deploy send-lease-reminders, set REMINDERS_INVOKE_SECRET + drain_secret + drain_url, apply C2). REMIND-01/04 prod-complete only after.
+- 66.1-02 BLOCKED: SUPABASE_ACCESS_TOKEN rejected (401 on every Management API endpoint, incl. read-only GET /v1/projects). The rate-limit migration is NOT applied. Helper proven correct (44-char bearer transmitted, byte-exact body); the credential is dead. Also blocked: MCP tools unavailable in-session (list_migrations reconcile) and integration-test Supabase creds unresolvable by env-loader (Task 4 zero-skip gate). Resume needs a rotated PAT; owner apply-approval from 2026-08-17 still stands.
 
 ## Roadmap Evolution
 
