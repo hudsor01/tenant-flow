@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-08-18T03:03:09.575Z"
-last_activity: 2026-08-18 -- Phase 66.1 plan 02 BLOCKED (PAT rejected 401; migration NOT applied; rollback script authored + committed)
+last_updated: "2026-08-18T03:37:12.785Z"
+last_activity: 2026-08-18 -- Phase 66.1 plan 03 COMPLETE (limiter rewritten onto check_rate_limit, fail-closed, Upstash removed, Sentry client bound in _shared/errors.ts; nothing deployed)
 progress:
   total_phases: 15
   completed_phases: 7
   total_plans: 60
-  completed_plans: 56
+  completed_plans: 58
   percent: 47
-stopped_at: "Phase 66.1 plan 02 BLOCKED, not complete. The owner APPROVED the production apply on 2026-08-17 and that approval still stands, but SUPABASE_ACCESS_TOKEN is rejected with 401 on every Management API endpoint (including read-only GET /v1/projects), so supabase/migrations/20260818031338_rate_limit_counters.sql was NOT applied and nothing was written to production. The apply helper was proven correct against a local listener, so the credential is the fault, not the mechanism. Two further blockers found: MCP tools are unreachable in-session (so Task 3's list_migrations reconcile cannot run either), and the integration-test Supabase credentials do not resolve through tests/integration/setup/env-loader.ts (so Task 4's zero-skip gate cannot clear). Task 1 IS done -- the migration is certified additive-only by inspection and the rollback script is committed at f53333518. RESUME NEEDS A ROTATED PAT, then Task 1(c)/(d) re-reads (cron minute :25 still free? five-way baseline still 0?) and Tasks 3-4. Do NOT re-run the owner gate. Branch gsd/phase-66.1-postgres-rate-limiting."
+stopped_at: "Phase 66.1 plan 03 COMPLETE (3 of 5). supabase/functions/_shared/rate-limit.ts now calls public.check_rate_limit through a lazily cached service-role client and DENIES on every error path -- exactly one `return null`, the admit path. The 800ms timeout and both @upstash imports are gone (deno.json too). New pure leaf _shared/rate-limit-decision.ts carries the 7-class taxonomy and is EXECUTED by supabase/functions/__tests__/rate-limit.test.ts (38 tests). _shared/errors.ts now lazily binds a guarded Sentry client, which had never been bound outside stripe-webhooks -- captureException was a no-op in 16 of the 17 importing functions. NOTHING WAS DEPLOYED; the five live isolates still run the old admitting module until 66.1-05, so RATE-01/02/04 are deliberately left Pending. ONE UNVERIFIED ITEM: no Deno runtime on this machine, so supabase/functions/tests/rate-limit-sentry-test.ts (new) and lease-signature-metering-test.ts (modified -- it breaks without the fix) are shipped UNEXECUTED; run `brew install deno` then the two `deno test` commands recorded in 66.1-03-SUMMARY.md. Next: 66.1-04 (trusted client-IP forward; it edits getClientIp, which this plan left byte-identical on purpose). Branch gsd/phase-66.1-postgres-rate-limiting."
 ---
 
 <!--
@@ -70,16 +70,30 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 66.1 (postgres-backed-rate-limiting-with-trusted-client-ip-forward) — EXECUTING
-Plan: 1 of 5 complete
+Plan: 3 of 5 complete
 
-66.1-01 AUTHORED and committed `supabase/migrations/20260818031338_rate_limit_counters.sql`
-(rate_limit_counters + the two-guard `check_rate_limit` RPC + bounded cleanup on pg_cron at
-3:25 UTC), `tests/integration/rls/rate-limit-concurrency.rls.test.ts`, and the RATE-02 grant
-pins in `tests/integration/rls/anon-rpc-grants.rls.test.ts`.
+66.1-01 authored the migration; **66.1-02 APPLIED IT TO PRODUCTION** as version
+`20260818031338` (see that plan's ADDENDUM — the earlier "BLOCKED on a dead PAT" body is
+superseded). `public.check_rate_limit` is live, service_role-only, `lock_timeout = '250ms'`,
+both window guards verified behaviourally against the applied objects with a service_role
+positive control. **Still unproven for the DB half:** the 64-client concurrency suite never
+ran — `tests/integration/setup/env-loader.ts` resolves no Supabase credentials. Sequential
+passes are exactly the evidence that does not discriminate here.
 
-**NOTHING WAS APPLIED TO PRODUCTION.** No SQL in that migration has been parsed by a
-PostgreSQL server yet, and both test files are authored-but-unrun by design (every RPC call
-returns PGRST202 until the apply). Plan 66.1-02 is the owner-gated apply and the real gate.
+**66.1-03 COMPLETE (2026-08-18).** `_shared/rate-limit.ts` calls the RPC and fails CLOSED —
+one `return null`, the admit path; no `@upstash/*` anywhere; no timeout (the hang bound is
+the migration's `lock_timeout`). The taxonomy lives in the new dependency-free leaf
+`_shared/rate-limit-decision.ts` so Vitest executes it for real (38 tests). `_shared/errors.ts`
+now binds a Sentry client — it never had one outside `stripe-webhooks`, so `captureException`
+was a no-op in 16 of the 17 functions that import it. **No `supabase/functions/*/index.ts` was
+touched (D-03), verified by diff against the base commit, and NOTHING WAS DEPLOYED** — the
+five live isolates still run the old admitting module until 66.1-05. RATE-01/02/04 stay
+Pending for that reason.
+
+**Carried into 66.1-04/05:** the two Deno test files could not be executed (no Deno runtime
+installed; `brew install deno` + the two commands in `66.1-03-SUMMARY.md`), and nine stale
+fail-open/Upstash comments plus three dead `UPSTASH_*` `validateEnv` entries survive in the
+five `*/index.ts` files and `config.toml`, listed by file and line in that SUMMARY.
 
 ---
 
@@ -257,7 +271,7 @@ perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 > itself is proven to fire in production (3 `gate_events` denials) and the
 > frontend upgrade CTA is now automated.
 
-Progress: [█████████░] 93%
+Progress: [██████████] 97%
 
 ## Roadmap Summary (v10.0 — phases 52-64)
 
@@ -297,7 +311,9 @@ Progress: [█████████░] 93%
 ## Blockers
 
 - Phase 53 go-live is owner-run: apply C1 (orchestrator) then run 53-GO-LIVE-RUNBOOK.md (deploy send-lease-reminders, set REMINDERS_INVOKE_SECRET + drain_secret + drain_url, apply C2). REMIND-01/04 prod-complete only after.
-- 66.1-02 BLOCKED: SUPABASE_ACCESS_TOKEN rejected (401 on every Management API endpoint, incl. read-only GET /v1/projects). The rate-limit migration is NOT applied. Helper proven correct (44-char bearer transmitted, byte-exact body); the credential is dead. Also blocked: MCP tools unavailable in-session (list_migrations reconcile) and integration-test Supabase creds unresolvable by env-loader (Task 4 zero-skip gate). Resume needs a rotated PAT; owner apply-approval from 2026-08-17 still stands.
+- SUPABASE_ACCESS_TOKEN is still dead (401 on every Management API endpoint, incl. read-only GET /v1/projects). It no longer blocks 66.1 — 66.1-02 applied the migration via MCP from the orchestrator instead — but it blocks `bun run db:types` and any Management-API path. Owner-run rotation at supabase.com/dashboard/account/tokens.
+- Integration-test Supabase credentials do not resolve through `tests/integration/setup/env-loader.ts`, so the 64-client `rate-limit-concurrency.rls.test.ts` proof — the phase's headline evidence — has never run. Owner action: populate `.env.local`. **Never edit `.env.local` from a test run** (`tests/e2e/playwright.config.ts:323` deletes it).
+- No Deno runtime on this machine, so `supabase/functions/tests/*` is unexecutable locally, and no CI job runs `deno test` either (verified). Two files from 66.1-03 are shipped unrun.
 
 ## Roadmap Evolution
 

@@ -237,8 +237,8 @@ Plans:
 
 Plans:
 - [x] 66.1-01-PLAN.md — `rate_limit_counters` + two-guard `check_rate_limit` + pg_cron cleanup at 3:25 UTC; 64-client concurrency test (RATE-01, RATE-02)
-- [ ] 66.1-02-PLAN.md — OWNER-GATED: apply to production via the Management API, verify behaviourally, reconcile the filename (RATE-01, RATE-02)
-- [ ] 66.1-03-PLAN.md — Rewrite `_shared/rate-limit.ts` fail-closed; bind Sentry in `_shared/errors.ts` (RATE-01, RATE-02, RATE-04)
+- [x] 66.1-02-PLAN.md — OWNER-GATED: apply to production via the Management API, verify behaviourally, reconcile the filename (RATE-01, RATE-02)
+- [x] 66.1-03-PLAN.md — Rewrite `_shared/rate-limit.ts` fail-closed; bind Sentry in `_shared/errors.ts` (RATE-01, RATE-02, RATE-04)
 - [ ] 66.1-04-PLAN.md — Trusted client-IP forwarding, RSC and `getClientIp` in one plan (RATE-03)
 - [ ] 66.1-05-PLAN.md — OWNER-GATED: secrets, five redeploys, and every proof that needs a deployment (RATE-02, RATE-03, RATE-04)
 
