@@ -12,9 +12,9 @@
  * WHAT IT PROVES ONLY STRUCTURALLY. `_shared/rate-limit.ts` cannot be imported
  * here at all: it imports `./cors.ts` / `./errors.ts` with explicit extensions,
  * reads the Deno env namespace, and pulls `@sentry/deno`, which is not a
- * `package.json` dependency. Section 2 therefore reads it off disk, exactly as
- * `apply-token-contract.test.ts` reads `apply-token/index.ts`, and pins the
- * properties the behavioural tests above cannot reach.
+ * `package.json` dependency. Sections 3 and 4 therefore read it off disk,
+ * exactly as `apply-token-contract.test.ts` reads `apply-token/index.ts`, and
+ * pin the properties the behavioural tests cannot reach.
  *
  * WHAT NOTHING HERE PROVES. That `public.check_rate_limit` exists, that the RPC
  * call succeeds, or that a deployed isolate behaves. 66.1-02 applied and
@@ -22,6 +22,8 @@
  * smokes them. This plan deploys nothing.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
 	decideRateLimit,
@@ -294,5 +296,205 @@ describe("2. closure over the outcome union", () => {
 		for (const entry of OUTCOMES) {
 			expect(decideRateLimit(entry.outcome, OPTS).errorClass).toBe(entry.expect);
 		}
+	});
+});
+
+// -----------------------------------------------------------------------------
+// Section 3 -- structural contracts over the modules Vitest cannot import.
+//
+// `_shared/rate-limit.ts` and `_shared/errors.ts` are Deno modules: explicit
+// `.ts` specifiers, the Deno env namespace, and `@sentry/deno`, which is not a
+// `package.json` dependency. So the assertions below read source text off disk,
+// exactly as `apply-token-contract.test.ts` does. A source-text assertion can
+// only ever say "the code is shaped this way", never "the code behaves this
+// way" -- which is precisely why the fail-closed LOGIC lives in the pure leaf
+// above and is executed for real. These pin the properties that logic cannot
+// reach because they are properties of the glue.
+// -----------------------------------------------------------------------------
+
+function readRepoSource(relativePath: string): string {
+	return readFileSync(
+		fileURLToPath(new URL(relativePath, import.meta.url)),
+		"utf8",
+	);
+}
+
+/**
+ * Comments in both modules deliberately discuss the very tokens these
+ * assertions forbid -- the absent hang-bound, the removed vendor, the admitting
+ * result that died -- so every assertion runs against code alone.
+ */
+function stripComments(source: string): string {
+	return source
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/^[ \t]*\/\/.*$/gm, "");
+}
+
+/** Walk from an opening delimiter to its match, returning the closed slice. */
+function balancedSlice(
+	source: string,
+	startIndex: number,
+	open: string,
+	close: string,
+): string {
+	let depth = 0;
+	for (let i = startIndex; i < source.length; i += 1) {
+		const char = source[i];
+		if (char === open) {
+			depth += 1;
+		} else if (char === close) {
+			depth -= 1;
+			if (depth === 0) return source.slice(startIndex, i + 1);
+		}
+	}
+	throw new Error(
+		`Unbalanced "${open}" starting at index ${startIndex} — the parser, not the source, may be wrong. Do not loosen it to make a test pass.`,
+	);
+}
+
+/** Every `catch (...) { ... }` block body in a module, braces included. */
+function catchBlocks(code: string): string[] {
+	const blocks: string[] = [];
+	for (const match of code.matchAll(/catch\s*\(/g)) {
+		const braceIndex = code.indexOf("{", match.index);
+		expect(braceIndex).toBeGreaterThan(-1);
+		blocks.push(balancedSlice(code, braceIndex, "{", "}"));
+	}
+	return blocks;
+}
+
+/** The body of one exported function declaration, braces included. */
+function exportedBody(code: string, name: string): string {
+	const declarationIndex = code.indexOf(`export function ${name}(`);
+	expect(declarationIndex).toBeGreaterThan(-1);
+	const braceIndex = code.indexOf("{", code.indexOf(")", declarationIndex));
+	return balancedSlice(code, braceIndex, "{", "}");
+}
+
+const LIMITER_CODE = stripComments(readRepoSource("../_shared/rate-limit.ts"));
+const ERRORS_CODE = stripComments(readRepoSource("../_shared/errors.ts"));
+
+describe("3. _shared/rate-limit.ts -- structural contracts", () => {
+	it("NO catch block returns null (D-02)", () => {
+		// The regression that caused this whole phase, asserted by slicing rather
+		// than by a whole-file grep. The `grep -c "return null" === 1` in the
+		// plan's gate is the coarser cousin: it stops being meaningful the moment
+		// the file grows a second legitimate null return. This one does not.
+		const blocks = catchBlocks(LIMITER_CODE);
+
+		expect(blocks.length).toBeGreaterThan(0);
+		for (const block of blocks) {
+			expect(block).not.toContain("return null");
+		}
+	});
+
+	it("every catch feeds the decision leaf rather than falling out", () => {
+		// A catch that logs and then falls off the end of the function returns
+		// undefined, which every call site reads as falsy and therefore as
+		// "proceed" -- fail-open by omission instead of by statement. `kind:` on
+		// those two literals exists ONLY as an input to decideRateLimit.
+		expect(LIMITER_CODE).toContain("decideRateLimit(");
+
+		for (const block of catchBlocks(LIMITER_CODE)) {
+			expect(
+				block.includes('kind: "thrown"') || block.includes('kind: "missing_env"'),
+			).toBe(true);
+		}
+	});
+
+	it("nothing bounds the RPC call in TypeScript (D-07)", () => {
+		// The hang bound is `lock_timeout = '250ms'`, pinned on the function by
+		// migration 20260818031338. A TS-side bound cannot cancel the statement
+		// it waits on; all it can do is convert slow-but-healthy into denied on
+		// five public surfaces.
+		expect(LIMITER_CODE).not.toContain("timeout");
+		expect(LIMITER_CODE).not.toContain("AbortSignal");
+		expect(LIMITER_CODE).not.toContain("setTimeout");
+	});
+
+	it("the previous vendor is gone by identifier, not merely unused", () => {
+		// A dead-but-resolving import gives a reviewer no signal that it is dead.
+		expect(LIMITER_CODE.toLowerCase()).not.toContain("upstash");
+	});
+
+	it("calls the RPC by the migration's exact name and parameter names", () => {
+		for (const literal of [
+			"check_rate_limit",
+			"p_bucket_key",
+			"p_max_requests",
+			"p_window_ms",
+		]) {
+			expect(LIMITER_CODE).toContain(literal);
+		}
+		// Milliseconds, as `integer`. A seconds conversion or a cast here returns
+		// PGRST202 from a fail-closed limiter: a hard 429 on five public surfaces
+		// the moment 66.1-05 deploys.
+		expect(LIMITER_CODE).toContain("p_window_ms: options.windowMs");
+	});
+
+	it("emits both event names, and never the raw bucket key to Sentry", () => {
+		expect(LIMITER_CODE).toContain("rate_limit_hit");
+		// 66.1-05's Sentry alert rule matches this exact literal. Sentry-side
+		// config cannot be committed, so a rename disarms the alert silently.
+		expect(LIMITER_CODE).toContain('event: "rate_limit_error"');
+
+		const captureCall = LIMITER_CODE.slice(
+			LIMITER_CODE.indexOf("captureWebhookError("),
+		);
+		expect(captureCall).not.toContain("bucketKey");
+	});
+
+	it("getClientIp is unchanged: cf-connecting-ip first, LAST xff segment", () => {
+		// 66.1-04 bolts a trusted-forwarding branch in FRONT of this body. Its
+		// non-regression (D-05) is structural only while this body survives
+		// untouched. Note the last-segment rule is the OPPOSITE of the Vercel-side
+		// rule 66.1-04 adds, deliberately (RESEARCH pitfall 3): here the first
+		// segment is attacker-controlled.
+		const body = exportedBody(LIMITER_CODE, "getClientIp");
+
+		expect(body.indexOf("cf-connecting-ip")).toBeGreaterThan(-1);
+		expect(body.indexOf("cf-connecting-ip")).toBeLessThan(
+			body.indexOf("x-forwarded-for"),
+		);
+		expect(body).toContain("parts.length - 1");
+	});
+});
+
+describe("4. _shared/errors.ts -- the Sentry client is bound before it is used", () => {
+	it("binds a client and guards against clobbering an existing one", () => {
+		expect(ERRORS_CODE).toContain("Sentry.init(");
+		// stripe-webhooks/index.ts inits at module scope; without this guard a warm
+		// isolate of the ONE function whose reporting already worked gets re-inited
+		// on its first errorResponse.
+		expect(ERRORS_CODE).toContain("getClient()");
+	});
+
+	it.each([
+		"errorResponse",
+		"captureWebhookError",
+		"captureWebhookWarning",
+		"logEvent",
+	])("%s calls ensureSentryClient BEFORE it touches Sentry", (name) => {
+		// An init that exists but is never reached transmits exactly as much as no
+		// init at all. Wiring it into only one of the four entry points would make
+		// monitoring depend on which path happens to fire first in a given isolate
+		// -- a nondeterministic outage, which is worse than a deterministic one.
+		// Hence per-function slices, not a file-wide index comparison.
+		const body = exportedBody(ERRORS_CODE, name);
+		const bindIndex = body.indexOf("ensureSentryClient()");
+		const sentryIndex = body.search(/Sentry\.\w+\(/);
+
+		expect(bindIndex).toBeGreaterThan(-1);
+		expect(sentryIndex).toBeGreaterThan(-1);
+		expect(bindIndex).toBeLessThan(sentryIndex);
+	});
+
+	it("reads the DSN with the env namespace directly, not through validateEnv", () => {
+		// validateEnv caches on its first call across the whole isolate, keyed on
+		// nothing. A call from this shared module would hand back some other
+		// caller's map, or poison the cache for the function's own call and take
+		// the isolate down on a required var this module never asked about.
+		expect(ERRORS_CODE).toContain('Deno.env.get("SENTRY_DSN")');
+		expect(ERRORS_CODE).not.toContain("validateEnv");
 	});
 });

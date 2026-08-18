@@ -308,8 +308,9 @@ describe("4. the submit branch runs its checks in the required order", () => {
 
 	it("the bot filters run BEFORE the limiter", () => {
 		// Order, not presence. A bot flood should cost one string comparison, not
-		// an Upstash round trip per request — a presence-only test passes with
-		// these in any sequence.
+		// a database round trip per request — a presence-only test passes with
+		// these in any sequence. Since 66.1-03 the limiter is Postgres-backed, so
+		// the round trip it saves is a write against `rate_limit_counters`.
 		expect(honeypotIndex).toBeLessThan(limitIndex);
 		expect(timingIndex).toBeLessThan(limitIndex);
 	});
@@ -514,9 +515,19 @@ describe("6. the handler's own structure", () => {
 	});
 
 	it("declares Upstash optional and the service role required", () => {
-		// The limiter fails open when Upstash is unreachable (rate-limit.ts:159,
-		// deliberate), so a required-var check on it would take the endpoint down
-		// for a dependency that is explicitly not the security boundary.
+		// THESE TWO OPTIONAL VARS ARE NOW DEAD, AND THE ASSERTION IS KEPT ANYWAY.
+		// 66.1-03 moved the limiter onto `public.check_rate_limit` and removed the
+		// external key-value backing store entirely, so `apply-token`'s
+		// validateEnv still declares two variables nothing reads. That plan is
+		// forbidden from editing any `*/index.ts` (D-03: "no call site changed" is
+		// a checkable property of its diff, not a claim in a summary), so removing
+		// them belongs to 66.1-05, which redeploys all five functions. Until then
+		// index.ts still declares them and this assertion must keep passing —
+		// deleting it now would only mean rewriting it twice.
+		//
+		// The original reason for `optional` still holds independently: a
+		// required-var check would take the endpoint down for a dependency that is
+		// not the security boundary.
 		const envCall = extractCallContaining(
 			SERVE_BODY,
 			"UPSTASH_REDIS_REST_URL",

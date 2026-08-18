@@ -21,12 +21,20 @@
  *     `form_loaded_at` is supplied by the client and is trivially forged — any
  *     attacker who reads this file can send `Date.now() - 10_000` and sail
  *     through. It exists to shed unsophisticated form-fillers cheaply, nothing
- *     more. The same is true of the honeypot. The only abuse control in this
- *     phase that is fail-closed by construction is the per-link submission cap
- *     enforced inside `submit_rental_application` under the token row's
- *     `FOR UPDATE` lock (F-6, D-04a); the Upstash limiter in
- *     `_shared/rate-limit.ts` deliberately fails OPEN when Upstash is
- *     unreachable (`:159`). Do not read either guard below as a defence.
+ *     more. The same is true of the honeypot. Do not read either guard below as
+ *     a defence.
+ *
+ *     THERE ARE NOW TWO FAIL-CLOSED BOUNDS, AND NEITHER IS IN THIS FILE. The
+ *     first is the per-link submission cap enforced inside
+ *     `submit_rental_application` under the token row's `FOR UPDATE` lock
+ *     (F-6, D-04a). The second, since 66.1-03, is the limiter in
+ *     `_shared/rate-limit.ts`: it is backed by `public.check_rate_limit` in this
+ *     project's own database and DENIES on every error path (D-02). This
+ *     paragraph used to say the opposite, because the limiter used to admit
+ *     every request whenever its external backing store was unreachable — the
+ *     branch that let the limits silently stop existing product-wide for
+ *     months. That branch no longer exists, and the line reference it carried
+ *     is dead.
  *
  * (b2) THE STAMP IS MINTED BY THE SERVER, AND THERE IS NO UPPER BOUND.
  *     Two properties, both of which exist because the alternative silently

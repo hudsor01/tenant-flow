@@ -23,7 +23,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // in this repo). Setting DENO_TEST_NO_SERVE=1 before importing suppresses that
 // server bind so the unit test can drive handleRequest() directly with a fake
 // Request. validateEnv() caches on first call, so seed every required var first.
-// UPSTASH_* is intentionally left unset so rateLimit() fails open (returns null).
+//
+// THE LIMITER IS POSTGRES-BACKED AND FAIL-CLOSED (66.1-03, D-02). It has no
+// admitting error path left, so every send/resend/finalize branch below reaches
+// `public.check_rate_limit` over PostgREST at SUPABASE_URL. Unstubbed, that
+// connection is refused and all four cases get a 429 instead of their 402/200.
+// The fetch stub therefore intercepts the RPC and answers "allowed" — see
+// checkRateLimitResponse(). Note this exercises the REAL limiter end to end,
+// including its row-shape read; adding a test-only injection seam to
+// _shared/rate-limit.ts to avoid the stub would put a bypass path into
+// production code, which is strictly worse. If a future edit makes the stub stop
+// matching, the failure is LOUD (429 where 402 was expected), which is the
+// correct direction for a limiter to break in.
 Deno.env.set("DENO_TEST_NO_SERVE", "1");
 Deno.env.set("SUPABASE_URL", "http://localhost");
 Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
@@ -229,7 +240,52 @@ function makeClient(scenario: Scenario): {
 	return { client, calls };
 }
 
-/** Stub Resend's fetch so sendEmail resolves deterministically without network. */
+/**
+ * Answer `public.check_rate_limit` with an admitting verdict row, in the
+ * `.single()` OBJECT shape that PostgREST returns for the RPC (rate-limit.ts
+ * calls `.single()`; the bare `returns table` array shape would also be read
+ * correctly, but the object form is what production sees).
+ *
+ * The limit is echoed back from the caller's own `p_max_requests` rather than
+ * hardcoded, so this stub stays correct for all three buckets lease-signature
+ * uses (lease-esign-email 10/60s on send and resend, lease-esign-finalize
+ * 30/60s) and for any it grows later.
+ */
+function checkRateLimitResponse(init?: RequestInit): Response {
+	let limit = 1_000;
+	if (typeof init?.body === "string") {
+		try {
+			const parsed = JSON.parse(init.body) as { p_max_requests?: unknown };
+			if (typeof parsed.p_max_requests === "number") {
+				limit = parsed.p_max_requests;
+			}
+		} catch {
+			// Unparseable body: fall back to the generous default rather than
+			// failing here, so a body-shape change surfaces in the limiter's own
+			// tests instead of as a confusing failure in this file.
+		}
+	}
+	return new Response(
+		JSON.stringify({
+			allowed: true,
+			limit_value: limit,
+			remaining: limit - 1,
+			reset_at_ms: Date.now() + 60_000,
+		}),
+		{ status: 200, headers: { "Content-Type": "application/json" } },
+	);
+}
+
+/**
+ * Stub the two outbound calls this handler makes — Resend, and the limiter's
+ * check_rate_limit RPC — so every case resolves deterministically without
+ * network.
+ *
+ * `fetchCount` counts EMAIL sends only. The RPC deliberately does not increment
+ * it: the four cases below assert on how many emails were sent, and folding the
+ * limiter's own call into that number would silently change what every one of
+ * those assertions means.
+ */
 function withResendStub(
 	opts: { ok: boolean },
 	fn: (fetchCount: () => number) => Promise<void>,
@@ -239,7 +295,19 @@ function withResendStub(
 		const prevKey = Deno.env.get("RESEND_API_KEY");
 		Deno.env.set("RESEND_API_KEY", "test-key");
 		let count = 0;
-		globalThis.fetch = (async () => {
+		globalThis.fetch = (async (
+			input: RequestInfo | URL,
+			init?: RequestInit,
+		) => {
+			const url =
+				typeof input === "string"
+					? input
+					: input instanceof URL
+						? input.href
+						: input.url;
+			if (url.includes("/rest/v1/rpc/check_rate_limit")) {
+				return checkRateLimitResponse(init);
+			}
 			count++;
 			return new Response(JSON.stringify({ id: "email-1" }), {
 				status: opts.ok ? 200 : 500,
