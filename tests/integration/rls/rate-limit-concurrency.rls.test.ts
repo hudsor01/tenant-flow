@@ -50,7 +50,7 @@
  *
  * AUTHORED-BUT-UNRUN BY DESIGN. public.check_rate_limit does not exist in
  * production until plan 66.1-02 applies
- * supabase/migrations/20260816010000_rate_limit_counters.sql. Every RPC call
+ * supabase/migrations/20260818031338_rate_limit_counters.sql. Every RPC call
  * here returns PGRST202 before that. 66.1-02 runs this file green against
  * production as its gate. Do not weaken an assertion to make it pass earlier,
  * and do not mark it skipped.

@@ -1,4 +1,4 @@
--- Rollback for 20260816010000_rate_limit_counters.sql (Phase 66.1 / RATE-01, RATE-02).
+-- Rollback for 20260818031338_rate_limit_counters.sql (Phase 66.1 / RATE-01, RATE-02).
 -- Run manually if you need to remove the Postgres-backed rate limiter.
 --
 -- Written BEFORE the apply, on purpose. A reversal discovered mid-incident is a
@@ -30,7 +30,7 @@
 --
 -- 5. Delete the schema_migrations row LAST.
 --    This is what makes a re-apply CLEAN. Without it, `supabase db push` and
---    `db diff` still believe 20260816010000 is applied, so the migration is
+--    `db diff` still believe 20260818031338 is applied, so the migration is
 --    never re-attempted -- and if it is force-applied anyway it fails on
 --    `create table` or silently duplicates the cron job. The version literal
 --    below must match the version production actually recorded: if the repo
@@ -77,4 +77,4 @@ drop function if exists public.check_rate_limit(text, integer, integer);
 drop table if exists public.rate_limit_counters;
 
 -- 5. The applied-migration record. Keep this literal in sync with the filename.
-delete from supabase_migrations.schema_migrations where version = '20260816010000';
+delete from supabase_migrations.schema_migrations where version = '20260818031338';

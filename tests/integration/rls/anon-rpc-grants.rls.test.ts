@@ -15,7 +15,7 @@
  *      -- the two functions pass 2 deliberately skipped. Every policy calling
  *      is_admin() is {authenticated}-scoped, so anon never evaluates it;
  *      authenticated keeps EXECUTE so RLS is unaffected.)
- *   - 20260816010000_rate_limit_counters.sql
+ *   - 20260818031338_rate_limit_counters.sql
  *     (Phase 66.1 / RATE-02: revoke FROM PUBLIC, anon and authenticated on
  *      `check_rate_limit` and `cleanup_rate_limit_counters`, granting only
  *      service_role. PostgreSQL auto-grants EXECUTE to PUBLIC at creation and
@@ -379,7 +379,7 @@ describe("anon-EXEC SECURITY DEFINER lockdown", () => {
 	//
 	// PGRST202 is in REVOKED_CODES and is ALSO what PostgREST returns for a
 	// function that does not exist. So "anon got PGRST202" is satisfied by a
-	// database where 20260816010000_rate_limit_counters.sql was never applied,
+	// database where 20260818031338_rate_limit_counters.sql was never applied,
 	// by a misspelled function name, and by drifted argument names -- all
 	// green, all proving nothing. The assertions below fail in every one of
 	// those states.

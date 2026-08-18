@@ -11,7 +11,7 @@ progress:
   total_plans: 60
   completed_plans: 56
   percent: 47
-stopped_at: "Phase 66.1 plan 02 BLOCKED, not complete. The owner APPROVED the production apply on 2026-08-17 and that approval still stands, but SUPABASE_ACCESS_TOKEN is rejected with 401 on every Management API endpoint (including read-only GET /v1/projects), so supabase/migrations/20260816010000_rate_limit_counters.sql was NOT applied and nothing was written to production. The apply helper was proven correct against a local listener, so the credential is the fault, not the mechanism. Two further blockers found: MCP tools are unreachable in-session (so Task 3's list_migrations reconcile cannot run either), and the integration-test Supabase credentials do not resolve through tests/integration/setup/env-loader.ts (so Task 4's zero-skip gate cannot clear). Task 1 IS done -- the migration is certified additive-only by inspection and the rollback script is committed at f53333518. RESUME NEEDS A ROTATED PAT, then Task 1(c)/(d) re-reads (cron minute :25 still free? five-way baseline still 0?) and Tasks 3-4. Do NOT re-run the owner gate. Branch gsd/phase-66.1-postgres-rate-limiting."
+stopped_at: "Phase 66.1 plan 02 BLOCKED, not complete. The owner APPROVED the production apply on 2026-08-17 and that approval still stands, but SUPABASE_ACCESS_TOKEN is rejected with 401 on every Management API endpoint (including read-only GET /v1/projects), so supabase/migrations/20260818031338_rate_limit_counters.sql was NOT applied and nothing was written to production. The apply helper was proven correct against a local listener, so the credential is the fault, not the mechanism. Two further blockers found: MCP tools are unreachable in-session (so Task 3's list_migrations reconcile cannot run either), and the integration-test Supabase credentials do not resolve through tests/integration/setup/env-loader.ts (so Task 4's zero-skip gate cannot clear). Task 1 IS done -- the migration is certified additive-only by inspection and the rollback script is committed at f53333518. RESUME NEEDS A ROTATED PAT, then Task 1(c)/(d) re-reads (cron minute :25 still free? five-way baseline still 0?) and Tasks 3-4. Do NOT re-run the owner gate. Branch gsd/phase-66.1-postgres-rate-limiting."
 ---
 
 <!--
@@ -72,7 +72,7 @@ See: .planning/PROJECT.md
 Phase: 66.1 (postgres-backed-rate-limiting-with-trusted-client-ip-forward) — EXECUTING
 Plan: 1 of 5 complete
 
-66.1-01 AUTHORED and committed `supabase/migrations/20260816010000_rate_limit_counters.sql`
+66.1-01 AUTHORED and committed `supabase/migrations/20260818031338_rate_limit_counters.sql`
 (rate_limit_counters + the two-guard `check_rate_limit` RPC + bounded cleanup on pg_cron at
 3:25 UTC), `tests/integration/rls/rate-limit-concurrency.rls.test.ts`, and the RATE-02 grant
 pins in `tests/integration/rls/anon-rpc-grants.rls.test.ts`.
