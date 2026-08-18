@@ -952,10 +952,11 @@ describe("6c. _shared/timing-safe.ts claims only what has been established", () 
 
 	it("records which branch executes as UNVERIFIED, and asserts neither", () => {
 		// The `errors.ts` failure in miniature is what this guards against: a
-		// confident sentence over an unchecked claim ("handles missing DSN
-		// gracefully") is why 16 functions went unmonitored for months. Trading
-		// that claim for its opposite -- "the shim never runs" -- would be exactly
-		// as unevidenced, since the extension is real and Deno documents it.
+		// confident sentence over an unchecked claim -- the one asserting graceful
+		// behaviour without a DSN -- is why 16 functions went unmonitored for
+		// months. Trading that claim for its opposite ("the shim never runs")
+		// would be exactly as unevidenced: the extension is real, Deno documents
+		// it, and workerd implements it.
 		expect(TIMING_SAFE_SOURCE).toContain("has not been verified");
 		expect(TIMING_SAFE_SOURCE).toMatch(/w3c\/webcrypto#270/);
 	});
@@ -966,5 +967,63 @@ describe("6c. _shared/timing-safe.ts claims only what has been established", () 
 		expect(TIMING_SAFE_SOURCE).toContain("subtle.timingSafeEqual");
 		expect(TIMING_SAFE_SOURCE).toContain("d |= (ab[i] ?? 0) ^ (bb[i] ?? 0)");
 		expect(TIMING_SAFE_SOURCE).toContain("if (ab.length !== bb.length) return false;");
+	});
+});
+
+// -----------------------------------------------------------------------------
+// Section 7 -- THE ONLY TEST IN THIS REPO THAT FAILS WHEN THE TWO HALVES OF THE
+// TRUST BOUNDARY DRIFT APART.
+//
+// Rename `x-tf-client-ip` on ONE side and nothing else breaks: the Vercel suite
+// still passes because it asserts against its own constant, section 6 above
+// still passes because it asserts against its own literal, and the mechanism is
+// permanently inert with no failing test anywhere in the repo (T-66.1-27). Drift
+// here is silent BY CONSTRUCTION -- a Next.js module and a Deno module cannot
+// share a constant -- so the literals have to be compared across the two files.
+// -----------------------------------------------------------------------------
+
+const APPLY_CONTEXT_SOURCE = readRepoSource(
+	"../../../src/app/apply/[token]/apply-context.ts",
+);
+
+describe("7. the Vercel side and the Supabase side agree", () => {
+	it.each(["x-tf-client-ip", "x-tf-forward-secret", "CLIENT_IP_FORWARD_SECRET"])(
+		"%s appears in BOTH files",
+		(literal) => {
+			expect(LIMITER_CODE).toContain(literal);
+			expect(APPLY_CONTEXT_SOURCE).toContain(literal);
+		},
+	);
+
+	it("each file names the other, so the opposite-rule comments cannot be split apart", () => {
+		// The two hops take OPPOSITE rules on the same header name, and each file
+		// explains why by pointing at the other. A rename that breaks the pointer
+		// leaves two half-explanations, which is how a reviewer "reconciles" them
+		// and reopens the bypass.
+		expect(readRepoSource("../_shared/rate-limit.ts")).toContain(
+			"apply-context.ts",
+		);
+		expect(APPLY_CONTEXT_SOURCE).toContain("rate-limit.ts");
+	});
+
+	it("only the Vercel side reads the platform-attested header", () => {
+		// Different attestation at the two hops: Vercel overwrites the conventional
+		// forwarding header to prevent spoofing, while the Supabase gateway appends
+		// to it. The two must not converge on one header name, so the attested one
+		// appears on the Vercel side ALONE -- including in comments, which is why
+		// `rate-limit.ts` names that header as a concept and never as a literal.
+		expect(APPLY_CONTEXT_SOURCE).toContain("x-vercel-forwarded-for");
+		expect(readRepoSource("../_shared/rate-limit.ts")).not.toContain(
+			"x-vercel-forwarded-for",
+		);
+	});
+
+	it("the Vercel side refuses x-real-ip and refuses a multi-segment value", () => {
+		// Both are "looks like a decision, is actually a coin flip" traps: x-real-ip
+		// is documented as merely identical to the conventional header, and a
+		// comma-separated value contradicts the documented single-address contract
+		// in whichever direction one guesses.
+		expect(APPLY_CONTEXT_SOURCE).not.toContain('get("x-real-ip")');
+		expect(APPLY_CONTEXT_SOURCE).toContain('value.includes(",")');
 	});
 });

@@ -426,10 +426,20 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 		// attacker reaches that same bucket just by GETting the public page. The
 		// address component is free to them.
 		//
-		// The general result: an attacker and an applicant are INDISTINGUISHABLE at
-		// this function. No key it can compute separates them, so no configuration
-		// of this limiter mitigates T-66-06. Per-client limiting belongs in
-		// `src/proxy.ts`, which sees the real client address (deferred-items.md).
+		// The general result THOSE TWO ESTABLISHED: an attacker and an applicant are
+		// indistinguishable at this function. No key it could compute separated
+		// them, so no configuration of this limiter mitigated T-66-06.
+		//
+		// v3 — RATE-03 — DOES NOT MAKE THAT RESULT WRONG; IT CHANGES THE INPUT IT
+		// WAS ABOUT. The result held while the only address available here was the
+		// shared egress. `getTrustedClientIp` now supplies an address minted one
+		// hop earlier, at Vercel, under a constant-time-verified shared secret, so
+		// the function CAN compute a separating key and the general result no
+		// longer holds. The bucket that consumes it is gated on verification
+		// precisely so the old result stays true whenever verification is
+		// unavailable — which is every request until 66.1-05 provisions the secret.
+		// Per-client limiting in `src/proxy.ts` or a WAF is now a complement, not
+		// the only possible home for it.
 		//
 		// So this bucket is a CAPACITY ceiling per listing, and the property worth
 		// pinning is that it is sized above organic traffic rather than into it. A
@@ -459,6 +469,58 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 		expect(submitLimitCall).toContain('prefix: "apply-submit"');
 		expect(submitLimitCall).toContain("maxRequests: 5");
 		expect(submitLimitCall).not.toContain("identifier");
+	});
+
+	const clientLimitCall = extractCallContaining(
+		CONTEXT_BODY,
+		'prefix: "apply-context-client"',
+		"rateLimit(",
+	);
+
+	it("RATE-03: a per-client bucket exists, keyed on the VERIFIED address", () => {
+		// Without a consumer, RATE-03 would merge as a green plan that changes no
+		// observable behaviour anywhere: a trust boundary built, tested, documented
+		// and read by nothing. That is the third shape of the D5 failure, not a
+		// smaller version of the feature.
+		expect(clientLimitCall).toContain('prefix: "apply-context-client"');
+		expect(clientLimitCall).toContain("maxRequests: 60");
+		expect(clientLimitCall).toContain("windowMs: 60_000");
+		expect(clientLimitCall).toContain("identifier: trustedIp");
+	});
+
+	it("RATE-03: and it is GATED on verification — the property worth pinning", () => {
+		// Its CONDITIONALITY matters more than its existence. Ungated, this bucket
+		// keys on the Vercel egress for 100% of genuine traffic and becomes a
+		// product-wide 60/min cap on every apply page load the moment it merges —
+		// the exact defect that got the 300/60s ceiling removed, reintroduced with
+		// a smaller number.
+		const gateIndex = CONTEXT_BODY.indexOf("getTrustedClientIp(");
+		const callIndex = CONTEXT_BODY.indexOf('prefix: "apply-context-client"');
+
+		expect(gateIndex).toBeGreaterThan(-1);
+		expect(gateIndex).toBeLessThan(callIndex);
+
+		// A truthiness check on the returned value stands between them.
+		const between = CONTEXT_BODY.slice(gateIndex, callIndex);
+		expect(between).toMatch(/if\s*\(\s*trustedIp\s*\)/);
+	});
+
+	it("RATE-03: the per-client bucket runs BEFORE the per-listing ceiling", () => {
+		// The more precise control first: a client over their own limit is told so
+		// before they consume the listing's shared capacity.
+		expect(CONTEXT_BODY.indexOf('prefix: "apply-context-client"')).toBeLessThan(
+			CONTEXT_BODY.indexOf('prefix: "apply-context"'),
+		);
+	});
+
+	it("RATE-03: the aggregate ceiling was JOINED, not replaced", () => {
+		// N distinct clients each under their own limit still sum to N times the
+		// load. The tokenHash ceiling is the only thing that bounds the sum, so
+		// adding the per-client bucket must not have quietly taken its place.
+		expect(contextLimitCall).toContain("identifier: tokenHash");
+		expect(contextLimitCall).toContain("maxRequests: 3_000");
+		// And the two are genuinely different calls, not one call read twice.
+		expect(clientLimitCall).not.toBe(contextLimitCall);
 	});
 
 	it("exactly one action carries a token-derived limit key, and it is context", () => {

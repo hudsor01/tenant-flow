@@ -147,6 +147,17 @@ const FORWARDED_IP_SHAPE = /^[0-9a-fA-F:.]+$/;
  * equivalent) is used either. The precedence above is the entire substance of
  * this function, and it has to be reviewable in the diff rather than resolved
  * inside a dependency.
+ *
+ * THE OTHER HOP TAKES THE OPPOSITE RULE, DELIBERATELY, AND THE TWO MUST NOT BE
+ * RECONCILED. `supabase/functions/_shared/rate-limit.ts` reads the LAST
+ * `x-forwarded-for` segment, because at the Supabase edge that header is
+ * attacker-supplied and the gateway APPENDS to it, so the last segment is the
+ * closest-to-us hop and the first is free for anyone to choose. Here at Vercel
+ * the platform OVERWRITES that header instead, so the attested value is
+ * preferred outright and a list is refused rather than indexed. Same header
+ * name, opposite correct answer, because the two hops have opposite trust
+ * properties — and a reviewer who "fixes" one to match the other reopens the
+ * bypass this function exists to close.
  */
 export function trustedClientIpHeaders(
 	getHeader: (name: string) => string | null | undefined,
