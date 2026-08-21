@@ -576,23 +576,20 @@ describe("6. the handler's own structure", () => {
 		expect(SERVE_BODY).toContain("validateEnv(");
 	});
 
-	it("declares Upstash optional and the service role required", () => {
-		// THESE TWO OPTIONAL VARS ARE NOW DEAD, AND THE ASSERTION IS KEPT ANYWAY.
-		// 66.1-03 moved the limiter onto `public.check_rate_limit` and removed the
-		// external key-value backing store entirely, so `apply-token`'s
-		// validateEnv still declares two variables nothing reads. That plan is
-		// forbidden from editing any `*/index.ts` (D-03: "no call site changed" is
-		// a checkable property of its diff, not a claim in a summary), so removing
-		// them belongs to 66.1-05, which redeploys all five functions. Until then
-		// index.ts still declares them and this assertion must keep passing —
-		// deleting it now would only mean rewriting it twice.
+	it("requires the service role and declares no dead limiter vars", () => {
+		// THE DEAD VARS ARE NOW GONE, AND THIS ASSERTION IS INVERTED ON PURPOSE.
+		// The previous version located the validateEnv call by searching for
+		// "UPSTASH_REDIS_REST_URL" and asserted the two dead optional vars were
+		// still declared -- correct while 66.1-03 was forbidden from touching any
+		// `*/index.ts` (D-03), but it would have kept passing forever afterwards
+		// by pinning the very staleness it was waiting to see removed.
 		//
-		// The original reason for `optional` still holds independently: a
-		// required-var check would take the endpoint down for a dependency that is
-		// not the security boundary.
+		// 66.1-05 removed them. So the anchor moved to a var that is genuinely
+		// load-bearing, and the assertion now demands ABSENCE. If someone
+		// reintroduces an external key-value limiter binding, this fails.
 		const envCall = extractCallContaining(
 			SERVE_BODY,
-			"UPSTASH_REDIS_REST_URL",
+			"SUPABASE_SERVICE_ROLE_KEY",
 			"validateEnv(",
 		);
 		const required = balancedSlice(
@@ -603,7 +600,10 @@ describe("6. the handler's own structure", () => {
 		);
 		expect(required).toContain("SUPABASE_SERVICE_ROLE_KEY");
 		expect(required).toContain("NEXT_PUBLIC_APP_URL");
-		expect(required).not.toContain("UPSTASH");
+		// The limiter needs no env of its own: it calls public.check_rate_limit
+		// over the service-role client this function already builds.
+		expect(envCall.toUpperCase()).not.toContain("UPSTASH");
+		expect(envCall).not.toContain("REDIS");
 	});
 });
 

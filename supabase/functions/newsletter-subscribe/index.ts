@@ -109,11 +109,7 @@ Deno.serve(async (req: Request) => {
 	try {
 		const env = validateEnv({
 			required: ["RESEND_API_KEY"],
-			optional: [
-				"NEXT_PUBLIC_APP_URL",
-				"UPSTASH_REDIS_REST_URL",
-				"UPSTASH_REDIS_REST_TOKEN",
-			],
+			optional: ["NEXT_PUBLIC_APP_URL"],
 		});
 
 		const body = (await req.json()) as Record<string, unknown>;

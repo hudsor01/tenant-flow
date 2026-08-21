@@ -287,12 +287,14 @@ async function handleContext(
  *   honeypot -> timing -> address limit -> envelope -> strict payload -> RPC
  *
  * The two client-supplied bot filters run first so a flood costs one string
- * comparison rather than an Upstash round trip, and both answer with an
+ * comparison rather than a database round trip, and both answer with an
  * ordinary success so nothing teaches a bot which layer caught it. Neither is a
- * security control. The fail-closed bound is the per-link cap evaluated under
- * the token row's FOR UPDATE lock inside submit_rental_application (D-04a,
- * F-6); the Upstash limiter fails OPEN when Upstash is unreachable
- * (_shared/rate-limit.ts:159, deliberate) and can only ever be the outer layer.
+ * security control. The per-link cap evaluated under the token row's FOR UPDATE
+ * lock inside submit_rental_application (D-04a, F-6) remains the innermost
+ * bound. Since 66.1 the limiter in front of it ALSO fails closed: it shares a
+ * failure domain with the write it guards, so an unreachable database denies
+ * rather than admits. It is still the outer layer, but it is no longer a layer
+ * that disappears exactly when the database is in trouble.
  */
 async function handleSubmit(
 	req: Request,
@@ -407,19 +409,16 @@ Deno.serve(async (req: Request) => {
 		}
 
 		// Inside the handler, never at module scope: a module-level env read runs
-		// at import and takes the whole isolate down. Upstash is optional on
-		// purpose — the limiter fails open and the DB cap is the real bound.
+		// at import and takes the whole isolate down. The limiter needs no env of
+		// its own since 66.1 -- it calls public.check_rate_limit over the same
+		// service-role client this function already builds.
 		const env = validateEnv({
 			required: [
 				"SUPABASE_URL",
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"NEXT_PUBLIC_APP_URL",
 			],
-			optional: [
-				"UPSTASH_REDIS_REST_URL",
-				"UPSTASH_REDIS_REST_TOKEN",
-				"SENTRY_DSN",
-			],
+			optional: ["SENTRY_DSN", "CLIENT_IP_FORWARD_SECRET"],
 		});
 		const supabase = createAdminClient(
 			env["SUPABASE_URL"],

@@ -21,11 +21,25 @@
 // Specifically unresolved from documentation: whether the GLOBAL crypto.subtle
 // carries the extension, or whether only std/crypto's wrapper type (an
 // interface that EXTENDS SubtleCrypto) does. Supabase Edge Functions use the
-// global. The evidence points weakly both ways and does not settle, so this
-// comment records the question rather than picking an answer. 66.1-05 runs
-// checks against the deployed runtime and can settle it in one line -- log
+// global. Documentation pointed weakly both ways, so this comment recorded the
+// question rather than picking an answer.
+//
+// MEASURED 2026-08-18 on Deno 2.9.5 (local, `deno eval`):
+//   typeof crypto.subtle.timingSafeEqual === "undefined"
+// So on that runtime the GLOBAL does NOT carry the extension -- only
+// std/crypto's wrapper type does -- and the XOR loop below is what executes.
+// That resolves the global-vs-wrapper question the documentation could not.
+//
+// STILL NOT VERIFIED ON THE DEPLOYMENT TARGET, which is the version that
+// actually matters: Supabase Edge Runtime ships its own Deno build and was not
+// the thing measured above. Do not upgrade this note to a claim about
+// production. 66.1-05 settles it in one line against a deployed function -- log
 // `typeof (crypto.subtle as unknown as Record<string, unknown>).timingSafeEqual`
-// from any deployed function -- and the answer belongs back here once known.
+// -- and the answer belongs back here once known.
+//
+// Either way nothing changes: both branches are constant-time, so this is a
+// question about which code path executes, never about whether the compare is
+// safe.
 //
 // IMPORTANT: this compares RAW secret strings directly (no HMAC). It is for
 // callers that hold a shared secret and need a constant-time equality check —
