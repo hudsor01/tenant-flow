@@ -502,8 +502,18 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 		// is asserted.
 		expect(ERRORS_CODE).toContain("tags?: Record<string, string>");
 		const captureBody = exportedBody(ERRORS_CODE, "captureWebhookError");
-		expect(captureBody).toContain("{ tags }");
-		expect(captureBody).not.toMatch(/extra:\s*\{/);
+		// POSITIVE SHAPE, NOT A LIST OF REJECTED SPELLINGS. Three attempts at this
+		// pin failed because each one named a form to forbid, and the next fold
+		// simply used a different spelling: `{ tags }` survives nesting at any
+		// depth, and `not.toMatch(/extra:\s*\{/)` catches only the brace form --
+		// `Object.assign({}, extra, tags ? { tags } : {})`, or hoisting the object
+		// into a const and passing `extra: ctx`, both slip past it while burying the
+		// alert marker in un-indexed additional data. Pinning the one known-good
+		// construction inverts that: every rewrite fails until someone updates this
+		// line deliberately, which is the point.
+		expect(captureBody).toMatch(
+			/captureException\(\s*error,\s*\{\s*extra,\s*\.\.\.\(tags \? \{ tags \} : \{\}\),\s*\}\s*\)/,
+		);
 
 		expect(captureCall).not.toContain("bucketKey");
 		// `\bkey\b` is safe here: bucket_key_prefix has no word boundary before
