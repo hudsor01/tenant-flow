@@ -1066,6 +1066,21 @@ describe("6. RATE-03 wiring in _shared/rate-limit.ts", () => {
 			")",
 		);
 		expect(call).toContain("timingSafeEqualStr");
+
+		// PIN THE RESULT, NOT JUST THE CALL. Everything above proves the decision
+		// is COMPUTED with a constant-time comparator; nothing proved it is
+		// RETURNED. Rewriting the tail to `return null;` makes RATE-03 completely
+		// inert -- no forwarded address ever reaches getClientIp, and apply-token's
+		// per-client bucket never enters -- and rewriting it to
+		// `return req.headers.get("x-tf-client-ip")` INVERTS the boundary into a
+		// bypass where any unauthenticated caller picks its own bucket key, and
+		// therefore anyone else's, on all five guarded surfaces. Both mutations
+		// left 140/140 green, because sections 5 and 5b execute only the pure leaf
+		// and this module is read as text, never imported.
+		const trustedBody = exportedBody(LIMITER_CODE, "getTrustedClientIp");
+		expect(trustedBody).toContain(
+			"return decision.trusted ? decision.clientIp : null;",
+		);
 	});
 
 	it("reads both forwarding headers and the env var by their exact names", () => {
@@ -1083,6 +1098,11 @@ describe("6. RATE-03 wiring in _shared/rate-limit.ts", () => {
 		const body = exportedBody(LIMITER_CODE, "getClientIp");
 
 		expect(body.indexOf("getTrustedClientIp(")).toBeGreaterThan(-1);
+		// ...and its result must actually be used. Deleting `if (forwarded) return
+		// forwarded;` while keeping the call left this very test green, including
+		// its own name, because it only looked for the identifier.
+		expect(body).toContain("const forwarded = getTrustedClientIp(req);");
+		expect(body).toContain("if (forwarded) return forwarded;");
 		expect(body.indexOf("getTrustedClientIp(")).toBeLessThan(
 			body.indexOf("cf-connecting-ip"),
 		);

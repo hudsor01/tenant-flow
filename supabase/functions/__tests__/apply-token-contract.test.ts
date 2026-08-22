@@ -486,6 +486,15 @@ describe("4b. D-04b: the token-hash limit key is confined to the context action"
 		expect(clientLimitCall).toContain("maxRequests: 60");
 		expect(clientLimitCall).toContain("windowMs: 60_000");
 		expect(clientLimitCall).toContain("identifier: trustedIp");
+		// A 429 THAT IS COMPUTED AND DISCARDED IS NOT A LIMITER. The slice above
+		// covers the rateLimit ARGUMENT LIST only, so deleting the line that
+		// returns the response leaves this file fully green while the bucket still
+		// issues its RPC and still increments rate_limit_counters -- a limiter that
+		// exists, is correctly keyed, is gated on verification, and enforces
+		// nothing. All three call sites in this function share the gap.
+		expect(CODE).toContain("if (clientLimited) return clientLimited;");
+		expect(CODE).toContain("if (tokenLimited) return tokenLimited;");
+		expect(CODE).toContain("if (limited) return limited;");
 	});
 
 	it("RATE-03: and it is GATED on verification — the property worth pinning", () => {
