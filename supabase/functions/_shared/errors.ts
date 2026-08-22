@@ -149,6 +149,13 @@ export function errorResponse(
 export function captureWebhookError(
 	error: unknown,
 	extra: Record<string, unknown>,
+	// TAGS, NOT `extra`, ARE WHAT AN ISSUE-ALERT CONDITION CAN MATCH.
+	// Sentry does not index additional data: an alert rule can match tags[...]
+	// and a fixed attribute list, and nothing else. RATE-04's whole purpose is an
+	// alert that fires when the limiter starts failing, so the marker it keys on
+	// has to be a tag. Optional and additive, so the sixteen existing call sites
+	// are unchanged.
+	tags?: Record<string, string>,
 ): void {
 	ensureSentryClient();
 
@@ -164,6 +171,7 @@ export function captureWebhookError(
 
 	Sentry.captureException(error, {
 		extra,
+		...(tags ? { tags } : {}),
 	});
 }
 

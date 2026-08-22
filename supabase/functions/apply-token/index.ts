@@ -409,9 +409,17 @@ Deno.serve(async (req: Request) => {
 		}
 
 		// Inside the handler, never at module scope: a module-level env read runs
-		// at import and takes the whole isolate down. The limiter needs no env of
-		// its own since 66.1 -- it calls public.check_rate_limit over the same
-		// service-role client this function already builds.
+		// at import and takes the whole isolate down.
+		//
+		// The limiter reads its own env, and it does NOT share this function's
+		// client. `getRateLimitClient()` builds and caches a separate admin client
+		// from SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (both platform-injected),
+		// and reads CLIENT_IP_FORWARD_SECRET for the trusted-forward path;
+		// `_shared/errors.ts` reads SENTRY_DSN. All four go through Deno.env.get
+		// directly rather than validateEnv -- env.ts caches on its first call
+		// across the whole isolate, so a shared module calling it would either get
+		// some other caller's map back or poison the cache for this one. They are
+		// listed as optional below to document the isolate's real env surface.
 		const env = validateEnv({
 			required: [
 				"SUPABASE_URL",

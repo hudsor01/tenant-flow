@@ -604,6 +604,15 @@ describe("6. the handler's own structure", () => {
 		// over the service-role client this function already builds.
 		expect(envCall.toUpperCase()).not.toContain("UPSTASH");
 		expect(envCall).not.toContain("REDIS");
+		// SCOPED TO THE WHOLE HANDLER, NOT JUST THE validateEnv ARGUMENTS.
+		// The two assertions above only inspect the balanced slice of the
+		// `validateEnv(` call, so a `Deno.env.get("UPSTASH_REDIS_REST_URL")`
+		// anywhere else in the function -- or an import of an external limiter
+		// client -- would pass them while reintroducing exactly what this gate
+		// exists to forbid. The claim "if someone reintroduces an external
+		// key-value limiter binding, this fails" is only true with these.
+		expect(SERVE_BODY).not.toContain("UPSTASH_REDIS_REST");
+		expect(CODE.toUpperCase()).not.toContain("UPSTASH");
 	});
 });
 

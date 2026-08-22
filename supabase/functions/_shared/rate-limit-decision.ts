@@ -208,8 +208,17 @@ export function decideRateLimit(
 	if (outcome.kind === "thrown") return denyForError("db_unreachable", options);
 
 	if (outcome.kind === "postgrest_error") {
-		// `status` is carried on the outcome for the log only; the code is what
-		// classifies.
+		// STATUS 0 IS AN UNREACHABLE DATABASE, AND IT ARRIVES HERE RATHER THAN AS
+		// `thrown`. postgrest-js does not throw on a transport failure: it catches
+		// the fetch rejection and resolves with { error: { code: "" }, status: 0 }.
+		// So DNS failure, TLS failure, connection refused and a dropped connection
+		// all land in this branch carrying an empty code, which classifies as
+		// `postgrest_5xx`. Both still DENY -- D-02 is not at stake -- but the
+		// operator would be told PostgREST answered when nothing answered, and
+		// `db_unreachable` would show zero events forever, reading as "we have
+		// never had a connectivity failure". That is the precise triage signal
+		// this phase exists to create, so it is classified before the code is.
+		if (outcome.status === 0) return denyForError("db_unreachable", options);
 		return denyForError(classifyPostgrestCode(outcome.code), options);
 	}
 
@@ -440,7 +449,18 @@ export function decideForwardedClientIp(
 	// 4. The authorization itself. `compare` is constant-time in production; the
 	//    length-mismatch early return inside it is deliberate and documented
 	//    (`./timing-safe.ts`) -- the secret's length is not itself secret.
-	if (!compare(input.presentedSecret, input.configuredSecret)) {
+	//    COMPARE AGAINST THE TRIMMED SECRET, because the presented side is
+	//    guaranteed trimmed before it arrives. The Fetch spec normalizes header
+	//    values by stripping leading and trailing tab/LF/CR/space at Headers
+	//    construction, so a secret provisioned with a trailing newline -- what a
+	//    file-piped `supabase secrets set`, a `vercel env add` from a file, or an
+	//    ordinary paste routinely carries -- would be sent as "S\n", arrive as
+	//    "S", and fail the length check against the stored "S\n". Byte-identical
+	//    secrets on both platforms would never match, and the failure is silent:
+	//    forwarding just falls back forever. Trimming is safe because surrounding
+	//    whitespace cannot be the distinguishing content of a secret the wire
+	//    strips, and step 1 above already rejects a whitespace-only secret.
+	if (!compare(input.presentedSecret, input.configuredSecret.trim())) {
 		return { trusted: false, clientIp: null, reason: "secret_mismatch" };
 	}
 

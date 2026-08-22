@@ -113,9 +113,15 @@ function getRateLimitClient(): ReturnType<typeof createAdminClient> {
  * value is a true client IP, which makes it more precisely personal than the
  * shared-egress key it replaces, so the no-logging rule tightens here.
  *
- * Until `CLIENT_IP_FORWARD_SECRET` is provisioned on BOTH sides (66.1-05), the
- * configured secret is absent, this returns `null` for every request, and every
- * caller behaves exactly as it does today. That is D-05, and it is structural:
+ * PROVISIONED AND LIVE since 2026-08-22 on both Supabase function secrets and
+ * Vercel Production, and the full trust matrix was verified against the deployed
+ * function: a valid secret plus a forwarded address keys the bucket on that
+ * address, while a wrong secret, an absent secret and a malformed address all
+ * fall back to the connection address.
+ *
+ * Before provisioning the configured secret was absent, this returned `null` for
+ * every request, and every caller behaved exactly as it had before. That is
+ * D-05, and it is structural rather than incidental:
  * `decideForwardedClientIp` grants trust at exactly one return requiring all
  * five of its conditions, so any missing piece is a fallback rather than a
  * partial state.
@@ -269,7 +275,14 @@ export async function rateLimit(
 		// Parameter names and units are the migration's contract verbatim:
 		// p_window_ms is MILLISECONDS and typed `integer`, so there is no cast and
 		// no seconds conversion here.
-		const { data, error } = await supabase
+		// `status` COMES OFF THE ENVELOPE, NOT OFF `error`. A PostgrestError carries
+		// only { message, details, hint, code }, so reading `status` from it was
+		// always undefined. That matters because postgrest-js does NOT throw on a
+		// transport failure -- it catches the fetch rejection and resolves with
+		// { data: null, error: { ..., code: "" }, status: 0 }. Without the envelope
+		// status there is nothing left to distinguish "nothing answered" from
+		// "PostgREST answered with an error we do not classify".
+		const { data, error, status } = await supabase
 			.rpc("check_rate_limit", {
 				p_bucket_key: bucketKey,
 				p_max_requests: options.maxRequests,
@@ -283,10 +296,7 @@ export async function rateLimit(
 			outcome = {
 				kind: "postgrest_error",
 				code: error.code ?? null,
-				status:
-					"status" in error && typeof error.status === "number"
-						? error.status
-						: null,
+				status: typeof status === "number" ? status : null,
 				message: error.message,
 			};
 		} else {
@@ -318,11 +328,18 @@ export async function rateLimit(
 
 	if (decision.errorClass === null) {
 		// The ordinary breach. Unchanged fields, unchanged event name.
+		// THE RAW KEY IS NOT LOGGED, AND THAT IS THE SAME RULE THE ERROR BRANCH
+		// BELOW STATES. `key` is `options.identifier ?? getClientIp(req)`, so on
+		// four of the five guarded surfaces it IS a raw client address. Logging it
+		// here put client IPs into a log stream whose retention is unrelated to
+		// the two-window bound the counters table is justified on -- the error
+		// branch already refused to do this, and the hit branch is the far
+		// higher-volume path. `prefix` identifies the surface, which is what the
+		// operational question ("which limiter is firing?") actually needs.
 		console.warn(
 			JSON.stringify({
 				level: "warn",
 				event: "rate_limit_hit",
-				key,
 				prefix: options.prefix,
 				url: req.url,
 				limit: decision.limit,
@@ -336,11 +353,16 @@ export async function rateLimit(
 		// contract and RATE-04.
 		//
 		// `event: "rate_limit_error"` is the EXACT literal 66.1-05's Sentry alert
-		// rule matches on. Sentry-side rules cannot be committed to this repo, so
-		// renaming this string silently disarms the alert with no failing test
-		// anywhere (T-66.1-19).
+		// rule matches on, AND IT IS PASSED AS A TAG, NOT IN `extra`. Sentry does
+		// not index additional data, so an issue-alert condition can never match a
+		// key that lives only in `extra` -- an alert built against it would be
+		// created successfully and then never fire, which is indistinguishable
+		// from "the limiter never failed". Sentry-side rules cannot be committed
+		// to this repo, so renaming this string silently disarms the alert with no
+		// failing test anywhere (T-66.1-19).
 		//
-		// The bucket key is NEVER logged here: it is a raw client address on four
+		// The bucket key is NEVER logged, here or in the hit branch above: it is a
+		// raw client address on four
 		// of the five guarded surfaces (T-66.1-17).
 		captureWebhookError(
 			thrown instanceof Error ? thrown : new Error(failureMessage),
@@ -350,6 +372,11 @@ export async function rateLimit(
 				prefix: options.prefix,
 				url: req.url,
 				bucket_key_prefix: options.prefix ?? null,
+			},
+			// The alertable copy. Tag values must be strings.
+			{
+				event: "rate_limit_error",
+				error_class: decision.errorClass ?? "unknown",
 			},
 		);
 	}

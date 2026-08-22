@@ -40,10 +40,17 @@
 -- -----------------------------------------------------------------------------
 -- WHEN THIS IS SAFE TO RUN, AND WHEN IT IS NOT.
 --
--- Waves 2 through 4 (this plan, 66.1-03, 66.1-04): SAFE AND FREE. Nothing
--- deployed references any of these objects. The five live edge functions still
--- carry the Upstash module, so dropping the limiter changes the behaviour of
--- zero production code paths.
+-- Waves 2 through 4, i.e. BEFORE the 66.1-05 redeploy: SAFE AND FREE. Nothing
+-- deployed referenced any of these objects, because the five live edge functions
+-- still carried the Upstash module.
+--
+-- THAT WINDOW HAS CLOSED. As of 2026-08-22 the five functions are redeployed and
+-- call public.check_rate_limit on every request to apply-token, sign-lease-token,
+-- lease-signature, newsletter-subscribe and send-contact-email. Running this
+-- rollback now removes the function those live deployments depend on, and the
+-- limiter fails CLOSED by design -- so every request on all five public surfaces
+-- would be DENIED, not merely unlimited. Redeploy the pre-66.1 function sources
+-- first, or accept a full outage on those endpoints.
 --
 -- After 66.1-05 ships the rewritten _shared/rate-limit.ts: DESTRUCTIVE. The new
 -- module fails CLOSED by design -- there is no fail-open branch left. Once it is

@@ -358,10 +358,19 @@ function balancedSlice(
 	);
 }
 
-/** Every `catch (...) { ... }` block body in a module, braces included. */
+/**
+ * Every `catch (...) { ... }` AND `catch { ... }` block body, braces included.
+ *
+ * The `[({]` alternation is load-bearing. Matching only `catch\s*\(` misses the
+ * ES2019 optional catch binding, which the Deno runtime these files target
+ * accepts -- so `catch { return null; }` could be added to rate-limit.ts and BOTH
+ * D-02 structural gates below would still pass, because `blocks` would still be
+ * non-empty from the surviving `catch (err)`. That would reintroduce fail-open on
+ * five public unauthenticated surfaces with no failing test anywhere.
+ */
 function catchBlocks(code: string): string[] {
 	const blocks: string[] = [];
-	for (const match of code.matchAll(/catch\s*\(/g)) {
+	for (const match of code.matchAll(/catch\s*[({]/g)) {
 		const braceIndex = code.indexOf("{", match.index);
 		expect(braceIndex).toBeGreaterThan(-1);
 		blocks.push(balancedSlice(code, braceIndex, "{", "}"));

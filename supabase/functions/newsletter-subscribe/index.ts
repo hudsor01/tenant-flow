@@ -109,7 +109,15 @@ Deno.serve(async (req: Request) => {
 	try {
 		const env = validateEnv({
 			required: ["RESEND_API_KEY"],
-			optional: ["NEXT_PUBLIC_APP_URL"],
+			// SENTRY_DSN and CLIENT_IP_FORWARD_SECRET are read directly via
+			// Deno.env.get by _shared/errors.ts and _shared/rate-limit.ts, not
+			// through validateEnv. Declared here so this function's env surface is
+			// documented in one place, matching apply-token.
+			optional: [
+				"NEXT_PUBLIC_APP_URL",
+				"SENTRY_DSN",
+				"CLIENT_IP_FORWARD_SECRET",
+			],
 		});
 
 		const body = (await req.json()) as Record<string, unknown>;
