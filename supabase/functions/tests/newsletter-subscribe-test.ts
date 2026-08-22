@@ -150,10 +150,18 @@ Deno.test("newsletter-subscribe: valid email returns 200 with success true", asy
 });
 
 Deno.test("newsletter-subscribe: error responses have JSON Content-Type", async () => {
-	const { headers } = await rawInvoke({
+	// DISTINCT CLIENT ADDRESS, AND AN EXPLICIT STATUS ASSERTION.
+	// Since 66.1 the limiter actually enforces (5/min on this surface), so these
+	// cases share one bucket keyed on the runner's address and the later ones are
+	// answered 429 instead of by the path they name. A 429 is JSON too, so this
+	// test would keep passing while asserting nothing about the validation error
+	// it was written for. getClientIp reads the LAST x-forwarded-for segment.
+	const { status, headers } = await rawInvoke({
 		body: JSON.stringify({}),
+		headers: { "x-forwarded-for": "203.0.113.201" },
 	});
 
+	assertEquals(status, 400, "expected the validation error, not a 429");
 	const contentType = headers.get("content-type");
 	assertExists(contentType, "Should have Content-Type header");
 	assert(
@@ -163,10 +171,14 @@ Deno.test("newsletter-subscribe: error responses have JSON Content-Type", async 
 });
 
 Deno.test("newsletter-subscribe: error messages are generic (no Resend internals)", async () => {
-	const { data } = await rawInvoke({
+	// Own bucket, same reason as above: a 429 body is generic and short, so it
+	// satisfies every assertion below without exercising the error path at all.
+	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "invalid" }),
+		headers: { "x-forwarded-for": "203.0.113.202" },
 	});
 
+	assertEquals(status, 400, "expected the validation error, not a 429");
 	const errorMsg = String(data.error ?? "");
 	// Error should be a short, generic message
 	assert(errorMsg.length < 100, `Error message too long: ${errorMsg}`);

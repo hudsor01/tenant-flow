@@ -485,9 +485,16 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 		expect(
 			(captureCall.match(/event: "rate_limit_error"/g) ?? []).length,
 		).toBe(2);
-		// ...and the parameter that carries it has to exist on the other side.
+		// ...and the parameter that carries it has to exist on the other side, AS A
+		// TAG. Asserting the identifier "tags" appears somewhere is not enough:
+		// rewriting captureWebhookError to fold the third argument into `extra`
+		// keeps the word, keeps the marker count at 2, and silently restores the
+		// cycle-1 defect where nothing is alertable. The `{ tags }` shorthand only
+		// exists when the object is spread at the top level of the captureException
+		// options, which is the property that makes it a Sentry tag.
 		expect(ERRORS_CODE).toContain("tags?: Record<string, string>");
-		expect(exportedBody(ERRORS_CODE, "captureWebhookError")).toContain("tags");
+		const captureBody = exportedBody(ERRORS_CODE, "captureWebhookError");
+		expect(captureBody).toContain("{ tags }");
 
 		expect(captureCall).not.toContain("bucketKey");
 		// `\bkey\b` is safe here: bucket_key_prefix has no word boundary before
@@ -509,6 +516,9 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 			"}",
 		);
 		expect(hitLog).toContain("rate_limit_hit");
+		// Mirrors the error-branch assertion: `bucketKey` is the in-scope variable
+		// most likely to be reintroduced here, and `\bkey\b` does not match it.
+		expect(hitLog).not.toContain("bucketKey");
 		expect(hitLog).not.toMatch(/\bkey\b/);
 	});
 
@@ -1041,7 +1051,13 @@ describe("6c. _shared/timing-safe.ts claims only what has been established", () 
 		// months. Trading that claim for its opposite ("the shim never runs")
 		// would be exactly as unevidenced: the extension is real, Deno documents
 		// it, and workerd implements it.
-		expect(TIMING_SAFE_SOURCE).toContain("has not been verified");
+		// EITHER the open question OR a recorded measurement. Pinning only the
+		// former makes answering it a test failure, so the gate that exists to stop
+		// an unverified claim being asserted would instead have blocked the
+		// verification from ever being written down.
+		expect(TIMING_SAFE_SOURCE).toMatch(
+			/has not been verified|MEASURED ON SUPABASE/,
+		);
 		expect(TIMING_SAFE_SOURCE).toMatch(/w3c\/webcrypto#270/);
 	});
 
@@ -1127,7 +1143,11 @@ describe("7. the Vercel side and the Supabase side agree", () => {
 		// is documented as merely identical to the conventional header, and a
 		// comma-separated value contradicts the documented single-address contract
 		// in whichever direction one guesses.
-		expect(APPLY_CONTEXT_SOURCE).not.toContain('get("x-real-ip")');
+		// COMMENT-STRIPPED AND ACCESSOR-FREE. The raw source mentions x-real-ip only
+		// inside a block comment explaining why it is refused, so the un-stripped
+		// assertion was satisfied by prose; and pinning the `get("...")` accessor
+		// means the gate cannot fire for the way this file actually reads headers.
+		expect(APPLY_CONTEXT_CODE).not.toContain("x-real-ip");
 		expect(APPLY_CONTEXT_SOURCE).toContain('value.includes(",")');
 	});
 });

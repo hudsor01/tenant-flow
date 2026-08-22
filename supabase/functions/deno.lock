@@ -11,7 +11,8 @@
     "npm:@supabase/postgrest-js@2.112.3": "2.112.3",
     "npm:@supabase/realtime-js@2.112.3": "2.112.3",
     "npm:@supabase/storage-js@2.112.3": "2.112.3",
-    "npm:@supabase/supabase-js@2": "2.112.3"
+    "npm:@supabase/supabase-js@2": "2.112.3",
+    "npm:stripe@20": "20.4.1"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -95,6 +96,9 @@
     "iceberg-js@0.8.1": {
       "integrity": "sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA=="
     },
+    "stripe@20.4.1": {
+      "integrity": "sha512-axCguHItc8Sxt0HC6aSkdVRPffjYPV7EQqZRb2GkIa8FzWDycE7nHJM19C6xAIynH1Qp1/BHiopSi96jGBxT0w=="
+    },
     "tslib@2.8.1": {
       "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
     }
@@ -102,6 +106,7 @@
   "redirects": {
     "https://esm.sh/@pdf-lib/standard-fonts@^1.0.0?target=denonext": "https://esm.sh/@pdf-lib/standard-fonts@1.0.0?target=denonext",
     "https://esm.sh/@pdf-lib/upng@^1.0.1?target=denonext": "https://esm.sh/@pdf-lib/upng@1.0.1?target=denonext",
+    "https://esm.sh/@types/pako@~1.0.7/index.d.ts": "https://esm.sh/@types/pako@1.0.7/index.d.ts",
     "https://esm.sh/iceberg-js@^0.8.1?target=denonext": "https://esm.sh/iceberg-js@0.8.1?target=denonext",
     "https://esm.sh/pako@^1.0.10?target=denonext": "https://esm.sh/pako@1.0.11?target=denonext",
     "https://esm.sh/pako@^1.0.11?target=denonext": "https://esm.sh/pako@1.0.11?target=denonext",
@@ -120,6 +125,24 @@
     "https://esm.sh/@supabase/storage-js@2.97.0/denonext/storage-js.mjs": "aed9af8fb795068fb6fb945f76bfe40a4dce0a84e22b60f333ee029b62c91f22",
     "https://esm.sh/@supabase/supabase-js@2.97.0": "dcdf60d835a7a2edf75c186e8bb33fa5f43fec7dec96c93c89abfbb20b78245d",
     "https://esm.sh/@supabase/supabase-js@2.97.0/denonext/supabase-js.mjs": "745f4cc1905e434b7a54fa2d48d875c920f1ef5d8ad9a964f8b079e3c7bd25ca",
+    "https://esm.sh/@zip.js/zip.js@2.7.45": "e2b3789998751dd78cd0bbb2b04151fa9f4ffaefb466da4c1300ef1c83e316ee",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/codec-pool.mjs": "62361df020912d882c5f22751b4e3d0f83af06e5d32e5f549ea483765857382a",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/configuration.mjs": "852b888c1c5e9762535cabfa4de4ea926bc31f026eb5ea36d923f5fb46c3ff85",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/constants.mjs": "bac55d577c29a3c4c9e9652d2f49a282ab817de45cbc2e3e393f461deaac0b8d",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/io.mjs": "d4191eab86b63be452b753759920e9d7fda866b3ef7c9398b3b10eed0db1740e",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/streams/codecs/crc32.mjs": "f4ae23ebf125aaaed35b275a20e86dc027ff9d18925e4e5f33e6fa75366f38a7",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/streams/codecs/deflate.mjs": "9be678c93cc685e5e22f7b431f97ef55bed8f18701e954587df1e866d173798f",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/streams/codecs/inflate.mjs": "de2aca0280e4e50207277c8d634c5bbe1e03eb628d81ab42fae7a7c989768134",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/streams/codecs/sjcl.mjs": "4391acb03d132d5a83bc4342f08c19e9f9d0846e74b359290e05efabb9d20b57",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/util/default-mime-type.mjs": "268173e522d48b5b124e4dffd81fe81110004296f23907b5a3f3181fabdd2a73",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/util/encode-text.mjs": "df87b919d7ed383d70ab47df4b5feafb075991eb99923ab7e852bd39cde1078a",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/util/stream-codec-shim.mjs": "4157b1a29dcc88a695de8faa241b9bd1de4aa9f96b7d1ad7dce04a66151fe75f",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/zip-entry.mjs": "b77c7a3a56897028498f115ac86b5696c3820b333131d6404755738ba1a66a00",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/zip-reader.mjs": "b0153d0e95655c42260b5fe522719ce874e78c528ef79a0e4e076245f6d8c237",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/core/zip-writer.mjs": "2be10a99db8b05174bb982eb65f50a4cbacfda9b380d1246160a124f15cbc4e5",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/z-worker-inline.mjs": "ac73d0c3c8ab916cb7cd7c7215fbf69cbb9bc9d7e5175e7a761eff5b18f1dfda",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/lib/zip-fs.mjs": "b5cf7b2a2f6dbcfc7a6c58d635d7fd847ef14765ac287f89a8df1121e2bd0c46",
+    "https://esm.sh/@zip.js/zip.js@2.7.45/denonext/zip.mjs": "a2261908757af9585adbdeea3f150cae39def50c8907b6d4c98652b565d5549a",
     "https://esm.sh/iceberg-js@0.8.1/denonext/iceberg-js.mjs": "d839d81a2e3966500ca2cdd0c1cb458e9608bacfc91f7bb67a69b2e878dcdb4f",
     "https://esm.sh/iceberg-js@0.8.1?target=denonext": "58c849d7fe2bf4eca4a84eb501e83c161a7d8c34ca1bec15a962b3bec3062633",
     "https://esm.sh/pako@1.0.11/denonext/pako.mjs": "4895feb3e2441ef725da4052a5dc93d219d065fef1decc4452bb9b7ee1477c0d",

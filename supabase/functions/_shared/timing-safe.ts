@@ -33,9 +33,11 @@
 // STILL NOT VERIFIED ON THE DEPLOYMENT TARGET, which is the version that
 // actually matters: Supabase Edge Runtime ships its own Deno build and was not
 // the thing measured above. Do not upgrade this note to a claim about
-// production. 66.1-05 settles it in one line against a deployed function -- log
+// production. It is settled in one line against a deployed function -- log
 // `typeof (crypto.subtle as unknown as Record<string, unknown>).timingSafeEqual`
-// -- and the answer belongs back here once known.
+// -- and the answer belongs back here once known. Tracked as deferred item D3;
+// it was previously assigned to 66.1-05, which shipped without doing it, so the
+// task existed only inside a comment nobody was accountable for.
 //
 // Either way nothing changes: both branches are constant-time, so this is a
 // question about which code path executes, never about whether the compare is

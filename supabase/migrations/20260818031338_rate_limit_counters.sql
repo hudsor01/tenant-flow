@@ -111,8 +111,12 @@ create table public.rate_limit_counters (
   expires_at    timestamptz not null,
   constraint rate_limit_counters_pkey primary key (bucket_key, window_index),
   constraint rate_limit_counters_request_count_check check (request_count >= 0),
-  -- Bounds the key space against a hostile p_bucket_key. The 45-character
-  -- edge-side validation lands in 66.1-04; this is the database-side floor.
+  -- Bounds the key space against a hostile p_bucket_key, and it is the ONLY
+  -- bound that covers every key. 66.1-04's MAX_FORWARDED_IP_LENGTH (45) applies
+  -- solely to an address arriving on the trusted-forward path; the other key
+  -- sources -- an explicit options.identifier such as a token hash, and the
+  -- connection-address fallback -- never pass through it. So this CHECK is the
+  -- floor for all of them, not a backstop behind a tighter edge-side rule.
   constraint rate_limit_counters_bucket_key_check
     check (length(bucket_key) between 1 and 512)
 )

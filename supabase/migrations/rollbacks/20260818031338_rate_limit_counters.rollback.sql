@@ -84,6 +84,20 @@ drop function if exists public.check_rate_limit(text, integer, integer);
 drop table if exists public.rate_limit_counters;
 
 -- 5. The applied-migration record. Keep this literal in sync with the filename.
+-- 4b. RESTORE THE COLUMN COMMENT 20260822122606 CHANGED.
+--
+-- Step 5 un-records 20260822122606, but that migration made TWO changes and
+-- step 4 only disposes of one: dropping rate_limit_counters takes its table
+-- comment with it, while rental_application_links survives untouched. Without
+-- this statement a completed rollback leaves the database describing an outer
+-- fail-closed limiter that step 3 has just dropped -- to exactly the operator
+-- the header above says will be reading it mid-incident. That is the same
+-- "the database tells you something untrue about itself" failure 20260822122606
+-- was written to fix. Text restored verbatim from
+-- 20260807003342_rental_applications_schema.sql:126-127.
+comment on column public.rental_application_links.submission_count is
+  'Number of applications submitted through this link. The cap check in submit_rental_application reads and increments this under the token row lock, making it the only fail-closed abuse control (D-04a). The Upstash limiter fails open by design and is the outer layer, not the gate.';
+
 -- BOTH versions. 20260822122606 is the review follow-up that corrected two live
 -- comments this migration's objects carry. Leaving its row recorded after a
 -- rollback means a later re-apply replays 20260818031338 -- restoring the FALSE

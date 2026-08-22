@@ -86,3 +86,26 @@ commands rather than in the dev server's inherited environment.
 **Owner action required either way:** the 401 means the PAT needs rotating before 66.1-02 can
 apply its migration (see that plan's SUMMARY). When it is rotated, clear `.next` in the same pass
 so the old value does not linger on disk.
+
+## D3 — Which `timingSafeEqual` branch runs on Supabase's Deno is still unmeasured
+
+**Found:** perfect-PR cycle 3, 2026-08-22.
+
+`_shared/timing-safe.ts` feature-detects `crypto.subtle.timingSafeEqual` and falls back to an XOR
+loop. Measured locally on Deno 2.9.5: the global does NOT expose it, so the XOR loop runs. Supabase
+Edge Runtime ships its own Deno build and was not measured, so which branch executes in production
+is unknown.
+
+**Why it is not urgent:** both branches are constant-time. This is a question about which code path
+runs, never about whether the compare is safe. Nothing behaves differently either way.
+
+**Why it is recorded anyway:** the note in the source assigned the probe to plan 66.1-05, which
+shipped without doing it. A task that lives only inside a comment has no owner and no due date, and
+this one silently survived a whole phase.
+
+**How to close it:** log
+`typeof (crypto.subtle as unknown as Record<string, unknown>).timingSafeEqual` from any deployed
+edge function, then replace the "STILL NOT VERIFIED ON THE DEPLOYMENT TARGET" paragraph with the
+measurement. The test now accepts either the open question or a line containing `MEASURED ON
+SUPABASE`, so recording the answer is no longer a test failure — it was, which is why closing it
+looked like breaking the gate.

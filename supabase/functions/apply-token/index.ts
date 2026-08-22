@@ -186,9 +186,12 @@ async function handleContext(
 	// all — rather than the only layer where per-client limiting could live.
 	//
 	// THE `if` IS THE DEPLOY-ORDER SAFETY PROPERTY, NOT A MICRO-OPTIMIZATION.
-	// Until 66.1-05 sets CLIENT_IP_FORWARD_SECRET on BOTH sides,
-	// `getTrustedClientIp` returns null, this branch is skipped entirely, and
-	// this action performs exactly the one limiter call it performs today.
+	// CLIENT_IP_FORWARD_SECRET is now provisioned on both Supabase and Vercel
+	// (2026-08-22), so this branch is entered whenever a caller proves it holds
+	// the secret. In practice that is not yet any caller: the RSC half forwards
+	// only once this branch reaches `main`, because Vercel deploys from `main`
+	// only. Until then `getTrustedClientIp` returns null on real traffic and this
+	// action performs exactly the one limiter call it always has.
 	// UNGATED, this bucket would key on the Vercel egress for 100% of genuine
 	// traffic and become a product-wide 60/min cap on every apply page load —
 	// which is exactly why the old 300/60s address-only ceiling was removed.
@@ -227,8 +230,8 @@ async function handleContext(
 	// THE PER-CLIENT BUCKET ABOVE DOES NOT REPLACE THIS ONE. A thousand distinct
 	// clients each staying under their own limit still SUM to a thousand times
 	// the load, and this ceiling is the only thing that bounds the sum. It also
-	// still applies on every untrusted request, which is all of them until
-	// 66.1-05.
+	// still applies on every untrusted request, which remains all of them until
+	// the RSC half of the forward reaches `main`.
 	//
 	// The old 300/60s address-only ceiling is GONE. Keyed on the shared egress it
 	// was a single product-wide cap across every listing, needing no token at
