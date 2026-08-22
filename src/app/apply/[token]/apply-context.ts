@@ -243,11 +243,19 @@ export async function fetchApplyContext(
 	// added to `src/env.ts`: importing `#env` here would pull `createEnv`'s
 	// runtime validation into a module the unit suite imports without env setup,
 	// and t3-env adds no enforcement for a value read through `process.env`
-	// anyway. Its server-only property is enforced by a grep gate across `src/`
-	// instead: this module carries no client-boundary directive (the gate greps
-	// for that literal, so this note names the concept and never the directive,
-	// exactly as the file header above does for the message map), and the
-	// variable is never given a browser-exposed name prefix.
+	// anyway. Two things enforce its server-only property, and the second one
+	// only started existing after a review found the claim was false.
+	//
+	// FIRST, and doing the real work today: this module imports `next/headers`,
+	// which Next.js refuses to compile into a client bundle, so a client-boundary
+	// directive here is a build failure rather than a silent leak.
+	//
+	// SECOND, and the part that was merely asserted for a while: two source gates
+	// in `__tests__/apply-context.test.ts` -- one that this module carries no
+	// client-boundary directive, one that the variable is never given a
+	// browser-exposed name prefix. They read comment-stripped source, so this
+	// note may name the concept freely; the earlier convention of contorting the
+	// wording existed to satisfy a detector that was never committed.
 	const requestHeaders = await headers();
 	const forwarded = trustedClientIpHeaders(
 		(name) => requestHeaders.get(name),

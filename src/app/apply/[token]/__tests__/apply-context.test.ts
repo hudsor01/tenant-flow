@@ -18,6 +18,50 @@
  * @vitest-environment jsdom
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * apply-context.ts as source text.
+ *
+ * THE GATE BELOW WAS CLAIMED TO EXIST AND DID NOT. The module's own comment said
+ * its server-only property was "enforced by a grep gate across `src/`", and the
+ * owner runbook repeated that to the operator as the safety net for the most
+ * catastrophic provisioning mistake available -- prefixing the forward secret so
+ * Next.js inlines it into the browser bundle. No such gate was ever committed:
+ * the check ran once as a plan verification line at authoring time. That is this
+ * project's signature defect, a control that exists only in prose describing it.
+ */
+const APPLY_CONTEXT_SOURCE = readFileSync(
+	join(import.meta.dirname ?? __dirname, "..", "apply-context.ts"),
+	"utf8",
+);
+const APPLY_CONTEXT_CODE = APPLY_CONTEXT_SOURCE.replace(
+	/\/\*[\s\S]*?\*\/|(^|[^:])\/\/.*$/gm,
+	"$1",
+);
+
+describe("apply-context.ts stays server-only", () => {
+	it("carries no client-boundary directive", () => {
+		// Comment-stripped, so the paragraph in the module explaining WHY it must
+		// not carry one cannot satisfy or break this. Practical exposure today is
+		// nil because the module imports next/headers, which Next.js refuses to
+		// compile into a client bundle -- but that is a different mechanism than
+		// the one the file claimed, and an import can be removed in a refactor.
+		expect(APPLY_CONTEXT_CODE).not.toMatch(/^\s*["']use client["']/m);
+	});
+
+	it("never gives the forward secret a browser-exposed name", () => {
+		// A NEXT_PUBLIC_ prefix is inlined into every bundle that references it.
+		expect(APPLY_CONTEXT_CODE).not.toContain(
+			"NEXT_PUBLIC_CLIENT_IP_FORWARD_SECRET",
+		);
+		expect(APPLY_CONTEXT_CODE).toContain(
+			"process.env.CLIENT_IP_FORWARD_SECRET",
+		);
+	});
+});
+
 import { type ComponentProps, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -686,9 +730,13 @@ describe("fetchApplyContext attaches the forwarding headers (RATE-03)", () => {
 	});
 
 	it("sends the ORIGINAL headers unchanged when no secret is configured", async () => {
-		// The state this merges in: 66.1-05 provisions the secret, so until then
-		// every render takes this path and the outbound request is byte-identical
-		// to the one shipped today.
+		// The secret IS provisioned now, on both Supabase and Vercel since
+		// 2026-08-22, so this is no longer the state every render takes -- it is
+		// the fallback, and it stays the observed behaviour only until this branch
+		// reaches `main` (Vercel deploys from `main` only) and the RSC half starts
+		// forwarding. The property under test is unchanged and is the D-05 one:
+		// with no secret the outbound request is byte-identical to the one shipped
+		// before this phase, so the mechanism can never be worse than its absence.
 		vi.stubEnv("CLIENT_IP_FORWARD_SECRET", "");
 		requestHeaders.set("x-vercel-forwarded-for", "203.0.113.9");
 

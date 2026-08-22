@@ -521,6 +521,60 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 		expect(captureCall).not.toMatch(/\bkey\b/);
 	});
 
+	it("the decision is the ONLY thing that can admit (D-02, the glue)", () => {
+		// THE TWO EXISTING D-02 GATES ONLY READ `catch` BODIES, and the fail-open
+		// branch this phase deleted did not live in a catch -- it lived between the
+		// decision and the response, which is exactly where it would be re-added.
+		// Verified by mutation on an out-of-repo copy: inserting
+		// `if (decision.errorClass !== null) return null;` before either the admit
+		// line or the deny line, or a bare `return null;` after the decision, left
+		// all 138 tests green while restoring the product-wide outage on five
+		// public unauthenticated surfaces.
+		//
+		// Pinning the TAIL closes it: after the decision there is exactly one way
+		// out that is not a Response, and it is guarded on `allowed === true`.
+		const declIndex = LIMITER_CODE.indexOf("export async function rateLimit(");
+		expect(declIndex).toBeGreaterThan(-1);
+		const body = balancedSlice(
+			LIMITER_CODE,
+			LIMITER_CODE.indexOf(
+				"{",
+				LIMITER_CODE.indexOf("Promise<Response | null> ", declIndex),
+			),
+			"{",
+			"}",
+		);
+		const tail = body.slice(body.indexOf("const decision = decideRateLimit("));
+		expect((tail.match(/return null/g) ?? []).length).toBe(1);
+		expect(tail).toMatch(/if \(decision\.allowed === true\) return null;/);
+		expect(tail).toContain("return denyResponse(req, decision);");
+
+		// Ordering: the ordinary-breach log must precede the error capture, so
+		// inverting the branch cannot silently route breaches through the Sentry
+		// path or errors through the quiet one.
+		expect(tail.indexOf("if (decision.errorClass === null) {")).toBeGreaterThan(-1);
+		expect(tail.indexOf("if (decision.errorClass === null) {")).toBeLessThan(
+			tail.indexOf("rate_limit_hit"),
+		);
+		expect(tail.indexOf("rate_limit_hit")).toBeLessThan(
+			tail.indexOf("captureWebhookError("),
+		);
+	});
+
+	it("the bucket key construction is pinned (prefix, then identifier-or-IP)", () => {
+		// The key IS the limiter's identity. Silently changing either half -- using
+		// the raw IP when an identifier was supplied, or dropping the prefix --
+		// merges or splits buckets across surfaces with no failing test: every
+		// behavioural assertion in this file feeds decideRateLimit directly and
+		// never observes how rateLimit built the key it passed.
+		expect(LIMITER_CODE).toContain(
+			"const key = options.identifier ?? getClientIp(req);",
+		);
+		expect(LIMITER_CODE).toContain(
+			"const bucketKey = options.prefix ? `${options.prefix}:${key}` : key;",
+		);
+	});
+
 	it("the rate_limit_hit log carries no raw client address either", () => {
 		// The hit branch is the HIGH-VOLUME path and it used to log `key`, which is
 		// `options.identifier ?? getClientIp(req)` -- a raw client address on four
@@ -1133,7 +1187,14 @@ describe("7. the Vercel side and the Supabase side agree", () => {
 			// The sources are comment-stripped so a literal surviving only in prose
 			// cannot satisfy it either.
 			const bounded = new RegExp(
-				`${literal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`,
+				// ANCHORED ON BOTH SIDES. Right-anchoring alone let
+				// NEXT_PUBLIC_CLIENT_IP_FORWARD_SECRET satisfy a search for
+				// CLIENT_IP_FORWARD_SECRET, so the gate credited with catching a
+				// rename stayed green through the single most dangerous one
+				// available: prefixing the secret so Next.js inlines it into the
+				// browser bundle, handing every visitor the ability to forge its own
+				// rate-limit identity.
+				`(?<![\\w])${literal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`,
 			);
 			expect(LIMITER_CODE).toMatch(bounded);
 			expect(APPLY_CONTEXT_CODE).toMatch(bounded);

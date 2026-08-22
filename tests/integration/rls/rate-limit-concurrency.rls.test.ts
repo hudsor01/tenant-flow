@@ -48,12 +48,22 @@
  * deletes by that prefix and re-queries with an exact head count to prove the
  * teardown, rather than assuming it.
  *
- * AUTHORED-BUT-UNRUN BY DESIGN. public.check_rate_limit does not exist in
- * production until plan 66.1-02 applies
- * supabase/migrations/20260818031338_rate_limit_counters.sql. Every RPC call
- * here returns PGRST202 before that. 66.1-02 runs this file green against
- * production as its gate. Do not weaken an assertion to make it pass earlier,
- * and do not mark it skipped.
+ * STILL UNRUN, AND NO LONGER FOR THE ORIGINAL REASON. This file was authored
+ * before public.check_rate_limit existed, when every RPC here returned PGRST202.
+ * That is no longer true: the migration is applied in production (versions
+ * 20260818031338 and 20260822122606) and every RPC below now resolves.
+ *
+ * What blocks it now is credentials -- the RLS integration env is absent, so the
+ * suite has never executed. It remains the phase's ONLY evidence that the two
+ * guards hold under genuine concurrency, and that gap is load-bearing: research
+ * measured a naive check-then-act limiter admitting 156/159/161 against a limit
+ * of 100 under 64 clients while scoring exactly 100 single-threaded. Every other
+ * proof in this phase is sequential, and sequential passing is precisely the
+ * evidence that cannot tell a correct limiter from a broken one.
+ *
+ * Running this is a prerequisite to claiming RATE-01 is proved under
+ * concurrency. Do not weaken an assertion to make it pass, and do not mark it
+ * skipped.
  * -----------------------------------------------------------------------------
  */
 
