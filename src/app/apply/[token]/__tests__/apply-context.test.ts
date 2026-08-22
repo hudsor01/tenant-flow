@@ -18,20 +18,85 @@
  * @vitest-environment jsdom
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * apply-context.ts as source text.
+ *
+ * THE GATE BELOW WAS CLAIMED TO EXIST AND DID NOT. The module's own comment said
+ * its server-only property was "enforced by a grep gate across `src/`", and the
+ * owner runbook repeated that to the operator as the safety net for the most
+ * catastrophic provisioning mistake available -- prefixing the forward secret so
+ * Next.js inlines it into the browser bundle. No such gate was ever committed:
+ * the check ran once as a plan verification line at authoring time. That is this
+ * project's signature defect, a control that exists only in prose describing it.
+ */
+const APPLY_CONTEXT_SOURCE = readFileSync(
+	join(import.meta.dirname ?? __dirname, "..", "apply-context.ts"),
+	"utf8",
+);
+const APPLY_CONTEXT_CODE = APPLY_CONTEXT_SOURCE.replace(
+	/\/\*[\s\S]*?\*\/|(^|[^:])\/\/.*$/gm,
+	"$1",
+);
+
+describe("apply-context.ts stays server-only", () => {
+	it("carries no client-boundary directive", () => {
+		// Comment-stripped, so the paragraph in the module explaining WHY it must
+		// not carry one cannot satisfy or break this. Practical exposure today is
+		// nil because the module imports next/headers, which Next.js refuses to
+		// compile into a client bundle -- but that is a different mechanism than
+		// the one the file claimed, and an import can be removed in a refactor.
+		expect(APPLY_CONTEXT_CODE).not.toMatch(/^\s*["']use client["']/m);
+	});
+
+	it("never gives the forward secret a browser-exposed name", () => {
+		// A NEXT_PUBLIC_ prefix is inlined into every bundle that references it.
+		expect(APPLY_CONTEXT_CODE).not.toContain(
+			"NEXT_PUBLIC_CLIENT_IP_FORWARD_SECRET",
+		);
+		expect(APPLY_CONTEXT_CODE).toContain(
+			"process.env.CLIENT_IP_FORWARD_SECRET",
+		);
+	});
+});
+
 import { type ComponentProps, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TOKEN_UNAVAILABLE_COPY } from "#lib/applications/application-copy";
 import {
 	type ApplyContextResponse,
+	FORWARD_SECRET_HEADER,
 	fetchApplyContext,
 	formatListingRent,
+	TRUSTED_CLIENT_IP_HEADER,
+	trustedClientIpHeaders,
 } from "../apply-context";
 import ApplyPage, { dynamic, metadata } from "../page";
 
-const { fetchMock, formProps } = vi.hoisted(() => ({
+const { fetchMock, formProps, requestHeaders } = vi.hoisted(() => ({
 	fetchMock: vi.fn(),
 	formProps: [] as Array<Record<string, unknown>>,
+	requestHeaders: new Map<string, string>(),
+}));
+
+/**
+ * EVERY `fetchApplyContext` CALL IN THIS FILE NOW GOES THROUGH `await headers()`,
+ * so this mock is not optional — without it the whole suite breaks. It defaults
+ * to an EMPTY map, which means every pre-existing case below keeps exercising
+ * the no-forwarding path and keeps asserting exactly what it asserted before.
+ *
+ * Shaped after `src/lib/supabase/__tests__/server.test.ts`, which mocks the
+ * `cookies` half of the same module.
+ */
+vi.mock("next/headers", () => ({
+	headers: vi.fn(() =>
+		Promise.resolve({
+			get: (name: string) => requestHeaders.get(name.toLowerCase()) ?? null,
+		}),
+	),
 }));
 
 /**
@@ -458,5 +523,225 @@ describe("the rendered page (Server Component)", () => {
 		// stops a revoked link being served from the full-route cache (T-66-38).
 		expect(metadata.robots).toEqual({ index: false, follow: false });
 		expect(dynamic).toBe("force-dynamic");
+	});
+});
+
+/**
+ * RATE-03 — what this render is allowed to tell `apply-token` about the client.
+ *
+ * `trustedClientIpHeaders` is pure precisely so this table can be EXECUTED. The
+ * two prior attempts at D5 both merged with green suites over properties the
+ * code did not have, so a rule that can only be grepped is not evidence here.
+ */
+describe("trustedClientIpHeaders (RATE-03, the Vercel side of the trust boundary)", () => {
+	const SECRET = "s3cret-forwarding-value";
+
+	/** A header lookup over a plain object — no framework, no globals. */
+	function lookup(map: Record<string, string>) {
+		return (name: string): string | null => map[name] ?? null;
+	}
+
+	it("prefers the PLATFORM-ATTESTED header when both are present (the spoofing row)", () => {
+		// Vercel overwrites `x-forwarded-for` to prevent spoofing, but
+		// `x-vercel-forwarded-for` is the value that survives a proxy layered on
+		// top of Vercel — strictly the more attested of the two. If this ever
+		// inverts, the bucket key becomes whatever the caller decided it should be.
+		expect(
+			trustedClientIpHeaders(
+				lookup({
+					"x-vercel-forwarded-for": "203.0.113.9",
+					"x-forwarded-for": "1.2.3.4",
+				}),
+				SECRET,
+			),
+		).toEqual({
+			[TRUSTED_CLIENT_IP_HEADER]: "203.0.113.9",
+			[FORWARD_SECRET_HEADER]: SECRET,
+		});
+	});
+
+	it("falls back to x-forwarded-for when the attested header is absent", () => {
+		expect(
+			trustedClientIpHeaders(
+				lookup({ "x-forwarded-for": "203.0.113.9" }),
+				SECRET,
+			),
+		).toEqual({
+			[TRUSTED_CLIENT_IP_HEADER]: "203.0.113.9",
+			[FORWARD_SECRET_HEADER]: SECRET,
+		});
+	});
+
+	it("falls back when the attested header is present but blank", () => {
+		expect(
+			trustedClientIpHeaders(
+				lookup({
+					"x-vercel-forwarded-for": "   ",
+					"x-forwarded-for": "203.0.113.9",
+				}),
+				SECRET,
+			),
+		).toEqual({
+			[TRUSTED_CLIENT_IP_HEADER]: "203.0.113.9",
+			[FORWARD_SECRET_HEADER]: SECRET,
+		});
+	});
+
+	it("forwards nothing when neither header is present", () => {
+		expect(trustedClientIpHeaders(lookup({}), SECRET)).toEqual({});
+	});
+
+	it.each([
+		["undefined", undefined],
+		["empty", ""],
+		["whitespace-only", "   "],
+	])(
+		"forwards nothing when the secret is %s, checked BEFORE anything else",
+		(_label, secret) => {
+			// The total-bypass row (T-66.1-26). Two empty secrets compare EQUAL under
+			// any constant-time comparator, so an unconfigured secret would grant
+			// trust to any caller who sends two empty headers — failing to configure
+			// the mechanism would make the system MORE permissive than configuring it.
+			expect(
+				trustedClientIpHeaders(
+					lookup({ "x-vercel-forwarded-for": "203.0.113.9" }),
+					secret,
+				),
+			).toEqual({});
+		},
+	);
+
+	it("refuses a multi-segment value rather than picking an end of the list", () => {
+		// Vercel documents this as THE client address, singular. Choosing `parts[0]`
+		// or `parts.at(-1)` from a list Vercel says it does not produce is the kind
+		// of convenient reading that shipped D5 twice, in whichever direction
+		// happens to be wrong. Refusing is fail-closed to today's behaviour.
+		expect(
+			trustedClientIpHeaders(
+				lookup({ "x-vercel-forwarded-for": "203.0.113.9, 198.51.100.7" }),
+				SECRET,
+			),
+		).toEqual({});
+	});
+
+	it.each([
+		["an oversized value", "2001:db8:0000:0000:0000:0000:0000:0001:0002:00034"],
+		["a header-injection attempt", "203.0.113.9\r\nX-Evil: 1"],
+		["a hostname", "attacker.example.com"],
+		["the fallback sentinel", "unknown"],
+		["a space-separated pair", "203.0.113.9 198.51.100.7"],
+	])("forwards nothing for %s", (_label, value) => {
+		expect(
+			trustedClientIpHeaders(
+				lookup({ "x-vercel-forwarded-for": value }),
+				SECRET,
+			),
+		).toEqual({});
+	});
+
+	it("trims surrounding whitespace rather than forwarding it", () => {
+		expect(
+			trustedClientIpHeaders(
+				lookup({ "x-vercel-forwarded-for": "  203.0.113.9  " }),
+				SECRET,
+			),
+		).toEqual({
+			[TRUSTED_CLIENT_IP_HEADER]: "203.0.113.9",
+			[FORWARD_SECRET_HEADER]: SECRET,
+		});
+	});
+
+	it("forwards an IPv6 address as read, leaving canonicalization to the edge", () => {
+		// One canonicalization point, not two that can drift and split a client
+		// across two buckets. The edge lowercases; this side does not.
+		expect(
+			trustedClientIpHeaders(
+				lookup({ "x-vercel-forwarded-for": "2001:DB8::1" }),
+				SECRET,
+			),
+		).toEqual({
+			[TRUSTED_CLIENT_IP_HEADER]: "2001:DB8::1",
+			[FORWARD_SECRET_HEADER]: SECRET,
+		});
+	});
+});
+
+describe("fetchApplyContext attaches the forwarding headers (RATE-03)", () => {
+	const SECRET = "s3cret-forwarding-value";
+
+	beforeEach(() => {
+		vi.stubGlobal("fetch", fetchMock);
+		vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", SUPABASE_URL);
+		fetchMock.mockReset();
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ valid: false, reason: "invalid_token" }),
+		});
+		requestHeaders.clear();
+	});
+
+	afterEach(() => {
+		vi.unstubAllEnvs();
+		vi.unstubAllGlobals();
+		requestHeaders.clear();
+	});
+
+	/** The headers object the recorded outbound call carried. */
+	function sentHeaders(): Record<string, string> {
+		const init = fetchMock.mock.calls[0]?.[1] as
+			| { headers?: Record<string, string> }
+			| undefined;
+		return init?.headers ?? {};
+	}
+
+	it("THE MECHANISM FIRES: both headers ride along with the existing ones", async () => {
+		// The non-vacuity case. Without it, every negative assertion in this file is
+		// satisfied equally well by a mechanism that never runs at all — which is
+		// the exact shape of the two failed D5 attempts.
+		vi.stubEnv("CLIENT_IP_FORWARD_SECRET", SECRET);
+		requestHeaders.set("x-vercel-forwarded-for", "203.0.113.9");
+
+		await fetchApplyContext("tok");
+
+		expect(sentHeaders()).toEqual({
+			"Content-Type": "application/json",
+			[TRUSTED_CLIENT_IP_HEADER]: "203.0.113.9",
+			[FORWARD_SECRET_HEADER]: SECRET,
+		});
+		// The pre-existing contract survives the addition.
+		expect(fetchMock).toHaveBeenCalledWith(
+			ENDPOINT,
+			expect.objectContaining({
+				method: "POST",
+				cache: "no-store",
+				body: JSON.stringify({ action: "context", token: "tok" }),
+			}),
+		);
+	});
+
+	it("THE FORGED HEADER LOSES: a client-set x-forwarded-for never wins", async () => {
+		vi.stubEnv("CLIENT_IP_FORWARD_SECRET", SECRET);
+		requestHeaders.set("x-vercel-forwarded-for", "203.0.113.9");
+		requestHeaders.set("x-forwarded-for", "198.51.100.7");
+
+		await fetchApplyContext("tok");
+
+		expect(sentHeaders()[TRUSTED_CLIENT_IP_HEADER]).toBe("203.0.113.9");
+	});
+
+	it("sends the ORIGINAL headers unchanged when no secret is configured", async () => {
+		// The secret IS provisioned now, on both Supabase and Vercel since
+		// 2026-08-22, so this is no longer the state every render takes -- it is
+		// the fallback, and it stays the observed behaviour only until this branch
+		// reaches `main` (Vercel deploys from `main` only) and the RSC half starts
+		// forwarding. The property under test is unchanged and is the D-05 one:
+		// with no secret the outbound request is byte-identical to the one shipped
+		// before this phase, so the mechanism can never be worse than its absence.
+		vi.stubEnv("CLIENT_IP_FORWARD_SECRET", "");
+		requestHeaders.set("x-vercel-forwarded-for", "203.0.113.9");
+
+		await fetchApplyContext("tok");
+
+		expect(sentHeaders()).toEqual({ "Content-Type": "application/json" });
 	});
 });

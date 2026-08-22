@@ -1,7 +1,7 @@
 // Send Contact Email Edge Function
 // FORMFIX-02: Delivers a submitted contact-form message to the business inbox via Resend.
 // Unauthenticated by design -- the public /contact form posts here.
-// Rate limited at 10 req/min per IP (Upstash sliding window, fail-open).
+// Rate limited at 10 req/min per IP (Postgres sliding window, fail-CLOSED).
 // Every user-supplied value is HTML-escaped before interpolation (anti-injection).
 // The From address stays the fixed FROM_ADDRESS -- user input never sets From/Reply-To.
 //
@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
 		});
 	}
 
-	// Unauthenticated endpoint: rate limit 10 req/min per IP (fail-open).
+	// Unauthenticated endpoint: rate limit 10 req/min per IP (fail-closed).
 	const rateLimited = await rateLimit(req, {
 		maxRequests: 10,
 		windowMs: 60_000,
@@ -62,10 +62,14 @@ Deno.serve(async (req: Request) => {
 	try {
 		validateEnv({
 			required: ["RESEND_API_KEY"],
+			// SENTRY_DSN and CLIENT_IP_FORWARD_SECRET are read directly via
+			// Deno.env.get by _shared/errors.ts and _shared/rate-limit.ts, not
+			// through validateEnv. Declared here so this function's env surface is
+			// documented in one place, matching apply-token.
 			optional: [
 				"NEXT_PUBLIC_APP_URL",
-				"UPSTASH_REDIS_REST_URL",
-				"UPSTASH_REDIS_REST_TOKEN",
+				"SENTRY_DSN",
+				"CLIENT_IP_FORWARD_SECRET",
 			],
 		});
 

@@ -87,6 +87,15 @@
 - [ ] **APPLY-05**: Applicant PII has a retention policy — auto-purge of non-converted applications after a defined window (cron) + cascade on owner GDPR deletion
 - [ ] **APPLY-06**: Screening responsibility is explicitly disclaimed on the application surface (FCRA duties sit with the landlord; TenantFlow performs no screening)
 
+### Rate limiting (Phase 66.1 — inserted)
+
+Discovered during Phase 66's review: every rate limit in the product had been a no-op for months. The Upstash free-tier database was reaped for inactivity, the tier allows only one database per account, and the failure was silent because the limiter sits in a different failure domain from the writes it guards — which is also why it was written to fail open.
+
+- [ ] **RATE-01**: Rate limiting is backed by the project's own Postgres via a SECURITY DEFINER `check_rate_limit` RPC, not a separate service. `_shared/rate-limit.ts` keeps its exported signature so all five deployed edge functions inherit the change with no call-site edits.
+- [ ] **RATE-02**: The limiter fails CLOSED. Because it now shares a failure domain with the write it guards, an unreachable database fails the write anyway — there is no fail-open branch left in which an outage can hide.
+- [ ] **RATE-03**: `/apply/[token]` has a genuine per-client rate-limit key. The RSC forwards the real client address authenticated by a constant-time shared-secret Bearer, and `getClientIp` trusts a forwarded address only when that secret validates; absent or invalid, it falls back to the connection address, so the path is non-regressive by construction. Closes deferred item D5.
+- [ ] **RATE-04**: A limiter outage is observable — the existing structured `rate_limit_error` event reaches Sentry, so the next failure is noticed rather than found by a code review months later.
+
 #### Tenant Communication Log (COMMS)
 
 - [ ] **COMMS-01**: Owner can log a communication (note / call summary) on a tenant record with timestamp and type
@@ -193,6 +202,10 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | APPLY-04 | Phase 66 | Pending |
 | APPLY-05 | Phase 66 | Pending |
 | APPLY-06 | Phase 66 | Pending |
+| RATE-01 | Phase 66.1 | Pending |
+| RATE-02 | Phase 66.1 | Pending |
+| RATE-03 | Phase 66.1 | Pending |
+| RATE-04 | Phase 66.1 | Pending |
 | COMMS-01 | Phase 67 | Pending |
 | COMMS-02 | Phase 67 | Pending |
 | COMMS-03 | Phase 67 | Pending |

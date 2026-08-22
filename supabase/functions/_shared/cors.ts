@@ -27,6 +27,21 @@ export function getCorsHeaders(req: Request): Record<string, string> {
 
 	return {
 		"Access-Control-Allow-Origin": origin,
+		// `x-tf-client-ip` and `x-tf-forward-secret` (RATE-03) are DELIBERATELY
+		// absent from this list and must stay absent.
+		//
+		// Be precise about what that buys, because overstating it is its own
+		// hazard: CORS does not stop a non-browser client from sending any header
+		// it likes, so the SECRET is the control here, not this allowlist. What the
+		// omission does prevent is a page on some other origin sending these
+		// headers from a browser `fetch` -- and, more importantly, it stops the
+		// allowlist from ADVERTISING them as legitimate client-supplied input,
+		// which is how a later reader concludes they are safe to trust from a
+		// browser (T-66.1-30).
+		//
+		// It costs nothing functionally: the forwarding path is server-to-server
+		// (the Server Component calls the function directly), so no preflight is
+		// involved on that hop at all.
 		"Access-Control-Allow-Headers":
 			"authorization, x-client-info, apikey, content-type",
 		"Access-Control-Allow-Methods": "POST, GET, OPTIONS",

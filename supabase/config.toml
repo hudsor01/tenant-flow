@@ -410,7 +410,8 @@ verify_jwt = false
 import_map = "./functions/deno.json"
 
 # Newsletter subscribe — public endpoint (anonymous visitors signing up),
-# rate-limited via Upstash sliding window. No Supabase JWT required.
+# rate-limited via the Postgres check_rate_limit RPC, fail-closed. No Supabase
+# JWT required.
 [functions.newsletter-subscribe]
 verify_jwt = false
 import_map = "./functions/deno.json"

@@ -1,0 +1,107 @@
+-- Rollback for 20260818031338_rate_limit_counters.sql (Phase 66.1 / RATE-01, RATE-02).
+-- Run manually if you need to remove the Postgres-backed rate limiter.
+--
+-- Written BEFORE the apply, on purpose. A reversal discovered mid-incident is a
+-- reversal that does not exist. Plan 66.1-02 authors this file in its read-only
+-- pre-flight task, ahead of the owner gate that authorises the apply.
+--
+-- -----------------------------------------------------------------------------
+-- THE STATEMENT ORDER IS LOAD-BEARING. DO NOT REORDER.
+--
+-- 1. cron.unschedule FIRST.
+--    Dropping cleanup_rate_limit_counters() while the job row still exists
+--    leaves pg_cron invoking a missing function every night at 3:25 UTC. It
+--    fails with "function public.cleanup_rate_limit_counters() does not exist",
+--    the failure lands only in cron.job_run_details where nobody is looking, and
+--    it outlives every memory of this phase. Unscheduling first makes the drop
+--    unobservable instead.
+--
+-- 2/3. Drop the two functions before the table.
+--    Not strictly required (neither function is bound to the table by a
+--    dependency Postgres enforces), but it keeps the teardown in exact reverse
+--    order of the migration's construction, which is the property that makes
+--    this script readable a year from now.
+--
+-- 4. Dropping the table takes its index and ALL FOUR RLS policies with it.
+--    rate_limit_counters_expires_at_idx and the four per-operation
+--    service_role policies are dependent objects; they need no explicit drop and
+--    listing them here would only create statements that fail on a partial
+--    rollback.
+--
+-- 5. Delete the schema_migrations row LAST.
+--    This is what makes a re-apply CLEAN. Without it, `supabase db push` and
+--    `db diff` still believe 20260818031338 is applied, so the migration is
+--    never re-attempted -- and if it is force-applied anyway it fails on
+--    `create table` or silently duplicates the cron job. The version literal
+--    below must match the version production actually recorded: if the repo
+--    filename is ever reconciled to a different prod-assigned timestamp, update
+--    this literal in the same commit as the rename.
+--
+-- -----------------------------------------------------------------------------
+-- WHEN THIS IS SAFE TO RUN, AND WHEN IT IS NOT.
+--
+-- Waves 2 through 4, i.e. BEFORE the 66.1-05 redeploy: SAFE AND FREE. Nothing
+-- deployed referenced any of these objects, because the five live edge functions
+-- still carried the Upstash module.
+--
+-- THAT WINDOW HAS CLOSED. As of 2026-08-22 the five functions are redeployed and
+-- call public.check_rate_limit on every request to apply-token, sign-lease-token,
+-- lease-signature, newsletter-subscribe and send-contact-email. Running this
+-- rollback now removes the function those live deployments depend on, and the
+-- limiter fails CLOSED by design -- so every request on all five public surfaces
+-- would be DENIED, not merely unlimited. Redeploy the pre-66.1 function sources
+-- first, or accept a full outage on those endpoints.
+--
+-- After 66.1-05 ships the rewritten _shared/rate-limit.ts: DESTRUCTIVE. The new
+-- module fails CLOSED by design -- there is no fail-open branch left. Once it is
+-- deployed, dropping check_rate_limit makes every limiter call return PGRST202,
+-- which the module treats as DENY, which hard-429s five public surfaces
+-- including the product's only public unauthenticated write surface. Documented
+-- rather than blocked, because the script must stay runnable during exactly the
+-- window in which it is needed.
+--
+-- Every statement is guarded (`if exists` / `where exists`), so this script is
+-- idempotent and safe to run against a partially-applied database -- which is
+-- its other job: clearing the residue of a half-completed apply so the retry is
+-- clean rather than confusing.
+-- =============================================================================
+
+-- 1. Unschedule before anything is dropped.
+select cron.unschedule('cleanup-rate-limit-counters') where exists (
+  select 1 from cron.job where jobname = 'cleanup-rate-limit-counters'
+);
+
+-- 2. The sweep function.
+drop function if exists public.cleanup_rate_limit_counters();
+
+-- 3. The limiter itself. Fully qualified by identity arguments so this cannot
+--    resolve to stripe.check_rate_limit, the unrelated extension-managed
+--    function of the same name (see the migration header, section 4).
+drop function if exists public.check_rate_limit(text, integer, integer);
+
+-- 4. The counter table. Takes rate_limit_counters_expires_at_idx and all four
+--    service_role policies with it.
+drop table if exists public.rate_limit_counters;
+
+-- 5. The applied-migration record. Keep this literal in sync with the filename.
+-- 4b. RESTORE THE COLUMN COMMENT 20260822122606 CHANGED.
+--
+-- Step 5 un-records 20260822122606, but that migration made TWO changes and
+-- step 4 only disposes of one: dropping rate_limit_counters takes its table
+-- comment with it, while rental_application_links survives untouched. Without
+-- this statement a completed rollback leaves the database describing an outer
+-- fail-closed limiter that step 3 has just dropped -- to exactly the operator
+-- the header above says will be reading it mid-incident. That is the same
+-- "the database tells you something untrue about itself" failure 20260822122606
+-- was written to fix. Text restored verbatim from
+-- 20260807003342_rental_applications_schema.sql:126-127.
+comment on column public.rental_application_links.submission_count is
+  'Number of applications submitted through this link. The cap check in submit_rental_application reads and increments this under the token row lock, making it the only fail-closed abuse control (D-04a). The Upstash limiter fails open by design and is the outer layer, not the gate.';
+
+-- BOTH versions. 20260822122606 is the review follow-up that corrected two live
+-- comments this migration's objects carry. Leaving its row recorded after a
+-- rollback means a later re-apply replays 20260818031338 -- restoring the FALSE
+-- retention comment -- while the correcting migration is skipped as already
+-- applied. Re-running it is idempotent; both its statements are `comment on`.
+delete from supabase_migrations.schema_migrations
+ where version in ('20260818031338', '20260822122606');

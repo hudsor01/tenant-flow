@@ -21,10 +21,27 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/newsletter-subscribe`;
 
 // Helper: raw fetch to the function with full control over headers and method
+/**
+ * The forward secret, if this environment has it.
+ *
+ * IT IS THE ONLY WAY A CALLER CAN CHOOSE ITS OWN RATE-LIMIT BUCKET, and that is
+ * not a convenience -- it is the entire point of RATE-03. `getClientIp` resolves
+ * getTrustedClientIp FIRST, then cf-connecting-ip, and only then the LAST
+ * x-forwarded-for segment. Supabase's gateway sets cf-connecting-ip on every
+ * request and appends the real address to x-forwarded-for, so a client cannot
+ * influence either. An earlier version of this file sent per-case
+ * x-forwarded-for values and asserted they produced distinct buckets; they were
+ * never read, every POST shared one bucket against maxRequests 5, and the later
+ * cases were answered 429 while the comment claimed isolation.
+ */
+const FORWARD_SECRET = Deno.env.get("CLIENT_IP_FORWARD_SECRET");
+
 async function rawInvoke(options: {
 	method?: string;
 	body?: string | null;
 	headers?: Record<string, string>;
+	/** Distinct per case; only effective when FORWARD_SECRET is available. */
+	bucket?: number;
 }): Promise<{
 	status: number;
 	data: Record<string, unknown>;
@@ -34,6 +51,12 @@ async function rawInvoke(options: {
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
 		apikey: SUPABASE_ANON_KEY,
+		...(FORWARD_SECRET && options.bucket !== undefined
+			? {
+					"x-tf-forward-secret": FORWARD_SECRET,
+					"x-tf-client-ip": `203.0.113.${options.bucket}`,
+				}
+			: {}),
 		...options.headers,
 	};
 
@@ -63,6 +86,7 @@ Deno.test("newsletter-subscribe: OPTIONS returns CORS preflight response", async
 		headers: {
 			Origin: frontendUrl,
 		},
+		bucket: 203,
 	});
 
 	// OPTIONS should return 200 or 204 per handleCorsOptions
@@ -84,6 +108,7 @@ Deno.test("newsletter-subscribe: rejects non-POST methods with 405", async () =>
 	const { status } = await rawInvoke({
 		method: "GET",
 		body: null,
+		bucket: 204,
 	});
 	assertEquals(status, 405);
 });
@@ -92,6 +117,7 @@ Deno.test("newsletter-subscribe: rejects PUT method with 405", async () => {
 	const { status } = await rawInvoke({
 		method: "PUT",
 		body: JSON.stringify({ email: "test@example.com" }),
+		bucket: 205,
 	});
 	assertEquals(status, 405);
 });
@@ -100,6 +126,7 @@ Deno.test("newsletter-subscribe: rejects DELETE method with 405", async () => {
 	const { status } = await rawInvoke({
 		method: "DELETE",
 		body: null,
+		bucket: 206,
 	});
 	assertEquals(status, 405);
 });
@@ -107,6 +134,7 @@ Deno.test("newsletter-subscribe: rejects DELETE method with 405", async () => {
 Deno.test("newsletter-subscribe: rejects missing email with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({}),
+		bucket: 207,
 	});
 
 	assertEquals(status, 400);
@@ -116,6 +144,7 @@ Deno.test("newsletter-subscribe: rejects missing email with 400", async () => {
 Deno.test("newsletter-subscribe: rejects empty email with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "" }),
+		bucket: 208,
 	});
 
 	assertEquals(status, 400);
@@ -125,6 +154,7 @@ Deno.test("newsletter-subscribe: rejects empty email with 400", async () => {
 Deno.test("newsletter-subscribe: rejects invalid email format with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "not-an-email" }),
+		bucket: 209,
 	});
 
 	assertEquals(status, 400);
@@ -134,6 +164,7 @@ Deno.test("newsletter-subscribe: rejects invalid email format with 400", async (
 Deno.test("newsletter-subscribe: rejects email without domain with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "user@" }),
+		bucket: 210,
 	});
 
 	assertEquals(status, 400);
@@ -143,30 +174,55 @@ Deno.test("newsletter-subscribe: rejects email without domain with 400", async (
 Deno.test("newsletter-subscribe: valid email returns 200 with success true", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "test-newsletter-ci@example.com" }),
+		bucket: 211,
 	});
 
 	assertEquals(status, 200);
 	assertEquals(data.success, true);
 });
 
-Deno.test("newsletter-subscribe: error responses have JSON Content-Type", async () => {
-	const { headers } = await rawInvoke({
+Deno.test({
+	name: "newsletter-subscribe: error responses have JSON Content-Type",
+	// Without the forward secret every case lands in one bucket at maxRequests 5,
+	// so this case is answered 429 and the 400 assertion below fails against
+	// perfectly correct code. Skipping states that plainly; asserting
+	// `400 || 429` would pass whether or not the validation path works at all.
+	ignore: !FORWARD_SECRET,
+	fn: async () => {
+	// DISTINCT CLIENT ADDRESS, AND AN EXPLICIT STATUS ASSERTION.
+	// Since 66.1 the limiter actually enforces (5/min on this surface), so these
+	// cases share one bucket keyed on the runner's address and the later ones are
+	// answered 429 instead of by the path they name. A 429 is JSON too, so this
+	// test would keep passing while asserting nothing about the validation error
+	// it was written for. Isolation comes from the trusted-forward path, the only
+	// bucket key a caller can set; see FORWARD_SECRET above.
+	const { status, headers } = await rawInvoke({
 		body: JSON.stringify({}),
+		bucket: 201,
 	});
 
+	assertEquals(status, 400, "expected the validation error, not a 429");
 	const contentType = headers.get("content-type");
 	assertExists(contentType, "Should have Content-Type header");
 	assert(
 		contentType.includes("application/json"),
 		`Expected JSON, got: ${contentType}`,
 	);
+	},
 });
 
-Deno.test("newsletter-subscribe: error messages are generic (no Resend internals)", async () => {
-	const { data } = await rawInvoke({
+Deno.test({
+	name: "newsletter-subscribe: error messages are generic (no Resend internals)",
+	ignore: !FORWARD_SECRET,
+	fn: async () => {
+	// Own bucket, same reason as above: a 429 body is generic and short, so it
+	// satisfies every assertion below without exercising the error path at all.
+	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "invalid" }),
+		bucket: 202,
 	});
 
+	assertEquals(status, 400, "expected the validation error, not a 429");
 	const errorMsg = String(data.error ?? "");
 	// Error should be a short, generic message
 	assert(errorMsg.length < 100, `Error message too long: ${errorMsg}`);
@@ -177,12 +233,14 @@ Deno.test("newsletter-subscribe: error messages are generic (no Resend internals
 		!errorMsg.includes("node_modules"),
 		"Error should not contain file paths",
 	);
+	},
 });
 
 Deno.test('newsletter-subscribe: 405 response is plain text "Method Not Allowed"', async () => {
 	const { status, data } = await rawInvoke({
 		method: "PATCH",
 		body: null,
+		bucket: 212,
 	});
 
 	assertEquals(status, 405);

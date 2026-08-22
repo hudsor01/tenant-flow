@@ -71,7 +71,7 @@ import {
 	clientUserAgent,
 	sha256Hex,
 } from "../_shared/lease-signing.ts";
-import { rateLimit } from "../_shared/rate-limit.ts";
+import { getTrustedClientIp, rateLimit } from "../_shared/rate-limit.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
 interface ApplicationContextRow {
@@ -150,16 +150,17 @@ async function handleContext(
 	// D-15: hash in Deno, never in SQL — see the auth-model note above.
 	const tokenHash = await sha256Hex(token);
 
-	// THIS LIMITER IS A CAPACITY CEILING. IT IS NOT, AND CANNOT BE, THE T-66-06
-	// MITIGATION — AND TWO EARLIER ATTEMPTS TO MAKE IT ONE WERE BOTH WRONG.
+	// THIS ACTION HAS TWO LIMITERS AND THEY BOUND DIFFERENT THINGS:
+	//   1. per VERIFIED CLIENT — 60/60s, entered only when the address is proven.
+	//   2. per LISTING — 3,000/60s on the token hash, an aggregate capacity ceiling.
+	//
+	// WHY (1) COULD NOT EXIST UNTIL NOW, AND WHY IT CAN NOW.
 	//
 	// The context action is called ONLY from the RSC (`apply-context.ts`), which
 	// is not a client module, against a `force-dynamic` page fetched
 	// `cache: "no-store"`. So one applicant page view == one call here, and
-	// `getClientIp(req)` is the NEXT.JS EGRESS ADDRESS for 100% of genuine
-	// traffic. The applicant's own address never reaches this function, and it
-	// could not be forwarded safely either: `verify_jwt = false` means a forged
-	// header would let a direct caller charge any bucket it liked.
+	// `getClientIp(req)` was the NEXT.JS EGRESS ADDRESS for 100% of genuine
+	// traffic. Two attempts to fix that with a cleverer key were both wrong.
 	//
 	// Attempt 1 keyed on the token alone. That was a public kill switch: under
 	// D-03a the token is PUBLISHED to listing sites, so the bucket was shared
@@ -173,28 +174,68 @@ async function handleContext(
 	// applicants share. The attacker obtains the address component for free by
 	// using the front door.
 	//
-	// THE GENERAL RESULT: an attacker and an applicant are INDISTINGUISHABLE
-	// here. Same address, same shape, same arrival path. Any threshold low
-	// enough to stop a 1 req/s flood also locks out a listing that gets shared
-	// into a group chat. No key derived from what this function can observe
-	// separates them, so no configuration of this limiter mitigates T-66-06.
+	// Their shared result — an attacker and an applicant are INDISTINGUISHABLE
+	// here — was a statement about the INPUT this function had, not a theorem
+	// about the function. RATE-03 changes the input. `getTrustedClientIp` returns
+	// an address minted ONE HOP EARLIER at Vercel, where the platform overwrites
+	// the conventional forwarding header to prevent spoofing, carried across the
+	// hop under a constant-time-verified shared secret. That is a key this
+	// function can now compute which does separate them, so the general result no
+	// longer holds. What has not changed: `src/proxy.ts` or a WAF in front of it
+	// remains a COMPLEMENT — it sees requests that never reach this function at
+	// all — rather than the only layer where per-client limiting could live.
 	//
-	// WHAT THIS BUCKET IS FOR, THEN: bounding `get_application_context` calls per
-	// listing so one runaway link cannot saturate the database. That is a
-	// capacity guard, and it is sized so organic traffic cannot trip it —
-	// deliberately far above the ~60/min that a widely-shared listing plus
-	// link-preview crawlers can reach on its own. Locking an applicant out of a
-	// form is a worse outcome than the load it would have prevented.
+	// THE `if` IS THE DEPLOY-ORDER SAFETY PROPERTY, NOT A MICRO-OPTIMIZATION.
+	// CLIENT_IP_FORWARD_SECRET is now provisioned on both Supabase and Vercel
+	// (2026-08-22), so this branch is entered whenever a caller proves it holds
+	// the secret. In practice that is not yet any caller: the RSC half forwards
+	// only once this branch reaches `main`, because Vercel deploys from `main`
+	// only. Until then `getTrustedClientIp` returns null on real traffic and this
+	// action performs exactly the one limiter call it always has.
+	// UNGATED, this bucket would key on the Vercel egress for 100% of genuine
+	// traffic and become a product-wide 60/min cap on every apply page load —
+	// which is exactly why the old 300/60s address-only ceiling was removed.
+	//
+	// IT RUNS FIRST because it is the more precise control: a client exceeding
+	// their own limit should be told so before consuming the listing's shared
+	// capacity.
+	//
+	// WHY 60/min. One context call per page load. A human reloading a listing
+	// faster than once a second, sustained for a minute, is not a human; clients
+	// sharing a carrier NAT or a corporate egress still sit far below it on a
+	// single niche listing. The number is PER VERIFIED CLIENT, so crawlers and
+	// link-preview bots each land in their own bucket rather than the shared one.
+	//
+	// COST, stated rather than hidden: when trusted, this action makes two
+	// limiter RPCs instead of one, ~10-30ms each against a same-region Postgres.
+	// It is replacing a path that measured 9.0-9.2s on 2026-08-09.
+	const trustedIp = getTrustedClientIp(req);
+	if (trustedIp) {
+		const clientLimited = await rateLimit(req, {
+			maxRequests: 60,
+			windowMs: 60_000,
+			prefix: "apply-context-client",
+			identifier: trustedIp,
+		});
+		if (clientLimited) return clientLimited;
+	}
+
+	// THE PER-LISTING CEILING. It bounds `get_application_context` calls per
+	// listing so one runaway link cannot saturate the database, and it is sized
+	// so organic traffic cannot trip it — deliberately far above the ~60/min that
+	// a widely-shared listing plus link-preview crawlers can reach on its own.
+	// Locking an applicant out of a form is a worse outcome than the load it
+	// would have prevented.
+	//
+	// THE PER-CLIENT BUCKET ABOVE DOES NOT REPLACE THIS ONE. A thousand distinct
+	// clients each staying under their own limit still SUM to a thousand times
+	// the load, and this ceiling is the only thing that bounds the sum. It also
+	// still applies on every untrusted request, which remains all of them until
+	// the RSC half of the forward reaches `main`.
 	//
 	// The old 300/60s address-only ceiling is GONE. Keyed on the shared egress it
 	// was a single product-wide cap across every listing, needing no token at
 	// all — strictly a chokepoint with nothing to show for it.
-	//
-	// WHERE THE REAL PER-CLIENT LIMIT BELONGS: `src/proxy.ts`, which sees the
-	// actual client address before the RSC ever runs, or a WAF/CDN rule in front
-	// of it. `src/proxy.ts` currently has no rate limiting at all. That is
-	// recorded in deferred-items.md rather than bolted on here, because it is a
-	// different layer with its own blast radius and needs its own review.
 	//
 	// Submit is unaffected and still keys on the address ALONE: that request
 	// comes from the applicant's own browser, so the address is real and a token
@@ -249,12 +290,14 @@ async function handleContext(
  *   honeypot -> timing -> address limit -> envelope -> strict payload -> RPC
  *
  * The two client-supplied bot filters run first so a flood costs one string
- * comparison rather than an Upstash round trip, and both answer with an
+ * comparison rather than a database round trip, and both answer with an
  * ordinary success so nothing teaches a bot which layer caught it. Neither is a
- * security control. The fail-closed bound is the per-link cap evaluated under
- * the token row's FOR UPDATE lock inside submit_rental_application (D-04a,
- * F-6); the Upstash limiter fails OPEN when Upstash is unreachable
- * (_shared/rate-limit.ts:159, deliberate) and can only ever be the outer layer.
+ * security control. The per-link cap evaluated under the token row's FOR UPDATE
+ * lock inside submit_rental_application (D-04a, F-6) remains the innermost
+ * bound. Since 66.1 the limiter in front of it ALSO fails closed: it shares a
+ * failure domain with the write it guards, so an unreachable database denies
+ * rather than admits. It is still the outer layer, but it is no longer a layer
+ * that disappears exactly when the database is in trouble.
  */
 async function handleSubmit(
 	req: Request,
@@ -369,19 +412,24 @@ Deno.serve(async (req: Request) => {
 		}
 
 		// Inside the handler, never at module scope: a module-level env read runs
-		// at import and takes the whole isolate down. Upstash is optional on
-		// purpose — the limiter fails open and the DB cap is the real bound.
+		// at import and takes the whole isolate down.
+		//
+		// The limiter reads its own env, and it does NOT share this function's
+		// client. `getRateLimitClient()` builds and caches a separate admin client
+		// from SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (both platform-injected),
+		// and reads CLIENT_IP_FORWARD_SECRET for the trusted-forward path;
+		// `_shared/errors.ts` reads SENTRY_DSN. All four go through Deno.env.get
+		// directly rather than validateEnv -- env.ts caches on its first call
+		// across the whole isolate, so a shared module calling it would either get
+		// some other caller's map back or poison the cache for this one. They are
+		// listed as optional below to document the isolate's real env surface.
 		const env = validateEnv({
 			required: [
 				"SUPABASE_URL",
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"NEXT_PUBLIC_APP_URL",
 			],
-			optional: [
-				"UPSTASH_REDIS_REST_URL",
-				"UPSTASH_REDIS_REST_TOKEN",
-				"SENTRY_DSN",
-			],
+			optional: ["SENTRY_DSN", "CLIENT_IP_FORWARD_SECRET"],
 		});
 		const supabase = createAdminClient(
 			env["SUPABASE_URL"],

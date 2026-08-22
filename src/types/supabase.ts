@@ -1526,6 +1526,27 @@ export type Database = {
 					},
 				];
 			};
+			rate_limit_counters: {
+				Row: {
+					bucket_key: string;
+					expires_at: string;
+					request_count: number;
+					window_index: number;
+				};
+				Insert: {
+					bucket_key: string;
+					expires_at: string;
+					request_count: number;
+					window_index: number;
+				};
+				Update: {
+					bucket_key?: string;
+					expires_at?: string;
+					request_count?: number;
+					window_index?: number;
+				};
+				Relationships: [];
+			};
 			rent_charges: {
 				Row: {
 					amount: number;
@@ -2898,6 +2919,19 @@ export type Database = {
 			calculate_monthly_metrics: { Args: { p_user_id: string }; Returns: Json };
 			cancel_account_deletion: { Args: never; Returns: undefined };
 			check_cron_health: { Args: never; Returns: undefined };
+			check_rate_limit: {
+				Args: {
+					p_bucket_key: string;
+					p_max_requests: number;
+					p_window_ms: number;
+				};
+				Returns: {
+					allowed: boolean;
+					limit_value: number;
+					remaining: number;
+					reset_at_ms: number;
+				}[];
+			};
 			check_stripe_sync_status: {
 				Args: never;
 				Returns: {
@@ -2945,6 +2979,7 @@ export type Database = {
 			cleanup_old_webhook_events: { Args: never; Returns: number };
 			cleanup_orphan_documents: { Args: never; Returns: undefined };
 			cleanup_pg_net_http_responses: { Args: never; Returns: number };
+			cleanup_rate_limit_counters: { Args: never; Returns: number };
 			cleanup_stripe_sync_history: { Args: never; Returns: undefined };
 			confirm_lease_subscription: {
 				Args: { p_lease_id: string; p_subscription_id: string };

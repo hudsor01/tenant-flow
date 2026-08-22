@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
 			// Two-layer rate limit on this public (verify_jwt=false) endpoint:
 			//   1. A coarse per-IP ceiling (300/min) caps aggregate load from any
 			//      single IP so token-rotation probing can't buy unlimited multi-join
-			//      RPC / Upstash calls by opening a fresh per-token bucket each time.
+			//      RPC / limiter calls by opening a fresh per-token bucket each time.
 			//      300/min supports ~300 signing-page SSR loads/min per egress IP —
 			//      far above real traffic — so the layer is invisible to tenants.
 			//   2. A per-token bucket (60/min, keyed by the token hash — NOT the IP)
