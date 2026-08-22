@@ -600,8 +600,12 @@ describe("6. the handler's own structure", () => {
 		);
 		expect(required).toContain("SUPABASE_SERVICE_ROLE_KEY");
 		expect(required).toContain("NEXT_PUBLIC_APP_URL");
-		// The limiter needs no env of its own: it calls public.check_rate_limit
-		// over the service-role client this function already builds.
+		// The limiter reads its own env and does NOT share this function's client:
+		// getRateLimitClient() builds and caches a separate admin client from
+		// SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, and reads
+		// CLIENT_IP_FORWARD_SECRET; _shared/errors.ts reads SENTRY_DSN. All go
+		// through Deno.env.get directly rather than validateEnv, because env.ts
+		// caches isolate-wide on its first call.
 		expect(envCall.toUpperCase()).not.toContain("UPSTASH");
 		expect(envCall).not.toContain("REDIS");
 		// SCOPED TO THE WHOLE HANDLER, NOT JUST THE validateEnv ARGUMENTS.

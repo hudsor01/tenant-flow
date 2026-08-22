@@ -84,4 +84,10 @@ drop function if exists public.check_rate_limit(text, integer, integer);
 drop table if exists public.rate_limit_counters;
 
 -- 5. The applied-migration record. Keep this literal in sync with the filename.
-delete from supabase_migrations.schema_migrations where version = '20260818031338';
+-- BOTH versions. 20260822122606 is the review follow-up that corrected two live
+-- comments this migration's objects carry. Leaving its row recorded after a
+-- rollback means a later re-apply replays 20260818031338 -- restoring the FALSE
+-- retention comment -- while the correcting migration is skipped as already
+-- applied. Re-running it is idempotent; both its statements are `comment on`.
+delete from supabase_migrations.schema_migrations
+ where version in ('20260818031338', '20260822122606');

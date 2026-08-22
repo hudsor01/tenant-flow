@@ -251,6 +251,22 @@ describe("2. closure over the outcome union", () => {
 		{ outcome: okRow(), expect: null },
 		{ outcome: okRow({ allowed: false, remaining: 0 }), expect: null },
 		{ outcome: { kind: "thrown", message: "refused" }, expect: "db_unreachable" },
+		{
+			// THE SHAPE A REAL TRANSPORT FAILURE PRODUCES, and the reason this set
+			// can call itself exhaustive. postgrest-js does not throw when the
+			// database is unreachable: it catches the fetch rejection and resolves
+			// with an empty code and status 0. Without this row the status-0 branch
+			// in rate-limit-decision.ts could be deleted with the whole suite green,
+			// and every DNS/TLS/connection-refused event would silently reclassify
+			// as postgrest_5xx while db_unreachable showed zero events forever.
+			outcome: {
+				kind: "postgrest_error",
+				code: "",
+				status: 0,
+				message: "TypeError: error sending request",
+			},
+			expect: "db_unreachable",
+		},
 		{ outcome: { kind: "missing_env", message: "no url" }, expect: "missing_env" },
 		{
 			outcome: { kind: "postgrest_error", code: "PGRST202", status: 404, message: "" },
@@ -453,10 +469,47 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 		// config cannot be committed, so a rename disarms the alert silently.
 		expect(LIMITER_CODE).toContain('event: "rate_limit_error"');
 
-		const captureCall = LIMITER_CODE.slice(
-			LIMITER_CODE.indexOf("captureWebhookError("),
+		// THE MARKER MUST APPEAR TWICE: once in `extra` for the console line, and
+		// once in the TAGS argument. Sentry does not index additional data, so an
+		// issue-alert condition can only match the tag copy -- an alert built
+		// against a marker that lives solely in `extra` is created successfully
+		// and then never fires, which is indistinguishable from "the limiter never
+		// failed". Asserting the literal merely appears somewhere passed while the
+		// tags argument was entirely absent, which is how that shipped.
+		const captureCall = balancedSlice(
+			LIMITER_CODE,
+			LIMITER_CODE.indexOf("(", LIMITER_CODE.indexOf("captureWebhookError(")),
+			"(",
+			")",
 		);
+		expect(
+			(captureCall.match(/event: "rate_limit_error"/g) ?? []).length,
+		).toBe(2);
+		// ...and the parameter that carries it has to exist on the other side.
+		expect(ERRORS_CODE).toContain("tags?: Record<string, string>");
+		expect(exportedBody(ERRORS_CODE, "captureWebhookError")).toContain("tags");
+
 		expect(captureCall).not.toContain("bucketKey");
+		// `\bkey\b` is safe here: bucket_key_prefix has no word boundary before
+		// "key", so this forbids the raw key without forbidding the prefix field.
+		expect(captureCall).not.toMatch(/\bkey\b/);
+	});
+
+	it("the rate_limit_hit log carries no raw client address either", () => {
+		// The hit branch is the HIGH-VOLUME path and it used to log `key`, which is
+		// `options.identifier ?? getClientIp(req)` -- a raw client address on four
+		// of the five guarded surfaces, landing in a log stream whose retention has
+		// nothing to do with the two-window bound the counters table is argued on.
+		// The error branch already refused to do this; the assertion was only ever
+		// written for that branch, so the noisier one went unchecked.
+		const hitLog = balancedSlice(
+			LIMITER_CODE,
+			LIMITER_CODE.indexOf("{", LIMITER_CODE.indexOf('event: "rate_limit_hit"') - 200),
+			"{",
+			"}",
+		);
+		expect(hitLog).toContain("rate_limit_hit");
+		expect(hitLog).not.toMatch(/\bkey\b/);
 	});
 
 	it("getClientIp is unchanged: cf-connecting-ip first, LAST xff segment", () => {
@@ -477,6 +530,12 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 
 describe("4. _shared/errors.ts -- the Sentry client is bound before it is used", () => {
 	it("binds a client and guards against clobbering an existing one", () => {
+		// The envelope destructure is what makes status-0 detectable at all: a
+		// PostgrestError carries only { message, details, hint, code }, so reading
+		// status off the error was always undefined and the transport-failure
+		// signal was discarded. Pinned structurally because reverting it produces
+		// no test failure elsewhere -- the decision still denies, just misclassified.
+		expect(LIMITER_CODE).toContain("const { data, error, status }");
 		expect(ERRORS_CODE).toContain("Sentry.init(");
 		// stripe-webhooks/index.ts inits at module scope; without this guard a warm
 		// isolate of the ONE function whose reporting already worked gets re-inited
@@ -741,6 +800,16 @@ describe("5b. closure over the trust decision", () => {
 		},
 		{ configuredSecret: "", presentedSecret: "", forwardedIp: "203.0.113.9" },
 		{
+			// A secret provisioned with a trailing newline -- what a file-piped
+			// `supabase secrets set`, a `vercel env add` from a file, or an ordinary
+			// paste routinely produces. The wire strips it, the store keeps it, and
+			// without the trim these byte-identical secrets never match: forwarding
+			// falls back to the shared egress forever with no error anywhere.
+			configuredSecret: `${CONFIGURED}\n`,
+			presentedSecret: CONFIGURED,
+			forwardedIp: "203.0.113.9",
+		},
+		{
 			configuredSecret: "   ",
 			presentedSecret: "   ",
 			forwardedIp: "203.0.113.9",
@@ -786,7 +855,13 @@ describe("5b. closure over the trust decision", () => {
 			const grantingShape =
 				typeof input.configuredSecret === "string" &&
 				input.configuredSecret.trim().length > 0 &&
-				input.presentedSecret === input.configuredSecret &&
+				// TRIMMED, because that is the implementation's rule since the Fetch
+				// spec normalizes header values: the presented side arrives with
+				// surrounding whitespace already stripped, so the compare trims the
+				// configured side to match. An oracle encoding the pre-trim rule is
+				// worse than no oracle -- it makes the covering row FAIL on correct
+				// code, which is why the coverage gap was self-perpetuating.
+				input.presentedSecret === input.configuredSecret.trim() &&
 				normalizeForwardedIp(input.forwardedIp ?? null) !== null;
 
 			expect(decide(input).trusted).toBe(grantingShape);
@@ -994,13 +1069,33 @@ describe("6c. _shared/timing-safe.ts claims only what has been established", () 
 const APPLY_CONTEXT_SOURCE = readRepoSource(
 	"../../../src/app/apply/[token]/apply-context.ts",
 );
+/**
+ * Comment-stripped, for the literal-drift gate only.
+ *
+ * Both forms are needed and they are not interchangeable: the drift gate must
+ * NOT be satisfiable by a literal that survives only in prose, while the
+ * cross-file naming test below asserts on comments by design -- each file
+ * explains its opposite rule by pointing at the other. Stripping comments for
+ * both breaks the naming test; stripping for neither lets a commented-out
+ * header name keep the drift gate green.
+ */
+const APPLY_CONTEXT_CODE = stripComments(APPLY_CONTEXT_SOURCE);
 
 describe("7. the Vercel side and the Supabase side agree", () => {
 	it.each(["x-tf-client-ip", "x-tf-forward-secret", "CLIENT_IP_FORWARD_SECRET"])(
 		"%s appears in BOTH files",
 		(literal) => {
-			expect(LIMITER_CODE).toContain(literal);
-			expect(APPLY_CONTEXT_SOURCE).toContain(literal);
+			// BOUNDARY-ANCHORED, because a bare substring match cannot catch the
+			// rename this gate exists to catch: renaming the header to
+			// "x-tf-client-ip-2" on one side only still contains "x-tf-client-ip",
+			// so both sides would look in agreement while the handshake was broken.
+			// The sources are comment-stripped so a literal surviving only in prose
+			// cannot satisfy it either.
+			const bounded = new RegExp(
+				`${literal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`,
+			);
+			expect(LIMITER_CODE).toMatch(bounded);
+			expect(APPLY_CONTEXT_CODE).toMatch(bounded);
 		},
 	);
 
