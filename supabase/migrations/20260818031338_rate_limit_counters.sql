@@ -150,7 +150,17 @@ alter table public.rate_limit_counters set (
 -- store raw addresses. Two things make it acceptable here and they are the two
 -- things a future change must preserve: the retention bound is at most two
 -- windows (an hour, at the largest configured window), and the table is
--- service_role-only with no archive copy. Hashing would make production abuse
+-- service_role-only with no archive copy.
+--
+-- CORRECTED BY 20260822122606: THE FIRST PRECONDITION WAS NEVER IMPLEMENTED.
+-- `expires_at` is an inert marker. The only deletion path is
+-- cleanup_rate_limit_counters(), and its only caller is the 03:25 UTC cron job,
+-- so real retention is up to ~24h rather than two windows. That migration fixed
+-- the LIVE table comment; this line fixes the repo copy, which is the one a
+-- change-author reads and the one framed as an invariant to preserve. Anyone
+-- relying on the retention bound as the privacy argument must either tighten the
+-- sweep or hash the key -- the second precondition (service_role-only, no
+-- archive copy) still holds and is doing all the work on its own. Hashing would make production abuse
 -- triage impossible for a table whose entire purpose IS abuse response - an
 -- operator investigating a flood cannot act on a digest.
 alter table public.rate_limit_counters enable row level security;
@@ -376,8 +386,11 @@ comment on function public.cleanup_rate_limit_counters() is
 
 -- Same reasoning as the check_rate_limit grants above: PostgreSQL auto-grants
 -- EXECUTE to PUBLIC at creation and anon inherits PUBLIC, so the revoke must
--- come first and must name both Supabase client roles explicitly. pg_cron runs
--- this as service_role, which is the only identity that needs it.
+-- come first and must name both Supabase client roles explicitly. The pg_cron
+-- job runs as `postgres` -- the role that scheduled it, verified against
+-- cron.job.username in production -- and the function is SECURITY DEFINER, so it
+-- executes as its owner regardless. The service_role grant below is for manual
+-- and edge-function invocation, not for the sweep.
 revoke all on function public.cleanup_rate_limit_counters() from public, anon, authenticated;
 grant execute on function public.cleanup_rate_limit_counters() to service_role;
 

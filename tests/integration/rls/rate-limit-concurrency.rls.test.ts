@@ -64,15 +64,12 @@ const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SERVICE_ROLE_KEY =
 	process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
 	process.env["SUPABASE_SECRET_KEY"];
-const ANON_KEY = process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"];
 
 const skipReason = !SUPABASE_URL
 	? "NEXT_PUBLIC_SUPABASE_URL not set"
 	: !SERVICE_ROLE_KEY
 		? "SUPABASE_SERVICE_ROLE_KEY / SUPABASE_SECRET_KEY not set"
-		: !ANON_KEY
-			? "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY not set"
-			: null;
+		: null;
 
 /** Matches the research measurement exactly so the numbers are comparable. */
 const CLIENTS = 64;

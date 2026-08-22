@@ -489,12 +489,21 @@ describe("3. _shared/rate-limit.ts -- structural contracts", () => {
 		// TAG. Asserting the identifier "tags" appears somewhere is not enough:
 		// rewriting captureWebhookError to fold the third argument into `extra`
 		// keeps the word, keeps the marker count at 2, and silently restores the
-		// cycle-1 defect where nothing is alertable. The `{ tags }` shorthand only
-		// exists when the object is spread at the top level of the captureException
-		// options, which is the property that makes it a Sentry tag.
+		// cycle-1 defect where nothing is alertable.
+		//
+		// `{ tags }` ALONE IS ALSO NOT ENOUGH, and the earlier version of this
+		// comment was wrong about why. It claimed the shorthand "only exists when
+		// the object is spread at the top level" -- false: `{ tags }` is a
+		// substring of `...(tags ? { tags } : {})` at ANY nesting depth, so the
+		// optionality-preserving fold `extra: { ...extra, ...(tags ? { tags } : {}) }`
+		// keeps it and the pin stayed green. Proven by mutation. What actually
+		// distinguishes a tag from additional data is that `extra` is passed as a
+		// bare shorthand rather than reopened as an object literal, so that is what
+		// is asserted.
 		expect(ERRORS_CODE).toContain("tags?: Record<string, string>");
 		const captureBody = exportedBody(ERRORS_CODE, "captureWebhookError");
 		expect(captureBody).toContain("{ tags }");
+		expect(captureBody).not.toMatch(/extra:\s*\{/);
 
 		expect(captureCall).not.toContain("bucketKey");
 		// `\bkey\b` is safe here: bucket_key_prefix has no word boundary before
@@ -952,8 +961,14 @@ describe("5c. normalizeForwardedIp -- the key-shape bound", () => {
 
 	it("an 8-group IPv6 at the length bound is accepted, one character more is not", () => {
 		// The bound is 45 characters -- the longest IPv6 textual form including an
-		// IPv4-mapped tail. Asserted from both sides so it cannot silently become
-		// decorative.
+		// IPv4-mapped tail.
+		//
+		// NOTE WHAT THIS DOES AND DOES NOT PIN. The reject case passes because the
+		// 46-character string is not a valid address SHAPE, not because it exceeds
+		// 45: the shape rules already bound a well-formed address at 45, so
+		// MAX_FORWARDED_IP_LENGTH is an unreachable pre-filter on this side and
+		// deleting it would not fail this test. It is pinned where it is load-
+		// bearing -- apply-context.ts, which applies it before any shape check.
 		const longest = "2001:0db8:0000:0000:0000:ffff:255.255.255.255";
 		expect(longest).toHaveLength(45);
 		expect(normalizeForwardedIp(longest)).toBe(longest);

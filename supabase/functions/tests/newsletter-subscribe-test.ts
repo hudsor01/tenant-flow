@@ -62,6 +62,7 @@ Deno.test("newsletter-subscribe: OPTIONS returns CORS preflight response", async
 		body: null,
 		headers: {
 			Origin: frontendUrl,
+			"x-forwarded-for": "203.0.113.203",
 		},
 	});
 
@@ -84,6 +85,7 @@ Deno.test("newsletter-subscribe: rejects non-POST methods with 405", async () =>
 	const { status } = await rawInvoke({
 		method: "GET",
 		body: null,
+		headers: { "x-forwarded-for": "203.0.113.204" },
 	});
 	assertEquals(status, 405);
 });
@@ -92,6 +94,7 @@ Deno.test("newsletter-subscribe: rejects PUT method with 405", async () => {
 	const { status } = await rawInvoke({
 		method: "PUT",
 		body: JSON.stringify({ email: "test@example.com" }),
+		headers: { "x-forwarded-for": "203.0.113.205" },
 	});
 	assertEquals(status, 405);
 });
@@ -100,6 +103,7 @@ Deno.test("newsletter-subscribe: rejects DELETE method with 405", async () => {
 	const { status } = await rawInvoke({
 		method: "DELETE",
 		body: null,
+		headers: { "x-forwarded-for": "203.0.113.206" },
 	});
 	assertEquals(status, 405);
 });
@@ -107,6 +111,7 @@ Deno.test("newsletter-subscribe: rejects DELETE method with 405", async () => {
 Deno.test("newsletter-subscribe: rejects missing email with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({}),
+		headers: { "x-forwarded-for": "203.0.113.207" },
 	});
 
 	assertEquals(status, 400);
@@ -116,6 +121,7 @@ Deno.test("newsletter-subscribe: rejects missing email with 400", async () => {
 Deno.test("newsletter-subscribe: rejects empty email with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "" }),
+		headers: { "x-forwarded-for": "203.0.113.208" },
 	});
 
 	assertEquals(status, 400);
@@ -125,6 +131,7 @@ Deno.test("newsletter-subscribe: rejects empty email with 400", async () => {
 Deno.test("newsletter-subscribe: rejects invalid email format with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "not-an-email" }),
+		headers: { "x-forwarded-for": "203.0.113.209" },
 	});
 
 	assertEquals(status, 400);
@@ -134,6 +141,7 @@ Deno.test("newsletter-subscribe: rejects invalid email format with 400", async (
 Deno.test("newsletter-subscribe: rejects email without domain with 400", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "user@" }),
+		headers: { "x-forwarded-for": "203.0.113.210" },
 	});
 
 	assertEquals(status, 400);
@@ -143,6 +151,7 @@ Deno.test("newsletter-subscribe: rejects email without domain with 400", async (
 Deno.test("newsletter-subscribe: valid email returns 200 with success true", async () => {
 	const { status, data } = await rawInvoke({
 		body: JSON.stringify({ email: "test-newsletter-ci@example.com" }),
+		headers: { "x-forwarded-for": "203.0.113.211" },
 	});
 
 	assertEquals(status, 200);
@@ -195,6 +204,7 @@ Deno.test('newsletter-subscribe: 405 response is plain text "Method Not Allowed"
 	const { status, data } = await rawInvoke({
 		method: "PATCH",
 		body: null,
+		headers: { "x-forwarded-for": "203.0.113.212" },
 	});
 
 	assertEquals(status, 405);
