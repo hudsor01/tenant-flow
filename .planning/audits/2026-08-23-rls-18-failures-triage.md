@@ -102,3 +102,70 @@ nothing. That is the same species as the ten defects the Phase 66.1 perfect-PR r
 2. **Cluster C's open question** — decide the precedence semantics before fixing the fixture, so the
    test encodes a decision rather than whatever the code does today.
 3. **Clusters B, D, E** — mechanical once A and C are settled.
+
+---
+
+# EXECUTION RESULT — 2026-08-23
+
+**18 failures → 7.** 481 passing. Full run: `10 failed | 49 passed | 2 skipped` files,
+`7 failed | 481 passed | 43 skipped` tests.
+
+## Cluster A — 7 → 2. Largely fixed.
+
+Seeding through `public.seed_storage_object_for_test` (SECURITY DEFINER, service_role-only) removed
+the PGRST106 wall without exposing the `storage` schema. Ten of twelve storage-metering cases now
+pass, including every exemption path: grandfathered, Max tier, service_role, system bucket, flag-off.
+
+Two remain, and they are the two that assert the guard actually BLOCKS. Those are worth real
+attention — they are the only cases that would catch a broken quota guard, and everything around
+them now passes.
+
+A cleanup RPC was created and dropped one migration later: `storage.protect_delete()` raises 42501
+on any direct DELETE against `storage.objects`, SECURITY DEFINER included. Rows are removed through
+the Storage API instead, which is what Supabase's own hint says to do.
+
+## Clusters D, E — root causes now NAMED rather than disguised
+
+The unchecked-insert fix did its job. The failures changed shape from misleading to precise:
+
+| was | now | meaning |
+|---|---|---|
+| `22P02 invalid input syntax` | `23P01 exclusion_violation` | `createLease` overlaps an existing lease on the same unit — an exclusion constraint, not a ledger defect |
+| `TypeError: reading 'id' of null` | `23503 foreign_key_violation` | `public.users.id` references `auth.users(id)`, so the direct insert cannot work; the fixture must originate the row in Auth |
+
+Both are now one-line fixture problems with the answer written in the error.
+
+## Cluster B — fixed
+
+Two assertions moved from the constraint name to the trigger's wording. Two payloads were rebuilt to
+sit inside 1200..3000 words so the gate under test is the gate that fires — the h2 case was
+overshooting the ceiling at ~3,000 and the DocuSeal case undershooting the floor at ~1,040. Both now
+land near 1,400.
+
+## Cluster C — 5 remain, and one is genuinely unexplained
+
+RETRACTED: my "open design question" about precedence. `sign_lease_with_token` checks `revoked_token`
+at character 781 and `tenant_already_signed` at 1753 — revoked wins, exactly as the test asserts.
+There is one overload only. Verified live: a token with `revoked_at` set returns `revoked_token`.
+
+**What is still unexplained.** With the seed assertion in place the insert demonstrably SUCCEEDS —
+`expect(error).toBeNull()` and `expect(data?.id).toBeTruthy()` both pass — and the RPC still answers
+`tenant_already_signed`. Every static explanation is exhausted:
+
+- the RPC checks revoked first (verified in the deployed body)
+- there is exactly one overload
+- `lease_signing_tokens` has NO triggers, so nothing rewrites `revoked_at` on insert
+- `RUN_TAG` embeds `Date.now()`, so hashes cannot collide across runs
+- the only unique index is on `token_hash`; no constraint rejects a revoked+used row
+- direct SQL with the same shape returns `revoked_token`
+
+The gap between "the row was inserted with revoked_at" and "the RPC did not see it" needs the actual
+row read back inside the failing test. That is a five-line diagnostic, not a guess, and it should be
+the next step rather than another hypothesis.
+
+## Honest accounting
+
+Skips rose 12 → 43 and failing FILES rose 5 → 10 while failing TESTS fell 18 → 7. That is what
+adding real assertions to shared fixture helpers does: a helper that used to hand back null now
+aborts its file, so more files register a failure while far fewer individual assertions are wrong.
+It is the right direction and the file count will fall as each fixture is fixed.
