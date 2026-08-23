@@ -128,6 +128,12 @@ describe.skipIf(skipReason)(
 			await service.from("blogs").delete().like("slug", `${SLUG_PREFIX}-%`);
 		});
 
+		// NOTE ON WHICH MECHANISM REJECTS. These assert the TRIGGER's message, not
+		// the check constraint's name. Both exist and both are correct, but
+		// validate_blog_post_trigger raises 23514 before the constraint is ever
+		// evaluated, so asserting `blogs_slug_format_check` pinned a mechanism that
+		// no longer speaks first. The trigger's wording is also the more useful of
+		// the two: it states the rule rather than naming an object.
 		// ────────────────────────────────────────────────────────────────────
 		// Status CHECK constraint (migration 20260510214900)
 		// ────────────────────────────────────────────────────────────────────
@@ -164,7 +170,7 @@ describe.skipIf(skipReason)(
 			const body = validBody({ slug: "1234567890" });
 			const { error } = await service.from("blogs").insert(body);
 			expect(error).toMatchObject({
-				message: expect.stringContaining("blogs_slug_format_check"),
+				message: expect.stringContaining("slug pattern invalid"),
 			});
 		});
 
@@ -185,7 +191,7 @@ describe.skipIf(skipReason)(
 			const body = validBody({ slug: "Bad Slug With Spaces" });
 			const { error } = await service.from("blogs").insert(body);
 			expect(error).toMatchObject({
-				message: expect.stringContaining("blogs_slug_format_check"),
+				message: expect.stringContaining("slug pattern invalid"),
 			});
 		});
 
@@ -215,11 +221,15 @@ describe.skipIf(skipReason)(
 				// ~1,500 words across only 2 H2 sections — passes gate 1 but fails gate 2
 				content:
 					"# Heading\n\nIntro about landlords. " +
-					"Lorem ipsum dolor sit amet. ".repeat(200) +
+					// 100, NOT 200. The gates run in order and word_count is FIRST:
+					// three sections of 200 repeats is ~3,000 words, which trips the
+					// 1200..3000 ceiling and reports `word_count out of range` before
+					// h2_count is ever evaluated. A gate test has to isolate its gate.
+					"Lorem ipsum dolor sit amet. ".repeat(100) +
 					"\n\n## Section One\n\nlandlord body. " +
-					"Lorem ipsum dolor sit amet. ".repeat(200) +
+					"Lorem ipsum dolor sit amet. ".repeat(100) +
 					"\n\n## Section Two\n\nlandlord body. " +
-					"Lorem ipsum dolor sit amet. ".repeat(200),
+					"Lorem ipsum dolor sit amet. ".repeat(100),
 			});
 			const { error } = await service.from("blogs").insert(body);
 			expect(error).toMatchObject({
@@ -308,8 +318,12 @@ describe.skipIf(skipReason)(
 
 		// Gate 9: DocuSeal mention count ≤ 1
 		it("rejects content with 3 'DocuSeal' mentions (gate 9: DocuSeal mention count too high)", async () => {
+			// 55, NOT 40. Same gate-ordering trap as the h2 case, opposite direction:
+			// five sections of 40 repeats is ~1,040 words, UNDER the 1200 floor, so
+			// word_count fires first and the DocuSeal gate is never reached. 55 lands
+			// the body at ~1,400, comfortably inside 1200..3000.
 			const section = (i: number) =>
-				`## H2 ${i}\n\n` + "Body for landlords with rentals. ".repeat(40);
+				`## H2 ${i}\n\n` + "Body for landlords with rentals. ".repeat(55);
 			const content =
 				"# Heading\n\n" +
 				"DocuSeal handles signatures for landlords. DocuSeal also stores PDFs. DocuSeal is the lease signing surface. ".repeat(

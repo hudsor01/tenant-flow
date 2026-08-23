@@ -976,7 +976,10 @@ describe.skipIf(skipReason)(
 			}
 			const userId = disposableUserId!;
 
-			const { data: property } = await service
+			// Same reasoning as the lease fixture: an unchecked insert here surfaced
+			// as `TypeError: Cannot read properties of null (reading 'id')` on the
+			// next line, naming neither the table nor the reason.
+			const { data: property, error: propertyError } = await service
 				.from("properties")
 				.insert({
 					owner_user_id: userId,
@@ -989,6 +992,8 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
+			expect(propertyError).toBeNull();
+			expect(property?.id).toBeTruthy();
 			const { data: unit } = await service
 				.from("units")
 				.insert({

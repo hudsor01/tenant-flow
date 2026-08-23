@@ -96,7 +96,12 @@ describe.skipIf(skipReason)(
 		let untrackedLeaseId: string | null = null;
 
 		async function createLease(): Promise<string | null> {
-			const { data } = await service
+			// ASSERTS ITS OWN SETUP. This swallowed the insert error and returned
+			// null, so the caller passed null where a uuid was expected and the
+			// failure surfaced three layers away as `22P02 invalid input syntax` --
+			// which reads like a ledger defect rather than a fixture that never
+			// existed. A setup failure must look like a setup failure.
+			const { data, error } = await service
 				.from("leases")
 				.insert({
 					owner_user_id: ownerAId,
@@ -112,6 +117,8 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
+			expect(error).toBeNull();
+			expect(data?.id).toBeTruthy();
 			return data ? (data.id as string) : null;
 		}
 

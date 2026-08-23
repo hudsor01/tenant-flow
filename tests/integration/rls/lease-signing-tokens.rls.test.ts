@@ -140,7 +140,7 @@ describe.skipIf(skipReason)(
 		): Promise<string> {
 			tokenCounter += 1;
 			const hash = `${RUN_TAG}-${tokenCounter}`;
-			const { data } = await service
+			const { data, error } = await service
 				.from("lease_signing_tokens")
 				.insert({
 					lease_id: leaseId,
@@ -154,6 +154,15 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
+			// ASSERT THE SEED LANDED. This helper swallowed its insert error, so a
+			// failed seed produced a hash pointing at no row and the RPC answered
+			// about some OTHER state entirely -- which is why the precedence case
+			// reported `tenant_already_signed` while the product was correct all
+			// along (verified directly: a token with revoked_at set returns
+			// `revoked_token`, and the RPC checks revoked SECOND, long before any
+			// lease state). A seeding failure must look like a seeding failure.
+			expect(error).toBeNull();
+			expect(data?.id).toBeTruthy();
 			if (data?.id) insertedTokenIds.push(data.id);
 			return hash;
 		}
