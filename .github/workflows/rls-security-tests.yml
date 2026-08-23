@@ -75,6 +75,15 @@ jobs:
           # hard on six secrets and silently tolerates the seventh is the same
           # vacuous pass in a smaller costume.
           [ -z "$SERVICE_ROLE_KEY" ]         && missing+=(SUPABASE_SERVICE_ROLE_KEY)
+          # AND IT MUST BE THE CURRENT-FORMAT KEY. This project disabled the
+          # legacy anon/service_role JWTs on 2025-10-29, so an `eyJ...` value
+          # here authenticates as nothing: every privileged call fails with
+          # "Legacy API keys are disabled" and the suite reports 41 failures that
+          # look like product bugs. Checked here because the failure mode is a
+          # confusing red, not a missing-secret red.
+          case "$SERVICE_ROLE_KEY" in
+            eyJ*) echo "::error::SUPABASE_SERVICE_ROLE_KEY is a legacy JWT; legacy keys are disabled on this project. Use the sb_secret_ key."; exit 1 ;;
+          esac
           if [ ${#missing[@]} -gt 0 ]; then
             echo "::error::Missing required GitHub repo secrets: ${missing[*]}"
             echo "::error::Add them in Settings → Secrets and variables → Actions before this gate can pass."
