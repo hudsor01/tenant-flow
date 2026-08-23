@@ -527,7 +527,14 @@ describe.skipIf(m4SkipReason)(
 				});
 			expect(data).toBeNull();
 			expect(error).not.toBeNull();
-			expect(error?.message ?? "").toContain("plan_limit_exceeded");
+			// THE SQLSTATE, NOT THE MESSAGE. The Storage API strips message, hint
+			// and detail: a real rejection arrives as `database error, code: PLIM1`.
+			// This assertion used to require the `plan_limit_exceeded` prefix, which
+			// the upload path never delivers -- so it could only ever fail, and it
+			// did, unseen, for as long as the RLS suite was skipping. The guard now
+			// raises a distinct SQLSTATE rather than PL/pgSQL's default P0001, which
+			// is indistinguishable from every other trigger exception here.
+			expect(error?.message ?? "").toMatch(/PLIM1|plan_limit_exceeded/);
 		});
 
 		// -- grandfather --------------------------------------------------------
@@ -596,7 +603,7 @@ describe.skipIf(m4SkipReason)(
 				.upload(path, new Blob(["a,b\n1,2\n"], { type: "text/csv" }), {
 					contentType: "text/csv",
 				});
-			expect(error?.message ?? "").not.toContain("plan_limit_exceeded");
+			expect(error?.message ?? "").not.toMatch(/PLIM1|plan_limit_exceeded/);
 			if (!error) uploadedBulkImports.push(path);
 		});
 
