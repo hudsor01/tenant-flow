@@ -89,6 +89,7 @@ describe.skipIf(skipReason)(
 		let ownerSignedLeaseId: string | undefined; // pending, owner pre-signed
 		let finalizeLeaseId: string | undefined; // pending, owner pre-signed
 		let contextLeaseId: string | undefined; // pending, no signatures
+		let precedenceLeaseId: string | undefined; // pending, no signatures
 		let activeLeaseId: string | undefined; // active, no tenant signature
 		let ownerFinalizeLeaseId: string | undefined; // pending, tenant pre-signed
 		// Any owned lease for the token-table RLS assertions.
@@ -242,6 +243,9 @@ describe.skipIf(skipReason)(
 				owner_signature_method: "in_app",
 			});
 			contextLeaseId = await makeLease({ lease_status: "pending_signature" });
+			precedenceLeaseId = await makeLease({
+				lease_status: "pending_signature",
+			});
 			// An active lease with NO tenant signature is reachable when a lease is
 			// activated by another path (e.g. activate_lease_with_pending_subscription)
 			// while a live token still exists — the only way to reach 'lease_active'
@@ -808,7 +812,21 @@ describe.skipIf(skipReason)(
 			// All three flags set at once — the RPC must report the highest-priority
 			// reason (revoked > used > expired), pinning the CASE ordering.
 			const now = new Date();
-			const hash = await seedToken(leaseAId!, {
+			// ITS OWN UNSIGNED LEASE, and that is the whole point of the case.
+			//
+			// This used leaseAId, which earlier tests sign. get_lease_signing_context
+			// evaluates the completed-state reasons FIRST for the authentic tenant
+			// (SIGN-04, documented in the function): signing consumes the token, so a
+			// legitimate signer revisiting their link would otherwise only ever see
+			// `used_token` instead of the friendly "already signed" card. On a signed
+			// lease that branch wins and TOKEN-state precedence is unobservable --
+			// the function was right and the fixture made the assertion untestable.
+			//
+			// Note the two RPCs order these differently ON PURPOSE and both are
+			// correct: sign_lease_with_token refuses a revoked token outright, while
+			// the context function is choosing what to show someone whose signature
+			// is already on file. Revocation does not un-sign anything.
+			const hash = await seedToken(precedenceLeaseId!, {
 				revoked_at: now.toISOString(),
 				used_at: now.toISOString(),
 				expires_at: new Date(now.getTime() - 1000).toISOString(),

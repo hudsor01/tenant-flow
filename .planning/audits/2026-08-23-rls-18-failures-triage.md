@@ -169,3 +169,39 @@ Skips rose 12 → 43 and failing FILES rose 5 → 10 while failing TESTS fell 18
 adding real assertions to shared fixture helpers does: a helper that used to hand back null now
 aborts its file, so more files register a failure while far fewer individual assertions are wrong.
 It is the right direction and the file count will fall as each fixture is fixed.
+
+
+---
+
+# CORRECTION — the precedence case is NOT a product bug
+
+Mid-investigation I concluded the two signing RPCs disagreeing on precedence was a real defect, on
+the strength of their branch order alone:
+
+```
+sign_lease_with_token:      invalid -> revoked -> used -> expired -> ... -> already_signed
+get_lease_signing_context:  invalid -> already_signed -> lease_active -> revoked -> used -> expired
+```
+
+**That was wrong, and I withdraw it.** The divergence is deliberate and the function says so:
+
+> SIGN-04: evaluate the completed-state reasons FIRST for the authentic tenant's token. Signing
+> consumes the token, so a legitimate signer revisiting their link would otherwise only ever see
+> `used_token` and never the friendly "already signed / active" cards.
+
+The two functions answer different questions. `sign_lease_with_token` decides whether an action may
+proceed, so a revoked token is refused outright. `get_lease_signing_context` decides what to SHOW
+someone whose signature may already be on file — and revocation does not un-sign anything, so
+"you already signed" is both true and more useful than "revoked". The `v_email_match` gate keeps a
+rebound token holder from being told they signed when they did not.
+
+**The actual defect is the fixture, exactly as the original triage said.** The case seeded its token
+on `leaseAId`, which earlier tests sign. On a signed lease the completed-state branch legitimately
+wins and token-state precedence is unobservable — the assertion could not be true regardless of the
+implementation. It now uses a dedicated unsigned lease.
+
+**Two things worth keeping from the error.** First: I read a branch order and declared a bug without
+reading the comment eight lines above it that explained the order. The comment was doing its job;
+I wasn't. Second: this is the third time in this session that a confident reading of structure
+turned out to be wrong where a five-line empirical check would have settled it — the same lesson
+the phase's perfect-PR cycles kept teaching about assertions.
