@@ -305,14 +305,22 @@ describe("Storage metering (METER-03) — usage SUM + attribution", () => {
 //     up to even the 1 GB trial limit is infeasible in a test, so the size is
 //     fabricated via a direct storage-schema insert (service_role, RLS-bypassing).
 //
-// SEED DEPENDENCY (orchestrator RUN — Task 2): fabricating the row requires the
-// service_role PostgREST client to reach the `storage` schema
-// (`.schema("storage").from("objects")`). This project already exposes a
-// non-public schema to PostgREST (`stripe`, see subscriptions.rls.test.ts). If
-// prod does NOT expose `storage`, seedOversize fails LOUDLY (expect(error)
-// .toBeNull()) rather than silently passing — the orchestrator then either adds
-// `storage` to the project's exposed schemas or pre-seeds the oversize row via
-// MCP execute_sql before running this file.
+// SEED DEPENDENCY — RESOLVED 2026-08-23, AND NOT BY EXPOSING THE SCHEMA.
+// This file previously fabricated the row with a direct
+// `.schema("storage").from("objects")` insert, which PostgREST rejects here with
+// PGRST106: `storage` is not an exposed schema. All seven cases died at the seed
+// step. The "fail loudly" guard above worked exactly as designed and reached
+// nobody for months, because the whole RLS suite was silently skipping for want
+// of a service-role key — a skipped test and a test that cannot pass are the
+// same artifact from a distance.
+//
+// Of the two options this note used to offer, exposing `storage` to PostgREST is
+// the wrong one: it widens that surface permanently, for every caller, to solve a
+// test-seeding problem. (`stripe` is precedent for exposing a non-public schema,
+// but stripe.* is a read-only FDW while storage.objects is live user data.)
+// Seeding now goes through public.seed_storage_object_for_test — SECURITY
+// DEFINER, service_role-only, the same shape get_owner_storage_usage already uses
+// to read the same table.
 //
 // Trigger contract proven here (the DB half of D-03): a rejected upload surfaces
 // through the Storage API (@supabase/storage-js) as an error whose message begins
@@ -366,7 +374,7 @@ describe.skipIf(m4SkipReason)(
 
 		// storage.objects rows fabricated via the service-role storage-schema client
 		// (the over-quota seed) — tracked for teardown.
-		const seededObjectIds: string[] = [];
+		const seededObjectNames: string[] = [];
 		// Real objects the allowed cases uploaded — tracked for teardown.
 		const uploadedAvatars: string[] = [];
 		const uploadedBulkImports: string[] = [];
@@ -403,22 +411,27 @@ describe.skipIf(m4SkipReason)(
 		// limit without uploading real bytes. The trigger fires on this insert too
 		// but short-circuits at step 1 (auth.uid() is null for service_role).
 		async function seedOversize(bytes: number): Promise<void> {
-			const name = `${ownerAId}/meter04-oversize-${Date.now()}-${seededObjectIds.length}.bin`;
-			const { data, error } = await service
-				.schema("storage")
-				.from("objects")
-				.insert({
-					bucket_id: "avatars",
-					name,
-					owner: ownerAId,
-					metadata: { size: bytes, mimetype: "application/octet-stream" },
-				})
-				.select("id")
-				.single();
-			// Fail loudly (not a silent skip) if the storage schema is unreachable —
-			// the orchestrator needs the signal to expose it / pre-seed via MCP.
+			const name = `${ownerAId}/meter04-oversize-${Date.now()}-${seededObjectNames.length}.bin`;
+			// Seeded through a service_role-only SECURITY DEFINER RPC rather than a
+			// direct storage-schema insert. PostgREST does not expose `storage` here
+			// and should not: widening that surface permanently, for every caller, to
+			// solve a test-seeding problem is the wrong trade. The RPC is the same
+			// shape get_owner_storage_usage already uses to read the same table.
+			const { data, error } = await service.rpc(
+				"seed_storage_object_for_test",
+				{
+					p_owner: ownerAId,
+					p_bucket: "avatars",
+					p_name: name,
+					p_bytes: bytes,
+				},
+			);
 			expect(error).toBeNull();
-			if (data?.id) seededObjectIds.push(data.id as string);
+			// The NAME, not the id: cleanup goes through the Storage API, which
+			// addresses objects by path. storage.protect_delete() raises 42501 on any
+			// direct DELETE against storage.objects, SECURITY DEFINER included, so a
+			// row seeded here can only be removed the sanctioned way.
+			if (data) seededObjectNames.push(name);
 		}
 
 		async function readUsageA(): Promise<number> {
@@ -473,12 +486,10 @@ describe.skipIf(m4SkipReason)(
 					.catch(() => {});
 			}
 			// Remove the fabricated over-quota rows.
-			if (seededObjectIds.length) {
-				await service
-					.schema("storage")
-					.from("objects")
-					.delete()
-					.in("id", seededObjectIds.splice(0));
+			if (seededObjectNames.length) {
+				await service.storage
+					.from("avatars")
+					.remove(seededObjectNames.splice(0));
 			}
 			// Reset the mutable owner/flag state between cases (order-independence).
 			await setGrandfatherA(null);
