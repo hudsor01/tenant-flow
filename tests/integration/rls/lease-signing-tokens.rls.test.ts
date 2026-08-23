@@ -813,6 +813,30 @@ describe.skipIf(skipReason)(
 				used_at: now.toISOString(),
 				expires_at: new Date(now.getTime() - 1000).toISOString(),
 			});
+			// READ THE ROW BACK BEFORE CALLING THE RPC.
+			//
+			// This case reported `tenant_already_signed` while every static check said
+			// it should report `revoked_token`: the RPC checks revoked SECOND (char
+			// 781 vs 1753 for already_signed), there is exactly one overload,
+			// lease_signing_tokens has no triggers that could rewrite the column,
+			// RUN_TAG embeds Date.now() so hashes cannot collide across runs, the only
+			// unique index is on token_hash, and the identical shape run as direct SQL
+			// returns `revoked_token`.
+			//
+			// So the disagreement is between "what was written" and "what the RPC
+			// read", and no amount of reasoning from outside can settle which. This
+			// asserts the stored state directly, so a failure names the actual defect
+			// instead of implicating the precedence logic.
+			const seeded = await service
+				.from("lease_signing_tokens")
+				.select("id, revoked_at, used_at, expires_at, lease_id")
+				.eq("token_hash", hash)
+				.maybeSingle();
+			expect(seeded.error).toBeNull();
+			expect(seeded.data?.id).toBeTruthy();
+			expect(seeded.data?.revoked_at).not.toBeNull();
+			expect(seeded.data?.used_at).not.toBeNull();
+
 			const sign = await service.rpc("sign_lease_with_token", {
 				p_token_hash: hash,
 				p_signature_ip: "1.1.1.1",

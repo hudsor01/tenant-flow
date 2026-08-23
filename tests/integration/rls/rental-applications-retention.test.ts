@@ -973,7 +973,28 @@ describe.skipIf(skipReason)(
 				if (created.error || !created.data.user) ctx.skip();
 				disposableUserId = created.data.user!.id;
 				disposableViaAuth = true;
+
+				// WAIT FOR THE MIRROR ROW. ensure_public_user_trigger creates the
+				// public.users row from the auth.users insert, and nothing guarantees
+				// it has landed by the time the next statement runs. Without this the
+				// properties insert below fails 23503 against a user that is about to
+				// exist -- a race that reads like a broken cascade.
+				for (let attempt = 0; attempt < 20; attempt += 1) {
+					const { data: mirrored } = await service
+						.from("users")
+						.select("id")
+						.eq("id", disposableUserId)
+						.maybeSingle();
+					if (mirrored?.id) break;
+					await new Promise((resolve) => setTimeout(resolve, 250));
+				}
 			}
+			const { data: userRow } = await service
+				.from("users")
+				.select("id")
+				.eq("id", disposableUserId!)
+				.maybeSingle();
+			expect(userRow?.id).toBeTruthy();
 			const userId = disposableUserId!;
 
 			// Same reasoning as the lease fixture: an unchecked insert here surfaced
