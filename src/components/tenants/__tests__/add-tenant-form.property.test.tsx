@@ -74,6 +74,12 @@ function createWrapper() {
 	);
 }
 
+// DETERMINISM, AND IT IS THE REASON THIS FILE WAS FLAKY.
+// With no seed, every run explored a different sample, so a failure could not be
+// reproduced and passed on retry -- which trains everyone to re-run rather than
+// read. A property test that cannot be replayed identically cannot be debugged.
+fc.configureGlobal({ seed: 66_1_2026, numRuns: 25 });
+
 describe("AddTenantForm - Property-Based Tests", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

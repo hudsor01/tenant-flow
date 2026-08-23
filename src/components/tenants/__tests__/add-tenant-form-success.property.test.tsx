@@ -17,11 +17,11 @@ import {
 	QueryClientProvider,
 	useMutation,
 } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import * as fc from "fast-check";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AddTenantRequest } from "#lib/validation/tenants";
 
 // Mock dependencies
@@ -57,9 +57,25 @@ interface AddTenantResponse {
 	message: string;
 }
 
+// DETERMINISM, AND IT IS THE REASON THIS FILE WAS FLAKY.
+// With no seed, every run explored a different sample, so a failure could not be
+// reproduced and passed on retry -- which trains everyone to re-run rather than
+// read. A property test that cannot be replayed identically cannot be debugged.
+fc.configureGlobal({ seed: 66_1_2026, numRuns: 25 });
+
 describe("AddTenantForm - Success Toast Property Tests", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+	});
+
+	// Unmount everything between tests. Each property iteration calls renderHook
+	// and nothing tore it down, so a test that timed out at 10s left mounted
+	// components and in-flight mutations behind; their late toast.success landed
+	// in the NEXT test's mock after clearAllMocks. That is how a counterexample
+	// containing "hasO" -- a string absent from this file's fixed input list --
+	// appeared in a Unicode assertion.
+	afterEach(() => {
+		cleanup();
 	});
 
 	/**
@@ -153,7 +169,7 @@ describe("AddTenantForm - Success Toast Property Tests", () => {
 					expect(successCalls.length).toBeGreaterThan(0);
 
 					// Check that the first argument is a string (the title)
-					const [title, options] = successCalls[0] as [
+					const [title, options] = successCalls[successCalls.length - 1] as [
 						string,
 						{ description: string },
 					];
@@ -269,7 +285,7 @@ describe("AddTenantForm - Success Toast Property Tests", () => {
 					const successCalls = vi.mocked(toast.success).mock.calls;
 					expect(successCalls.length).toBeGreaterThan(0);
 
-					const [_title, options] = successCalls[0] as [
+					const [_title, options] = successCalls[successCalls.length - 1] as [
 						string,
 						{ description: string },
 					];
