@@ -420,10 +420,17 @@ describe.skipIf(skipReason)(
 
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("title")
+				.select("title, type")
 				.eq("entity_id", tenantSecondLeaseId!)
 				.eq("user_id", ownerAId);
-			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
+			// TYPE, NOT TITLE. "Lease fully signed" was the real title while
+			// sign_lease_with_token created the notification inline (three migrations
+			// carry that literal). Emission later moved into
+			// trg_notify_owner_lease_esign, which titles it "Lease fully executed" --
+			// so this asserted a string the product had stopped producing. The TYPE
+			// is the contract the UI routes on; the title is copy and will change
+			// again.
+			expect((notifs ?? []).some((n) => n.type === "lease_executed")).toBe(
 				true,
 			);
 		});
@@ -451,10 +458,17 @@ describe.skipIf(skipReason)(
 
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("title")
+				.select("title, type")
 				.eq("entity_id", ownerSecondLeaseId!)
 				.eq("user_id", ownerAId);
-			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
+			// TYPE, NOT TITLE. "Lease fully signed" was the real title while
+			// sign_lease_with_token created the notification inline (three migrations
+			// carry that literal). Emission later moved into
+			// trg_notify_owner_lease_esign, which titles it "Lease fully executed" --
+			// so this asserted a string the product had stopped producing. The TYPE
+			// is the contract the UI routes on; the title is copy and will change
+			// again.
+			expect((notifs ?? []).some((n) => n.type === "lease_executed")).toBe(
 				true,
 			);
 		});
@@ -565,11 +579,26 @@ describe.skipIf(skipReason)(
 				.single();
 			expect(leaseRow?.lease_status).toBe("pending_signature");
 
+			// ONE NOTIFICATION, NOT ZERO -- and the notification is the point.
+			//
+			// This asserted silence, which was right before SIGN-03. The RPC's own
+			// comment records the change: "tenant-first (owner not yet signed) no
+			// longer needs an explicit notify block -- trg_notify_owner_lease_esign
+			// emits 'lease_signed' on the tenant_signed_at update above." The trigger
+			// fires whenever tenant_signed_at transitions from null, independent of
+			// the owner's signature, which is correct: an owner waiting on a tenant
+			// wants to hear the moment it happens, not only once both have signed.
+			//
+			// What must still be absent is `lease_executed` -- the lease is not
+			// active yet -- so this asserts the TYPE rather than a bare count. A
+			// count could be satisfied by the wrong event.
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("id")
+				.select("id, type")
 				.eq("entity_id", tenantFirstLeaseId!);
-			expect(notifs ?? []).toHaveLength(0);
+			const types = (notifs ?? []).map((n) => n.type);
+			expect(types).toContain("lease_signed");
+			expect(types).not.toContain("lease_executed");
 		});
 
 		it("owner signs first: both_signed=false, lease stays pending, no notification", async () => {
