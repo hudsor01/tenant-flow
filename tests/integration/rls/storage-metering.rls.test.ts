@@ -660,7 +660,21 @@ describe.skipIf(m4SkipReason)(
 				.from("avatars")
 				.list(ownerAId, { search: "meter04-rw", limit: 100 });
 			expect(listErr).toBeNull();
-			expect((listed ?? []).some((o) => path.endsWith(o.name))).toBe(true);
+			// REPORTS WHAT IT SAW. `some(...)` collapses to false and names nothing,
+			// which cost two rounds here: the first failure looked like the guard
+			// blocking reads, and it was pagination (the default page is 100, sorted
+			// ascending, and 142 avatar-* objects sort ahead of meter04-*). Scoping
+			// with `search` fixed that -- verified against production, 8 matches --
+			// and the assertion still failed, so the remaining gap is between what
+			// service_role sees and what this authenticated owner sees. Printing the
+			// returned names makes the next failure say which.
+			const names = (listed ?? []).map((o) => o.name);
+			expect(
+				names.some((n) => path.endsWith(n)),
+				`expected ${path.split("/").pop()} among owner-visible objects, got: ${
+					names.length ? names.join(", ") : "(none)"
+				}`,
+			).toBe(true);
 
 			// Delete still works for the over-quota owner (DELETE never fires the
 			// INSERT guard).

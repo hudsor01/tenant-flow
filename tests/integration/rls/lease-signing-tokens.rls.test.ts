@@ -420,7 +420,7 @@ describe.skipIf(skipReason)(
 
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("title, type")
+				.select("title, notification_type")
 				.eq("entity_id", tenantSecondLeaseId!)
 				.eq("user_id", ownerAId);
 			// TYPE, NOT TITLE. "Lease fully signed" was the real title while
@@ -430,9 +430,9 @@ describe.skipIf(skipReason)(
 			// so this asserted a string the product had stopped producing. The TYPE
 			// is the contract the UI routes on; the title is copy and will change
 			// again.
-			expect((notifs ?? []).some((n) => n.type === "lease_executed")).toBe(
-				true,
-			);
+			expect(
+				(notifs ?? []).some((n) => n.notification_type === "lease_executed"),
+			).toBe(true);
 		});
 
 		it("owner signs second: records signature, durably activates, notifies owner", async () => {
@@ -458,7 +458,7 @@ describe.skipIf(skipReason)(
 
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("title, type")
+				.select("title, notification_type")
 				.eq("entity_id", ownerSecondLeaseId!)
 				.eq("user_id", ownerAId);
 			// TYPE, NOT TITLE. "Lease fully signed" was the real title while
@@ -468,9 +468,9 @@ describe.skipIf(skipReason)(
 			// so this asserted a string the product had stopped producing. The TYPE
 			// is the contract the UI routes on; the title is copy and will change
 			// again.
-			expect((notifs ?? []).some((n) => n.type === "lease_executed")).toBe(
-				true,
-			);
+			expect(
+				(notifs ?? []).some((n) => n.notification_type === "lease_executed"),
+			).toBe(true);
 		});
 
 		// ── finalize (render -> upload -> signed_document pointer) ───────────────
@@ -594,9 +594,9 @@ describe.skipIf(skipReason)(
 			// count could be satisfied by the wrong event.
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("id, type")
+				.select("id, notification_type")
 				.eq("entity_id", tenantFirstLeaseId!);
-			const types = (notifs ?? []).map((n) => n.type);
+			const types = (notifs ?? []).map((n) => n.notification_type);
 			expect(types).toContain("lease_signed");
 			expect(types).not.toContain("lease_executed");
 		});
