@@ -642,9 +642,23 @@ describe.skipIf(m4SkipReason)(
 			await setFlag("true");
 
 			// Read (list) still works for the over-quota owner.
+			// SEARCH-SCOPED, BECAUSE list() PAGINATES AT 100 BY DEFAULT.
+			//
+			// This called list(ownerAId) with no options and asserted the object was
+			// in the result. The default page is 100 entries sorted ascending by
+			// name, and this bucket has accumulated 142 objects under the owner's
+			// prefix -- overwhelmingly `avatar-*.png`, which sort before
+			// `meter04-rw-*.png`. Measured against production: limit 100 returns 0
+			// matches, limit 1000 returns 7, search "meter04-rw" returns 7.
+			//
+			// So the assertion was TIME-DEPENDENT. It passed while the bucket held
+			// under ~100 objects and began failing the moment it crossed that line,
+			// with nothing about the failure pointing at pagination. The object was
+			// always there and the read was never blocked -- which is the property
+			// this case exists to prove.
 			const { data: listed, error: listErr } = await clientA.storage
 				.from("avatars")
-				.list(ownerAId);
+				.list(ownerAId, { search: "meter04-rw", limit: 100 });
 			expect(listErr).toBeNull();
 			expect((listed ?? []).some((o) => path.endsWith(o.name))).toBe(true);
 

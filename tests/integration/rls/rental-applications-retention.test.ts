@@ -946,55 +946,52 @@ describe.skipIf(skipReason)(
 			// rewrite their email and status and permanently delete their
 			// preferences — breaking every other suite that signs in as them.
 			const email = `${RUN_TAG}-cascade@example.com`;
-			const candidateId = randomUUID();
 
-			const direct = await service
-				.from("users")
-				.insert({
-					id: candidateId,
-					email,
-					full_name: "Cascade Fixture",
-					status: "active",
-				})
-				.select("id")
-				.single();
+			// AUTH FIRST, ALWAYS -- the direct-insert path cannot produce an owner
+			// that can hold a property.
+			//
+			// public.users has NO foreign key on id, so inserting there directly
+			// succeeds (25 of 35 rows in production have no auth.users row). But
+			// `properties` carries trg_log_property_created_activity, which writes
+			// public.activity, and activity_user_id_fkey references auth.users. So a
+			// direct-insert owner fails 23503 at the FIRST property insert, and the
+			// message -- "Key (user_id)=... is not present in table \"users\"" -- is
+			// ambiguous between the two schemas, which is what made this look like a
+			// cascade bug rather than a fixture that skipped Auth.
+			//
+			// ensure_public_user_trigger is an AFTER trigger on auth.users that
+			// mirrors into public.users with ON CONFLICT, so creating through Auth
+			// satisfies both the FK and the mirror in one step, synchronously.
+			const created = await service.auth.admin.createUser({
+				email,
+				password: randomUUID(),
+				email_confirm: true,
+			});
+			if (created.error || !created.data.user) ctx.skip();
+			const direct = {
+				error: created.error,
+				data: created.data.user ? { id: created.data.user.id } : null,
+			};
 
-			if (direct.error === null && direct.data?.id) {
-				disposableUserId = direct.data.id;
-			} else {
-				// public.users.id references auth.users(id) on this project, so the
-				// row has to originate in Auth and arrive through the
-				// ensure_public_user_trigger.
-				const created = await service.auth.admin.createUser({
-					email,
-					password: randomUUID(),
-					email_confirm: true,
-				});
-				if (created.error || !created.data.user) ctx.skip();
-				disposableUserId = created.data.user!.id;
-				disposableViaAuth = true;
+			expect(direct.error).toBeNull();
+			expect(direct.data?.id).toBeTruthy();
+			disposableUserId = direct.data!.id;
+			// The teardown at the top of this file deletes the auth user only when
+			// this is set. It must be true on every path now that Auth is the only
+			// path -- leaving it false leaks one auth user per run.
+			disposableViaAuth = true;
 
-				// WAIT FOR THE MIRROR ROW. ensure_public_user_trigger creates the
-				// public.users row from the auth.users insert, and nothing guarantees
-				// it has landed by the time the next statement runs. Without this the
-				// properties insert below fails 23503 against a user that is about to
-				// exist -- a race that reads like a broken cascade.
-				for (let attempt = 0; attempt < 20; attempt += 1) {
-					const { data: mirrored } = await service
-						.from("users")
-						.select("id")
-						.eq("id", disposableUserId)
-						.maybeSingle();
-					if (mirrored?.id) break;
-					await new Promise((resolve) => setTimeout(resolve, 250));
-				}
-			}
-			const { data: userRow } = await service
+			// The mirror row is written by an AFTER trigger inside the same
+			// transaction as the auth.users insert, so it is present by the time
+			// createUser returns. Asserted rather than polled: if that ever stops
+			// being true, a missing row should fail here and say so, not surface as
+			// a foreign-key error three inserts later.
+			const { data: mirrored } = await service
 				.from("users")
 				.select("id")
-				.eq("id", disposableUserId!)
+				.eq("id", disposableUserId)
 				.maybeSingle();
-			expect(userRow?.id).toBeTruthy();
+			expect(mirrored?.id).toBe(disposableUserId);
 			const userId = disposableUserId!;
 
 			// Same reasoning as the lease fixture: an unchecked insert here surfaced
