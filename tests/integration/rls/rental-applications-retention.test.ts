@@ -166,7 +166,6 @@ describe.skipIf(skipReason)(
 		let disposableViaAuth = false;
 
 		let originalRetentionValue: string | null = null;
-		let cronReadable = false;
 
 		/** The value every restore writes back: whatever was live when the suite
 		 *  started, or the migration default if the key was absent. Never a
@@ -490,15 +489,6 @@ describe.skipIf(skipReason)(
 				.eq("key", RETENTION_KEY)
 				.limit(1);
 			originalRetentionValue = cfg?.[0]?.value ?? null;
-
-			// PostgREST exposes `public` and `graphql_public` only, so `cron` is
-			// normally unreachable from a client. Probe rather than assume.
-			const cronProbe = await service
-				.schema("cron")
-				.from("job")
-				.select("jobname")
-				.limit(1);
-			cronReadable = cronProbe.error === null;
 
 			expect(propertyId).toBeTruthy();
 			expect(unitId).toBeTruthy();
@@ -889,34 +879,42 @@ describe.skipIf(skipReason)(
 			}
 		});
 
-		it("R10: the sweep is registered on a unique cron slot", async (ctx) => {
-			// PostgREST exposes `public` and `graphql_public`; `cron` is normally
-			// unreachable from any client, and there is no arbitrary-SQL path in
-			// this harness. When the probe says the schema is not exposed this
-			// SKIPS rather than false-failing — plan 66-06 verified the same two
-			// facts live via MCP (1 job named anonymize-rental-applications, 0
-			// other jobs on '35 3 * * *').
-			if (!cronReadable) ctx.skip();
-
+		it("R10: the sweep is registered on a unique cron slot", async () => {
+			// NO LONGER SKIPS. This used to bail when the `cron` schema was
+			// unreachable over PostgREST -- which it always is, since only `public`
+			// and `graphql_public` are exposed -- so the assertion never ran once.
+			// A skipped security test and a passing one look identical in a summary
+			// line, which is precisely the failure this review exists to remove.
+			//
+			// public.cron_job_slot_counts is a service_role-only SECURITY DEFINER
+			// probe returning COUNTS ONLY, never job bodies (a cron command can
+			// carry a secret). Same pattern as seed_storage_object_for_test: make
+			// the fact reachable rather than widen PostgREST's exposed schemas for
+			// every caller.
 			const { data, error } = await service
-				.schema("cron")
-				.from("job")
-				.select("jobname, schedule")
-				.limit(200);
+				.rpc("cron_job_slot_counts", {
+					p_jobname: CRON_JOB_NAME,
+					p_schedule: CRON_SCHEDULE,
+				})
+				.single();
 			expect(error).toBeNull();
+			expect(data).toBeTruthy();
 
-			const jobs = data ?? [];
-			const mine = jobs.filter((job) => job.jobname === CRON_JOB_NAME);
-			expect(mine).toHaveLength(1);
-			expect(mine[0]?.schedule).toBe(CRON_SCHEDULE);
+			// Typed at the RPC boundary rather than asserted through (CLAUDE.md):
+			// the function is new, so supabase.ts does not describe it yet, and
+			// bigint counts arrive as strings over PostgREST.
+			const row = data as Record<string, unknown>;
+			const named = Number(row["named_job_count"]);
+			const sharing = Number(row["other_jobs_same_slot"]);
+			expect(Number.isFinite(named)).toBe(true);
+			expect(Number.isFinite(sharing)).toBe(true);
+
+			// Registered exactly once under its name.
+			expect(named).toBe(1);
 
 			// Uniqueness of the SLOT, not merely existence of the job: two jobs on
 			// one minute is the collision D-16 picked :35 to avoid.
-			const sharing = jobs.filter(
-				(job) =>
-					job.schedule === CRON_SCHEDULE && job.jobname !== CRON_JOB_NAME,
-			);
-			expect(sharing).toHaveLength(0);
+			expect(sharing).toBe(0);
 		});
 
 		it("R11: the sweep is unreachable from authenticated and anon", async () => {

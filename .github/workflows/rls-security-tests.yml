@@ -75,6 +75,14 @@ jobs:
           # hard on six secrets and silently tolerates the seventh is the same
           # vacuous pass in a smaller costume.
           [ -z "$SERVICE_ROLE_KEY" ]         && missing+=(SUPABASE_SERVICE_ROLE_KEY)
+          # THE ADMIN PAIR, FOR THE SAME REASON AS THE SERVICE-ROLE KEY. Both
+          # secrets have existed in this repo since April and the workflow never
+          # passed them, so getAdminTestCredentials() returned null and ten
+          # admin-scoped RLS tests skipped on every run -- the admin-analytics,
+          # deliverability and funnel suites in full. Exactly the failure the
+          # service-role key had, one layer down.
+          [ -z "$ADMIN_EMAIL" ]              && missing+=(E2E_ADMIN_EMAIL)
+          [ -z "$ADMIN_PASS" ]               && missing+=(E2E_ADMIN_PASSWORD)
           # AND IT MUST BE THE CURRENT-FORMAT KEY. This project disabled the
           # legacy anon/service_role JWTs on 2025-10-29, so an `eyJ...` value
           # here authenticates as nothing: every privileged call fails with
@@ -98,6 +106,8 @@ jobs:
           OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
           OWNER_B_PASS: ${{ secrets.E2E_OWNER_B_PASSWORD }}
           SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASSWORD }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -121,6 +131,8 @@ jobs:
           E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
           E2E_OWNER_B_PASSWORD: ${{ secrets.E2E_OWNER_B_PASSWORD }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
         # ZERO-SKIP IS PART OF PASSING. `bun run test:integration` exits 0
         # whether it executed 531 tests or 368, so for the entire life of this
         # job "pass" and "ran a third less than it thinks" were indistinguishable
