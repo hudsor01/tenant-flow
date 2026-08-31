@@ -939,7 +939,7 @@ describe.skipIf(skipReason)(
 
 		// ── GDPR cascade (D-12) ──────────────────────────────────────────────────
 
-		it("R12: anonymize_deleted_user removes both new tables and keeps its old behaviour", async (ctx) => {
+		it("R12: anonymize_deleted_user removes both new tables and keeps its old behaviour", async () => {
 			// A disposable owner. Running the cascade against ownerA or ownerB would
 			// rewrite their email and status and permanently delete their
 			// preferences — breaking every other suite that signs in as them.
@@ -965,7 +965,12 @@ describe.skipIf(skipReason)(
 				password: randomUUID(),
 				email_confirm: true,
 			});
-			if (created.error || !created.data.user) ctx.skip();
+			// ASSERTS RATHER THAN SKIPS. This was the last conditional skip in the
+			// suite. If Auth cannot mint a disposable user the GDPR cascade cannot be
+			// tested at all, and reporting that as a skip makes it indistinguishable
+			// from a test that quietly stopped running.
+			expect(created.error).toBeNull();
+			expect(created.data.user).toBeTruthy();
 			const direct = {
 				error: created.error,
 				data: created.data.user ? { id: created.data.user.id } : null,
