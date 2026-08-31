@@ -33,6 +33,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # SERIALIZED AGAINST THE OTHER PRODUCTION-DATA JOB. e2e-smoke and
+    # rls-security both authenticate as E2E_OWNER_EMAIL against the SAME
+    # production project, and they used to start on the same second on every PR.
+    # Two concurrent writers on one account is not a flake, it is a race with
+    # two proven manifestations: a global-scope signOut in an e2e teardown
+    # revoked the RLS suite's cached session mid-run (54 x 403 then 75 fallback
+    # sign-ins), and RLS fixture cleanup deleted a property between the
+    # dashboard test's RPC snapshot and its page render (expected 23, got 22).
+    # A shared group with cancel-in-progress false makes them QUEUE rather than
+    # cancel, so both still run on every PR -- sequentially. Costs wall time;
+    # buys a suite that measures the product instead of the other job.
+    #
+    # The durable fix is a separate synthetic account per suite, which needs new
+    # credentials the CI cannot mint for itself. Recorded in deferred-items.
+    concurrency:
+      group: tenantflow-prod-test-account-${{ github.ref }}
+      cancel-in-progress: false
+
     # Dependabot PRs run this for REAL as of 2026-07-27.
     #
     # This job used to short-circuit on Dependabot PRs because the Dependabot

@@ -136,3 +136,34 @@ Which `timingSafeEqual` branch runs on Supabase's Deno is unmeasured. Both branc
 constant-time, so nothing behaves differently either way. Answering it means deploying a throwaway
 function to production purely to read one `typeof`, which is disproportionate to a fact that changes
 no behaviour. Recorded rather than chased.
+
+## D4 — e2e-smoke and rls-security share one production account
+
+**Found:** 2026-08-31, while chasing a 401 that turned out to be a session revocation.
+
+Both jobs authenticate as `E2E_OWNER_EMAIL` against the same production project, and before this
+change they started on the same second of every PR. Two concurrent writers on one account produced
+two distinct, fully diagnosed failures:
+
+1. **Session revocation.** An e2e seed-client teardown called `signOut()`, which defaults to
+   `scope: "global"` and revokes every session for that user. The RLS suite's cached session died
+   mid-run: 54 x `403` on `/auth/v1/user`, then 75 fallback password sign-ins where the cache should
+   have made about four, and a `401` for the one suite holding a raw captured token. Fixed at the
+   call sites with `scope: "local"`.
+2. **Fixture churn.** RLS `afterAll` cleanup deleted a property between the dashboard test's
+   `beforeAll` RPC snapshot and its per-test page render — `expected 23, received 22`.
+
+**Mitigated, not solved.** Both jobs now share a GitHub concurrency group with
+`cancel-in-progress: false`, so they queue instead of racing. That costs PR wall time (they run
+sequentially rather than in parallel) and buys suites that measure the product rather than each
+other.
+
+**The durable fix is a separate synthetic account per suite** — `e2e-owner-*` and `rls-owner-*` —
+so the two can run in parallel again without sharing mutable state. That needs new accounts in prod
+Auth plus new GitHub secrets, which CI cannot mint for itself.
+
+**Also worth fixing independently:** `dashboard-smoke.e2e.spec.ts` fetches its RPC snapshot once in
+`beforeAll` and compares it against a page rendered later in `beforeEach`. Serialization removes the
+concurrent writer, but comparing a live page against a stale snapshot stays fragile against anything
+else that mutates owner data (a cron sweep, a manual change). Re-fetching at assertion time would
+close it.
