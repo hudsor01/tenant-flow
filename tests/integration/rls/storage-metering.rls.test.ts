@@ -625,6 +625,51 @@ describe.skipIf(m4SkipReason)(
 
 		// -- reads / deletes unaffected (D-03; guard is INSERT-only) -------------
 
+		it("an owner can ENUMERATE their own avatars, and only their own", async () => {
+			// THE avatars BUCKET HAD NO SELECT POLICY AT ALL. DELETE, INSERT and
+			// UPDATE existed; SELECT was simply absent, so list() returned [] for
+			// every authenticated caller. That is not a test artifact: it silently
+			// broke src/hooks/api/use-profile-avatar-mutations.ts, which lists a
+			// user's folder to delete their previous avatars. The call SUCCEEDS and
+			// returns nothing, so paths.length is 0 and nothing is ever removed --
+			// the surrounding try/catch labelled "best-effort" had no error to catch.
+			// Measured at the time: 138 orphaned avatar objects for one owner, in the
+			// same bucket this file's quota meters.
+			//
+			// It hid because the bucket is public=true, so avatars render fine by
+			// URL. Public read and enumeration are different operations and only the
+			// second is governed by RLS.
+			const path = `${ownerAId}/meter04-enum-${Date.now()}.png`;
+			const { error: upErr } = await clientA.storage
+				.from("avatars")
+				.upload(path, pngBlob(), { contentType: "image/png" });
+			expect(upErr).toBeNull();
+			uploadedAvatars.push(path);
+
+			const { data: mine, error: mineErr } = await clientA.storage
+				.from("avatars")
+				.list(ownerAId, { search: "meter04-enum", limit: 100 });
+			expect(mineErr).toBeNull();
+			const names = (mine ?? []).map((o) => o.name);
+			expect(
+				names.some((n) => path.endsWith(n)),
+				`owner cannot enumerate their own folder; got: ${
+					names.length ? names.join(", ") : "(none)"
+				}`,
+			).toBe(true);
+
+			// ...and the policy must not over-reach. A foreign folder must enumerate
+			// empty for this owner: the predicate keys on the first path segment, so
+			// asking for someone else's uuid is the direct test of the scope. (Owner
+			// B's own client lives in the METER-03 block; this is the same property
+			// from the other side and needs no second session.)
+			const { data: foreign, error: foreignErr } = await clientA.storage
+				.from("avatars")
+				.list("00000000-0000-0000-0000-000000000000", { limit: 100 });
+			expect(foreignErr).toBeNull();
+			expect(foreign ?? []).toHaveLength(0);
+		});
+
 		it("flag ON + over quota: reads (list) and deletes on the owner's objects are unaffected (guard is INSERT-only)", async () => {
 			await setPlanA(STARTER_PLAN);
 			await setGrandfatherA(null);
