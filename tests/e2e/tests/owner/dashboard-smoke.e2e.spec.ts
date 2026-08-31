@@ -155,6 +155,23 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 	});
 
 	test("KPI numbers match get_dashboard_data_v2", async ({ page }) => {
+		// RE-READ THE RPC HERE, NOT IN beforeAll.
+		//
+		// The suite-wide `rpc` snapshot is taken once, before this page is even
+		// loaded, and this test compares a LIVE page against it. Anything that
+		// mutates owner data in the gap breaks the comparison for a reason that
+		// has nothing to do with the dashboard: a concurrent RLS fixture cleanup
+		// deleted a property between the two and produced `expected 23, received
+		// 22`. Serializing the CI jobs removed that particular writer, but a cron
+		// sweep or a manual change would do the same thing, and the assertion
+		// would still blame the UI.
+		//
+		// Fetching immediately after the page has rendered narrows the window to
+		// the gap between render and read, which nothing in this repo writes into.
+		// The other tests keep using the suite snapshot: they assert on shape and
+		// presence rather than exact counts.
+		const stats = (await fetchDashboardDataAsOwner()).stats;
+
 		if (await isEmptyState(page)) {
 			// Honest empty branch: the zero-data path renders the empty-state, NOT
 			// the KPI bento row. Assert the row is absent rather than passing vacuously.
@@ -162,7 +179,6 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 			return;
 		}
 
-		const { stats } = rpc;
 		// Revenue tile formats with 0 fraction digits; compare the rounded dollars.
 		expect(await readKpiTileNumber(page, "Revenue")).toBe(
 			Math.round(stats.revenue.monthly),

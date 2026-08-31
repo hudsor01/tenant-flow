@@ -165,11 +165,33 @@ export default defineConfig({
 					fileParallelism: false,
 					globals: true,
 					testTimeout: 30000,
+					// HOOKS GET THE SAME BUDGET AS TESTS, and the default did not.
+					// Vitest falls back to 10s for hooks when only testTimeout is set,
+					// while these beforeAll hooks do MORE network work than most tests:
+					// two sign-ins, a getUser, and fixture creation against production.
+					// A third of the budget for strictly more work is backwards, and it
+					// surfaced as "Hook timed out in 10000ms" taking whole files down --
+					// which then reported every test in them as SKIPPED, tripping the
+					// zero-skip gate for a reason that had nothing to do with skipping.
+					hookTimeout: 30000,
 					include: ["tests/integration/**/*.test.ts"],
 					// The pure decision helpers belong to the unit project. Running them
 					// here too would put a network-free test behind a production
 					// sign-in and make it ambiguous which project owns them.
-					exclude: ["tests/integration/**/_helpers/__tests__/**"],
+					exclude: [
+						"tests/integration/**/_helpers/__tests__/**",
+						// EXCLUDED IN CI, NOT SKIPPED IN CI. blog-rag-retrieval needs a
+						// local LM Studio instance; there is no version of GitHub CI where
+						// it can run. Leaving it included meant it reported SKIPPED on every
+						// run, which is indistinguishable in a summary line from a test that
+						// silently stopped running -- the exact ambiguity the zero-skip gate
+						// exists to remove. Declaring it out of scope for CI is honest;
+						// counting it as a skip forever is not. It still runs locally, where
+						// LM Studio can actually be up.
+						...(process.env["CI"]
+							? ["tests/integration/rls/blog-rag-retrieval.test.ts"]
+							: []),
+					],
 					setupFiles: ["./tests/integration/setup/env-loader.ts"],
 					// One-time auth sign-in for the whole suite. Caches sessions to
 					// a tmp file so each test file's `createTestClient` restores
