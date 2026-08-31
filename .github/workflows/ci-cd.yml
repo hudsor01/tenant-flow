@@ -78,6 +78,14 @@ jobs:
     #
     # The durable fix is a separate synthetic account per suite, which needs new
     # credentials the CI cannot mint for itself. Recorded in deferred-items.
+    #
+    # THIS REPLACES the job's previous `e2e-${{ github.ref }}` group, which
+    # cancelled a superseded e2e run when a new commit landed. A job may hold
+    # exactly one concurrency key, and the two wanted opposite behaviour --
+    # cancel-in-progress true to drop stale runs, false to queue behind
+    # rls-security. Queueing wins: a cancelled run costs minutes, whereas two
+    # writers on one production account costs a green suite that measured the
+    # other job. Rapid pushes now queue e2e runs instead of superseding them.
     concurrency:
       group: tenantflow-prod-test-account-${{ github.ref }}
       cancel-in-progress: false
@@ -112,9 +120,6 @@ jobs:
     # main entirely, so there is no post-merge run. PR-level checks are the only
     # validation an auto-merged bump gets — one more reason they must be real.
     runs-on: ubuntu-latest
-    concurrency:
-      group: e2e-${{ github.ref }}
-      cancel-in-progress: true
     timeout-minutes: 15
     env:
       CI: true
