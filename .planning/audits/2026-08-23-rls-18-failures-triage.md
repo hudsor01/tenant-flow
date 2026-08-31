@@ -205,3 +205,62 @@ reading the comment eight lines above it that explained the order. The comment w
 I wasn't. Second: this is the third time in this session that a confident reading of structure
 turned out to be wrong where a five-line empirical check would have settled it — the same lesson
 the phase's perfect-PR cycles kept teaching about assertions.
+
+---
+
+# FINAL — 18 failures to 0 assertions, 12 skips to 1
+
+`1 failed | 530 passed | 1 skipped` on the last run, and the single failure is a
+rate-limit artifact analysed below, not an assertion about behaviour.
+
+## Two real product defects, both found only because the suite finally ran
+
+**1. The storage quota block was undetectable by the client on upload.**
+`enforce_storage_quota` raised `errcode = 'P0001'` — PL/pgSQL's default. The Storage
+API strips message, hint and detail, so a blocked upload arrived as
+`database error, code: P0001`, indistinguishable from every other trigger exception.
+The Upgrade prompt was unreachable. Now raises `PLIM1`.
+
+**2. The avatars bucket had no SELECT policy.** DELETE, INSERT and UPDATE existed;
+SELECT was absent, so `list()` returned `[]` for every authenticated caller. That
+silently broke `use-profile-avatar-mutations.ts`, which lists a user's folder to
+delete their old avatars — the call succeeds, returns nothing, and removes nothing.
+Measured: 138 orphaned avatar objects for one owner, zero users holding an
+`avatar_url`. It hid because the bucket is `public=true`, so avatars render fine by
+URL; public read and enumeration are different operations and only the second is
+governed by RLS.
+
+Both had passing unit tests that fabricate the shape they assert on.
+
+## The skips were the same defect as the service-role key, twice more
+
+`E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD` had been repo secrets since April and the
+workflow never passed them, so ten admin-scoped tests skipped on every run. R10 —
+"the sweep is registered on a unique cron slot" — had never executed once, because
+it bails when `cron` is unreachable over PostgREST, which it always is. Both closed:
+credentials wired, and a service_role-only `cron_job_slot_counts` probe returning
+counts rather than job bodies.
+
+## The remaining failure is a capacity ceiling, not a bug
+
+`download-documents-zip` got a 401. Not token expiry — `jwt_exp` is 3600s and the
+run is 388s; I chased that and was wrong.
+
+The real cause: `rate_limit_token_refresh` is **150/hour** and the suite makes **155**
+`createTestClient` calls. Every one performed a full password sign-in, because
+`readSessionCache()` existed with **no `writeSessionCache()` anywhere** — the cache
+was read and never written by the client path. `global-auth-setup.ts` is the intended
+writer and pre-caches owners plus admin, gated on the admin env being present. It
+wasn't, until this change.
+
+So wiring the admin credentials fixes the 401 as a side effect: globalSetup now caches
+all four users and per-suite sign-ins collapse to `setSession` calls with zero auth
+API hits. The previous flake fix on this same file removed `signOut()` calls for the
+same underlying reason.
+
+## What the whole exercise says
+
+The gap hid 18 failing assertions, 12 permanently-skipped tests, and two live product
+defects. Not one of the 18 was a behaviour that had regressed; every one was a test
+that could not detect anything, in a suite that reported success while running a third
+less than it appeared to.
