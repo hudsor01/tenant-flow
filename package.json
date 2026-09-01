@@ -135,7 +135,7 @@
 		"react-dom": "19.2.8",
 		"react-dropzone": "^19.1.1",
 		"react-error-boundary": "^6.1.1",
-		"react-intersection-observer": "^10.0.3",
+		"react-intersection-observer": "^11.0.1",
 		"react-markdown": "^10.1.0",
 		"recharts": "^3.8.1",
 		"rehype-raw": "^7.0.0",
