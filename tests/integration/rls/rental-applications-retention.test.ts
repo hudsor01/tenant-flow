@@ -166,7 +166,6 @@ describe.skipIf(skipReason)(
 		let disposableViaAuth = false;
 
 		let originalRetentionValue: string | null = null;
-		let cronReadable = false;
 
 		/** The value every restore writes back: whatever was live when the suite
 		 *  started, or the migration default if the key was absent. Never a
@@ -490,15 +489,6 @@ describe.skipIf(skipReason)(
 				.eq("key", RETENTION_KEY)
 				.limit(1);
 			originalRetentionValue = cfg?.[0]?.value ?? null;
-
-			// PostgREST exposes `public` and `graphql_public` only, so `cron` is
-			// normally unreachable from a client. Probe rather than assume.
-			const cronProbe = await service
-				.schema("cron")
-				.from("job")
-				.select("jobname")
-				.limit(1);
-			cronReadable = cronProbe.error === null;
 
 			expect(propertyId).toBeTruthy();
 			expect(unitId).toBeTruthy();
@@ -889,34 +879,42 @@ describe.skipIf(skipReason)(
 			}
 		});
 
-		it("R10: the sweep is registered on a unique cron slot", async (ctx) => {
-			// PostgREST exposes `public` and `graphql_public`; `cron` is normally
-			// unreachable from any client, and there is no arbitrary-SQL path in
-			// this harness. When the probe says the schema is not exposed this
-			// SKIPS rather than false-failing — plan 66-06 verified the same two
-			// facts live via MCP (1 job named anonymize-rental-applications, 0
-			// other jobs on '35 3 * * *').
-			if (!cronReadable) ctx.skip();
-
+		it("R10: the sweep is registered on a unique cron slot", async () => {
+			// NO LONGER SKIPS. This used to bail when the `cron` schema was
+			// unreachable over PostgREST -- which it always is, since only `public`
+			// and `graphql_public` are exposed -- so the assertion never ran once.
+			// A skipped security test and a passing one look identical in a summary
+			// line, which is precisely the failure this review exists to remove.
+			//
+			// public.cron_job_slot_counts is a service_role-only SECURITY DEFINER
+			// probe returning COUNTS ONLY, never job bodies (a cron command can
+			// carry a secret). Same pattern as seed_storage_object_for_test: make
+			// the fact reachable rather than widen PostgREST's exposed schemas for
+			// every caller.
 			const { data, error } = await service
-				.schema("cron")
-				.from("job")
-				.select("jobname, schedule")
-				.limit(200);
+				.rpc("cron_job_slot_counts", {
+					p_jobname: CRON_JOB_NAME,
+					p_schedule: CRON_SCHEDULE,
+				})
+				.single();
 			expect(error).toBeNull();
+			expect(data).toBeTruthy();
 
-			const jobs = data ?? [];
-			const mine = jobs.filter((job) => job.jobname === CRON_JOB_NAME);
-			expect(mine).toHaveLength(1);
-			expect(mine[0]?.schedule).toBe(CRON_SCHEDULE);
+			// Typed at the RPC boundary rather than asserted through (CLAUDE.md):
+			// the function is new, so supabase.ts does not describe it yet, and
+			// bigint counts arrive as strings over PostgREST.
+			const row = data as Record<string, unknown>;
+			const named = Number(row["named_job_count"]);
+			const sharing = Number(row["other_jobs_same_slot"]);
+			expect(Number.isFinite(named)).toBe(true);
+			expect(Number.isFinite(sharing)).toBe(true);
+
+			// Registered exactly once under its name.
+			expect(named).toBe(1);
 
 			// Uniqueness of the SLOT, not merely existence of the job: two jobs on
 			// one minute is the collision D-16 picked :35 to avoid.
-			const sharing = jobs.filter(
-				(job) =>
-					job.schedule === CRON_SCHEDULE && job.jobname !== CRON_JOB_NAME,
-			);
-			expect(sharing).toHaveLength(0);
+			expect(sharing).toBe(0);
 		});
 
 		it("R11: the sweep is unreachable from authenticated and anon", async () => {
@@ -941,42 +939,68 @@ describe.skipIf(skipReason)(
 
 		// ── GDPR cascade (D-12) ──────────────────────────────────────────────────
 
-		it("R12: anonymize_deleted_user removes both new tables and keeps its old behaviour", async (ctx) => {
+		it("R12: anonymize_deleted_user removes both new tables and keeps its old behaviour", async () => {
 			// A disposable owner. Running the cascade against ownerA or ownerB would
 			// rewrite their email and status and permanently delete their
 			// preferences — breaking every other suite that signs in as them.
 			const email = `${RUN_TAG}-cascade@example.com`;
-			const candidateId = randomUUID();
 
-			const direct = await service
+			// AUTH FIRST, ALWAYS -- the direct-insert path cannot produce an owner
+			// that can hold a property.
+			//
+			// public.users has NO foreign key on id, so inserting there directly
+			// succeeds (25 of 35 rows in production have no auth.users row). But
+			// `properties` carries trg_log_property_created_activity, which writes
+			// public.activity, and activity_user_id_fkey references auth.users. So a
+			// direct-insert owner fails 23503 at the FIRST property insert, and the
+			// message -- "Key (user_id)=... is not present in table \"users\"" -- is
+			// ambiguous between the two schemas, which is what made this look like a
+			// cascade bug rather than a fixture that skipped Auth.
+			//
+			// ensure_public_user_trigger is an AFTER trigger on auth.users that
+			// mirrors into public.users with ON CONFLICT, so creating through Auth
+			// satisfies both the FK and the mirror in one step, synchronously.
+			const created = await service.auth.admin.createUser({
+				email,
+				password: randomUUID(),
+				email_confirm: true,
+			});
+			// ASSERTS RATHER THAN SKIPS. This was the last conditional skip in the
+			// suite. If Auth cannot mint a disposable user the GDPR cascade cannot be
+			// tested at all, and reporting that as a skip makes it indistinguishable
+			// from a test that quietly stopped running.
+			expect(created.error).toBeNull();
+			expect(created.data.user).toBeTruthy();
+			const direct = {
+				error: created.error,
+				data: created.data.user ? { id: created.data.user.id } : null,
+			};
+
+			expect(direct.error).toBeNull();
+			expect(direct.data?.id).toBeTruthy();
+			disposableUserId = direct.data!.id;
+			// The teardown at the top of this file deletes the auth user only when
+			// this is set. It must be true on every path now that Auth is the only
+			// path -- leaving it false leaks one auth user per run.
+			disposableViaAuth = true;
+
+			// The mirror row is written by an AFTER trigger inside the same
+			// transaction as the auth.users insert, so it is present by the time
+			// createUser returns. Asserted rather than polled: if that ever stops
+			// being true, a missing row should fail here and say so, not surface as
+			// a foreign-key error three inserts later.
+			const { data: mirrored } = await service
 				.from("users")
-				.insert({
-					id: candidateId,
-					email,
-					full_name: "Cascade Fixture",
-					status: "active",
-				})
 				.select("id")
-				.single();
-
-			if (direct.error === null && direct.data?.id) {
-				disposableUserId = direct.data.id;
-			} else {
-				// public.users.id references auth.users(id) on this project, so the
-				// row has to originate in Auth and arrive through the
-				// ensure_public_user_trigger.
-				const created = await service.auth.admin.createUser({
-					email,
-					password: randomUUID(),
-					email_confirm: true,
-				});
-				if (created.error || !created.data.user) ctx.skip();
-				disposableUserId = created.data.user!.id;
-				disposableViaAuth = true;
-			}
+				.eq("id", disposableUserId)
+				.maybeSingle();
+			expect(mirrored?.id).toBe(disposableUserId);
 			const userId = disposableUserId!;
 
-			const { data: property } = await service
+			// Same reasoning as the lease fixture: an unchecked insert here surfaced
+			// as `TypeError: Cannot read properties of null (reading 'id')` on the
+			// next line, naming neither the table nor the reason.
+			const { data: property, error: propertyError } = await service
 				.from("properties")
 				.insert({
 					owner_user_id: userId,
@@ -989,6 +1013,8 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
+			expect(propertyError).toBeNull();
+			expect(property?.id).toBeTruthy();
 			const { data: unit } = await service
 				.from("units")
 				.insert({

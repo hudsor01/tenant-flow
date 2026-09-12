@@ -89,18 +89,29 @@ describe.skipIf(skipReason)(
 
 		let propertyAId: string | null = null;
 		let unitAId: string | null = null;
+		let unitBId: string | null = null;
 		let tenantAId: string | null = null;
 		/** Onboarded lease: ledger_start_date set 2 months back. */
 		let trackedLeaseId: string | null = null;
 		/** Never onboarded: ledger_start_date stays NULL for the whole run. */
 		let untrackedLeaseId: string | null = null;
 
-		async function createLease(): Promise<string | null> {
-			const { data } = await service
+		// TAKES A UNIT. Both leases used to be created on unitAId with identical
+		// dates, and `leases` carries an overlap exclusion constraint — so the
+		// SECOND insert was rejected with 23P01 and returned null, which the caller
+		// then passed where a uuid was expected. That surfaced three layers away as
+		// `22P02 invalid input syntax` and read like a ledger defect.
+		async function createLease(unitId: string): Promise<string | null> {
+			// ASSERTS ITS OWN SETUP. This swallowed the insert error and returned
+			// null, so the caller passed null where a uuid was expected and the
+			// failure surfaced three layers away as `22P02 invalid input syntax` --
+			// which reads like a ledger defect rather than a fixture that never
+			// existed. A setup failure must look like a setup failure.
+			const { data, error } = await service
 				.from("leases")
 				.insert({
 					owner_user_id: ownerAId,
-					unit_id: unitAId,
+					unit_id: unitId,
 					primary_tenant_id: tenantAId,
 					// Starts before track-since so generation is floored by
 					// ledger_start_date, not by the lease term.
@@ -112,6 +123,8 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
+			expect(error).toBeNull();
+			expect(data?.id).toBeTruthy();
 			return data ? (data.id as string) : null;
 		}
 
@@ -180,6 +193,20 @@ describe.skipIf(skipReason)(
 					.select("id")
 					.single();
 				unitAId = uA ? (uA.id as string) : null;
+
+				const { data: uB } = await service
+					.from("units")
+					.insert({
+						property_id: propertyAId,
+						unit_number: "LEDGER-GEN-102",
+						bedrooms: 1,
+						bathrooms: 1,
+						rent_amount: RENT_AMOUNT,
+						owner_user_id: ownerAId,
+					})
+					.select("id")
+					.single();
+				unitBId = uB ? (uB.id as string) : null;
 			}
 
 			const { data: tA } = await service
@@ -194,11 +221,11 @@ describe.skipIf(skipReason)(
 				.single();
 			tenantAId = tA ? (tA.id as string) : null;
 
-			if (unitAId && tenantAId) {
+			if (unitAId && unitBId && tenantAId) {
 				// Two identical leases: one is onboarded mid-suite (ledger_start_date
 				// set), the other never is — the coverage-predicate control.
-				trackedLeaseId = await createLease();
-				untrackedLeaseId = await createLease();
+				trackedLeaseId = await createLease(unitAId);
+				untrackedLeaseId = await createLease(unitBId);
 			}
 		});
 
@@ -211,6 +238,7 @@ describe.skipIf(skipReason)(
 				await service.from("leases").delete().eq("id", untrackedLeaseId);
 			if (tenantAId) await service.from("tenants").delete().eq("id", tenantAId);
 			if (unitAId) await service.from("units").delete().eq("id", unitAId);
+			if (unitBId) await service.from("units").delete().eq("id", unitBId);
 			if (propertyAId)
 				await service.from("properties").delete().eq("id", propertyAId);
 		});

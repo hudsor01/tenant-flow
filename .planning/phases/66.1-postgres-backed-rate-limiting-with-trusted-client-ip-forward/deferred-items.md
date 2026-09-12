@@ -1,6 +1,6 @@
 # Phase 66.1 — deferred items
 
-## D1 — The tenant-form property tests are a flaky pre-commit gate (repo-wide, pre-existing)
+## D1 — CLOSED 2026-08-23 — The tenant-form property tests were a flaky pre-commit gate
 
 **Found:** 2026-08-15, when the pre-commit hook blocked an unrelated docs-only commit. The same
 commit succeeded unchanged on retry, which is the definition of the problem.
@@ -109,3 +109,61 @@ edge function, then replace the "STILL NOT VERIFIED ON THE DEPLOYMENT TARGET" pa
 measurement. The test now accepts either the open question or a line containing `MEASURED ON
 SUPABASE`, so recording the answer is no longer a test failure — it was, which is why closing it
 looked like breaking the gate.
+
+
+---
+
+## D1 CLOSURE — 2026-08-23
+
+All three compounding causes fixed in both property files:
+
+1. **Seed pinned** — `fc.configureGlobal({ seed: 6612026, numRuns: 25 })`. Without it every run
+   explored a different sample, so a failure could not be replayed and passed on retry.
+2. **`cleanup()` in `afterEach`** — each iteration called `renderHook` and nothing unmounted it, so
+   a test that timed out at 10s left in-flight mutations whose late `toast.success` landed in the
+   next test's mock after `clearAllMocks()`.
+3. **Reads the LAST toast, not the first** — `successCalls[0]` is only safe if nothing else can
+   write to that mock, which (2) made false.
+
+**Proof: 8 consecutive runs, 35 passed, 0 failed.** One green run was never going to be evidence
+here; the defect's whole signature was passing on retry.
+
+## D2 — CLOSED 2026-08-23
+`.next` removed. The revoked PAT is no longer cached on disk.
+
+## D3 — still open, and deliberately so
+Which `timingSafeEqual` branch runs on Supabase's Deno is unmeasured. Both branches are
+constant-time, so nothing behaves differently either way. Answering it means deploying a throwaway
+function to production purely to read one `typeof`, which is disproportionate to a fact that changes
+no behaviour. Recorded rather than chased.
+
+## D4 — e2e-smoke and rls-security share one production account
+
+**Found:** 2026-08-31, while chasing a 401 that turned out to be a session revocation.
+
+Both jobs authenticate as `E2E_OWNER_EMAIL` against the same production project, and before this
+change they started on the same second of every PR. Two concurrent writers on one account produced
+two distinct, fully diagnosed failures:
+
+1. **Session revocation.** An e2e seed-client teardown called `signOut()`, which defaults to
+   `scope: "global"` and revokes every session for that user. The RLS suite's cached session died
+   mid-run: 54 x `403` on `/auth/v1/user`, then 75 fallback password sign-ins where the cache should
+   have made about four, and a `401` for the one suite holding a raw captured token. Fixed at the
+   call sites with `scope: "local"`.
+2. **Fixture churn.** RLS `afterAll` cleanup deleted a property between the dashboard test's
+   `beforeAll` RPC snapshot and its per-test page render — `expected 23, received 22`.
+
+**Mitigated, not solved.** Both jobs now share a GitHub concurrency group with
+`cancel-in-progress: false`, so they queue instead of racing. That costs PR wall time (they run
+sequentially rather than in parallel) and buys suites that measure the product rather than each
+other.
+
+**The durable fix is a separate synthetic account per suite** — `e2e-owner-*` and `rls-owner-*` —
+so the two can run in parallel again without sharing mutable state. That needs new accounts in prod
+Auth plus new GitHub secrets, which CI cannot mint for itself.
+
+**Also worth fixing independently:** `dashboard-smoke.e2e.spec.ts` fetches its RPC snapshot once in
+`beforeAll` and compares it against a page rendered later in `beforeEach`. Serialization removes the
+concurrent writer, but comparing a live page against a stale snapshot stays fragile against anything
+else that mutates owner data (a cron sweep, a manual change). Re-fetching at assertion time would
+close it.

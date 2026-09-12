@@ -7,6 +7,32 @@ import {
 
 const GB = 1024 ** 3;
 
+// THE CASE THAT WAS MISSING, AND IT IS THE ONLY SHAPE PRODUCTION EMITS ON THE
+// UPLOAD PATH. Every existing case here fabricates an error carrying the
+// `plan_limit_exceeded:` prefix. A real blocked upload returns
+// `database error, code: PLIM1` with message, hint and detail stripped by the
+// Storage API — so the suite was green against a shape that never occurs there.
+describe("storage plan-limit detection on the upload path", () => {
+	it("detects a Storage API rejection, which carries only the SQLSTATE", () => {
+		expect(
+			isStoragePlanLimitError({ message: "database error, code: PLIM1" }),
+		).toBe(true);
+	});
+
+	it("detects a PostgREST rejection, which carries the code field", () => {
+		expect(
+			isStoragePlanLimitError({ code: "PLIM1", message: "anything" }),
+		).toBe(true);
+	});
+
+	it("does NOT treat an unrelated trigger exception as a quota block", () => {
+		expect(
+			isStoragePlanLimitError({ message: "database error, code: P0001" }),
+		).toBe(false);
+		expect(isStoragePlanLimitError({ code: "P0001" })).toBe(false);
+	});
+});
+
 describe("STORAGE_PLAN_LIMIT_PREFIX", () => {
 	it("is the literal Plan 04 trigger contract prefix", () => {
 		expect(STORAGE_PLAN_LIMIT_PREFIX).toBe("plan_limit_exceeded:");
