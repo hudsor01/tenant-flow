@@ -193,5 +193,39 @@ entrant, i.e. another push while one is pending.
 processed FIFO. It is rejected only in combination with `cancel-in-progress: true`, which neither
 job uses. The option shipped 2026-05-07, after the serialization was written.
 
+### The group was also keyed on the wrong thing
+
+`group: tenantflow-prod-test-account-${{ github.ref }}` gave **every branch its own lock**, so it
+serialized nothing across refs — and the resource it protects is one production Supabase project
+with one owner account, which is global.
+
+Proven the same night, with three branches in flight at once (#979, #980, #982). Two distinct
+failures, one cause:
+
+1. **`dashboard-smoke.e2e.spec.ts:157` — KPI numbers match get_dashboard_data_v2.** The test read
+   the occupancy RPC once per attempt and got **29, then 14, then 29**, while the page held steady
+   at **17**. Not the stale-snapshot problem noted below — that was already fixed, and this test
+   re-reads after render. Another ref's RLS suite was creating and deleting owner data underneath
+   it, so the "expected" value moved between attempts.
+2. **`/blog/[slug]` prerender timeouts.** `next build` prerenders all 253 published posts, each
+   racing a 5s query deadline, and `Export encountered an error … exiting the build` kills the run
+   on the first one to lose. Uncontended, all 253 render in **5.6s total** — the budget has
+   enormous headroom and only concurrent builds close it. Three simultaneous CI builds against one
+   Supabase project did exactly that at 01:41.
+
+**Fixed** by dropping `${{ github.ref }}` from the group, so all refs queue on one global lock, plus
+a workflow-level `concurrency: ci-${{ github.ref }}` with `cancel-in-progress: true` on ci-cd.yml so
+a superseded run does not sit in that global queue. e2e-smoke cannot carry a cancel-on-supersede key
+itself — a job holds exactly one concurrency key, and its key has to be the account lock.
+
+`getBlogPost` also now retries a timed-out query at build time only (3 attempts, linear backoff),
+matching the policy `generateStaticParams` above it already used for its one round-trip. At request
+time the single 5s deadline is the point and is unchanged: it converts a Supabase cold-start hang
+(80–398s in Sentry) into a fast error. The phase check is verified, not assumed — a `force-static`
+probe page logged `NEXT_PHASE=phase-production-build` from inside a generation worker.
+
+**Cost of the global lock:** with several PRs open, e2e and RLS runs queue behind each other across
+branches, so PR feedback is slower when the repo is busy.
+
 This does not close D4. Per-suite accounts remain the durable fix — they remove the need to
-serialize at all, and with it the PR wall-time cost of running the two suites back to back.
+serialize at all, and with it that wall-time cost.
