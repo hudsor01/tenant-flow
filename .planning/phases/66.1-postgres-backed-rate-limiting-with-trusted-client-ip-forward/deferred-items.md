@@ -167,3 +167,31 @@ Auth plus new GitHub secrets, which CI cannot mint for itself.
 concurrent writer, but comparing a live page against a stale snapshot stays fragile against anything
 else that mutates owner data (a cron sweep, a manual change). Re-fetching at assertion time would
 close it.
+
+## D4 ADDENDUM — 2026-09-15 — the shared group was evicting, not queueing
+
+**Found on PR #980**, the Next 16.3.5 upgrade, after three pushes in five minutes.
+
+`cancel-in-progress: false` was not enough to make the two jobs queue. A concurrency group holds
+exactly **one** pending entry by default (`queue: single`), and GitHub's rule is that "any existing
+`pending` job or workflow in the same concurrency group will be canceled and the new queued job or
+workflow will take its place." Because `e2e-smoke` (ci-cd.yml) and `rls-security`
+(rls-security-tests.yml) are separate workflows fired by the same event, every push puts one of them
+into that single slot — and the next push evicts it.
+
+Evidence: on head commit `34ce9f0eb`, `e2e-smoke` started `01:27:14Z` and was cancelled
+`01:27:15Z`, while `checks` in the same run succeeded; the `rls-security` run for the preceding
+commit `98855b6e5` was cancelled the same way.
+
+**Why this mattered more than wasted minutes.** `e2e-smoke` is a required check. A cancelled
+required check on the head commit blocks the merge until somebody re-runs that job by hand, so the
+mitigation had quietly traded "two suites racing on one account" for "rapid pushes lose a required
+check." A single push never showed it — two entrants fit, one runs and one queues. It takes a third
+entrant, i.e. another push while one is pending.
+
+**Fixed** by adding `queue: max` to both jobs' concurrency blocks: pending depth becomes 100,
+processed FIFO. It is rejected only in combination with `cancel-in-progress: true`, which neither
+job uses. The option shipped 2026-05-07, after the serialization was written.
+
+This does not close D4. Per-suite accounts remain the durable fix — they remove the need to
+serialize at all, and with it the PR wall-time cost of running the two suites back to back.
