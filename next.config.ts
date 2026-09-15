@@ -52,8 +52,8 @@ const nextConfig: NextConfig = {
 	//
 	// Vercel Skew Protection needs the deployment id stamped on framework
 	// requests, and Next supplies it with zero configuration from 14.1.4 onward
-	// when Vercel runs the build (this project is on 16.2.12). Only 13.4.7-14.1.3
-	// needed the old experimental.useDeploymentId flags.
+	// when Vercel runs the build. Only 13.4.7-14.1.3 needed the old
+	// experimental.useDeploymentId flags.
 	//
 	// Verified rather than assumed: production HTML carries 239 `?dpl=` stamps
 	// without this option set, and the Vercel project (created 2025-06-20, after
