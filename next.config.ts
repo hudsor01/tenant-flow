@@ -49,6 +49,24 @@ const nextConfig: NextConfig = {
 	output: "standalone",
 	reactCompiler: true,
 
+	// STAMPS EVERY BUILD SO A STALE CLIENT IS IDENTIFIABLE RATHER THAN JUST
+	// BROKEN. Without this, a Server Action POST from a page loaded before a
+	// deploy hits a server that no longer has that action id, and Next throws
+	// "Failed to find Server Action. This request might be from an older or
+	// newer deployment." The action id is all the server gets, so it cannot tell
+	// a stale client from a forged request.
+	//
+	// Setting deploymentId scopes action ids and asset requests to a build, which
+	// is the precondition for Vercel Skew Protection to route a stale request
+	// back to the deployment that served the page. It is NOT sufficient on its
+	// own: Skew Protection is a Vercel project setting and has to be enabled
+	// there, otherwise this only labels the mismatch instead of resolving it.
+	//
+	// Left undefined off-Vercel so local and self-hosted builds are unaffected.
+	...(process.env["VERCEL_DEPLOYMENT_ID"]
+		? { deploymentId: process.env["VERCEL_DEPLOYMENT_ID"] }
+		: {}),
+
 	experimental: {
 		// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript
 		// compiler API — createProgram and transpileModule are undefined. Next
