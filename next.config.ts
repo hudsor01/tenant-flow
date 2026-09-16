@@ -55,10 +55,18 @@ const nextConfig: NextConfig = {
 	// when Vercel runs the build. Only 13.4.7-14.1.3 needed the old
 	// experimental.useDeploymentId flags.
 	//
-	// Verified rather than assumed: production HTML carries 239 `?dpl=` stamps
-	// without this option set, and the Vercel project (created 2025-06-20, after
-	// the 2024-11-19 cutoff, framework nextjs, autoExposeSystemEnvs on) has Skew
-	// Protection enabled by default.
+	// The Vercel project (created 2025-06-20, after the 2024-11-19 cutoff,
+	// framework nextjs, autoExposeSystemEnvs on) has Skew Protection enabled by
+	// default.
+	//
+	// The evidence for that used to be 239 `?dpl=` stamps in production HTML. As
+	// of 16.3 there are ZERO, on a cache MISS as well as a HIT: asset URLs are
+	// now content-addressed (`GeistMono_Variable.p.11tlzvxxbe5bj.woff2`) because
+	// 16.3 made static assets immutable and reusable across deployments, so they
+	// cannot suffer skew and no longer need a deployment-id query stamp. Do not
+	// read the missing stamps as Skew Protection being off, and do not "fix" it
+	// by setting `deploymentId`. Server Action skew is a separate mechanism --
+	// see the Sentry ignoreErrors entry added in #978.
 	//
 	// Setting it anyway is not neutral. `deploymentId` exists for custom and
 	// prebuilt deployment ids, so it introduces a way for the build-time value to
@@ -66,17 +74,22 @@ const nextConfig: NextConfig = {
 	// that then 404. Reach for it only for `vercel deploy --prebuilt`, which the
 	// docs call out as the case that needs a custom id.
 
+	// NO `experimental.useTypeScriptCli` HERE -- it is the default from 16.3.
+	//
+	// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript compiler
+	// API (createProgram and transpileModule are undefined), and Next used that
+	// API for its build-time type check, so `next build` exited 1 with
+	// "TypeScript 7.0.2 does not provide the compiler API required by Next.js.
+	// Enable experimental.useTypeScriptCli...". The flag made Next shell out to
+	// the tsc CLI instead, and 16.2.12 carried it as a backport.
+	//
+	// 16.3 defaults it to true (`useTypeScriptCli: true` in the defaults of
+	// next/dist/server/config-shared.js), so pinning it here asserts nothing.
+	// Verified rather than assumed: with the flag gone, the build still reports
+	// "Running TypeScript ... Finished TypeScript", and Next stopped listing it
+	// under "Experiments (use with caution)" because a default is not an
+	// experiment.
 	experimental: {
-		// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript
-		// compiler API — createProgram and transpileModule are undefined. Next
-		// uses that API for its build-time type check, so `next build` exits 1
-		// with: "TypeScript 7.0.2 does not provide the compiler API required by
-		// Next.js. Enable experimental.useTypeScriptCli..."
-		//
-		// This flag is exactly the support next 16.2.12 backported. It makes
-		// Next shell out to the tsc CLI instead. Build-time only: TypeScript is
-		// a devDependency and none of this reaches the production bundle.
-		useTypeScriptCli: true,
 		optimizePackageImports: [
 			"@tanstack/react-query",
 			"@tanstack/react-form",
