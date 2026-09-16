@@ -186,43 +186,92 @@ const getBlogPost = cache(async (slug: string) => {
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 	);
 
-	// Race against 5s timeout to prevent Supabase cold-start hangs
-	// (80-398s observed in Sentry).
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	const timeout = new Promise<never>((_, reject) => {
-		timer = setTimeout(
-			() => reject(new Error(`Blog post query timed out (slug: "${slug}")`)),
-			5000,
-		);
-	});
-	const query = supabase
-		.from("blogs")
-		.select(
-			"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
-		)
-		.eq("slug", slug)
-		.eq("status", "published")
-		.single();
+	// A TIMEOUT MEANS OPPOSITE THINGS IN THE TWO PHASES THIS FUNCTION RUNS IN,
+	// so it gets retried in one and not the other.
+	//
+	// At request time a single 5s deadline is the point: it converts a Supabase
+	// cold-start hang (80-398s observed in Sentry) into a fast error instead of
+	// a page that never responds. Retrying would only multiply the wait.
+	//
+	// At build time the same deadline fails the ENTIRE build on one slow query.
+	// `next build` prerenders every published post, so the deadline is raced 253
+	// times per build, and `Export encountered an error ... exiting the build`
+	// kills the run on the first one to lose. That is exactly how e2e-smoke
+	// failed on 2026-09-15 at 01:41 with three CI builds prerendering against
+	// the same Supabase project at once -- uncontended, all 253 pages render in
+	// 5.6s total, so the 5s-per-query budget normally has enormous headroom and
+	// only contention closes it.
+	//
+	// `generateStaticParams` above already solved this shape for its one
+	// round-trip (3 attempts, linear backoff, throw only on persistent
+	// failure). This matches it, per attempt, rather than inventing a second
+	// policy: a blip costs seconds, whereas a failed build costs a re-run.
+	//
+	// The phase check is verified, not assumed -- a force-static probe page
+	// logged NEXT_PHASE=phase-production-build from inside a generation worker
+	// (next/dist/build/index.js sets it before the workers fork).
+	const isPrerender = process.env["NEXT_PHASE"] === "phase-production-build";
+	const MAX_ATTEMPTS = isPrerender ? 3 : 1;
 
-	try {
-		const { data, error } = await Promise.race([query, timeout]);
-		if (error) {
-			// PGRST116 = "Results contain 0 rows" from .single() — genuine miss.
-			if (error.code === "PGRST116") return null;
-			// Any other code is a real DB problem. Throw with slug/code context so
-			// the Next.js error boundary surfaces a 500 AND Sentry captures it
-			// exactly once. A separate logger.error here previously double-reported
-			// every failure as both a Sentry message and an exception (the
-			// duplicate timeout issues TENANT-FLOW-P/Q); the thrown error now
-			// carries the context that logger.error used to add.
-			throw new Error(
-				`Blog post query failed (slug: "${slug}", code: ${error.code}): ${error.message}`,
+	const runQuery = async () => {
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const timeout = new Promise<never>((_, reject) => {
+			timer = setTimeout(
+				() => reject(new Error(`Blog post query timed out (slug: "${slug}")`)),
+				5000,
 			);
+		});
+		const query = supabase
+			.from("blogs")
+			.select(
+				"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
+			)
+			.eq("slug", slug)
+			.eq("status", "published")
+			.single();
+
+		try {
+			const { data, error } = await Promise.race([query, timeout]);
+			if (error) {
+				// PGRST116 = "Results contain 0 rows" from .single() — genuine miss.
+				if (error.code === "PGRST116") return null;
+				// Any other code is a real DB problem. Throw with slug/code context so
+				// the Next.js error boundary surfaces a 500 AND Sentry captures it
+				// exactly once. A separate logger.error here previously double-reported
+				// every failure as both a Sentry message and an exception (the
+				// duplicate timeout issues TENANT-FLOW-P/Q); the thrown error now
+				// carries the context that logger.error used to add.
+				throw new Error(
+					`Blog post query failed (slug: "${slug}", code: ${error.code}): ${error.message}`,
+				);
+			}
+			return data;
+		} finally {
+			if (timer) clearTimeout(timer);
 		}
-		return data;
-	} finally {
-		if (timer) clearTimeout(timer);
+	};
+
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		try {
+			return await runQuery();
+		} catch (err) {
+			// ONLY the deadline is retried. A PostgREST error code is a real DB
+			// answer and retrying it would just delay the same failure.
+			const isTimeout =
+				err instanceof Error &&
+				err.message.startsWith("Blog post query timed out");
+			if (!isTimeout || attempt === MAX_ATTEMPTS) throw err;
+			logger.error("blog post query timed out, retrying", {
+				action: "getBlogPost",
+				route: "/blog/[slug]",
+				metadata: { slug, attempt, maxAttempts: MAX_ATTEMPTS },
+			});
+			await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+		}
 	}
+
+	// Unreachable: the loop either returns or throws on its last attempt.
+	throw new Error(`Blog post query exhausted attempts (slug: "${slug}")`);
 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

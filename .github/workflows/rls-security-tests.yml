@@ -47,9 +47,19 @@ jobs:
     #
     # The durable fix is a separate synthetic account per suite, which needs new
     # credentials the CI cannot mint for itself. Recorded in deferred-items.
+    #
+    # `queue: max` must match the e2e-smoke side. A group holds one pending
+    # entry by default and cancels it when a newer entry arrives, so the two
+    # jobs evicted each other instead of queueing -- see the longer note in
+    # ci-cd.yml. Depth 100, FIFO.
+    #
+    # Not keyed on `github.ref` -- one production project and one owner account
+    # is a global resource, so a per-ref key let concurrent branches write over
+    # each other. See the longer note in ci-cd.yml.
     concurrency:
-      group: tenantflow-prod-test-account-${{ github.ref }}
+      group: tenantflow-prod-test-account
       cancel-in-progress: false
+      queue: max
 
     # Dependabot PRs run this for REAL as of 2026-07-27.
     #
