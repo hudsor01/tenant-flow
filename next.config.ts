@@ -55,10 +55,18 @@ const nextConfig: NextConfig = {
 	// when Vercel runs the build. Only 13.4.7-14.1.3 needed the old
 	// experimental.useDeploymentId flags.
 	//
-	// Verified rather than assumed: production HTML carries 239 `?dpl=` stamps
-	// without this option set, and the Vercel project (created 2025-06-20, after
-	// the 2024-11-19 cutoff, framework nextjs, autoExposeSystemEnvs on) has Skew
-	// Protection enabled by default.
+	// The Vercel project (created 2025-06-20, after the 2024-11-19 cutoff,
+	// framework nextjs, autoExposeSystemEnvs on) has Skew Protection enabled by
+	// default.
+	//
+	// The evidence for that used to be 239 `?dpl=` stamps in production HTML. As
+	// of 16.3 there are ZERO, on a cache MISS as well as a HIT: asset URLs are
+	// now content-addressed (`GeistMono_Variable.p.11tlzvxxbe5bj.woff2`) because
+	// 16.3 made static assets immutable and reusable across deployments, so they
+	// cannot suffer skew and no longer need a deployment-id query stamp. Do not
+	// read the missing stamps as Skew Protection being off, and do not "fix" it
+	// by setting `deploymentId`. Server Action skew is a separate mechanism --
+	// see the Sentry ignoreErrors entry added in #978.
 	//
 	// Setting it anyway is not neutral. `deploymentId` exists for custom and
 	// prebuilt deployment ids, so it introduces a way for the build-time value to
