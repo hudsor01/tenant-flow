@@ -960,9 +960,19 @@ describe.skipIf(skipReason)(
 			// ensure_public_user_trigger is an AFTER trigger on auth.users that
 			// mirrors into public.users with ON CONFLICT, so creating through Auth
 			// satisfies both the FK and the mirror in one step, synchronously.
+			// THE PASSWORD IS BUILT, NOT JUST RANDOM. This project's Auth policy
+			// requires one character of EACH class -- lowercase, uppercase, digits,
+			// symbols -- and a v4 UUID is lowercase hex plus hyphens, so it NEVER
+			// contains an uppercase letter. `password: randomUUID()` therefore
+			// stopped being able to mint a user the moment that policy was enabled,
+			// failing every run with AuthWeakPasswordError (422, weak_password,
+			// reasons: ["characters"]) rather than intermittently. The prefix
+			// supplies one character from each class and the UUID keeps the entropy.
+			// The value is never used again: this user never signs in, and teardown
+			// deletes it.
 			const created = await service.auth.admin.createUser({
 				email,
-				password: randomUUID(),
+				password: `Aa1!${randomUUID()}`,
 				email_confirm: true,
 			});
 			// ASSERTS RATHER THAN SKIPS. This was the last conditional skip in the
