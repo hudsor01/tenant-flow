@@ -1,4 +1,3 @@
-// Build trigger: Added NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to Vercel (2025-01-16)
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
@@ -49,23 +48,23 @@ const nextConfig: NextConfig = {
 	output: "standalone",
 	reactCompiler: true,
 
-	// STAMPS EVERY BUILD SO A STALE CLIENT IS IDENTIFIABLE RATHER THAN JUST
-	// BROKEN. Without this, a Server Action POST from a page loaded before a
-	// deploy hits a server that no longer has that action id, and Next throws
-	// "Failed to find Server Action. This request might be from an older or
-	// newer deployment." The action id is all the server gets, so it cannot tell
-	// a stale client from a forged request.
+	// NO `deploymentId` HERE ON PURPOSE -- it would be dead config.
 	//
-	// Setting deploymentId scopes action ids and asset requests to a build, which
-	// is the precondition for Vercel Skew Protection to route a stale request
-	// back to the deployment that served the page. It is NOT sufficient on its
-	// own: Skew Protection is a Vercel project setting and has to be enabled
-	// there, otherwise this only labels the mismatch instead of resolving it.
+	// Vercel Skew Protection needs the deployment id stamped on framework
+	// requests, and Next supplies it with zero configuration from 14.1.4 onward
+	// when Vercel runs the build. Only 13.4.7-14.1.3 needed the old
+	// experimental.useDeploymentId flags.
 	//
-	// Left undefined off-Vercel so local and self-hosted builds are unaffected.
-	...(process.env["VERCEL_DEPLOYMENT_ID"]
-		? { deploymentId: process.env["VERCEL_DEPLOYMENT_ID"] }
-		: {}),
+	// Verified rather than assumed: production HTML carries 239 `?dpl=` stamps
+	// without this option set, and the Vercel project (created 2025-06-20, after
+	// the 2024-11-19 cutoff, framework nextjs, autoExposeSystemEnvs on) has Skew
+	// Protection enabled by default.
+	//
+	// Setting it anyway is not neutral. `deploymentId` exists for custom and
+	// prebuilt deployment ids, so it introduces a way for the build-time value to
+	// diverge from the id Vercel assigns at serve time -- which stamps asset URLs
+	// that then 404. Reach for it only for `vercel deploy --prebuilt`, which the
+	// docs call out as the case that needs a custom id.
 
 	experimental: {
 		// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript
