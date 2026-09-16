@@ -66,17 +66,22 @@ const nextConfig: NextConfig = {
 	// that then 404. Reach for it only for `vercel deploy --prebuilt`, which the
 	// docs call out as the case that needs a custom id.
 
+	// NO `experimental.useTypeScriptCli` HERE -- it is the default from 16.3.
+	//
+	// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript compiler
+	// API (createProgram and transpileModule are undefined), and Next used that
+	// API for its build-time type check, so `next build` exited 1 with
+	// "TypeScript 7.0.2 does not provide the compiler API required by Next.js.
+	// Enable experimental.useTypeScriptCli...". The flag made Next shell out to
+	// the tsc CLI instead, and 16.2.12 carried it as a backport.
+	//
+	// 16.3 defaults it to true (`useTypeScriptCli: true` in the defaults of
+	// next/dist/server/config-shared.js), so pinning it here asserts nothing.
+	// Verified rather than assumed: with the flag gone, the build still reports
+	// "Running TypeScript ... Finished TypeScript", and Next stopped listing it
+	// under "Experiments (use with caution)" because a default is not an
+	// experiment.
 	experimental: {
-		// TypeScript 7.0 is the Go-native compiler and ships NO JavaScript
-		// compiler API — createProgram and transpileModule are undefined. Next
-		// uses that API for its build-time type check, so `next build` exits 1
-		// with: "TypeScript 7.0.2 does not provide the compiler API required by
-		// Next.js. Enable experimental.useTypeScriptCli..."
-		//
-		// This flag is exactly the support next 16.2.12 backported. It makes
-		// Next shell out to the tsc CLI instead. Build-time only: TypeScript is
-		// a devDependency and none of this reaches the production bundle.
-		useTypeScriptCli: true,
 		optimizePackageImports: [
 			"@tanstack/react-query",
 			"@tanstack/react-form",
