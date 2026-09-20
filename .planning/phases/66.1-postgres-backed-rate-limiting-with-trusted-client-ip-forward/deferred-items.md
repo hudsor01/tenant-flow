@@ -1,6 +1,6 @@
 # Phase 66.1 — deferred items
 
-## D1 — The tenant-form property tests are a flaky pre-commit gate (repo-wide, pre-existing)
+## D1 — CLOSED 2026-08-23 — The tenant-form property tests were a flaky pre-commit gate
 
 **Found:** 2026-08-15, when the pre-commit hook blocked an unrelated docs-only commit. The same
 commit succeeded unchanged on retry, which is the definition of the problem.
@@ -109,3 +109,123 @@ edge function, then replace the "STILL NOT VERIFIED ON THE DEPLOYMENT TARGET" pa
 measurement. The test now accepts either the open question or a line containing `MEASURED ON
 SUPABASE`, so recording the answer is no longer a test failure — it was, which is why closing it
 looked like breaking the gate.
+
+
+---
+
+## D1 CLOSURE — 2026-08-23
+
+All three compounding causes fixed in both property files:
+
+1. **Seed pinned** — `fc.configureGlobal({ seed: 6612026, numRuns: 25 })`. Without it every run
+   explored a different sample, so a failure could not be replayed and passed on retry.
+2. **`cleanup()` in `afterEach`** — each iteration called `renderHook` and nothing unmounted it, so
+   a test that timed out at 10s left in-flight mutations whose late `toast.success` landed in the
+   next test's mock after `clearAllMocks()`.
+3. **Reads the LAST toast, not the first** — `successCalls[0]` is only safe if nothing else can
+   write to that mock, which (2) made false.
+
+**Proof: 8 consecutive runs, 35 passed, 0 failed.** One green run was never going to be evidence
+here; the defect's whole signature was passing on retry.
+
+## D2 — CLOSED 2026-08-23
+`.next` removed. The revoked PAT is no longer cached on disk.
+
+## D3 — still open, and deliberately so
+Which `timingSafeEqual` branch runs on Supabase's Deno is unmeasured. Both branches are
+constant-time, so nothing behaves differently either way. Answering it means deploying a throwaway
+function to production purely to read one `typeof`, which is disproportionate to a fact that changes
+no behaviour. Recorded rather than chased.
+
+## D4 — e2e-smoke and rls-security share one production account
+
+**Found:** 2026-08-31, while chasing a 401 that turned out to be a session revocation.
+
+Both jobs authenticate as `E2E_OWNER_EMAIL` against the same production project, and before this
+change they started on the same second of every PR. Two concurrent writers on one account produced
+two distinct, fully diagnosed failures:
+
+1. **Session revocation.** An e2e seed-client teardown called `signOut()`, which defaults to
+   `scope: "global"` and revokes every session for that user. The RLS suite's cached session died
+   mid-run: 54 x `403` on `/auth/v1/user`, then 75 fallback password sign-ins where the cache should
+   have made about four, and a `401` for the one suite holding a raw captured token. Fixed at the
+   call sites with `scope: "local"`.
+2. **Fixture churn.** RLS `afterAll` cleanup deleted a property between the dashboard test's
+   `beforeAll` RPC snapshot and its per-test page render — `expected 23, received 22`.
+
+**Mitigated, not solved.** Both jobs now share a GitHub concurrency group with
+`cancel-in-progress: false`, so they queue instead of racing. That costs PR wall time (they run
+sequentially rather than in parallel) and buys suites that measure the product rather than each
+other.
+
+**The durable fix is a separate synthetic account per suite** — `e2e-owner-*` and `rls-owner-*` —
+so the two can run in parallel again without sharing mutable state. That needs new accounts in prod
+Auth plus new GitHub secrets, which CI cannot mint for itself.
+
+**Also worth fixing independently:** `dashboard-smoke.e2e.spec.ts` fetches its RPC snapshot once in
+`beforeAll` and compares it against a page rendered later in `beforeEach`. Serialization removes the
+concurrent writer, but comparing a live page against a stale snapshot stays fragile against anything
+else that mutates owner data (a cron sweep, a manual change). Re-fetching at assertion time would
+close it.
+
+## D4 ADDENDUM — 2026-09-15 — the shared group was evicting, not queueing
+
+**Found on PR #980**, the Next 16.3.5 upgrade, after three pushes in five minutes.
+
+`cancel-in-progress: false` was not enough to make the two jobs queue. A concurrency group holds
+exactly **one** pending entry by default (`queue: single`), and GitHub's rule is that "any existing
+`pending` job or workflow in the same concurrency group will be canceled and the new queued job or
+workflow will take its place." Because `e2e-smoke` (ci-cd.yml) and `rls-security`
+(rls-security-tests.yml) are separate workflows fired by the same event, every push puts one of them
+into that single slot — and the next push evicts it.
+
+Evidence: on head commit `34ce9f0eb`, `e2e-smoke` started `01:27:14Z` and was cancelled
+`01:27:15Z`, while `checks` in the same run succeeded; the `rls-security` run for the preceding
+commit `98855b6e5` was cancelled the same way.
+
+**Why this mattered more than wasted minutes.** `e2e-smoke` is a required check. A cancelled
+required check on the head commit blocks the merge until somebody re-runs that job by hand, so the
+mitigation had quietly traded "two suites racing on one account" for "rapid pushes lose a required
+check." A single push never showed it — two entrants fit, one runs and one queues. It takes a third
+entrant, i.e. another push while one is pending.
+
+**Fixed** by adding `queue: max` to both jobs' concurrency blocks: pending depth becomes 100,
+processed FIFO. It is rejected only in combination with `cancel-in-progress: true`, which neither
+job uses. The option shipped 2026-05-07, after the serialization was written.
+
+### The group was also keyed on the wrong thing
+
+`group: tenantflow-prod-test-account-${{ github.ref }}` gave **every branch its own lock**, so it
+serialized nothing across refs — and the resource it protects is one production Supabase project
+with one owner account, which is global.
+
+Proven the same night, with three branches in flight at once (#979, #980, #982). Two distinct
+failures, one cause:
+
+1. **`dashboard-smoke.e2e.spec.ts:157` — KPI numbers match get_dashboard_data_v2.** The test read
+   the occupancy RPC once per attempt and got **29, then 14, then 29**, while the page held steady
+   at **17**. Not the stale-snapshot problem noted below — that was already fixed, and this test
+   re-reads after render. Another ref's RLS suite was creating and deleting owner data underneath
+   it, so the "expected" value moved between attempts.
+2. **`/blog/[slug]` prerender timeouts.** `next build` prerenders all 253 published posts, each
+   racing a 5s query deadline, and `Export encountered an error … exiting the build` kills the run
+   on the first one to lose. Uncontended, all 253 render in **5.6s total** — the budget has
+   enormous headroom and only concurrent builds close it. Three simultaneous CI builds against one
+   Supabase project did exactly that at 01:41.
+
+**Fixed** by dropping `${{ github.ref }}` from the group, so all refs queue on one global lock, plus
+a workflow-level `concurrency: ci-${{ github.ref }}` with `cancel-in-progress: true` on ci-cd.yml so
+a superseded run does not sit in that global queue. e2e-smoke cannot carry a cancel-on-supersede key
+itself — a job holds exactly one concurrency key, and its key has to be the account lock.
+
+`getBlogPost` also now retries a timed-out query at build time only (3 attempts, linear backoff),
+matching the policy `generateStaticParams` above it already used for its one round-trip. At request
+time the single 5s deadline is the point and is unchanged: it converts a Supabase cold-start hang
+(80–398s in Sentry) into a fast error. The phase check is verified, not assumed — a `force-static`
+probe page logged `NEXT_PHASE=phase-production-build` from inside a generation worker.
+
+**Cost of the global lock:** with several PRs open, e2e and RLS runs queue behind each other across
+branches, so PR feedback is slower when the repo is busy.
+
+This does not close D4. Per-suite accounts remain the durable fix — they remove the need to
+serialize at all, and with it that wall-time cost.

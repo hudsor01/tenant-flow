@@ -1,11 +1,17 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 
-// `@vercel/og` requires the edge runtime — it streams the rendered PNG
-// directly without spinning up a Node.js process per request. The CDN
-// caches each per-competitor PNG for one hour; competitor names are
+// Runs on the DEFAULT nodejs runtime, deliberately. This route used to pin
+// `runtime = "edge"` because the standalone `@vercel/og` required it; it now
+// imports the framework's own `next/og`, which runs anywhere. Next 16.3
+// deprecated the edge runtime outright -- every build logged "The Edge Runtime
+// is deprecated. You can use the nodejs runtime instead." -- so the pin was
+// both unnecessary and a warning on every build. No explicit
+// `runtime = "nodejs"` export: that is the default, and pinning a default is
+// dead config.
+//
+// The CDN caches each per-competitor PNG for one hour; competitor names are
 // stable so the cache key rarely shifts.
-export const runtime = "edge";
 export const revalidate = 3600;
 
 interface RouteParams {

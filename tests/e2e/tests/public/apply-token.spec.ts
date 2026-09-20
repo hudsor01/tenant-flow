@@ -153,7 +153,16 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
 	// Sign out only. The link rows are reusable fixtures and are deliberately left
 	// in place — see the file header.
-	await seedClient?.auth.signOut();
+	// SCOPE MATTERS, AND THE DEFAULT IS WRONG HERE. signOut() defaults to
+	// scope: "global", which revokes EVERY session for this user on the server --
+	// not just this client's. e2e-smoke and rls-security start at the same second
+	// on every PR and share E2E_OWNER_EMAIL, so a global sign-out here reached
+	// into the running RLS suite: its globalSetup session was revoked mid-run,
+	// producing 54 x 403 on /auth/v1/user, 75 fallback password sign-ins, and a
+	// 401 for any suite that had already captured a raw access token
+	// (download-documents-zip captures one in beforeAll and reuses it).
+	// "local" drops this client's own session, which is all a seed client wants.
+	await seedClient?.auth.signOut({ scope: "local" });
 });
 
 /**

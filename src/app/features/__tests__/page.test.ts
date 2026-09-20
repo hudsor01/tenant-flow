@@ -6,11 +6,16 @@ import { describe, expect, it, vi } from "vitest";
  * Pins three contracts that together guarantee the /features OG image
  * survives future edits:
  *   1. `createPageMetadata` receives `ogImage: "/api/og/features"`.
- *   2. The `/api/og/features` route exports `runtime = "edge"` (required
- *      by `@vercel/og`) and `revalidate = 3600` (kept in lockstep with
- *      the sibling `/api/og/pricing` route as documentation of the
- *      intended cache horizon — actual caching is driven by the
- *      `Cache-Control` header `@vercel/og` sets on `ImageResponse`).
+ *   2. The `/api/og/features` route does NOT pin a runtime, and exports
+ *      `revalidate = 3600` (kept in lockstep with the sibling
+ *      `/api/og/pricing` route as documentation of the intended cache
+ *      horizon — actual caching is driven by the `Cache-Control` header
+ *      `ImageResponse` sets). The route used to pin `runtime = "edge"`
+ *      because the standalone `@vercel/og` required it; it now imports
+ *      `next/og` and runs on the default nodejs runtime, which Next 16.3
+ *      requires since it deprecated the edge runtime. Asserting the
+ *      ABSENCE of the export is the point: re-adding it would reintroduce
+ *      a build-time deprecation warning.
  *   3. The route uses the canonical 1200x630 OG dimensions.
  *
  * No production code is modified by this test — it asserts shipped state.
@@ -80,10 +85,16 @@ describe("features/page.tsx — SEO-02 OG image wiring", () => {
 });
 
 describe("/api/og/features/route.tsx — SEO-02 OG route contract", () => {
-	it('exports runtime = "edge" and revalidate = 3600', async () => {
-		const mod = await import("../../api/og/features/route");
-		expect(mod.runtime).toBe("edge");
-		expect(mod.revalidate).toBe(3600);
+	it("pins no runtime and exports revalidate = 3600", async () => {
+		const mod: Record<string, unknown> = await import(
+			"../../api/og/features/route"
+		);
+		// No runtime export at all -- nodejs is the default, and the edge runtime
+		// is deprecated as of Next 16.3 ("The Edge Runtime is deprecated. You can
+		// use the nodejs runtime instead."), which the build warned about on every
+		// run while this route pinned it.
+		expect(mod["runtime"]).toBeUndefined();
+		expect(mod["revalidate"]).toBe(3600);
 	});
 
 	it("declares a 1200x630 OG image (read from source)", async () => {
