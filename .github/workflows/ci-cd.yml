@@ -19,6 +19,16 @@ on:
       - "docs/**"
       - "LICENSE"
 
+# A superseded run must not hold or occupy the global
+# `tenantflow-prod-test-account` queue slot that e2e-smoke below takes. The
+# per-job `checks-*` group already dropped stale compile runs; e2e-smoke cannot
+# also carry a cancel-on-supersede key, because a job may hold exactly one
+# concurrency key and its key has to be the global account lock. Cancelling at
+# the RUN level covers both, and mirrors what rls-security-tests.yml does.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -64,6 +74,59 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_placeholder'
 
   e2e-smoke:
+    # SERIALIZED AGAINST THE OTHER PRODUCTION-DATA JOB. e2e-smoke and
+    # rls-security both authenticate as E2E_OWNER_EMAIL against the SAME
+    # production project, and they used to start on the same second on every PR.
+    # Two concurrent writers on one account is not a flake, it is a race with
+    # two proven manifestations: a global-scope signOut in an e2e teardown
+    # revoked the RLS suite's cached session mid-run (54 x 403 then 75 fallback
+    # sign-ins), and RLS fixture cleanup deleted a property between the
+    # dashboard test's RPC snapshot and its page render (expected 23, got 22).
+    # A shared group with cancel-in-progress false makes them QUEUE rather than
+    # cancel, so both still run on every PR -- sequentially. Costs wall time;
+    # buys a suite that measures the product instead of the other job.
+    #
+    # The durable fix is a separate synthetic account per suite, which needs new
+    # credentials the CI cannot mint for itself. Recorded in deferred-items.
+    #
+    # THIS REPLACES the job's previous `e2e-${{ github.ref }}` group, which
+    # cancelled a superseded e2e run when a new commit landed. A job may hold
+    # exactly one concurrency key, and the two wanted opposite behaviour --
+    # cancel-in-progress true to drop stale runs, false to queue behind
+    # rls-security. Queueing wins: a cancelled run costs minutes, whereas two
+    # writers on one production account costs a green suite that measured the
+    # other job. Rapid pushes now queue e2e runs instead of superseding them.
+    #
+    # `queue: max` IS LOAD-BEARING, NOT A TUNING KNOB. A concurrency group holds
+    # exactly ONE pending entry by default, and GitHub cancels that entry when a
+    # newer one arrives -- "any existing pending job or workflow in the same
+    # concurrency group will be canceled and the new queued job or workflow will
+    # take its place". Since e2e-smoke and rls-security are different workflows
+    # triggered by the same event, every push puts one of them in that single
+    # pending slot, and the next push evicts it. Observed on PR #980: three
+    # pushes in five minutes, and e2e-smoke on the head commit started at
+    # 01:27:14Z and was cancelled at 01:27:15Z while `checks` in the same run
+    # passed. e2e-smoke is a REQUIRED check, so eviction blocks the merge until
+    # somebody re-runs the job by hand -- the serialization traded a racing
+    # suite for a lost required check. `queue: max` raises the pending depth to
+    # 100 and processes FIFO, which is what "queue instead of cancel" needed all
+    # along. It is rejected only in combination with cancel-in-progress: true.
+    #
+    # THE GROUP IS DELIBERATELY NOT KEYED ON `github.ref`. The resource being
+    # protected is ONE production Supabase project and ONE owner account, which
+    # is global -- so a per-ref key handed every open branch its own lock and
+    # serialized nothing across them. Proven on 2026-09-15 at 00:47 with three
+    # branches in flight: the dashboard KPI test read the occupancy RPC three
+    # times and got 29, then 14, then 29, while the page held steady at 17. That
+    # is not a stale snapshot (the test already re-reads after render) -- another
+    # ref's RLS suite was creating and deleting owner data underneath it. The
+    # same contention is what made 253 blog prerenders start losing a 5s query
+    # deadline. One global lock, FIFO.
+    concurrency:
+      group: tenantflow-prod-test-account
+      cancel-in-progress: false
+      queue: max
+
     # Run on every PR and every push to main. Previously the job was
     # gated on push-to-main only (so every PR showed "e2e-smoke skipping"
     # while giving zero actual signal) and `continue-on-error: true`
@@ -94,9 +157,6 @@ jobs:
     # main entirely, so there is no post-merge run. PR-level checks are the only
     # validation an auto-merged bump gets — one more reason they must be real.
     runs-on: ubuntu-latest
-    concurrency:
-      group: e2e-${{ github.ref }}
-      cancel-in-progress: true
     timeout-minutes: 15
     env:
       CI: true

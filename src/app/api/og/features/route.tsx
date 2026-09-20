@@ -1,15 +1,22 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 
-// `@vercel/og` requires the edge runtime — it streams the rendered PNG
-// directly without spinning up a Node.js process per request. The
-// `revalidate` segment option is NOT honoured by route handlers (it
-// applies to fetch() cache entries and RSC payloads, not to a Response /
-// ImageResponse). Actual caching of the rendered PNG comes from the
-// long-lived `Cache-Control` header that `@vercel/og` sets internally on
-// `ImageResponse` plus Vercel's edge network defaults. The `revalidate`
-// export is kept here as documentation of the intended cache horizon and
-// to stay in lockstep with the sibling `/api/og/pricing/route.tsx`.
-export const runtime = "edge";
+// Runs on the DEFAULT nodejs runtime, deliberately. This route used to pin
+// `runtime = "edge"` because the standalone `@vercel/og` required it; it now
+// imports the framework's own `next/og`, which runs anywhere. Next 16.3
+// deprecated the edge runtime outright -- every build logged "The Edge Runtime
+// is deprecated. You can use the nodejs runtime instead." -- so the pin was
+// both unnecessary and a warning on every build. No explicit
+// `runtime = "nodejs"` export: that is the default, and pinning a default is
+// dead config.
+//
+// LEAVING THE EDGE RUNTIME CHANGED THE CACHING STORY, for the better. On edge
+// this route was `f` (Dynamic) -- the build said "Using edge runtime on a page
+// currently disables static generation for that page" -- so it re-rendered per
+// request and `revalidate` was inert, documentation only. On nodejs the build
+// now reports it as `o` (Static) with `Revalidate 1h / Expire 1y`, so the
+// export is live: the PNG is prerendered once at build time and served from
+// cache. Keep it in lockstep with the sibling `/api/og/pricing/route.tsx`.
+// `ImageResponse` still sets its own long-lived `Cache-Control` on top.
 export const revalidate = 3600;
 
 export function GET() {

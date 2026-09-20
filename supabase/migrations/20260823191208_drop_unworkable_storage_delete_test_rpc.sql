@@ -1,0 +1,19 @@
+-- delete_storage_objects_for_test can never succeed and is dropped one migration
+-- after it was created.
+--
+-- Supabase installs storage.protect_delete(), which raises 42501 on any direct
+-- DELETE against storage.objects: "Direct deletion from storage tables is not
+-- allowed. Use the Storage API instead." A SECURITY DEFINER wrapper does not help
+-- -- the trigger fires regardless of who the caller is.
+--
+-- Bypassing it (disabling the trigger, or session_replication_role = replica
+-- inside the function) would work and is the wrong answer: that trigger exists to
+-- stop rows being orphaned from their blobs, which is exactly what a test-cleanup
+-- path would cause at scale. The acceptance test now removes seeded rows through
+-- the Storage API, the sanctioned path, which the same file already uses for its
+-- real uploads. Verified against production: DELETE /storage/v1/object/... removes
+-- a fabricated row cleanly.
+--
+-- seed_storage_object_for_test stays. Insertion has no equivalent guard, and
+-- fabricating a size is the one thing the Storage API cannot do.
+drop function if exists public.delete_storage_objects_for_test(uuid[]);

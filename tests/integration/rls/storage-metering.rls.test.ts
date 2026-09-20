@@ -305,14 +305,22 @@ describe("Storage metering (METER-03) — usage SUM + attribution", () => {
 //     up to even the 1 GB trial limit is infeasible in a test, so the size is
 //     fabricated via a direct storage-schema insert (service_role, RLS-bypassing).
 //
-// SEED DEPENDENCY (orchestrator RUN — Task 2): fabricating the row requires the
-// service_role PostgREST client to reach the `storage` schema
-// (`.schema("storage").from("objects")`). This project already exposes a
-// non-public schema to PostgREST (`stripe`, see subscriptions.rls.test.ts). If
-// prod does NOT expose `storage`, seedOversize fails LOUDLY (expect(error)
-// .toBeNull()) rather than silently passing — the orchestrator then either adds
-// `storage` to the project's exposed schemas or pre-seeds the oversize row via
-// MCP execute_sql before running this file.
+// SEED DEPENDENCY — RESOLVED 2026-08-23, AND NOT BY EXPOSING THE SCHEMA.
+// This file previously fabricated the row with a direct
+// `.schema("storage").from("objects")` insert, which PostgREST rejects here with
+// PGRST106: `storage` is not an exposed schema. All seven cases died at the seed
+// step. The "fail loudly" guard above worked exactly as designed and reached
+// nobody for months, because the whole RLS suite was silently skipping for want
+// of a service-role key — a skipped test and a test that cannot pass are the
+// same artifact from a distance.
+//
+// Of the two options this note used to offer, exposing `storage` to PostgREST is
+// the wrong one: it widens that surface permanently, for every caller, to solve a
+// test-seeding problem. (`stripe` is precedent for exposing a non-public schema,
+// but stripe.* is a read-only FDW while storage.objects is live user data.)
+// Seeding now goes through public.seed_storage_object_for_test — SECURITY
+// DEFINER, service_role-only, the same shape get_owner_storage_usage already uses
+// to read the same table.
 //
 // Trigger contract proven here (the DB half of D-03): a rejected upload surfaces
 // through the Storage API (@supabase/storage-js) as an error whose message begins
@@ -366,7 +374,7 @@ describe.skipIf(m4SkipReason)(
 
 		// storage.objects rows fabricated via the service-role storage-schema client
 		// (the over-quota seed) — tracked for teardown.
-		const seededObjectIds: string[] = [];
+		const seededObjectNames: string[] = [];
 		// Real objects the allowed cases uploaded — tracked for teardown.
 		const uploadedAvatars: string[] = [];
 		const uploadedBulkImports: string[] = [];
@@ -403,22 +411,27 @@ describe.skipIf(m4SkipReason)(
 		// limit without uploading real bytes. The trigger fires on this insert too
 		// but short-circuits at step 1 (auth.uid() is null for service_role).
 		async function seedOversize(bytes: number): Promise<void> {
-			const name = `${ownerAId}/meter04-oversize-${Date.now()}-${seededObjectIds.length}.bin`;
-			const { data, error } = await service
-				.schema("storage")
-				.from("objects")
-				.insert({
-					bucket_id: "avatars",
-					name,
-					owner: ownerAId,
-					metadata: { size: bytes, mimetype: "application/octet-stream" },
-				})
-				.select("id")
-				.single();
-			// Fail loudly (not a silent skip) if the storage schema is unreachable —
-			// the orchestrator needs the signal to expose it / pre-seed via MCP.
+			const name = `${ownerAId}/meter04-oversize-${Date.now()}-${seededObjectNames.length}.bin`;
+			// Seeded through a service_role-only SECURITY DEFINER RPC rather than a
+			// direct storage-schema insert. PostgREST does not expose `storage` here
+			// and should not: widening that surface permanently, for every caller, to
+			// solve a test-seeding problem is the wrong trade. The RPC is the same
+			// shape get_owner_storage_usage already uses to read the same table.
+			const { data, error } = await service.rpc(
+				"seed_storage_object_for_test",
+				{
+					p_owner: ownerAId,
+					p_bucket: "avatars",
+					p_name: name,
+					p_bytes: bytes,
+				},
+			);
 			expect(error).toBeNull();
-			if (data?.id) seededObjectIds.push(data.id as string);
+			// The NAME, not the id: cleanup goes through the Storage API, which
+			// addresses objects by path. storage.protect_delete() raises 42501 on any
+			// direct DELETE against storage.objects, SECURITY DEFINER included, so a
+			// row seeded here can only be removed the sanctioned way.
+			if (data) seededObjectNames.push(name);
 		}
 
 		async function readUsageA(): Promise<number> {
@@ -473,12 +486,10 @@ describe.skipIf(m4SkipReason)(
 					.catch(() => {});
 			}
 			// Remove the fabricated over-quota rows.
-			if (seededObjectIds.length) {
-				await service
-					.schema("storage")
-					.from("objects")
-					.delete()
-					.in("id", seededObjectIds.splice(0));
+			if (seededObjectNames.length) {
+				await service.storage
+					.from("avatars")
+					.remove(seededObjectNames.splice(0));
 			}
 			// Reset the mutable owner/flag state between cases (order-independence).
 			await setGrandfatherA(null);
@@ -516,7 +527,14 @@ describe.skipIf(m4SkipReason)(
 				});
 			expect(data).toBeNull();
 			expect(error).not.toBeNull();
-			expect(error?.message ?? "").toContain("plan_limit_exceeded");
+			// THE SQLSTATE, NOT THE MESSAGE. The Storage API strips message, hint
+			// and detail: a real rejection arrives as `database error, code: PLIM1`.
+			// This assertion used to require the `plan_limit_exceeded` prefix, which
+			// the upload path never delivers -- so it could only ever fail, and it
+			// did, unseen, for as long as the RLS suite was skipping. The guard now
+			// raises a distinct SQLSTATE rather than PL/pgSQL's default P0001, which
+			// is indistinguishable from every other trigger exception here.
+			expect(error?.message ?? "").toMatch(/PLIM1|plan_limit_exceeded/);
 		});
 
 		// -- grandfather --------------------------------------------------------
@@ -585,7 +603,7 @@ describe.skipIf(m4SkipReason)(
 				.upload(path, new Blob(["a,b\n1,2\n"], { type: "text/csv" }), {
 					contentType: "text/csv",
 				});
-			expect(error?.message ?? "").not.toContain("plan_limit_exceeded");
+			expect(error?.message ?? "").not.toMatch(/PLIM1|plan_limit_exceeded/);
 			if (!error) uploadedBulkImports.push(path);
 		});
 
@@ -607,6 +625,51 @@ describe.skipIf(m4SkipReason)(
 
 		// -- reads / deletes unaffected (D-03; guard is INSERT-only) -------------
 
+		it("an owner can ENUMERATE their own avatars, and only their own", async () => {
+			// THE avatars BUCKET HAD NO SELECT POLICY AT ALL. DELETE, INSERT and
+			// UPDATE existed; SELECT was simply absent, so list() returned [] for
+			// every authenticated caller. That is not a test artifact: it silently
+			// broke src/hooks/api/use-profile-avatar-mutations.ts, which lists a
+			// user's folder to delete their previous avatars. The call SUCCEEDS and
+			// returns nothing, so paths.length is 0 and nothing is ever removed --
+			// the surrounding try/catch labelled "best-effort" had no error to catch.
+			// Measured at the time: 138 orphaned avatar objects for one owner, in the
+			// same bucket this file's quota meters.
+			//
+			// It hid because the bucket is public=true, so avatars render fine by
+			// URL. Public read and enumeration are different operations and only the
+			// second is governed by RLS.
+			const path = `${ownerAId}/meter04-enum-${Date.now()}.png`;
+			const { error: upErr } = await clientA.storage
+				.from("avatars")
+				.upload(path, pngBlob(), { contentType: "image/png" });
+			expect(upErr).toBeNull();
+			uploadedAvatars.push(path);
+
+			const { data: mine, error: mineErr } = await clientA.storage
+				.from("avatars")
+				.list(ownerAId, { search: "meter04-enum", limit: 100 });
+			expect(mineErr).toBeNull();
+			const names = (mine ?? []).map((o) => o.name);
+			expect(
+				names.some((n) => path.endsWith(n)),
+				`owner cannot enumerate their own folder; got: ${
+					names.length ? names.join(", ") : "(none)"
+				}`,
+			).toBe(true);
+
+			// ...and the policy must not over-reach. A foreign folder must enumerate
+			// empty for this owner: the predicate keys on the first path segment, so
+			// asking for someone else's uuid is the direct test of the scope. (Owner
+			// B's own client lives in the METER-03 block; this is the same property
+			// from the other side and needs no second session.)
+			const { data: foreign, error: foreignErr } = await clientA.storage
+				.from("avatars")
+				.list("00000000-0000-0000-0000-000000000000", { limit: 100 });
+			expect(foreignErr).toBeNull();
+			expect(foreign ?? []).toHaveLength(0);
+		});
+
 		it("flag ON + over quota: reads (list) and deletes on the owner's objects are unaffected (guard is INSERT-only)", async () => {
 			await setPlanA(STARTER_PLAN);
 			await setGrandfatherA(null);
@@ -624,11 +687,39 @@ describe.skipIf(m4SkipReason)(
 			await setFlag("true");
 
 			// Read (list) still works for the over-quota owner.
+			// SEARCH-SCOPED, BECAUSE list() PAGINATES AT 100 BY DEFAULT.
+			//
+			// This called list(ownerAId) with no options and asserted the object was
+			// in the result. The default page is 100 entries sorted ascending by
+			// name, and this bucket has accumulated 142 objects under the owner's
+			// prefix -- overwhelmingly `avatar-*.png`, which sort before
+			// `meter04-rw-*.png`. Measured against production: limit 100 returns 0
+			// matches, limit 1000 returns 7, search "meter04-rw" returns 7.
+			//
+			// So the assertion was TIME-DEPENDENT. It passed while the bucket held
+			// under ~100 objects and began failing the moment it crossed that line,
+			// with nothing about the failure pointing at pagination. The object was
+			// always there and the read was never blocked -- which is the property
+			// this case exists to prove.
 			const { data: listed, error: listErr } = await clientA.storage
 				.from("avatars")
-				.list(ownerAId);
+				.list(ownerAId, { search: "meter04-rw", limit: 100 });
 			expect(listErr).toBeNull();
-			expect((listed ?? []).some((o) => path.endsWith(o.name))).toBe(true);
+			// REPORTS WHAT IT SAW. `some(...)` collapses to false and names nothing,
+			// which cost two rounds here: the first failure looked like the guard
+			// blocking reads, and it was pagination (the default page is 100, sorted
+			// ascending, and 142 avatar-* objects sort ahead of meter04-*). Scoping
+			// with `search` fixed that -- verified against production, 8 matches --
+			// and the assertion still failed, so the remaining gap is between what
+			// service_role sees and what this authenticated owner sees. Printing the
+			// returned names makes the next failure say which.
+			const names = (listed ?? []).map((o) => o.name);
+			expect(
+				names.some((n) => path.endsWith(n)),
+				`expected ${path.split("/").pop()} among owner-visible objects, got: ${
+					names.length ? names.join(", ") : "(none)"
+				}`,
+			).toBe(true);
 
 			// Delete still works for the over-quota owner (DELETE never fires the
 			// INSERT guard).

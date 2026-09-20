@@ -330,3 +330,8 @@ docs/
 .env.example
 # Local self-hosted n8n instance for TenantFlow (laptop bridge while homelab is down)
 n8n/
+
+# `next dev` (16.3+) writes a managed nextjs-agent-rules block into an agent
+# instruction file, and prefers AGENTS.md whenever it exists. Keeping an
+# untracked AGENTS.md locally absorbs that write so CLAUDE.md stays clean.
+AGENTS.md
