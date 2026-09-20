@@ -1,13 +1,22 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 
-// `@vercel/og` requires the edge runtime — it streams the rendered PNG
-// directly without spinning up a Node.js process per request. The CDN
-// caches each per-slug PNG for one hour (post titles + category labels
-// are stable; if a post is renamed, the cache key changes with the slug
-// and the next request re-renders).
+// Runs on the DEFAULT nodejs runtime, deliberately. This route used to pin
+// `runtime = "edge"` because the standalone `@vercel/og` required it; it now
+// imports the framework's own `next/og`, which runs anywhere. Next 16.3
+// deprecated the edge runtime outright -- every build logged "The Edge Runtime
+// is deprecated. You can use the nodejs runtime instead." -- so the pin was
+// both unnecessary and a warning on every build. No explicit
+// `runtime = "nodejs"` export: that is the default, and pinning a default is
+// dead config.
 //
-// We hit PostgREST directly with `fetch` instead of @supabase/ssr to keep
-// the edge bundle under Vercel's 1 MB plan limit.
+// The CDN caches each per-slug PNG for one hour (post titles + category labels
+// are stable; if a post is renamed, the cache key changes with the slug and the
+// next request re-renders).
+//
+// PostgREST is still called directly with `fetch` rather than via
+// @supabase/ssr. The original reason was Vercel's 1 MB edge-bundle limit, which
+// no longer applies off the edge runtime; it stays because one cookie-less
+// fetch is all this route needs and swapping it would be an unrelated change.
 //
 // This route doubles as the blog COVER ART system: BlogCard and the post
 // hero fall back to it whenever `featured_image` is null (every factory
@@ -23,7 +32,6 @@ import { ImageResponse } from "@vercel/og";
 // chart token (OKLab math, not eyeballed). Pixel-verified locally via an
 // ImageResponse harness before deploying. Layout is CENTER-SAFE: BlogCard
 // crops 1200x630 to 16:10 with object-cover (~9% trimmed each side).
-export const runtime = "edge";
 export const revalidate = 3600;
 
 interface RouteParams {

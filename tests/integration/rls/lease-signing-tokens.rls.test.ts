@@ -89,6 +89,7 @@ describe.skipIf(skipReason)(
 		let ownerSignedLeaseId: string | undefined; // pending, owner pre-signed
 		let finalizeLeaseId: string | undefined; // pending, owner pre-signed
 		let contextLeaseId: string | undefined; // pending, no signatures
+		let precedenceLeaseId: string | undefined; // pending, no signatures
 		let activeLeaseId: string | undefined; // active, no tenant signature
 		let ownerFinalizeLeaseId: string | undefined; // pending, tenant pre-signed
 		// Any owned lease for the token-table RLS assertions.
@@ -140,7 +141,7 @@ describe.skipIf(skipReason)(
 		): Promise<string> {
 			tokenCounter += 1;
 			const hash = `${RUN_TAG}-${tokenCounter}`;
-			const { data } = await service
+			const { data, error } = await service
 				.from("lease_signing_tokens")
 				.insert({
 					lease_id: leaseId,
@@ -154,6 +155,15 @@ describe.skipIf(skipReason)(
 				})
 				.select("id")
 				.single();
+			// ASSERT THE SEED LANDED. This helper swallowed its insert error, so a
+			// failed seed produced a hash pointing at no row and the RPC answered
+			// about some OTHER state entirely -- which is why the precedence case
+			// reported `tenant_already_signed` while the product was correct all
+			// along (verified directly: a token with revoked_at set returns
+			// `revoked_token`, and the RPC checks revoked SECOND, long before any
+			// lease state). A seeding failure must look like a seeding failure.
+			expect(error).toBeNull();
+			expect(data?.id).toBeTruthy();
 			if (data?.id) insertedTokenIds.push(data.id);
 			return hash;
 		}
@@ -233,6 +243,9 @@ describe.skipIf(skipReason)(
 				owner_signature_method: "in_app",
 			});
 			contextLeaseId = await makeLease({ lease_status: "pending_signature" });
+			precedenceLeaseId = await makeLease({
+				lease_status: "pending_signature",
+			});
 			// An active lease with NO tenant signature is reachable when a lease is
 			// activated by another path (e.g. activate_lease_with_pending_subscription)
 			// while a live token still exists — the only way to reach 'lease_active'
@@ -407,12 +420,19 @@ describe.skipIf(skipReason)(
 
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("title")
+				.select("title, notification_type")
 				.eq("entity_id", tenantSecondLeaseId!)
 				.eq("user_id", ownerAId);
-			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
-				true,
-			);
+			// TYPE, NOT TITLE. "Lease fully signed" was the real title while
+			// sign_lease_with_token created the notification inline (three migrations
+			// carry that literal). Emission later moved into
+			// trg_notify_owner_lease_esign, which titles it "Lease fully executed" --
+			// so this asserted a string the product had stopped producing. The TYPE
+			// is the contract the UI routes on; the title is copy and will change
+			// again.
+			expect(
+				(notifs ?? []).some((n) => n.notification_type === "lease_executed"),
+			).toBe(true);
 		});
 
 		it("owner signs second: records signature, durably activates, notifies owner", async () => {
@@ -438,12 +458,19 @@ describe.skipIf(skipReason)(
 
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("title")
+				.select("title, notification_type")
 				.eq("entity_id", ownerSecondLeaseId!)
 				.eq("user_id", ownerAId);
-			expect((notifs ?? []).some((n) => n.title === "Lease fully signed")).toBe(
-				true,
-			);
+			// TYPE, NOT TITLE. "Lease fully signed" was the real title while
+			// sign_lease_with_token created the notification inline (three migrations
+			// carry that literal). Emission later moved into
+			// trg_notify_owner_lease_esign, which titles it "Lease fully executed" --
+			// so this asserted a string the product had stopped producing. The TYPE
+			// is the contract the UI routes on; the title is copy and will change
+			// again.
+			expect(
+				(notifs ?? []).some((n) => n.notification_type === "lease_executed"),
+			).toBe(true);
 		});
 
 		// ── finalize (render -> upload -> signed_document pointer) ───────────────
@@ -552,11 +579,26 @@ describe.skipIf(skipReason)(
 				.single();
 			expect(leaseRow?.lease_status).toBe("pending_signature");
 
+			// ONE NOTIFICATION, NOT ZERO -- and the notification is the point.
+			//
+			// This asserted silence, which was right before SIGN-03. The RPC's own
+			// comment records the change: "tenant-first (owner not yet signed) no
+			// longer needs an explicit notify block -- trg_notify_owner_lease_esign
+			// emits 'lease_signed' on the tenant_signed_at update above." The trigger
+			// fires whenever tenant_signed_at transitions from null, independent of
+			// the owner's signature, which is correct: an owner waiting on a tenant
+			// wants to hear the moment it happens, not only once both have signed.
+			//
+			// What must still be absent is `lease_executed` -- the lease is not
+			// active yet -- so this asserts the TYPE rather than a bare count. A
+			// count could be satisfied by the wrong event.
 			const { data: notifs } = await service
 				.from("notifications")
-				.select("id")
+				.select("id, notification_type")
 				.eq("entity_id", tenantFirstLeaseId!);
-			expect(notifs ?? []).toHaveLength(0);
+			const types = (notifs ?? []).map((n) => n.notification_type);
+			expect(types).toContain("lease_signed");
+			expect(types).not.toContain("lease_executed");
 		});
 
 		it("owner signs first: both_signed=false, lease stays pending, no notification", async () => {
@@ -799,11 +841,49 @@ describe.skipIf(skipReason)(
 			// All three flags set at once — the RPC must report the highest-priority
 			// reason (revoked > used > expired), pinning the CASE ordering.
 			const now = new Date();
-			const hash = await seedToken(leaseAId!, {
+			// ITS OWN UNSIGNED LEASE, and that is the whole point of the case.
+			//
+			// This used leaseAId, which earlier tests sign. get_lease_signing_context
+			// evaluates the completed-state reasons FIRST for the authentic tenant
+			// (SIGN-04, documented in the function): signing consumes the token, so a
+			// legitimate signer revisiting their link would otherwise only ever see
+			// `used_token` instead of the friendly "already signed" card. On a signed
+			// lease that branch wins and TOKEN-state precedence is unobservable --
+			// the function was right and the fixture made the assertion untestable.
+			//
+			// Note the two RPCs order these differently ON PURPOSE and both are
+			// correct: sign_lease_with_token refuses a revoked token outright, while
+			// the context function is choosing what to show someone whose signature
+			// is already on file. Revocation does not un-sign anything.
+			const hash = await seedToken(precedenceLeaseId!, {
 				revoked_at: now.toISOString(),
 				used_at: now.toISOString(),
 				expires_at: new Date(now.getTime() - 1000).toISOString(),
 			});
+			// READ THE ROW BACK BEFORE CALLING THE RPC.
+			//
+			// This case reported `tenant_already_signed` while every static check said
+			// it should report `revoked_token`: the RPC checks revoked SECOND (char
+			// 781 vs 1753 for already_signed), there is exactly one overload,
+			// lease_signing_tokens has no triggers that could rewrite the column,
+			// RUN_TAG embeds Date.now() so hashes cannot collide across runs, the only
+			// unique index is on token_hash, and the identical shape run as direct SQL
+			// returns `revoked_token`.
+			//
+			// So the disagreement is between "what was written" and "what the RPC
+			// read", and no amount of reasoning from outside can settle which. This
+			// asserts the stored state directly, so a failure names the actual defect
+			// instead of implicating the precedence logic.
+			const seeded = await service
+				.from("lease_signing_tokens")
+				.select("id, revoked_at, used_at, expires_at, lease_id")
+				.eq("token_hash", hash)
+				.maybeSingle();
+			expect(seeded.error).toBeNull();
+			expect(seeded.data?.id).toBeTruthy();
+			expect(seeded.data?.revoked_at).not.toBeNull();
+			expect(seeded.data?.used_at).not.toBeNull();
+
 			const sign = await service.rpc("sign_lease_with_token", {
 				p_token_hash: hash,
 				p_signature_ip: "1.1.1.1",
