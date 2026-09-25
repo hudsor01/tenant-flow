@@ -128,6 +128,33 @@ All three compounding causes fixed in both property files:
 **Proof: 8 consecutive runs, 35 passed, 0 failed.** One green run was never going to be evidence
 here; the defect's whole signature was passing on retry.
 
+### D1 REOPENED AND RE-CLOSED — 2026-09-20 — the timeout was the last door
+
+The gate blocked a routine dependency commit again: **6 failed / 109998 passed**, every failure a
+`Test timed out in 10000ms` in the two tenant-form property files, on a machine at **load average
+13**. The suite took 158s where it normally takes 30s.
+
+The three causes closed on 2026-08-23 stayed closed — the seed is still pinned, `cleanup()` still
+runs, and the assertions still read the LAST toast. That matters: a timeout no longer corrupts the
+next test's assertion, so this recurrence was six honest timeouts rather than the old cascade.
+
+**What was actually wrong.** `fc.configureGlobal` declares `numRuns: 25`, but six `fc.assert` calls
+in those files override it to **50 and 100**. Each iteration renders a hook and awaits a
+`waitFor(..., { timeout: 2000 })`, so a 100-run property is orders of magnitude more work than the
+ordinary unit test that `vitest.config.ts`'s global `testTimeout: 10000` was sized for. The budget
+and the declared work were never reconciled.
+
+**Fix:** `vi.setConfig({ testTimeout: 60_000 })` in those two files only. Not global — raising the
+budget across 110k tests would mask real hangs. Not a `numRuns` reduction either: buying green by
+deleting coverage is the wrong trade, and D1's own write-up already named raising the timeout as the
+remaining step *once* the real defects were gone, which they now are.
+
+**Proof, at the failure condition rather than at idle:** 5 consecutive runs on an idle machine, then
+3 more with all 18 cores saturated (load 12.94, matching the original failure) — **8 runs, 12/12
+tests each, zero failures**. The saturated runs report `tests 31.49s`, which is the whole argument
+in one number: these properties legitimately need ~30s under load, so a 10s budget could not have
+held.
+
 ## D2 — CLOSED 2026-08-23
 `.next` removed. The revoked PAT is no longer cached on disk.
 

@@ -61,6 +61,26 @@ interface AddTenantResponse {
 // With no seed, every run explored a different sample, so a failure could not be
 // reproduced and passed on retry -- which trains everyone to re-run rather than
 // read. A property test that cannot be replayed identically cannot be debugged.
+// THE PER-TEST BUDGET HAS TO SCALE WITH numRuns, AND 10s DOES NOT.
+//
+// `fc.configureGlobal` below sets numRuns: 25, but individual `fc.assert`
+// calls in this file override it to 50 and 100. Each iteration renders a hook
+// and awaits a `waitFor(..., { timeout: 2000 })`, so a 100-run property is up
+// to two orders of magnitude more work than the ordinary unit test the global
+// 10s `testTimeout` in vitest.config.ts was sized for. On an unloaded machine
+// it fits; under load it does not, and six of these timed out at 10000ms
+// during a routine pre-commit run (load average 13).
+//
+// That is the D1 flaky-gate failure re-arriving through its last remaining
+// door. D1's three causes -- unpinned seed, no cleanup between iterations,
+// reading successCalls[0] -- are all fixed below, so a timeout no longer
+// corrupts the NEXT test's assertion. What is left is the timeout itself, and
+// D1's own write-up named raising it as the remaining step once the real
+// defects were gone.
+//
+// 60s is still a bound that catches a genuine hang; it is not "no timeout".
+vi.setConfig({ testTimeout: 60_000 });
+
 fc.configureGlobal({ seed: 66_1_2026, numRuns: 25 });
 
 describe("AddTenantForm - Success Toast Property Tests", () => {
