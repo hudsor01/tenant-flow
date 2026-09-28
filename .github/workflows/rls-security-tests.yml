@@ -122,7 +122,7 @@ jobs:
           esac
           if [ ${#missing[@]} -gt 0 ]; then
             echo "::error::Missing required GitHub repo secrets: ${missing[*]}"
-            echo "::error::Add them in Settings → Secrets and variables → Actions before this gate can pass."
+            echo "::error::Add them in Settings → Secrets and variables. A Dependabot-authored PR reads the DEPENDABOT tab, not Actions -- a secret present only under Actions is invisible to it, which is how all 12 open dependency PRs failed this gate at once on 2026-09-25."
             exit 1
           fi
           echo "All required secrets present"
