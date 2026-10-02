@@ -11,6 +11,7 @@ import { createLogger } from "#lib/frontend-logger";
 import { createArticleJsonLd } from "#lib/seo/article-schema";
 import { createBlogPostBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd, parseFaqSection } from "#lib/seo/faq-schema";
+import type { Database } from "#types/supabase";
 import BlogPostPage from "./blog-post-page";
 import MarkdownContent from "./markdown-content";
 
@@ -180,6 +181,25 @@ export async function generateStaticParams() {
  * unknown slugs 404 at the router level. Blog posts are public —
  * `status='published'` is the anon RLS gate — so no session is needed.
  */
+type BlogPostRow = Pick<
+	Database["public"]["Tables"]["blogs"]["Row"],
+	| "title"
+	| "slug"
+	| "published_at"
+	| "updated_at"
+	| "featured_image"
+	| "content"
+	| "reading_time"
+	| "category"
+	| "meta_description"
+	| "excerpt"
+	| "tags"
+	| "canonical_url"
+>;
+
+/** Build-time only; see the rationale inside getBlogPost. */
+let buildTimePosts: Promise<Map<string, BlogPostRow>> | null = null;
+
 const getBlogPost = cache(async (slug: string) => {
 	const supabase = createSupabaseClient(
 		env.NEXT_PUBLIC_SUPABASE_URL,
@@ -211,6 +231,59 @@ const getBlogPost = cache(async (slug: string) => {
 	// logged NEXT_PHASE=phase-production-build from inside a generation worker
 	// (next/dist/build/index.js sets it before the workers fork).
 	const isPrerender = process.env["NEXT_PHASE"] === "phase-production-build";
+
+	// ONE QUERY PER PRERENDER WORKER INSTEAD OF ONE PER POST.
+	//
+	// `next build` prerenders every published post and each page called this
+	// function on its own: 253 round-trips, each racing the 5s deadline below,
+	// with ONE loss aborting the entire build ("Export encountered an error ...
+	// exiting the build"). That turned every CI run into a bet on database
+	// latency, and it lost three times on 2026-10-02 -- on unrelated dependency
+	// PRs, a different slug each time -- while the project was under a Supabase
+	// Disk IO budget warning. The 3-attempt retry added in PR 982 does not help:
+	// three consecutive 5s timeouts still abort the build.
+	//
+	// So at build time the posts are fetched ONCE per worker and served from a
+	// map. The loader is memoised as a PROMISE, not a map, so concurrent renders
+	// inside a worker await the same in-flight fetch rather than racing to issue
+	// several.
+	//
+	// WHY NOT FILL THIS FROM generateStaticParams: it runs in a DIFFERENT
+	// PROCESS. Verified with a probe build -- generateStaticParams ran in pid
+	// 57509 with a populated map while the renders ran in pid 57508 and saw
+	// mapSize=0. A cache filled there is always empty here, so that version of
+	// this fix would have added a large query and changed nothing. The lazy
+	// loader was verified the same way: 3 renders in one worker triggered
+	// exactly 1 load, all hits.
+	//
+	// Request time is UNCHANGED. The batch is only consulted during
+	// phase-production-build, so ISR revalidation and on-demand renders still
+	// issue their own fresh single-row query with the 5s deadline and can never
+	// serve a value cached at build time.
+	if (isPrerender) {
+		buildTimePosts ??= (async () => {
+			const { data, error } = await supabase
+				.from("blogs")
+				.select(
+					"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
+				)
+				.eq("status", "published");
+			if (error) {
+				// Fall back to per-page queries rather than failing the build here.
+				logger.error("build-time blog batch failed; falling back per page", {
+					action: "getBlogPost.batch",
+					route: "/blog/[slug]",
+					metadata: { error: error.message, code: error.code },
+				});
+				return new Map<string, BlogPostRow>();
+			}
+			return new Map((data ?? []).map((row) => [row.slug, row as BlogPostRow]));
+		})();
+
+		const cached = (await buildTimePosts).get(slug);
+		if (cached) return cached;
+	}
+
 	const MAX_ATTEMPTS = isPrerender ? 3 : 1;
 
 	const runQuery = async () => {
