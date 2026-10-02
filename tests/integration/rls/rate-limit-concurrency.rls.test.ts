@@ -85,8 +85,36 @@ const skipReason = !SUPABASE_URL
 const CLIENTS = 64;
 const ATTEMPTS_PER_CLIENT = 40;
 const LIMIT = 100;
-/** One hour, so a single run cannot cross a window boundary mid-flight. */
+/**
+ * One hour. A round takes seconds, so it fits inside a window EASILY -- but
+ * "easily" is not "always", and the original comment here claimed a one-hour
+ * window made a crossing impossible. It does not: a round that STARTS near the
+ * top of the hour straddles the boundary, and that is exactly what failed on
+ * 2026-10-02 with `expected 101 to be 100`.
+ *
+ * The 101st admission was the limiter behaving CORRECTLY. Crossing into a new
+ * window creates a second counter row, and the insert guard there is
+ * `v_prev_weighted < p_max_requests` where
+ * `v_prev_weighted = floor((1 - elapsed_ratio) * prev_count)`. A hair past the
+ * boundary that is `floor(0.99 * 100) = 99 < 100`, so the call is admitted --
+ * the window slid, which is what a sliding window is for. Proven directly
+ * against production with a 2s window: 12 attempts at cap 5 admitted exactly 5
+ * inside one window, and the first call after the boundary was admitted, with
+ * the bucket left holding two window_index rows.
+ *
+ * So the invariant this file proves is "exactly LIMIT admissions WITHIN one
+ * window", and the harness now guarantees the round measures one window rather
+ * than assuming it.
+ */
 const WINDOW_MS = 3_600_000;
+/**
+ * Refuse to start a round with less than this much of the window left. The
+ * round itself is far shorter; the margin is sized against TEST_TIMEOUT_MS so a
+ * slow round still cannot reach the boundary. Worst-case wait is this value,
+ * and only for a round unlucky enough to start inside the last two minutes of
+ * an hour (~3% of runs).
+ */
+const MIN_WINDOW_HEADROOM_MS = 120_000;
 const RUNS = 3;
 
 /**
@@ -261,9 +289,28 @@ describe.skipIf(skipReason)(
 				`run ${run}/${RUNS}: ${CLIENTS} parallel clients x ${ATTEMPTS_PER_CLIENT} attempts admit exactly ${LIMIT}`,
 				async () => {
 					const bucketKey = freshKey(`concurrent-run-${run}`);
+
+					// Do not start a round that cannot finish inside this window.
+					const msLeftInWindow = WINDOW_MS - (Date.now() % WINDOW_MS);
+					if (msLeftInWindow < MIN_WINDOW_HEADROOM_MS) {
+						await new Promise((resolve) =>
+							setTimeout(resolve, msLeftInWindow + 500),
+						);
+					}
+
 					const windowIndex = Math.floor(Date.now() / WINDOW_MS);
 
 					const { admitted, peakInFlight } = await runConcurrent(bucketKey);
+
+					// (0) The round measured ONE window. Asserted before the count so
+					// a boundary crossing reports itself instead of surfacing as a
+					// confusing off-by-one in (1).
+					expect(
+						Math.floor(Date.now() / WINDOW_MS),
+						"the round crossed a rate-limit window boundary, so `admitted` " +
+							"spans two windows and the exact-LIMIT invariant does not " +
+							"apply to it; the headroom guard above exists to prevent this",
+					).toBe(windowIndex);
 
 					// (1) The limiter limits, under load, not just in a loop.
 					expect(admitted).toBe(LIMIT);
