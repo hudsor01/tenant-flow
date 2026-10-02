@@ -42,9 +42,18 @@ export const env = createEnv({
 		STRIPE_MAX_MONTHLY: z.string().startsWith("price_").optional(),
 		STRIPE_MAX_ANNUAL: z.string().startsWith("price_").optional(),
 
-		// Supabase service role key (server-only — bypasses RLS, never expose to browser)
-		// Used in auth callback for invitation auto-linking
-		SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+		// NO SUPABASE SERVICE-ROLE / SECRET KEY HERE, DELIBERATELY. Nothing in
+		// src/ reads one: the Next app talks to Supabase through the publishable
+		// key plus RLS, and every privileged caller lives outside this schema --
+		// edge functions receive SUPABASE_SERVICE_ROLE_KEY from the Supabase
+		// platform, the RLS suites read SUPABASE_SERVICE_ROLE_KEY ??
+		// SUPABASE_SECRET_KEY from CI secrets, and the blog scripts read it from
+		// .env.local. The entry removed here was declared `optional()` with a
+		// comment claiming the auth callback used it for invitation
+		// auto-linking; the callback does not, and no file in src/ referenced it.
+		//
+		// Re-adding it would mean a server-side bypass of RLS inside the app,
+		// which is the thing this project's security model is built to avoid.
 
 		// Vercel auto-injected
 		VERCEL_URL: z.string().optional(),
@@ -98,7 +107,6 @@ export const env = createEnv({
 	runtimeEnv: {
 		// Server
 		NODE_ENV: process.env.NODE_ENV,
-		SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 		STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		STRIPE_STARTER_MONTHLY: process.env.STRIPE_STARTER_MONTHLY,
 		STRIPE_STARTER_ANNUAL: process.env.STRIPE_STARTER_ANNUAL,
