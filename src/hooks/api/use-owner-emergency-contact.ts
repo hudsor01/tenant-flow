@@ -140,20 +140,20 @@ export function useUpdateOwnerEmergencyContactMutation() {
 
 		onMutate: async (input) => {
 			await queryClient.cancelQueries({
-				queryKey: ownerEmergencyContactKeys.detail(),
+				queryKey: ownerEmergencyContactQueries.detail().queryKey,
 			});
 
-			const previous = queryClient.getQueryData<OwnerEmergencyContact | null>(
-				ownerEmergencyContactKeys.detail(),
+			const previous = queryClient.getQueryData(
+				ownerEmergencyContactQueries.detail().queryKey,
 			);
 
-			queryClient.setQueryData<OwnerEmergencyContact | null>(
-				ownerEmergencyContactKeys.detail(),
-				{
+			queryClient.setQueryData(
+				ownerEmergencyContactQueries.detail().queryKey,
+				(): OwnerEmergencyContact => ({
 					name: input.name ?? null,
 					phone: input.phone ?? null,
 					relationship: input.relationship ?? null,
-				},
+				}),
 			);
 
 			return { previous };
@@ -162,7 +162,7 @@ export function useUpdateOwnerEmergencyContactMutation() {
 		onError: (err, _input, context) => {
 			if (context?.previous !== undefined) {
 				queryClient.setQueryData(
-					ownerEmergencyContactKeys.detail(),
+					ownerEmergencyContactQueries.detail().queryKey,
 					context.previous,
 				);
 			}
@@ -180,7 +180,7 @@ export function useUpdateOwnerEmergencyContactMutation() {
 
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ownerEmergencyContactKeys.detail(),
+				queryKey: ownerEmergencyContactQueries.detail().queryKey,
 			});
 		},
 	});
@@ -194,15 +194,15 @@ export function useDeleteOwnerEmergencyContactMutation() {
 
 		onMutate: async () => {
 			await queryClient.cancelQueries({
-				queryKey: ownerEmergencyContactKeys.detail(),
+				queryKey: ownerEmergencyContactQueries.detail().queryKey,
 			});
 
-			const previous = queryClient.getQueryData<OwnerEmergencyContact | null>(
-				ownerEmergencyContactKeys.detail(),
+			const previous = queryClient.getQueryData(
+				ownerEmergencyContactQueries.detail().queryKey,
 			);
 
-			queryClient.setQueryData<OwnerEmergencyContact | null>(
-				ownerEmergencyContactKeys.detail(),
+			queryClient.setQueryData(
+				ownerEmergencyContactQueries.detail().queryKey,
 				null,
 			);
 
@@ -212,7 +212,7 @@ export function useDeleteOwnerEmergencyContactMutation() {
 		onError: (err, _input, context) => {
 			if (context?.previous !== undefined) {
 				queryClient.setQueryData(
-					ownerEmergencyContactKeys.detail(),
+					ownerEmergencyContactQueries.detail().queryKey,
 					context.previous,
 				);
 			}
@@ -230,7 +230,7 @@ export function useDeleteOwnerEmergencyContactMutation() {
 
 		onSettled: () => {
 			queryClient.invalidateQueries({
-				queryKey: ownerEmergencyContactKeys.detail(),
+				queryKey: ownerEmergencyContactQueries.detail().queryKey,
 			});
 		},
 	});
