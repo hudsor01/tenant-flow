@@ -19,6 +19,7 @@ import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { describeAuthError } from "./auth-error";
 
 export const SESSION_CACHE_PATH = join(
 	tmpdir(),
@@ -44,8 +45,13 @@ async function signInOnce(
 		password,
 	});
 	if (error) {
+		// Structured fields, not just .message -- see describeAuthError. This is
+		// the line that distinguishes a wrong secret (invalid_credentials) from
+		// a rate limit (over_request_rate_limit) from a network failure, and it
+		// is the first thing anyone reads when the whole suite goes red.
 		throw new Error(
-			`globalSetup: failed to sign in as ${email}: ${error.message}`,
+			`globalSetup: failed to sign in as ${email}: ${describeAuthError(error)}`,
+			{ cause: error },
 		);
 	}
 	if (!data.session) {
