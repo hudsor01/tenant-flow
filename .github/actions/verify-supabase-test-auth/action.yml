@@ -37,9 +37,13 @@ inputs:
     required: true
   credentials:
     description: >-
-      Newline-separated `label=email:password` entries to verify, e.g.
-      `owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}`.
-      Every listed pair is REQUIRED -- an empty email or password fails the gate.
+      Newline-separated `label=email:password` entries to verify, one per line,
+      with each half supplied from the caller's secrets (e.g. the owner-a line is
+      built from E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD). Every listed pair is
+      REQUIRED -- an empty email or password fails the gate. NOTE: this text must
+      not contain a literal expression -- GitHub evaluates them inside action
+      metadata, where the secrets context does not exist, and refuses to load
+      the action. That is how the first version of this file failed.
     required: true
   secret-key:
     description: >-
