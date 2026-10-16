@@ -335,3 +335,14 @@ n8n/
 # instruction file, and prefers AGENTS.md whenever it exists. Keeping an
 # untracked AGENTS.md locally absorbs that write so CLAUDE.md stays clean.
 AGENTS.md
+
+# Generated and MANAGED BY NEXT.JS -- do not track, do not edit.
+# Next rewrites this file on every `next dev`, `next build` and `next typegen`,
+# and the contents differ between them: dev points the route-type imports at
+# `.next/dev/types/`, a production build points them at `.next/types/`. Tracking
+# it therefore means every build dirties the tree and every dev run flips it
+# back, so no committed value is ever correct for both.
+# Next's own docs say to gitignore it and untrack it if already tracked:
+# https://nextjs.org/docs/app/api-reference/config/typescript#next-envdts
+# It stays in tsconfig.json's `include` array, which is required and unaffected.
+next-env.d.ts
