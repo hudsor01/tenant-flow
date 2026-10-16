@@ -144,7 +144,7 @@ jobs:
     # Dependabot scope (E2E_OWNER_EMAIL / E2E_OWNER_PASSWORD /
     # E2E_OWNER_B_EMAIL / E2E_OWNER_B_PASSWORD / NEXT_PUBLIC_SUPABASE_URL /
     # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY), so every actor-based skip guard has
-    # been deleted and the "Check required secrets" step below is now the single
+    # been deleted and the "Verify Supabase test credentials" step below is now the single
     # gate for everyone. If the Dependabot scope ever drifts, this job FAILS
     # LOUDLY instead of passing vacuously — which is the whole point.
     #
@@ -168,27 +168,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Fail hard when any required secret is missing. Same pattern as
-      # rls-security-tests.yml — a gate that silently skips is worse
-      # than no gate because it masks real problems behind green checks.
-      - name: Check required secrets
-        run: |
-          missing=()
-          [ -z "$OWNER_EMAIL" ]              && missing+=(E2E_OWNER_EMAIL)
-          [ -z "$OWNER_PASS" ]               && missing+=(E2E_OWNER_PASSWORD)
-          [ -z "$SUPABASE_URL" ]             && missing+=(NEXT_PUBLIC_SUPABASE_URL)
-          [ -z "$SUPABASE_PUBLISHABLE_KEY" ] && missing+=(NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing required GitHub repo secrets: ${missing[*]}"
-            echo "::error::Add them in Settings → Secrets and variables. A Dependabot-authored PR reads the DEPENDABOT tab, not Actions -- a secret present only under Actions is invisible to it, which is how all 12 open dependency PRs failed this gate at once on 2026-09-25."
-            exit 1
-          fi
-          echo "All required secrets present"
-        env:
-          OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
-          OWNER_PASS: ${{ secrets.E2E_OWNER_PASSWORD }}
-          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      # VERIFY, DO NOT MERELY CHECK -- same shared action as rls-security, so
+      # the two production-data jobs can no longer drift apart (this copy had
+      # checked four secrets while the other checked ten). One real sign-in as
+      # owner A, revoked immediately; on failure it names the pair, GoTrue's
+      # error_code and which secret store this run read (Actions vs Dependabot).
+      - name: Verify Supabase test credentials
+        uses: ./.github/actions/verify-supabase-test-auth
+        with:
+          supabase-url: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          publishable-key: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          credentials: |
+            owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:

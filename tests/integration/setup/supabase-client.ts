@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { describeAuthError } from "./auth-error";
 
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SUPABASE_PUBLISHABLE_KEY =
@@ -60,11 +61,27 @@ export async function createTestClient(
 			refresh_token: cached.refresh_token,
 		});
 		if (!error) return client;
-		// setSession failed (token expired / invalidated) — fall through to signin
+		// The cached session was rejected, so this file is about to spend a real
+		// sign-in. Say WHY before doing so: the fallback used to be silent, which
+		// made a cache miss indistinguishable from a cache that never existed
+		// when the sign-in below then failed. Status/code are what classify it
+		// (expired vs revoked vs rate-limited); the message alone does not.
+		console.warn(
+			`[createTestClient] cached session for ${email} rejected (${describeAuthError(error)}); falling back to signInWithPassword`,
+		);
 	}
 
 	const { error } = await client.auth.signInWithPassword({ email, password });
-	if (error) throw new Error(`Failed to sign in as ${email}: ${error.message}`);
+	if (error) {
+		// Carry the structured fields, not just .message. A production run once
+		// failed here with the message rendered as "<none>" and nothing else --
+		// unclassifiable after the fact. `cause` keeps the original error object
+		// attached for anything that inspects it.
+		throw new Error(
+			`Failed to sign in as ${email}: ${describeAuthError(error)}`,
+			{ cause: error },
+		);
+	}
 	return client;
 }
 
