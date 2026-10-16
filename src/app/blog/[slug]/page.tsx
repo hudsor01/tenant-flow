@@ -206,6 +206,17 @@ type BlogPostRow = Pick<
 	| "canonical_url"
 >;
 
+/**
+ * Upper bound on the build-time batch. An unbounded select is capped by
+ * PostgREST's own `db-max-rows` instead, which would silently drop slugs from
+ * the map; bounding it here makes the cap ours, explicit, and paired with the
+ * `.order()` that decides which posts win it (newest first -- the ones most
+ * likely to be read). 218 posts published at the time of writing, so this is
+ * ~4.5x headroom; at ~11 KB of content per row the batch is ~2.3 MB per worker
+ * today and this bound keeps the worst case near 11 MB.
+ */
+const BATCH_MAX_POSTS = 1000;
+
 /** Build-time only; see the rationale inside getBlogPost. */
 let buildTimePosts: Promise<Map<string, BlogPostRow>> | null = null;
 
@@ -276,7 +287,9 @@ const getBlogPost = cache(async (slug: string) => {
 				.select(
 					"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
 				)
-				.eq("status", "published");
+				.eq("status", "published")
+				.order("published_at", { ascending: false })
+				.limit(BATCH_MAX_POSTS);
 			if (error) {
 				// Fall back to per-page queries rather than failing the build here.
 				logger.error("build-time blog batch failed; falling back per page", {
@@ -286,7 +299,18 @@ const getBlogPost = cache(async (slug: string) => {
 				});
 				return new Map<string, BlogPostRow>();
 			}
-			return new Map((data ?? []).map((row) => [row.slug, row as BlogPostRow]));
+			// Hitting the bound is not an error -- the overflow slugs just take
+			// the per-page path below -- but it is the signal that this batch has
+			// outgrown "one query per worker" and needs rethinking, so say so
+			// instead of letting the build quietly get slower every release.
+			if (data.length >= BATCH_MAX_POSTS) {
+				logger.warn("build-time blog batch hit its row bound", {
+					action: "getBlogPost.batch",
+					route: "/blog/[slug]",
+					metadata: { rows: data.length, bound: BATCH_MAX_POSTS },
+				});
+			}
+			return new Map(data.map((row) => [row.slug, row]));
 		})();
 
 		const cached = (await buildTimePosts).get(slug);
