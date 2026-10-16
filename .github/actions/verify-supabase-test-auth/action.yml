@@ -1,0 +1,144 @@
+name: Verify Supabase test credentials
+description: >-
+  Fail fast, with a named cause, when the synthetic test credentials a job is
+  about to use are missing, legacy-format, or do not actually authenticate.
+
+# WHY THIS EXISTS. Both production-data jobs (e2e-smoke in ci-cd.yml and
+# rls-security in rls-security-tests.yml) used to carry their own copy of a
+# "check required secrets" step. The copies drifted -- one checked four
+# secrets, the other ten -- and both only tested that a value was NON-EMPTY.
+# A secret that is present but WRONG sailed through the gate and surfaced ten
+# seconds later as a vitest stack trace:
+#
+#   globalSetup: failed to sign in as ***: Invalid login credentials
+#
+# which looked like a flaky suite and was read that way for weeks. The same
+# commit on the same branch passed when a human pushed it (Actions secrets) and
+# failed when Dependabot rebased it (Dependabot secrets) -- the value under
+# the Dependabot tab was simply wrong. Nothing named that; this does.
+#
+# WHAT IT DOES. For each credential pair it performs ONE real sign-in against
+# GoTrue's password grant and immediately revokes the session, so the gate
+# proves the pair works at the cost of one auth call and leaves nothing behind.
+# On failure it emits a ::error:: that names the pair, the HTTP status, GoTrue's
+# error_code and message, and WHICH secret store the job read -- Actions for a
+# human-authored run, Dependabot for a dependabot[bot] run -- so the fix is one
+# sentence instead of an investigation.
+#
+# It runs BEFORE bun/node setup and needs only curl + jq (preinstalled on
+# ubuntu-latest), so a bad secret fails in seconds, not after a 90s install.
+
+inputs:
+  supabase-url:
+    description: NEXT_PUBLIC_SUPABASE_URL
+    required: true
+  publishable-key:
+    description: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (sb_publishable_*)
+    required: true
+  credentials:
+    description: >-
+      Newline-separated `label=email:password` entries to verify, e.g.
+      `owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}`.
+      Every listed pair is REQUIRED -- an empty email or password fails the gate.
+    required: true
+  secret-key:
+    description: >-
+      SUPABASE_SECRET_KEY (sb_secret_*). Optional; when given it must be present
+      and must not be a legacy eyJ* JWT (legacy keys are disabled on this project).
+    required: false
+    default: ""
+  require-secret-key:
+    description: Fail if secret-key is empty. Set true for jobs that need privileged access.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Verify Supabase test credentials
+      shell: bash
+      env:
+        SUPABASE_URL: ${{ inputs.supabase-url }}
+        PUBLISHABLE_KEY: ${{ inputs.publishable-key }}
+        CREDENTIALS: ${{ inputs.credentials }}
+        SECRET_KEY: ${{ inputs.secret-key }}
+        REQUIRE_SECRET_KEY: ${{ inputs.require-secret-key }}
+        ACTOR: ${{ github.actor }}
+      run: |
+        set -euo pipefail
+
+        # Which secret store did this run read? A Dependabot-authored run reads
+        # the DEPENDABOT tab; everything else reads ACTIONS. Naming it is the
+        # whole point -- a value that is right in one tab and wrong in the other
+        # is indistinguishable from flakiness without this line.
+        if [ "$ACTOR" = "dependabot[bot]" ]; then
+          store="Settings -> Secrets and variables -> DEPENDABOT (this run was authored by dependabot[bot])"
+        else
+          store="Settings -> Secrets and variables -> ACTIONS"
+        fi
+
+        fail() { echo "::error::$1"; echo "::error::Secret store for this run: $store"; exit 1; }
+
+        # ---- presence -------------------------------------------------------
+        missing=()
+        [ -z "$SUPABASE_URL" ]    && missing+=(NEXT_PUBLIC_SUPABASE_URL)
+        [ -z "$PUBLISHABLE_KEY" ] && missing+=(NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+        if [ "$REQUIRE_SECRET_KEY" = "true" ] && [ -z "$SECRET_KEY" ]; then
+          missing+=(SUPABASE_SECRET_KEY)
+        fi
+        # Every credential line must have both halves. Report the LABEL, never
+        # the value -- labels are ours, values are secrets.
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          label="${line%%=*}"; pair="${line#*=}"
+          email="${pair%%:*}"; password="${pair#*:}"
+          [ -z "$email" ]    && missing+=("${label}: email")
+          [ -z "$password" ] && missing+=("${label}: password")
+        done <<< "$CREDENTIALS"
+        if [ ${#missing[@]} -gt 0 ]; then
+          fail "Missing required secrets: ${missing[*]}"
+        fi
+
+        # ---- key format -----------------------------------------------------
+        # Legacy anon/service_role JWTs were disabled on this project on
+        # 2025-10-29. An eyJ* value authenticates as nothing and produces 41
+        # failures that look like product bugs. Check the shape here, where the
+        # message can say what is actually wrong.
+        case "$PUBLISHABLE_KEY" in eyJ*) fail "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is a legacy JWT; legacy keys are disabled. Use the sb_publishable_ key." ;; esac
+        case "$SECRET_KEY"      in eyJ*) fail "SUPABASE_SECRET_KEY is a legacy JWT; legacy keys are disabled. Use the sb_secret_ key." ;; esac
+
+        # ---- do the credentials actually work? ------------------------------
+        # One password-grant sign-in per pair, then an immediate logout so the
+        # gate leaves no session behind. GoTrue answers a bad pair with
+        #   400 {"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}
+        # (shape verified against this project 2026-10-16), which we surface
+        # verbatim alongside the label and store.
+        token_url="${SUPABASE_URL%/}/auth/v1/token?grant_type=password"
+        logout_url="${SUPABASE_URL%/}/auth/v1/logout"
+        verified=()
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          label="${line%%=*}"; pair="${line#*=}"
+          email="${pair%%:*}"; password="${pair#*:}"
+          body=$(jq -cn --arg e "$email" --arg p "$password" '{email:$e,password:$p}')
+          resp=$(mktemp)
+          status=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 30 \
+            -X POST "$token_url" \
+            -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
+            -d "$body" || echo "000")
+          if [ "$status" != "200" ]; then
+            code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
+            msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")
+            [ "$status" = "000" ] && msg="no HTTP response (network/DNS/timeout) -- is NEXT_PUBLIC_SUPABASE_URL right and the project reachable?"
+            fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong or the account is missing."
+          fi
+          access=$(jq -r '.access_token // empty' "$resp")
+          if [ -n "$access" ]; then
+            curl -sS -o /dev/null --max-time 15 -X POST "$logout_url" \
+              -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true
+          fi
+          rm -f "$resp"
+          verified+=("$label")
+        done <<< "$CREDENTIALS"
+
+        echo "Verified ${#verified[@]} credential pair(s) authenticate against $SUPABASE_URL: ${verified[*]}"
