@@ -118,12 +118,21 @@ export async function generateStaticParams() {
 	// build: it is never deployed, so an empty static set is harmless. The
 	// Vercel deploy build and the e2e build both run with real Supabase env
 	// and fall through to real enumeration below.
-	if (env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")) {
+	//
+	// An ABSENT url takes the same path, and that case is reachable: under
+	// `SKIP_ENV_VALIDATION=true` nothing guarantees the var exists, so a
+	// local `next build` without it used to die here with
+	// `TypeError: Cannot read properties of undefined (reading 'includes')`
+	// rather than degrading to "cannot enumerate". No url means no
+	// enumeration, which is exactly what the placeholder branch already
+	// means. `src/app/sitemap.ts` optional-chains the same read.
+	const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+	if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
 		return [];
 	}
 
 	const supabase = createSupabaseClient(
-		env.NEXT_PUBLIC_SUPABASE_URL,
+		supabaseUrl,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 	);
 
