@@ -216,6 +216,7 @@ jobs:
       # tenantflow-prod-test-account group -- nothing else holds a session.
       # Never fails the job: a revoke that cannot sign in has nothing to revoke.
       - name: Revoke test-account sessions
+        id: revoke
         if: always()
         shell: bash
         env:
@@ -224,14 +225,39 @@ jobs:
           EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
           PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
         run: |
-          set -uo pipefail
+          # `shell: bash` runs this under `bash -eo pipefail`; -e must be turned
+          # OFF explicitly or any non-zero line fails the step and therefore the
+          # required check. This step must never fail the job: a revoke that
+          # cannot happen is reported, and the upload below reacts to it.
+          set +e -u -o pipefail
+          revoked=false
+          token_url="${SUPABASE_URL%/}/auth/v1/token?grant_type=password"
+          logout_url="${SUPABASE_URL%/}/auth/v1/logout?scope=global"
           body=$(EM="$EMAIL" PW="$PASSWORD" jq -cn '{email:env.EM,password:env.PW}')
-          access=$(curl -sS --max-time 30 -X POST "${SUPABASE_URL%/}/auth/v1/token?grant_type=password"             -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' -d @- <<<"$body"             | jq -r '.access_token // empty' 2>/dev/null || true)
-          if [ -n "$access" ]; then
-            curl -sS -o /dev/null --max-time 15 -X POST "${SUPABASE_URL%/}/auth/v1/logout?scope=global"               -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" && echo "revoked all sessions for the e2e owner" || echo "::warning::revoke request failed"
+          # Up to 3 attempts with backoff: a 429 or a transient 5xx from GoTrue
+          # must not be mistaken for "no session to revoke".
+          for attempt in 1 2 3; do
+            access=$(curl -sS --max-time 30 -X POST "$token_url" \
+                       -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
+                       -d @- <<<"$body" | jq -r '.access_token // empty' 2>/dev/null)
+            if [ -n "$access" ]; then
+              # Branch on the HTTP status, not curl's exit code: without -f curl
+              # exits 0 for 401/403/429/500 too. GoTrue answers 204 on success.
+              status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$logout_url" \
+                         -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access")
+              if [ "$status" = "204" ]; then revoked=true; break; fi
+              echo "attempt $attempt: logout returned HTTP ${status:-000}"
+            else
+              echo "attempt $attempt: sign-in returned no access token"
+            fi
+            sleep $((attempt * 3))
+          done
+          if [ "$revoked" = true ]; then
+            echo "revoked all sessions for the e2e owner"
           else
-            echo "::warning::could not sign in to revoke sessions; nothing to revoke or credentials invalid"
+            echo "::warning::could not revoke the e2e owner's sessions after 3 attempts; test-results/ (traces) will be withheld from the artifact"
           fi
+          echo "revoked=$revoked" >> "$GITHUB_OUTPUT"
 
       # Upload on every non-cancelled outcome, not only `failure()`: a run that
       # passed on RETRY ("1 flaky") is green to the required check but carries
@@ -240,8 +266,14 @@ jobs:
       # resolves its outputFolder relative to the CONFIG file, so reports live
       # under tests/e2e/ and three failed runs in a row logged "No files were
       # found". test-results/ holds the per-test traces and screenshots.
-      - name: Upload Playwright report
-        if: ${{ !cancelled() }}
+      #
+      # TWO steps, gated on the revoke outcome. Traces capture request headers
+      # and cookies -- the owner's live session -- so test-results/ is published
+      # ONLY when every session was just revoked (the tokens inside are dead).
+      # If the revoke could not be confirmed, the html/json/junit report still
+      # ships (it carries no credentials) and the traces stay on the runner.
+      - name: Upload Playwright report and traces
+        if: ${{ !cancelled() && steps.revoke.outputs.revoked == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           # run_attempt makes the name unique per re-run: upload-artifact v4+
@@ -251,5 +283,14 @@ jobs:
           path: |
             tests/e2e/playwright-report/
             tests/e2e/test-results/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload Playwright report only (sessions not revoked)
+        if: ${{ !cancelled() && steps.revoke.outputs.revoked != 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report-${{ github.sha }}-${{ github.run_attempt }}
+          path: tests/e2e/playwright-report/
           if-no-files-found: warn
           retention-days: 30

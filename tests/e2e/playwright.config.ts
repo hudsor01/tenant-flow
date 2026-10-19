@@ -77,8 +77,12 @@ export default defineConfig({
 	// exactly the runs it exists to capture. Playwright's globalTimeout ends
 	// the run itself ("timedout"), still calls every reporter's onEnd so the
 	// html/json/junit reports are written, and exits 1 -- a FAILED job, not
-	// a cancelled one, so the upload runs. 9 min leaves the ~4 min build and
-	// the upload inside the 15-min budget. 0 (the default) locally.
+	// a cancelled one, so the upload runs. The deadline is armed BEFORE the
+	// webServer plugin starts, so these 9 min include `next build && next
+	// start` (measured 58 s on CI) plus the suite (measured ~3 min for 137
+	// tests); the webServer `timeout: 240_000` below is a ceiling, not a
+	// measurement. Job budget: ~1 min setup + 9 min + revoke + upload, inside
+	// `timeout-minutes: 15`. 0 (the default) locally.
 	globalTimeout: process.env.CI ? 9 * 60_000 : 0,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
@@ -258,6 +262,14 @@ export default defineConfig({
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: { cookies: [], origins: [] }, // No auth - tests login flow
+				// NO TRACE FOR THIS PROJECT. critical-paths.smoke.spec.ts exercises
+				// the real login form and types E2E_OWNER_PASSWORD into it; a
+				// Playwright trace records every fill() value, so a retried smoke
+				// spec would write the production password into test-results/,
+				// which CI now uploads as an artifact of a public repository.
+				// Revoking sessions cannot undo a leaked password. Video and
+				// screenshots stay on: browsers render password fields masked.
+				trace: "off",
 			},
 			testMatch: ["**/smoke/**/*.spec.ts"],
 			testIgnore: ["**/minimal.smoke.spec.ts"], // This test requires pre-auth, runs in chromium project
