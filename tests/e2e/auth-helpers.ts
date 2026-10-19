@@ -286,7 +286,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	let session = sessionCache.get(cacheKey);
 
 	if (!session || options.forceLogin) {
-		debugLog(` Authenticating owner via API: ${email}`);
+		debugLog(" Authenticating the e2e owner via API");
 
 		try {
 			session = await authenticateViaAPI(email, password);
@@ -298,7 +298,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 			throw error;
 		}
 	} else {
-		debugLog(` Using cached owner session for: ${email}`);
+		debugLog(" Using the cached e2e owner session");
 	}
 
 	// Inject the session as @supabase/ssr cookies onto the browser context
@@ -325,11 +325,11 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// timeout (this is the failure mode that broke PR #674's CI).
 	if (currentUrl.includes("/pricing")) {
 		throw new Error(
-			`Owner login succeeded but was redirected to /pricing: the synthetic owner (${email}) failed the subscription gate — pin its public.users.subscription_status to 'active'.`,
+			`Owner login succeeded but was redirected to /pricing: the synthetic owner (E2E_OWNER_EMAIL) failed the subscription gate — pin its public.users.subscription_status to 'active'.`,
 		);
 	}
 
-	debugLog(` Logged in as owner (${email})`);
+	debugLog(" Logged in as the e2e owner");
 }
 
 /**

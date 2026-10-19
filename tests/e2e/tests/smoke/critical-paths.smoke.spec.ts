@@ -123,7 +123,7 @@ test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
 				throw new Error(
 					`🚨 LOGIN FAILED: ${errorMsg}\n\n` +
 						`❌ CRITICAL: Owner cannot login!\n` +
-						`Account: ${OWNER_EMAIL}`,
+						`Account: the e2e owner (E2E_OWNER_EMAIL)`,
 					{ cause: e },
 				);
 			}

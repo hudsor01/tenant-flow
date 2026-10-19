@@ -215,9 +215,8 @@ jobs:
       # nothing that escaped by a path not yet thought of stays usable.
       # scope=global is safe here only because e2e-smoke and rls-security are
       # serialised by the tenantflow-prod-test-account group. Never fails the
-      # job; the outcome is logged and recorded as a step output.
+      # job; the outcome is logged.
       - name: Revoke test-account sessions
-        id: revoke
         if: always()
         shell: bash
         env:
@@ -229,7 +228,7 @@ jobs:
           # `shell: bash` runs this under `bash -eo pipefail`; -e must be turned
           # OFF explicitly or any non-zero line fails the step and therefore the
           # required check. This step must never fail the job: a revoke that
-          # cannot happen is reported, and the upload below reacts to it.
+          # cannot happen is reported as a warning.
           set +e -u -o pipefail
           revoked=false
           token_url="${SUPABASE_URL%/}/auth/v1/token?grant_type=password"
@@ -256,40 +255,18 @@ jobs:
           if [ "$revoked" = true ]; then
             echo "revoked all sessions for the e2e owner"
           else
-            echo "::warning::could not revoke the e2e owner's sessions after 3 attempts (no attachments are uploaded regardless; sessions expire within the hour)"
+            echo "::warning::could not revoke the e2e owner's sessions after 3 attempts (nothing is uploaded regardless; the access token lapses within the hour but the refresh token stays valid until the next successful global revoke)"
           fi
-          echo "revoked=$revoked" >> "$GITHUB_OUTPUT"
 
-      # Upload on every non-cancelled outcome, not only `failure()`: a run that
-      # passed on RETRY ("1 flaky") is green to the required check but carries
-      # evidence of a real defect, and `failure()` threw it away. The previous
-      # path was `playwright-report/` at the repo root; the html reporter
-      # resolves its outputFolder relative to the CONFIG file, so reports live
-      # under tests/e2e/ and three failed runs in a row logged "No files were
-      # found".
-      #
-      # NO ATTACHMENTS LEAVE THE RUNNER WHILE CI AUTHENTICATES AGAINST
-      # PRODUCTION. Three review cycles found three independent ways a trace,
-      # video, screenshot or page snapshot of a production login carries live
-      # credentials, and the html reporter COPIES every attachment into
-      # playwright-report/data/<sha1>.<ext>, so excluding test-results/ alone
-      # withholds nothing. What ships: the html report minus data/ (trace links
-      # 404; everything else renders) and the json/junit summaries, none of
-      # which carry credentials now that no assertion prints a secret value.
-      # Traces come back when the stack is hermetic (realignment phase 2) and
-      # the tokens inside them belong to a throwaway database.
-      - name: Upload Playwright report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          # run_attempt makes the name unique per re-run: upload-artifact v4+
-          # treats artifacts as immutable, so a "Re-run failed jobs" that
-          # uploads the same name again would 409 and fail the required check.
-          name: playwright-report-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            tests/e2e/playwright-report/
-            !tests/e2e/playwright-report/data/**
-            tests/e2e/test-results/results.json
-            tests/e2e/test-results/junit.xml
-          if-no-files-found: warn
-          retention-days: 30
+      # NOTHING LEAVES THE RUNNER WHILE CI AUTHENTICATES AGAINST PRODUCTION.
+      # Review of this PR found, in order: traces, videos, screenshots and
+      # page snapshots of a production login carry live credentials; the html
+      # reporter copies every attachment into playwright-report/data/; and the
+      # html report itself titles every typed value as `Fill "{value}"`
+      # (playwright-core protocol metainfo, no redaction), so the login test
+      # and its beforeAll hook put the owner's password in index.html on every
+      # PASSING run. The json/junit summaries carry error messages, and a
+      # failed fill() prints its value in the call log. No report is uploaded;
+      # triage uses the job log, which GitHub masks. Reports return when the
+      # stack is hermetic (realignment phase 2) and the credentials belong to
+      # a throwaway database.
