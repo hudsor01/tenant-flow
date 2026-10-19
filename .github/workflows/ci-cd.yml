@@ -199,22 +199,23 @@ jobs:
         run: bunx playwright test --config tests/e2e/playwright.config.ts --project=smoke --project=public --project=owner-axe
         env:
           SKIP_ENV_VALIDATION: 'true'
+          # On any failure Playwright writes error-context.md, an accessibility
+          # snapshot of the page INCLUDING input values -- for a failed smoke
+          # login that is the typed production password. This disables that
+          # snapshot (_takePageSnapshot returns early on the flag).
+          PLAYWRIGHT_NO_COPY_PROMPT: 'true'
           E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
           E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
-      # REVOKE THE SYNTHETIC OWNER'S SESSIONS BEFORE ANYTHING IS UPLOADED.
-      # On a failed or retried spec Playwright writes a trace into
-      # test-results/, and a trace captures request headers and cookies --
-      # the owner's live production access and refresh tokens. That directory
-      # is about to be published as an artifact of a PUBLIC repo for 30 days.
-      # A global sign-out invalidates every session and refresh token for the
-      # account, so whatever a trace carries is dead on arrival (access tokens
-      # expire within the hour on their own). scope=global is safe here only
-      # because e2e-smoke and rls-security are serialised by the
-      # tenantflow-prod-test-account group -- nothing else holds a session.
-      # Never fails the job: a revoke that cannot sign in has nothing to revoke.
+      # REVOKE THE SYNTHETIC OWNER'S SESSIONS AFTER EVERY RUN. Defense in
+      # depth: no attachments are uploaded (see below), but a global sign-out
+      # invalidates every session and refresh token the run created, so
+      # nothing that escaped by a path not yet thought of stays usable.
+      # scope=global is safe here only because e2e-smoke and rls-security are
+      # serialised by the tenantflow-prod-test-account group. Never fails the
+      # job; the outcome is logged and recorded as a step output.
       - name: Revoke test-account sessions
         id: revoke
         if: always()
@@ -250,30 +251,35 @@ jobs:
             else
               echo "attempt $attempt: sign-in returned no access token"
             fi
-            sleep $((attempt * 3))
+            [ "$attempt" -lt 3 ] && sleep $((attempt * 3))
           done
           if [ "$revoked" = true ]; then
             echo "revoked all sessions for the e2e owner"
           else
-            echo "::warning::could not revoke the e2e owner's sessions after 3 attempts; test-results/ (traces) will be withheld from the artifact"
+            echo "::warning::could not revoke the e2e owner's sessions after 3 attempts (no attachments are uploaded regardless; sessions expire within the hour)"
           fi
           echo "revoked=$revoked" >> "$GITHUB_OUTPUT"
 
       # Upload on every non-cancelled outcome, not only `failure()`: a run that
       # passed on RETRY ("1 flaky") is green to the required check but carries
-      # the trace of a real defect, and `failure()` threw it away. The previous
+      # evidence of a real defect, and `failure()` threw it away. The previous
       # path was `playwright-report/` at the repo root; the html reporter
       # resolves its outputFolder relative to the CONFIG file, so reports live
       # under tests/e2e/ and three failed runs in a row logged "No files were
-      # found". test-results/ holds the per-test traces and screenshots.
+      # found".
       #
-      # TWO steps, gated on the revoke outcome. Traces capture request headers
-      # and cookies -- the owner's live session -- so test-results/ is published
-      # ONLY when every session was just revoked (the tokens inside are dead).
-      # If the revoke could not be confirmed, the html/json/junit report still
-      # ships (it carries no credentials) and the traces stay on the runner.
-      - name: Upload Playwright report and traces
-        if: ${{ !cancelled() && steps.revoke.outputs.revoked == 'true' }}
+      # NO ATTACHMENTS LEAVE THE RUNNER WHILE CI AUTHENTICATES AGAINST
+      # PRODUCTION. Three review cycles found three independent ways a trace,
+      # video, screenshot or page snapshot of a production login carries live
+      # credentials, and the html reporter COPIES every attachment into
+      # playwright-report/data/<sha1>.<ext>, so excluding test-results/ alone
+      # withholds nothing. What ships: the html report minus data/ (trace links
+      # 404; everything else renders) and the json/junit summaries, none of
+      # which carry credentials now that no assertion prints a secret value.
+      # Traces come back when the stack is hermetic (realignment phase 2) and
+      # the tokens inside them belong to a throwaway database.
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           # run_attempt makes the name unique per re-run: upload-artifact v4+
@@ -282,15 +288,8 @@ jobs:
           name: playwright-report-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             tests/e2e/playwright-report/
-            tests/e2e/test-results/
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Upload Playwright report only (sessions not revoked)
-        if: ${{ !cancelled() && steps.revoke.outputs.revoked != 'true' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: playwright-report-${{ github.sha }}-${{ github.run_attempt }}
-          path: tests/e2e/playwright-report/
+            !tests/e2e/playwright-report/data/**
+            tests/e2e/test-results/results.json
+            tests/e2e/test-results/junit.xml
           if-no-files-found: warn
           retention-days: 30

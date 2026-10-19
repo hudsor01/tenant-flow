@@ -54,8 +54,17 @@ async function loginAsOwner(page: Page) {
 	await passwordInput.click();
 	await passwordInput.fill(OWNER_PASSWORD);
 
-	await expect(emailInput).toHaveValue(OWNER_EMAIL);
-	await expect(passwordInput).toHaveValue(OWNER_PASSWORD);
+	// Compare as a boolean so a failure prints true/false, never the value:
+	// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
+	// json/junit/html reports, which CI uploads as a public artifact.
+	expect(
+		(await emailInput.inputValue()) === OWNER_EMAIL,
+		"email field did not accept the typed value",
+	).toBe(true);
+	expect(
+		(await passwordInput.inputValue()) === OWNER_PASSWORD,
+		"password field did not accept the typed value",
+	).toBe(true);
 
 	await submitButton.click();
 	await page.waitForURL((url) => !url.pathname.includes("/login"), {
@@ -87,8 +96,17 @@ test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
 		await passwordInput.click();
 		await passwordInput.fill(OWNER_PASSWORD);
 
-		await expect(emailInput).toHaveValue(OWNER_EMAIL);
-		await expect(passwordInput).toHaveValue(OWNER_PASSWORD);
+		// Compare as a boolean so a failure prints true/false, never the value:
+		// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
+		// json/junit/html reports, which CI uploads as a public artifact.
+		expect(
+			(await emailInput.inputValue()) === OWNER_EMAIL,
+			"email field did not accept the typed value",
+		).toBe(true);
+		expect(
+			(await passwordInput.inputValue()) === OWNER_PASSWORD,
+			"password field did not accept the typed value",
+		).toBe(true);
 
 		await submitButton.click();
 

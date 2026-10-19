@@ -267,8 +267,10 @@ export default defineConfig({
 				// Playwright trace records every fill() value, so a retried smoke
 				// spec would write the production password into test-results/,
 				// which CI now uploads as an artifact of a public repository.
-				// Revoking sessions cannot undo a leaked password. Video and
-				// screenshots stay on: browsers render password fields masked.
+				// Revoking sessions cannot undo a leaked password. CI additionally
+				// uploads NO attachments at all while it runs against production
+				// (see ci-cd.yml); this keeps the trace from existing in the
+				// first place for the one project that types the secret.
 				trace: "off",
 			},
 			testMatch: ["**/smoke/**/*.spec.ts"],
