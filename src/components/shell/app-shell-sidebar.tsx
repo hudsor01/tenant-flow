@@ -53,13 +53,18 @@ export function AppShellSidebar({
 
 			{/* Command Palette Trigger — Session 11 P3 #41: the bare
 			    "Search..." pill read as a search input but actually opens
-			    the cmdk command palette. Renamed + got an aria-label so
-			    users (and screen readers) understand this routes to the
-			    same surface ⌘K opens. */}
+			    the cmdk command palette, so it was renamed and told screen
+			    readers it routes to the same surface ⌘K opens.
+			    NO aria-label here, on purpose (WCAG 2.5.3 Label in Name,
+			    axe `label-content-name-mismatch`, default-on since axe-core
+			    4.14): an aria-label REPLACES the accessible name, and the
+			    old one did not contain the visible text, so a voice-control
+			    user saying "Search pages and actions" could not activate
+			    this. The visible text now IS the start of the name and the
+			    command-palette hint is an sr-only suffix. */}
 			<div className="px-3 py-3">
 				<button
 					onClick={onCommandOpen}
-					aria-label="Open command palette (search pages and actions)"
 					className="w-full flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground text-sm rounded-md border border-border transition-colors"
 				>
 					<Search className="w-4 h-4" />
@@ -67,6 +72,7 @@ export function AppShellSidebar({
 					<kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-background border border-border rounded">
 						<span className="text-xs">&#8984;</span>K
 					</kbd>
+					<span className="sr-only"> (opens the command palette)</span>
 				</button>
 			</div>
 
