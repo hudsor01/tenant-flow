@@ -118,18 +118,25 @@ runs:
         # (shape verified against this project 2026-10-16), which we surface
         # verbatim alongside the label and store.
         token_url="${SUPABASE_URL%/}/auth/v1/token?grant_type=password"
-        logout_url="${SUPABASE_URL%/}/auth/v1/logout"
+        # scope=local revokes ONLY the session this probe just created. Without it
+        # GoTrue's default is a GLOBAL sign-out of every session for that user,
+        # which is both more than the probe needs and a race against anything
+        # else holding a session for the same synthetic account.
+        logout_url="${SUPABASE_URL%/}/auth/v1/logout?scope=local"
         verified=()
         while IFS= read -r line; do
           [ -z "$line" ] && continue
           label="${line%%=*}"; pair="${line#*=}"
           email="${pair%%:*}"; password="${pair#*:}"
+          # The password reaches curl on STDIN (-d @-), never in argv, so it is
+          # not visible in the runner's process list (GitHub: "avoid passing
+          # secrets between processes from the command line").
           body=$(jq -cn --arg e "$email" --arg p "$password" '{email:$e,password:$p}')
           resp=$(mktemp)
           status=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 30 \
             -X POST "$token_url" \
             -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
-            -d "$body" || echo "000")
+            -d @- <<<"$body" || echo "000")
           if [ "$status" != "200" ]; then
             code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
             msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")

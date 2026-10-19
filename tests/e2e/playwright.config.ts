@@ -65,7 +65,11 @@ export default defineConfig({
 	// Execution Strategy
 	// ===================
 	fullyParallel: true,
-	maxFailures: 1, // Stop on first failure for debugging
+	// Stop-on-first-failure is a DEBUGGING posture (it is what `--debug`
+	// sets). In CI it meant one failing spec aborted the run and hid every
+	// other failure behind "Testing stopped early after 1 maximum allowed
+	// failures". 0 is Playwright's default: run everything, report everything.
+	maxFailures: process.env.CI ? 0 : 1,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
@@ -319,9 +323,14 @@ export default defineConfig({
 	webServer: [
 		(() => {
 			const sharedEnv = `export NODE_ENV='${process.env.CI ? "production" : "test"}' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && export NEXT_PUBLIC_APP_URL='${TEST_FRONTEND_URL}' && export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_test_placeholder'`;
+			// This command used to `rm -f .env.local` first -- deleting a
+			// developer's local env file on every e2e run. The `env:` block below
+			// already pins every value the server needs, and Next's env loader
+			// never overrides a variable that is already set in process.env, so
+			// the deletion protected nothing and destroyed real configuration.
 			const command = process.env.CI
-				? `rm -rf .next && rm -f .env.local && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
-				: `rm -rf .next && rm -f .env.local && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
+				? `rm -rf .next && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
+				: `rm -rf .next && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
 			return {
 				command,
 				url: TEST_FRONTEND_URL,

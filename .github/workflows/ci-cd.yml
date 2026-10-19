@@ -204,10 +204,20 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
-      - name: Upload Playwright report on failure
-        if: failure()
+      # Upload on every non-cancelled outcome, not only `failure()`: a run that
+      # passed on RETRY ("1 flaky") is green to the required check but carries
+      # the trace of a real defect, and `failure()` threw it away. The previous
+      # path was `playwright-report/` at the repo root; the html reporter
+      # resolves its outputFolder relative to the CONFIG file, so reports live
+      # under tests/e2e/ and three failed runs in a row logged "No files were
+      # found". test-results/ holds the per-test traces and screenshots.
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-${{ github.sha }}
-          path: playwright-report/
-          retention-days: 7
+          path: |
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
+          if-no-files-found: warn
+          retention-days: 30
