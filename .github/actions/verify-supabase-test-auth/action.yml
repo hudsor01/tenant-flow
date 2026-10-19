@@ -128,19 +128,23 @@ runs:
           [ -z "$line" ] && continue
           label="${line%%=*}"; pair="${line#*=}"
           email="${pair%%:*}"; password="${pair#*:}"
-          # The password reaches curl on STDIN (-d @-), never in argv, so it is
-          # not visible in the runner's process list (GitHub: "avoid passing
-          # secrets between processes from the command line").
-          body=$(jq -cn --arg e "$email" --arg p "$password" '{email:$e,password:$p}')
+          # The password reaches jq through the ENVIRONMENT and curl through
+          # STDIN (-d @-) -- never argv, so it is not visible in the runner's
+          # process list (GitHub: "avoid passing secrets between processes from
+          # the command line"). `--arg p "$password"` would have put it in argv.
+          body=$(PW="$password" jq -cn --arg e "$email" '{email:$e,password:env.PW}')
           resp=$(mktemp)
           status=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 30 \
             -X POST "$token_url" \
             -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
-            -d @- <<<"$body" || echo "000")
+            -d @- <<<"$body" || true)
+          # curl writes `000` to stdout itself on a transport failure (DNS,
+          # connect, timeout); a `|| echo 000` here used to APPEND a second
+          # one, yielding `000000` and bypassing the no-response branch below.
           if [ "$status" != "200" ]; then
             code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
             msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")
-            [ "$status" = "000" ] && msg="no HTTP response (network/DNS/timeout) -- is NEXT_PUBLIC_SUPABASE_URL right and the project reachable?"
+            case "$status" in ""|000) code="no_response"; msg="no HTTP response (network/DNS/timeout) -- is NEXT_PUBLIC_SUPABASE_URL right and the project reachable?" ;; esac
             fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong or the account is missing."
           fi
           access=$(jq -r '.access_token // empty' "$resp")

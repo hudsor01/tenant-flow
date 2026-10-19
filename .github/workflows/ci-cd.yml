@@ -204,6 +204,35 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
+      # REVOKE THE SYNTHETIC OWNER'S SESSIONS BEFORE ANYTHING IS UPLOADED.
+      # On a failed or retried spec Playwright writes a trace into
+      # test-results/, and a trace captures request headers and cookies --
+      # the owner's live production access and refresh tokens. That directory
+      # is about to be published as an artifact of a PUBLIC repo for 30 days.
+      # A global sign-out invalidates every session and refresh token for the
+      # account, so whatever a trace carries is dead on arrival (access tokens
+      # expire within the hour on their own). scope=global is safe here only
+      # because e2e-smoke and rls-security are serialised by the
+      # tenantflow-prod-test-account group -- nothing else holds a session.
+      # Never fails the job: a revoke that cannot sign in has nothing to revoke.
+      - name: Revoke test-account sessions
+        if: always()
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+        run: |
+          set -uo pipefail
+          body=$(EM="$EMAIL" PW="$PASSWORD" jq -cn '{email:env.EM,password:env.PW}')
+          access=$(curl -sS --max-time 30 -X POST "${SUPABASE_URL%/}/auth/v1/token?grant_type=password"             -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' -d @- <<<"$body"             | jq -r '.access_token // empty' 2>/dev/null || true)
+          if [ -n "$access" ]; then
+            curl -sS -o /dev/null --max-time 15 -X POST "${SUPABASE_URL%/}/auth/v1/logout?scope=global"               -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" && echo "revoked all sessions for the e2e owner" || echo "::warning::revoke request failed"
+          else
+            echo "::warning::could not sign in to revoke sessions; nothing to revoke or credentials invalid"
+          fi
+
       # Upload on every non-cancelled outcome, not only `failure()`: a run that
       # passed on RETRY ("1 flaky") is green to the required check but carries
       # the trace of a real defect, and `failure()` threw it away. The previous
@@ -215,7 +244,10 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report-${{ github.sha }}
+          # run_attempt makes the name unique per re-run: upload-artifact v4+
+          # treats artifacts as immutable, so a "Re-run failed jobs" that
+          # uploads the same name again would 409 and fail the required check.
+          name: playwright-report-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             tests/e2e/playwright-report/
             tests/e2e/test-results/

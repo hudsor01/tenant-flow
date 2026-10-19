@@ -70,6 +70,16 @@ export default defineConfig({
 	// other failure behind "Testing stopped early after 1 maximum allowed
 	// failures". 0 is Playwright's default: run everything, report everything.
 	maxFailures: process.env.CI ? 0 : 1,
+	// With maxFailures 0, a SYSTEMIC failure (broken build, dead auth) no
+	// longer stops after the first spec -- 137 tests x 3 attempts could run
+	// past the job's `timeout-minutes: 15`. GitHub then CANCELS the job,
+	// `!cancelled()` is false, and the artifact upload below is skipped for
+	// exactly the runs it exists to capture. Playwright's globalTimeout ends
+	// the run itself ("timedout"), still calls every reporter's onEnd so the
+	// html/json/junit reports are written, and exits 1 -- a FAILED job, not
+	// a cancelled one, so the upload runs. 9 min leaves the ~4 min build and
+	// the upload inside the 15-min budget. 0 (the default) locally.
+	globalTimeout: process.env.CI ? 9 * 60_000 : 0,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
