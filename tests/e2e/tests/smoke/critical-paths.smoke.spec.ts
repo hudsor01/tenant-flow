@@ -57,15 +57,19 @@ async function loginAsOwner(page: Page) {
 	// Compare as a boolean so a failure prints true/false, never the value:
 	// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
 	// error message, which reaches the job log (masked only for exact secret
-	// matches) and the on-disk json/junit/html reports.
-	expect(
-		(await emailInput.inputValue()) === OWNER_EMAIL,
-		"email field did not accept the typed value",
-	).toBe(true);
-	expect(
-		(await passwordInput.inputValue()) === OWNER_PASSWORD,
-		"password field did not accept the typed value",
-	).toBe(true);
+	// matches) and the on-disk json/junit/html reports. expect.poll keeps the
+	// auto-retry toHaveValue had (it polls until expect.timeout, 5 s), which
+	// a one-shot inputValue() read had dropped.
+	await expect
+		.poll(async () => (await emailInput.inputValue()) === OWNER_EMAIL, {
+			message: "email field did not accept the typed value",
+		})
+		.toBe(true);
+	await expect
+		.poll(async () => (await passwordInput.inputValue()) === OWNER_PASSWORD, {
+			message: "password field did not accept the typed value",
+		})
+		.toBe(true);
 
 	await submitButton.click();
 	await page.waitForURL((url) => !url.pathname.includes("/login"), {
@@ -100,15 +104,19 @@ test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
 		// Compare as a boolean so a failure prints true/false, never the value:
 		// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
 		// error message, which reaches the job log (masked only for exact secret
-		// matches) and the on-disk json/junit/html reports.
-		expect(
-			(await emailInput.inputValue()) === OWNER_EMAIL,
-			"email field did not accept the typed value",
-		).toBe(true);
-		expect(
-			(await passwordInput.inputValue()) === OWNER_PASSWORD,
-			"password field did not accept the typed value",
-		).toBe(true);
+		// matches) and the on-disk json/junit/html reports. expect.poll keeps the
+		// auto-retry toHaveValue had (it polls until expect.timeout, 5 s), which
+		// a one-shot inputValue() read had dropped.
+		await expect
+			.poll(async () => (await emailInput.inputValue()) === OWNER_EMAIL, {
+				message: "email field did not accept the typed value",
+			})
+			.toBe(true);
+		await expect
+			.poll(async () => (await passwordInput.inputValue()) === OWNER_PASSWORD, {
+				message: "password field did not accept the typed value",
+			})
+			.toBe(true);
 
 		await submitButton.click();
 

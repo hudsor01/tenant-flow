@@ -81,7 +81,10 @@ runs:
           store="Settings -> Secrets and variables -> ACTIONS"
         fi
 
-        fail() { echo "::error::$1"; echo "::error::Secret store for this run: $store"; exit 1; }
+        # fail MESSAGE [nostore]. The store line is the whole point for a value
+        # that is WRONG, and a misdirection for a 429/5xx/no-response -- those
+        # pass `nostore` so nobody rotates a secret over a rate limit.
+        fail() { echo "::error::$1"; [ "${2:-}" != "nostore" ] && echo "::error::Secret store for this run: $store"; exit 1; }
 
         # ---- presence -------------------------------------------------------
         missing=()
@@ -144,8 +147,20 @@ runs:
           if [ "$status" != "200" ]; then
             code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
             msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")
-            case "$status" in ""|000) code="no_response"; msg="no HTTP response (network/DNS/timeout) -- is NEXT_PUBLIC_SUPABASE_URL right and the project reachable?" ;; esac
-            fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong or the account is missing."
+            # Name the cause by STATUS. Only a 400/403 says the pair or account
+            # is at fault. A 429 (over_request_rate_limit, per runner IP) or a
+            # 5xx says nothing about the secret, and blaming it would be this
+            # gate committing the misdiagnosis it exists to prevent.
+            case "$status" in
+              ""|000)
+                fail "Credential pair '${label}' could not be verified: no HTTP response (network/DNS/timeout). Is NEXT_PUBLIC_SUPABASE_URL right and the project reachable? The pair was not tested." nostore ;;
+              400|403)
+                fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong, or the account is missing or blocked." ;;
+              429)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue rate-limited this runner's IP; the pair was NOT tested. Re-run the job; do not rotate the secret." nostore ;;
+              *)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue returned an unexpected status; this is not a credentials problem. The pair was not tested." nostore ;;
+            esac
           fi
           access=$(jq -r '.access_token // empty' "$resp")
           if [ -n "$access" ]; then

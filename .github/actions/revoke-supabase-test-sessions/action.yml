@@ -6,12 +6,14 @@ description: >-
 
 # WHY THIS EXISTS. e2e-smoke and rls-security both sign real synthetic accounts
 # into the PRODUCTION project, and a run leaves access + refresh tokens behind
-# (Playwright storage state, the vitest globalSetup session cache). Defense in
-# depth: nothing is uploaded from either job while CI runs against production,
-# but a GoTrue sign-out with scope=global invalidates every session and refresh
-# token the run created, so nothing that escaped by a path not yet thought of
-# stays usable. The e2e job used to carry this as an inline step for its one
-# account while the rls job, which signs in three, revoked nothing.
+# (a Playwright trace written on a retry records the session cookies it
+# injects; vitest's globalSetup caches every account's session in os.tmpdir()).
+# Defense in depth: nothing is uploaded from either job while CI runs against
+# production, but a GoTrue sign-out with scope=global invalidates every session
+# and refresh token the run created, so nothing that escaped by a path not yet
+# thought of stays usable. On main neither job revoked anything; earlier
+# revisions of this PR carried the revoke inline in ci-cd.yml for owner-a only.
+# One shared action keeps the two jobs from drifting apart.
 #
 # scope=global is safe only because the two production-data jobs are serialised
 # by the `tenantflow-prod-test-account` concurrency group; a concurrent job on
