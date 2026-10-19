@@ -128,11 +128,11 @@ runs:
           [ -z "$line" ] && continue
           label="${line%%=*}"; pair="${line#*=}"
           email="${pair%%:*}"; password="${pair#*:}"
-          # The password reaches jq through the ENVIRONMENT and curl through
-          # STDIN (-d @-) -- never argv, so it is not visible in the runner's
-          # process list (GitHub: "avoid passing secrets between processes from
-          # the command line"). `--arg p "$password"` would have put it in argv.
-          body=$(PW="$password" jq -cn --arg e "$email" '{email:$e,password:env.PW}')
+          # Both halves reach jq through the ENVIRONMENT and curl through STDIN
+          # (-d @-) -- never argv, so neither is visible in the runner's process
+          # list (GitHub: "avoid passing secrets between processes from the
+          # command line"). The emails are GitHub secrets like the passwords.
+          body=$(EM="$email" PW="$password" jq -cn '{email:env.EM,password:env.PW}')
           resp=$(mktemp)
           status=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 30 \
             -X POST "$token_url" \

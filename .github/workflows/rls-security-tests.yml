@@ -127,6 +127,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run RLS security tests
+        id: rls
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
@@ -153,3 +154,21 @@ jobs:
             exit 1
           fi
           grep -E "Test Files|Tests " /tmp/rls.log | tail -2
+
+      # REVOKE EVERY ACCOUNT'S SESSIONS AFTER THE RUN. globalSetup signs in all
+      # three (owner-a, owner-b, admin) and caches their access + refresh
+      # tokens for the suite; nothing in the suite signs them out. Same shared
+      # action as e2e-smoke; scope=global is safe because the two jobs are
+      # serialised by the concurrency group above. Runs on failure, cancellation
+      # and job timeout, but not when the test step was skipped (gate or
+      # install failed) -- then no session exists. Never fails the job.
+      - name: Revoke test-account sessions
+        if: ${{ always() && steps.rls.outcome != 'skipped' }}
+        uses: ./.github/actions/revoke-supabase-test-sessions
+        with:
+          supabase-url: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          publishable-key: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          credentials: |
+            owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}
+            owner-b=${{ secrets.E2E_OWNER_B_EMAIL }}:${{ secrets.E2E_OWNER_B_PASSWORD }}
+            admin=${{ secrets.E2E_ADMIN_EMAIL }}:${{ secrets.E2E_ADMIN_PASSWORD }}

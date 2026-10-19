@@ -72,17 +72,19 @@ export default defineConfig({
 	maxFailures: process.env.CI ? 0 : 1,
 	// With maxFailures 0, a SYSTEMIC failure (broken build, dead auth) no
 	// longer stops after the first spec -- 137 tests x 3 attempts could run
-	// past the job's `timeout-minutes: 15`. GitHub then CANCELS the job,
-	// `!cancelled()` is false, and the artifact upload below is skipped for
-	// exactly the runs it exists to capture. Playwright's globalTimeout ends
-	// the run itself ("timedout"), still calls every reporter's onEnd so the
-	// html/json/junit reports are written, and exits 1 -- a FAILED job, not
-	// a cancelled one, so the upload runs. The deadline is armed BEFORE the
+	// past the job's `timeout-minutes: 15`. GitHub then CANCELS the job
+	// mid-run: no Playwright summary, no honest end state. Playwright's
+	// globalTimeout ends the run itself ("timedout"), still calls every
+	// reporter's onEnd so the github reporter's annotations reach the job
+	// log -- the only triage surface while nothing is uploaded -- and exits
+	// 1: a FAILED job with a cause, not a cancelled one, with budget left
+	// for the always() revoke step. The deadline is armed BEFORE the
 	// webServer plugin starts, so these 9 min include `next build && next
 	// start` (measured 58 s on CI) plus the suite (measured ~3 min for 137
 	// tests); the webServer `timeout: 240_000` below is a ceiling, not a
-	// measurement. Job budget: ~1 min setup + 9 min + revoke + upload, inside
-	// `timeout-minutes: 15`. 0 (the default) locally.
+	// measurement. Job budget: ~1 min setup + 9 min + revoke (<= 2.4 min
+	// worst case for one account), inside `timeout-minutes: 15`. 0 (the
+	// default) locally.
 	globalTimeout: process.env.CI ? 9 * 60_000 : 0,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
@@ -265,12 +267,12 @@ export default defineConfig({
 				// NO TRACE FOR THIS PROJECT. critical-paths.smoke.spec.ts exercises
 				// the real login form and types E2E_OWNER_PASSWORD into it; a
 				// Playwright trace records every fill() value, so a retried smoke
-				// spec would write the production password into test-results/,
-				// which CI now uploads as an artifact of a public repository.
-				// Revoking sessions cannot undo a leaked password. CI additionally
-				// uploads NO attachments at all while it runs against production
-				// (see ci-cd.yml); this keeps the trace from existing in the
-				// first place for the one project that types the secret.
+				// spec would write the production password into test-results/.
+				// Revoking sessions cannot undo a leaked password. CI uploads
+				// nothing at all while it runs against production (see ci-cd.yml);
+				// this keeps the trace from existing in the first place for the one
+				// project that types the secret, so no later change to the pipeline
+				// can publish it.
 				trace: "off",
 			},
 			testMatch: ["**/smoke/**/*.spec.ts"],
@@ -348,8 +350,9 @@ export default defineConfig({
 		(() => {
 			const sharedEnv = `export NODE_ENV='${process.env.CI ? "production" : "test"}' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && export NEXT_PUBLIC_APP_URL='${TEST_FRONTEND_URL}' && export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_test_placeholder'`;
 			// This command used to `rm -f .env.local` first -- deleting a
-			// developer's local env file on every e2e run. The `env:` block below
-			// already pins every value the server needs, and Next's env loader
+			// developer's local env file on every e2e run. The exported `sharedEnv`
+			// chain and the `env:` block below already pin every value the server
+			// needs, and Next's env loader
 			// never overrides a variable that is already set in process.env, so
 			// the deletion protected nothing and destroyed real configuration.
 			const command = process.env.CI

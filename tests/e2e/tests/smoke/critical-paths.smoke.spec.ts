@@ -56,7 +56,8 @@ async function loginAsOwner(page: Page) {
 
 	// Compare as a boolean so a failure prints true/false, never the value:
 	// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
-	// json/junit/html reports, which CI uploads as a public artifact.
+	// error message, which reaches the job log (masked only for exact secret
+	// matches) and the on-disk json/junit/html reports.
 	expect(
 		(await emailInput.inputValue()) === OWNER_EMAIL,
 		"email field did not accept the typed value",
@@ -98,7 +99,8 @@ test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
 
 		// Compare as a boolean so a failure prints true/false, never the value:
 		// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
-		// json/junit/html reports, which CI uploads as a public artifact.
+		// error message, which reaches the job log (masked only for exact secret
+		// matches) and the on-disk json/junit/html reports.
 		expect(
 			(await emailInput.inputValue()) === OWNER_EMAIL,
 			"email field did not accept the typed value",
