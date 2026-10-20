@@ -81,9 +81,11 @@ runs:
           store="Settings -> Secrets and variables -> ACTIONS"
         fi
 
-        # fail MESSAGE [nostore]. The store line is the whole point for a value
-        # that is WRONG, and a misdirection for a 429/5xx/no-response -- those
-        # pass `nostore` so nobody rotates a secret over a rate limit.
+        # fail MESSAGE [nostore]. Naming the secret store is the whole point
+        # when a stored value is WRONG -- the pair's own credentials (400/403)
+        # or the publishable key the gateway rejected (401). It is a
+        # misdirection for a rate limit, a 5xx or no response at all, so those
+        # pass `nostore` and nobody rotates a secret over a transient.
         fail() { echo "::error::$1"; [ "${2:-}" != "nostore" ] && echo "::error::Secret store for this run: $store"; exit 1; }
 
         # ---- presence -------------------------------------------------------
@@ -147,15 +149,22 @@ runs:
           if [ "$status" != "200" ]; then
             code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
             msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")
-            # Name the cause by STATUS. Only a 400/403 says the pair or account
-            # is at fault. A 429 (over_request_rate_limit, per runner IP) or a
-            # 5xx says nothing about the secret, and blaming it would be this
-            # gate committing the misdiagnosis it exists to prevent.
+            # Name the cause by STATUS. 400/403 is the pair itself; 401 is the
+            # API gateway rejecting the publishable key BEFORE GoTrue sees the
+            # request (a wrong, truncated or rotated sb_publishable_ value, or
+            # a URL pointing at another project -- the eyJ* guard above catches
+            # only legacy JWTs). Both are a stored secret at fault, so both
+            # name the store. A 429 (over_request_rate_limit, per runner IP), a
+            # 5xx or no response says nothing about any secret, and blaming one
+            # would be this gate committing the misdiagnosis it exists to
+            # prevent.
             case "$status" in
               ""|000)
                 fail "Credential pair '${label}' could not be verified: no HTTP response (network/DNS/timeout). Is NEXT_PUBLIC_SUPABASE_URL right and the project reachable? The pair was not tested." nostore ;;
               400|403)
                 fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong, or the account is missing or blocked." ;;
+              401)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. The Supabase API gateway rejected the request before GoTrue saw it: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is wrong, truncated or belongs to another project (or NEXT_PUBLIC_SUPABASE_URL points at another project). The pair was not tested." ;;
               429)
                 fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue rate-limited this runner's IP; the pair was NOT tested. Re-run the job; do not rotate the secret." nostore ;;
               *)
@@ -164,8 +173,17 @@ runs:
           fi
           access=$(jq -r '.access_token // empty' "$resp")
           if [ -n "$access" ]; then
-            curl -sS -o /dev/null --max-time 15 -X POST "$logout_url" \
-              -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true
+            # Report the sign-out status. This probe's session is the one thing
+            # the post-job revoke step cannot clean up: if the gate fails on a
+            # LATER pair, the test step is skipped and that step is skipped
+            # with it, so a silent 4xx/5xx here would leave this session alive
+            # with nothing saying so. Never fails the gate -- a session that
+            # outlives the probe is a warning, not a reason to block the run.
+            logout_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$logout_url" \
+              -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true)
+            if [ "$logout_status" != "204" ]; then
+              echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session may remain until it expires"
+            fi
           fi
           rm -f "$resp"
           verified+=("$label")

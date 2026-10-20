@@ -118,8 +118,22 @@ export default defineConfig({
 		// @see https://playwright.dev/docs/api/class-browser#browser-new-context-option-bypass-csp
 		bypassCSP: true,
 
-		// Recording options
-		trace: "on-first-retry",
+		// Recording options.
+		//
+		// NO TRACES ANYWHERE WHILE CI AUTHENTICATES AGAINST PRODUCTION. A trace
+		// stores every fill() value as text, so a retry of any spec that types a
+		// credential writes it into test-results/ in cleartext -- and no session
+		// revoke can undo a leaked password. This was set on the `smoke` project
+		// alone, on the stated ground that it was "the one project that types the
+		// secret"; it is not. `chromium` has no testMatch, so it collects the same
+		// critical-paths.smoke.spec.ts (7 tests, confirmed with --list) and
+		// inherited on-first-retry, and `owner-axe` -- which CI does run -- traces
+		// a live production apply token. An invariant that depends on which
+		// --project flags a workflow happens to pass is not an invariant.
+		// Screenshots and video stay: a password input renders masked, and neither
+		// leaves the runner (ci-cd.yml uploads nothing). Traces come back when the
+		// stack is hermetic and the credentials belong to a throwaway database.
+		trace: "off",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",
 
@@ -264,16 +278,10 @@ export default defineConfig({
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: { cookies: [], origins: [] }, // No auth - tests login flow
-				// NO TRACE FOR THIS PROJECT. critical-paths.smoke.spec.ts exercises
-				// the real login form and types E2E_OWNER_PASSWORD into it; a
-				// Playwright trace records every fill() value, so a retried smoke
-				// spec would write the production password into test-results/.
-				// Revoking sessions cannot undo a leaked password. CI uploads
-				// nothing at all while it runs against production (see ci-cd.yml);
-				// this keeps the trace from existing in the first place for the one
-				// project that types the secret, so no later change to the pipeline
-				// can publish it.
-				trace: "off",
+				// This spec types E2E_OWNER_PASSWORD into the real login form. Traces
+				// are off for every project (see `use` above) -- do not re-enable one
+				// here, or on any project that collects this file, while CI runs
+				// against production.
 			},
 			testMatch: ["**/smoke/**/*.spec.ts"],
 			testIgnore: ["**/minimal.smoke.spec.ts"], // This test requires pre-auth, runs in chromium project

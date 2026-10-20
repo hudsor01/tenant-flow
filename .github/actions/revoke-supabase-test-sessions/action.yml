@@ -9,9 +9,14 @@ description: >-
 # (a Playwright trace written on a retry records the session cookies it
 # injects; vitest's globalSetup caches every account's session in os.tmpdir()).
 # Defense in depth: nothing is uploaded from either job while CI runs against
-# production, but a GoTrue sign-out with scope=global invalidates every session
-# and refresh token the run created, so nothing that escaped by a path not yet
-# thought of stays usable. On main neither job revoked anything; earlier
+# production, and a GoTrue sign-out with scope=global invalidates every session
+# and refresh token the run created, so a refresh token that escaped cannot be
+# used to mint new sessions. It does NOT reach an access token already issued:
+# those are JWTs, PostgREST validates them on signature and expiry without
+# consulting the sessions table, and one that escaped keeps its RLS-scoped
+# access until it lapses (see the warning text below). That is why nothing is
+# uploaded, rather than a reason uploading would be safe.
+# On main neither job revoked anything; earlier
 # revisions of this PR carried the revoke inline in ci-cd.yml for owner-a only.
 # One shared action keeps the two jobs from drifting apart.
 #

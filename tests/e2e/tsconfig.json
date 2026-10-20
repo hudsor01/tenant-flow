@@ -16,6 +16,7 @@
 		"tests/**/*.ts",
 		"lib/**/*.ts",
 		"auth-helpers.ts",
+		"playwright.config.ts",
 		"../frontend/tests/fixtures/**/*.ts",
 		"global.d.ts"
 	],
