@@ -212,6 +212,34 @@ async function openApply(page: Page, token: string) {
 async function openForm(page: Page, token: string) {
 	await openApply(page, token);
 	await expect(page.locator("#first_name")).toBeVisible({ timeout: 20000 });
+	// VISIBILITY IS NOT HYDRATION, and this gate used to stop at it. The form is
+	// a statically imported "use client" component inside a force-dynamic server
+	// component, so every control ships in the first byte of server HTML and is
+	// visible long before React attaches a listener. Against an unhydrated island
+	// `fill` sets the DOM value while form state stays empty, and a click on the
+	// Radix attestation checkbox -- whose rendered state IS form state -- is
+	// dropped with no trace. The submit then reports missing answers while
+	// `#email` still reads back the typed address, which is exactly how E-15
+	// passed, then flaked, then failed on all three attempts: each change that
+	// made the run faster (finally turning traces off) widened the window in
+	// which the fills beat hydration.
+	//
+	// react-dom 19.2.8 precaches a fiber on every host node as it hydrates it
+	// (`__reactFiber$<n>` / `__reactProps$<n>`, plain enumerable assignments),
+	// and hydration walks the tree in DOM order. The attestation checkbox is the
+	// last control the fill helper touches, so its fiber appearing means every
+	// field above it is live too.
+	await page.waitForFunction(
+		() => {
+			const node = document.querySelector("#apply-certify");
+			return (
+				node !== null &&
+				Object.keys(node).some((key) => key.startsWith("__react"))
+			);
+		},
+		undefined,
+		{ timeout: 20000 },
+	);
 }
 
 /** The 14 required answers, so the submit button is genuinely enabled. */
@@ -232,6 +260,11 @@ async function fillRequired(page: Page) {
 	await page.fill("#reference_1_name", "Reference One");
 	await page.fill("#reference_1_phone", "555-010-0101");
 	await page.locator("#apply-certify").click();
+	// The attestation is the one answer that cannot be read back from the DOM if
+	// the click was dropped: it is form state, not an input value. Assert it took
+	// here, so a lost click says so instead of surfacing 15 s later as a
+	// confirmation that never arrives.
+	await expect(page.locator("#apply-certify")).toBeChecked();
 }
 
 function submitButton(page: Page): Locator {
