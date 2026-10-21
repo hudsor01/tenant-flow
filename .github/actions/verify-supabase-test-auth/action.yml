@@ -147,8 +147,15 @@ runs:
           # connect, timeout); a `|| echo 000` here used to APPEND a second
           # one, yielding `000000` and bypassing the no-response branch below.
           if [ "$status" != "200" ]; then
-            code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
-            msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")
+            # Default AFTER capture, not with jq's `//`. An EMPTY body gives jq
+            # ZERO inputs: it prints nothing and exits 0, so the alternative
+            # operator never evaluates and `|| echo unknown` is never reached.
+            # The message degraded to `HTTP 502, : .` for exactly the responses
+            # that carry no clue of their own.
+            code=$(jq -r '.error_code // .error // empty' "$resp" 2>/dev/null || true)
+            msg=$(jq -r '.msg // .error_description // .message // empty' "$resp" 2>/dev/null || true)
+            code=${code:-unknown}
+            msg=${msg:-no message}
             # Name the cause by STATUS. 400/403 is the pair itself; 401 is the
             # API gateway rejecting the publishable key BEFORE GoTrue sees the
             # request (a wrong, truncated or rotated sb_publishable_ value, or
@@ -171,7 +178,15 @@ runs:
                 fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue returned an unexpected status; this is not a credentials problem. The pair was not tested." nostore ;;
             esac
           fi
-          access=$(jq -r '.access_token // empty' "$resp")
+          # GUARDED, because `set -e` made this one fatal in silence. A 200
+          # whose body is truncated -- a reset, or `--max-time` firing AFTER the
+          # headers, where curl exits 18/28 while `%{http_code}` already read
+          # 200 and the `|| true` above deliberately discards that exit code --
+          # killed the step with a bare `jq: parse error` and NO `::error::` at
+          # all, which is the single thing this action exists to prevent. On main
+          # the same response produced status `200000` (the `|| echo 000` bug
+          # above) and so failed loudly by accident; fixing that exposed this.
+          access=$(jq -r '.access_token // empty' "$resp" 2>/dev/null || true)
           if [ -n "$access" ]; then
             # Report the sign-out status. This probe's session is the one thing
             # the post-job revoke step cannot clean up: if the gate fails on a
@@ -184,6 +199,13 @@ runs:
             if [ "$logout_status" != "204" ]; then
               echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session may remain until it expires"
             fi
+          else
+            # HTTP 200 is GoTrue saying it CREATED the session, so the pair is
+            # verified even when the body did not reach us intact. What is left
+            # is a live session whose token we never read and therefore cannot
+            # sign out, and the post-job revoke step does not run when the gate
+            # fails on a later pair. Say so rather than leaving it silent.
+            echo "::warning::the verification probe for '${label}' got HTTP 200 with no readable access_token; the pair authenticates, but that probe session cannot be signed out and stays until it expires"
           fi
           rm -f "$resp"
           verified+=("$label")

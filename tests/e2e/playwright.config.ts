@@ -133,6 +133,12 @@ export default defineConfig({
 		// Screenshots and video stay: a password input renders masked, and neither
 		// leaves the runner (ci-cd.yml uploads nothing). Traces come back when the
 		// stack is hermetic and the credentials belong to a throwaway database.
+		//
+		// `playwright.config.prod.ts` was deleted with this setting, not merely
+		// edited: `tests/e2e/tests/production/` no longer exists, so the only specs
+		// its testMatch still collected were these smoke tests -- it pointed the
+		// login spec at the live site with trace "retain-on-failure", which is the
+		// production password in a trace, one --config flag away.
 		trace: "off",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",

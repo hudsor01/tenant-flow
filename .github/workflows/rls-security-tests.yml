@@ -161,7 +161,9 @@ jobs:
       # action as e2e-smoke; scope=global is safe because the two jobs are
       # serialised by the concurrency group above. Runs on failure, cancellation
       # and job timeout, but not when the test step was skipped (gate or
-      # install failed) -- then no session exists. Never fails the job.
+      # install failed) -- the only session that can exist then is the gate's
+      # own probe, which the gate signs out itself and warns about when it
+      # cannot. Never fails the job.
       - name: Revoke test-account sessions
         if: ${{ always() && steps.rls.outcome != 'skipped' }}
         uses: ./.github/actions/revoke-supabase-test-sessions

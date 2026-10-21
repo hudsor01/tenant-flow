@@ -5,9 +5,11 @@ description: >-
   could not be revoked is reported as a warning.
 
 # WHY THIS EXISTS. e2e-smoke and rls-security both sign real synthetic accounts
-# into the PRODUCTION project, and a run leaves access + refresh tokens behind
-# (a Playwright trace written on a retry records the session cookies it
-# injects; vitest's globalSetup caches every account's session in os.tmpdir()).
+# into the PRODUCTION project, and a run leaves access + refresh tokens behind:
+# vitest's globalSetup caches every account's session in os.tmpdir() for the
+# suite, and each e2e browser context holds the owner's session cookies. (A
+# Playwright trace used to record the injected cookies too; that is why traces
+# are off for every project, not a vector that still exists.)
 # Defense in depth: nothing is uploaded from either job while CI runs against
 # production, and a GoTrue sign-out with scope=global invalidates every session
 # and refresh token the run created, so a refresh token that escaped cannot be

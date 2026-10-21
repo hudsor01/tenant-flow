@@ -421,7 +421,17 @@ test.describe("/applications — the owner review queue", () => {
 		await expect(urlField).toBeVisible({ timeout: 20000 });
 		const first = await urlField.inputValue();
 		expect(first.length).toBeGreaterThan(0);
-		expect(first).toContain("/apply/");
+		// Compare as a boolean so a failure prints true/false, never the value.
+		// `toContain` renders Received verbatim, and Received here is a live
+		// production application-link URL -- a bearer token that is reused across
+		// runs and that `rental_application_links` has no DELETE policy to retire.
+		// This spec runs in CI under --project=owner-axe, where the job log is the
+		// only triage surface, and GitHub masks registered secrets only: a token
+		// minted at runtime is not one.
+		expect(
+			first.includes("/apply/"),
+			"the link field did not render an /apply/ URL",
+		).toBe(true);
 
 		// 1280px IS THE VIEWPORT WHERE THIS FIELD WAS THE WRONG SIZE, and this test
 		// was already standing here reading `inputValue()` at exactly that width
@@ -449,7 +459,10 @@ test.describe("/applications — the owner review queue", () => {
 		).toBeVisible({ timeout: 20000 });
 		const reloaded = page.locator("#application-links input[readonly]").first();
 		await expect(reloaded).toBeVisible({ timeout: 20000 });
-		expect(await reloaded.inputValue()).toBe(first);
+		expect(
+			(await reloaded.inputValue()) === first,
+			"the link URL did not survive the reload unchanged",
+		).toBe(true);
 	});
 });
 

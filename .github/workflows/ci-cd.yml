@@ -210,8 +210,12 @@ jobs:
           # On any failure Playwright writes error-context.md, which embeds an
           # accessibility snapshot of the page INCLUDING input values -- for a
           # failed smoke login that is the typed production password. This flag
-          # removes the page-snapshot section (_takePageSnapshot returns early);
-          # the file is still written with the error text and a source frame.
+          # removes only the `# Page snapshot` section that _takePageSnapshot
+          # adds; the file is still written with the error text and a source
+          # frame, and a failure raised by a LOCATOR matcher still writes its
+          # own aria snapshot (whole-body when the target is not visible) with
+          # input values in it. The flag narrows that surface; the only reason
+          # none of it is public is that this job uploads nothing.
           PLAYWRIGHT_NO_COPY_PROMPT: 'true'
           E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
           E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
@@ -223,9 +227,11 @@ jobs:
       # nothing is uploaded, but a global sign-out invalidates every session
       # and refresh token the run created. Runs on failure, cancellation and
       # job timeout, but NOT when the test step was skipped (gate or install
-      # failed): then no session exists, and signing in again with a pair the
-      # gate just rejected would only add three more failed attempts and a
-      # misleading warning. Never fails the job.
+      # failed): the only session that can exist then is the gate's own probe,
+      # which the gate signs out itself (scope=local) and warns about when it
+      # cannot, and signing in again with a pair the gate just rejected would
+      # only add three more failed attempts and a misleading warning. Never
+      # fails the job.
       - name: Revoke test-account sessions
         if: ${{ always() && steps.e2e.outcome != 'skipped' }}
         uses: ./.github/actions/revoke-supabase-test-sessions
