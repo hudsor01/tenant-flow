@@ -130,9 +130,14 @@ export default defineConfig({
 		// inherited on-first-retry, and `owner-axe` -- which CI does run -- traces
 		// a live production apply token. An invariant that depends on which
 		// --project flags a workflow happens to pass is not an invariant.
-		// Screenshots and video stay: a password input renders masked, and neither
-		// leaves the runner (ci-cd.yml uploads nothing). Traces come back when the
-		// stack is hermetic and the credentials belong to a throwaway database.
+		// Screenshots and video stay, but they are not credential-free: a password
+		// input renders masked while the EMAIL field renders in cleartext, so they
+		// still carry one half of the pair. The only thing keeping them private is
+		// that ci-cd.yml uploads nothing -- which is also why that file says a
+		// screenshot or video of a production login carries live credentials.
+		// Traces are different in kind: they store every typed value as text, which
+		// no browser masks. They come back when the stack is hermetic and the
+		// credentials belong to a throwaway database.
 		//
 		// `playwright.config.prod.ts` was deleted with this setting, not merely
 		// edited: `tests/e2e/tests/production/` no longer exists, so the only specs

@@ -201,9 +201,26 @@ const boxOf = measuredBoxOf;
 
 /** Loads a token and waits for the branch that token produces to be on screen. */
 async function openApply(page: Page, token: string) {
-	const response = await page.goto(`/apply/${token}`, {
-		waitUntil: "domcontentloaded",
-	});
+	// A FAILED NAVIGATION ECHOES THE URL, AND THE URL IS THE CREDENTIAL. The
+	// token in the path is a live application-link bearer token; Playwright
+	// builds a navigation failure as `${errorText} at ${url}` (playwright-core
+	// coreBundle.js, NavigationAbortedError) and the call log adds
+	// `navigating to "<url>"`, both of which reach the job log and a PR check
+	// annotation unmasked -- GitHub masks registered secrets only. Catch and
+	// rethrow with the token removed, keeping the rest of the diagnosis.
+	let response: Awaited<ReturnType<Page["goto"]>>;
+	try {
+		response = await page.goto(`/apply/${token}`, {
+			waitUntil: "domcontentloaded",
+		});
+	} catch (error) {
+		const detail = (
+			error instanceof Error ? error.message : String(error)
+		).replaceAll(token, "<token redacted>");
+		throw new Error(`navigation to /apply/<token redacted> failed: ${detail}`, {
+			cause: error,
+		});
+	}
 	await expect(page.locator(CARD)).toBeVisible({ timeout: 20000 });
 	return response;
 }

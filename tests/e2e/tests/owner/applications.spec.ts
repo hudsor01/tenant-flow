@@ -415,19 +415,31 @@ test.describe("/applications — the owner review queue", () => {
 		);
 		await openQueue(page, 1280);
 
-		// The panel's readonly field is the only input in the links band carrying an
-		// `Application link for …` accessible name (§C).
+		// NO LOCATOR MATCHER MAY FAIL AGAINST THIS FIELD. Its `value` attribute is
+		// a live production application-link URL -- a bearer token reused across
+		// runs, which `rental_application_links` has no DELETE policy to retire --
+		// and react-dom writes it to the ATTRIBUTE (`initInput` assigns
+		// `element.defaultValue` unconditionally), where Playwright's `previewNode`
+		// renders every attribute but `style`, shortest first, inside a 500-char
+		// cap. So `locator resolved to <input … value="…/apply/<64 hex>">` lands in
+		// the Call log of any failing locator assertion, and from there into the
+		// job log and a PR check annotation. This spec runs in CI under
+		// --project=owner-axe; GitHub masks registered secrets only, and a token
+		// minted at runtime is not one. Rewriting the two value assertions as
+		// booleans was not enough: `toBeVisible` and `toHaveCSS` leaked by the
+		// same route, and `toHaveCSS` is the one most likely to fail -- it is the
+		// 12px regression detector below.
+		//
+		// Gate on the band, not the input, and read the input only through
+		// `inputValue`/`evaluate`: those resolve via _waitForFunctionOnSelector,
+		// which previews the node only on SUCCESS, so a timeout carries no
+		// attributes.
+		await expect(page.locator("#application-links")).toBeVisible({
+			timeout: 20000,
+		});
 		const urlField = page.locator("#application-links input[readonly]").first();
-		await expect(urlField).toBeVisible({ timeout: 20000 });
 		const first = await urlField.inputValue();
 		expect(first.length).toBeGreaterThan(0);
-		// Compare as a boolean so a failure prints true/false, never the value.
-		// `toContain` renders Received verbatim, and Received here is a live
-		// production application-link URL -- a bearer token that is reused across
-		// runs and that `rental_application_links` has no DELETE policy to retire.
-		// This spec runs in CI under --project=owner-axe, where the job log is the
-		// only triage surface, and GitHub masks registered secrets only: a token
-		// minted at runtime is not one.
 		expect(
 			first.includes("/apply/"),
 			"the link field did not render an /apply/ URL",
@@ -446,7 +458,10 @@ test.describe("/applications — the owner review queue", () => {
 		// the same cascade in jsdom, which is fast and runs on every commit but
 		// models Tailwind's emission order rather than reading it. Only this one
 		// reads the compiled bundle.
-		await expect(urlField).toHaveCSS("font-size", "12px");
+		expect(
+			await urlField.evaluate((node) => getComputedStyle(node).fontSize),
+			"the link field is not rendering at --text-xs (12px)",
+		).toBe("12px");
 
 		// The assertion a shown-once implementation fails. `/sign` stores only the
 		// token hash and reveals it once; this token is PUBLISHED to a listing and
@@ -457,8 +472,10 @@ test.describe("/applications — the owner review queue", () => {
 		await expect(
 			page.getByRole("heading", { level: 1, name: "Applications" }),
 		).toBeVisible({ timeout: 20000 });
+		await expect(page.locator("#application-links")).toBeVisible({
+			timeout: 20000,
+		});
 		const reloaded = page.locator("#application-links input[readonly]").first();
-		await expect(reloaded).toBeVisible({ timeout: 20000 });
 		expect(
 			(await reloaded.inputValue()) === first,
 			"the link URL did not survive the reload unchanged",
