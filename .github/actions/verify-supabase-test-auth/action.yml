@@ -30,10 +30,12 @@ description: >-
 # pair, the API gateway's own message for a 401, which carries no error_code and
 # so prints `unknown`. WHICH secret store the job read -- Actions for a
 # human-authored run, Dependabot for a dependabot[bot] run -- is named only when
-# a stored secret is actually implicated (400/403 for the pair, 401 for the
-# publishable key) and deliberately withheld for a transport failure, a 429 or
-# an unexpected status, so nobody rotates a secret over a rate limit. Either
-# way the fix is one sentence instead of an investigation.
+# a stored secret is actually implicated: 400/403 for the pair, 401 for the
+# publishable key, 404 for a URL that serves no auth API, and a no-response,
+# where an unresolvable host makes the URL a candidate. It is withheld for a 429
+# and for any other status the right host answered with, so nobody rotates a
+# secret over a transient. Either way the fix is one sentence instead of an
+# investigation.
 #
 # It runs BEFORE bun/node setup and needs only curl + jq (preinstalled on
 # ubuntu-latest), so a bad secret fails in seconds, not after a 90s install.
@@ -92,10 +94,12 @@ runs:
         fi
 
         # fail MESSAGE [nostore]. Naming the secret store is the whole point
-        # when a stored value is WRONG -- the pair's own credentials (400/403)
-        # or the publishable key the gateway rejected (401). It is a
-        # misdirection for a rate limit, a 5xx or no response at all, so those
-        # pass `nostore` and nobody rotates a secret over a transient.
+        # when a stored value is WRONG -- the pair's own credentials (400/403),
+        # the publishable key the gateway rejected (401), or the URL that serves
+        # no auth API (404), and a no-response may be a URL that does not
+        # resolve. It is a misdirection for a rate limit and for any other
+        # status the right host answered with, so those pass `nostore` and
+        # nobody rotates a secret over a transient.
         fail() { echo "::error::$1"; [ "${2:-}" != "nostore" ] && echo "::error::Secret store for this run: $store"; exit 1; }
 
         # ---- presence -------------------------------------------------------
@@ -175,20 +179,25 @@ runs:
             code=${code:-unknown}
             msg=${msg:-no message}
             if [ -n "$hint" ]; then msg="$msg ($hint)"; fi
-            # Name the cause by STATUS. 400/403 is the pair itself; 401 is the
-            # API gateway rejecting the publishable key BEFORE GoTrue sees the
-            # request (a wrong, truncated or rotated sb_publishable_ value, or
-            # a URL pointing at another project -- the eyJ* guard above catches
-            # only legacy JWTs). Both are a stored secret at fault, so both
-            # name the store. A             # 404 means nothing at that address serves the auth API, which makes
-            # NEXT_PUBLIC_SUPABASE_URL the stored secret at fault, so it names
-            # the store too. A 429 (over_request_rate_limit, per runner IP), a
-            # 5xx or no response says nothing about any secret, and blaming one
-            # would be this gate committing the misdiagnosis it exists to
-            # prevent.
+            # Name the cause by STATUS, and name the secret store only when a
+            # STORED value is the thing at fault:
+            #   400/403 -- the pair's own email/password.
+            #   401     -- the API gateway rejecting the publishable key before
+            #              GoTrue sees the request: a wrong, truncated or
+            #              rotated sb_publishable_ value, or a URL pointing at
+            #              another project. The eyJ* guard above catches only
+            #              legacy JWTs, so a stale new-format key reaches here.
+            #   404     -- nothing at that address serves the auth API, which
+            #              makes NEXT_PUBLIC_SUPABASE_URL the value to fix.
+            #   none    -- no HTTP response at all: the host may not resolve, so
+            #              NEXT_PUBLIC_SUPABASE_URL is a candidate here too.
+            # A 429 (over_request_rate_limit, per runner IP) and a 5xx both mean
+            # the right host answered, so they say nothing about any stored
+            # value; blaming one would be this gate committing the misdiagnosis
+            # it exists to prevent.
             case "$status" in
               ""|000)
-                fail "Credential pair '${label}' could not be verified: no HTTP response (network/DNS/timeout). Is NEXT_PUBLIC_SUPABASE_URL right and the project reachable? The pair was not tested." nostore ;;
+                fail "Credential pair '${label}' could not be verified: no HTTP response (network/DNS/timeout). Is NEXT_PUBLIC_SUPABASE_URL right and the project reachable? The pair was not tested." ;;
               400|403)
                 fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong, or the account is missing or blocked." ;;
               401)

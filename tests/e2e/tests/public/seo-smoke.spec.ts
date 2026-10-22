@@ -73,14 +73,17 @@ async function assertPageSeo(
 
 	// POLL, BECAUSE A ROUTE'S OWN SCHEMAS ARRIVE WITH ITS STREAMED BODY. The
 	// layout's SeoJsonLd renders ONLY the Organization entity and ships in the
-	// shell; a page's own schemas (BreadcrumbList, Article, FAQPage) are in the
-	// body, and `/blog` is the one route here with a loading.tsx, so Next sends
-	// the shell first and streams the body in when the query resolves -- which
-	// can be after the `load` event this helper waits for. A single read of the
-	// DOM therefore saw exactly ["Organization"] on /blog while the retry saw
-	// the full set: a race, not a missing schema. Polling still fails when a
-	// schema genuinely never renders, and it keeps the other routes here honest
-	// if a loading.tsx is ever added to one of them.
+	// shell; a page's own schemas (BreadcrumbList, Article, FAQPage) live in the
+	// body. `src/app/blog/loading.tsx` is the only loading boundary over the
+	// routes this helper visits, and it covers every segment under /blog: /blog
+	// and /blog/category/[category] both render on demand, so Next sends the
+	// shell first and streams their bodies in when the query resolves -- which
+	// can be after the `load` event this helper waits for. (/blog/[slug] sits
+	// under the same boundary but is ISR-prerendered -- generateStaticParams,
+	// dynamicParams false, revalidate 300 -- so its body ships complete.) A
+	// single read of the DOM therefore saw exactly ["Organization"] on /blog
+	// while the retry saw the full set: a race, not a missing schema. Polling
+	// still fails when a schema genuinely never renders.
 	await expect
 		.poll(async () => (await getJsonLdSchemas(page)).map((s) => s["@type"]), {
 			message: `${path}: JSON-LD @type values`,
