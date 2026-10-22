@@ -559,10 +559,16 @@ test.describe("/apply — the rendered applicant form", () => {
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 900 });
-		// Fill first: the submit control is disabled while the form is invalid, and
-		// a disabled button is skipped by Tab. Asserting tab order at the moment an
-		// applicant would actually submit is also the moment that matters.
+		// Fill first because that is the state an applicant tabs from, which is the
+		// moment the order matters -- NOT because an empty form would disable the
+		// control and hide it from Tab: `RentalApplicationForm` sets
+		// `canSubmitWhenInvalid: true` (rental-application-form.tsx), deliberately,
+		// so the button stays enabled and reachable on an invalid form and the
+		// applicant gets a reason instead of a dead control.
 		await fillRequired(page);
+		// A positive control only: with canSubmitWhenInvalid this can fail just two
+		// ways -- the control is missing, or the submitting fieldset is still
+		// disabled -- both of which would make the tab assertion below meaningless.
 		await expect(submitButton(page)).toBeEnabled();
 
 		await page.locator("#apply-certify").focus();

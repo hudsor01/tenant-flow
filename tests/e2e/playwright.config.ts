@@ -141,9 +141,13 @@ export default defineConfig({
 		//
 		// `playwright.config.prod.ts` was deleted with this setting, not merely
 		// edited: `tests/e2e/tests/production/` no longer exists, so the only specs
-		// its testMatch still collected were these smoke tests -- it pointed the
-		// login spec at the live site with trace "retain-on-failure", which is the
-		// production password in a trace, one --config flag away.
+		// its testMatch still collected were these smoke tests -- it collected the
+		// login spec with trace "retain-on-failure", which is the production
+		// password in a trace, one --config flag away. Its `baseURL` is NOT part of
+		// that story: every smoke spec builds absolute URLs from
+		// `PLAYWRIGHT_BASE_URL || "http://localhost:3050"`, and an absolute URL
+		// discards baseURL, so that config never pointed these specs anywhere. The
+		// credential is production-issued wherever the form is served.
 		trace: "off",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",

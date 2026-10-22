@@ -88,9 +88,11 @@ jobs:
       # suite for weeks. Same commit, same branch: a human push (Actions secrets)
       # passed, a dependabot[bot] rebase (Dependabot secrets) failed -- the
       # value under the Dependabot tab was simply wrong, and nothing said so.
-      # The shared action performs one real sign-in per pair, revokes it, and
-      # on failure names the pair, GoTrue's error_code and WHICH secret store
-      # this run read. It needs only curl+jq, so it runs before any install.
+      # The shared action performs one real sign-in per pair, revokes it, and on
+      # failure names the pair and the cause, the responder's code and message
+      # when there was a response, and WHICH secret store this run read only when
+      # a stored secret is actually implicated -- withheld for a rate limit, a
+      # 5xx or no response. It needs only curl+jq, so it runs before any install.
       # The silent-skip pattern this replaced is still the thing being
       # prevented: a gate that passes while zero tests run is worse than none.
       - name: Verify Supabase test credentials

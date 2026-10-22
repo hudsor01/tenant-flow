@@ -443,7 +443,12 @@ test.describe("/applications — the owner review queue", () => {
 			timeout: 20000,
 		});
 		const urlField = page.locator("#application-links input[readonly]").first();
-		const first = await urlField.inputValue();
+		// 20 s explicitly: the removed `toBeVisible({ timeout: 20000 })` was the
+		// only thing waiting for this input, which two production queries have to
+		// return before it renders. The band gate above is server-rendered markup
+		// and never waits for data, and a bare `inputValue()` would fall back to
+		// `actionTimeout: 10_000` -- half the budget this test used to have.
+		const first = await urlField.inputValue({ timeout: 20000 });
 		expect(first.length).toBeGreaterThan(0);
 		expect(
 			first.includes("/apply/"),
@@ -494,7 +499,7 @@ test.describe("/applications — the owner review queue", () => {
 		});
 		const reloaded = page.locator("#application-links input[readonly]").first();
 		expect(
-			(await reloaded.inputValue()) === first,
+			(await reloaded.inputValue({ timeout: 20000 })) === first,
 			"the link URL did not survive the reload unchanged",
 		).toBe(true);
 	});

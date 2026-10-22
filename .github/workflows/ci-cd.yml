@@ -178,8 +178,11 @@ jobs:
       # VERIFY, DO NOT MERELY CHECK -- same shared action as rls-security, so
       # the two production-data jobs can no longer drift apart (this copy had
       # checked four secrets while the other checked ten). One real sign-in as
-      # owner A, revoked immediately; on failure it names the pair, GoTrue's
-      # error_code and which secret store this run read (Actions vs Dependabot).
+      # owner A, revoked immediately; on failure it names the pair and the cause,
+      # the responder's code and message when there was a response, and which
+      # secret store this run read (Actions vs Dependabot) only when a stored
+      # secret is actually implicated -- withheld for a rate limit, a 5xx or no
+      # response, so nobody rotates a secret over a transient.
       - name: Verify Supabase test credentials
         uses: ./.github/actions/verify-supabase-test-auth
         with:
