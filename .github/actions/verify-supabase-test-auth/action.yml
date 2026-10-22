@@ -19,11 +19,25 @@ description: >-
 #
 # WHAT IT DOES. For each credential pair it performs ONE real sign-in against
 # GoTrue's password grant and immediately revokes the session, so the gate
-# proves the pair works at the cost of one auth call and leaves nothing behind.
-# On failure it emits a ::error:: that names the pair, the HTTP status, GoTrue's
-# error_code and message, and WHICH secret store the job read -- Actions for a
-# human-authored run, Dependabot for a dependabot[bot] run -- so the fix is one
-# sentence instead of an investigation.
+# proves the pair works at the cost of one auth call and normally leaves nothing
+# behind. When that sign-out cannot be completed -- a non-204, or a 200 whose
+# body did not survive the transport -- it says so in a warning rather than
+# leaving a live session unannounced, because the post-job revoke step does not
+# run when the gate itself fails.
+# On failure it emits a ::error:: that always names the pair and the cause, and
+# names the HTTP status plus whatever code and message the responder returned
+# when there was a response to read -- GoTrue's error_code for a 4xx about the
+# pair, the API gateway's own message for a 401, which carries no error_code and
+# so prints `unknown`. WHICH secret store the job read -- Actions for a
+# human-authored run, Dependabot for a dependabot[bot] run -- is named only when
+# a stored secret is actually implicated: named for 400/403 (the pair), 401 (the
+# publishable key), 404 (a URL serving no auth API) and a no-response (an
+# unresolvable host makes the URL a candidate); withheld for a 429 and for any
+# other status, where nothing identifies a stored value as the cause, so nobody
+# rotates a secret over a
+# transient. Both callers restate this same set, so a reader of either workflow
+# sees the contract this file implements rather than an older one. Either way
+# the fix is one sentence instead of an investigation.
 #
 # It runs BEFORE bun/node setup and needs only curl + jq (preinstalled on
 # ubuntu-latest), so a bad secret fails in seconds, not after a 90s install.
@@ -81,7 +95,15 @@ runs:
           store="Settings -> Secrets and variables -> ACTIONS"
         fi
 
-        fail() { echo "::error::$1"; echo "::error::Secret store for this run: $store"; exit 1; }
+        # fail MESSAGE [nostore]. Naming the secret store is the whole point
+        # when a stored value is WRONG -- the pair's own credentials (400/403),
+        # the publishable key the gateway rejected (401), or the URL that serves
+        # no auth API (404), and a no-response may be a URL that does not
+        # resolve. It is a misdirection for a rate limit and for any other
+        # status, where nothing identifies a stored value as the cause, so those
+        # pass `nostore` and
+        # nobody rotates a secret over a transient.
+        fail() { echo "::error::$1"; [ "${2:-}" != "nostore" ] && echo "::error::Secret store for this run: $store"; exit 1; }
 
         # ---- presence -------------------------------------------------------
         missing=()
@@ -118,28 +140,112 @@ runs:
         # (shape verified against this project 2026-10-16), which we surface
         # verbatim alongside the label and store.
         token_url="${SUPABASE_URL%/}/auth/v1/token?grant_type=password"
-        logout_url="${SUPABASE_URL%/}/auth/v1/logout"
+        # scope=local revokes ONLY the session this probe just created. Without it
+        # GoTrue's default is a GLOBAL sign-out of every session for that user,
+        # which is both more than the probe needs and a race against anything
+        # else holding a session for the same synthetic account.
+        logout_url="${SUPABASE_URL%/}/auth/v1/logout?scope=local"
         verified=()
         while IFS= read -r line; do
           [ -z "$line" ] && continue
           label="${line%%=*}"; pair="${line#*=}"
           email="${pair%%:*}"; password="${pair#*:}"
-          body=$(jq -cn --arg e "$email" --arg p "$password" '{email:$e,password:$p}')
+          # Both halves reach jq through the ENVIRONMENT and curl through STDIN
+          # (-d @-) -- never argv, so neither is visible in the runner's process
+          # list (GitHub: "avoid passing secrets between processes from the
+          # command line"). The emails are GitHub secrets like the passwords.
+          body=$(EM="$email" PW="$password" jq -cn '{email:env.EM,password:env.PW}')
           resp=$(mktemp)
           status=$(curl -sS -o "$resp" -w '%{http_code}' --max-time 30 \
             -X POST "$token_url" \
             -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
-            -d "$body" || echo "000")
+            -d @- <<<"$body" || true)
+          # curl writes `000` to stdout itself on a transport failure (DNS,
+          # connect, timeout); a `|| echo 000` here used to APPEND a second
+          # one, yielding `000000` and bypassing the no-response branch below.
           if [ "$status" != "200" ]; then
-            code=$(jq -r '.error_code // .error // "unknown"' "$resp" 2>/dev/null || echo unknown)
-            msg=$(jq -r '.msg // .error_description // .message // "no message"' "$resp" 2>/dev/null || echo "no message")
-            [ "$status" = "000" ] && msg="no HTTP response (network/DNS/timeout) -- is NEXT_PUBLIC_SUPABASE_URL right and the project reachable?"
-            fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong or the account is missing."
+            # Default AFTER capture, not with jq's `//`. An EMPTY body gives jq
+            # ZERO inputs: it prints nothing and exits 0, so the alternative
+            # operator never evaluates and `|| echo unknown` is never reached.
+            # The message degraded to `HTTP 502, : .` for exactly the responses
+            # that carry no clue of their own.
+            code=$(jq -r '.error_code // .error // empty' "$resp" 2>/dev/null || true)
+            msg=$(jq -r '.msg // .error_description // .message // empty' "$resp" 2>/dev/null || true)
+            # APPENDED, not another `//` term. The API gateway answers a
+            # rejected publishable key with BOTH keys --
+            # {"message":"Invalid API key","hint":"Double check your API
+            # key."} -- and jq's `//` yields its first non-null operand, so a
+            # `.hint` term after `.message` is unreachable for the one response
+            # it was added for. Capture it separately and append it, so the
+            # operator gets the gateway's message AND the thing to do about it.
+            hint=$(jq -r '.hint // empty' "$resp" 2>/dev/null || true)
+            code=${code:-unknown}
+            msg=${msg:-no message}
+            if [ -n "$hint" ]; then msg="$msg ($hint)"; fi
+            # Name the cause by STATUS, and name the secret store only when a
+            # STORED value is the thing at fault:
+            #   400/403 -- the pair's own email/password.
+            #   401     -- the API gateway rejecting the publishable key before
+            #              GoTrue sees the request: a wrong, truncated or
+            #              rotated sb_publishable_ value, or a URL pointing at
+            #              another project. The eyJ* guard above catches only
+            #              legacy JWTs, so a stale new-format key reaches here.
+            #   404     -- nothing at that address serves the auth API, which
+            #              makes NEXT_PUBLIC_SUPABASE_URL the value to fix.
+            #   none    -- no HTTP response at all: the host may not resolve, so
+            #              NEXT_PUBLIC_SUPABASE_URL is a candidate here too.
+            # A 429 carries GoTrue's own over_request_rate_limit and is per
+            # runner IP, so it says nothing about any stored value. For any
+            # other status nothing in the response identifies the responder or
+            # a stored value as the cause, which is why the store is withheld
+            # rather than guessed at: blaming a secret here would be this gate
+            # committing the misdiagnosis it exists to prevent.
+            case "$status" in
+              ""|000)
+                fail "Credential pair '${label}' could not be verified: no HTTP response (network/DNS/timeout). Is NEXT_PUBLIC_SUPABASE_URL right and the project reachable? The pair was not tested." ;;
+              400|403)
+                fail "Credential pair '${label}' does not authenticate: HTTP ${status}, ${code}: ${msg}. The email/password stored for this pair is wrong, or the account is missing or blocked." ;;
+              401)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. The Supabase API gateway rejected the request before GoTrue saw it: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is wrong, truncated or belongs to another project (or NEXT_PUBLIC_SUPABASE_URL points at another project). The pair was not tested." ;;
+              429)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue rate-limited this runner's IP; the pair was NOT tested. Re-run the job; do not rotate the secret." nostore ;;
+              404)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. There is no auth endpoint at that address: NEXT_PUBLIC_SUPABASE_URL does not point at a Supabase project's API. The pair was not tested." ;;
+              *)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. The responder returned an unexpected status -- it may be GoTrue, the API gateway or whatever else answers that address -- and nothing in it identifies a stored secret as the cause. The pair was not tested." nostore ;;
+            esac
           fi
-          access=$(jq -r '.access_token // empty' "$resp")
+          # GUARDED, because `set -e` made this one fatal in silence. A 200
+          # whose body is truncated -- a reset, or `--max-time` firing AFTER the
+          # headers, where curl exits 18/28 while `%{http_code}` already read
+          # 200 and the `|| true` above deliberately discards that exit code --
+          # killed the step with a bare `jq: parse error` and NO `::error::` at
+          # all, which is the single thing this action exists to prevent. On main
+          # the same response produced status `200000` (the `|| echo 000` bug
+          # above) and so failed loudly by accident; fixing that exposed this.
+          access=$(jq -r '.access_token // empty' "$resp" 2>/dev/null || true)
           if [ -n "$access" ]; then
-            curl -sS -o /dev/null --max-time 15 -X POST "$logout_url" \
-              -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true
+            # Report the sign-out status. This probe's session is the one thing
+            # the post-job revoke step cannot clean up: if the gate fails on a
+            # LATER pair, the test step is skipped and that step is skipped
+            # with it, so a silent 4xx/5xx here would leave this session alive
+            # with nothing saying so. Never fails the gate -- a session that
+            # outlives the probe is a warning, not a reason to block the run.
+            logout_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$logout_url" \
+              -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true)
+            if [ "$logout_status" != "204" ]; then
+              echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session stays until a global revoke retires it -- if this job reaches its test step, its always() revoke step does that; if any step before the test step fails, it does not run and a later run's global revoke retires the session. Its access token lapses within the hour either way"
+            fi
+          else
+            # HTTP 200 is GoTrue saying it CREATED the session, so the pair is
+            # verified even when the body did not reach us intact. What is left
+            # is a live session whose token we never read and therefore cannot
+            # sign out. The post-job revoke would take it, but both callers gate
+            # that step on the TEST step having run, so anything that skips the
+            # test step -- this gate failing on a later pair, or an install
+            # between here and it failing -- leaves the session behind. Say so
+            # rather than leaving it silent.
+            echo "::warning::the verification probe for '${label}' got HTTP 200 with no readable access_token; the pair authenticates, but this step cannot sign that probe session out. If this gate passes AND the job reaches its test step, the always() revoke step signs the account out globally and takes that session with it; if this gate fails on a later pair, or any step before the test step fails, the revoke does not run and that session stays until a later run's global revoke retires it -- its access token lapses within the hour, its refresh token does not"
           fi
           rm -f "$resp"
           verified+=("$label")

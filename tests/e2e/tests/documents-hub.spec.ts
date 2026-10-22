@@ -25,7 +25,8 @@ import { ROUTES } from "./constants/routes";
  * This deliberately targets the LOCAL built app, not https://tenantflow.app.
  * Vercel builds `main` only, so on a PR the production URL serves the PREVIOUS
  * commit — a prod-targeted assertion would gate nothing by construction, and
- * would fail for reasons outside the diff into a suite with `maxFailures: 1`.
+ * would burn three attempts of the run's 9-minute `globalTimeout` failing for
+ * reasons outside the diff.
  *
  * WHAT IS ASSERTED, and why it is not already covered by unit tests: measured
  * geometry. The medallion ladder and the Band 3 column collapse are computed

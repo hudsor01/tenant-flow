@@ -88,9 +88,18 @@ jobs:
       # suite for weeks. Same commit, same branch: a human push (Actions secrets)
       # passed, a dependabot[bot] rebase (Dependabot secrets) failed -- the
       # value under the Dependabot tab was simply wrong, and nothing said so.
-      # The shared action performs one real sign-in per pair, revokes it, and
-      # on failure names the pair, GoTrue's error_code and WHICH secret store
-      # this run read. It needs only curl+jq, so it runs before any install.
+      # The shared action performs one real sign-in per pair, revokes it, and on
+      # failure names the pair and the cause, the responder's code and message
+      # when there was a response, and WHICH secret store this run read only when
+      # a stored secret is actually implicated. That set is the action's contract,
+      # spelled out here and in ci-cd.yml so neither caller can understate it:
+      # named for 400/403 (the pair), 401 (the publishable key),
+      # 404 (a URL serving no auth API) and a no-response (an unresolvable
+      # host makes the URL a candidate); withheld for a 429 and for any other
+      # status, where nothing identifies a stored value as the cause, so nobody
+      # rotates a secret over a
+      # transient.
+      # It needs only curl+jq, so it runs before any install.
       # The silent-skip pattern this replaced is still the thing being
       # prevented: a gate that passes while zero tests run is worse than none.
       - name: Verify Supabase test credentials
@@ -106,11 +115,11 @@ jobs:
             owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}
             owner-b=${{ secrets.E2E_OWNER_B_EMAIL }}:${{ secrets.E2E_OWNER_B_PASSWORD }}
             admin=${{ secrets.E2E_ADMIN_EMAIL }}:${{ secrets.E2E_ADMIN_PASSWORD }}
-          # Either name satisfies this: Supabase retired "service_role" with
-          # the new key model and now issues an sb_secret_* key. 16 test files
-          # already read SUPABASE_SERVICE_ROLE_KEY ?? SUPABASE_SECRET_KEY.
+          # The sb_secret_* key. Supabase retired the "service_role" vocabulary
+          # with the new key model; the GitHub secret under that old name was
+          # deleted on 2026-10-19, so only SUPABASE_SECRET_KEY exists now.
           # Without it 163 of 531 tests skipped while the job reported success.
-          secret-key: ${{ secrets.SUPABASE_SECRET_KEY || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          secret-key: ${{ secrets.SUPABASE_SECRET_KEY }}
           require-secret-key: "true"
 
       - name: Setup Bun
@@ -127,6 +136,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run RLS security tests
+        id: rls
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
@@ -134,7 +144,6 @@ jobs:
           E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
           E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
           E2E_OWNER_B_PASSWORD: ${{ secrets.E2E_OWNER_B_PASSWORD }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
           E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
@@ -154,3 +163,23 @@ jobs:
             exit 1
           fi
           grep -E "Test Files|Tests " /tmp/rls.log | tail -2
+
+      # REVOKE EVERY ACCOUNT'S SESSIONS AFTER THE RUN. globalSetup signs in all
+      # three (owner-a, owner-b, admin) and caches their access + refresh
+      # tokens for the suite; nothing in the suite signs them out. Same shared
+      # action as e2e-smoke; scope=global is safe because the two jobs are
+      # serialised by the concurrency group above. Runs on failure, cancellation
+      # and job timeout, but not when the test step was skipped (gate or
+      # install failed) -- the only session that can exist then is the gate's
+      # own probe, which the gate signs out itself and warns about when it
+      # cannot. Never fails the job.
+      - name: Revoke test-account sessions
+        if: ${{ always() && steps.rls.outcome != 'skipped' }}
+        uses: ./.github/actions/revoke-supabase-test-sessions
+        with:
+          supabase-url: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          publishable-key: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          credentials: |
+            owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}
+            owner-b=${{ secrets.E2E_OWNER_B_EMAIL }}:${{ secrets.E2E_OWNER_B_PASSWORD }}
+            admin=${{ secrets.E2E_ADMIN_EMAIL }}:${{ secrets.E2E_ADMIN_PASSWORD }}

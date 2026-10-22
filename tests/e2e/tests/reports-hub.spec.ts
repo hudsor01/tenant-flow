@@ -36,11 +36,12 @@ import { ROUTES } from "./constants/routes";
  * per-project session-state option, so the token is deliberately not spelled
  * out here and a repo-wide grep for it returns only real configuration.
  *
- * COVERAGE BUDGET: the config runs with `maxFailures: 1`, `retries: 2`,
- * `workers: 2` and `timeout: 30_000` under a 15-minute job, so every test does
- * exactly three things — navigate, prove it did not land on `/login`, prove the
- * page's `<h1>` rendered. No value assertions: an owner fixture with no ledger
- * data legitimately renders `$0.00`, and asserting on figures would be flaky.
+ * COVERAGE BUDGET: the config runs with `maxFailures: 0`, `retries: 2`,
+ * `workers: 2` and `timeout: 30_000` under a 9-minute `globalTimeout` (the real
+ * ceiling, inside a 15-minute job), so every test does exactly three things —
+ * navigate, prove it did not land on `/login`, prove the page's `<h1>`
+ * rendered. No value assertions: an owner fixture with no ledger data
+ * legitimately renders `$0.00`, and asserting on figures would be flaky.
  */
 
 /**

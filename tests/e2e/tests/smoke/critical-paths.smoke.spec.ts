@@ -54,8 +54,22 @@ async function loginAsOwner(page: Page) {
 	await passwordInput.click();
 	await passwordInput.fill(OWNER_PASSWORD);
 
-	await expect(emailInput).toHaveValue(OWNER_EMAIL);
-	await expect(passwordInput).toHaveValue(OWNER_PASSWORD);
+	// Compare as a boolean so a failure prints true/false, never the value:
+	// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
+	// error message, which reaches the job log (masked only for exact secret
+	// matches) and the on-disk json/junit/html reports. expect.poll keeps the
+	// auto-retry toHaveValue had (it polls until expect.timeout, 5 s), which
+	// a one-shot inputValue() read had dropped.
+	await expect
+		.poll(async () => (await emailInput.inputValue()) === OWNER_EMAIL, {
+			message: "email field did not accept the typed value",
+		})
+		.toBe(true);
+	await expect
+		.poll(async () => (await passwordInput.inputValue()) === OWNER_PASSWORD, {
+			message: "password field did not accept the typed value",
+		})
+		.toBe(true);
 
 	await submitButton.click();
 	await page.waitForURL((url) => !url.pathname.includes("/login"), {
@@ -87,8 +101,22 @@ test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
 		await passwordInput.click();
 		await passwordInput.fill(OWNER_PASSWORD);
 
-		await expect(emailInput).toHaveValue(OWNER_EMAIL);
-		await expect(passwordInput).toHaveValue(OWNER_PASSWORD);
+		// Compare as a boolean so a failure prints true/false, never the value:
+		// expect(...).toHaveValue(x) prints Expected/Received verbatim into the
+		// error message, which reaches the job log (masked only for exact secret
+		// matches) and the on-disk json/junit/html reports. expect.poll keeps the
+		// auto-retry toHaveValue had (it polls until expect.timeout, 5 s), which
+		// a one-shot inputValue() read had dropped.
+		await expect
+			.poll(async () => (await emailInput.inputValue()) === OWNER_EMAIL, {
+				message: "email field did not accept the typed value",
+			})
+			.toBe(true);
+		await expect
+			.poll(async () => (await passwordInput.inputValue()) === OWNER_PASSWORD, {
+				message: "password field did not accept the typed value",
+			})
+			.toBe(true);
 
 		await submitButton.click();
 
@@ -105,7 +133,7 @@ test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
 				throw new Error(
 					`🚨 LOGIN FAILED: ${errorMsg}\n\n` +
 						`❌ CRITICAL: Owner cannot login!\n` +
-						`Account: ${OWNER_EMAIL}`,
+						`Account: the e2e owner (E2E_OWNER_EMAIL)`,
 					{ cause: e },
 				);
 			}

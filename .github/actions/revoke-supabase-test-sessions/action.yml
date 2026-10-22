@@ -1,0 +1,100 @@
+name: Revoke Supabase test sessions
+description: >-
+  Sign every synthetic test account out of every session after a job that
+  authenticated against production. Never fails the job; a pair whose sessions
+  could not be revoked is reported as a warning.
+
+# WHY THIS EXISTS. e2e-smoke and rls-security both sign real synthetic accounts
+# into the PRODUCTION project, and a run leaves access + refresh tokens behind:
+# vitest's globalSetup caches every account's session in os.tmpdir() for the
+# suite, and each e2e browser context holds the owner's session cookies. (A
+# Playwright trace used to record the injected cookies too; that is why traces
+# are off for every project, not a vector that still exists.)
+# Defense in depth: nothing is uploaded from either job while CI runs against
+# production, and a GoTrue sign-out with scope=global invalidates every session
+# and refresh token the run created, so a refresh token that escaped cannot be
+# used to mint new sessions. It does NOT reach an access token already issued:
+# those are JWTs, PostgREST validates them on signature and expiry without
+# consulting the sessions table, and one that escaped keeps its RLS-scoped
+# access until it lapses (see the warning text below). That is why nothing is
+# uploaded, rather than a reason uploading would be safe.
+# On main neither job revoked anything; earlier
+# revisions of this PR carried the revoke inline in ci-cd.yml for owner-a only.
+# One shared action keeps the two jobs from drifting apart.
+#
+# scope=global is safe only because the two production-data jobs are serialised
+# by the `tenantflow-prod-test-account` concurrency group; a concurrent job on
+# the same account would lose its session mid-run (that race is documented in
+# rls-security-tests.yml).
+#
+# Needs only curl + jq (preinstalled on ubuntu-latest).
+
+inputs:
+  supabase-url:
+    description: NEXT_PUBLIC_SUPABASE_URL
+    required: true
+  publishable-key:
+    description: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (sb_publishable_*)
+    required: true
+  credentials:
+    description: >-
+      Newline-separated `label=email:password` entries, one per account to sign
+      out, in the same format verify-supabase-test-auth takes. NOTE: this text
+      must not contain a literal expression -- GitHub evaluates them inside
+      action metadata, where the secrets context does not exist, and refuses to
+      load the action.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Revoke test-account sessions
+      shell: bash
+      env:
+        SUPABASE_URL: ${{ inputs.supabase-url }}
+        PUBLISHABLE_KEY: ${{ inputs.publishable-key }}
+        CREDENTIALS: ${{ inputs.credentials }}
+      run: |
+        # `shell: bash` runs this under `bash -eo pipefail`; -e must be turned
+        # OFF explicitly or any non-zero line fails the step and therefore the
+        # required check. This step must never fail the job: a revoke that
+        # cannot happen is reported as a warning.
+        set +e -u -o pipefail
+        token_url="${SUPABASE_URL%/}/auth/v1/token?grant_type=password"
+        logout_url="${SUPABASE_URL%/}/auth/v1/logout?scope=global"
+        failed=()
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          label="${line%%=*}"; pair="${line#*=}"
+          email="${pair%%:*}"; password="${pair#*:}"
+          # Both halves reach jq through the ENVIRONMENT and curl through STDIN
+          # (-d @-) -- never argv, so neither is visible in the process list.
+          body=$(EM="$email" PW="$password" jq -cn '{email:env.EM,password:env.PW}')
+          revoked=false
+          # Up to 3 attempts with backoff: a 429 or a transient 5xx from GoTrue
+          # must not be mistaken for "no session to revoke".
+          for attempt in 1 2 3; do
+            access=$(curl -sS --max-time 30 -X POST "$token_url" \
+                       -H "apikey: $PUBLISHABLE_KEY" -H 'Content-Type: application/json' \
+                       -d @- <<<"$body" | jq -r '.access_token // empty' 2>/dev/null)
+            if [ -n "$access" ]; then
+              # Branch on the HTTP status, not curl's exit code: without -f curl
+              # exits 0 for 401/403/429/500 too. GoTrue answers 204 on success.
+              status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$logout_url" \
+                         -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access")
+              if [ "$status" = "204" ]; then revoked=true; break; fi
+              echo "${label} attempt ${attempt}: logout returned HTTP ${status:-000}"
+            else
+              echo "${label} attempt ${attempt}: sign-in returned no access token"
+            fi
+            [ "$attempt" -lt 3 ] && sleep $((attempt * 3))
+          done
+          if [ "$revoked" = true ]; then
+            echo "revoked all sessions for ${label}"
+          else
+            failed+=("$label")
+          fi
+        done <<< "$CREDENTIALS"
+        if [ ${#failed[@]} -gt 0 ]; then
+          echo "::warning::could not revoke sessions for: ${failed[*]} (3 attempts each). Nothing is uploaded regardless; the access tokens lapse within the hour but the refresh tokens stay valid until the next successful global revoke."
+        fi

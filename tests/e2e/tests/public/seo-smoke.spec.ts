@@ -71,20 +71,27 @@ async function assertPageSeo(
 		.getAttribute("content");
 	expect(ogUrl, `${path}: og:url should exist`).toBeTruthy();
 
-	// JSON-LD schemas exist (at minimum from global layout SeoJsonLd)
+	// POLL: ONE READ OF THE DOM IS NOT ENOUGH HERE. Measured on CI -- /blog
+	// failed with exactly ["Organization"] and passed on the retry, which is the
+	// layout's SeoJsonLd (the only site-wide schema) without the page's own
+	// BreadcrumbList. So the page's schemas were not yet queryable when the read
+	// was taken, even though `goto` had resolved on `load`. The exact timing
+	// cause is not pinned down and this comment does not guess at one; what is
+	// established is that /blog and /blog/category/[category] render on demand
+	// behind `src/app/blog/loading.tsx` (/blog/[slug] shares that boundary but
+	// is ISR-prerendered), and that polling makes the assertion stable without
+	// weakening it -- it still fails when a schema never renders.
+	await expect
+		.poll(async () => (await getJsonLdSchemas(page)).map((s) => s["@type"]), {
+			message: `${path}: JSON-LD @type values`,
+		})
+		.toEqual(expect.arrayContaining(expectedTypes));
+
 	const schemas = await getJsonLdSchemas(page);
 	expect(
 		schemas.length,
 		`${path}: at least one JSON-LD schema should exist`,
 	).toBeGreaterThan(0);
-
-	// Validate expected @type values
-	const types = schemas.map((s) => s["@type"]);
-	for (const expectedType of expectedTypes) {
-		expect(types, `${path}: should contain @type "${expectedType}"`).toContain(
-			expectedType,
-		);
-	}
 }
 
 test.describe("SEO Smoke Tests", () => {

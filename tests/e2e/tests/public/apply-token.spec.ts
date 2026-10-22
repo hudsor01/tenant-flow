@@ -201,9 +201,37 @@ const boxOf = measuredBoxOf;
 
 /** Loads a token and waits for the branch that token produces to be on screen. */
 async function openApply(page: Page, token: string) {
-	const response = await page.goto(`/apply/${token}`, {
-		waitUntil: "domcontentloaded",
-	});
+	// A FAILED NAVIGATION ECHOES THE URL, AND THE URL IS THE CREDENTIAL. The
+	// token in the path is a live application-link bearer token; Playwright
+	// builds a navigation failure as `${errorText} at ${url}` (playwright-core
+	// coreBundle.js, NavigationAbortedError) and the call log adds
+	// `navigating to "<url>"`, both of which reach the job log and a PR check
+	// annotation unmasked -- GitHub masks registered secrets only. Catch and
+	// rethrow with the token removed from EVERY reported surface.
+	//
+	// THE CAUSE IS REDACTED TOO, AND HAS TO BE. Attaching the original error as
+	// `cause` undoes the whole redaction: Playwright serialises `error.cause`
+	// onto the TestError (playwright/lib/util.js, `e.cause instanceof Error ?
+	// filterStackTrace(e.cause) : void 0`) and every reporter built on
+	// `formatError` prints it as `[cause]: <original message>`
+	// (playwright/lib/runner/index.js), so the raw URL lands in the `::error::`
+	// annotation anyway. Measured with this repo's own Playwright 1.62 against a
+	// sentinel: `cause: error` leaks it; no cause, and `cause: new Error(detail)`,
+	// do not. The redacted detail already carries the errorText AND the call log,
+	// so nothing diagnostic is lost.
+	let response: Awaited<ReturnType<Page["goto"]>>;
+	try {
+		response = await page.goto(`/apply/${token}`, {
+			waitUntil: "domcontentloaded",
+		});
+	} catch (error) {
+		const detail = (
+			error instanceof Error ? error.message : String(error)
+		).replaceAll(token, "<token redacted>");
+		throw new Error(`navigation to /apply/<token redacted> failed: ${detail}`, {
+			cause: new Error(detail),
+		});
+	}
 	await expect(page.locator(CARD)).toBeVisible({ timeout: 20000 });
 	return response;
 }
@@ -212,6 +240,36 @@ async function openApply(page: Page, token: string) {
 async function openForm(page: Page, token: string) {
 	await openApply(page, token);
 	await expect(page.locator("#first_name")).toBeVisible({ timeout: 20000 });
+	// VISIBILITY IS NOT HYDRATION, and this gate used to stop at it. The form is
+	// a statically imported "use client" component inside a force-dynamic server
+	// component, so every control ships in the first byte of server HTML and is
+	// visible long before React attaches a listener. Against an unhydrated island
+	// `fill` sets the DOM value while form state stays empty, and a click on the
+	// Radix attestation checkbox -- whose rendered state IS form state -- is
+	// dropped with no trace. The submit then reports missing answers while
+	// `#email` still reads back the typed address, which is exactly how E-15
+	// passed, then flaked, then failed on all three attempts: each change that
+	// made the run faster (finally turning traces off) widened the window in
+	// which the fills beat hydration.
+	//
+	// react-dom 19.2.8 precaches a fiber on every host node as it hydrates it
+	// (`__reactFiber$<random>` / `__reactProps$<random>` -- the suffix is one
+	// `Math.random().toString(36).slice(2)` per react-dom instance, not a number
+	// -- as plain enumerable assignments),
+	// and hydration walks the tree in DOM order. The attestation checkbox is the
+	// last control the fill helper touches, so its fiber appearing means every
+	// field above it is live too.
+	await page.waitForFunction(
+		() => {
+			const node = document.querySelector("#apply-certify");
+			return (
+				node !== null &&
+				Object.keys(node).some((key) => key.startsWith("__react"))
+			);
+		},
+		undefined,
+		{ timeout: 20000 },
+	);
 }
 
 /** The 14 required answers, so the submit button is genuinely enabled. */
@@ -232,6 +290,11 @@ async function fillRequired(page: Page) {
 	await page.fill("#reference_1_name", "Reference One");
 	await page.fill("#reference_1_phone", "555-010-0101");
 	await page.locator("#apply-certify").click();
+	// The attestation is the one answer that cannot be read back from the DOM if
+	// the click was dropped: it is form state, not an input value. Assert it took
+	// here, so a lost click says so instead of surfacing 15 s later as a
+	// confirmation that never arrives.
+	await expect(page.locator("#apply-certify")).toBeChecked();
 }
 
 function submitButton(page: Page): Locator {
@@ -498,10 +561,16 @@ test.describe("/apply — the rendered applicant form", () => {
 		page,
 	}) => {
 		await page.setViewportSize({ width: 375, height: 900 });
-		// Fill first: the submit control is disabled while the form is invalid, and
-		// a disabled button is skipped by Tab. Asserting tab order at the moment an
-		// applicant would actually submit is also the moment that matters.
+		// Fill first because that is the state an applicant tabs from, which is the
+		// moment the order matters -- NOT because an empty form would disable the
+		// control and hide it from Tab: `RentalApplicationForm` sets
+		// `canSubmitWhenInvalid: true` (rental-application-form.tsx), deliberately,
+		// so the button stays enabled and reachable on an invalid form and the
+		// applicant gets a reason instead of a dead control.
 		await fillRequired(page);
+		// A positive control only: with canSubmitWhenInvalid this can fail just two
+		// ways -- the control is missing, or the submitting fieldset is still
+		// disabled -- both of which would make the tab assertion below meaningless.
 		await expect(submitButton(page)).toBeEnabled();
 
 		await page.locator("#apply-certify").focus();

@@ -65,7 +65,27 @@ export default defineConfig({
 	// Execution Strategy
 	// ===================
 	fullyParallel: true,
-	maxFailures: 1, // Stop on first failure for debugging
+	// Stop-on-first-failure is a DEBUGGING posture (it is what `--debug`
+	// sets). In CI it meant one failing spec aborted the run and hid every
+	// other failure behind "Testing stopped early after 1 maximum allowed
+	// failures". 0 is Playwright's default: run everything, report everything.
+	maxFailures: process.env.CI ? 0 : 1,
+	// With maxFailures 0, a SYSTEMIC failure (broken build, dead auth) no
+	// longer stops after the first spec -- 137 tests x 3 attempts could run
+	// past the job's `timeout-minutes: 15`. GitHub then CANCELS the job
+	// mid-run: no Playwright summary, no honest end state. Playwright's
+	// globalTimeout ends the run itself ("timedout"), still calls every
+	// reporter's onEnd so the github reporter's annotations reach the job
+	// log -- the only triage surface while nothing is uploaded -- and exits
+	// 1: a FAILED job with a cause, not a cancelled one, with budget left
+	// for the always() revoke step. The deadline is armed BEFORE the
+	// webServer plugin starts, so these 9 min include `next build && next
+	// start` (measured 58 s on CI) plus the suite (measured ~3 min for 137
+	// tests); the webServer `timeout: 240_000` below is a ceiling, not a
+	// measurement. Job budget: ~1 min setup + 9 min + revoke (<= 2.4 min
+	// worst case for one account), inside `timeout-minutes: 15`. 0 (the
+	// default) locally.
+	globalTimeout: process.env.CI ? 9 * 60_000 : 0,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
@@ -98,8 +118,37 @@ export default defineConfig({
 		// @see https://playwright.dev/docs/api/class-browser#browser-new-context-option-bypass-csp
 		bypassCSP: true,
 
-		// Recording options
-		trace: "on-first-retry",
+		// Recording options.
+		//
+		// NO TRACES ANYWHERE WHILE CI AUTHENTICATES AGAINST PRODUCTION. A trace
+		// stores every fill() value as text, so a retry of any spec that types a
+		// credential writes it into test-results/ in cleartext -- and no session
+		// revoke can undo a leaked password. This was set on the `smoke` project
+		// alone, on the stated ground that it was "the one project that types the
+		// secret"; it is not. `chromium` has no testMatch, so it collects the same
+		// critical-paths.smoke.spec.ts (7 tests, confirmed with --list) and
+		// inherited on-first-retry, and `owner-axe` -- which CI does run -- traces
+		// a live production apply token. An invariant that depends on which
+		// --project flags a workflow happens to pass is not an invariant.
+		// Screenshots and video stay, but they are not credential-free: a password
+		// input renders masked while the EMAIL field renders in cleartext, so they
+		// still carry one half of the pair. The only thing keeping them private is
+		// that ci-cd.yml uploads nothing -- which is also why that file says a
+		// screenshot or video of a production login carries live credentials.
+		// Traces are different in kind: they store every typed value as text, which
+		// no browser masks. They come back when the stack is hermetic and the
+		// credentials belong to a throwaway database.
+		//
+		// `playwright.config.prod.ts` was deleted with this setting, not merely
+		// edited: `tests/e2e/tests/production/` no longer exists, so the only specs
+		// its testMatch still collected were these smoke tests -- it collected the
+		// login spec with trace "retain-on-failure", which is the production
+		// password in a trace, one --config flag away. Its `baseURL` is NOT part of
+		// that story: every smoke spec builds absolute URLs from
+		// `PLAYWRIGHT_BASE_URL || "http://localhost:3050"`, and an absolute URL
+		// discards baseURL, so that config never pointed these specs anywhere. The
+		// credential is production-issued wherever the form is served.
+		trace: "off",
 		screenshot: "only-on-failure",
 		video: "retain-on-failure",
 
@@ -244,6 +293,10 @@ export default defineConfig({
 			use: {
 				...devices["Desktop Chrome"],
 				storageState: { cookies: [], origins: [] }, // No auth - tests login flow
+				// This spec types E2E_OWNER_PASSWORD into the real login form. Traces
+				// are off for every project (see `use` above) -- do not re-enable one
+				// here, or on any project that collects this file, while CI runs
+				// against production.
 			},
 			testMatch: ["**/smoke/**/*.spec.ts"],
 			testIgnore: ["**/minimal.smoke.spec.ts"], // This test requires pre-auth, runs in chromium project
@@ -319,9 +372,15 @@ export default defineConfig({
 	webServer: [
 		(() => {
 			const sharedEnv = `export NODE_ENV='${process.env.CI ? "production" : "test"}' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && export NEXT_PUBLIC_APP_URL='${TEST_FRONTEND_URL}' && export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_test_placeholder'`;
+			// This command used to `rm -f .env.local` first -- deleting a
+			// developer's local env file on every e2e run. The exported `sharedEnv`
+			// chain and the `env:` block below already pin every value the server
+			// needs, and Next's env loader
+			// never overrides a variable that is already set in process.env, so
+			// the deletion protected nothing and destroyed real configuration.
 			const command = process.env.CI
-				? `rm -rf .next && rm -f .env.local && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
-				: `rm -rf .next && rm -f .env.local && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
+				? `rm -rf .next && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
+				: `rm -rf .next && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
 			return {
 				command,
 				url: TEST_FRONTEND_URL,

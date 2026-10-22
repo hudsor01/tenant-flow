@@ -415,13 +415,46 @@ test.describe("/applications — the owner review queue", () => {
 		);
 		await openQueue(page, 1280);
 
-		// The panel's readonly field is the only input in the links band carrying an
-		// `Application link for …` accessible name (§C).
+		// NO LOCATOR MATCHER MAY FAIL AGAINST THIS FIELD. Its `value` attribute is
+		// a live production application-link URL -- a bearer token reused across
+		// runs, which `rental_application_links` has no DELETE policy to retire --
+		// and react-dom writes it to the ATTRIBUTE (`initInput` assigns
+		// `element.defaultValue` unconditionally), where Playwright's `previewNode`
+		// renders every attribute but `style`, shortest first, inside a 500-char
+		// cap. So `locator resolved to <input … value="…/apply/<64 hex>">` lands in
+		// the Call log of any failing locator assertion, and from there into the
+		// job log and a PR check annotation. This spec runs in CI under
+		// --project=owner-axe; GitHub masks registered secrets only, and a token
+		// minted at runtime is not one. Rewriting the two value assertions as
+		// booleans was not enough: `toBeVisible` and `toHaveCSS` leaked by the
+		// same route, and `toHaveCSS` is the one most likely to fail -- it is the
+		// 12px regression detector below.
+		//
+		// Gate on the band, not the input, and read the input only through calls
+		// that never preview it on failure. `inputValue` resolves via
+		// `_waitForFunctionOnSelector` and `locator.evaluate` via
+		// `waitForSelector({state:"attached"})` -- different paths, but both
+		// preview the node only once it has RESOLVED, so a timeout on either
+		// carries no attributes (measured against a sentinel: a `locator.evaluate`
+		// timeout prints none). The font size below goes through `page.evaluate`
+		// instead, which resolves the node with `document.querySelector` inside the
+		// page and builds no locator at all, so there is no preview path to reason
+		// about.
+		await expect(page.locator("#application-links")).toBeVisible({
+			timeout: 20000,
+		});
 		const urlField = page.locator("#application-links input[readonly]").first();
-		await expect(urlField).toBeVisible({ timeout: 20000 });
-		const first = await urlField.inputValue();
+		// 20 s explicitly: the removed `toBeVisible({ timeout: 20000 })` was the
+		// only thing waiting for this input, which two production queries have to
+		// return before it renders. The band gate above is server-rendered markup
+		// and never waits for data, and a bare `inputValue()` would fall back to
+		// `actionTimeout: 10_000` -- half the budget this test used to have.
+		const first = await urlField.inputValue({ timeout: 20000 });
 		expect(first.length).toBeGreaterThan(0);
-		expect(first).toContain("/apply/");
+		expect(
+			first.includes("/apply/"),
+			"the link field did not render an /apply/ URL",
+		).toBe(true);
 
 		// 1280px IS THE VIEWPORT WHERE THIS FIELD WAS THE WRONG SIZE, and this test
 		// was already standing here reading `inputValue()` at exactly that width
@@ -436,7 +469,22 @@ test.describe("/applications — the owner review queue", () => {
 		// the same cascade in jsdom, which is fast and runs on every commit but
 		// models Tailwind's emission order rather than reading it. Only this one
 		// reads the compiled bundle.
-		await expect(urlField).toHaveCSS("font-size", "12px");
+		// expect.poll, not a one-shot read: `toHaveCSS` retried until the expect
+		// timeout and the first leak fix replaced it with a single sample, which
+		// is a weaker assertion than the redaction needed. Polling keeps the retry
+		// and prints only the sampled string.
+		await expect
+			.poll(
+				() =>
+					page.evaluate(() => {
+						const node = document.querySelector(
+							"#application-links input[readonly]",
+						);
+						return node ? getComputedStyle(node).fontSize : null;
+					}),
+				{ message: "the link field is not rendering at --text-xs (12px)" },
+			)
+			.toBe("12px");
 
 		// The assertion a shown-once implementation fails. `/sign` stores only the
 		// token hash and reveals it once; this token is PUBLISHED to a listing and
@@ -447,9 +495,14 @@ test.describe("/applications — the owner review queue", () => {
 		await expect(
 			page.getByRole("heading", { level: 1, name: "Applications" }),
 		).toBeVisible({ timeout: 20000 });
+		await expect(page.locator("#application-links")).toBeVisible({
+			timeout: 20000,
+		});
 		const reloaded = page.locator("#application-links input[readonly]").first();
-		await expect(reloaded).toBeVisible({ timeout: 20000 });
-		expect(await reloaded.inputValue()).toBe(first);
+		expect(
+			(await reloaded.inputValue({ timeout: 20000 })) === first,
+			"the link URL did not survive the reload unchanged",
+		).toBe(true);
 	});
 });
 
