@@ -33,7 +33,8 @@ description: >-
 # a stored secret is actually implicated: named for 400/403 (the pair), 401 (the
 # publishable key), 404 (a URL serving no auth API) and a no-response (an
 # unresolvable host makes the URL a candidate); withheld for a 429 and for any
-# other status the right host answered with, so nobody rotates a secret over a
+# other status, where nothing identifies a stored value as the cause, so nobody
+# rotates a secret over a
 # transient. Both callers restate this same set, so a reader of either workflow
 # sees the contract this file implements rather than an older one. Either way
 # the fix is one sentence instead of an investigation.
@@ -99,7 +100,8 @@ runs:
         # the publishable key the gateway rejected (401), or the URL that serves
         # no auth API (404), and a no-response may be a URL that does not
         # resolve. It is a misdirection for a rate limit and for any other
-        # status the right host answered with, so those pass `nostore` and
+        # status, where nothing identifies a stored value as the cause, so those
+        # pass `nostore` and
         # nobody rotates a secret over a transient.
         fail() { echo "::error::$1"; [ "${2:-}" != "nostore" ] && echo "::error::Secret store for this run: $store"; exit 1; }
 
@@ -192,10 +194,12 @@ runs:
             #              makes NEXT_PUBLIC_SUPABASE_URL the value to fix.
             #   none    -- no HTTP response at all: the host may not resolve, so
             #              NEXT_PUBLIC_SUPABASE_URL is a candidate here too.
-            # A 429 (over_request_rate_limit, per runner IP) and a 5xx both mean
-            # the right host answered, so they say nothing about any stored
-            # value; blaming one would be this gate committing the misdiagnosis
-            # it exists to prevent.
+            # A 429 carries GoTrue's own over_request_rate_limit and is per
+            # runner IP, so it says nothing about any stored value. For any
+            # other status nothing in the response identifies the responder or
+            # a stored value as the cause, which is why the store is withheld
+            # rather than guessed at: blaming a secret here would be this gate
+            # committing the misdiagnosis it exists to prevent.
             case "$status" in
               ""|000)
                 fail "Credential pair '${label}' could not be verified: no HTTP response (network/DNS/timeout). Is NEXT_PUBLIC_SUPABASE_URL right and the project reachable? The pair was not tested." ;;
@@ -230,7 +234,7 @@ runs:
             logout_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$logout_url" \
               -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true)
             if [ "$logout_status" != "204" ]; then
-              echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session stays until a global revoke retires it -- on the pass path this job's always() revoke step does that, and its access token lapses within the hour either way"
+              echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session stays until a global revoke retires it -- if this job reaches its test step, its always() revoke step does that; if any step before the test step fails, it does not run and a later run's global revoke retires the session. Its access token lapses within the hour either way"
             fi
           else
             # HTTP 200 is GoTrue saying it CREATED the session, so the pair is

@@ -71,19 +71,16 @@ async function assertPageSeo(
 		.getAttribute("content");
 	expect(ogUrl, `${path}: og:url should exist`).toBeTruthy();
 
-	// POLL, BECAUSE A ROUTE'S OWN SCHEMAS ARRIVE WITH ITS STREAMED BODY. The
-	// layout's SeoJsonLd renders ONLY the Organization entity and ships in the
-	// shell; a page's own schemas (BreadcrumbList, Article, FAQPage) live in the
-	// body. `src/app/blog/loading.tsx` is the only loading boundary over the
-	// routes this helper visits, and it covers every segment under /blog: /blog
-	// and /blog/category/[category] both render on demand, so Next sends the
-	// shell first and streams their bodies in when the query resolves -- which
-	// can be after the `load` event this helper waits for. (/blog/[slug] sits
-	// under the same boundary but is ISR-prerendered -- generateStaticParams,
-	// dynamicParams false, revalidate 300 -- so its body ships complete.) A
-	// single read of the DOM therefore saw exactly ["Organization"] on /blog
-	// while the retry saw the full set: a race, not a missing schema. Polling
-	// still fails when a schema genuinely never renders.
+	// POLL: ONE READ OF THE DOM IS NOT ENOUGH HERE. Measured on CI -- /blog
+	// failed with exactly ["Organization"] and passed on the retry, which is the
+	// layout's SeoJsonLd (the only site-wide schema) without the page's own
+	// BreadcrumbList. So the page's schemas were not yet queryable when the read
+	// was taken, even though `goto` had resolved on `load`. The exact timing
+	// cause is not pinned down and this comment does not guess at one; what is
+	// established is that /blog and /blog/category/[category] render on demand
+	// behind `src/app/blog/loading.tsx` (/blog/[slug] shares that boundary but
+	// is ISR-prerendered), and that polling makes the assertion stable without
+	// weakening it -- it still fails when a schema never renders.
 	await expect
 		.poll(async () => (await getJsonLdSchemas(page)).map((s) => s["@type"]), {
 			message: `${path}: JSON-LD @type values`,

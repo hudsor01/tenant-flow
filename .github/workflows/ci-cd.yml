@@ -186,7 +186,8 @@ jobs:
       # it: named for 400/403 (the pair), 401 (the publishable key),
       # 404 (a URL serving no auth API) and a no-response (an unresolvable
       # host makes the URL a candidate); withheld for a 429 and for any other
-      # status the right host answered with, so nobody rotates a secret over a
+      # status, where nothing identifies a stored value as the cause, so nobody
+      # rotates a secret over a
       # transient.
       - name: Verify Supabase test credentials
         uses: ./.github/actions/verify-supabase-test-auth
