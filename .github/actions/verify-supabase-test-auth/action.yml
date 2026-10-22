@@ -19,11 +19,19 @@ description: >-
 #
 # WHAT IT DOES. For each credential pair it performs ONE real sign-in against
 # GoTrue's password grant and immediately revokes the session, so the gate
-# proves the pair works at the cost of one auth call and leaves nothing behind.
-# On failure it emits a ::error:: that names the pair, the HTTP status, GoTrue's
-# error_code and message, and WHICH secret store the job read -- Actions for a
-# human-authored run, Dependabot for a dependabot[bot] run -- so the fix is one
-# sentence instead of an investigation.
+# proves the pair works at the cost of one auth call and normally leaves nothing
+# behind. When that sign-out cannot be completed -- a non-204, or a 200 whose
+# body did not survive the transport -- it says so in a warning rather than
+# leaving a live session unannounced, because the post-job revoke step does not
+# run when the gate itself fails.
+# On failure it emits a ::error:: that always names the pair and the cause, and
+# names the HTTP status, GoTrue's error_code and message when there was a
+# response to read. WHICH secret store the job read -- Actions for a
+# human-authored run, Dependabot for a dependabot[bot] run -- is named only when
+# a stored secret is actually implicated (400/403 for the pair, 401 for the
+# publishable key) and deliberately withheld for a transport failure, a 429 or
+# an unexpected status, so nobody rotates a secret over a rate limit. Either
+# way the fix is one sentence instead of an investigation.
 #
 # It runs BEFORE bun/node setup and needs only curl + jq (preinstalled on
 # ubuntu-latest), so a bad secret fails in seconds, not after a 90s install.

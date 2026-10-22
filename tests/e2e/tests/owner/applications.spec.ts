@@ -430,10 +430,15 @@ test.describe("/applications — the owner review queue", () => {
 		// same route, and `toHaveCSS` is the one most likely to fail -- it is the
 		// 12px regression detector below.
 		//
-		// Gate on the band, not the input, and read the input only through
-		// `inputValue`/`evaluate`: those resolve via _waitForFunctionOnSelector,
-		// which previews the node only on SUCCESS, so a timeout carries no
-		// attributes.
+		// Gate on the band, not the input, and read the input only through calls
+		// that never preview it on failure. `inputValue` resolves via
+		// `_waitForFunctionOnSelector` and `locator.evaluate` via
+		// `waitForSelector({state:"attached"})` -- different paths, but both
+		// preview the node only once it has RESOLVED, so a timeout on either
+		// carries no attributes (measured against a sentinel: a `locator.evaluate`
+		// timeout prints none). The font size below goes through `page.evaluate`
+		// instead, which takes a selector and no locator at all, so there is no
+		// preview path to reason about.
 		await expect(page.locator("#application-links")).toBeVisible({
 			timeout: 20000,
 		});
@@ -458,10 +463,22 @@ test.describe("/applications — the owner review queue", () => {
 		// the same cascade in jsdom, which is fast and runs on every commit but
 		// models Tailwind's emission order rather than reading it. Only this one
 		// reads the compiled bundle.
-		expect(
-			await urlField.evaluate((node) => getComputedStyle(node).fontSize),
-			"the link field is not rendering at --text-xs (12px)",
-		).toBe("12px");
+		// expect.poll, not a one-shot read: `toHaveCSS` retried until the expect
+		// timeout and the first leak fix replaced it with a single sample, which
+		// is a weaker assertion than the redaction needed. Polling keeps the retry
+		// and prints only the sampled string.
+		await expect
+			.poll(
+				() =>
+					page.evaluate(() => {
+						const node = document.querySelector(
+							"#application-links input[readonly]",
+						);
+						return node ? getComputedStyle(node).fontSize : null;
+					}),
+				{ message: "the link field is not rendering at --text-xs (12px)" },
+			)
+			.toBe("12px");
 
 		// The assertion a shown-once implementation fails. `/sign` stores only the
 		// token hash and reveals it once; this token is PUBLISHED to a listing and

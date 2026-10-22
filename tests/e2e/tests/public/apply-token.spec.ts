@@ -207,7 +207,18 @@ async function openApply(page: Page, token: string) {
 	// coreBundle.js, NavigationAbortedError) and the call log adds
 	// `navigating to "<url>"`, both of which reach the job log and a PR check
 	// annotation unmasked -- GitHub masks registered secrets only. Catch and
-	// rethrow with the token removed, keeping the rest of the diagnosis.
+	// rethrow with the token removed from EVERY reported surface.
+	//
+	// THE CAUSE IS REDACTED TOO, AND HAS TO BE. Attaching the original error as
+	// `cause` undoes the whole redaction: Playwright serialises `error.cause`
+	// onto the TestError (playwright/lib/util.js, `e.cause instanceof Error ?
+	// filterStackTrace(e.cause) : void 0`) and every reporter built on
+	// `formatError` prints it as `[cause]: <original message>`
+	// (playwright/lib/runner/index.js), so the raw URL lands in the `::error::`
+	// annotation anyway. Measured with this repo's own Playwright 1.62 against a
+	// sentinel: `cause: error` leaks it; no cause, and `cause: new Error(detail)`,
+	// do not. The redacted detail already carries the errorText AND the call log,
+	// so nothing diagnostic is lost.
 	let response: Awaited<ReturnType<Page["goto"]>>;
 	try {
 		response = await page.goto(`/apply/${token}`, {
@@ -218,7 +229,7 @@ async function openApply(page: Page, token: string) {
 			error instanceof Error ? error.message : String(error)
 		).replaceAll(token, "<token redacted>");
 		throw new Error(`navigation to /apply/<token redacted> failed: ${detail}`, {
-			cause: error,
+			cause: new Error(detail),
 		});
 	}
 	await expect(page.locator(CARD)).toBeVisible({ timeout: 20000 });
