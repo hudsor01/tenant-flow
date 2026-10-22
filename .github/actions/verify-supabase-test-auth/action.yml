@@ -230,7 +230,7 @@ runs:
             logout_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$logout_url" \
               -H "apikey: $PUBLISHABLE_KEY" -H "Authorization: Bearer $access" || true)
             if [ "$logout_status" != "204" ]; then
-              echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session may remain until it expires"
+              echo "::warning::sign-out of the verification probe for '${label}' returned HTTP ${logout_status:-000}; that session stays until a global revoke retires it -- on the pass path this job's always() revoke step does that, and its access token lapses within the hour either way"
             fi
           else
             # HTTP 200 is GoTrue saying it CREATED the session, so the pair is
@@ -241,7 +241,7 @@ runs:
             # test step -- this gate failing on a later pair, or an install
             # between here and it failing -- leaves the session behind. Say so
             # rather than leaving it silent.
-            echo "::warning::the verification probe for '${label}' got HTTP 200 with no readable access_token; the pair authenticates, but this step cannot sign that probe session out. If this gate passes AND the job reaches its test step, the always() revoke step signs the account out globally and takes that session with it; if this gate fails on a later pair, or any step before the test step fails, the revoke does not run and the session stays until it expires"
+            echo "::warning::the verification probe for '${label}' got HTTP 200 with no readable access_token; the pair authenticates, but this step cannot sign that probe session out. If this gate passes AND the job reaches its test step, the always() revoke step signs the account out globally and takes that session with it; if this gate fails on a later pair, or any step before the test step fails, the revoke does not run and that session stays until a later run's global revoke retires it -- its access token lapses within the hour, its refresh token does not"
           fi
           rm -f "$resp"
           verified+=("$label")
