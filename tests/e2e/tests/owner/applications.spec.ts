@@ -437,8 +437,9 @@ test.describe("/applications — the owner review queue", () => {
 		// preview the node only once it has RESOLVED, so a timeout on either
 		// carries no attributes (measured against a sentinel: a `locator.evaluate`
 		// timeout prints none). The font size below goes through `page.evaluate`
-		// instead, which takes a selector and no locator at all, so there is no
-		// preview path to reason about.
+		// instead, which resolves the node with `document.querySelector` inside the
+		// page and builds no locator at all, so there is no preview path to reason
+		// about.
 		await expect(page.locator("#application-links")).toBeVisible({
 			timeout: 20000,
 		});

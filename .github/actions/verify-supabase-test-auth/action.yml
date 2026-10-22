@@ -163,18 +163,26 @@ runs:
             # The message degraded to `HTTP 502, : .` for exactly the responses
             # that carry no clue of their own.
             code=$(jq -r '.error_code // .error // empty' "$resp" 2>/dev/null || true)
-            # `.hint` last: the API gateway answers a rejected publishable key
-            # with {"message":…,"hint":"Double check your API key."} and no
-            # error_code, so the hint is the most actionable thing it returns.
-            msg=$(jq -r '.msg // .error_description // .message // .hint // empty' "$resp" 2>/dev/null || true)
+            msg=$(jq -r '.msg // .error_description // .message // empty' "$resp" 2>/dev/null || true)
+            # APPENDED, not another `//` term. The API gateway answers a
+            # rejected publishable key with BOTH keys --
+            # {"message":"Invalid API key","hint":"Double check your API
+            # key."} -- and jq's `//` yields its first non-null operand, so a
+            # `.hint` term after `.message` is unreachable for the one response
+            # it was added for. Capture it separately and append it, so the
+            # operator gets the gateway's message AND the thing to do about it.
+            hint=$(jq -r '.hint // empty' "$resp" 2>/dev/null || true)
             code=${code:-unknown}
             msg=${msg:-no message}
+            if [ -n "$hint" ]; then msg="$msg ($hint)"; fi
             # Name the cause by STATUS. 400/403 is the pair itself; 401 is the
             # API gateway rejecting the publishable key BEFORE GoTrue sees the
             # request (a wrong, truncated or rotated sb_publishable_ value, or
             # a URL pointing at another project -- the eyJ* guard above catches
             # only legacy JWTs). Both are a stored secret at fault, so both
-            # name the store. A 429 (over_request_rate_limit, per runner IP), a
+            # name the store. A             # 404 means nothing at that address serves the auth API, which makes
+            # NEXT_PUBLIC_SUPABASE_URL the stored secret at fault, so it names
+            # the store too. A 429 (over_request_rate_limit, per runner IP), a
             # 5xx or no response says nothing about any secret, and blaming one
             # would be this gate committing the misdiagnosis it exists to
             # prevent.
@@ -187,8 +195,10 @@ runs:
                 fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. The Supabase API gateway rejected the request before GoTrue saw it: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is wrong, truncated or belongs to another project (or NEXT_PUBLIC_SUPABASE_URL points at another project). The pair was not tested." ;;
               429)
                 fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue rate-limited this runner's IP; the pair was NOT tested. Re-run the job; do not rotate the secret." nostore ;;
+              404)
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. There is no auth endpoint at that address: NEXT_PUBLIC_SUPABASE_URL does not point at a Supabase project's API. The pair was not tested." ;;
               *)
-                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. GoTrue returned an unexpected status; this is not a credentials problem. The pair was not tested." nostore ;;
+                fail "Credential pair '${label}' could not be verified: HTTP ${status}, ${code}: ${msg}. The responder returned an unexpected status -- it may be GoTrue, the API gateway or whatever else answers that address -- and nothing in it identifies a stored secret as the cause. The pair was not tested." nostore ;;
             esac
           fi
           # GUARDED, because `set -e` made this one fatal in silence. A 200
@@ -216,9 +226,12 @@ runs:
             # HTTP 200 is GoTrue saying it CREATED the session, so the pair is
             # verified even when the body did not reach us intact. What is left
             # is a live session whose token we never read and therefore cannot
-            # sign out, and the post-job revoke step does not run when the gate
-            # fails on a later pair. Say so rather than leaving it silent.
-            echo "::warning::the verification probe for '${label}' got HTTP 200 with no readable access_token; the pair authenticates, but this step cannot sign that probe session out. If the gate passes, the job's always() revoke step signs the account out globally and takes it with it; if the gate fails on a later pair, that step does not run and the session stays until it expires"
+            # sign out. The post-job revoke would take it, but both callers gate
+            # that step on the TEST step having run, so anything that skips the
+            # test step -- this gate failing on a later pair, or an install
+            # between here and it failing -- leaves the session behind. Say so
+            # rather than leaving it silent.
+            echo "::warning::the verification probe for '${label}' got HTTP 200 with no readable access_token; the pair authenticates, but this step cannot sign that probe session out. If this gate passes AND the job reaches its test step, the always() revoke step signs the account out globally and takes that session with it; if this gate fails on a later pair, or any step before the test step fails, the revoke does not run and the session stays until it expires"
           fi
           rm -f "$resp"
           verified+=("$label")

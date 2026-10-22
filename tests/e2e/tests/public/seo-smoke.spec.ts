@@ -71,20 +71,27 @@ async function assertPageSeo(
 		.getAttribute("content");
 	expect(ogUrl, `${path}: og:url should exist`).toBeTruthy();
 
-	// JSON-LD schemas exist (at minimum from global layout SeoJsonLd)
+	// POLL, BECAUSE A ROUTE'S OWN SCHEMAS ARRIVE WITH ITS STREAMED BODY. The
+	// layout's SeoJsonLd renders ONLY the Organization entity and ships in the
+	// shell; a page's own schemas (BreadcrumbList, Article, FAQPage) are in the
+	// body, and `/blog` is the one route here with a loading.tsx, so Next sends
+	// the shell first and streams the body in when the query resolves -- which
+	// can be after the `load` event this helper waits for. A single read of the
+	// DOM therefore saw exactly ["Organization"] on /blog while the retry saw
+	// the full set: a race, not a missing schema. Polling still fails when a
+	// schema genuinely never renders, and it keeps the other routes here honest
+	// if a loading.tsx is ever added to one of them.
+	await expect
+		.poll(async () => (await getJsonLdSchemas(page)).map((s) => s["@type"]), {
+			message: `${path}: JSON-LD @type values`,
+		})
+		.toEqual(expect.arrayContaining(expectedTypes));
+
 	const schemas = await getJsonLdSchemas(page);
 	expect(
 		schemas.length,
 		`${path}: at least one JSON-LD schema should exist`,
 	).toBeGreaterThan(0);
-
-	// Validate expected @type values
-	const types = schemas.map((s) => s["@type"]);
-	for (const expectedType of expectedTypes) {
-		expect(types, `${path}: should contain @type "${expectedType}"`).toContain(
-			expectedType,
-		);
-	}
 }
 
 test.describe("SEO Smoke Tests", () => {
