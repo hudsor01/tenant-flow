@@ -20,7 +20,7 @@ import { defineConfig } from "vitest/config";
 const UNIT_MAX_WORKERS = Math.max(2, Math.min(8, cpus().length - 1));
 
 const loadEnvFile = (fileName: string) => {
-	const path = resolve(__dirname, fileName);
+	const path = resolve(import.meta.dirname, fileName);
 	try {
 		const raw = readFileSync(path, "utf8");
 		for (const line of raw.split("\n")) {
@@ -49,9 +49,9 @@ export default defineConfig({
 		// resolves the `#env`, `#components/*`, etc. aliases itself.
 		tsconfigPaths: true,
 		alias: {
-			recharts: resolve(__dirname, "src/test/mocks/recharts.tsx"),
+			recharts: resolve(import.meta.dirname, "src/test/mocks/recharts.tsx"),
 			"recharts/types/component/DefaultTooltipContent": resolve(
-				__dirname,
+				import.meta.dirname,
 				"src/test/mocks/recharts-tooltip.ts",
 			),
 		},
