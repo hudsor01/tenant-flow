@@ -91,8 +91,14 @@ jobs:
       # The shared action performs one real sign-in per pair, revokes it, and on
       # failure names the pair and the cause, the responder's code and message
       # when there was a response, and WHICH secret store this run read only when
-      # a stored secret is actually implicated -- withheld for a rate limit, a
-      # 5xx or no response. It needs only curl+jq, so it runs before any install.
+      # a stored secret is actually implicated. That set is the action's contract,
+      # spelled out here and in ci-cd.yml so neither caller can understate it:
+      # named for 400/403 (the pair), 401 (the publishable key),
+      # 404 (a URL serving no auth API) and a no-response (an unresolvable
+      # host makes the URL a candidate); withheld for a 429 and for any other
+      # status the right host answered with, so nobody rotates a secret over a
+      # transient.
+      # It needs only curl+jq, so it runs before any install.
       # The silent-skip pattern this replaced is still the thing being
       # prevented: a gate that passes while zero tests run is worse than none.
       - name: Verify Supabase test credentials

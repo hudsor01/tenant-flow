@@ -30,12 +30,13 @@ description: >-
 # pair, the API gateway's own message for a 401, which carries no error_code and
 # so prints `unknown`. WHICH secret store the job read -- Actions for a
 # human-authored run, Dependabot for a dependabot[bot] run -- is named only when
-# a stored secret is actually implicated: 400/403 for the pair, 401 for the
-# publishable key, 404 for a URL that serves no auth API, and a no-response,
-# where an unresolvable host makes the URL a candidate. It is withheld for a 429
-# and for any other status the right host answered with, so nobody rotates a
-# secret over a transient. Either way the fix is one sentence instead of an
-# investigation.
+# a stored secret is actually implicated: named for 400/403 (the pair), 401 (the
+# publishable key), 404 (a URL serving no auth API) and a no-response (an
+# unresolvable host makes the URL a candidate); withheld for a 429 and for any
+# other status the right host answered with, so nobody rotates a secret over a
+# transient. Both callers restate this same set, so a reader of either workflow
+# sees the contract this file implements rather than an older one. Either way
+# the fix is one sentence instead of an investigation.
 #
 # It runs BEFORE bun/node setup and needs only curl + jq (preinstalled on
 # ubuntu-latest), so a bad secret fails in seconds, not after a 90s install.

@@ -253,7 +253,9 @@ async function openForm(page: Page, token: string) {
 	// which the fills beat hydration.
 	//
 	// react-dom 19.2.8 precaches a fiber on every host node as it hydrates it
-	// (`__reactFiber$<n>` / `__reactProps$<n>`, plain enumerable assignments),
+	// (`__reactFiber$<random>` / `__reactProps$<random>` -- the suffix is one
+	// `Math.random().toString(36).slice(2)` per react-dom instance, not a number
+	// -- as plain enumerable assignments),
 	// and hydration walks the tree in DOM order. The attestation checkbox is the
 	// last control the fill helper touches, so its fiber appearing means every
 	// field above it is live too.
