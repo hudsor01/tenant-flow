@@ -61,10 +61,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # NOTHING WAS CHECKING THIS. The dependency tree carried 80 advisories
-      # (4 critical, 27 high) while every required check stayed green, and
+      # NOTHING IN CI WAS CHECKING THIS. The dependency tree carried critical
+      # and high advisories while every required check stayed green, and
       # several `overrides` floors had been overtaken by advisories published
-      # after they were set, with no signal at all.
+      # after they were set.
       #
       # `--audit-level` gates the EXIT CODE, not just what is printed: measured
       # on a tree whose only advisory is low, `bun audit` exits 1 at
