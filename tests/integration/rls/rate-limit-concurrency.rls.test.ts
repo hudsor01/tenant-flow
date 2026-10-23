@@ -125,7 +125,25 @@ const RUNS = 3;
 const MIN_PEAK_IN_FLIGHT = 32;
 
 const KEY_PREFIX = "test:rate-limit-concurrency:";
-const TEST_TIMEOUT_MS = 120_000;
+/**
+ * Budget for the round itself. Every observed passing round finishes in a small
+ * fraction of this.
+ */
+const ROUND_BUDGET_MS = 120_000;
+/**
+ * The per-test timeout has to cover BOTH the headroom wait and the round, because
+ * the wait happens inside the test body and so spends the same budget.
+ *
+ * Sizing these two equal is what broke it: the comment on
+ * MIN_WINDOW_HEADROOM_MS says "worst-case wait is this value", and with
+ * TEST_TIMEOUT_MS also 120_000 a round that waited reached its deadline having
+ * done no work at all. That is not a flake -- it is every round unlucky enough
+ * to start inside the last two minutes of a clock hour, the same ~3% the comment
+ * predicts. Observed on PR #1024: run 3/3 began at ~15:58 against the 16:00
+ * boundary, waited, and reported "Test timed out in 120000ms" while the other
+ * 530 assertions in the suite passed.
+ */
+const TEST_TIMEOUT_MS = MIN_WINDOW_HEADROOM_MS + ROUND_BUDGET_MS;
 
 function freshKey(label: string): string {
 	return `${KEY_PREFIX}${label}:${randomUUID()}`;
