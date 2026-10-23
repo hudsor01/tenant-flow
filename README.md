@@ -74,6 +74,8 @@ bun run validate:quick               # types + lint + unit
 - **Stats:** consolidate into single RPCs (e.g. `get_maintenance_stats()`, `get_lease_stats()`).
 - **Auth:** `getAll`/`setAll` Supabase cookie methods only. `getUser()` for server-validated identity; `getSession()` only when reading the access token for Bearer headers.
 
+For the full developer contract (zero-tolerance rules, file conventions, RPC return-type mapping, naming, etc.), see [`CLAUDE.md`](./CLAUDE.md).
+
 ---
 
 ## Database
