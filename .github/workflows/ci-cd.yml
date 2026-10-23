@@ -61,6 +61,42 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # NOTHING WAS CHECKING THIS. The dependency tree carried 80 advisories
+      # (4 critical, 27 high) while every required check stayed green, and
+      # several `overrides` floors had drifted below the advisory they were
+      # added for with no signal at all.
+      #
+      # `--audit-level` gates the EXIT CODE, not just what is printed: measured
+      # on a tree whose only advisory is low, `bun audit` exits 1 at
+      # --audit-level=low and 0 at moderate/high/critical. So this fails the job
+      # on high and critical only. Moderate and low are printed by the first
+      # invocation and do not block: a newly published advisory on any
+      # transitive dev dependency would otherwise stop every unrelated PR, and a
+      # gate people route around is worse than one that reports honestly.
+      #
+      # It fails CLOSED. `bun audit` exits non-zero both when it finds
+      # advisories and when it cannot reach the registry, so the two are told
+      # apart by the output and reported differently -- but either way the job
+      # fails, because an audit that did not run proves nothing.
+      - name: Audit dependencies
+        run: |
+          echo "--- full report (moderate and low are informational) ---"
+          set +e
+          bun audit
+          echo "--- gate: high and critical ---"
+          out=$(bun audit --audit-level=high 2>&1); code=$?
+          set -e
+          printf '%s\n' "$out"
+          if [ "$code" -ne 0 ]; then
+            if printf '%s' "$out" | grep -qiE 'vulnerabilit'; then
+              echo "::error::high or critical advisories are present (listed above). Fix by bumping the direct dependency that pulls the vulnerable package -- that is what resolves these, and it keeps the dependency graph honest. Reach for an \`overrides\` entry only when no release of the dependent declares a patched range, and then bound it (\`^x.y.z\`, never a bare \`>=\`) so it cannot silently cross a major."
+            else
+              echo "::error::bun audit did not complete (exit ${code}); treating that as a failure rather than a pass, because an audit that did not run proves nothing."
+            fi
+            exit 1
+          fi
+          echo "no high or critical advisories"
+
       - name: Lint & Typecheck
         # Sequential on purpose. This was `bun run lint & bun run typecheck &
         # wait`, and a bare `wait` returns 0 whatever the background jobs exited
