@@ -78,6 +78,18 @@ jobs:
       # advisories and when it cannot reach the registry, so the two are told
       # apart by the output and reported differently -- but either way the job
       # fails, because an audit that did not run proves nothing.
+      #
+      # Why the error below says to bound an override instead of writing `>=`:
+      # a bare `>=` does not pin, it floats to whatever is newest at resolve
+      # time. Measured while writing this: `path-to-regexp: ">=8.4.2"` held
+      # 8.4.2 in the committed lockfile but re-resolved to 9.0.0 -- a major
+      # published less than a day earlier -- into `msw`, which declares
+      # `^6.3.0`. This is NOT a bun quirk; plain `npm` with default config
+      # (`min-release-age` unset) resolves the same 9.0.0 from the same
+      # manifest. So the lockfile is the only thing standing between a bare
+      # `>=` and a brand-new major, and any command that re-resolves gives it
+      # up. Floors belong in a bounded range, and the audit above is what
+      # catches the regression a speculative floor was supposed to prevent.
       - name: Audit dependencies
         run: |
           echo "--- full report (moderate and low are informational) ---"
