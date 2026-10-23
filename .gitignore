@@ -336,6 +336,9 @@ n8n/
 # untracked AGENTS.md locally absorbs that write so CLAUDE.md stays clean.
 AGENTS.md
 
+# Claude Code's project instructions are local-only, never committed.
+CLAUDE.md
+
 # Generated and MANAGED BY NEXT.JS -- do not track, do not edit.
 # Next rewrites this file on every `next dev`, `next build` and `next typegen`,
 # and the contents differ between them: dev points the route-type imports at
