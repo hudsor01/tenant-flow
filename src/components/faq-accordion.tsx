@@ -93,7 +93,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				</h3>
 				<ChevronDown
 					className={cn(
-						"size-5 text-muted-foreground shrink-0 transition-transform [transition-duration:var(--duration-fast)]",
+						"size-5 text-muted-foreground shrink-0 transition-transform duration-(--duration-fast)",
 						isOpen && "rotate-180",
 					)}
 				/>
@@ -104,7 +104,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				id={panelId}
 				role="region"
 				className={cn(
-					"grid transition-all [transition-duration:var(--duration-normal)] ease-in-out",
+					"grid transition-all duration-(--duration-normal) ease-in-out",
 					isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
 				)}
 			>

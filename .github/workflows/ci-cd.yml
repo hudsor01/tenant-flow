@@ -61,6 +61,54 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # NOTHING IN CI WAS CHECKING THIS. The dependency tree carried critical
+      # and high advisories while every required check stayed green, and
+      # several `overrides` floors had been overtaken by advisories published
+      # after they were set.
+      #
+      # `--audit-level` gates the EXIT CODE, not just what is printed: measured
+      # on a tree whose only advisory is low, `bun audit` exits 1 at
+      # --audit-level=low and 0 at moderate/high/critical. So this fails the job
+      # on high and critical only. Moderate and low are printed by the first
+      # invocation and do not block: a newly published advisory on any
+      # transitive dev dependency would otherwise stop every unrelated PR, and a
+      # gate people route around is worse than one that reports honestly.
+      #
+      # It fails CLOSED. `bun audit` exits non-zero both when it finds
+      # advisories and when it cannot reach the registry, so the two are told
+      # apart by the output and reported differently -- but either way the job
+      # fails, because an audit that did not run proves nothing.
+      #
+      # Why the error below says to bound an override instead of writing `>=`:
+      # a bare `>=` does not pin, it floats to whatever is newest at resolve
+      # time. Measured while writing this: `path-to-regexp: ">=8.4.2"` held
+      # 8.4.2 in the committed lockfile but re-resolved to 9.0.0 -- a major
+      # published less than a day earlier -- into `msw`, which declares
+      # `^6.3.0`. This is NOT a bun quirk; plain `npm` with default config
+      # (`min-release-age` unset) resolves the same 9.0.0 from the same
+      # manifest. So the lockfile is the only thing standing between a bare
+      # `>=` and a brand-new major, and any command that re-resolves gives it
+      # up. Floors belong in a bounded range, and the audit above is what
+      # catches the regression a speculative floor was supposed to prevent.
+      - name: Audit dependencies
+        run: |
+          echo "--- full report (moderate and low are informational) ---"
+          set +e
+          bun audit
+          echo "--- gate: high and critical ---"
+          out=$(bun audit --audit-level=high 2>&1); code=$?
+          set -e
+          printf '%s\n' "$out"
+          if [ "$code" -ne 0 ]; then
+            if printf '%s' "$out" | grep -qiE 'vulnerabilit'; then
+              echo "::error::high or critical advisories are present (listed above). Fix by bumping the direct dependency that pulls the vulnerable package -- it keeps the dependency graph honest. Reach for an \`overrides\` entry only when no release of the dependent declares a patched range, and then bound it (\`^x.y.z\`, never a bare \`>=\`) so it cannot silently cross a major."
+            else
+              echo "::error::bun audit did not complete (exit ${code}); treating that as a failure rather than a pass, because an audit that did not run proves nothing."
+            fi
+            exit 1
+          fi
+          echo "no high or critical advisories"
+
       - name: Lint & Typecheck
         # Sequential on purpose. This was `bun run lint & bun run typecheck &
         # wait`, and a bare `wait` returns 0 whatever the background jobs exited

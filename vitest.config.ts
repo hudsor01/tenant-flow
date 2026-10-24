@@ -20,7 +20,7 @@ import { defineConfig } from "vitest/config";
 const UNIT_MAX_WORKERS = Math.max(2, Math.min(8, cpus().length - 1));
 
 const loadEnvFile = (fileName: string) => {
-	const path = resolve(__dirname, fileName);
+	const path = resolve(import.meta.dirname, fileName);
 	try {
 		const raw = readFileSync(path, "utf8");
 		for (const line of raw.split("\n")) {
@@ -49,9 +49,9 @@ export default defineConfig({
 		// resolves the `#env`, `#components/*`, etc. aliases itself.
 		tsconfigPaths: true,
 		alias: {
-			recharts: resolve(__dirname, "src/test/mocks/recharts.tsx"),
+			recharts: resolve(import.meta.dirname, "src/test/mocks/recharts.tsx"),
 			"recharts/types/component/DefaultTooltipContent": resolve(
-				__dirname,
+				import.meta.dirname,
 				"src/test/mocks/recharts-tooltip.ts",
 			),
 		},
@@ -208,7 +208,7 @@ export default defineConfig({
 		// This block previously sat INSIDE `projects[0].test`, where Vitest
 		// silently discards it: `coverage` is a member of Vitest's
 		// `NonProjectOptions`, and `ProjectConfig = Omit<InlineConfig,
-		// NonProjectOptions | ...>` (vitest 4, reporters.d.ts:3571,3596), so a
+		// NonProjectOptions | ...>` (vitest 4, dist/chunks/reporters.d.*.d.ts), so a
 		// `coverage` key at project depth is not a config error — it is simply
 		// not read. TypeScript did flag it ("'coverage' does not exist in type
 		// 'ProjectConfig'"), but `vitest.config.ts` is in no tsconfig project,
