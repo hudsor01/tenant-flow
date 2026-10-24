@@ -90,23 +90,23 @@ jobs:
       # value under the Dependabot tab was simply wrong, and nothing said so.
       # The shared action performs one real sign-in per pair, revokes it, and on
       # failure names the pair and the cause, the responder's code and message
-      # when there was a response, and WHICH secret store this run read only when
-      # a stored secret is actually implicated. That set is the action's contract,
-      # spelled out here and in ci-cd.yml so neither caller can understate it:
-      # named for 400/403 (the pair), 401 (the publishable key),
-      # 404 (a URL serving no auth API) and a no-response (an unresolvable
-      # host makes the URL a candidate); withheld for a 429 and for any other
-      # status, where nothing identifies a stored value as the cause, so nobody
-      # rotates a secret over a
-      # transient.
+      # when there was a response, and where the implicated value is stored
+      # only when a stored value is actually implicated. That set is the
+      # action's contract, spelled out here and in ci-cd.yml so neither caller
+      # can understate it: the secret store this run read (Actions vs
+      # Dependabot) for 400/403 (the pair); the repository variables page for
+      # 401 (the publishable key), 404 (a URL serving no auth API) and a
+      # no-response (an unresolvable host makes the URL a candidate); nothing
+      # for a 429 or for any other status, where nothing identifies a stored
+      # value as the cause, so nobody rotates a secret over a transient.
       # It needs only curl+jq, so it runs before any install.
       # The silent-skip pattern this replaced is still the thing being
       # prevented: a gate that passes while zero tests run is worse than none.
       - name: Verify Supabase test credentials
         uses: ./.github/actions/verify-supabase-test-auth
         with:
-          supabase-url: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          publishable-key: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          supabase-url: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          publishable-key: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           # Owner A, owner B and the admin are all REQUIRED. The admin pair
           # existed since April but was never passed to the job, so
           # getAdminTestCredentials() returned null and ten admin-scoped tests
@@ -138,8 +138,8 @@ jobs:
       - name: Run RLS security tests
         id: rls
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
           E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
           E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
@@ -177,8 +177,8 @@ jobs:
         if: ${{ always() && steps.rls.outcome != 'skipped' }}
         uses: ./.github/actions/revoke-supabase-test-sessions
         with:
-          supabase-url: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          publishable-key: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          supabase-url: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          publishable-key: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           credentials: |
             owner-a=${{ secrets.E2E_OWNER_EMAIL }}:${{ secrets.E2E_OWNER_PASSWORD }}
             owner-b=${{ secrets.E2E_OWNER_B_EMAIL }}:${{ secrets.E2E_OWNER_B_PASSWORD }}
