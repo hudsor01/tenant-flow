@@ -108,11 +108,18 @@ const LIMIT = 100;
  */
 const WINDOW_MS = 3_600_000;
 /**
- * Refuse to start a round with less than this much of the window left. The
- * round itself is far shorter; the margin is sized against TEST_TIMEOUT_MS so a
- * slow round still cannot reach the boundary. Worst-case wait is this value,
- * and only for a round unlucky enough to start inside the last two minutes of
- * an hour (~3% of runs).
+ * Refuse to start a round with less than this much of the window left. The round
+ * itself is far shorter. Worst-case wait is this value, and only for a round
+ * unlucky enough to start inside the last two minutes of an hour (~3% of runs).
+ *
+ * The margin is sized against ROUND_BUDGET_MS, NOT against TEST_TIMEOUT_MS. That
+ * used to be the same statement -- both were 120_000, so vitest killed a round
+ * before it could reach the boundary -- but TEST_TIMEOUT_MS is now the SUM of this
+ * wait and that budget, so it no longer bounds the round on its own. A round that
+ * starts with the full margin left and overruns ROUND_BUDGET_MS can therefore still
+ * cross the boundary; it would surface as this file's invariant failing rather than
+ * as a timeout. Every observed passing round finishes in a small fraction of the
+ * budget, so this is a stated residual, not an observed failure.
  */
 const MIN_WINDOW_HEADROOM_MS = 120_000;
 const RUNS = 3;
@@ -125,7 +132,25 @@ const RUNS = 3;
 const MIN_PEAK_IN_FLIGHT = 32;
 
 const KEY_PREFIX = "test:rate-limit-concurrency:";
-const TEST_TIMEOUT_MS = 120_000;
+/**
+ * Budget for the round itself. Every observed passing round finishes in a small
+ * fraction of this.
+ */
+const ROUND_BUDGET_MS = 120_000;
+/**
+ * The per-test timeout has to cover BOTH the headroom wait and the round, because
+ * the wait happens inside the test body and so spends the same budget.
+ *
+ * Sizing these two equal is what broke it: the comment on
+ * MIN_WINDOW_HEADROOM_MS says "worst-case wait is this value", and with
+ * TEST_TIMEOUT_MS also 120_000 a round that waited reached its deadline having
+ * done no work at all. That is not a flake -- it is every round unlucky enough
+ * to start inside the last two minutes of a clock hour, the same ~3% the comment
+ * predicts. Observed on PR #1024: run 3/3 began at ~15:58 against the 16:00
+ * boundary, waited, and reported "Test timed out in 120000ms" while the other
+ * 530 assertions in the suite passed.
+ */
+const TEST_TIMEOUT_MS = MIN_WINDOW_HEADROOM_MS + ROUND_BUDGET_MS;
 
 function freshKey(label: string): string {
 	return `${KEY_PREFIX}${label}:${randomUUID()}`;

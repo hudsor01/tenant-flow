@@ -97,11 +97,11 @@ export function BlurFade({
 
 	const durationClass =
 		{
-			150: "[transition-duration:var(--duration-instant)]",
-			200: "[transition-duration:var(--duration-fast)]",
-			300: "[transition-duration:var(--duration-normal)]",
-			500: "[transition-duration:var(--duration-slow)]",
-		}[duration] || "[transition-duration:var(--duration-fast)]";
+			150: "duration-instant",
+			200: "duration-fast",
+			300: "duration-normal",
+			500: "duration-slow",
+		}[duration] || "duration-fast";
 
 	return (
 		<div

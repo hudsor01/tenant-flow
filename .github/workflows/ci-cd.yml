@@ -90,6 +90,17 @@ jobs:
       # `>=` and a brand-new major, and any command that re-resolves gives it
       # up. Floors belong in a bounded range, and the audit above is what
       # catches the regression a speculative floor was supposed to prevent.
+      #
+      # Reproducing that locally: if your shell has safe-chain installed, `bun`
+      # and `npm` are both wrapper SHELL FUNCTIONS that delegate to the same
+      # `safe-chain` binary, and it suppresses versions below a minimum publish
+      # age -- so either one can give you 8.4.2 and make the measurement above
+      # look wrong. Do not read the suppression as a property of one package
+      # manager: with an empty cache on 2026-10-23 both wrappers returned 8.4.2
+      # while both real binaries returned 9.0.0. Call the binary by absolute
+      # path, or pass `--safe-chain-skip-minimum-package-age`, to see what this
+      # job sees. CI has no safe-chain, which is the whole point: the runner
+      # resolves what the real binary resolves, whatever your shell shows you.
       - name: Audit dependencies
         run: |
           echo "--- full report (moderate and low are informational) ---"
