@@ -41,6 +41,16 @@ on:
     # CodeQL (Mon 04:27 UTC) and RLS Security Tests (Mon 09:00 UTC).
     - cron: '17 13 * * *'
   workflow_dispatch:
+  # Also run on a PR that touches the gate itself. Without this nothing in CI
+  # exercises this workflow before it merges, and its invocation differs from
+  # the `checks` job's in the way that matters: `checks` runs after
+  # `bun install --frozen-lockfile`, while this job deliberately runs with no
+  # node_modules at all. That path would otherwise never be tested.
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/dependency-audit.yml
+      - .github/scripts/audit-gate.sh
 
 concurrency:
   group: dependency-audit-${{ github.ref }}
