@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Runs this action's script against a stand-in for GoTrue, one case per branch,
-# so the contract in action.yml -- which place an error names (the secret store,
-# the variables page, or neither) -- is checked instead of only restated.
+# Runs this action's script against a stand-in for GoTrue, with a case for every
+# branch, so the contract in action.yml -- which place an error names (the
+# secret store, the variables page, or neither) -- is checked instead of only
+# restated.
 #
 #   bash .github/actions/verify-supabase-test-auth/test.sh [path/to/action.yml]
 #
@@ -10,8 +11,9 @@
 #
 # The stand-in binds port 0, so every case gets its own free port: with a fixed
 # port, whatever was already listening there answered the requests, and every
-# case read that process's replies. It also exits after a few idle seconds, so
-# no stand-in outlives the run even if a kill does not reach it.
+# case read that process's replies. It also exits within about ten seconds of
+# its last request, so one that a kill does not reach -- after an interrupted
+# run, say -- does not linger.
 set -euo pipefail
 
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -25,10 +27,11 @@ const parsed = Bun.YAML.parse(await Bun.file(process.env.ACTION_FILE).text());
 await Bun.write(process.env.OUT_FILE, parsed.runs.steps[0].run);
 '
 
-# The token endpoint answers with the case's status and body; logout answers 204.
+# The token endpoint answers with the case's status and body, the logout
+# endpoint with the case's logout status.
 server_py='
 import http.server, sys, threading, time
-portfile, status, body = sys.argv[1], int(sys.argv[2]), sys.argv[3].encode()
+portfile, status, body, logout = sys.argv[1], int(sys.argv[2]), sys.argv[3].encode(), int(sys.argv[4])
 last = [time.monotonic()]
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
@@ -43,7 +46,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
         else:
-            self.send_response(204 if self.path.startswith("/auth/v1/logout") else 404)
+            self.send_response(logout if self.path.startswith("/auth/v1/logout") else 404)
             self.end_headers()
     def log_message(self, *args):
         pass
@@ -63,21 +66,29 @@ free_port() {
 	python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1]); s.close()'
 }
 
+# Both callers pass `credentials: |`, a YAML block that ends in a newline, so
+# every case does too: that trailing empty line is what the script's
+# blank-line guards skip.
+credentials=$'owner-a=a@example.test:pw\n'
+
 passed=0
 failed=0
+case_no=0
 
 # run_case NAME WANT_EXIT STATUS BODY [VAR=value ...]
-# STATUS "none" starts no stand-in. Reads the EXPECT and ABSENT arrays; "{url}"
-# in a pattern becomes the case's URL.
+# STATUS "none" starts no stand-in. LOGOUT (default 204) is the stand-in's
+# logout status. Reads the EXPECT and ABSENT arrays; "{url}" in a pattern of
+# either becomes the case's URL.
 run_case() {
 	local name=$1 want=$2 status=$3 body=$4
 	shift 4
+	case_no=$((case_no + 1))
 	local port pid=""
 	if [ "$status" = none ]; then
 		port=$(free_port)
 	else
-		local portfile=$work/port.$RANDOM
-		python3 -c "$server_py" "$portfile" "$status" "$body" &
+		local portfile=$work/port.$case_no
+		python3 -c "$server_py" "$portfile" "$status" "$body" "${LOGOUT:-204}" &
 		pid=$!
 		for _ in $(seq 1 100); do
 			[ -s "$portfile" ] && break
@@ -89,7 +100,7 @@ run_case() {
 	local out code=0
 	out=$(env -i PATH="$PATH" HOME="$HOME" \
 		SUPABASE_URL="$url" PUBLISHABLE_KEY=sb_publishable_test \
-		CREDENTIALS="owner-a=a@example.test:pw" SECRET_KEY= REQUIRE_SECRET_KEY=false ACTOR=someone \
+		CREDENTIALS="$credentials" SECRET_KEY= REQUIRE_SECRET_KEY=false ACTOR=someone \
 		"$@" bash --noprofile --norc -eo pipefail "$script" 2>&1) || code=$?
 	if [ -n "$pid" ]; then
 		kill "$pid" 2>/dev/null || true
@@ -102,6 +113,7 @@ run_case() {
 		grep -qF -- "$pattern" <<<"$out" || { ok=0; echo "   missing: $pattern"; }
 	done
 	for pattern in ${ABSENT[@]+"${ABSENT[@]}"}; do
+		pattern=${pattern//\{url\}/$url}
 		grep -qF -- "$pattern" <<<"$out" && { ok=0; echo "   unexpected: $pattern"; }
 	done
 	if [ "$ok" = 1 ]; then
@@ -124,11 +136,15 @@ run_case "both variables missing" 1 none "" SUPABASE_URL= PUBLISHABLE_KEY=
 
 EXPECT=("::error::Missing required secrets: owner-a: password" "$actions_store")
 ABSENT=("Missing required repository variables" "Repository variables:")
-run_case "a secret missing" 1 none "" CREDENTIALS="owner-a=a@example.test:"
+run_case "a password missing" 1 none "" CREDENTIALS=$'owner-a=a@example.test:\n'
+
+EXPECT=("::error::Missing required secrets: owner-a: email" "$actions_store")
+ABSENT=("Missing required repository variables" "Repository variables:")
+run_case "an email missing" 1 none "" CREDENTIALS=$'owner-a=:pw\n'
 
 EXPECT=("::error::Missing required repository variables: NEXT_PUBLIC_SUPABASE_URL" "$variables_page" "::error::Missing required secrets: SUPABASE_SECRET_KEY owner-a: password" "$dependabot_store")
 ABSENT=()
-run_case "a variable and secrets missing, dependabot actor" 1 none "" SUPABASE_URL= CREDENTIALS="owner-a=a@example.test:" REQUIRE_SECRET_KEY=true ACTOR="dependabot[bot]"
+run_case "a variable and secrets missing, dependabot actor" 1 none "" SUPABASE_URL= CREDENTIALS=$'owner-a=a@example.test:\n' REQUIRE_SECRET_KEY=true ACTOR="dependabot[bot]"
 
 EXPECT=("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is a legacy JWT" "$variables_page")
 ABSENT=("Secret store for this run")
@@ -145,6 +161,10 @@ run_case "400, wrong pair" 1 400 '{"code":400,"error_code":"invalid_credentials"
 EXPECT=("does not authenticate: HTTP 400" "$dependabot_store")
 ABSENT=("Repository variables:")
 run_case "400, wrong pair, dependabot actor" 1 400 '{"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}' ACTOR="dependabot[bot]"
+
+EXPECT=("does not authenticate: HTTP 403, user_banned: User is banned" "$actions_store")
+ABSENT=("Repository variables:")
+run_case "403, account blocked" 1 403 '{"code":403,"error_code":"user_banned","msg":"User is banned"}'
 
 EXPECT=("HTTP 401, unknown: Invalid API key (Double check your API key.)" "$variables_page")
 ABSENT=("Secret store for this run")
@@ -169,6 +189,14 @@ run_case "no response" 1 none ""
 EXPECT=("Verified 1 credential pair(s) authenticate against {url}: owner-a")
 ABSENT=("::error::" "::warning::")
 run_case "200, signed in and out" 0 200 '{"access_token":"token","token_type":"bearer"}'
+
+EXPECT=("::warning::sign-out of the verification probe for 'owner-a' returned HTTP 500" "Verified 1 credential pair(s) authenticate against {url}: owner-a")
+ABSENT=("::error::")
+LOGOUT=500 run_case "200, sign-out refused" 0 200 '{"access_token":"token","token_type":"bearer"}'
+
+EXPECT=("::warning::the verification probe for 'owner-a' got HTTP 200 with no readable access_token" "Verified 1 credential pair(s) authenticate against {url}: owner-a")
+ABSENT=("::error::")
+run_case "200, no access_token in the body" 0 200 '{}'
 
 echo "---- $passed passed, $failed failed"
 [ "$failed" -eq 0 ]

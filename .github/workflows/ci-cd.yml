@@ -203,14 +203,14 @@ jobs:
     # executing, in 3-5s. Branch protection was satisfied by a check that never
     # ran.
     #
-    # That is fixed at the source. The required secrets exist in the
-    # Dependabot scope (E2E_OWNER_EMAIL / E2E_OWNER_PASSWORD /
-    # E2E_OWNER_B_EMAIL / E2E_OWNER_B_PASSWORD), and NEXT_PUBLIC_SUPABASE_URL /
-    # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are repository variables rather than
-    # secrets, so every actor-based skip guard has
-    # been deleted and the "Verify Supabase test credentials" step below is now the single
-    # gate for everyone. If the Dependabot scope ever drifts, this job FAILS
-    # LOUDLY instead of passing vacuously — which is the whole point.
+    # That is fixed at the source. This job reads E2E_OWNER_EMAIL /
+    # E2E_OWNER_PASSWORD; rls-security also reads E2E_OWNER_B_*, E2E_ADMIN_*
+    # and SUPABASE_SECRET_KEY. All of them exist in the Dependabot scope, which
+    # is why no actor-based skip guard is needed and the "Verify Supabase test
+    # credentials" step below is the single gate for everyone. (The Supabase
+    # URL and publishable key are repository variables, not secrets.) If the
+    # Dependabot scope ever drifts, this job FAILS LOUDLY instead of passing
+    # vacuously — which is the whole point.
     #
     # Do NOT reintroduce an `actor == 'dependabot[bot]'` skip. A gate that
     # silently reports success is worse than no gate: it launders an untested

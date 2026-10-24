@@ -203,6 +203,9 @@ runs:
             # it was added for. Capture it separately and append it, so the
             # operator gets the gateway's message AND the thing to do about it.
             hint=$(jq -r '.hint // empty' "$resp" 2>/dev/null || true)
+            # Every branch below exits through fail(), so the body has to go now
+            # or it is left behind in the temp dir.
+            rm -f "$resp"
             code=${code:-unknown}
             msg=${msg:-no message}
             if [ -n "$hint" ]; then msg="$msg ($hint)"; fi
