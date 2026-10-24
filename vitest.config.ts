@@ -208,7 +208,7 @@ export default defineConfig({
 		// This block previously sat INSIDE `projects[0].test`, where Vitest
 		// silently discards it: `coverage` is a member of Vitest's
 		// `NonProjectOptions`, and `ProjectConfig = Omit<InlineConfig,
-		// NonProjectOptions | ...>` (vitest 4, reporters.d.ts:3571,3596), so a
+		// NonProjectOptions | ...>` (vitest 4, dist/chunks/reporters.d.*.d.ts), so a
 		// `coverage` key at project depth is not a config error — it is simply
 		// not read. TypeScript did flag it ("'coverage' does not exist in type
 		// 'ProjectConfig'"), but `vitest.config.ts` is in no tsconfig project,
