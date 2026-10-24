@@ -61,10 +61,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # NOTHING WAS CHECKING THIS. The dependency tree carried 80 advisories
-      # (4 critical, 27 high) while every required check stayed green, and
-      # several `overrides` floors had drifted below the advisory they were
-      # added for with no signal at all.
+      # NOTHING IN CI WAS CHECKING THIS. The dependency tree carried critical
+      # and high advisories while every required check stayed green, and
+      # several `overrides` floors had been overtaken by advisories published
+      # after they were set.
       #
       # `--audit-level` gates the EXIT CODE, not just what is printed: measured
       # on a tree whose only advisory is low, `bun audit` exits 1 at
@@ -109,7 +109,7 @@ jobs:
           printf '%s\n' "$out"
           if [ "$code" -ne 0 ]; then
             if printf '%s' "$out" | grep -qiE 'vulnerabilit'; then
-              echo "::error::high or critical advisories are present (listed above). Fix by bumping the direct dependency that pulls the vulnerable package -- that is what resolves these, and it keeps the dependency graph honest. Reach for an \`overrides\` entry only when no release of the dependent declares a patched range, and then bound it (\`^x.y.z\`, never a bare \`>=\`) so it cannot silently cross a major."
+              echo "::error::high or critical advisories are present (listed above). Fix by bumping the direct dependency that pulls the vulnerable package -- it keeps the dependency graph honest. Reach for an \`overrides\` entry only when no release of the dependent declares a patched range, and then bound it (\`^x.y.z\`, never a bare \`>=\`) so it cannot silently cross a major."
             else
               echo "::error::bun audit did not complete (exit ${code}); treating that as a failure rather than a pass, because an audit that did not run proves nothing."
             fi
