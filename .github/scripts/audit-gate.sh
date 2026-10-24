@@ -17,8 +17,8 @@
 #
 # `--audit-level` gates the EXIT CODE, not just what is printed: measured
 # on a tree whose only advisory is low, `bun audit` exits 1 at
-# --audit-level=low and 0 at moderate/high/critical. So this fails the job
-# on high and critical only. Moderate and low are printed by the first
+# --audit-level=low and 0 at moderate/high/critical. So this fails the
+# calling job on high and critical only. Moderate and low are printed by the first
 # invocation and do not block: a newly published advisory on any
 # transitive dev dependency would otherwise stop every unrelated PR, and a
 # gate people route around is worse than one that reports honestly.
@@ -54,8 +54,8 @@
 # (`min-release-age` unset) resolves the same 9.0.0 from the same
 # manifest. So the lockfile is the only thing standing between a bare
 # `>=` and a brand-new major, and any command that re-resolves gives it
-# up. Floors belong in a bounded range, and the audit above is what
-# catches the regression a speculative floor was supposed to prevent.
+# up. Floors belong in a bounded range, and the audit in this script is
+# what catches the regression a speculative floor was supposed to prevent.
 #
 # Reproducing that locally: if your shell has safe-chain installed, `bun`
 # and `npm` are both wrapper SHELL FUNCTIONS that delegate to the same
