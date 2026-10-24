@@ -132,7 +132,11 @@ jobs:
 
           canary_out=$(cd "$canary_dir" && bun audit --audit-level=high 2>&1) && canary_code=0 || canary_code=$?
           printf '%s\n' "$canary_out"
-          if [ "$canary_code" -eq 0 ] || ! printf '%s' "$canary_out" | grep -qF "$CANARY_ADVISORY"; then
+          # Herestring, not `printf | grep`: with pipefail set, grep -q exiting early
+          # can SIGPIPE the writer and the pipeline reports 141 even on a match, which
+          # would fail this job for the wrong reason. Measured: 141 at a 300KB payload,
+          # 0 at the ~400 bytes this actually produces.
+          if [ "$canary_code" -eq 0 ] || ! grep -qF "$CANARY_ADVISORY" <<<"$canary_out"; then
             echo "::error::THE AUDIT GATE IS INOPERATIVE -- not clean. \`bun audit --audit-level=high\` exited ${canary_code} without reporting ${CANARY_ADVISORY} against ${CANARY_PKG}@${CANARY_RANGE}, which carries it. bun exits 0 whenever the registry answers 2xx with no advisory data, so the real tree's result below would be meaningless. Failing the job. Usually this means the advisory feed is down and failing is correct; if ${CANARY_ADVISORY} was withdrawn or re-rated below high, pin a different permanently-vulnerable package as the control."
             exit 1
           fi
@@ -144,7 +148,7 @@ jobs:
           out=$(bun audit --audit-level=high 2>&1) && code=0 || code=$?
           printf '%s\n' "$out"
           if [ "$code" -ne 0 ]; then
-            if printf '%s' "$out" | grep -qiE 'vulnerabilit'; then
+            if grep -qiE 'vulnerabilit' <<<"$out"; then
               echo "::error::high or critical advisories are present (listed above). Fix by bumping the direct dependency that pulls the vulnerable package -- it keeps the dependency graph honest. Reach for an \`overrides\` entry only when no release of the dependent declares a patched range, and then bound it (\`^x.y.z\`, never a bare \`>=\`) so it cannot silently cross a major."
             else
               echo "::error::bun audit did not complete (exit ${code}); treating that as a failure rather than a pass, because an audit that did not run proves nothing."
