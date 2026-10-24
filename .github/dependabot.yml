@@ -147,6 +147,28 @@ updates:
           - 'stripe'
           - '@stripe/*'
 
+      # react and react-dom must move in ONE PR. React asserts at runtime that
+      # the two packages are at the exact same version, and the npm ranges do
+      # not express that -- react-dom@19.2.8 peers on `react: ^19.2.8`, which
+      # 19.3.1 satisfies, so resolution succeeds and the break surfaces only
+      # when react-dom loads. Without this group the exclude-patterns above give
+      # each its own PR, and then NEITHER can be merged: whichever lands first
+      # leaves the versions unequal and fails all 332 unit test files.
+      #
+      # No required check catches that. The assert is in react-dom's development
+      # bundle, so `next build && next start` never evaluates it and jsdom
+      # always does, and the unit project runs only in lefthook pre-commit --
+      # which Dependabot's own commits skip. Measured on #1001 (react alone, at
+      # 5bac95586): checks, e2e-smoke, rls-security, CodeQL and scan all green,
+      # 332 of 332 test files failing. #1031 landed the pair by hand instead.
+      #
+      # The @types packages need no patterns here: Dependabot already bundles a
+      # package with its own @types sibling in one PR.
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+
     # ── Ignore rules ─────────────────────────
     ignore:
       # Major bumps for frameworks — manual migration only, never opened by bot.
