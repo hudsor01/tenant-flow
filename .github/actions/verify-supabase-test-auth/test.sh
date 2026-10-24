@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-# Runs this action's script against a stand-in for GoTrue, with a case for every
-# branch, so the contract in action.yml -- which place an error names (the
-# secret store, the variables page, or neither) -- is checked instead of only
-# restated.
+# Runs this action's script through missing and legacy-format values, each HTTP
+# status the script tells apart, no response, bodies that are not JSON, and its
+# success paths, with a local stand-in for GoTrue answering the cases that need
+# a response. That checks the contract in action.yml -- which place an error
+# names (the secret store, the variables page, or neither) -- for those cases
+# instead of only restating it.
 #
 #   bash .github/actions/verify-supabase-test-auth/test.sh [path/to/action.yml]
 #
 # Needs the action's own curl and jq, plus python3 for the stand-in and bun to
 # read the YAML. The `checks` job in ci-cd.yml runs it.
 #
-# The stand-in binds port 0, so every case gets its own free port: with a fixed
-# port, whatever was already listening there answered the requests, and every
-# case read that process's replies. It also exits within about ten seconds of
-# its last request, so one that a kill does not reach -- after an interrupted
-# run, say -- does not linger.
+# The stand-in binds port 0, so each case that starts one gets a free port of
+# its own. With a fixed port, whatever was already listening there answered
+# every request, so cases read that process's replies instead of their own
+# stand-in's. It also exits once it has gone about ten seconds without a
+# request, so one that a kill does not reach -- after an interrupted run, say --
+# does not linger.
 set -euo pipefail
 
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -28,7 +31,8 @@ await Bun.write(process.env.OUT_FILE, parsed.runs.steps[0].run);
 '
 
 # The token endpoint answers with the case's status and body, the logout
-# endpoint with the case's logout status.
+# endpoint with the case's logout status -- or, for logout status 0, by closing
+# the connection without a reply.
 server_py='
 import http.server, sys, threading, time
 portfile, status, body, logout = sys.argv[1], int(sys.argv[2]), sys.argv[3].encode(), int(sys.argv[4])
@@ -45,6 +49,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+        elif self.path.startswith("/auth/v1/logout") and logout == 0:
+            self.close_connection = True
         else:
             self.send_response(logout if self.path.startswith("/auth/v1/logout") else 404)
             self.end_headers()
@@ -162,6 +168,10 @@ EXPECT=("does not authenticate: HTTP 400" "$dependabot_store")
 ABSENT=("Repository variables:")
 run_case "400, wrong pair, dependabot actor" 1 400 '{"code":400,"error_code":"invalid_credentials","msg":"Invalid login credentials"}' ACTOR="dependabot[bot]"
 
+EXPECT=("does not authenticate: HTTP 400, invalid_grant: Invalid login credentials" "$actions_store")
+ABSENT=("Repository variables:")
+run_case "400, OAuth-style error body" 1 400 '{"error":"invalid_grant","error_description":"Invalid login credentials"}'
+
 EXPECT=("does not authenticate: HTTP 403, user_banned: User is banned" "$actions_store")
 ABSENT=("Repository variables:")
 run_case "403, account blocked" 1 403 '{"code":403,"error_code":"user_banned","msg":"User is banned"}'
@@ -170,7 +180,7 @@ EXPECT=("HTTP 401, unknown: Invalid API key (Double check your API key.)" "$vari
 ABSENT=("Secret store for this run")
 run_case "401, publishable key rejected" 1 401 '{"message":"Invalid API key","hint":"Double check your API key."}'
 
-EXPECT=("There is no auth endpoint at that address" "$variables_page")
+EXPECT=("HTTP 404, unknown: no message. There is no auth endpoint at that address" "$variables_page")
 ABSENT=("Secret store for this run")
 run_case "404, no auth API at the URL" 1 404 '{}'
 
@@ -182,21 +192,43 @@ EXPECT=("returned an unexpected status")
 ABSENT=("Secret store for this run" "Repository variables:")
 run_case "500, unexpected status" 1 500 '{"message":"boom"}'
 
+EXPECT=("HTTP 502, unknown: no message. The responder returned an unexpected status")
+ABSENT=("Secret store for this run" "Repository variables:")
+run_case "502, a gateway page that is not JSON" 1 502 '<html><body>502 Bad Gateway</body></html>'
+
 EXPECT=("no HTTP response (network/DNS/timeout)" "$variables_page")
 ABSENT=("Secret store for this run")
 run_case "no response" 1 none ""
+
+# curl rejects the brackets in a placeholder like this one before sending
+# anything, and writes no status code at all.
+EXPECT=("no HTTP response (network/DNS/timeout)" "$variables_page")
+ABSENT=("Secret store for this run" "unexpected status")
+run_case "a URL curl cannot parse" 1 none "" SUPABASE_URL='https://[project-ref].supabase.co/'
 
 EXPECT=("Verified 1 credential pair(s) authenticate against {url}: owner-a")
 ABSENT=("::error::" "::warning::")
 run_case "200, signed in and out" 0 200 '{"access_token":"token","token_type":"bearer"}'
 
+EXPECT=("Verified 1 credential pair(s) authenticate against {url}: owner-a")
+ABSENT=("::error::" "::warning::")
+run_case "200, secret key required and present" 0 200 '{"access_token":"token","token_type":"bearer"}' REQUIRE_SECRET_KEY=true SECRET_KEY=sb_secret_test
+
 EXPECT=("::warning::sign-out of the verification probe for 'owner-a' returned HTTP 500" "Verified 1 credential pair(s) authenticate against {url}: owner-a")
 ABSENT=("::error::")
 LOGOUT=500 run_case "200, sign-out refused" 0 200 '{"access_token":"token","token_type":"bearer"}'
 
+EXPECT=("::warning::sign-out of the verification probe for 'owner-a' returned HTTP 000" "Verified 1 credential pair(s) authenticate against {url}: owner-a")
+ABSENT=("::error::")
+LOGOUT=0 run_case "200, sign-out connection dropped" 0 200 '{"access_token":"token","token_type":"bearer"}'
+
 EXPECT=("::warning::the verification probe for 'owner-a' got HTTP 200 with no readable access_token" "Verified 1 credential pair(s) authenticate against {url}: owner-a")
 ABSENT=("::error::")
 run_case "200, no access_token in the body" 0 200 '{}'
+
+EXPECT=("::warning::the verification probe for 'owner-a' got HTTP 200 with no readable access_token" "Verified 1 credential pair(s) authenticate against {url}: owner-a")
+ABSENT=("::error::")
+run_case "200, a body that is not JSON" 0 200 '{"access_token":"tok'
 
 echo "---- $passed passed, $failed failed"
 [ "$failed" -eq 0 ]

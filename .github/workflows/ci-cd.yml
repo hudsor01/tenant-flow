@@ -121,7 +121,8 @@ jobs:
 
       # The credential gate (verify-supabase-test-auth) runs only in the jobs
       # that hit production, where it normally takes just its success path.
-      # This runs every branch of its script against a local stand-in, so a
+      # This runs its script locally, error and warning paths included, with a
+      # stand-in for GoTrue answering the cases that need a response, so a
       # regression in which place an error names fails here instead of showing
       # up as a misleading message during a real outage.
       - name: Test the credential gate
