@@ -74,10 +74,27 @@ jobs:
       # transitive dev dependency would otherwise stop every unrelated PR, and a
       # gate people route around is worse than one that reports honestly.
       #
-      # It fails CLOSED. `bun audit` exits non-zero both when it finds
-      # advisories and when it cannot reach the registry, so the two are told
-      # apart by the output and reported differently -- but either way the job
-      # fails, because an audit that did not run proves nothing.
+      # It fails CLOSED, and that takes TWO mechanisms, because the exit code
+      # alone cannot carry it. `bun audit` exits non-zero when it finds
+      # advisories and when it cannot REACH the registry (`ConnectionRefused:
+      # audit request failed`), so those two are told apart by the output and
+      # reported differently. But it exits ZERO whenever the registry IS
+      # reachable and answers 2xx carrying no advisory data. Measured
+      # 2026-10-24 against a tree whose only dependency has a CRITICAL
+      # advisory (minimist@0.0.8), behind a local registry that proxied package
+      # metadata upstream and intercepted only the advisory endpoint: 200 `{}`
+      # and 200 with an empty body both printed "No vulnerabilities found",
+      # 200 `{"error": ...}` printed nothing at all, and all three exited 0.
+      # The first two are byte-identical to what a healthy clean tree prints.
+      # The previous gate, run verbatim on that tree, printed "no high or
+      # critical advisories" and passed.
+      #
+      # So the exit code is checked, and the gate is separately proven live by
+      # a POSITIVE CONTROL: it reruns the gate's OWN command against a
+      # throwaway tree that must fail, and a clean answer there fails the job.
+      # Nothing vulnerable is committed -- the control is written to a temp dir
+      # at run time and never installed, because `bun audit` reads the
+      # lockfile, not node_modules.
       #
       # Why the error below says to bound an override instead of writing `>=`:
       # a bare `>=` does not pin, it floats to whatever is newest at resolve
@@ -92,12 +109,39 @@ jobs:
       # catches the regression a speculative floor was supposed to prevent.
       - name: Audit dependencies
         run: |
+          set -uo pipefail
+
+          CANARY_PKG='minimist'
+          CANARY_RANGE='0.0.8'
+          CANARY_ADVISORY='GHSA-xvch-5gv4-984h' # critical: prototype pollution, minimist <0.2.4
+
+          echo "--- positive control: this gate must catch ${CANARY_PKG}@${CANARY_RANGE} ---"
+          canary_dir="$(mktemp -d)"
+          trap 'rm -rf "$canary_dir"' EXIT
+          printf '{"name":"audit-gate-positive-control","version":"0.0.0","private":true,"dependencies":{"%s":"%s"}}\n' \
+            "$CANARY_PKG" "$CANARY_RANGE" > "$canary_dir/package.json"
+
+          # `bun audit` reads the lockfile, so the control never has to be installed.
+          canary_resolve=$(cd "$canary_dir" && bun install --lockfile-only --ignore-scripts 2>&1) \
+            && canary_resolve_code=0 || canary_resolve_code=$?
+          if [ "$canary_resolve_code" -ne 0 ]; then
+            printf '%s\n' "$canary_resolve"
+            echo "::error::could not resolve the audit gate's positive control (${CANARY_PKG}@${CANARY_RANGE}, exit ${canary_resolve_code}). Without it this job cannot tell a clean dependency tree from an audit that never ran, so it fails instead of passing."
+            exit 1
+          fi
+
+          canary_out=$(cd "$canary_dir" && bun audit --audit-level=high 2>&1) && canary_code=0 || canary_code=$?
+          printf '%s\n' "$canary_out"
+          if [ "$canary_code" -eq 0 ] || ! printf '%s' "$canary_out" | grep -qF "$CANARY_ADVISORY"; then
+            echo "::error::THE AUDIT GATE IS INOPERATIVE -- not clean. \`bun audit --audit-level=high\` exited ${canary_code} without reporting ${CANARY_ADVISORY} against ${CANARY_PKG}@${CANARY_RANGE}, which carries it. bun exits 0 whenever the registry answers 2xx with no advisory data, so the real tree's result below would be meaningless. Failing the job. Usually this means the advisory feed is down and failing is correct; if ${CANARY_ADVISORY} was withdrawn or re-rated below high, pin a different permanently-vulnerable package as the control."
+            exit 1
+          fi
+          echo "positive control passed: the gate is live and catches ${CANARY_ADVISORY}"
+
           echo "--- full report (moderate and low are informational) ---"
-          set +e
-          bun audit
+          bun audit || true
           echo "--- gate: high and critical ---"
-          out=$(bun audit --audit-level=high 2>&1); code=$?
-          set -e
+          out=$(bun audit --audit-level=high 2>&1) && code=0 || code=$?
           printf '%s\n' "$out"
           if [ "$code" -ne 0 ]; then
             if printf '%s' "$out" | grep -qiE 'vulnerabilit'; then
