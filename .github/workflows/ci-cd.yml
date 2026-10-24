@@ -119,6 +119,14 @@ jobs:
           bun run lint
           bun run typecheck
 
+      # The credential gate (verify-supabase-test-auth) runs only in the jobs
+      # that hit production, where it normally takes just its success path.
+      # This runs every branch of its script against a local stand-in, so a
+      # regression in which place an error names fails here instead of showing
+      # up as a misleading message during a real outage.
+      - name: Test the credential gate
+        run: bash .github/actions/verify-supabase-test-auth/test.sh
+
       - name: Build
         run: bun run build
         env:
