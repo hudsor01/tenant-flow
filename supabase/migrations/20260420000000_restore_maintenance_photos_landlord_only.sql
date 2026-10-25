@@ -14,6 +14,18 @@
 
 begin;
 
+-- Replay guard. This migration was written assuming the table had ALREADY been
+-- dropped out-of-band by the landlord-only pivot (PR #596), so `create table if
+-- not exists` below is a no-op on a fresh chain replay -- the table still exists
+-- from 20260318120000 WITH that migration's tenant-era policies attached. Those
+-- policies reference tenants.user_id and block its drop 110 migrations later
+-- (`cannot drop column user_id ... policy tenant_select_maintenance_photos
+-- depends on it`, SQLSTATE 2BP01). Measured 2026-10-25: replay died there after
+-- 261 of 348. No migration in prod's ledger drops these policies -- on prod the
+-- table drop took them. Idempotent, and a no-op on prod where they are absent.
+drop policy if exists tenant_select_maintenance_photos on public.maintenance_request_photos;
+drop policy if exists tenant_insert_maintenance_photos on public.maintenance_request_photos;
+
 create table if not exists public.maintenance_request_photos (
   id uuid primary key default gen_random_uuid(),
   maintenance_request_id uuid not null references public.maintenance_requests(id) on delete cascade,
