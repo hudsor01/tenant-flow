@@ -122,10 +122,16 @@ export interface CommitCheckRun {
 	readonly completedAt: string | null;
 }
 
+export interface CommitStatus {
+	/** The context name, e.g. "Vercel". */
+	readonly context: string;
+	/** `success`, `failure`, `error` or `pending`. */
+	readonly state: string;
+}
+
 export interface CommitStatuses {
 	readonly sha: string;
-	/** Commit-status context names, e.g. ["Vercel"]. */
-	readonly contexts: readonly string[];
+	readonly statuses: readonly CommitStatus[];
 }
 
 export interface PullRequestHead extends CommitStatuses {
@@ -220,9 +226,14 @@ export function assertHistoryProtected(
 	const force = protection.allow_force_pushes?.enabled;
 	const deletion = protection.allow_deletions?.enabled;
 	if (typeof force !== "boolean" || typeof deletion !== "boolean") {
+		// UNVERIFIED, not a failure. "The endpoint answered in a shape I do not
+		// understand" is the same epistemic state as the 403 the caller handles,
+		// and returning opposite verdicts and exit codes for one state is the
+		// inconsistency this module's own thesis forbids.
 		return {
-			ok: false,
-			message: `could not read main's force-push and deletion settings (got ${JSON.stringify({ force, deletion })}). The protection API answered in a shape this does not understand, so the invariant is unverified rather than satisfied.`,
+			ok: true,
+			unverified: true,
+			message: `could not read main's force-push and deletion settings (got ${JSON.stringify({ force, deletion })}). The protection API answered 200 in a shape this does not understand, so the invariant is unchecked rather than broken -- look at the response before changing any setting.`,
 		};
 	}
 	if (force || deletion) {
@@ -275,12 +286,14 @@ export function assertSupabaseBranchingHasNoGitLink(
  *
  * WHAT `skipped` DOES NOT MEAN. It is tempting to read a `skipped` conclusion as
  * "the integration has no authority", and that reading is wrong. Measured on
- * this repo's own history: `d0077d3ac` was merged to main at 21:29Z on
- * 2026-10-24, TEN HOURS before the production branch was cleared, and its
- * `Supabase Preview` run concluded `skipped` with the summary "This git branch
- * is not associated with any Supabase Branch." -- byte-identical to
- * `754c91802` at 08:08Z on 2026-10-25, after the setting was off. So `skipped`
- * is silence, not proof.
+ * this repo's own history: `d0077d3ac` landed on main at 20:42:36Z on
+ * 2026-10-24, TEN AND A HALF HOURS before the production branch was cleared at
+ * 07:11:58Z, and its `Supabase Preview` run concluded `skipped` at 21:29:20Z
+ * with the summary "This git branch is not associated with any Supabase
+ * Branch." -- byte-identical to `754c91802`'s run at 08:08:17Z on 2026-10-25,
+ * after the setting was off. So `skipped` is silence, not proof. (The two
+ * timestamps on each line are the merge and the run; conflating them is how the
+ * first version of this comment got the boundary wrong.)
  *
  * What the runs that ACTED look like: `25cef7b2b` (06:10:25Z) and `18ff5f9a8`
  * (06:48:21Z) both concluded `failure` with "Remote migration versions not
@@ -299,10 +312,27 @@ export function assertSupabaseBranchingHasNoGitLink(
  * -- which is also what lets this clear itself after a re-enable is fixed,
  * rather than staying red for as long as the commit stays in the window.
  */
+export function supabaseWindowFloor(
+	now: Date,
+	revokedAt: string = SUPABASE_AUTHORITY_REVOKED_AT,
+	freshnessHours: number = SUPABASE_RUN_FRESHNESS_HOURS,
+): number {
+	// The later bound is the more restrictive one, and Math.max is monotonic in
+	// `now`, so the pre-fix runs can never re-enter the window as time passes.
+	return Math.max(
+		Date.parse(revokedAt),
+		now.getTime() - freshnessHours * 3600_000,
+	);
+}
+
 export function assertSupabaseDidNotActOnProduction(
 	commitsExamined: number,
 	runs: readonly CommitCheckRun[],
 	options: {
+		/**
+		 * True when a page of commits or of check runs was cut short, so a run
+		 * this reads may simply not have been on the page.
+		 */
 		readonly truncated?: boolean;
 		/** Evaluation time; injected so the bounds below are testable. */
 		readonly now: Date;
@@ -319,27 +349,36 @@ export function assertSupabaseDidNotActOnProduction(
 				"examined no commits, so this proves nothing about the Supabase integration. The commit listing failed or returned an empty page.",
 		};
 	}
-	// A truncated check-run page could have dropped the very run this reads.
 	if (options.truncated === true) {
 		return {
 			ok: false,
 			message:
-				"the check-run listing was truncated, so a Supabase run may have been dropped from the page this assertion read. Paginate before trusting the result.",
+				"the commit or check-run listing was truncated, so a Supabase run may simply not have been on the page this assertion read. Paginate before trusting the result.",
 		};
 	}
 
-	const revokedAt = Date.parse(
-		options.revokedAt ?? SUPABASE_AUTHORITY_REVOKED_AT,
+	// The data is defended against an unparseable timestamp below; the BOUND
+	// needs the same, because a NaN floor silently excludes every run and then
+	// throws a RangeError out of `new Date(NaN).toISOString()`, past the layer
+	// that turns a failure into an annotation.
+	const floor = supabaseWindowFloor(
+		options.now,
+		options.revokedAt,
+		options.freshnessHours,
 	);
-	const freshest =
-		options.now.getTime() -
-		(options.freshnessHours ?? SUPABASE_RUN_FRESHNESS_HOURS) * 3600_000;
-	const floor = Math.max(revokedAt, freshest);
+	if (Number.isNaN(floor)) {
+		return {
+			ok: false,
+			message: `the Supabase window floor is not a date (revokedAt=${JSON.stringify(options.revokedAt ?? SUPABASE_AUTHORITY_REVOKED_AT)}). SUPABASE_AUTHORITY_REVOKED_AT must be an ISO 8601 instant WITH its \`Z\`: without the zone designator Date.parse reads it as local time and moves the floor by the machine's offset.`,
+		};
+	}
 
 	const fromSupabase = runs.filter((run) => run.app === SUPABASE_APP_SLUG);
 	const inWindow = fromSupabase.filter((run) => {
 		if (run.completedAt === null) return true;
 		const completed = Date.parse(run.completedAt);
+		// Fail closed: a shape change must not silently remove runs from the set
+		// this reads.
 		return Number.isNaN(completed) ? true : completed >= floor;
 	});
 	const stale = fromSupabase.length - inWindow.length;
@@ -357,20 +396,21 @@ export function assertSupabaseDidNotActOnProduction(
 	}
 
 	// Nothing from Supabase at all is NOT the same as nothing acting. The app
-	// posts a run on every commit here, so an empty set means the slug changed,
-	// the app was removed, or this stopped reading the right field.
+	// posted a run on 19 of the last 20 commits when this was measured
+	// (2026-10-25), so an empty set means the slug changed, the app was removed,
+	// or this stopped reading the right field.
 	if (fromSupabase.length === 0) {
 		return {
 			ok: true,
 			unverified: true,
-			message: `no check run from the \`${SUPABASE_APP_SLUG}\` app appears on any of the ${commitsExamined} commit(s) examined, where one appears on every commit today. The app may have been removed (in which case delete this assertion) or its slug may have changed (in which case fix SUPABASE_APP_SLUG) -- either way nothing was checked.`,
+			message: `no check run from the \`${SUPABASE_APP_SLUG}\` app appears on any of the ${commitsExamined} commit(s) examined, where it normally appears on nearly all of them. The app may have been removed (in which case delete this assertion) or its slug may have changed (in which case fix SUPABASE_APP_SLUG) -- either way nothing was checked.`,
 		};
 	}
 	if (inWindow.length === 0) {
 		return {
 			ok: true,
 			unverified: true,
-			message: `all ${fromSupabase.length} Supabase check run(s) in the ${commitsExamined} commit(s) examined completed before the window this trusts (nothing on or after ${new Date(floor).toISOString()}), so none of them says anything about the setting now. Nothing has been pushed to main recently enough to read.`,
+			message: `all ${fromSupabase.length} Supabase check run(s) in the ${commitsExamined} commit(s) examined completed before ${new Date(floor).toISOString()}, so none of them says anything about the setting now. Nothing has been pushed to main recently enough to read.`,
 		};
 	}
 	const pending = inWindow.filter((run) => run.conclusion === null);
@@ -383,19 +423,20 @@ export function assertSupabaseDidNotActOnProduction(
 	}
 	return {
 		ok: true,
-		message: `no Supabase check run acted on production (${commitsExamined} commit(s) examined, ${inWindow.length} in-window Supabase run(s)${stale > 0 ? `, ${stale} older run(s) ignored` : ""}${pending.length > 0 ? `, ${pending.length} still in progress` : ""}). NOTE: this does not establish that the setting is off -- see the function's docstring.`,
+		message: `no Supabase check run acted on production since ${new Date(floor).toISOString()} (${commitsExamined} commit(s) examined, ${inWindow.length} in-window Supabase run(s)${stale > 0 ? `, ${stale} older run(s) ignored` : ""}${pending.length > 0 ? `, ${pending.length} still in progress` : ""}). NOTE: this is a PROXY -- it does not establish that the setting is off, only that nothing has acted. See the function's docstring.`,
 	};
 }
 
 /**
  * `vercel.json` must actually restrict automatic deploys to `main`.
  *
- * `{"main": true}` alone does NOT: per Vercel's git-configuration docs, "any
- * unspecified branch defaults to true", so naming `main` as enabled restricted
+ * `{"main": true}` alone does NOT: per Vercel's git-configuration docs, "By
+ * default, any unspecified branch is set to `true`", so naming `main` as
+ * enabled restricted
  * nothing and the file merely looked like it did. A catch-all is what expresses
- * the invariant. `main` keeps its explicit `true` because when a branch matches
- * several rules "a deployment will trigger if at least one rule evaluates to
- * true" -- that is what keeps production deploying while everything else stops.
+ * the invariant. `main` keeps its explicit `true` because, in the same docs, "If a
+ * branch matches multiple rules and at least one rule is `true`, a deployment
+ * will occur" -- that is what keeps production deploying while the rest stops.
  * `**` rather than `*`, because minimatch's `*` does not cross a `/` and every
  * branch here is `type/description`.
  *
@@ -438,8 +479,11 @@ export function assertVercelConfigDeclaresMainOnly(
 			);
 		}
 	}
+	// Object.hasOwn, not `in`: `in` walks the prototype chain, so a branch rule
+	// keyed `constructor` or `toString` would be treated as documented and
+	// skipped by both loops.
 	const extra = Object.keys(enabled).filter(
-		(pattern) => !(pattern in documented),
+		(pattern) => !Object.hasOwn(documented, pattern),
 	);
 	if (extra.length > 0) {
 		problems.push(
@@ -475,8 +519,20 @@ export function assertVercelDeploysOnlyMain(state: {
 	readonly mainCommits: readonly CommitStatuses[];
 	readonly pullRequestHeads: readonly PullRequestHead[];
 }): AssertionResult {
-	const hasVercel = (commit: CommitStatuses): boolean =>
-		commit.contexts.some((context) => VERCEL_CONTEXT.test(context));
+	// ANY state counts as "Vercel built this ref": a preview that failed to
+	// build is still a preview, and Vercel still ran it against production
+	// Supabase to get there.
+	const built = (commit: CommitStatuses): boolean =>
+		commit.statuses.some((status) => VERCEL_CONTEXT.test(status.context));
+	// Liveness needs SUCCESS, though. A run of failed production builds leaves
+	// the site stale, which is exactly what the failure message below describes
+	// -- reading a `failure` status as "main deploys" would report the problem
+	// as its own absence.
+	const deployed = (commit: CommitStatuses): boolean =>
+		commit.statuses.some(
+			(status) =>
+				VERCEL_CONTEXT.test(status.context) && status.state === "success",
+		);
 
 	if (state.mainCommits.length === 0) {
 		return {
@@ -485,25 +541,40 @@ export function assertVercelDeploysOnlyMain(state: {
 				"examined no main commits, so this proves nothing about where Vercel deploys from.",
 		};
 	}
-	const previews = state.pullRequestHeads.filter(hasVercel);
+	const previews = state.pullRequestHeads.filter(built);
 	if (previews.length > 0) {
 		return {
 			ok: false,
-			message: `Vercel deployed a branch other than main: ${previews.map((pr) => `#${pr.number} (${pr.sha.slice(0, 9)})`).join(", ")}. The repo documents main-only, and a preview URL built from a PR branch runs against PRODUCTION Supabase. A commit status is never removed, so this stays red until that pull request is closed or its head is replaced -- fix the deploy rules first, then close or re-push the branch.`,
+			message: `Vercel built a ref other than main: ${previews
+				.map(
+					(pr) =>
+						`#${pr.number} (${pr.sha.slice(0, 9)}: ${pr.statuses
+							.filter((status) => VERCEL_CONTEXT.test(status.context))
+							.map((status) => status.state)
+							.join(", ")})`,
+				)
+				.join(
+					", ",
+				)}. The repo documents main-only, and a preview built from a PR branch runs against PRODUCTION Supabase. A commit status is never removed, so this stays red until that pull request is closed or its head is replaced -- fix the deploy rules first, then close or re-push the branch.`,
 		};
 	}
-	if (!state.mainCommits.some(hasVercel)) {
+	if (!state.mainCommits.some(deployed)) {
+		const attempted = state.mainCommits.filter(built).length;
 		return {
 			ok: true,
 			unverified: true,
-			message: `none of the last ${state.mainCommits.length} commits reachable from main carries a Vercel status. That is expected for a few minutes after a push, while Vercel has not reported yet; if it persists, either the Git integration is gone or production has stopped deploying -- check that the \`**\` catch-all in vercel.json did not also stop main. The last deploy stays live, so the site would be stale rather than down.`,
+			message: `none of the last ${state.mainCommits.length} commits reachable from main carries a SUCCESSFUL Vercel status${attempted > 0 ? ` (${attempted} carry one in another state)` : ""}. That is expected for a few minutes after a push, while Vercel has not reported yet; if it persists, either the Git integration is gone or production has stopped deploying -- check that the \`**\` catch-all in vercel.json did not also stop main. The last good deploy stays live, so the site would be stale rather than down.`,
 		};
 	}
+	// SAYS WHAT IT LOOKED AT. This half can only see refs that have an open pull
+	// request: Vercel deploys on push, so a preview on a branch with no PR is
+	// invisible to it, and the title it is printed under is broader than its
+	// reach.
 	return {
 		ok: true,
 		message:
 			state.pullRequestHeads.length === 0
-				? "main deploys and there are no open pull requests to have deployed"
-				: `main deploys and none of the ${state.pullRequestHeads.length} open pull request head(s) did`,
+				? "main deploys, and there are no open pull request heads to have been built (a branch with no open PR is not visible to this check)"
+				: `main deploys, and none of the ${state.pullRequestHeads.length} open pull request head(s) was built (a branch with no open PR is not visible to this check)`,
 	};
 }

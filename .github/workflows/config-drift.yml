@@ -58,11 +58,13 @@ name: Platform Config Drift
 # to a push, so there is nothing new to see until one happens, and the
 # consequence of (1) drifting is bounded by the next merge.
 #
-# A FAILING SCHEDULED RUN NOTIFIES NOBODY IN-BAND. GitHub emails the account
-# that owns the repository when a scheduled workflow fails, which is the whole
-# notification path here; unlike post-deploy-sentry-gate.yml this opens no
-# issue. That is a deliberate trade for now -- opening issues needs
-# `issues: write`, which this job otherwise has no use for.
+# A FAILING SCHEDULED RUN NOTIFIES NOBODY IN-BAND, and the notification it does
+# send follows the cron, not the repository. GitHub sends scheduled-workflow
+# failure notifications to "the user who last modified the cron syntax in the
+# workflow file" -- so editing the schedule below moves the alerts to whoever
+# edited it, which is worth knowing before someone else touches it. Unlike
+# post-deploy-sentry-gate.yml this opens no issue: that needs `issues: write`,
+# which this job otherwise has no use for.
 on:
   schedule:
     - cron: '17 7 * * *'

@@ -39,11 +39,13 @@ jobs:
     concurrency:
       group: checks-${{ github.ref }}
       cancel-in-progress: true
-    # 20, not 10. This job measured 1.2 min before it ran the unit suite and
-    # 6.4 min after (283s of it the suite, on a runner with 3 worker threads
-    # against an 18-core box's 8). A required check with a 3.6-minute margin
-    # against a suite that only grows is how a gate starts failing on timeout
-    # for reasons nobody changed.
+    # 20, NOT 10, AND THE SPREAD IS WHY. Before this job ran the unit suite it
+    # took 77s, 79s, 101s and 111s (runs 40172506038, 40172153921, 40170537681,
+    # 40170507336); with it, 228s, 385s and 389s (40212669666, 40210200799,
+    # 40209444394). The slowest observed run left 3.5 minutes against the old
+    # 10-minute cap -- and runner variance alone is nearly 2x, on a suite that
+    # only grows. That is how a required check starts failing on timeout for
+    # reasons nobody changed.
     timeout-minutes: 20
     env:
       CI: true
@@ -112,22 +114,29 @@ jobs:
       # it, coverage could regress silently on exactly the commits that skip
       # lefthook.
       #
-      # MEASURED ON A RUNNER, not inferred from a laptop: 336 files, 283s, and
-      # 64.94 / 56.71 / 64.19 / 67.06 against those floors. An 18-core dev box
-      # reported 64.97 / 56.79 / 64.19 / 67.06 in 35s on the same tree: v8
-      # counts a few statements differently between V8 versions, and the suite
-      # is slower here because UNIT_MAX_WORKERS derives from host cores
-      # (min(8, cpus - 1)), which is 3 on a 4-core runner against 8 there. The
-      # branch floor has 0.71 points of headroom, so whoever raises the ratchet
-      # next should read THESE numbers rather than a local run's.
+      # MEASURED ON RUNNERS, WITH THE RUN IDS, because one number from one run
+      # is not what the next person sees. 336 files, and this step took 283s,
+      # 278s and 156s on runs 40209444394, 40210200799 and 40212669666 -- nearly
+      # 2x variance between runners, so budget for the slow end. Coverage is
+      # stable across all three at 64.94 / 56.71 / 64.19 / 67.06.
       #
-      # This also carries the negative controls for the other two gates in this
-      # repo whose assertions are plain tested code -- the migration-replay
-      # comparisons and the platform-config drift checks. Those tests are the
-      # reason "the gate was green" means the gate can still fail.
+      # An 18-core dev box reports 64.98 / 56.8 / 64.19 / 67.07 on the same tree
+      # in about 30s: v8 counts a few statements slightly differently between V8
+      # versions (Node 24 here, 26 there -- an inference, not a measurement),
+      # and the suite is slower here because UNIT_MAX_WORKERS is
+      # `max(2, min(8, cpus - 1))`, which is 3 on a 4-core runner against 8
+      # there. WHOEVER RAISES THE RATCHET NEXT SHOULD READ THE RUNNER'S FIGURES:
+      # the branch floor has 0.71 points of headroom there, not the 0.79 a local
+      # run suggests.
       #
-      # Before the build, which costs 75s on this runner: a tree that cannot
-      # run its tests should not wait on a bundler to find out.
+      # This step also carries the negative controls for every other gate in
+      # this repo whose assertions are plain tested code -- the migration-replay
+      # comparisons, the platform-config drift checks, and the workflow contract
+      # with its ten committed mutations. Those tests are the reason "the gate
+      # was green" means the gate can still fail.
+      #
+      # Before the build, which takes 51s-76s on the same three runs: a tree
+      # that cannot run its tests should not wait on a bundler to find out.
       - name: Unit tests
         run: bun run test:unit -- --coverage
 

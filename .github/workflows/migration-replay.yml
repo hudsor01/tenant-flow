@@ -109,9 +109,15 @@ jobs:
           # Counted from the tree, never hardcoded, so this stays correct as
           # migrations are added.
           expected=$(find supabase/migrations -maxdepth 1 -name '*.sql' | wc -l | tr -d ' ')
+          # ANCHORED: `grep -oE '[0-9]+' | tail -1` took the last number from
+          # ANY output on stdout -- a `(1 row)` footer, a bordered table, a
+          # version string in a usage dump from an unknown subcommand (the
+          # `2>/dev/null` only hides stderr). That hands the assertion a
+          # valid-but-wrong count, which routes around its "could not read it"
+          # branch and reports a complete replay as an incomplete one.
           applied=$(supabase db query --linked=false \
             "select count(*) from supabase_migrations.schema_migrations;" 2>/dev/null \
-            | grep -oE '[0-9]+' | tail -1 || true)
+            | grep -oE '^[0-9]+$' | head -1 || true)
           if [ -z "$applied" ]; then
             # Older/newer CLIs differ on `db query`; fall back to psql in the container.
             applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
@@ -155,8 +161,16 @@ jobs:
           # could never have signed in. The expectation, and the explanation of
           # how psql spells the boolean through `||`, live in
           # scripts/migration-replay-assertions.ts.
+          # `coalesce` IS LOAD-BEARING. `subscription_status` is nullable and
+          # `auth.users.email` is too, and `||` with a NULL operand yields NULL
+          # -- so one NULL column made psql print an EMPTY LINE for that whole
+          # row, which the assertion's whitespace filter then dropped. With all
+          # three NULL the gate reported "the three e2e users do not exist"
+          # while they existed and one column was unset: the misdiagnosis class
+          # this gate was rewritten to eliminate.
           rows=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
-            "select u.email || '|' || p.is_admin || '|' || p.subscription_status || '|' ||
+            "select coalesce(u.email, '<null-email>') || '|' || p.is_admin || '|' ||
+                    coalesce(p.subscription_status, '<null-status>') || '|' ||
                     (select count(*) from auth.identities i where i.user_id = u.id)
              from auth.users u join public.users p on p.id = u.id
              where u.email like 'e2e-%@tenantflow.app' order by u.email;")

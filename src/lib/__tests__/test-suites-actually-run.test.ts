@@ -11,20 +11,22 @@
  *
  * The unit exclude used to read `.tsx` only while the component include read
  * `{ts,tsx}`, so a `*.component.test.ts` file ran in BOTH projects and the
- * claim above was false for it. The exclude now mirrors the include, which is
- * what makes this guard's stated reason true for both extensions.
- *
- * There are zero such files today, and this is what keeps that true. If a
- * component project is wanted, wire it into ci-cd.yml in the same commit that
- * adds the first file to it.
+ * claim above was false for it. The two patterns are now asserted to match,
+ * because this guard's failure message asserts WHY a file never runs and that
+ * reason has to stay true -- in the state where the exclude is narrower, the
+ * message is a confident lie.
  *
  * Pure filesystem read -- never touches the DOM.
  */
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SRC = join(process.cwd(), "src");
+const VITEST_CONFIG = join(process.cwd(), "vitest.config.ts");
+
+/** Files matching this are collected by the `component` project, which nothing runs. */
+const ORPHANED = /\.component\.test\.tsx?$/;
 
 function walk(dir: string): string[] {
 	return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -46,13 +48,26 @@ describe("every test file belongs to a suite something runs", () => {
 		).toBeGreaterThan(0);
 	});
 
-	it("has no *.component.test.tsx file, because nothing executes that project", () => {
-		const orphaned = files.filter((file) =>
-			/\.component\.test\.tsx?$/.test(file),
-		);
+	it("has no *.component.test.ts or .tsx file, because nothing executes that project", () => {
+		const orphaned = files.filter((file) => ORPHANED.test(file));
 		expect(
 			orphaned,
 			`These files are collected ONLY by vitest's \`component\` project, and no hook and no CI job runs it -- they pass by never running:\n${orphaned.join("\n")}\nRename them to *.test.tsx to join the unit project, or add the component project to ci-cd.yml.`,
 		).toEqual([]);
+	});
+
+	it("the unit project excludes exactly what the component project collects", () => {
+		// The message above states a REASON. If the unit exclude is narrower
+		// than the component include, a matching file does run -- in both
+		// projects -- and the reason becomes false while the test stays green.
+		// Asserted against the config text, because the patterns are string
+		// literals and a reader checking this claim reads the same two lines.
+		const config = readFileSync(VITEST_CONFIG, "utf8");
+		const pattern = "src/**/*.component.test.{ts,tsx}";
+		const occurrences = config.split(pattern).length - 1;
+		expect(
+			occurrences,
+			`vitest.config.ts must contain "${pattern}" twice -- once as the component project's include, once as the unit project's exclude -- and it appears ${occurrences} time(s). While they differ, a file matching the wider pattern runs in both projects and this file's failure message is wrong about why it would not.`,
+		).toBe(2);
 	});
 });

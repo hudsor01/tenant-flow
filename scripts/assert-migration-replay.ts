@@ -15,7 +15,11 @@
  * annotation), 2 on misuse.
  */
 import { readFileSync } from "node:fs";
-import { type AssertionResult, errorAnnotation } from "./assertion-result";
+import {
+	type AssertionResult,
+	errorAnnotation,
+	warningAnnotation,
+} from "./assertion-result";
 import {
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
@@ -28,17 +32,28 @@ const USAGE = `usage:
   bun scripts/assert-migration-replay.ts test-cast   # rows on stdin`;
 
 function finish(result: AssertionResult): never {
-	if (result.ok) {
+	if (!result.ok) {
+		console.log(errorAnnotation(result.message));
 		console.log(result.message);
-		process.exit(0);
+		process.exit(1);
 	}
-	console.log(errorAnnotation(result.message));
+	// No replay assertion returns `unverified` today -- each of them either
+	// compares what it was given or refuses the input. The branch exists because
+	// the shared type permits it, and printing a result that proved nothing as a
+	// plain success line is the exact failure this gate family is about. Exit 1:
+	// unlike the drift gate, this one runs against a stack it built itself, so
+	// "could not check" means the run is broken rather than under-credentialled.
+	if (result.unverified === true) {
+		console.log(warningAnnotation(result.message));
+		console.log(result.message);
+		process.exit(1);
+	}
 	console.log(result.message);
-	process.exit(1);
+	process.exit(0);
 }
 
 function misuse(reason: string): never {
-	console.log(`::error::${reason}`);
+	console.log(errorAnnotation(reason));
 	console.log(USAGE);
 	process.exit(2);
 }

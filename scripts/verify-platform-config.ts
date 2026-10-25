@@ -8,13 +8,13 @@
  *   GITHUB_TOKEN=$(gh auth token) bun scripts/verify-platform-config.ts
  *
  * TWO INVARIANTS ARE READ AT WHATEVER STRENGTH THE AVAILABLE TOKEN ALLOWS, and
- * the weaker reading is reported as UNVERIFIED rather than as a pass:
+ * the weaker reading is reported UNVERIFIED rather than as a pass:
  *
  *   - Supabase's authority over production. The real field is `git_branch` on
  *     the project's branches, which needs a Supabase personal access token.
  *     Those are account-wide and cannot be scoped, so CI is deliberately not
- *     given one; when SUPABASE_ACCESS_TOKEN is absent this falls back to the
- *     integration's check runs, which can only show that it has not ACTED.
+ *     given one; without it this falls back to the integration's check runs,
+ *     which can only show that it has not ACTED.
  *   - Force pushes and deletion on main, which live only on the admin-only
  *     protection endpoint. The workflow `permissions:` block has no
  *     `administration` key to grant, so GITHUB_TOKEN cannot read it at all.
@@ -26,7 +26,7 @@ import { readFileSync } from "node:fs";
 import {
 	type AssertionResult,
 	errorAnnotation,
-	warningAnnotation,
+	reportResult,
 } from "./assertion-result";
 import {
 	assertHistoryProtected,
@@ -42,19 +42,32 @@ import {
 	type CommitStatuses,
 	type PullRequestHead,
 	type SupabaseBranch,
+	supabaseWindowFloor,
 	type VercelConfig,
 } from "./platform-config-assertions";
 
 /**
- * How far back on main to look.
+ * How many recent main commits the VERCEL half looks at.
  *
  * `GET /commits?sha=main` lists every commit REACHABLE from main in date order,
- * not just first-parent, so a merge pulls in branch commits that never
- * deployed; this repo already has runs of five consecutive Vercel-less ones.
- * Twenty keeps the "main still deploys" half of the Vercel assertion out of
- * that hole while keeping this to about fifty API calls.
+ * not first-parent, so a merge pulls in branch commits that never deployed;
+ * this repo has had runs of five consecutive Vercel-less ones. Twenty keeps the
+ * "main still deploys" half out of that hole.
+ *
+ * It is deliberately NOT what bounds the Supabase half. A fixed count is a
+ * THIRD bound on a gate that already has two time bounds, and it is the
+ * tightest of the three: twenty commits measured 16h23m of this repo's history
+ * on 2026-10-25, against a 24h schedule -- so an acting run could scroll past
+ * the end between two runs and be read by neither. That half fetches its own
+ * commits with `since`, below.
  */
-const MAIN_COMMIT_WINDOW = 20;
+const VERCEL_COMMIT_WINDOW = 20;
+
+/**
+ * A page of commits this size means there may be more, and the Supabase half
+ * must not treat a cut-off page as a clean one.
+ */
+const COMMIT_PAGE_LIMIT = 100;
 
 /** The production project ref, as scripts/deploy-edge-functions.ts also pins it. */
 const SUPABASE_PROJECT_REF = "bshjmbshupiibfiewpxb";
@@ -83,7 +96,10 @@ interface CheckRunsResponse {
 }
 
 interface CombinedStatusResponse {
-	readonly statuses: readonly { readonly context: string }[];
+	readonly statuses: readonly {
+		readonly context: string;
+		readonly state: string;
+	}[];
 }
 
 class HttpError extends Error {
@@ -126,11 +142,26 @@ const gh = <T>(path: string, needs?: string): Promise<T> =>
 		needs,
 	);
 
+const statusesOf = async (sha: string): Promise<CommitStatuses> => {
+	const status = await gh<CombinedStatusResponse>(
+		`/commits/${sha}/status`,
+		"statuses: read",
+	);
+	return {
+		sha,
+		statuses: status.statuses.map((entry) => ({
+			context: entry.context,
+			state: entry.state,
+		})),
+	};
+};
+
 const results: (readonly [string, AssertionResult])[] = [];
 const add = (title: string, result: AssertionResult): void => {
 	results.push([title, result]);
 };
 
+// ---------------------------------------------------------------- GitHub ----
 const branch = await gh<BranchSummary>("/branches/main", "contents: read");
 add("main is a protected branch", assertProtectionEnforced(branch));
 add(
@@ -161,52 +192,41 @@ try {
 	}
 }
 
-const mainCommits = await gh<readonly { readonly sha: string }[]>(
-	`/commits?sha=main&per_page=${MAIN_COMMIT_WINDOW}`,
-);
-
-// Every app's runs: the Supabase filter is part of the assertion's tested
-// contract, so it stays there rather than being applied here.
-const checkRuns: CommitCheckRun[] = [];
-const mainStatuses: CommitStatuses[] = [];
-let checkRunsTruncated = false;
-for (const commit of mainCommits) {
-	const runs = await gh<CheckRunsResponse>(
-		`/commits/${commit.sha}/check-runs?per_page=100`,
-		"checks: read",
-	);
-	// A page that dropped rows could have dropped the one run this reads.
-	if ((runs.total_count ?? runs.check_runs.length) > runs.check_runs.length) {
-		checkRunsTruncated = true;
-	}
-	for (const run of runs.check_runs) {
-		checkRuns.push({
-			sha: commit.sha,
-			app: run.app?.slug ?? "",
-			name: run.name,
-			conclusion: run.conclusion,
-			completedAt: run.completed_at,
-		});
-	}
-	const status = await gh<CombinedStatusResponse>(
-		`/commits/${commit.sha}/status`,
-		"statuses: read",
-	);
-	mainStatuses.push({
-		sha: commit.sha,
-		contexts: status.statuses.map((entry) => entry.context),
-	});
-}
-
-// The real Supabase check when a token for it exists, the check-run proxy when
-// it does not. Never both: the proxy's pass would pad the count with a weaker
-// restatement of what the strong one already settled.
+// -------------------------------------------------------------- Supabase ----
+const now = new Date();
 if (SUPABASE_TOKEN === "") {
+	// Bounded by the SAME floor the assertion uses, so the window it reasons
+	// about and the window that was fetched cannot drift apart.
+	const since = new Date(supabaseWindowFloor(now)).toISOString();
+	const windowCommits = await gh<readonly { readonly sha: string }[]>(
+		`/commits?sha=main&since=${since}&per_page=${COMMIT_PAGE_LIMIT}`,
+	);
+	const checkRuns: CommitCheckRun[] = [];
+	let truncated = windowCommits.length >= COMMIT_PAGE_LIMIT;
+	for (const commit of windowCommits) {
+		const runs = await gh<CheckRunsResponse>(
+			`/commits/${commit.sha}/check-runs?per_page=100`,
+			"checks: read",
+		);
+		// A page that dropped rows could have dropped the one run this reads.
+		if ((runs.total_count ?? runs.check_runs.length) > runs.check_runs.length) {
+			truncated = true;
+		}
+		for (const run of runs.check_runs) {
+			checkRuns.push({
+				sha: commit.sha,
+				app: run.app?.slug ?? "",
+				name: run.name,
+				conclusion: run.conclusion,
+				completedAt: run.completed_at,
+			});
+		}
+	}
 	add(
 		"Supabase has not acted on production",
-		assertSupabaseDidNotActOnProduction(mainCommits.length, checkRuns, {
-			truncated: checkRunsTruncated,
-			now: new Date(),
+		assertSupabaseDidNotActOnProduction(windowCommits.length, checkRuns, {
+			truncated,
+			now,
 		}),
 	);
 } else {
@@ -221,23 +241,34 @@ if (SUPABASE_TOKEN === "") {
 	);
 }
 
+// ---------------------------------------------------------------- Vercel ----
+const recentCommits = await gh<readonly { readonly sha: string }[]>(
+	`/commits?sha=main&per_page=${VERCEL_COMMIT_WINDOW}`,
+);
+const mainStatuses: CommitStatuses[] = [];
+for (const commit of recentCommits) {
+	mainStatuses.push(await statusesOf(commit.sha));
+}
+
+// `base=main`: a pull request FROM main into some other base carries main's own
+// Vercel status on its head, which the preview half would report as a branch
+// deploy. Reachable heads are skipped for the same reason.
 const openPulls = await gh<
 	readonly {
 		readonly number: number;
 		readonly head: { readonly sha: string };
 	}[]
->("/pulls?state=open&per_page=100", "pull-requests: read");
-
+>(
+	`/pulls?state=open&base=main&per_page=${COMMIT_PAGE_LIMIT}`,
+	"pull-requests: read",
+);
+const reachable = new Set(recentCommits.map((commit) => commit.sha));
 const pullRequestHeads: PullRequestHead[] = [];
 for (const pull of openPulls) {
-	const status = await gh<CombinedStatusResponse>(
-		`/commits/${pull.head.sha}/status`,
-		"statuses: read",
-	);
+	if (reachable.has(pull.head.sha)) continue;
 	pullRequestHeads.push({
 		number: pull.number,
-		sha: pull.head.sha,
-		contexts: status.statuses.map((entry) => entry.context),
+		...(await statusesOf(pull.head.sha)),
 	});
 }
 
@@ -248,30 +279,32 @@ add(
 	),
 );
 add(
-	"Vercel deploys main and nothing else",
-	assertVercelDeploysOnlyMain({ mainCommits: mainStatuses, pullRequestHeads }),
+	"Vercel deploys main, and no open pull request head",
+	openPulls.length >= COMMIT_PAGE_LIMIT
+		? {
+				ok: true,
+				unverified: true,
+				message: `${openPulls.length} open pull requests came back on one page, so there may be more that were not read. Paginate before trusting the preview half.`,
+			}
+		: assertVercelDeploysOnlyMain({
+				mainCommits: mainStatuses,
+				pullRequestHeads,
+			}),
 );
 
+// ---------------------------------------------------------------- report ----
 let failed = 0;
 let unverified = 0;
 for (const [title, result] of results) {
-	if (result.unverified === true) {
-		unverified += 1;
-		console.log(warningAnnotation(`UNVERIFIED  ${title}\n${result.message}`));
-		console.log(`UNVERIFIED  ${title}: ${result.message}`);
+	if (reportResult(title, result)) {
+		failed += 1;
 		continue;
 	}
-	if (result.ok) {
-		console.log(`PASS  ${title}: ${result.message}`);
-		continue;
-	}
-	failed += 1;
-	console.log(errorAnnotation(`${title}\n${result.message}`));
-	console.log(`FAIL  ${title}: ${result.message}`);
+	if (result.ok && result.unverified === true) unverified += 1;
 }
 
 const checked = results.length - unverified;
 console.log(
-	`\n${checked - failed} of ${checked} checked invariants hold${unverified > 0 ? `, ${unverified} unverified` : ""} (${mainCommits.length} main commit(s), ${pullRequestHeads.length} open pull request(s) examined${SUPABASE_TOKEN === "" ? "; no SUPABASE_ACCESS_TOKEN, so Supabase's setting itself was not read" : ""})`,
+	`\n${checked - failed} of ${checked} checked invariants hold${unverified > 0 ? `, ${unverified} unverified` : ""} (${recentCommits.length} recent main commit(s), ${pullRequestHeads.length} open pull request head(s) examined${SUPABASE_TOKEN === "" ? "; no SUPABASE_ACCESS_TOKEN, so Supabase's setting itself was not read -- only that nothing has acted" : ""})`,
 );
 process.exit(failed === 0 ? 0 : 1);
