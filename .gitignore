@@ -339,6 +339,19 @@ AGENTS.md
 # Claude Code's project instructions are local-only, never committed.
 CLAUDE.md
 
+# Vendored agent skill bundles (shadcn, migrate-radix-to-base), installed
+# per-machine by the agent tooling -- not project source. 25 files were tracked
+# with nothing pinning them to a vendor version, so a re-install produced a diff
+# nobody authored.
+#
+# Biome checks tracked files, and 21 of the 25 are Markdown. biome 2.5.14 does
+# not format Markdown, so it checked exactly one of them (the evals .json) --
+# measured: 1389 files with them tracked, 1388 without. biome 2.6.2 DOES format
+# Markdown, and on #1030 (the bump that introduces it) all 21 came back as
+# `format` errors -- 21 of that PR's 43. Biome skips ignored files, so
+# untracking removes them from a churn cycle the next vendor update recreates.
+.agents/skills/
+
 # Generated and MANAGED BY NEXT.JS -- do not track, do not edit.
 # Next rewrites this file on every `next dev`, `next build` and `next typegen`,
 # and the contents differ between them: dev points the route-type imports at
