@@ -39,7 +39,12 @@ jobs:
     concurrency:
       group: checks-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 10
+    # 20, not 10. This job measured 1.2 min before it ran the unit suite and
+    # 6.4 min after (283s of it the suite, on a runner with 3 worker threads
+    # against an 18-core box's 8). A required check with a 3.6-minute margin
+    # against a suite that only grows is how a gate starts failing on timeout
+    # for reasons nobody changed.
+    timeout-minutes: 20
     env:
       CI: true
     steps:
@@ -104,9 +109,16 @@ jobs:
       # root of vitest.config.ts (statements 64 / branches 56 / functions 63 /
       # lines 66 -- a ratchet at the measured floor, not an aspiration). Without
       # it, coverage could regress silently on exactly the commits that skip
-      # lefthook. Measured 2026-10-25 in a tree with no .env.local and no
-      # .env.test, as a runner sees it: 335 files, 35s, 64.97 / 56.79 / 64.19 /
-      # 67.06.
+      # lefthook.
+      #
+      # MEASURED ON A RUNNER, not inferred from a laptop: 336 files, 283s, and
+      # 64.94 / 56.71 / 64.19 / 67.06 against those floors. An 18-core dev box
+      # reported 64.97 / 56.79 / 64.19 / 67.06 in 35s on the same tree: v8
+      # counts a few statements differently between V8 versions, and the suite
+      # is slower here because UNIT_MAX_WORKERS derives from host cores
+      # (min(8, cpus - 1)), which is 3 on a 4-core runner against 8 there. The
+      # branch floor has 0.71 points of headroom, so whoever raises the ratchet
+      # next should read THESE numbers rather than a local run's.
       #
       # This also carries the negative controls for the other two gates in this
       # repo whose assertions are plain tested code -- the migration-replay
