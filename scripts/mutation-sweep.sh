@@ -159,7 +159,7 @@ mutate "$PLATFORM" 'VERCEL_CONTEXT.test(status.context) && status.state === "suc
 mutate "$PLATFORM" 'const previews = state.pullRequestHeads.filter(built);' \
                    'const previews = state.pullRequestHeads.filter(deployed).filter(() => false);' \
                    'preview deployments on PR heads are ignored'
-mutate "$PLATFORM" 'if (state.mainCommits.length === 0) {' 'if (false) {' \
+mutate "$PLATFORM" 'if (newest === undefined) {' 'if (false) {' \
                    'examining zero main commits passes'
 mutate "$PLATFORM" 'const newest = state.mainCommits[0];' \
                    'const newest = state.mainCommits[state.mainCommits.length - 1];' \

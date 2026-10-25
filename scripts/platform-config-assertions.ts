@@ -583,13 +583,6 @@ export function assertVercelDeploysOnlyMain(state: {
 				VERCEL_CONTEXT.test(status.context) && status.state === "success",
 		);
 
-	if (state.mainCommits.length === 0) {
-		return {
-			ok: false,
-			message:
-				"examined no main commits, so this proves nothing about where Vercel deploys from.",
-		};
-	}
 	const previews = state.pullRequestHeads.filter(built);
 	if (previews.length > 0) {
 		return {
@@ -626,11 +619,15 @@ export function assertVercelDeploysOnlyMain(state: {
 	// catastrophic state this half exists to catch. The caller must preserve
 	// the API's order; `committedAt` is read only for the grace clock below.
 	const newest = state.mainCommits[0];
+	// The empty-window guard, and the only one: a separate length check ahead of
+	// the preview half was redundant with this and the sweep reported it as
+	// such. An empty window is not a pass -- it is a listing that returned
+	// nothing, and nothing was looked at.
 	if (newest === undefined) {
 		return {
 			ok: false,
 			message:
-				"the main-commit window is not indexable, so this proves nothing about where Vercel deploys from.",
+				"examined no main commits, so this proves nothing about where Vercel deploys from. The commit listing failed or came back empty.",
 		};
 	}
 	if (!deployed(newest)) {
