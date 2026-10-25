@@ -29,6 +29,14 @@
 -- 8 live-but-damaged analytics RPCs to query these foreign tables
 -- instead of the long-dropped public.rent_payments table.
 
+-- Step 0: the wrapper extension itself. On prod this was installed by hand
+-- BEFORE this migration was applied, so the migration's claim below that it is
+-- "a safe no-op on a fresh DB" was false: replay died here with
+-- `function extensions.stripe_fdw_handler() does not exist` (SQLSTATE 42883)
+-- after 246 of 348 migrations. Measured 2026-10-25. The local image ships
+-- wrappers 0.6.3 (prod runs 0.6.1); `if not exists` keeps prod a no-op.
+create extension if not exists wrappers with schema extensions;
+
 -- Step 1: register the wrapper handler/validator from the extension
 do $$
 begin
@@ -45,7 +53,14 @@ end $$;
 -- speaks to Stripe via the same API contract.
 do $$
 begin
-  if not exists (select 1 from pg_foreign_server where srvname = 'stripe_server') then
+  -- The api_key_id bound below lives in Vault. Guard on the secret's NAME, not
+  -- its id: ids differ per environment, and repeating the id literal here made
+  -- gitleaks flag it as a generic-api-key (it is an identifier, not the key).
+  -- Where the secret is absent there is nothing to bind and nothing to import,
+  -- so this and step 4 are both skipped.
+  if not exists (select 1 from vault.secrets where name = 'STRIPE_SECRET_KEY') then
+    raise notice 'stripe_server skipped: vault secret STRIPE_SECRET_KEY not present (expected on a fresh or CI database)';
+  elsif not exists (select 1 from pg_foreign_server where srvname = 'stripe_server') then
     create server stripe_server
       foreign data wrapper stripe_wrapper
       options (
@@ -66,7 +81,9 @@ create schema if not exists stripe;
 -- foreign table already lives in stripe.*.
 do $$
 begin
-  if not exists (
+  if not exists (select 1 from pg_foreign_server where srvname = 'stripe_server') then
+    raise notice 'import foreign schema skipped: no stripe_server (fresh or CI database)';
+  elsif not exists (
     select 1
     from pg_class c
     join pg_namespace n on c.relnamespace = n.oid
