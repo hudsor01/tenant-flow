@@ -136,8 +136,8 @@ mutate "$PLATFORM" 'if (enabled[pattern] !== value) {' 'if (false) {' \
                    'a wrong deploymentEnabled value is ignored'
 mutate "$PLATFORM" 'if (extra.length > 0) {' 'if (false) {' \
                    'an extra deploymentEnabled pattern is ignored'
-mutate "$PLATFORM" '(status) => VERCEL_CONTEXT.test(status.context) && status.state === "success",' \
-                   '(status) => VERCEL_CONTEXT.test(status.context),' \
+mutate "$PLATFORM" 'VERCEL_CONTEXT.test(status.context) && status.state === "success",' \
+                   'VERCEL_CONTEXT.test(status.context),' \
                    'a failed production build counts as main deploying'
 mutate "$PLATFORM" 'const previews = state.pullRequestHeads.filter(built);' \
                    'const previews = state.pullRequestHeads.filter(deployed).filter(() => false);' \

@@ -288,6 +288,21 @@ describe("mutations the contract must catch", () => {
 		expect(reportedIn(dir, "rls-security").ok).toBe(false);
 	});
 
+	it("two providers that each carry only one filter are not complements", () => {
+		// The reachable path to samePaths(null, null): A filters `paths`, B
+		// filters `paths-ignore`, so each one's missing half is null. Treating
+		// absent-vs-absent as equal would report them as complements and claim
+		// the check is reported on every pull request when it is reported on
+		// neither's excluded set.
+		const dir = fixture({
+			"a.yml": `name: A\non:\n  pull_request:\n    paths:\n      - "src/**"\njobs:\n  shared:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo\n`,
+			"b.yml": `name: B\non:\n  pull_request:\n    paths-ignore:\n      - "docs/**"\njobs:\n  shared:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo\n`,
+		});
+		const result = reportedIn(dir, "shared");
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("no two of them are complements");
+	});
+
 	it("the companion is deleted outright", () => {
 		const files = base();
 		const result = assertDocOnlyCompanionMirrors(
