@@ -84,8 +84,8 @@ export const SUPABASE_AUTHORITY_REVOKED_AT = "2026-10-25T07:11:58Z";
  * 36 hours = the gate's 24-hour schedule plus twelve of slack, so consecutive
  * runs OVERLAP and nothing can act in a gap between them. It was 168, which
  * was both more than needed and expensive: the caller fetches every commit in
- * this window and one check-run page each, and this repo's main has had 268
- * reachable commits in a 168-hour window.
+ * this window and one check-run page each, and this repo's main has had 721
+ * reachable commits in a 168-hour window, measured over 6,940 commits.
  *
  * It is also what lets this clear itself: a re-enable that is caught and then
  * turned off again stops being reported once its runs age out, instead of
@@ -306,8 +306,8 @@ export function assertSupabaseBranchingHasNoGitLink(
  * The weaker, credential-free check: no Supabase check run ACTED on this repo.
  *
  * WHAT `skipped` DOES NOT MEAN. It is tempting to read a `skipped` conclusion
- * as "the integration has no authority", and that reading is wrong -- on this
- * repo's own history, in a way GitHub's default API view actively hides.
+ * as "the integration has no authority". It is wrong on this repo's own
+ * history, in a way GitHub's default API view actively hides.
  *
  * `d0077d3ac` landed on main at 20:42:36Z on 2026-10-24, while "Deploy to
  * production" was ON. Under `filter=all` that one commit carries FOUR Supabase
@@ -552,14 +552,14 @@ export function assertVercelConfigDeclaresMainOnly(
  * And Vercel must actually behave that way.
  *
  * Two halves, because either one alone can pass while being wrong. No open PR
- * head may carry a Vercel status (a preview deployed), AND a recent main commit
- * must carry one (production still deploys, and this signal is alive at all).
- * The second half is what catches a catch-all rule that went too far.
+ * head may carry a Vercel status (a preview deployed), AND MAIN'S TIP must
+ * carry a successful one (production still deploys, and this signal is alive at
+ * all). The second half is what catches a catch-all rule that went too far.
  *
- * The main-commit window has to be generous: `GET /commits?sha=main` lists every
- * commit REACHABLE from main in date order, so merge commits pull in branch
- * commits that never deployed, and this repo already has runs of five
- * consecutive Vercel-less ones.
+ * The window's remaining commits are not what the liveness half reads -- only
+ * `mainCommits[0]` is. They decide the REMEDY WORDING (whether older commits
+ * deployed, which distinguishes "the tip alone stopped" from "nothing deploys")
+ * and, in the caller, which pull-request heads are ancestors of main.
  */
 export function assertVercelDeploysOnlyMain(state: {
 	readonly mainCommits: readonly CommitStatuses[];
@@ -607,18 +607,32 @@ export function assertVercelDeploysOnlyMain(state: {
 				)}. The repo documents main-only, and a preview built from a PR branch runs against PRODUCTION Supabase. A commit status is never removed, so this stays red until that pull request is closed or its head is replaced -- fix the deploy rules first, then close or re-push the branch.`,
 		};
 	}
-	// THE NEWEST COMMIT, NOT THE WHOLE WINDOW. Asking whether ANY of twenty
-	// commits deployed is nearly always yes -- 8 of the last 20 carry a
-	// successful Vercel status, because only the tips ever deploy and the rest
-	// are branch commits a merge brought along. So a merge that stopped main
-	// deploying passed this cleanly, and kept passing until roughly twenty
-	// further commits had pushed every success out of the window. What the
-	// invariant actually asks is whether MAIN AS IT STANDS NOW deployed.
-	const newest = state.mainCommits.reduce((latest, commit) =>
-		Date.parse(commit.committedAt) >= Date.parse(latest.committedAt)
-			? commit
-			: latest,
-	);
+	// MAIN'S TIP, NOT THE WHOLE WINDOW. Asking whether ANY of twenty commits
+	// deployed is nearly always yes -- 8 of the last 20 carry a successful
+	// Vercel status, because only the tips ever deploy and the rest are branch
+	// commits a merge brought along. So a merge that stopped main deploying
+	// passed cleanly, and kept passing until twenty further commits had flushed
+	// every success out of the window. What the invariant asks is whether MAIN
+	// AS IT STANDS NOW deployed.
+	//
+	// ELEMENT 0, not a max over the window's commit dates. GitHub's commit walk
+	// starts at the requested `sha`, so `GET /commits?sha=main` returns main's
+	// tip first -- verified against `git/ref/heads/main`. A max-by-date reduce
+	// looked more defensive and was measurably WORSE: committer-second ties are
+	// common here (106 of 6,940 historical windows, 4 of them on real tips from
+	// multi-commit direct pushes), and whichever way the comparison resolved a
+	// tie it could pick a commit that was never the tip -- a false red whose
+	// remedy text talks about "the current tip", or a false GREEN on the one
+	// catastrophic state this half exists to catch. The caller must preserve
+	// the API's order; `committedAt` is read only for the grace clock below.
+	const newest = state.mainCommits[0];
+	if (newest === undefined) {
+		return {
+			ok: false,
+			message:
+				"the main-commit window is not indexable, so this proves nothing about where Vercel deploys from.",
+		};
+	}
 	if (!deployed(newest)) {
 		const olderDeployed = state.mainCommits.some(deployed);
 		const attempted = built(newest);

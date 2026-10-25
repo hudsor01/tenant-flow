@@ -33,9 +33,7 @@ name: Platform Config Drift
 #     worse trade, so CI is not given one. Without it the gate falls back to the
 #     integration's check runs, which can only show that it has not ACTED.
 #
-#     `skipped` IS NOT PROOF THE SETTING IS OFF, and the earlier version of
-#     this comment claimed it was -- on the wrong evidence, twice over.
-#     Measured with `filter=all`: `d0077d3ac` landed on main at 20:42:36Z on
+#     `skipped` IS NOT PROOF THE SETTING IS OFF. Measured with `filter=all`: `d0077d3ac` landed on main at 20:42:36Z on
 #     2026-10-24, while the setting was ON, and that ONE commit carries a
 #     `failure` at 20:43:13Z ("Remote migration versions not found in local
 #     migrations directory" -- the deploy acting, 37 seconds after the merge),
@@ -90,10 +88,7 @@ on:
   # exercised on main within minutes instead of at 07:17 the next morning. On
   # that run the Vercel liveness half reports UNVERIFIED -- the merge commit is
   # the tip, it is seconds old, and it sits inside the reporting grace -- which
-  # is correct, and the next scheduled run is what decides it. (An earlier
-  # version of this comment predicted the same thing for the wrong reason, when
-  # the half still asked whether ANY commit in the window had deployed: with
-  # older successes present it passed cleanly instead.)
+  # is correct, and the next scheduled run is what decides it.
   push:
     branches: [main]
     paths:

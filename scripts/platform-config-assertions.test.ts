@@ -566,35 +566,27 @@ describe("assertVercelDeploysOnlyMain", () => {
 		number: number,
 		sha: string,
 		statuses: readonly { context: string; state: string }[],
-	) => ({
-		number,
-		sha,
-		committedAt: SETTLED,
-		statuses,
-	});
+	) => ({ number, sha, committedAt: SETTLED, statuses });
 	const check = (
 		mainCommits: readonly Commit[],
 		pullRequestHeads: readonly (Commit & { number: number })[] = [],
 	) => assertVercelDeploysOnlyMain({ mainCommits, pullRequestHeads, now: NOW });
 
 	/**
-	 * The tip deployed; an older commit in the window did not. Deliberately NOT
-	 * in date order, so the tip has to be found rather than assumed to be first.
+	 * REAL API ORDER, AND THAT IS LOAD-BEARING. `GET /commits?sha=main` starts
+	 * its walk at the requested sha, so main's tip is element 0. Every fixture
+	 * below follows that: with them in ascending order instead, reading
+	 * `mainCommits[mainCommits.length - 1]` -- which against the real ordering
+	 * means "read the OLDEST commit" -- passed the whole suite.
+	 *
+	 * Here the tip deployed and an older commit in the window did not.
 	 */
 	const TIP_DEPLOYED: Commit[] = [
-		{
-			sha: "96f408efecd51362b0b189ea154689e31287e2ef",
-			committedAt: OLDER,
-			statuses: [],
-		},
-		{
-			sha: "754c91802acc97ec96ef939b7eceedcd8893a0cb",
-			committedAt: SETTLED,
-			statuses: [vercel("success")],
-		},
+		{ sha: "tiptiptip1", committedAt: SETTLED, statuses: [vercel("success")] },
+		{ sha: "oldoldold1", committedAt: OLDER, statuses: [] },
 	];
 
-	it("passes when main's newest commit deployed, whatever the older ones did", () => {
+	it("passes when main's tip deployed, whatever the older ones did", () => {
 		const result = check(TIP_DEPLOYED, [head(1037, "2913b39fd3", [])]);
 		expect(result.ok).toBe(true);
 		expect(result.ok && result.unverified).toBeUndefined();
@@ -609,16 +601,54 @@ describe("assertVercelDeploysOnlyMain", () => {
 		expect(result.message).toContain("no open pull request heads");
 	});
 
-	it("reads the NEWEST commit, not the first in the list", () => {
-		// Binds the tip selection in the direction a mis-comparison breaks: the
-		// deployed commit is OLDER here, so picking it would wrongly pass.
+	it("reads element 0 when the tip did NOT deploy", () => {
+		// Catches `mainCommits[length - 1]`: it would find the older success
+		// here and pass.
 		const result = check([
-			{ sha: "aaaaaaaaaa", committedAt: OLDER, statuses: [vercel("success")] },
-			{ sha: "bbbbbbbbbb", committedAt: SETTLED, statuses: [] },
+			{ sha: "tiptiptip1", committedAt: SETTLED, statuses: [] },
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
 		]);
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("bbbbbbbbb");
-		expect(result.message).not.toContain("aaaaaaaaa");
+		expect(result.message).toContain("tiptiptip");
+		expect(result.message).not.toContain("oldoldold");
+	});
+
+	it("reads element 0 when the tip DID deploy", () => {
+		// The mirror: the only success is on the tip, so any form reading some
+		// other element fails.
+		const result = check([
+			{
+				sha: "tiptiptip1",
+				committedAt: SETTLED,
+				statuses: [vercel("success")],
+			},
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [] },
+			{ sha: "oldoldold2", committedAt: "2026-10-23T10:00:00Z", statuses: [] },
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.ok && result.unverified).toBeUndefined();
+	});
+
+	it("reads the tip even when a later committer date sits deeper in the window", () => {
+		// A rebased or cherry-picked commit can carry any committer date, and a
+		// committer-second tie is common here -- 106 of 6,940 historical windows,
+		// 4 of them on real tips. ORDER decides which commit is the tip, not
+		// date arithmetic, which is why the max-by-date reduce was removed.
+		const result = check([
+			{ sha: "tiptiptip1", committedAt: SETTLED, statuses: [] },
+			{
+				sha: "weirddate1",
+				committedAt: JUST_NOW,
+				statuses: [vercel("success")],
+			},
+			{
+				sha: "tieditem01",
+				committedAt: SETTLED,
+				statuses: [vercel("success")],
+			},
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("tiptiptip");
 	});
 
 	it("FAILS when the tip never deployed although older commits did", () => {
@@ -626,8 +656,8 @@ describe("assertVercelDeploysOnlyMain", () => {
 		// commits deployed is nearly always yes, so a merge that stopped main
 		// deploying went green until the window rolled over.
 		const result = check([
-			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
 			{ sha: "newnewnew1", committedAt: SETTLED, statuses: [] },
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
 		]);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
@@ -638,8 +668,8 @@ describe("assertVercelDeploysOnlyMain", () => {
 
 	it("FAILS differently when nothing in the window deployed at all", () => {
 		const result = check([
-			{ sha: "oldoldold1", committedAt: OLDER, statuses: [] },
 			{ sha: "newnewnew1", committedAt: SETTLED, statuses: [] },
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [] },
 		]);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("PRODUCTION HAS STOPPED DEPLOYING");
@@ -664,8 +694,8 @@ describe("assertVercelDeploysOnlyMain", () => {
 		// Routine for a few minutes after a push. Calling that "production has
 		// stopped deploying" would be a wrong diagnosis on a race.
 		const result = check([
-			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
 			{ sha: "newnewnew1", committedAt: JUST_NOW, statuses: [] },
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
 		]);
 		expect(result.ok).toBe(true);
 		expect(result.ok && result.unverified).toBe(true);

@@ -161,9 +161,12 @@ mutate "$PLATFORM" 'const previews = state.pullRequestHeads.filter(built);' \
                    'preview deployments on PR heads are ignored'
 mutate "$PLATFORM" 'if (state.mainCommits.length === 0) {' 'if (false) {' \
                    'examining zero main commits passes'
-mutate "$PLATFORM" 'Date.parse(commit.committedAt) >= Date.parse(latest.committedAt)' \
-                   'Date.parse(commit.committedAt) <= Date.parse(latest.committedAt)' \
-                   'the liveness clock reads the OLDEST commit in the window'
+mutate "$PLATFORM" 'const newest = state.mainCommits[0];' \
+                   'const newest = state.mainCommits[state.mainCommits.length - 1];' \
+                   'the liveness half reads the LAST element, i.e. the oldest commit'
+mutate "$PLATFORM" 'const newest = state.mainCommits[0];' \
+                   'const newest = state.mainCommits[1] ?? state.mainCommits[0];' \
+                   'the liveness half reads one commit past the tip'
 mutate "$PLATFORM" 'if (!deployed(newest)) {' 'if (false) {' \
                    'a tip that never deployed is reported as deploying'
 mutate "$PLATFORM" 'const settled = state.now.getTime() - landed > graceMs;' \
@@ -209,7 +212,7 @@ mutate "$CONTRACT" 'if (sortedReal.join("\n") !== sortedCompanion.join("\n")) {'
 echo
 echo "=== the verdict layer: annotations, reporting, tallying, exit codes ==="
 # NOT COVERED BY THE ROWS ABOVE, and review proved what that cost: deleting the
-# %0A escaping passed lint, typecheck, the whole suite, caught=35 and both
+# %0A escaping passed lint, typecheck, the whole suite, a clean sweep and both
 # gates, because a GREEN gate never calls an annotation helper. Changing
 # `process.exit(1)` to 0 in the replay CLI made the gate report green on a
 # 246-of-348 replay with the sweep still clean.

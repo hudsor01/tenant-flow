@@ -48,12 +48,18 @@ import {
 } from "./platform-config-assertions";
 
 /**
- * How many recent main commits the VERCEL half looks at.
+ * How many recent main commits the Vercel half fetches.
  *
- * `GET /commits?sha=main` lists every commit REACHABLE from main in date order,
- * not first-parent, so a merge pulls in branch commits that never deployed;
- * this repo has had runs of five consecutive Vercel-less ones. Twenty keeps the
- * "main still deploys" half out of that hole.
+ * NOT what the liveness assertion reads -- that reads `mainCommits[0]`, main's
+ * tip, and would give an identical verdict with a window of one. Twenty is
+ * sized for its two real consumers: the `reachable` set that stops an open
+ * pull request whose head is an ancestor of main from being mistaken for a
+ * preview, and the `olderDeployed` signal that picks which remedy a failure
+ * suggests. Shrinking it narrows the ancestor skip, which is where a false red
+ * would come from.
+ *
+ * The ORDER matters and must not be sorted or reversed: GitHub's commit walk
+ * starts at the requested `sha`, so element 0 is the tip.
  *
  * It is deliberately NOT what bounds the Supabase half. A fixed count is a
  * THIRD bound on a gate that already has two time bounds, and it is the
@@ -73,7 +79,7 @@ const COMMIT_PAGE_LIMIT = 100;
  * It USED to fetch one page and report `truncated` -- a hard failure whose
  * message said "paginate", with nothing paginating. That was latent only
  * because the window was still pinned to the revocation instant; a 168-hour
- * window on a busy week here reaches 268 reachable commits, so the gate would
+ * window on a busy week here reaches 721 reachable commits, so the gate would
  * have gone red for a reason that was not drift, and stayed red for a week.
  * Five pages (500 commits) against a 36-hour window is about 2.2x the
  * busiest 36-hour window in this repo's whole history (230, measured over
@@ -300,11 +306,23 @@ if (SUPABASE_TOKEN === "") {
 			),
 		);
 	} catch (error) {
-		add("no Supabase branch is bound to a git branch", {
-			ok: true,
-			unverified: true,
-			message: `SUPABASE_ACCESS_TOKEN is set but the branches endpoint refused it, so the setting itself was not read. ${error instanceof Error ? error.message : String(error)} Unset the token to fall back to the check-run proxy, or replace it.`,
-		});
+		// ONLY a refused credential. A 404 from a wrong project ref, a 5xx, or a
+		// 200 carrying a non-array body are repo-side bugs, and reporting them
+		// as "the token was refused" would send the reader after the wrong
+		// thing -- on a channel this gate's own header says reaches nobody.
+		// Everything else keeps falling through to reportFatal.
+		if (
+			error instanceof HttpError &&
+			(error.status === 401 || error.status === 403)
+		) {
+			add("no Supabase branch is bound to a git branch", {
+				ok: true,
+				unverified: true,
+				message: `SUPABASE_ACCESS_TOKEN is set but the branches endpoint refused it (${error.status}), so the setting itself was not read. Unset the token to fall back to the check-run proxy, or replace it.`,
+			});
+		} else {
+			throw error;
+		}
 	}
 }
 
