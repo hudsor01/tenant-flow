@@ -89,6 +89,35 @@ jobs:
       - name: Test the credential gate
         run: bash .github/actions/verify-supabase-test-auth/test.sh
 
+      # THE SUITE CI DID NOT RUN. Until this step, the unit project ran ONLY in
+      # lefthook's pre-commit hook -- and Dependabot and GitHub-UI commits skip
+      # every hook, so for those the suite ran nowhere at all. That is not a
+      # theoretical gap. PR #1001 (react 19.2.8 -> 19.3.1, without react-dom)
+      # passed `checks`, `e2e-smoke`, `rls-security`, CodeQL and `scan` while
+      # failing 332 of 332 unit test files on `Incompatible React versions`,
+      # because react-dom asserts exact version equality with react and that
+      # assert lives in its DEVELOPMENT bundle: `next build && next start` ships
+      # production, where it is absent, while jsdom always evaluates it. Every
+      # required check was green on a tree that could not run its own tests.
+      #
+      # `--coverage` is not decoration: it is what applies the thresholds at the
+      # root of vitest.config.ts (statements 64 / branches 56 / functions 63 /
+      # lines 66 -- a ratchet at the measured floor, not an aspiration). Without
+      # it, coverage could regress silently on exactly the commits that skip
+      # lefthook. Measured 2026-10-25 in a tree with no .env.local and no
+      # .env.test, as a runner sees it: 335 files, 35s, 64.97 / 56.79 / 64.19 /
+      # 67.06.
+      #
+      # This also carries the negative controls for the other two gates in this
+      # repo whose assertions are plain tested code -- the migration-replay
+      # comparisons and the platform-config drift checks. Those tests are the
+      # reason "the gate was green" means the gate can still fail.
+      #
+      # Before the build, which costs 57s: a tree that cannot run its tests
+      # should not wait on a bundler to find out.
+      - name: Unit tests
+        run: bun run test:unit -- --coverage
+
       - name: Build
         run: bun run build
         env:
