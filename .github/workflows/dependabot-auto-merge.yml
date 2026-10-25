@@ -169,7 +169,7 @@ jobs:
       # Restore npm auto-merge once BOTH hold, and prefer the
       # updated-dependencies-json test over the scalar when you do:
       #   - E2E_OWNER_PASSWORD / E2E_OWNER_B_PASSWORD exist in the Dependabot
-      #     secret scope (the other four are already there)
+      #     secret scope
       #   - the e2e-smoke and rls-security skip branches are deleted
       - name: Auto-merge if eligible
         if: |
