@@ -3,7 +3,7 @@
  *
  * THE MUTATION SWEEP DOES NOT REACH THIS FILE, and review found what that cost:
  * deleting the `%0A` escaping from both annotation helpers passed lint,
- * typecheck, the whole unit suite, `caught=35 vacuous=0` and both gates --
+ * typecheck, the whole unit suite, the sweep's own summary and both gates --
  * after which the next real failure would have lost every line after its
  * first, which is the only thing those helpers exist for. A green gate never
  * calls them, so no end-to-end run could have noticed.

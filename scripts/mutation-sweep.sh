@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
-# Prove every decision point in this repo's CI assertions has a control that
-# fails when the decision is wrong.
+# Break each of this script's listed decision points in this repo's CI
+# assertions and require a control to fail for it.
+#
+# It is NOT a claim of total branch coverage: the rows below are enumerated by
+# hand, and a branch with no row here can still be uncovered. Review found
+# exactly that -- the liveness clock's newest-commit comparison had no row and
+# no mixed-timestamp fixture, so reading the OLDEST commit instead left the
+# whole suite green. Adding a row is the fix for a gap like that; the rows are
+# the record of which gaps have been closed.
 #
 #   bash scripts/mutation-sweep.sh
 #
@@ -154,6 +161,27 @@ mutate "$PLATFORM" 'const previews = state.pullRequestHeads.filter(built);' \
                    'preview deployments on PR heads are ignored'
 mutate "$PLATFORM" 'if (state.mainCommits.length === 0) {' 'if (false) {' \
                    'examining zero main commits passes'
+mutate "$PLATFORM" 'Date.parse(commit.committedAt) >= Date.parse(latest.committedAt)' \
+                   'Date.parse(commit.committedAt) <= Date.parse(latest.committedAt)' \
+                   'the liveness clock reads the OLDEST commit in the window'
+mutate "$PLATFORM" 'if (!deployed(newest)) {' 'if (false) {' \
+                   'a tip that never deployed is reported as deploying'
+mutate "$PLATFORM" 'const settled = state.now.getTime() - landed > graceMs;' \
+                   'const settled = false;' \
+                   'the reporting grace never expires, so a stopped deploy only warns'
+mutate "$PLATFORM" 'if (!/(?:Z|[+-]\d{2}:?\d{2})$/.test(revokedAtRaw.trim())) {' 'if (false) {' \
+                   'a zoneless window bound is accepted'
+mutate "$PLATFORM" 'if (branch.protected !== true || branch.protection?.enabled !== true) {' \
+                   'if (false) {' \
+                   'an unprotected main passes'
+mutate "$PLATFORM" 'if (!contexts) {' 'if (false) {' \
+                   'protection requiring no checks at all passes'
+mutate "$PLATFORM" 'if (inWindow.length === 0) {' 'if (false) {' \
+                   'an all-stale Supabase window is reported as a pass'
+mutate "$PLATFORM" 'if (pending.length === inWindow.length) {' 'if (false) {' \
+                   'an all-pending Supabase window is reported as a pass'
+mutate "$PLATFORM" 'if (typeof enabled === "boolean") {' 'if (false) {' \
+                   'the blanket boolean deploymentEnabled form is accepted'
 
 echo
 echo "=== workflow contract ==="

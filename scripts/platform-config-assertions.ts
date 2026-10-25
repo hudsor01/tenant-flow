@@ -58,7 +58,9 @@ const VERCEL_CONTEXT = /^vercel/i;
  * This is the one bound that decides whether the single catastrophic failure
  * mode of vercel.json's `**` catch-all -- main stops deploying too -- is a RED
  * gate or a warning nobody reads. Sixty minutes is generous against this app's
- * observed build (under two minutes) and still bounds detection to one day.
+ * observed build (under two minutes), and because the check is on main's
+ * NEWEST commit rather than on the whole window, it bounds detection to the
+ * next scheduled run after the grace expires.
  */
 const VERCEL_REPORT_GRACE_MINUTES = 60;
 
@@ -303,21 +305,28 @@ export function assertSupabaseBranchingHasNoGitLink(
 /**
  * The weaker, credential-free check: no Supabase check run ACTED on this repo.
  *
- * WHAT `skipped` DOES NOT MEAN. It is tempting to read a `skipped` conclusion as
- * "the integration has no authority", and that reading is wrong. Measured on
- * this repo's own history: `d0077d3ac` landed on main at 20:42:36Z on
- * 2026-10-24, TEN AND A HALF HOURS before the production branch was cleared at
- * 07:11:58Z, and its `Supabase Preview` run concluded `skipped` at 21:29:20Z
- * with the summary "This git branch is not associated with any Supabase
- * Branch." -- byte-identical to `754c91802`'s run at 08:08:17Z on 2026-10-25,
- * after the setting was off. So `skipped` is silence, not proof. (The two
- * timestamps on each line are the merge and the run; conflating them is how the
- * first version of this comment got the boundary wrong.)
+ * WHAT `skipped` DOES NOT MEAN. It is tempting to read a `skipped` conclusion
+ * as "the integration has no authority", and that reading is wrong -- on this
+ * repo's own history, in a way GitHub's default API view actively hides.
  *
- * What the runs that ACTED look like: `25cef7b2b` (06:10:25Z) and `18ff5f9a8`
- * (06:48:21Z) both concluded `failure` with "Remote migration versions not
- * found in local migrations directory" -- the production deploy attempting and
- * failing. A `success` would be worse: it would mean migrations were applied.
+ * `d0077d3ac` landed on main at 20:42:36Z on 2026-10-24, while "Deploy to
+ * production" was ON. Under `filter=all` that one commit carries FOUR Supabase
+ * runs:
+ *
+ *   failure  20:43:13Z  "Remote migration versions not found in local
+ *                        migrations directory."   <- the deploy ACTING, 37s
+ *                                                    after the merge
+ *   skipped  21:29:20Z  "This git branch is not associated with any Supabase
+ *                        Branch."                 <- 47 minutes later
+ *   null     (in progress) x2
+ *
+ * Under the DEFAULT `filter=latest` -- one run per check name -- only the
+ * `skipped` comes back. So a `skipped` conclusion can sit on top of an acting
+ * run on the same commit, and reading it as proof would have reported "nothing
+ * acted" during an active re-enable. That is why the caller passes
+ * `filter=all`, and why a pass here is still not evidence the setting is off:
+ * `754c91802` at 08:08:17Z, after the setting was cleared, carries exactly one
+ * `skipped` run with a byte-identical summary.
  *
  * So this detects an integration that is ACTING, which is the state that does
  * damage, but it cannot detect one that is merely enabled and has had nothing
@@ -598,31 +607,44 @@ export function assertVercelDeploysOnlyMain(state: {
 				)}. The repo documents main-only, and a preview built from a PR branch runs against PRODUCTION Supabase. A commit status is never removed, so this stays red until that pull request is closed or its head is replaced -- fix the deploy rules first, then close or re-push the branch.`,
 		};
 	}
-	if (!state.mainCommits.some(deployed)) {
-		const attempted = state.mainCommits.filter(built).length;
-		// "NOT YET" OR "NEVER", AND THE DIFFERENCE IS THE WHOLE POINT. The one
-		// catastrophic way the `**` catch-all in vercel.json can be wrong is
-		// that it stops main deploying as well, and reporting that as a warning
-		// on a gate whose only channel is a scheduled-failure email is the same
-		// as not reporting it. Past the grace, it FAILS.
-		const newest = Math.max(
-			...state.mainCommits.map((commit) => Date.parse(commit.committedAt)),
-		);
+	// THE NEWEST COMMIT, NOT THE WHOLE WINDOW. Asking whether ANY of twenty
+	// commits deployed is nearly always yes -- 8 of the last 20 carry a
+	// successful Vercel status, because only the tips ever deploy and the rest
+	// are branch commits a merge brought along. So a merge that stopped main
+	// deploying passed this cleanly, and kept passing until roughly twenty
+	// further commits had pushed every success out of the window. What the
+	// invariant actually asks is whether MAIN AS IT STANDS NOW deployed.
+	const newest = state.mainCommits.reduce((latest, commit) =>
+		Date.parse(commit.committedAt) >= Date.parse(latest.committedAt)
+			? commit
+			: latest,
+	);
+	if (!deployed(newest)) {
+		const olderDeployed = state.mainCommits.some(deployed);
+		const attempted = built(newest);
+		const landed = Date.parse(newest.committedAt);
 		const graceMs =
 			(state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES) * 60_000;
-		const settled =
-			!Number.isNaN(newest) && state.now.getTime() - newest > graceMs;
-		const detail = `none of the last ${state.mainCommits.length} commits reachable from main carries a SUCCESSFUL Vercel status${attempted > 0 ? ` (${attempted} carry one in another state)` : ""}.`;
-		if (settled) {
+		// NaN lands here too: `NaN > graceMs` is false, so an unreadable commit
+		// time reports unverified rather than failing on a parse.
+		const settled = state.now.getTime() - landed > graceMs;
+		const detail = `main's newest commit ${newest.sha.slice(0, 9)} carries no SUCCESSFUL Vercel status${attempted ? " (it carries one in another state)" : ""}.`;
+		if (!settled) {
 			return {
-				ok: false,
-				message: `${detail} The newest of them landed at ${new Date(newest).toISOString()}, more than ${state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES} minutes ago, so this is not Vercel being slow: either the Git integration is gone or PRODUCTION HAS STOPPED DEPLOYING. Check that the \`**\` catch-all in vercel.json did not also stop main -- matching rules are OR-ed, so an explicit \`"main": true\` is what keeps it deploying. The last good deploy stays live, so the site is stale rather than down.`,
+				ok: true,
+				unverified: true,
+				message: `${detail} It landed at ${Number.isNaN(landed) ? "an unreadable time" : new Date(landed).toISOString()}, inside the ${state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES}-minute reporting grace, so Vercel may simply not have reported yet. The next run decides it.`,
 			};
 		}
 		return {
-			ok: true,
-			unverified: true,
-			message: `${detail} The newest landed at ${Number.isNaN(newest) ? "an unreadable time" : new Date(newest).toISOString()}, inside the ${state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES}-minute reporting grace, so Vercel may simply not have reported yet. The next run decides it.`,
+			ok: false,
+			message: `${detail} It landed at ${new Date(landed).toISOString()}, more than ${state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES} minutes ago, so this is not Vercel being slow. ${
+				attempted
+					? "The build ran and did not succeed -- start with the Vercel deployment log."
+					: olderDeployed
+						? 'Older commits in this window did deploy, so the Git integration exists and it is the current tip that is not deploying -- check whether vercel.json\'s rules stopped matching main. Matching rules are OR-ed, so an explicit `"main": true` is what keeps it deploying past the `**` catch-all.'
+						: "Nothing in this window deployed either, so either the Git integration is gone or PRODUCTION HAS STOPPED DEPLOYING. Check that the `**` catch-all in vercel.json did not also stop main."
+			} The last good deploy stays live, so the site is stale rather than down.`,
 		};
 	}
 	// SAYS WHAT IT LOOKED AT. This half can only see refs that have an open pull

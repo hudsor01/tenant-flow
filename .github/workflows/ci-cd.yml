@@ -133,7 +133,7 @@ jobs:
       # and the suite is slower here because UNIT_MAX_WORKERS is
       # `max(2, min(8, cpus - 1))`, which is 3 on a 4-core runner against 8
       # there. WHOEVER RAISES THE RATCHET NEXT SHOULD READ THE RUNNER'S FIGURES:
-      # the branch floor has 0.71 points of headroom there, not the 0.79 a local
+      # the branch floor has 0.71 points of headroom there, not the 0.80 a local
       # run suggests.
       #
       # This step also carries the negative controls for every other gate in

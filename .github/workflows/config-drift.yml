@@ -33,18 +33,20 @@ name: Platform Config Drift
 #     worse trade, so CI is not given one. Without it the gate falls back to the
 #     integration's check runs, which can only show that it has not ACTED.
 #
-#     `skipped` IS NOT PROOF THE SETTING IS OFF, and the earlier version of this
-#     comment claimed it was. Measured on this repo: d0077d3ac was merged to
-#     main at 21:29Z on 2026-10-24, ten hours BEFORE the production branch was
-#     cleared, and its `Supabase Preview` run concluded `skipped` with the
-#     summary "This git branch is not associated with any Supabase Branch." --
-#     byte-identical to 754c91802 at 08:08Z on 2026-10-25, after it was off.
-#     The runs that ACTED look different: 25cef7b2b (06:10:25Z) and 18ff5f9a8
-#     (06:48:21Z) concluded `failure` with "Remote migration versions not found
-#     in local migrations directory", the production deploy attempting and
-#     failing. A `success` would be worse -- it would mean migrations were
-#     applied. So the fallback catches the state that does damage, not the state
-#     that merely could.
+#     `skipped` IS NOT PROOF THE SETTING IS OFF, and the earlier version of
+#     this comment claimed it was -- on the wrong evidence, twice over.
+#     Measured with `filter=all`: `d0077d3ac` landed on main at 20:42:36Z on
+#     2026-10-24, while the setting was ON, and that ONE commit carries a
+#     `failure` at 20:43:13Z ("Remote migration versions not found in local
+#     migrations directory" -- the deploy acting, 37 seconds after the merge),
+#     a `skipped` at 21:29:20Z ("This git branch is not associated with any
+#     Supabase Branch"), and two in-progress runs. GitHub's DEFAULT
+#     `filter=latest` returns only the `skipped`, so the gate would have
+#     reported "nothing acted" during an active re-enable. The query passes
+#     `filter=all` for that reason. A pass is still not evidence the setting is
+#     off: `754c91802` at 08:08:17Z, after it was cleared, carries one
+#     `skipped` run with a byte-identical summary. The fallback catches an
+#     integration that is ACTING, which is the state that does damage.
 #
 #   - FORCE PUSHES AND DELETION on main live only on the admin-only protection
 #     endpoint, and the workflow `permissions:` block has no `administration`
@@ -58,22 +60,40 @@ name: Platform Config Drift
 # to a push, so there is nothing new to see until one happens, and the
 # consequence of (1) drifting is bounded by the next merge.
 #
-# A FAILING SCHEDULED RUN NOTIFIES NOBODY IN-BAND, and the notification it does
-# send follows the cron, not the repository. GitHub sends scheduled-workflow
-# failure notifications to "the user who last modified the cron syntax in the
-# workflow file" -- so editing the schedule below moves the alerts to whoever
-# edited it, which is worth knowing before someone else touches it. Unlike
-# post-deploy-sentry-gate.yml this opens no issue: that needs `issues: write`,
-# which this job otherwise has no use for.
+# WHO HEARS ABOUT A FAILURE, AND WHAT STAYS SILENT.
+#
+# A failing scheduled run notifies nobody in-band, and the notification it does
+# send follows the cron rather than the repository: GitHub sends
+# scheduled-workflow failure notifications to "the user who last modified the
+# cron syntax in the workflow file", so editing the schedule below moves the
+# alerts to whoever edited it. Unlike post-deploy-sentry-gate.yml this opens no
+# issue -- that needs `issues: write`, which this job otherwise has no use for.
+#
+# Three things are silent by construction, and are accepted rather than
+# overlooked:
+#   - An UNVERIFIED result is a `::warning::` on a GREEN run. At least one is
+#     expected on every CI run (the admin-only protection endpoint), so that
+#     channel is effectively write-only. Three invariants are always DECIDED,
+#     whatever happens to the rest.
+#   - A run cancelled by the concurrency group below reports "cancelled" and
+#     notifies nobody; that morning's check simply does not happen, and the
+#     36-hour Supabase window covers one miss.
+#   - This repository is public, so GitHub disables scheduled workflows after
+#     60 days without repository activity. The longest measured gap on `main`
+#     is 12.1 days, so it is not currently reachable -- but it is the one way
+#     the daily run stops entirely, with no notification at all.
 on:
   schedule:
     - cron: '17 7 * * *'
   workflow_dispatch:
   # And on the merge itself, so a change to the gate or to vercel.json is
-  # exercised on main within minutes instead of at 07:17 the next morning. The
-  # Vercel liveness half will report UNVERIFIED on that run -- the merge commit
-  # is seconds old and inside the reporting grace -- which is correct, and the
-  # next scheduled run is what decides it.
+  # exercised on main within minutes instead of at 07:17 the next morning. On
+  # that run the Vercel liveness half reports UNVERIFIED -- the merge commit is
+  # the tip, it is seconds old, and it sits inside the reporting grace -- which
+  # is correct, and the next scheduled run is what decides it. (An earlier
+  # version of this comment predicted the same thing for the wrong reason, when
+  # the half still asked whether ANY commit in the window had deployed: with
+  # older successes present it passed cleanly instead.)
   push:
     branches: [main]
     paths:
@@ -143,3 +163,8 @@ jobs:
         run: bun scripts/verify-platform-config.ts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NOTE: adding a SUPABASE_ACCESS_TOKEN repository secret does NOT on
+          # its own upgrade the Supabase invariant from the check-run proxy to
+          # the real `git_branch` reading -- it has to be plumbed in here too.
+          # Deliberately absent: see the header for why CI is not given an
+          # account-wide token.

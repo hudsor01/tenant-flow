@@ -75,8 +75,9 @@ const COMMIT_PAGE_LIMIT = 100;
  * because the window was still pinned to the revocation instant; a 168-hour
  * window on a busy week here reaches 268 reachable commits, so the gate would
  * have gone red for a reason that was not drift, and stayed red for a week.
- * Five pages against a 36-hour window is roughly ten times the busiest
- * measured day.
+ * Five pages (500 commits) against a 36-hour window is about 2.2x the
+ * busiest 36-hour window in this repo's whole history (230, measured over
+ * 6,940 commits) -- adequate, not an order of magnitude.
  */
 const COMMIT_PAGE_CAP = 5;
 
@@ -220,7 +221,7 @@ try {
 		add("main blocks force pushes and deletion", {
 			ok: true,
 			unverified: true,
-			message: `this token cannot read the admin-only protection endpoint, so the invariant was not checked. ${error.message} Run locally with GITHUB_TOKEN=$(gh auth token), or supply a fine-grained PAT with Administration:read on this repository.`,
+			message: `this token cannot read the admin-only protection endpoint, so the invariant was not checked. ${error.message} A 403 here can also be a secondary rate limit rather than a missing permission. Run locally with GITHUB_TOKEN=$(gh auth token), or supply a fine-grained PAT with Administration:read on this repository.`,
 		});
 	} else {
 		throw error;
@@ -247,8 +248,20 @@ if (SUPABASE_TOKEN === "") {
 	}
 	const checkRuns: CommitCheckRun[] = [];
 	for (const commit of windowCommits) {
+		// `filter=all` IS LOAD-BEARING, and its absence made this proxy
+		// blindable on the one state it exists to catch. GitHub defaults to
+		// `filter=latest`, which returns ONE run per check name -- and this
+		// repo has a commit where that hides the acting run. On d0077d3ac
+		// (merged 2026-10-24T20:42:36Z, while "Deploy to production" was on)
+		// Supabase posted `failure` at 20:43:13Z, 37 seconds after the merge,
+		// with "Remote migration versions not found in local migrations
+		// directory" -- the production deploy attempting -- and then `skipped`
+		// at 21:29:20Z. The default view returns only the `skipped`, so the
+		// assertion would have reported "nothing acted" during an active
+		// re-enable. Measured cost of the fix: 20 runs instead of 17 on that
+		// commit, against a 100-row page.
 		const runs = await gh<CheckRunsResponse>(
-			`/commits/${commit.sha}/check-runs?per_page=100`,
+			`/commits/${commit.sha}/check-runs?filter=all&per_page=100`,
 			"checks: read",
 		);
 		// A page that dropped rows could have dropped the one run this reads.
@@ -273,15 +286,26 @@ if (SUPABASE_TOKEN === "") {
 		}),
 	);
 } else {
-	add(
-		"no Supabase branch is bound to a git branch",
-		assertSupabaseBranchingHasNoGitLink(
-			await json<readonly SupabaseBranch[]>(
-				`https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/branches`,
-				{ authorization: `Bearer ${SUPABASE_TOKEN}` },
+	// A revoked or wrong token must not redden the gate: that is a credential
+	// problem, not drift. It reports UNVERIFIED and says which, the same way
+	// the admin-only protection endpoint does.
+	try {
+		add(
+			"no Supabase branch is bound to a git branch",
+			assertSupabaseBranchingHasNoGitLink(
+				await json<readonly SupabaseBranch[]>(
+					`https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/branches`,
+					{ authorization: `Bearer ${SUPABASE_TOKEN}` },
+				),
 			),
-		),
-	);
+		);
+	} catch (error) {
+		add("no Supabase branch is bound to a git branch", {
+			ok: true,
+			unverified: true,
+			message: `SUPABASE_ACCESS_TOKEN is set but the branches endpoint refused it, so the setting itself was not read. ${error instanceof Error ? error.message : String(error)} Unset the token to fall back to the check-run proxy, or replace it.`,
+		});
+	}
 }
 
 // ---------------------------------------------------------------- Vercel ----
@@ -307,9 +331,13 @@ const openPulls = await gh<
 );
 // TWO DIFFERENT GUARDS, for two different cases. `base=main` above excludes a
 // pull request FROM main into some other base, whose head IS main and so
-// carries main's own Vercel status. The `reachable` skip covers the remaining
-// case of a head that is already an ancestor of main -- rare under
-// squash-merge, but a status on it would likewise be main's, not a preview's.
+// carries main's own Vercel status. The `reachable` skip covers a head that is
+// already an ancestor of main -- but only within the last VERCEL_COMMIT_WINDOW
+// commits, roughly sixteen hours. This repo merges with merge commits, so a
+// merged head stays an ancestor forever; an open pull request on an older
+// ancestor carrying a Vercel status would be a false red. No exposure today
+// (none of the open heads carries any status), and a merge-base check is what
+// would close it properly.
 const reachable = new Set(recentCommits.map((commit) => commit.sha));
 const pullRequestHeads: PullRequestHead[] = [];
 for (const pull of openPulls) {

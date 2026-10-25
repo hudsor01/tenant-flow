@@ -4,7 +4,7 @@
  * THE SWEEP DOES NOT REACH THIS FILE EITHER, and that is load-bearing: review
  * showed that changing `process.exit(1)` to `process.exit(0)` in `finish` makes
  * the replay gate report GREEN on a 246-of-348 replay while the mutation sweep
- * still reports `caught=35 vacuous=0 not-applied=0`. The assertions were
+ * still reports a clean sweep. The assertions were
  * covered; the thing that turns an assertion into a verdict was not.
  *
  * Spawns the real CLI, because the exit code IS the contract with the workflow.

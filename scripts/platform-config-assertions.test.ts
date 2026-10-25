@@ -555,18 +555,13 @@ describe("assertVercelDeploysOnlyMain", () => {
 	const JUST_NOW = "2026-10-25T16:25:00Z";
 	/** Six and a half hours before NOW: Vercel has had its chance. */
 	const SETTLED = "2026-10-25T10:00:00Z";
-	const MAIN_DEPLOYED = [
-		{
-			sha: "754c91802acc97ec96ef939b7eceedcd8893a0cb",
-			committedAt: SETTLED,
-			statuses: [vercel("success")],
-		},
-		{
-			sha: "96f408efecd51362b0b189ea154689e31287e2ef",
-			committedAt: SETTLED,
-			statuses: [],
-		},
-	];
+	const OLDER = "2026-10-24T10:00:00Z";
+
+	type Commit = {
+		sha: string;
+		committedAt: string;
+		statuses: readonly { context: string; state: string }[];
+	};
 	const head = (
 		number: number,
 		sha: string,
@@ -578,23 +573,29 @@ describe("assertVercelDeploysOnlyMain", () => {
 		statuses,
 	});
 	const check = (
-		mainCommits: readonly {
-			sha: string;
-			committedAt: string;
-			statuses: readonly { context: string; state: string }[];
-		}[],
-		pullRequestHeads: readonly {
-			number: number;
-			sha: string;
-			committedAt: string;
-			statuses: readonly { context: string; state: string }[];
-		}[],
+		mainCommits: readonly Commit[],
+		pullRequestHeads: readonly (Commit & { number: number })[] = [],
 	) => assertVercelDeploysOnlyMain({ mainCommits, pullRequestHeads, now: NOW });
 
-	it("passes when main deploys and no PR head was built", () => {
-		const result = check(MAIN_DEPLOYED, [
-			head(1037, "2913b39fd33557f13aad3aa97d06ff7f73fb2e06", []),
-		]);
+	/**
+	 * The tip deployed; an older commit in the window did not. Deliberately NOT
+	 * in date order, so the tip has to be found rather than assumed to be first.
+	 */
+	const TIP_DEPLOYED: Commit[] = [
+		{
+			sha: "96f408efecd51362b0b189ea154689e31287e2ef",
+			committedAt: OLDER,
+			statuses: [],
+		},
+		{
+			sha: "754c91802acc97ec96ef939b7eceedcd8893a0cb",
+			committedAt: SETTLED,
+			statuses: [vercel("success")],
+		},
+	];
+
+	it("passes when main's newest commit deployed, whatever the older ones did", () => {
+		const result = check(TIP_DEPLOYED, [head(1037, "2913b39fd3", [])]);
 		expect(result.ok).toBe(true);
 		expect(result.ok && result.unverified).toBeUndefined();
 		// The pass has to say what it could not see: Vercel deploys on push, so
@@ -603,13 +604,85 @@ describe("assertVercelDeploysOnlyMain", () => {
 	});
 
 	it("passes with no open pull request heads, and says so", () => {
-		const result = check(MAIN_DEPLOYED, []);
+		const result = check(TIP_DEPLOYED);
 		expect(result.ok).toBe(true);
 		expect(result.message).toContain("no open pull request heads");
 	});
 
+	it("reads the NEWEST commit, not the first in the list", () => {
+		// Binds the tip selection in the direction a mis-comparison breaks: the
+		// deployed commit is OLDER here, so picking it would wrongly pass.
+		const result = check([
+			{ sha: "aaaaaaaaaa", committedAt: OLDER, statuses: [vercel("success")] },
+			{ sha: "bbbbbbbbbb", committedAt: SETTLED, statuses: [] },
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("bbbbbbbbb");
+		expect(result.message).not.toContain("aaaaaaaaa");
+	});
+
+	it("FAILS when the tip never deployed although older commits did", () => {
+		// THE STATE THAT USED TO PASS CLEANLY. Asking whether ANY of twenty
+		// commits deployed is nearly always yes, so a merge that stopped main
+		// deploying went green until the window rolled over.
+		const result = check([
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
+			{ sha: "newnewnew1", committedAt: SETTLED, statuses: [] },
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"it is the current tip that is not deploying",
+		);
+		expect(result.message).toContain("catch-all");
+	});
+
+	it("FAILS differently when nothing in the window deployed at all", () => {
+		const result = check([
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [] },
+			{ sha: "newnewnew1", committedAt: SETTLED, statuses: [] },
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("PRODUCTION HAS STOPPED DEPLOYING");
+	});
+
+	it("FAILS toward the build log when the tip's build ran and did not succeed", () => {
+		// A run of failed production builds leaves the site stale, and the
+		// remedy is the deployment log, not vercel.json.
+		const result = check([
+			{
+				sha: "newnewnew1",
+				committedAt: SETTLED,
+				statuses: [vercel("failure")],
+			},
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("The build ran and did not succeed");
+		expect(result.message).toContain("it carries one in another state");
+	});
+
+	it("reports UNVERIFIED while the tip is inside the grace", () => {
+		// Routine for a few minutes after a push. Calling that "production has
+		// stopped deploying" would be a wrong diagnosis on a race.
+		const result = check([
+			{ sha: "oldoldold1", committedAt: OLDER, statuses: [vercel("success")] },
+			{ sha: "newnewnew1", committedAt: JUST_NOW, statuses: [] },
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.ok && result.unverified).toBe(true);
+		expect(result.message).toContain("may simply not have reported yet");
+	});
+
+	it("reports UNVERIFIED rather than failing on an unreadable commit time", () => {
+		const result = check([
+			{ sha: "newnewnew1", committedAt: "not-a-date", statuses: [] },
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.ok && result.unverified).toBe(true);
+		expect(result.message).toContain("an unreadable time");
+	});
+
 	it("fails when a PR head got a preview deployment", () => {
-		const result = check(MAIN_DEPLOYED, [
+		const result = check(TIP_DEPLOYED, [
 			head(1037, "2913b39fd33557f13aad3aa97d06ff7f73fb2e06", [
 				vercel("success"),
 			]),
@@ -623,86 +696,31 @@ describe("assertVercelDeploysOnlyMain", () => {
 	});
 
 	it("fails on a FAILED preview too -- it still ran against production", () => {
-		const result = check(MAIN_DEPLOYED, [
+		const result = check(TIP_DEPLOYED, [
 			head(9, "deadbeef00", [vercel("failure")]),
 		]);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("failure");
 	});
 
-	it("reports a preview even while main has no status yet", () => {
+	it("reports a preview even while the tip has no status yet", () => {
 		// The preview half must not be masked by the liveness half.
 		const result = check(
-			[{ sha: "754c91802a", committedAt: JUST_NOW, statuses: [] }],
+			[{ sha: "newnewnew1", committedAt: JUST_NOW, statuses: [] }],
 			[head(9, "deadbeef00", [vercel("success")])],
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("#9");
 	});
 
-	it("FAILS when main has not deployed and Vercel has had its chance", () => {
-		// The one catastrophic way the `**` catch-all can be wrong is stopping
-		// main as well. Past the grace this must be RED, not a warning on a
-		// gate whose only channel is a scheduled-failure email.
-		const result = check(
-			[
-				{
-					sha: "754c91802a",
-					committedAt: SETTLED,
-					statuses: [{ context: "checks", state: "success" }],
-				},
-			],
-			[],
-		);
-		expect(result.ok).toBe(false);
-		expect(result.message).toContain("PRODUCTION HAS STOPPED DEPLOYING");
-		expect(result.message).toContain("catch-all in vercel.json");
-	});
-
-	it("reports UNVERIFIED while the newest commit is inside the grace", () => {
-		// Routine for a few minutes after a push. Calling that "production has
-		// stopped deploying" would be a wrong diagnosis on a race.
-		const result = check(
-			[
-				{
-					sha: "754c91802a",
-					committedAt: JUST_NOW,
-					statuses: [{ context: "checks", state: "success" }],
-				},
-			],
-			[],
-		);
-		expect(result.ok).toBe(true);
-		expect(result.ok && result.unverified).toBe(true);
-		expect(result.message).toContain("may simply not have reported yet");
-	});
-
-	it("does not read a FAILED main status as production deploying", () => {
-		// A run of failed production builds leaves the site stale, which is
-		// exactly what the message describes -- so it must not be the evidence
-		// that deploys are healthy.
-		const result = check(
-			[
-				{
-					sha: "754c91802a",
-					committedAt: SETTLED,
-					statuses: [vercel("failure")],
-				},
-			],
-			[],
-		);
-		expect(result.ok).toBe(false);
-		expect(result.message).toContain("1 carry one in another state");
-	});
-
 	it("refuses to pass vacuously with no main commits", () => {
-		const result = check([], []);
+		const result = check([]);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("proves nothing");
 	});
 
 	it("matches the Vercel context case-insensitively and by prefix", () => {
-		const result = check(MAIN_DEPLOYED, [
+		const result = check(TIP_DEPLOYED, [
 			head(9, "deadbeef00", [
 				{ context: "vercel - tenant-flow", state: "success" },
 			]),

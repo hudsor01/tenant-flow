@@ -87,15 +87,14 @@ export function assertEveryMigrationApplied(
 			message: `could not count the migration files: expected a number, read ${JSON.stringify(expectedRaw)}. The find/wc pipeline in the workflow is broken, so the gate cannot tell whether the replay was complete.`,
 		};
 	}
-	// The workflow reads this from `supabase db query` and falls back to psql in
-	// the container. If BOTH produce nothing -- a renamed container, a CLI that
-	// dropped the subcommand -- the old inline comparison compared "348" against
-	// "" and reported an incomplete replay, blaming the migrations for a broken
-	// query.
+	// The workflow reads this with `psql -tAc` inside the stack's container. If
+	// that returns nothing -- a renamed container, a database that never came
+	// up -- the old inline comparison put "348" against "" and reported an
+	// incomplete replay, blaming the migrations for a broken query.
 	if (applied === null) {
 		return {
 			ok: false,
-			message: `could not read the applied-migration count out of the database: expected a number, read ${JSON.stringify(appliedRaw)}. Neither \`supabase db query\` nor the psql fallback returned a count, so this is a broken query, NOT an incomplete replay. Check the container name and the CLI version before touching any migration.`,
+			message: `could not read the applied-migration count out of the database: expected a number, read ${JSON.stringify(appliedRaw)}. The psql query returned no count, so this is a broken query, NOT an incomplete replay. Check that the stack came up and that the container is still named \`supabase_db_tenant-flow\` before touching any migration.`,
 		};
 	}
 	// Zero files cannot be a pass. A glob that stops matching (a renamed

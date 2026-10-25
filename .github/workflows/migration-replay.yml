@@ -111,13 +111,15 @@ jobs:
           # migrations are added.
           expected=$(find supabase/migrations -maxdepth 1 -name '*.sql' | wc -l | tr -d ' ')
           # psql ONLY. This used to try `supabase db query` first and fall back
-          # to psql, on a comment claiming CLIs differ on that subcommand -- but
-          # 2.121.0, which this workflow pins, has it. What it does NOT have is
-          # a machine-readable mode: it renders an aligned table, so extracting
-          # a count from it means either an unanchored grep (which took the last
-          # number from any output, including a `(1 row)` footer or a usage
-          # dump) or an anchored one that never matches. `psql -tAc` is tuples
-          # only, unaligned, one number.
+          # to psql, on a comment claiming CLIs differ on that subcommand --
+          # 2.121.0, which this workflow pins, has it, and it even has
+          # `--output-format json`, so that justification was wrong too. The
+          # reason to drop it is simpler: two paths to one number meant the
+          # extraction had to satisfy both, and the unanchored grep that did
+          # took the last number from ANY stdout (a `(1 row)` footer, a usage
+          # dump). `psql -tAc` is tuples only, unaligned, exactly one number,
+          # and the step already depends on this container for its other two
+          # assertions.
           applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
             "select count(*) from supabase_migrations.schema_migrations;")
           echo "migration files: ${expected}"
