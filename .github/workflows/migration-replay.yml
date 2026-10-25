@@ -1,0 +1,167 @@
+name: Migration Replay
+
+# Proves the migration ledger still applies to an EMPTY database.
+#
+# WHY THIS EXISTS. Until 2026-10-25 the 348-file ledger had never been replayed,
+# and it could not be: it died twice, both times because production had been
+# mutated outside the ledger and later migrations were written against that
+# mutated state.
+#   1. `extensions.wrappers` was installed by hand on prod before
+#      install_stripe_wrapper was applied, so replay died at 246/348 with
+#      `function extensions.stripe_fdw_handler() does not exist`.
+#   2. The maintenance-photos table was dropped out-of-band by the landlord-only
+#      pivot, so the migration that re-creates it uses `create table if not
+#      exists` -- a silent no-op on a replay, leaving tenant-era policies that
+#      blocked a column drop 110 migrations later (261/348).
+#
+# Neither was reachable by review and neither showed up in any existing job,
+# because NOTHING in CI applies migrations -- `rls-security` tests whatever is
+# already live in production. Without this workflow the next hand-applied prod
+# change silently breaks replay again, which is precisely how it broke twice.
+#
+# WHAT IT DOES NOT DO. It does not prove the local schema MATCHES production.
+# The repo ledger and prod's differ (measured 2026-10-25: 29 prod-only versions
+# and 31 repo-only, almost all MCP-timestamp-renamed pairs of the same file, plus
+# 20260416193000_security_revoke_idor_fixes which has NO prod ledger row at all
+# while its effects are live). Comparing state rather than rows is a separate
+# drift-check job; this one only answers "does the chain apply from empty".
+#
+# It holds NO production secrets and signs in to nothing, so unlike e2e-smoke and
+# rls-security it must NOT join the `tenantflow-prod-test-account` concurrency
+# group -- it cannot contend with them and must not be serialized behind them.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - supabase/migrations/**
+      - supabase/seed.sql
+      - supabase/config.toml
+      - scripts/seed-test-users.ts
+      - .github/workflows/migration-replay.yml
+  # Weekly, because the chain can be broken by a change made directly to
+  # production that never touches this repo at all -- the exact failure mode
+  # above. A PR-only trigger would never catch it.
+  schedule:
+    - cron: '41 12 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: migration-replay-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.121.0
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Replay the full migration chain into an empty database
+        run: |
+          set -euo pipefail
+          # Excluded services are irrelevant to schema replay and cost startup
+          # time. gotrue (auth) is NOT excluded: the seed step needs the Admin API.
+          supabase start -x studio,imgproxy,vector,logflare,supavisor
+
+      - name: Assert every migration file was applied
+        run: |
+          set -euo pipefail
+          # Counted from the tree, never hardcoded, so this stays correct as
+          # migrations are added.
+          expected=$(find supabase/migrations -maxdepth 1 -name '*.sql' | wc -l | tr -d ' ')
+          applied=$(supabase db query --linked=false \
+            "select count(*) from supabase_migrations.schema_migrations;" 2>/dev/null \
+            | grep -oE '[0-9]+' | tail -1 || true)
+          if [ -z "$applied" ]; then
+            # Older/newer CLIs differ on `db query`; fall back to psql in the container.
+            applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
+              "select count(*) from supabase_migrations.schema_migrations;")
+          fi
+          echo "migration files: ${expected}"
+          echo "applied rows:    ${applied}"
+          if [ "$expected" != "$applied" ]; then
+            echo "::error::migration replay is incomplete: ${applied} of ${expected} applied. A migration in this chain cannot run against an empty database -- usually because it depends on something that was done to production by hand and is described by no migration. Fix the migration, not this check."
+            exit 1
+          fi
+          echo "the full chain applies from empty"
+
+      - name: Assert no migration reached the network
+        run: |
+          set -euo pipefail
+          # install_stripe_wrapper's step 4 runs `import foreign schema stripe
+          # from server stripe_server`, a LIVE Stripe API call. It is guarded on
+          # the Vault secret, which exists only on prod. If that guard ever stops
+          # holding, a migration starts calling Stripe from CI -- assert it did
+          # not. The wrapper extension SHOULD be installed; the server and the
+          # imported foreign tables should NOT exist here.
+          read -r wrapper server tables <<<"$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
+            "select (select count(*) from pg_extension where extname='wrappers'),
+                    (select count(*) from pg_foreign_server where srvname='stripe_server'),
+                    (select count(*) from pg_class c join pg_namespace n on c.relnamespace=n.oid
+                      where n.nspname='stripe' and c.relkind='f');" | tr '|' ' ')"
+          echo "wrappers extension: ${wrapper}  stripe_server: ${server}  foreign tables: ${tables}"
+          if [ "$wrapper" != "1" ]; then
+            echo "::error::the wrappers extension is absent, so install_stripe_wrapper did not run its step 0. Replay would have failed at that migration."
+            exit 1
+          fi
+          if [ "$server" != "0" ] || [ "$tables" != "0" ]; then
+            echo "::error::a migration created stripe_server or imported foreign tables in CI. That means it bound a Vault secret and called the Stripe API from a migration. The guard in install_stripe_wrapper has stopped holding."
+            exit 1
+          fi
+          echo "the Stripe FDW steps correctly skipped; no migration called out"
+
+      - name: Seed the test cast and verify each pair authenticates
+        run: |
+          set -euo pipefail
+          supabase status -o env > /tmp/stack.env
+          get() { grep -E "^$1=" /tmp/stack.env | head -1 | cut -d= -f2- | tr -d '"'; }
+          API_URL="$(get API_URL)" SECRET_KEY="$(get SECRET_KEY)" \
+            bun scripts/seed-test-users.ts
+
+      - name: Assert the seeded rows are what the suites require
+        run: |
+          set -euo pipefail
+          # Each line must be <email>|t-or-f|active|1. The identity count is the
+          # point: seed.sql's hand-rolled crypt() inserts created ZERO
+          # auth.identities, so sign-in could never have worked. 1 per user is
+          # what makes the password grant resolve.
+          rows=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
+            "select u.email || '|' || p.is_admin || '|' || p.subscription_status || '|' ||
+                    (select count(*) from auth.identities i where i.user_id = u.id)
+             from auth.users u join public.users p on p.id = u.id
+             where u.email like 'e2e-%@tenantflow.app' order by u.email;")
+          printf '%s\n' "$rows"
+          # Built with printf rather than a multi-line quoted literal: an
+          # unindented continuation line breaks out of this `run: |` block and
+          # makes the whole workflow file unparseable.
+          # `true`/`false`, not `t`/`f`: psql prints t/f for a boolean COLUMN but
+          # true/false when the boolean is concatenated with `||`, as it is above.
+          # Getting this wrong makes the gate fail every run while claiming the
+          # users are misconfigured -- verified against a live stack, 2026-10-25.
+          expected=$(printf '%s\n' \
+            'e2e-admin@tenantflow.app|true|active|1' \
+            'e2e-owner-a@tenantflow.app|false|active|1' \
+            'e2e-owner-b@tenantflow.app|false|active|1')
+          if [ "$(printf '%s\n' "$rows" | tr -d ' ')" != "$expected" ]; then
+            echo "::error::seeded users are not in the state the suites require. Owner A must be subscription_status=active or the proxy gate sends e2e to /pricing, the admin must have is_admin=true, and each must have exactly 1 auth.identities row."
+            exit 1
+          fi
+          echo "the test cast is correct"
+
+      - name: Stop the stack
+        if: always()
+        run: supabase stop --no-backup || true
