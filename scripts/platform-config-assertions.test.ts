@@ -396,13 +396,19 @@ describe("assertSupabaseDidNotActOnProduction", () => {
 		// A NaN floor excludes every run and then throws RangeError out of
 		// `new Date(NaN).toISOString()`, past the layer that turns a failure
 		// into an annotation.
+		//
+		// The input needs a ZONE and still be unparseable, or the zone check
+		// below fires first and this branch is unreachable -- which is exactly
+		// what the mutation sweep reported when the two checks were added in
+		// that order with only a zoneless fixture.
+		expect(Number.isNaN(Date.parse("not-a-date+00:00"))).toBe(true);
 		const result = assertSupabaseDidNotActOnProduction(
 			20,
 			[skipped("abc1234567", "2026-10-25T16:00:00Z")],
-			{ now: NOW, revokedAt: "25/10/2026" },
+			{ now: NOW, revokedAt: "not-a-date+00:00" },
 		);
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("SUPABASE_AUTHORITY_REVOKED_AT");
+		expect(result.message).toContain("is not a date");
 	});
 
 	it("rejects a zoneless bound, which PARSES and silently moves the floor", () => {
