@@ -148,7 +148,8 @@
 	"cleanUrls": true,
 	"git": {
 		"deploymentEnabled": {
-			"main": true
+			"main": true,
+			"**": false
 		}
 	}
 }

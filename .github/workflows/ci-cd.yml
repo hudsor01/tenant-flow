@@ -39,7 +39,14 @@ jobs:
     concurrency:
       group: checks-${{ github.ref }}
       cancel-in-progress: true
-    timeout-minutes: 10
+    # 20, NOT 10, AND THE SPREAD IS WHY. Before this job ran the unit suite it
+    # took 77s, 79s, 101s and 111s (runs 40172506038, 40172153921, 40170537681,
+    # 40170507336); with it, 228s, 385s and 389s (40212669666, 40210200799,
+    # 40209444394). The slowest observed run left 3.5 minutes against the old
+    # 10-minute cap -- and runner variance alone is nearly 2x, on a suite that
+    # only grows. That is how a required check starts failing on timeout for
+    # reasons nobody changed.
+    timeout-minutes: 20
     env:
       CI: true
     steps:
@@ -88,6 +95,66 @@ jobs:
       # up as a misleading message during a real outage.
       - name: Test the credential gate
         run: bash .github/actions/verify-supabase-test-auth/test.sh
+
+      # THE SUITE CI DID NOT RUN. Until this step, the unit project ran ONLY in
+      # lefthook's pre-commit hook -- and Dependabot commits skip every hook, so
+      # for those the suite ran nowhere at all. That is not a theoretical gap. PR #1001 (react 19.2.8 -> 19.3.1, without react-dom)
+      # passed `checks`, `e2e-smoke`, `rls-security`, CodeQL and `scan` while
+      # failing 332 of 332 unit test files on `Incompatible React versions`
+      # (measured locally -- CI could not have measured it, which is the point),
+      # because react-dom asserts exact version equality with react and that
+      # assert lives in its DEVELOPMENT bundle: `next build && next start` ships
+      # production, where it is absent, while jsdom always evaluates it. Every
+      # required check was green on a tree that could not run its own tests.
+      #
+      # WHAT THIS DOES NOT CLOSE, precisely: `checks` is `pull_request`-only, so
+      # a commit pushed STRAIGHT to main still runs the suite nowhere. Branch
+      # protection would normally make that unreachable, except `enforce_admins`
+      # is false -- which scripts/platform-config-assertions.ts pins as the
+      # documented state -- and the sole maintainer is an admin. Dependabot
+      # opens pull requests, so the #1001 class above is genuinely closed; a
+      # web-editor push straight to main is not.
+      #
+      # `--coverage` is not decoration: it is what applies the thresholds at the
+      # root of vitest.config.ts (statements 64 / branches 56 / functions 63 /
+      # lines 66 -- a ratchet at the measured floor, not an aspiration). Without
+      # it, coverage could regress silently on exactly the commits that skip
+      # lefthook.
+      #
+      # MEASURED ON RUNNERS, WITH THE RUN IDS, because one number from one run
+      # is not what the next person sees. 336 files, and this step took 283s,
+      # 278s and 156s on runs 40209444394, 40210200799 and 40212669666 -- nearly
+      # 2x variance between runners, so budget for the slow end. Coverage is
+      # stable across all three at 64.94 / 56.71 / 64.19 / 67.06.
+      #
+      # An 18-core dev box reports 64.98 / 56.8 / 64.19 / 67.07 on the same tree
+      # in about 30s: v8 counts a few statements slightly differently between V8
+      # versions (Node 24 here, 26 there -- an inference, not a measurement),
+      # and the suite is slower here because UNIT_MAX_WORKERS is
+      # `max(2, min(8, cpus - 1))`, which is 3 on a 4-core runner against 8
+      # there. WHOEVER RAISES THE RATCHET NEXT SHOULD READ THE RUNNER'S FIGURES:
+      # the branch floor has 0.71 points of headroom there, not the 0.80 a local
+      # run suggests.
+      #
+      # This step also carries the negative controls for every other gate in
+      # this repo whose assertions are plain tested code -- the migration-replay
+      # comparisons, the platform-config drift checks, the shared result module,
+      # both CLIs' exit codes, and the workflow contract with its twelve
+      # committed mutated-fixture tests. Those tests are the reason "the gate
+      # was green" means the gate can still fail.
+      #
+      # ONE KNOWN RISK IN PUTTING IT HERE. vitest.config.ts records an
+      # intermittent worker-pool/setupFiles race (mass `Invalid Chai property`
+      # failures, cleared by a re-run), and its own comment says the
+      # UNIT_MAX_WORKERS hedge was "NOT empirically reproduced on lower-core
+      # hardware" -- which is exactly this runner, at 3 workers against the
+      # 18-core box where it measured 0/3. If `checks` ever goes red with mass
+      # chai-property errors, re-run it before looking anywhere else.
+      #
+      # Before the build, which takes 51s-76s on the same three runs: a tree
+      # that cannot run its tests should not wait on a bundler to find out.
+      - name: Unit tests
+        run: bun run test:unit -- --coverage
 
       - name: Build
         run: bun run build

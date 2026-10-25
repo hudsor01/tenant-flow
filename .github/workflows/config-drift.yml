@@ -1,0 +1,165 @@
+name: Platform Config Drift
+
+# Checks that configuration living on other people's platforms still matches
+# what this repo says about itself.
+#
+# WHY THIS EXISTS. CLAUDE.md states that migrations are "applied by hand" and
+# "never on merge". Supabase's GitHub integration was configured to do the
+# opposite: "Deploy to production" was ON, bound to `main`, and would have
+# applied this repo's migrations on every merge. The only thing that stopped it
+# was that the branch sat in MIGRATIONS_FAILED -- a broken state, not a
+# decision. It was found by reading a dashboard, four months in, while looking
+# at something else.
+#
+# Nothing in a repository can notice that, because the setting is a toggle in
+# somebody's account and the documentation contradicting it is just prose. This
+# repo writes down three such invariants and, until this workflow, checked none
+# of them:
+#
+#   1. Supabase's integration holds no authority over production.
+#   2. main is protected and requires exactly the documented status checks.
+#   3. Vercel deploys main and nothing else.
+#
+# TWO OF THEM ARE READ AT WHATEVER STRENGTH THE AVAILABLE TOKEN ALLOWS, and the
+# weaker reading is reported UNVERIFIED -- a warning, left OUT of the pass count
+# -- rather than as a pass. A gate that reports silence as success is the
+# failure this one exists to prevent, so it is not allowed to do it itself.
+#
+#   - SUPABASE. The field that carries the authority is `git_branch` on the
+#     project's branches: it held "main" while the setting was on and was
+#     emptied when it was cleared. Reading it needs a Supabase personal access
+#     token, which is account-wide and cannot be scoped -- giving CI a token
+#     that can delete every project in the account to read one boolean is the
+#     worse trade, so CI is not given one. Without it the gate falls back to the
+#     integration's check runs, which can only show that it has not ACTED.
+#
+#     `skipped` IS NOT PROOF THE SETTING IS OFF. Measured with `filter=all`: `d0077d3ac` landed on main at 20:42:36Z on
+#     2026-10-24, while the setting was ON, and that ONE commit carries a
+#     `failure` at 20:43:13Z ("Remote migration versions not found in local
+#     migrations directory" -- the deploy acting, 37 seconds after the merge),
+#     a `skipped` at 21:29:20Z ("This git branch is not associated with any
+#     Supabase Branch"), and two in-progress runs. GitHub's DEFAULT
+#     `filter=latest` returns only the `skipped`, so the gate would have
+#     reported "nothing acted" during an active re-enable. The query passes
+#     `filter=all` for that reason. A pass is still not evidence the setting is
+#     off: `754c91802` at 08:08:17Z, after it was cleared, carries one
+#     `skipped` run with a byte-identical summary. The fallback catches an
+#     integration that is ACTING, which is the state that does damage.
+#
+#   - FORCE PUSHES AND DELETION on main live only on the admin-only protection
+#     endpoint, and the workflow `permissions:` block has no `administration`
+#     key to grant (17 keys, checked against the workflow-syntax reference on
+#     2026-10-25), so GITHUB_TOKEN cannot read it however it is configured.
+#     Confirmed by a live 403 on this workflow's first run. A fine-grained PAT
+#     with Administration:read on this repository alone would upgrade it;
+#     nothing else needs to change.
+#
+# Daily rather than on every push: both platform signals are posted in response
+# to a push, so there is nothing new to see until one happens, and the
+# consequence of (1) drifting is bounded by the next merge.
+#
+# WHO HEARS ABOUT A FAILURE, AND WHAT STAYS SILENT.
+#
+# A failing scheduled run notifies nobody in-band, and the notification it does
+# send follows the cron rather than the repository: GitHub sends
+# scheduled-workflow failure notifications to "the user who last modified the
+# cron syntax in the workflow file", so editing the schedule below moves the
+# alerts to whoever edited it. Unlike post-deploy-sentry-gate.yml this opens no
+# issue -- that needs `issues: write`, which this job otherwise has no use for.
+#
+# Three things are silent by construction, and are accepted rather than
+# overlooked:
+#   - An UNVERIFIED result is a `::warning::` on a GREEN run. At least one is
+#     expected on every CI run (the admin-only protection endpoint), so that
+#     channel is effectively write-only. Three invariants are always DECIDED,
+#     whatever happens to the rest.
+#   - A run cancelled by the concurrency group below reports "cancelled" and
+#     notifies nobody; that morning's check simply does not happen, and the
+#     36-hour Supabase window covers one miss.
+#   - This repository is public, so GitHub disables scheduled workflows after
+#     60 days without repository activity. The longest measured gap on `main`
+#     is 12.1 days, so it is not currently reachable -- but it is the one way
+#     the daily run stops entirely, with no notification at all.
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+  # And on the merge itself, so a change to the gate or to vercel.json is
+  # exercised on main within minutes instead of at 07:17 the next morning. On
+  # that run the Vercel liveness half reports UNVERIFIED -- the merge commit is
+  # the tip, it is seconds old, and it sits inside the reporting grace -- which
+  # is correct, and the next scheduled run is what decides it.
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/config-drift.yml
+      - scripts/verify-platform-config.ts
+      - scripts/platform-config-assertions.ts
+      - scripts/platform-config-assertions.test.ts
+      - scripts/assertion-result.ts
+      - vercel.json
+  # On pull requests that touch this gate, so a change to it is proven against
+  # live GitHub before it merges rather than at 07:17 the next morning.
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/config-drift.yml
+      - scripts/verify-platform-config.ts
+      - scripts/platform-config-assertions.ts
+      # The negative controls, and the shared result module. A change to either
+      # must run this gate against live GitHub, not only the unit suite in
+      # `checks`. (The result module's own controls are in
+      # scripts/assertion-result.test.ts: a GREEN gate never calls its
+      # annotation helpers, so no live run here could notice them breaking.)
+      - scripts/platform-config-assertions.test.ts
+      - scripts/assertion-result.ts
+      - vercel.json
+
+concurrency:
+  group: config-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+# No production secrets and no sign-ins, so this must NOT join the
+# `tenantflow-prod-test-account` group: it cannot contend with e2e-smoke or
+# rls-security and must not queue behind them.
+permissions:
+  contents: read
+  checks: read
+  statuses: read
+  pull-requests: read
+
+jobs:
+  config-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # A GATE THAT PASSES PROVES NOTHING UNTIL SOMETHING HAS WATCHED IT FAIL.
+      # These are the negative controls for the assertions below: each is fed
+      # the live state recorded on 2026-10-25 and then the drifted version of
+      # it, the Supabase check run that actually executed included. They are
+      # part of the unit suite, so the `checks` job runs them on every PR --
+      # running them HERE is what covers the daily scheduled run, where `checks`
+      # never executes.
+      - name: Test the drift assertions
+        run: bun run test:unit -- scripts/platform-config-assertions.test.ts
+
+      - name: Verify platform configuration
+        run: bun scripts/verify-platform-config.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NOTE: adding a SUPABASE_ACCESS_TOKEN repository secret does NOT on
+          # its own upgrade the Supabase invariant from the check-run proxy to
+          # the real `git_branch` reading -- it has to be plumbed in here too.
+          # Deliberately absent: see the header for why CI is not given an
+          # account-wide token.

@@ -70,10 +70,12 @@ Every storage bucket policy enforces folder-uuid → owner ID via `storage.folde
 ### Build, CI, and Dependency Hygiene
 
 - **Pre-commit:** gitleaks (secret scanning, push protection on), lockfile-verify, lint, typecheck, unit tests.
-- **CI:** lint + typecheck + Next.js build + Playwright smoke + RLS integration tests on every PR; required status checks via branch protection on `main`.
+- **CI:** on every PR — a dependency-audit gate (fails on high/critical, with a positive control so it cannot fail open), lint, typecheck, the unit suite under coverage thresholds, a Next.js build, Playwright smoke, and RLS integration tests; required status checks via branch protection on `main`.
+- **Gate self-tests:** the credential gate, the migration-replay assertions, the platform-config drift assertions and the workflow contract each ship negative controls that run in CI, and `scripts/mutation-sweep.sh` breaks an enumerated list of their decision points in turn, requiring a control to fail for each.
 - **Dependabot:** weekly scans; high/critical alerts auto-trigger Dependabot PRs. Resolved alerts to date: GHSA-w5hq-g745-h8pq (uuid), GHSA-qx2v-qp2m-jg93 (postcss), GHSA-v2v4-37r5-5v8g (ip-address).
 - **Secret scanning** with push protection enabled at the GitHub repo level.
-- **Branch protection** on `main`: required checks, force-push and deletion blocked, admin-bypass disabled.
+- **Branch protection** on `main`: required checks (`checks`, `e2e-smoke`, `rls-security`), force-push and deletion blocked. **Admin bypass is currently ENABLED** (`enforce_admins: false`), so a repository admin can merge or push past the required checks — this line previously claimed the opposite. `scripts/verify-platform-config.ts` asserts the required-check set and the enforcement level daily, and will report drift in either direction.
+- **Platform-config drift:** Supabase's GitHub integration holds no deploy authority over production (`git_branch` cleared 2026-10-25), and Vercel deploys `main` only. Both are asserted daily rather than assumed, because the Supabase setting had been ON for four months against what this repo documented.
 - **No `auth-helpers-nextjs`** anywhere — only `@supabase/ssr`.
 
 ### Frontend Security

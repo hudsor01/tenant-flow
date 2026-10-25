@@ -29,6 +29,14 @@ name: Migration Replay
 # It holds NO production secrets and signs in to nothing, so unlike e2e-smoke and
 # rls-security it must NOT join the `tenantflow-prod-test-account` concurrency
 # group -- it cannot contend with them and must not be serialized behind them.
+#
+# THE ASSERTIONS LIVE IN scripts/migration-replay-assertions.ts, NOT HERE. They
+# were inline bash, and one of them was wrong the day it was written -- an
+# expectation spelled `t`/`f` where psql renders `true`/`false` through `||`,
+# which would have failed every run while reporting that the synthetic users
+# were misconfigured. Nothing in the repo could have caught that, because
+# nothing could run the comparison. They are tested code with negative controls
+# now, and this file keeps only the querying.
 on:
   pull_request:
     branches: [main]
@@ -37,6 +45,14 @@ on:
       - supabase/seed.sql
       - supabase/config.toml
       - scripts/seed-test-users.ts
+      - scripts/migration-replay-assertions.ts
+      - scripts/assert-migration-replay.ts
+      # The negative controls, and the shared result module: a change that
+      # weakens a control has to run the gate it guards. (The result module's
+      # own controls are in scripts/assertion-result.test.ts, because a green
+      # gate never calls its annotation helpers.)
+      - scripts/migration-replay-assertions.test.ts
+      - scripts/assertion-result.ts
       - .github/workflows/migration-replay.yml
   # Weekly, because the chain can be broken by a change made directly to
   # production that never touches this repo at all -- the exact failure mode
@@ -70,6 +86,17 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # A GATE THAT PASSES PROVES NOTHING UNTIL SOMETHING HAS WATCHED IT FAIL.
+      # These are the negative controls for the three assertions below: each is
+      # fed the input it should accept and every wrong input that matters, the
+      # `t`/`f` regression described in the header included. They are part of
+      # the unit suite, so the `checks` job runs them on every PR as well --
+      # running them HERE is what covers the weekly scheduled run, where
+      # `checks` never executes. Before the stack starts, because a broken
+      # assertion makes the rest of this job meaningless.
+      - name: Test the replay assertions
+        run: bun run test:unit -- scripts/migration-replay-assertions.test.ts
+
       - name: Replay the full migration chain into an empty database
         run: |
           set -euo pipefail
@@ -83,21 +110,21 @@ jobs:
           # Counted from the tree, never hardcoded, so this stays correct as
           # migrations are added.
           expected=$(find supabase/migrations -maxdepth 1 -name '*.sql' | wc -l | tr -d ' ')
-          applied=$(supabase db query --linked=false \
-            "select count(*) from supabase_migrations.schema_migrations;" 2>/dev/null \
-            | grep -oE '[0-9]+' | tail -1 || true)
-          if [ -z "$applied" ]; then
-            # Older/newer CLIs differ on `db query`; fall back to psql in the container.
-            applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
-              "select count(*) from supabase_migrations.schema_migrations;")
-          fi
+          # psql ONLY. This used to try `supabase db query` first and fall back
+          # to psql, on a comment claiming CLIs differ on that subcommand --
+          # 2.121.0, which this workflow pins, has it, and it even has
+          # `--output-format json`, so that justification was wrong too. The
+          # reason to drop it is simpler: two paths to one number meant the
+          # extraction had to satisfy both, and the unanchored grep that did
+          # took the last number from ANY stdout (a `(1 row)` footer, a usage
+          # dump). `psql -tAc` is tuples only, unaligned, exactly one number,
+          # and the step already depends on this container for its other two
+          # assertions.
+          applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
+            "select count(*) from supabase_migrations.schema_migrations;")
           echo "migration files: ${expected}"
           echo "applied rows:    ${applied}"
-          if [ "$expected" != "$applied" ]; then
-            echo "::error::migration replay is incomplete: ${applied} of ${expected} applied. A migration in this chain cannot run against an empty database -- usually because it depends on something that was done to production by hand and is described by no migration. Fix the migration, not this check."
-            exit 1
-          fi
-          echo "the full chain applies from empty"
+          bun scripts/assert-migration-replay.ts applied "$expected" "$applied"
 
       - name: Assert no migration reached the network
         run: |
@@ -114,15 +141,7 @@ jobs:
                     (select count(*) from pg_class c join pg_namespace n on c.relnamespace=n.oid
                       where n.nspname='stripe' and c.relkind='f');" | tr '|' ' ')"
           echo "wrappers extension: ${wrapper}  stripe_server: ${server}  foreign tables: ${tables}"
-          if [ "$wrapper" != "1" ]; then
-            echo "::error::the wrappers extension is absent, so install_stripe_wrapper did not run its step 0. Replay would have failed at that migration."
-            exit 1
-          fi
-          if [ "$server" != "0" ] || [ "$tables" != "0" ]; then
-            echo "::error::a migration created stripe_server or imported foreign tables in CI. That means it bound a Vault secret and called the Stripe API from a migration. The guard in install_stripe_wrapper has stopped holding."
-            exit 1
-          fi
-          echo "the Stripe FDW steps correctly skipped; no migration called out"
+          bun scripts/assert-migration-replay.ts no-network "$wrapper" "$server" "$tables"
 
       - name: Seed the test cast and verify each pair authenticates
         run: |
@@ -135,32 +154,31 @@ jobs:
       - name: Assert the seeded rows are what the suites require
         run: |
           set -euo pipefail
-          # Each line must be <email>|t-or-f|active|1. The identity count is the
-          # point: seed.sql's hand-rolled crypt() inserts created ZERO
-          # auth.identities, so sign-in could never have worked. 1 per user is
-          # what makes the password grant resolve.
+          # Each row is <email>|<is_admin>|<subscription_status>|<auth.identities
+          # count>. The identity count is the point: seed.sql's hand-rolled
+          # crypt() inserts created ZERO auth.identities, which is why its users
+          # could never have signed in. The expectation, and the explanation of
+          # how psql spells the boolean through `||`, live in
+          # scripts/migration-replay-assertions.ts.
+          # `coalesce` ON subscription_status IS LOAD-BEARING. It is nullable,
+          # and `||` with a NULL operand yields NULL -- so one unset column made
+          # psql print an EMPTY LINE for that whole row, which the assertion's
+          # whitespace filter dropped, and the gate reported "the three e2e
+          # users do not exist" while they existed with one column unset. That
+          # is the misdiagnosis class this gate was rewritten to eliminate.
+          #
+          # NOT on u.email: `where u.email like ...` already excludes a NULL
+          # email, because `NULL LIKE` is NULL. A coalesce there would be
+          # unreachable. `p.is_admin` is `boolean not null default false`
+          # (20260418235000_drop_user_type_to_is_admin.sql).
           rows=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
-            "select u.email || '|' || p.is_admin || '|' || p.subscription_status || '|' ||
+            "select u.email || '|' || p.is_admin || '|' ||
+                    coalesce(p.subscription_status, '<null-status>') || '|' ||
                     (select count(*) from auth.identities i where i.user_id = u.id)
              from auth.users u join public.users p on p.id = u.id
              where u.email like 'e2e-%@tenantflow.app' order by u.email;")
           printf '%s\n' "$rows"
-          # Built with printf rather than a multi-line quoted literal: an
-          # unindented continuation line breaks out of this `run: |` block and
-          # makes the whole workflow file unparseable.
-          # `true`/`false`, not `t`/`f`: psql prints t/f for a boolean COLUMN but
-          # true/false when the boolean is concatenated with `||`, as it is above.
-          # Getting this wrong makes the gate fail every run while claiming the
-          # users are misconfigured -- verified against a live stack, 2026-10-25.
-          expected=$(printf '%s\n' \
-            'e2e-admin@tenantflow.app|true|active|1' \
-            'e2e-owner-a@tenantflow.app|false|active|1' \
-            'e2e-owner-b@tenantflow.app|false|active|1')
-          if [ "$(printf '%s\n' "$rows" | tr -d ' ')" != "$expected" ]; then
-            echo "::error::seeded users are not in the state the suites require. Owner A must be subscription_status=active or the proxy gate sends e2e to /pricing, the admin must have is_admin=true, and each must have exactly 1 auth.identities row."
-            exit 1
-          fi
-          echo "the test cast is correct"
+          printf '%s\n' "$rows" | bun scripts/assert-migration-replay.ts test-cast
 
       - name: Stop the stack
         if: always()
