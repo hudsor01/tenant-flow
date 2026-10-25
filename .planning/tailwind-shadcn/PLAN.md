@@ -14,18 +14,76 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done (add the PR number)
 
 ## 1. The dashboard sidebar question
 
-**The owner dashboard does not use the shadcn/ui Sidebar today. It did from 2025-09-26 to 2025-12-30.** _(Corrected 2026-10-25; an earlier draft wrongly said "never".)_
+**The owner dashboard does not use the shadcn/ui Sidebar today. It did, on and off, between 2025-08-08 and 2025-12-28.** _(Corrected twice on 2026-10-25. The first draft said "never"; the second gave the dates as 2025-09-26 to 2025-12-30. The dates below are the ones the critic verified.)_
 
-- **2025-09-26:** shadcn's "Dashboard 01" block was adopted (`240199804`, `7a6a187b8`). `apps/frontend/src/app/(owner)/owner-dashboard-layout.tsx` rendered `SidebarProvider` + `components/dashboard/app-sidebar.tsx` on top of the canonical `components/ui/sidebar.tsx` (719 lines). A run of sidebar fixes followed (`61c6e7766`, `4536168ab`, `042289d83`).
-- **2025-12-30, PR #474** (`775c72f1c`, titled "Fix/remove pink chart color"). It:
-  - deleted `ui/sidebar.tsx`, `dashboard/app-sidebar.tsx` and `dashboard/tenant-sidebar.tsx`;
-  - split the shadcn sidebar into `ui/sidebar/{context,sidebar,sidebar-group,sidebar-layout,sidebar-menu}.tsx`;
-  - introduced the hand-rolled `components/shell/app-shell.tsx`, which the owner layout has used ever since.
-- The sidebar you see today is `AppShellSidebar` (`src/components/shell/app-shell-sidebar.tsx`), a hand-rolled `<aside>`. It is a fixed `w-56` panel that becomes a translate-x drawer below `lg`. `AppShell` (`src/components/shell/app-shell.tsx`) owns the overlay, the Escape handling and a hand-written focus trap.
-- The split shadcn files were never imported again. Four of them were deleted as fallow-confirmed dead code in `1ecfeffac` (2026-06-14).
-- Why #474 switched, and whether the hand-rolled version can do anything shadcn's can't, is §1a.
+- **2025-06-20 `713fab089`:** the first commit already had a hand-rolled `components/layout/Sidebar.tsx`, with shadcn's `ui/sidebar.tsx` vendored but unused.
+- **2025-08-08 `3b7eea36f`:** shadcn `SidebarProvider` + `<Sidebar collapsible="icon">` adopted.
+- **2025-09-26:** the "Dashboard 01" rebuild (`5116750f3` … `61c6e7766`). The provider was first placed in a page, then moved into the layout after users got "trapped on dashboard sub-pages".
+- **2025-10-24:**
+  - `bf89522aa` removed `SidebarProvider` and flattened `AppSidebar` to a div.
+  - `4536168ab` restored `SidebarProvider` + `SidebarInset`, but `AppSidebar` stayed a hand-rolled card stack.
+- **2025-12-04 #443 `2dcc1024a`:** the canonical `<Sidebar collapsible="offcanvas">` came back. So the canonical `<Sidebar>` element was live 2025-08-08 → 2025-10-24 and 2025-12-04 → 2025-12-28.
+- **2025-12-28 `debfbf6b9`, PR #474's branch:**
+  - added a Design OS export (`product-plan/`);
+  - swapped the owner layout's `ServerSidebarProvider` + `AppSidebar` for the hand-rolled `<AppShell>`;
+  - deleted `dashboard/{app-sidebar,nav-main,site-header,tenant-sidebar}.tsx`.
+- **2025-12-30 `448ab8eec`:**
+  - split the 721-line `ui/sidebar.tsx` into five files, all under the project's 300-line limit;
+  - renamed the shell files to kebab-case;
+  - wired up `CommandDialog`.
+- **2025-12-31:** squash-merged as `775c72f1c`, titled "Fix/remove pink chart color". The PR body never mentions the sidebar, and it had 0 reviews.
+- **2026-03-06 `a1baf39cf`:** the hand-rolled drawer's Escape, Tab trap, `role=dialog`/`aria-modal` and focus return were retrofitted. This implemented the phase-07 locked decision "focus returns to trigger button on close".
+- **2026-06-14 `1ecfeffac`:** four of the five split files were deleted as dead code.
+- Today's sidebar is `AppShellSidebar` (`src/components/shell/app-shell-sidebar.tsx`), a hand-rolled `<aside>`. It is a fixed `w-56` panel that becomes a translate-x drawer below `lg`. `AppShell` owns the overlay, Escape, the focus trap and focus return.
 - Two remnants survive and are imported only by their own tests: `src/components/ui/sidebar/context.tsx` and `src/components/ui/server-sidebar-provider.tsx`. The stock shadcn **zinc** `--sidebar-*` HSL variables also remain, in an `@theme inline` block at the end of `globals.css`. That block overrides the brand-based `--color-sidebar-*` mapping earlier in the file, so any real shadcn Sidebar would currently render off-brand.
 - Phase 6 migrates the shell to the canonical shadcn Sidebar, as you asked.
+
+### 1a. Can the hand-rolled sidebar do anything shadcn's can't? Was the hand-roll ever justified?
+
+Answered by a 30-agent workflow on 2026-10-25 and checked by a critic. Full detail: `research/sidebar-capability-comparison.md` + `…-critique.md` (the critique wins where they disagree).
+
+**1. Capability: no.** 100 hand-rolled behaviors were inventoried, assessed against the canonical new-york-v4 source, and checked by two adversarial verifiers each.
+
+| Verdict | Count |
+|---|---|
+| Native | 14 |
+| Composable from shipped parts | 48 |
+| App logic, independent of the sidebar primitive | 33 |
+| Needs small custom code | 5 |
+| **Impossible** | **0** |
+
+Real differences, and what parity costs:
+
+| Difference | Parity |
+|---|---|
+| Breakpoint: hand-roll is CSS-only at 1024px; shadcn decides in JS at 768px, mixing px and rem | One constant in a new `use-mobile.ts` (rem query) plus `md:`→`lg:`; or the `collapsible="none"` + own-Sheet route |
+| One always-mounted `<aside>`: the tour target and section state survive | Tour step 5 targets the trigger; lift the section state |
+| No desktop collapse, Cmd/Ctrl+B or cookie (shadcn adds all three) | Adopted (D-34/D-52), and cheap to disable |
+| Focus returns to the hamburger: Radix only refocuses a `Dialog.Trigger` | A small unmount-cleanup refocus (D-47) |
+| Closes on navigation | `onClick` → `setOpenMobile(false)` (D-48) |
+| Cmd+K guard selector | Exclude the nav sheet |
+| Widths, scrim, timing, z-index | `className`/CSS overrides |
+| Visible close X (shadcn hides it) | Re-add it (D-46) |
+| Landmarks, `aria-current` | Pass them through |
+| Base `ul`/`li`/`a` rules leak into shadcn's lists | Neutralizers (D-49) |
+| Print | Irrelevant: no owner page prints |
+
+The Radix Sheet also **fixes** defects the hand-roll has:
+- no focus moves into the drawer;
+- the background stays live and scrolls;
+- 13 hidden tab stops while closed;
+- one Escape closes two layers;
+- stale `aria-modal` state after widening;
+- an unnamed dialog;
+- a Settings "menu" with no menu semantics.
+
+**2. Justification: none recorded for the swap.**
+- The only related comment is about provenance: `owner-dashboard-layout.tsx:8`, "Uses the design-os AppShell pattern".
+- The shell is a near-verbatim port of a **Design OS** export. `design-os-main.zip` was downloaded from github.com/buildermethods/design-os on 2025-12-21.
+- Design OS's shell step asks "collapsible on mobile, or hamburger?", and the answer lived in an uncommitted `shell/spec.md` that is now lost. The export's own README recommends shadcn/ui.
+- The swap landed in an unrelated PR, with no rationale and no review.
+- The recorded reasons are for *keeping* the hand-roll, not for adopting it: phase 07 "Keep it pragmatic", and v9.0 phase 47 "larger, deferred". Phase 07's own research listed "Consider using Sheet for mobile sidebar" under "Don't Hand-Roll".
+- Every shadcn-era sidebar failure was a wiring mistake (provider placement, a cleared nav, a route rename, a nested wrapper, hydration gating), not a component limit.
 
 ---
 
