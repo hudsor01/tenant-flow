@@ -6,20 +6,30 @@
  * A gate written to catch that is worth exactly as much as the proof that it
  * fails when the condition returns -- so every assertion here is fed the live
  * state recorded on 2026-10-25 and then the drifted version of it.
+ *
+ * Two assertions read a PROXY rather than the setting itself, and the controls
+ * pin the limits of each proxy as carefully as its successes: `skipped` on a
+ * Supabase check run is silence rather than proof, and a main commit with no
+ * Vercel status is "not yet" rather than "never".
  */
 import { describe, expect, it } from "vitest";
 import {
 	assertHistoryProtected,
 	assertProtectionEnforced,
 	assertRequiredChecks,
-	assertSupabaseHasNoProductionAuthority,
+	assertSupabaseBranchingHasNoGitLink,
+	assertSupabaseDidNotActOnProduction,
 	assertVercelConfigDeclaresMainOnly,
 	assertVercelDeploysOnlyMain,
 	type BranchProtection,
 	type BranchSummary,
 	type CommitCheckRun,
 	REQUIRED_CHECK_CONTEXTS,
+	SUPABASE_AUTHORITY_REVOKED_AT,
 } from "./platform-config-assertions";
+
+/** Fixed evaluation time, so the Supabase window bounds are deterministic. */
+const NOW = new Date("2026-10-25T16:30:00Z");
 
 /** `GET /branches/main` as it answered on 2026-10-25. */
 const LIVE_BRANCH: BranchSummary = {
@@ -54,7 +64,7 @@ describe("assertProtectionEnforced", () => {
 
 	it("fails when the enforcement level drifts from what is documented", () => {
 		const result = assertProtectionEnforced({
-			...LIVE_BRANCH,
+			protected: true,
 			protection: {
 				enabled: true,
 				required_status_checks: { contexts: [], enforcement_level: "everyone" },
@@ -63,6 +73,7 @@ describe("assertProtectionEnforced", () => {
 		expect(result.ok).toBe(false);
 		// Including a tightening: undocumented is undocumented.
 		expect(result.message).toContain("DOCUMENTED_ADMIN_ENFORCEMENT");
+		expect(result.message).toContain("everyone");
 	});
 
 	it("fails rather than passes when the response shape is unreadable", () => {
@@ -72,8 +83,7 @@ describe("assertProtectionEnforced", () => {
 
 describe("assertRequiredChecks", () => {
 	it("passes on the documented set", () => {
-		const result = assertRequiredChecks(LIVE_CONTEXTS);
-		expect(result.ok).toBe(true);
+		expect(assertRequiredChecks(LIVE_CONTEXTS).ok).toBe(true);
 	});
 
 	it("is checking a non-empty list", () => {
@@ -135,73 +145,271 @@ describe("assertHistoryProtected", () => {
 	});
 });
 
-describe("assertSupabaseHasNoProductionAuthority", () => {
-	/** What main's commits look like with the production branch cleared. */
-	const SKIPPED: readonly CommitCheckRun[] = [
-		{
-			sha: "754c91802acc97ec96ef939b7eceedcd8893a0cb",
-			app: "supabase",
-			name: "Supabase Preview",
-			conclusion: "skipped",
-		},
-	];
-
-	it("passes when every Supabase check run skipped", () => {
-		const result = assertSupabaseHasNoProductionAuthority(5, SKIPPED);
+describe("assertSupabaseBranchingHasNoGitLink", () => {
+	it("passes on the live state after the production branch was cleared", () => {
+		const result = assertSupabaseBranchingHasNoGitLink([
+			{ name: "main", git_branch: "", is_default: true },
+		]);
 		expect(result.ok).toBe(true);
 	});
 
-	it("passes when the integration posts nothing at all", () => {
-		expect(assertSupabaseHasNoProductionAuthority(5, []).ok).toBe(true);
-	});
-
-	it("fails on the state that actually shipped: a check run that executed", () => {
-		// 25cef7b2b, 2026-10-25 06:09Z, before the production branch was cleared.
-		const result = assertSupabaseHasNoProductionAuthority(5, [
-			{
-				sha: "25cef7b2b326b237d48c32194932e318b21ed4d0",
-				app: "supabase",
-				name: "Supabase Preview",
-				conclusion: "failure",
-			},
+	it("fails on the state that actually shipped for four months", () => {
+		// git_branch held "main" while "Deploy to production" was on.
+		const result = assertSupabaseBranchingHasNoGitLink([
+			{ name: "main", git_branch: "main", is_default: true },
 		]);
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("Deploy to production");
+		expect(result.message).toContain("deploy to production on merge again");
 		// The disable control is not where it looks like it should be, so the
 		// message has to say where it is.
 		expect(result.message).toContain("Project Settings -> Integrations");
 	});
 
-	it("fails on a successful Supabase run too, not only a failing one", () => {
-		// A green Supabase check is WORSE: it means migrations were applied.
-		const result = assertSupabaseHasNoProductionAuthority(5, [
+	it("fails on a link to any branch, not only main", () => {
+		const result = assertSupabaseBranchingHasNoGitLink([
+			{ name: "main", git_branch: "", is_default: true },
+			{ name: "preview", git_branch: "develop" },
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("preview -> develop");
+	});
+
+	it("treats a null git_branch as unbound", () => {
+		expect(
+			assertSupabaseBranchingHasNoGitLink([{ name: "main", git_branch: null }])
+				.ok,
+		).toBe(true);
+	});
+
+	it("refuses to pass vacuously on an empty response", () => {
+		const result = assertSupabaseBranchingHasNoGitLink([]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("no rows");
+	});
+});
+
+describe("assertSupabaseDidNotActOnProduction", () => {
+	const skipped = (sha: string, completedAt: string): CommitCheckRun => ({
+		sha,
+		app: "supabase",
+		name: "Supabase Preview",
+		conclusion: "skipped",
+		completedAt,
+	});
+	const check = (
+		runs: readonly CommitCheckRun[],
+		extra: { readonly truncated?: boolean } = {},
+	) => assertSupabaseDidNotActOnProduction(20, runs, { now: NOW, ...extra });
+
+	it("passes when every in-window run skipped, while SAYING that is not proof", () => {
+		// d0077d3ac concluded `skipped` on a merge to main TEN HOURS before the
+		// production branch was cleared, with a summary byte-identical to the
+		// post-fix commits. So this pass must not claim the setting is off.
+		const result = check([
+			skipped(
+				"754c91802acc97ec96ef939b7eceedcd8893a0cb",
+				"2026-10-25T08:08:17Z",
+			),
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.unverified).toBeUndefined();
+		expect(result.message).toContain(
+			"does not establish that the setting is off",
+		);
+	});
+
+	it("fails on a run that concluded failure -- the integration acting", () => {
+		const result = check([
+			{
+				sha: "abc1234567",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: "failure",
+				completedAt: "2026-10-25T16:00:00Z",
+			},
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("ACTED");
+		expect(result.message).toContain("Project Settings -> Integrations");
+	});
+
+	it("fails on a successful run too, which is the worse case", () => {
+		// A green Supabase run means migrations were applied to production.
+		const result = check([
 			{
 				sha: "abc1234567",
 				app: "supabase",
 				name: "Supabase Preview",
 				conclusion: "success",
+				completedAt: "2026-10-25T16:00:00Z",
+			},
+		]);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("migrations were applied");
+	});
+
+	it("ignores the pre-fix era, which is four real failure runs on this repo", () => {
+		// 18ff5f9a8 at 06:48:21Z and 25cef7b2b at 06:10:25Z both concluded
+		// `failure` BEFORE the production branch was cleared at 07:11:58Z.
+		// Reporting those as a live regression is reporting a resolved event.
+		const result = check([
+			{
+				sha: "18ff5f9a8ee570a4d0f01ebe18c014bbfd12bd3c",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: "failure",
+				completedAt: "2026-10-25T06:48:21Z",
+			},
+			{
+				sha: "25cef7b2b326b237d48c32194932e318b21ed4d0",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: "failure",
+				completedAt: "2026-10-25T06:10:25Z",
+			},
+			skipped(
+				"754c91802acc97ec96ef939b7eceedcd8893a0cb",
+				"2026-10-25T08:08:17Z",
+			),
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.message).toContain("2 older run(s) ignored");
+	});
+
+	it("still catches a failure run one second after the revocation", () => {
+		// The bound must exclude the pre-fix era and nothing else.
+		const justAfter = new Date(
+			Date.parse(SUPABASE_AUTHORITY_REVOKED_AT) + 1000,
+		).toISOString();
+		const result = check([
+			{
+				sha: "abc1234567",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: "failure",
+				completedAt: justAfter,
 			},
 		]);
 		expect(result.ok).toBe(false);
 	});
 
-	it("ignores check runs from every other app", () => {
-		const result = assertSupabaseHasNoProductionAuthority(5, [
+	it("clears itself once an acting run ages past the freshness window", () => {
+		// A re-enable that was caught and fixed must stop being reported, rather
+		// than reddening the gate for as long as the commit stays in the window.
+		const result = assertSupabaseDidNotActOnProduction(
+			20,
+			[
+				{
+					sha: "abc1234567",
+					app: "supabase",
+					name: "Supabase Preview",
+					conclusion: "failure",
+					completedAt: "2026-10-25T16:00:00Z",
+				},
+			],
+			{ now: new Date("2026-11-05T16:00:00Z"), freshnessHours: 168 },
+		);
+		expect(result.ok).toBe(true);
+		expect(result.unverified).toBe(true);
+		expect(result.message).toContain("completed before the window this trusts");
+	});
+
+	it("does not call an in-progress run an acting one", () => {
+		// `conclusion: null` means it has concluded nothing yet. Failing here
+		// would redden the gate with a wrong diagnosis whenever the schedule
+		// overlaps a merge.
+		const result = check([
+			{
+				sha: "abc1234567",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: null,
+				completedAt: null,
+			},
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.unverified).toBe(true);
+		expect(result.message).toContain("still in progress");
+	});
+
+	it("still reports a concluded run when another is in progress", () => {
+		const result = check([
+			{
+				sha: "aaa1111111",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: null,
+				completedAt: null,
+			},
+			{
+				sha: "bbb2222222",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: "failure",
+				completedAt: "2026-10-25T16:00:00Z",
+			},
+		]);
+		expect(result.ok).toBe(false);
+	});
+
+	it("reports UNVERIFIED, not a pass, when no Supabase run appears at all", () => {
+		// The app posts a run on every commit here, so an empty set means the
+		// slug changed or the app went away -- not that the invariant holds.
+		const result = check([
 			{
 				sha: "abc1234567",
 				app: "github-actions",
 				name: "checks",
 				conclusion: "success",
+				completedAt: "2026-10-25T16:00:00Z",
 			},
-			...SKIPPED,
+		]);
+		expect(result.ok).toBe(true);
+		expect(result.unverified).toBe(true);
+		expect(result.message).toContain("SUPABASE_APP_SLUG");
+	});
+
+	it("fails when the check-run page was truncated", () => {
+		const result = check([skipped("abc1234567", "2026-10-25T16:00:00Z")], {
+			truncated: true,
+		});
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("truncated");
+	});
+
+	it("refuses to pass vacuously when no commits were examined", () => {
+		const result = assertSupabaseDidNotActOnProduction(0, [], { now: NOW });
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("proves nothing");
+	});
+
+	it("ignores concluded runs from every other app", () => {
+		const result = check([
+			{
+				sha: "abc1234567",
+				app: "github-actions",
+				name: "checks",
+				conclusion: "failure",
+				completedAt: "2026-10-25T16:00:00Z",
+			},
+			skipped("abc1234567", "2026-10-25T16:00:00Z"),
 		]);
 		expect(result.ok).toBe(true);
 	});
 
-	it("refuses to pass vacuously when no commits were examined", () => {
-		const result = assertSupabaseHasNoProductionAuthority(0, []);
+	it("treats an unparseable completion time as in-window rather than dropping it", () => {
+		// Failing closed: a shape change must not silently remove runs from the
+		// set this reads.
+		const result = check([
+			{
+				sha: "abc1234567",
+				app: "supabase",
+				name: "Supabase Preview",
+				conclusion: "failure",
+				completedAt: "not-a-date",
+			},
+		]);
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("proves nothing");
 	});
 });
 
@@ -223,16 +431,45 @@ describe("assertVercelConfigDeclaresMainOnly", () => {
 		expect(result.message).toContain("defaults to TRUE");
 	});
 
+	it("fails when an extra truthy pattern hands previews back to a class of branches", () => {
+		const result = assertVercelConfigDeclaresMainOnly({
+			git: { deploymentEnabled: { main: true, "**": false, "feat/*": true } },
+		});
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("feat/*");
+		expect(result.message).toContain("PRODUCTION Supabase");
+	});
+
+	it("fails on an undocumented pattern even when it is false", () => {
+		// Harmless today, but this gate's premise is that config matches the
+		// documentation, and the fix is one line in either direction.
+		const result = assertVercelConfigDeclaresMainOnly({
+			git: { deploymentEnabled: { main: true, "**": false, "wip/*": false } },
+		});
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("wip/*");
+	});
+
 	it("fails when the catch-all would also stop main", () => {
 		const result = assertVercelConfigDeclaresMainOnly({
 			git: { deploymentEnabled: { "**": false } },
 		});
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("`main` is not explicitly true");
+		expect(result.message).toContain("`main` should be true");
 	});
 
 	it("fails when git.deploymentEnabled is absent", () => {
 		expect(assertVercelConfigDeclaresMainOnly({}).ok).toBe(false);
+	});
+
+	it("returns a result rather than throwing on an explicit null", () => {
+		// JSON can carry this, and a stack trace instead of an annotation is a
+		// diagnosis defect even though the gate still goes red.
+		const result = assertVercelConfigDeclaresMainOnly({
+			git: { deploymentEnabled: null },
+		});
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("declares no git.deploymentEnabled");
 	});
 
 	it("fails on the blanket boolean form, which also disables main", () => {
@@ -247,7 +484,7 @@ describe("assertVercelConfigDeclaresMainOnly", () => {
 describe("assertVercelDeploysOnlyMain", () => {
 	const MAIN_DEPLOYED = [
 		{ sha: "754c91802acc97ec96ef939b7eceedcd8893a0cb", contexts: ["Vercel"] },
-		{ sha: "96f408efecd51362b0b189ea154689e31287e2ef", contexts: ["Vercel"] },
+		{ sha: "96f408efecd51362b0b189ea154689e31287e2ef", contexts: [] },
 	];
 
 	it("passes when main deploys and no PR head does", () => {
@@ -262,6 +499,7 @@ describe("assertVercelDeploysOnlyMain", () => {
 			],
 		});
 		expect(result.ok).toBe(true);
+		expect(result.unverified).toBeUndefined();
 	});
 
 	it("passes with no open pull requests, and says so", () => {
@@ -287,17 +525,33 @@ describe("assertVercelDeploysOnlyMain", () => {
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("#1037");
 		expect(result.message).toContain("PRODUCTION Supabase");
+		// A commit status is never removed, so the message has to say how to
+		// clear it or the gate looks permanently broken.
+		expect(result.message).toContain("closed or its head is replaced");
 	});
 
-	it("fails when main has stopped deploying", () => {
-		// The failure mode a `**: false` catch-all could introduce if Vercel did
-		// not OR the matching rules the way its docs say it does.
+	it("reports a preview even while main has no status yet", () => {
+		// The preview half must not be masked by the liveness half.
+		const result = assertVercelDeploysOnlyMain({
+			mainCommits: [{ sha: "754c91802a", contexts: [] }],
+			pullRequestHeads: [
+				{ number: 9, sha: "deadbeef00", contexts: ["Vercel"] },
+			],
+		});
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("#9");
+	});
+
+	it("reports UNVERIFIED, not a failure, when no main commit carries a status", () => {
+		// Expected for a few minutes after a push. Calling it "production has
+		// stopped deploying" would be a wrong diagnosis on a routine race.
 		const result = assertVercelDeploysOnlyMain({
 			mainCommits: [{ sha: "754c91802a", contexts: ["checks"] }],
 			pullRequestHeads: [],
 		});
-		expect(result.ok).toBe(false);
-		expect(result.message).toContain("stopped deploying");
+		expect(result.ok).toBe(true);
+		expect(result.unverified).toBe(true);
+		expect(result.message).toContain("catch-all in vercel.json");
 	});
 
 	it("refuses to pass vacuously with no main commits", () => {

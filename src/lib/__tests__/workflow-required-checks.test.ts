@@ -53,7 +53,19 @@ interface RawWorkflow {
 		readonly push?: RawTrigger | null;
 		readonly pull_request?: RawTrigger | null;
 	} | null;
-	readonly jobs?: Readonly<Record<string, unknown>> | null;
+	readonly jobs?: Readonly<Record<string, RawJob | null>> | null;
+}
+
+interface RawJob {
+	/**
+	 * A job's `name:`, which is what it reports as a check and therefore what
+	 * branch protection matches. Reading the KEY instead is a real defect: this
+	 * repo's codeql.yml has the key `analyze` and reports as
+	 * `Analyze (javascript-typescript)`, so adding `name: Checks` to ci-cd.yml's
+	 * `checks` job would strand a required check while a key-based guard stayed
+	 * green.
+	 */
+	readonly name?: string;
 }
 
 interface RawTrigger {
@@ -78,7 +90,9 @@ function collectWorkflows(): Workflow[] {
 			const pullRequest = raw.on?.pull_request;
 			return {
 				file,
-				jobs: Object.keys(raw.jobs ?? {}),
+				jobs: Object.entries(raw.jobs ?? {}).map(([key, job]) =>
+					typeof job?.name === "string" ? job.name : key,
+				),
 				triggersOnPullRequest: pullRequest !== undefined,
 				push: raw.on?.push === undefined ? null : readTrigger(raw.on?.push),
 				...readTrigger(pullRequest),
@@ -162,11 +176,18 @@ describe("the doc-only companion mirrors the real CI", () => {
 	const real = byFile("ci-cd.yml");
 	const docOnly = byFile("ci-cd-doc-only.yml");
 
-	it("has a non-empty path list on both sides", () => {
-		expect(real.pathsIgnore).not.toEqual([]);
-		expect(real.pathsIgnore).not.toBeNull();
-		expect(docOnly.paths).not.toEqual([]);
-		expect(docOnly.paths).not.toBeNull();
+	it("has a non-empty path list on both sides, for both events", () => {
+		// Without the push pair here, two deleted lists compare [] to [] and the
+		// lockstep assertion below passes having compared nothing.
+		for (const list of [
+			real.pathsIgnore,
+			docOnly.paths,
+			real.push?.pathsIgnore,
+			docOnly.push?.paths,
+		]) {
+			expect(list).not.toBeNull();
+			expect(list).not.toEqual([]);
+		}
 	});
 
 	it("fires on exactly the pull_request paths the real CI ignores", () => {
@@ -181,7 +202,7 @@ describe("the doc-only companion mirrors the real CI", () => {
 		);
 	});
 
-	it("declares a twin job for every job in the real CI, and no others", () => {
+	it("declares a twin job reporting every check name the real CI reports, and no others", () => {
 		// Equality in both directions: a job added to ci-cd.yml without a twin
 		// strands any required check it provides, and a twin with no counterpart
 		// reports a check name that the real CI never produces.

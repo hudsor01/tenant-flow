@@ -46,7 +46,12 @@ function parseCount(raw: string): number | null {
 	return /^\d+$/.test(trimmed) ? Number(trimmed) : null;
 }
 
-/** Strip every space the way the shell's `tr -d ' '` did, then drop blank lines. */
+/**
+ * Drop all whitespace, then all blank lines.
+ *
+ * Broader than the shell's `tr -d ' '` that this replaced -- tabs and carriage
+ * returns go too, which is what makes it indifferent to how psql pads output.
+ */
 function normalizeRows(raw: string): string[] {
 	return raw
 		.split("\n")
@@ -186,8 +191,16 @@ export function assertSeededCast(rowsRaw: string): AssertionResult {
 
 	const missing = expected.filter((row) => !received.includes(row));
 	const unexpected = received.filter((row) => !expected.includes(row));
+	// Duplicates are the one difference the two filters above cannot see: every
+	// row is present on both sides, so both come back empty and the annotation
+	// would be its static preamble with nothing in it about what differed.
+	const duplicated = [
+		...new Set(
+			received.filter((row, index) => received.indexOf(row) !== index),
+		),
+	];
 	return {
 		ok: false,
-		message: `seeded users are not in the state the suites require. Owner A must be subscription_status=active or the proxy gate sends e2e to /pricing, the admin must have is_admin=true, and each must have exactly 1 auth.identities row.${missing.length > 0 ? `\nmissing:\n${missing.join("\n")}` : ""}${unexpected.length > 0 ? `\nunexpected:\n${unexpected.join("\n")}` : ""}`,
+		message: `seeded users are not in the state the suites require. Owner A must be subscription_status=active or the proxy gate sends e2e to /pricing, the admin must have is_admin=true, and each must have exactly 1 auth.identities row.${missing.length > 0 ? `\nmissing:\n${missing.join("\n")}` : ""}${unexpected.length > 0 ? `\nunexpected:\n${unexpected.join("\n")}` : ""}${duplicated.length > 0 ? `\nreturned more than once (the join matched extra rows):\n${duplicated.join("\n")}` : ""}`,
 	};
 }

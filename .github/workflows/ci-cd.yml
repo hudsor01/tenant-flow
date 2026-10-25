@@ -99,7 +99,8 @@ jobs:
       # every hook, so for those the suite ran nowhere at all. That is not a
       # theoretical gap. PR #1001 (react 19.2.8 -> 19.3.1, without react-dom)
       # passed `checks`, `e2e-smoke`, `rls-security`, CodeQL and `scan` while
-      # failing 332 of 332 unit test files on `Incompatible React versions`,
+      # failing 332 of 332 unit test files on `Incompatible React versions`
+      # (measured locally -- CI could not have measured it, which is the point),
       # because react-dom asserts exact version equality with react and that
       # assert lives in its DEVELOPMENT bundle: `next build && next start` ships
       # production, where it is absent, while jsdom always evaluates it. Every
@@ -125,8 +126,8 @@ jobs:
       # comparisons and the platform-config drift checks. Those tests are the
       # reason "the gate was green" means the gate can still fail.
       #
-      # Before the build, which costs 57s: a tree that cannot run its tests
-      # should not wait on a bundler to find out.
+      # Before the build, which costs 75s on this runner: a tree that cannot
+      # run its tests should not wait on a bundler to find out.
       - name: Unit tests
         run: bun run test:unit -- --coverage
 

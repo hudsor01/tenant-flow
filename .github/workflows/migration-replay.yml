@@ -47,6 +47,11 @@ on:
       - scripts/seed-test-users.ts
       - scripts/migration-replay-assertions.ts
       - scripts/assert-migration-replay.ts
+      # The negative controls, and the module whose %0A escaping is what makes
+      # every failure message above one line. A change that weakens a control
+      # has to run the gate it guards.
+      - scripts/migration-replay-assertions.test.ts
+      - scripts/assertion-result.ts
       - .github/workflows/migration-replay.yml
   # Weekly, because the chain can be broken by a change made directly to
   # production that never touches this repo at all -- the exact failure mode

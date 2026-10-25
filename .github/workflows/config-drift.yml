@@ -17,29 +17,52 @@ name: Platform Config Drift
 # of them:
 #
 #   1. Supabase's integration holds no authority over production.
-#   2. main requires exactly the documented status checks, and is protected.
+#   2. main is protected and requires exactly the documented status checks.
 #   3. Vercel deploys main and nothing else.
 #
-# WHAT IT READS, AND WHY NOT THE OBVIOUS THING. Every signal here is observable
-# with a token that can only read this repository. Supabase's Management API
-# would answer (1) directly, but a Supabase personal access token is
-# account-wide and cannot be scoped -- giving CI a token that can delete every
-# project in the account in order to read one boolean is the worse trade. The
-# signal used instead is the integration's own check run, which is what the
-# setting actually DOES: it ran (conclusion `failure`) on main while the setting
-# was on, and concludes `skipped` on every commit since it was turned off.
+# TWO OF THEM ARE READ AT WHATEVER STRENGTH THE AVAILABLE TOKEN ALLOWS, and the
+# weaker reading is reported UNVERIFIED -- a warning, left OUT of the pass count
+# -- rather than as a pass. A gate that reports silence as success is the
+# failure this one exists to prevent, so it is not allowed to do it itself.
 #
-# One secondary invariant -- that main still blocks force pushes and deletion --
-# lives only on the admin-only protection endpoint, and the workflow
-# `permissions:` block has no `administration` key to grant, so GITHUB_TOKEN
-# cannot read it however it is configured. It is reported UNVERIFIED with a
-# warning rather than counted as a pass. A fine-grained PAT with
-# Administration:read on this repository alone would upgrade it; nothing else
-# needs to change.
+#   - SUPABASE. The field that carries the authority is `git_branch` on the
+#     project's branches: it held "main" while the setting was on and was
+#     emptied when it was cleared. Reading it needs a Supabase personal access
+#     token, which is account-wide and cannot be scoped -- giving CI a token
+#     that can delete every project in the account to read one boolean is the
+#     worse trade, so CI is not given one. Without it the gate falls back to the
+#     integration's check runs, which can only show that it has not ACTED.
+#
+#     `skipped` IS NOT PROOF THE SETTING IS OFF, and the earlier version of this
+#     comment claimed it was. Measured on this repo: d0077d3ac was merged to
+#     main at 21:29Z on 2026-10-24, ten hours BEFORE the production branch was
+#     cleared, and its `Supabase Preview` run concluded `skipped` with the
+#     summary "This git branch is not associated with any Supabase Branch." --
+#     byte-identical to 754c91802 at 08:08Z on 2026-10-25, after it was off.
+#     The runs that ACTED look different: 25cef7b2b (06:10:25Z) and 18ff5f9a8
+#     (06:48:21Z) concluded `failure` with "Remote migration versions not found
+#     in local migrations directory", the production deploy attempting and
+#     failing. A `success` would be worse -- it would mean migrations were
+#     applied. So the fallback catches the state that does damage, not the state
+#     that merely could.
+#
+#   - FORCE PUSHES AND DELETION on main live only on the admin-only protection
+#     endpoint, and the workflow `permissions:` block has no `administration`
+#     key to grant (17 keys, checked against the workflow-syntax reference on
+#     2026-10-25), so GITHUB_TOKEN cannot read it however it is configured.
+#     Confirmed by a live 403 on this workflow's first run. A fine-grained PAT
+#     with Administration:read on this repository alone would upgrade it;
+#     nothing else needs to change.
 #
 # Daily rather than on every push: both platform signals are posted in response
 # to a push, so there is nothing new to see until one happens, and the
 # consequence of (1) drifting is bounded by the next merge.
+#
+# A FAILING SCHEDULED RUN NOTIFIES NOBODY IN-BAND. GitHub emails the account
+# that owns the repository when a scheduled workflow fails, which is the whole
+# notification path here; unlike post-deploy-sentry-gate.yml this opens no
+# issue. That is a deliberate trade for now -- opening issues needs
+# `issues: write`, which this job otherwise has no use for.
 on:
   schedule:
     - cron: '17 7 * * *'
@@ -52,6 +75,11 @@ on:
       - .github/workflows/config-drift.yml
       - scripts/verify-platform-config.ts
       - scripts/platform-config-assertions.ts
+      # The negative controls, and the module whose %0A escaping is what makes
+      # every failure message above one line. A change to either must run this
+      # gate against live GitHub, not only the unit suite in `checks`.
+      - scripts/platform-config-assertions.test.ts
+      - scripts/assertion-result.ts
       - vercel.json
 
 concurrency:

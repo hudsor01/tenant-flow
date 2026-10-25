@@ -132,7 +132,14 @@ export default defineConfig({
 						"tests/integration/rls/*.test.ts",
 						"tests/integration/setup/**",
 						"e2e/**",
-						"src/**/*.component.test.tsx",
+						// `{ts,tsx}`, mirroring the component project's include below. The
+						// exclude covered only `.tsx`, so a `*.component.test.ts` file was
+						// collected by BOTH projects -- which made the claim "collected by
+						// exactly one project, and nothing runs it" false for half the
+						// pattern. src/lib/__tests__/test-suites-actually-run.test.ts
+						// asserts there are no such files; this is what makes that
+						// assertion's stated reason true for both extensions.
+						"src/**/*.component.test.{ts,tsx}",
 					],
 					// NO `coverage` KEY HERE. It lived at this depth and did nothing —
 					// see the root-level block at the foot of this file for what that

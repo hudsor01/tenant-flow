@@ -144,6 +144,9 @@ describe("assertSeededCast", () => {
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("is_admin=true");
+		// On the COMPUTED part of the message, not only the static preamble:
+		// deleting the diff computation has to fail this test.
+		expect(result.message).toContain("e2e-admin@tenantflow.app|false|active|1");
 	});
 
 	it("fails when a user has no auth.identities row", () => {
@@ -151,6 +154,20 @@ describe("assertSeededCast", () => {
 		const result = assertSeededCast(CORRECT_ROWS.replaceAll("|1", "|0"));
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("auth.identities");
+		expect(result.message).toContain(
+			"e2e-owner-a@tenantflow.app|false|active|0",
+		);
+	});
+
+	it("names a duplicated row, which the missing/unexpected diff cannot see", () => {
+		// Every row is present on both sides, so both filters come back empty
+		// and the annotation would say nothing at all about what differed.
+		const result = assertSeededCast(
+			`${CORRECT_ROWS}\ne2e-admin@tenantflow.app|true|active|1`,
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("returned more than once");
+		expect(result.message).toContain("e2e-admin@tenantflow.app|true|active|1");
 	});
 
 	it("fails when a user is missing entirely", () => {

@@ -8,11 +8,22 @@
  */
 
 export interface AssertionResult {
+	/** False only when the invariant was checked and does NOT hold. */
 	readonly ok: boolean;
 	/**
-	 * One line on success. On failure this becomes the body of a GitHub
-	 * `::error::` annotation, which is the only thing most readers will see --
-	 * so it has to say what to do about the failure, not just what differed.
+	 * True when nothing was proven either way -- the signal this assertion reads
+	 * was unavailable, or is too weak to establish the invariant.
+	 *
+	 * A THIRD STATE, because the two-state version is how a gate comes to report
+	 * silence as success. An unverified result is annotated as a warning and
+	 * left OUT of the pass count rather than added to it, so a run that proved
+	 * five things out of six says so.
+	 */
+	readonly unverified?: boolean;
+	/**
+	 * One line on success. On a failure or an unverified result this becomes the
+	 * body of a GitHub annotation, which is the only thing most readers will see
+	 * -- so it has to say what to do about it, not just what differed.
 	 */
 	readonly message: string;
 }

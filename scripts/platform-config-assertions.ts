@@ -10,18 +10,15 @@
  * that contradicted it is just prose. Three such invariants are written down in
  * this repo and none of them was checkable.
  *
- * The functions here are pure: they take state somebody else fetched and say
- * whether it still matches what the repo claims.
- * `platform-config-assertions.test.ts` fails each one on purpose, and
- * `scripts/verify-platform-config.ts` does the fetching.
+ * The functions here take state somebody else fetched and say whether it still
+ * matches what the repo claims. `platform-config-assertions.test.ts` fails each
+ * one on purpose, and `scripts/verify-platform-config.ts` does the fetching.
  *
- * Every invariant below is verified from a signal that is OBSERVABLE WITHOUT
- * NEW CREDENTIALS, deliberately. Supabase's own Management API would answer the
- * branching question directly, but a Supabase personal access token is
- * account-wide and unscopable -- handing CI a token that can delete every
- * project in the account in order to read one boolean is a worse trade than the
- * indirect signal. The indirect signal is the integration's own check run,
- * which is what the setting actually DOES.
+ * EACH ASSERTION SAYS WHAT ITS SIGNAL CAN AND CANNOT ESTABLISH, because two of
+ * them read a proxy rather than the setting itself, and a gate that overstates
+ * its own reach is the failure it was built to prevent. Where the proxy is too
+ * weak, the result is `unverified` -- annotated as a warning and left out of
+ * the pass count -- rather than a pass.
  */
 import type { AssertionResult } from "./assertion-result";
 
@@ -40,12 +37,6 @@ export const REQUIRED_CHECK_CONTEXTS: readonly string[] = [
 	"rls-security",
 ];
 
-/** How Vercel names itself in a commit status context. */
-const VERCEL_CONTEXT = /^vercel/i;
-
-/** The GitHub App slug the Supabase integration posts its check runs under. */
-const SUPABASE_APP_SLUG = "supabase";
-
 /**
  * The documented admin-enforcement level on `main`.
  *
@@ -56,6 +47,38 @@ const SUPABASE_APP_SLUG = "supabase";
  * deliberately changed, change this constant in the same commit.
  */
 export const DOCUMENTED_ADMIN_ENFORCEMENT = "non_admins";
+
+/** How Vercel names itself in a commit status context. */
+const VERCEL_CONTEXT = /^vercel/i;
+
+/** The GitHub App slug the Supabase integration posts its check runs under. */
+const SUPABASE_APP_SLUG = "supabase";
+
+/**
+ * When the Supabase production branch was cleared, from the Management API's
+ * own `updated_at` on the branch row.
+ *
+ * Check runs that completed before this belong to the era when the setting WAS
+ * on -- four of them concluded `failure` -- and say nothing about the setting
+ * now. Without this bound the proxy reports a resolved historical event as a
+ * live regression for as long as those commits stay in the window.
+ */
+export const SUPABASE_AUTHORITY_REVOKED_AT = "2026-10-25T07:11:58Z";
+
+/**
+ * How recent a Supabase run has to be to say anything about the setting today.
+ *
+ * Also what lets this clear itself: a re-enable that is caught and then turned
+ * off again stops being reported once its runs age out, instead of reddening
+ * the gate forever the way an un-bounded history would.
+ */
+const SUPABASE_RUN_FRESHNESS_HOURS = 168;
+
+/** What `vercel.json` must say, exactly, for "deploy main and nothing else". */
+const DOCUMENTED_DEPLOYMENT_RULES: Readonly<Record<string, boolean>> = {
+	main: true,
+	"**": false,
+};
 
 /**
  * `GET /repos/{owner}/{repo}/branches/{branch}` -- the parts of it this reads.
@@ -95,6 +118,8 @@ export interface CommitCheckRun {
 	readonly name: string;
 	/** null while the run is still in progress. */
 	readonly conclusion: string | null;
+	/** ISO 8601, or null while the run is still in progress. */
+	readonly completedAt: string | null;
 }
 
 export interface CommitStatuses {
@@ -109,8 +134,24 @@ export interface PullRequestHead extends CommitStatuses {
 
 export interface VercelConfig {
 	readonly git?: {
-		readonly deploymentEnabled?: boolean | Readonly<Record<string, boolean>>;
+		readonly deploymentEnabled?:
+			| boolean
+			| Readonly<Record<string, boolean>>
+			| null;
 	} | null;
+}
+
+/**
+ * A row from Supabase's `GET /v1/projects/{ref}/branches`.
+ *
+ * `git_branch` is the field that carries the authority: while "Deploy to
+ * production" was on it held `"main"`, and clearing the setting emptied it.
+ * Shape confirmed against the live API on 2026-10-25.
+ */
+export interface SupabaseBranch {
+	readonly name: string;
+	readonly git_branch?: string | null;
+	readonly is_default?: boolean;
 }
 
 /** Protection has to be switched on at all, at the documented strength. */
@@ -171,7 +212,7 @@ export function assertRequiredChecks(
  *
  * Secondary: this reads the admin-only protection endpoint, so in CI it runs
  * only when a token that can read it was supplied, and is reported as
- * UNVERIFIED rather than as a pass when it was not.
+ * unverified rather than as a pass when it was not.
  */
 export function assertHistoryProtected(
 	protection: BranchProtection,
@@ -194,23 +235,83 @@ export function assertHistoryProtected(
 }
 
 /**
- * Supabase's GitHub integration must hold no authority over production.
+ * THE REAL CHECK on Supabase's authority over production: no branch may be
+ * bound to a git branch.
  *
- * The signal is the integration's own check run. With "Deploy to production"
- * ON, Supabase posts `Supabase Preview` and it RUNS -- it concluded `failure`
- * on main through 2026-10-25 06:09Z. With the production branch cleared, the
- * same check posts and concludes `skipped`, which is what every main commit
- * after 07:11Z shows. So a Supabase check run that reached any conclusion other
- * than `skipped` means the integration can apply migrations on merge again,
- * which CLAUDE.md says nothing may do.
+ * `git_branch` is what "Deploy to production" writes. It held `"main"` while the
+ * setting was on and was emptied to `""` when it was cleared on 2026-10-25.
+ *
+ * Reading it needs a Supabase personal access token, which is account-wide and
+ * cannot be scoped -- so CI is deliberately not given one, and calls this only
+ * when a token happens to be present (a local run, or a future scoped
+ * credential). Without it the gate falls back to
+ * `assertSupabaseDidNotActOnProduction`, which proves strictly less and says so.
  */
-export function assertSupabaseHasNoProductionAuthority(
+export function assertSupabaseBranchingHasNoGitLink(
+	branches: readonly SupabaseBranch[],
+): AssertionResult {
+	if (branches.length === 0) {
+		return {
+			ok: false,
+			message:
+				"the Supabase branches endpoint returned no rows, not even the production branch. The project ref is wrong or the response shape changed, so nothing was checked.",
+		};
+	}
+	const linked = branches.filter((branch) => (branch.git_branch ?? "") !== "");
+	if (linked.length === 0) {
+		return {
+			ok: true,
+			message: `no Supabase branch is bound to a git branch (${branches.length} branch(es) examined)`,
+		};
+	}
+	return {
+		ok: false,
+		message: `Supabase can deploy to production on merge again: ${linked.map((branch) => `${branch.name} -> ${String(branch.git_branch)}`).join(", ")}. CLAUDE.md says migrations are applied by hand, never on merge. Turn "Deploy to production" off under Project Settings -> Integrations, on the GitHub card (NOT the Branches page, whose row menu only offers "Change production branch" and "Resync branch").`,
+	};
+}
+
+/**
+ * The weaker, credential-free check: no Supabase check run ACTED on this repo.
+ *
+ * WHAT `skipped` DOES NOT MEAN. It is tempting to read a `skipped` conclusion as
+ * "the integration has no authority", and that reading is wrong. Measured on
+ * this repo's own history: `d0077d3ac` was merged to main at 21:29Z on
+ * 2026-10-24, TEN HOURS before the production branch was cleared, and its
+ * `Supabase Preview` run concluded `skipped` with the summary "This git branch
+ * is not associated with any Supabase Branch." -- byte-identical to
+ * `754c91802` at 08:08Z on 2026-10-25, after the setting was off. So `skipped`
+ * is silence, not proof.
+ *
+ * What the runs that ACTED look like: `25cef7b2b` (06:10:25Z) and `18ff5f9a8`
+ * (06:48:21Z) both concluded `failure` with "Remote migration versions not
+ * found in local migrations directory" -- the production deploy attempting and
+ * failing. A `success` would be worse: it would mean migrations were applied.
+ *
+ * So this detects an integration that is ACTING, which is the state that does
+ * damage, but it cannot detect one that is merely enabled and has had nothing
+ * to do yet. `assertSupabaseBranchingHasNoGitLink` is the assertion that can.
+ * Treat a pass here as "nothing has been applied", never as "the setting is
+ * off".
+ *
+ * TWO TIME BOUNDS, because the signal is history rather than state. Runs that
+ * completed before `SUPABASE_AUTHORITY_REVOKED_AT` are the pre-fix era, and
+ * runs older than `SUPABASE_RUN_FRESHNESS_HOURS` have stopped describing today
+ * -- which is also what lets this clear itself after a re-enable is fixed,
+ * rather than staying red for as long as the commit stays in the window.
+ */
+export function assertSupabaseDidNotActOnProduction(
 	commitsExamined: number,
 	runs: readonly CommitCheckRun[],
+	options: {
+		readonly truncated?: boolean;
+		/** Evaluation time; injected so the bounds below are testable. */
+		readonly now: Date;
+		readonly revokedAt?: string;
+		readonly freshnessHours?: number;
+	},
 ): AssertionResult {
-	// Zero commits is not a pass. An empty window would make the filter below
-	// return nothing and report the invariant as satisfied without having looked
-	// at anything.
+	// Zero commits is not a pass: an empty window makes the filters below return
+	// nothing and report the invariant as satisfied without having looked.
 	if (commitsExamined === 0) {
 		return {
 			ok: false,
@@ -218,17 +319,71 @@ export function assertSupabaseHasNoProductionAuthority(
 				"examined no commits, so this proves nothing about the Supabase integration. The commit listing failed or returned an empty page.",
 		};
 	}
+	// A truncated check-run page could have dropped the very run this reads.
+	if (options.truncated === true) {
+		return {
+			ok: false,
+			message:
+				"the check-run listing was truncated, so a Supabase run may have been dropped from the page this assertion read. Paginate before trusting the result.",
+		};
+	}
+
+	const revokedAt = Date.parse(
+		options.revokedAt ?? SUPABASE_AUTHORITY_REVOKED_AT,
+	);
+	const freshest =
+		options.now.getTime() -
+		(options.freshnessHours ?? SUPABASE_RUN_FRESHNESS_HOURS) * 3600_000;
+	const floor = Math.max(revokedAt, freshest);
+
 	const fromSupabase = runs.filter((run) => run.app === SUPABASE_APP_SLUG);
-	const live = fromSupabase.filter((run) => run.conclusion !== "skipped");
-	if (live.length === 0) {
+	const inWindow = fromSupabase.filter((run) => {
+		if (run.completedAt === null) return true;
+		const completed = Date.parse(run.completedAt);
+		return Number.isNaN(completed) ? true : completed >= floor;
+	});
+	const stale = fromSupabase.length - inWindow.length;
+
+	// An in-progress run has concluded nothing yet. Failing on it would redden
+	// the gate with a wrong diagnosis whenever a scheduled run overlaps a merge.
+	const acted = inWindow.filter(
+		(run) => run.conclusion !== null && run.conclusion !== "skipped",
+	);
+	if (acted.length > 0) {
+		return {
+			ok: false,
+			message: `the Supabase GitHub integration ACTED on this repo: ${acted.map((run) => `${run.sha.slice(0, 9)} ${run.name} -> ${String(run.conclusion)} at ${String(run.completedAt)}`).join(", ")}. A conclusion other than \`skipped\` means it ran against production -- "Deploy to production" is back on, and a \`success\` means migrations were applied. Turn it off under Project Settings -> Integrations, on the GitHub card (NOT the Branches page, whose row menu only offers "Change production branch" and "Resync branch").`,
+		};
+	}
+
+	// Nothing from Supabase at all is NOT the same as nothing acting. The app
+	// posts a run on every commit here, so an empty set means the slug changed,
+	// the app was removed, or this stopped reading the right field.
+	if (fromSupabase.length === 0) {
 		return {
 			ok: true,
-			message: `the Supabase integration holds no production authority (${commitsExamined} commit(s) examined, ${runs.length} check run(s), ${fromSupabase.length} of them Supabase's, all skipped or absent)`,
+			unverified: true,
+			message: `no check run from the \`${SUPABASE_APP_SLUG}\` app appears on any of the ${commitsExamined} commit(s) examined, where one appears on every commit today. The app may have been removed (in which case delete this assertion) or its slug may have changed (in which case fix SUPABASE_APP_SLUG) -- either way nothing was checked.`,
+		};
+	}
+	if (inWindow.length === 0) {
+		return {
+			ok: true,
+			unverified: true,
+			message: `all ${fromSupabase.length} Supabase check run(s) in the ${commitsExamined} commit(s) examined completed before the window this trusts (nothing on or after ${new Date(floor).toISOString()}), so none of them says anything about the setting now. Nothing has been pushed to main recently enough to read.`,
+		};
+	}
+	const pending = inWindow.filter((run) => run.conclusion === null);
+	if (pending.length === inWindow.length) {
+		return {
+			ok: true,
+			unverified: true,
+			message: `every in-window Supabase check run (${pending.length} of them) is still in progress, so none of them has concluded anything yet.`,
 		};
 	}
 	return {
-		ok: false,
-		message: `the Supabase GitHub integration is acting on this repo again: ${live.map((run) => `${run.sha.slice(0, 9)} ${run.name} -> ${run.conclusion ?? "in progress"}`).join(", ")}. "Deploy to production" is back on, which means merging a migration applies it to production -- CLAUDE.md says migrations are applied by hand, never on merge. Turn it off under Project Settings -> Integrations, on the GitHub card (NOT the Branches page, whose row menu only offers "Change production branch" and "Resync branch").`,
+		ok: true,
+		message: `no Supabase check run acted on production (${commitsExamined} commit(s) examined, ${inWindow.length} in-window Supabase run(s)${stale > 0 ? `, ${stale} older run(s) ignored` : ""}${pending.length > 0 ? `, ${pending.length} still in progress` : ""}). NOTE: this does not establish that the setting is off -- see the function's docstring.`,
 	};
 }
 
@@ -236,19 +391,33 @@ export function assertSupabaseHasNoProductionAuthority(
  * `vercel.json` must actually restrict automatic deploys to `main`.
  *
  * `{"main": true}` alone does NOT: per Vercel's git-configuration docs, "any
- * unspecified branch defaults to true", so naming `main` as enabled restricts
+ * unspecified branch defaults to true", so naming `main` as enabled restricted
  * nothing and the file merely looked like it did. A catch-all is what expresses
  * the invariant. `main` keeps its explicit `true` because when a branch matches
  * several rules "a deployment will trigger if at least one rule evaluates to
  * true" -- that is what keeps production deploying while everything else stops.
  * `**` rather than `*`, because minimatch's `*` does not cross a `/` and every
  * branch here is `type/description`.
+ *
+ * WHAT THIS FILE WAS NOT DOING. Previews were already not deploying under the
+ * no-op version (the last 20 deployments are all target=production from `main`,
+ * and no open pull request head carries a Vercel status), which means the
+ * enforcement lives in a project setting on Vercel that nothing here reads --
+ * the same blind spot the Supabase toggle created. This file now ALSO expresses
+ * the invariant, so the repo is an authority for it; it is not the thing that
+ * has been enforcing it.
+ *
+ * The rule set is compared EXACTLY, like the required-check list: an extra
+ * truthy pattern (`{"main": true, "**": false, "feat/*": true}`) would hand
+ * preview deploys back to a whole class of branches while every other check
+ * here still passed.
  */
 export function assertVercelConfigDeclaresMainOnly(
 	config: VercelConfig,
+	documented: Readonly<Record<string, boolean>> = DOCUMENTED_DEPLOYMENT_RULES,
 ): AssertionResult {
 	const enabled = config.git?.deploymentEnabled;
-	if (enabled === undefined) {
+	if (enabled === undefined || enabled === null) {
 		return {
 			ok: false,
 			message:
@@ -262,20 +431,20 @@ export function assertVercelConfigDeclaresMainOnly(
 		};
 	}
 	const problems: string[] = [];
-	if (enabled["main"] !== true) {
-		problems.push(
-			"`main` is not explicitly true, so the catch-all below can stop production deploying (matching rules are OR-ed, and an explicit true is what wins)",
-		);
+	for (const [pattern, value] of Object.entries(documented)) {
+		if (enabled[pattern] !== value) {
+			problems.push(
+				`\`${pattern}\` should be ${String(value)}, is ${String(enabled[pattern])}${pattern === "**" ? " -- and any branch Vercel finds no rule for defaults to TRUE, so without this catch-all the file restricts nothing" : " -- matching rules are OR-ed, and an explicit true is what keeps production deploying past the catch-all"}`,
+			);
+		}
 	}
-	const catchAll = Object.entries(enabled).find(
-		([pattern]) => pattern === "**",
+	const extra = Object.keys(enabled).filter(
+		(pattern) => !(pattern in documented),
 	);
-	if (!catchAll) {
+	if (extra.length > 0) {
 		problems.push(
-			'there is no `"**": false` catch-all, and any branch Vercel finds no rule for defaults to TRUE -- so this file restricts nothing',
+			`undocumented pattern(s) ${extra.map((pattern) => `\`${pattern}\`=${String(enabled[pattern])}`).join(", ")} -- a truthy one hands preview deploys back to those branches, and previews run against PRODUCTION Supabase. Update DOCUMENTED_DEPLOYMENT_RULES in the same commit if deliberate.`,
 		);
-	} else if (catchAll[1] !== false) {
-		problems.push("the `**` catch-all is not false");
 	}
 	if (problems.length === 0) {
 		return {
@@ -296,6 +465,11 @@ export function assertVercelConfigDeclaresMainOnly(
  * head may carry a Vercel status (a preview deployed), AND a recent main commit
  * must carry one (production still deploys, and this signal is alive at all).
  * The second half is what catches a catch-all rule that went too far.
+ *
+ * The main-commit window has to be generous: `GET /commits?sha=main` lists every
+ * commit REACHABLE from main in date order, so merge commits pull in branch
+ * commits that never deployed, and this repo already has runs of five
+ * consecutive Vercel-less ones.
  */
 export function assertVercelDeploysOnlyMain(state: {
 	readonly mainCommits: readonly CommitStatuses[];
@@ -311,17 +485,18 @@ export function assertVercelDeploysOnlyMain(state: {
 				"examined no main commits, so this proves nothing about where Vercel deploys from.",
 		};
 	}
-	if (!state.mainCommits.some(hasVercel)) {
-		return {
-			ok: false,
-			message: `none of the last ${state.mainCommits.length} commits on main carries a Vercel status. Either the Git integration is gone, or production has stopped deploying -- check that the \`**\` catch-all in vercel.json did not also stop main. The last deploy stays live, so the site is stale rather than down.`,
-		};
-	}
 	const previews = state.pullRequestHeads.filter(hasVercel);
 	if (previews.length > 0) {
 		return {
 			ok: false,
-			message: `Vercel deployed a branch other than main: ${previews.map((pr) => `#${pr.number} (${pr.sha.slice(0, 9)})`).join(", ")}. The repo documents main-only, and preview URLs built from a PR branch run against PRODUCTION Supabase.`,
+			message: `Vercel deployed a branch other than main: ${previews.map((pr) => `#${pr.number} (${pr.sha.slice(0, 9)})`).join(", ")}. The repo documents main-only, and a preview URL built from a PR branch runs against PRODUCTION Supabase. A commit status is never removed, so this stays red until that pull request is closed or its head is replaced -- fix the deploy rules first, then close or re-push the branch.`,
+		};
+	}
+	if (!state.mainCommits.some(hasVercel)) {
+		return {
+			ok: true,
+			unverified: true,
+			message: `none of the last ${state.mainCommits.length} commits reachable from main carries a Vercel status. That is expected for a few minutes after a push, while Vercel has not reported yet; if it persists, either the Git integration is gone or production has stopped deploying -- check that the \`**\` catch-all in vercel.json did not also stop main. The last deploy stays live, so the site would be stale rather than down.`,
 		};
 	}
 	return {

@@ -1,13 +1,18 @@
 /**
  * Drift guard: no test file may land in a project that nothing executes.
  *
- * vitest.config.ts declares a `component` project collecting
- * files named `*.component.test.{ts,tsx}` under `src/`, and the `unit` project EXCLUDES that
- * pattern. Nothing runs `component`: not lefthook (pre-commit runs
- * `test:unit`), not any job in .github/workflows. So a file named
- * `*.component.test.tsx` is collected by exactly one project, and that project
- * is executed by nothing -- the tests in it pass by never running, which is the
- * same defect as the unit suite having run nowhere for Dependabot's commits.
+ * vitest.config.ts declares a `component` project collecting files named
+ * `*.component.test.{ts,tsx}` under `src/`, and the `unit` project excludes the
+ * same pattern. Nothing runs `component`: not lefthook (pre-commit runs
+ * `test:unit`), not any job in .github/workflows. So such a file is collected
+ * by exactly one project, and that project is executed by nothing -- the tests
+ * in it pass by never running, which is the same defect as the unit suite
+ * having run nowhere for Dependabot's commits.
+ *
+ * The unit exclude used to read `.tsx` only while the component include read
+ * `{ts,tsx}`, so a `*.component.test.ts` file ran in BOTH projects and the
+ * claim above was false for it. The exclude now mirrors the include, which is
+ * what makes this guard's stated reason true for both extensions.
  *
  * There are zero such files today, and this is what keeps that true. If a
  * component project is wanted, wire it into ci-cd.yml in the same commit that
