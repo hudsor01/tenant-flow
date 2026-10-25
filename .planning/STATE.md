@@ -327,6 +327,7 @@ Progress: [██████████] 98%
 - 2026-07-10: v8.0 "Correctness Restoration" shipped + archived (11 phases 25-35, 71/72 + remediation).
 - 2026-07-17: v9.0 "Full-Surface Remediation" shipped + archived (16 phases 36-51, 296/296 accounted).
 - 2026-07-19: v10.0 "Claims Integrity + Canonical Feature Expansion" started — REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64) authored. Integer phase numbers continue across milestones (v9.0 ended at 51; v10.0 is 52-64).
+- 2026-10-25: Phase 66.2 "Tailwind v4 and shadcn/ui canonical remediation" INSERTED after 66 (URGENT), requirements UIC-01..08. Two defects are live in production: light `bg-secondary` renders magenta, and Radix controls deform below 768px. It is a decimal, not integer 74, so `phase.complete` cannot stamp v10.0 complete with 67-73 outstanding. It runs on one branch with one PR, `gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation`. The source package is `.planning/tailwind-shadcn/`. This entry was hand-written: `state.add-roadmap-evolution` created a duplicate section and rewrote the frontmatter (status → verifying, `stopped_at` dropped), so the file was restored and corrected by hand.
 
 ## Next Action
 
