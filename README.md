@@ -91,13 +91,14 @@ bun run validate:quick               # types + lint + unit
 
 | Trigger | Jobs |
 |---------|------|
-| PRs to `main` | `checks` (lint + typecheck + Next.js build) + `e2e-smoke` (Playwright) + `rls-security` (integration tests against prod) |
+| PRs to `main` | `checks` (dependency-audit gate, lint, typecheck, credential-gate self-test, **unit suite with coverage thresholds**, Next.js build) + `e2e-smoke` (Playwright) + `rls-security` (integration tests against prod) |
 | Push to `main` | Same set; deploys via Vercel auto-trigger |
-| Weekly cron + `workflow_dispatch` | `rls-security` (independent of branch state) |
+| Weekly cron + `workflow_dispatch` | `rls-security` (independent of branch state) · `migration-replay` (the ledger applies to an empty database) |
+| Daily cron + `workflow_dispatch` | `dependency-audit` (the audit gate against `main`'s lockfile) · `config-drift` (Supabase, branch-protection and Vercel configuration still match what this repo documents) |
 
 Doc-only PRs (`**.md`, `.planning/**`, `.vscode/**`, `docs/**`, `LICENSE`) are handled by a paired no-op workflow ([`.github/workflows/ci-cd-doc-only.yml`](./.github/workflows/ci-cd-doc-only.yml)) so required status checks remain satisfied without bypassing branch protection.
 
-Pre-commit hooks (lefthook): gitleaks, lockfile-verify, lint, typecheck, unit tests in parallel. Pre-push: lockfile sync. Commit messages enforced via commitlint (Conventional Commits).
+Pre-commit hooks (lefthook): gitleaks, lockfile-verify, lint, typecheck, unit tests in parallel. The unit suite runs in CI as well, inside `checks` — Dependabot's commits skip every hook, so before that it ran nowhere for them. Pre-push: lockfile sync. Commit messages enforced via commitlint (Conventional Commits).
 
 ---
 

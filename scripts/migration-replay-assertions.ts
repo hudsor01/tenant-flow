@@ -34,12 +34,13 @@ import type { AssertionResult } from "./assertion-result";
  * Owner A must be `active` or the proxy's subscription gate sends every e2e run
  * to /pricing.
  *
- * The gate's query wraps the nullable columns in `coalesce`, and that is not
- * cosmetic: `subscription_status` and `auth.users.email` are both nullable, and
- * `||` with a NULL operand yields NULL, so psql printed an empty line for the
- * whole row and `normalizeRows` dropped it. A single unset column therefore
- * came back as "the three e2e users do not exist". Anything spelled
- * `<null-...>` in a failure here is a NULL column, not a missing user.
+ * The gate's query wraps `subscription_status` in `coalesce`, and that is not
+ * cosmetic: it is nullable, and `||` with a NULL operand yields NULL, so psql
+ * printed an empty line for the whole row and `normalizeRows` dropped it. A
+ * single unset column therefore came back as "the three e2e users do not
+ * exist". A `<null-status>` in a failure here is an unset column, not a missing
+ * user. (`u.email` needs no coalesce -- the query's own `like` already excludes
+ * a NULL email -- and `is_admin` is NOT NULL.)
  */
 export const EXPECTED_SEEDED_CAST: readonly string[] = [
 	"e2e-admin@tenantflow.app|true|active|1",

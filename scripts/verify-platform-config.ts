@@ -27,6 +27,7 @@ import {
 	type AssertionResult,
 	errorAnnotation,
 	reportResult,
+	summarizeResults,
 } from "./assertion-result";
 import {
 	assertHistoryProtected,
@@ -63,11 +64,21 @@ import {
  */
 const VERCEL_COMMIT_WINDOW = 20;
 
-/**
- * A page of commits this size means there may be more, and the Supabase half
- * must not treat a cut-off page as a clean one.
- */
+/** The API maximum, and the page size for every paginated listing here. */
 const COMMIT_PAGE_LIMIT = 100;
+
+/**
+ * How many pages of commits the Supabase half will walk before giving up.
+ *
+ * It USED to fetch one page and report `truncated` -- a hard failure whose
+ * message said "paginate", with nothing paginating. That was latent only
+ * because the window was still pinned to the revocation instant; a 168-hour
+ * window on a busy week here reaches 268 reachable commits, so the gate would
+ * have gone red for a reason that was not drift, and stayed red for a week.
+ * Five pages against a 36-hour window is roughly ten times the busiest
+ * measured day.
+ */
+const COMMIT_PAGE_CAP = 5;
 
 /** The production project ref, as scripts/deploy-edge-functions.ts also pins it. */
 const SUPABASE_PROJECT_REF = "bshjmbshupiibfiewpxb";
@@ -112,6 +123,24 @@ class HttpError extends Error {
 	}
 }
 
+/**
+ * Anything thrown past the assertions still has to come out as an annotation.
+ * A gate whose only notification channel is a scheduled-failure email reports
+ * nothing useful if it dies with a bare stack trace.
+ */
+function reportFatal(error: unknown): never {
+	const detail = error instanceof Error ? error.message : String(error);
+	console.log(
+		errorAnnotation(
+			`the drift gate could not finish: ${detail}\nA 403 here can also be a secondary rate limit rather than a missing permission -- this job issues one check-run request per commit in the window.`,
+		),
+	);
+	process.exit(1);
+}
+
+process.on("uncaughtException", reportFatal);
+process.on("unhandledRejection", reportFatal);
+
 async function json<T>(
 	url: string,
 	headers: Readonly<Record<string, string>>,
@@ -142,13 +171,19 @@ const gh = <T>(path: string, needs?: string): Promise<T> =>
 		needs,
 	);
 
-const statusesOf = async (sha: string): Promise<CommitStatuses> => {
+interface CommitRef {
+	readonly sha: string;
+	readonly commit: { readonly committer: { readonly date: string } };
+}
+
+const statusesOf = async (commit: CommitRef): Promise<CommitStatuses> => {
 	const status = await gh<CombinedStatusResponse>(
-		`/commits/${sha}/status`,
+		`/commits/${commit.sha}/status`,
 		"statuses: read",
 	);
 	return {
-		sha,
+		sha: commit.sha,
+		committedAt: commit.commit.committer.date,
 		statuses: status.statuses.map((entry) => ({
 			context: entry.context,
 			state: entry.state,
@@ -198,11 +233,19 @@ if (SUPABASE_TOKEN === "") {
 	// Bounded by the SAME floor the assertion uses, so the window it reasons
 	// about and the window that was fetched cannot drift apart.
 	const since = new Date(supabaseWindowFloor(now)).toISOString();
-	const windowCommits = await gh<readonly { readonly sha: string }[]>(
-		`/commits?sha=main&since=${since}&per_page=${COMMIT_PAGE_LIMIT}`,
-	);
+	const windowCommits: CommitRef[] = [];
+	let truncated = false;
+	for (let page = 1; page <= COMMIT_PAGE_CAP; page += 1) {
+		const batch = await gh<readonly CommitRef[]>(
+			`/commits?sha=main&since=${since}&per_page=${COMMIT_PAGE_LIMIT}&page=${page}`,
+		);
+		windowCommits.push(...batch);
+		if (batch.length < COMMIT_PAGE_LIMIT) break;
+		// A full page on the last allowed one means there is more history in
+		// the window than this is willing to read.
+		if (page === COMMIT_PAGE_CAP) truncated = true;
+	}
 	const checkRuns: CommitCheckRun[] = [];
-	let truncated = windowCommits.length >= COMMIT_PAGE_LIMIT;
 	for (const commit of windowCommits) {
 		const runs = await gh<CheckRunsResponse>(
 			`/commits/${commit.sha}/check-runs?per_page=100`,
@@ -242,12 +285,12 @@ if (SUPABASE_TOKEN === "") {
 }
 
 // ---------------------------------------------------------------- Vercel ----
-const recentCommits = await gh<readonly { readonly sha: string }[]>(
+const recentCommits = await gh<readonly CommitRef[]>(
 	`/commits?sha=main&per_page=${VERCEL_COMMIT_WINDOW}`,
 );
 const mainStatuses: CommitStatuses[] = [];
 for (const commit of recentCommits) {
-	mainStatuses.push(await statusesOf(commit.sha));
+	mainStatuses.push(await statusesOf(commit));
 }
 
 // `base=main`: a pull request FROM main into some other base carries main's own
@@ -262,13 +305,23 @@ const openPulls = await gh<
 	`/pulls?state=open&base=main&per_page=${COMMIT_PAGE_LIMIT}`,
 	"pull-requests: read",
 );
+// TWO DIFFERENT GUARDS, for two different cases. `base=main` above excludes a
+// pull request FROM main into some other base, whose head IS main and so
+// carries main's own Vercel status. The `reachable` skip covers the remaining
+// case of a head that is already an ancestor of main -- rare under
+// squash-merge, but a status on it would likewise be main's, not a preview's.
 const reachable = new Set(recentCommits.map((commit) => commit.sha));
 const pullRequestHeads: PullRequestHead[] = [];
 for (const pull of openPulls) {
 	if (reachable.has(pull.head.sha)) continue;
 	pullRequestHeads.push({
 		number: pull.number,
-		...(await statusesOf(pull.head.sha)),
+		...(await statusesOf({
+			sha: pull.head.sha,
+			// Only the main-side liveness half reads committedAt, so a PR head's
+			// own commit time is irrelevant and is not fetched.
+			commit: { committer: { date: new Date(0).toISOString() } },
+		})),
 	});
 }
 
@@ -289,22 +342,17 @@ add(
 		: assertVercelDeploysOnlyMain({
 				mainCommits: mainStatuses,
 				pullRequestHeads,
+				now,
 			}),
 );
 
 // ---------------------------------------------------------------- report ----
-let failed = 0;
-let unverified = 0;
 for (const [title, result] of results) {
-	if (reportResult(title, result)) {
-		failed += 1;
-		continue;
-	}
-	if (result.ok && result.unverified === true) unverified += 1;
+	reportResult(title, result);
 }
 
-const checked = results.length - unverified;
+const tally = summarizeResults(results.map(([, result]) => result));
 console.log(
-	`\n${checked - failed} of ${checked} checked invariants hold${unverified > 0 ? `, ${unverified} unverified` : ""} (${recentCommits.length} recent main commit(s), ${pullRequestHeads.length} open pull request head(s) examined${SUPABASE_TOKEN === "" ? "; no SUPABASE_ACCESS_TOKEN, so Supabase's setting itself was not read -- only that nothing has acted" : ""})`,
+	`\n${tally.checked - tally.failed} of ${tally.checked} checked invariants hold${tally.unverified > 0 ? `, ${tally.unverified} unverified` : ""} (${recentCommits.length} recent main commit(s), ${pullRequestHeads.length} open pull request head(s) examined${SUPABASE_TOKEN === "" ? "; no SUPABASE_ACCESS_TOKEN, so Supabase's setting itself was not read -- only that nothing has acted" : ""})`,
 );
-process.exit(failed === 0 ? 0 : 1);
+process.exit(tally.exitCode);

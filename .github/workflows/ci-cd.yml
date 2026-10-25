@@ -97,9 +97,8 @@ jobs:
         run: bash .github/actions/verify-supabase-test-auth/test.sh
 
       # THE SUITE CI DID NOT RUN. Until this step, the unit project ran ONLY in
-      # lefthook's pre-commit hook -- and Dependabot and GitHub-UI commits skip
-      # every hook, so for those the suite ran nowhere at all. That is not a
-      # theoretical gap. PR #1001 (react 19.2.8 -> 19.3.1, without react-dom)
+      # lefthook's pre-commit hook -- and Dependabot commits skip every hook, so
+      # for those the suite ran nowhere at all. That is not a theoretical gap. PR #1001 (react 19.2.8 -> 19.3.1, without react-dom)
       # passed `checks`, `e2e-smoke`, `rls-security`, CodeQL and `scan` while
       # failing 332 of 332 unit test files on `Incompatible React versions`
       # (measured locally -- CI could not have measured it, which is the point),
@@ -107,6 +106,14 @@ jobs:
       # assert lives in its DEVELOPMENT bundle: `next build && next start` ships
       # production, where it is absent, while jsdom always evaluates it. Every
       # required check was green on a tree that could not run its own tests.
+      #
+      # WHAT THIS DOES NOT CLOSE, precisely: `checks` is `pull_request`-only, so
+      # a commit pushed STRAIGHT to main still runs the suite nowhere. Branch
+      # protection would normally make that unreachable, except `enforce_admins`
+      # is false -- which scripts/platform-config-assertions.ts pins as the
+      # documented state -- and the sole maintainer is an admin. Dependabot
+      # opens pull requests, so the #1001 class above is genuinely closed; a
+      # web-editor push straight to main is not.
       #
       # `--coverage` is not decoration: it is what applies the thresholds at the
       # root of vitest.config.ts (statements 64 / branches 56 / functions 63 /
@@ -131,9 +138,18 @@ jobs:
       #
       # This step also carries the negative controls for every other gate in
       # this repo whose assertions are plain tested code -- the migration-replay
-      # comparisons, the platform-config drift checks, and the workflow contract
-      # with its ten committed mutations. Those tests are the reason "the gate
+      # comparisons, the platform-config drift checks, the shared result module,
+      # both CLIs' exit codes, and the workflow contract with its twelve
+      # committed mutated-fixture tests. Those tests are the reason "the gate
       # was green" means the gate can still fail.
+      #
+      # ONE KNOWN RISK IN PUTTING IT HERE. vitest.config.ts records an
+      # intermittent worker-pool/setupFiles race (mass `Invalid Chai property`
+      # failures, cleared by a re-run), and its own comment says the
+      # UNIT_MAX_WORKERS hedge was "NOT empirically reproduced on lower-core
+      # hardware" -- which is exactly this runner, at 3 workers against the
+      # 18-core box where it measured 0/3. If `checks` ever goes red with mass
+      # chai-property errors, re-run it before looking anywhere else.
       #
       # Before the build, which takes 51s-76s on the same three runs: a tree
       # that cannot run its tests should not wait on a bundler to find out.

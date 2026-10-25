@@ -47,9 +47,10 @@ on:
       - scripts/seed-test-users.ts
       - scripts/migration-replay-assertions.ts
       - scripts/assert-migration-replay.ts
-      # The negative controls, and the module whose %0A escaping is what makes
-      # every failure message above one line. A change that weakens a control
-      # has to run the gate it guards.
+      # The negative controls, and the shared result module: a change that
+      # weakens a control has to run the gate it guards. (The result module's
+      # own controls are in scripts/assertion-result.test.ts, because a green
+      # gate never calls its annotation helpers.)
       - scripts/migration-replay-assertions.test.ts
       - scripts/assertion-result.ts
       - .github/workflows/migration-replay.yml
@@ -109,20 +110,16 @@ jobs:
           # Counted from the tree, never hardcoded, so this stays correct as
           # migrations are added.
           expected=$(find supabase/migrations -maxdepth 1 -name '*.sql' | wc -l | tr -d ' ')
-          # ANCHORED: `grep -oE '[0-9]+' | tail -1` took the last number from
-          # ANY output on stdout -- a `(1 row)` footer, a bordered table, a
-          # version string in a usage dump from an unknown subcommand (the
-          # `2>/dev/null` only hides stderr). That hands the assertion a
-          # valid-but-wrong count, which routes around its "could not read it"
-          # branch and reports a complete replay as an incomplete one.
-          applied=$(supabase db query --linked=false \
-            "select count(*) from supabase_migrations.schema_migrations;" 2>/dev/null \
-            | grep -oE '^[0-9]+$' | head -1 || true)
-          if [ -z "$applied" ]; then
-            # Older/newer CLIs differ on `db query`; fall back to psql in the container.
-            applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
-              "select count(*) from supabase_migrations.schema_migrations;")
-          fi
+          # psql ONLY. This used to try `supabase db query` first and fall back
+          # to psql, on a comment claiming CLIs differ on that subcommand -- but
+          # 2.121.0, which this workflow pins, has it. What it does NOT have is
+          # a machine-readable mode: it renders an aligned table, so extracting
+          # a count from it means either an unanchored grep (which took the last
+          # number from any output, including a `(1 row)` footer or a usage
+          # dump) or an anchored one that never matches. `psql -tAc` is tuples
+          # only, unaligned, one number.
+          applied=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
+            "select count(*) from supabase_migrations.schema_migrations;")
           echo "migration files: ${expected}"
           echo "applied rows:    ${applied}"
           bun scripts/assert-migration-replay.ts applied "$expected" "$applied"
@@ -161,15 +158,19 @@ jobs:
           # could never have signed in. The expectation, and the explanation of
           # how psql spells the boolean through `||`, live in
           # scripts/migration-replay-assertions.ts.
-          # `coalesce` IS LOAD-BEARING. `subscription_status` is nullable and
-          # `auth.users.email` is too, and `||` with a NULL operand yields NULL
-          # -- so one NULL column made psql print an EMPTY LINE for that whole
-          # row, which the assertion's whitespace filter then dropped. With all
-          # three NULL the gate reported "the three e2e users do not exist"
-          # while they existed and one column was unset: the misdiagnosis class
-          # this gate was rewritten to eliminate.
+          # `coalesce` ON subscription_status IS LOAD-BEARING. It is nullable,
+          # and `||` with a NULL operand yields NULL -- so one unset column made
+          # psql print an EMPTY LINE for that whole row, which the assertion's
+          # whitespace filter dropped, and the gate reported "the three e2e
+          # users do not exist" while they existed with one column unset. That
+          # is the misdiagnosis class this gate was rewritten to eliminate.
+          #
+          # NOT on u.email: `where u.email like ...` already excludes a NULL
+          # email, because `NULL LIKE` is NULL. A coalesce there would be
+          # unreachable. `p.is_admin` is `boolean not null default false`
+          # (20260418235000_drop_user_type_to_is_admin.sql).
           rows=$(docker exec supabase_db_tenant-flow psql -U postgres -tAc \
-            "select coalesce(u.email, '<null-email>') || '|' || p.is_admin || '|' ||
+            "select u.email || '|' || p.is_admin || '|' ||
                     coalesce(p.subscription_status, '<null-status>') || '|' ||
                     (select count(*) from auth.identities i where i.user_id = u.id)
              from auth.users u join public.users p on p.id = u.id

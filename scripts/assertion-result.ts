@@ -76,3 +76,37 @@ export function reportResult(title: string, result: AssertionResult): boolean {
 	console.log(`PASS  ${title}: ${result.message}`);
 	return false;
 }
+
+export interface ResultTally {
+	/** Results that were actually checked: the total minus the unverified ones. */
+	readonly checked: number;
+	readonly failed: number;
+	readonly unverified: number;
+	/** The process exit code this tally implies. */
+	readonly exitCode: number;
+}
+
+/**
+ * The arithmetic behind a gate's summary line, as a pure function.
+ *
+ * It lived inline in the CLI, where nothing could check that "5 of 5 checked
+ * invariants hold, 1 unverified" was consistent with the exit code -- in a
+ * module whose entire thesis is that an unchecked thing must not be counted as
+ * a passing one.
+ */
+export function summarizeResults(
+	results: readonly AssertionResult[],
+): ResultTally {
+	// A failing result is never also counted unverified: the union forbids the
+	// combination, and this order would resolve it toward FAILED anyway.
+	const failed = results.filter((result) => !result.ok).length;
+	const unverified = results.filter(
+		(result) => result.ok && result.unverified === true,
+	).length;
+	return {
+		checked: results.length - unverified,
+		failed,
+		unverified,
+		exitCode: failed === 0 ? 0 : 1,
+	};
+}

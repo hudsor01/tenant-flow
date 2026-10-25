@@ -182,10 +182,30 @@ describe("mutations the contract must catch", () => {
 	});
 
 	it("the companion drops a pull_request path the real CI ignores", () => {
-		const dir = fixture({
-			...base(),
-			"ci-cd-doc-only.yml": COMPANION.replace('      - "docs/**"\n', ""),
-		});
+		// The PULL_REQUEST arm specifically. A string `.replace` hits the first
+		// occurrence, which in COMPANION is the entry under `push:` -- so this
+		// used to mutate the push arm, duplicate the test above it, and leave
+		// the pull_request iteration of the lockstep loop with no control at all.
+		const companion = COMPANION.replace(
+			'  pull_request:\n    branches: [main]\n    paths:\n      - "**.md"\n      - "docs/**"\n',
+			'  pull_request:\n    branches: [main]\n    paths:\n      - "**.md"\n',
+		);
+		expect(companion).not.toBe(COMPANION);
+		const dir = fixture({ ...base(), "ci-cd-doc-only.yml": companion });
+		const result = mirrorOf(dir);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"pull_request path lists are not complements",
+		);
+	});
+
+	it("the companion drops a push path the real CI ignores", () => {
+		const companion = COMPANION.replace(
+			'  push:\n    branches: [main]\n    paths:\n      - "**.md"\n      - "docs/**"\n',
+			'  push:\n    branches: [main]\n    paths:\n      - "**.md"\n',
+		);
+		expect(companion).not.toBe(COMPANION);
+		const dir = fixture({ ...base(), "ci-cd-doc-only.yml": companion });
 		const result = mirrorOf(dir);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("push path lists are not complements");

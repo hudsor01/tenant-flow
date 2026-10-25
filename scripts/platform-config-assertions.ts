@@ -28,8 +28,8 @@ import type { AssertionResult } from "./assertion-result";
  * `checks` and `e2e-smoke` are reported either by ci-cd.yml or by its doc-only
  * companion; `rls-security` comes from rls-security-tests.yml, which carries no
  * path filter precisely so that it reports on every PR.
- * `src/lib/__tests__/workflow-required-checks.test.ts` guards that arrangement
- * offline from this same list.
+ * `scripts/workflow-contract.test.ts` guards that arrangement offline from this
+ * same list, with eleven mutated-fixture controls.
  */
 export const REQUIRED_CHECK_CONTEXTS: readonly string[] = [
 	"checks",
@@ -51,6 +51,17 @@ export const DOCUMENTED_ADMIN_ENFORCEMENT = "non_admins";
 /** How Vercel names itself in a commit status context. */
 const VERCEL_CONTEXT = /^vercel/i;
 
+/**
+ * How long after a push Vercel may take to report before its silence counts as
+ * production having stopped deploying.
+ *
+ * This is the one bound that decides whether the single catastrophic failure
+ * mode of vercel.json's `**` catch-all -- main stops deploying too -- is a RED
+ * gate or a warning nobody reads. Sixty minutes is generous against this app's
+ * observed build (under two minutes) and still bounds detection to one day.
+ */
+const VERCEL_REPORT_GRACE_MINUTES = 60;
+
 /** The GitHub App slug the Supabase integration posts its check runs under. */
 const SUPABASE_APP_SLUG = "supabase";
 
@@ -68,11 +79,17 @@ export const SUPABASE_AUTHORITY_REVOKED_AT = "2026-10-25T07:11:58Z";
 /**
  * How recent a Supabase run has to be to say anything about the setting today.
  *
- * Also what lets this clear itself: a re-enable that is caught and then turned
- * off again stops being reported once its runs age out, instead of reddening
- * the gate forever the way an un-bounded history would.
+ * 36 hours = the gate's 24-hour schedule plus twelve of slack, so consecutive
+ * runs OVERLAP and nothing can act in a gap between them. It was 168, which
+ * was both more than needed and expensive: the caller fetches every commit in
+ * this window and one check-run page each, and this repo's main has had 268
+ * reachable commits in a 168-hour window.
+ *
+ * It is also what lets this clear itself: a re-enable that is caught and then
+ * turned off again stops being reported once its runs age out, instead of
+ * reddening the gate for as long as the commit stays in view.
  */
-const SUPABASE_RUN_FRESHNESS_HOURS = 168;
+const SUPABASE_RUN_FRESHNESS_HOURS = 36;
 
 /** What `vercel.json` must say, exactly, for "deploy main and nothing else". */
 const DOCUMENTED_DEPLOYMENT_RULES: Readonly<Record<string, boolean>> = {
@@ -131,6 +148,8 @@ export interface CommitStatus {
 
 export interface CommitStatuses {
 	readonly sha: string;
+	/** ISO 8601 committer date, used to tell "not yet" from "never". */
+	readonly committedAt: string;
 	readonly statuses: readonly CommitStatus[];
 }
 
@@ -340,13 +359,19 @@ export function assertSupabaseDidNotActOnProduction(
 		readonly freshnessHours?: number;
 	},
 ): AssertionResult {
-	// Zero commits is not a pass: an empty window makes the filters below return
-	// nothing and report the invariant as satisfied without having looked.
+	// UNVERIFIED, not a failure. This guard was a failure when the caller handed
+	// over a fixed window of the last N commits, where zero could only mean a
+	// broken listing. The caller now fetches `since=<this floor>`, which makes
+	// zero a routine quiescent week -- and this repo's main has five
+	// inter-commit gaps over 168h, the longest 290h. Reporting a quiet
+	// fortnight as a failure every morning is the same "opposite verdicts for
+	// one epistemic state" that the protection endpoint had, one function over.
 	if (commitsExamined === 0) {
 		return {
-			ok: false,
+			ok: true,
+			unverified: true,
 			message:
-				"examined no commits, so this proves nothing about the Supabase integration. The commit listing failed or returned an empty page.",
+				"no commit on main falls inside the window, so there is nothing to read: either nothing was pushed recently enough, or the commit listing came back empty. Nothing was checked either way.",
 		};
 	}
 	if (options.truncated === true) {
@@ -366,10 +391,22 @@ export function assertSupabaseDidNotActOnProduction(
 		options.revokedAt,
 		options.freshnessHours,
 	);
+	const revokedAtRaw = options.revokedAt ?? SUPABASE_AUTHORITY_REVOKED_AT;
+	// TWO WAYS THIS CONSTANT GOES WRONG, and only one of them is a NaN. A
+	// zoneless instant parses FINE and Date.parse reads it as LOCAL time, so
+	// the floor shifts silently by the machine's offset -- measured at +5h on a
+	// UTC-5 box, which would hide five hours of acting runs on a local run.
+	// Checked explicitly rather than inferred from the parse.
+	if (!/(?:Z|[+-]\d{2}:?\d{2})$/.test(revokedAtRaw.trim())) {
+		return {
+			ok: false,
+			message: `the Supabase window floor carries no time zone (revokedAt=${JSON.stringify(revokedAtRaw)}). Date.parse reads a zoneless instant as LOCAL time, which moves the floor by the machine's offset and hides acting runs. Give SUPABASE_AUTHORITY_REVOKED_AT its \`Z\`.`,
+		};
+	}
 	if (Number.isNaN(floor)) {
 		return {
 			ok: false,
-			message: `the Supabase window floor is not a date (revokedAt=${JSON.stringify(options.revokedAt ?? SUPABASE_AUTHORITY_REVOKED_AT)}). SUPABASE_AUTHORITY_REVOKED_AT must be an ISO 8601 instant WITH its \`Z\`: without the zone designator Date.parse reads it as local time and moves the floor by the machine's offset.`,
+			message: `the Supabase window floor is not a date (revokedAt=${JSON.stringify(revokedAtRaw)}). SUPABASE_AUTHORITY_REVOKED_AT must be an ISO 8601 instant.`,
 		};
 	}
 
@@ -518,6 +555,9 @@ export function assertVercelConfigDeclaresMainOnly(
 export function assertVercelDeploysOnlyMain(state: {
 	readonly mainCommits: readonly CommitStatuses[];
 	readonly pullRequestHeads: readonly PullRequestHead[];
+	/** Evaluation time; injected so the grace below is testable. */
+	readonly now: Date;
+	readonly graceMinutes?: number;
 }): AssertionResult {
 	// ANY state counts as "Vercel built this ref": a preview that failed to
 	// build is still a preview, and Vercel still ran it against production
@@ -560,10 +600,29 @@ export function assertVercelDeploysOnlyMain(state: {
 	}
 	if (!state.mainCommits.some(deployed)) {
 		const attempted = state.mainCommits.filter(built).length;
+		// "NOT YET" OR "NEVER", AND THE DIFFERENCE IS THE WHOLE POINT. The one
+		// catastrophic way the `**` catch-all in vercel.json can be wrong is
+		// that it stops main deploying as well, and reporting that as a warning
+		// on a gate whose only channel is a scheduled-failure email is the same
+		// as not reporting it. Past the grace, it FAILS.
+		const newest = Math.max(
+			...state.mainCommits.map((commit) => Date.parse(commit.committedAt)),
+		);
+		const graceMs =
+			(state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES) * 60_000;
+		const settled =
+			!Number.isNaN(newest) && state.now.getTime() - newest > graceMs;
+		const detail = `none of the last ${state.mainCommits.length} commits reachable from main carries a SUCCESSFUL Vercel status${attempted > 0 ? ` (${attempted} carry one in another state)` : ""}.`;
+		if (settled) {
+			return {
+				ok: false,
+				message: `${detail} The newest of them landed at ${new Date(newest).toISOString()}, more than ${state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES} minutes ago, so this is not Vercel being slow: either the Git integration is gone or PRODUCTION HAS STOPPED DEPLOYING. Check that the \`**\` catch-all in vercel.json did not also stop main -- matching rules are OR-ed, so an explicit \`"main": true\` is what keeps it deploying. The last good deploy stays live, so the site is stale rather than down.`,
+			};
+		}
 		return {
 			ok: true,
 			unverified: true,
-			message: `none of the last ${state.mainCommits.length} commits reachable from main carries a SUCCESSFUL Vercel status${attempted > 0 ? ` (${attempted} carry one in another state)` : ""}. That is expected for a few minutes after a push, while Vercel has not reported yet; if it persists, either the Git integration is gone or production has stopped deploying -- check that the \`**\` catch-all in vercel.json did not also stop main. The last good deploy stays live, so the site would be stale rather than down.`,
+			message: `${detail} The newest landed at ${Number.isNaN(newest) ? "an unreadable time" : new Date(newest).toISOString()}, inside the ${state.graceMinutes ?? VERCEL_REPORT_GRACE_MINUTES}-minute reporting grace, so Vercel may simply not have reported yet. The next run decides it.`,
 		};
 	}
 	// SAYS WHAT IT LOOKED AT. This half can only see refs that have an open pull

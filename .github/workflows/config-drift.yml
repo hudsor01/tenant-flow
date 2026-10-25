@@ -69,6 +69,20 @@ on:
   schedule:
     - cron: '17 7 * * *'
   workflow_dispatch:
+  # And on the merge itself, so a change to the gate or to vercel.json is
+  # exercised on main within minutes instead of at 07:17 the next morning. The
+  # Vercel liveness half will report UNVERIFIED on that run -- the merge commit
+  # is seconds old and inside the reporting grace -- which is correct, and the
+  # next scheduled run is what decides it.
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/config-drift.yml
+      - scripts/verify-platform-config.ts
+      - scripts/platform-config-assertions.ts
+      - scripts/platform-config-assertions.test.ts
+      - scripts/assertion-result.ts
+      - vercel.json
   # On pull requests that touch this gate, so a change to it is proven against
   # live GitHub before it merges rather than at 07:17 the next morning.
   pull_request:
@@ -77,9 +91,11 @@ on:
       - .github/workflows/config-drift.yml
       - scripts/verify-platform-config.ts
       - scripts/platform-config-assertions.ts
-      # The negative controls, and the module whose %0A escaping is what makes
-      # every failure message above one line. A change to either must run this
-      # gate against live GitHub, not only the unit suite in `checks`.
+      # The negative controls, and the shared result module. A change to either
+      # must run this gate against live GitHub, not only the unit suite in
+      # `checks`. (The result module's own controls are in
+      # scripts/assertion-result.test.ts: a GREEN gate never calls its
+      # annotation helpers, so no live run here could notice them breaking.)
       - scripts/platform-config-assertions.test.ts
       - scripts/assertion-result.ts
       - vercel.json

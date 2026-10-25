@@ -10,6 +10,12 @@
 # class again; this enumerates it. Each row below breaks one branch and requires
 # the suite to go red. A row reported VACUOUS is a branch nothing tests.
 #
+# WHAT IT STILL DOES NOT REACH: the fetching in
+# scripts/verify-platform-config.ts. Its summary arithmetic was extracted into
+# `summarizeResults` precisely so it could be covered by a unit test instead;
+# what remains there is HTTP, which has no control short of a live run (the
+# `config-drift` job is that run, on every PR touching these files and daily).
+#
 # It is in the repo rather than in a scratch directory because the earlier
 # version of this was a shell script nobody else could run, which made
 # "the mutations are each caught" a claim with nothing behind it -- the exact
@@ -34,11 +40,15 @@ fi
 REPLAY=scripts/migration-replay-assertions.ts
 PLATFORM=scripts/platform-config-assertions.ts
 CONTRACT=scripts/workflow-contract.ts
+RESULT=scripts/assertion-result.ts
+REPLAY_CLI=scripts/assert-migration-replay.ts
 
 BACKUP=$(mktemp -d)
-for f in "$REPLAY" "$PLATFORM" "$CONTRACT"; do cp "$f" "$BACKUP/$(basename "$f")"; done
-restore() { for f in "$REPLAY" "$PLATFORM" "$CONTRACT"; do cp "$BACKUP/$(basename "$f")" "$f"; done; }
-trap 'restore; rm -rf "$BACKUP"' EXIT
+LOG=$(mktemp)
+FILES=("$REPLAY" "$PLATFORM" "$CONTRACT" "$RESULT" "$REPLAY_CLI")
+for f in "${FILES[@]}"; do cp "$f" "$BACKUP/$(basename "$f")"; done
+restore() { for f in "${FILES[@]}"; do cp "$BACKUP/$(basename "$f")" "$f"; done; }
+trap 'restore; rm -rf "$BACKUP" "$LOG"' EXIT
 
 caught=0; vacuous=0; unapplied=0
 
@@ -60,7 +70,7 @@ PY
     restore
     return
   fi
-  CI=true bun run test:unit -- scripts src/lib/__tests__ > /tmp/mutation-sweep.log 2>&1
+  CI=true bun run test:unit -- scripts src/lib/__tests__ > "$LOG" 2>&1
   if [ $? -eq 0 ]; then
     printf 'VACUOUS      %s\n' "$label"
     vacuous=$((vacuous + 1))
@@ -72,9 +82,9 @@ PY
 }
 
 echo "=== baseline ==="
-CI=true bun run test:unit -- scripts src/lib/__tests__ > /tmp/mutation-sweep.log 2>&1
+CI=true bun run test:unit -- scripts src/lib/__tests__ > "$LOG" 2>&1
 if [ $? -ne 0 ]; then echo "baseline is RED; fix that before sweeping"; exit 1; fi
-grep -oE 'Tests  [0-9]+ passed' /tmp/mutation-sweep.log
+grep -oE 'Tests  [0-9]+ passed' "$LOG"
 echo
 
 echo "=== migration-replay assertions ==="
@@ -167,6 +177,37 @@ mutate "$CONTRACT" 'if (workflows.length === 0) {' 'if (false) {' \
                    'an empty workflow directory passes'
 mutate "$CONTRACT" 'if (sortedReal.join("\n") !== sortedCompanion.join("\n")) {' 'if (false) {' \
                    'the companion job-name equality is dropped'
+
+echo
+echo "=== the verdict layer: annotations, reporting, tallying, exit codes ==="
+# NOT COVERED BY THE ROWS ABOVE, and review proved what that cost: deleting the
+# %0A escaping passed lint, typecheck, the whole suite, caught=35 and both
+# gates, because a GREEN gate never calls an annotation helper. Changing
+# `process.exit(1)` to 0 in the replay CLI made the gate report green on a
+# 246-of-348 replay with the sweep still clean.
+mutate "$RESULT" 'return `::error::${message.replaceAll("\n", "%0A")}`;' \
+                 'return `::error::${message}`;' \
+                 'the error annotation stops escaping newlines'
+mutate "$RESULT" 'return `::warning::${message.replaceAll("\n", "%0A")}`;' \
+                 'return `::warning::${message}`;' \
+                 'the warning annotation stops escaping newlines'
+mutate "$RESULT" 'if (!result.ok) {' 'if (false) {' \
+                 'reportResult stops treating a failure as a failure'
+mutate "$RESULT" 'if (result.unverified === true) {' 'if (false) {' \
+                 'reportResult prints an unverified result as a pass'
+mutate "$RESULT" 'checked: results.length - unverified,' 'checked: results.length,' \
+                 'the tally counts an unverified result among the checked'
+mutate "$RESULT" 'exitCode: failed === 0 ? 0 : 1,' 'exitCode: 0,' \
+                 'the tally always implies exit 0'
+mutate "$REPLAY_CLI" 'console.log(errorAnnotation(result.message));
+		console.log(result.message);
+		process.exit(1);' \
+                     'console.log(errorAnnotation(result.message));
+		console.log(result.message);
+		process.exit(0);' \
+                     'the replay CLI exits 0 on a failed assertion'
+mutate "$REPLAY_CLI" 'process.exit(2);' 'process.exit(0);' \
+                     'the replay CLI exits 0 on misuse'
 
 echo
 echo "=== restore check ==="

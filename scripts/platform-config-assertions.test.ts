@@ -381,10 +381,15 @@ describe("assertSupabaseDidNotActOnProduction", () => {
 		expect(result.message).toContain("truncated");
 	});
 
-	it("refuses to pass vacuously when no commits were examined", () => {
+	it("reports UNVERIFIED on an empty window, which a `since` fetch makes routine", () => {
+		// This was a failure when the caller handed over a fixed window of the
+		// last N commits, where zero could only mean a broken listing. With
+		// `since=<this floor>` it is a quiet week, and this repo's main has five
+		// inter-commit gaps over 168h.
 		const result = assertSupabaseDidNotActOnProduction(0, [], { now: NOW });
-		expect(result.ok).toBe(false);
-		expect(result.message).toContain("proves nothing");
+		expect(result.ok).toBe(true);
+		expect(result.ok && result.unverified).toBe(true);
+		expect(result.message).toContain("nothing to read");
 	});
 
 	it("returns a result rather than throwing when the bound is not a date", () => {
@@ -400,16 +405,29 @@ describe("assertSupabaseDidNotActOnProduction", () => {
 		expect(result.message).toContain("SUPABASE_AUTHORITY_REVOKED_AT");
 	});
 
-	it("names the missing Z, because a zoneless bound moves with the machine", () => {
-		// Date.parse reads an ISO instant without a zone designator as LOCAL
-		// time, silently shifting the floor by the runner's offset.
+	it("rejects a zoneless bound, which PARSES and silently moves the floor", () => {
+		// The hazard a NaN check cannot see: Date.parse reads
+		// "2026-10-25T07:11:58" as LOCAL time -- measured as 12:11:58Z on a
+		// UTC-5 box -- so the floor shifts by the machine's offset and five
+		// hours of acting runs disappear. It is a valid number, so the
+		// Number.isNaN branch never fires.
+		expect(Number.isNaN(Date.parse("2026-10-25T07:11:58"))).toBe(false);
 		const result = assertSupabaseDidNotActOnProduction(
 			20,
 			[skipped("abc1234567", "2026-10-25T16:00:00Z")],
-			{ now: NOW, revokedAt: "nonsense" },
+			{ now: NOW, revokedAt: "2026-10-25T07:11:58" },
 		);
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("`Z`");
+		expect(result.message).toContain("no time zone");
+	});
+
+	it("accepts an offset bound, not only Z", () => {
+		const result = assertSupabaseDidNotActOnProduction(
+			20,
+			[skipped("abc1234567", "2026-10-25T16:00:00Z")],
+			{ now: NOW, revokedAt: "2026-10-25T02:11:58-05:00" },
+		);
+		expect(result.ok).toBe(true);
 	});
 
 	it("ignores concluded runs from every other app", () => {
@@ -527,25 +545,50 @@ describe("assertVercelConfigDeclaresMainOnly", () => {
 
 describe("assertVercelDeploysOnlyMain", () => {
 	const vercel = (state: string) => ({ context: "Vercel", state });
+	/** Five minutes before NOW: inside the reporting grace. */
+	const JUST_NOW = "2026-10-25T16:25:00Z";
+	/** Six and a half hours before NOW: Vercel has had its chance. */
+	const SETTLED = "2026-10-25T10:00:00Z";
 	const MAIN_DEPLOYED = [
 		{
 			sha: "754c91802acc97ec96ef939b7eceedcd8893a0cb",
+			committedAt: SETTLED,
 			statuses: [vercel("success")],
 		},
-		{ sha: "96f408efecd51362b0b189ea154689e31287e2ef", statuses: [] },
+		{
+			sha: "96f408efecd51362b0b189ea154689e31287e2ef",
+			committedAt: SETTLED,
+			statuses: [],
+		},
 	];
+	const head = (
+		number: number,
+		sha: string,
+		statuses: readonly { context: string; state: string }[],
+	) => ({
+		number,
+		sha,
+		committedAt: SETTLED,
+		statuses,
+	});
+	const check = (
+		mainCommits: readonly {
+			sha: string;
+			committedAt: string;
+			statuses: readonly { context: string; state: string }[];
+		}[],
+		pullRequestHeads: readonly {
+			number: number;
+			sha: string;
+			committedAt: string;
+			statuses: readonly { context: string; state: string }[];
+		}[],
+	) => assertVercelDeploysOnlyMain({ mainCommits, pullRequestHeads, now: NOW });
 
 	it("passes when main deploys and no PR head was built", () => {
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: MAIN_DEPLOYED,
-			pullRequestHeads: [
-				{
-					number: 1037,
-					sha: "2913b39fd33557f13aad3aa97d06ff7f73fb2e06",
-					statuses: [],
-				},
-			],
-		});
+		const result = check(MAIN_DEPLOYED, [
+			head(1037, "2913b39fd33557f13aad3aa97d06ff7f73fb2e06", []),
+		]);
 		expect(result.ok).toBe(true);
 		expect(result.ok && result.unverified).toBeUndefined();
 		// The pass has to say what it could not see: Vercel deploys on push, so
@@ -554,25 +597,17 @@ describe("assertVercelDeploysOnlyMain", () => {
 	});
 
 	it("passes with no open pull request heads, and says so", () => {
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: MAIN_DEPLOYED,
-			pullRequestHeads: [],
-		});
+		const result = check(MAIN_DEPLOYED, []);
 		expect(result.ok).toBe(true);
 		expect(result.message).toContain("no open pull request heads");
 	});
 
 	it("fails when a PR head got a preview deployment", () => {
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: MAIN_DEPLOYED,
-			pullRequestHeads: [
-				{
-					number: 1037,
-					sha: "2913b39fd33557f13aad3aa97d06ff7f73fb2e06",
-					statuses: [vercel("success")],
-				},
-			],
-		});
+		const result = check(MAIN_DEPLOYED, [
+			head(1037, "2913b39fd33557f13aad3aa97d06ff7f73fb2e06", [
+				vercel("success"),
+			]),
+		]);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("#1037");
 		expect(result.message).toContain("PRODUCTION Supabase");
@@ -582,78 +617,90 @@ describe("assertVercelDeploysOnlyMain", () => {
 	});
 
 	it("fails on a FAILED preview too -- it still ran against production", () => {
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: MAIN_DEPLOYED,
-			pullRequestHeads: [
-				{ number: 9, sha: "deadbeef00", statuses: [vercel("failure")] },
-			],
-		});
+		const result = check(MAIN_DEPLOYED, [
+			head(9, "deadbeef00", [vercel("failure")]),
+		]);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("failure");
 	});
 
 	it("reports a preview even while main has no status yet", () => {
 		// The preview half must not be masked by the liveness half.
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: [{ sha: "754c91802a", statuses: [] }],
-			pullRequestHeads: [
-				{ number: 9, sha: "deadbeef00", statuses: [vercel("success")] },
-			],
-		});
+		const result = check(
+			[{ sha: "754c91802a", committedAt: JUST_NOW, statuses: [] }],
+			[head(9, "deadbeef00", [vercel("success")])],
+		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("#9");
+	});
+
+	it("FAILS when main has not deployed and Vercel has had its chance", () => {
+		// The one catastrophic way the `**` catch-all can be wrong is stopping
+		// main as well. Past the grace this must be RED, not a warning on a
+		// gate whose only channel is a scheduled-failure email.
+		const result = check(
+			[
+				{
+					sha: "754c91802a",
+					committedAt: SETTLED,
+					statuses: [{ context: "checks", state: "success" }],
+				},
+			],
+			[],
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("PRODUCTION HAS STOPPED DEPLOYING");
+		expect(result.message).toContain("catch-all in vercel.json");
+	});
+
+	it("reports UNVERIFIED while the newest commit is inside the grace", () => {
+		// Routine for a few minutes after a push. Calling that "production has
+		// stopped deploying" would be a wrong diagnosis on a race.
+		const result = check(
+			[
+				{
+					sha: "754c91802a",
+					committedAt: JUST_NOW,
+					statuses: [{ context: "checks", state: "success" }],
+				},
+			],
+			[],
+		);
+		expect(result.ok).toBe(true);
+		expect(result.ok && result.unverified).toBe(true);
+		expect(result.message).toContain("may simply not have reported yet");
 	});
 
 	it("does not read a FAILED main status as production deploying", () => {
 		// A run of failed production builds leaves the site stale, which is
 		// exactly what the message describes -- so it must not be the evidence
 		// that deploys are healthy.
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: [{ sha: "754c91802a", statuses: [vercel("failure")] }],
-			pullRequestHeads: [],
-		});
-		expect(result.ok).toBe(true);
-		expect(result.ok && result.unverified).toBe(true);
+		const result = check(
+			[
+				{
+					sha: "754c91802a",
+					committedAt: SETTLED,
+					statuses: [vercel("failure")],
+				},
+			],
+			[],
+		);
+		expect(result.ok).toBe(false);
 		expect(result.message).toContain("1 carry one in another state");
 	});
 
-	it("reports UNVERIFIED, not a failure, when no main commit carries a status", () => {
-		// Expected for a few minutes after a push. Calling it "production has
-		// stopped deploying" would be a wrong diagnosis on a routine race.
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: [
-				{
-					sha: "754c91802a",
-					statuses: [{ context: "checks", state: "success" }],
-				},
-			],
-			pullRequestHeads: [],
-		});
-		expect(result.ok).toBe(true);
-		expect(result.ok && result.unverified).toBe(true);
-		expect(result.message).toContain("catch-all in vercel.json");
-	});
-
 	it("refuses to pass vacuously with no main commits", () => {
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: [],
-			pullRequestHeads: [],
-		});
+		const result = check([], []);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("proves nothing");
 	});
 
 	it("matches the Vercel context case-insensitively and by prefix", () => {
-		const result = assertVercelDeploysOnlyMain({
-			mainCommits: MAIN_DEPLOYED,
-			pullRequestHeads: [
-				{
-					number: 9,
-					sha: "deadbeef00",
-					statuses: [{ context: "vercel - tenant-flow", state: "success" }],
-				},
-			],
-		});
+		const result = check(MAIN_DEPLOYED, [
+			head(9, "deadbeef00", [
+				{ context: "vercel - tenant-flow", state: "success" },
+			]),
+		]);
 		expect(result.ok).toBe(false);
 	});
 });
