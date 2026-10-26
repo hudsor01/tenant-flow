@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { cpus } from "node:os";
 import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
@@ -19,28 +18,11 @@ import { defineConfig } from "vitest/config";
 // for the 0/3 baseline on 18 cores.
 const UNIT_MAX_WORKERS = Math.max(2, Math.min(8, cpus().length - 1));
 
-const loadEnvFile = (fileName: string) => {
-	const path = resolve(import.meta.dirname, fileName);
-	try {
-		const raw = readFileSync(path, "utf8");
-		for (const line of raw.split("\n")) {
-			const trimmed = line.trim();
-			if (!trimmed || trimmed.startsWith("#")) continue;
-			const equalsIndex = trimmed.indexOf("=");
-			if (equalsIndex === -1) continue;
-			const key = trimmed.slice(0, equalsIndex);
-			const value = trimmed.slice(equalsIndex + 1);
-			if (process.env[key] === undefined) {
-				process.env[key] = value;
-			}
-		}
-	} catch {
-		// Missing env file is acceptable; other mechanisms may provide values
-	}
-};
-
-loadEnvFile(".env.test");
-loadEnvFile(".env.local");
+// No env file is loaded here. This config is evaluated for every project, so
+// loading .env.local at this level put a developer's real Supabase values into
+// the unit project, overriding unit-setup.ts's mock defaults: the same commit
+// passed in CI and failed in lefthook depending on what .env.local held. The
+// integration project loads its own credentials (tests/integration/setup/env-loader.ts).
 
 export default defineConfig({
 	resolve: {

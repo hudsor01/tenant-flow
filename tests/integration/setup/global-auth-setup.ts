@@ -15,6 +15,7 @@
  * the repo so concurrent CI runs of different branches don't collide.
  */
 
+import "./env-loader";
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
