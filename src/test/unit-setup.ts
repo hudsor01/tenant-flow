@@ -49,8 +49,10 @@ process.env.STRIPE_MAX_ANNUAL =
 // Mark as unit test mode
 process.env.SKIP_INTEGRATION_TESTS = "true";
 
-// Mock CSS custom properties for theme layer testing
-const mockCSSVariables = `
+// A `// @vitest-environment node` file in the unit project (tailwind-theme-integrity.test.ts) has no window/document; everything in this block exists only for jsdom.
+if (typeof window !== "undefined") {
+	// Mock CSS custom properties for theme layer testing
+	const mockCSSVariables = `
 	:root {
 		--spacing-1: 0.25rem;
 		--spacing-4: 1rem;
@@ -64,96 +66,97 @@ const mockCSSVariables = `
 	}
 `;
 
-// Inject mock CSS variables into document head
-const style = document.createElement("style");
-style.textContent = mockCSSVariables;
-document.head.appendChild(style);
+	// Inject mock CSS variables into document head
+	const style = document.createElement("style");
+	style.textContent = mockCSSVariables;
+	document.head.appendChild(style);
 
-// Mock window.matchMedia for components that use media queries (BlurFade, etc.)
-Object.defineProperty(window, "matchMedia", {
-	writable: true,
-	value: vi.fn().mockImplementation((query: string) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
-	})),
-});
-
-// Mock ResizeObserver for components that use it
-class ResizeObserverMock {
-	observe = vi.fn();
-	unobserve = vi.fn();
-	disconnect = vi.fn();
-}
-Object.defineProperty(window, "ResizeObserver", {
-	writable: true,
-	value: ResizeObserverMock,
-});
-
-// Polyfill pointer-capture + scrollIntoView for Radix UI in JSDOM.
-// Radix Select / Dropdown / Popover trigger handlers call
-// `target.hasPointerCapture(...)` on the trigger element; JSDOM has no
-// PointerEvent implementation so the call throws TypeError. The empty
-// implementations below are sufficient for unit tests — we don't need
-// real pointer-capture semantics, just the methods to exist.
-if (!Element.prototype.hasPointerCapture) {
-	Element.prototype.hasPointerCapture = function () {
-		return false;
-	};
-}
-if (!Element.prototype.setPointerCapture) {
-	Element.prototype.setPointerCapture = function () {};
-}
-if (!Element.prototype.releasePointerCapture) {
-	Element.prototype.releasePointerCapture = function () {};
-}
-if (!Element.prototype.scrollIntoView) {
-	Element.prototype.scrollIntoView = function () {};
-}
-
-// Mock IntersectionObserver for components that use it (blur-fade, lazy loading, etc.)
-class IntersectionObserverMock implements IntersectionObserver {
-	readonly root: Element | null = null;
-	readonly rootMargin: string = "";
-	readonly scrollMargin: string = "";
-	readonly thresholds: ReadonlyArray<number> = [];
-
-	constructor(
-		private callback: IntersectionObserverCallback,
-		_options?: IntersectionObserverInit,
-	) {}
-
-	observe = vi.fn((target: Element) => {
-		// Immediately trigger the callback with isIntersecting: true
-		// This ensures components render as if they're in view
-		this.callback(
-			[
-				{
-					target,
-					isIntersecting: true,
-					intersectionRatio: 1,
-					boundingClientRect: target.getBoundingClientRect(),
-					intersectionRect: target.getBoundingClientRect(),
-					rootBounds: null,
-					time: Date.now(),
-				},
-			] as IntersectionObserverEntry[],
-			this,
-		);
+	// Mock window.matchMedia for components that use media queries (BlurFade, etc.)
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		value: vi.fn().mockImplementation((query: string) => ({
+			matches: false,
+			media: query,
+			onchange: null,
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		})),
 	});
-	unobserve = vi.fn();
-	disconnect = vi.fn();
-	takeRecords = vi.fn(() => []);
+
+	// Mock ResizeObserver for components that use it
+	class ResizeObserverMock {
+		observe = vi.fn();
+		unobserve = vi.fn();
+		disconnect = vi.fn();
+	}
+	Object.defineProperty(window, "ResizeObserver", {
+		writable: true,
+		value: ResizeObserverMock,
+	});
+
+	// Polyfill pointer-capture + scrollIntoView for Radix UI in JSDOM.
+	// Radix Select / Dropdown / Popover trigger handlers call
+	// `target.hasPointerCapture(...)` on the trigger element; JSDOM has no
+	// PointerEvent implementation so the call throws TypeError. The empty
+	// implementations below are sufficient for unit tests — we don't need
+	// real pointer-capture semantics, just the methods to exist.
+	if (!Element.prototype.hasPointerCapture) {
+		Element.prototype.hasPointerCapture = function () {
+			return false;
+		};
+	}
+	if (!Element.prototype.setPointerCapture) {
+		Element.prototype.setPointerCapture = function () {};
+	}
+	if (!Element.prototype.releasePointerCapture) {
+		Element.prototype.releasePointerCapture = function () {};
+	}
+	if (!Element.prototype.scrollIntoView) {
+		Element.prototype.scrollIntoView = function () {};
+	}
+
+	// Mock IntersectionObserver for components that use it (blur-fade, lazy loading, etc.)
+	class IntersectionObserverMock implements IntersectionObserver {
+		readonly root: Element | null = null;
+		readonly rootMargin: string = "";
+		readonly scrollMargin: string = "";
+		readonly thresholds: ReadonlyArray<number> = [];
+
+		constructor(
+			private callback: IntersectionObserverCallback,
+			_options?: IntersectionObserverInit,
+		) {}
+
+		observe = vi.fn((target: Element) => {
+			// Immediately trigger the callback with isIntersecting: true
+			// This ensures components render as if they're in view
+			this.callback(
+				[
+					{
+						target,
+						isIntersecting: true,
+						intersectionRatio: 1,
+						boundingClientRect: target.getBoundingClientRect(),
+						intersectionRect: target.getBoundingClientRect(),
+						rootBounds: null,
+						time: Date.now(),
+					},
+				] as IntersectionObserverEntry[],
+				this,
+			);
+		});
+		unobserve = vi.fn();
+		disconnect = vi.fn();
+		takeRecords = vi.fn(() => []);
+	}
+	Object.defineProperty(window, "IntersectionObserver", {
+		writable: true,
+		value: IntersectionObserverMock,
+	});
 }
-Object.defineProperty(window, "IntersectionObserver", {
-	writable: true,
-	value: IntersectionObserverMock,
-});
 
 // Mock Next.js router hooks (needed for component rendering)
 vi.mock("next/navigation", () => ({
