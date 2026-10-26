@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-08-18T03:57:50.362Z"
-last_activity: 2026-08-18 -- Phase 66.1 plan 04 COMPLETE (trusted client-IP forward: RSC forwards Vercel's attested address under a constant-time-verified secret; apply-token consumes it in a GATED per-client bucket; nothing deployed, no secret set)
+last_updated: "2026-10-26T02:04:27.439Z"
+last_activity: 2026-10-26 -- Phase 66.2 planning complete
 progress:
-  total_phases: 15
-  completed_phases: 7
-  total_plans: 60
-  completed_plans: 59
-  percent: 47
-stopped_at: "Phase 66.1 plan 04 COMPLETE (4 of 5). RATE-03's trust boundary is built and has a consumer. src/app/apply/[token]/apply-context.ts forwards Vercel's PLATFORM-ATTESTED x-vercel-forwarded-for (falling back to x-forwarded-for, never x-real-ip, refusing any multi-segment value) as x-tf-client-ip under x-tf-forward-secret; supabase/functions/_shared/rate-limit-decision.ts gained decideForwardedClientIp + normalizeForwardedIp -- still zero imports, comparator INJECTED -- so the whole trust matrix is EXECUTED by Vitest against the real timingSafeEqualStr (rate-limit.test.ts now 98 tests). getTrustedClientIp is step 0 of an otherwise byte-identical getClientIp, and apply-token/index.ts enters a 60/60s `apply-context-client` bucket ONLY when verification succeeds -- ungated it would key on the Vercel egress and cap every apply page load product-wide. The 3,000/min tokenHash ceiling is kept (it bounds the SUM that per-client buckets cannot) with its obsolete `per-client is impossible here` justification rewritten in both index.ts and the contract test. timing-safe.ts: comments only, zero code lines changed, now recording which branch runs as UNVERIFIED. NOTHING DEPLOYED AND NO SECRET SET: CLIENT_IP_FORWARD_SECRET exists on neither side, so every path resolves to today's exact behaviour -- all four provisioning orders were WALKED BY EXECUTION and every one falls back, so 66.1-05 may provision in any order. RATE-03 deliberately left Pending (source has the mechanism, production does not). 66.1-05 handoffs: reconcile deferred-items.md's D5 + `proxy.ts` notes (superseded), run an explicit FORGED x-forwarded-for check against prod /apply/[token], decide whether rate_limit_hit's `key` field should narrow now that it carries a true client IP on the trusted path, and probe `typeof crypto.subtle.timingSafeEqual` from a deployed isolate. Branch gsd/phase-66.1-postgres-rate-limiting."
+  total_phases: 16
+  completed_phases: 8
+  total_plans: 99
+  completed_plans: 60
+  percent: 50
+stopped_at: "Phase 66.2 PLANNED (39 plans, waves W0-W6 + final gate; plan-check blockers 0 after targeted rounds, an exhaustive command sweep and adversarial fix verification). Worktree /Users/richard/Developer/tenant-flow-tw-shadcn, branch gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation; config pins use_worktrees=false, test_command, build_command. Next: /gsd:execute-phase 66.2, starting at 66.2-01."
 ---
 
 <!--
@@ -167,7 +167,7 @@ RLS suites are authored but have never run locally — see the env note below.
 matrix from `config.toml` and pins itself to a superseded commit — both must be edited for
 any new function. And 29 production migration versions have no repo file, which blocks
 `supabase db push` project-wide (a history repair would falsely claim they never ran; not done).
-Status: Phase complete — ready for verification
+Status: Ready to execute
 is 8 doc commits ahead of `origin/main` with nothing missing from main. Phase 65 shipped,
 merged (#960) and is live; 66-73 remain.
 
@@ -193,7 +193,7 @@ Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwrig
 is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
-Last activity: 2026-08-18
+Last activity: 2026-10-26 -- Phase 66.2 planning complete
 perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 (`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
 
