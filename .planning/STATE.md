@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-10-26T02:06:09.138Z"
-last_activity: 2026-10-26 -- Phase 66.2 execution started
+last_updated: "2026-10-26T02:28:31.086Z"
+last_activity: 2026-10-26
 progress:
   total_phases: 16
   completed_phases: 8
   total_plans: 99
-  completed_plans: 60
+  completed_plans: 61
   percent: 50
-stopped_at: "Phase 66.2 EXECUTING from 66.2-01 (39 plans, sequential, use_worktrees=false) in worktree /Users/richard/Developer/tenant-flow-tw-shadcn on branch gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation."
+stopped_at: "Phase 66.2 EXECUTING: 66.2-01 complete, next 66.2-02 (39 plans, sequential, use_worktrees=false). Worktree /Users/richard/Developer/tenant-flow-tw-shadcn, branch gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation."
 ---
 
 <!--
@@ -70,7 +70,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 66.2 (tailwind-v4-and-shadcn-ui-canonical-remediation) — EXECUTING
-Plan: 1 of 39
+Plan: 2 of 39
 
 66.1-01 authored the migration; **66.1-02 APPLIED IT TO PRODUCTION** as version
 `20260818031338` (see that plan's ADDENDUM — the earlier "BLOCKED on a dead PAT" body is
@@ -167,7 +167,7 @@ RLS suites are authored but have never run locally — see the env note below.
 matrix from `config.toml` and pins itself to a superseded commit — both must be edited for
 any new function. And 29 production migration versions have no repo file, which blocks
 `supabase db push` project-wide (a history repair would falsely claim they never ran; not done).
-Status: Executing Phase 66.2
+Status: Ready to execute
 is 8 doc commits ahead of `origin/main` with nothing missing from main. Phase 65 shipped,
 merged (#960) and is live; 66-73 remain.
 
@@ -193,7 +193,7 @@ Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwrig
 is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
-Last activity: 2026-10-26 -- Phase 66.2 execution started
+Last activity: 2026-10-26
 perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 (`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
 
