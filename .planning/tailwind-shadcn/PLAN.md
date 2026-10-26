@@ -93,21 +93,21 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 1,552 |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 1,553 (66.2-02; `source("..")` projection 914) |
 | M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 1 |
 | M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 1 |
 | M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 11 |
 | M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 2 |
 | M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | 14 |
 | M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 12 |
-| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | same |
-| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | 33 / 4 |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 146 |
-| R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | magenta |
-| R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Roboto |
+| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 55 / 47 / 90 of 133 / 1 / 20 |
+| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | 33 of 39 / 4 |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 146 (53 + 15 files; 97 distinct first-party candidates, G8) |
+| R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | magenta `[255,0,255]` |
+| R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Roboto (`--font-sans`) |
 | R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Times |
-| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | 1.01 |
-| R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | donut |
+| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | 1.02 (renew-lease body/icon, derived `DialogContent` outer), prose 1.12 |
+| R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | donut (44×44, 12px padding) |
 
 ---
 
@@ -273,8 +273,8 @@ The B2 rule as validated:
 
 ### Phase 0: Prep
 - [x] Branch off up-to-date `main` and run `bun install`. Done 2026-10-25: worktree on `origin/main` @ `754c91802`, `bun install --frozen-lockfile` (781 packages, lockfile versions).
-- [ ] Capture baselines **on `main`**: `audit.mjs`, `render-check.mjs baseline`, and copy `$TMPDIR/tenantflow-tw-audit/*` to `…/baseline/`.
-- [ ] Capture a screenshot matrix (light/dark × 390/1280): `/`, `/pricing`, `/help`, `/faq`, `/login`, `/signup`, `/contact`, one `/blog/<slug>`, `/privacy`. Owner surfaces get the same matrix via the `owner-axe` login, or under Phase 6.
+- [x] Capture baselines **on `main`**: `audit.mjs`, `render-check.mjs baseline`, and copy `$TMPDIR/tenantflow-tw-audit/*` to `…/baseline/`. 66.2-02, baseline at `.planning/tailwind-shadcn/audit/baseline/`.
+- [x] Capture a screenshot matrix (light/dark × 390/1280): `/`, `/pricing`, `/help`, `/faq`, `/login`, `/signup`, `/contact`, one `/blog/<slug>`, `/privacy`. Owner surfaces get the same matrix via the `owner-axe` login, or under Phase 6. 66.2-02, baseline at `.planning/tailwind-shadcn/audit/baseline/`.
 
 ### Phase 1 (wave 1): Visible bugs and permanent guards
 - [ ] B1: fix `--color-secondary`.
@@ -382,6 +382,11 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - Import conflict report: 0 blockers, 4 warnings, all approved by the owner and carried as constraints.
   - Branch and worktree created.
   - `state.add-roadmap-evolution` corrupted the STATE.md frontmatter; STATE.md was restored and the entry hand-written, as STATE.md's own comment requires.
+- **2026-10-26.** Baseline captured (66.2-02) on `src/` byte-identical to `754c91802`, sha256-indexed in `.planning/tailwind-shadcn/audit/baseline/index.json`.
+  - M1 today 1,553 scanned files; the in-memory `source("..")` projection scans 914 and drops exactly `invert` and `table-column`. M2-M10 reproduce §2.
+  - Guard prototype reproduces G1 1 / G2 11 / G3 2 / G4 6 / G5 44 / G6 1 / G7 8 / G8 97. Token snapshot: 71 `--color-*` tokens, re-run with the fixed list is identical; css-parity self-diff 0 hunks.
+  - Screenshot matrix: 92 captures (44 public, 48 owner: light/dark × 390/1280, plus `/applications` at 375 and 320), repeated after 60 s; 4 of 92 differ by sha256 between the two runs (pricing/signup at 390, 12 px at most). `/signup` redirects to `/pricing`.
+  - The owner set used the local production build (`next start :3062`, `NEXT_PUBLIC_APP_URL=http://localhost:3062`) against production Supabase, signed in once per run as the synthetic owner A; it only navigated.
 
 ---
 
