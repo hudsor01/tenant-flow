@@ -22,9 +22,10 @@
 // diff-<A>-vs-<B>/<name>. It always exits 0: it reports, the gates judge.
 //
 // Safety: the output dir must resolve outside the repo (exit 2 otherwise, nothing created).
-// No env files are read; credentials are tested for presence only and never printed or written;
+// This file reads no env file itself; the bun runtime loads the worktree's local env file into
+// the process at startup. Credentials are tested for presence only and never printed or written;
 // no trace, HAR or video is recorded and nothing is uploaded. The owner set runs only when the
-// owner credentials and Supabase URL/key are already in the process environment (otherwise the
+// owner credentials and Supabase URL/key are in the process environment (otherwise the
 // manifest records owner.skipped) and only navigates: no click, fill or submit. --start refuses
 // a port that already accepts connections, starts `next start` with SKIP_ENV_VALIDATION=true in
 // its own process group and stops it (and waits for the port to close) before exiting.
