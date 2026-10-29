@@ -125,7 +125,6 @@ function getDefaultMetadata(): Metadata {
 	return _defaultMetadata;
 }
 
-
 /**
  * Organization JSON-LD — emitted site-wide (every route) via `SeoJsonLd` in
  * the root layout. The Organization entity is route-neutral brand identity
@@ -228,5 +227,3 @@ export async function generateSiteMetadata(): Promise<Metadata> {
 	// In future this can be extended to accept params and compute per-route metadata
 	return getDefaultMetadata();
 }
-
-

@@ -1,4 +1,3 @@
-
 export type DataTableConfig = typeof dataTableConfig;
 
 const dataTableConfig = {

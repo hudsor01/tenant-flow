@@ -1,13 +1,13 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(npx *)",
-      "Bash(do *)",
-      "Bash(done)",
-      "Bash(cd *)",
-      "Bash(rg *)",
-      "Bash(head *)"
-    ]
-  },
-  "$version": 4
+	"permissions": {
+		"allow": [
+			"Bash(npx *)",
+			"Bash(do *)",
+			"Bash(done)",
+			"Bash(cd *)",
+			"Bash(rg *)",
+			"Bash(head *)"
+		]
+	},
+	"$version": 4
 }

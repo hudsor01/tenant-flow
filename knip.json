@@ -31,10 +31,7 @@
 		"tailwindcss",
 		"tw-animate-css"
 	],
-	"ignoreBinaries": [
-		"supabase",
-		"gitleaks"
-	],
+	"ignoreBinaries": ["supabase", "gitleaks"],
 	"ignore": [
 		"**/*.test.ts",
 		"**/*.test.tsx",

@@ -141,4 +141,3 @@ export const getOrdinalSuffix = (day: number): string => {
 			return "th";
 	}
 };
-

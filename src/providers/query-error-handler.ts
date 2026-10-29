@@ -65,10 +65,7 @@ function isAbortError(error: unknown): boolean {
  * 4. Network errors → retry (transient)
  * 5. Unknown errors → retry (assume transient)
  */
-function shouldRetryQuery(
-	failureCount: number,
-	error: unknown,
-): boolean {
+function shouldRetryQuery(failureCount: number, error: unknown): boolean {
 	// Never retry more than 3 times
 	if (failureCount >= 3) return false;
 

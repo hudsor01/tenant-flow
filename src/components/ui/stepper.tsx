@@ -193,7 +193,6 @@ function StepperRoot(props: StepperRootProps) {
 export {
 	StepperContent as Content,
 	StepperContent,
-
 	StepperDescription as Description,
 	StepperDescription,
 	StepperIndicator as Indicator,

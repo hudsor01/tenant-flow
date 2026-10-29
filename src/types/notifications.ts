@@ -122,7 +122,6 @@ const NOTIFICATION_PRIORITY = {
 export type NotificationPriorityValue =
 	(typeof NOTIFICATION_PRIORITY)[keyof typeof NOTIFICATION_PRIORITY];
 
-
 // Push notification types
 export interface PushNotification {
 	title: string;
