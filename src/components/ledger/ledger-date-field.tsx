@@ -44,7 +44,7 @@ export function toLedgerDateString(date: Date): string {
 }
 
 /** Parse a stored ledger date back to a `Date`, or `undefined` if unset/bad. */
-export function fromLedgerDateString(value: string): Date | undefined {
+function fromLedgerDateString(value: string): Date | undefined {
 	if (!LEDGER_DATE_PATTERN.test(value)) return undefined;
 	const parsed = parse(value, "yyyy-MM-dd", new Date());
 	return isValid(parsed) ? parsed : undefined;

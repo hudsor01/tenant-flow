@@ -1,6 +1,6 @@
 export type DataTableConfig = typeof dataTableConfig;
 
-export const dataTableConfig = {
+const dataTableConfig = {
 	textOperators: [
 		{ label: "Contains", value: "iLike" as const },
 		{ label: "Does not contain", value: "notILike" as const },

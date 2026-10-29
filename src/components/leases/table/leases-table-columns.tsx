@@ -50,7 +50,7 @@ export function SortHeader({
 	);
 }
 
-export function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }) {
 	const config = getStatusConfig(status);
 	return (
 		<span

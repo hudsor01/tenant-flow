@@ -3,10 +3,8 @@ import type { ComponentProps, ReactNode, RefObject } from "react";
 export const ROOT_NAME = "FileUpload";
 export const DROPZONE_NAME = "FileUploadDropzone";
 export const TRIGGER_NAME = "FileUploadTrigger";
-export const ITEM_NAME = "FileUploadItem";
-export const CLEAR_NAME = "FileUploadClear";
 
-export type Direction = "ltr" | "rtl";
+type Direction = "ltr" | "rtl";
 
 export interface FileState {
 	file: File;

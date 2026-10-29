@@ -53,13 +53,7 @@ export {
 	type TriggerElement,
 } from "./stepper-types";
 
-export {
-	focusFirst,
-	getDataState,
-	getFocusIntent,
-	getId,
-	wrapArray,
-} from "./stepper-utils";
+export {} from "./stepper-utils";
 
 // Isomorphic layout effect
 export const useIsomorphicLayoutEffect =
