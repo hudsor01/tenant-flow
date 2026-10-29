@@ -68,11 +68,11 @@ on:
   workflow_dispatch:
     inputs:
       release_sha:
-        description: 'Git SHA to audit (for smoke tests or manual re-runs against a known-good release)'
+        description: "Git SHA to audit (for smoke tests or manual re-runs against a known-good release)"
         required: true
         type: string
       skip_observation:
-        description: 'Skip the observation window (smoke-testing the gate wiring only — the data will be thinner than a real post-deploy run)'
+        description: "Skip the observation window (smoke-testing the gate wiring only — the data will be thinner than a real post-deploy run)"
         required: false
         default: false
         type: boolean

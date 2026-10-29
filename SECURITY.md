@@ -14,12 +14,12 @@ Please include:
 
 You'll receive an acknowledgement within 2 business days. Resolution timelines depend on severity:
 
-| Severity | Initial response | Fix target |
-|---------|------------------|------------|
-| Critical (RCE, auth bypass, data breach) | < 24 hours | < 7 days |
-| High (privilege escalation, account takeover) | < 48 hours | < 14 days |
-| Medium (information disclosure, CSRF, XSS in dashboard) | < 5 business days | < 30 days |
-| Low (defense-in-depth, hardening) | Best effort | Triaged into roadmap |
+| Severity                                                | Initial response  | Fix target           |
+| ------------------------------------------------------- | ----------------- | -------------------- |
+| Critical (RCE, auth bypass, data breach)                | < 24 hours        | < 7 days             |
+| High (privilege escalation, account takeover)           | < 48 hours        | < 14 days            |
+| Medium (information disclosure, CSRF, XSS in dashboard) | < 5 business days | < 30 days            |
+| Low (defense-in-depth, hardening)                       | Best effort       | Triaged into roadmap |
 
 We follow [coordinated disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure) — please give us a reasonable window to ship a fix before any public discussion.
 
@@ -27,10 +27,10 @@ We follow [coordinated disclosure](https://en.wikipedia.org/wiki/Coordinated_vul
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| `main` (production at tenantflow.app) | ✅ |
-| Anything else | ❌ |
+| Version                               | Supported |
+| ------------------------------------- | --------- |
+| `main` (production at tenantflow.app) | ✅        |
+| Anything else                         | ❌        |
 
 There is no semver release train. Production tracks `main`; security fixes ship as soon as they pass the perfect-PR review gate.
 
@@ -63,7 +63,7 @@ Every storage bucket policy enforces folder-uuid → owner ID via `storage.folde
 - **Auth**: Bearer + `supabase.auth.getUser(token)`. Identity is never derived from the request body.
 - **CORS**: fail-closed when `NEXT_PUBLIC_APP_URL` is unset.
 - **Errors**: generic `{ error: 'An error occurred' }` to clients; full detail to Sentry + structured console.
-- **Rate limiting**: Postgres `check_rate_limit` (SECURITY DEFINER, service_role only), approximated sliding window, **fail-closed**. The decision and the increment are one `INSERT ... ON CONFLICT DO UPDATE` carrying two guards, so concurrent callers serialize and a denied request writes nothing. IP extraction prefers an address forwarded by a caller that proved it holds `CLIENT_IP_FORWARD_SECRET` (constant-time compare, address-shape validated after the compare), then `cf-connecting-ip`, then the *last* `x-forwarded-for` segment — the first segment is attacker-controlled.
+- **Rate limiting**: Postgres `check_rate_limit` (SECURITY DEFINER, service_role only), approximated sliding window, **fail-closed**. The decision and the increment are one `INSERT ... ON CONFLICT DO UPDATE` carrying two guards, so concurrent callers serialize and a denied request writes nothing. IP extraction prefers an address forwarded by a caller that proved it holds `CLIENT_IP_FORWARD_SECRET` (constant-time compare, address-shape validated after the compare), then `cf-connecting-ip`, then the _last_ `x-forwarded-for` segment — the first segment is attacker-controlled.
 - **HMAC** verification on webhooks (Stripe, Resend, n8n) using `crypto.subtle.timingSafeEqual` with length pre-check.
 - **Stripe Checkout** validates `price_id` against an allowlist; arbitrary-price + promo-code bypass is closed.
 
