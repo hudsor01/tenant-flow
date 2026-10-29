@@ -25,7 +25,7 @@ const analyticsKeys = {
  * Single source of truth -- all consumers call this function.
  * Returns raw RPC data (array of row objects).
  */
-export async function fetchRevenueTrends(
+async function fetchRevenueTrends(
 	months: number,
 ): Promise<Array<Record<string, unknown>>> {
 	const supabase = createClient();

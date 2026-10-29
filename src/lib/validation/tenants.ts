@@ -107,7 +107,7 @@ export const tenantQuerySchema = z.object({
 
 // Tenant creation schema
 // stripe_customer_id is optional/nullable to match DB (set by Stripe integration, not user)
-export const tenantCreateSchema = tenantInputSchema;
+const tenantCreateSchema = tenantInputSchema;
 
 // Emergency contact validation schema (single source of truth)
 export const emergencyContactSchema = z.object({

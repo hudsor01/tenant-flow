@@ -3681,11 +3681,3 @@ export type CompositeTypes<
 		? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
 		: never;
 
-export const Constants = {
-	graphql_public: {
-		Enums: {},
-	},
-	public: {
-		Enums: {},
-	},
-} as const;

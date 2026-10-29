@@ -133,7 +133,7 @@ const timeRangeToMonths: Record<FinancialTimeRange, number> = {
 	"1y": 12,
 };
 
-export const dashboardFinancialQueries = {
+const dashboardFinancialQueries = {
 	chartData: (timeRange: FinancialTimeRange = "6m") => {
 		const months = timeRangeToMonths[timeRange] ?? 6;
 		const currentYear = new Date().getFullYear();

@@ -33,7 +33,7 @@ const optionSchema = z.object({
 // canonical `DynamicField` (its optionals are `?: string`). So the schema
 // stays inferred and validated entries are asserted to `DynamicField` after a
 // successful `safeParse` (the boundary cast — never `as unknown as`).
-export const dynamicFieldSchema = z.object({
+const dynamicFieldSchema = z.object({
 	name: z.string().min(1),
 	label: z.string(),
 	type: z.enum([

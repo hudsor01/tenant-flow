@@ -549,4 +549,3 @@ export interface ImportProgress {
 	failed: number;
 }
 
-export const DEFAULT_RETRY_ATTEMPTS = 3;

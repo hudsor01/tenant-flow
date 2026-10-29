@@ -142,17 +142,3 @@ export const getOrdinalSuffix = (day: number): string => {
 	}
 };
 
-export const formatDateRange = (
-	start: DateInput,
-	end: DateInput,
-	options: FormatDateOptions = {},
-): string => {
-	const startDate = toDate(start);
-	const endDate = toDate(end);
-
-	if (!startDate && !endDate) return options.fallback ?? "";
-	if (startDate && !endDate) return formatDate(startDate, options);
-	if (!startDate && endDate) return formatDate(endDate, options);
-
-	return `${formatDate(startDate, options)} - ${formatDate(endDate, options)}`;
-};

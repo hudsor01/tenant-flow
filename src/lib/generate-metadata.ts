@@ -125,12 +125,6 @@ function getDefaultMetadata(): Metadata {
 	return _defaultMetadata;
 }
 
-// For backward compatibility - uses getter
-const defaultMetadata: Metadata = new Proxy({} as Metadata, {
-	get(_, prop) {
-		return getDefaultMetadata()[prop as keyof Metadata];
-	},
-});
 
 /**
  * Organization JSON-LD — emitted site-wide (every route) via `SeoJsonLd` in
@@ -235,4 +229,4 @@ export async function generateSiteMetadata(): Promise<Metadata> {
 	return getDefaultMetadata();
 }
 
-export default defaultMetadata;
+

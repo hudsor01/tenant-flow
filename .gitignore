@@ -338,6 +338,11 @@ AGENTS.md
 
 # Claude Code's project instructions are local-only, never committed.
 CLAUDE.md
+QWEN.md
+.fallow/
+.planning/
+.tmp*/
+
 
 # Vendored agent skill bundles (shadcn, migrate-radix-to-base), installed
 # per-machine by the agent tooling -- not project source. 25 files were tracked

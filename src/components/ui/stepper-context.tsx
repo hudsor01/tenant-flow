@@ -54,11 +54,11 @@ export {
 } from "./stepper-types";
 
 export {
-	focusFirst,
-	getDataState,
-	getFocusIntent,
-	getId,
-	wrapArray,
+	
+	
+	
+	
+	
 } from "./stepper-utils";
 
 // Isomorphic layout effect

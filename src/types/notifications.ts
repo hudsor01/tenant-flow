@@ -5,7 +5,7 @@ import type { MaintenancePriority } from "./core";
 type Priority = MaintenancePriority;
 
 // UI-only notification type constants (not stored in database)
-export const NotificationType = {
+const NotificationType = {
 	MAINTENANCE: "maintenance",
 	LEASE: "LEASE",
 	PAYMENT: "PAYMENT",
@@ -112,7 +112,7 @@ export type NotificationChannelPreferencesWithVersion =
 	};
 
 // Notification priority constants
-export const NOTIFICATION_PRIORITY = {
+const NOTIFICATION_PRIORITY = {
 	LOW: "LOW",
 	MEDIUM: "MEDIUM",
 	HIGH: "HIGH",
@@ -122,12 +122,6 @@ export const NOTIFICATION_PRIORITY = {
 export type NotificationPriorityValue =
 	(typeof NOTIFICATION_PRIORITY)[keyof typeof NOTIFICATION_PRIORITY];
 
-export const NOTIFICATION_PRIORITY_OPTIONS = [
-	{ value: "LOW", label: "Low" },
-	{ value: "MEDIUM", label: "Medium" },
-	{ value: "HIGH", label: "High" },
-	{ value: "URGENT", label: "Urgent" },
-] as const;
 
 // Push notification types
 export interface PushNotification {
