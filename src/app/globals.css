@@ -65,15 +65,6 @@
 	--text-title-3: clamp(1rem, 2vw, 1.25rem); /* 16-20px - card titles */
 	--text-title-4: clamp(0.875rem, 1.5vw, 1rem); /* 14-16px - subsections */
 
-	/* Level 3: Body - Content text (optimized for reading) */
-	--text-base: 1rem; /* 16px - standard body */
-	--text-lg: 1.125rem; /* 18px - lead paragraphs */
-	--text-xl: 1.25rem; /* 20px - emphasized content */
-
-	/* Level 4: Small - Secondary UI text */
-	--text-sm: 0.875rem; /* 14px - UI labels, secondary */
-	--text-xs: 0.75rem; /* 12px - small labels, badges */
-
 	/* Level 5: Caption - Metadata/tertiary */
 	--text-caption: 0.6875rem; /* 11px - timestamps, hints */
 
@@ -83,13 +74,6 @@
 	--text-stat-lg: 2.5rem; /* 40px - featured stats */
 	--text-stat-xl: 3.5rem; /* 56px - hero stats */
 
-	/* Extended sizes (backwards compatibility) */
-	--text-2xl: 1.5rem; /* 24px */
-	--text-3xl: 1.875rem; /* 30px */
-	--text-4xl: 2.25rem; /* 36px */
-	--text-5xl: 3rem; /* 48px */
-	--text-6xl: 3.75rem; /* 60px */
-
 	/* Legacy display sizes (mapped for compatibility) */
 	--text-display-2xl: 5rem;
 	--text-display-xl: 4rem;
@@ -98,13 +82,10 @@
 	/* ============================================================================
 	   Line Heights - Optimized for Readability
 	   ============================================================================ */
-	--leading-none: 1;
 	--leading-display: 1.1; /* Hero headlines */
 	--leading-tight: 1.2; /* Large titles */
 	--leading-snug: 1.35; /* Standard headings */
-	--leading-normal: 1.5; /* Body text */
 	--leading-relaxed: 1.7; /* Long-form reading */
-	--leading-loose: 2; /* Extra breathing room */
 
 	/* ============================================================================
 	   Letter Spacing - Refined for Impact
@@ -112,10 +93,7 @@
 	--tracking-tightest: -0.04em; /* Hero display */
 	--tracking-tighter: -0.025em; /* Large display */
 	--tracking-tight: -0.015em; /* Headings */
-	--tracking-normal: 0; /* Body */
 	--tracking-wide: 0.02em; /* UI labels */
-	--tracking-wider: 0.05em; /* Uppercase labels */
-	--tracking-widest: 0.1em; /* All-caps headings */
 
 	/* ============================================================================
 	   Animation Durations - UI/UX Standards
@@ -125,22 +103,6 @@
 	--transition-duration-normal: 300ms;
 	--transition-duration-slow: 500ms;
 	--transition-duration-slower: 700ms;
-	/* Tailwind v4 defaults for white and black ship out of the box, but the
-	   explicit @theme block replaces the default theme entirely. Restore both
-	   so opacity modifiers on these colors compile to valid CSS. */
-	--color-white: oklch(1 0 0);
-	--color-black: oklch(0 0 0);
-	--color-slate-50: oklch(0.984 0.003 247.858);
-	--color-slate-100: oklch(0.968 0.007 247.896);
-	--color-slate-200: oklch(0.929 0.013 255.508);
-	--color-slate-300: oklch(0.869 0.022 252.894);
-	--color-slate-400: oklch(0.704 0.04 256.788);
-	--color-slate-500: oklch(0.554 0.046 258.34);
-	--color-slate-600: oklch(0.446 0.043 257.734);
-	--color-slate-700: oklch(0.373 0.044 257.75);
-	--color-slate-800: oklch(0.279 0.041 260.031);
-	--color-slate-900: oklch(0.208 0.042 265.755);
-	--color-slate-950: oklch(0.129 0.042 264.695);
 	--color-background: oklch(0.985 0.002 240);
 	--color-foreground: oklch(0.2 0.02 245);
 	--color-muted: oklch(0.94 0.01 240);
@@ -187,43 +149,6 @@
 	--color-chart-3: oklch(0.72 0.16 85);
 	--color-chart-4: oklch(0.65 0.18 20);
 	--color-chart-5: oklch(0.55 0.12 250);
-	--spacing: 0.25rem;
-	--spacing-0: 0rem;
-	--spacing-px: 1px;
-	--spacing-0_5: 0.125rem;
-	--spacing-1: 0.25rem;
-	--spacing-1_5: 0.375rem;
-	--spacing-2: 0.5rem;
-	--spacing-2_5: 0.625rem;
-	--spacing-3: 0.75rem;
-	--spacing-3_5: 0.875rem;
-	--spacing-4: 1rem;
-	--spacing-5: 1.25rem;
-	--spacing-6: 1.5rem;
-	--spacing-7: 1.75rem;
-	--spacing-8: 2rem;
-	--spacing-9: 2.25rem;
-	--spacing-10: 2.5rem;
-	--spacing-11: 2.75rem;
-	--spacing-12: 3rem;
-	--spacing-14: 3.5rem;
-	--spacing-16: 4rem;
-	--spacing-20: 5rem;
-	--spacing-24: 6rem;
-	--spacing-28: 7rem;
-	--spacing-32: 8rem;
-	--spacing-35: 8.75rem;
-	--spacing-36: 9rem;
-	--spacing-40: 10rem;
-	--spacing-44: 11rem;
-	--spacing-48: 12rem;
-	--spacing-52: 13rem;
-	--spacing-56: 14rem;
-	--spacing-60: 15rem;
-	--spacing-64: 16rem;
-	--spacing-72: 18rem;
-	--spacing-80: 20rem;
-	--spacing-96: 24rem;
 	--spacing-container-inline: clamp(1.5rem, 4vw, 3rem);
 	--spacing-responsive-xs: clamp(0.25rem, 1vw, 0.5rem);
 	--spacing-responsive-sm: clamp(0.375rem, 1.5vw, 0.75rem);
@@ -258,17 +183,10 @@
 	--duration-1000: 1000ms;
 	--duration-standard: 250ms;
 	--duration-medium: 350ms;
-	--ease-linear: linear;
-	--ease-in: cubic-bezier(0.4, 0, 1, 1);
-	--ease-out: cubic-bezier(0, 0, 0.2, 1);
-	--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 	--ease-smooth: cubic-bezier(0.45, 0.05, 0.29, 0.99);
 	--ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 	--ease-in-smooth: cubic-bezier(0.7, 0, 0.84, 0);
 	--ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-	--width-full: 100%;
-	--max-width-2xl: 42rem;
-	--max-width-3xl: 48rem;
 	--z-index-toast: 9999;
 	--z-index-modal: 1300;
 	--z-index-modal-backdrop: 1200;
@@ -276,11 +194,6 @@
 
 @layer base {
 	:root {
-		/* Font weights - Only define weights available in Spline Sans (400-700) */
-		--font-weight-normal: 400;
-		--font-weight-medium: 500;
-		--font-weight-semibold: 600;
-		--font-weight-bold: 700;
 		--icon-xs: 0.75rem;
 		--icon-sm: 0.875rem;
 		--icon-md: 1rem;

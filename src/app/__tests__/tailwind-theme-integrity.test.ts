@@ -791,10 +791,15 @@ describe("G4 used theme color tokens have a dark value (B4 class)", () => {
 			const themeColorKeys = [...contexts.theme.keys()].filter((key) =>
 				key.startsWith("--color-"),
 			);
+			// Non-vacuity floor. The real file holds 59 theme color tokens after
+			// 66.2-07, 44 once 66.2-13 drops the Tailwind-default copies (white,
+			// black, slate) and the dead ones, and 37 once 66.2-31 deletes the 7
+			// zinc sidebar mappings. The floor sits below every planned count, so
+			// no deletion plan has to lower it again.
 			expect(
 				themeColorKeys.length,
 				"G4 found too few theme color tokens in globals.css: the context walk is vacuous",
-			).toBeGreaterThanOrEqual(50);
+			).toBeGreaterThanOrEqual(30);
 			expect(
 				contexts.dark.size,
 				"G4 found too few dark-scope declarations in globals.css: the dark resolver is vacuous",
