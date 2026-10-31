@@ -45,7 +45,11 @@
  *   - D-23/X4 structure pin `checkInlineColorTokenStructure`: theme color
  *     tokens are aliases, in an inline theme at-rule, of raw tokens declared in
  *     the unlayered `:root` and `.dark` rules (UIC-05, 66.2-16).
- *   Later guard plans add their checks to this file: G8 (66.2-18).
+ *   - G8 canonical first-party classes (D-25, 66.2-18):
+ *     `checkCanonicalCandidates` reports each valid candidate whose
+ *     per-candidate canonical form differs, over the scope
+ *     `firstPartyScanSources` builds (the project scan minus the vendored
+ *     directory).
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -939,5 +943,63 @@ export function checkInlineColorTokenStructure(css: string): GuardResult {
 		});
 	});
 
+	return { checked, violations: violations.sort() };
+}
+
+/** The vendored shadcn directory, relative to the repository root. G8 skips it (W5 owns those files, PLAN.md decision 6). */
+export const VENDORED_UI_RELATIVE_DIR = "src/components/ui";
+
+/** The root font size the canonicalizer assumes when it maps a px value to a spacing-scale step. */
+export const CANONICAL_ROOT_FONT_SIZE_PX = 16;
+
+/**
+ * G8 scope (D-25): the project scan sources plus one negated entry for the
+ * vendored directory. Test files are already outside the project scan through
+ * the `@source not` line for test files in `globals.css`.
+ */
+export function firstPartyScanSources(
+	sources: readonly SourceEntry[],
+	repoRoot: string,
+): SourceEntry[] {
+	return [
+		...sources,
+		{
+			base: resolve(repoRoot, VENDORED_UI_RELATIVE_DIR),
+			pattern: "**/*",
+			negated: true,
+		},
+	];
+}
+
+/**
+ * G8 canonical first-party classes (D-25). `checked` counts the candidates the
+ * design system compiles (a scanned token that is not a class is skipped);
+ * `violations` lists, sorted, each one whose canonical form differs, as
+ * `<candidate> -> <canonical>`. Each candidate is canonicalized on its own,
+ * with the 16px root, and `collapse` is deliberately not passed: two classes
+ * that a collapse would merge into one shorthand stay valid, so G8, the audit
+ * metric M10 and the canonicalize codemod all measure one per-candidate rule.
+ */
+export function checkCanonicalCandidates(
+	designSystem: Pick<
+		Awaited<ReturnType<typeof __unstable__loadDesignSystem>>,
+		"candidatesToCss" | "canonicalizeCandidates"
+	>,
+	candidates: readonly string[],
+): GuardResult {
+	const list = [...candidates];
+	const css = designSystem.candidatesToCss(list);
+	const violations: string[] = [];
+	let checked = 0;
+	list.forEach((candidate, index) => {
+		if (css[index] === null || css[index] === undefined) return;
+		checked += 1;
+		const canonical = designSystem.canonicalizeCandidates([candidate], {
+			rem: CANONICAL_ROOT_FONT_SIZE_PX,
+		})[0];
+		if (canonical !== candidate) {
+			violations.push(`${candidate} -> ${canonical}`);
+		}
+	});
 	return { checked, violations: violations.sort() };
 }
