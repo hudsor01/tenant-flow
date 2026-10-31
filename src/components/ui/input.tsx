@@ -35,6 +35,7 @@ function Input({
 	return (
 		<input
 			type={type}
+			data-slot="input"
 			className={cn(inputVariants({ variant, inputSize }), className)}
 			{...props}
 		/>
