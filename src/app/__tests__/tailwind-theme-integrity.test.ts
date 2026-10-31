@@ -48,7 +48,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { compile } from "@tailwindcss/node";
-import type { AtRule, Node as PostcssNode } from "postcss";
+import type { AtRule, Node as PostcssNode, Rule } from "postcss";
 import { twMerge } from "tailwind-merge";
 import { describe, expect, it } from "vitest";
 import { cn, TAILWIND_MERGE_EXTENSION } from "#lib/utils";
@@ -657,6 +657,10 @@ function isAtRule(node: { type: string } | undefined): node is AtRule {
 	return node?.type === "atrule";
 }
 
+function isRule(node: { type: string } | undefined): node is Rule {
+	return node?.type === "rule";
+}
+
 function layeredTouchTargetRules(
 	engine: TailwindEngine,
 	selectorStart: string,
@@ -1075,6 +1079,176 @@ describe("Inline color token structure (D-23, X4)", () => {
 		expect(
 			checkInlineColorTokenStructure(S8_NO_VARIANT).violations,
 		).toHaveLength(1);
+	});
+});
+
+// D-37 / D-51 / UIC-08 sidebar token pin (66.2-31; UI-SPEC T-2 and T-3). The
+// sidebar surface tokens alias the brand semantic tokens in one unlayered
+// top-level `:root` rule, so they follow the 66.2-16 light and dark values with
+// no dark rule of their own; the registry's zinc cssVars are never adopted
+// (D-45). The same rule holds the three widths: the desktop rail, the mobile
+// sheet and the unused icon mode.
+describe("Sidebar tokens (D-37, D-51)", () => {
+	const BRAND_ALIASES: Readonly<Record<string, string>> = {
+		"--sidebar": "var(--card)",
+		"--sidebar-foreground": "var(--card-foreground)",
+		"--sidebar-primary": "var(--primary)",
+		"--sidebar-primary-foreground": "var(--primary-foreground)",
+		"--sidebar-accent": "var(--muted)",
+		"--sidebar-accent-foreground": "var(--foreground)",
+		"--sidebar-border": "var(--border)",
+		"--sidebar-ring": "var(--ring)",
+	};
+	const WIDTH_TOKENS: Readonly<Record<string, string>> = {
+		"--sidebar-width": "14rem",
+		"--sidebar-width-mobile": "18rem",
+		"--sidebar-width-icon": "3rem",
+	};
+	const FIX =
+		"declare the brand alias or width once in the top-level :root sidebar rule (D-37, D-51)";
+
+	interface SidebarDeclaration {
+		readonly prop: string;
+		readonly value: string;
+		readonly selector: string;
+		readonly topLevelRoot: boolean;
+	}
+
+	function sidebarDeclarations(css: string): SidebarDeclaration[] {
+		const found: SidebarDeclaration[] = [];
+		parseCss(css).walkDecls((decl) => {
+			if (!decl.prop.startsWith("--sidebar")) return;
+			const parent = decl.parent;
+			let selector = "";
+			let topLevelRoot = false;
+			if (isRule(parent)) {
+				selector = parent.selector.trim();
+				topLevelRoot = selector === ":root" && parent.parent?.type === "root";
+			} else if (isAtRule(parent)) {
+				selector = `@${parent.name}`;
+			}
+			found.push({
+				prop: decl.prop,
+				value: decl.value.trim(),
+				selector,
+				topLevelRoot,
+			});
+		});
+		return found;
+	}
+
+	function aliasTarget(prop: string): string {
+		const value = BRAND_ALIASES[prop];
+		const target =
+			value === undefined ? undefined : /^var\((--[\w-]+)\)$/.exec(value)?.[1];
+		if (target === undefined) {
+			throw new Error(`${prop} has no brand alias in BRAND_ALIASES`);
+		}
+		return target;
+	}
+
+	function expectSingleTopLevelRoot(
+		declarations: readonly SidebarDeclaration[],
+		expected: Readonly<Record<string, string>>,
+	): void {
+		for (const [prop, value] of Object.entries(expected)) {
+			const matches = declarations.filter((decl) => decl.prop === prop);
+			expect(
+				matches.map((decl) => [decl.selector, decl.value]),
+				`${prop} is declared ${matches.length} times; ${FIX}`,
+			).toHaveLength(1);
+			expect(matches[0]?.value, `${prop} value; ${FIX}`).toBe(value);
+			expect(
+				matches[0]?.topLevelRoot,
+				`${prop} sits in "${matches[0]?.selector}", not the top-level :root; ${FIX}`,
+			).toBe(true);
+		}
+	}
+
+	it("declares the eight brand aliases once each in the top-level :root rule (D-37)", () => {
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		expectSingleTopLevelRoot(sidebarDeclarations(css), BRAND_ALIASES);
+	});
+
+	it("declares the three width tokens once each in the top-level :root rule (D-37, D-51)", () => {
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		expectSingleTopLevelRoot(sidebarDeclarations(css), WIDTH_TOKENS);
+	});
+
+	it("declares no other sidebar custom property (D-51)", () => {
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		const declarations = sidebarDeclarations(css);
+		const expected = [
+			...Object.keys(BRAND_ALIASES),
+			...Object.keys(WIDTH_TOKENS),
+		].sort();
+		expect(
+			[...new Set(declarations.map((decl) => decl.prop))].sort(),
+			`unexpected sidebar custom properties; ${FIX}`,
+		).toEqual(expected);
+		expect(
+			declarations.length,
+			`sidebar custom property declaration count; ${FIX}`,
+		).toBe(expected.length);
+	});
+
+	it("bridges each alias through the inline theme (D-37)", () => {
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		const bridge: Array<{ prop: string; value: string; inline: boolean }> = [];
+		parseCss(css).walkDecls((decl) => {
+			if (!decl.prop.startsWith("--color-sidebar")) return;
+			let theme: AtRule | undefined;
+			for (
+				let node: PostcssNode["parent"] = decl.parent;
+				node;
+				node = node.parent
+			) {
+				if (isAtRule(node)) {
+					theme = node.name === "theme" ? node : undefined;
+					break;
+				}
+			}
+			bridge.push({
+				prop: decl.prop,
+				value: decl.value.trim(),
+				inline: theme?.params.trim().split(/\s+/).includes("inline") ?? false,
+			});
+		});
+		expect(bridge.map((entry) => entry.prop)).toHaveLength(8);
+		for (const entry of bridge) {
+			const suffix = entry.prop.slice("--color-sidebar".length);
+			expect(
+				entry.value,
+				`${entry.prop} must be var(--sidebar${suffix}) (D-37)`,
+			).toBe(`var(--sidebar${suffix})`);
+			expect(
+				entry.inline,
+				`${entry.prop} must sit in an @theme inline at-rule (D-37)`,
+			).toBe(true);
+		}
+	});
+
+	it("resolves every bridge entry to a brand token with light and dark values (D-37, G4 chain)", () => {
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		const contexts = collectCustomPropertiesByContext(css);
+		for (const prop of Object.keys(BRAND_ALIASES)) {
+			const suffix = prop.slice("--sidebar".length);
+			const bridgeProp = `--color-sidebar${suffix}`;
+			const target = aliasTarget(prop);
+			const chain = resolveCustomPropertyChain(bridgeProp, contexts);
+			expect(
+				chain.at(-1),
+				`${bridgeProp} resolves through ${chain.join(" -> ")}; ${FIX}`,
+			).toBe(target);
+			expect(
+				contexts.root.has(target),
+				`${target} has no :root value (D-37)`,
+			).toBe(true);
+			expect(
+				contexts.dark.has(target),
+				`${target} has no .dark value (D-37)`,
+			).toBe(true);
+		}
 	});
 });
 

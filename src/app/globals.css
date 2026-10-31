@@ -119,9 +119,6 @@
 	:root {
 		--touch-target-min: 2.75rem;
 		--touch-target-padding: clamp(0.75rem, 2vw, 1rem);
-		--sidebar-transition: width 200ms ease-linear;
-		--sidebar-width-icon: 3rem;
-		--sidebar-width: 16rem;
 		--layout-section-padding-y: --spacing(16);
 		--layout-section-padding-y-compact: --spacing(12);
 		--layout-content-padding: --spacing(8);
@@ -405,7 +402,7 @@
    at-rule after them exposes each as --color-<name>: var(--<name>), so a
    utility reads the raw token where it is used. The chart tokens are
    mode-independent and have no dark value. The sidebar tokens live in their
-   own :root, .dark and @theme inline rules further down (D-21). */
+   own :root and @theme inline rules further down (D-21, D-37). */
 :root {
 	--background: oklch(0.985 0.002 240);
 	--foreground: oklch(0.2 0.02 245);
@@ -897,26 +894,22 @@
 	}
 }
 
+/* The sidebar surface tokens alias the brand semantic tokens, so they follow
+   the light and dark values with no dark rule of their own (D-37). The three
+   widths size the desktop rail, the mobile sheet and the unused icon mode
+   (D-51). */
 :root {
-	--sidebar: hsl(0 0% 98%);
-	--sidebar-foreground: hsl(240 5.3% 26.1%);
-	--sidebar-primary: hsl(240 5.9% 10%);
-	--sidebar-primary-foreground: hsl(0 0% 98%);
-	--sidebar-accent: hsl(240 4.8% 95.9%);
-	--sidebar-accent-foreground: hsl(240 5.9% 10%);
-	--sidebar-border: hsl(220 13% 91%);
-	--sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
-.dark {
-	--sidebar: hsl(240 5.9% 10%);
-	--sidebar-foreground: hsl(240 4.8% 95.9%);
-	--sidebar-primary: hsl(224.3 76.3% 48%);
-	--sidebar-primary-foreground: hsl(0 0% 100%);
-	--sidebar-accent: hsl(240 3.7% 15.9%);
-	--sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-	--sidebar-border: hsl(240 3.7% 15.9%);
-	--sidebar-ring: hsl(217.2 91.2% 59.8%);
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--card-foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--muted);
+	--sidebar-accent-foreground: var(--foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
+	--sidebar-width: 14rem;
+	--sidebar-width-mobile: 18rem;
+	--sidebar-width-icon: 3rem;
 }
 
 @theme inline {
