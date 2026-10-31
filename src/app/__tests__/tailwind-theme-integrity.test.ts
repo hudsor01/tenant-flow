@@ -506,14 +506,12 @@ describe("G2 — no non-inline @theme variable references var()", () => {
 		"compiles the font utilities to the next/font variables (engine corroboration)",
 		async () => {
 			const { designSystem } = await projectEngine();
-			const [sans, mono, display] = designSystem.candidatesToCss([
+			const [sans, mono] = designSystem.candidatesToCss([
 				"font-sans",
 				"font-mono",
-				"font-display",
 			]);
 			expect(sans).toContain("var(--font-roboto)");
 			expect(mono).toContain("var(--font-geist-mono)");
-			expect(display).toContain("var(--font-playfair)");
 		},
 		ENGINE_TIMEOUT_MS,
 	);

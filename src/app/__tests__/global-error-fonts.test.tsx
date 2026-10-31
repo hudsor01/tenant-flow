@@ -2,7 +2,7 @@
  * Placement proof for the global-error root document (D-09).
  *
  * global-error.tsx replaces the root layout when it renders, so it must put the
- * three next/font variable classes on its own <html>; otherwise the
+ * two next/font variable classes on its own <html>; otherwise the
  * `@theme inline` font stacks resolve their var(--font-*) references to nothing
  * and the page falls back to the browser default face.
  *
@@ -17,7 +17,6 @@ import GlobalError from "../global-error";
 
 vi.mock("#lib/fonts", () => ({
 	roboto: { variable: "mock-roboto-variable" },
-	playfairDisplay: { variable: "mock-playfair-variable" },
 	geistMono: { variable: "mock-geist-mono-variable" },
 }));
 
@@ -41,17 +40,13 @@ function classTokens(markup: string, tag: "html" | "body"): string[] | null {
 }
 
 describe("global-error font placement", () => {
-	it("puts exactly the three font variable classes on <html>", () => {
+	it("puts exactly the two font variable classes on <html>", () => {
 		const markup = renderMarkup();
 		expect(markup.startsWith('<html lang="en" class="')).toBe(true);
 		const tokens = classTokens(markup, "html") ?? [];
-		expect(tokens).toHaveLength(3);
+		expect(tokens).toHaveLength(2);
 		expect(new Set(tokens)).toEqual(
-			new Set([
-				"mock-roboto-variable",
-				"mock-playfair-variable",
-				"mock-geist-mono-variable",
-			]),
+			new Set(["mock-roboto-variable", "mock-geist-mono-variable"]),
 		);
 	});
 

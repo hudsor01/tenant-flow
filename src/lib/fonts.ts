@@ -5,12 +5,12 @@
  * once and the root documents (src/app/layout.tsx, src/app/global-error.tsx)
  * import the font objects and put their `.variable` classes on <html>.
  *
- * It defines all three families the app loads. Geist Mono is defined through
+ * It defines both families the app loads. Geist Mono is defined through
  * next/font/local from the geist package's variable woff2, with the same
  * options geist/font/mono uses, so nothing here re-exports another module
  * (CLAUDE.md rule 2).
  */
-import { Playfair_Display, Roboto } from "next/font/google";
+import { Roboto } from "next/font/google";
 import localFont from "next/font/local";
 
 // Roboto - clean, geometric sans-serif for body text and UI
@@ -19,13 +19,6 @@ export const roboto = Roboto({
 	display: "swap",
 	variable: "--font-roboto",
 	weight: ["300", "400", "500", "700"],
-});
-
-// Playfair Display - elegant serif for hero/marketing headlines
-export const playfairDisplay = Playfair_Display({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-playfair",
 });
 
 // Geist Mono - monospace face for code

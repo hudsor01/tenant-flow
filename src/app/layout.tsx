@@ -9,7 +9,7 @@ import { Providers } from "#components/providers";
 import SeoJsonLd from "#components/seo/seo-json-ld";
 import RegisterServiceWorker from "#components/sw/register-sw";
 import { Toaster } from "#components/ui/toast";
-import { geistMono, playfairDisplay, roboto } from "#lib/fonts";
+import { geistMono, roboto } from "#lib/fonts";
 import { generateSiteMetadata } from "#lib/generate-metadata";
 
 import "./globals.css";
@@ -53,7 +53,7 @@ export default async function RootLayout({
 	return (
 		<html
 			lang="en"
-			className={`${roboto.variable} ${playfairDisplay.variable} ${geistMono.variable}`}
+			className={`${roboto.variable} ${geistMono.variable}`}
 			suppressHydrationWarning
 		>
 			<head>
