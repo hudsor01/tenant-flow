@@ -94,6 +94,15 @@ const GUARDS: GuardEntry[] = [
 	{ id: "G1", run: (ctx) => guardsModule.checkOklchRange(ctx.css) },
 	{ id: "G6", run: (ctx) => guardsModule.checkSourceGlobs(ctx.compiler.sources) },
 	{ id: "G2", run: (ctx) => guardsModule.checkNonInlineThemeVarRefs(ctx.css) },
+	{
+		id: "G4",
+		run: (ctx) =>
+			guardsModule.checkLightOnlyColorTokens(
+				ctx.css,
+				ctx.engine.compiledCss,
+				guardsModule.collectSourceCustomPropertyRefs(path.join(ctx.root, "src")),
+			),
+	},
 ];
 
 const selected = args.guards ?? GUARDS.map((entry) => entry.id);
