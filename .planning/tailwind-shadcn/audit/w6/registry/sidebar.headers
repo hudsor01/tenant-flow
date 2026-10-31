@@ -1,0 +1,15 @@
+HTTP 200
+access-control-allow-origin: *
+age: 4028
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="sidebar.json"
+content-encoding: br
+content-type: application/json; charset=utf-8
+date: Sat, 31 Oct 2026 21:56:21 GMT
+etag: W/"96fbf1968214cf152c7a1db7323b593c"
+last-modified: Sat, 31 Oct 2026 20:49:13 GMT
+server: Vercel
+strict-transport-security: max-age=63072000
+x-matched-path: /r/styles/new-york-v4/sidebar.json
+x-vercel-cache: HIT
+x-vercel-id: cle1::v52kf-1793483781600-ae15d2a3a019

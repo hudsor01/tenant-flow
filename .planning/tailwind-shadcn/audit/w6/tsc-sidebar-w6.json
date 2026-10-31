@@ -1,0 +1,89 @@
+{
+  "tscVersion": "Version 7.0.2",
+  "head": "4d3f6e273a2a5f8f55135ac927c794202eed9931",
+  "preW5": "84f3c58d3870b980b11599c99712255b85dcc867",
+  "rewrites": [
+    {
+      "from": "cn",
+      "to": "#lib/utils",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/hooks/use-mobile",
+      "to": "./use-mobile",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/ui/button",
+      "to": "#components/ui/button",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/ui/input",
+      "to": "#components/ui/input",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/ui/separator",
+      "to": "#components/ui/separator",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/ui/sheet",
+      "to": "#components/ui/sheet",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/ui/skeleton",
+      "to": "#components/ui/skeleton",
+      "count": 1
+    },
+    {
+      "from": "@/registry/new-york-v4/ui/tooltip",
+      "to": "#components/ui/tooltip",
+      "count": 1
+    }
+  ],
+  "positive": {
+    "exitCode": 0,
+    "errorCount": 0,
+    "errors": []
+  },
+  "negative": {
+    "exitCode": 1,
+    "errorCodes": [
+      "TS2322"
+    ],
+    "errors": [
+      "neg/neg.ts(1,14): error TS2322: Type 'string' is not assignable to type 'number'."
+    ]
+  },
+  "deps": {
+    "src/components/ui/button.tsx": {
+      "sha256": "1494d473010316cae6726a02fbab98456102584605da7d19e7a690b806dc6baa",
+      "changedSincePreW5": true
+    },
+    "src/components/ui/input.tsx": {
+      "sha256": "c4ef06fcb11420635e31ab3bde624f54ba44ed8954aa5a78071c34b0fec9faa6",
+      "changedSincePreW5": true
+    },
+    "src/components/ui/separator.tsx": {
+      "sha256": "b10519f866e2f485bc54939dc4a62bcab2f8a22c742d9af8b20d88b5fc8fef5d",
+      "changedSincePreW5": false
+    },
+    "src/components/ui/sheet.tsx": {
+      "sha256": "965ac8071756c07516739ecc73803b6fc0fd7459950e11583a38c488864c7dde",
+      "changedSincePreW5": true
+    },
+    "src/components/ui/skeleton.tsx": {
+      "sha256": "b0dd00cde5d77011dab3fb74ba9dec122205c5890ff203d61f1a90e8173be07f",
+      "changedSincePreW5": false
+    },
+    "src/components/ui/tooltip.tsx": {
+      "sha256": "aeb0cea269fb78d600e58af41af13070fdfcf0e7ee248ef8c7e8df61a37982f5",
+      "changedSincePreW5": true
+    }
+  },
+  "sheetHasShowCloseButton": true,
+  "tooltipProviderExported": true
+}

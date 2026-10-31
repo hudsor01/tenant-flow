@@ -1,0 +1,193 @@
+{
+  "fetchedAt": "2026-10-31T21:56:21.457Z",
+  "items": {
+    "sidebar": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/sidebar.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:49:13 GMT",
+      "etag": "W/\"96fbf1968214cf152c7a1db7323b593c\"",
+      "path": "registry/new-york-v4/ui/sidebar.tsx",
+      "filesCount": 1,
+      "contentLines": 726,
+      "registryDependencies": [
+        "button",
+        "separator",
+        "sheet",
+        "tooltip",
+        "input",
+        "use-mobile",
+        "skeleton"
+      ],
+      "dependencies": [
+        "cn",
+        "radix-ui",
+        "class-variance-authority",
+        "lucide-react"
+      ],
+      "rawSha256": "421f1735955361a12466c5c6e7d4c1124cc7f76422b4fdd5dcdf8451b8ae4052",
+      "contentSha256": "2ba1a9b9422f4172373f4cd0587b675d2331a41f4fa68f65dab2b23ca98fd9d2",
+      "researchContentSha256": "2ba1a9b9422f4172373f4cd0587b675d2331a41f4fa68f65dab2b23ca98fd9d2",
+      "unchanged": true,
+      "fetchedAt": "2026-10-31T21:56:21.630Z"
+    },
+    "use-mobile": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/use-mobile.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:49:13 GMT",
+      "etag": "\"46198a8d699912b8de37efcbdab74c01\"",
+      "path": "registry/new-york-v4/hooks/use-mobile.ts",
+      "filesCount": 1,
+      "contentLines": 19,
+      "registryDependencies": [],
+      "dependencies": [],
+      "rawSha256": "4cd4736a08751c89e2ebc10f9d329c430ddb6194f46bf848e5ed470c0407bca1",
+      "contentSha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
+      "researchContentSha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
+      "unchanged": true,
+      "fetchedAt": "2026-10-31T21:56:21.667Z"
+    }
+  },
+  "anchors": [
+    {
+      "id": "A01",
+      "ref": "V9",
+      "needle": "const SIDEBAR_COOKIE_NAME = \"sidebar_state\"",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A02",
+      "ref": "V2",
+      "needle": "const SIDEBAR_WIDTH = \"16rem\"",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A03",
+      "ref": "V2",
+      "needle": "const SIDEBAR_WIDTH_MOBILE = \"18rem\"",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A04",
+      "ref": "V2",
+      "needle": "const SIDEBAR_WIDTH_ICON = \"3rem\"",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A05",
+      "ref": "V8",
+      "needle": "const SIDEBAR_KEYBOARD_SHORTCUT = \"b\"",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A06",
+      "ref": "V8 (D-52)",
+      "needle": "/shiftKey|altKey|\\.repeat\\b/g",
+      "expected": 0,
+      "count": 0,
+      "ok": true
+    },
+    {
+      "id": "A07",
+      "ref": "V9",
+      "needle": "document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A08",
+      "ref": "V2/rule 5",
+      "needle": "style={",
+      "expected": 3,
+      "count": 3,
+      "ok": true
+    },
+    {
+      "id": "A09",
+      "ref": "V3",
+      "needle": "md:",
+      "expected": 10,
+      "count": 10,
+      "ok": true
+    },
+    {
+      "id": "A10",
+      "ref": "D-46",
+      "needle": "[&>button]:hidden",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A11",
+      "ref": "S13/D-35",
+      "needle": "function SidebarInset({ className, ...props }: React.ComponentProps<\"main\">)",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A12",
+      "ref": "S11/V5",
+      "needle": "cn(\"mx-2 w-auto bg-sidebar-border\", className)",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    },
+    {
+      "id": "A13",
+      "ref": "S12/D-34",
+      "needle": "inert",
+      "expected": 0,
+      "count": 0,
+      "ok": true
+    }
+  ],
+  "useMobileAnchors": [
+    {
+      "id": "UM01",
+      "ref": "D-33",
+      "needle": "const MOBILE_BREAKPOINT = 768",
+      "expected": 1,
+      "count": 1,
+      "ok": true
+    }
+  ],
+  "exports": [
+    "Sidebar",
+    "SidebarContent",
+    "SidebarFooter",
+    "SidebarGroup",
+    "SidebarGroupAction",
+    "SidebarGroupContent",
+    "SidebarGroupLabel",
+    "SidebarHeader",
+    "SidebarInput",
+    "SidebarInset",
+    "SidebarMenu",
+    "SidebarMenuAction",
+    "SidebarMenuBadge",
+    "SidebarMenuButton",
+    "SidebarMenuItem",
+    "SidebarMenuSkeleton",
+    "SidebarMenuSub",
+    "SidebarMenuSubButton",
+    "SidebarMenuSubItem",
+    "SidebarProvider",
+    "SidebarRail",
+    "SidebarSeparator",
+    "SidebarTrigger",
+    "useSidebar"
+  ],
+  "exportsMatchResearch": true
+}
