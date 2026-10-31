@@ -57,8 +57,7 @@
   "classes": {
    "data-drift": 18,
    "identical": 70,
-   "noise": 3,
-   "unconfirmed-noise": 1
+   "noise": 4
   }
  },
  "entries": [
@@ -890,5 +889,6 @@
    "sha256": "6d2e9086d3664f7ca327115b2b4b6343d923967314797d7c88261bfa639afec6",
    "bytes": 145963
   }
- ]
+ ],
+ "noiseRule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
 }

@@ -751,9 +751,12 @@
    7008
   ],
   "w1nowVsW2ChangedPixels": 22,
-  "w2VsW2RepeatChangedPixels": 22,
-  "w2VsW2Repeat2ChangedPixels": 22,
-  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing"
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat (w2 tree): 22 px",
+   "w2-repeat2 (w2 tree): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
  },
  {
   "capture": "public/pricing-light-1280.png",
@@ -781,9 +784,12 @@
    7008
   ],
   "w1nowVsW2ChangedPixels": 0,
-  "w2VsW2RepeatChangedPixels": 22,
-  "w2VsW2Repeat2ChangedPixels": 0,
-  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing"
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat (w2 tree): 22 px",
+   "w1 vs w1now (W1 tree recaptured this session): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
  },
  {
   "capture": "public/privacy-dark-1280.png",
@@ -843,7 +849,7 @@
   "capture": "public/signup-dark-390.png",
   "differs": true,
   "changedPixels": 22,
-  "class": "unconfirmed-noise",
+  "class": "noise",
   "bbox": {
    "x": 55,
    "y": 3807,
@@ -859,9 +865,12 @@
    7008
   ],
   "w1nowVsW2ChangedPixels": 0,
-  "w2VsW2RepeatChangedPixels": 0,
-  "w2VsW2Repeat2ChangedPixels": 22,
-  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing"
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat2 (w2 tree): 22 px",
+   "w1 vs w1now (W1 tree recaptured this session): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
  },
  {
   "capture": "public/signup-light-1280.png",
@@ -889,8 +898,12 @@
    7008
   ],
   "w1nowVsW2ChangedPixels": 0,
-  "w2VsW2RepeatChangedPixels": 22,
-  "w2VsW2Repeat2ChangedPixels": 22,
-  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing"
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat (w2 tree): 22 px",
+   "w2-repeat2 (w2 tree): 22 px",
+   "w1 vs w1now (W1 tree recaptured this session): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
  }
 ]

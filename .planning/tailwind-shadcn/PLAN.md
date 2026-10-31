@@ -395,13 +395,13 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.5 screenshots and owner-axe: `baseline` vs a same-session 754c91802 capture differs 92/92 after the 2026-10-26 macOS 27.2 upgrade, so W1 was diffed against that capture (`basenow`): 22 identical, 64 intended (VD-01/02/03/04/06/10/11), 6 owner data drift. CSP: no violation beyond 754c91802 (zod's caught `Function("")` probe on `/login`, pre-existing). owner-axe 36/37 with E-22 passing; `dashboard-a11y` fails locally on 754c91802 too and passes in CI.
   - §7.6 Aikido: path scans 0 issues; the SAST engine failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner.
 
-- **2026-10-31.** Wave 2 gate (66.2-15) run; not passed (two plan rules unmet on a tree that renders like W1, held for the orchestrator):
-  - §7.1 audit: M1 916, M2 0, M8 7 / 1 / 0 of 42 / 0 / 0 (exactly the W6 remnants), M9 file removed; M3-M5 and M7 0, M6 white, black, chart-1..5; source assertions 21/21 (`source-assertions-w2.mjs`).
+- **2026-10-31.** Wave 2 gate (66.2-15) passed (after the Noise and probe rules decision, 234419439):
+  - §7.1 audit: M1 916, M2 0, M8 7 / 1 / 0 of 42 / 0 / 0 (exactly the W6 remnants), M9 file removed; M3-M5 and M7 0, M6 chart-1..5 only (white and black are Tailwind defaults now); source assertions 21/21 (`source-assertions-w2.mjs`).
   - §7.2 rule parity: W1 -> W2 hunk-proof 0 unproven (469 spacing-equivalent, 11 resolved-equal, 2 scope, 30 rewrite-pair, 12 source-removed, 13 source-added); D-18 drops exactly `invert` and `table-column`; css-parity `--strict` 0 unclassified; x3 intended-check 0 mismatches.
   - §7.3 token parity: light/dark border-secondary and accent-85 now [0,0,0,0]; slate-700 R 50 -> 49 (±1); every other token byte-identical.
   - §7.4 guards and build: G1-G7 red on 754c91802 (1/11/2/7/44/2/10) and 0 now; validate:quick, the coverage ratchet and `next build` exit 0.
-  - §7.5 screenshots: W1 vs W2 70 identical, 18 owner data drift, 3 confirmed noise, 1 noise capture (signup-dark-390) that the single w2-repeat did not reproduce (a second repeat and the same-session W1 recapture did); the same-session W1 tree recapture differs from W2 on 1 of 92 (confirmed noise). VD-12 skeleton 4/4 harness and 4/4 live. Component probes equal the W1 archive except `update-password-badge.classes`, the source class string of the 66.2-11 `p-[var(--spacing-3)]` -> `p-3` rewrite (computed values equal). CSP: no violation beyond 754c91802.
-  - §7.6 Aikido: orchestrator path scans 0 issues over 66.2-11..14; SAST failed inside Aikido; this plan's four changed files not yet scanned.
+  - §7.5 screenshots: W1 vs W2 70 identical, 18 owner data drift, 4 noise (the pricing/signup 390 house-icon flicker, each confirmed in a same-session W2 repeat or the same-session W1-tree recapture); the same-session W1-tree recapture differs from W2 on 1 of 92 (noise). VD-12 skeleton 4/4 harness and 4/4 live. Component probes equal the W1 archive on every measured value; the only input change is `update-password-badge.classes` from the 66.2-11 `p-[var(--spacing-3)]` -> `p-3` rewrite. CSP: no violation beyond 754c91802.
+  - §7.6 Aikido: orchestrator path scans 0 issues over 66.2-11..14 and over this plan's four changed files; SAST failed inside Aikido, carried to the owner.
 
 ---
 
