@@ -1,0 +1,8 @@
+[
+ {
+  "file": "public/pricing-light-390.png",
+  "changedPixels": 22,
+  "class": "n",
+  "note": "lucide house-icon roof on the \"Built for\" card, bbox x55 y3807 20x7; the same file changes 22 px at the identical bbox in diff-w3-vs-w3-repeat (same tree, same session); the 66.2-02/66.2-15 pricing/signup 390 noise region"
+ }
+]
