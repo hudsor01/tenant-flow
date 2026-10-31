@@ -41,14 +41,14 @@ export function GridPattern({
 	// Style variants for different visual approaches
 	const variantStyles = {
 		default:
-			"fill-[color-mix(in oklab,var(--color-foreground) 25%, transparent)] stroke-[color-mix(in oklab,var(--color-foreground) 25%, transparent)]",
+			"fill-[color-mix(in_oklab,var(--color-foreground)_25%,transparent)] stroke-[color-mix(in_oklab,var(--color-foreground)_25%,transparent)]",
 		subtle:
-			"fill-[color-mix(in oklab,var(--color-foreground) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-foreground) 15%, transparent)]",
-		bold: "fill-[color-mix(in oklab,var(--color-foreground) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-foreground) 45%, transparent)]",
+			"fill-[color-mix(in_oklab,var(--color-foreground)_15%,transparent)] stroke-[color-mix(in_oklab,var(--color-foreground)_15%,transparent)]",
+		bold: "fill-[color-mix(in_oklab,var(--color-foreground)_45%,transparent)] stroke-[color-mix(in_oklab,var(--color-foreground)_45%,transparent)]",
 		primary:
-			"fill-[color-mix(in oklab,var(--color-primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-primary) 40%, transparent)]",
+			"fill-[color-mix(in_oklab,var(--color-primary)_35%,transparent)] stroke-[color-mix(in_oklab,var(--color-primary)_40%,transparent)]",
 		accent:
-			"fill-[color-mix(in oklab,var(--color-accent) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-accent) 40%, transparent)]",
+			"fill-[color-mix(in_oklab,var(--color-accent)_35%,transparent)] stroke-[color-mix(in_oklab,var(--color-accent)_40%,transparent)]",
 	};
 
 	const selectedStyle = variantStyles[variant];
