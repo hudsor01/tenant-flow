@@ -1,0 +1,411 @@
+[
+  {
+    "from": "!aspect-auto",
+    "to": "aspect-auto!",
+    "files": [
+      "src/components/dashboard/components/kpi-sparkline.tsx",
+      "src/components/dashboard/components/occupancy-donut-chart.tsx"
+    ]
+  },
+  {
+    "from": "!text-warning-text",
+    "to": "text-warning-text!",
+    "files": [
+      "src/components/dashboard/components/kpi-bento-row.tsx"
+    ]
+  },
+  {
+    "from": "-translate-y-[50%]",
+    "to": "translate-y-[-50%]",
+    "files": [
+      "src/components/auth/change-password-dialog.tsx"
+    ]
+  },
+  {
+    "from": "[grid-column:1/-1]",
+    "to": "col-span-full",
+    "files": [
+      "src/components/dashboard/components/kpi-bento-row.tsx",
+      "src/components/dashboard/components/kpi-sparkline.tsx"
+    ]
+  },
+  {
+    "from": "aspect-[16/10]",
+    "to": "aspect-16/10",
+    "files": [
+      "src/components/blog/blog-card.tsx"
+    ]
+  },
+  {
+    "from": "bg-(--color-accent-main)",
+    "to": "bg-accent-main",
+    "files": [
+      "src/components/auth/password-strength.tsx"
+    ]
+  },
+  {
+    "from": "bg-[var(--color-chart-2)]",
+    "to": "bg-chart-2",
+    "files": [
+      "src/components/dashboard/components/occupancy-donut-chart.tsx"
+    ]
+  },
+  {
+    "from": "bg-[var(--color-chart-5)]",
+    "to": "bg-(--color-chart-5)",
+    "files": [
+      "src/components/dashboard/components/occupancy-donut-chart.tsx"
+    ]
+  },
+  {
+    "from": "bg-gradient-to-b",
+    "to": "bg-linear-to-b",
+    "files": [
+      "src/components/contact/contact-form.tsx",
+      "src/components/pricing/pricing-card-featured.tsx",
+      "src/components/sections/hero-dashboard-mockup.tsx"
+    ]
+  },
+  {
+    "from": "bg-gradient-to-br",
+    "to": "bg-linear-to-br",
+    "files": [
+      "src/components/contact/contact-form.tsx",
+      "src/components/pricing/pricing-card-featured.tsx"
+    ]
+  },
+  {
+    "from": "bg-gradient-to-l",
+    "to": "bg-linear-to-l",
+    "files": [
+      "src/components/pricing/pricing-comparison-table.tsx"
+    ]
+  },
+  {
+    "from": "bg-gradient-to-r",
+    "to": "bg-linear-to-r",
+    "files": [
+      "src/components/sections/how-it-works.tsx"
+    ]
+  },
+  {
+    "from": "data-[drag-over]:bg-primary/10",
+    "to": "data-drag-over:bg-primary/10",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "data-[drag-over]:border-primary",
+    "to": "data-drag-over:border-primary",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "data-[drag-over]:scale-[1.01]",
+    "to": "data-drag-over:scale-[1.01]",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "data-[drag-over]:shadow-lg",
+    "to": "data-drag-over:shadow-lg",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "data-[drag-over]:shadow-primary/10",
+    "to": "data-drag-over:shadow-primary/10",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "data-[invalid]:bg-destructive/5",
+    "to": "data-invalid:bg-destructive/5",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "data-[invalid]:border-destructive/60",
+    "to": "data-invalid:border-destructive/60",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "flex-shrink-0",
+    "to": "shrink-0",
+    "files": [
+      "src/app/blog/page.tsx",
+      "src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+      "src/components/maintenance/table/columns.tsx",
+      "src/components/tenants/tenant-grid.tsx"
+    ]
+  },
+  {
+    "from": "group-data-[drag-over]:animate-bounce",
+    "to": "group-data-drag-over:animate-bounce",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "group-data-[drag-over]:animate-pulse",
+    "to": "group-data-drag-over:animate-pulse",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "group-data-[drag-over]:bg-primary/20",
+    "to": "group-data-drag-over:bg-primary/20",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "group-data-[drag-over]:scale-110",
+    "to": "group-data-drag-over:scale-110",
+    "files": [
+      "src/components/bulk-import/bulk-import-upload-step.tsx"
+    ]
+  },
+  {
+    "from": "h-[180px]",
+    "to": "h-45",
+    "files": [
+      "src/components/dashboard/components/occupancy-donut-chart.tsx"
+    ]
+  },
+  {
+    "from": "h-[240px]",
+    "to": "h-60",
+    "files": [
+      "src/components/dashboard/components/occupancy-donut-chart.tsx"
+    ]
+  },
+  {
+    "from": "h-[300px]",
+    "to": "h-75",
+    "files": [
+      "src/app/(owner)/properties/units/page.tsx",
+      "src/components/dashboard/components/revenue-area-chart-skeleton.tsx",
+      "src/components/dashboard/components/revenue-area-chart.tsx",
+      "src/components/data-table/data-table-faceted-filter.tsx"
+    ]
+  },
+  {
+    "from": "h-[400px]",
+    "to": "h-100",
+    "files": [
+      "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+      "src/components/leases/wizard/lease-creation-wizard.tsx",
+      "src/components/properties/image-lightbox.tsx",
+      "src/components/shared/error-page.tsx",
+      "src/components/shared/not-found-page.tsx"
+    ]
+  },
+  {
+    "from": "h-[480px]",
+    "to": "h-120",
+    "files": [
+      "src/components/leases/template/pdf-preview-panel.tsx"
+    ]
+  },
+  {
+    "from": "h-[520px]",
+    "to": "h-130",
+    "files": [
+      "src/app/(owner)/documents/templates/components/template-preview-panel.tsx"
+    ]
+  },
+  {
+    "from": "h-[72px]",
+    "to": "h-18",
+    "files": [
+      "src/components/applications/application-queue.tsx"
+    ]
+  },
+  {
+    "from": "inset-[-2px]",
+    "to": "-inset-0.5",
+    "files": [
+      "src/components/sections/features-section.tsx"
+    ]
+  },
+  {
+    "from": "leading-[1.1]",
+    "to": "leading-display",
+    "files": [
+      "src/app/blog/[slug]/blog-post-page.tsx",
+      "src/app/resources/page.tsx",
+      "src/components/sections/hero-section.tsx"
+    ]
+  },
+  {
+    "from": "list-[disc]",
+    "to": "list-disc",
+    "files": [
+      "src/components/auth/change-password-dialog.tsx"
+    ]
+  },
+  {
+    "from": "max-h-[300px]",
+    "to": "max-h-75",
+    "files": [
+      "src/components/data-table/data-table-faceted-filter.tsx"
+    ]
+  },
+  {
+    "from": "max-w-[150px]",
+    "to": "max-w-37.5",
+    "files": [
+      "src/components/shell/app-shell-header.tsx"
+    ]
+  },
+  {
+    "from": "min-h-[400px]",
+    "to": "min-h-100",
+    "files": [
+      "src/components/leases/wizard/lease-creation-wizard.tsx",
+      "src/components/properties/image-lightbox.tsx",
+      "src/components/shared/error-page.tsx",
+      "src/components/shared/not-found-page.tsx"
+    ]
+  },
+  {
+    "from": "min-w-[280px]",
+    "to": "min-w-70",
+    "files": [
+      "src/app/blog/page.tsx",
+      "src/components/maintenance/kanban/maintenance-kanban.client.tsx"
+    ]
+  },
+  {
+    "from": "min-w-[640px]",
+    "to": "min-w-160",
+    "files": [
+      "src/components/pricing/pricing-comparison-table.tsx",
+      "src/components/sections/comparison-table.tsx"
+    ]
+  },
+  {
+    "from": "p-[2px]",
+    "to": "p-0.5",
+    "files": [
+      "src/components/pricing/pricing-card-featured.tsx"
+    ]
+  },
+  {
+    "from": "size-[160px]",
+    "to": "size-40",
+    "files": [
+      "src/components/dashboard/components/occupancy-donut-chart-skeleton.tsx"
+    ]
+  },
+  {
+    "from": "sm:flex-shrink",
+    "to": "sm:shrink",
+    "files": [
+      "src/components/maintenance/kanban/maintenance-kanban.client.tsx"
+    ]
+  },
+  {
+    "from": "sm:max-w-[400px]",
+    "to": "sm:max-w-100",
+    "files": [
+      "src/components/auth/mfa-verification-dialog.tsx",
+      "src/components/auth/two-factor-setup-dialog.tsx"
+    ]
+  },
+  {
+    "from": "sm:max-w-[480px]",
+    "to": "sm:max-w-120",
+    "files": [
+      "src/components/auth/two-factor-setup-dialog.tsx"
+    ]
+  },
+  {
+    "from": "sm:max-w-[500px]",
+    "to": "sm:max-w-125",
+    "files": [
+      "src/components/auth/change-password-dialog.tsx"
+    ]
+  },
+  {
+    "from": "supports-[backdrop-filter]:bg-card/80",
+    "to": "supports-backdrop-filter:bg-card/80",
+    "files": [
+      "src/components/properties/property-form.mobile.tsx"
+    ]
+  },
+  {
+    "from": "via-primary/[0.02]",
+    "to": "via-primary/2",
+    "files": [
+      "src/components/blog/blog-inline-cta.tsx",
+      "src/components/blog/lead-magnet-cta.tsx"
+    ]
+  },
+  {
+    "from": "w-[100px]",
+    "to": "w-25",
+    "files": [
+      "src/app/(owner)/reports/balance-sheet/page.tsx",
+      "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+      "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx"
+    ]
+  },
+  {
+    "from": "w-[120px]",
+    "to": "w-30",
+    "files": [
+      "src/components/data-table/data-table-toolbar.tsx"
+    ]
+  },
+  {
+    "from": "w-[130px]",
+    "to": "w-32.5",
+    "files": [
+      "src/app/(owner)/reports/balance-sheet/page.tsx",
+      "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+      "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx",
+      "src/app/(owner)/reports/tax-documents/page.tsx"
+    ]
+  },
+  {
+    "from": "w-[140px]",
+    "to": "w-35",
+    "files": [
+      "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+    ]
+  },
+  {
+    "from": "w-[160px]",
+    "to": "w-40",
+    "files": [
+      "src/app/(owner)/analytics/financial/financial-charts.tsx",
+      "src/app/(owner)/analytics/financial/revenue-expense-chart.tsx",
+      "src/components/leases/template/lease-template-builder.client.tsx"
+    ]
+  },
+  {
+    "from": "w-[180px]",
+    "to": "w-45",
+    "files": [
+      "src/components/documents/documents-section.tsx"
+    ]
+  },
+  {
+    "from": "z-[1]",
+    "to": "z-1",
+    "files": [
+      "src/components/dashboard/components/portfolio-data-table.tsx"
+    ]
+  }
+]
