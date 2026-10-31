@@ -1,0 +1,12 @@
+{
+  "VD-19": ":is(button, a, [role=\"button\"])[class*=\"typography-small\"]",
+  "VD-20": ":is(button, a, [role=\"button\"])[class*=\"typography-small\"] svg.lucide",
+  "VD-21": "[class*=\"border-beam\"]",
+  "VD-22": "svg.pointer-events-none:has(> defs > pattern)",
+  "VD-16": ".recharts-cartesian-grid",
+  "VD-17": ".recharts-area, .recharts-line",
+  "VD-23": "[data-slot=\"blur-fade\"], .will-change-transform",
+  "VD-30": ":has(> svg.lucide-lock)",
+  "iso-forward": ":is(button, a, [role=\"button\"])[class*=\"typography-small\"] svg:not([class*=\"size-\"]):not(:not(.lucide)[width]):not([class*=\"h-3.5\"]):not([class*=\"h-5\"]):not([class*=\"h-6\"])",
+  "v4-autosize": ":is(button, a, [role=\"button\"])[class*=\"typography-small\"] svg:not([class*=\"size-\"])"
+}

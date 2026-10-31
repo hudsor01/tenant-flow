@@ -3,17 +3,23 @@
 //
 //   bun .planning/tailwind-shadcn/audit/screens.mjs <label> [--sets public,owner] [--routes /a,/b]
 //       [--widths 390,1280] [--base-url <url>] [--start [--port 3062]] [--blog-slug <slug>]
+//       [--style <css-file>] [--markers <json-file>]
 //   bun .planning/tailwind-shadcn/audit/screens.mjs --diff <labelA> <labelB>
 //
 // Capture writes $TW_AUDIT_OUT/screens-<label>/<set>/<slug>-<theme>-<width>.png and
 // $TW_AUDIT_OUT/screens-<label>/manifest.json = { label, baseUrl, startedServer, captures: [{ set,
-// route, theme, width, file, status, finalUrl, themeApplied, consoleErrors }], skipped: [{ set,
-// route, reason }], owner?: { skipped } | { error } }. <slug> is the route without its leading
+// route, theme, width, file, status, finalUrl, themeApplied, consoleErrors, markers? }], skipped:
+// [{ set, route, reason }], owner?: { skipped } | { error }, style? }. <slug> is the route without its leading
 // slash with every remaining "/" mapped to "_"; the root route is "root". `file` is
 // <set>/<slug>-<theme>-<width>.png, relative to screens-<label>/.
 // Matrix: themes light/dark x widths 390/1280 (height 844 below 768, else 800); the owner set adds
 // /applications at 375 and 320 unless --widths is given. --routes/--widths override the defaults
 // for the chosen sets. The blog route uses --blog-slug, else the first /blog/<slug> link on /blog.
+// --style <css-file>: the file is read once and passed as Playwright's screenshot({ style }) option,
+// so the stylesheet applies only while each screenshot is taken; the manifest records its basename
+// as `style`. --markers <json-file>: a { "<key>": "<css selector>" } map; before each screenshot the
+// capture entry records markers: { "<key>": <document.querySelectorAll(selector).length> } (null for
+// a selector the page rejects).
 //
 // Diff writes $TW_AUDIT_OUT/diff-<A>-vs-<B>.json = { summary: { identical, changed, sizeChanged,
 // missingInA, missingInB }, files: [{ name, sizeA, sizeB, changedPixels, changedRatio, bbox }],
@@ -80,7 +86,7 @@ const heightFor = (w) => (w < 768 ? 844 : 800);
 
 // ---------- argv ----------
 function parseArgs(argv) {
-	const a = { label: null, sets: ["public", "owner"], routes: null, widths: null, baseUrl: null, start: false, port: 3062, blogSlug: null, diff: null };
+	const a = { label: null, sets: ["public", "owner"], routes: null, widths: null, baseUrl: null, start: false, port: 3062, blogSlug: null, diff: null, style: null, markers: null };
 	const pos = [];
 	for (let i = 0; i < argv.length; i++) {
 		const x = argv[i];
@@ -101,6 +107,8 @@ function parseArgs(argv) {
 		else if (x === "--start") a.start = true;
 		else if (x === "--port") a.port = Number(val());
 		else if (x === "--blog-slug") a.blogSlug = val();
+		else if (x === "--style") a.style = val();
+		else if (x === "--markers") a.markers = val();
 		else if (x.startsWith("--")) fail(`unknown flag ${x}`);
 		else pos.push(x);
 	}
@@ -115,6 +123,22 @@ function parseArgs(argv) {
 	if (a.widths && (a.widths.length === 0 || a.widths.some((w) => !Number.isInteger(w) || w <= 0))) fail("--widths must be positive integers");
 	if (!Number.isInteger(a.port) || a.port <= 0 || a.port > 65535) fail("--port must be a TCP port");
 	if (a.start && a.baseUrl) fail("--start and --base-url are exclusive");
+	if (a.style) {
+		if (!fs.existsSync(a.style)) fail(`--style file not found: ${a.style}`);
+		a.styleName = path.basename(a.style);
+		a.styleText = fs.readFileSync(a.style, "utf8");
+	}
+	if (a.markers) {
+		if (!fs.existsSync(a.markers)) fail(`--markers file not found: ${a.markers}`);
+		let m;
+		try {
+			m = JSON.parse(fs.readFileSync(a.markers, "utf8"));
+		} catch {
+			fail("--markers must be a JSON object");
+		}
+		if (!m || typeof m !== "object" || Array.isArray(m) || Object.values(m).some((v) => typeof v !== "string")) fail('--markers must map "<key>" to a selector string');
+		a.markerMap = m;
+	}
 	return a;
 }
 
@@ -322,6 +346,7 @@ const ownerCredentialsPresent = () =>
 async function runCapture(args) {
 	const outDir = path.join(OUT, `screens-${args.label}`);
 	const manifest = { label: args.label, baseUrl: null, startedServer: false, captures: [], skipped: [] };
+	if (args.styleName) manifest.style = args.styleName;
 	let sets = [...args.sets];
 	if (sets.includes("owner") && !ownerCredentialsPresent()) {
 		manifest.owner = { skipped: "credentials not in environment" };
@@ -434,7 +459,22 @@ async function runCapture(args) {
 									});
 									await page.waitForTimeout(500);
 									fs.mkdirSync(path.join(outDir, set), { recursive: true });
-									await page.screenshot({ path: path.join(outDir, file), fullPage: true, animations: "disabled", caret: "hide" });
+									if (args.markerMap) {
+										entry.markers = await page.evaluate((map) => {
+											const out = {};
+											for (const [k, sel] of Object.entries(map)) {
+												try {
+													out[k] = document.querySelectorAll(sel).length;
+												} catch {
+													out[k] = null;
+												}
+											}
+											return out;
+										}, args.markerMap);
+									}
+									const shotOptions = { path: path.join(outDir, file), fullPage: true, animations: "disabled", caret: "hide" };
+									if (args.styleText) shotOptions.style = args.styleText;
+									await page.screenshot(shotOptions);
 									entry.finalUrl = page.url();
 									entry.themeApplied = await page.evaluate((t) => document.documentElement.classList.contains("dark") === (t === "dark"), theme);
 								} catch (e) {
