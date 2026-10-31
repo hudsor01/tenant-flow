@@ -654,6 +654,127 @@
         }
       ]
     },
+    "src/components/ui/sidebar.tsx": {
+      "item": "sidebar",
+      "plan": "66.2-32",
+      "divergences": [
+        {
+          "what": "V1: `#` subpath imports (#components/ui/button, separator, sheet, tooltip, #hooks/use-mobile, #lib/sidebar-state, #lib/utils); React hooks and the ComponentProps type imported by name instead of the `React` namespace; Biome formatting",
+          "reason": "D-26 customization",
+          "ref": "D-04; D-32 (V1)"
+        },
+        {
+          "what": "V2: SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE and SIDEBAR_WIDTH_ICON constants and both static style objects removed; widths come from the globals.css :root --sidebar-width / --sidebar-width-mobile / --sidebar-width-icon tokens; the mobile SheetContent uses w-(--sidebar-width-mobile); SidebarProvider no longer destructures `style`",
+          "reason": "D-26 customization",
+          "ref": "CLAUDE.md rule 5; D-32 (V2)"
+        },
+        {
+          "what": "V3: lg:block on the outer desktop div and lg:flex on sidebar-container replace md:block / md:flex; useIsMobile matches (width < 64rem)",
+          "reason": "D-26 customization",
+          "ref": "D-33 (V3)"
+        },
+        {
+          "what": "V4: base-rule neutralizers: SidebarMenu adds mt-0 mb-0 pl-0 [&>li]:mb-0, SidebarMenuSub adds mt-0 mb-0 [&>li]:mb-0, sidebarMenuButtonVariants base and SidebarMenuSubButton add no-underline; SidebarMenuItem and SidebarMenuSubItem stay upstream",
+          "reason": "D-26 customization",
+          "ref": "D-49 (V4); PATTERNS #1; S8"
+        },
+        {
+          "what": "V5: SidebarSeparator passes data-[orientation=horizontal]:w-auto in place of w-auto so tailwind-merge drops the Separator's data-[orientation=horizontal]:w-full",
+          "reason": "D-26 customization",
+          "ref": "S11 (V5)"
+        },
+        {
+          "what": "V6: SheetTitle \"Navigation menu\", SheetDescription \"Main navigation for your TenantFlow account\"; SidebarRail aria-label and title \"Toggle navigation menu\"",
+          "reason": "D-26 customization",
+          "ref": "D-41 (V6); UI-SPEC §Copywriting Contract"
+        },
+        {
+          "what": "V7: SidebarTrigger reads isMobile/open/openMobile, sets aria-label \"Toggle navigation menu\" and aria-expanded={isMobile ? openMobile : open}, renders PanelLeftIcon with size-5 and drops the sr-only \"Toggle Sidebar\" span",
+          "reason": "D-26 customization",
+          "ref": "D-41 (V7)"
+        },
+        {
+          "what": "V8: the keydown handler compares event.key.toLowerCase() to SIDEBAR_KEYBOARD_SHORTCUT",
+          "reason": "D-26 customization",
+          "ref": "D-52 (V8)"
+        },
+        {
+          "what": "V9: setOpen calls persistSidebarOpen(openState) from #lib/sidebar-state in place of the document.cookie assignment; SIDEBAR_COOKIE_NAME and SIDEBAR_COOKIE_MAX_AGE are not redeclared",
+          "reason": "D-26 customization",
+          "ref": "D-36 (V9); CLAUDE.md rule 3"
+        },
+        {
+          "what": "V10: no useCallback / useMemo (React Compiler): setOpen, toggleSidebar and contextValue are plain consts, and the keydown useEffect has no dependency array",
+          "reason": "D-26 customization",
+          "ref": "D-32 (V10)"
+        },
+        {
+          "what": "V11: the mobile SheetContent adds data-[state=closed]:duration-200 data-[state=open]:duration-200 ease-out",
+          "reason": "D-26 customization",
+          "ref": "D-41 (V11); UI-SPEC S-4"
+        },
+        {
+          "what": "V12: the file exports 16 parts; the trimmed upstream parts are listed one per entry below, and the Input and Skeleton imports are gone with them",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\"; the container stays non-inert so the SidebarRail child keeps re-expanding the rail",
+          "reason": "D-26 customization",
+          "ref": "D-34; S12; UI-SPEC S-5"
+        },
+        {
+          "what": "D-46: the mobile SheetContent keeps the canonical [&>button]:hidden, so the sheet's own corner \"Close\" button never shows; the visible \"Close navigation menu\" button is rendered by the owner shell in SidebarHeader",
+          "reason": "D-26 customization",
+          "ref": "D-46; UI-SPEC S-4"
+        },
+        {
+          "what": "D-52: isEditableTarget() and hasBlockingDialog() guards; the shortcut returns without preventDefault on Shift, Alt, event.repeat, an input/textarea/select/[contenteditable] target (not contenteditable=\"false\"), or an open dialog/alertdialog other than [data-slot=\"sidebar\"]",
+          "reason": "D-26 customization",
+          "ref": "D-52 (V8); D-34"
+        },
+        {
+          "what": "SidebarInset and its data-slot sidebar-inset (it renders a <main>; the shell owns the only main landmark)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-35; D-32 (V12)"
+        },
+        {
+          "what": "SidebarInput and its data-slot sidebar-input",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "SidebarGroupLabel and its data-slot sidebar-group-label",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "SidebarGroupAction and its data-slot sidebar-group-action",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "SidebarGroupContent and its data-slot sidebar-group-content",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "SidebarMenuAction and its data-slot sidebar-menu-action",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "SidebarMenuBadge and its data-slot sidebar-menu-badge",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        },
+        {
+          "what": "SidebarMenuSkeleton and its data-slot sidebar-menu-skeleton",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-32 (V12)"
+        }
+      ]
+    },
     "src/components/ui/skeleton.tsx": {
       "item": "skeleton",
       "plan": "66.2-29",
