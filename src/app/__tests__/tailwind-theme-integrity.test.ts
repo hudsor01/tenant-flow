@@ -1454,6 +1454,44 @@ describe("G7 — every theme-namespace var() reference resolves in the compiled 
 	);
 
 	it(
+		"does not read a bare --duration reference as a theme key",
+		async () => {
+			const result = checkG7DanglingThemeVars(
+				await emptyCompiledCss(),
+				[
+					{
+						path: "src/app/globals.css",
+						text: "@theme inline { --animate-g7-probe: g7-probe calc(var(--duration) * 1s) linear; }",
+					},
+				],
+				NO_RUNTIME,
+			);
+			expect(result.checked).toBe(await emptyBuildChecked());
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"still flags an undeclared --duration-* reference",
+		async () => {
+			const { violations } = checkG7DanglingThemeVars(
+				await emptyCompiledCss(),
+				[
+					{
+						path: "src/app/globals.css",
+						text: "@theme inline { --animate-g7-probe: g7-probe var(--duration-fast) linear; }",
+					},
+				],
+				NO_RUNTIME,
+			);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]?.startsWith("--duration-fast ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
 		"exempts a variable an inline style sets at run time",
 		async () => {
 			const sources: G7SourceText[] = [

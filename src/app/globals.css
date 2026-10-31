@@ -527,6 +527,21 @@
 	--color-chart-5: var(--chart-5);
 }
 
+/* BorderBeam travel: this key drives the after:animate-border-beam class in
+   src/components/ui/border-beam.tsx. It is inline because BorderBeam sets
+   --duration per element through its style attribute; a non-inline theme value
+   resolves at :root, where --duration is unset, and computes animation-name:
+   none. The global reduced-motion rule below stops it. */
+@theme inline {
+	--animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+
+	@keyframes border-beam {
+		100% {
+			offset-distance: 100%;
+		}
+	}
+}
+
 @utility hero-highlight {
 	position: relative;
 	/* isolate so the ::after swipe (z-index:-1) sits behind the text but in front

@@ -635,8 +635,13 @@ export interface G7RuntimeVars {
 	readonly fonts: ReadonlySet<string>;
 }
 
+/**
+ * `duration` counts only as `--duration-*`: Tailwind v4 has no bare `--duration`
+ * theme key, and BorderBeam sets a bare `--duration` per element at run time.
+ * Every other namespace also matches its bare name (`--spacing`, `--radius`).
+ */
 const G7_THEME_NAMESPACE =
-	/^--(color|text|spacing|radius|shadow|font|leading|tracking|ease|transition-duration|duration|animate|container)(-|$)/;
+	/^--(?:(?:color|text|spacing|radius|shadow|font|leading|tracking|ease|transition-duration|animate|container)(?:-|$)|duration-)/;
 
 const G7_GLOBALS_PATH = "src/app/globals.css";
 

@@ -103,7 +103,9 @@ root.walkRules((r) => {
 const varRe = (n) => new RegExp(`var\\(\\s*${esc(n)}[\\s,)]|\\(${esc(n)}\\)`, "g");
 const refs = (n) => (css.match(varRe(n)) || []).length + (srcText.match(varRe(n)) || []).length + (compiled.match(new RegExp(`var\\(\\s*${esc(n)}[\\s,)]`, "g")) || []).length + (new RegExp(`["'\`]${esc(n)}["'\`]`).test(srcText) ? 1 : 0);
 const themeLayer = compiled.slice(compiled.indexOf("@layer theme"), compiled.indexOf("@layer base"));
+// A namespaced theme var is used when a valid candidate (any variant) is <prefix><key>; inline --animate-* keys are never emitted into the theme layer.
 const prefixes = {
+	"--animate-": ["animate-"],
 	"--font-weight-": ["font-"], "--font-": ["font-"], "--text-": ["text-"], "--leading-": ["leading-"], "--tracking-": ["tracking-"], "--transition-duration-": ["duration-"],
 	"--shadow-": ["shadow-"], "--ease-": ["ease-"], "--z-index-": ["z-"], "--radius-": ["rounded-", "rounded-t-", "rounded-b-", "rounded-l-", "rounded-r-"],
 	"--spacing-": ["p-", "px-", "py-", "pt-", "pb-", "pl-", "pr-", "m-", "mx-", "my-", "mt-", "mb-", "ml-", "mr-", "gap-", "gap-x-", "gap-y-", "w-", "h-", "size-", "min-w-", "min-h-", "max-w-", "max-h-", "inset-", "top-", "left-", "right-", "bottom-", "space-x-", "space-y-", "translate-x-", "translate-y-", "basis-", "-mt-", "-mx-", "-translate-y-"],
