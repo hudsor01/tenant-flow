@@ -1,0 +1,1313 @@
+{
+ "summary": {
+  "identical": 90,
+  "changed": 2,
+  "sizeChanged": 0,
+  "missingInA": 0,
+  "missingInB": 0
+ },
+ "files": [
+  {
+   "name": "owner/analytics_overview-dark-1280.png",
+   "sizeA": [
+    1280,
+    1599
+   ],
+   "sizeB": [
+    1280,
+    1599
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/analytics_overview-dark-390.png",
+   "sizeA": [
+    390,
+    2487
+   ],
+   "sizeB": [
+    390,
+    2487
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/analytics_overview-light-1280.png",
+   "sizeA": [
+    1280,
+    1599
+   ],
+   "sizeB": [
+    1280,
+    1599
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/analytics_overview-light-390.png",
+   "sizeA": [
+    390,
+    2487
+   ],
+   "sizeB": [
+    390,
+    2487
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-dark-1280.png",
+   "sizeA": [
+    1280,
+    2960
+   ],
+   "sizeB": [
+    1280,
+    2960
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-dark-320.png",
+   "sizeA": [
+    320,
+    3233
+   ],
+   "sizeB": [
+    320,
+    3233
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-dark-375.png",
+   "sizeA": [
+    375,
+    3161
+   ],
+   "sizeB": [
+    375,
+    3161
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-dark-390.png",
+   "sizeA": [
+    390,
+    3141
+   ],
+   "sizeB": [
+    390,
+    3141
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-light-1280.png",
+   "sizeA": [
+    1280,
+    2960
+   ],
+   "sizeB": [
+    1280,
+    2960
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-light-320.png",
+   "sizeA": [
+    320,
+    3233
+   ],
+   "sizeB": [
+    320,
+    3233
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-light-375.png",
+   "sizeA": [
+    375,
+    3161
+   ],
+   "sizeB": [
+    375,
+    3161
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/applications-light-390.png",
+   "sizeA": [
+    390,
+    3141
+   ],
+   "sizeB": [
+    390,
+    3141
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/dashboard-dark-1280.png",
+   "sizeA": [
+    1280,
+    3060
+   ],
+   "sizeB": [
+    1280,
+    3060
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/dashboard-dark-390.png",
+   "sizeA": [
+    390,
+    6335
+   ],
+   "sizeB": [
+    390,
+    6335
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/dashboard-light-1280.png",
+   "sizeA": [
+    1280,
+    3060
+   ],
+   "sizeB": [
+    1280,
+    3060
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/dashboard-light-390.png",
+   "sizeA": [
+    390,
+    6335
+   ],
+   "sizeB": [
+    390,
+    6335
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents-dark-1280.png",
+   "sizeA": [
+    1280,
+    1314
+   ],
+   "sizeB": [
+    1280,
+    1314
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents-dark-390.png",
+   "sizeA": [
+    390,
+    1881
+   ],
+   "sizeB": [
+    390,
+    1881
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents-light-1280.png",
+   "sizeA": [
+    1280,
+    1314
+   ],
+   "sizeB": [
+    1280,
+    1314
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents-light-390.png",
+   "sizeA": [
+    390,
+    1881
+   ],
+   "sizeB": [
+    390,
+    1881
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents_lease-template-dark-1280.png",
+   "sizeA": [
+    1280,
+    6178
+   ],
+   "sizeB": [
+    1280,
+    6178
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents_lease-template-dark-390.png",
+   "sizeA": [
+    390,
+    10609
+   ],
+   "sizeB": [
+    390,
+    10609
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents_lease-template-light-1280.png",
+   "sizeA": [
+    1280,
+    6178
+   ],
+   "sizeB": [
+    1280,
+    6178
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/documents_lease-template-light-390.png",
+   "sizeA": [
+    390,
+    10609
+   ],
+   "sizeB": [
+    390,
+    10609
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/leases-dark-1280.png",
+   "sizeA": [
+    1280,
+    1169
+   ],
+   "sizeB": [
+    1280,
+    1169
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/leases-dark-390.png",
+   "sizeA": [
+    390,
+    1462
+   ],
+   "sizeB": [
+    390,
+    1462
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/leases-light-1280.png",
+   "sizeA": [
+    1280,
+    1169
+   ],
+   "sizeB": [
+    1280,
+    1169
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/leases-light-390.png",
+   "sizeA": [
+    390,
+    1462
+   ],
+   "sizeB": [
+    390,
+    1462
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/maintenance-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/maintenance-dark-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/maintenance-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/maintenance-light-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/properties-dark-1280.png",
+   "sizeA": [
+    1280,
+    1346
+   ],
+   "sizeB": [
+    1280,
+    1346
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/properties-dark-390.png",
+   "sizeA": [
+    390,
+    1733
+   ],
+   "sizeB": [
+    390,
+    1733
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/properties-light-1280.png",
+   "sizeA": [
+    1280,
+    1346
+   ],
+   "sizeB": [
+    1280,
+    1346
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/properties-light-390.png",
+   "sizeA": [
+    390,
+    1733
+   ],
+   "sizeB": [
+    390,
+    1733
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/reports_cash-flow-dark-1280.png",
+   "sizeA": [
+    1280,
+    1188
+   ],
+   "sizeB": [
+    1280,
+    1188
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/reports_cash-flow-dark-390.png",
+   "sizeA": [
+    390,
+    2132
+   ],
+   "sizeB": [
+    390,
+    2132
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/reports_cash-flow-light-1280.png",
+   "sizeA": [
+    1280,
+    1188
+   ],
+   "sizeB": [
+    1280,
+    1188
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/reports_cash-flow-light-390.png",
+   "sizeA": [
+    390,
+    2132
+   ],
+   "sizeB": [
+    390,
+    2132
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/settings-dark-1280.png",
+   "sizeA": [
+    1280,
+    1611
+   ],
+   "sizeB": [
+    1280,
+    1611
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/settings-dark-390.png",
+   "sizeA": [
+    390,
+    2122
+   ],
+   "sizeB": [
+    390,
+    2122
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/settings-light-1280.png",
+   "sizeA": [
+    1280,
+    1611
+   ],
+   "sizeB": [
+    1280,
+    1611
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/settings-light-390.png",
+   "sizeA": [
+    390,
+    2122
+   ],
+   "sizeB": [
+    390,
+    2122
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/tenants-dark-1280.png",
+   "sizeA": [
+    1280,
+    1132
+   ],
+   "sizeB": [
+    1280,
+    1132
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/tenants-dark-390.png",
+   "sizeA": [
+    390,
+    1427
+   ],
+   "sizeB": [
+    390,
+    1427
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/tenants-light-1280.png",
+   "sizeA": [
+    1280,
+    1132
+   ],
+   "sizeB": [
+    1280,
+    1132
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "owner/tenants-light-390.png",
+   "sizeA": [
+    390,
+    1427
+   ],
+   "sizeB": [
+    390,
+    1427
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_confirm-email-dark-1280.png",
+   "sizeA": [
+    1280,
+    1062
+   ],
+   "sizeB": [
+    1280,
+    1062
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_confirm-email-dark-390.png",
+   "sizeA": [
+    390,
+    1219
+   ],
+   "sizeB": [
+    390,
+    1219
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_confirm-email-light-1280.png",
+   "sizeA": [
+    1280,
+    1062
+   ],
+   "sizeB": [
+    1280,
+    1062
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_confirm-email-light-390.png",
+   "sizeA": [
+    390,
+    1219
+   ],
+   "sizeB": [
+    390,
+    1219
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_update-password-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_update-password-dark-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_update-password-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/auth_update-password-light-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+   "sizeA": [
+    1280,
+    11887
+   ],
+   "sizeB": [
+    1280,
+    11887
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+   "sizeA": [
+    390,
+    20930
+   ],
+   "sizeB": [
+    390,
+    20930
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+   "sizeA": [
+    1280,
+    11887
+   ],
+   "sizeB": [
+    1280,
+    11887
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+   "sizeA": [
+    390,
+    20930
+   ],
+   "sizeB": [
+    390,
+    20930
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-dark-1280.png",
+   "sizeA": [
+    1280,
+    1312
+   ],
+   "sizeB": [
+    1280,
+    1312
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-dark-390.png",
+   "sizeA": [
+    390,
+    2299
+   ],
+   "sizeB": [
+    390,
+    2299
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-light-1280.png",
+   "sizeA": [
+    1280,
+    1312
+   ],
+   "sizeB": [
+    1280,
+    1312
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-light-390.png",
+   "sizeA": [
+    390,
+    2299
+   ],
+   "sizeB": [
+    390,
+    2299
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/faq-dark-1280.png",
+   "sizeA": [
+    1280,
+    3654
+   ],
+   "sizeB": [
+    1280,
+    3654
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/faq-dark-390.png",
+   "sizeA": [
+    390,
+    4889
+   ],
+   "sizeB": [
+    390,
+    4889
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/faq-light-1280.png",
+   "sizeA": [
+    1280,
+    3654
+   ],
+   "sizeB": [
+    1280,
+    3654
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/faq-light-390.png",
+   "sizeA": [
+    390,
+    4889
+   ],
+   "sizeB": [
+    390,
+    4889
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/help-dark-1280.png",
+   "sizeA": [
+    1280,
+    2730
+   ],
+   "sizeB": [
+    1280,
+    2730
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/help-dark-390.png",
+   "sizeA": [
+    390,
+    4040
+   ],
+   "sizeB": [
+    390,
+    4040
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/help-light-1280.png",
+   "sizeA": [
+    1280,
+    2730
+   ],
+   "sizeB": [
+    1280,
+    2730
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/help-light-390.png",
+   "sizeA": [
+    390,
+    4040
+   ],
+   "sizeB": [
+    390,
+    4040
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/login-dark-1280.png",
+   "sizeA": [
+    1280,
+    903
+   ],
+   "sizeB": [
+    1280,
+    903
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/login-dark-390.png",
+   "sizeA": [
+    390,
+    870
+   ],
+   "sizeB": [
+    390,
+    870
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/login-light-1280.png",
+   "sizeA": [
+    1280,
+    903
+   ],
+   "sizeB": [
+    1280,
+    903
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/login-light-390.png",
+   "sizeA": [
+    390,
+    870
+   ],
+   "sizeB": [
+    390,
+    870
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/pricing-dark-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/pricing-dark-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/pricing-light-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/pricing-light-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 22,
+   "changedRatio": 0.000008,
+   "bbox": {
+    "x": 55,
+    "y": 3807,
+    "width": 20,
+    "height": 7
+   }
+  },
+  {
+   "name": "public/privacy-dark-1280.png",
+   "sizeA": [
+    1280,
+    6383
+   ],
+   "sizeB": [
+    1280,
+    6383
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/privacy-dark-390.png",
+   "sizeA": [
+    390,
+    9761
+   ],
+   "sizeB": [
+    390,
+    9761
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/privacy-light-1280.png",
+   "sizeA": [
+    1280,
+    6383
+   ],
+   "sizeB": [
+    1280,
+    6383
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/privacy-light-390.png",
+   "sizeA": [
+    390,
+    9761
+   ],
+   "sizeB": [
+    390,
+    9761
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/root-dark-1280.png",
+   "sizeA": [
+    1280,
+    6029
+   ],
+   "sizeB": [
+    1280,
+    6029
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/root-dark-390.png",
+   "sizeA": [
+    390,
+    9757
+   ],
+   "sizeB": [
+    390,
+    9757
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/root-light-1280.png",
+   "sizeA": [
+    1280,
+    6029
+   ],
+   "sizeB": [
+    1280,
+    6029
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/root-light-390.png",
+   "sizeA": [
+    390,
+    9757
+   ],
+   "sizeB": [
+    390,
+    9757
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/signup-dark-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/signup-dark-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 22,
+   "changedRatio": 0.000008,
+   "bbox": {
+    "x": 55,
+    "y": 3807,
+    "width": 20,
+    "height": 7
+   }
+  },
+  {
+   "name": "public/signup-light-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/signup-light-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  }
+ ],
+ "missing": {
+  "inA": [],
+  "inB": []
+ }
+}
