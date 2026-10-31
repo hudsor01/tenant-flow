@@ -3,7 +3,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Roboto } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
@@ -13,22 +12,9 @@ import RegisterServiceWorker from "#components/sw/register-sw";
 import { Toaster } from "#components/ui/toast";
 import { generateSiteMetadata } from "#lib/generate-metadata";
 
+import { playfairDisplay, roboto } from "./fonts";
+
 import "./globals.css";
-
-// Roboto - clean, geometric sans-serif for body text and UI
-const roboto = Roboto({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-sans",
-	weight: ["300", "400", "500", "700"],
-});
-
-// Playfair Display - elegant serif for hero/marketing headlines
-const playfairDisplay = Playfair_Display({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-display",
-});
 
 // `themeColor` and `msapplication-TileColor` are HTML meta attribute
 // values, not CSS — Tailwind tokens / CSS custom properties don't apply.
