@@ -9,10 +9,10 @@
 //
 // Scenario ids (component-probes.mjs and later plans read these verbatim):
 //   otp-setup, otp-mfa, chart, command, date-popover, grid-pattern, border-beam-stats,
-//   border-beam-grid, blur-fade-no-js, blur-fade-reduced-motion, blur-fade-io-stub,
-//   update-password-badge, data-table, card-action, button-group-nested, plain-popover, sheet,
-//   sheet-no-close, sheet-slot-override, button, toast-default, toast-success, toast-error,
-//   toast-loading
+//   border-beam-grid, border-beam-reduced-motion, blur-fade-no-js, blur-fade-reduced-motion,
+//   blur-fade-io-stub, update-password-badge, data-table, card-action, button-group-nested,
+//   plain-popover, sheet, sheet-no-close, sheet-slot-override, button, toast-default,
+//   toast-success, toast-error, toast-loading
 // card-action (ledger C6) mounts Card > CardHeader (title, description, CardAction holding a small
 // Button) + CardContent + CardFooter in a 600px wrapper; button-group-nested (ledger C13) mounts an
 // outer ButtonGroup holding two ButtonGroups of two outline Buttons. Both pass `data-probe` through
@@ -243,6 +243,7 @@ const scenarios: Record<string, (p: Props) => ReactElement> = {
 	),
 	"border-beam-stats": beam,
 	"border-beam-grid": beam,
+	"border-beam-reduced-motion": beam,
 	"blur-fade-no-js": blurFade,
 	"blur-fade-reduced-motion": blurFade,
 	"blur-fade-io-stub": blurFade,

@@ -60,6 +60,8 @@
 //   grid-pattern            { svgStroke, pathStroke, svgStrokeRgba }
 //   border-beam-stats/-grid { props, afterBackgroundImage, afterAnimationName,
 //                            afterAnimationDuration, runningAnimations }
+//   border-beam-reduced-motion  the border-beam-stats render (same props, card and 600 ms wait)
+//                            in a context with reducedMotion: "reduce"; same fields
 //   blur-fade-no-js, -reduced-motion, -io-stub
 //                           { ssrHtmlHasOpacity0, ssrAriaHidden, opacityAtStart, opacityAtEnd,
 //                            ariaHiddenAtEnd, dataSlot, animationNameAtStart, animationDuration,
@@ -499,6 +501,7 @@ const PROBES = {
 	},
 	"border-beam-stats": { props: () => borderBeamProps("src/components/tenants/tenant-stats.tsx"), selectors: ["#root .relative > div"], run: async ({ page, props }) => measureBeam(page, props) },
 	"border-beam-grid": { props: () => borderBeamProps("src/components/tenants/tenant-grid.tsx"), selectors: ["#root .relative > div"], run: async ({ page, props }) => measureBeam(page, props) },
+	"border-beam-reduced-motion": { props: () => borderBeamProps("src/components/tenants/tenant-stats.tsx"), ctxOptions: { reducedMotion: "reduce" }, selectors: ["#root .relative > div"], run: async ({ page, props }) => measureBeam(page, props) },
 	"blur-fade-no-js": { blurMode: "no-js" },
 	"blur-fade-reduced-motion": { blurMode: "reduced-motion" },
 	"blur-fade-io-stub": { blurMode: "io-stub" },
@@ -758,7 +761,7 @@ try {
 					continue;
 				}
 				const props = probe.props ? probe.props() : {};
-				const o = await openPage(theme);
+				const o = await openPage(theme, probe.ctxOptions ?? {});
 				try {
 					await loadHarness(o.page, theme);
 					await o.page.evaluate(({ pid, p }) => window.__tfProbes.render(pid, p), { pid: id, p: props });
