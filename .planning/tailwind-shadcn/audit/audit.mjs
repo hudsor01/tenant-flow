@@ -3,6 +3,7 @@
 // Run from the repo root:  node .planning/tailwind-shadcn/audit/audit.mjs
 // Every count it prints is a progress metric in .planning/tailwind-shadcn/PLAN.md.
 // scanned-files.txt lists every file the class scan read, repo-relative and sorted (M1).
+// M6 follows @theme inline var() mappings to :root/.dark (structure-agnostic light-only tokens).
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -145,14 +146,28 @@ report.invalidOklch = [...css.matchAll(/oklch\(\s*([0-9.]+%?)\s+([0-9.]+%?)\s+([
 	})
 	.map((m) => `L${css.slice(0, m.index).split("\n").length} ${m[0]})`);
 report.nonInlineThemeVarsReferencingVars = themeVars.filter((v) => v.mode !== "inline" && /var\(/.test(v.value)).map((v) => `L${v.line} ${v.name}: ${v.value.replace(/\s+/g, " ")}`);
-const darkBlock = (() => {
-	const i = css.search(/(^|\n)\s*(:where\(\.dark, \.dark \*\)|\.dark)\s*\{/);
-	return i < 0 ? "" : css.slice(i, css.indexOf("}", i));
-})();
-const darkKeys = new Set([...darkBlock.matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+// M6 follows @theme inline var() mappings to :root/.dark: dark keys come from EVERY
+// `.dark` / `:where(.dark, .dark *)` rule at any depth, and an inline `--color-<n>:
+// var(--<m>)` token is light-only when `--<m>` is declared in a :root rule and in no
+// dark rule. A non-inline literal `--color-<n>` is light-only when no dark rule
+// declares `--color-<n>`.
+const darkSelectors = new Set([".dark", ":where(.dark, .dark *)"]);
+const darkKeys = new Set();
+const rootValues = new Map();
+root.walkRules((r) => {
+	const sel = r.selector.replace(/\s+/g, " ").trim();
+	if (darkSelectors.has(sel)) r.walkDecls((d) => d.prop.startsWith("--") && darkKeys.add(d.prop));
+	else if (sel === ":root") r.walkDecls((d) => d.prop.startsWith("--") && !rootValues.has(d.prop) && rootValues.set(d.prop, d.value));
+});
 report.lightOnlyColorTokensInUse = themeVars
-	.filter((v) => v.name.startsWith("--color-") && !darkKeys.has(v.name) && !/var\(/.test(v.value) && !deadTheme.includes(v))
-	.map((v) => `${v.name}: ${v.value}`);
+	.filter((v) => v.name.startsWith("--color-") && !deadTheme.includes(v))
+	.map((v) => {
+		const alias = v.mode === "inline" ? /^var\(\s*(--[a-z0-9-]+)\s*\)$/.exec(v.value.trim()) : null;
+		if (alias) return rootValues.has(alias[1]) && !darkKeys.has(alias[1]) ? `${v.name}: ${rootValues.get(alias[1])}` : null;
+		if (/var\(/.test(v.value)) return null;
+		return darkKeys.has(v.name) ? null : `${v.name}: ${v.value}`;
+	})
+	.filter(Boolean);
 
 // 6. tailwind-merge: custom theme keys that merge wrongly through the project's cn().
 const fontSizes = themeVars.filter((v) => v.name.startsWith("--text-") && !v.name.includes("--line-height") && !deadTheme.includes(v)).map((v) => v.name.slice(7));
