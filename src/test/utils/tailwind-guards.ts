@@ -39,7 +39,7 @@
  *   - G7 every theme-namespace var() reference resolves (D-17):
  *     `checkG7DanglingThemeVars` reports each var() reference in a theme
  *     namespace, in the compiled CSS or a shipped source file, that the
- *     compiled CSS never declares (the `--duration-*` incident class, #1024).
+ *     compiled CSS never declares (the `--duration-*` incident class, PR 1024).
  *     `collectG7SourceTexts` reads the sources and `deriveG7RuntimeVars`
  *     derives the variables set at run time rather than by the stylesheet.
  *   Later guard plans add their checks to this file: G8 (66.2-18).
