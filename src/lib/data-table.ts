@@ -5,11 +5,12 @@ import type { CSSProperties } from "react";
  * Style object for a DataTable header or body cell, keyed to the column's
  * pinning state.
  *
- * An unpinned column sets no background, so the TableRow hover and selected
- * fills show through its cells (N2, 66.2-16). A pinned column paints the page
- * surface with var(--color-background), so rows scrolled under it do not
- * show through, and with `withBorder` its inner edge gets an inset shadow
- * in var(--color-border).
+ * An unpinned column sets a transparent background, so the TableRow hover
+ * and selected fills show through its cells and the base header-cell fill
+ * stays masked, as before the 66.2-16 token move (N2). A pinned column
+ * paints the page surface with var(--color-background), so rows scrolled
+ * under it do not show through, and with `withBorder` its inner edge gets an
+ * inset shadow in var(--color-border).
  *
  * @param column - TanStack table column instance
  * @param withBorder - Whether the last left-pinned and first right-pinned
@@ -41,7 +42,7 @@ export function getCommonPinningStyles<TData>({
 		right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
 		opacity: isPinned ? 0.97 : 1,
 		position: isPinned ? "sticky" : "relative",
-		background: isPinned ? "var(--color-background)" : undefined,
+		background: isPinned ? "var(--color-background)" : "transparent",
 		width: column.getSize(),
 		zIndex: isPinned ? 1 : undefined,
 	};

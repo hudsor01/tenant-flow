@@ -1,6 +1,7 @@
 /**
- * Pins N2 (66.2-16): an unpinned DataTable cell sets no background, so the
- * TableRow hover and selected fills show through it; only a pinned cell paints
+ * Pins N2 (66.2-16): an unpinned DataTable cell sets a transparent
+ * background, so the TableRow hover and selected fills show through it and the
+ * base stylesheet's header-cell fill stays masked; only a pinned cell paints
  * the page surface, through the theme token var(--color-background). The
  * pinned edge shadows read var(--color-border). Under the `@theme inline`
  * token structure the bare var(--background) is defined, so painting it on
@@ -66,9 +67,9 @@ function expectNoBareTokens(style: CSSProperties) {
 }
 
 describe("getCommonPinningStyles", () => {
-	it("sets no background on an unpinned column", () => {
+	it("sets a transparent background on an unpinned column", () => {
 		const style = getCommonPinningStyles({ column: column("b") });
-		expect(style.background).toBeUndefined();
+		expect(style.background).toBe("transparent");
 		expect(style.position).toBe("relative");
 		expect(style.opacity).toBe(1);
 		expect(style.zIndex).toBeUndefined();
@@ -112,7 +113,7 @@ describe("getCommonPinningStyles", () => {
 			withBorder: true,
 		});
 		expect(style.boxShadow).toBeUndefined();
-		expect(style.background).toBeUndefined();
+		expect(style.background).toBe("transparent");
 		expectNoBareTokens(style);
 	});
 });
