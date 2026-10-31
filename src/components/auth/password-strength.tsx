@@ -65,7 +65,7 @@ function PasswordStrength({
 	const strength = (passedRules.length / rules.length) * 100;
 
 	const getStrengthColor = () => {
-		if (strength === 0) return "bg-(--color-fill-primary)";
+		if (strength === 0) return "bg-muted";
 		if (strength <= 20) return "bg-destructive";
 		if (strength <= 40) return "bg-accent";
 		if (strength <= 60) return "bg-accent";
@@ -96,7 +96,7 @@ function PasswordStrength({
 						type="password"
 						autoComplete="new-password"
 						className={cn(
-							"flex h-10 w-full rounded-[var(--radius-md)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+							"flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
 							className,
 						)}
 						ref={ref}
@@ -110,7 +110,7 @@ function PasswordStrength({
 
 				<Popover.Portal>
 					<Popover.Content
-						className="z-50 w-80 rounded-[var(--radius-lg)] bg-popover p-4 shadow-[var(--shadow-md)] border border-(--color-separator)"
+						className="z-50 w-80 rounded-lg bg-popover p-4 shadow-(--shadow-md) border border-border"
 						sideOffset={5}
 						onOpenAutoFocus={(e) => e.preventDefault()}
 					>
@@ -124,7 +124,7 @@ function PasswordStrength({
 										"flex-1 rounded-full transition-all duration-[var(--duration-standard)]",
 										i < Math.ceil(passedRules.length)
 											? getStrengthColor()
-											: "bg-(--color-fill-primary) opacity-50",
+											: "bg-muted opacity-50",
 									)}
 								/>
 							))}
@@ -143,7 +143,7 @@ function PasswordStrength({
 										data-tokens="applied"
 										className={cn(
 											"flex items-center gap-x-[var(--spacing-2)] transition-colors",
-											passed ? "text-accent" : "text-(--color-label-tertiary)",
+											passed ? "text-accent" : "text-muted-foreground",
 										)}
 									>
 										{passed ? (

@@ -48,9 +48,14 @@ import {
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
 import {
+	checkLightOnlyColorTokens,
 	checkNonInlineThemeVarRefs,
 	checkOklchRange,
 	checkSourceGlobs,
+	collectCustomPropertiesByContext,
+	collectSourceCustomPropertyRefs,
+	extractCustomPropertyRefs,
+	resolveCustomPropertyChain,
 } from "#test/utils/tailwind-guards";
 
 const ENGINE_TIMEOUT_MS = 30_000;
@@ -598,4 +603,220 @@ describe("B2 / D-08: touch-target rule layering", () => {
 		},
 		ENGINE_TIMEOUT_MS,
 	);
+});
+
+/**
+ * G4 (D-11, D-17). The B4 label/fill/separator family was declared only in the
+ * light @theme block, so every consumer kept its light value in dark mode (the
+ * Renew Lease dialog measured 1.01:1). A used theme color token needs a dark
+ * value, or its consumers move to a semantic token; MODE_INDEPENDENT_TOKENS
+ * (white, black, chart-1..5) is the only exemption.
+ *
+ * H4. The resolver follows `var()` alias chains through @theme, @theme inline
+ * and :root to a dark-scope declaration, so the same check holds on the
+ * current structure (a dark override of the theme token) and on the inline
+ * structure (`--color-x: var(--x)` with `--x` redefined under .dark), where a
+ * utility compiles to `var(--x)` rather than to the theme token. F3/F4 prove
+ * the inline structure in both directions.
+ */
+describe("G4 used theme color tokens have a dark value (B4 class)", () => {
+	const F1_LIGHT_ONLY = "@theme { --color-q: oklch(0 0 0 / 50%); }";
+	const F2_WITH_DARK =
+		"@theme { --color-q: oklch(0.5 0 0); } @layer base { :where(.dark, .dark *) { --color-q: oklch(0.9 0 0); } }";
+	const F3_INLINE_WITH_DARK =
+		":root { --q: oklch(0.5 0 0); } .dark { --q: oklch(0.9 0 0); } @theme inline { --color-q: var(--q); }";
+	const F4_INLINE_LIGHT_ONLY =
+		":root { --q: oklch(0 0 0 / 50%); } @theme inline { --color-q: var(--q); }";
+	const F7_MODE_INDEPENDENT =
+		"@theme { --color-chart-1: oklch(0.63 0.22 259); --color-white: oklch(1 0 0); }";
+	const F8_CYCLE =
+		"@theme inline { --color-a: var(--color-b); --color-b: var(--color-a); }";
+
+	function projectSourceRefs(): Set<string> {
+		return collectSourceCustomPropertyRefs(resolve(REPO_ROOT, "src"));
+	}
+
+	it(
+		"finds theme color tokens, a dark scope and used tokens to check",
+		async () => {
+			const engine = await projectEngine();
+			const contexts = collectCustomPropertiesByContext(engine.css);
+			const themeColorKeys = [...contexts.theme.keys()].filter((key) =>
+				key.startsWith("--color-"),
+			);
+			expect(
+				themeColorKeys.length,
+				"G4 found too few theme color tokens in globals.css: the context walk is vacuous",
+			).toBeGreaterThanOrEqual(50);
+			expect(
+				contexts.dark.size,
+				"G4 found too few dark-scope declarations in globals.css: the dark resolver is vacuous",
+			).toBeGreaterThanOrEqual(30);
+			expect(
+				checkLightOnlyColorTokens(
+					engine.css,
+					engine.compiledCss,
+					projectSourceRefs(),
+				).checked,
+				"G4 checked too few used theme color tokens: the usage scan is vacuous",
+			).toBeGreaterThanOrEqual(25);
+			const chain = resolveCustomPropertyChain("--color-background", contexts);
+			expect(
+				chain.some((name) => contexts.dark.has(name)),
+				`--color-background does not reach a dark-scope declaration (chain ${chain.join(" -> ")})`,
+			).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"every used theme color token has a dark value",
+		async () => {
+			const engine = await projectEngine();
+			const { violations } = checkLightOnlyColorTokens(
+				engine.css,
+				engine.compiledCss,
+				projectSourceRefs(),
+			);
+			expect(
+				violations,
+				[
+					"Light-only color token(s) in globals.css (B4 class, D-11):",
+					...violations,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F1: flags a used token declared only in a legacy @theme block",
+		async () => {
+			const engine = await loadFixtureEngine(F1_LIGHT_ONLY);
+			const { checked, violations } = checkLightOnlyColorTokens(
+				engine.css,
+				engine.compiler.build(["bg-q"]),
+				new Set(),
+			);
+			expect(checked).toBe(1);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("--color-q");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F2: accepts a legacy token with a :where(.dark, .dark *) value",
+		async () => {
+			const engine = await loadFixtureEngine(F2_WITH_DARK);
+			const result = checkLightOnlyColorTokens(
+				engine.css,
+				engine.compiler.build(["bg-q"]),
+				new Set(),
+			);
+			expect(result.violations).toEqual([]);
+			expect(result.checked).toBe(1);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F3: accepts an inline-structure token whose alias has a .dark value (H4)",
+		async () => {
+			const engine = await loadFixtureEngine(F3_INLINE_WITH_DARK);
+			const compiledCss = engine.compiler.build(["bg-q"]);
+			expect(compiledCss).toContain("var(--q)");
+			expect(compiledCss).not.toContain("var(--color-q)");
+			const result = checkLightOnlyColorTokens(
+				engine.css,
+				compiledCss,
+				new Set(),
+			);
+			expect(result.violations).toEqual([]);
+			expect(result.checked).toBe(1);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F4: flags an inline-structure token with no dark value (H4)",
+		async () => {
+			const engine = await loadFixtureEngine(F4_INLINE_LIGHT_ONLY);
+			const { violations } = checkLightOnlyColorTokens(
+				engine.css,
+				engine.compiler.build(["bg-q"]),
+				new Set(),
+			);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("--color-q");
+			expect(violations[0]).toContain("--color-q -> --q");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F5: skips a light-only token that nothing uses",
+		async () => {
+			const engine = await loadFixtureEngine(F1_LIGHT_ONLY);
+			const result = checkLightOnlyColorTokens(
+				engine.css,
+				engine.compiler.build([]),
+				new Set(),
+			);
+			expect(result.violations).toEqual([]);
+			expect(result.checked).toBe(0);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F6: flags a light-only token used only from source text",
+		async () => {
+			const engine = await loadFixtureEngine(F1_LIGHT_ONLY);
+			const sourceRefs = extractCustomPropertyRefs(
+				'<div style={{ borderColor: "var(--color-q)" }} />',
+			);
+			expect([...sourceRefs]).toEqual(["--color-q"]);
+			const { violations } = checkLightOnlyColorTokens(
+				engine.css,
+				engine.compiler.build([]),
+				sourceRefs,
+			);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("--color-q");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"F7: exempts the mode-independent tokens",
+		async () => {
+			const engine = await loadFixtureEngine(F7_MODE_INDEPENDENT);
+			const compiledCss = engine.compiler.build(["bg-chart-1", "bg-white"]);
+			expect(compiledCss).toContain("var(--color-chart-1)");
+			expect(compiledCss).toContain("var(--color-white)");
+			const result = checkLightOnlyColorTokens(
+				engine.css,
+				compiledCss,
+				new Set(),
+			);
+			expect(result.violations).toEqual([]);
+			expect(result.checked).toBe(0);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it("F8: stops at an alias cycle and reports both tokens", () => {
+		const contexts = collectCustomPropertiesByContext(F8_CYCLE);
+		expect(resolveCustomPropertyChain("--color-a", contexts)).toEqual([
+			"--color-a",
+			"--color-b",
+		]);
+		const { violations } = checkLightOnlyColorTokens(
+			F8_CYCLE,
+			"",
+			new Set(["--color-a"]),
+		);
+		expect(violations).toHaveLength(2);
+	});
 });

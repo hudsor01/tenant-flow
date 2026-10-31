@@ -41,10 +41,10 @@ export function GridPattern({
 	// Style variants for different visual approaches
 	const variantStyles = {
 		default:
-			"fill-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)]",
+			"fill-[color-mix(in oklab,var(--color-foreground) 25%, transparent)] stroke-[color-mix(in oklab,var(--color-foreground) 25%, transparent)]",
 		subtle:
-			"fill-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)]",
-		bold: "fill-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)]",
+			"fill-[color-mix(in oklab,var(--color-foreground) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-foreground) 15%, transparent)]",
+		bold: "fill-[color-mix(in oklab,var(--color-foreground) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-foreground) 45%, transparent)]",
 		primary:
 			"fill-[color-mix(in oklab,var(--color-primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-primary) 40%, transparent)]",
 		accent:

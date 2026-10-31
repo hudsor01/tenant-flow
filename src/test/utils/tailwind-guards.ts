@@ -25,8 +25,10 @@
  *     non-inline `@theme` at-rule references var() (B3/H1 class: Tailwind emits
  *     non-inline theme values on :root, so a var() inside one resolves at :root
  *     rather than on the element that sets the referenced variable).
- *   Later guard plans add their checks to this file: G4 (66.2-07), G3 (66.2-08),
- *   G5 (66.2-09), G7 (66.2-14), G8 (66.2-18).
+ *   - G4 `checkLightOnlyColorTokens`: every used theme color token has a dark
+ *     value (B4 class); structure-agnostic resolver (H4).
+ *   Later guard plans add their checks to this file: G3 (66.2-08), G5 (66.2-09),
+ *   G7 (66.2-14), G8 (66.2-18).
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -42,8 +44,11 @@
  *      which `globals.css` keeps out of the scan.
  */
 
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { SourceEntry } from "@tailwindcss/oxide";
 import { Scanner } from "@tailwindcss/oxide";
+import type { AtRule, Node as PostcssNode, Rule } from "postcss";
 import postcss from "postcss";
 
 export type GuardResult = {
@@ -141,5 +146,184 @@ export function checkNonInlineThemeVarRefs(css: string): GuardResult {
 			if (decl.value.includes("var(")) violations.push(decl.prop);
 		});
 	});
+	return { checked, violations: violations.sort() };
+}
+
+/**
+ * PLAN.md §6 allow-list for G4: theme color tokens whose value is meant to be
+ * the same in both modes. The names are built from their suffixes so no full
+ * theme variable name sits in this scanned file as a literal. Nothing else may
+ * join this set.
+ */
+export const MODE_INDEPENDENT_TOKENS: ReadonlySet<string> = new Set(
+	["white", "black", "chart-1", "chart-2", "chart-3", "chart-4", "chart-5"].map(
+		(name) => `--color-${name}`,
+	),
+);
+
+/**
+ * Custom property declarations of one stylesheet, keyed by property name and
+ * split by the context that declares them: a `@theme` at-rule (inline or not),
+ * a dark-scope rule, or a `:root` rule. A later declaration in the same
+ * context overwrites an earlier one, as in the cascade.
+ */
+export interface CustomPropertyContexts {
+	readonly theme: ReadonlyMap<string, string>;
+	readonly root: ReadonlyMap<string, string>;
+	readonly dark: ReadonlyMap<string, string>;
+}
+
+const DARK_SCOPE_SELECTOR = /(^|[\s,(])\.dark(?![\w-])/;
+const ROOT_SELECTOR = /:root(?![\w-])/;
+const SINGLE_VAR_REFERENCE = /^var\(\s*(--[\w-]+)\s*\)$/;
+const VAR_REFERENCE = /var\(\s*(--[\w-]+)/g;
+
+type CustomPropertyContext = keyof CustomPropertyContexts;
+
+type PostcssParent = PostcssNode["parent"];
+
+function isAtRuleNode(node: PostcssParent): node is AtRule {
+	return node?.type === "atrule";
+}
+
+function isRuleNode(node: PostcssParent): node is Rule {
+	return node?.type === "rule";
+}
+
+function declarationContext(
+	parent: PostcssParent,
+): CustomPropertyContext | null {
+	for (let node = parent; node; node = node.parent) {
+		if (isAtRuleNode(node) && node.name === "theme") return "theme";
+		if (isRuleNode(node)) {
+			if (DARK_SCOPE_SELECTOR.test(node.selector)) return "dark";
+			if (ROOT_SELECTOR.test(node.selector)) return "root";
+		}
+	}
+	return null;
+}
+
+/**
+ * The first matching ancestor decides a declaration's context, so a dark-scope
+ * rule nested in `@layer base` counts as dark and a `:root` rule as root.
+ * Declarations outside all three contexts are ignored.
+ */
+export function collectCustomPropertiesByContext(
+	css: string,
+): CustomPropertyContexts {
+	const theme = new Map<string, string>();
+	const root = new Map<string, string>();
+	const dark = new Map<string, string>();
+	const byContext: Record<CustomPropertyContext, Map<string, string>> = {
+		theme,
+		root,
+		dark,
+	};
+	postcss.parse(css).walkDecls((decl) => {
+		if (!decl.prop.startsWith("--")) return;
+		const context = declarationContext(decl.parent);
+		if (context === null) return;
+		byContext[context].set(decl.prop, decl.value);
+	});
+	return { theme, root, dark };
+}
+
+/**
+ * Follows a `--a: var(--b)` alias chain through the theme and `:root`
+ * declarations, starting at `name`. It stops at the first value that is not a
+ * single var() reference, at an undeclared name, or at the first repeated name
+ * (a cycle).
+ */
+export function resolveCustomPropertyChain(
+	name: string,
+	contexts: CustomPropertyContexts,
+): string[] {
+	const chain = [name];
+	const seen = new Set(chain);
+	let current = name;
+	for (;;) {
+		const value = contexts.theme.get(current) ?? contexts.root.get(current);
+		if (value === undefined) break;
+		const next = SINGLE_VAR_REFERENCE.exec(value.trim())?.[1];
+		if (next === undefined || seen.has(next)) break;
+		chain.push(next);
+		seen.add(next);
+		current = next;
+	}
+	return chain;
+}
+
+/** Every custom property name referenced through var() in `text`. */
+export function extractCustomPropertyRefs(text: string): Set<string> {
+	const refs = new Set<string>();
+	for (const match of text.matchAll(VAR_REFERENCE)) {
+		if (match[1] !== undefined) refs.add(match[1]);
+	}
+	return refs;
+}
+
+/**
+ * `relPath` is relative to `src/`. Stylesheet references reach G4 through the
+ * compiled CSS, so `app/globals.css` is excluded; test files and the
+ * `src/test/` harness are excluded because they do not ship.
+ */
+export function isGuardSourceFile(relPath: string): boolean {
+	const path = relPath.replaceAll("\\", "/");
+	if (!/\.(ts|tsx|css)$/.test(path)) return false;
+	if (path === "app/globals.css") return false;
+	if (path.includes("__tests__/")) return false;
+	if (path.includes(".test.") || path.includes(".spec.")) return false;
+	return !path.startsWith("test/");
+}
+
+/** Union of the var() references in every guard source file under `srcDir`. */
+export function collectSourceCustomPropertyRefs(srcDir: string): Set<string> {
+	const refs = new Set<string>();
+	for (const entry of readdirSync(srcDir, {
+		encoding: "utf8",
+		recursive: true,
+	})) {
+		const rel = entry.replaceAll("\\", "/");
+		if (!isGuardSourceFile(rel)) continue;
+		for (const ref of extractCustomPropertyRefs(
+			readFileSync(join(srcDir, rel), "utf8"),
+		)) {
+			refs.add(ref);
+		}
+	}
+	return refs;
+}
+
+/**
+ * G4. `checked` counts the theme color tokens (minus MODE_INDEPENDENT_TOKENS)
+ * that are used: some member of their alias chain is referenced by the
+ * compiled CSS or by a source file. Following the chain is what keeps the
+ * guard working on the `@theme inline` structure, where a utility compiles to
+ * the aliased variable rather than to the theme token. A used token is a
+ * violation when no chain member has a dark-scope declaration.
+ */
+export function checkLightOnlyColorTokens(
+	css: string,
+	compiledCss: string,
+	sourceRefs: ReadonlySet<string>,
+): GuardResult {
+	const contexts = collectCustomPropertiesByContext(css);
+	const refs = extractCustomPropertyRefs(compiledCss);
+	for (const ref of sourceRefs) refs.add(ref);
+	let checked = 0;
+	const violations: string[] = [];
+	for (const [key, value] of contexts.theme) {
+		if (!key.startsWith("--color-") || MODE_INDEPENDENT_TOKENS.has(key)) {
+			continue;
+		}
+		const chain = resolveCustomPropertyChain(key, contexts);
+		if (!chain.some((name) => refs.has(name))) continue;
+		checked += 1;
+		if (!chain.some((name) => contexts.dark.has(name))) {
+			violations.push(
+				`${key} (light ${value}) has no dark value; chain ${chain.join(" -> ")}. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)`,
+			);
+		}
+	}
 	return { checked, violations: violations.sort() };
 }
