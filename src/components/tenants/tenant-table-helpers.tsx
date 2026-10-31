@@ -109,7 +109,7 @@ export function SortableHeader({
 					<ChevronDown className="h-4 w-4" />
 				)
 			) : (
-				<ChevronsUpDown className="h-4 w-4 opacity-50" />
+				<ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
 			)}
 		</button>
 	);
