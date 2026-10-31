@@ -210,6 +210,8 @@ export default defineConfig({
 				// owner-axe rather than three times across owner/firefox/mobile-chrome
 				// is both the CI-gating placement and the bound on that write.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
+				"**/owner/app-shell-sidebar.spec.ts",
 			],
 		},
 
@@ -260,6 +262,15 @@ export default defineConfig({
 				// `@layer base` rules in globals.css. Listing it here is what makes it
 				// gate a PR — CI runs `--project=owner-axe` and never runs `owner`.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 wave 6 owner Sidebar proofs (UI-SPEC S-10) —
+				// self-authenticates via loginAsOwner (no storageState). It carries the
+				// ONLY real-browser proofs of the canonical owner Sidebar: the cascade
+				// against the `@layer base` list and link rules, the rail and sheet
+				// geometry, Radix focus trapping and hideOthers, the collapsed rail's
+				// `inert`, and the SSR `sidebar_state` cookie state against hydration.
+				// jsdom can decide none of them. Listing it here is what makes it gate
+				// a PR — CI runs `--project=owner-axe` and never runs `owner`.
+				"**/owner/app-shell-sidebar.spec.ts",
 			],
 		},
 
@@ -332,6 +343,8 @@ export default defineConfig({
 				"**/owner/dashboard-smoke.e2e.spec.ts",
 				// Phase 66 applications spec — owner-axe only, see the note there.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
+				"**/owner/app-shell-sidebar.spec.ts",
 			],
 		},
 
@@ -353,6 +366,8 @@ export default defineConfig({
 				"**/owner/dashboard-smoke.e2e.spec.ts",
 				// Phase 66 applications spec — owner-axe only, see the note there.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
+				"**/owner/app-shell-sidebar.spec.ts",
 			],
 		},
 	],

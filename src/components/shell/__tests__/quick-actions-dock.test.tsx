@@ -126,6 +126,8 @@ describe("QuickActionsDock", () => {
 
 			const wrapper = container.firstChild as HTMLElement;
 			expect(wrapper.className).toContain("lg:block");
+			// The E2E hook sits on the root, the element that carries lg:block.
+			expect(screen.getByTestId("quick-actions-dock")).toBe(wrapper);
 		});
 
 		it("should have hidden class for mobile", () => {

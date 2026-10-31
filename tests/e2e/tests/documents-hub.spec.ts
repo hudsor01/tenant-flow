@@ -53,7 +53,8 @@ const BUILD = "documents-build";
 const PRINTABLES = "documents-printables";
 
 /**
- * Scope every query to the shell's main landmark (`app-shell.tsx:308-309`). The
+ * Scope every query to the shell's single `main#main-content` landmark, rendered
+ * by `AppShell`'s content column (Phase 66.2 D-35 keeps exactly one). The
  * sidebar contains its own "Documents" nav entry, so an unscoped getByRole would
  * happily satisfy itself against navigation chrome.
  */

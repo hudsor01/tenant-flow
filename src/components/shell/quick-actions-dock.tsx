@@ -45,6 +45,7 @@ export function QuickActionsDock({
 		// offcanvas rail is collapsed, and moving with the rail's 200ms linear
 		// transition (D-39, D-51).
 		<div
+			data-testid="quick-actions-dock"
 			className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden lg:block lg:left-[calc(50%+var(--sidebar-width)/2)] group-has-data-[collapsible=offcanvas]/sidebar-wrapper:lg:left-1/2 lg:transition-[left] lg:duration-200 lg:ease-linear ${className}`}
 		>
 			<div className="flex items-center gap-2 px-4 py-3 bg-card/80 backdrop-blur-md border border-border rounded-2xl shadow-lg">
