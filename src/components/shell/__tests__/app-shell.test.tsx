@@ -3,16 +3,31 @@
  *
  * Tests the main application shell component including:
  * - Basic rendering
- * - Mobile sidebar behavior
+ * - Desktop sidebar (D-34, D-35, D-37): one main#main-content, no hand-rolled
+ *   offset/overlay/inset, the named header trigger, collapse with an inert
+ *   header and a live rail, the cookie-driven default, the sidebar-primary tile
+ * - Mobile navigation sheet (D-41, D-46, D-48): the named Radix dialog with
+ *   hideOthers, the one visible 44px close button, close on Escape / close
+ *   button / nav item / logo / palette selection with focus back on the trigger
+ * - Focus return under StrictMode (D-47)
  * - User profile dropdown
- * - Command palette
+ * - Command palette, including the nav-sheet exclusion in the Cmd+K guard
  * - Quick actions dock
  * - Breadcrumbs
  */
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
+import { StrictMode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
 import { AppShell } from "../app-shell";
 
 // Mock next/navigation
@@ -111,6 +126,48 @@ beforeAll(() => {
 	Element.prototype.scrollIntoView = vi.fn();
 });
 
+afterEach(() => {
+	vi.unstubAllGlobals();
+});
+
+// The unit setup answers every media query with `matches: false` (desktop).
+// Mobile tests stub only the sidebar's breakpoint query as matching.
+function stubViewport(mobile: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: mobile && query === MOBILE_MEDIA_QUERY,
+		media: query,
+		onchange: null,
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		dispatchEvent: vi.fn(() => true),
+	}));
+}
+
+// The rail shares the trigger's accessible name, so the header trigger is
+// selected by its data-slot, never by name alone.
+function getTrigger(container: HTMLElement): HTMLButtonElement {
+	const trigger = container.querySelector('[data-slot="sidebar-trigger"]');
+	if (!(trigger instanceof HTMLButtonElement)) {
+		throw new Error("sidebar trigger not found");
+	}
+	return trigger;
+}
+
+// Captures the trigger before opening: Radix hideOthers hides it from role
+// queries while the sheet is open. The first client render is the desktop
+// branch, so the click waits until the trigger reports the closed sheet.
+async function openSheet(container: HTMLElement, user: UserEvent) {
+	const trigger = getTrigger(container);
+	await waitFor(() =>
+		expect(trigger).toHaveAttribute("aria-expanded", "false"),
+	);
+	await user.click(trigger);
+	const dialog = await screen.findByRole("dialog", { name: "Navigation menu" });
+	return { trigger, dialog };
+}
+
 describe("AppShell", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -191,82 +248,285 @@ describe("AppShell", () => {
 		});
 	});
 
-	describe("sidebar behavior", () => {
-		it("should toggle sidebar when mobile menu button is clicked", async () => {
-			const user = userEvent.setup();
+	describe("desktop sidebar", () => {
+		it("renders exactly one main#main-content and no hand-rolled offset, overlay or inset", () => {
 			const { container } = render(<AppShell>Content</AppShell>);
 
-			// Find the mobile menu button by its specific class
-			const menuButton = container.querySelector(
-				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
-			);
-			expect(menuButton).toBeInTheDocument();
-
-			await user.click(menuButton as HTMLElement);
-
-			// Sidebar should be visible (role switches to dialog when open)
-			const sidebar = screen.getByRole("dialog");
-			expect(sidebar.className).toContain("translate-x-0");
+			const mains = container.querySelectorAll("main");
+			expect(mains).toHaveLength(1);
+			expect(mains[0]).toHaveAttribute("id", "main-content");
+			expect(container.querySelector('[class~="lg:pl-56"]')).toBeNull();
+			expect(container.querySelector(".fixed.inset-0.z-40")).toBeNull();
+			expect(container.querySelector('[data-slot="sidebar-inset"]')).toBeNull();
+			expect(
+				screen.queryByRole("button", { name: "Open navigation menu" }),
+			).not.toBeInTheDocument();
 		});
 
-		it("should close sidebar when close button is clicked", async () => {
+		it("names the header trigger and reports the expanded rail", () => {
+			const { container } = render(<AppShell>Content</AppShell>);
+
+			const trigger = getTrigger(container);
+			expect(trigger).toHaveAccessibleName("Toggle navigation menu");
+			expect(trigger).toHaveAttribute("aria-expanded", "true");
+			expect(screen.getByRole("complementary")).toHaveAttribute(
+				"data-tour",
+				"sidebar-nav",
+			);
+			expect(container.querySelector('[data-slot="sidebar"]')).toHaveAttribute(
+				"data-state",
+				"expanded",
+			);
+		});
+
+		it("collapses the rail with an inert header and a live rail, then restores it", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
+			const trigger = getTrigger(container);
+			const sidebar = container.querySelector('[data-slot="sidebar"]');
+			const header = container.querySelector('[data-slot="sidebar-header"]');
+			const rail = container.querySelector('[data-slot="sidebar-rail"]');
+			const logo = screen.getByRole("link", { name: "TenantFlow" });
+
+			await user.click(trigger);
+
+			expect(sidebar).toHaveAttribute("data-state", "collapsed");
+			expect(trigger).toHaveAttribute("aria-expanded", "false");
+			expect(header).toHaveAttribute("inert");
+			expect(logo.closest("[inert]")).not.toBeNull();
+			expect(rail?.closest("[inert]")).toBeNull();
+			expect(
+				container.querySelector('[data-tour="sidebar-nav"]'),
+			).not.toHaveAttribute("inert");
+
+			await user.click(trigger);
+
+			expect(sidebar).toHaveAttribute("data-state", "expanded");
+			expect(trigger).toHaveAttribute("aria-expanded", "true");
+			expect(header).not.toHaveAttribute("inert");
+		});
+
+		it("renders collapsed on first render when defaultSidebarOpen is false", () => {
+			const { container } = render(
+				<AppShell defaultSidebarOpen={false}>Content</AppShell>,
+			);
+
+			expect(container.querySelector('[data-slot="sidebar"]')).toHaveAttribute(
+				"data-state",
+				"collapsed",
+			);
+			expect(getTrigger(container)).toHaveAttribute("aria-expanded", "false");
+		});
+
+		it("renders one rail handle and the sidebar-primary logo tile", () => {
+			const { container } = render(<AppShell>Content</AppShell>);
+
+			const rails = container.querySelectorAll('[data-slot="sidebar-rail"]');
+			expect(rails).toHaveLength(1);
+			expect(rails[0]?.tagName).toBe("BUTTON");
+
+			const logo = screen.getByRole("link", { name: "TenantFlow" });
+			const tile = logo.querySelector("div");
+			expect(tile).toHaveClass("bg-sidebar-primary");
+			expect(tile).not.toHaveClass("bg-primary");
+			expect(tile?.querySelector("svg")).toHaveClass(
+				"text-sidebar-primary-foreground",
+			);
+		});
+	});
+
+	describe("mobile navigation sheet", () => {
+		beforeEach(() => {
+			stubViewport(true);
+		});
+
+		it("opens a named, described Radix sheet that hides the rest of the page", async () => {
 			const user = userEvent.setup();
 			const { container } = render(<AppShell>Content</AppShell>);
 
-			// Open sidebar first using the menu button
-			const menuButton = container.querySelector(
-				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
-			);
-			await user.click(menuButton as HTMLElement);
+			const { dialog } = await openSheet(container, user);
 
-			// Find close button (X icon) in the sidebar by its class
-			const closeButton = screen.getByRole("button", {
-				name: /close navigation menu/i,
+			expect(dialog).toHaveAccessibleDescription(
+				"Main navigation for your TenantFlow account",
+			);
+			expect(dialog).toHaveAttribute("data-slot", "sidebar");
+			expect(dialog).not.toHaveAttribute("aria-modal");
+			expect(
+				document
+					.getElementById("main-content")
+					?.closest('[aria-hidden="true"]'),
+			).not.toBeNull();
+			expect(document.querySelectorAll("main")).toHaveLength(1);
+		});
+
+		it("does not focus the trigger when the first render switches into sheet mode", async () => {
+			const { container } = render(<AppShell>Content</AppShell>);
+			const trigger = getTrigger(container);
+
+			// The desktop branch unmounts once matchMedia reports the sheet mode.
+			await waitFor(() =>
+				expect(trigger).toHaveAttribute("aria-expanded", "false"),
+			);
+			await act(
+				() =>
+					new Promise<void>((resolve) => {
+						setTimeout(resolve, 0);
+					}),
+			);
+
+			expect(document.activeElement).not.toBe(trigger);
+		});
+
+		it("shows one labelled 44px close button and keeps the sheet's own close hidden", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
+
+			const { dialog } = await openSheet(container, user);
+
+			const closeButtons = within(dialog).getAllByRole("button", {
+				name: "Close navigation menu",
 			});
-			await user.click(closeButton);
-
-			// Sidebar should be hidden again
-			const sidebar = screen.getByRole("complementary");
-			expect(sidebar.className).toContain("-translate-x-full");
+			expect(closeButtons).toHaveLength(1);
+			expect(closeButtons[0]).toHaveClass(
+				"min-h-11",
+				"min-w-11",
+				"rounded-md",
+				"hover:bg-muted",
+				"lg:hidden",
+			);
+			const sheetClose = within(dialog).getByRole("button", { name: "Close" });
+			expect(sheetClose.parentElement).toBe(dialog);
+			expect(dialog).toHaveClass("[&>button]:hidden");
 		});
 
-		it("should close sidebar when overlay is clicked", async () => {
+		it.each([
+			["Escape", async (user: UserEvent) => user.keyboard("{Escape}")],
+			[
+				"the close button",
+				async (user: UserEvent) =>
+					user.click(
+						screen.getByRole("button", { name: "Close navigation menu" }),
+					),
+			],
+			[
+				"a nav item",
+				async (user: UserEvent) =>
+					user.click(screen.getByRole("button", { name: "Mock Nav Item" })),
+			],
+			[
+				"the logo link",
+				async (user: UserEvent) => {
+					const logo = screen.getByRole("link", { name: "TenantFlow" });
+					// jsdom cannot navigate; cancel the default action only. React's
+					// onClick (closeMobile) still runs.
+					logo.addEventListener("click", (event) => event.preventDefault());
+					await user.click(logo);
+				},
+			],
+		])(
+			"closes on %s and returns focus to the trigger",
+			async (_name, close) => {
+				const user = userEvent.setup();
+				const { container } = render(<AppShell>Content</AppShell>);
+				const { trigger } = await openSheet(container, user);
+
+				await close(user);
+
+				await waitFor(() =>
+					expect(
+						screen.queryByRole("dialog", { name: "Navigation menu" }),
+					).not.toBeInTheDocument(),
+				);
+				await waitFor(() => expect(document.activeElement).toBe(trigger));
+			},
+		);
+
+		it("navigates from a palette selection made over the sheet and closes both", async () => {
 			const user = userEvent.setup();
 			const { container } = render(<AppShell>Content</AppShell>);
+			const { trigger } = await openSheet(container, user);
 
-			// Open sidebar first
-			const menuButton = container.querySelector(
-				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
-			);
-			await user.click(menuButton as HTMLElement);
+			await user.click(screen.getByText("Search pages and actions…"));
+			expect(
+				screen.getByPlaceholderText("Search pages and actions..."),
+			).toBeInTheDocument();
 
-			// Click overlay
-			const overlay = container.querySelector(".fixed.inset-0.z-40");
-			expect(overlay).toBeInTheDocument();
-			await user.click(overlay as HTMLElement);
+			await user.click(screen.getByRole("option", { name: /dashboard/i }));
 
-			// Sidebar should be hidden
-			const sidebar = screen.getByRole("complementary");
-			expect(sidebar.className).toContain("-translate-x-full");
+			expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
+			await waitFor(() => {
+				expect(
+					screen.queryByPlaceholderText("Search pages and actions..."),
+				).not.toBeInTheDocument();
+				expect(
+					screen.queryByRole("dialog", { name: "Navigation menu" }),
+				).not.toBeInTheDocument();
+			});
+			await waitFor(() => expect(document.activeElement).toBe(trigger));
 		});
 
-		it("should close sidebar when nav item is clicked", async () => {
+		it("opens the palette over the sheet with Cmd+K and closes only the palette on Escape", async () => {
 			const user = userEvent.setup();
 			const { container } = render(<AppShell>Content</AppShell>);
+			await openSheet(container, user);
 
-			// Open sidebar
-			const menuButton = container.querySelector(
-				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
+			fireEvent.keyDown(window, { key: "k", metaKey: true });
+			const input = screen.getByPlaceholderText("Search pages and actions...");
+			expect(input).toBeInTheDocument();
+
+			await user.keyboard("{Escape}");
+
+			await waitFor(() =>
+				expect(
+					screen.queryByPlaceholderText("Search pages and actions..."),
+				).not.toBeInTheDocument(),
 			);
-			await user.click(menuButton as HTMLElement);
+			expect(
+				screen.getByRole("dialog", { name: "Navigation menu" }),
+			).toBeInTheDocument();
+		});
+	});
 
-			// Click nav item (mock nav has a button)
-			const navButton = screen.getByRole("button", { name: "Mock Nav Item" });
-			await user.click(navButton);
+	describe("focus return under StrictMode", () => {
+		beforeEach(() => {
+			stubViewport(true);
+		});
 
-			// Sidebar should be hidden
-			const sidebar = screen.getByRole("complementary");
-			expect(sidebar.className).toContain("-translate-x-full");
+		it("keeps focus inside the opened sheet, then returns it to the trigger on Escape", async () => {
+			const user = userEvent.setup();
+			const { container } = render(
+				<StrictMode>
+					<AppShell>Content</AppShell>
+				</StrictMode>,
+			);
+			// Radix's focus trap would pull a stolen focus straight back into the
+			// sheet, so count the trigger's focus events as well: the click
+			// focuses it once, and the simulated unmount must not focus it again.
+			let triggerFocusCount = 0;
+			getTrigger(container).addEventListener("focus", () => {
+				triggerFocusCount += 1;
+			});
+			const { trigger, dialog } = await openSheet(container, user);
+
+			await act(
+				() =>
+					new Promise<void>((resolve) => {
+						setTimeout(resolve, 0);
+					}),
+			);
+
+			expect(dialog.contains(document.activeElement)).toBe(true);
+			expect(document.activeElement).not.toBe(trigger);
+			expect(triggerFocusCount).toBe(1);
+
+			await user.keyboard("{Escape}");
+
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("dialog", { name: "Navigation menu" }),
+				).not.toBeInTheDocument(),
+			);
+			await waitFor(() => expect(document.activeElement).toBe(trigger));
 		});
 	});
 
@@ -528,6 +788,26 @@ describe("AppShell", () => {
 				).not.toBeInTheDocument();
 			} finally {
 				blockingDialog.remove();
+			}
+		});
+
+		it("does not treat the open nav sheet (data-slot=sidebar) as a blocking dialog", () => {
+			const navSheet = document.createElement("div");
+			navSheet.setAttribute("role", "dialog");
+			navSheet.setAttribute("data-state", "open");
+			navSheet.setAttribute("data-slot", "sidebar");
+			document.body.appendChild(navSheet);
+
+			try {
+				render(<AppShell>Content</AppShell>);
+
+				fireEvent.keyDown(window, { key: "k", metaKey: true });
+
+				expect(
+					screen.getByPlaceholderText("Search pages and actions..."),
+				).toBeInTheDocument();
+			} finally {
+				navSheet.remove();
 			}
 		});
 

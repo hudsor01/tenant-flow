@@ -1,8 +1,10 @@
 import type { User } from "@supabase/supabase-js";
-import { ChevronRight, Menu } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import type { RefObject } from "react";
 import { NotificationBell } from "#components/notifications/notification-bell";
 import { GlobalSyncIndicator } from "#components/ui/global-sync-indicator";
+import { SidebarTrigger } from "#components/ui/sidebar";
 import { UserProfileMenu } from "./user-profile-menu";
 
 interface Breadcrumb {
@@ -11,8 +13,7 @@ interface Breadcrumb {
 }
 
 interface AppShellHeaderProps {
-	triggerRef: React.RefObject<HTMLButtonElement | null>;
-	onSidebarOpen: () => void;
+	triggerRef: RefObject<HTMLButtonElement | null>;
 	breadcrumbs: Breadcrumb[];
 	user: User | null | undefined;
 	userInitials: string;
@@ -23,7 +24,6 @@ interface AppShellHeaderProps {
 
 export function AppShellHeader({
 	triggerRef,
-	onSidebarOpen,
 	breadcrumbs,
 	user,
 	userInitials,
@@ -33,16 +33,13 @@ export function AppShellHeader({
 }: AppShellHeaderProps) {
 	return (
 		<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-card border-b border-border">
-			{/* Left side - mobile menu + breadcrumbs */}
+			{/* Left side - sidebar toggle + breadcrumbs */}
 			<div className="flex items-center gap-3">
-				<button
+				<SidebarTrigger
 					ref={triggerRef}
-					className="p-2 rounded-md hover:bg-muted lg:hidden"
-					onClick={onSidebarOpen}
-					aria-label="Open navigation menu"
-				>
-					<Menu className="w-5 h-5 text-muted-foreground" />
-				</button>
+					aria-label="Toggle navigation menu"
+					className="text-muted-foreground hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted"
+				/>
 
 				{/* Breadcrumbs */}
 				{breadcrumbs.length > 0 &&

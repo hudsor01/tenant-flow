@@ -20,6 +20,7 @@
 import { render, screen } from "@testing-library/react";
 import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { SidebarProvider } from "#components/ui/sidebar";
 import { AppShellSidebar } from "../app-shell-sidebar";
 import { UserProfileMenu } from "../user-profile-menu";
 
@@ -27,6 +28,17 @@ vi.mock("next/navigation", () => ({
 	usePathname: () => "/dashboard",
 	useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
 }));
+
+function renderSidebar() {
+	return render(
+		<SidebarProvider>
+			<AppShellSidebar
+				triggerRef={createRef<HTMLButtonElement>()}
+				onCommandOpen={vi.fn()}
+			/>
+		</SidebarProvider>,
+	);
+}
 
 function visibleText(el: HTMLElement): string {
 	const clone = el.cloneNode(true) as HTMLElement;
@@ -58,14 +70,7 @@ function expectLabelInName(el: HTMLElement) {
 
 describe("WCAG 2.5.3 Label in Name — shell controls", () => {
 	it("command palette trigger: accessible name starts with its visible text", () => {
-		render(
-			<AppShellSidebar
-				sidebarRef={createRef<HTMLElement>()}
-				sidebarOpen={true}
-				closeSidebar={vi.fn()}
-				onCommandOpen={vi.fn()}
-			/>,
-		);
+		renderSidebar();
 		const trigger = screen.getByRole("button", {
 			name: /^Search pages and actions…/,
 		});
@@ -93,14 +98,7 @@ describe("WCAG 2.5.3 Label in Name — shell controls", () => {
 	});
 
 	it("every shell button with visible text keeps that text in its accessible name", () => {
-		render(
-			<AppShellSidebar
-				sidebarRef={createRef<HTMLElement>()}
-				sidebarOpen={true}
-				closeSidebar={vi.fn()}
-				onCommandOpen={vi.fn()}
-			/>,
-		);
+		renderSidebar();
 		for (const el of screen.getAllByRole("button")) expectLabelInName(el);
 		for (const el of screen.getAllByRole("link")) expectLabelInName(el);
 	});

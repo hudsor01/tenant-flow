@@ -19,6 +19,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { SidebarProvider, useSidebar } from "#components/ui/sidebar";
 import { useSupabaseUser } from "#hooks/api/use-auth";
 import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
 import { usePropertyList } from "#hooks/api/use-properties";
@@ -33,16 +34,36 @@ import { QuickActionsDock } from "./quick-actions-dock";
 export interface AppShellProps {
 	children: ReactNode;
 	showQuickActionsDock?: boolean;
+	defaultSidebarOpen?: boolean;
 }
 
 export function AppShell({
 	children,
 	showQuickActionsDock = true,
+	defaultSidebarOpen = true,
 }: AppShellProps) {
-	const [sidebarOpen, setSidebarOpen] = useState(false);
+	return (
+		<SidebarProvider
+			defaultOpen={defaultSidebarOpen}
+			className="min-h-screen bg-background"
+		>
+			<AppShellFrame showQuickActionsDock={showQuickActionsDock}>
+				{children}
+			</AppShellFrame>
+		</SidebarProvider>
+	);
+}
+
+function AppShellFrame({
+	children,
+	showQuickActionsDock,
+}: {
+	children: ReactNode;
+	showQuickActionsDock: boolean;
+}) {
 	const [commandOpen, setCommandOpen] = useState(false);
 	const triggerRef = useRef<HTMLButtonElement>(null);
-	const sidebarRef = useRef<HTMLElement>(null);
+	const { setOpenMobile } = useSidebar();
 	const pathname = usePathname();
 	const breadcrumbs = generateBreadcrumbs(pathname);
 	// The floating dock is hidden on form/create routes (it would overlap the
@@ -216,7 +237,12 @@ export function AppShell({
 					// not open → suppress open if another modal is in front.
 					// preventDefault() so Firefox doesn't fall through to its
 					// built-in quick-find toolbar (cycle-4 review P3 nit).
-					if (document.querySelector('[role="dialog"][data-state="open"]')) {
+					// The nav sheet is excluded so the palette can open over it (D-48).
+					if (
+						document.querySelector(
+							'[role="dialog"][data-state="open"]:not([data-slot="sidebar"])',
+						)
+					) {
 						event.preventDefault();
 						return prev;
 					}
@@ -230,47 +256,14 @@ export function AppShell({
 		return () => window.removeEventListener("keydown", onKeyDown);
 	}, []);
 
-	const closeSidebar = () => {
-		setSidebarOpen(false);
-		triggerRef.current?.focus();
-	};
-
-	// Escape key handler + focus trap for mobile sidebar
-	useEffect(() => {
-		if (!sidebarOpen) return;
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				setSidebarOpen(false);
-				triggerRef.current?.focus();
-				return;
-			}
-			if (e.key === "Tab" && sidebarRef.current) {
-				const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
-					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-				);
-				if (focusable.length === 0) return;
-				const first = focusable[0]!;
-				const last = focusable[focusable.length - 1]!;
-				if (e.shiftKey && document.activeElement === first) {
-					e.preventDefault();
-					last.focus();
-				} else if (!e.shiftKey && document.activeElement === last) {
-					e.preventDefault();
-					first.focus();
-				}
-			}
-		};
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [sidebarOpen]);
-
 	const handleCommandSelect = (href: string) => {
 		setCommandOpen(false);
+		setOpenMobile(false);
 		router.push(href);
 	};
 
 	return (
-		<div className="min-h-screen bg-background">
+		<>
 			{/*
 				Skip-to-content link is provided by the root layout
 				(src/app/layout.tsx). The previous duplicate here meant
@@ -280,26 +273,15 @@ export function AppShell({
 				target for both marketing and dashboard layouts.
 			 */}
 
-			{/* Mobile sidebar overlay */}
-			{sidebarOpen && (
-				<div
-					className="fixed inset-0 z-40 bg-foreground/20 lg:hidden"
-					onClick={closeSidebar}
-				/>
-			)}
-
 			<AppShellSidebar
-				sidebarRef={sidebarRef}
-				sidebarOpen={sidebarOpen}
-				closeSidebar={closeSidebar}
+				triggerRef={triggerRef}
 				onCommandOpen={() => setCommandOpen(true)}
 			/>
 
 			{/* Main content area */}
-			<div className="lg:pl-56 flex flex-col min-h-screen">
+			<div className="relative flex w-full min-w-0 flex-1 flex-col">
 				<AppShellHeader
 					triggerRef={triggerRef}
-					onSidebarOpen={() => setSidebarOpen(true)}
 					breadcrumbs={breadcrumbs}
 					user={user ?? null}
 					userInitials={userInitials}
@@ -367,6 +349,6 @@ export function AppShell({
 				onSelect={handleCommandSelect}
 				onSignOut={() => signOutMutation.mutate()}
 			/>
-		</div>
+		</>
 	);
 }
