@@ -57,7 +57,7 @@ export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
 					Manage your property portfolio
 				</p>
 			</div>
-			<div className="flex items-center gap-2">
+			<div className="flex flex-wrap items-center gap-2">
 				<BulkImportDialog config={propertyBulkImportConfig()} />
 				<Button
 					onClick={onAddProperty}
