@@ -704,7 +704,7 @@
           "ref": "D-36 (V9); CLAUDE.md rule 3"
         },
         {
-          "what": "V10: no useCallback / useMemo (React Compiler): setOpen, toggleSidebar and contextValue are plain consts, and the keydown useEffect has no dependency array",
+          "what": "V10: no useCallback / useMemo (React Compiler): setOpen, toggleSidebar and contextValue are plain consts, and the keydown useEffect calls toggleSidebar through useEffectEvent with an empty dependency array (attached once)",
           "reason": "D-26 customization",
           "ref": "D-32 (V10)"
         },

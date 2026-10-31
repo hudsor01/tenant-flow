@@ -48,9 +48,9 @@
  *       `document.cookie`; the cookie constants are imported, never redeclared
  *       (rule 3).
  *   V10 No manual memoization; the React Compiler memoizes `setOpen`,
- *       `toggleSidebar` and the context value. The keydown effect therefore has
- *       no dependency array, so its listener always calls the current
- *       `toggleSidebar`.
+ *       `toggleSidebar` and the context value. The keydown listener calls
+ *       `toggleSidebar` through `useEffectEvent`, so the effect runs once
+ *       (empty dependency array) and always calls the current toggle.
  *   V11 The mobile sheet shortens the sheet's open and close transitions to
  *       `data-[state=open]:duration-200` and `data-[state=closed]:duration-200`
  *       with `ease-out`.
@@ -95,6 +95,7 @@ import {
 	createContext,
 	useContext,
 	useEffect,
+	useEffectEvent,
 	useState,
 } from "react";
 
@@ -193,7 +194,12 @@ function SidebarProvider({
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
 	};
 
-	// Adds a keyboard shortcut to toggle the sidebar.
+	// Adds a keyboard shortcut to toggle the sidebar. The effect event reads the
+	// current toggleSidebar, so the window listener is attached once.
+	const onShortcut = useEffectEvent(() => {
+		toggleSidebar();
+	});
+
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (
@@ -212,12 +218,12 @@ function SidebarProvider({
 				return;
 			}
 			event.preventDefault();
-			toggleSidebar();
+			onShortcut();
 		};
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	});
+	}, []);
 
 	// We add a state so that we can do data-state="expanded" or "collapsed".
 	// This makes it easier to style the sidebar with Tailwind classes.
