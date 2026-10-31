@@ -198,7 +198,7 @@ export function ChartAreaInteractive({
 						<p className="typography-small text-muted-foreground">
 							Failed to load chart data
 						</p>
-						<p className="text-caption">
+						<p className="text-caption text-muted-foreground">
 							Unable to fetch financial data. Please try refreshing the page.
 						</p>
 					</div>

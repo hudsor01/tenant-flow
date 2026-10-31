@@ -132,7 +132,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									<div>{tenant.emergency_contact_phone}</div>
 								)}
 								{tenant.emergency_contact_relationship && (
-									<div className="text-caption">
+									<div className="text-caption text-muted-foreground">
 										{tenant.emergency_contact_relationship}
 									</div>
 								)}

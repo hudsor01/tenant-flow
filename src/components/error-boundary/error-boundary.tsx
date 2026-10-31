@@ -87,7 +87,9 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 							</p>
 						)}
 						{errorState.errorId && (
-							<p className="text-caption">Error ID: {errorState.errorId}</p>
+							<p className="text-caption text-muted-foreground">
+								Error ID: {errorState.errorId}
+							</p>
 						)}
 					</div>
 					<div className="flex gap-2">

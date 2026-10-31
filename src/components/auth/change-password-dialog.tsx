@@ -248,7 +248,7 @@ export function ChangePasswordDialog({
 									)}
 								</button>
 							</div>
-							<p className="text-caption mt-[var(--spacing-1)]">
+							<p className="text-caption text-muted-foreground mt-[var(--spacing-1)]">
 								Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 								characters with uppercase, lowercase, number, and special
 								character

@@ -154,7 +154,7 @@ export function ForgotPasswordModal({
 								</AlertDescription>
 							</Alert>
 
-							<div className="text-caption space-y-[var(--spacing-2)]">
+							<div className="text-caption text-muted-foreground space-y-[var(--spacing-2)]">
 								<p>
 									• Check your spam/junk folder if you don&apos;t see the email
 								</p>

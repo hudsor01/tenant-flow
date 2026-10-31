@@ -182,7 +182,7 @@ function FullSignatureStatus({
 				</div>
 
 				{status.sent_for_signature_at && (
-					<div className="flex items-center gap-2 text-caption pt-2 border-t">
+					<div className="flex items-center gap-2 text-caption text-muted-foreground pt-2 border-t">
 						<Send className="h-3 w-3" />
 						<span>
 							Sent for signature on{" "}

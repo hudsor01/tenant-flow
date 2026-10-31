@@ -48,7 +48,9 @@ export function ClauseSelector({
 							<h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
 								{section.title}
 							</h3>
-							<p className="text-caption">{section.description}</p>
+							<p className="text-caption text-muted-foreground">
+								{section.description}
+							</p>
 						</div>
 						<div className="space-y-2">
 							{section.clauses.map((clause) => {
@@ -81,7 +83,7 @@ export function ClauseSelector({
 															<Badge variant="secondary">Recommended</Badge>
 														)}
 													</span>
-													<span className="text-caption">
+													<span className="text-caption text-muted-foreground">
 														{clause.description}
 													</span>
 												</span>

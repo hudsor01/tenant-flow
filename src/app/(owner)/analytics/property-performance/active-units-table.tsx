@@ -23,7 +23,9 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			cell: ({ row }) => (
 				<div className="flex flex-col">
 					<span className="font-medium">{row.original.unit_number}</span>
-					<span className="text-caption">{row.original.property_id}</span>
+					<span className="text-caption text-muted-foreground">
+						{row.original.property_id}
+					</span>
 				</div>
 			),
 		},

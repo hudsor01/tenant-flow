@@ -72,7 +72,7 @@ export function GoogleButton({
 								: children || defaultText}
 						</span>
 						{showTrustIndicators && !isLoading && (
-							<span className="text-caption/75 leading-none mt-0.5">
+							<span className="text-caption text-muted-foreground/75 leading-none mt-0.5">
 								Secure OAuth 2.0 authentication
 							</span>
 						)}
@@ -90,7 +90,7 @@ export function GoogleButton({
 			</Button>
 
 			{showTrustIndicators && (
-				<div className="flex-center gap-4 mt-2 text-caption/60">
+				<div className="flex-center gap-4 mt-2 text-caption text-muted-foreground/60">
 					<div className="flex items-center gap-1">
 						<div className="size-2 rounded-full bg-primary" />
 						<span>Encrypted</span>

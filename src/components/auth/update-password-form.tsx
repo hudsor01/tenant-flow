@@ -228,7 +228,7 @@ export function UpdatePasswordForm({
 					</form>
 
 					<div className="text-center pt-[var(--spacing-4)] border-t border-(--color-border)">
-						<p className="text-caption">
+						<p className="text-caption text-muted-foreground">
 							Your password will be encrypted and stored securely
 						</p>
 					</div>

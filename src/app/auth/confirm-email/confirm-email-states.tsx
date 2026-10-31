@@ -272,7 +272,7 @@ export function ConfirmEmailFooter() {
 					</Link>
 				</p>
 			</div>
-			<div className="flex-center gap-8 text-caption pt-4">
+			<div className="flex-center gap-8 text-caption text-muted-foreground pt-4">
 				<div className="flex items-center gap-2">
 					<CheckCircle2 className="size-4" />
 					<span>Encrypted at rest</span>

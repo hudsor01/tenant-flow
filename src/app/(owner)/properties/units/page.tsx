@@ -103,7 +103,9 @@ export default function UnitsPage() {
 						<div className="size-2 rounded-full bg-chart-4" />
 					</div>
 					<div className="typography-h3">{totalUnits}</div>
-					<p className="text-caption mt-1">Across all properties</p>
+					<p className="text-caption text-muted-foreground mt-1">
+						Across all properties
+					</p>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
