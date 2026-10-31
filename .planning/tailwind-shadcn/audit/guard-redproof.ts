@@ -138,6 +138,21 @@ const GUARDS: GuardEntry[] = [
 			);
 		},
 	},
+	{
+		// 66.2-14: dangling theme-namespace var() references. The compiled CSS is
+		// ctx.engine's build of <root>'s globals.css over <root>/src (the same
+		// build loadProjectTailwindEngine() makes with REPO_ROOT bound to root);
+		// the sources and node_modules/geist are read from root.
+		id: "G7",
+		run: (ctx) => {
+			const sources = guardsModule.collectG7SourceTexts(ctx.root);
+			return guardsModule.checkG7DanglingThemeVars(
+				ctx.engine.compiledCss,
+				sources,
+				guardsModule.deriveG7RuntimeVars(sources, ctx.root),
+			);
+		},
+	},
 ];
 
 const selected = args.guards ?? GUARDS.map((entry) => entry.id);

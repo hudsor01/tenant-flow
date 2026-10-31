@@ -54,6 +54,7 @@ import {
 } from "#test/utils/tailwind-engine";
 import {
 	type CustomMergeKeys,
+	checkG7DanglingThemeVars,
 	checkLightOnlyColorTokens,
 	checkMergeKeys,
 	checkNonInlineThemeVarRefs,
@@ -62,14 +63,18 @@ import {
 	checkSourceRoot,
 	checkUtilityShadowing,
 	collectCustomPropertiesByContext,
+	collectG7SourceTexts,
 	collectSourceCustomPropertyRefs,
 	deriveCustomMergeKeys,
+	deriveG7RuntimeVars,
 	extensionKeys,
 	extractCustomPropertyRefs,
 	findMergeConfigDrift,
 	findMergeFailures,
 	G5_NAMESPACES,
 	type G5Namespace,
+	type G7RuntimeVars,
+	type G7SourceText,
 	resolveCustomPropertyChain,
 } from "#test/utils/tailwind-guards";
 
@@ -1201,4 +1206,278 @@ describe("G5 — tailwind-merge knows every custom theme key (B7, D-14)", () => 
 		},
 		ENGINE_TIMEOUT_MS,
 	);
+});
+
+describe("G7 — every theme-namespace var() reference resolves in the compiled theme", () => {
+	const NO_RUNTIME: G7RuntimeVars = {
+		inlineStyle: new Set(),
+		chartConfig: new Set(),
+		fonts: new Set(),
+	};
+	const GLOBALS_WITH_TOKEN: G7SourceText = {
+		path: "src/app/globals.css",
+		text: "@theme { --color-tok: oklch(0.5 0.1 200); } .x { color: var(--color-tok); }",
+	};
+
+	function projectSources(): G7SourceText[] {
+		return collectG7SourceTexts(REPO_ROOT);
+	}
+
+	async function emptyCompiledCss(): Promise<string> {
+		return (await loadFixtureEngine("")).compiledCss;
+	}
+
+	/** Theme-namespace names an empty fixture build already references (preflight). */
+	async function emptyBuildChecked(): Promise<number> {
+		return checkG7DanglingThemeVars(await emptyCompiledCss(), [], NO_RUNTIME)
+			.checked;
+	}
+
+	it(
+		"reads the shipped sources, compiled references and every runtime source",
+		async () => {
+			const sources = projectSources();
+			expect(
+				sources.length,
+				"G7 collected too few source texts: the src/ walk is vacuous",
+			).toBeGreaterThan(100);
+			expect(sources.map((source) => source.path)).toContain(
+				"src/app/globals.css",
+			);
+			expect(
+				sources.some(
+					(source) =>
+						source.path.includes("__tests__/") ||
+						/\.test\.(ts|tsx)$/.test(source.path) ||
+						source.path.startsWith("src/test/"),
+				),
+				"G7 collected a test file or the test harness",
+			).toBe(false);
+			const compiled = checkG7DanglingThemeVars(
+				(await projectEngine()).compiledCss,
+				[],
+				NO_RUNTIME,
+			);
+			expect(
+				compiled.checked,
+				"G7 found no theme-namespace var() reference in the compiled CSS",
+			).toBeGreaterThan(0);
+			const runtime = deriveG7RuntimeVars(sources, REPO_ROOT);
+			expect(runtime.inlineStyle.size).toBeGreaterThanOrEqual(1);
+			expect(runtime.chartConfig.size).toBeGreaterThanOrEqual(1);
+			expect(runtime.fonts.size).toBeGreaterThanOrEqual(1);
+			expect(runtime.fonts).toContain("--font-geist-mono");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"finds no dangling theme-namespace variable on the real tree",
+		async () => {
+			const sources = projectSources();
+			const result = checkG7DanglingThemeVars(
+				(await projectEngine()).compiledCss,
+				sources,
+				deriveG7RuntimeVars(sources, REPO_ROOT),
+			);
+			expect(result.checked).toBeGreaterThan(0);
+			expect(
+				result.violations,
+				[
+					"Dangling theme variable(s): a var() reference in a theme namespace has no declaration in the compiled CSS. Rewrite the reference to a defined token, or restore the token if it is not a Tailwind default (D-20, G7):",
+					...result.violations,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags a compiled reference to an undeclared spacing variable",
+		async () => {
+			const { compiledCss } = await loadFixtureEngine(
+				".g7-probe { margin-top: var(--spacing-99); }",
+			);
+			const { violations } = checkG7DanglingThemeVars(
+				compiledCss,
+				[],
+				NO_RUNTIME,
+			);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]?.startsWith("--spacing-99 ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags an arbitrary-value class over an undeclared color variable",
+		async () => {
+			const { violations } = checkG7DanglingThemeVars(
+				await emptyCompiledCss(),
+				[{ path: "src/x.tsx", text: 'className="mt-[var(--color-nope)]"' }],
+				NO_RUNTIME,
+			);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]?.startsWith("--color-nope ")).toBe(true);
+			expect(violations[0]).toContain("src/x.tsx");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags the variable shorthand class C12d removed",
+		async () => {
+			const { violations } = checkG7DanglingThemeVars(
+				await emptyCompiledCss(),
+				[{ path: "src/x.tsx", text: 'className="text-(--font-body)"' }],
+				NO_RUNTIME,
+			);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]?.startsWith("--font-body ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"accepts a reference to a token the fixture theme declares",
+		async () => {
+			const { compiledCss } = await loadFixtureEngine(
+				"@theme { --color-ok: oklch(0.5 0.1 200); } .g7-ok { color: var(--color-ok); }",
+			);
+			const result = checkG7DanglingThemeVars(compiledCss, [], NO_RUNTIME);
+			expect(result.checked).toBe((await emptyBuildChecked()) + 1);
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"exempts a variable an inline style sets at run time",
+		async () => {
+			const sources: G7SourceText[] = [
+				{
+					path: "src/x.tsx",
+					text: 'style={{ "--color-from": x }} className="bg-[var(--color-from)]"',
+				},
+			];
+			const runtime = deriveG7RuntimeVars(sources, REPO_ROOT);
+			expect(runtime.inlineStyle).toContain("--color-from");
+			expect(
+				checkG7DanglingThemeVars(await emptyCompiledCss(), sources, runtime)
+					.violations,
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"exempts a chart config color",
+		async () => {
+			const sources: G7SourceText[] = [
+				{
+					path: "src/c.tsx",
+					text: 'const c = { revenue: { label: "R" } } satisfies ChartConfig; const f = "var(--color-revenue)";',
+				},
+			];
+			const runtime = deriveG7RuntimeVars(sources, REPO_ROOT);
+			expect(runtime.chartConfig).toContain("--color-revenue");
+			expect(
+				checkG7DanglingThemeVars(await emptyCompiledCss(), sources, runtime)
+					.violations,
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"ignores variables outside the theme namespaces",
+		async () => {
+			const result = checkG7DanglingThemeVars(
+				await emptyCompiledCss(),
+				[
+					{
+						path: "src/x.tsx",
+						text: 'w-[var(--radix-popover-trigger-width)] "var(--tw-shadow)"',
+					},
+				],
+				NO_RUNTIME,
+			);
+			expect(result.checked).toBe(await emptyBuildChecked());
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"skips an interpolated name instead of reading a shorter one",
+		async () => {
+			const result = checkG7DanglingThemeVars(
+				await emptyCompiledCss(),
+				[
+					{
+						path: "src/x.tsx",
+						text: "`var(--color-${key})` `fill-(--color-${key})`",
+					},
+				],
+				NO_RUNTIME,
+			);
+			expect(result.checked).toBe(await emptyBuildChecked());
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it("derives a geist font variable from the installed geist package", () => {
+		const runtime = deriveG7RuntimeVars(
+			[
+				{
+					path: "src/f.ts",
+					text: 'import { GeistMono } from "geist/font/mono";',
+				},
+			],
+			REPO_ROOT,
+		);
+		expect(runtime.fonts).toContain("--font-geist-mono");
+		expect(
+			deriveG7RuntimeVars(
+				[{ path: "src/f.ts", text: 'const x = { variable: "--font-x" };' }],
+				REPO_ROOT,
+			).fonts.size,
+			"a variable outside a next/font source is not a font variable",
+		).toBe(0);
+	});
+
+	it(
+		"keeps a theme token an inline style overrides locally under guard",
+		async () => {
+			const sources: G7SourceText[] = [
+				GLOBALS_WITH_TOKEN,
+				{ path: "src/x.tsx", text: 'style={{ "--color-tok": v }}' },
+			];
+			const runtime = deriveG7RuntimeVars(sources, REPO_ROOT);
+			expect(runtime.inlineStyle.has("--color-tok")).toBe(false);
+			const { compiledCss } = await loadFixtureEngine(
+				".g7-tok { color: var(--color-tok); }",
+			);
+			const { violations } = checkG7DanglingThemeVars(compiledCss, [], runtime);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]?.startsWith("--color-tok ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it("keeps a theme token a chart config key shares under guard", () => {
+		const runtime = deriveG7RuntimeVars(
+			[
+				GLOBALS_WITH_TOKEN,
+				{
+					path: "src/c.tsx",
+					text: 'const c = { tok: { label: "T" }, extra: { label: "E" } } satisfies ChartConfig;',
+				},
+			],
+			REPO_ROOT,
+		);
+		expect(runtime.chartConfig.has("--color-tok")).toBe(false);
+		expect(runtime.chartConfig).toContain("--color-extra");
+	});
 });

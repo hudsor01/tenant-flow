@@ -46,14 +46,14 @@ const spinnerVariants = cva(
 );
 
 const spinnerTextVariants = cva(
-	"font-medium tracking-normal leading-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]",
+	"font-medium tracking-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]",
 	{
 		variants: {
 			size: {
-				sm: "text-(--font-footnote)",
-				default: "text-(--font-body)",
-				lg: "text-(--font-title-3)",
-				xl: "text-(--font-title-2)",
+				sm: "text-xs/normal",
+				default: "text-sm/normal",
+				lg: "text-base/normal",
+				xl: "text-lg/normal",
 			},
 			variant: {
 				default: "text-muted-foreground",

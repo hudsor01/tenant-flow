@@ -36,8 +36,13 @@
  *     tailwind-merge config, in both directions, and merges with its standard
  *     group (B7 class: an unknown font-size key is read as a text color, so
  *     the merge drops it next to a real one).
- *   Later guard plans add their checks to this file: G7 (66.2-14), G8
- *   (66.2-18).
+ *   - G7 every theme-namespace var() reference resolves (D-17):
+ *     `checkG7DanglingThemeVars` reports each var() reference in a theme
+ *     namespace, in the compiled CSS or a shipped source file, that the
+ *     compiled CSS never declares (the `--duration-*` incident class, #1024).
+ *     `collectG7SourceTexts` reads the sources and `deriveG7RuntimeVars`
+ *     derives the variables set at run time rather than by the stylesheet.
+ *   Later guard plans add their checks to this file: G8 (66.2-18).
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -53,7 +58,7 @@
  *      which `globals.css` keeps out of the scan.
  */
 
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { compile } from "@tailwindcss/node";
 import { __unstable__loadDesignSystem } from "@tailwindcss/node";
@@ -604,4 +609,224 @@ export function checkMergeKeys(
 		0,
 	);
 	return { checked, violations };
+}
+
+/** G7. One file G7 scans: `path` is repo-relative with forward slashes. */
+export interface G7SourceText {
+	readonly path: string;
+	readonly text: string;
+}
+
+/**
+ * G7. Custom properties a theme namespace holds that are set at run time, not
+ * by the stylesheet: inline-style keys, chart config colors and next/font or
+ * geist font variables.
+ */
+export interface G7RuntimeVars {
+	readonly inlineStyle: ReadonlySet<string>;
+	readonly chartConfig: ReadonlySet<string>;
+	readonly fonts: ReadonlySet<string>;
+}
+
+const G7_THEME_NAMESPACE =
+	/^--(color|text|spacing|radius|shadow|font|leading|tracking|ease|transition-duration|duration|animate|container)(-|$)/;
+
+const G7_GLOBALS_PATH = "src/app/globals.css";
+
+const G7_SOURCE_EXTENSION = /\.(ts|tsx|css)$/;
+
+const G7_TEST_FILE = /\.test\.(ts|tsx)$/;
+
+const G7_TEST_DIR = /(^|\/)__tests__\//;
+
+const G7_INLINE_STYLE_KEY = /["']--([A-Za-z0-9_-]+)["']\s*:/g;
+
+/**
+ * An object-valued key at the start of a line, or right after `{` or `,`, so a
+ * config written on one line is read the same as one written across lines.
+ */
+const G7_CHART_CONFIG_KEY =
+	/(?:^|[{,])\s*["']?([A-Za-z_$][\w$-]*)["']?\s*:\s*\{/gm;
+
+const G7_FONT_VARIABLE = /variable:\s*"(--[\w-]+)"/g;
+
+const G7_NEXT_FONT_IMPORT = /from\s+["']next\/font\/(google|local)["']/;
+
+const G7_GEIST_IMPORT = /from\s+["']geist\/font\/([\w-]+)["']/g;
+
+const G7_DECLARATION = /(--[A-Za-z0-9_-]+)\s*:/g;
+
+/**
+ * The name run is matched greedily and the character after it is captured, so
+ * a reference cut short by a template interpolation (a name ending in `-`, or
+ * one followed by `$`) is skipped instead of read as a shorter name.
+ */
+const G7_VAR_REFERENCE = /var\(\s*(--[A-Za-z0-9_-]+)(\$?)/g;
+
+/**
+ * Tailwind's variable shorthand in a class name: a utility root, `-(`, an
+ * optional data-type hint, the variable, `)`. It compiles to the same var()
+ * reference, so a source using it references that variable. The `)` must
+ * follow the name directly, so an interpolated name never matches.
+ */
+const G7_SHORTHAND_REFERENCE =
+	/-\(\s*(?:[a-z-]+:)?(--[A-Za-z0-9_-]*[A-Za-z0-9_])\s*\)/g;
+
+/** Every complete variable name `text` references, in either form. */
+function g7References(text: string): string[] {
+	const names: string[] = [];
+	for (const match of text.matchAll(G7_VAR_REFERENCE)) {
+		const name = match[1];
+		if (name === undefined || match[2] === "$" || name.endsWith("-")) continue;
+		names.push(name);
+	}
+	for (const match of text.matchAll(G7_SHORTHAND_REFERENCE)) {
+		if (match[1] !== undefined) names.push(match[1]);
+	}
+	return names;
+}
+
+/**
+ * Every shipped `.ts`, `.tsx` and `.css` file under `<repoRoot>/src`, sorted by
+ * path. Test files, `__tests__` directories and the `src/test/` harness are
+ * left out because they do not ship.
+ */
+export function collectG7SourceTexts(repoRoot: string): G7SourceText[] {
+	const srcDir = resolve(repoRoot, "src");
+	const sources: G7SourceText[] = [];
+	for (const entry of readdirSync(srcDir, {
+		encoding: "utf8",
+		recursive: true,
+	})) {
+		const rel = entry.replaceAll("\\", "/");
+		const path = `src/${rel}`;
+		if (!G7_SOURCE_EXTENSION.test(path)) continue;
+		if (G7_TEST_FILE.test(path) || G7_TEST_DIR.test(path)) continue;
+		if (path.startsWith("src/test/")) continue;
+		sources.push({ path, text: readFileSync(join(srcDir, rel), "utf8") });
+	}
+	return sources.sort((a, b) =>
+		a.path < b.path ? -1 : a.path > b.path ? 1 : 0,
+	);
+}
+
+/** Names `text` declares (`--x:`) or references through var(). */
+function g7StylesheetNames(text: string): Set<string> {
+	const names = new Set<string>();
+	for (const match of text.matchAll(G7_DECLARATION)) {
+		if (match[1] !== undefined) names.add(match[1]);
+	}
+	for (const match of text.matchAll(G7_VAR_REFERENCE)) {
+		if (match[1] !== undefined) names.add(match[1]);
+	}
+	return names;
+}
+
+/**
+ * G7 runtime allow-set, derived from the sources and never hand-listed.
+ *   - inlineStyle: each quoted `--name` style key in a `.ts`/`.tsx` source.
+ *   - chartConfig: each object-valued key of a source that mentions
+ *     ChartConfig, as `--color-<key>`.
+ *   - fonts: each `variable` of a source that imports next/font/google or
+ *     next/font/local, plus the `variable` of every geist font module a source
+ *     imports, read from `<repoRoot>/node_modules/geist/dist/<name>.js`.
+ * A name that globals.css declares or references is a theme token, even when a
+ * component also sets it locally, so it leaves inlineStyle and chartConfig and
+ * stays guarded: exempting it would hide a dangling reference if the token
+ * were renamed or deleted.
+ */
+export function deriveG7RuntimeVars(
+	sources: readonly G7SourceText[],
+	repoRoot: string,
+): G7RuntimeVars {
+	const globals = sources.find((source) => source.path === G7_GLOBALS_PATH);
+	const themeNames = g7StylesheetNames(globals?.text ?? "");
+	const inlineStyle = new Set<string>();
+	const chartConfig = new Set<string>();
+	const fonts = new Set<string>();
+	const geistModules = new Set<string>();
+	for (const source of sources) {
+		if (/\.(ts|tsx)$/.test(source.path)) {
+			for (const match of source.text.matchAll(G7_INLINE_STYLE_KEY)) {
+				const name = `--${match[1] ?? ""}`;
+				if (match[1] !== undefined && !themeNames.has(name)) {
+					inlineStyle.add(name);
+				}
+			}
+		}
+		if (source.text.includes("ChartConfig")) {
+			for (const match of source.text.matchAll(G7_CHART_CONFIG_KEY)) {
+				const name = `--color-${match[1] ?? ""}`;
+				if (match[1] !== undefined && !themeNames.has(name)) {
+					chartConfig.add(name);
+				}
+			}
+		}
+		if (G7_NEXT_FONT_IMPORT.test(source.text)) {
+			for (const match of source.text.matchAll(G7_FONT_VARIABLE)) {
+				if (match[1] !== undefined) fonts.add(match[1]);
+			}
+		}
+		for (const match of source.text.matchAll(G7_GEIST_IMPORT)) {
+			if (match[1] !== undefined) geistModules.add(match[1]);
+		}
+	}
+	for (const name of geistModules) {
+		const modulePath = resolve(repoRoot, `node_modules/geist/dist/${name}.js`);
+		if (!existsSync(modulePath)) continue;
+		for (const match of readFileSync(modulePath, "utf8").matchAll(
+			G7_FONT_VARIABLE,
+		)) {
+			if (match[1] !== undefined) fonts.add(match[1]);
+		}
+	}
+	return { inlineStyle, chartConfig, fonts };
+}
+
+/**
+ * G7. Collects every var() reference, and every class-name variable
+ * shorthand, in `compiledCss` (origin `compiled globals.css`) and in each
+ * source text (origin: its path), keeps
+ * the names in a theme namespace that no runtime set holds, and reports each
+ * kept name the compiled CSS never declares, as
+ * `<name> <- <origin>, <origin>` (sorted, origins deduplicated and sorted).
+ * `checked` is the number of distinct kept names.
+ */
+export function checkG7DanglingThemeVars(
+	compiledCss: string,
+	sources: readonly G7SourceText[],
+	runtime: G7RuntimeVars,
+): GuardResult {
+	const origins = new Map<string, Set<string>>();
+	const texts: { origin: string; text: string }[] = [
+		{ origin: "compiled globals.css", text: compiledCss },
+		...sources.map((source) => ({ origin: source.path, text: source.text })),
+	];
+	for (const { origin, text } of texts) {
+		for (const name of g7References(text)) {
+			if (!G7_THEME_NAMESPACE.test(name)) continue;
+			if (
+				runtime.inlineStyle.has(name) ||
+				runtime.chartConfig.has(name) ||
+				runtime.fonts.has(name)
+			) {
+				continue;
+			}
+			const seen = origins.get(name) ?? new Set<string>();
+			seen.add(origin);
+			origins.set(name, seen);
+		}
+	}
+	const defined = new Set<string>();
+	for (const match of compiledCss.matchAll(G7_DECLARATION)) {
+		if (match[1] !== undefined) defined.add(match[1]);
+	}
+	const violations = [...origins.keys()]
+		.filter((name) => !defined.has(name))
+		.sort()
+		.map(
+			(name) =>
+				`${name} <- ${[...(origins.get(name) ?? [])].sort().join(", ")}`,
+		);
+	return { checked: origins.size, violations };
 }
