@@ -51,6 +51,7 @@ import { compile } from "@tailwindcss/node";
 import type { AtRule, Node as PostcssNode, Rule } from "postcss";
 import { twMerge } from "tailwind-merge";
 import { describe, expect, it } from "vitest";
+import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
 import { cn, TAILWIND_MERGE_EXTENSION } from "#lib/utils";
 import {
 	FIXTURE_CSS_PREFIX,
@@ -1250,6 +1251,20 @@ describe("Sidebar tokens (D-37, D-51)", () => {
 			).toBe(true);
 		}
 	});
+
+	it(
+		"keeps the lg breakpoint equal to the use-mobile query width (D-33)",
+		async () => {
+			const { designSystem } = await projectEngine();
+			const breakpoint = designSystem.resolveThemeValue("--breakpoint-lg");
+			expect(
+				breakpoint,
+				"--breakpoint-lg drifted; change MOBILE_MEDIA_QUERY in src/hooks/use-mobile.ts with it (D-33)",
+			).toBe("64rem");
+			expect(MOBILE_MEDIA_QUERY).toBe(`(width < ${breakpoint})`);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
 });
 
 describe("G3 — no @utility name shadows a core or theme utility", () => {
