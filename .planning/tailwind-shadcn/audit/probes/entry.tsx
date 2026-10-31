@@ -10,7 +10,11 @@
 // Scenario ids (component-probes.mjs and later plans read these verbatim):
 //   otp-setup, otp-mfa, chart, command, date-popover, grid-pattern, border-beam-stats,
 //   border-beam-grid, blur-fade-no-js, blur-fade-reduced-motion, blur-fade-io-stub,
-//   update-password-badge, data-table
+//   update-password-badge, data-table, card-action, button-group-nested
+// card-action (ledger C6) mounts Card > CardHeader (title, description, CardAction holding a small
+// Button) + CardContent + CardFooter in a 600px wrapper; button-group-nested (ledger C13) mounts an
+// outer ButtonGroup holding two ButtonGroups of two outline Buttons. Both pass `data-probe` through
+// each component's props spread, so the selectors work with or without upstream data-slots.
 // Runtime props: border-beam-* receive { size, duration, colorFrom, colorTo } parsed from the first
 // <BorderBeam block of tenant-stats.tsx / tenant-grid.tsx; update-password-badge receives the
 // className literal read from update-password-form.tsx. Neither string is in this file, so the
@@ -33,7 +37,18 @@ import { VerifyStep } from "#components/auth/two-factor-setup-steps";
 import { DataTable } from "#components/data-table/data-table";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
+import { Button } from "#components/ui/button";
+import { ButtonGroup } from "#components/ui/button-group";
 import { Calendar } from "#components/ui/calendar";
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import { ChartTooltip, ChartTooltipContent } from "#components/ui/chart-tooltip";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "#components/ui/command";
@@ -152,6 +167,35 @@ const scenarios: Record<string, (p: Props) => ReactElement> = {
 	"data-table": () => (
 		<div className="w-[800px] p-4">
 			<DataTableProbe />
+		</div>
+	),
+	"card-action": () => (
+		<div className="w-[600px]">
+			<Card>
+				<CardHeader data-probe="header">
+					<CardTitle>Probe title</CardTitle>
+					<CardDescription>Probe description</CardDescription>
+					<CardAction data-probe="action">
+						<Button size="sm">Act</Button>
+					</CardAction>
+				</CardHeader>
+				<CardContent>Body</CardContent>
+				<CardFooter>Foot</CardFooter>
+			</Card>
+		</div>
+	),
+	"button-group-nested": () => (
+		<div className="p-4">
+			<ButtonGroup data-probe="outer">
+				<ButtonGroup data-probe="inner-1">
+					<Button variant="outline">One</Button>
+					<Button variant="outline">Two</Button>
+				</ButtonGroup>
+				<ButtonGroup data-probe="inner-2">
+					<Button variant="outline">Three</Button>
+					<Button variant="outline">Four</Button>
+				</ButtonGroup>
+			</ButtonGroup>
 		</div>
 	),
 };

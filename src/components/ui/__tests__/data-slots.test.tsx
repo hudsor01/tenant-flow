@@ -19,6 +19,17 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "#components/ui/breadcrumb";
+import { Button } from "#components/ui/button";
+import { ButtonGroup } from "#components/ui/button-group";
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
 import { Checkbox } from "#components/ui/checkbox";
 import {
 	Collapsible,
@@ -43,6 +54,9 @@ import { Textarea } from "#components/ui/textarea";
 
 const slotCount = (value: string) =>
 	document.querySelectorAll(`[data-slot="${value}"]`).length;
+
+const classTokens = (element: Element | null) =>
+	(element?.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
 
 describe("Alert data-slots", () => {
 	it("renders alert, alert-title and alert-description", () => {
@@ -263,5 +277,81 @@ describe("Textarea data-slots", () => {
 			"data-slot",
 			"textarea",
 		);
+	});
+});
+
+describe("Card data-slots", () => {
+	it("renders the seven card slots", () => {
+		render(
+			<Card data-testid="card">
+				<CardHeader data-testid="header">
+					<CardTitle>Title</CardTitle>
+					<CardDescription>Description</CardDescription>
+					<CardAction data-testid="action">Action</CardAction>
+				</CardHeader>
+				<CardContent>Content</CardContent>
+				<CardFooter>Footer</CardFooter>
+			</Card>,
+		);
+		expect(screen.getByTestId("card")).toHaveAttribute("data-slot", "card");
+		expect(screen.getByTestId("header")).toHaveAttribute(
+			"data-slot",
+			"card-header",
+		);
+		expect(screen.getByText("Title")).toHaveAttribute(
+			"data-slot",
+			"card-title",
+		);
+		expect(screen.getByText("Description")).toHaveAttribute(
+			"data-slot",
+			"card-description",
+		);
+		expect(screen.getByTestId("action")).toHaveAttribute(
+			"data-slot",
+			"card-action",
+		);
+		expect(screen.getByText("Content")).toHaveAttribute(
+			"data-slot",
+			"card-content",
+		);
+		expect(screen.getByText("Footer")).toHaveAttribute(
+			"data-slot",
+			"card-footer",
+		);
+	});
+
+	it("keys the header action column on the card-action data-slot", () => {
+		render(
+			<CardHeader data-testid="header">
+				<CardAction data-testid="action">Action</CardAction>
+			</CardHeader>,
+		);
+		const header = classTokens(screen.getByTestId("header"));
+		expect(header).toContain(
+			"has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+		);
+		expect(header.some((token) => token.includes(".card-action"))).toBe(false);
+		expect(classTokens(screen.getByTestId("action"))).not.toContain(
+			"card-action",
+		);
+	});
+});
+
+describe("ButtonGroup data-slots", () => {
+	it("renders button-group and keys the nested gap on it", () => {
+		render(
+			<ButtonGroup data-testid="group">
+				<Button variant="outline">One</Button>
+			</ButtonGroup>,
+		);
+		const group = screen.getByTestId("group");
+		expect(group).toHaveAttribute("data-slot", "button-group");
+		expect(group).toHaveAttribute("role", "group");
+		const tokens = classTokens(group);
+		expect(tokens).toContain("has-[>[data-slot=button-group]]:gap-2");
+		expect(tokens.some((token) => token.includes(">.button-group"))).toBe(
+			false,
+		);
+		expect(tokens).toContain("[&>.select-trigger:not([class*='w-'])]:w-fit");
 	});
 });

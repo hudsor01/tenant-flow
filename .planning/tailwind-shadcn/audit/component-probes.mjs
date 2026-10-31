@@ -1,5 +1,5 @@
 // Real-component Chromium probes for the Tailwind v4 / shadcn remediation (ledger rows C1, C2, C3,
-// C7, C12a, C12b, C12c and research rows N1, N2, N3). jsdom computes neither layout nor oklch, so
+// C6, C7, C12a, C12b, C12c, C13 and research rows N1, N2, N3). jsdom computes neither layout nor oklch, so
 // these mount the REAL repo components in headless Chromium, styled by the REAL compiled
 // src/app/globals.css. Read-only against the repo: writes only to $TW_AUDIT_OUT (default:
 // <tmpdir>/tenantflow-tw-audit).
@@ -40,6 +40,13 @@
 //                            ariaHiddenAtEnd }
 //   update-password-badge   { classes, bg }
 //   data-table              { cellBg, headerCellBg, hoverRowBg, selectedRowBg }
+//   card-action (C6)        { cardDataSlots, columns, headerContentWidth, actionWidth, columnGap }
+//                            cardDataSlots = [data-slot^="card"] count in #root; columns = the
+//                            header's computed grid-template-columns in px; headerContentWidth =
+//                            header clientWidth minus horizontal padding; actionWidth = the
+//                            action's border-box width; columnGap = computed column-gap in px
+//   button-group-nested (C13) { outerColumnGap, innerGap }  outer computed column-gap in px
+//                            (normal = 0); innerGap = inner-2 left minus inner-1 right
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -349,6 +356,38 @@ const PROBES = {
 				};
 			});
 		},
+	},
+	"card-action": {
+		selectors: ["[data-probe=header]", "[data-probe=action]"],
+		run: async ({ page }) =>
+			page.evaluate(async () => {
+				const { r1, settle } = window.__tfMeasure;
+				await settle();
+				const header = document.querySelector("[data-probe=header]");
+				const action = document.querySelector("[data-probe=action]");
+				const hs = getComputedStyle(header);
+				const px = (v) => (v === "normal" || v === "" ? 0 : parseFloat(v));
+				return {
+					cardDataSlots: document.querySelectorAll('#root [data-slot^="card"]').length,
+					columns: hs.gridTemplateColumns.split(/\s+/).filter(Boolean).map((v) => r1(parseFloat(v))),
+					headerContentWidth: r1(header.clientWidth - px(hs.paddingLeft) - px(hs.paddingRight)),
+					actionWidth: r1(action.getBoundingClientRect().width),
+					columnGap: r1(px(hs.columnGap)),
+				};
+			}),
+	},
+	"button-group-nested": {
+		selectors: ["[data-probe=outer]", "[data-probe=inner-1]", "[data-probe=inner-2]"],
+		run: async ({ page }) =>
+			page.evaluate(async () => {
+				const { r1, settle } = window.__tfMeasure;
+				await settle();
+				const outer = document.querySelector("[data-probe=outer]");
+				const a = document.querySelector("[data-probe=inner-1]").getBoundingClientRect();
+				const b = document.querySelector("[data-probe=inner-2]").getBoundingClientRect();
+				const gap = getComputedStyle(outer).columnGap;
+				return { outerColumnGap: gap === "normal" ? 0 : r1(parseFloat(gap)), innerGap: r1(b.left - a.right) };
+			}),
 	},
 };
 
