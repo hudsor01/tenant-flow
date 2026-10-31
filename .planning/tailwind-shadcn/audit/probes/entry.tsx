@@ -39,8 +39,8 @@
 // next-themes ThemeProvider (attribute="class", enableSystem={false}, storageKey="tf-probe-theme",
 // defaultTheme read from the <html> theme class), then raise one toast of that kind with an infinite
 // duration after mount. The runner measures; this file only renders.
-// BlurFade uses today's KPI props { inView: true, delay: 6, duration: 500 }; plan 66.2-27 updates
-// them when it removes `inView`.
+// BlurFade uses the KPI props { delay: 6, duration: 500 } (66.2-27, D-30): the capped 480 ms delay
+// and the 500 ms slow duration, the longest entrance at any call site.
 //
 // Stubs (mapped by the resolver in component-probes.mjs):
 //   #lib/supabase/client  -> probes/stubs/supabase-client.ts
@@ -124,7 +124,7 @@ function DataTableProbe() {
 }
 
 const blurFade = () => (
-	<BlurFade inView delay={6} duration={500}>
+	<BlurFade delay={6} duration={500}>
 		<p>Probe content</p>
 	</BlurFade>
 );

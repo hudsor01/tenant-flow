@@ -62,7 +62,12 @@
 //                            afterAnimationDuration, runningAnimations }
 //   blur-fade-no-js, -reduced-motion, -io-stub
 //                           { ssrHtmlHasOpacity0, ssrAriaHidden, opacityAtStart, opacityAtEnd,
-//                            ariaHiddenAtEnd }
+//                            ariaHiddenAtEnd, dataSlot, animationNameAtStart, animationDuration,
+//                            transformAtEnd, filterAtEnd, willChangeAtEnd, ioConstructions }
+//                            wrapper = #root > div; the start sample is read right after the
+//                            wrapper attaches, the end sample 1500 ms later; ioConstructions =
+//                            IntersectionObserver constructions counted by the io-stub (null in
+//                            the other modes)
 //   update-password-badge   { classes, bg }
 //   data-table              { cellBg, headerCellBg, hoverRowBg, selectedRowBg }
 //   card-action (C6)        { cardDataSlots, columns, headerContentWidth, actionWidth, columnGap }
@@ -670,8 +675,9 @@ async function measureBeam(page, props) {
 }
 
 // BlurFade (C12c): SSR HTML from the bundle, then one of three mount modes; opacity read at mount
-// and 1500 ms later (today's KPI worst case is 980 ms).
-const IO_STUB = `window.IntersectionObserver = class { constructor() {} observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } };`;
+// and 1500 ms later (the KPI worst case is 480 ms delay + 500 ms duration = 980 ms, 66.2-27). The
+// io-stub counts constructions, starting at 0, so an observer that is never built reports 0.
+const IO_STUB = `window.__tfIoConstructions = 0; window.IntersectionObserver = class { constructor() { window.__tfIoConstructions += 1; } observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } };`;
 async function runBlur(id, mode, theme) {
 	const ssrPage = await openPage(theme);
 	let ssrHtml;
@@ -686,7 +692,17 @@ async function runBlur(id, mode, theme) {
 	const read = (page) =>
 		page.evaluate(() => {
 			const el = document.querySelector("#root > div");
-			return { opacity: Number(getComputedStyle(el).opacity), ariaHidden: el.getAttribute("aria-hidden") };
+			const cs = getComputedStyle(el);
+			return {
+				opacity: Number(cs.opacity),
+				ariaHidden: el.getAttribute("aria-hidden"),
+				dataSlot: el.getAttribute("data-slot"),
+				animationName: cs.animationName,
+				animationDuration: cs.animationDuration,
+				transform: cs.transform,
+				filter: cs.filter,
+				willChange: cs.willChange,
+			};
 		});
 	const ctxOptions = mode === "no-js" ? { javaScriptEnabled: false } : mode === "reduced-motion" ? { reducedMotion: "reduce" } : {};
 	const o = await openPage(theme, ctxOptions, mode === "io-stub" ? [IO_STUB] : []);
@@ -703,7 +719,21 @@ async function runBlur(id, mode, theme) {
 		const start = await read(o.page);
 		await o.page.waitForTimeout(1500);
 		const end = await read(o.page);
-		return { ...base, opacityAtStart: start.opacity, opacityAtEnd: end.opacity, ariaHiddenAtEnd: end.ariaHidden, ...(o.pageErrors.length ? { pageErrors: o.pageErrors } : {}) };
+		const ioConstructions = mode === "io-stub" ? await o.page.evaluate(() => window.__tfIoConstructions ?? 0) : null;
+		return {
+			...base,
+			opacityAtStart: start.opacity,
+			opacityAtEnd: end.opacity,
+			ariaHiddenAtEnd: end.ariaHidden,
+			dataSlot: end.dataSlot,
+			animationNameAtStart: start.animationName,
+			animationDuration: start.animationDuration,
+			transformAtEnd: end.transform,
+			filterAtEnd: end.filter,
+			willChangeAtEnd: end.willChange,
+			ioConstructions,
+			...(o.pageErrors.length ? { pageErrors: o.pageErrors } : {}),
+		};
 	} finally {
 		await o.ctx.close();
 	}

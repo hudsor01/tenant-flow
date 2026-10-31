@@ -29,6 +29,36 @@ import { loginAsOwner } from "../../auth-helpers";
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
 /**
+ * axe measures the resting state. BlurFade's tw-animate `enter` entrance
+ * (66.2-27) is finite: the KPI tiles and the portfolio table fade in for up to
+ * 480 ms delay + 500 ms after mount, and axe color-contrast blends element
+ * opacity, so a sweep taken mid-fade would measure a translucent foreground
+ * that no user sees once the page settles. Wait until no `enter` animation is
+ * still running.
+ */
+async function waitForEntranceAnimations(
+	page: import("@playwright/test").Page,
+) {
+	await expect
+		.poll(
+			() =>
+				page.evaluate(
+					() =>
+						document
+							.getAnimations()
+							.filter(
+								(a) =>
+									a instanceof CSSAnimation &&
+									a.animationName === "enter" &&
+									a.playState === "running",
+							).length,
+				),
+			{ timeout: 5000 },
+		)
+		.toBe(0);
+}
+
+/**
  * Shared authed-dashboard navigation used by both the axe sweep and the 375px
  * probe. `loginAsOwner` authenticates via the Supabase token API and injects the
  * session into the browser (landing on /dashboard); we then mark the onboarding
@@ -70,6 +100,7 @@ async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
 			}),
 		),
 	).toBeVisible({ timeout: 10000 });
+	await waitForEntranceAnimations(page);
 }
 
 test.describe("Dashboard accessibility (axe-core)", () => {
