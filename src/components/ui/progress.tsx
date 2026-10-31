@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `progress`, fetched 2026-10-31
+ * (registry JSON sha256 prefix ca0c7ae4d88b8039).
+ *
+ * Local divergences (recorded in the divergence register):
+ * - variant and size cva maps for the track and the indicator;
+ * - `value` is forwarded to the Radix root explicitly, so the progressbar
+ *   exposes its value, value text and state to assistive technology.
+ */
 import { cva, type VariantProps } from "class-variance-authority";
 import { Progress as ProgressPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -53,10 +62,13 @@ function Progress({
 	VariantProps<typeof progressVariants>) {
 	return (
 		<ProgressPrimitive.Root
+			data-slot="progress"
 			className={cn(progressVariants({ variant, size }), className)}
+			value={value}
 			{...props}
 		>
 			<ProgressPrimitive.Indicator
+				data-slot="progress-indicator"
 				className={progressIndicatorVariants({ variant })}
 				style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
 			/>

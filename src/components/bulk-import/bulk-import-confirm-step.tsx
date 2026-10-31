@@ -79,6 +79,7 @@ export function BulkImportConfirmStep({
 
 					<div className="space-y-2">
 						<Progress
+							aria-label="Import progress"
 							value={progressPercent}
 							variant="default"
 							size="lg"
