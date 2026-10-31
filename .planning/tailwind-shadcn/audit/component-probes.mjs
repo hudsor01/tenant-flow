@@ -86,6 +86,22 @@
 //                            border-top colors through the canvas helper; contrast = WCAG ratio of
 //                            color over bg composited over the computed body background (2 dp);
 //                            heights and widths in CSS px (1 dp), icon boxes rounded to integers
+//   toast-default, toast-success, toast-error, toast-loading (66.2-26, A2, VD-24, VD-25)
+//                           { toasterClass, toasterInlineNormalBg, toastBg, toastColor,
+//                            toastBorderColor, toastRadius, popoverToken, popoverFgToken, borderToken,
+//                            iconClasses, iconWidth }  read after [data-sonner-toast][data-mounted=true]
+//                            appears plus 600 ms (Sonner's 400 ms entrance). toasterClass = the
+//                            ol[data-sonner-toaster] className; toasterInlineNormalBg = its inline
+//                            --normal-bg; toastBg/toastColor/toastBorderColor (top) via the canvas
+//                            helper; toastRadius = computed top-left radius; the three tokens = a
+//                            scratch div painted with var(--color-popover), var(--color-popover-
+//                            foreground) and var(--color-border) read through the canvas helper;
+//                            baseTokens = the same reads of var(--popover), var(--popover-foreground)
+//                            and var(--border), which :root/.dark always define (Tailwind emits a
+//                            --color-* theme variable only when something references it);
+//                            iconClasses = the [data-icon] svg classList (null without one);
+//                            iconWidth = its rounded width (null without one). Element screenshots:
+//                            $TW_AUDIT_OUT/probes-<label>-shots/toast-<kind>-<theme>.png
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -350,6 +366,45 @@ const measureSheet = (page) =>
 		};
 	});
 
+const TOAST_SELECTORS = ["ol[data-sonner-toaster]", '[data-sonner-toast][data-mounted="true"]'];
+const TOAST_ENTRANCE_MS = 600;
+async function measureToast(page, kind, theme) {
+	await page.waitForTimeout(TOAST_ENTRANCE_MS);
+	const r = await page.evaluate(() => {
+		const { toRgbaArray } = window.__tfMeasure;
+		const ol = document.querySelector("ol[data-sonner-toaster]");
+		const t = document.querySelector("[data-sonner-toast]");
+		const ts = getComputedStyle(t);
+		const token = (prop) => {
+			const d = document.createElement("div");
+			d.style.backgroundColor = `var(${prop})`;
+			document.body.appendChild(d);
+			const c = toRgbaArray(getComputedStyle(d).backgroundColor);
+			d.remove();
+			return c;
+		};
+		const svg = t.querySelector("[data-icon] svg");
+		return {
+			toasterClass: ol.className,
+			toasterInlineNormalBg: ol.style.getPropertyValue("--normal-bg"),
+			toastBg: toRgbaArray(ts.backgroundColor),
+			toastColor: toRgbaArray(ts.color),
+			toastBorderColor: toRgbaArray(ts.borderTopColor),
+			toastRadius: ts.borderTopLeftRadius,
+			popoverToken: token("--color-popover"),
+			popoverFgToken: token("--color-popover-foreground"),
+			borderToken: token("--color-border"),
+			baseTokens: { popover: token("--popover"), popoverForeground: token("--popover-foreground"), border: token("--border") },
+			iconClasses: svg ? [...svg.classList] : null,
+			iconWidth: svg ? Math.round(svg.getBoundingClientRect().width) : null,
+		};
+	});
+	const shots = path.join(OUT, `probes-${label}-shots`);
+	fs.mkdirSync(shots, { recursive: true });
+	await page.locator("[data-sonner-toast]").first().screenshot({ path: path.join(shots, `toast-${kind}-${theme}.png`) });
+	return r;
+}
+
 const PROBES = {
 	"otp-setup": { selectors: ["[data-input-otp-container]"], run: async ({ page }) => measureOtp(page) },
 	"otp-mfa": { selectors: ["[data-input-otp-container]"], run: async ({ page }) => measureOtp(page) },
@@ -505,6 +560,10 @@ const PROBES = {
 		selectors: ["[data-probe=v-default]", "[data-probe=i-hw5]", "[data-probe=ref-ring]"],
 		run: async ({ page }) => measureButton(page),
 	},
+	"toast-default": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "default", theme) },
+	"toast-success": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "success", theme) },
+	"toast-error": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "error", theme) },
+	"toast-loading": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "loading", theme) },
 };
 
 const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost", "link"];
@@ -674,7 +733,7 @@ try {
 					await loadHarness(o.page, theme);
 					await o.page.evaluate(({ pid, p }) => window.__tfProbes.render(pid, p), { pid: id, p: props });
 					await waitAll(o.page, probe.selectors);
-					const r = await probe.run({ page: o.page, props });
+					const r = await probe.run({ page: o.page, props, theme });
 					results[id][theme] = o.pageErrors.length ? { ...r, pageErrors: o.pageErrors } : r;
 				} finally {
 					await o.ctx.close();

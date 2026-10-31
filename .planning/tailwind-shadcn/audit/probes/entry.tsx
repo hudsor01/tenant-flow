@@ -11,7 +11,8 @@
 //   otp-setup, otp-mfa, chart, command, date-popover, grid-pattern, border-beam-stats,
 //   border-beam-grid, blur-fade-no-js, blur-fade-reduced-motion, blur-fade-io-stub,
 //   update-password-badge, data-table, card-action, button-group-nested, plain-popover, sheet,
-//   sheet-no-close, sheet-slot-override, button
+//   sheet-no-close, sheet-slot-override, button, toast-default, toast-success, toast-error,
+//   toast-loading
 // card-action (ledger C6) mounts Card > CardHeader (title, description, CardAction holding a small
 // Button) + CardContent + CardFooter in a 600px wrapper; button-group-nested (ledger C13) mounts an
 // outer ButtonGroup holding two ButtonGroups of two outline Buttons. Both pass `data-probe` through
@@ -33,6 +34,11 @@
 // (i-unsized), size-5 (i-size5) and h-5 w-5 (i-hw5). Four reference divs (ref-border, ref-input,
 // ref-destructive, ref-ring) carry border plus border-border, border-input, border-destructive and
 // border-ring, so the runner compares the Button borders with the tokens' own rendered colors.
+// toast-default, toast-success, toast-error and toast-loading (66.2-26, A2, VD-24, VD-25) mount the
+// real Toaster with position="top-right" richColors closeButton (as src/app/layout.tsx does) inside a
+// next-themes ThemeProvider (attribute="class", enableSystem={false}, storageKey="tf-probe-theme",
+// defaultTheme read from the <html> theme class), then raise one toast of that kind with an infinite
+// duration after mount. The runner measures; this file only renders.
 // BlurFade uses today's KPI props { inView: true, delay: 6, duration: 500 }; plan 66.2-27 updates
 // them when it removes `inView`.
 //
@@ -41,10 +47,12 @@
 //   #lib/frontend-logger  -> probes/stubs/frontend-logger.ts
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Plus, Search } from "lucide-react";
-import type { ReactElement } from "react";
+import { ThemeProvider } from "next-themes";
+import { type ReactElement, useEffect } from "react";
 import { createRoot, hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
 import { VerifyStep } from "#components/auth/two-factor-setup-steps";
@@ -77,6 +85,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#components/ui/sheet";
+import { Toaster } from "#components/ui/toast";
 
 type Props = Record<string, unknown>;
 const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost", "link"] as const;
@@ -138,6 +147,34 @@ const sheetTree = (contentProps: Props) => (
 			</SheetFooter>
 		</SheetContent>
 	</Sheet>
+);
+
+type ToastKind = "default" | "success" | "error" | "loading";
+const TOAST_FIRE: Record<ToastKind, () => void> = {
+	default: () => toast("Probe neutral", { duration: Number.POSITIVE_INFINITY }),
+	success: () => toast.success("Probe success", { duration: Number.POSITIVE_INFINITY }),
+	error: () => toast.error("Probe error", { duration: Number.POSITIVE_INFINITY }),
+	loading: () => toast.loading("Probe loading", { duration: Number.POSITIVE_INFINITY }),
+};
+
+function ToastFire({ kind }: { kind: ToastKind }) {
+	useEffect(() => {
+		const id = setTimeout(TOAST_FIRE[kind], 50);
+		return () => clearTimeout(id);
+	}, [kind]);
+	return null;
+}
+
+const toastTree = (kind: ToastKind) => () => (
+	<ThemeProvider
+		attribute="class"
+		enableSystem={false}
+		storageKey="tf-probe-theme"
+		defaultTheme={document.documentElement.classList.contains("dark") ? "dark" : "light"}
+	>
+		<Toaster position="top-right" richColors closeButton />
+		<ToastFire kind={kind} />
+	</ThemeProvider>
 );
 
 const scenarios: Record<string, (p: Props) => ReactElement> = {
@@ -283,6 +320,10 @@ const scenarios: Record<string, (p: Props) => ReactElement> = {
 			<div className="size-8 border border-ring" data-probe="ref-ring" />
 		</div>
 	),
+	"toast-default": toastTree("default"),
+	"toast-success": toastTree("success"),
+	"toast-error": toastTree("error"),
+	"toast-loading": toastTree("loading"),
 };
 
 const element = (id: string, props: Props = {}) => {
