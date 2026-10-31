@@ -13,7 +13,6 @@ import { Cloud, Loader2 } from "lucide-react";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipProvider,
 	TooltipTrigger,
 } from "#components/ui/tooltip";
 import { usePendingMutations } from "#hooks/api/use-pending-mutations";
@@ -42,49 +41,45 @@ export function GlobalSyncIndicator({
 		const savedTooltip = "All changes saved to TenantFlow.";
 		if (compact) {
 			return (
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div
-								role="status"
-								aria-label={savedTooltip}
-								className={cn(
-									"flex items-center text-muted-foreground",
-									className,
-								)}
-							>
-								<Cloud className="h-4 w-4" />
-							</div>
-						</TooltipTrigger>
-						<TooltipContent>
-							<p>{savedTooltip}</p>
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
-			);
-		}
-
-		return (
-			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<div
 							role="status"
 							aria-label={savedTooltip}
 							className={cn(
-								"flex items-center gap-1.5 text-muted-foreground",
+								"flex items-center text-muted-foreground",
 								className,
 							)}
 						>
 							<Cloud className="h-4 w-4" />
-							<span className="text-xs">Saved</span>
 						</div>
 					</TooltipTrigger>
 					<TooltipContent>
 						<p>{savedTooltip}</p>
 					</TooltipContent>
 				</Tooltip>
-			</TooltipProvider>
+			);
+		}
+
+		return (
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<div
+						role="status"
+						aria-label={savedTooltip}
+						className={cn(
+							"flex items-center gap-1.5 text-muted-foreground",
+							className,
+						)}
+					>
+						<Cloud className="h-4 w-4" />
+						<span className="text-xs">Saved</span>
+					</div>
+				</TooltipTrigger>
+				<TooltipContent>
+					<p>{savedTooltip}</p>
+				</TooltipContent>
+			</Tooltip>
 		);
 	}
 
@@ -92,25 +87,23 @@ export function GlobalSyncIndicator({
 		operations.length > 0 ? operations.join("\n") : "Syncing...";
 
 	return (
-		<TooltipProvider>
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<div
-						className={cn(
-							"flex items-center gap-1.5 text-primary-text",
-							className,
-						)}
-					>
-						<Loader2 className="h-4 w-4 animate-spin" />
-						<span className="text-xs">
-							Syncing{count > 1 ? ` (${count})` : "..."}
-						</span>
-					</div>
-				</TooltipTrigger>
-				<TooltipContent>
-					<p className="whitespace-pre-line">{tooltipContent}</p>
-				</TooltipContent>
-			</Tooltip>
-		</TooltipProvider>
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<div
+					className={cn(
+						"flex items-center gap-1.5 text-primary-text",
+						className,
+					)}
+				>
+					<Loader2 className="h-4 w-4 animate-spin" />
+					<span className="text-xs">
+						Syncing{count > 1 ? ` (${count})` : "..."}
+					</span>
+				</div>
+			</TooltipTrigger>
+			<TooltipContent>
+				<p className="whitespace-pre-line">{tooltipContent}</p>
+			</TooltipContent>
+		</Tooltip>
 	);
 }

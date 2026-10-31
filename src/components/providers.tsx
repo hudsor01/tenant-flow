@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { TooltipProvider } from "#components/ui/tooltip";
 import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from "#lib/theme-utils";
 import { AuthStoreProvider } from "#providers/auth-provider";
 import { PreferencesStoreProvider } from "#providers/preferences-provider";
@@ -49,7 +50,9 @@ export function Providers({
 					 * scoped to the only subtrees that use nuqs query state:
 					 * `app/(owner)/layout.tsx` and `app/blog/layout.tsx`.
 					 */}
-					<AuthStoreProvider>{children}</AuthStoreProvider>
+					<TooltipProvider>
+						<AuthStoreProvider>{children}</AuthStoreProvider>
+					</TooltipProvider>
 				</QueryProvider>
 			</PreferencesStoreProvider>
 		</ThemeProvider>

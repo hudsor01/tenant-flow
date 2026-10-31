@@ -7,7 +7,6 @@ import { Button } from "#components/ui/button";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipProvider,
 	TooltipTrigger,
 } from "#components/ui/tooltip";
 import type { DocumentCategoryRow } from "#hooks/api/query-keys/document-category-keys";
@@ -73,26 +72,24 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 				<Pencil className="size-4" aria-hidden="true" />
 			</Button>
 			{category.is_default ? (
-				<TooltipProvider delayDuration={150}>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<span tabIndex={0}>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="size-9 p-0 text-muted-foreground"
-									disabled
-									aria-label="Default categories can't be deleted"
-								>
-									<Trash2 className="size-4" aria-hidden="true" />
-								</Button>
-							</span>
-						</TooltipTrigger>
-						<TooltipContent>
-							Default categories can&rsquo;t be deleted.
-						</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span tabIndex={0}>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="size-9 p-0 text-muted-foreground"
+								disabled
+								aria-label="Default categories can't be deleted"
+							>
+								<Trash2 className="size-4" aria-hidden="true" />
+							</Button>
+						</span>
+					</TooltipTrigger>
+					<TooltipContent>
+						Default categories can&rsquo;t be deleted.
+					</TooltipContent>
+				</Tooltip>
 			) : (
 				<Button
 					variant="ghost"
