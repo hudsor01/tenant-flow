@@ -331,30 +331,30 @@
 		--lightbox-nav-hover-bg: oklch(0 0 0 / 0.7);
 		--portal-feature-hover: scale(1.05) rotate(1deg);
 		--portal-feature-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-		--layout-section-padding-y: var(--spacing-16);
-		--layout-section-padding-y-compact: var(--spacing-12);
-		--layout-section-padding-y-spacious: var(--spacing-24);
-		--layout-section-padding-y-hero: var(--spacing-32);
+		--layout-section-padding-y: --spacing(16);
+		--layout-section-padding-y-compact: --spacing(12);
+		--layout-section-padding-y-spacious: --spacing(24);
+		--layout-section-padding-y-hero: --spacing(32);
 		--layout-container-padding-x: clamp(1.5rem, 4vw, 3rem);
 		--layout-container-padding-x-narrow: clamp(1rem, 2vw, 1.5rem);
 		--layout-container-padding-x-wide: clamp(2rem, 6vw, 4rem);
 		--layout-container-max-width: 80rem;
-		--layout-content-padding: var(--spacing-8);
-		--layout-content-padding-compact: var(--spacing-4);
-		--layout-content-padding-spacious: var(--spacing-12);
-		--layout-content-padding-hero: var(--spacing-16);
-		--layout-gap-section: var(--spacing-16);
-		--layout-gap-group: var(--spacing-8);
-		--layout-gap-items: var(--spacing-4);
-		--layout-stack-loose: var(--spacing-12);
-		--layout-stack-default: var(--spacing-6);
+		--layout-content-padding: --spacing(8);
+		--layout-content-padding-compact: --spacing(4);
+		--layout-content-padding-spacious: --spacing(12);
+		--layout-content-padding-hero: --spacing(16);
+		--layout-gap-section: --spacing(16);
+		--layout-gap-group: --spacing(8);
+		--layout-gap-items: --spacing(4);
+		--layout-stack-loose: --spacing(12);
+		--layout-stack-default: --spacing(6);
 		--layout-grid-cols-1: repeat(1, minmax(0, 1fr));
 		--layout-grid-cols-2: repeat(2, minmax(0, 1fr));
 		--layout-grid-cols-3: repeat(3, minmax(0, 1fr));
 		--layout-grid-cols-5: repeat(5, minmax(0, 1fr));
-		--layout-stack-tight: var(--spacing-3);
-		--layout-navbar-height: var(--spacing-16);
-		--layout-navbar-spacing: var(--spacing-20);
+		--layout-stack-tight: --spacing(3);
+		--layout-navbar-height: --spacing(16);
+		--layout-navbar-spacing: --spacing(20);
 	}
 
 	html {
@@ -948,7 +948,7 @@
 }
 
 .dashboard-panel-header {
-	padding: var(--spacing-5);
+	padding: --spacing(5);
 	border-bottom: 1px solid var(--color-border);
 }
 
@@ -974,20 +974,20 @@
 .dashboard-panel-description {
 	font-size: var(--text-sm);
 	color: var(--color-muted-foreground);
-	margin: var(--spacing-1) 0 0 0;
+	margin: --spacing(1) 0 0 0;
 }
 
 .dashboard-panel-body {
-	padding: var(--spacing-5);
+	padding: --spacing(5);
 }
 
 /* Dashboard panel density modes */
 .dashboard-panel[data-density="compact"] .dashboard-panel-header {
-	padding: var(--spacing-3) var(--spacing-4);
+	padding: --spacing(3) --spacing(4);
 }
 
 .dashboard-panel[data-density="compact"] .dashboard-panel-body {
-	padding: var(--spacing-3) var(--spacing-4);
+	padding: --spacing(3) --spacing(4);
 }
 
 /* Dashboard Stat Card - Improved touch targets and transitions */
@@ -995,7 +995,7 @@
 	background: var(--color-card);
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-lg);
-	padding: var(--spacing-4);
+	padding: --spacing(4);
 	transition:
 		border-color var(--transition-duration-fast) ease-out,
 		box-shadow var(--transition-duration-fast) ease-out,
@@ -1025,10 +1025,10 @@
 @utility quick-action-button {
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-3);
+	gap: --spacing(3);
 	width: 100%;
-	padding: var(--spacing-3);
-	min-height: var(--spacing-11); /* 44px touch target */
+	padding: --spacing(3);
+	min-height: --spacing(11); /* 44px touch target */
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-lg);
 	background: transparent;
@@ -1056,8 +1056,8 @@
 @utility view-toggle {
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-1);
-	padding: var(--spacing-1);
+	gap: --spacing(1);
+	padding: --spacing(1);
 	background: var(--color-muted);
 	border-radius: var(--radius-lg);
 }
@@ -1065,9 +1065,9 @@
 @utility view-toggle-button {
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-1_5);
-	padding: var(--spacing-1_5) var(--spacing-3);
-	min-height: var(--spacing-8); /* 32px */
+	gap: --spacing(1.5);
+	padding: --spacing(1.5) --spacing(3);
+	min-height: --spacing(8); /* 32px */
 	font-size: var(--text-sm);
 	font-weight: 500;
 	border-radius: var(--radius-md);
