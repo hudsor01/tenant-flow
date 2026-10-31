@@ -32,6 +32,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 
 const ROOT = process.cwd();
 const require = createRequire(path.join(ROOT, "package.json"));
@@ -218,8 +219,13 @@ const usage = () => {
 	process.exit(2);
 };
 
-const argv = process.argv.slice(2);
-if (argv[0] === "--self-test") {
+// The CLI runs only when this file is the entry point, so `import { normSpacing }` from another
+// tool (hunk-proof.mjs) has no side effect.
+const isMain = process.argv[1] !== undefined && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href;
+const argv = isMain ? process.argv.slice(2) : [];
+if (!isMain) {
+	// Imported: export only.
+} else if (argv[0] === "--self-test") {
 	if (argv.length !== 1) usage();
 	await selfTest();
 } else if (argv[0] === "--emit") {
