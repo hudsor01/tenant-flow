@@ -33,8 +33,10 @@
  *   - Every `it` that awaits an engine passes an explicit timeout; the G8 `it`
  *     takes `30_000`.
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve, sep } from "node:path";
+import { compile } from "@tailwindcss/node";
 import type { AtRule, Node as PostcssNode } from "postcss";
 import { twMerge } from "tailwind-merge";
 import { describe, expect, it } from "vitest";
@@ -57,6 +59,7 @@ import {
 	checkNonInlineThemeVarRefs,
 	checkOklchRange,
 	checkSourceGlobs,
+	checkSourceRoot,
 	checkUtilityShadowing,
 	collectCustomPropertiesByContext,
 	collectSourceCustomPropertyRefs,
@@ -313,6 +316,138 @@ describe("G6 — every explicit @source glob in globals.css matches at least one
 			const { violations } = checkSourceGlobs(compiler.sources);
 			expect(violations).toHaveLength(1);
 			expect(violations[0]?.startsWith("not ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"the source() root of globals.css is src/ and matches files",
+		async () => {
+			const result = checkSourceRoot(
+				(await projectEngine()).compiler.root,
+				resolve(REPO_ROOT, "src"),
+			);
+			expect(result.checked).toBe(1);
+			expect(
+				result.violations,
+				[
+					'globals.css must scope class detection with @import "tailwindcss" source("..") (D-18). Fix:',
+					...result.violations,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"scans only non-test files under src/",
+		async () => {
+			const { scannedFiles } = await projectEngine();
+			const srcPrefix = resolve(REPO_ROOT, "src") + sep;
+			expect(
+				scannedFiles.filter((file) => !file.startsWith(srcPrefix)),
+				"class detection read files outside src/",
+			).toEqual([]);
+			expect(
+				scannedFiles.filter((file) => /\.test\.tsx?$/.test(file)),
+				"class detection read test files",
+			).toEqual([]);
+			expect(scannedFiles.length).toBeGreaterThan(800);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	const compileRootFixture = async (css: string) =>
+		(
+			await compile(css, {
+				base: TAILWIND_BASE,
+				from: GLOBALS_CSS_PATH,
+				onDependency: () => undefined,
+			})
+		).root;
+
+	it(
+		"flags a root without source(), which falls back to auto-detection",
+		async () => {
+			const root = await compileRootFixture('@import "tailwindcss";');
+			const { violations } = checkSourceRoot(root, resolve(REPO_ROOT, "src"));
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("auto-detection");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags source(none), which turns class detection off",
+		async () => {
+			const root = await compileRootFixture(
+				'@import "tailwindcss" source(none);',
+			);
+			const { violations } = checkSourceRoot(root, resolve(REPO_ROOT, "src"));
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("source(none)");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		'accepts source(".."), whose effective base is src/',
+		async () => {
+			const root = await compileRootFixture(
+				'@import "tailwindcss" source("..");',
+			);
+			expect(root).toEqual({ base: TAILWIND_BASE, pattern: ".." });
+			const result = checkSourceRoot(root, resolve(REPO_ROOT, "src"));
+			expect(result.checked).toBe(1);
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags a root whose base is not src/",
+		async () => {
+			const root = await compileRootFixture(
+				'@import "tailwindcss" source("../../.github");',
+			);
+			const { violations } = checkSourceRoot(root, resolve(REPO_ROOT, "src"));
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("is not");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags a root that matches no file",
+		() => {
+			const emptyDir = mkdtempSync(join(tmpdir(), "g6-empty-"));
+			try {
+				mkdirSync(join(emptyDir, "app"));
+				const { violations } = checkSourceRoot(
+					{ base: join(emptyDir, "app"), pattern: ".." },
+					emptyDir,
+				);
+				expect(violations).toHaveLength(1);
+				expect(violations[0]).toContain("matches 0 files");
+			} finally {
+				rmSync(emptyDir, { recursive: true, force: true });
+			}
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"pins that compile() rejects a source() directory that does not exist",
+		async () => {
+			await expect(
+				compileRootFixture(
+					'@import "tailwindcss" source("./no-such-dir-66-2-12");',
+				),
+			).rejects.toMatchObject({
+				message: expect.stringContaining(
+					"does not exist or is not a directory",
+				),
+			});
 		},
 		ENGINE_TIMEOUT_MS,
 	);

@@ -1,9 +1,10 @@
-@import "tailwindcss";
+@import "tailwindcss" source("..");
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
-@source not "../../.planning/**/*";
-@source not "../../README.md";
+/* source("..") is resolved against this file's directory (src/app), so class
+   detection reads only src/; nothing outside src/ is rendered by the app. */
+
 /* Test files assert on class strings (e.g. arbitrary-value candidates in
    comments); Tailwind v4's Oxide scanner would extract those and emit invalid
    CSS that crashes the Turbopack dev parser. Tests contribute no real UI

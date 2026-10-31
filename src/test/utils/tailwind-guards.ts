@@ -14,13 +14,14 @@
  * baseline) to prove it fails where the defect existed.
  *
  * GUARDS DECLARED HERE.
- *   - G1 `checkOklchRange`: every oklch() literal in a stylesheet has its
+ *   - G1 `checkOklchRange`: every oklch color literal in a stylesheet has its
  *     lightness in [0, 1] and its chroma in [0, 0.37] (B1 class: a percent-form
  *     or dropped-digit typo that renders an out-of-gamut color).
  *   - G6 `checkSourceGlobs`: every explicit `@source` entry matches at least
  *     one file, negated entries included (B9 class: a glob that matches
  *     nothing scans nothing, and a negation that matches nothing excludes
- *     nothing).
+ *     nothing), and `checkSourceRoot`: the `source()` root is src/ and
+ *     matches files.
  *   - G2 `checkNonInlineThemeVarRefs`: no custom property declared in a
  *     non-inline `@theme` at-rule references var() (B3/H1 class: Tailwind emits
  *     non-inline theme values on :root, so a var() inside one resolves at :root
@@ -53,7 +54,8 @@
  */
 
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import type { compile } from "@tailwindcss/node";
 import { __unstable__loadDesignSystem } from "@tailwindcss/node";
 import type { SourceEntry } from "@tailwindcss/oxide";
 import { Scanner } from "@tailwindcss/oxide";
@@ -141,6 +143,64 @@ export function checkSourceGlobs(sources: readonly SourceEntry[]): GuardResult {
 		}
 	}
 	return { checked, violations };
+}
+
+/**
+ * The directory part of a source pattern: its `/`-separated segments before
+ * the first one that holds a glob character, joined with `/` (empty when the
+ * first segment is already a glob).
+ */
+function staticPrefix(pattern: string): string {
+	const segments: string[] = [];
+	for (const segment of pattern.split("/")) {
+		if (/[*?[{!]/.test(segment)) break;
+		segments.push(segment);
+	}
+	return segments.join("/");
+}
+
+/**
+ * The compiler keeps the stylesheet directory as `root.base` and carries the
+ * `source()` path in `root.pattern`, so the directory the root covers is
+ * `root.base` resolved with the pattern's leading literal path. A `null` root is
+ * automatic detection of the whole working directory, and `"none"` turns
+ * class detection off; both are violations for the project stylesheet.
+ */
+export function checkSourceRoot(
+	root: Awaited<ReturnType<typeof compile>>["root"],
+	expectedBase: string,
+): GuardResult {
+	const violations: string[] = [];
+	if (root === null) {
+		violations.push(
+			'root: no source() on @import "tailwindcss", so auto-detection scans the whole working directory (B9 class)',
+		);
+	} else if (root === "none") {
+		violations.push(
+			"root: source(none) disables class detection for the project stylesheet",
+		);
+	} else {
+		const effectiveBase = resolve(root.base, staticPrefix(root.pattern));
+		if (effectiveBase !== resolve(expectedBase)) {
+			violations.push(`root: base ${effectiveBase} is not ${expectedBase}`);
+		}
+		let files = 0;
+		try {
+			const scanner = new Scanner({
+				sources: [{ base: root.base, pattern: root.pattern, negated: false }],
+			});
+			scanner.scan();
+			files = scanner.files.length;
+		} catch {
+			files = 0;
+		}
+		if (files === 0) {
+			violations.push(
+				`root: ${root.pattern} (base ${root.base}) matches 0 files`,
+			);
+		}
+	}
+	return { checked: 1, violations };
 }
 
 /**

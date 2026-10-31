@@ -98,7 +98,16 @@ const guardsModule: typeof GuardsModule = await import(
 // inline-structure), keeping registry order equal to the default run order.
 const GUARDS: GuardEntry[] = [
 	{ id: "G1", run: (ctx) => guardsModule.checkOklchRange(ctx.css) },
-	{ id: "G6", run: (ctx) => guardsModule.checkSourceGlobs(ctx.compiler.sources) },
+	{
+		// 66.2-12: the explicit @source globs plus the source() root, which must
+		// cover <root>/src (a 754c91802 tree has no source(), so its root is null).
+		id: "G6",
+		run: (ctx) => {
+			const globs = guardsModule.checkSourceGlobs(ctx.compiler.sources);
+			const root = guardsModule.checkSourceRoot(ctx.compiler.root, path.join(ctx.root, "src"));
+			return { checked: globs.checked + root.checked, violations: [...globs.violations, ...root.violations] };
+		},
+	},
 	{ id: "G2", run: (ctx) => guardsModule.checkNonInlineThemeVarRefs(ctx.css) },
 	{
 		id: "G4",
