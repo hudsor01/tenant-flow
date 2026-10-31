@@ -39,14 +39,14 @@ Encrypt sensitive reports with our public key if possible. Include:
 
 ## What to Expect
 
-| Stage | Timeline |
-|-------|----------|
-| Acknowledgment | Within 48 hours |
-| Initial triage (valid / not valid) | Within 5 business days |
-| Status updates | Every 7 days until resolved |
-| Critical / High severity fix | Within 14 days |
-| Medium severity fix | Within 45 days |
-| Low severity fix | Within 90 days |
+| Stage                              | Timeline                    |
+| ---------------------------------- | --------------------------- |
+| Acknowledgment                     | Within 48 hours             |
+| Initial triage (valid / not valid) | Within 5 business days      |
+| Status updates                     | Every 7 days until resolved |
+| Critical / High severity fix       | Within 14 days              |
+| Medium severity fix                | Within 45 days              |
+| Low severity fix                   | Within 90 days              |
 
 If a reported timeline cannot be met we will communicate that proactively
 rather than go silent.
@@ -79,7 +79,6 @@ The following are in scope for vulnerability reports:
 ## Out of Scope
 
 The following will not be accepted as valid vulnerability reports:
-
 - Vulnerabilities in third-party services (Supabase, Stripe, Vercel, GitHub) — report those directly to the vendor
 - Attacks requiring physical access to a device
 - Social engineering or phishing of users or staff
@@ -105,7 +104,6 @@ handle) unless you prefer to remain anonymous.
 ## Safe Harbor
 
 TenantFlow will not pursue legal action against security researchers who:
-
 - Report vulnerabilities through the channels above in good faith
 - Avoid accessing, modifying, or deleting data beyond what is needed to
   demonstrate the vulnerability

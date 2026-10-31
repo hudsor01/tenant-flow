@@ -68,8 +68,8 @@ updates:
     labels:
       - dependencies
     commit-message:
-      prefix: 'fix(deps)'
-      prefix-development: 'chore(deps)'
+      prefix: "fix(deps)"
+      prefix-development: "chore(deps)"
       include: scope
 
     # ── Grouped PRs ──────────────────────────
@@ -85,18 +85,18 @@ updates:
         update-types:
           - patch
         exclude-patterns:
-          - '@supabase/*'
-          - 'stripe'
-          - '@stripe/*'
-          - 'next'
-          - '@next/*'
-          - 'react'
-          - 'react-dom'
-          - '@vercel/*'
-          - 'jose'
-          - 'cookie'
-          - 'dompurify'
-          - 'crypto-js'
+          - "@supabase/*"
+          - "stripe"
+          - "@stripe/*"
+          - "next"
+          - "@next/*"
+          - "react"
+          - "react-dom"
+          - "@vercel/*"
+          - "jose"
+          - "cookie"
+          - "dompurify"
+          - "crypto-js"
 
       # Dev-only minor bumps — MANUAL REVIEW (not auto-merged).
       # npm auto-merge is disabled entirely; see dependabot-auto-merge.yml.
@@ -105,18 +105,18 @@ updates:
         update-types:
           - minor
         exclude-patterns:
-          - '@supabase/*'
-          - 'stripe'
-          - '@stripe/*'
-          - 'next'
-          - '@next/*'
-          - 'react'
-          - 'react-dom'
-          - '@vercel/*'
-          - 'jose'
-          - 'cookie'
-          - 'dompurify'
-          - 'crypto-js'
+          - "@supabase/*"
+          - "stripe"
+          - "@stripe/*"
+          - "next"
+          - "@next/*"
+          - "react"
+          - "react-dom"
+          - "@vercel/*"
+          - "jose"
+          - "cookie"
+          - "dompurify"
+          - "crypto-js"
 
       # Prod minor bumps — manual review required.
       npm-prod-minor:
@@ -124,28 +124,28 @@ updates:
         update-types:
           - minor
         exclude-patterns:
-          - '@supabase/*'
-          - 'stripe'
-          - '@stripe/*'
-          - 'next'
-          - '@next/*'
-          - 'react'
-          - 'react-dom'
-          - '@vercel/*'
-          - 'jose'
-          - 'cookie'
-          - 'dompurify'
-          - 'crypto-js'
+          - "@supabase/*"
+          - "stripe"
+          - "@stripe/*"
+          - "next"
+          - "@next/*"
+          - "react"
+          - "react-dom"
+          - "@vercel/*"
+          - "jose"
+          - "cookie"
+          - "dompurify"
+          - "crypto-js"
 
       # Security-sensitive: separate PR for review.
       supabase:
         patterns:
-          - '@supabase/*'
+          - "@supabase/*"
 
       stripe:
         patterns:
-          - 'stripe'
-          - '@stripe/*'
+          - "stripe"
+          - "@stripe/*"
 
       # react and react-dom must move in ONE PR. React asserts at runtime that
       # the two packages are at the exact same version, and the npm ranges do
@@ -166,30 +166,30 @@ updates:
       # package with its own @types sibling in one PR.
       react:
         patterns:
-          - 'react'
-          - 'react-dom'
+          - "react"
+          - "react-dom"
 
     # ── Ignore rules ─────────────────────────
     ignore:
       # Major bumps for frameworks — manual migration only, never opened by bot.
-      - dependency-name: 'next'
-        update-types: ['version-update:semver-major']
-      - dependency-name: 'react'
-        update-types: ['version-update:semver-major']
-      - dependency-name: 'react-dom'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@tanstack/*'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@supabase/*'
-        update-types: ['version-update:semver-major']
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@supabase/*"
+        update-types: ["version-update:semver-major"]
       # Noisy, low-value patch churn
-      - dependency-name: '@types/*'
-        update-types: ['version-update:semver-patch']
+      - dependency-name: "@types/*"
+        update-types: ["version-update:semver-patch"]
 
   # ─────────────────────────────────────────
   # GitHub Actions — monthly
   # Patch/minor auto-merged (matched positively, since an absent update-type
-# would satisfy a `!= major` test); majors fall through to manual review.
+  # would satisfy a `!= major` test); majors fall through to manual review.
   # ─────────────────────────────────────────
   - package-ecosystem: github-actions
     directory: /
@@ -202,8 +202,8 @@ updates:
       - dependencies
       - ci
     commit-message:
-      prefix: 'chore(ci)'
+      prefix: "chore(ci)"
     groups:
       github-actions:
         patterns:
-          - '*'
+          - "*"

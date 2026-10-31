@@ -3,7 +3,6 @@
 Five DB functions deliver event payloads to per-event n8n webhooks via
 `net.http_post()`. Each reads its URL + bearer secret at fire time from rows
 in `public.app_config` (a service-role-only key/value table).
-
 - `notify_n8n_maintenance` — fires on maintenance_requests INSERT / status-change
 - `notify_n8n_payment_reminder` — fires on payment_reminders INSERT
 - `notify_n8n_lease_reminder` — fires on lease_reminders INSERT
@@ -30,14 +29,14 @@ per environment (prod, staging if added later).
 
 ## Required keys
 
-| Key | Purpose | Trigger source |
-|---|---|---|
-| `n8n.webhook.maintenance_url` | New / status-changed maintenance request | `trg_maintenance_notify_n8n` |
-| `n8n.webhook.payment_reminder_url` | Upcoming rent payment reminder (7/3/1d) | `trg_payment_reminders_notify_n8n` |
-| `n8n.webhook.lease_reminder_url` | Lease expiry reminder (30/7/1d) | `trg_lease_reminders_notify_n8n` |
-| `n8n.webhook.rent_payment_url` | New rent payment recorded | `trg_rent_payments_notify_n8n` |
-| `n8n.webhook.critical_error_url` | Authorization error or error spike on user_errors (F-7) | `notify_critical_error` AFTER INSERT trigger |
-| `n8n.webhook.secret` | Bearer token shared with n8n endpoints (used for the `Authorization: Bearer <token>` header) | All five |
+| Key                                | Purpose                                                                                      | Trigger source                               |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `n8n.webhook.maintenance_url`      | New / status-changed maintenance request                                                     | `trg_maintenance_notify_n8n`                 |
+| `n8n.webhook.payment_reminder_url` | Upcoming rent payment reminder (7/3/1d)                                                      | `trg_payment_reminders_notify_n8n`           |
+| `n8n.webhook.lease_reminder_url`   | Lease expiry reminder (30/7/1d)                                                              | `trg_lease_reminders_notify_n8n`             |
+| `n8n.webhook.rent_payment_url`     | New rent payment recorded                                                                    | `trg_rent_payments_notify_n8n`               |
+| `n8n.webhook.critical_error_url`   | Authorization error or error spike on user_errors (F-7)                                      | `notify_critical_error` AFTER INSERT trigger |
+| `n8n.webhook.secret`               | Bearer token shared with n8n endpoints (used for the `Authorization: Bearer <token>` header) | All five                                     |
 
 The schema migration that creates `public.app_config` seeds the six rows as
 empty strings. This runbook is the procedure to fill them in.
@@ -141,7 +140,7 @@ webhook paths:
 ```
 
 Action: **Skip** → check **All managed rules** + **All Super Bot Fight Mode Rules**
-+ **All remaining custom rules** + **All rate limiting rules**.
+- **All remaining custom rules** + **All rate limiting rules**.
 
 ## Rotating the secret
 

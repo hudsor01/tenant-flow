@@ -82,7 +82,7 @@ name: Platform Config Drift
 #     the daily run stops entirely, with no notification at all.
 on:
   schedule:
-    - cron: '17 7 * * *'
+    - cron: "17 7 * * *"
   workflow_dispatch:
   # And on the merge itself, so a change to the gate or to vercel.json is
   # exercised on main within minutes instead of at 07:17 the next morning. On

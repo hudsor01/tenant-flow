@@ -28,7 +28,7 @@ on:
     # Sunday, in a slot no other workflow uses (codeql 04:27 Mon,
     # rls-security 09:00 Mon, migration-replay 12:41 Mon, dependency-audit
     # 13:17 daily, config-drift 07:17 daily).
-    - cron: '23 3 * * 0'
+    - cron: "23 3 * * 0"
   workflow_dispatch:
   # And on a pull request that changes the sweep or anything it mutates, so a
   # row that stops applying is caught before it merges rather than next Sunday.

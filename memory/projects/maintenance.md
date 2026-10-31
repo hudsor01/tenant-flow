@@ -9,8 +9,8 @@ Maintenance request workflow — tenants submit requests, owners track status, v
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
+| File                                         | Purpose           |
+| -------------------------------------------- | ----------------- |
 | src/hooks/api/query-keys/maintenance-keys.ts | Query key factory |
 
 ## Key Conventions

@@ -11,16 +11,16 @@ Property management platform for independent landlords and small property manage
 
 ## Tech Stack
 
-| Layer | Choice |
-|-------|--------|
-| Frontend | Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + TanStack Query / Form + Zustand |
-| Backend | Supabase (PostgREST + RPCs + Edge Functions) |
-| Database | Postgres 17 with RLS on every table |
-| Payments | Stripe (Checkout + Subscriptions) |
-| Document signing | Built-in (Supabase token flow) |
-| Monitoring | Sentry (Next.js SDK + source maps + tunnel route) |
-| Hosting | Vercel (frontend), Supabase (backend), deploys from `main` only |
-| Package manager | bun 1.3.x, Node 24.x |
+| Layer            | Choice                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Frontend         | Next.js 16 (App Router) + React 19 + Tailwind CSS 4 + TanStack Query / Form + Zustand |
+| Backend          | Supabase (PostgREST + RPCs + Edge Functions)                                          |
+| Database         | Postgres 17 with RLS on every table                                                   |
+| Payments         | Stripe (Checkout + Subscriptions)                                                     |
+| Document signing | Built-in (Supabase token flow)                                                        |
+| Monitoring       | Sentry (Next.js SDK + source maps + tunnel route)                                     |
+| Hosting          | Vercel (frontend), Supabase (backend), deploys from `main` only                       |
+| Package manager  | bun 1.3.x, Node 24.x                                                                  |
 
 Architecture is intentionally backend-light: the Next.js app talks to Supabase directly via PostgREST. There is no custom API server. Edge Functions (Deno) handle webhooks (Stripe, Resend) and operations that need privileged access.
 
@@ -89,12 +89,12 @@ bun run validate:quick               # types + lint + unit
 
 ## CI
 
-| Trigger | Jobs |
-|---------|------|
-| PRs to `main` | `checks` (dependency-audit gate, lint, typecheck, credential-gate self-test, **unit suite with coverage thresholds**, Next.js build) + `e2e-smoke` (Playwright) + `rls-security` (integration tests against prod) |
-| Push to `main` | `e2e-smoke` + `rls-security` only — `checks` is `pull_request`-only, so the unit suite, lint, typecheck and the build do not run here; deploys via Vercel auto-trigger |
-| Weekly cron + `workflow_dispatch` | `rls-security` (independent of branch state) · `migration-replay` (the ledger applies to an empty database) |
-| Daily cron + `workflow_dispatch` | `dependency-audit` (the audit gate against `main`'s lockfile) · `config-drift` (Supabase, branch-protection and Vercel configuration still match what this repo documents — also on pushes to `main` and PRs that touch it) |
+| Trigger                           | Jobs                                                                                                                                                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PRs to `main`                     | `checks` (dependency-audit gate, lint, typecheck, credential-gate self-test, **unit suite with coverage thresholds**, Next.js build) + `e2e-smoke` (Playwright) + `rls-security` (integration tests against prod)           |
+| Push to `main`                    | `e2e-smoke` + `rls-security` only — `checks` is `pull_request`-only, so the unit suite, lint, typecheck and the build do not run here; deploys via Vercel auto-trigger                                                      |
+| Weekly cron + `workflow_dispatch` | `rls-security` (independent of branch state) · `migration-replay` (the ledger applies to an empty database)                                                                                                                 |
+| Daily cron + `workflow_dispatch`  | `dependency-audit` (the audit gate against `main`'s lockfile) · `config-drift` (Supabase, branch-protection and Vercel configuration still match what this repo documents — also on pushes to `main` and PRs that touch it) |
 
 Doc-only PRs (`**.md`, `.planning/**`, `.vscode/**`, `docs/**`, `LICENSE`) are handled by a paired no-op workflow ([`.github/workflows/ci-cd-doc-only.yml`](./.github/workflows/ci-cd-doc-only.yml)) so required status checks remain satisfied without bypassing branch protection.
 

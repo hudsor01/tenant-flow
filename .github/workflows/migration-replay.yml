@@ -58,7 +58,7 @@ on:
   # production that never touches this repo at all -- the exact failure mode
   # above. A PR-only trigger would never catch it.
   schedule:
-    - cron: '41 12 * * 1'
+    - cron: "41 12 * * 1"
   workflow_dispatch:
 
 concurrency:
