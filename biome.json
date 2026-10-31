@@ -609,6 +609,10 @@
 					"suspicious": { "noConsole": "off", "noExplicitAny": "off" }
 				}
 			}
+		},
+		{
+			"includes": [".github/instructions/**"],
+			"markdown": { "formatter": { "enabled": false } }
 		}
 	],
 	"assist": {
