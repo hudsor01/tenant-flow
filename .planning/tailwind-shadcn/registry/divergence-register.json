@@ -308,6 +308,27 @@
         }
       ]
     },
+    "src/components/ui/dropdown-menu.tsx": {
+      "item": "dropdown-menu",
+      "plan": "66.2-26",
+      "divergences": [
+        {
+          "what": "DropdownMenuItem destructive text uses data-[variant=destructive]:text-destructive-text and data-[variant=destructive]:focus:text-destructive-text instead of text-destructive (AA text companion); the destructive icon keeps the vivid data-[variant=destructive]:*:[svg]:text-destructive! class",
+          "reason": "D-26 customization",
+          "ref": "D-26; UI-SPEC Preserved Customizations"
+        },
+        {
+          "what": "DropdownMenuLabel uses typography-small instead of text-sm font-medium",
+          "reason": "D-26 customization",
+          "ref": "D-26; UI-SPEC Preserved Customizations"
+        },
+        {
+          "what": "DropdownMenuPortal, DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubTrigger and DropdownMenuSubContent are not exported, so their dropdown-menu-portal, dropdown-menu-group, dropdown-menu-radio-group, dropdown-menu-radio-item, dropdown-menu-shortcut, dropdown-menu-sub, dropdown-menu-sub-trigger and dropdown-menu-sub-content data-slots are absent (the manifest lists 15 upstream data-slots; the local file carries the 7 of its exported parts)",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        }
+      ]
+    },
     "src/components/ui/input-group.tsx": {
       "item": "input-group",
       "plan": "66.2-20",
@@ -387,6 +408,22 @@
         }
       ]
     },
+    "src/components/ui/progress.tsx": {
+      "item": "progress",
+      "plan": "66.2-26",
+      "divergences": [
+        {
+          "what": "progressVariants and progressIndicatorVariants cva maps (variant default, secondary, success, warning, destructive; size default, sm, lg, xl) replace upstream's fixed h-2 bg-primary/20 track and bg-primary indicator classes",
+          "reason": "D-26 customization",
+          "ref": "D-26; UI-SPEC Progress (C5, wave 5)"
+        },
+        {
+          "what": "Progress passes value={value} to the Radix root explicitly, so the bar exposes aria-valuenow, aria-valuetext and data-state; upstream destructures value for the indicator transform and never forwards it",
+          "reason": "D-26 customization",
+          "ref": "D-05; ledger C5"
+        }
+      ]
+    },
     "src/components/ui/select.tsx": {
       "item": "select",
       "plan": "66.2-20",
@@ -436,6 +473,43 @@
           "what": "class token order in SheetOverlay, SheetContent (base and all four sides), the corner close, SheetTitle and SheetDescription",
           "reason": "upstream drift not adopted (D-05)",
           "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/slider.tsx": {
+      "item": "slider",
+      "plan": "66.2-26",
+      "divergences": [
+        {
+          "what": "Slider thumb uses bg-background instead of upstream's literal white fill utility, which the design-token drift test bans",
+          "reason": "D-26 customization",
+          "ref": "D-26; UI-SPEC Preserved Customizations"
+        }
+      ]
+    },
+    "src/components/ui/sonner.tsx": {
+      "item": "sonner",
+      "plan": "66.2-26",
+      "divergences": [
+        {
+          "what": "theme guard useTheme().theme ?? \"system\" with one NonNullable<ToasterProps[\"theme\"]> cast instead of the destructured default and the ToasterProps[\"theme\"] cast, which fails TS2375 under exactOptionalPropertyTypes",
+          "reason": "D-26 customization",
+          "ref": "D-26; ledger C10"
+        },
+        {
+          "what": "token map as important arbitrary properties on the toaster className ([--normal-bg:var(--color-popover)]!, [--normal-text:var(--color-popover-foreground)]!, [--normal-border:var(--color-border)]!, [--border-radius:var(--radius)]!) instead of upstream's static style object and its toaster group classes",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-31; RESEARCH N20 and A2; zero-tolerance rule 5"
+        },
+        {
+          "what": "toastOptions gets a 4000 ms default duration; a caller duration still wins",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "className and toastOptions are destructured and the caller className is merged with cn; the lucide icon map is a module constant (TOAST_ICONS, typed with satisfies) instead of an inline object",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-04"
         }
       ]
     },
