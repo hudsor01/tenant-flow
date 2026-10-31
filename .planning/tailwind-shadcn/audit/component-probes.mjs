@@ -29,7 +29,10 @@
 // Probe fields:
 //   otp-setup, otp-mfa      { slotCount, dataSlotCount, slots: [{ width, height, fontSize,
 //                            borderWidths: [t,r,b,l], radii: [tl,tr,br,bl] }] }
-//   chart                   { gridLineCount, gridStroke, activeDotStroke, activeDotStrokeWidth }
+//   chart                   { gridLineCount, gridStroke, activeDotStroke, activeDotStrokeWidth,
+//                            borderToken }  borderToken = the canvas [r,g,b,a] of the computed
+//                            --border custom property on <html>, read in the same page and theme
+//                            as gridStroke (66.2-25 VD-16: gridStroke = borderToken at 50% alpha)
 //   command                 { wrapperHeight, inputHeight, inputOverflowsWrapper, inputOverflowPx,
 //                            wrapperBorderBottomPx }  inputOverflowPx = max(wrapper.top - input.top,
 //                            input.bottom - wrapper.bottom, 0) against the wrapper's border box;
@@ -368,6 +371,7 @@ const PROBES = {
 					gridStroke: toRgbaArray(getComputedStyle(lines[0]).stroke),
 					activeDotStroke: toRgbaArray(ds.stroke),
 					activeDotStrokeWidth: ds.strokeWidth,
+					borderToken: toRgbaArray(getComputedStyle(document.documentElement).getPropertyValue("--border").trim()),
 				};
 			});
 		},
