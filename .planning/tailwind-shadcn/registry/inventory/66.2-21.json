@@ -1,0 +1,89 @@
+{
+  "label": "66.2-21",
+  "generatedAt": "2026-10-31T17:52:25.701Z",
+  "files": [
+    {
+      "file": "src/components/ui/input-otp.tsx",
+      "item": "input-otp",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 2,
+      "normalizedDiffPath": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-21/inv/src__components__ui__input-otp.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 3
+    },
+    {
+      "file": "src/components/ui/popover.tsx",
+      "item": "popover",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 2,
+      "normalizedDiffPath": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-21/inv/src__components__ui__popover.tsx.diff",
+      "missingExports": [
+        "PopoverAnchor",
+        "PopoverDescription",
+        "PopoverHeader",
+        "PopoverTitle"
+      ],
+      "missingDataSlots": [
+        "popover-anchor",
+        "popover-header",
+        "popover-title",
+        "popover-description"
+      ],
+      "registered": true,
+      "divergenceCount": 3
+    },
+    {
+      "file": "src/components/ui/calendar.tsx",
+      "item": "calendar",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 21,
+      "normalizedDiffPath": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-21/inv/src__components__ui__calendar.tsx.diff",
+      "missingExports": [
+        "CalendarDayButton"
+      ],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 4
+    },
+    {
+      "file": "src/components/ui/command.tsx",
+      "item": "command",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 8,
+      "normalizedDiffPath": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-21/inv/src__components__ui__command.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 3
+    },
+    {
+      "file": "src/components/ui/sheet.tsx",
+      "item": "sheet",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 10,
+      "normalizedDiffPath": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-21/inv/src__components__ui__sheet.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 2
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 5,
+    "nonRegistry": 0
+  },
+  "problems": []
+}

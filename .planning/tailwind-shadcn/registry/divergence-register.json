@@ -111,6 +111,32 @@
         }
       ]
     },
+    "src/components/ui/calendar.tsx": {
+      "item": "calendar",
+      "plan": "66.2-21",
+      "divergences": [
+        {
+          "what": "CalendarDayButton export removed (the function stays internal to Calendar)",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        },
+        {
+          "what": "local nav and caption classNames: month_caption flex-center, dropdowns typography-small, caption_label h-11 dropdown target",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "day cell uses first:[&[data-selected=true]_button]:rounded-l-md and last:[&[data-selected=true]_button]:rounded-r-md instead of the upstream showWeekNumber-dependent nth-child form; month_grid drops defaultClassNames.month_grid",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        },
+        {
+          "what": "class token order in the root, months, month, nav, button_previous, button_next, dropdown_root, dropdown, caption_label, weekday, week, week_number_header, week_number, today and CalendarDayButton class strings",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
     "src/components/ui/card.tsx": {
       "item": "card",
       "plan": "66.2-20",
@@ -153,6 +179,27 @@
         }
       ]
     },
+    "src/components/ui/command.tsx": {
+      "item": "command",
+      "plan": "66.2-21",
+      "divergences": [
+        {
+          "what": "CommandInput wrapper h-11 (44px row outside CommandDialog) instead of h-9; inside the dialog the upstream **:data-[slot=command-input-wrapper]:h-12 raises it to 48px",
+          "reason": "D-26 customization",
+          "ref": "D-26; ledger C3; VD-18"
+        },
+        {
+          "what": "CommandList max-h-75 instead of the equal max-h-[300px]",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        },
+        {
+          "what": "class token order in Command, CommandInput, CommandGroup, CommandSeparator, CommandItem and CommandShortcut",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
     "src/components/ui/input-group.tsx": {
       "item": "input-group",
       "plan": "66.2-20",
@@ -179,6 +226,27 @@
         }
       ]
     },
+    "src/components/ui/input-otp.tsx": {
+      "item": "input-otp",
+      "plan": "66.2-21",
+      "divergences": [
+        {
+          "what": "InputOTPSlot size-11 (44px) instead of upstream h-9 w-9",
+          "reason": "D-26 customization",
+          "ref": "D-26; UI-SPEC Input OTP (C1, wave 5)"
+        },
+        {
+          "what": "fake-caret wrapper uses flex-center instead of flex items-center justify-center",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "class token order in InputOTPSlot and the caret line",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
     "src/components/ui/input.tsx": {
       "item": "input",
       "plan": "66.2-20",
@@ -187,6 +255,27 @@
           "what": "inputVariants cva with variant (default, invalid) and inputSize (default h-11, sm, lg, xl) props replaces the upstream h-9 three-string class list",
           "reason": "D-26 customization",
           "ref": "D-26"
+        }
+      ]
+    },
+    "src/components/ui/popover.tsx": {
+      "item": "popover",
+      "plan": "66.2-21",
+      "divergences": [
+        {
+          "what": "PopoverAnchor and its popover-anchor data-slot removed",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a); D-26"
+        },
+        {
+          "what": "upstream PopoverHeader, PopoverTitle and PopoverDescription (popover-header, popover-title, popover-description data-slots) not adopted: no consumer; manifest-w5 lists 7 upstream popover slots",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; D-26; 66.2-20 slot-count notes"
+        },
+        {
+          "what": "class token order in PopoverContent",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
         }
       ]
     },
@@ -221,6 +310,22 @@
         },
         {
           "what": "class token order in SelectTrigger, SelectContent and SelectItem kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/sheet.tsx": {
+      "item": "sheet",
+      "plan": "66.2-21",
+      "divergences": [
+        {
+          "what": "SheetContent corner close keeps the always-on 44px target (inline-flex items-center justify-center min-h-11 min-w-11) and aria-label=\"Close\" in place of upstream's sr-only Close text",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-46; research H10"
+        },
+        {
+          "what": "class token order in SheetOverlay, SheetContent (base and all four sides), the corner close, SheetTitle and SheetDescription",
           "reason": "upstream drift not adopted (D-05)",
           "ref": "D-05"
         }
