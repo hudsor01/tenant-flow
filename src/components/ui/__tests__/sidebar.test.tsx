@@ -12,13 +12,22 @@ import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
+	SidebarGroup,
 	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 	SidebarProvider,
 	SidebarRail,
+	SidebarSeparator,
 	SidebarTrigger,
 	useSidebar,
 } from "#components/ui/sidebar";
 import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 
 const cookieGet = vi.fn(() => "");
 const cookieSet = vi.fn();
@@ -433,5 +442,196 @@ describe("mobile sheet", () => {
 		await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
 		expect(STATE()).toBe("expanded");
 		expect(cookieSet).not.toHaveBeenCalled();
+	});
+});
+
+const LIST_BASELINE = {
+	paddingLeft: "24px",
+	marginTop: "16px",
+	marginBottom: "16px",
+	firstChildMarginBottom: "4px",
+};
+
+describe("menu lists (D-49 base-rule neutralizers)", () => {
+	it("zeroes SidebarMenu padding-left, both margins and the item margin", () => {
+		const { container } = render(
+			<SidebarProvider>
+				<SidebarGroup>
+					<SidebarMenu>
+						<SidebarMenuItem>Item</SidebarMenuItem>
+					</SidebarMenu>
+				</SidebarGroup>
+			</SidebarProvider>,
+		);
+		expect(getSlot(container, "sidebar-group").tagName).toBe("DIV");
+		const menu = getSlot(container, "sidebar-menu");
+		expect(menu.tagName).toBe("UL");
+		const item = getSlot(container, "sidebar-menu-item");
+		expect(item.tagName).toBe("LI");
+		expect(item).toHaveClass("group/menu-item");
+
+		const { neutralized, baseline } = computeListCascade(menu);
+		expect(baseline).toMatchObject(LIST_BASELINE);
+		expect(neutralized).toEqual({
+			paddingLeft: "0px",
+			marginTop: "0px",
+			marginBottom: "0px",
+			firstChildTag: "li",
+			firstChildMarginBottom: "0px",
+		});
+	});
+
+	it("zeroes SidebarMenuSub margins and the sub item margin", () => {
+		const { container } = render(
+			<SidebarProvider>
+				<SidebarMenuSub>
+					<SidebarMenuSubItem>Sub item</SidebarMenuSubItem>
+				</SidebarMenuSub>
+			</SidebarProvider>,
+		);
+		const sub = getSlot(container, "sidebar-menu-sub");
+		expect(sub.tagName).toBe("UL");
+		expect(getSlot(container, "sidebar-menu-sub-item").tagName).toBe("LI");
+
+		const { neutralized, baseline } = computeListCascade(sub);
+		expect(baseline).toMatchObject(LIST_BASELINE);
+		expect(neutralized).toMatchObject({
+			marginTop: "0px",
+			marginBottom: "0px",
+			firstChildTag: "li",
+			firstChildMarginBottom: "0px",
+		});
+	});
+});
+
+describe("SidebarMenuButton", () => {
+	function renderInMenu(node: ReactNode) {
+		return render(
+			<SidebarProvider>
+				<SidebarMenu>
+					<SidebarMenuItem>{node}</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarProvider>,
+		);
+	}
+
+	it("renders a default button", () => {
+		renderInMenu(<SidebarMenuButton>Plain</SidebarMenuButton>);
+		const button = screen.getByRole("button", { name: "Plain" });
+		expect(button).toHaveAttribute("data-slot", "sidebar-menu-button");
+		expect(button).toHaveAttribute("data-size", "default");
+		expect(button).toHaveAttribute("data-active", "false");
+		expect(button).toHaveClass("no-underline");
+	});
+
+	it("reports isActive", () => {
+		renderInMenu(<SidebarMenuButton isActive>Active</SidebarMenuButton>);
+		expect(screen.getByRole("button", { name: "Active" })).toHaveAttribute(
+			"data-active",
+			"true",
+		);
+	});
+
+	it("renders the child anchor with asChild", () => {
+		renderInMenu(
+			<SidebarMenuButton asChild>
+				<a href="/dashboard">Dashboard</a>
+			</SidebarMenuButton>,
+		);
+		const link = screen.getByRole("link", { name: "Dashboard" });
+		expect(link).toHaveAttribute("data-slot", "sidebar-menu-button");
+		expect(link).toHaveAttribute("data-size", "default");
+		expect(link).toHaveAttribute("data-active", "false");
+		expect(link).toHaveClass("no-underline");
+	});
+
+	it("applies the outline variant and lg size", () => {
+		renderInMenu(
+			<SidebarMenuButton variant="outline" size="lg">
+				Large
+			</SidebarMenuButton>,
+		);
+		expect(screen.getByRole("button", { name: "Large" })).toHaveAttribute(
+			"data-size",
+			"lg",
+		);
+	});
+
+	it.each([
+		["string", "Dashboard"],
+		["object", { children: "Dashboard" }],
+	] as const)(
+		"wraps the button in a tooltip trigger (%s tooltip)",
+		(_label, tooltip) => {
+			renderInMenu(
+				<SidebarMenuButton tooltip={tooltip}>Tip</SidebarMenuButton>,
+			);
+			const button = screen.getByRole("button", { name: "Tip" });
+			expect(button).toHaveAttribute("data-slot", "sidebar-menu-button");
+			expect(button).toHaveAttribute("data-state", "closed");
+		},
+	);
+});
+
+describe("SidebarMenuSubButton", () => {
+	function renderInSub(node: ReactNode) {
+		return render(
+			<SidebarProvider>
+				<SidebarMenuSub>
+					<SidebarMenuSubItem>{node}</SidebarMenuSubItem>
+				</SidebarMenuSub>
+			</SidebarProvider>,
+		);
+	}
+
+	it("renders a medium anchor by default", () => {
+		renderInSub(
+			<SidebarMenuSubButton href="/leases">Leases</SidebarMenuSubButton>,
+		);
+		const link = screen.getByRole("link", { name: "Leases" });
+		expect(link).toHaveAttribute("data-slot", "sidebar-menu-sub-button");
+		expect(link).toHaveAttribute("data-size", "md");
+		expect(link).toHaveAttribute("data-active", "false");
+		expect(link).toHaveClass("no-underline", "text-sm");
+	});
+
+	it("renders the small size and isActive", () => {
+		renderInSub(
+			<SidebarMenuSubButton href="/leases" size="sm" isActive>
+				Small
+			</SidebarMenuSubButton>,
+		);
+		const link = screen.getByRole("link", { name: "Small" });
+		expect(link).toHaveClass("text-xs");
+		expect(link).not.toHaveClass("text-sm");
+		expect(link).toHaveAttribute("data-active", "true");
+	});
+
+	it("keeps the child anchor with asChild", () => {
+		renderInSub(
+			<SidebarMenuSubButton asChild>
+				<a href="/tenants">Tenants</a>
+			</SidebarMenuSubButton>,
+		);
+		const link = screen.getByRole("link", { name: "Tenants" });
+		expect(link.tagName).toBe("A");
+		expect(link).toHaveAttribute("data-slot", "sidebar-menu-sub-button");
+	});
+});
+
+describe("SidebarSeparator (S11)", () => {
+	it("merges away the Separator's horizontal w-full", () => {
+		const { container } = render(
+			<SidebarProvider>
+				<SidebarSeparator />
+			</SidebarProvider>,
+		);
+		const separator = getSlot(container, "sidebar-separator");
+		expect(separator).toHaveClass(
+			"data-[orientation=horizontal]:w-auto",
+			"mx-2",
+			"bg-sidebar-border",
+		);
+		expect(separator).not.toHaveClass("data-[orientation=horizontal]:w-full");
 	});
 });

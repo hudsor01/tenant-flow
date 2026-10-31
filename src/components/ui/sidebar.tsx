@@ -28,7 +28,9 @@
  *   V3  The mode switch is the `lg` breakpoint (D-33): `lg:block` and `lg:flex`
  *       replace the upstream `md:` pair, and useIsMobile from
  *       `#hooks/use-mobile` matches `(width < 64rem)`, the same boundary.
- *   V4  Base-rule neutralizers (D-49), see SidebarMenu and SidebarMenuSub below.
+ *   V4  Base-rule neutralizers (D-49): SidebarMenu and SidebarMenuSub cancel the
+ *       globals.css list base rules on the list itself, and the two menu
+ *       buttons add `no-underline` (details under D-49 below).
  *   V5  SidebarSeparator passes `data-[orientation=horizontal]:w-auto` so
  *       tailwind-merge drops the Separator's variant-scoped `w-full`, which a
  *       bare `w-auto` cannot override (S11: a 16px overflow).
@@ -85,7 +87,9 @@
  *        is in the document.
  */
 
+import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
+import { Slot } from "radix-ui";
 import {
 	type ComponentProps,
 	createContext,
@@ -95,6 +99,7 @@ import {
 } from "react";
 
 import { Button } from "#components/ui/button";
+import { Separator } from "#components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
@@ -102,7 +107,12 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#components/ui/sheet";
-import { TooltipProvider } from "#components/ui/tooltip";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "#components/ui/tooltip";
 import { useIsMobile } from "#hooks/use-mobile";
 import { persistSidebarOpen } from "#lib/sidebar-state";
 import { cn } from "#lib/utils";
@@ -425,6 +435,23 @@ function SidebarFooter({ className, ...props }: ComponentProps<"div">) {
 	);
 }
 
+function SidebarSeparator({
+	className,
+	...props
+}: ComponentProps<typeof Separator>) {
+	return (
+		<Separator
+			data-slot="sidebar-separator"
+			data-sidebar="separator"
+			className={cn(
+				"mx-2 data-[orientation=horizontal]:w-auto bg-sidebar-border",
+				className,
+			)}
+			{...props}
+		/>
+	);
+}
+
 function SidebarContent({ className, ...props }: ComponentProps<"div">) {
 	const collapsedInert = useCollapsedInert();
 
@@ -442,13 +469,187 @@ function SidebarContent({ className, ...props }: ComponentProps<"div">) {
 	);
 }
 
+function SidebarGroup({ className, ...props }: ComponentProps<"div">) {
+	return (
+		<div
+			data-slot="sidebar-group"
+			data-sidebar="group"
+			className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+			{...props}
+		/>
+	);
+}
+
+function SidebarMenu({ className, ...props }: ComponentProps<"ul">) {
+	return (
+		<ul
+			data-slot="sidebar-menu"
+			data-sidebar="menu"
+			className={cn(
+				"flex w-full min-w-0 flex-col gap-1 mt-0 mb-0 pl-0 [&>li]:mb-0",
+				className,
+			)}
+			{...props}
+		/>
+	);
+}
+
+function SidebarMenuItem({ className, ...props }: ComponentProps<"li">) {
+	return (
+		<li
+			data-slot="sidebar-menu-item"
+			data-sidebar="menu-item"
+			className={cn("group/menu-item relative", className)}
+			{...props}
+		/>
+	);
+}
+
+const sidebarMenuButtonVariants = cva(
+	"peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 no-underline",
+	{
+		variants: {
+			variant: {
+				default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+				outline:
+					"bg-background shadow-[0_0_0_1px_var(--sidebar-border)] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_var(--sidebar-accent)]",
+			},
+			size: {
+				default: "h-8 text-sm",
+				sm: "h-7 text-xs",
+				lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+			size: "default",
+		},
+	},
+);
+
+function SidebarMenuButton({
+	asChild = false,
+	isActive = false,
+	variant = "default",
+	size = "default",
+	tooltip,
+	className,
+	...props
+}: ComponentProps<"button"> & {
+	asChild?: boolean;
+	isActive?: boolean;
+	tooltip?: string | ComponentProps<typeof TooltipContent>;
+} & VariantProps<typeof sidebarMenuButtonVariants>) {
+	const Comp = asChild ? Slot.Root : "button";
+	const { isMobile, state } = useSidebar();
+
+	const button = (
+		<Comp
+			data-slot="sidebar-menu-button"
+			data-sidebar="menu-button"
+			data-size={size}
+			data-active={isActive}
+			className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+			{...props}
+		/>
+	);
+
+	if (!tooltip) {
+		return button;
+	}
+
+	if (typeof tooltip === "string") {
+		tooltip = {
+			children: tooltip,
+		};
+	}
+
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>{button}</TooltipTrigger>
+			<TooltipContent
+				side="right"
+				align="center"
+				hidden={state !== "collapsed" || isMobile}
+				{...tooltip}
+			/>
+		</Tooltip>
+	);
+}
+
+function SidebarMenuSub({ className, ...props }: ComponentProps<"ul">) {
+	return (
+		<ul
+			data-slot="sidebar-menu-sub"
+			data-sidebar="menu-sub"
+			className={cn(
+				"mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5 mt-0 mb-0 [&>li]:mb-0",
+				"group-data-[collapsible=icon]:hidden",
+				className,
+			)}
+			{...props}
+		/>
+	);
+}
+
+function SidebarMenuSubItem({ className, ...props }: ComponentProps<"li">) {
+	return (
+		<li
+			data-slot="sidebar-menu-sub-item"
+			data-sidebar="menu-sub-item"
+			className={cn("group/menu-sub-item relative", className)}
+			{...props}
+		/>
+	);
+}
+
+function SidebarMenuSubButton({
+	asChild = false,
+	size = "md",
+	isActive = false,
+	className,
+	...props
+}: ComponentProps<"a"> & {
+	asChild?: boolean;
+	size?: "sm" | "md";
+	isActive?: boolean;
+}) {
+	const Comp = asChild ? Slot.Root : "a";
+
+	return (
+		<Comp
+			data-slot="sidebar-menu-sub-button"
+			data-sidebar="menu-sub-button"
+			data-size={size}
+			data-active={isActive}
+			className={cn(
+				"flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground ring-sidebar-ring outline-hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground no-underline",
+				"data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+				size === "sm" && "text-xs",
+				size === "md" && "text-sm",
+				"group-data-[collapsible=icon]:hidden",
+				className,
+			)}
+			{...props}
+		/>
+	);
+}
+
 export {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
+	SidebarGroup,
 	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 	SidebarProvider,
 	SidebarRail,
+	SidebarSeparator,
 	SidebarTrigger,
 	useSidebar,
 };
