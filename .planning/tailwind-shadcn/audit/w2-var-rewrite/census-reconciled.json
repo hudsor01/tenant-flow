@@ -1,0 +1,30 @@
+{
+  "expected": {
+    "spacing-class": 62,
+    "radius-class": 1,
+    "duration-class": 1,
+    "css-spacing": 33,
+    "keep:css-radius": 11,
+    "keep:css-duration": 1,
+    "keep:duration-inline-style": 6,
+    "keep:duration-no-canonical-form": 7,
+    "keep:ui-vendored": 8,
+    "keep:test-pin": 12,
+    "defer:dashboard-css": 59,
+    "unclassified": 0
+  },
+  "actual": {
+    "css-spacing": 33,
+    "defer:dashboard-css": 59,
+    "duration-class": 1,
+    "keep:css-duration": 1,
+    "keep:css-radius": 11,
+    "keep:duration-inline-style": 6,
+    "keep:duration-no-canonical-form": 7,
+    "keep:test-pin": 12,
+    "keep:ui-vendored": 9,
+    "radius-class": 1,
+    "spacing-class": 62
+  },
+  "cause": "No plan edit: keep:ui-vendored is 9, not 8. The expected table counted only the var(--duration-N) form in src/components/ui/loading-spinner.tsx (6). The census also matches the paren shorthand, and loading-spinner.tsx:49 animation-duration-(--duration-500) is the 7th reference. That line is unchanged since 754c91802 (66.2-07 c27d89943 touched other lines). 9 = loading-spinner 7 + grid-pattern 2. Every other kind matches the table; unclassified is 0 (absent from counts)."
+}

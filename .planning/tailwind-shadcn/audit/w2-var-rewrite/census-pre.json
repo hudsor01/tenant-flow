@@ -1,0 +1,2742 @@
+{
+ "counts": {
+  "css-spacing": 33,
+  "defer:dashboard-css": 59,
+  "duration-class": 1,
+  "keep:css-duration": 1,
+  "keep:css-radius": 11,
+  "keep:duration-inline-style": 6,
+  "keep:duration-no-canonical-form": 7,
+  "keep:test-pin": 12,
+  "keep:ui-vendored": 9,
+  "radius-class": 1,
+  "spacing-class": 62
+ },
+ "distinct": {
+  "css-spacing": 13,
+  "defer:dashboard-css": 14,
+  "duration-class": 1,
+  "keep:css-duration": 1,
+  "keep:css-radius": 5,
+  "keep:duration-inline-style": 6,
+  "keep:duration-no-canonical-form": 5,
+  "keep:test-pin": 3,
+  "keep:ui-vendored": 6,
+  "radius-class": 1,
+  "spacing-class": 27
+ },
+ "refs": [
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 29,
+   "col": 8,
+   "offset": 608,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 34,
+   "col": 15,
+   "offset": 713,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "margin-top: var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 61,
+   "col": 18,
+   "offset": 1233,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 66,
+   "col": 17,
+   "offset": 1387,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "border-color var(--duration-300) var(--ease-out),",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 67,
+   "col": 15,
+   "offset": 1438,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "box-shadow var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 82,
+   "col": 12,
+   "offset": 1741,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "padding: var(--spacing-6) var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 82,
+   "col": 29,
+   "offset": 1758,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "padding: var(--spacing-6) var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 101,
+   "col": 12,
+   "offset": 2242,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "padding: var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 104,
+   "col": 8,
+   "offset": 2310,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 111,
+   "col": 8,
+   "offset": 2451,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 118,
+   "col": 8,
+   "offset": 2621,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 119,
+   "col": 18,
+   "offset": 2656,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "margin-bottom: var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 125,
+   "col": 8,
+   "offset": 2790,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 131,
+   "col": 8,
+   "offset": 2924,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 145,
+   "col": 8,
+   "offset": 3170,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 147,
+   "col": 12,
+   "offset": 3238,
+   "token": "--spacing-5",
+   "match": "var(--spacing-5)",
+   "text": "padding: var(--spacing-5) var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 147,
+   "col": 29,
+   "offset": 3255,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "padding: var(--spacing-5) var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 148,
+   "col": 18,
+   "offset": 3290,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 153,
+   "col": 19,
+   "offset": 3459,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 171,
+   "col": 10,
+   "offset": 3897,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "width: var(--spacing-12);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 172,
+   "col": 11,
+   "offset": 3926,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "height: var(--spacing-12);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 173,
+   "col": 18,
+   "offset": 3962,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 177,
+   "col": 19,
+   "offset": 4185,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 191,
+   "col": 8,
+   "offset": 4530,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "gap: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 210,
+   "col": 10,
+   "offset": 4946,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "width: var(--spacing-10);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 211,
+   "col": 11,
+   "offset": 4975,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "height: var(--spacing-10);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 212,
+   "col": 18,
+   "offset": 5011,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 215,
+   "col": 19,
+   "offset": 5123,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 228,
+   "col": 8,
+   "offset": 5440,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 233,
+   "col": 8,
+   "offset": 5514,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 234,
+   "col": 12,
+   "offset": 5543,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4) var(--spacing-2);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 234,
+   "col": 29,
+   "offset": 5560,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "padding: var(--spacing-4) var(--spacing-2);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 235,
+   "col": 18,
+   "offset": 5595,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 237,
+   "col": 19,
+   "offset": 5664,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 250,
+   "col": 10,
+   "offset": 5986,
+   "token": "--spacing-11",
+   "match": "var(--spacing-11)",
+   "text": "width: var(--spacing-11);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 251,
+   "col": 11,
+   "offset": 6015,
+   "token": "--spacing-11",
+   "match": "var(--spacing-11)",
+   "text": "height: var(--spacing-11);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 252,
+   "col": 18,
+   "offset": 6051,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 274,
+   "col": 8,
+   "offset": 6563,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "gap: var(--spacing-2);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 277,
+   "col": 15,
+   "offset": 6664,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin-top: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 282,
+   "col": 18,
+   "offset": 6752,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 290,
+   "col": 16,
+   "offset": 7032,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding-top: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 291,
+   "col": 15,
+   "offset": 7064,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin-top: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 300,
+   "col": 8,
+   "offset": 7261,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 302,
+   "col": 18,
+   "offset": 7317,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 306,
+   "col": 12,
+   "offset": 7452,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "padding: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 307,
+   "col": 19,
+   "offset": 7488,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 339,
+   "col": 18,
+   "offset": 8178,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 373,
+   "col": 18,
+   "offset": 9039,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 388,
+   "col": 18,
+   "offset": 9493,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 396,
+   "col": 18,
+   "offset": 9771,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl) !important;",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 424,
+   "col": 9,
+   "offset": 10573,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 429,
+   "col": 9,
+   "offset": 10666,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 433,
+   "col": 13,
+   "offset": 10727,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 438,
+   "col": 13,
+   "offset": 10811,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 446,
+   "col": 19,
+   "offset": 10988,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin-bottom: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 452,
+   "col": 9,
+   "offset": 11103,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "gap: var(--spacing-3);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 453,
+   "col": 13,
+   "offset": 11133,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 458,
+   "col": 9,
+   "offset": 11221,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 463,
+   "col": 13,
+   "offset": 11304,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 334,
+   "col": 31,
+   "offset": 12703,
+   "token": "--spacing-16",
+   "match": "var(--spacing-16)",
+   "text": "--layout-section-padding-y: var(--spacing-16);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 335,
+   "col": 39,
+   "offset": 12760,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "--layout-section-padding-y-compact: var(--spacing-12);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 336,
+   "col": 40,
+   "offset": 12818,
+   "token": "--spacing-24",
+   "match": "var(--spacing-24)",
+   "text": "--layout-section-padding-y-spacious: var(--spacing-24);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 337,
+   "col": 36,
+   "offset": 12872,
+   "token": "--spacing-32",
+   "match": "var(--spacing-32)",
+   "text": "--layout-section-padding-y-hero: var(--spacing-32);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 342,
+   "col": 29,
+   "offset": 13142,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "--layout-content-padding: var(--spacing-8);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 343,
+   "col": 37,
+   "offset": 13196,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "--layout-content-padding-compact: var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 344,
+   "col": 38,
+   "offset": 13251,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "--layout-content-padding-spacious: var(--spacing-12);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 345,
+   "col": 34,
+   "offset": 13303,
+   "token": "--spacing-16",
+   "match": "var(--spacing-16)",
+   "text": "--layout-content-padding-hero: var(--spacing-16);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 346,
+   "col": 25,
+   "offset": 13346,
+   "token": "--spacing-16",
+   "match": "var(--spacing-16)",
+   "text": "--layout-gap-section: var(--spacing-16);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 347,
+   "col": 23,
+   "offset": 13387,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "--layout-gap-group: var(--spacing-8);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 348,
+   "col": 23,
+   "offset": 13427,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "--layout-gap-items: var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 349,
+   "col": 25,
+   "offset": 13469,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "--layout-stack-loose: var(--spacing-12);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 350,
+   "col": 27,
+   "offset": 13514,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "--layout-stack-default: var(--spacing-6);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 355,
+   "col": 25,
+   "offset": 13760,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "--layout-stack-tight: var(--spacing-3);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 356,
+   "col": 27,
+   "offset": 13804,
+   "token": "--spacing-16",
+   "match": "var(--spacing-16)",
+   "text": "--layout-navbar-height: var(--spacing-16);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 357,
+   "col": 28,
+   "offset": 13850,
+   "token": "--spacing-20",
+   "match": "var(--spacing-20)",
+   "text": "--layout-navbar-spacing: var(--spacing-20);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 491,
+   "col": 19,
+   "offset": 17655,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "transition: all var(--duration-200) var(--ease-out);",
+   "kind": "keep:css-duration"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 512,
+   "col": 18,
+   "offset": 18045,
+   "token": "--radius-sm",
+   "match": "var(--radius-sm)",
+   "text": "border-radius: var(--radius-sm);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 521,
+   "col": 18,
+   "offset": 18225,
+   "token": "--radius-md",
+   "match": "var(--radius-md)",
+   "text": "border-radius: var(--radius-md);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 617,
+   "col": 18,
+   "offset": 19720,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 854,
+   "col": 17,
+   "offset": 26479,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 870,
+   "col": 17,
+   "offset": 26910,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 886,
+   "col": 17,
+   "offset": 27241,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 937,
+   "col": 17,
+   "offset": 28821,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 951,
+   "col": 11,
+   "offset": 29085,
+   "token": "--spacing-5",
+   "match": "var(--spacing-5)",
+   "text": "padding: var(--spacing-5);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 977,
+   "col": 10,
+   "offset": 29762,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin: var(--spacing-1) 0 0 0;",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 981,
+   "col": 11,
+   "offset": 29823,
+   "token": "--spacing-5",
+   "match": "var(--spacing-5)",
+   "text": "padding: var(--spacing-5);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 986,
+   "col": 11,
+   "offset": 29957,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "padding: var(--spacing-3) var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 986,
+   "col": 28,
+   "offset": 29974,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-3) var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 990,
+   "col": 11,
+   "offset": 30070,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "padding: var(--spacing-3) var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 990,
+   "col": 28,
+   "offset": 30087,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-3) var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 997,
+   "col": 17,
+   "offset": 30294,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 998,
+   "col": 11,
+   "offset": 30322,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1028,
+   "col": 7,
+   "offset": 31038,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "gap: var(--spacing-3);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1030,
+   "col": 11,
+   "offset": 31080,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "padding: var(--spacing-3);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1031,
+   "col": 14,
+   "offset": 31111,
+   "token": "--spacing-11",
+   "match": "var(--spacing-11)",
+   "text": "min-height: var(--spacing-11); /* 44px touch target */",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1033,
+   "col": 17,
+   "offset": 31210,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1059,
+   "col": 7,
+   "offset": 31817,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "gap: var(--spacing-1);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1060,
+   "col": 11,
+   "offset": 31845,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "padding: var(--spacing-1);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1062,
+   "col": 17,
+   "offset": 31912,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1068,
+   "col": 7,
+   "offset": 32007,
+   "token": "--spacing-1_5",
+   "match": "var(--spacing-1_5)",
+   "text": "gap: var(--spacing-1_5);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1069,
+   "col": 11,
+   "offset": 32037,
+   "token": "--spacing-1_5",
+   "match": "var(--spacing-1_5)",
+   "text": "padding: var(--spacing-1_5) var(--spacing-3);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1069,
+   "col": 30,
+   "offset": 32056,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "padding: var(--spacing-1_5) var(--spacing-3);",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1070,
+   "col": 14,
+   "offset": 32087,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "min-height: var(--spacing-8); /* 32px */",
+   "kind": "css-spacing"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1073,
+   "col": 17,
+   "offset": 32179,
+   "token": "--radius-md",
+   "match": "var(--radius-md)",
+   "text": "border-radius: var(--radius-md);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 171,
+   "col": 53,
+   "offset": 4669,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<DialogTitle className=\"flex items-center gap-[var(--spacing-2)]\">",
+   "candidate": "gap-[var(--spacing-2)]",
+   "position": 4664,
+   "new": "gap-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 172,
+   "col": 30,
+   "offset": 4718,
+   "token": "--spacing-5",
+   "match": "var(--spacing-5)",
+   "text": "<Lock className=\"size-[var(--spacing-5)]\" />",
+   "candidate": "size-[var(--spacing-5)]",
+   "position": 4712,
+   "new": "size-5",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 179,
+   "col": 55,
+   "offset": 4974,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "<form onSubmit={handleSubmit} className=\"space-y-[var(--spacing-6)]\">",
+   "candidate": "space-y-[var(--spacing-6)]",
+   "position": 4965,
+   "new": "space-y-6",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 190,
+   "col": 38,
+   "offset": 5331,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "className=\"input w-full pr-[var(--spacing-10)]\"",
+   "candidate": "pr-[var(--spacing-10)]",
+   "position": 5327,
+   "new": "pr-10",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 202,
+   "col": 37,
+   "offset": 5739,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "className=\"absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground\"",
+   "candidate": "right-[var(--spacing-3)]",
+   "position": 5732,
+   "new": "right-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 211,
+   "col": 36,
+   "offset": 6096,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<EyeOff className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 6090,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 213,
+   "col": 33,
+   "offset": 6165,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Eye className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 6159,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 226,
+   "col": 38,
+   "offset": 6529,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "className=\"input w-full pr-[var(--spacing-10)]\"",
+   "candidate": "pr-[var(--spacing-10)]",
+   "position": 6525,
+   "new": "pr-10",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 236,
+   "col": 37,
+   "offset": 6901,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "className=\"absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground\"",
+   "candidate": "right-[var(--spacing-3)]",
+   "position": 6894,
+   "new": "right-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 245,
+   "col": 36,
+   "offset": 7242,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<EyeOff className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 7236,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 247,
+   "col": 33,
+   "offset": 7311,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Eye className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 7305,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 251,
+   "col": 61,
+   "offset": 7437,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "<p className=\"text-caption text-muted-foreground mt-[var(--spacing-1)]\">",
+   "candidate": "mt-[var(--spacing-1)]",
+   "position": 7433,
+   "new": "mt-1",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 267,
+   "col": 38,
+   "offset": 7962,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "className=\"input w-full pr-[var(--spacing-10)]\"",
+   "candidate": "pr-[var(--spacing-10)]",
+   "position": 7958,
+   "new": "pr-10",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 279,
+   "col": 37,
+   "offset": 8366,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "className=\"absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground\"",
+   "candidate": "right-[var(--spacing-3)]",
+   "position": 8359,
+   "new": "right-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 288,
+   "col": 36,
+   "offset": 8723,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<EyeOff className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 8717,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 290,
+   "col": 33,
+   "offset": 8792,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Eye className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 8786,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/change-password-dialog.tsx",
+   "line": 298,
+   "col": 33,
+   "offset": 8978,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "<div className=\"rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-4\">",
+   "candidate": "rounded-[var(--radius-lg)]",
+   "position": 8969,
+   "new": "rounded-lg",
+   "kind": "radius-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 72,
+   "col": 28,
+   "offset": 1925,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "className=\"space-y-[var(--spacing-4)]\"",
+   "candidate": "space-y-[var(--spacing-4)]",
+   "position": 1916,
+   "new": "space-y-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 74,
+   "col": 33,
+   "offset": 1984,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"space-y-[var(--spacing-2)]\">",
+   "candidate": "space-y-[var(--spacing-2)]",
+   "position": 1975,
+   "new": "space-y-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 77,
+   "col": 42,
+   "offset": 2133,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "<Mail className=\"absolute left-[var(--spacing-3)] top-[50%] translate-y-[-50%] size-[var(--spacing-4)] text-muted-foreground\" />",
+   "candidate": "left-[var(--spacing-3)]",
+   "position": 2127,
+   "new": "left-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 77,
+   "col": 95,
+   "offset": 2186,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Mail className=\"absolute left-[var(--spacing-3)] top-[50%] translate-y-[-50%] size-[var(--spacing-4)] text-muted-foreground\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 2180,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 86,
+   "col": 26,
+   "offset": 2487,
+   "token": "--spacing-9",
+   "match": "var(--spacing-9)",
+   "text": "className=\"pl-[var(--spacing-9)]\"",
+   "candidate": "pl-[var(--spacing-9)]",
+   "position": 2483,
+   "new": "pl-9",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 95,
+   "col": 32,
+   "offset": 2721,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Info className=\"size-[var(--spacing-4)] text-info\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 2715,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 103,
+   "col": 34,
+   "offset": 3077,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"flex gap-[var(--spacing-2)]\">",
+   "candidate": "gap-[var(--spacing-2)]",
+   "position": 3072,
+   "new": "gap-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 120,
+   "col": 38,
+   "offset": 3571,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Spinner className=\"size-[var(--spacing-4)] mr-[var(--spacing-2)] animate-spin\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 3565,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 120,
+   "col": 60,
+   "offset": 3593,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<Spinner className=\"size-[var(--spacing-4)] mr-[var(--spacing-2)] animate-spin\" />",
+   "candidate": "mr-[var(--spacing-2)]",
+   "position": 3589,
+   "new": "mr-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 133,
+   "col": 43,
+   "offset": 3857,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "<div className=\"mx-auto mb-4 size-[var(--spacing-12)] rounded-full bg-success/10 flex-center\">",
+   "candidate": "size-[var(--spacing-12)]",
+   "position": 3851,
+   "new": "size-12",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 134,
+   "col": 40,
+   "offset": 3956,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "<CheckCircle2 className=\"size-[var(--spacing-6)] text-success\" />",
+   "candidate": "size-[var(--spacing-6)]",
+   "position": 3950,
+   "new": "size-6",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 141,
+   "col": 48,
+   "offset": 4251,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<span className=\"block font-medium mt-[var(--spacing-2)]\">",
+   "candidate": "mt-[var(--spacing-2)]",
+   "position": 4247,
+   "new": "mt-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 147,
+   "col": 32,
+   "offset": 4386,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<div className=\"space-y-[var(--spacing-4)]\">",
+   "candidate": "space-y-[var(--spacing-4)]",
+   "position": 4377,
+   "new": "space-y-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 149,
+   "col": 32,
+   "offset": 4452,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Mail className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 4446,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 157,
+   "col": 68,
+   "offset": 4766,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"text-caption text-muted-foreground space-y-[var(--spacing-2)]\">",
+   "candidate": "space-y-[var(--spacing-2)]",
+   "position": 4757,
+   "new": "space-y-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/forgot-password-modal.tsx",
+   "line": 165,
+   "col": 34,
+   "offset": 5051,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"flex gap-[var(--spacing-2)]\">",
+   "candidate": "gap-[var(--spacing-2)]",
+   "position": 5046,
+   "new": "gap-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 118,
+   "col": 33,
+   "offset": 3174,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "<div className=\"flex gap-[var(--spacing-1)] h-[var(--spacing-2)]\">",
+   "candidate": "gap-[var(--spacing-1)]",
+   "position": 3169,
+   "new": "gap-1",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 118,
+   "col": 54,
+   "offset": 3195,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"flex gap-[var(--spacing-1)] h-[var(--spacing-2)]\">",
+   "candidate": "h-[var(--spacing-2)]",
+   "position": 3192,
+   "new": "h-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 124,
+   "col": 57,
+   "offset": 3394,
+   "token": "--duration-standard",
+   "match": "var(--duration-standard)",
+   "text": "\"flex-1 rounded-full transition-all duration-[var(--duration-standard)]\",",
+   "candidate": "duration-[var(--duration-standard)]",
+   "position": 3384,
+   "new": "duration-(--duration-standard)",
+   "kind": "duration-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 133,
+   "col": 26,
+   "offset": 3607,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<h4 className=\"mt-[var(--spacing-4)] mb-[var(--spacing-3)] text-sm font-semibold text-foreground\">",
+   "candidate": "mt-[var(--spacing-4)]",
+   "position": 3603,
+   "new": "mt-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 133,
+   "col": 48,
+   "offset": 3629,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "<h4 className=\"mt-[var(--spacing-4)] mb-[var(--spacing-3)] text-sm font-semibold text-foreground\">",
+   "candidate": "mb-[var(--spacing-3)]",
+   "position": 3625,
+   "new": "mb-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 137,
+   "col": 31,
+   "offset": 3765,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<ul className=\"space-y-[var(--spacing-2)] text-sm\">",
+   "candidate": "space-y-[var(--spacing-2)]",
+   "position": 3756,
+   "new": "space-y-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 145,
+   "col": 38,
+   "offset": 4015,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "\"flex items-center gap-x-[var(--spacing-2)] transition-colors\",",
+   "candidate": "gap-x-[var(--spacing-2)]",
+   "position": 4008,
+   "new": "gap-x-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 150,
+   "col": 45,
+   "offset": 4204,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Check className=\"shrink-0 size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 4198,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 152,
+   "col": 41,
+   "offset": 4282,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<X className=\"shrink-0 size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 4276,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 99,
+   "col": 49,
+   "offset": 2810,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<CardHeader className=\"text-center space-y-[var(--spacing-4)] animate-slide-in-top\">",
+   "candidate": "space-y-[var(--spacing-4)]",
+   "position": 2801,
+   "new": "space-y-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 100,
+   "col": 95,
+   "offset": 2945,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "<div className=\"mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit\">",
+   "candidate": "p-[var(--spacing-3)]",
+   "position": 2942,
+   "new": "p-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 101,
+   "col": 30,
+   "offset": 3013,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "<Lock className=\"size-[var(--spacing-6)] text-primary\" />",
+   "candidate": "size-[var(--spacing-6)]",
+   "position": 3007,
+   "new": "size-6",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 103,
+   "col": 31,
+   "offset": 3090,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"space-y-[var(--spacing-2)]\">",
+   "candidate": "space-y-[var(--spacing-2)]",
+   "position": 3081,
+   "new": "space-y-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 110,
+   "col": 38,
+   "offset": 3395,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "<CardContent className=\"space-y-[var(--spacing-6)] animate-slide-in-bottom\">",
+   "candidate": "space-y-[var(--spacing-6)]",
+   "position": 3386,
+   "new": "space-y-6",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 113,
+   "col": 27,
+   "offset": 3514,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "className=\"space-y-[var(--spacing-6)]\"",
+   "candidate": "space-y-[var(--spacing-6)]",
+   "position": 3505,
+   "new": "space-y-6",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 115,
+   "col": 32,
+   "offset": 3571,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<div className=\"space-y-[var(--spacing-4)]\">",
+   "candidate": "space-y-[var(--spacing-4)]",
+   "position": 3562,
+   "new": "space-y-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 173,
+   "col": 78,
+   "offset": 5611,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "<p className=\"text-xs text-destructive-text flex items-center gap-[var(--spacing-1)]\">",
+   "candidate": "gap-[var(--spacing-1)]",
+   "position": 5606,
+   "new": "gap-1",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 174,
+   "col": 44,
+   "offset": 5674,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "<AlertTriangle className=\"size-[var(--spacing-3)]\" />",
+   "candidate": "size-[var(--spacing-3)]",
+   "position": 5668,
+   "new": "size-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 181,
+   "col": 74,
+   "offset": 5944,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "<p className=\"text-xs text-primary-text flex items-center gap-[var(--spacing-1)]\">",
+   "candidate": "gap-[var(--spacing-1)]",
+   "position": 5939,
+   "new": "gap-1",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 182,
+   "col": 43,
+   "offset": 6006,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "<CheckCircle2 className=\"size-[var(--spacing-3)]\" />",
+   "candidate": "size-[var(--spacing-3)]",
+   "position": 6000,
+   "new": "size-3",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 191,
+   "col": 41,
+   "offset": 6232,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<AlertTriangle className=\"size-[var(--spacing-4)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 6226,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 218,
+   "col": 58,
+   "offset": 7136,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<div className=\"animate-spin rounded-full size-[var(--spacing-4)] border-b-2 border-white mr-[var(--spacing-2)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 7130,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 218,
+   "col": 104,
+   "offset": 7182,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<div className=\"animate-spin rounded-full size-[var(--spacing-4)] border-b-2 border-white mr-[var(--spacing-2)]\" />",
+   "candidate": "mr-[var(--spacing-2)]",
+   "position": 7178,
+   "new": "mr-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 223,
+   "col": 35,
+   "offset": 7293,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<Shield className=\"size-[var(--spacing-4)] mr-[var(--spacing-2)]\" />",
+   "candidate": "size-[var(--spacing-4)]",
+   "position": 7287,
+   "new": "size-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 223,
+   "col": 57,
+   "offset": 7315,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "<Shield className=\"size-[var(--spacing-4)] mr-[var(--spacing-2)]\" />",
+   "candidate": "mr-[var(--spacing-2)]",
+   "position": 7311,
+   "new": "mr-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/auth/update-password-form.tsx",
+   "line": 230,
+   "col": 38,
+   "offset": 7453,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<div className=\"text-center pt-[var(--spacing-4)] border-t border-(--color-border)\">",
+   "candidate": "pt-[var(--spacing-4)]",
+   "position": 7449,
+   "new": "pt-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/sections/features-section.tsx",
+   "line": 110,
+   "col": 24,
+   "offset": 3423,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "<div className=\"mb-[var(--spacing-4)] relative z-10\">",
+   "candidate": "mb-[var(--spacing-4)]",
+   "position": 3419,
+   "new": "mb-4",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/sections/features-section.tsx",
+   "line": 113,
+   "col": 28,
+   "offset": 3766,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "<div className=\"size-[var(--spacing-6)] group-hover/feature:scale-110 transition-transform duration-300\">",
+   "candidate": "size-[var(--spacing-6)]",
+   "position": 3760,
+   "new": "size-6",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/sections/features-section.tsx",
+   "line": 120,
+   "col": 48,
+   "offset": 3976,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "className=\"absolute -top-1 -right-1 size-[var(--spacing-2)] rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse\"",
+   "candidate": "size-[var(--spacing-2)]",
+   "position": 3970,
+   "new": "size-2",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/sections/features-section.tsx",
+   "line": 124,
+   "col": 47,
+   "offset": 4218,
+   "token": "--spacing-1_5",
+   "match": "var(--spacing-1_5)",
+   "text": "className=\"absolute -bottom-1 -left-1 w-[var(--spacing-1_5)] h-[var(--spacing-1_5)] rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150\"",
+   "candidate": "w-[var(--spacing-1_5)]",
+   "position": 4215,
+   "new": "w-1.5",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/sections/features-section.tsx",
+   "line": 124,
+   "col": 70,
+   "offset": 4241,
+   "token": "--spacing-1_5",
+   "match": "var(--spacing-1_5)",
+   "text": "className=\"absolute -bottom-1 -left-1 w-[var(--spacing-1_5)] h-[var(--spacing-1_5)] rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150\"",
+   "candidate": "h-[var(--spacing-1_5)]",
+   "position": 4238,
+   "new": "h-1.5",
+   "kind": "spacing-class"
+  },
+  {
+   "file": "src/components/shared/blog-empty-state.tsx",
+   "line": 28,
+   "col": 138,
+   "offset": 997,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "<div className=\"h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-[85%] [animation-delay:var(--duration-300)]\" />",
+   "candidate": "[animation-delay:var(--duration-300)]",
+   "position": 980,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-empty-state.tsx",
+   "line": 29,
+   "col": 138,
+   "offset": 1159,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "<div className=\"h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-[92%] [animation-delay:var(--duration-500)]\" />",
+   "candidate": "[animation-delay:var(--duration-500)]",
+   "position": 1142,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-empty-state.tsx",
+   "line": 31,
+   "col": 138,
+   "offset": 1369,
+   "token": "--duration-1000",
+   "match": "var(--duration-1000)",
+   "text": "<div className=\"h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] flex-1 [animation-delay:var(--duration-1000)]\" />",
+   "candidate": "[animation-delay:var(--duration-1000)]",
+   "position": 1352,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 18,
+   "col": 46,
+   "offset": 603,
+   "token": "--duration-100",
+   "match": "var(--duration-100)",
+   "text": "style={{ width: \"100%\", animationDelay: \"var(--duration-100)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 22,
+   "col": 45,
+   "offset": 770,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "style={{ width: \"85%\", animationDelay: \"var(--duration-200)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 26,
+   "col": 45,
+   "offset": 937,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "style={{ width: \"96%\", animationDelay: \"var(--duration-300)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 30,
+   "col": 45,
+   "offset": 1104,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "style={{ width: \"78%\", animationDelay: \"var(--duration-500)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 35,
+   "col": 45,
+   "offset": 1298,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "style={{ width: \"88%\", animationDelay: \"var(--duration-700)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 39,
+   "col": 45,
+   "offset": 1465,
+   "token": "--duration-1000",
+   "match": "var(--duration-1000)",
+   "text": "style={{ width: \"65%\", animationDelay: \"var(--duration-1000)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 13,
+   "col": 123,
+   "offset": 622,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[65%] [animation-delay:var(--duration-200)]\" />",
+   "candidate": "[animation-delay:var(--duration-200)]",
+   "position": 605,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 14,
+   "col": 123,
+   "offset": 769,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/40 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[45%] [animation-delay:var(--duration-300)]\" />",
+   "candidate": "[animation-delay:var(--duration-300)]",
+   "position": 752,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 15,
+   "col": 123,
+   "offset": 916,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[80%] [animation-delay:var(--duration-500)]\" />",
+   "candidate": "[animation-delay:var(--duration-500)]",
+   "position": 899,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 16,
+   "col": 123,
+   "offset": 1063,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/20 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[55%] [animation-delay:var(--duration-700)]\" />",
+   "candidate": "[animation-delay:var(--duration-700)]",
+   "position": 1046,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 15,
+   "col": 24,
+   "offset": 475,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "it(\"grid-pattern uses var(--duration-500) for the SVG-level animationDuration\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 18,
+   "col": 69,
+   "offset": 643,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "\"TOKEN-02: grid-pattern.tsx SVG animationDuration must reference var(--duration-500)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 20,
+   "col": 36,
+   "offset": 715,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "'animationDuration: animated ? \"var(--duration-500)\" : undefined',",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 24,
+   "col": 24,
+   "offset": 784,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "it(\"grid-pattern uses var(--duration-200) for the per-square animationDuration\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 27,
+   "col": 76,
+   "offset": 960,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "\"TOKEN-02: grid-pattern.tsx per-square animationDuration must reference var(--duration-200)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 29,
+   "col": 36,
+   "offset": 1032,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "'animationDuration: animated ? \"var(--duration-200)\" : undefined',",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 47,
+   "col": 27,
+   "offset": 1553,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "it(\"loading-spinner uses var(--duration-200) for the second dot delay\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 50,
+   "col": 67,
+   "offset": 1711,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "\"TOKEN-02: loading-spinner.tsx second dot delay must reference var(--duration-200)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 51,
+   "col": 33,
+   "offset": 1765,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": ").toContain(\"[animation-delay:var(--duration-200)]\");",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 54,
+   "col": 27,
+   "offset": 1821,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "it(\"loading-spinner uses var(--duration-300) for the third dot delay (400ms snap)\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 57,
+   "col": 64,
+   "offset": 1988,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "\"TOKEN-02: loading-spinner.tsx third dot delay must snap to var(--duration-300)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 58,
+   "col": 33,
+   "offset": 2042,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": ").toContain(\"[animation-delay:var(--duration-300)]\");",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.tsx",
+   "line": 68,
+   "col": 36,
+   "offset": 2080,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "animationDuration: animated ? \"var(--duration-500)\" : undefined,",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.tsx",
+   "line": 116,
+   "col": 40,
+   "offset": 3374,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "animationDuration: animated ? \"var(--duration-200)\" : undefined,",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 26,
+   "col": 36,
+   "offset": 623,
+   "token": "--duration-1000",
+   "match": "var(--duration-1000)",
+   "text": "\"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 49,
+   "col": 78,
+   "offset": 1135,
+   "token": "--duration-500",
+   "match": "-(--duration-500)",
+   "text": "\"font-medium tracking-normal leading-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 199,
+   "col": 27,
+   "offset": 4310,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:0ms]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 205,
+   "col": 27,
+   "offset": 4503,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 205,
+   "col": 109,
+   "offset": 4585,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 211,
+   "col": 27,
+   "offset": 4712,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 211,
+   "col": 109,
+   "offset": 4794,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]\",",
+   "kind": "keep:ui-vendored"
+  }
+ ],
+ "unclassified": [],
+ "x3Refs": [
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 52,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 66,
+   "name": "--ease-out",
+   "text": "border-color var(--duration-300) var(--ease-out),",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 67,
+   "name": "--ease-out",
+   "text": "box-shadow var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 95,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 153,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 177,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 195,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 202,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 215,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 237,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 259,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 266,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 275,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 307,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 327,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/__tests__/tailwind-theme-integrity.test.ts",
+   "line": 809,
+   "name": "--color-white",
+   "text": "expect(compiledCss).toContain(\"var(--color-white)\");",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 303,
+   "name": "--ease-out",
+   "text": "--transition-card: all 500ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 304,
+   "name": "--ease-out",
+   "text": "--transition-hover: all 200ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 305,
+   "name": "--ease-out",
+   "text": "--transition-quick: all 150ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 307,
+   "name": "--ease-out",
+   "text": "color 180ms var(--ease-out), background 200ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 307,
+   "name": "--ease-out",
+   "text": "color 180ms var(--ease-out), background 200ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 372,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 423,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 432,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 440,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 448,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 456,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 463,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 464,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 474,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 491,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-200) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 592,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 673,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 887,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 888,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 968,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 975,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1071,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1132,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1236,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1245,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1254,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1263,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1273,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1282,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1292,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1301,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1310,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1319,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1327,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1333,
+   "name": "--text-xl",
+   "text": "font-size: var(--text-xl);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1339,
+   "name": "--text-lg",
+   "text": "font-size: var(--text-lg);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1340,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1346,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1347,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1352,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1359,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1360,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1377,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1378,
+   "name": "--leading-none",
+   "text": "line-height: var(--leading-none);",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1386,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1387,
+   "name": "--leading-none",
+   "text": "line-height: var(--leading-none);",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1395,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1396,
+   "name": "--leading-none",
+   "text": "line-height: var(--leading-none);",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 26,
+   "name": "--ease-linear",
+   "text": "\"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]\",",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 49,
+   "name": "--ease-in-out",
+   "text": "\"font-medium tracking-normal leading-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]\",",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 199,
+   "name": "--ease-out",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:0ms]\",",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 205,
+   "name": "--ease-out",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]\",",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 211,
+   "name": "--ease-out",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]\",",
+   "defaultDefines": true
+  }
+ ]
+}
