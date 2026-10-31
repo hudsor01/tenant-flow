@@ -88,11 +88,12 @@ const guardsModule: typeof GuardsModule = await import(
 	pathToFileURL(path.join(WORKTREE, "src/test/utils/tailwind-guards.ts")).href
 );
 
-// Each later guard plan appends its own entry here (ids G2, G3, G4, G5, G7,
-// G8, inline-structure), keeping registry order equal to the default run order.
+// Each later guard plan appends its own entry here (ids G3, G4, G5, G7, G8,
+// inline-structure), keeping registry order equal to the default run order.
 const GUARDS: GuardEntry[] = [
 	{ id: "G1", run: (ctx) => guardsModule.checkOklchRange(ctx.css) },
 	{ id: "G6", run: (ctx) => guardsModule.checkSourceGlobs(ctx.compiler.sources) },
+	{ id: "G2", run: (ctx) => guardsModule.checkNonInlineThemeVarRefs(ctx.css) },
 ];
 
 const selected = args.guards ?? GUARDS.map((entry) => entry.id);

@@ -21,8 +21,12 @@
  *     one file, negated entries included (B9 class: a glob that matches
  *     nothing scans nothing, and a negation that matches nothing excludes
  *     nothing).
- *   Later guard plans add their checks to this file: G2 (66.2-05), G4 (66.2-07),
- *   G3 (66.2-08), G5 (66.2-09), G7 (66.2-14), G8 (66.2-18).
+ *   - G2 `checkNonInlineThemeVarRefs`: no custom property declared in a
+ *     non-inline `@theme` at-rule references var() (B3/H1 class: Tailwind emits
+ *     non-inline theme values on :root, so a var() inside one resolves at :root
+ *     rather than on the element that sets the referenced variable).
+ *   Later guard plans add their checks to this file: G4 (66.2-07), G3 (66.2-08),
+ *   G5 (66.2-09), G7 (66.2-14), G8 (66.2-18).
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -117,4 +121,25 @@ export function checkSourceGlobs(sources: readonly SourceEntry[]): GuardResult {
 		}
 	}
 	return { checked, violations };
+}
+
+/**
+ * `checked` counts every custom property declared inside a non-inline `@theme`
+ * at-rule; `violations` lists (sorted) those whose value contains var(). An
+ * `@theme inline` at-rule is skipped: inline values are substituted into each
+ * utility, so their var() resolves where the utility is used.
+ */
+export function checkNonInlineThemeVarRefs(css: string): GuardResult {
+	const root = postcss.parse(css);
+	let checked = 0;
+	const violations: string[] = [];
+	root.walkAtRules("theme", (atRule) => {
+		if (/\binline\b/.test(atRule.params)) return;
+		atRule.walkDecls((decl) => {
+			if (!decl.prop.startsWith("--")) return;
+			checked += 1;
+			if (decl.value.includes("var(")) violations.push(decl.prop);
+		});
+	});
+	return { checked, violations: violations.sort() };
 }

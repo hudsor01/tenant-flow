@@ -45,7 +45,11 @@ import {
 	REPO_ROOT,
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
-import { checkOklchRange, checkSourceGlobs } from "#test/utils/tailwind-guards";
+import {
+	checkNonInlineThemeVarRefs,
+	checkOklchRange,
+	checkSourceGlobs,
+} from "#test/utils/tailwind-guards";
 
 const ENGINE_TIMEOUT_MS = 30_000;
 
@@ -290,6 +294,72 @@ describe("G6 — every explicit @source glob in globals.css matches at least one
 			const { violations } = checkSourceGlobs(compiler.sources);
 			expect(violations).toHaveLength(1);
 			expect(violations[0]?.startsWith("not ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+});
+
+describe("G2 — no non-inline @theme variable references var()", () => {
+	const projectCss = readFileSync(GLOBALS_CSS_PATH, "utf8");
+
+	it(
+		"checks non-inline @theme declarations and sees an @theme inline block",
+		async () => {
+			expect(
+				checkNonInlineThemeVarRefs(projectCss).checked,
+				"G2 found no custom property in a non-inline @theme block of globals.css: the check is vacuous",
+			).toBeGreaterThan(0);
+			const { ast } = await projectEngine();
+			let inlineThemeRules = 0;
+			ast.walkAtRules("theme", (atRule) => {
+				if (/\binline\b/.test(atRule.params)) inlineThemeRules += 1;
+			});
+			expect(
+				inlineThemeRules,
+				"globals.css has no @theme inline block: G2's inline exemption is untested",
+			).toBeGreaterThan(0);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it("finds no non-inline @theme variable whose value references var()", () => {
+		const { violations } = checkNonInlineThemeVarRefs(projectCss);
+		expect(
+			violations,
+			[
+				"Non-inline @theme var(s) reference var(); they resolve at :root, not where the variable is set. Move them to `@theme inline` (Tailwind docs §theme):",
+				...violations,
+			].join("\n"),
+		).toEqual([]);
+	});
+
+	it("flags a self-referencing font stack in a non-inline @theme (the B3 defect)", () => {
+		expect(
+			checkNonInlineThemeVarRefs("@theme { --font-sans: var(--font-sans), x; }")
+				.violations,
+		).toEqual(["--font-sans"]);
+	});
+
+	it("exempts the same reference inside @theme inline", () => {
+		expect(
+			checkNonInlineThemeVarRefs(
+				"@theme inline { --font-sans: var(--font-roboto), x; }",
+			).violations,
+		).toEqual([]);
+	});
+
+	it(
+		"compiles the font utilities to the next/font variables (engine corroboration)",
+		async () => {
+			const { designSystem } = await projectEngine();
+			const [sans, mono, display] = designSystem.candidatesToCss([
+				"font-sans",
+				"font-mono",
+				"font-display",
+			]);
+			expect(sans).toContain("var(--font-roboto)");
+			expect(mono).toContain("var(--font-geist-mono)");
+			expect(display).toContain("var(--font-playfair)");
 		},
 		ENGINE_TIMEOUT_MS,
 	);
