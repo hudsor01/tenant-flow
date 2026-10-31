@@ -1,14 +1,12 @@
 "use client";
 
 import type { ComponentProps, CSSProperties } from "react";
+import type { TooltipPayloadEntry, TooltipValueType } from "recharts";
 import * as RechartsPrimitive from "recharts";
-import type {
-	NameType,
-	Payload as RechartsPayload,
-	ValueType,
-} from "recharts/types/component/DefaultTooltipContent";
 import { getPayloadConfigFromPayload, useChart } from "#components/ui/chart";
 import { cn } from "#lib/utils";
+
+type TooltipNameType = number | string;
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
@@ -36,9 +34,11 @@ function ChartTooltipContent({
 		// Recharts injects `payload` at runtime when this is rendered via
 		// `<Tooltip content={<ChartTooltipContent />} />`; the prop itself is
 		// not on the Tooltip Props type, so declare it explicitly here using
-		// Recharts' own Payload type to keep formatter/labelFormatter calls
-		// type-clean (no `as unknown as` bridges).
-		payload?: ReadonlyArray<RechartsPayload<ValueType, NameType>>;
+		// TooltipPayloadEntry, Recharts' public tooltip payload type, to keep
+		// formatter/labelFormatter calls type-clean (no `as unknown as` bridges).
+		payload?: ReadonlyArray<
+			TooltipPayloadEntry<TooltipValueType, TooltipNameType>
+		>;
 		label?: string;
 	}) {
 	const { config } = useChart();
@@ -127,7 +127,7 @@ function ChartTooltipContent({
 								item.value !== undefined &&
 								typeof item.value !== "object" ? (
 									formatter(
-										item.value as ValueType,
+										item.value as TooltipValueType,
 										item.name,
 										item,
 										index,
