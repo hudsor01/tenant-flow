@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../../auth-helpers";
-import { boxesOf, boxOf, polledRead } from "../../lib/measure";
+import { type Box, boxesOf, boxOf, polledRead } from "../../lib/measure";
 
 /**
  * The canonical owner Sidebar in a real browser — Phase 66.2 wave 6, UI-SPEC
@@ -54,6 +54,7 @@ test.use({ contextOptions: { reducedMotion: "reduce" } });
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
 const DESKTOP_SIDEBAR = '[data-slot="sidebar"]:not([data-mobile="true"])';
+const MOBILE_SHEET = '[data-slot="sidebar"][data-mobile="true"]';
 const TRIGGER = '[data-slot="sidebar-trigger"]';
 const RAIL = '[data-slot="sidebar-rail"]';
 
@@ -441,8 +442,8 @@ async function rowWidths(container: Locator): Promise<RowWidths> {
 	return { inner, coreW, subW: coreW - 32 };
 }
 
-/** Logs in at 1280px with the tour answered locally and the trigger hydrated. */
-async function openDesktopDashboard(page: Page): Promise<string[]> {
+/** Logs in with the tour answered locally and the trigger hydrated. */
+async function openShell(page: Page): Promise<string[]> {
 	const errors = collectHydrationErrors(page);
 	await fulfillTourProgressAsCompleted(page);
 	await gotoAuthedDashboard(page);
@@ -528,7 +529,7 @@ test.describe("desktop rail at 1280px", () => {
 	test("S-2/S-9: geometry, list neutralizers and locked navigation (D-40, D-49)", async ({
 		page,
 	}) => {
-		const errors = await openDesktopDashboard(page);
+		const errors = await openShell(page);
 		const sidebar = page.locator(DESKTOP_SIDEBAR);
 		const container = sidebar.locator('[data-slot="sidebar-container"]');
 
@@ -688,7 +689,7 @@ test.describe("desktop rail at 1280px", () => {
 	test("VD-27/VD-35: active section open, sub rows and pinned footer", async ({
 		page,
 	}) => {
-		const errors = await openDesktopDashboard(page);
+		const errors = await openShell(page);
 		await page.goto("/reports/cash-flow");
 		await waitForHydration(page, TRIGGER);
 		const sidebar = page.locator(DESKTOP_SIDEBAR);
@@ -787,7 +788,7 @@ test.describe("desktop rail at 1280px", () => {
 	test("VD-26/VD-34: hover never underlines, current row keeps its tint, focus ring", async ({
 		page,
 	}) => {
-		const errors = await openDesktopDashboard(page);
+		const errors = await openShell(page);
 		const sidebar = page.locator(DESKTOP_SIDEBAR);
 		const coreRows = sidebar
 			.locator('[data-slot="sidebar-menu"]')
@@ -855,7 +856,7 @@ test.describe("desktop rail at 1280px", () => {
 	}) => {
 		test.setTimeout(60_000);
 		await captureCookieWrites(page);
-		const errors = await openDesktopDashboard(page);
+		const errors = await openShell(page);
 		const sidebar = page.locator(DESKTOP_SIDEBAR);
 		const trigger = page.locator(TRIGGER);
 		const rail = page.locator(RAIL);
@@ -998,7 +999,7 @@ test.describe("desktop rail at 1280px", () => {
 	test("S12/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers", async ({
 		page,
 	}) => {
-		const errors = await openDesktopDashboard(page);
+		const errors = await openShell(page);
 		const sidebar = page.locator(DESKTOP_SIDEBAR);
 		const trigger = page.locator(TRIGGER);
 		const dock = page.getByTestId("quick-actions-dock");
@@ -1043,7 +1044,7 @@ test.describe("desktop rail at 1280px", () => {
 		page,
 	}) => {
 		test.setTimeout(60_000);
-		const errors = await openDesktopDashboard(page);
+		const errors = await openShell(page);
 		const sidebar = page.locator(DESKTOP_SIDEBAR);
 
 		const expanded = await new AxeBuilder({ page })
@@ -1058,6 +1059,423 @@ test.describe("desktop rail at 1280px", () => {
 			.analyze();
 		expect(collapsed.violations).toEqual([]);
 
+		expect(errors).toEqual([]);
+	});
+});
+
+/**
+ * The dashboard at a sheet width, after `useIsMobile` has switched the sidebar
+ * into its sheet mode: the desktop branch is gone and the closed sheet is not
+ * mounted. Clicking the trigger before that switch would collapse the desktop
+ * rail instead of opening the sheet.
+ */
+async function openSheetShell(page: Page): Promise<string[]> {
+	const errors = await openShell(page);
+	await expect(page.locator(DESKTOP_SIDEBAR)).toHaveCount(0);
+	return errors;
+}
+
+/** Opens the nav sheet from the trigger and returns the dialog. */
+async function openSheet(page: Page): Promise<Locator> {
+	await page.locator(TRIGGER).click();
+	const sheet = page.getByRole("dialog", { name: "Navigation menu" });
+	await expect(sheet).toBeVisible();
+	return sheet;
+}
+
+const SHEET_VIEWPORTS = [
+	{ width: 375, height: 667 },
+	{ width: 900, height: 800 },
+] as const;
+
+for (const viewport of SHEET_VIEWPORTS) {
+	test.describe(`mobile sheet at ${viewport.width}px`, () => {
+		test.use({ viewport });
+
+		test("open: named Radix dialog, 288px, focus moves in and stays trapped (D-41)", async ({
+			page,
+		}) => {
+			const errors = await openSheetShell(page);
+			const trigger = page.locator(TRIGGER);
+			const sheet = page.getByRole("dialog", { name: "Navigation menu" });
+
+			// The dock is `hidden lg:block` (66.2-35): absent below 64rem.
+			await expect(page.getByTestId("quick-actions-dock")).toBeHidden();
+
+			await expect(trigger).toHaveAccessibleName("Toggle navigation menu");
+			await expect(trigger).toHaveAttribute("aria-expanded", "false");
+			await trigger.click();
+			await expect(sheet).toBeVisible();
+			await expect(sheet).toHaveAccessibleDescription(
+				"Main navigation for your TenantFlow account",
+			);
+			await expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+			const sheetBox = await boxOf(page.locator(MOBILE_SHEET));
+			record("sheet box", sheetBox);
+			expectNear(sheetBox.width, 288, "sheet width");
+			expectNear(sheetBox.x, 0, "sheet x");
+
+			await expect
+				.poll(() =>
+					sheet.evaluate((node) => node.contains(document.activeElement)),
+				)
+				.toBe(true);
+			const presses = [...Array.from({ length: 30 }, () => "Tab"), "Shift+Tab"];
+			for (const [index, key] of presses.entries()) {
+				await page.keyboard.press(key);
+				const inside = await page.evaluate(
+					(selector) => document.activeElement?.closest(selector) != null,
+					MOBILE_SHEET,
+				);
+				expect(
+					inside,
+					`focus inside the sheet after press ${index + 1} (${key})`,
+				).toBe(true);
+			}
+
+			expect(
+				await page
+					.locator("main#main-content")
+					.evaluate((node) => node.closest('[aria-hidden="true"]') !== null),
+				"main#main-content is under an aria-hidden ancestor",
+			).toBe(true);
+			expect(
+				await page.evaluate(() => getComputedStyle(document.body).overflow),
+			).toBe("hidden");
+
+			expect(errors).toEqual([]);
+		});
+
+		test("every close path returns focus to the trigger (D-46, D-47, D-48)", async ({
+			page,
+		}) => {
+			test.setTimeout(60_000);
+			const errors = await openSheetShell(page);
+			const trigger = page.locator(TRIGGER);
+			const sheetElement = page.locator(MOBILE_SHEET);
+
+			let sheet = await openSheet(page);
+			const closeButtons = sheet.getByRole("button", { name: /close/i });
+			await expect(closeButtons).toHaveCount(1);
+			const close = closeButtons.first();
+			await expect(close).toBeVisible();
+			await expect(close).toHaveAccessibleName("Close navigation menu");
+			const closeBox = await boxOf(close);
+			record("close button box", closeBox);
+			expectNear(closeBox.width, 44, "close button width");
+			expectNear(closeBox.height, 44, "close button height");
+			await expect(
+				sheet.getByRole("button", { name: "Close", exact: true }),
+			).toHaveCount(0);
+			// The sheet's own corner X exists and is hidden, not absent.
+			await expect(page.locator(`${MOBILE_SHEET} > button`)).toHaveCount(1);
+			await expect(page.locator(`${MOBILE_SHEET} > button`)).toHaveCSS(
+				"display",
+				"none",
+			);
+
+			const expectClosedWithFocusOnTrigger = async (path: string) => {
+				await expect(sheetElement, `sheet hidden after ${path}`).toBeHidden();
+				await expect(trigger, `trigger focused after ${path}`).toBeFocused();
+			};
+
+			await page.keyboard.press("Escape");
+			await expectClosedWithFocusOnTrigger("Escape");
+
+			sheet = await openSheet(page);
+			await sheet
+				.getByRole("button", { name: "Close navigation menu" })
+				.click();
+			await expectClosedWithFocusOnTrigger("the close button");
+
+			sheet = await openSheet(page);
+			// The left sheet ends at 288px, so this point is on the scrim.
+			await page.mouse.click(viewport.width - 10, 100);
+			await expectClosedWithFocusOnTrigger("a scrim click");
+
+			sheet = await openSheet(page);
+			await sheet
+				.getByRole("link", { name: "Properties", exact: true })
+				.click();
+			await page.waitForURL("**/properties");
+			await expectClosedWithFocusOnTrigger("the Properties link");
+
+			await page.goto("/dashboard");
+			await waitForHydration(page, TRIGGER);
+			await expect(page.locator(DESKTOP_SIDEBAR)).toHaveCount(0);
+			sheet = await openSheet(page);
+			const palette = page.getByPlaceholder("Search pages and actions...");
+			await page.keyboard.press("ControlOrMeta+k");
+			await expect(palette).toBeVisible();
+			await expect(sheetElement).toHaveAttribute("data-state", "open");
+			// Escape layering: one Escape closes only the palette.
+			await page.keyboard.press("Escape");
+			await expect(palette).toBeHidden();
+			await expect(sheetElement).toHaveAttribute("data-state", "open");
+			await expect(sheet).toBeVisible();
+
+			await page.keyboard.press("ControlOrMeta+k");
+			await expect(palette).toBeVisible();
+			await palette.fill("Properties");
+			await page
+				.getByRole("option", { name: "Properties", exact: true })
+				.click();
+			await page.waitForURL("**/properties");
+			await expect(palette).toBeHidden();
+			await expectClosedWithFocusOnTrigger("a palette selection");
+
+			expect(errors).toEqual([]);
+		});
+
+		test("scoped axe on the open sheet, including aria-dialog-name (D-41)", async ({
+			page,
+		}) => {
+			const errors = await openSheetShell(page);
+			await openSheet(page);
+
+			const scoped = await new AxeBuilder({ page })
+				.include(MOBILE_SHEET)
+				.withTags(WCAG_2_1_AA_TAGS)
+				.analyze();
+			expect(scoped.violations).toEqual([]);
+
+			const dialogName = await new AxeBuilder({ page })
+				.include(MOBILE_SHEET)
+				.withRules(["aria-dialog-name"])
+				.analyze();
+			expect(dialogName.violations).toEqual([]);
+			expect(
+				dialogName.passes.some((rule) => rule.id === "aria-dialog-name"),
+				"aria-dialog-name evaluated the sheet",
+			).toBe(true);
+
+			expect(errors).toEqual([]);
+		});
+
+		if (viewport.width === 375) {
+			test("every sheet row is at least 44px below 48rem (VD-33)", async ({
+				page,
+			}) => {
+				const errors = await openSheetShell(page);
+				const sheet = await openSheet(page);
+
+				// D-50: sweeps that read children open the sections first.
+				const toggles = sheet.locator('[data-slot="collapsible-trigger"]');
+				await expect(toggles).toHaveCount(2);
+				for (const toggle of await toggles.all()) {
+					if ((await toggle.getAttribute("aria-expanded")) === "false") {
+						await toggle.click();
+						await expect(toggle).toHaveAttribute("aria-expanded", "true");
+					}
+				}
+				await expect(
+					sheet.locator('[data-slot="sidebar-menu-sub-button"]'),
+				).toHaveCount(10);
+
+				const rows = await boxesOf(
+					page.locator(
+						`${MOBILE_SHEET} [data-slot="sidebar-menu-button"], ${MOBILE_SHEET} [data-slot="collapsible-trigger"], ${MOBILE_SHEET} [data-slot="sidebar-menu-sub-button"]`,
+					),
+					{ min: 21 },
+				);
+				expect(rows).toHaveLength(21);
+				record("sheet row heights at 375", {
+					min: Math.min(...rows.map((row) => row.height)),
+					heights: rows.map((row) => row.height),
+				});
+				rows.forEach((row, index) => {
+					expect(
+						row.height,
+						`sheet row ${index} height ${row.height}`,
+					).toBeGreaterThanOrEqual(44 - 0.5);
+				});
+
+				expect(errors).toEqual([]);
+			});
+		}
+	});
+}
+
+const TRIGGER_STEP_COPY =
+	"Access Properties, Tenants, Leases, and more from the menu.";
+
+/**
+ * Opens the onboarding tour and advances it to step 5. The `user_tour_progress`
+ * route is installed BEFORE `loginAsOwner`: GET answers 200 `[]` (postgrest-js
+ * `maybeSingle()` maps an empty array to null, i.e. "not started") and every
+ * other method 201 with an empty body ("persisted"), so the tour opens and no
+ * production row is written. The localStorage tour key is deliberately unset.
+ */
+async function openTourAtStep5(
+	page: Page,
+): Promise<{ step: Locator; traffic: TourProgressTraffic }> {
+	const traffic: TourProgressTraffic = { gets: 0, writes: 0 };
+	await page.route(TOUR_PROGRESS_ROUTE, async (route) => {
+		if (route.request().method() === "GET") {
+			traffic.gets += 1;
+			await route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				headers: { "access-control-allow-origin": "*" },
+				body: "[]",
+			});
+			return;
+		}
+		traffic.writes += 1;
+		await route.fulfill({
+			status: 201,
+			headers: { "access-control-allow-origin": "*" },
+			body: "",
+		});
+	});
+	await loginAsOwner(page);
+
+	const populated = page.getByTestId("kpi-bento-row");
+	const empty = page.locator('[data-slot="empty-title"]', {
+		hasText: "Welcome to TenantFlow",
+	});
+	await expect(populated.or(empty)).toBeVisible({ timeout: 15000 });
+	if (await empty.isVisible()) {
+		throw new Error(
+			"Tour step 5 is unreachable on the empty-state dashboard: steps 2 and 4 have no target there. The dashboard-smoke header records owner A as populated; restore owner A's data.",
+		);
+	}
+	await waitForHydration(page, TRIGGER);
+
+	const step = page.locator('[data-slot="tour-step"]');
+	await expect(step).toBeVisible({ timeout: 20000 });
+	const title = step.locator('[data-slot="tour-title"]');
+	for (let click = 0; click < 4; click += 1) {
+		const current = (await title.innerText()).trim();
+		if (current === "Navigate Your Portal") {
+			break;
+		}
+		// Keyboard activation, as a keyboard user would: at 1280x720 with the rail
+		// expanded, step 1 places its footer below the fold of the fixed layer,
+		// where a pointer click cannot reach it (deferred-items.md, 66.2-36).
+		await step.getByRole("button", { name: "Next step" }).focus();
+		await page.keyboard.press("Enter");
+		await expect(title).not.toHaveText(current);
+	}
+	await expect(title).toHaveText("Navigate Your Portal");
+	return { step, traffic };
+}
+
+/**
+ * The step's box once floating-ui has placed it. The step first renders at
+ * `translate(0px, 0px)` from the viewport origin and moves when the async
+ * `computePosition` resolves, so neither a box nor a transform marks the
+ * placement. Two consecutive poll reads (at least 100ms apart) returning the
+ * same box do: that gate is layout settling, independent of where the step
+ * lands.
+ */
+async function placedStepBox(step: Locator): Promise<Box> {
+	let previous: Box | null = null;
+	const settled = await polledRead(
+		async () => {
+			const box = await boxOf(step);
+			const stable =
+				previous !== null &&
+				previous.x === box.x &&
+				previous.y === box.y &&
+				previous.width === box.width &&
+				previous.height === box.height;
+			previous = box;
+			return { box, stable };
+		},
+		(read) => read.stable,
+	);
+	return settled.box;
+}
+
+/** The step's box lies inside the viewport (±0.5). */
+function expectInsideViewport(
+	box: Box,
+	viewport: { width: number; height: number },
+): void {
+	expect(box.x, "step left edge").toBeGreaterThanOrEqual(-0.5);
+	expect(box.y, "step top edge").toBeGreaterThanOrEqual(-0.5);
+	expect(box.x + box.width, "step right edge").toBeLessThanOrEqual(
+		viewport.width + 0.5,
+	);
+	expect(box.y + box.height, "step bottom edge").toBeLessThanOrEqual(
+		viewport.height + 0.5,
+	);
+}
+
+test.describe("tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36)", () => {
+	const triggerCases = [
+		{
+			label: "375px sheet",
+			viewport: { width: 375, height: 667 },
+			collapsed: false,
+		},
+		{
+			label: "900px sheet",
+			viewport: { width: 900, height: 800 },
+			collapsed: false,
+		},
+		{
+			label: "1280px collapsed",
+			viewport: { width: 1280, height: 720 },
+			collapsed: true,
+		},
+	] as const;
+
+	for (const testCase of triggerCases) {
+		test(`${testCase.label}: step 5 sits below the trigger with the menu copy`, async ({
+			page,
+		}) => {
+			test.setTimeout(60_000);
+			const errors = collectHydrationErrors(page);
+			await page.setViewportSize(testCase.viewport);
+			if (testCase.collapsed) {
+				await seedSidebarCookie(page, "false");
+			}
+			const { step, traffic } = await openTourAtStep5(page);
+
+			await expect(step).toContainText(TRIGGER_STEP_COPY);
+			const stepBox = await placedStepBox(step);
+			const triggerBox = await boxOf(page.locator(TRIGGER));
+			record("tour step and trigger boxes", { stepBox, triggerBox });
+			expectInsideViewport(stepBox, testCase.viewport);
+			expect(stepBox.y, "step top vs trigger bottom").toBeGreaterThanOrEqual(
+				triggerBox.y + triggerBox.height - 0.5,
+			);
+
+			expect(
+				traffic.gets,
+				"the tour progress GET was intercepted",
+			).toBeGreaterThanOrEqual(1);
+			record("tour progress traffic", traffic);
+			expect(errors).toEqual([]);
+		});
+	}
+
+	test("1280px expanded: step 5 sits right of the rail with the rail copy", async ({
+		page,
+	}) => {
+		test.setTimeout(60_000);
+		const errors = collectHydrationErrors(page);
+		const { step, traffic } = await openTourAtStep5(page);
+
+		await expect(step).toContainText("Use the sidebar to access Properties");
+		const stepBox = await placedStepBox(step);
+		const railBox = await boxOf(
+			page.locator(DESKTOP_SIDEBAR).locator('[data-slot="sidebar-container"]'),
+		);
+		record("tour step and rail boxes", { stepBox, railBox });
+		expectInsideViewport(stepBox, { width: 1280, height: 720 });
+		expect(stepBox.x, "step left vs rail right").toBeGreaterThanOrEqual(
+			railBox.x + railBox.width - 0.5,
+		);
+
+		expect(
+			traffic.gets,
+			"the tour progress GET was intercepted",
+		).toBeGreaterThanOrEqual(1);
+		record("tour progress traffic", traffic);
 		expect(errors).toEqual([]);
 	});
 });
