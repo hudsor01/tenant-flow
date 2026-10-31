@@ -43,12 +43,12 @@ interface BlogRow {
 	category: string | null;
 }
 
-// Official brand palette — exact conversions from src/app/globals.css:
-//   software-vault    --color-chart-1: oklch(0.63 0.22 259)
-//   tax-prep          --color-chart-2: oklch(0.70 0.18 180)
-//   maintenance       --color-chart-3: oklch(0.72 0.16 85)
-//   tenant-screening  --color-chart-4: oklch(0.65 0.18 20)
-//   lease-law         --color-chart-5: oklch(0.55 0.12 250)
+// Official brand palette — exact conversions from the :root tokens in src/app/globals.css:
+//   software-vault    --chart-1: oklch(0.63 0.22 259)
+//   tax-prep          --chart-2: oklch(0.70 0.18 180)
+//   maintenance       --chart-3: oklch(0.72 0.16 85)
+//   tenant-screening  --chart-4: oklch(0.65 0.18 20)
+//   lease-law         --chart-5: oklch(0.55 0.12 250)
 // `to` = same token at L-0.17 (darker companion); `glow` = L+0.14 sibling.
 const CATEGORY_PALETTES: Record<
 	string,

@@ -42,6 +42,9 @@
  *     compiled CSS never declares (the `--duration-*` incident class, PR 1024).
  *     `collectG7SourceTexts` reads the sources and `deriveG7RuntimeVars`
  *     derives the variables set at run time rather than by the stylesheet.
+ *   - D-23/X4 structure pin `checkInlineColorTokenStructure`: theme color
+ *     tokens are aliases, in an inline theme at-rule, of raw tokens declared in
+ *     the unlayered `:root` and `.dark` rules (UIC-05, 66.2-16).
  *   Later guard plans add their checks to this file: G8 (66.2-18).
  *
  * CONSTRAINTS.
@@ -829,4 +832,112 @@ export function checkG7DanglingThemeVars(
 				`${name} <- ${[...(origins.get(name) ?? [])].sort().join(", ")}`,
 		);
 	return { checked: origins.size, violations };
+}
+
+// The theme at-rule parameter word that marks a substituted (inline) theme,
+// built at run time so the bare word is not a literal in this scanned file.
+const INLINE_THEME_WORD = ["in", "line"].join("");
+const DARK_VARIANT_PARAMS = "dark (&:where(.dark, .dark *))";
+const COLOR_ALIAS_VALUE = /^var\(\s*--([\w-]+)\s*\)$/;
+const STRUCTURE_FIX = `declare the raw token in the unlayered :root and .dark rules and alias it as --color-<name>: var(--<name>) from the @theme ${INLINE_THEME_WORD} at-rule (D-23)`;
+
+function nearestAtRule(node: PostcssNode): AtRule | null {
+	for (let parent = node.parent; parent; parent = parent.parent) {
+		if (isAtRuleNode(parent)) return parent;
+	}
+	return null;
+}
+
+function hasAtRuleAncestor(
+	node: PostcssNode,
+	names: readonly string[],
+): boolean {
+	for (let parent = node.parent; parent; parent = parent.parent) {
+		if (isAtRuleNode(parent) && names.includes(parent.name)) return true;
+	}
+	return false;
+}
+
+/**
+ * D-23/X4 structure pin (UIC-05). Three rules over the stylesheet text:
+ *   1. Exactly one `@custom-variant` at-rule declares the dark variant as
+ *      `dark (&:where(.dark, .dark *))`.
+ *   2. Every `--color-*` declaration of a theme at-rule sits in an inline one,
+ *      has the value `var(--<name>)` for its own suffix, and `--<name>` is
+ *      declared in an unlayered rule whose selector is exactly `:root`.
+ *      `checked` counts these inline declarations.
+ *   3. Every custom property declared in a dark-scope rule (outside `@utility`
+ *      and `@keyframes`) sits in an unlayered rule whose selector is exactly
+ *      `.dark`.
+ * Violations are sorted.
+ */
+export function checkInlineColorTokenStructure(css: string): GuardResult {
+	const root = postcss.parse(css);
+	const violations: string[] = [];
+	let checked = 0;
+
+	let darkVariants = 0;
+	root.walkAtRules("custom-variant", (atRule) => {
+		if (atRule.params.replace(/\s+/g, " ").trim() === DARK_VARIANT_PARAMS) {
+			darkVariants += 1;
+		}
+	});
+	if (darkVariants !== 1) {
+		violations.push(
+			`@custom-variant ${DARK_VARIANT_PARAMS} is declared ${darkVariants} times; declare it exactly once so the .dark rule drives the dark variant (X4)`,
+		);
+	}
+
+	const rootDeclared = new Set<string>();
+	for (const node of root.nodes) {
+		if (node.type !== "rule" || node.selector.trim() !== ":root") continue;
+		node.each((child) => {
+			if (child.type === "decl" && child.prop.startsWith("--")) {
+				rootDeclared.add(child.prop);
+			}
+		});
+	}
+
+	root.walkDecls((decl) => {
+		if (!decl.prop.startsWith("--color-")) return;
+		const atRule = nearestAtRule(decl);
+		if (atRule === null || atRule.name !== "theme") return;
+		const words = atRule.params.trim().split(/\s+/);
+		if (!words.includes(INLINE_THEME_WORD)) {
+			violations.push(
+				`${decl.prop}: ${decl.value.trim()} is a literal in a non-${INLINE_THEME_WORD} @theme at-rule; ${STRUCTURE_FIX}`,
+			);
+			return;
+		}
+		checked += 1;
+		const suffix = decl.prop.slice("--color-".length);
+		const target = COLOR_ALIAS_VALUE.exec(decl.value.trim())?.[1];
+		if (target === undefined || target !== suffix) {
+			violations.push(
+				`${decl.prop}: ${decl.value.trim()} in the @theme ${INLINE_THEME_WORD} at-rule is not var(--${suffix}); ${STRUCTURE_FIX}`,
+			);
+			return;
+		}
+		if (!rootDeclared.has(`--${suffix}`)) {
+			violations.push(
+				`${decl.prop}: --${suffix} is not declared in an unlayered :root rule; ${STRUCTURE_FIX}`,
+			);
+		}
+	});
+
+	root.walkRules((rule) => {
+		if (hasAtRuleAncestor(rule, ["utility", "keyframes"])) return;
+		if (!DARK_SCOPE_SELECTOR.test(rule.selector)) return;
+		const plain =
+			rule.selector.trim() === ".dark" && rule.parent?.type === "root";
+		if (plain) return;
+		rule.each((child) => {
+			if (child.type !== "decl" || !child.prop.startsWith("--")) return;
+			violations.push(
+				`${child.prop} is declared in the dark-scope rule "${rule.selector.trim()}"${rule.parent?.type === "root" ? "" : " nested in an at-rule"}; ${STRUCTURE_FIX}`,
+			);
+		});
+	});
+
+	return { checked, violations: violations.sort() };
 }

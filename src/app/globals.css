@@ -88,52 +88,6 @@
 	--transition-duration-fast: 200ms;
 	--transition-duration-normal: 300ms;
 	--transition-duration-slow: 500ms;
-	/* Colors. The :where(.dark, .dark *) block in @layer base overrides these
-	   for dark mode, except the chart and sidebar colors. */
-	--color-background: oklch(0.985 0.002 240);
-	--color-foreground: oklch(0.2 0.02 245);
-	--color-muted: oklch(0.94 0.01 240);
-	--color-muted-foreground: oklch(0.48 0.015 245);
-	--color-popover: oklch(1 0 0);
-	--color-popover-foreground: oklch(0.2 0.02 240);
-	--color-card: oklch(0.99 0.003 240);
-	--color-card-foreground: oklch(0.2 0.02 245);
-	--color-border: oklch(0.88 0.01 245);
-	--color-input: oklch(0.8 0.015 245);
-	--color-ring: oklch(0.5 0.2 257);
-	--color-primary: oklch(0.54 0.23 257);
-	--color-primary-foreground: oklch(0.98 0.01 255);
-	--color-secondary: oklch(0.9546 0.0351 246.58);
-	--color-secondary-foreground: oklch(0.2 0 0);
-	--color-accent: oklch(0.6 0.17 160);
-	--color-accent-foreground: oklch(0.98 0.01 160);
-	--color-accent-main: oklch(0.65 0.23 260);
-	--color-destructive: oklch(0.577 0.245 25);
-	--color-destructive-foreground: oklch(0.98 0.01 90);
-	--color-success: oklch(0.66 0.2 160);
-	--color-success-foreground: oklch(0.2 0.02 160);
-	--color-warning: oklch(0.75 0.18 85);
-	--color-warning-foreground: oklch(0.25 0.03 85);
-	/*
-	 * Status TEXT tokens — AA-safe (>=4.5:1) when used as foreground text/icons
-	 * on the card/background surface. The vivid --color-{success,warning} accents
-	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
-	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
-	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
-	 * theme-aware and clear AA with headroom in both themes.
-	 */
-	--color-success-text: oklch(0.5 0.15 158);
-	--color-warning-text: oklch(0.52 0.13 72);
-	--color-destructive-text: oklch(0.5 0.21 27);
-	--color-primary-text: oklch(0.46 0.2 257);
-	--color-info-text: oklch(0.48 0.17 240);
-	--color-info: oklch(0.62 0.19 240);
-	--color-info-foreground: oklch(0.18 0.02 240);
-	--color-chart-1: oklch(0.63 0.22 259);
-	--color-chart-2: oklch(0.7 0.18 180);
-	--color-chart-3: oklch(0.72 0.16 85);
-	--color-chart-4: oklch(0.65 0.18 20);
-	--color-chart-5: oklch(0.55 0.12 250);
 	--radius: 0.5rem;
 	--radius-sm: 4px;
 	--radius-md: 8px;
@@ -210,9 +164,9 @@
 	   fields that ignores the input's transparent background, so a saved
 	   login looked dark on the white card. The box-shadow inset is the only
 	   way to override -webkit-autofill's background; the long transition
-	   suppresses the autofill color flash. Keyed to --color-background +
-	   --color-foreground, which are redefined under .dark, so it adapts to
-	   both themes. */
+	   suppresses the autofill color flash. Keyed to --color-background and
+	   --color-foreground, which alias --background and --foreground; .dark
+	   redefines those, so the fill follows both themes. */
 	input:-webkit-autofill,
 	input:-webkit-autofill:hover,
 	input:-webkit-autofill:focus,
@@ -444,41 +398,133 @@
 			transparent
 		);
 	}
+}
 
-	:where(.dark, .dark *) {
-		--color-background: oklch(0.14 0.02 250);
-		--color-foreground: oklch(0.96 0.01 240);
-		--color-muted: oklch(0.22 0.02 255);
-		--color-muted-foreground: oklch(0.74 0.02 250);
-		--color-popover: oklch(0.12 0.015 250);
-		--color-popover-foreground: oklch(0.96 0.01 240);
-		--color-card: oklch(0.16 0.02 255);
-		--color-card-foreground: oklch(0.96 0.01 240);
-		--color-border: oklch(0.3 0.015 255);
-		--color-input: oklch(0.3 0.01 255);
-		--color-ring: oklch(0.72 0.22 259);
-		--color-primary: oklch(0.72 0.22 259);
-		--color-primary-foreground: oklch(0.18 0.01 250);
-		--color-secondary: oklch(0.28 0.01 250);
-		--color-secondary-foreground: oklch(0.9 0.01 250);
-		--color-accent: oklch(0.7 0.17 160);
-		--color-accent-foreground: oklch(0.15 0.02 160);
-		--color-accent-main: oklch(0.7 0.23 259);
-		--color-destructive: oklch(0.5 0.24 29);
-		--color-destructive-foreground: oklch(0.95 0.02 80);
-		--color-success: oklch(0.68 0.2 150);
-		--color-success-foreground: oklch(0.18 0.02 150);
-		--color-warning: oklch(0.72 0.18 80);
-		--color-warning-foreground: oklch(0.22 0.02 80);
-		/* Dark-theme status TEXT tokens — lighter so they clear AA on the dark card. */
-		--color-success-text: oklch(0.8 0.16 158);
-		--color-warning-text: oklch(0.84 0.15 82);
-		--color-destructive-text: oklch(0.71 0.19 25);
-		--color-primary-text: oklch(0.8 0.16 259);
-		--color-info-text: oklch(0.8 0.15 250);
-		--color-info: oklch(0.66 0.18 250);
-		--color-info-foreground: oklch(0.2 0.02 250);
-	}
+/* Semantic color tokens (D-23). Raw light values live in :root and dark
+   values in .dark, which next-themes sets on <html>. The @theme inline
+   at-rule after them exposes each as --color-<name>: var(--<name>), so a
+   utility reads the raw token where it is used. The chart tokens are
+   mode-independent and have no dark value. The sidebar tokens live in their
+   own :root, .dark and @theme inline rules further down (D-21). */
+:root {
+	--background: oklch(0.985 0.002 240);
+	--foreground: oklch(0.2 0.02 245);
+	--muted: oklch(0.94 0.01 240);
+	--muted-foreground: oklch(0.48 0.015 245);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.2 0.02 240);
+	--card: oklch(0.99 0.003 240);
+	--card-foreground: oklch(0.2 0.02 245);
+	--border: oklch(0.88 0.01 245);
+	--input: oklch(0.8 0.015 245);
+	--ring: oklch(0.5 0.2 257);
+	--primary: oklch(0.54 0.23 257);
+	--primary-foreground: oklch(0.98 0.01 255);
+	--secondary: oklch(0.9546 0.0351 246.58);
+	--secondary-foreground: oklch(0.2 0 0);
+	--accent: oklch(0.6 0.17 160);
+	--accent-foreground: oklch(0.98 0.01 160);
+	--accent-main: oklch(0.65 0.23 260);
+	--destructive: oklch(0.577 0.245 25);
+	--destructive-foreground: oklch(0.98 0.01 90);
+	--success: oklch(0.66 0.2 160);
+	--success-foreground: oklch(0.2 0.02 160);
+	--warning: oklch(0.75 0.18 85);
+	--warning-foreground: oklch(0.25 0.03 85);
+	/*
+	 * Status TEXT tokens — AA-safe (>=4.5:1) when used as foreground text/icons
+	 * on the card/background surface. The vivid --color-{success,warning} accents
+	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
+	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
+	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
+	 * theme-aware and clear AA with headroom in both themes.
+	 */
+	--success-text: oklch(0.5 0.15 158);
+	--warning-text: oklch(0.52 0.13 72);
+	--destructive-text: oklch(0.5 0.21 27);
+	--primary-text: oklch(0.46 0.2 257);
+	--info-text: oklch(0.48 0.17 240);
+	--info: oklch(0.62 0.19 240);
+	--info-foreground: oklch(0.18 0.02 240);
+	--chart-1: oklch(0.63 0.22 259);
+	--chart-2: oklch(0.7 0.18 180);
+	--chart-3: oklch(0.72 0.16 85);
+	--chart-4: oklch(0.65 0.18 20);
+	--chart-5: oklch(0.55 0.12 250);
+}
+
+.dark {
+	--background: oklch(0.14 0.02 250);
+	--foreground: oklch(0.96 0.01 240);
+	--muted: oklch(0.22 0.02 255);
+	--muted-foreground: oklch(0.74 0.02 250);
+	--popover: oklch(0.12 0.015 250);
+	--popover-foreground: oklch(0.96 0.01 240);
+	--card: oklch(0.16 0.02 255);
+	--card-foreground: oklch(0.96 0.01 240);
+	--border: oklch(0.3 0.015 255);
+	--input: oklch(0.3 0.01 255);
+	--ring: oklch(0.72 0.22 259);
+	--primary: oklch(0.72 0.22 259);
+	--primary-foreground: oklch(0.18 0.01 250);
+	--secondary: oklch(0.28 0.01 250);
+	--secondary-foreground: oklch(0.9 0.01 250);
+	--accent: oklch(0.7 0.17 160);
+	--accent-foreground: oklch(0.15 0.02 160);
+	--accent-main: oklch(0.7 0.23 259);
+	--destructive: oklch(0.5 0.24 29);
+	--destructive-foreground: oklch(0.95 0.02 80);
+	--success: oklch(0.68 0.2 150);
+	--success-foreground: oklch(0.18 0.02 150);
+	--warning: oklch(0.72 0.18 80);
+	--warning-foreground: oklch(0.22 0.02 80);
+	/* Dark-theme status TEXT tokens — lighter so they clear AA on the dark card. */
+	--success-text: oklch(0.8 0.16 158);
+	--warning-text: oklch(0.84 0.15 82);
+	--destructive-text: oklch(0.71 0.19 25);
+	--primary-text: oklch(0.8 0.16 259);
+	--info-text: oklch(0.8 0.15 250);
+	--info: oklch(0.66 0.18 250);
+	--info-foreground: oklch(0.2 0.02 250);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent-main: var(--accent-main);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-success-text: var(--success-text);
+	--color-warning-text: var(--warning-text);
+	--color-destructive-text: var(--destructive-text);
+	--color-primary-text: var(--primary-text);
+	--color-info-text: var(--info-text);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
 }
 
 @utility hero-highlight {

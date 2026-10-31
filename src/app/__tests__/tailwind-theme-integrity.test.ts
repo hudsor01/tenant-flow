@@ -55,6 +55,7 @@ import {
 import {
 	type CustomMergeKeys,
 	checkG7DanglingThemeVars,
+	checkInlineColorTokenStructure,
 	checkLightOnlyColorTokens,
 	checkMergeKeys,
 	checkNonInlineThemeVarRefs,
@@ -973,6 +974,93 @@ describe("G4 used theme color tokens have a dark value (B4 class)", () => {
 			new Set(["--color-a"]),
 		);
 		expect(violations).toHaveLength(2);
+	});
+});
+
+// D-23 / X4 / UIC-05 structure pin (66.2-16). Theme color tokens are inline
+// aliases (`@theme inline { --color-<name>: var(--<name>) }`) of raw tokens in
+// the unlayered `:root` and plain `.dark` rules, the structure the shadcn CLI
+// and registry cssVars write into. Fixtures use the names --color-q, --q and
+// --z only.
+describe("Inline color token structure (D-23, X4)", () => {
+	const DARK_VARIANT = "@custom-variant dark (&:where(.dark, .dark *));";
+	const S7_CONFORMING =
+		":root { --q: oklch(0.5 0 0); } .dark { --q: oklch(0.9 0 0); } @theme inline { --color-q: var(--q); }";
+	const S1_LITERAL = `${DARK_VARIANT} @theme { --color-q: oklch(0.5 0 0); }`;
+	const S2_SUFFIX_MISMATCH = `${DARK_VARIANT} :root { --z: oklch(0.5 0 0); } @theme inline { --color-q: var(--z); }`;
+	const S3_UNDECLARED = `${DARK_VARIANT} @theme inline { --color-q: var(--q); }`;
+	const S4_LAYERED_ROOT = `${DARK_VARIANT} @layer base { :root { --q: oklch(0.5 0 0); } } @theme inline { --color-q: var(--q); }`;
+	const S5_LAYERED_DARK = `${DARK_VARIANT} ${S7_CONFORMING.replace(
+		".dark { --q: oklch(0.9 0 0); }",
+		"@layer base { .dark { --q: oklch(0.9 0 0); } }",
+	)}`;
+	const S6_WHERE_DARK = `${DARK_VARIANT} ${S7_CONFORMING.replace(
+		".dark {",
+		":where(.dark, .dark *) {",
+	)}`;
+	const S7 = `${DARK_VARIANT} ${S7_CONFORMING}`;
+	const S8_NO_VARIANT = S7_CONFORMING;
+
+	it("globals.css: every theme color token is an inline alias of an unlayered :root/.dark token", () => {
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		const themeColorKeys = [
+			...collectCustomPropertiesByContext(css).theme.keys(),
+		].filter((key) => key.startsWith("--color-"));
+		const result = checkInlineColorTokenStructure(css);
+		expect(
+			result.violations,
+			`theme color structure violations (D-23/X4):\n${result.violations.join("\n")}`,
+		).toEqual([]);
+		expect(result.checked).toBe(themeColorKeys.length);
+	});
+
+	it("S1: flags a literal --color-* in a non-inline @theme", () => {
+		const { violations } = checkInlineColorTokenStructure(S1_LITERAL);
+		expect(violations).toHaveLength(1);
+		expect(violations[0]).toContain("--color-q");
+	});
+
+	it("S2: flags an alias whose raw name does not match its suffix", () => {
+		expect(
+			checkInlineColorTokenStructure(S2_SUFFIX_MISMATCH).violations,
+		).toHaveLength(1);
+	});
+
+	it("S3: flags an alias whose raw name is never declared", () => {
+		expect(
+			checkInlineColorTokenStructure(S3_UNDECLARED).violations,
+		).toHaveLength(1);
+	});
+
+	it("S4: flags a raw token declared only in a layered :root", () => {
+		expect(
+			checkInlineColorTokenStructure(S4_LAYERED_ROOT).violations,
+		).toHaveLength(1);
+	});
+
+	it("S5: flags a dark value declared in a layered .dark rule", () => {
+		expect(
+			checkInlineColorTokenStructure(S5_LAYERED_DARK).violations,
+		).toHaveLength(1);
+	});
+
+	it("S6: flags a dark value under a non-plain dark selector", () => {
+		expect(
+			checkInlineColorTokenStructure(S6_WHERE_DARK).violations,
+		).toHaveLength(1);
+	});
+
+	it("S7: passes the conforming structure", () => {
+		expect(checkInlineColorTokenStructure(S7)).toEqual({
+			checked: 1,
+			violations: [],
+		});
+	});
+
+	it("S8: flags a missing dark custom variant", () => {
+		expect(
+			checkInlineColorTokenStructure(S8_NO_VARIANT).violations,
+		).toHaveLength(1);
 	});
 });
 

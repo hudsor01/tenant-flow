@@ -64,8 +64,10 @@ export function formatTrendPercent(percentChange: number): string {
  * place (03-UI-SPEC § 6.2).
  *
  * Both `theme.light` and `theme.dark` point at the same token because the
- * status tokens already resolve to dark-mode-correct `oklch()` values via
- * the `:where(.dark, .dark *)` override in `globals.css`.
+ * status tokens already resolve to dark-mode-correct `oklch()` values:
+ * `--color-success`, `--color-warning` and `--color-muted-foreground` alias
+ * `--success`, `--warning` and `--muted-foreground`, which `.dark` redefines
+ * in `globals.css`.
  */
 export function sparklineConfigForTrend(trend: TrendDirection): ChartConfig {
 	const token =
