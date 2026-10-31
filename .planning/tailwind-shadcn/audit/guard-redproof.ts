@@ -103,6 +103,11 @@ const GUARDS: GuardEntry[] = [
 				guardsModule.collectSourceCustomPropertyRefs(path.join(ctx.root, "src")),
 			),
 	},
+	{
+		id: "G3",
+		run: (ctx) =>
+			guardsModule.checkUtilityShadowing(ctx.css, path.join(ctx.root, "src/app")),
+	},
 ];
 
 const selected = args.guards ?? GUARDS.map((entry) => entry.id);
