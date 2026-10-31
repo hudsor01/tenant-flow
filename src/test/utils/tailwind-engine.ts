@@ -17,6 +17,9 @@
  * WHAT IT PROVIDES.
  *   - `loadProjectTailwindEngine()`: the real `src/app/globals.css`, read from
  *     disk on every call (the test file owns sharing one promise).
+ *   - `loadProjectDesignSystem(css?)`: only Tailwind's design system for a
+ *     stylesheet (the real one by default), for theme lookups that need no
+ *     compile and no scan.
  *   - `loadTailwindEngine({ css })`: the same pipeline for ANY stylesheet text,
  *     so a guard can be fed the pre-fix baseline
  *     (`git show 754c91802:src/app/globals.css`) to prove it fails there.
@@ -152,6 +155,13 @@ export async function loadTailwindEngine(
 export function loadProjectTailwindEngine(): Promise<TailwindEngine> {
 	const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
 	return loadTailwindEngine({ css });
+}
+
+/** The design system alone (theme lookups only, no compile and no scan) for `css`, by default the real `src/app/globals.css`. */
+export async function loadProjectDesignSystem(
+	css: string = readFileSync(GLOBALS_CSS_PATH, "utf8"),
+): Promise<TailwindDesignSystem> {
+	return __unstable__loadDesignSystem(css, { base: TAILWIND_BASE });
 }
 
 export function fixtureCss(body: string): string {
