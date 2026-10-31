@@ -1219,17 +1219,6 @@
 	}
 }
 
-/* Quick text utilities - semantic shortcuts */
-@utility text-muted {
-	font-size: var(--text-sm);
-	color: var(--color-muted-foreground);
-}
-
-@utility text-caption {
-	font-size: var(--text-caption);
-	color: var(--color-muted-foreground);
-}
-
 /* ============================================================================
    Typography Utilities - Premium Semantic Styles
    ============================================================================

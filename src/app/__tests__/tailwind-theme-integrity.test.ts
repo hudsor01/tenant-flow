@@ -45,6 +45,7 @@ import {
 	loadProjectTailwindEngine,
 	parseCss,
 	REPO_ROOT,
+	TAILWIND_BASE,
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
 import {
@@ -52,6 +53,7 @@ import {
 	checkNonInlineThemeVarRefs,
 	checkOklchRange,
 	checkSourceGlobs,
+	checkUtilityShadowing,
 	collectCustomPropertiesByContext,
 	collectSourceCustomPropertyRefs,
 	extractCustomPropertyRefs,
@@ -819,4 +821,80 @@ describe("G4 used theme color tokens have a dark value (B4 class)", () => {
 		);
 		expect(violations).toHaveLength(2);
 	});
+});
+
+describe("G3 — no @utility name shadows a core or theme utility", () => {
+	const FIXTURE_STATIC_CORE_SHADOW = "@utility flex { display: grid; }";
+	const FIXTURE_THEME_KEY_SHADOW =
+		"@theme { --text-caption: 0.6875rem; } @utility text-caption { font-size: 1px; }";
+	const FIXTURE_UNIQUE_NAMES =
+		"@utility tf-probe-unique { display: grid; } @utility tf-probe-* { width: --value(integer); }";
+
+	it(
+		"collects at least one non-functional @utility name from globals.css",
+		async () => {
+			const { css } = await projectEngine();
+			const { checked } = await checkUtilityShadowing(css, TAILWIND_BASE);
+			expect(
+				checked,
+				"G3 found no non-functional @utility in globals.css: the check is vacuous",
+			).toBeGreaterThanOrEqual(1);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"finds no @utility name that is also a core or theme utility",
+		async () => {
+			const { css } = await projectEngine();
+			const { violations } = await checkUtilityShadowing(css, TAILWIND_BASE);
+			expect(
+				violations,
+				[
+					"@utility name(s) shadow a Tailwind core/theme utility; both rules apply and the custom one silently wins or merges (B8: text-caption/75 became line-height 18.75rem). Rename the utility or delete it and use the core class:",
+					...violations,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"A: flags an @utility that shadows a static core utility",
+		async () => {
+			const { checked, violations } = await checkUtilityShadowing(
+				fixtureCss(FIXTURE_STATIC_CORE_SHADOW),
+				TAILWIND_BASE,
+			);
+			expect(checked).toBe(1);
+			expect(violations).toEqual(["flex"]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"B: flags an @utility that shadows a theme font-size key (the B8 defect)",
+		async () => {
+			const { checked, violations } = await checkUtilityShadowing(
+				fixtureCss(FIXTURE_THEME_KEY_SHADOW),
+				TAILWIND_BASE,
+			);
+			expect(checked).toBe(1);
+			expect(violations).toEqual(["text-caption"]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"accepts unique static and functional @utility names",
+		async () => {
+			const { checked, violations } = await checkUtilityShadowing(
+				fixtureCss(FIXTURE_UNIQUE_NAMES),
+				TAILWIND_BASE,
+			);
+			expect(checked).toBe(1);
+			expect(violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
 });

@@ -27,8 +27,11 @@
  *     rather than on the element that sets the referenced variable).
  *   - G4 `checkLightOnlyColorTokens`: every used theme color token has a dark
  *     value (B4 class); structure-agnostic resolver (H4).
- *   Later guard plans add their checks to this file: G3 (66.2-08), G5 (66.2-09),
- *   G7 (66.2-14), G8 (66.2-18).
+ *   - G3 `checkUtilityShadowing`: no non-functional `@utility` name is also a
+ *     core or theme utility (B8 class: Tailwind applies both rules, so the
+ *     custom one silently overrides or merges with the core one).
+ *   Later guard plans add their checks to this file: G5 (66.2-09), G7
+ *   (66.2-14), G8 (66.2-18).
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -46,6 +49,7 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { __unstable__loadDesignSystem } from "@tailwindcss/node";
 import type { SourceEntry } from "@tailwindcss/oxide";
 import { Scanner } from "@tailwindcss/oxide";
 import type { AtRule, Node as PostcssNode, Rule } from "postcss";
@@ -326,4 +330,31 @@ export function checkLightOnlyColorTokens(
 		}
 	}
 	return { checked, violations: violations.sort() };
+}
+
+/**
+ * G3. Collects every `@utility` name in the stylesheet, removes every
+ * `@utility` at-rule, loads Tailwind's design system for what remains, and
+ * reports each non-functional name (no trailing `-*`) that still compiles to
+ * CSS: that name is a core or theme utility the custom rule shadows. `checked`
+ * counts the non-functional names; violations keep source order.
+ */
+export async function checkUtilityShadowing(
+	css: string,
+	base: string,
+): Promise<GuardResult> {
+	const names: string[] = [];
+	const stripped = postcss.parse(css);
+	stripped.walkAtRules("utility", (atRule) => {
+		const name = atRule.params.trim();
+		if (!name.endsWith("-*") && !names.includes(name)) names.push(name);
+		atRule.remove();
+	});
+	const designSystem = await __unstable__loadDesignSystem(stripped.toString(), {
+		base,
+	});
+	const violations = names.filter(
+		(name) => designSystem.candidatesToCss([name])[0] != null,
+	);
+	return { checked: names.length, violations };
 }
