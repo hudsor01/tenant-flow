@@ -51,26 +51,6 @@ process.env.SKIP_INTEGRATION_TESTS = "true";
 
 // A `// @vitest-environment node` file in the unit project (tailwind-theme-integrity.test.ts) has no window/document; everything in this block exists only for jsdom.
 if (typeof window !== "undefined") {
-	// Mock CSS custom properties for theme layer testing
-	const mockCSSVariables = `
-	:root {
-		--spacing-1: 0.25rem;
-		--spacing-4: 1rem;
-		--color-primary: oklch(0.54 0.23 257);
-		--color-foreground: oklch(0.2 0.02 245);
-		--color-background: oklch(0.985 0.002 240);
-		--color-ring: oklch(0.5 0.2 257);
-		--focus-ring-width: 2px;
-		--focus-ring-color: oklch(0.5 0.2 257);
-		--layout-container-padding-x: clamp(1.5rem, 4vw, 3rem);
-	}
-`;
-
-	// Inject mock CSS variables into document head
-	const style = document.createElement("style");
-	style.textContent = mockCSSVariables;
-	document.head.appendChild(style);
-
 	// Mock window.matchMedia for components that use media queries (BlurFade, etc.)
 	Object.defineProperty(window, "matchMedia", {
 		writable: true,
