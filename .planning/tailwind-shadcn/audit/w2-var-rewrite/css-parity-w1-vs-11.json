@@ -1,0 +1,59 @@
+{
+ "baseline": "/Users/richard/Developer/tenant-flow-tw-shadcn/.planning/tailwind-shadcn/audit/w1/candidate-css.json",
+ "current": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-11/post/candidate-css.json",
+ "strict": true,
+ "total": 1916,
+ "identical": 1886,
+ "changed": 30,
+ "counts": {
+  "spacing-equivalent": 0,
+  "color-inline": 0,
+  "added": 0,
+  "removed": 0,
+  "unclassified": 0,
+  "intended:d20-rewrite-removed": 29,
+  "intended:d20-rewrite-added": 1
+ },
+ "lists": {
+  "spacing-equivalent": [],
+  "color-inline": [],
+  "added": [],
+  "removed": [],
+  "unclassified": [],
+  "intended:d20-rewrite-removed": [
+   "duration-[var(--duration-standard)]",
+   "gap-[var(--spacing-1)]",
+   "gap-[var(--spacing-2)]",
+   "gap-x-[var(--spacing-2)]",
+   "h-[var(--spacing-1_5)]",
+   "h-[var(--spacing-2)]",
+   "left-[var(--spacing-3)]",
+   "mb-[var(--spacing-3)]",
+   "mb-[var(--spacing-4)]",
+   "mr-[var(--spacing-2)]",
+   "mt-[var(--spacing-1)]",
+   "mt-[var(--spacing-2)]",
+   "mt-[var(--spacing-4)]",
+   "p-[var(--spacing-3)]",
+   "pl-[var(--spacing-9)]",
+   "pr-[var(--spacing-10)]",
+   "pt-[var(--spacing-4)]",
+   "right-[var(--spacing-3)]",
+   "rounded-[var(--radius-lg)]",
+   "size-[var(--spacing-12)]",
+   "size-[var(--spacing-2)]",
+   "size-[var(--spacing-3)]",
+   "size-[var(--spacing-4)]",
+   "size-[var(--spacing-5)]",
+   "size-[var(--spacing-6)]",
+   "space-y-[var(--spacing-2)]",
+   "space-y-[var(--spacing-4)]",
+   "space-y-[var(--spacing-6)]",
+   "w-[var(--spacing-1_5)]"
+  ],
+  "intended:d20-rewrite-added": [
+   "duration-(--duration-standard)"
+  ]
+ },
+ "unclassified": []
+}

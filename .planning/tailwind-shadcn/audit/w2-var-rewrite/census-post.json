@@ -1,0 +1,1584 @@
+{
+ "counts": {
+  "defer:dashboard-css": 59,
+  "keep:css-duration": 1,
+  "keep:css-radius": 11,
+  "keep:duration-inline-style": 6,
+  "keep:duration-no-canonical-form": 8,
+  "keep:test-pin": 12,
+  "keep:ui-vendored": 9
+ },
+ "distinct": {
+  "defer:dashboard-css": 14,
+  "keep:css-duration": 1,
+  "keep:css-radius": 5,
+  "keep:duration-inline-style": 6,
+  "keep:duration-no-canonical-form": 6,
+  "keep:test-pin": 3,
+  "keep:ui-vendored": 6
+ },
+ "refs": [
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 29,
+   "col": 8,
+   "offset": 608,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 34,
+   "col": 15,
+   "offset": 713,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "margin-top: var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 61,
+   "col": 18,
+   "offset": 1233,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 66,
+   "col": 17,
+   "offset": 1387,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "border-color var(--duration-300) var(--ease-out),",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 67,
+   "col": 15,
+   "offset": 1438,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "box-shadow var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 82,
+   "col": 12,
+   "offset": 1741,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "padding: var(--spacing-6) var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 82,
+   "col": 29,
+   "offset": 1758,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "padding: var(--spacing-6) var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 101,
+   "col": 12,
+   "offset": 2242,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "padding: var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 104,
+   "col": 8,
+   "offset": 2310,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 111,
+   "col": 8,
+   "offset": 2451,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 118,
+   "col": 8,
+   "offset": 2621,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 119,
+   "col": 18,
+   "offset": 2656,
+   "token": "--spacing-8",
+   "match": "var(--spacing-8)",
+   "text": "margin-bottom: var(--spacing-8);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 125,
+   "col": 8,
+   "offset": 2790,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "gap: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 131,
+   "col": 8,
+   "offset": 2924,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 145,
+   "col": 8,
+   "offset": 3170,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 147,
+   "col": 12,
+   "offset": 3238,
+   "token": "--spacing-5",
+   "match": "var(--spacing-5)",
+   "text": "padding: var(--spacing-5) var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 147,
+   "col": 29,
+   "offset": 3255,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "padding: var(--spacing-5) var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 148,
+   "col": 18,
+   "offset": 3290,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 153,
+   "col": 19,
+   "offset": 3459,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 171,
+   "col": 10,
+   "offset": 3897,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "width: var(--spacing-12);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 172,
+   "col": 11,
+   "offset": 3926,
+   "token": "--spacing-12",
+   "match": "var(--spacing-12)",
+   "text": "height: var(--spacing-12);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 173,
+   "col": 18,
+   "offset": 3962,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 177,
+   "col": 19,
+   "offset": 4185,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 191,
+   "col": 8,
+   "offset": 4530,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "gap: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 210,
+   "col": 10,
+   "offset": 4946,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "width: var(--spacing-10);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 211,
+   "col": 11,
+   "offset": 4975,
+   "token": "--spacing-10",
+   "match": "var(--spacing-10)",
+   "text": "height: var(--spacing-10);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 212,
+   "col": 18,
+   "offset": 5011,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 215,
+   "col": 19,
+   "offset": 5123,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 228,
+   "col": 8,
+   "offset": 5440,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 233,
+   "col": 8,
+   "offset": 5514,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 234,
+   "col": 12,
+   "offset": 5543,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4) var(--spacing-2);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 234,
+   "col": 29,
+   "offset": 5560,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "padding: var(--spacing-4) var(--spacing-2);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 235,
+   "col": 18,
+   "offset": 5595,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 237,
+   "col": 19,
+   "offset": 5664,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 250,
+   "col": 10,
+   "offset": 5986,
+   "token": "--spacing-11",
+   "match": "var(--spacing-11)",
+   "text": "width: var(--spacing-11);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 251,
+   "col": 11,
+   "offset": 6015,
+   "token": "--spacing-11",
+   "match": "var(--spacing-11)",
+   "text": "height: var(--spacing-11);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 252,
+   "col": 18,
+   "offset": 6051,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 274,
+   "col": 8,
+   "offset": 6563,
+   "token": "--spacing-2",
+   "match": "var(--spacing-2)",
+   "text": "gap: var(--spacing-2);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 277,
+   "col": 15,
+   "offset": 6664,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin-top: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 282,
+   "col": 18,
+   "offset": 6752,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 290,
+   "col": 16,
+   "offset": 7032,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding-top: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 291,
+   "col": 15,
+   "offset": 7064,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin-top: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 300,
+   "col": 8,
+   "offset": 7261,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 302,
+   "col": 18,
+   "offset": 7317,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 306,
+   "col": 12,
+   "offset": 7452,
+   "token": "--spacing-6",
+   "match": "var(--spacing-6)",
+   "text": "padding: var(--spacing-6);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 307,
+   "col": 19,
+   "offset": 7488,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 339,
+   "col": 18,
+   "offset": 8178,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 373,
+   "col": 18,
+   "offset": 9039,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 388,
+   "col": 18,
+   "offset": 9493,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 396,
+   "col": 18,
+   "offset": 9771,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl) !important;",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 424,
+   "col": 9,
+   "offset": 10573,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 429,
+   "col": 9,
+   "offset": 10666,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 433,
+   "col": 13,
+   "offset": 10727,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 438,
+   "col": 13,
+   "offset": 10811,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 446,
+   "col": 19,
+   "offset": 10988,
+   "token": "--spacing-1",
+   "match": "var(--spacing-1)",
+   "text": "margin-bottom: var(--spacing-1);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 452,
+   "col": 9,
+   "offset": 11103,
+   "token": "--spacing-3",
+   "match": "var(--spacing-3)",
+   "text": "gap: var(--spacing-3);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 453,
+   "col": 13,
+   "offset": 11133,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 458,
+   "col": 9,
+   "offset": 11221,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "gap: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 463,
+   "col": 13,
+   "offset": 11304,
+   "token": "--spacing-4",
+   "match": "var(--spacing-4)",
+   "text": "padding: var(--spacing-4);",
+   "kind": "defer:dashboard-css"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 491,
+   "col": 19,
+   "offset": 17591,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "transition: all var(--duration-200) var(--ease-out);",
+   "kind": "keep:css-duration"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 512,
+   "col": 18,
+   "offset": 17981,
+   "token": "--radius-sm",
+   "match": "var(--radius-sm)",
+   "text": "border-radius: var(--radius-sm);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 521,
+   "col": 18,
+   "offset": 18161,
+   "token": "--radius-md",
+   "match": "var(--radius-md)",
+   "text": "border-radius: var(--radius-md);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 617,
+   "col": 18,
+   "offset": 19656,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 854,
+   "col": 17,
+   "offset": 26415,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 870,
+   "col": 17,
+   "offset": 26846,
+   "token": "--radius-xl",
+   "match": "var(--radius-xl)",
+   "text": "border-radius: var(--radius-xl);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 886,
+   "col": 17,
+   "offset": 27177,
+   "token": "--radius-full",
+   "match": "var(--radius-full)",
+   "text": "border-radius: var(--radius-full);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 937,
+   "col": 17,
+   "offset": 28757,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 997,
+   "col": 17,
+   "offset": 30202,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1033,
+   "col": 17,
+   "offset": 31102,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1062,
+   "col": 17,
+   "offset": 31796,
+   "token": "--radius-lg",
+   "match": "var(--radius-lg)",
+   "text": "border-radius: var(--radius-lg);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1073,
+   "col": 17,
+   "offset": 32047,
+   "token": "--radius-md",
+   "match": "var(--radius-md)",
+   "text": "border-radius: var(--radius-md);",
+   "kind": "keep:css-radius"
+  },
+  {
+   "file": "src/components/auth/password-strength.tsx",
+   "line": 124,
+   "col": 55,
+   "offset": 3358,
+   "token": "--duration-standard",
+   "match": "-(--duration-standard)",
+   "text": "\"flex-1 rounded-full transition-all duration-(--duration-standard)\",",
+   "candidate": "duration-(--duration-standard)",
+   "position": 3350,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-empty-state.tsx",
+   "line": 28,
+   "col": 138,
+   "offset": 997,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "<div className=\"h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-[85%] [animation-delay:var(--duration-300)]\" />",
+   "candidate": "[animation-delay:var(--duration-300)]",
+   "position": 980,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-empty-state.tsx",
+   "line": 29,
+   "col": 138,
+   "offset": 1159,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "<div className=\"h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] w-[92%] [animation-delay:var(--duration-500)]\" />",
+   "candidate": "[animation-delay:var(--duration-500)]",
+   "position": 1142,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-empty-state.tsx",
+   "line": 31,
+   "col": 138,
+   "offset": 1369,
+   "token": "--duration-1000",
+   "match": "var(--duration-1000)",
+   "text": "<div className=\"h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] flex-1 [animation-delay:var(--duration-1000)]\" />",
+   "candidate": "[animation-delay:var(--duration-1000)]",
+   "position": 1352,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 18,
+   "col": 46,
+   "offset": 603,
+   "token": "--duration-100",
+   "match": "var(--duration-100)",
+   "text": "style={{ width: \"100%\", animationDelay: \"var(--duration-100)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 22,
+   "col": 45,
+   "offset": 770,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "style={{ width: \"85%\", animationDelay: \"var(--duration-200)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 26,
+   "col": 45,
+   "offset": 937,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "style={{ width: \"96%\", animationDelay: \"var(--duration-300)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 30,
+   "col": 45,
+   "offset": 1104,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "style={{ width: \"78%\", animationDelay: \"var(--duration-500)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 35,
+   "col": 45,
+   "offset": 1298,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "style={{ width: \"88%\", animationDelay: \"var(--duration-700)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/blog-loading-skeleton.tsx",
+   "line": 39,
+   "col": 45,
+   "offset": 1465,
+   "token": "--duration-1000",
+   "match": "var(--duration-1000)",
+   "text": "style={{ width: \"65%\", animationDelay: \"var(--duration-1000)\" }}",
+   "kind": "keep:duration-inline-style"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 13,
+   "col": 123,
+   "offset": 622,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[65%] [animation-delay:var(--duration-200)]\" />",
+   "candidate": "[animation-delay:var(--duration-200)]",
+   "position": 605,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 14,
+   "col": 123,
+   "offset": 769,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/40 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[45%] [animation-delay:var(--duration-300)]\" />",
+   "candidate": "[animation-delay:var(--duration-300)]",
+   "position": 752,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 15,
+   "col": 123,
+   "offset": 916,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[80%] [animation-delay:var(--duration-500)]\" />",
+   "candidate": "[animation-delay:var(--duration-500)]",
+   "position": 899,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/shared/chart-loading-skeleton.tsx",
+   "line": 16,
+   "col": 123,
+   "offset": 1063,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "<div className=\"w-8 rounded-t-sm bg-primary/20 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[55%] [animation-delay:var(--duration-700)]\" />",
+   "candidate": "[animation-delay:var(--duration-700)]",
+   "position": 1046,
+   "kind": "keep:duration-no-canonical-form"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 15,
+   "col": 24,
+   "offset": 475,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "it(\"grid-pattern uses var(--duration-500) for the SVG-level animationDuration\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 18,
+   "col": 69,
+   "offset": 643,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "\"TOKEN-02: grid-pattern.tsx SVG animationDuration must reference var(--duration-500)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 20,
+   "col": 36,
+   "offset": 715,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "'animationDuration: animated ? \"var(--duration-500)\" : undefined',",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 24,
+   "col": 24,
+   "offset": 784,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "it(\"grid-pattern uses var(--duration-200) for the per-square animationDuration\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 27,
+   "col": 76,
+   "offset": 960,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "\"TOKEN-02: grid-pattern.tsx per-square animationDuration must reference var(--duration-200)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 29,
+   "col": 36,
+   "offset": 1032,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "'animationDuration: animated ? \"var(--duration-200)\" : undefined',",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 47,
+   "col": 27,
+   "offset": 1553,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "it(\"loading-spinner uses var(--duration-200) for the second dot delay\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 50,
+   "col": 67,
+   "offset": 1711,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "\"TOKEN-02: loading-spinner.tsx second dot delay must reference var(--duration-200)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 51,
+   "col": 33,
+   "offset": 1765,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": ").toContain(\"[animation-delay:var(--duration-200)]\");",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 54,
+   "col": 27,
+   "offset": 1821,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "it(\"loading-spinner uses var(--duration-300) for the third dot delay (400ms snap)\", () => {",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 57,
+   "col": 64,
+   "offset": 1988,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "\"TOKEN-02: loading-spinner.tsx third dot delay must snap to var(--duration-300)\",",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.test.tsx",
+   "line": 58,
+   "col": 33,
+   "offset": 2042,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": ").toContain(\"[animation-delay:var(--duration-300)]\");",
+   "kind": "keep:test-pin"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.tsx",
+   "line": 68,
+   "col": 36,
+   "offset": 2080,
+   "token": "--duration-500",
+   "match": "var(--duration-500)",
+   "text": "animationDuration: animated ? \"var(--duration-500)\" : undefined,",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/grid-pattern.tsx",
+   "line": 116,
+   "col": 40,
+   "offset": 3374,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "animationDuration: animated ? \"var(--duration-200)\" : undefined,",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 26,
+   "col": 36,
+   "offset": 623,
+   "token": "--duration-1000",
+   "match": "var(--duration-1000)",
+   "text": "\"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 49,
+   "col": 78,
+   "offset": 1135,
+   "token": "--duration-500",
+   "match": "-(--duration-500)",
+   "text": "\"font-medium tracking-normal leading-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 199,
+   "col": 27,
+   "offset": 4310,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:0ms]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 205,
+   "col": 27,
+   "offset": 4503,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 205,
+   "col": 109,
+   "offset": 4585,
+   "token": "--duration-200",
+   "match": "var(--duration-200)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 211,
+   "col": 27,
+   "offset": 4712,
+   "token": "--duration-700",
+   "match": "var(--duration-700)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]\",",
+   "kind": "keep:ui-vendored"
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 211,
+   "col": 109,
+   "offset": 4794,
+   "token": "--duration-300",
+   "match": "var(--duration-300)",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]\",",
+   "kind": "keep:ui-vendored"
+  }
+ ],
+ "unclassified": [],
+ "x3Refs": [
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 52,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 66,
+   "name": "--ease-out",
+   "text": "border-color var(--duration-300) var(--ease-out),",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 67,
+   "name": "--ease-out",
+   "text": "box-shadow var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 95,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 153,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 177,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 195,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 202,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 215,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 237,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 259,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 266,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 275,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 307,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-300) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/(owner)/dashboard.css",
+   "line": 327,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/__tests__/tailwind-theme-integrity.test.ts",
+   "line": 809,
+   "name": "--color-white",
+   "text": "expect(compiledCss).toContain(\"var(--color-white)\");",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 303,
+   "name": "--ease-out",
+   "text": "--transition-card: all 500ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 304,
+   "name": "--ease-out",
+   "text": "--transition-hover: all 200ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 305,
+   "name": "--ease-out",
+   "text": "--transition-quick: all 150ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 307,
+   "name": "--ease-out",
+   "text": "color 180ms var(--ease-out), background 200ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 307,
+   "name": "--ease-out",
+   "text": "color 180ms var(--ease-out), background 200ms var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 372,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 423,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 432,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 440,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 448,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 456,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 463,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 464,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 474,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 491,
+   "name": "--ease-out",
+   "text": "transition: all var(--duration-200) var(--ease-out);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 592,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 673,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 887,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 888,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 968,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 975,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1071,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1132,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1236,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1245,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1254,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1263,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1273,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1282,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1292,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1301,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1310,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1319,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1327,
+   "name": "--text-base",
+   "text": "font-size: var(--text-base);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1333,
+   "name": "--text-xl",
+   "text": "font-size: var(--text-xl);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1339,
+   "name": "--text-lg",
+   "text": "font-size: var(--text-lg);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1340,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1346,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1347,
+   "name": "--font-weight-medium",
+   "text": "font-weight: var(--font-weight-medium);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1352,
+   "name": "--text-sm",
+   "text": "font-size: var(--text-sm);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1359,
+   "name": "--text-xs",
+   "text": "font-size: var(--text-xs);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1360,
+   "name": "--font-weight-semibold",
+   "text": "font-weight: var(--font-weight-semibold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1377,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1378,
+   "name": "--leading-none",
+   "text": "line-height: var(--leading-none);",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1386,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1387,
+   "name": "--leading-none",
+   "text": "line-height: var(--leading-none);",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1395,
+   "name": "--font-weight-bold",
+   "text": "font-weight: var(--font-weight-bold);",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/app/globals.css",
+   "line": 1396,
+   "name": "--leading-none",
+   "text": "line-height: var(--leading-none);",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 26,
+   "name": "--ease-linear",
+   "text": "\"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]\",",
+   "defaultDefines": false
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 49,
+   "name": "--ease-in-out",
+   "text": "\"font-medium tracking-normal leading-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]\",",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 199,
+   "name": "--ease-out",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:0ms]\",",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 205,
+   "name": "--ease-out",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]\",",
+   "defaultDefines": true
+  },
+  {
+   "file": "src/components/ui/loading-spinner.tsx",
+   "line": 211,
+   "name": "--ease-out",
+   "text": "\"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]\",",
+   "defaultDefines": true
+  }
+ ]
+}

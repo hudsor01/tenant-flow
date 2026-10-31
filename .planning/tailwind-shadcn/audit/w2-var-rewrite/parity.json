@@ -1,0 +1,396 @@
+{
+ "scope": "all",
+ "p1": {
+  "checked": 29,
+  "failures": []
+ },
+ "p2": {
+  "candidates": 1916,
+  "rawDiffLines": 42,
+  "scaleChecked": 14,
+  "failures": []
+ },
+ "p3": {
+  "checked": 62,
+  "tsxChecked": 29,
+  "cssChecked": 33,
+  "failures": [],
+  "css": [
+   {
+    "line": 334,
+    "selector": ":root",
+    "property": "--layout-section-padding-y",
+    "pre": "var(--spacing-16)",
+    "post": "calc(var(--spacing) * 16)",
+    "computed": {
+     "padding-top": "64px"
+    }
+   },
+   {
+    "line": 335,
+    "selector": ":root",
+    "property": "--layout-section-padding-y-compact",
+    "pre": "var(--spacing-12)",
+    "post": "calc(var(--spacing) * 12)",
+    "computed": {
+     "padding-top": "48px"
+    }
+   },
+   {
+    "line": 336,
+    "selector": ":root",
+    "property": "--layout-section-padding-y-spacious",
+    "pre": "var(--spacing-24)",
+    "post": "calc(var(--spacing) * 24)",
+    "computed": {
+     "padding-top": "96px"
+    }
+   },
+   {
+    "line": 337,
+    "selector": ":root",
+    "property": "--layout-section-padding-y-hero",
+    "pre": "var(--spacing-32)",
+    "post": "calc(var(--spacing) * 32)",
+    "computed": {
+     "padding-top": "128px"
+    }
+   },
+   {
+    "line": 342,
+    "selector": ":root",
+    "property": "--layout-content-padding",
+    "pre": "var(--spacing-8)",
+    "post": "calc(var(--spacing) * 8)",
+    "computed": {
+     "padding-top": "32px"
+    }
+   },
+   {
+    "line": 343,
+    "selector": ":root",
+    "property": "--layout-content-padding-compact",
+    "pre": "var(--spacing-4)",
+    "post": "calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "16px"
+    }
+   },
+   {
+    "line": 344,
+    "selector": ":root",
+    "property": "--layout-content-padding-spacious",
+    "pre": "var(--spacing-12)",
+    "post": "calc(var(--spacing) * 12)",
+    "computed": {
+     "padding-top": "48px"
+    }
+   },
+   {
+    "line": 345,
+    "selector": ":root",
+    "property": "--layout-content-padding-hero",
+    "pre": "var(--spacing-16)",
+    "post": "calc(var(--spacing) * 16)",
+    "computed": {
+     "padding-top": "64px"
+    }
+   },
+   {
+    "line": 346,
+    "selector": ":root",
+    "property": "--layout-gap-section",
+    "pre": "var(--spacing-16)",
+    "post": "calc(var(--spacing) * 16)",
+    "computed": {
+     "padding-top": "64px"
+    }
+   },
+   {
+    "line": 347,
+    "selector": ":root",
+    "property": "--layout-gap-group",
+    "pre": "var(--spacing-8)",
+    "post": "calc(var(--spacing) * 8)",
+    "computed": {
+     "padding-top": "32px"
+    }
+   },
+   {
+    "line": 348,
+    "selector": ":root",
+    "property": "--layout-gap-items",
+    "pre": "var(--spacing-4)",
+    "post": "calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "16px"
+    }
+   },
+   {
+    "line": 349,
+    "selector": ":root",
+    "property": "--layout-stack-loose",
+    "pre": "var(--spacing-12)",
+    "post": "calc(var(--spacing) * 12)",
+    "computed": {
+     "padding-top": "48px"
+    }
+   },
+   {
+    "line": 350,
+    "selector": ":root",
+    "property": "--layout-stack-default",
+    "pre": "var(--spacing-6)",
+    "post": "calc(var(--spacing) * 6)",
+    "computed": {
+     "padding-top": "24px"
+    }
+   },
+   {
+    "line": 355,
+    "selector": ":root",
+    "property": "--layout-stack-tight",
+    "pre": "var(--spacing-3)",
+    "post": "calc(var(--spacing) * 3)",
+    "computed": {
+     "padding-top": "12px"
+    }
+   },
+   {
+    "line": 356,
+    "selector": ":root",
+    "property": "--layout-navbar-height",
+    "pre": "var(--spacing-16)",
+    "post": "calc(var(--spacing) * 16)",
+    "computed": {
+     "padding-top": "64px"
+    }
+   },
+   {
+    "line": 357,
+    "selector": ":root",
+    "property": "--layout-navbar-spacing",
+    "pre": "var(--spacing-20)",
+    "post": "calc(var(--spacing) * 20)",
+    "computed": {
+     "padding-top": "80px"
+    }
+   },
+   {
+    "line": 951,
+    "selector": ".dashboard-panel-header",
+    "property": "padding",
+    "pre": "var(--spacing-5)",
+    "post": "calc(var(--spacing) * 5)",
+    "computed": {
+     "padding-top": "20px",
+     "padding-right": "20px",
+     "padding-bottom": "20px",
+     "padding-left": "20px"
+    }
+   },
+   {
+    "line": 977,
+    "selector": ".dashboard-panel-description",
+    "property": "margin",
+    "pre": "var(--spacing-1) 0 0 0",
+    "post": "var(--spacing) 0 0 0",
+    "computed": {
+     "margin-top": "4px",
+     "margin-right": "0px",
+     "margin-bottom": "0px",
+     "margin-left": "0px"
+    }
+   },
+   {
+    "line": 981,
+    "selector": ".dashboard-panel-body",
+    "property": "padding",
+    "pre": "var(--spacing-5)",
+    "post": "calc(var(--spacing) * 5)",
+    "computed": {
+     "padding-top": "20px",
+     "padding-right": "20px",
+     "padding-bottom": "20px",
+     "padding-left": "20px"
+    }
+   },
+   {
+    "line": 986,
+    "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-header",
+    "property": "padding",
+    "pre": "var(--spacing-3) var(--spacing-4)",
+    "post": "calc(var(--spacing) * 3) calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "12px",
+     "padding-right": "16px",
+     "padding-bottom": "12px",
+     "padding-left": "16px"
+    }
+   },
+   {
+    "line": 986,
+    "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-header",
+    "property": "padding",
+    "pre": "var(--spacing-3) var(--spacing-4)",
+    "post": "calc(var(--spacing) * 3) calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "12px",
+     "padding-right": "16px",
+     "padding-bottom": "12px",
+     "padding-left": "16px"
+    }
+   },
+   {
+    "line": 990,
+    "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-body",
+    "property": "padding",
+    "pre": "var(--spacing-3) var(--spacing-4)",
+    "post": "calc(var(--spacing) * 3) calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "12px",
+     "padding-right": "16px",
+     "padding-bottom": "12px",
+     "padding-left": "16px"
+    }
+   },
+   {
+    "line": 990,
+    "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-body",
+    "property": "padding",
+    "pre": "var(--spacing-3) var(--spacing-4)",
+    "post": "calc(var(--spacing) * 3) calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "12px",
+     "padding-right": "16px",
+     "padding-bottom": "12px",
+     "padding-left": "16px"
+    }
+   },
+   {
+    "line": 998,
+    "selector": "@utility dashboard-stat-card",
+    "property": "padding",
+    "pre": "var(--spacing-4)",
+    "post": "calc(var(--spacing) * 4)",
+    "computed": {
+     "padding-top": "16px",
+     "padding-right": "16px",
+     "padding-bottom": "16px",
+     "padding-left": "16px"
+    }
+   },
+   {
+    "line": 1028,
+    "selector": "@utility quick-action-button",
+    "property": "gap",
+    "pre": "var(--spacing-3)",
+    "post": "calc(var(--spacing) * 3)",
+    "computed": {
+     "row-gap": "12px",
+     "column-gap": "12px"
+    }
+   },
+   {
+    "line": 1030,
+    "selector": "@utility quick-action-button",
+    "property": "padding",
+    "pre": "var(--spacing-3)",
+    "post": "calc(var(--spacing) * 3)",
+    "computed": {
+     "padding-top": "12px",
+     "padding-right": "12px",
+     "padding-bottom": "12px",
+     "padding-left": "12px"
+    }
+   },
+   {
+    "line": 1031,
+    "selector": "@utility quick-action-button",
+    "property": "min-height",
+    "pre": "var(--spacing-11)",
+    "post": "calc(var(--spacing) * 11)",
+    "computed": {
+     "min-height": "44px"
+    }
+   },
+   {
+    "line": 1059,
+    "selector": "@utility view-toggle",
+    "property": "gap",
+    "pre": "var(--spacing-1)",
+    "post": "var(--spacing)",
+    "computed": {
+     "row-gap": "4px",
+     "column-gap": "4px"
+    }
+   },
+   {
+    "line": 1060,
+    "selector": "@utility view-toggle",
+    "property": "padding",
+    "pre": "var(--spacing-1)",
+    "post": "var(--spacing)",
+    "computed": {
+     "padding-top": "4px",
+     "padding-right": "4px",
+     "padding-bottom": "4px",
+     "padding-left": "4px"
+    }
+   },
+   {
+    "line": 1068,
+    "selector": "@utility view-toggle-button",
+    "property": "gap",
+    "pre": "var(--spacing-1_5)",
+    "post": "calc(var(--spacing) * 1.5)",
+    "computed": {
+     "row-gap": "6px",
+     "column-gap": "6px"
+    }
+   },
+   {
+    "line": 1069,
+    "selector": "@utility view-toggle-button",
+    "property": "padding",
+    "pre": "var(--spacing-1_5) var(--spacing-3)",
+    "post": "calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)",
+    "computed": {
+     "padding-top": "6px",
+     "padding-right": "12px",
+     "padding-bottom": "6px",
+     "padding-left": "12px"
+    }
+   },
+   {
+    "line": 1069,
+    "selector": "@utility view-toggle-button",
+    "property": "padding",
+    "pre": "var(--spacing-1_5) var(--spacing-3)",
+    "post": "calc(var(--spacing) * 1.5) calc(var(--spacing) * 3)",
+    "computed": {
+     "padding-top": "6px",
+     "padding-right": "12px",
+     "padding-bottom": "6px",
+     "padding-left": "12px"
+    }
+   },
+   {
+    "line": 1070,
+    "selector": "@utility view-toggle-button",
+    "property": "min-height",
+    "pre": "var(--spacing-8)",
+    "post": "calc(var(--spacing) * 8)",
+    "computed": {
+     "min-height": "32px"
+    }
+   }
+  ]
+ },
+ "p4": {
+  "checked": 29,
+  "scaleLinesRemoved": 36,
+  "danglingSpacingVars": 0,
+  "failures": []
+ }
+}
