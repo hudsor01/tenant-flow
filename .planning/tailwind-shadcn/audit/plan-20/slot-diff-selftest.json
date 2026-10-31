@@ -1,0 +1,66 @@
+{
+  "positive": {
+    "base": "84f3c58d3870b980b11599c99712255b85dcc867",
+    "mode": "biome-stdin",
+    "files": [
+      {
+        "file": "src/components/ui/alert.tsx",
+        "equal": true,
+        "addedSlots": [],
+        "unknownSlots": [],
+        "replacementsApplied": 0,
+        "problems": []
+      }
+    ]
+  },
+  "slotOnly": {
+    "base": "84f3c58d3870b980b11599c99712255b85dcc867",
+    "mode": "biome-stdin",
+    "files": [
+      {
+        "file": "src/components/ui/alert.tsx",
+        "equal": true,
+        "addedSlots": [
+          "alert"
+        ],
+        "unknownSlots": [],
+        "replacementsApplied": 0,
+        "problems": []
+      }
+    ]
+  },
+  "classChange": {
+    "base": "84f3c58d3870b980b11599c99712255b85dcc867",
+    "mode": "biome-stdin",
+    "files": [
+      {
+        "file": "src/components/ui/alert.tsx",
+        "equal": false,
+        "addedSlots": [
+          "alert"
+        ],
+        "unknownSlots": [],
+        "replacementsApplied": 0,
+        "problems": []
+      }
+    ]
+  },
+  "unknownSlot": {
+    "base": "84f3c58d3870b980b11599c99712255b85dcc867",
+    "mode": "biome-stdin",
+    "files": [
+      {
+        "file": "src/components/ui/alert.tsx",
+        "equal": true,
+        "addedSlots": [
+          "alert-bogus"
+        ],
+        "unknownSlots": [
+          "alert-bogus"
+        ],
+        "replacementsApplied": 0,
+        "problems": []
+      }
+    ]
+  }
+}
