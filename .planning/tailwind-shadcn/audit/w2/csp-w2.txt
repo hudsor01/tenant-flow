@@ -1,0 +1,19 @@
+# T-CSP probe, 66.2-15. Chromium console "Content Security Policy" errors + securitypolicyviolation events on :3062.
+# w2 = this tree's build; w1now = W1 gate tree build; basenow = 754c91802 build; all the same session.
+# w2
+/login count: 1
+/auth/confirm-email count: 0
+/login status 200 nonceCsp true console 0 events 1 script-src eval src=http://localhost:3062/_next/static/chunks/02w0d8rlgrux_.js:2:4409 disp=enforce sample=
+/auth/confirm-email status 200 nonceCsp true console 0 events 0 
+# w1now
+/login count: 1
+/auth/confirm-email count: 0
+/login status 200 nonceCsp true console 0 events 1 script-src eval src=http://localhost:3062/_next/static/chunks/02w0d8rlgrux_.js:2:4409 disp=enforce sample=
+/auth/confirm-email status 200 nonceCsp true console 0 events 0 
+# basenow
+/login count: 1
+/auth/confirm-email count: 0
+/login status 200 nonceCsp true console 0 events 1 script-src eval src=http://localhost:3062/_next/static/chunks/02w0d8rlgrux_.js:2:4409 disp=enforce sample=
+/auth/confirm-email status 200 nonceCsp true console 0 events 0 
+# beyond-basenow /login count: 0
+# beyond-basenow /auth/confirm-email count: 0
