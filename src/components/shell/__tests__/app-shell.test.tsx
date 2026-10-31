@@ -240,6 +240,18 @@ describe("AppShell", () => {
 			);
 		});
 
+		// The dock's collapsed-centering variant keys on the
+		// group/sidebar-wrapper element, so the dock must render inside it (D-39).
+		it("renders the dock inside the sidebar wrapper", () => {
+			render(<AppShell>Content</AppShell>);
+
+			expect(
+				screen
+					.getByTestId("quick-actions-dock")
+					.closest('[data-slot="sidebar-wrapper"]'),
+			).not.toBeNull();
+		});
+
 		it("drops both the dock and the lg:pb-28 clearance on /new routes", () => {
 			mockPathname.mockReturnValue("/properties/new");
 			const { container } = render(<AppShell>Content</AppShell>);

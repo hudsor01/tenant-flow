@@ -136,6 +136,50 @@ describe("QuickActionsDock", () => {
 		});
 	});
 
+	// The dock centers on the main column: half the --sidebar-width rail off
+	// center while the rail is docked and expanded, the viewport center when the
+	// offcanvas rail is collapsed, moving with the rail's transition.
+	describe("sidebar-aware centering (D-39, D-51)", () => {
+		const CENTERING_TOKENS = [
+			"fixed",
+			"bottom-6",
+			"left-1/2",
+			"-translate-x-1/2",
+			"z-50",
+			"hidden",
+			"lg:block",
+			"lg:left-[calc(50%+var(--sidebar-width)/2)]",
+			"group-has-data-[collapsible=offcanvas]/sidebar-wrapper:lg:left-1/2",
+			"lg:transition-[left]",
+			"lg:duration-200",
+			"lg:ease-linear",
+		];
+
+		function wrapperTokens(className = ""): string[] {
+			const { container } = render(<QuickActionsDock className={className} />);
+			const wrapper = container.firstChild as HTMLElement;
+			return wrapper.className.split(/\s+/).filter(Boolean);
+		}
+
+		it("carries every positioning and centering token", () => {
+			const tokens = wrapperTokens();
+			for (const token of CENTERING_TOKENS) {
+				expect(tokens).toContain(token);
+			}
+		});
+
+		it("no longer hard-codes the old half-rail offset", () => {
+			const { container } = render(<QuickActionsDock />);
+			const wrapper = container.firstChild as HTMLElement;
+			expect(wrapper.className).not.toContain(`${7}rem`);
+		});
+
+		it("keeps the custom className last", () => {
+			const tokens = wrapperTokens("custom-class");
+			expect(tokens.at(-1)).toBe("custom-class");
+		});
+	});
+
 	describe("empty actions", () => {
 		it("should render empty dock with no actions", () => {
 			render(<QuickActionsDock actions={[]} />);
