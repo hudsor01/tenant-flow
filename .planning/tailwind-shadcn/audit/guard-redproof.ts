@@ -153,6 +153,11 @@ const GUARDS: GuardEntry[] = [
 			);
 		},
 	},
+	{
+		// 66.2-16: D-23/X4 structure pin over <root>'s globals.css text.
+		id: "inline-structure",
+		run: (ctx) => guardsModule.checkInlineColorTokenStructure(ctx.css),
+	},
 ];
 
 const selected = args.guards ?? GUARDS.map((entry) => entry.id);
