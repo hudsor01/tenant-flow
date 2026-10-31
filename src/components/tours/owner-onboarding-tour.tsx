@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getSidebarTourTarget } from "#components/tours/sidebar-tour-target";
+import { useSidebar } from "#components/ui/sidebar";
 import {
 	Tour,
 	TourArrow,
@@ -39,6 +41,13 @@ export function OwnerOnboardingTour({
 	const [mounted, setMounted] = useState(false);
 	const [open, setOpen] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
+	// Step 5 follows the sidebar, not the width flag above: the rail is only
+	// on-screen when docked and expanded (D-39, ledger S7).
+	const { isMobile: isSheetSidebar, state: sidebarState } = useSidebar();
+	const navStep = getSidebarTourTarget({
+		isMobile: isSheetSidebar,
+		state: sidebarState,
+	});
 
 	// Track client-side mount to prevent hydration mismatch
 	useEffect(() => {
@@ -246,16 +255,13 @@ export function OwnerOnboardingTour({
 				</TourStep>
 
 				{/* Step 5: Sidebar Navigation */}
-				<TourStep
-					target="[data-tour='sidebar-nav']"
-					side={isMobile ? "bottom" : "right"}
-				>
+				<TourStep target={navStep.target} side={navStep.side}>
 					<TourClose />
 					<TourArrow />
 					<TourHeader>
 						<TourTitle>Navigate Your Portal</TourTitle>
 						<TourDescription className={isMobile ? "text-sm" : ""}>
-							{isMobile
+							{navStep.anchor === "trigger"
 								? "Access Properties, Tenants, Leases, and more from the menu."
 								: "Use the sidebar to access Properties, Tenants, Leases, Maintenance, Documents, Analytics, and Reports. You're all set to manage your properties!"}
 						</TourDescription>

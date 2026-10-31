@@ -27,6 +27,10 @@ import {
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	SIDEBAR_TOUR_RAIL_SELECTOR,
+	SIDEBAR_TOUR_TRIGGER_SELECTOR,
+} from "#components/tours/sidebar-tour-target";
 import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
 import { AppShell } from "../app-shell";
 
@@ -840,6 +844,21 @@ describe("AppShell", () => {
 
 			const sidebar = screen.getByRole("complementary");
 			expect(sidebar).toHaveAttribute("data-tour", "sidebar-nav");
+		});
+	});
+
+	// Tour step 5 points at one of these two anchors (D-39). The trigger is
+	// found by data-slot, never by name: the rail shares its accessible name.
+	describe("tour anchors (D-39)", () => {
+		it("resolves the trigger and rail selectors in the desktop shell", () => {
+			const { container } = render(<AppShell>Content</AppShell>);
+
+			const trigger = getTrigger(container);
+			expect(document.querySelector(SIDEBAR_TOUR_TRIGGER_SELECTOR)).toBe(
+				trigger,
+			);
+			expect(trigger).toHaveAccessibleName("Toggle navigation menu");
+			expect(document.querySelector(SIDEBAR_TOUR_RAIL_SELECTOR)).not.toBeNull();
 		});
 	});
 });
