@@ -12,7 +12,7 @@
 //   border-beam-grid, border-beam-reduced-motion, blur-fade-no-js, blur-fade-reduced-motion,
 //   blur-fade-io-stub, update-password-badge, data-table, card-action, button-group-nested,
 //   plain-popover, sheet, sheet-no-close, sheet-slot-override, button, toast-default,
-//   toast-success, toast-error, toast-loading
+//   toast-success, toast-error, toast-loading, quick-actions-dock-centering
 // card-action (ledger C6) mounts Card > CardHeader (title, description, CardAction holding a small
 // Button) + CardContent + CardFooter in a 600px wrapper; button-group-nested (ledger C13) mounts an
 // outer ButtonGroup holding two ButtonGroups of two outline Buttons. Both pass `data-probe` through
@@ -39,12 +39,17 @@
 // next-themes ThemeProvider (attribute="class", enableSystem={false}, storageKey="tf-probe-theme",
 // defaultTheme read from the <html> theme class), then raise one toast of that kind with an infinite
 // duration after mount. The runner measures; this file only renders.
+// quick-actions-dock-centering (66.2-35, D-39, D-51, VD-37) mounts the real SidebarProvider
+// (defaultOpen) holding a real Sidebar collapsible="offcanvas" with one empty SidebarContent, a real
+// SidebarTrigger and the real QuickActionsDock, so the dock sits inside the group/sidebar-wrapper
+// element its collapsed-centering variant keys on. The runner clicks the trigger and measures.
 // BlurFade uses the KPI props { delay: 6, duration: 500 } (66.2-27, D-30): the capped 480 ms delay
 // and the 500 ms slow duration, the longest entrance at any call site.
 //
 // Stubs (mapped by the resolver in component-probes.mjs):
 //   #lib/supabase/client  -> probes/stubs/supabase-client.ts
-//   #lib/frontend-logger  -> probes/stubs/frontend-logger.ts
+//   #lib/frontend-logger  -> probes/stubs/frontend-logger.ts (createLogger added by 66.2-35)
+//   next/link             -> probes/stubs/next-link.tsx (66.2-35)
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Plus, Search } from "lucide-react";
 import { ThemeProvider } from "next-themes";
@@ -57,6 +62,7 @@ import { toast } from "sonner";
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
 import { VerifyStep } from "#components/auth/two-factor-setup-steps";
 import { DataTable } from "#components/data-table/data-table";
+import { QuickActionsDock } from "#components/shell/quick-actions-dock";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import { Button } from "#components/ui/button";
@@ -85,6 +91,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#components/ui/sheet";
+import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "#components/ui/sidebar";
 import { Toaster } from "#components/ui/sonner";
 
 type Props = Record<string, unknown>;
@@ -325,6 +332,15 @@ const scenarios: Record<string, (p: Props) => ReactElement> = {
 	"toast-success": toastTree("success"),
 	"toast-error": toastTree("error"),
 	"toast-loading": toastTree("loading"),
+	"quick-actions-dock-centering": () => (
+		<SidebarProvider defaultOpen>
+			<Sidebar collapsible="offcanvas">
+				<SidebarContent />
+			</Sidebar>
+			<SidebarTrigger />
+			<QuickActionsDock />
+		</SidebarProvider>
+	),
 };
 
 const element = (id: string, props: Props = {}) => {

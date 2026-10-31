@@ -11,6 +11,7 @@
 // radix-ui's `import * as Dialog`) into $TW_AUDIT_OUT/.probes/entry.js. One resolver plugin maps
 //   #lib/supabase/client -> probes/stubs/supabase-client.ts
 //   #lib/frontend-logger -> probes/stubs/frontend-logger.ts
+//   next/link            -> probes/stubs/next-link.tsx (66.2-35: the real module reads process.env)
 //   #components/ #lib/ #hooks/ #types/ #stores/ #providers/ #config/ -> <ROOT>/src/<dir>/ (probing
 //   "" .tsx .ts /index.tsx /index.ts; anything else under # throws `unmapped <id>`)
 // and resolves bare imports of probes/ files relative to src/lib/utils.ts, so the probes use the
@@ -109,6 +110,17 @@
 //                            iconClasses = the [data-icon] svg classList (null without one);
 //                            iconWidth = its rounded width (null without one). Element screenshots:
 //                            $TW_AUDIT_OUT/probes-<label>-shots/toast-<kind>-<theme>.png
+//   quick-actions-dock-centering (66.2-35, D-39, D-51, VD-37)
+//                           { viewportWidth, sidebarWidthToken, expandedLeft, collapsedLeft,
+//                            collapsedAttr, reExpandedLeft, transitionProperty, transitionDuration,
+//                            transitionTimingFunction }  dock = the parent of the flex row holding
+//                            the action links; viewportWidth = documentElement.clientWidth;
+//                            sidebarWidthToken = the trimmed computed --sidebar-width on <html>;
+//                            the three lefts are the dock's computed left in px, read 300 ms after
+//                            mount, then 400 ms after each [data-slot="sidebar-trigger"] click
+//                            (past the 200 ms rail transition); collapsedAttr = data-collapsible of
+//                            [data-slot="sidebar"] after the first click; transition-* = the dock's
+//                            computed values
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -126,6 +138,7 @@ const UTILS = path.join(ROOT, "src/lib/utils.ts");
 const STUBS = {
 	"#lib/supabase/client": path.join(PROBES_DIR, "stubs/supabase-client.ts"),
 	"#lib/frontend-logger": path.join(PROBES_DIR, "stubs/frontend-logger.ts"),
+	"next/link": path.join(PROBES_DIR, "stubs/next-link.tsx"),
 };
 const ALIAS = /^#(components|lib|hooks|types|stores|providers|config)\/(.+)$/;
 const EXTS = ["", ".tsx", ".ts", "/index.tsx", "/index.ts"];
@@ -572,6 +585,47 @@ const PROBES = {
 	"toast-success": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "success", theme) },
 	"toast-error": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "error", theme) },
 	"toast-loading": { selectors: TOAST_SELECTORS, run: async ({ page, theme }) => measureToast(page, "loading", theme) },
+	"quick-actions-dock-centering": {
+		selectors: ['[data-slot="sidebar-trigger"]', 'a[aria-label="Add Property"]'],
+		run: async ({ page }) => {
+			const readDock = () =>
+				page.evaluate(() => {
+					const dock = document.querySelector('a[aria-label="Add Property"]').parentElement.parentElement;
+					const ds = getComputedStyle(dock);
+					return {
+						left: parseFloat(ds.left),
+						transitionProperty: ds.transitionProperty,
+						transitionDuration: ds.transitionDuration,
+						transitionTimingFunction: ds.transitionTimingFunction,
+					};
+				});
+			const trigger = page.locator('[data-slot="sidebar-trigger"]');
+			await page.waitForTimeout(300);
+			const expanded = await readDock();
+			const page0 = await page.evaluate(() => ({
+				viewportWidth: document.documentElement.clientWidth,
+				sidebarWidthToken: getComputedStyle(document.documentElement).getPropertyValue("--sidebar-width").trim(),
+			}));
+			await trigger.click();
+			await page.waitForTimeout(400);
+			const collapsed = await readDock();
+			const collapsedAttr = await page.evaluate(() => document.querySelector('[data-slot="sidebar"]')?.getAttribute("data-collapsible") ?? null);
+			await trigger.click();
+			await page.waitForTimeout(400);
+			const reExpanded = await readDock();
+			return {
+				viewportWidth: page0.viewportWidth,
+				sidebarWidthToken: page0.sidebarWidthToken,
+				expandedLeft: expanded.left,
+				collapsedLeft: collapsed.left,
+				collapsedAttr,
+				reExpandedLeft: reExpanded.left,
+				transitionProperty: expanded.transitionProperty,
+				transitionDuration: expanded.transitionDuration,
+				transitionTimingFunction: expanded.transitionTimingFunction,
+			};
+		},
+	},
 };
 
 const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost", "link"];
