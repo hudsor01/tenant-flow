@@ -65,6 +65,23 @@
   "invert",
   "table-column"
  ],
+ "b10-owner-loading-utilities": [
+  "gap-(--layout-gap-group)",
+  "gap-(--layout-gap-items)",
+  "gap-[var(--layout-gap-group)]",
+  "gap-[var(--layout-gap-items)]",
+  "grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]",
+  "mb-(--layout-gap-items)",
+  "mb-[var(--layout-gap-items)]",
+  "p-(--layout-content-padding)",
+  "p-(--layout-content-padding-compact)",
+  "p-[var(--layout-content-padding)]",
+  "p-[var(--layout-content-padding-compact)]",
+  "pb-(--layout-gap-items)",
+  "pb-[var(--layout-gap-items)]",
+  "py-(--layout-gap-items)",
+  "py-[var(--layout-gap-items)]"
+ ],
  "x3-width-full-single-declaration": [
   "/(^|:)w-full$/"
  ],
