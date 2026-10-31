@@ -230,6 +230,42 @@
         }
       ]
     },
+    "src/components/ui/chart.tsx": {
+      "item": "chart",
+      "plan": "66.2-25",
+      "divergences": [
+        {
+          "what": "ChartContainer keeps the requestAnimationFrame mount gate and ResponsiveContainer minWidth={1} minHeight={1} instead of upstream's initialDimension prop and INITIAL_DIMENSION constant (battle-test Session 8 width(-1) warnings)",
+          "reason": "D-26 customization",
+          "ref": "D-26; 66.2-25"
+        },
+        {
+          "what": "ChartTooltip, ChartTooltipContent, ChartLegend and ChartLegendContent (with the local TooltipNameType) live in the split chart-tooltip.tsx, so chart.tsx exports useChart and getPayloadConfigFromPayload for it",
+          "reason": "D-26 customization",
+          "ref": "D-26 (split chart-tooltip.tsx); ledger C15"
+        },
+        {
+          "what": "ChartStyle stays module-private (not exported) and keeps the SSR guard that returns null for an undefined or non-object config, with || fallbacks for the theme color and the chart id where upstream uses ??",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "the cartesian-grid, polar-grid, reference-line, dot and sector recolour selectors match the stroke attribute's presence ([stroke]) instead of upstream's hex attribute values",
+          "reason": "D-26 customization",
+          "ref": "D-28; ledger C2; VD-16; VD-17"
+        },
+        {
+          "what": "class token order in ChartContainer",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        },
+        {
+          "what": "ChartConfig as a mapped type instead of Record, and getPayloadConfigFromPayload's payload typed Record<string, unknown> | undefined instead of unknown",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
     "src/components/ui/checkbox.tsx": {
       "item": "checkbox",
       "plan": "66.2-20",
