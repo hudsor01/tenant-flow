@@ -23,7 +23,7 @@ function Spinner({ className, ...props }: ComponentProps<"svg">) {
 
 // CVA variants for LoadingSpinner
 const spinnerVariants = cva(
-	"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]",
+	"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:linear]",
 	{
 		variants: {
 			size: {

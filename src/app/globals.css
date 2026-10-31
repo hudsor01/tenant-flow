@@ -1376,7 +1376,7 @@
 	font-family: var(--font-sans);
 	font-size: var(--text-stat);
 	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-none);
+	line-height: 1;
 	letter-spacing: var(--tracking-tight);
 	font-variant-numeric: tabular-nums;
 }
@@ -1385,7 +1385,7 @@
 	font-family: var(--font-sans);
 	font-size: var(--text-stat-lg);
 	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-none);
+	line-height: 1;
 	letter-spacing: var(--tracking-tighter);
 	font-variant-numeric: tabular-nums;
 }
@@ -1394,7 +1394,7 @@
 	font-family: var(--font-sans);
 	font-size: var(--text-stat-xl);
 	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-none);
+	line-height: 1;
 	letter-spacing: var(--tracking-tighter);
 	font-variant-numeric: tabular-nums;
 }
