@@ -1,5 +1,5 @@
 // Real-component Chromium probes for the Tailwind v4 / shadcn remediation (ledger rows C1, C2, C3,
-// C6, C7, C12a, C12b, C12c, C13 and research rows N1, N2, N3). jsdom computes neither layout nor oklch, so
+// C6, C7, C12a, C12b, C12c, C13 and research rows N1, N2, N3, H10). jsdom computes neither layout nor oklch, so
 // these mount the REAL repo components in headless Chromium, styled by the REAL compiled
 // src/app/globals.css. Read-only against the repo: writes only to $TW_AUDIT_OUT (default:
 // <tmpdir>/tenantflow-tw-audit).
@@ -31,7 +31,23 @@
 //                            borderWidths: [t,r,b,l], radii: [tl,tr,br,bl] }] }
 //   chart                   { gridLineCount, gridStroke, activeDotStroke, activeDotStrokeWidth }
 //   command                 { wrapperHeight, inputHeight, inputOverflowsWrapper }
-//   date-popover            { popoverContentDataSlotCount, popoverBg, calendarBg, popoverRadius }
+//   date-popover            { popoverContentDataSlotCount, popoverBg, calendarBg, popoverRadius,
+//                            cornerPatch, cornerPatchMaxDiffVsPlain }
+//   plain-popover (C7 ref)  { cornerPatch }  only this field: the reference surface carries no
+//                            data-slot reading, so a correct data-slot change cannot move it
+//                            cornerPatch = 100 [r,g,b,a] tuples, row-major, of the 10x10 CSS-pixel
+//                            screenshot clip at the top-left of the PopoverContent border box,
+//                            decoded in the page (createImageBitmap + OffscreenCanvas);
+//                            cornerPatchMaxDiffVsPlain = max |channel difference| between the
+//                            date-popover and plain-popover patches of the same theme, added after
+//                            every probe ran (null when either patch is missing)
+//   sheet, sheet-no-close, sheet-slot-override (H10)
+//                           { contentRole, contentDataSlot, overlayDataSlot, headerDataSlot,
+//                            titleDataSlot, descriptionDataSlot, footerDataSlot, closeButtonCount,
+//                            closeWidth, closeHeight, closeAriaLabel, closeSrOnlyTextCount }
+//                            content = [role=dialog]; overlay = its previous element sibling; close
+//                            = the dialog's direct-child buttons holding svg.lucide-x (width/height
+//                            from the first, rounded to integers); missing attributes are null
 //   grid-pattern            { svgStroke, pathStroke, svgStrokeRgba }
 //   border-beam-stats/-grid { props, afterBackgroundImage, afterAnimationName,
 //                            afterAnimationDuration, runningAnimations }
@@ -260,6 +276,57 @@ const measureOtp = (page) =>
 		return { slotCount: slots.length, dataSlotCount: container.querySelectorAll("[data-slot]").length, slots };
 	});
 
+// C7 corner reference: screenshot the 10x10 top-left patch of the PopoverContent border box and
+// decode it in the page, so no PNG decoder dependency is needed.
+const cornerPatch = async (page) => {
+	const box = await page.evaluate(() => {
+		const r = document.querySelector("[data-radix-popper-content-wrapper] > *").getBoundingClientRect();
+		return { x: Math.round(r.left), y: Math.round(r.top) };
+	});
+	const png = await page.screenshot({ clip: { x: box.x, y: box.y, width: 10, height: 10 } });
+	return page.evaluate(async (b64) => {
+		const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+		const bmp = await createImageBitmap(new Blob([bytes], { type: "image/png" }), { colorSpaceConversion: "none", premultiplyAlpha: "none" });
+		const cv = new OffscreenCanvas(bmp.width, bmp.height);
+		const cx = cv.getContext("2d", { willReadFrequently: true });
+		cx.drawImage(bmp, 0, 0);
+		const d = cx.getImageData(0, 0, bmp.width, bmp.height).data;
+		const out = [];
+		for (let i = 0; i < d.length; i += 4) out.push([d[i], d[i + 1], d[i + 2], d[i + 3]]);
+		return out;
+	}, png.toString("base64"));
+};
+
+const measureSheet = (page) =>
+	page.evaluate(async () => {
+		const { settle } = window.__tfMeasure;
+		await settle();
+		const dialog = document.querySelector("[role=dialog]");
+		const slotOf = (el) => (el ? el.getAttribute("data-slot") : null);
+		const overlay = dialog.previousElementSibling;
+		const header = dialog.querySelector("h2")?.parentElement ?? null;
+		const title = dialog.querySelector("h2");
+		const description = dialog.querySelector("p");
+		const footer = [...dialog.querySelectorAll("button")].find((b) => b.textContent === "Done")?.parentElement ?? null;
+		const closes = [...dialog.children].filter((el) => el.tagName === "BUTTON" && el.querySelector("svg.lucide-x"));
+		const close = closes[0] ?? null;
+		const rect = close ? close.getBoundingClientRect() : null;
+		return {
+			contentRole: dialog.getAttribute("role"),
+			contentDataSlot: slotOf(dialog),
+			overlayDataSlot: slotOf(overlay),
+			headerDataSlot: slotOf(header),
+			titleDataSlot: slotOf(title),
+			descriptionDataSlot: slotOf(description),
+			footerDataSlot: slotOf(footer),
+			closeButtonCount: closes.length,
+			closeWidth: rect ? Math.round(rect.width) : null,
+			closeHeight: rect ? Math.round(rect.height) : null,
+			closeAriaLabel: close ? close.getAttribute("aria-label") : null,
+			closeSrOnlyTextCount: close ? close.querySelectorAll(".sr-only").length : null,
+		};
+	});
+
 const PROBES = {
 	"otp-setup": { selectors: ["[data-input-otp-container]"], run: async ({ page }) => measureOtp(page) },
 	"otp-mfa": { selectors: ["[data-input-otp-container]"], run: async ({ page }) => measureOtp(page) },
@@ -298,8 +365,8 @@ const PROBES = {
 	},
 	"date-popover": {
 		selectors: ["[data-radix-popper-content-wrapper] > *", "[data-slot=calendar], .rdp-root"],
-		run: async ({ page }) =>
-			page.evaluate(async () => {
+		run: async ({ page }) => {
+			const r = await page.evaluate(async () => {
 				const { toRgbaArray, settle } = window.__tfMeasure;
 				await settle();
 				const content = document.querySelector("[data-radix-popper-content-wrapper] > *");
@@ -311,8 +378,20 @@ const PROBES = {
 					calendarBg: toRgbaArray(getComputedStyle(cal).backgroundColor),
 					popoverRadius: cs.borderRadius,
 				};
-			}),
+			});
+			return { ...r, cornerPatch: await cornerPatch(page) };
+		},
 	},
+	"plain-popover": {
+		selectors: ["[data-radix-popper-content-wrapper] > *"],
+		run: async ({ page }) => {
+			await page.evaluate(() => window.__tfMeasure.settle());
+			return { cornerPatch: await cornerPatch(page) };
+		},
+	},
+	sheet: { selectors: ["[role=dialog]"], run: async ({ page }) => measureSheet(page) },
+	"sheet-no-close": { selectors: ["[role=dialog]"], run: async ({ page }) => measureSheet(page) },
+	"sheet-slot-override": { selectors: ["[role=dialog]"], run: async ({ page }) => measureSheet(page) },
 	"grid-pattern": {
 		selectors: ["#root svg", "#root svg path"],
 		run: async ({ page }) =>
@@ -485,6 +564,21 @@ try {
 	}
 } finally {
 	await browser.close();
+}
+
+// date-popover vs plain-popover corner patch, per theme (C7: the square calendar background erases
+// the popover's rounded border arc when the two differ).
+if (results["date-popover"]) {
+	for (const theme of THEMES) {
+		const a = results["date-popover"][theme]?.cornerPatch;
+		const b = results["plain-popover"]?.[theme]?.cornerPatch;
+		let max = null;
+		if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {
+			max = 0;
+			for (let i = 0; i < a.length; i++) for (let c = 0; c < 4; c++) max = Math.max(max, Math.abs(a[i][c] - b[i][c]));
+		}
+		if (results["date-popover"][theme] && !results["date-popover"][theme].error) results["date-popover"][theme].cornerPatchMaxDiffVsPlain = max;
+	}
 }
 
 const tailwindVersion = JSON.parse(fs.readFileSync(require.resolve("tailwindcss/package.json"), "utf8")).version;

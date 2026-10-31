@@ -10,7 +10,8 @@
 // Scenario ids (component-probes.mjs and later plans read these verbatim):
 //   otp-setup, otp-mfa, chart, command, date-popover, grid-pattern, border-beam-stats,
 //   border-beam-grid, blur-fade-no-js, blur-fade-reduced-motion, blur-fade-io-stub,
-//   update-password-badge, data-table, card-action, button-group-nested
+//   update-password-badge, data-table, card-action, button-group-nested, plain-popover, sheet,
+//   sheet-no-close, sheet-slot-override
 // card-action (ledger C6) mounts Card > CardHeader (title, description, CardAction holding a small
 // Button) + CardContent + CardFooter in a 600px wrapper; button-group-nested (ledger C13) mounts an
 // outer ButtonGroup holding two ButtonGroups of two outline Buttons. Both pass `data-probe` through
@@ -19,6 +20,12 @@
 // <BorderBeam block of tenant-stats.tsx / tenant-grid.tsx; update-password-badge receives the
 // className literal read from update-password-form.tsx. Neither string is in this file, so the
 // probe-dir scan never adds it to the CSS build.
+// plain-popover (66.2-21) mounts the date-popover Popover tree with a background-less size-24 div in
+// place of the Calendar: the reference surface for the date-popover corner patch (C7). sheet,
+// sheet-no-close and sheet-slot-override (66.2-21, H10) mount an open left SheetContent holding
+// SheetHeader (SheetTitle, SheetDescription) and a SheetFooter with a plain button; the last two add
+// showCloseButton={false} and data-slot="sidebar" to SheetContent through a props spread, so the
+// scenario renders on a Sheet that does not know either prop yet.
 // BlurFade uses today's KPI props { inView: true, delay: 6, duration: 500 }; plan 66.2-27 updates
 // them when it removes `inView`.
 //
@@ -55,6 +62,14 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import { Dialog, DialogContent } from "#components/ui/dialog";
 import { GridPattern } from "#components/ui/grid-pattern";
 import { Popover, PopoverContent, PopoverTrigger } from "#components/ui/popover";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+} from "#components/ui/sheet";
 
 type Props = Record<string, unknown>;
 const noop = () => {};
@@ -103,6 +118,20 @@ const beam = (p: Props) => (
 	</div>
 );
 
+const sheetTree = (contentProps: Props) => (
+	<Sheet open>
+		<SheetContent side="left" {...contentProps}>
+			<SheetHeader>
+				<SheetTitle>Probe sheet</SheetTitle>
+				<SheetDescription>Probe description</SheetDescription>
+			</SheetHeader>
+			<SheetFooter>
+				<button type="button">Done</button>
+			</SheetFooter>
+		</SheetContent>
+	</Sheet>
+);
+
 const scenarios: Record<string, (p: Props) => ReactElement> = {
 	"otp-setup": () => (
 		<Dialog open>
@@ -149,6 +178,19 @@ const scenarios: Record<string, (p: Props) => ReactElement> = {
 			</Popover>
 		</div>
 	),
+	"plain-popover": () => (
+		<div className="p-8">
+			<Popover open>
+				<PopoverTrigger>Pick a date</PopoverTrigger>
+				<PopoverContent className="w-auto p-0" align="start">
+					<div className="size-24" />
+				</PopoverContent>
+			</Popover>
+		</div>
+	),
+	sheet: () => sheetTree({}),
+	"sheet-no-close": () => sheetTree({ showCloseButton: false }),
+	"sheet-slot-override": () => sheetTree({ "data-slot": "sidebar" }),
 	"grid-pattern": () => (
 		<div className="relative h-[300px] w-[400px]">
 			<GridPattern />
