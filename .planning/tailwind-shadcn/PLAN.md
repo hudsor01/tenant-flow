@@ -93,21 +93,21 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 1,553 (66.2-02; `source("..")` projection 914) |
-| M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 1 |
-| M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 1 |
-| M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 11 |
-| M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 2 |
-| M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | 14 |
-| M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 12 |
-| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 55 / 47 / 90 of 133 / 1 / 20 |
-| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | 33 of 39 / 4 |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 146 (53 + 15 files; 97 distinct first-party candidates, G8) |
-| R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | magenta `[255,0,255]` |
-| R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Roboto (`--font-sans`) |
-| R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Times |
-| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | 1.02 (renew-lease body/icon, derived `DialogContent` outer), prose 1.12 |
-| R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | donut (44×44, 12px padding) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 1,556 (W1, 66.2-10; unchanged target, moves in W2) |
+| M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (W1) |
+| M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (W1) |
+| M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (W1) |
+| M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 0 (W1) |
+| M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | 7, all mode-independent (white, black, chart-1..5) (W1) |
+| M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (W1) |
+| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 44 / 46 / 89 of 131 / 1 / 12 (W1; W2 target) |
+| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | 33 of 39 / 4 (W1; W2 target) |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 139 (53 + 15 files) (W1; W4 target) |
+| R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (W1) |
+| R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (W1) |
+| R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (W1) |
+| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | worst 5.44 (renew-lease body/icon, light); dark ≥ 7.53, prose ≥ 13.5 (W1) |
+| R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | 32×18.4, padding 0 (W1) |
 
 ---
 
@@ -277,17 +277,17 @@ The B2 rule as validated:
 - [x] Capture a screenshot matrix (light/dark × 390/1280): `/`, `/pricing`, `/help`, `/faq`, `/login`, `/signup`, `/contact`, one `/blog/<slug>`, `/privacy`. Owner surfaces get the same matrix via the `owner-axe` login, or under Phase 6. 66.2-02, baseline at `.planning/tailwind-shadcn/audit/baseline/`.
 
 ### Phase 1 (wave 1): Visible bugs and permanent guards
-- [ ] B1: fix `--color-secondary`.
-- [ ] B2: relayer and scope the mobile touch-target rule. Re-measure the switch and checkbox on `/pricing` and `/signup` at 390px, and all inputs ≥ 44px (the E-2/E-3 48px inputs unchanged).
-- [ ] B3: `src/lib/fonts.ts`, variables on `<html>` in `layout.tsx` and `global-error.tsx`, `@theme inline` fonts, drop the base `code`/`pre` font-family and `--font-family`. Update `THEME_NO_FLASH_SCRIPT_HASH` **only if** the `ThemeProvider` script changes (it shouldn't).
-- [ ] B4: migrate the label/fill/separator consumers to semantic tokens and delete the family.
-- [ ] B5: `dark:prose-invert` on the two prose surfaces.
-- [ ] B6: fix the `BorderBeam` colors.
-- [ ] B7: `extendTailwindMerge` config.
-- [ ] B8: remove `@utility text-caption` (and the dead colliding `@utility text-muted`); update the 18 call sites and google-button.
-- [ ] X1: delete the tautological tests and the jsdom mock injection.
-- [ ] Guards G1–G6 (§6) land in this wave.
-- **Exit:** R1–R5 at target; M3, M5, M7 = 0; M4 = 8 (sidebar only); M6 = 0 outside G4's allow-list (white, black, chart-1…5); every render-check contrast ≥ 4.5 (icons ≥ 3).
+- [x] B1: fix `--color-secondary`.
+- [x] B2: relayer and scope the mobile touch-target rule. Re-measure the switch and checkbox on `/pricing` and `/signup` at 390px, and all inputs ≥ 44px (the E-2/E-3 48px inputs unchanged).
+- [x] B3: `src/lib/fonts.ts`, variables on `<html>` in `layout.tsx` and `global-error.tsx`, `@theme inline` fonts, drop the base `code`/`pre` font-family and `--font-family`. Update `THEME_NO_FLASH_SCRIPT_HASH` **only if** the `ThemeProvider` script changes (it shouldn't).
+- [x] B4: migrate the label/fill/separator consumers to semantic tokens and delete the family.
+- [x] B5: `dark:prose-invert` on the two prose surfaces.
+- [x] B6: fix the `BorderBeam` colors.
+- [x] B7: `extendTailwindMerge` config.
+- [x] B8: remove `@utility text-caption` (and the dead colliding `@utility text-muted`); update the 18 call sites and google-button.
+- [x] X1: delete the tautological tests and the jsdom mock injection.
+- [x] Guards G1–G6 (§6) land in this wave.
+- **Exit:** R1–R5 at target; M3, M5, M7 = 0; M4 = 0 (the brand sidebar `@theme` block moved into wave 1, RESEARCH H1); M6 = 0 outside G4's allow-list (white, black, chart-1…5); every render-check contrast ≥ 4.5 (icons ≥ 3).
 
 ### Phase 2 (wave 2): Dead and misleading code, source scoping
 - [ ] B9: `source("..")`, delete the bogus `@source` and redundant exclusions.
@@ -387,6 +387,13 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - Guard prototype reproduces G1 1 / G2 11 / G3 2 / G4 6 / G5 44 / G6 1 / G7 8 / G8 97. Token snapshot: 71 `--color-*` tokens, re-run with the fixed list is identical; css-parity self-diff 0 hunks.
   - Screenshot matrix: 92 captures (44 public, 48 owner: light/dark × 390/1280, plus `/applications` at 375 and 320), repeated after 60 s; 4 of 92 differ by sha256 between the two runs (pricing/signup at 390, 12 px at most). `/signup` redirects to `/pricing`.
   - The owner set used the local production build (`next start :3062`, `NEXT_PUBLIC_APP_URL=http://localhost:3062`) against production Supabase, signed in once per run as the synthetic owner A; it only navigated.
+- **2026-10-30.** Wave 1 gate (66.2-10) passed:
+  - §7.1 audit: M2 0, M3 0, M4 0, M5 0, M6 7 (white, black, chart-1..5 only), M7 0 through `src/lib/utils.ts` `cn`; source assertions 24/24.
+  - §7.2 rule parity: 22 hunks vs `baseline/candidate-css.json`, all attributed to 66.2-05..08 (class (e) empty: the D-07 literal never appears in candidate CSS).
+  - §7.3 token parity: exactly 25 changes (light.secondary [222,243,255,1] plus the 12 deleted tokens in both modes); R1-R5 at target.
+  - §7.4 guards and build: G1-G6 red on 754c91802 (1/11/2/7/44/1) and 0 now; validate:quick, the coverage ratchet and `next build` exit 0.
+  - §7.5 screenshots and owner-axe: `baseline` vs a same-session 754c91802 capture differs 92/92 after the 2026-10-26 macOS 27.2 upgrade, so W1 was diffed against that capture (`basenow`): 22 identical, 64 intended (VD-01/02/03/04/06/10/11), 6 owner data drift. CSP: no violation beyond 754c91802 (zod's caught `Function("")` probe on `/login`, pre-existing). owner-axe 36/37 with E-22 passing; `dashboard-a11y` fails locally on 754c91802 too and passes in CI.
+  - §7.6 Aikido: path scans 0 issues; the SAST engine failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner.
 
 ---
 

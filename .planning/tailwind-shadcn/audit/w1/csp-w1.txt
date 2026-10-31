@@ -1,0 +1,12 @@
+# T-CSP probe, 2026-10-30. Chromium, console "Content Security Policy" errors + securitypolicyviolation events.
+# Rule (Same-session controls (2), 9055e1c53): pass = no violation beyond a same-session build of 754c91802 on the same routes.
+# w1 = this tree's own `next start -p 3062` (Task 2 build); basenow = 754c91802 git-archive build, same session, :3062.
+w1 /login count: 1
+w1 /auth/confirm-email count: 0
+basenow-754c91802 /login count: 1
+basenow-754c91802 /auth/confirm-email count: 0
+beyond-basenow /login count: 0
+beyond-basenow /auth/confirm-email count: 0
+# Both /login reports are the same event: script-src eval, disposition enforce, from _next/static/chunks/02w0d8rlgrux_.js:2:4409
+# = zod 4.6.7's caught JIT capability probe `try { Function("") } catch {}`; no console error. Pre-existing on 754c91802;
+# carried as a follow-up outside phase 66.2. src/proxy.ts and src/components/providers.tsx are byte-identical to 754c91802.

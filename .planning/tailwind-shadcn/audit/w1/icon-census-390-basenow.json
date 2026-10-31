@@ -1,0 +1,2319 @@
+{
+ "public/": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "How long does it take to get s",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What if I have fewer than 10 u",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Where do I store lease PDFs an",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Can I switch from my current s",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What's included in the free tr",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "public/pricing": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Start free",
+   "svg": "lucide-arrow-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Start free",
+   "svg": "lucide-arrow-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Start free",
+   "svg": "lucide-arrow-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Property Management",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Document Vault",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Leases",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Maintenance",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reporting & Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Support",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Can I change plans later?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "What payment methods do you ac",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Is there a long-term contract?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "What happens if I exceed my pl",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Can I cancel any time?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "public/help": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "public/faq": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Upload Documentvault",
+   "svg": "lucide-folder-archive",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "Maintenance2 open",
+   "svg": "lucide-wrench",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "Send for E-Sign",
+   "svg": "lucide-file-pen-line",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "Send for E-Sign",
+   "svg": "lucide-chevron-right",
+   "w": 9.2,
+   "h": 14,
+   "squashed": true
+  },
+  {
+   "btn": "View all",
+   "svg": "lucide-chevron-right",
+   "w": 12,
+   "h": 12,
+   "squashed": false
+  },
+  {
+   "btn": "How do I get started with Tena",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Can I import my existing prope",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What does TenantFlow help me d",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Do my tenants create accounts ",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What does TenantFlow actually ",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What specific results can I ex",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Is TenantFlow suitable for my ",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "How long does setup take?",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What kind of support do you pr",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Do you integrate with my exist",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "How secure is my data?",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Are lease templates compliant ",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What kind of results do owners",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Are there any hidden fees?",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Can I try TenantFlow risk-free",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "public/login": [
+  {
+   "btn": "Show password",
+   "svg": "lucide-eye",
+   "w": 24,
+   "h": 24,
+   "squashed": false
+  },
+  {
+   "btn": "Continue with Google",
+   "svg": "svg",
+   "w": 18,
+   "h": 18,
+   "squashed": false
+  }
+ ],
+ "public/signup": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Start free",
+   "svg": "lucide-arrow-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Start free",
+   "svg": "lucide-arrow-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Start free",
+   "svg": "lucide-arrow-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Property Management",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Document Vault",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Leases",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Maintenance",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reporting & Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Support",
+   "svg": "lucide-chevron-down",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Can I change plans later?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "What payment methods do you ac",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Is there a long-term contract?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "What happens if I exceed my pl",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Can I cancel any time?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "public/contact": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "What brings you to TenantFlow?",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "public/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "public/privacy": [
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "public/auth/confirm-email": [],
+ "public/auth/update-password": [],
+ "owner/dashboard": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Add PropertyRegister a new pro",
+   "svg": "lucide-building-complex",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Create LeaseDraft a new lease ",
+   "svg": "lucide-file-text",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Add TenantCreate a tenant reco",
+   "svg": "lucide-user-plus",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "New RequestCreate maintenance ",
+   "svg": "lucide-wrench",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Presets",
+   "svg": "lucide-bookmark",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Status",
+   "svg": "lucide-circle-plus",
+   "w": 24,
+   "h": 24,
+   "squashed": false
+  },
+  {
+   "btn": "Grid",
+   "svg": "lucide-layout-grid",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Table",
+   "svg": "lucide-list",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Rows per page",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Go to previous page",
+   "svg": "lucide-chevron-left",
+   "w": 18,
+   "h": 24,
+   "squashed": true
+  },
+  {
+   "btn": "Go to next page",
+   "svg": "lucide-chevron-right",
+   "w": 18,
+   "h": 24,
+   "squashed": true
+  }
+ ],
+ "owner/properties": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Bulk Import",
+   "svg": "lucide-file-up",
+   "w": 12.4,
+   "h": 16,
+   "squashed": true
+  },
+  {
+   "btn": "Add a new property",
+   "svg": "lucide-plus",
+   "w": 12.3,
+   "h": 16,
+   "squashed": true
+  },
+  {
+   "btn": "Switch to table view",
+   "svg": "lucide-list",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Switch to grid view",
+   "svg": "lucide-layout-grid",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for rls-sign-test",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-66 Muta",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-66 Muta",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Ledger Genera",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Bulk-Import T",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Ledger Append",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-64 Isol",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Notif Trigger",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-59 A Pr",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Bulk-Import T",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-65 Cate",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-65 Cate",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for RLS Test Prop",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Dashboard RPC",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Expenses RLS ",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-59 A Pr",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-59 A Pr",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Expenses RLS ",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-59 A Pr",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-65 Cate",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Bulk-Import T",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-66 Muta",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-66 Muta",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View details for Phase-66 Muta",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "owner/tenants": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Import Tenants",
+   "svg": "lucide-file-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Add Tenant",
+   "svg": "lucide-user-plus",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Add TenantCreate a tenant reco",
+   "svg": "lucide-user-plus",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Message AllBulk email",
+   "svg": "lucide-mail",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "ExportDownload data",
+   "svg": "lucide-download",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "AnalyticsView insights",
+   "svg": "lucide-chart-column",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Table",
+   "svg": "lucide-list",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Grid",
+   "svg": "lucide-layout-grid",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Name",
+   "svg": "lucide-chevrons-up-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Email",
+   "svg": "lucide-chevrons-up-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Property",
+   "svg": "lucide-chevrons-up-down",
+   "w": 2.4,
+   "h": 16,
+   "squashed": true
+  },
+  {
+   "btn": "Status",
+   "svg": "lucide-chevrons-up-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View",
+   "svg": "lucide-file-text",
+   "w": 0,
+   "h": 14,
+   "squashed": true
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Delete",
+   "svg": "lucide-trash",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "owner/leases": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Import Leases",
+   "svg": "lucide-file-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Tenant",
+   "svg": "lucide-arrow-up-down",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "Status",
+   "svg": "lucide-arrow-up-down",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Renew lease for Happy Path Ten",
+   "svg": "lucide-refresh-cw",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Terminate lease for Happy Path",
+   "svg": "lucide-circle-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Renew lease for Happy Path Ten",
+   "svg": "lucide-refresh-cw",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Terminate lease for Happy Path",
+   "svg": "lucide-circle-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Renew lease for Happy Path Ten",
+   "svg": "lucide-refresh-cw",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Terminate lease for Happy Path",
+   "svg": "lucide-circle-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "View lease for Happy Path Tena",
+   "svg": "lucide-eye",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Edit lease for Happy Path Tena",
+   "svg": "lucide-pencil",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Previous page",
+   "svg": "lucide-chevron-left",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Next page",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "owner/applications": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Filter by unit",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Copy application link",
+   "svg": "lucide-copy",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "owner/maintenance": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "owner/documents": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  }
+ ],
+ "owner/documents/lease-template": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "California",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reset Clauses",
+   "svg": "lucide-refresh-cw",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "",
+   "svg": "lucide-check",
+   "w": 14,
+   "h": 14,
+   "squashed": false
+  },
+  {
+   "btn": "More information about this cl",
+   "svg": "lucide-info",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Render PDF",
+   "svg": "lucide-download",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ],
+ "owner/analytics/overview": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Select time range",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "This Month",
+   "svg": "lucide-calendar",
+   "w": 0,
+   "h": 16,
+   "squashed": true
+  }
+ ],
+ "owner/reports/cash-flow": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Monthly",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "2026",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Export",
+   "svg": "lucide-download",
+   "w": 6.8,
+   "h": 16,
+   "squashed": true
+  }
+ ],
+ "owner/settings": [
+  {
+   "btn": "Close navigation menu",
+   "svg": "lucide-x",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Search pages and actions…⌘K (o",
+   "svg": "lucide-search",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chart-column",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Analytics",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-file-text",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Reports",
+   "svg": "lucide-chevron-down",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-settings",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Settings",
+   "svg": "lucide-chevron-up",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Open navigation menu",
+   "svg": "lucide-menu",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 20,
+   "h": 20,
+   "squashed": false
+  },
+  {
+   "btn": "General",
+   "svg": "lucide-building-complex",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "General",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-bell",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Notifications",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Security",
+   "svg": "lucide-shield",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Security",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Billing",
+   "svg": "lucide-credit-card",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Billing",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Categories",
+   "svg": "lucide-folder-tree",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "Categories",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "My Data",
+   "svg": "lucide-database",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  },
+  {
+   "btn": "My Data",
+   "svg": "lucide-chevron-right",
+   "w": 16,
+   "h": 16,
+   "squashed": false
+  }
+ ]
+}
