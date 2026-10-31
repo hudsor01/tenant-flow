@@ -29,7 +29,7 @@ export function HeroSection() {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 							<Button
 								size="lg"
-								className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-8 py-4"
+								className="shrink group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/pricing" aria-label="Start free — no card">

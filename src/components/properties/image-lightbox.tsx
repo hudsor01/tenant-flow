@@ -112,7 +112,7 @@ export function ImageLightbox({
 								onClick={handlePrevious}
 								aria-label="Previous image"
 							>
-								<ChevronLeft className="h-6 w-6" />
+								<ChevronLeft className="size-6" />
 							</Button>
 
 							{/* Next button */}
@@ -125,7 +125,7 @@ export function ImageLightbox({
 								onClick={handleNext}
 								aria-label="Next image"
 							>
-								<ChevronRight className="h-6 w-6" />
+								<ChevronRight className="size-6" />
 							</Button>
 
 							{/* Image counter */}

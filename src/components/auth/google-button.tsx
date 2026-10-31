@@ -121,7 +121,7 @@ function HighResGoogleIcon() {
 			height="18"
 			viewBox="0 0 48 48"
 			aria-hidden="true"
-			className="shrink-0"
+			className="size-4.5 shrink-0"
 		>
 			<path
 				fill="#FBBC05"

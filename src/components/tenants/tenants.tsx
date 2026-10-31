@@ -160,7 +160,7 @@ export function Tenants({
 						</EmptyHeader>
 						<EmptyContent>
 							<Button onClick={handleAddClick}>
-								<UserPlus className="w-5 h-5 mr-2" />
+								<UserPlus className="size-5 mr-2" />
 								Add Your First Tenant
 							</Button>
 						</EmptyContent>

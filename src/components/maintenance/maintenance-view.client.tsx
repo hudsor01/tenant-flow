@@ -193,7 +193,7 @@ export function MaintenanceViewClient() {
 							<EmptyContent>
 								<Button asChild>
 									<Link href="/maintenance/new">
-										<Plus className="w-5 h-5 mr-2" />
+										<Plus className="size-5 mr-2" />
 										Create Request
 									</Link>
 								</Button>
