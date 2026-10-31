@@ -11,13 +11,17 @@
 // cold-navigation look: only globals.css applies, no other route stylesheet.
 //
 // Live mode (--live): signs in as the e2e owner through loginAsOwner, opens /dashboard, waits for
-// hydration, holds every RSC request for /properties, clicks the Properties link and measures the
-// loading boundary that renders inside main#main-content while the request is held. The held
-// requests are then continued. It never fills or submits a form.
+// hydration, holds every RSC navigation request for /properties (prefetch requests, which carry
+// next-router-prefetch, pass: the router renders the loading boundary only from prefetched route
+// data), waits for the network to go idle, clicks the Properties link and measures the loading
+// boundary that renders inside main#main-content while the request is held. The held requests
+// are then continued. It never fills or submits a form.
 //
 // Outputs: $TW_AUDIT_OUT/owner-loading-<label>.json = { label, mode, captures: [{ theme, width,
 // status, checks: [{ name, expected, actual, pass }], allPass, png }], live? } and the PNGs in
 // $TW_AUDIT_OUT/owner-loading-<label>/ (harness-<theme>-<width>.png or live-<theme>-<width>.png).
+// Each measured capture also carries skeletonRects: [left, top, width, height] of every skeleton,
+// relative to the loading root, for geometry comparisons between trees.
 // `png` is relative to $TW_AUDIT_OUT. Capture status is `ok`, `boundary-not-observed` (live: no
 // skeleton appeared within 10 s) or `error`. The tool always exits 0 after writing the JSON: it
 // reports, the plan's acceptance criteria judge. Usage errors and refusals exit 2.
@@ -71,7 +75,7 @@ const TOUR_KEY = "tenantflow:tour-progress";
 const SKELETON_COUNT = 37;
 
 type Check = { name: string; expected: string; actual: string; pass: boolean };
-type Capture = { theme: string; width: number; status: string; checks: Check[]; allPass: boolean; png: string | null; error?: string; heldRequests?: number };
+type Capture = { theme: string; width: number; status: string; checks: Check[]; allPass: boolean; png: string | null; error?: string; heldRequests?: number; skeletonRects?: number[][] };
 
 const fail = (msg: string, code = 2): never => {
 	console.error(`owner-loading-probe: ${msg}`);
@@ -112,7 +116,7 @@ function parseArgs(argv: string[]) {
 // loading boundary inside main#main-content (4 element children, 37 skeletons) and returns
 // { found: false } when it is not there yet.
 type MeasureArg = { mode: "harness" | "live"; skeletons: number };
-type Measured = { found: boolean; values?: Record<string, Record<string, string>>; refs?: { card: string; border: string }; skeletons?: number; dashboardClassed?: number; overflowX?: number; viewport?: number };
+type Measured = { found: boolean; values?: Record<string, Record<string, string>>; refs?: { card: string; border: string }; skeletons?: number; dashboardClassed?: number; overflowX?: number; viewport?: number; skeletonRects?: number[][] };
 function measureInPage(arg: MeasureArg): Measured {
 	const findLive = (): Element | null => {
 		const main = document.querySelector("main#main-content");
@@ -173,6 +177,11 @@ function measureInPage(arg: MeasureArg): Measured {
 			skeletons: rootEl.querySelectorAll('[data-slot="skeleton"]').length,
 			dashboardClassed: document.querySelectorAll('[class*="dashboard-"]').length,
 			overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+			skeletonRects: Array.from(rootEl.querySelectorAll('[data-slot="skeleton"]')).map((el) => {
+				const r = el.getBoundingClientRect();
+				const o = rootEl.getBoundingClientRect();
+				return [r.left - o.left, r.top - o.top, r.width, r.height].map((n) => Math.round(n * 100) / 100);
+			}),
 			viewport: window.innerWidth,
 		};
 	};
@@ -338,6 +347,7 @@ async function runHarness(label: string, outDir: string): Promise<Capture[]> {
 					if (!m.found) throw new Error("#probe-root > div not found");
 					capture.checks = evaluateChecks(m, width);
 					capture.allPass = capture.checks.every((c) => c.pass);
+					capture.skeletonRects = m.skeletonRects;
 					const rel = path.join(`owner-loading-${label}`, `harness-${theme}-${width}.png`);
 					await page.screenshot({ path: path.join(OUT, rel), fullPage: true, animations: "disabled" });
 					capture.png = rel;
@@ -412,13 +422,15 @@ async function runLive(args: ReturnType<typeof parseArgs>, outDir: string, repor
 						await page.route(
 							(url: URL) => url.pathname === "/properties",
 							async (route: Route) => {
-								if (route.request().headers().rsc) {
+								if (route.request().headers().rsc && !route.request().headers()["next-router-prefetch"]) {
 									held.push(route);
 									return;
 								}
 								await route.continue();
 							},
 						);
+						await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+						await sleep(1500);
 						await page.$eval('a[href="/properties"]', (a: HTMLAnchorElement) => a.click());
 						let m: Measured = { found: false };
 						const deadline = Date.now() + 10000;
@@ -432,6 +444,7 @@ async function runLive(args: ReturnType<typeof parseArgs>, outDir: string, repor
 						} else {
 							capture.checks = evaluateChecks(m, width);
 							capture.allPass = capture.checks.every((c) => c.pass);
+							capture.skeletonRects = m.skeletonRects;
 							const rel = path.join(`owner-loading-${args.label}`, `live-${theme}-${width}.png`);
 							await page.locator("main#main-content").screenshot({ path: path.join(OUT, rel), animations: "disabled" });
 							capture.png = rel;

@@ -17,7 +17,6 @@ import {
 } from "#hooks/api/use-dashboard-hooks";
 import { DashboardEmptyState } from "./components/dashboard-empty-state";
 import { DashboardLoadingSkeleton } from "./components/dashboard-loading-skeleton";
-import "../dashboard.css";
 
 /**
  * Dashboard Content - Wires API hooks to Dashboard UI component

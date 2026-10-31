@@ -7,18 +7,18 @@ import { Skeleton } from "#components/ui/skeleton";
  */
 export default function OwnerLoading() {
 	return (
-		<div className="dashboard-content">
+		<div className="flex flex-col gap-(--layout-gap-group)">
 			{/* Page Header Skeleton */}
-			<div className="dashboard-section">
-				<div className="dashboard-section-header">
+			<div className="py-1">
+				<div className="flex flex-col gap-2">
 					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-4 w-96" />
+					<Skeleton className="h-4 w-96 max-w-full" />
 				</div>
 			</div>
 
 			{/* Action Bar Skeleton */}
 			<div className="flex-between">
-				<div className="flex gap-[var(--layout-gap-items)]">
+				<div className="flex min-w-0 gap-(--layout-gap-items)">
 					<Skeleton className="h-10 w-64" />
 					<Skeleton className="h-10 w-32" />
 				</div>
@@ -26,10 +26,13 @@ export default function OwnerLoading() {
 			</div>
 
 			{/* Stats Cards Skeleton */}
-			<div className="dashboard-cards-container">
+			<div className="grid grid-cols-[repeat(auto-fit,minmax(20rem,1fr))] gap-6">
 				{Array.from({ length: 4 }).map((_, i) => (
-					<div key={i} className="dashboard-panel">
-						<div className="p-[var(--layout-content-padding-compact)]">
+					<div
+						key={i}
+						className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+					>
+						<div className="p-(--layout-content-padding-compact)">
 							<Skeleton className="h-4 w-24 mb-2" />
 							<Skeleton className="h-8 w-16" />
 						</div>
@@ -38,10 +41,10 @@ export default function OwnerLoading() {
 			</div>
 
 			{/* Table Skeleton */}
-			<div className="dashboard-table-wrapper">
-				<div className="p-[var(--layout-content-padding)]">
+			<div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+				<div className="p-(--layout-content-padding)">
 					{/* Header */}
-					<div className="flex gap-[var(--layout-gap-group)] mb-[var(--layout-gap-items)] pb-[var(--layout-gap-items)] border-b border-border/50">
+					<div className="flex gap-(--layout-gap-group) mb-(--layout-gap-items) pb-(--layout-gap-items) border-b border-border/50">
 						<Skeleton className="h-4 w-32" />
 						<Skeleton className="h-4 w-48" />
 						<Skeleton className="h-4 w-24" />
@@ -51,7 +54,7 @@ export default function OwnerLoading() {
 					{Array.from({ length: 5 }).map((_, i) => (
 						<div
 							key={i}
-							className="flex gap-[var(--layout-gap-group)] py-[var(--layout-gap-items)]"
+							className="flex gap-(--layout-gap-group) py-(--layout-gap-items)"
 						>
 							<Skeleton className="h-5 w-32" />
 							<Skeleton className="h-5 w-48" />

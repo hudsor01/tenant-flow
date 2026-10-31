@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import Link from "next/link";
 import { describe, expect, test } from "vitest";
+import OwnerLoading from "#app/(owner)/loading";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 
@@ -84,17 +85,25 @@ describe("Mobile-First Responsive Design", () => {
 			);
 		});
 
-		test("grid layouts adapt to mobile screens", () => {
-			render(
-				<div className="dashboard-cards-container">
-					<div>Card 1</div>
-					<div>Card 2</div>
-					<div>Card 3</div>
-				</div>,
+		test("owner loading stat grid auto-fits 20rem columns with utility classes only", () => {
+			const { container } = render(<OwnerLoading />);
+
+			expect(container.querySelectorAll('[class*="dashboard-"]')).toHaveLength(
+				0,
+			);
+			expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(
+				37,
 			);
 
-			const container = screen.getByText("Card 1").parentElement;
-			expect(container).toHaveClass("dashboard-cards-container");
+			const grid = Array.from(container.querySelectorAll("div")).find((el) =>
+				el.classList.contains("grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]"),
+			);
+			expect(grid).toBeDefined();
+			const cards = Array.from(grid?.children ?? []);
+			expect(cards).toHaveLength(4);
+			for (const card of cards) {
+				expect(card).toHaveClass("rounded-lg", "border-border", "bg-card");
+			}
 		});
 	});
 
