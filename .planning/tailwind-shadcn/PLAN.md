@@ -324,7 +324,7 @@ The B2 rule as validated:
   - `research/sidebar-migration-design.md`, a raw design: decisions D1–D11, parity matrix, divergences V1–V12, cascade traps, tests.
   - The capability-comparison workflow (2026-10-25). So far 100 behaviors are inventoried and none is impossible with shadcn; the a11y group verification is still pending.
 - **Locked decisions to preserve:** 56 D-07, 56 D-24, 65 D-08/D-09/D-10.
-- [ ] Phase 6 Step 0 confirms the hand-rolled drawer's claimed defects with computed styles before the migration claims to fix them.
+- [x] Phase 6 Step 0 confirms the hand-rolled drawer's claimed defects with computed styles before the migration claims to fix them. (66.2-30: `audit/w6/step0-claims.json` S1-S8 8/8 CONFIRMED on the live post-W5 shell, each control passing)
 
 ---
 
@@ -430,6 +430,12 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.5 screenshots: W4 vs W5 12 identical, 80 intended (VD-19 76, VD-20 64, VD-23 32, VD-22 28, VD-21 16, VD-16 8, VD-17 8, VD-30 4, VD-19-svg-unsquash 4); iso pair 88 identical + 4 VD-19-svg-unsquash (`/properties` 390 wrap by shift proof, `/reports/cash-flow` 390 Export icon confined to its button). CSP: 0 beyond the same-session 754c91802 control (zod's eval probe on `/login` and `/auth/update-password`).
   - §7.6 Aikido: MCP unavailable to the executor; the orchestrator scans the 166 listed paths.
   - Owner review queued for 66.2-38: CP-1 (GridPattern on 28 captures), CP-2 (Button v4 surfaces and the VD-19b unsquash/wrap captures), CP-5 (BlurFade entrances).
+
+- **2026-10-31.** Wave 6 Step 0 (66.2-30):
+  - Claims (D-42) on a local `next start` of HEAD, owner A: S1-S8 8/8 CONFIRMED, every positive control passing. S1 0 of 6 Tabs reach the open drawer; S2 AX name "" and 1 `aria-dialog-name` violation; S3 wheel scrolls the page 600 px under the open drawer; S4 the palette and the logo leave it open (x 0, overlay 1); S5 Settings is a BUTTON with no /settings link and a dead Shortcuts item; S6 the current section stays collapsed (inert, max-height 0px, opacity 0); S7 step 5 target 0% visible at 375 and 900, popover 0% at 375; S8 18 of 18 anchors underline on hover at 1024 and 1280. 0 tour-progress or table writes forwarded.
+  - Registry: sidebar content sha256 `2ba1a9b9…` and use-mobile `ad0936f8…`, both unchanged since research; 13/13 anchors, 24 exports.
+  - Typecheck (A4/N18): the import-rewritten canonical sidebar.tsx has 0 errors under tsc 7.0.2 against the post-W5 button/sheet/tooltip; the negative control fails with TS2322.
+  - Before-set: 52 captures (`w6/sidebar-before-manifest.json`, PNGs git-ignored); the same-session repeat has 1 noise file (row-focus-dark-1280, 2 px).
 
 ---
 
