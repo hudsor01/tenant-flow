@@ -30,8 +30,8 @@ export function TenantStats({
 					<BorderBeam
 						size={80}
 						duration={10}
-						colorFrom="hsl(var(--primary))"
-						colorTo="hsl(var(--primary)/0.3)"
+						colorFrom="var(--color-primary)"
+						colorTo="color-mix(in oklab, var(--color-primary) 30%, transparent)"
 					/>
 					<StatLabel>Total Tenants</StatLabel>
 					<StatValue className="flex items-baseline">

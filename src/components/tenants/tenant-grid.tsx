@@ -51,7 +51,7 @@ function TenantCard({
 					<BorderBeam
 						size={100}
 						duration={12}
-						colorFrom="hsl(var(--primary)/0.5)"
+						colorFrom="color-mix(in oklab, var(--color-primary) 50%, transparent)"
 						colorTo="transparent"
 					/>
 				)}
