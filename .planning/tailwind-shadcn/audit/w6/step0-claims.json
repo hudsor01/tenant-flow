@@ -1,0 +1,1405 @@
+{
+  "meta": {
+    "head": "92b7f4e438bf67591f357e62a22e70dde46eff45",
+    "preW5": "84f3c58d3870b980b11599c99712255b85dcc867",
+    "baseUrl": "http://localhost:3062",
+    "startedServer": true,
+    "viewports": [
+      {
+        "width": 375,
+        "height": 812
+      },
+      {
+        "width": 900,
+        "height": 800
+      },
+      {
+        "width": 1024,
+        "height": 800
+      },
+      {
+        "width": 1280,
+        "height": 800
+      }
+    ],
+    "playwrightVersion": "1.62.0",
+    "axeVersion": {
+      "@axe-core/playwright": "4.13.0",
+      "axe-core": "4.13.0"
+    },
+    "overlaySelector": "direct child of the AppShell root (the aside's parent) matching div.fixed.inset-0.z-40",
+    "settleMs": 450,
+    "generatedAt": "2026-10-31T22:05:10.659Z"
+  },
+  "claims": {
+    "S1": {
+      "widths": {
+        "375": {
+          "asideRole": "dialog",
+          "asideAriaModal": "true",
+          "asideX": 0,
+          "activeInAside": false,
+          "activeLabel": "Open navigation menu",
+          "tabs": [
+            {
+              "inAside": false,
+              "tag": "A",
+              "label": "Properties"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "Notifications"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "EO user menu"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "Overview"
+            },
+            {
+              "inAside": false,
+              "tag": "DIV",
+              "label": "PropertiesManage your property portfolioBulk ImportAdd Prope"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "Bulk Import"
+            }
+          ],
+          "tabsIntoAside": 0,
+          "asideRoleAfterTabs": "dialog",
+          "holds": true
+        },
+        "900": {
+          "asideRole": "dialog",
+          "asideAriaModal": "true",
+          "asideX": 0,
+          "activeInAside": false,
+          "activeLabel": "Open navigation menu",
+          "tabs": [
+            {
+              "inAside": false,
+              "tag": "A",
+              "label": "Properties"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "Notifications"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "EO user menu"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "Overview"
+            },
+            {
+              "inAside": false,
+              "tag": "DIV",
+              "label": "PropertiesManage your property portfolioBulk ImportAdd Prope"
+            },
+            {
+              "inAside": false,
+              "tag": "BUTTON",
+              "label": "Bulk Import"
+            }
+          ],
+          "tabsIntoAside": 0,
+          "asideRoleAfterTabs": "dialog",
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "375": {
+            "activeInPalette": true,
+            "passed": true
+          },
+          "900": {
+            "activeInPalette": true,
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S2": {
+      "widths": {
+        "375": {
+          "dialogCount": 1,
+          "namedDialogCount": 0,
+          "axRole": "dialog",
+          "axName": "",
+          "axIgnored": false,
+          "axeViolations": 1,
+          "axeViolationIds": [
+            "aria-dialog-name"
+          ],
+          "axeNodes": 1,
+          "holds": true
+        },
+        "900": {
+          "dialogCount": 1,
+          "namedDialogCount": 0,
+          "axRole": "dialog",
+          "axName": "",
+          "axIgnored": false,
+          "axeViolations": 1,
+          "axeViolationIds": [
+            "aria-dialog-name"
+          ],
+          "axeNodes": 1,
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "375": {
+            "paletteNamedCount": 1,
+            "passed": true
+          },
+          "900": {
+            "paletteNamedCount": 1,
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S3": {
+      "widths": {
+        "375": {
+          "route": "/dashboard",
+          "candidates": [
+            {
+              "route": "/dashboard",
+              "scrollable": 5575
+            }
+          ],
+          "htmlOverflow": "visible",
+          "bodyOverflow": "visible",
+          "wheelAt": {
+            "x": 335,
+            "y": 406
+          },
+          "scrollYBefore": 0,
+          "scrollYAfter": 600,
+          "scrollDelta": 600,
+          "asideRoleAfter": "dialog",
+          "holds": true
+        },
+        "900": {
+          "route": "/dashboard",
+          "candidates": [
+            {
+              "route": "/dashboard",
+              "scrollable": 3625
+            }
+          ],
+          "htmlOverflow": "visible",
+          "bodyOverflow": "visible",
+          "wheelAt": {
+            "x": 860,
+            "y": 400
+          },
+          "scrollYBefore": 0,
+          "scrollYAfter": 600,
+          "scrollDelta": 600,
+          "asideRoleAfter": "dialog",
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "375": {
+            "scrollYBefore": 0,
+            "scrollYAfter": 0,
+            "bodyOverflow": "hidden",
+            "bodyScrollLocked": true,
+            "passed": true
+          },
+          "900": {
+            "scrollYBefore": 0,
+            "scrollYAfter": 0,
+            "bodyOverflow": "hidden",
+            "bodyScrollLocked": true,
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S4": {
+      "widths": {
+        "375": {
+          "overlaySelector": "direct child of the AppShell root (the aside's parent) matching div.fixed.inset-0.z-40",
+          "a": {
+            "finalPath": "/leases",
+            "asideRole": "dialog",
+            "asideAriaModal": "true",
+            "asideX": 0,
+            "overlayCount": 1
+          },
+          "c": {
+            "finalPath": "/dashboard",
+            "asideRole": "dialog",
+            "asideAriaModal": "true",
+            "asideX": 0,
+            "overlayCount": 1
+          },
+          "holds": true
+        },
+        "900": {
+          "overlaySelector": "direct child of the AppShell root (the aside's parent) matching div.fixed.inset-0.z-40",
+          "a": {
+            "finalPath": "/leases",
+            "asideRole": "dialog",
+            "asideAriaModal": "true",
+            "asideX": 0,
+            "overlayCount": 1
+          },
+          "c": {
+            "finalPath": "/dashboard",
+            "asideRole": "dialog",
+            "asideAriaModal": "true",
+            "asideX": 0,
+            "overlayCount": 1
+          },
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "375": {
+            "finalPath": "/leases",
+            "asideRole": null,
+            "asideAriaModal": null,
+            "asideX": -224,
+            "overlayCount": 0,
+            "passed": true
+          },
+          "900": {
+            "finalPath": "/leases",
+            "asideRole": null,
+            "asideAriaModal": null,
+            "asideX": -224,
+            "overlayCount": 0,
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S5": {
+      "widths": {
+        "1280": {
+          "tagName": "BUTTON",
+          "href": null,
+          "ancestorAnchor": false,
+          "settingsAnchors": 0,
+          "popover": [
+            {
+              "tag": "A",
+              "text": "Help & Support",
+              "href": "/help"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Keyboard Shortcuts?",
+              "href": null
+            }
+          ],
+          "dialogCountAfterShortcuts": 0,
+          "urlUnchanged": true,
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "1280": {
+            "settingsOptions": 1,
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S6": {
+      "widths": {
+        "375": {
+          "drawerOpened": true,
+          "routes": {
+            "/reports/cash-flow": {
+              "section": "Reports",
+              "ariaExpanded": "false",
+              "inert": true,
+              "maxHeight": "0px",
+              "opacity": "0",
+              "currentHref": "/reports/cash-flow",
+              "currentVisible": false
+            },
+            "/analytics/financial": {
+              "section": "Analytics",
+              "ariaExpanded": "false",
+              "inert": true,
+              "maxHeight": "0px",
+              "opacity": "0",
+              "currentHref": "/analytics/financial",
+              "currentVisible": false
+            }
+          },
+          "holds": true
+        },
+        "1280": {
+          "drawerOpened": false,
+          "routes": {
+            "/reports/cash-flow": {
+              "section": "Reports",
+              "ariaExpanded": "false",
+              "inert": true,
+              "maxHeight": "0px",
+              "opacity": "0",
+              "currentHref": "/reports/cash-flow",
+              "currentVisible": false
+            },
+            "/analytics/financial": {
+              "section": "Analytics",
+              "ariaExpanded": "false",
+              "inert": true,
+              "maxHeight": "0px",
+              "opacity": "0",
+              "currentHref": "/analytics/financial",
+              "currentVisible": false
+            }
+          },
+          "clientNav": {
+            "from": "/dashboard",
+            "to": "/reports/cash-flow",
+            "ariaExpanded": "false"
+          },
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "375": {
+            "ariaExpanded": "true",
+            "inert": false,
+            "cashFlowVisible": true,
+            "passed": true
+          },
+          "1280": {
+            "ariaExpanded": "true",
+            "inert": false,
+            "cashFlowVisible": true,
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S7": {
+      "widths": {
+        "375": {
+          "nextClicks": 4,
+          "target": {
+            "x": -224,
+            "y": 0,
+            "width": 224,
+            "height": 812
+          },
+          "popover": {
+            "x": 0,
+            "y": 828,
+            "width": 320,
+            "height": 186
+          },
+          "popoverSource": "data-side",
+          "dataSide": "bottom",
+          "innerWidth": 375,
+          "innerHeight": 812,
+          "activeInStep": true,
+          "targetVisibleRatio": 0,
+          "popoverVisibleRatio": 0
+        },
+        "900": {
+          "nextClicks": 4,
+          "target": {
+            "x": -224,
+            "y": 0,
+            "width": 224,
+            "height": 800
+          },
+          "popover": {
+            "x": 16,
+            "y": 293,
+            "width": 320,
+            "height": 214
+          },
+          "popoverSource": "data-side",
+          "dataSide": "right",
+          "innerWidth": 900,
+          "innerHeight": 800,
+          "activeInStep": true,
+          "targetVisibleRatio": 0,
+          "popoverVisibleRatio": 1
+        },
+        "1024": {
+          "nextClicks": 4,
+          "target": {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 800
+          },
+          "popover": {
+            "x": 240,
+            "y": 293,
+            "width": 320,
+            "height": 214
+          },
+          "popoverSource": "data-side",
+          "dataSide": "right",
+          "innerWidth": 1024,
+          "innerHeight": 800,
+          "activeInStep": true,
+          "targetVisibleRatio": 1,
+          "popoverVisibleRatio": 1
+        },
+        "1280": {
+          "nextClicks": 4,
+          "target": {
+            "x": 0,
+            "y": 0,
+            "width": 224,
+            "height": 800
+          },
+          "popover": {
+            "x": 240,
+            "y": 293,
+            "width": 320,
+            "height": 214
+          },
+          "popoverSource": "data-side",
+          "dataSide": "right",
+          "innerWidth": 1280,
+          "innerHeight": 800,
+          "activeInStep": true,
+          "targetVisibleRatio": 1,
+          "popoverVisibleRatio": 1
+        }
+      },
+      "control": {
+        "widths": [
+          "1024",
+          "1280"
+        ],
+        "targetVisibleRatio": {
+          "1024": 1,
+          "1280": 1
+        },
+        "popoverVisibleRatio": {
+          "1024": 1,
+          "1280": 1
+        },
+        "passed": true
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    },
+    "S8": {
+      "widths": {
+        "1024": {
+          "anchorCount": 18,
+          "anchors": [
+            {
+              "href": "/dashboard",
+              "text": "TenantFlow",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  100,
+                  240,
+                  0.8
+                ]
+              }
+            },
+            {
+              "href": "/dashboard",
+              "text": "Dashboard",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/properties",
+              "text": "Properties",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  79,
+                  196,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/tenants",
+              "text": "Tenants",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/leases",
+              "text": "Leases",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/applications",
+              "text": "Applications",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/maintenance",
+              "text": "Maintenance",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/documents",
+              "text": "Documents",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/analytics/overview",
+              "text": "Overview",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/analytics/financial",
+              "text": "Financial",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/analytics/property-performance",
+              "text": "Property Performance",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/income-statement",
+              "text": "Income Statement",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/cash-flow",
+              "text": "Cash Flow",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/balance-sheet",
+              "text": "Balance Sheet",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/expenses",
+              "text": "Expenses",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/tax-documents",
+              "text": "Tax Documents",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/generate",
+              "text": "Generate Reports",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/year-end",
+              "text": "Year-End",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            }
+          ],
+          "hoveredAllUnderlined": true,
+          "restAllInvisible": true,
+          "hoveredMinAlpha": 0.8,
+          "holds": true
+        },
+        "1280": {
+          "anchorCount": 18,
+          "anchors": [
+            {
+              "href": "/dashboard",
+              "text": "TenantFlow",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  100,
+                  240,
+                  0.8
+                ]
+              }
+            },
+            {
+              "href": "/dashboard",
+              "text": "Dashboard",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/properties",
+              "text": "Properties",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  79,
+                  196,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/tenants",
+              "text": "Tenants",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/leases",
+              "text": "Leases",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/applications",
+              "text": "Applications",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/maintenance",
+              "text": "Maintenance",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/documents",
+              "text": "Documents",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/analytics/overview",
+              "text": "Overview",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/analytics/financial",
+              "text": "Financial",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/analytics/property-performance",
+              "text": "Property Performance",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/income-statement",
+              "text": "Income Statement",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/cash-flow",
+              "text": "Cash Flow",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/balance-sheet",
+              "text": "Balance Sheet",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/expenses",
+              "text": "Expenses",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/tax-documents",
+              "text": "Tax Documents",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/generate",
+              "text": "Generate Reports",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            },
+            {
+              "href": "/reports/year-end",
+              "text": "Year-End",
+              "rest": {
+                "line": "underline",
+                "rgba": [
+                  0,
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "hover": {
+                "line": "underline",
+                "rgba": [
+                  14,
+                  23,
+                  31,
+                  1
+                ]
+              }
+            }
+          ],
+          "hoveredAllUnderlined": true,
+          "restAllInvisible": true,
+          "hoveredMinAlpha": 0.8,
+          "holds": true
+        }
+      },
+      "control": {
+        "passed": true,
+        "widths": {
+          "1024": {
+            "href": "/dashboard",
+            "line": "none",
+            "passed": true
+          },
+          "1280": {
+            "href": "/dashboard",
+            "line": "none",
+            "passed": true
+          }
+        }
+      },
+      "verdict": "CONFIRMED",
+      "holds": true
+    }
+  },
+  "informational": {
+    "rowHeights375": {
+      "Dashboard": 40,
+      "Properties": 40,
+      "Tenants": 40,
+      "Leases": 40,
+      "Applications": 40,
+      "Maintenance": 40,
+      "Documents": 40,
+      "Analytics": 44,
+      "Reports": 44,
+      "Settings": 44
+    },
+    "closedTabOrder375": 13,
+    "closedTabOrder375Sequence": [
+      "Skip to main content",
+      "TenantFlow",
+      "Close navigation menu",
+      "Search pages and actions…⌘K (opens the c",
+      "Dashboard",
+      "Properties",
+      "Tenants",
+      "Leases",
+      "Applications",
+      "Maintenance",
+      "Documents",
+      "Analytics",
+      "Reports",
+      "Settings",
+      "Open navigation menu"
+    ]
+  },
+  "writes": {
+    "tourProgressIntercepted": 40,
+    "tourProgressReads": 16,
+    "tourProgressWrites": 24,
+    "tourProgressPreflights": 0,
+    "tourProgressForwarded": 0,
+    "tableWritesForwarded": 0,
+    "tableWritesForwardedUrls": []
+  }
+}
