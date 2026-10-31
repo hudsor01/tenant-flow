@@ -299,14 +299,14 @@ The B2 rule as validated:
 - **Exit:** M1 ≈ 914, M2 = 0, M8 all 0, M9 file gone. `candidate-css.json` diff vs baseline limited to deleted dead rules and B-fixes. Token snapshot diff vs Phase 1 (fixed baseline list, RESEARCH H12) is empty except the two dead custom tokens border-secondary and accent-85, now transparent.
 
 ### Phase 3 (wave 3): Canonical shadcn token architecture
-- [ ] Move every semantic color into shadcn form:
+- [x] Move every semantic color into shadcn form (66.2-16; proved 66.2-17: `audit/w3/source-assertions-w3.txt` (a)-(e), `audit/w3/tokens-w3.json`):
   - `:root { --background: …; --foreground: …; … }` and `.dark { … }`, outside `@layer base`, per the scaffold.
   - `@theme inline { --color-background: var(--background); … }`.
   - Status families (success/warning/info + `-foreground` + the `-text` AA companions) follow the theming doc's "add a new token" recipe.
-- [ ] Charts become `--chart-1…5` in `:root` (and `.dark` if the palette changes). Keep the hsl conversions in the satori surfaces (`api/og`, `render-blog-cover.tsx`) in sync per CLAUDE.md.
-- [ ] X4: `.dark` replaces `:where(.dark, .dark *)`.
-- [ ] Confirm that every `var(--color-*)` reference in TSX still resolves. `@theme inline` still emits a variable referenced from source; this was verified with a 4.3.3 compile test.
-- **Exit:** `render-check.mjs phase3` token snapshot **identical** to Phase 2's for all tokens, light and dark. Screenshot matrix unchanged.
+- [x] Charts become `--chart-1…5` in `:root` (and `.dark` if the palette changes). Keep the hsl conversions in the satori surfaces (`api/og`, `render-blog-cover.tsx`) in sync per CLAUDE.md. (`audit/w3/source-assertions-w3.txt` (b) chart rows, (c) no chart `.dark` value, (i) satori comments only)
+- [x] X4: `.dark` replaces `:where(.dark, .dark *)`. (`audit/w3/source-assertions-w3.txt` (e2), `audit/w3/redproof-w3.json` inline-structure 0, `audit/w3/screens-manifest-w3.json` themeApplied)
+- [x] Confirm that every `var(--color-*)` reference in TSX still resolves. `@theme inline` still emits a variable referenced from source; this was verified with a 4.3.3 compile test. (`audit/w3/source-assertions-w3.txt` (f)-(h) census, `audit/w3/tokens-w3.json` + `audit/w3/probes-w3.json` parity, `audit/w3/probes-n2cf.json` counterfactual)
+- **Exit:** `render-check.mjs phase3` token snapshot **identical** to Phase 2's for all tokens, light and dark. Screenshot matrix unchanged. (proved 66.2-17)
 
 ### Phase 4 (wave 4): Canonical classes, first-party
 - [ ] Re-run the canonicalizer **against the Phase 3 theme**, so suggestions like `gap-(--spacing-2)` no longer point at variables Phase 2 deleted. Apply it to the 53 first-party files.
@@ -402,6 +402,15 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.4 guards and build: G1-G7 red on 754c91802 (1/11/2/7/44/2/10) and 0 now; validate:quick, the coverage ratchet and `next build` exit 0.
   - §7.5 screenshots: W1 vs W2 70 identical, 18 owner data drift, 4 noise (the pricing/signup 390 house-icon flicker, each confirmed in a same-session W2 repeat or the same-session W1-tree recapture); the same-session W1-tree recapture differs from W2 on 1 of 92 (noise). VD-12 skeleton 4/4 harness and 4/4 live. Component probes equal the W1 archive on every measured value; the only input change is `update-password-badge.classes` from the 66.2-11 `p-[var(--spacing-3)]` -> `p-3` rewrite. CSP: no violation beyond 754c91802.
   - §7.6 Aikido: orchestrator path scans 0 issues over 66.2-11..14 and over this plan's four changed files; SAST failed inside Aikido, carried to the owner.
+
+- **2026-10-31.** Wave 3 gate (66.2-17) passed:
+  - §7.1 audit: M1 916, M2 0, M3 0, M4 0, M5 0, M7 0, M8 7 / 1 / 0 of 42 / 0 / 0, M9 none: all equal W2. M6 (now measured through `@theme inline` mappings, fix `1bfd91885`) chart-1..5 only, equal W2. M10 moves only by 66.2-16's recorded delta: classes 103 -> 101, first-party files 51 -> 50 (3 pairs removed, 1 added). Source assertions 14/14 (`source-assertions-w3.mjs`): 36 moved tokens byte-identical in `:root`/`.dark`, one `@theme inline` mapping each, no `:where(.dark, .dark *)` rule, radius/shadow/text scales and the zinc sidebar equal W2; census: W2 bare refs only in `data-table.ts`, W3 none outside the 36 mappings.
+  - §7.2 rule parity: css-parity `--strict` W2 vs W3: 415 color-inline, 0 spacing-equivalent, 0 added/removed, 0 unclassified; no intended entries.
+  - §7.3 token parity: the archived-W2 render-check reproduces `w2/tokens-w2.json`; W3 tokens `jq -S`-identical in light, dark and whole (71 names, background alpha 1 both modes); render-check (fonts, secondary pixel, pairs, contrast, touch390) identical; all 13 component probes identical to the archived W2 run.
+  - N2: data-table cells and headers [0,0,0,0] in both themes, hover/selected rows equal W2; the counterfactual (W2 `data-table.ts` on W3 CSS) paints the cells opaque (alpha 1) in both themes; `data-table.test.ts` 5/5.
+  - §7.4 guards and build: G1-G7 pass (8/5/5/10/7/14/13 tests, 0 failed); red-proof G1-G7 + inline-structure 0 now, 754c91802 G4 7 and inline-structure 104; the `.dark --muted-foreground` fixture trips G4. validate:quick, the coverage ratchet (64.95/56.85/64.22/67.07) and `next build` exit 0.
+  - §7.5 screenshots: W2 vs W3 91 identical, 1 noise (pricing-light-390, the 22 px house-icon region, confirmed in the same-session W3 repeat); 0 missing; owner set captured; 92/92 themeApplied; 0 CSP console errors.
+  - §7.6 Aikido: MCP unavailable to the executor; the orchestrator's path scans of 66.2-15/16's files found 0 issues and SAST failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner; this plan's two tool files (`audit.mjs`, `source-assertions-w3.mjs`) are listed for the orchestrator.
 
 ---
 
