@@ -357,6 +357,8 @@ QWEN.md
 # `format` errors -- 21 of that PR's 43. Biome skips ignored files, so
 # untracking removes them from a churn cycle the next vendor update recreates.
 .agents/skills/
+# The skills CLI's lockfile for those bundles (source + hash per skill).
+skills-lock.json
 
 # Generated and MANAGED BY NEXT.JS -- do not track, do not edit.
 # Next rewrites this file on every `next dev`, `next build` and `next typegen`,
