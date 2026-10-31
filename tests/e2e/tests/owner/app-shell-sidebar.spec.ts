@@ -1,6 +1,7 @@
-import { expect, type Page, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../../auth-helpers";
-import { polledRead } from "../../lib/measure";
+import { boxesOf, boxOf, polledRead } from "../../lib/measure";
 
 /**
  * The canonical owner Sidebar in a real browser — Phase 66.2 wave 6, UI-SPEC
@@ -50,10 +51,16 @@ import { polledRead } from "../../lib/measure";
 // than waiting it out (the dashboard-smoke posture).
 test.use({ contextOptions: { reducedMotion: "reduce" } });
 
+const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+
+const DESKTOP_SIDEBAR = '[data-slot="sidebar"]:not([data-mobile="true"])';
 const TRIGGER = '[data-slot="sidebar-trigger"]';
+const RAIL = '[data-slot="sidebar-rail"]';
 
 /** Mirrors `SIDEBAR_COOKIE_NAME` in `src/lib/sidebar-state.ts` (specs import nothing from `src/`). */
 const SIDEBAR_COOKIE = "sidebar_state";
+/** Mirrors `SIDEBAR_COOKIE_MAX_AGE` in `src/lib/sidebar-state.ts`: 7 days. */
+const COOKIE_MAX_AGE_S = 604800;
 
 const HYDRATION_ERROR = /hydrat|Minified React error #(418|423|425)/i;
 
@@ -282,6 +289,167 @@ async function ssrSidebarState(page: Page): Promise<string> {
 	return value;
 }
 
+/** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+function expectNear(actual: number, expected: number, label: string): void {
+	expect(
+		Math.abs(actual - expected),
+		`${label}: measured ${actual}, expected ${expected} ±0.5`,
+	).toBeLessThanOrEqual(0.5);
+}
+
+/**
+ * The computed `color` a probe span gets from `var(<token>)` (the
+ * applications.spec.ts method). It throws when `<token>` is not declared on the
+ * root element: an undeclared custom property makes `var()` invalid at computed
+ * time, the span then inherits the body text color, and every comparison
+ * against it would be meaningless. That is the case for the `--color-sidebar-*`
+ * names, which globals.css declares in `@theme inline`: Tailwind inlines them
+ * into the utilities as `var(--sidebar-*)` and emits no custom property, so the
+ * resolvable token is the `--sidebar-*` property they alias.
+ */
+async function resolveColor(page: Page, token: string): Promise<string> {
+	return page.evaluate((customProperty) => {
+		const declared = getComputedStyle(document.documentElement)
+			.getPropertyValue(customProperty)
+			.trim();
+		if (declared === "") {
+			throw new Error(`resolveColor: ${customProperty} is not declared`);
+		}
+		const probe = document.createElement("span");
+		probe.style.color = `var(${customProperty})`;
+		document.body.appendChild(probe);
+		const value = getComputedStyle(probe).color;
+		probe.remove();
+		return value;
+	}, token);
+}
+
+declare global {
+	interface Window {
+		__sidebarCookieWrites?: string[];
+	}
+}
+
+/**
+ * Records every `document.cookie` write that starts with `sidebar_state=`, in
+ * every document this page loads. Nothing else is recorded, so the `sb-*` auth
+ * cookies never enter test state.
+ */
+async function captureCookieWrites(page: Page): Promise<void> {
+	await page.addInitScript(() => {
+		const descriptor = Object.getOwnPropertyDescriptor(
+			Document.prototype,
+			"cookie",
+		);
+		const read = descriptor?.get;
+		const write = descriptor?.set;
+		if (read === undefined || write === undefined) {
+			return;
+		}
+		window.__sidebarCookieWrites = [];
+		Object.defineProperty(Document.prototype, "cookie", {
+			configurable: true,
+			enumerable: descriptor?.enumerable ?? true,
+			get(this: Document) {
+				return read.call(this);
+			},
+			set(this: Document, value: string) {
+				if (typeof value === "string" && value.startsWith("sidebar_state=")) {
+					window.__sidebarCookieWrites?.push(value);
+				}
+				write.call(this, value);
+			},
+		});
+	});
+}
+
+async function readCookieWrites(page: Page): Promise<string[]> {
+	return page.evaluate(() => [...(window.__sidebarCookieWrites ?? [])]);
+}
+
+interface TabStop {
+	inSidebar: boolean;
+	isTrigger: boolean;
+}
+
+/**
+ * Presses Tab `presses` times from the page start and records, after each
+ * press, whether focus sits inside the desktop sidebar and whether it is the
+ * trigger. The walk starts from a throwaway `tabindex=-1` node prepended to
+ * `body`, because a blurred element leaves Chromium's sequential-focus starting
+ * point where it was, and a walk that started after the sidebar would skip it
+ * no matter what.
+ */
+async function tabWalk(page: Page, presses: number): Promise<TabStop[]> {
+	await page.evaluate(() => {
+		const start = document.createElement("div");
+		start.id = "e2e-tab-walk-start";
+		start.tabIndex = -1;
+		document.body.prepend(start);
+		start.focus();
+	});
+	const stops: TabStop[] = [];
+	for (let press = 0; press < presses; press += 1) {
+		await page.keyboard.press("Tab");
+		stops.push(
+			await page.evaluate(
+				({ sidebar, trigger }) => {
+					const active = document.activeElement;
+					return {
+						inSidebar: active !== null && active.closest(sidebar) !== null,
+						isTrigger: active !== null && active.matches(trigger),
+					};
+				},
+				{ sidebar: DESKTOP_SIDEBAR, trigger: TRIGGER },
+			),
+		);
+	}
+	await page.evaluate(() => {
+		document.getElementById("e2e-tab-walk-start")?.remove();
+	});
+	return stops;
+}
+
+/** Records a measured value on the test, for the run report. */
+function record(type: string, value: unknown): void {
+	test.info().annotations.push({ type, description: JSON.stringify(value) });
+}
+
+interface RowWidths {
+	inner: number;
+	coreW: number;
+	subW: number;
+}
+
+/**
+ * Derives the row widths from the rail container instead of hard-coding them:
+ * its border box minus its computed left and right borders (the canonical 1px
+ * `border-r`) is the inner width; minus the 24px S-2 inset (12px each side) the
+ * core row; minus the sub list's 32px `margin-left` the sub row.
+ */
+async function rowWidths(container: Locator): Promise<RowWidths> {
+	const box = await boxOf(container);
+	const borders = await container.evaluate((node) => {
+		const style = getComputedStyle(node);
+		return {
+			left: Number.parseFloat(style.borderLeftWidth),
+			right: Number.parseFloat(style.borderRightWidth),
+		};
+	});
+	const inner = box.width - borders.left - borders.right;
+	const coreW = inner - 24;
+	return { inner, coreW, subW: coreW - 32 };
+}
+
+/** Logs in at 1280px with the tour answered locally and the trigger hydrated. */
+async function openDesktopDashboard(page: Page): Promise<string[]> {
+	const errors = collectHydrationErrors(page);
+	await fulfillTourProgressAsCompleted(page);
+	await gotoAuthedDashboard(page);
+	await waitForHydration(page, TRIGGER);
+	return errors;
+}
+
 test.describe("S-10: no hydration error and no horizontal scroll", () => {
 	test("the hydration collector catches a planted hydration error", async ({
 		page,
@@ -344,4 +512,552 @@ test.describe("S-10: no hydration error and no horizontal scroll", () => {
 			expect(tour.writes, "user_tour_progress writes answered").toBe(0);
 		});
 	}
+});
+
+const CORE_LABELS = [
+	"Dashboard",
+	"Properties",
+	"Tenants",
+	"Leases",
+	"Applications",
+	"Maintenance",
+	"Documents",
+];
+
+test.describe("desktop rail at 1280px", () => {
+	test("S-2/S-9: geometry, list neutralizers and locked navigation (D-40, D-49)", async ({
+		page,
+	}) => {
+		const errors = await openDesktopDashboard(page);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const container = sidebar.locator('[data-slot="sidebar-container"]');
+
+		const rail = await boxOf(container);
+		expectNear(rail.x, 0, "rail container x");
+		expectNear(rail.y, 0, "rail container y");
+		expectNear(rail.width, 224, "rail container width");
+		expectNear(rail.height, 720, "rail container height");
+
+		const widths = await rowWidths(container);
+		expect(widths.coreW, "CORE_W").toBeGreaterThanOrEqual(199 - 0.5);
+		expect(widths.coreW, "CORE_W").toBeLessThanOrEqual(200 + 0.5);
+		record("rail container box", rail);
+		record("row widths", widths);
+
+		const coreMenu = sidebar.locator('[data-slot="sidebar-menu"]').first();
+		const coreRows = coreMenu.locator(
+			':scope > [data-slot="sidebar-menu-item"] > [data-slot="sidebar-menu-button"]',
+		);
+		const rows = await boxesOf(coreRows, { min: 7 });
+		expect(rows).toHaveLength(7);
+		record("core rows", rows);
+		rows.forEach((row, index) => {
+			expectNear(row.width, widths.coreW, `core row ${index} width`);
+			expectNear(row.height, 40, `core row ${index} height`);
+			const next = rows[index + 1];
+			if (next !== undefined) {
+				expectNear(next.y - (row.y + row.height), 2, `gap after row ${index}`);
+			}
+		});
+
+		for (const [index, label] of CORE_LABELS.entries()) {
+			const row = coreRows.nth(index);
+			const text = (await row.innerText()).trim();
+			expect(text, `core row ${index} label`).toBe(label);
+			await expect(row, `core row ${index} label-in-name`).toHaveAccessibleName(
+				text,
+			);
+		}
+		await expect(
+			coreMenu.locator('[data-slot="sidebar-menu-sub"]'),
+		).toHaveCount(0);
+
+		const toggles = sidebar.locator('[data-slot="collapsible-trigger"]');
+		await expect(toggles).toHaveCount(2);
+		await expect(toggles.nth(0)).toHaveAccessibleName("Analytics");
+		await expect(toggles.nth(1)).toHaveAccessibleName("Reports");
+
+		await expect(sidebar.getByRole("link", { name: "Templates" })).toHaveCount(
+			0,
+		);
+		await expect(
+			sidebar.getByRole("button", { name: "Templates" }),
+		).toHaveCount(0);
+
+		const footer = sidebar.locator('[data-slot="sidebar-footer"]');
+		const footerLinks = footer.getByRole("link");
+		await expect(footerLinks).toHaveCount(2);
+		await expect(footerLinks.nth(0)).toHaveAccessibleName("Settings");
+		await expect(footerLinks.nth(0)).toHaveAttribute("href", "/settings");
+		await expect(footerLinks.nth(1)).toHaveAccessibleName("Help & Support");
+		await expect(footerLinks.nth(1)).toHaveAttribute("href", "/help");
+
+		const menus = await sidebar
+			.locator('[data-slot="sidebar-menu"]')
+			.evaluateAll((nodes) =>
+				nodes.map((node) => {
+					const style = getComputedStyle(node);
+					return {
+						marginTop: style.marginTop,
+						marginBottom: style.marginBottom,
+						paddingLeft: style.paddingLeft,
+					};
+				}),
+			);
+		expect(menus).toHaveLength(3);
+		for (const menu of menus) {
+			expect(menu).toEqual({
+				marginTop: "0px",
+				marginBottom: "0px",
+				paddingLeft: "0px",
+			});
+		}
+		const items = await sidebar
+			.locator('[data-slot="sidebar-menu-item"]')
+			.evaluateAll((nodes) =>
+				nodes.map((node) => getComputedStyle(node).marginBottom),
+			);
+		expect(items.length).toBeGreaterThanOrEqual(9);
+		expect(items.every((value) => value === "0px")).toBe(true);
+		// Every list item of every menu, the section items included: Collapsible
+		// asChild hands them its own data-slot.
+		const listItems = await sidebar
+			.locator('[data-slot="sidebar-menu"] > li')
+			.evaluateAll((nodes) =>
+				nodes.map((node) => getComputedStyle(node).marginBottom),
+			);
+		expect(listItems).toHaveLength(11);
+		expect(listItems.every((value) => value === "0px")).toBe(true);
+
+		// The S-2 survivors twMerge keeps and the cascade decides (66.2-34): the
+		// row's `p-2` loses to `px-3`, the footer's `p-2` to `px-3 pt-4 pb-2`.
+		const rowPadding = await coreRows.first().evaluate((node) => {
+			const style = getComputedStyle(node);
+			return [
+				style.paddingTop,
+				style.paddingRight,
+				style.paddingBottom,
+				style.paddingLeft,
+			];
+		});
+		expect(rowPadding).toEqual(["8px", "12px", "8px", "12px"]);
+		const footerPadding = await footer.evaluate((node) => {
+			const style = getComputedStyle(node);
+			return [
+				style.paddingTop,
+				style.paddingRight,
+				style.paddingBottom,
+				style.paddingLeft,
+			];
+		});
+		expect(footerPadding).toEqual(["16px", "12px", "8px", "12px"]);
+		record("core row and footer padding (t r b l)", {
+			rowPadding,
+			footerPadding,
+		});
+
+		const content = sidebar.locator('[data-slot="sidebar-content"]');
+		const separator = content
+			.locator('[data-slot="sidebar-separator"]')
+			.first();
+		await expect(separator).toHaveCSS("margin-top", "24px");
+		await expect(separator).toHaveCSS("margin-bottom", "16px");
+		const contentBox = await boxOf(content);
+		const separatorBox = await boxOf(separator);
+		record("content and separator boxes", { contentBox, separatorBox });
+		expectNear(separatorBox.x, contentBox.x + 12, "separator left edge");
+		expectNear(
+			separatorBox.x + separatorBox.width,
+			contentBox.x + contentBox.width - 12,
+			"separator right edge",
+		);
+
+		const scroll = await polledRead(
+			() =>
+				content.evaluate((node) => ({
+					scrollWidth: node.scrollWidth,
+					clientWidth: node.clientWidth,
+				})),
+			(value) => value.clientWidth > 0,
+		);
+		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth);
+
+		expect(errors).toEqual([]);
+	});
+
+	test("VD-27/VD-35: active section open, sub rows and pinned footer", async ({
+		page,
+	}) => {
+		const errors = await openDesktopDashboard(page);
+		await page.goto("/reports/cash-flow");
+		await waitForHydration(page, TRIGGER);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const container = sidebar.locator('[data-slot="sidebar-container"]');
+
+		const reports = sidebar.locator('[data-slot="collapsible-trigger"]', {
+			hasText: "Reports",
+		});
+		await expect(reports).toHaveAttribute("aria-expanded", "true");
+		const cashFlow = sidebar.locator('[data-slot="sidebar-menu-sub-button"]', {
+			hasText: "Cash Flow",
+		});
+		await expect(cashFlow).toHaveAttribute("aria-current", "page");
+		await expect(cashFlow).toHaveAttribute("data-active", "true");
+
+		const widths = await rowWidths(container);
+		const dashboardRow = await boxOf(
+			sidebar
+				.locator('[data-slot="sidebar-menu"]')
+				.first()
+				.locator('[data-slot="sidebar-menu-button"]')
+				.first(),
+		);
+		const subList = sidebar.locator('[data-slot="sidebar-menu-sub"]');
+		await expect(subList).toHaveCount(1);
+		const subRows = await boxesOf(
+			subList.locator('[data-slot="sidebar-menu-sub-button"]'),
+			{ min: 7 },
+		);
+		expect(subRows).toHaveLength(7);
+		record("sub rows", { dashboardRowX: dashboardRow.x, widths, subRows });
+		subRows.forEach((row, index) => {
+			expectNear(row.width, widths.subW, `sub row ${index} width`);
+			expectNear(row.height, 36, `sub row ${index} height`);
+			expectNear(row.x, dashboardRow.x + 32, `sub row ${index} x`);
+		});
+
+		const subStyle = await subList.evaluate((node) => {
+			const style = getComputedStyle(node);
+			return {
+				marginTop: style.marginTop,
+				marginBottom: style.marginBottom,
+				marginLeft: style.marginLeft,
+				paddingTop: style.paddingTop,
+				paddingRight: style.paddingRight,
+				paddingBottom: style.paddingBottom,
+				paddingLeft: style.paddingLeft,
+				borderLeftWidth: style.borderLeftWidth,
+			};
+		});
+		// The logical `px-2.5` survives twMerge and loses the cascade to the
+		// physical `pl-0 pr-0` (S-2, PATTERNS #1); jsdom cannot model it.
+		expect(subStyle).toEqual({
+			marginTop: "0px",
+			marginBottom: "0px",
+			marginLeft: "32px",
+			paddingTop: "4px",
+			paddingRight: "0px",
+			paddingBottom: "4px",
+			paddingLeft: "0px",
+			borderLeftWidth: "0px",
+		});
+		record("sub list computed", subStyle);
+		const subItems = await subList
+			.locator('[data-slot="sidebar-menu-sub-item"]')
+			.evaluateAll((nodes) =>
+				nodes.map((node) => getComputedStyle(node).marginBottom),
+			);
+		expect(subItems).toHaveLength(7);
+		expect(subItems.every((value) => value === "0px")).toBe(true);
+
+		await sidebar
+			.locator('[data-slot="collapsible-trigger"]', { hasText: "Analytics" })
+			.click();
+		await expect(subList).toHaveCount(2);
+		const content = sidebar.locator('[data-slot="sidebar-content"]');
+		const scroll = await polledRead(
+			() =>
+				content.evaluate((node) => ({
+					scrollHeight: node.scrollHeight,
+					clientHeight: node.clientHeight,
+				})),
+			(value) => value.clientHeight > 0,
+		);
+		expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+		await expect(
+			sidebar.locator('[data-slot="sidebar-footer"]'),
+		).toBeInViewport();
+
+		await cashFlow.hover();
+		await expect(cashFlow).toHaveCSS("text-decoration-line", "none");
+
+		expect(errors).toEqual([]);
+	});
+
+	test("VD-26/VD-34: hover never underlines, current row keeps its tint, focus ring", async ({
+		page,
+	}) => {
+		const errors = await openDesktopDashboard(page);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const coreRows = sidebar
+			.locator('[data-slot="sidebar-menu"]')
+			.first()
+			.locator('[data-slot="sidebar-menu-button"]');
+		const dashboardRow = coreRows.nth(0);
+		const propertiesRow = coreRows.nth(1);
+
+		const logo = sidebar
+			.locator('[data-slot="sidebar-header"]')
+			.getByRole("link", { name: "TenantFlow" });
+		await logo.hover();
+		await expect(logo).toHaveCSS("text-decoration-line", "none");
+
+		const accent = await resolveColor(page, "--sidebar-accent");
+		await propertiesRow.hover();
+		await expect(propertiesRow).toHaveCSS("text-decoration-line", "none");
+		await expect(propertiesRow).toHaveCSS("background-color", accent);
+
+		await page.mouse.move(1000, 600);
+		const resting = await dashboardRow.evaluate(
+			(node) => getComputedStyle(node).backgroundColor,
+		);
+		expect(resting).not.toBe("rgba(0, 0, 0, 0)");
+		await dashboardRow.hover();
+		await expect(dashboardRow).toHaveCSS("text-decoration-line", "none");
+		const hovered = await dashboardRow.evaluate(
+			(node) => getComputedStyle(node).backgroundColor,
+		);
+		expect(hovered).toBe(resting);
+
+		await page.mouse.move(1000, 600);
+		await page.evaluate(() => {
+			const start = document.createElement("div");
+			start.id = "e2e-focus-start";
+			start.tabIndex = -1;
+			document.body.prepend(start);
+			start.focus();
+		});
+		let focused = false;
+		for (let press = 0; press < 12 && !focused; press += 1) {
+			await page.keyboard.press("Tab");
+			focused = await dashboardRow.evaluate(
+				(node) => node === document.activeElement,
+			);
+		}
+		await page.evaluate(() => {
+			document.getElementById("e2e-focus-start")?.remove();
+		});
+		expect(focused, "12 Tab presses never focused the Dashboard row").toBe(
+			true,
+		);
+		const ring = await resolveColor(page, "--sidebar-ring");
+		const shadow = await dashboardRow.evaluate(
+			(node) => getComputedStyle(node).boxShadow,
+		);
+		expect(shadow).toContain("0px 0px 0px 2px");
+		expect(shadow).toContain(ring);
+
+		expect(errors).toEqual([]);
+	});
+
+	test("D-34/D-52/D-36: collapse controls, shortcut guards, cookie and SSR state (T-COOKIE)", async ({
+		page,
+	}) => {
+		test.setTimeout(60_000);
+		await captureCookieWrites(page);
+		const errors = await openDesktopDashboard(page);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const trigger = page.locator(TRIGGER);
+		const rail = page.locator(RAIL);
+
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+		await rail.click({ position: { x: 12, y: 200 } });
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		// The rail stays clickable from the collapsed state: it sits outside every
+		// inert subtree (D-34).
+		await rail.click({ position: { x: 12, y: 200 } });
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+		await page.keyboard.press("ControlOrMeta+b");
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		await page.keyboard.press("ControlOrMeta+b");
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+
+		// Shortcut guards: a synthetic Ctrl+B on an editable target is ignored
+		// without preventDefault. The cookie write is synchronous inside setOpen,
+		// so an unchanged write count proves no toggle ran.
+		const writesBeforeGuards = (await readCookieWrites(page)).length;
+		const prevented = await page.evaluate(() => {
+			const main = document.querySelector("main#main-content");
+			if (main === null) {
+				throw new Error("main#main-content is missing");
+			}
+			const input = document.createElement("input");
+			input.setAttribute("data-e2e-shortcut-probe", "");
+			const editable = document.createElement("div");
+			editable.setAttribute("contenteditable", "true");
+			editable.setAttribute("data-e2e-shortcut-probe", "");
+			main.append(input, editable);
+			const fire = (target: EventTarget) =>
+				!target.dispatchEvent(
+					new KeyboardEvent("keydown", {
+						key: "b",
+						ctrlKey: true,
+						bubbles: true,
+						cancelable: true,
+					}),
+				);
+			return { input: fire(input), editable: fire(editable) };
+		});
+		expect(prevented).toEqual({ input: false, editable: false });
+		expect((await readCookieWrites(page)).length).toBe(writesBeforeGuards);
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+
+		// Positive control: the same event on document.body is handled.
+		const bodyPrevented = await page.evaluate(
+			() =>
+				!document.body.dispatchEvent(
+					new KeyboardEvent("keydown", {
+						key: "b",
+						ctrlKey: true,
+						bubbles: true,
+						cancelable: true,
+					}),
+				),
+		);
+		expect(bodyPrevented).toBe(true);
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+		await page.evaluate(() => {
+			for (const node of document.querySelectorAll(
+				"[data-e2e-shortcut-probe]",
+			)) {
+				node.remove();
+			}
+		});
+
+		// Palette guard: Ctrl/Meta+B is ignored while the palette is open.
+		await page.keyboard.press("ControlOrMeta+k");
+		const palette = page.getByPlaceholder("Search pages and actions...");
+		await expect(palette).toBeVisible();
+		const writesBeforePalette = (await readCookieWrites(page)).length;
+		await page.keyboard.press("ControlOrMeta+b");
+		expect((await readCookieWrites(page)).length).toBe(writesBeforePalette);
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+		await page.keyboard.press("Escape");
+		await expect(palette).toBeHidden();
+
+		const https = await page.evaluate(() => location.protocol === "https:");
+		const writes = await readCookieWrites(page);
+		expect(writes.length).toBeGreaterThanOrEqual(8);
+		for (const write of writes) {
+			expect(write).toMatch(
+				/^sidebar_state=(true|false); path=\/; max-age=604800; SameSite=Lax(; Secure)?$/,
+			);
+			expect(write.endsWith("; Secure"), `Secure on ${write}`).toBe(https);
+		}
+		record("cookie writes", { https, count: writes.length, writes });
+
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		const jar = (await page.context().cookies()).find(
+			(cookie) => cookie.name === SIDEBAR_COOKIE,
+		);
+		expect(jar, "sidebar_state is in the browser jar").toBeDefined();
+		if (jar === undefined) {
+			throw new Error("sidebar_state is not in the browser jar");
+		}
+		expect({
+			value: jar.value,
+			sameSite: jar.sameSite,
+			path: jar.path,
+			httpOnly: jar.httpOnly,
+			secure: jar.secure,
+		}).toEqual({
+			value: "false",
+			sameSite: "Lax",
+			path: "/",
+			httpOnly: false,
+			secure: https,
+		});
+		expect(
+			Math.abs(jar.expires - (Date.now() / 1000 + COOKIE_MAX_AGE_S)),
+			"cookie expiry vs now + 604800 s",
+		).toBeLessThanOrEqual(120);
+		record("cookie jar", {
+			sameSite: jar.sameSite,
+			path: jar.path,
+			httpOnly: jar.httpOnly,
+			secure: jar.secure,
+			expiresInS: Math.round(jar.expires - Date.now() / 1000),
+		});
+
+		expect(await ssrSidebarState(page)).toBe("collapsed");
+		await seedSidebarCookie(page, "garbage");
+		expect(await ssrSidebarState(page)).toBe("expanded");
+		await seedSidebarCookie(page, "true");
+		expect(await ssrSidebarState(page)).toBe("expanded");
+
+		expect(errors).toEqual([]);
+	});
+
+	test("S12/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers", async ({
+		page,
+	}) => {
+		const errors = await openDesktopDashboard(page);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const trigger = page.locator(TRIGGER);
+		const dock = page.getByTestId("quick-actions-dock");
+		const logo = sidebar
+			.locator('[data-slot="sidebar-header"]')
+			.getByRole("link", { name: "TenantFlow" });
+
+		await expect(dock).toHaveCSS("left", "752px");
+		expect(
+			await logo.evaluate((node) => node.closest("[inert]") === null),
+		).toBe(true);
+		const expandedWalk = await tabWalk(page, 15);
+		expect(
+			expandedWalk.filter((stop) => stop.inSidebar).length,
+			"Tab stops inside the expanded rail",
+		).toBeGreaterThanOrEqual(1);
+
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		await expect(dock).toHaveCSS("left", "640px");
+		expect(
+			await logo.evaluate((node) => node.closest("[inert]") !== null),
+		).toBe(true);
+		const collapsedWalk = await tabWalk(page, 15);
+		expect(
+			collapsedWalk.filter((stop) => stop.inSidebar).length,
+			"Tab stops inside the collapsed rail",
+		).toBe(0);
+		expect(
+			collapsedWalk.filter((stop) => stop.isTrigger).length,
+			"the collapsed walk reached the trigger",
+		).toBeGreaterThanOrEqual(1);
+
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+		await expect(dock).toHaveCSS("left", "752px");
+
+		expect(errors).toEqual([]);
+	});
+
+	test("D-41/D-44: zero WCAG 2.1 A/AA violations, rail expanded and collapsed", async ({
+		page,
+	}) => {
+		test.setTimeout(60_000);
+		const errors = await openDesktopDashboard(page);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+
+		const expanded = await new AxeBuilder({ page })
+			.withTags(WCAG_2_1_AA_TAGS)
+			.analyze();
+		expect(expanded.violations).toEqual([]);
+
+		await page.locator(TRIGGER).click();
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		const collapsed = await new AxeBuilder({ page })
+			.withTags(WCAG_2_1_AA_TAGS)
+			.analyze();
+		expect(collapsed.violations).toEqual([]);
+
+		expect(errors).toEqual([]);
+	});
 });
