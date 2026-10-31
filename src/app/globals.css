@@ -163,7 +163,7 @@
 	--color-ring: oklch(0.5 0.2 257);
 	--color-primary: oklch(0.54 0.23 257);
 	--color-primary-foreground: oklch(0.98 0.01 255);
-	--color-secondary: oklch(95.46% 3.51 246.58);
+	--color-secondary: oklch(0.9546 0.0351 246.58);
 	--color-secondary-foreground: oklch(0.2 0 0);
 	--color-accent: oklch(0.6 0.17 160);
 	--color-accent-foreground: oklch(0.98 0.01 160);

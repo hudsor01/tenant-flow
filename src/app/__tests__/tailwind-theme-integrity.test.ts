@@ -10,7 +10,7 @@
  * ORDER (P4). lefthook runs the whole unit suite on every commit, so a guard
  * can only land in the same commit as its fix: G1-G6 arrive with their fixes
  * in 66.2-04..09, G7 in 66.2-14 and G8 in 66.2-18. No guard is added ahead of
- * its fix. Until then this file holds only the harness self-tests below.
+ * its fix. The harness self-tests come first; each guard follows them.
  *
  * ENVIRONMENT (N6). The file runs in node, not jsdom: `src/test/unit-setup.ts`
  * touches the DOM only behind `typeof window !== "undefined"`, so the shared
@@ -33,16 +33,19 @@
  *   - Every `it` that awaits an engine passes an explicit timeout; the G8 `it`
  *     takes `30_000`.
  */
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
 	FIXTURE_CSS_PREFIX,
 	fixtureCss,
+	GLOBALS_CSS_PATH,
 	loadFixtureEngine,
 	loadProjectTailwindEngine,
 	REPO_ROOT,
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
+import { checkOklchRange } from "#test/utils/tailwind-guards";
 
 const ENGINE_TIMEOUT_MS = 30_000;
 
@@ -145,4 +148,71 @@ describe("tailwind engine: fixture negative-control helpers", () => {
 		},
 		ENGINE_TIMEOUT_MS,
 	);
+});
+
+describe("G1 — every oklch() literal in globals.css is in range (B1 class)", () => {
+	const projectCss = readFileSync(GLOBALS_CSS_PATH, "utf8");
+
+	it("scans enough oklch() literals that a clean result means something", () => {
+		// Non-vacuity floor. The real file held 110 literals at 66.2-04, holds 98
+		// once 66.2-07 deletes the 12 label/fill/separator tokens, and fewer after
+		// 66.2-13 deletes the dead tokens. The floor sits below every planned
+		// count, so no deletion plan has to lower it. A scan that finds fewer
+		// literals than this has stopped reading the declarations it guards.
+		expect(
+			checkOklchRange(projectCss).checked,
+			"G1 scanned too few oklch() literals in globals.css: the scan is vacuous",
+		).toBeGreaterThanOrEqual(50);
+	});
+
+	it("finds no oklch() literal outside the lightness and chroma ranges", () => {
+		const { violations } = checkOklchRange(projectCss);
+		expect(
+			violations,
+			[
+				"oklch() literal(s) outside L∈[0,1], C∈[0,0.37]: a percent-form or dropped-digit typo renders as an out-of-gamut color (B1 class). Fix the literal:",
+				...violations,
+			].join("\n"),
+		).toEqual([]);
+	});
+
+	it("flags a percent lightness with a dropped-digit chroma (the B1 defect)", () => {
+		const { violations } = checkOklchRange(
+			"@theme { --color-x: oklch(95.46% 3.51 246.58); }",
+		);
+		expect(violations).toHaveLength(1);
+		expect(violations[0]).toContain("--color-x");
+	});
+
+	it("accepts the corrected decimal literal", () => {
+		expect(
+			checkOklchRange("@theme { --color-x: oklch(0.9546 0.0351 246.58); }")
+				.violations,
+		).toEqual([]);
+	});
+
+	it("normalizes a percent lightness before comparing it", () => {
+		expect(
+			checkOklchRange("@theme { --color-x: oklch(95.46% 0.0351 246.58); }")
+				.violations,
+		).toEqual([]);
+	});
+
+	it("reads a percent chroma as a fraction of 0.4", () => {
+		expect(
+			checkOklchRange("@theme { --color-x: oklch(0.5 100% 0); }").violations,
+		).toHaveLength(1);
+	});
+
+	it("flags a lightness above 1", () => {
+		expect(
+			checkOklchRange("@theme { --color-x: oklch(1.2 0.1 0); }").violations,
+		).toHaveLength(1);
+	});
+
+	it("does not read the alpha channel", () => {
+		expect(
+			checkOklchRange("@theme { --color-x: oklch(0 0 0 / 85%); }").violations,
+		).toEqual([]);
+	});
 });
