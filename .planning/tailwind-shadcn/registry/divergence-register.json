@@ -2,6 +2,47 @@
   "schema": 1,
   "registry": "new-york-v4",
   "files": {
+    "src/components/ui/alert-dialog.tsx": {
+      "item": "alert-dialog",
+      "plan": "66.2-23",
+      "divergences": [
+        {
+          "what": "local AlertDialogContent, AlertDialogHeader (flex flex-col gap-2 text-center sm:text-left), AlertDialogFooter (flex flex-col-reverse gap-2 sm:flex-row sm:justify-end) and AlertDialogTitle (text-lg font-semibold) layout kept byte-identical; only AlertDialogAction and AlertDialogCancel follow upstream (Button asChild, variant/size, alert-dialog-action and alert-dialog-cancel data-slots)",
+          "reason": "D-26 customization",
+          "ref": "D-26; ledger C14, C16"
+        },
+        {
+          "what": "AlertDialogContent size prop (default | sm), its data-size attribute, the group/alert-dialog-content group and the data-[size=sm]:max-w-xs / data-[size=default]:sm:max-w-lg widths",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; ledger C14, C16"
+        },
+        {
+          "what": "grid AlertDialogHeader (grid-rows-[auto_1fr], place-items-center, gap-1.5 and its size-group and media-row variants)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; ledger C14, C16"
+        },
+        {
+          "what": "size-group AlertDialogFooter classes (group-data-[size=sm]/alert-dialog-content grid two-column footer) and the AlertDialogTitle media col-start-2 class",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; ledger C14, C16"
+        },
+        {
+          "what": "AlertDialogMedia export and its alert-dialog-media data-slot (upstream exports 12 data-slots, manifest-w5.json; this repo vendors and exports 11, no consumer uses a media part)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; ledger C14, C16"
+        },
+        {
+          "what": "AlertDialogOverlay and AlertDialogPortal exports (both stay internal to AlertDialogContent; the export list is unchanged)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; ledger C14, C16"
+        },
+        {
+          "what": "class token order in AlertDialogOverlay and AlertDialogDescription",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
     "src/components/ui/alert.tsx": {
       "item": "alert",
       "plan": "66.2-20",
