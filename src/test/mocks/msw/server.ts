@@ -35,7 +35,7 @@ export const server = setupServer(...handlers);
  * ```
  */
 export function enableMswServer() {
-	beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+	beforeAll(() => server.listen({ onUnhandledFrame: "bypass" }));
 	afterEach(() => server.resetHandlers());
 	afterAll(() => server.close());
 }
