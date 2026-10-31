@@ -144,7 +144,6 @@ export function SignLeaseButton({
 							handleSign();
 						}}
 						disabled={!agreed || mutation.isPending}
-						className="gap-2"
 					>
 						{mutation.isPending ? (
 							"Signing..."

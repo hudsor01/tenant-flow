@@ -172,19 +172,14 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter className="flex gap-3">
-						<AlertDialogCancel
-							disabled={isDeleting}
-							className={cn(buttonVariants({ variant: "outline" }), "flex-1")}
-						>
+						<AlertDialogCancel disabled={isDeleting} className="flex-1">
 							Cancel
 						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting || !canDelete}
-							className={cn(
-								buttonVariants({ variant: "destructive" }),
-								"flex-1",
-							)}
+							variant="destructive"
+							className="flex-1"
 						>
 							{isDeleting ? (
 								<div className="flex items-center gap-2">

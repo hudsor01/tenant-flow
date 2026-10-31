@@ -151,7 +151,7 @@ export default function TenantsPage() {
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmDeleteTenant}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							Delete
 						</AlertDialogAction>
@@ -187,7 +187,7 @@ export default function TenantsPage() {
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmBulkDelete}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							Delete
 						</AlertDialogAction>

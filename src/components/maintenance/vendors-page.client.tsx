@@ -88,7 +88,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
 									<AlertDialogAction
 										onClick={() => deleteMutation.mutate(vendor.id)}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										variant="destructive"
 									>
 										Remove
 									</AlertDialogAction>

@@ -168,7 +168,7 @@ export function LeaseHeader({
 											handleCancelSignature();
 										}}
 										disabled={isCancelling}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										variant="destructive"
 									>
 										{isCancelling ? "Cancelling..." : "Cancel Request"}
 									</AlertDialogAction>

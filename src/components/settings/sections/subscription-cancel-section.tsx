@@ -17,13 +17,12 @@ import {
 	AlertDialogTrigger,
 } from "#components/ui/alert-dialog";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button, buttonVariants } from "#components/ui/button";
+import { Button } from "#components/ui/button";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import {
 	useCancelSubscriptionMutation,
 	useReactivateSubscriptionMutation,
 } from "#hooks/api/use-billing-mutations";
-import { cn } from "#lib/utils";
 
 function formatPlanEndDate(iso: string | null): string {
 	if (!iso) return "your next billing date";
@@ -278,10 +277,7 @@ export function SubscriptionCancelSection() {
 									}}
 									disabled={cancelMutation.isPending}
 									aria-label="Confirm subscription cancellation"
-									className={cn(
-										buttonVariants({ variant: "destructive" }),
-										"gap-2",
-									)}
+									variant="destructive"
 								>
 									{cancelMutation.isPending && (
 										<Loader2

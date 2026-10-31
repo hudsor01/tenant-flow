@@ -271,7 +271,7 @@ function MaintenanceActionsCell({
 						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							disabled={isDeleting}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 							onClick={handleDelete}
 						>
 							{isDeleting ? "Deleting..." : "Delete"}

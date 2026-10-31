@@ -310,7 +310,7 @@ export default function UnitsPage() {
 						<AlertDialogAction
 							onClick={handleDeleteConfirm}
 							disabled={deleteUnitMutation.isPending}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{deleteUnitMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

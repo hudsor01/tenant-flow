@@ -81,7 +81,7 @@ export function TerminateLeaseDialog({
 					<AlertDialogAction
 						onClick={handleConfirm}
 						disabled={terminateLease.isPending}
-						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						variant="destructive"
 					>
 						{terminateLease.isPending ? "Terminating..." : "Terminate Lease"}
 					</AlertDialogAction>
