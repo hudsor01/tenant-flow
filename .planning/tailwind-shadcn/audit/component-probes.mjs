@@ -30,7 +30,13 @@
 //   otp-setup, otp-mfa      { slotCount, dataSlotCount, slots: [{ width, height, fontSize,
 //                            borderWidths: [t,r,b,l], radii: [tl,tr,br,bl] }] }
 //   chart                   { gridLineCount, gridStroke, activeDotStroke, activeDotStrokeWidth }
-//   command                 { wrapperHeight, inputHeight, inputOverflowsWrapper }
+//   command                 { wrapperHeight, inputHeight, inputOverflowsWrapper, inputOverflowPx,
+//                            wrapperBorderBottomPx }  inputOverflowPx = max(wrapper.top - input.top,
+//                            input.bottom - wrapper.bottom, 0) against the wrapper's border box;
+//                            wrapperBorderBottomPx = its computed border-bottom-width;
+//                            inputOverflowsWrapper = inputOverflowPx > wrapperBorderBottomPx (66.2-21
+//                            VD-18: upstream new-york-v4 centres a 48px input in a 48px border-box
+//                            wrapper with a 1px border-b, leaving 0.5px inside that border)
 //   date-popover            { popoverContentDataSlotCount, popoverBg, calendarBg, popoverRadius,
 //                            cornerPatch, cornerPatchMaxDiffVsPlain }
 //   plain-popover (C7 ref)  { cornerPatch }  only this field: the reference surface carries no
@@ -358,9 +364,18 @@ const PROBES = {
 			page.evaluate(async () => {
 				const { r1, settle } = window.__tfMeasure;
 				await settle();
-				const w = document.querySelector("[data-slot=command-input-wrapper]").getBoundingClientRect();
+				const wrapper = document.querySelector("[data-slot=command-input-wrapper]");
+				const w = wrapper.getBoundingClientRect();
 				const i = document.querySelector("[cmdk-input]").getBoundingClientRect();
-				return { wrapperHeight: r1(w.height), inputHeight: r1(i.height), inputOverflowsWrapper: i.top < w.top || i.bottom > w.bottom };
+				const inputOverflowPx = r1(Math.max(w.top - i.top, i.bottom - w.bottom, 0));
+				const wrapperBorderBottomPx = r1(parseFloat(getComputedStyle(wrapper).borderBottomWidth) || 0);
+				return {
+					wrapperHeight: r1(w.height),
+					inputHeight: r1(i.height),
+					inputOverflowsWrapper: inputOverflowPx > wrapperBorderBottomPx,
+					inputOverflowPx,
+					wrapperBorderBottomPx,
+				};
 			}),
 	},
 	"date-popover": {
