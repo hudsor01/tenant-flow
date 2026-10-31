@@ -152,7 +152,7 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 			</Button>
 
 			{showPreview ? (
-				<div className="prose prose-sm max-w-none border-t border-border pt-4 text-foreground">
+				<div className="prose prose-sm dark:prose-invert max-w-none border-t border-border pt-4 text-foreground">
 					<MarkdownContent content={draft.content} />
 				</div>
 			) : null}
