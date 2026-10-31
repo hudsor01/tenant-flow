@@ -45,7 +45,7 @@ import {
 	REPO_ROOT,
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
-import { checkOklchRange } from "#test/utils/tailwind-guards";
+import { checkOklchRange, checkSourceGlobs } from "#test/utils/tailwind-guards";
 
 const ENGINE_TIMEOUT_MS = 30_000;
 
@@ -215,4 +215,82 @@ describe("G1 — every oklch() literal in globals.css is in range (B1 class)", (
 			checkOklchRange("@theme { --color-x: oklch(0 0 0 / 85%); }").violations,
 		).toEqual([]);
 	});
+});
+
+describe("G6 — every explicit @source glob in globals.css matches at least one file (B9 class)", () => {
+	it(
+		"checks at least one explicit @source entry",
+		async () => {
+			const { compiler } = await projectEngine();
+			expect(
+				checkSourceGlobs(compiler.sources).checked,
+				"G6 found no explicit @source entry in globals.css: the check is vacuous",
+			).toBeGreaterThan(0);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"finds no explicit @source glob that matches zero files",
+		async () => {
+			const { compiler } = await projectEngine();
+			const { violations } = checkSourceGlobs(compiler.sources);
+			expect(
+				violations,
+				[
+					"Explicit @source glob(s) that match zero files. A glob that matches nothing silently scans nothing (B9 class). Fix or delete:",
+					...violations,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags the zero-match glob that globals.css carried (the B9 defect)",
+		async () => {
+			const { compiler } = await loadFixtureEngine('@source "..*.{ts,tsx}";');
+			const { violations } = checkSourceGlobs(compiler.sources);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]).toContain("*.{ts,tsx}");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"accepts a glob that matches a file",
+		async () => {
+			const { compiler } = await loadFixtureEngine('@source "./layout.tsx";');
+			const result = checkSourceGlobs(compiler.sources);
+			expect(result.checked).toBe(1);
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"checks a negated entry as a positive glob and accepts it when it matches",
+		async () => {
+			const { compiler } = await loadFixtureEngine(
+				'@source not "./layout.tsx";',
+			);
+			const result = checkSourceGlobs(compiler.sources);
+			expect(result.checked).toBe(1);
+			expect(result.violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"flags a negated entry that excludes nothing",
+		async () => {
+			const { compiler } = await loadFixtureEngine(
+				'@source not "./no-such-file-66-2-04.tsx";',
+			);
+			const { violations } = checkSourceGlobs(compiler.sources);
+			expect(violations).toHaveLength(1);
+			expect(violations[0]?.startsWith("not ")).toBe(true);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
 });

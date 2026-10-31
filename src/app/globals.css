@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
-@source "..*.{ts,tsx}";
 @source not "../../.planning/**/*";
 @source not "../../README.md";
 /* Test files assert on class strings (e.g. arbitrary-value candidates in

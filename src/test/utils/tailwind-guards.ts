@@ -38,6 +38,8 @@
  *      which `globals.css` keeps out of the scan.
  */
 
+import type { SourceEntry } from "@tailwindcss/oxide";
+import { Scanner } from "@tailwindcss/oxide";
 import postcss from "postcss";
 
 export type GuardResult = {
@@ -90,5 +92,29 @@ export function checkOklchRange(css: string): GuardResult {
 			}
 		}
 	});
+	return { checked, violations };
+}
+
+/**
+ * Negated entries are scanned as positive globs on purpose: a negation that
+ * excludes nothing is the same dead configuration as a positive glob that
+ * includes nothing. Pass the compiler's explicit `sources`, not the resolved
+ * scan set, which also holds the automatic repository root.
+ */
+export function checkSourceGlobs(sources: readonly SourceEntry[]): GuardResult {
+	let checked = 0;
+	const violations: string[] = [];
+	for (const entry of sources) {
+		checked += 1;
+		const scanner = new Scanner({
+			sources: [{ base: entry.base, pattern: entry.pattern, negated: false }],
+		});
+		scanner.scan();
+		if (scanner.files.length === 0) {
+			violations.push(
+				`${entry.negated ? "not " : ""}${entry.pattern} (base ${entry.base})`,
+			);
+		}
+	}
 	return { checked, violations };
 }
