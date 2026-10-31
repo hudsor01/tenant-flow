@@ -111,6 +111,37 @@
         }
       ]
     },
+    "src/components/ui/button.tsx": {
+      "item": "button",
+      "plan": "66.2-22",
+      "divergences": [
+        {
+          "what": "base string uses typography-small instead of text-sm font-medium",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-29"
+        },
+        {
+          "what": "the 44px touch floor: min-h-11 on every size and min-w-11 on icon, with heights default h-10 px-4 py-2, sm h-9 px-3, lg h-11 px-8 and icon size-10 instead of upstream h-9, h-8 gap-1.5, h-10 px-6 and size-9",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-29; UI-SPEC §Button"
+        },
+        {
+          "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-29"
+        },
+        {
+          "what": "link variant uses text-primary-text (the AA text companion) instead of text-primary",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-29; CLAUDE.md AA -text companions"
+        },
+        {
+          "what": "no has-[>svg] padding reductions on the default, sm and lg sizes, and no xs, icon-xs, icon-sm or icon-lg sizes",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; UI-SPEC §Button"
+        }
+      ]
+    },
     "src/components/ui/calendar.tsx": {
       "item": "calendar",
       "plan": "66.2-21",

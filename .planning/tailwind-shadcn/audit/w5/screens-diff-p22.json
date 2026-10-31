@@ -1,0 +1,580 @@
+[
+ {
+  "capture": "owner/analytics_overview-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/analytics_overview-dark-390.png",
+  "changedPixels": 742,
+  "class": "VD-19-svg-unsquash",
+  "evidence": "VD-19-svg-unsquash: same Button and measurements as the light capture (calendar icon 0 -> 16px, pixel box 14x15@211,2039; content x 244-314 -> 211-312); both regions inside the Button rect 127x44@198,2025."
+ },
+ {
+  "capture": "owner/analytics_overview-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/analytics_overview-light-390.png",
+  "changedPixels": 742,
+  "class": "VD-19-svg-unsquash",
+  "evidence": "VD-19-svg-unsquash: the \"This Month\" ghost sm Button in the Top Performing Properties card header (src/app/(owner)/analytics/overview/page.tsx). Its lucide calendar icon (size-4 mr-2) was squashed to 0 width on w4 (no icon pixels; DOM 66.2-10) and renders on p22 at DOM 16x16, pixel box 14x15@211,2039. Host Button growth measured on the PNGs: content extent x 244-314 (71px, label only) on w4 -> x 211-312 (102px, icon + label) on p22; the Button's right edge is unchanged. Both changed regions (14x15@211,2039 and 73x12@242,2040) lie inside the p22 Button rect 127x44@198,2025. No pixel outside the Button changes."
+ },
+ {
+  "capture": "owner/applications-dark-1280.png",
+  "changedPixels": 70847,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 1080,353; \"Next\" (outline/sm) at 1169,353; \"Create link\" (outline/sm) at 322,575; \"Create link\" (outline/sm) at 322,693; \"Create link\" (outline/sm) at 322,811; \"Create link\" (outline/sm) at 322,929; \"Create link\" (outline/sm) at 322,1047; \"Create link\" (outline/sm) at 322,1165; \"Create link\" (outline/sm) at 322,1283; \"Create link\" (outline/sm) at 322,1401; \"Create link\" (outline/sm) at 322,1519; \"Create link\" (outline/sm) at 322,1637; \"Create link\" (outline/sm) at 322,1755; \"Create link\" (outline/sm) at 322,1873; \"Create link\" (outline/sm) at 322,1991; \"Create link\" (outline/sm) at 322,2109; \"Create link\" (outline/sm) at 322,2227; \"Create a new link\" (outline/sm) at 322,2347; \"Create link\" (outline/sm) at 322,2489; \"Copy application link\" (outline/icon) at 1056,2609. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@1072,2625 -> 16x16@1072,2625)."
+ },
+ {
+  "capture": "owner/applications-dark-320.png",
+  "changedPixels": 70843,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 40,502; \"Next\" (outline/sm) at 129,502; \"Create link\" (outline/sm) at 82,784; \"Create link\" (outline/sm) at 82,902; \"Create link\" (outline/sm) at 82,1020; \"Create link\" (outline/sm) at 82,1138; \"Create link\" (outline/sm) at 82,1256; \"Create link\" (outline/sm) at 82,1374; \"Create link\" (outline/sm) at 82,1492; \"Create link\" (outline/sm) at 82,1610; \"Create link\" (outline/sm) at 82,1728; \"Create link\" (outline/sm) at 82,1846; \"Create link\" (outline/sm) at 82,1964; \"Create link\" (outline/sm) at 82,2082; \"Create link\" (outline/sm) at 82,2200; \"Create link\" (outline/sm) at 82,2318; \"Create link\" (outline/sm) at 82,2436; \"Create a new link\" (outline/sm) at 82,2556; \"Create link\" (outline/sm) at 82,2698; \"Copy application link\" (outline/icon) at 82,2874. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@98,2890 -> 16x16@98,2890)."
+ },
+ {
+  "capture": "owner/applications-dark-375.png",
+  "changedPixels": 70843,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 40,466; \"Next\" (outline/sm) at 129,466; \"Create link\" (outline/sm) at 82,728; \"Create link\" (outline/sm) at 82,846; \"Create link\" (outline/sm) at 82,964; \"Create link\" (outline/sm) at 82,1082; \"Create link\" (outline/sm) at 82,1200; \"Create link\" (outline/sm) at 82,1318; \"Create link\" (outline/sm) at 82,1436; \"Create link\" (outline/sm) at 82,1554; \"Create link\" (outline/sm) at 82,1672; \"Create link\" (outline/sm) at 82,1790; \"Create link\" (outline/sm) at 82,1908; \"Create link\" (outline/sm) at 82,2026; \"Create link\" (outline/sm) at 82,2144; \"Create link\" (outline/sm) at 82,2262; \"Create link\" (outline/sm) at 82,2380; \"Create a new link\" (outline/sm) at 82,2500; \"Create link\" (outline/sm) at 82,2642; \"Copy application link\" (outline/icon) at 82,2818. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@98,2834 -> 16x16@98,2834)."
+ },
+ {
+  "capture": "owner/applications-dark-390.png",
+  "changedPixels": 70843,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 40,450; \"Next\" (outline/sm) at 129,450; \"Create link\" (outline/sm) at 82,712; \"Create link\" (outline/sm) at 82,830; \"Create link\" (outline/sm) at 82,948; \"Create link\" (outline/sm) at 82,1066; \"Create link\" (outline/sm) at 82,1184; \"Create link\" (outline/sm) at 82,1302; \"Create link\" (outline/sm) at 82,1420; \"Create link\" (outline/sm) at 82,1538; \"Create link\" (outline/sm) at 82,1656; \"Create link\" (outline/sm) at 82,1774; \"Create link\" (outline/sm) at 82,1892; \"Create link\" (outline/sm) at 82,2010; \"Create link\" (outline/sm) at 82,2128; \"Create link\" (outline/sm) at 82,2246; \"Create link\" (outline/sm) at 82,2364; \"Create a new link\" (outline/sm) at 82,2484; \"Create link\" (outline/sm) at 82,2626; \"Copy application link\" (outline/icon) at 260,2746. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@276,2762 -> 16x16@276,2762)."
+ },
+ {
+  "capture": "owner/applications-light-1280.png",
+  "changedPixels": 10029,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 1080,353; \"Next\" (outline/sm) at 1169,353; \"Create link\" (outline/sm) at 322,575; \"Create link\" (outline/sm) at 322,693; \"Create link\" (outline/sm) at 322,811; \"Create link\" (outline/sm) at 322,929; \"Create link\" (outline/sm) at 322,1047; \"Create link\" (outline/sm) at 322,1165; \"Create link\" (outline/sm) at 322,1283; \"Create link\" (outline/sm) at 322,1401; \"Create link\" (outline/sm) at 322,1519; \"Create link\" (outline/sm) at 322,1637; \"Create link\" (outline/sm) at 322,1755; \"Create link\" (outline/sm) at 322,1873; \"Create link\" (outline/sm) at 322,1991; \"Create link\" (outline/sm) at 322,2109; \"Create link\" (outline/sm) at 322,2227; \"Create a new link\" (outline/sm) at 322,2347; \"Create link\" (outline/sm) at 322,2489; \"Copy application link\" (outline/icon) at 1056,2609. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@1072,2625 -> 16x16@1072,2625)."
+ },
+ {
+  "capture": "owner/applications-light-320.png",
+  "changedPixels": 10028,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 40,502; \"Next\" (outline/sm) at 129,502; \"Create link\" (outline/sm) at 82,784; \"Create link\" (outline/sm) at 82,902; \"Create link\" (outline/sm) at 82,1020; \"Create link\" (outline/sm) at 82,1138; \"Create link\" (outline/sm) at 82,1256; \"Create link\" (outline/sm) at 82,1374; \"Create link\" (outline/sm) at 82,1492; \"Create link\" (outline/sm) at 82,1610; \"Create link\" (outline/sm) at 82,1728; \"Create link\" (outline/sm) at 82,1846; \"Create link\" (outline/sm) at 82,1964; \"Create link\" (outline/sm) at 82,2082; \"Create link\" (outline/sm) at 82,2200; \"Create link\" (outline/sm) at 82,2318; \"Create link\" (outline/sm) at 82,2436; \"Create a new link\" (outline/sm) at 82,2556; \"Create link\" (outline/sm) at 82,2698; \"Copy application link\" (outline/icon) at 82,2874. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@98,2890 -> 16x16@98,2890)."
+ },
+ {
+  "capture": "owner/applications-light-375.png",
+  "changedPixels": 10028,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 40,466; \"Next\" (outline/sm) at 129,466; \"Create link\" (outline/sm) at 82,728; \"Create link\" (outline/sm) at 82,846; \"Create link\" (outline/sm) at 82,964; \"Create link\" (outline/sm) at 82,1082; \"Create link\" (outline/sm) at 82,1200; \"Create link\" (outline/sm) at 82,1318; \"Create link\" (outline/sm) at 82,1436; \"Create link\" (outline/sm) at 82,1554; \"Create link\" (outline/sm) at 82,1672; \"Create link\" (outline/sm) at 82,1790; \"Create link\" (outline/sm) at 82,1908; \"Create link\" (outline/sm) at 82,2026; \"Create link\" (outline/sm) at 82,2144; \"Create link\" (outline/sm) at 82,2262; \"Create link\" (outline/sm) at 82,2380; \"Create a new link\" (outline/sm) at 82,2500; \"Create link\" (outline/sm) at 82,2642; \"Copy application link\" (outline/icon) at 82,2818. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@98,2834 -> 16x16@98,2834)."
+ },
+ {
+  "capture": "owner/applications-light-390.png",
+  "changedPixels": 10028,
+  "class": "VD-19",
+  "evidence": "VD-19: 20 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Previous\" (outline/sm) at 40,450; \"Next\" (outline/sm) at 129,450; \"Create link\" (outline/sm) at 82,712; \"Create link\" (outline/sm) at 82,830; \"Create link\" (outline/sm) at 82,948; \"Create link\" (outline/sm) at 82,1066; \"Create link\" (outline/sm) at 82,1184; \"Create link\" (outline/sm) at 82,1302; \"Create link\" (outline/sm) at 82,1420; \"Create link\" (outline/sm) at 82,1538; \"Create link\" (outline/sm) at 82,1656; \"Create link\" (outline/sm) at 82,1774; \"Create link\" (outline/sm) at 82,1892; \"Create link\" (outline/sm) at 82,2010; \"Create link\" (outline/sm) at 82,2128; \"Create link\" (outline/sm) at 82,2246; \"Create link\" (outline/sm) at 82,2364; \"Create a new link\" (outline/sm) at 82,2484; \"Create link\" (outline/sm) at 82,2626; \"Copy application link\" (outline/icon) at 260,2746. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-copy 16x16@276,2762 -> 16x16@276,2762)."
+ },
+ {
+  "capture": "owner/dashboard-dark-1280.png",
+  "changedPixels": 18524,
+  "class": [
+   "VD-19",
+   "VD-20"
+  ],
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Presets\" (outline/sm) at 1134,1102. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-bookmark 12x14@1149,1117 -> 12x14@1149,1117). VD-20: 6 region(s) on Buttons whose census unsized icon went 24 -> 16px: \"Status\" (outline/sm) at 557,1171 [lucide-circle-plus] (own pre-change extent, 8px per icon); \"Toggle columns\" (outline/sm) at 959,1171 [lucide-settings-2] (own pre-change extent, 8px per icon); \"Go to first page\" (outline/icon) at 1011,1625 [lucide-chevrons-left]; \"Go to previous page\" (outline/icon) at 1063,1625 [lucide-chevron-left]; \"Go to next page\" (outline/icon) at 1115,1625 [lucide-chevron-right]; \"Go to last page\" (outline/icon) at 1167,1625 [lucide-chevrons-right]. Census rows: data-table-pagination.tsx ChevronsLeft/ChevronLeft/ChevronRight/ChevronsRight, data-table-faceted-filter.tsx PlusCircle (Status), data-table-view-options.tsx Settings2 (View; right-aligned, so its left edge moves +8px). No other element moves."
+ },
+ {
+  "capture": "owner/dashboard-dark-390.png",
+  "changedPixels": 11465,
+  "class": [
+   "VD-19",
+   "VD-20"
+  ],
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Presets\" (outline/sm) at 252,2269. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-bookmark 12x14@267,2284 -> 12x14@267,2284). VD-20: 3 region(s) on Buttons whose census unsized icon went 24 -> 16px: \"Status\" (outline/sm) at 57,2394 [lucide-circle-plus] (own pre-change extent, 8px per icon); \"Go to previous page\" (outline/icon) at 143,4560 [lucide-chevron-left]; \"Go to next page\" (outline/icon) at 195,4560 [lucide-chevron-right]. Census rows: data-table-pagination.tsx ChevronsLeft/ChevronLeft/ChevronRight/ChevronsRight, data-table-faceted-filter.tsx PlusCircle (Status), data-table-view-options.tsx Settings2 (View; right-aligned, so its left edge moves +8px). No other element moves."
+ },
+ {
+  "capture": "owner/dashboard-light-1280.png",
+  "changedPixels": 4382,
+  "class": [
+   "VD-19",
+   "VD-20"
+  ],
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Presets\" (outline/sm) at 1134,1102. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-bookmark 12x14@1149,1117 -> 12x14@1149,1117). VD-20: 12 region(s) on Buttons whose census unsized icon went 24 -> 16px: \"Status\" (outline/sm) at 557,1171 [lucide-circle-plus] (own pre-change extent, 8px per icon); \"Toggle columns\" (outline/sm) at 959,1171 [lucide-settings-2] (own pre-change extent, 8px per icon); \"Status\" (outline/sm) at 557,1171 [lucide-circle-plus]; \"Toggle columns\" (outline/sm) at 959,1171 [lucide-settings-2]; \"Go to first page\" (outline/icon) at 1011,1625 [lucide-chevrons-left]; \"Go to previous page\" (outline/icon) at 1063,1625 [lucide-chevron-left]; \"Go to next page\" (outline/icon) at 1115,1625 [lucide-chevron-right]; \"Go to last page\" (outline/icon) at 1167,1625 [lucide-chevrons-right]. Census rows: data-table-pagination.tsx ChevronsLeft/ChevronLeft/ChevronRight/ChevronsRight, data-table-faceted-filter.tsx PlusCircle (Status), data-table-view-options.tsx Settings2 (View; right-aligned, so its left edge moves +8px). No other element moves."
+ },
+ {
+  "capture": "owner/dashboard-light-390.png",
+  "changedPixels": 2630,
+  "class": [
+   "VD-19",
+   "VD-20"
+  ],
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Presets\" (outline/sm) at 252,2269. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-bookmark 12x14@267,2284 -> 12x14@267,2284). VD-20: 6 region(s) on Buttons whose census unsized icon went 24 -> 16px: \"Status\" (outline/sm) at 57,2394 [lucide-circle-plus] (own pre-change extent, 8px per icon); \"Status\" (outline/sm) at 57,2394 [lucide-circle-plus]; \"Go to previous page\" (outline/icon) at 143,4560 [lucide-chevron-left]; \"Go to next page\" (outline/icon) at 195,4560 [lucide-chevron-right]. Census rows: data-table-pagination.tsx ChevronsLeft/ChevronLeft/ChevronRight/ChevronsRight, data-table-faceted-filter.tsx PlusCircle (Status), data-table-view-options.tsx Settings2 (View; right-aligned, so its left edge moves +8px). No other element moves."
+ },
+ {
+  "capture": "owner/documents-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/documents-dark-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/documents-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/documents-light-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-1280.png",
+  "changedPixels": 5672,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Reset Clauses\" (outline/sm) at 1088,553. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-refresh-cw 14x14@1102,568 -> 14x14@1102,568)."
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-390.png",
+  "changedPixels": 5677,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Reset Clauses\" (outline/sm) at 41,1148. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-refresh-cw 14x14@55,1163 -> 14x14@55,1163)."
+ },
+ {
+  "capture": "owner/documents_lease-template-light-1280.png",
+  "changedPixels": 725,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Reset Clauses\" (outline/sm) at 1088,553. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-refresh-cw 14x14@1102,568 -> 14x14@1102,568)."
+ },
+ {
+  "capture": "owner/documents_lease-template-light-390.png",
+  "changedPixels": 725,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Reset Clauses\" (outline/sm) at 41,1148. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-refresh-cw 14x14@55,1163 -> 14x14@55,1163)."
+ },
+ {
+  "capture": "owner/leases-dark-1280.png",
+  "changedPixels": 6202,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Leases\" (outline/default) at 926,128. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@945,142 -> 12x16@945,142)."
+ },
+ {
+  "capture": "owner/leases-dark-390.png",
+  "changedPixels": 6187,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Leases\" (outline/default) at 40,181. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@59,195 -> 12x16@59,195)."
+ },
+ {
+  "capture": "owner/leases-light-1280.png",
+  "changedPixels": 778,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Leases\" (outline/default) at 926,128. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@945,142 -> 12x16@945,142)."
+ },
+ {
+  "capture": "owner/leases-light-390.png",
+  "changedPixels": 778,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Leases\" (outline/default) at 40,181. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@59,195 -> 12x16@59,195)."
+ },
+ {
+  "capture": "owner/maintenance-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/maintenance-dark-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/maintenance-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/maintenance-light-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/properties-dark-1280.png",
+  "changedPixels": 5497,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Bulk Import\" (outline/default) at 907,228. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@926,242 -> 12x16@926,242)."
+ },
+ {
+  "capture": "owner/properties-dark-390.png",
+  "changedPixels": 208276,
+  "class": [
+   "VD-19-svg-unsquash",
+   "VD-19"
+  ],
+  "evidence": "VD-19-svg-unsquash, post-fix capture p22b (tree 1bfbe1e82, flex-wrap on the PropertiesHeader actions row): the Bulk Import (outline) and Add Property (default) icons were squashed on w4 (Bulk Import lucide-file-up pixel box 4x6@81,292; 66.2-10 DOM 4.4 and 4.3px) and render at DOM 16x16 on p22b (pixel box 12x16@83,287). Host growth: Add Property 127px (blue fill x 199-325 on w4) -> 138.4px; Bulk Import ~127 -> 138.9px. With flex-wrap the row wraps: Bulk Import 138.9x44@64,272.8, Add Property 138.4x44@64,324.8; row right edge 326 = card column content right 326 (cards end at x 325 on both PNGs), document horizontal overflow 0. Everything below the row moves down 52px (44px Button + 8px gap) and the page grows 1733 -> 1785px: rows 0-272 are pixel-identical to w4, and the band from y 330 equals w4 shifted +52px except 9 px (rasterization deltas of at most 5/255 on the Search input icon and the Grid toggle icon, identical in the p22b repeat). 208276 changed px against w4 (size changed). The outline Bulk Import Button also carries the VD-19 rest change (light border-border + shadow-xs, dark input/30 surface); every other changed Button on the page set is an outline Button.",
+  "source": "w4 vs p22b"
+ },
+ {
+  "capture": "owner/properties-light-1280.png",
+  "changedPixels": 710,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Bulk Import\" (outline/default) at 907,228. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@926,242 -> 12x16@926,242)."
+ },
+ {
+  "capture": "owner/properties-light-390.png",
+  "changedPixels": 226447,
+  "class": [
+   "VD-19-svg-unsquash",
+   "VD-19"
+  ],
+  "evidence": "VD-19-svg-unsquash, post-fix capture p22b (tree 1bfbe1e82, flex-wrap on the PropertiesHeader actions row): the Bulk Import (outline) and Add Property (default) icons were squashed on w4 (Bulk Import lucide-file-up pixel box 4x6@81,292; 66.2-10 DOM 4.4 and 4.3px) and render at DOM 16x16 on p22b (pixel box 12x16@83,287). Host growth: Add Property 127px (blue fill x 199-325 on w4) -> 138.4px; Bulk Import ~127 -> 138.9px. With flex-wrap the row wraps: Bulk Import 138.9x44@64,272.8, Add Property 138.4x44@64,324.8; row right edge 326 = card column content right 326 (cards end at x 325 on both PNGs), document horizontal overflow 0. Everything below the row moves down 52px (44px Button + 8px gap) and the page grows 1733 -> 1785px: rows 0-272 are pixel-identical to w4, and the band from y 330 equals w4 shifted +52px except 11 px (rasterization deltas of at most 5/255 on the Search input icon and the Grid toggle icon, identical in the p22b repeat). 226447 changed px against w4 (size changed). The outline Bulk Import Button also carries the VD-19 rest change (light border-border + shadow-xs, dark input/30 surface); every other changed Button on the page set is an outline Button.",
+  "source": "w4 vs p22b"
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "owner/settings-dark-1280.png",
+  "changedPixels": 12706,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Edit Emergency Contact\" (outline/default) at 553,1305; \"Remove Contact\" (outline/default) at 749,1305. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "owner/settings-dark-390.png",
+  "changedPixels": 12715,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Edit Emergency Contact\" (outline/default) at 57,1776; \"Remove Contact\" (outline/default) at 57,1832. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "owner/settings-light-1280.png",
+  "changedPixels": 1590,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Edit Emergency Contact\" (outline/default) at 553,1305; \"Remove Contact\" (outline/default) at 749,1305. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "owner/settings-light-390.png",
+  "changedPixels": 1590,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Edit Emergency Contact\" (outline/default) at 57,1776; \"Remove Contact\" (outline/default) at 57,1832. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "owner/tenants-dark-1280.png",
+  "changedPixels": 6375,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Tenants\" (outline/default) at 917,128. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@936,142 -> 12x16@936,142)."
+ },
+ {
+  "capture": "owner/tenants-dark-390.png",
+  "changedPixels": 6376,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Tenants\" (outline/default) at 40,181. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@59,195 -> 12x16@59,195)."
+ },
+ {
+  "capture": "owner/tenants-light-1280.png",
+  "changedPixels": 798,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Tenants\" (outline/default) at 917,128. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@936,142 -> 12x16@936,142)."
+ },
+ {
+  "capture": "owner/tenants-light-390.png",
+  "changedPixels": 798,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Import Tenants\" (outline/default) at 40,181. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-file-up 12x16@59,195 -> 12x16@59,195)."
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-1280.png",
+  "changedPixels": 8888,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Resend Email\" (outline/lg) at 736,821. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-390.png",
+  "changedPixels": 14049,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Resend Email\" (outline/lg) at 24,947. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/auth_confirm-email-light-1280.png",
+  "changedPixels": 1030,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Resend Email\" (outline/lg) at 736,821. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/auth_confirm-email-light-390.png",
+  "changedPixels": 1522,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Resend Email\" (outline/lg) at 24,947. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/auth_update-password-dark-1280.png",
+  "changedPixels": 8854,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Back to Sign In\" (outline/lg) at 965,502. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-arrow-right 12x12@1123,518 -> 12x12@1123,518)."
+ },
+ {
+  "capture": "public/auth_update-password-dark-390.png",
+  "changedPixels": 14001,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Back to Sign In\" (outline/lg) at 24,585. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-arrow-right 12x12@244,601 -> 12x12@244,601)."
+ },
+ {
+  "capture": "public/auth_update-password-light-1280.png",
+  "changedPixels": 1030,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Back to Sign In\" (outline/lg) at 965,502. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-arrow-right 12x12@1123,518 -> 12x12@1123,518)."
+ },
+ {
+  "capture": "public/auth_update-password-light-390.png",
+  "changedPixels": 1522,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Back to Sign In\" (outline/lg) at 24,585. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-arrow-right 12x12@244,601 -> 12x12@244,601)."
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/contact-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/contact-dark-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/contact-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/contact-light-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/faq-dark-1280.png",
+  "changedPixels": 11326,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 183,577; \"View Pricing\" (outline/lg) at 669,3152. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/faq-dark-390.png",
+  "changedPixels": 29690,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 24,486; \"View Pricing\" (outline/lg) at 24,4143. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/faq-light-1280.png",
+  "changedPixels": 990,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 183,577; \"View Pricing\" (outline/lg) at 669,3152. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/faq-light-390.png",
+  "changedPixels": 2270,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 24,486; \"View Pricing\" (outline/lg) at 24,4143. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/help-dark-1280.png",
+  "changedPixels": 21276,
+  "class": "VD-19",
+  "evidence": "VD-19: 4 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 655,478; \"Send Email\" (outline/default) at 1127,936; \"Schedule Call\" (outline/default) at 1112,1083; \"Talk to an Expert\" (outline/lg) at 674,2228. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/help-dark-390.png",
+  "changedPixels": 29754,
+  "class": "VD-19",
+  "evidence": "VD-19: 4 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 128,625; \"Send Email\" (outline/default) at 41,1253; \"Schedule Call\" (outline/default) at 230,1424; \"Talk to an Expert\" (outline/lg) at 24,3294. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/help-light-1280.png",
+  "changedPixels": 2244,
+  "class": "VD-19",
+  "evidence": "VD-19: 4 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 655,478; \"Send Email\" (outline/default) at 1127,936; \"Schedule Call\" (outline/default) at 1112,1083; \"Talk to an Expert\" (outline/lg) at 674,2228. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/help-light-390.png",
+  "changedPixels": 2646,
+  "class": "VD-19",
+  "evidence": "VD-19: 4 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Contact Sales\" (outline/default) at 128,625; \"Send Email\" (outline/default) at 41,1253; \"Schedule Call\" (outline/default) at 230,1424; \"Talk to an Expert\" (outline/lg) at 24,3294. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 0 icon(s) in these Buttons."
+ },
+ {
+  "capture": "public/login-dark-1280.png",
+  "changedPixels": 14539,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Continue with Google\" (outline/lg) at 768,714. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (null 16x16@869,728 -> 16x16@869,728)."
+ },
+ {
+  "capture": "public/login-dark-390.png",
+  "changedPixels": 12859,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Continue with Google\" (outline/lg) at 24,705. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (null 16x16@104,719 -> 16x16@104,719)."
+ },
+ {
+  "capture": "public/login-light-1280.png",
+  "changedPixels": 834,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Continue with Google\" (outline/lg) at 768,714. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (null 16x16@869,728 -> 16x16@869,728)."
+ },
+ {
+  "capture": "public/login-light-390.png",
+  "changedPixels": 750,
+  "class": "VD-19",
+  "evidence": "VD-19: 1 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Continue with Google\" (outline/lg) at 24,705. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (null 16x16@104,719 -> 16x16@104,719)."
+ },
+ {
+  "capture": "public/pricing-dark-1280.png",
+  "changedPixels": 23441,
+  "class": "VD-19",
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 105,991; \"Start free\" (outline/lg) at 963,991; \"Contact Sales\" (outline/lg) at 376,3336. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@242,1007 -> 12x12@242,1007, lucide-arrow-right 12x12@1100,1007 -> 12x12@1100,1007)."
+ },
+ {
+  "capture": "public/pricing-dark-390.png",
+  "changedPixels": 31969,
+  "class": "VD-19",
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 65,1065; \"Start free\" (outline/lg) at 65,2245; \"Contact Sales\" (outline/lg) at 65,5614. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@226,1081 -> 12x12@226,1081, lucide-arrow-right 12x12@226,2261 -> 12x12@226,2261)."
+ },
+ {
+  "capture": "public/pricing-light-1280.png",
+  "changedPixels": 1751,
+  "class": "VD-19",
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 105,991; \"Start free\" (outline/lg) at 963,991; \"Contact Sales\" (outline/lg) at 376,3336. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@242,1007 -> 12x12@242,1007, lucide-arrow-right 12x12@1100,1007 -> 12x12@1100,1007)."
+ },
+ {
+  "capture": "public/pricing-light-390.png",
+  "changedPixels": 2393,
+  "class": [
+   "VD-19",
+   "noise"
+  ],
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 65,1065; \"Start free\" (outline/lg) at 65,2245; \"Contact Sales\" (outline/lg) at 65,5614. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@226,1081 -> 12x12@226,1081, lucide-arrow-right 12x12@226,2261 -> 12x12@226,2261). noise: 8x7@55,3807, 8x5@67,3809 (22 px), the baseline noise bbox x55 y3807 (pricing/signup 390 \"Built For\" Home icon); it changes in the same-session repeat (w4 vs its repeat)."
+ },
+ {
+  "capture": "public/privacy-dark-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/privacy-dark-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/privacy-light-1280.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/privacy-light-390.png",
+  "changedPixels": 0,
+  "class": "identical",
+  "evidence": ""
+ },
+ {
+  "capture": "public/root-dark-1280.png",
+  "changedPixels": 17622,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"View Pricing\" (outline/lg) at 267,585; \"Talk to our team\" (outline/lg) at 673,5294. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-message-circle 22x22@716,5309 -> 22x22@716,5309)."
+ },
+ {
+  "capture": "public/root-dark-390.png",
+  "changedPixels": 31595,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"View Pricing\" (outline/lg) at 24,480; \"Talk to our team\" (outline/lg) at 24,8569. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-message-circle 22x22@121,8584 -> 22x22@121,8584)."
+ },
+ {
+  "capture": "public/root-light-1280.png",
+  "changedPixels": 1276,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"View Pricing\" (outline/lg) at 267,585; \"Talk to our team\" (outline/lg) at 673,5294. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-message-circle 22x22@716,5309 -> 22x22@716,5309)."
+ },
+ {
+  "capture": "public/root-light-390.png",
+  "changedPixels": 2284,
+  "class": "VD-19",
+  "evidence": "VD-19: 2 changed region(s), each inside a Button rect (+4px for shadow-xs): \"View Pricing\" (outline/lg) at 24,480; \"Talk to our team\" (outline/lg) at 24,8569. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 1 icon(s) in these Buttons (lucide-message-circle 22x22@121,8584 -> 22x22@121,8584)."
+ },
+ {
+  "capture": "public/signup-dark-1280.png",
+  "changedPixels": 23441,
+  "class": "VD-19",
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 105,991; \"Start free\" (outline/lg) at 963,991; \"Contact Sales\" (outline/lg) at 376,3336. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@242,1007 -> 12x12@242,1007, lucide-arrow-right 12x12@1100,1007 -> 12x12@1100,1007)."
+ },
+ {
+  "capture": "public/signup-dark-390.png",
+  "changedPixels": 31991,
+  "class": [
+   "VD-19",
+   "noise"
+  ],
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 65,1065; \"Start free\" (outline/lg) at 65,2245; \"Contact Sales\" (outline/lg) at 65,5614. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@226,1081 -> 12x12@226,1081, lucide-arrow-right 12x12@226,2261 -> 12x12@226,2261). noise: 8x7@55,3807, 8x5@67,3809 (22 px), the baseline noise bbox x55 y3807 (pricing/signup 390 \"Built For\" Home icon); it changes in the same-session repeat (p22 vs its repeat)."
+ },
+ {
+  "capture": "public/signup-light-1280.png",
+  "changedPixels": 1751,
+  "class": "VD-19",
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 105,991; \"Start free\" (outline/lg) at 963,991; \"Contact Sales\" (outline/lg) at 376,3336. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@242,1007 -> 12x12@242,1007, lucide-arrow-right 12x12@1100,1007 -> 12x12@1100,1007)."
+ },
+ {
+  "capture": "public/signup-light-390.png",
+  "changedPixels": 2371,
+  "class": "VD-19",
+  "evidence": "VD-19: 3 changed region(s), each inside a Button rect (+4px for shadow-xs): \"Start free\" (outline/lg) at 65,1065; \"Start free\" (outline/lg) at 65,2245; \"Contact Sales\" (outline/lg) at 65,5614. Rest-state change only (outline border-border + shadow-xs in light; dark:bg-input/30 or dark:bg-destructive/60 surfaces in dark). Icon boxes measured on both PNGs equal within 1px for all 2 icon(s) in these Buttons (lucide-arrow-right 12x12@226,1081 -> 12x12@226,1081, lucide-arrow-right 12x12@226,2261 -> 12x12@226,2261)."
+ }
+]
