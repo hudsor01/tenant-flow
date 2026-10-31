@@ -861,7 +861,7 @@ describe("G3 — no @utility name shadows a core or theme utility", () => {
 			expect(
 				violations,
 				[
-					"@utility name(s) shadow a Tailwind core/theme utility; both rules apply and the custom one silently wins or merges (B8: text-caption/75 became line-height 18.75rem). Rename the utility or delete it and use the core class:",
+					"@utility name(s) shadow a Tailwind core/theme utility; both rules apply and the custom one silently wins or merges (B8: text-caption with the /75 modifier became line-height 18.75rem). Rename the utility or delete it and use the core class:",
 					...violations,
 				].join("\n"),
 			).toEqual([]);
