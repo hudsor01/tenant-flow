@@ -1,0 +1,118 @@
+[
+  {
+    "from": "duration-[var(--duration-standard)]",
+    "to": "duration-(--duration-standard)"
+  },
+  {
+    "from": "gap-[var(--spacing-1)]",
+    "to": "gap-1"
+  },
+  {
+    "from": "gap-[var(--spacing-2)]",
+    "to": "gap-2"
+  },
+  {
+    "from": "gap-x-[var(--spacing-2)]",
+    "to": "gap-x-2"
+  },
+  {
+    "from": "h-[var(--spacing-1_5)]",
+    "to": "h-1.5"
+  },
+  {
+    "from": "h-[var(--spacing-2)]",
+    "to": "h-2"
+  },
+  {
+    "from": "left-[var(--spacing-3)]",
+    "to": "left-3"
+  },
+  {
+    "from": "mb-[var(--spacing-3)]",
+    "to": "mb-3"
+  },
+  {
+    "from": "mb-[var(--spacing-4)]",
+    "to": "mb-4"
+  },
+  {
+    "from": "mr-[var(--spacing-2)]",
+    "to": "mr-2"
+  },
+  {
+    "from": "mt-[var(--spacing-1)]",
+    "to": "mt-1"
+  },
+  {
+    "from": "mt-[var(--spacing-2)]",
+    "to": "mt-2"
+  },
+  {
+    "from": "mt-[var(--spacing-4)]",
+    "to": "mt-4"
+  },
+  {
+    "from": "p-[var(--spacing-3)]",
+    "to": "p-3"
+  },
+  {
+    "from": "pl-[var(--spacing-9)]",
+    "to": "pl-9"
+  },
+  {
+    "from": "pr-[var(--spacing-10)]",
+    "to": "pr-10"
+  },
+  {
+    "from": "pt-[var(--spacing-4)]",
+    "to": "pt-4"
+  },
+  {
+    "from": "right-[var(--spacing-3)]",
+    "to": "right-3"
+  },
+  {
+    "from": "rounded-[var(--radius-lg)]",
+    "to": "rounded-lg"
+  },
+  {
+    "from": "size-[var(--spacing-12)]",
+    "to": "size-12"
+  },
+  {
+    "from": "size-[var(--spacing-2)]",
+    "to": "size-2"
+  },
+  {
+    "from": "size-[var(--spacing-3)]",
+    "to": "size-3"
+  },
+  {
+    "from": "size-[var(--spacing-4)]",
+    "to": "size-4"
+  },
+  {
+    "from": "size-[var(--spacing-5)]",
+    "to": "size-5"
+  },
+  {
+    "from": "size-[var(--spacing-6)]",
+    "to": "size-6"
+  },
+  {
+    "from": "space-y-[var(--spacing-2)]",
+    "to": "space-y-2"
+  },
+  {
+    "from": "space-y-[var(--spacing-4)]",
+    "to": "space-y-4"
+  },
+  {
+    "from": "space-y-[var(--spacing-6)]",
+    "to": "space-y-6"
+  },
+  {
+    "from": "w-[var(--spacing-1_5)]",
+    "to": "w-1.5"
+  }
+]
