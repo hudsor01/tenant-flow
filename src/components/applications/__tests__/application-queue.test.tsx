@@ -9,8 +9,9 @@
  *   E-18  the row link's computed `text-decoration-line` and `color`
  *   E-20  the `<ul>`'s computed `padding-left` and its first `<li>`'s margin
  *
- * That split is not pedantry. §D-1 is a real unlayered `@media (max-width:768px)`
- * block that outranks every Tailwind utility at 768px and below, and §D-4 is a
+ * That split is not pedantry. §D-1 is the historical unlayered mobile block,
+ * removed by Phase 66.2 D-08, that outranked every Tailwind utility at 768px and
+ * below while the classes stayed correct, and §D-4 is a
  * `truncate` that is INERT on the primitive it is written on — both are cases
  * where the class is present and spelled correctly and the rendered result is
  * still wrong. Phase 65 shipped two defects of exactly that shape. So the one
@@ -732,9 +733,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 			const classes = trigger.getAttribute("class")?.split(/\s+/) ?? [];
 			// Positive control on each trigger, for the same reason as above.
 			expect(classes).toContain("whitespace-nowrap");
-			// `flex: 1 1 0%` is what let the unlayered `min-width: 44px` at
-			// globals.css:1557 squeeze a trigger to 64.2px around 60.7px of text.
-			// `flex: 0 0 auto` makes the label the floor instead.
+			// `flex: 1 1 0%` is what let the old touch-target min-width squeeze a
+			// trigger to 64.2px around 60.7px of text. `flex: 0 0 auto` keeps the
+			// label as the floor.
 			expect(classes).not.toContain("flex-1");
 			expect(classes).toContain("flex-none");
 		}

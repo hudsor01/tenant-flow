@@ -68,17 +68,16 @@ export const ApplicationFieldsHousehold = withForm({
 					</div>
 
 					<div className="flex flex-col gap-2">
-						{/* The layered important min-height override on the next line is the
-						    only declaration that beats the unlayered mobile block's
-						    `min-height: 2.75rem` on a textarea (D-1). Without it an empty
-						    textarea renders 44px tall at 375px and reads as a single-line
-						    text input. The trailing-`!` is Tailwind v4 important syntax and
-						    is new to this repo. */}
+						{/* min-h-24 sets the 96px multi-line floor over the primitive's
+						    `min-h-16`, so an empty textarea never reads as a single-line
+						    text input; E-3 pins it at 375px. No important flag is needed
+						    since D-08: the `@layer base` touch-target rule has zero
+						    specificity. */}
 						<form.AppField name="pet_details">
 							{(field) => (
 								<field.TextareaField
 									label="Pets (optional)"
-									className="min-h-24!"
+									className="min-h-24"
 									autoComplete="off"
 									aria-describedby={`${PETS_HELP_ID} ${PETS_ASSISTANCE_ID}`}
 								/>
@@ -96,14 +95,13 @@ export const ApplicationFieldsHousehold = withForm({
 					</div>
 
 					<div className="flex flex-col gap-2">
-						{/* Same layered important min-height override, same D-1 reason as
-						    the pets textarea above: the unlayered mobile block would
-						    otherwise floor this control at 44px. */}
+						{/* Same 96px `min-h-24` floor over the primitive's `min-h-16` as
+						    the pets textarea above; E-3 pins it. */}
 						<form.AppField name="vehicle_details">
 							{(field) => (
 								<field.TextareaField
 									label="Vehicles (optional)"
-									className="min-h-24!"
+									className="min-h-24"
 									autoComplete="off"
 									aria-describedby={VEHICLES_HELP_ID}
 								/>

@@ -7,14 +7,12 @@ import { applicationFormOptions } from "./application-form-options";
 /**
  * Section 1 of the public application form — UI-SPEC A-3.
  *
- * EVERY INPUT IS `inputSize="lg"`, AND THAT IS NOT A STYLE PREFERENCE (D-1).
- * `src/app/globals.css` opens an UNLAYERED `@media (max-width: 768px)` block at
- * brace depth 0 which forces `padding: clamp(.75rem, 2vw, 1rem)` and
- * `min-height: 2.75rem` onto every `input`. Unlayered normal declarations
- * outrank every layered Tailwind utility at any specificity, so at 375px the
- * default `h-11` leaves a 44 - 24 - 2 = 18px content box for a 16px font.
- * `lg` (48px) restores the headroom. Plan 66-17's E-2 asserts a rendered height
- * of exactly 48px on every input on this page.
+ * EVERY INPUT IS `inputSize="lg"`: the applicant form's height contract is
+ * 48px on every input, and plan 66-17's E-2 asserts exactly that rendered
+ * height. It is no longer a padding workaround. Phase 66 §D-1 recorded a mobile
+ * rule that forced padding onto every input; Phase 66.2 D-08 replaced it with
+ * the `@layer base` touch-target rule, which sets only a zero-specificity
+ * `min-height` below 48rem, so the default 44px input keeps its own `py-1`.
  *
  * NO ASTERISKS ON REQUIRED FIELDS. Required is the default here and optional is
  * the marked case — less visual noise on a 26-field form, and more honest.

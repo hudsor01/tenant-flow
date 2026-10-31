@@ -67,9 +67,10 @@ export const ApplicationAttestation = withForm({
 					<div className="flex flex-col gap-2">
 						{/* items-start, not the primitive's items-center: the label wraps
 						    to two lines at the 309px field width 375px leaves, and the
-						    shared Checkbox renders 44x44 rather than 16x16 under the
-						    unlayered mobile block (D-1), so a centred 44px control against
-						    a two-line label sits visibly low. */}
+						    16x16 Checkbox (its size at every width, since the D-08
+						    touch-target rule excludes role=checkbox) aligns with the
+						    label's first line. The FieldLabel (htmlFor) is the touch
+						    target. */}
 						<Field orientation="horizontal" className="items-start gap-3">
 							<Checkbox
 								id={APPLY_CERTIFY_ID}

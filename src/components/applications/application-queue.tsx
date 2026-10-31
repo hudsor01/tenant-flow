@@ -495,24 +495,23 @@ export function ApplicationQueue() {
 				 * WHY `w-full` WAS NOT ENOUGH. It does beat the base `w-fit` in
 				 * tailwind-merge, and the box really did become 327px. But the five
 				 * triggers carry `flex-1` from `TabsTrigger`'s own base (ui/tabs.tsx),
-				 * i.e. `flex: 1 1 0%`, so they size to the box rather than the box
+				 * i.e. `flex: 1 1 0%`, so they sized to the box rather than the box
 				 * sizing to them. Normally that still overflows, because a flex item's
-				 * `min-width: auto` floors it at its min-content width — but the
-				 * UNLAYERED `@media (max-width: 768px)` block at globals.css:1536 sets
-				 * an explicit `min-width: var(--touch-target-min)` on every `button`,
-				 * and an explicit min-width REPLACES `auto`. The floor became 44px, the
+				 * `min-width: auto` floors it at its min-content width — but the mobile
+				 * touch-target rule of that time (Phase 66 §D-1) set an explicit
+				 * `min-width: var(--touch-target-min)` on every `button`, and an
+				 * explicit min-width REPLACES `auto`. The floor became 44px, the
 				 * triggers shrank to 64.2px each, and there was nothing left to
-				 * overflow. No utility can take that rule back: it is unlayered, and
-				 * unlayered beats every `@layer utilities` declaration regardless of
-				 * specificity — which is why the fix does not try.
+				 * overflow.
 				 *
-				 * `flex-none` on the trigger is what defeats BOTH. `flex: 0 0 auto`
-				 * means the basis is the content width and the shrink factor is zero,
-				 * so a trigger cannot be squeezed below its label no matter what floor
-				 * is imposed, and the 44px min-width degrades to a harmless floor under
-				 * the one short label ("All", 33.9px of box). It is passed per instance
-				 * so tailwind-merge resolves it against the base `flex-1` rather than
-				 * appending to it.
+				 * Phase 66.2 D-08 replaced that rule with the `@layer base`
+				 * touch-target rule, which excludes `role=tab`, so no 44px min-width
+				 * applies to these triggers any more. `flex-none` still matters:
+				 * `flex: 0 0 auto` means the basis is the content width and the shrink
+				 * factor is zero, so each trigger stays at its label width against
+				 * `TabsTrigger`'s base `flex-1`. It is passed per instance so
+				 * tailwind-merge resolves it against the base `flex-1` rather than
+				 * appending to it. E-22 measures the result at 375px and 320px.
 				 *
 				 * With nothing shrinkable inside it, the base `w-fit` is now the RIGHT
 				 * width — the box hugs its tabs when they fit and `max-w-full` clamps

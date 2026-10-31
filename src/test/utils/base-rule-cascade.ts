@@ -31,9 +31,10 @@
  *     passing against nothing.
  *
  * WHAT IT DOES NOT PROVE. Not Tailwind's real emitted CSS, not `@layer` order,
- * not geometry, and not the unlayered `@media (max-width: 768px)` block at
- * `globals.css:1536`. Those stay with plan 66-17's Playwright rows E-17, E-18
- * and E-20, which measure a real browser against the compiled bundle.
+ * not geometry, and not the `@layer base` touch-target rule under
+ * `@media (width < 48rem)` (D-08). Those stay with plan 66-17's Playwright
+ * rows E-17, E-18 and E-20, which measure a real browser against the compiled
+ * bundle.
  */
 
 import { readFileSync } from "node:fs";

@@ -22,10 +22,10 @@ import { boxesOf, boxOf as measuredBoxOf } from "../../lib/measure";
  * flattened spacing rung — twice. Every assertion below is a measured
  * `getBoundingClientRect()`, a DOM-order comparison, a tab-order observation or a
  * rendered-head read. None is a class check, and a class check could not decide
- * any of them: §D-1 records that `globals.css:1536` opens an UNLAYERED
- * `@media (max-width: 768px)` block at brace depth 0 which outranks every layered
- * utility at any specificity, so `inputSize="lg"` being PRESENT says nothing
- * about whether the control is 48px tall. E-2 and E-3 are that measurement.
+ * any of them: a class string can be present while the cascade overrides it
+ * (Phase 66 §D-1 is the historical case), so `inputSize="lg"` being PRESENT
+ * still says nothing about whether the control is 48px tall. E-2 and E-3 are
+ * that measurement.
  *
  * THE HONEYPOT ASSERTION IS NOT `toBeHidden()`, AND THAT IS DELIBERATE.
  * `66-RESEARCH.md` prescribes `toBeHidden()` "from the a11y tree" and it is
@@ -431,7 +431,7 @@ test.describe("/apply — the rendered applicant form", () => {
 			.map((box) => ({ id: box.id, height: Math.round(box.height) }))
 			.filter((entry) => entry.height !== 48);
 		// 48, measured. `inputSize="lg"` being present in the class string cannot
-		// decide this: the unlayered mobile block outranks every layered utility.
+		// decide the rendered height; only the measurement can.
 		expect(offenders).toEqual([]);
 	});
 
@@ -445,9 +445,8 @@ test.describe("/apply — the rendered applicant form", () => {
 		const offenders = (await boxesOf(areas, { min: 3 }))
 			.map((box) => ({ id: box.id, height: Math.round(box.height) }))
 			.filter((entry) => entry.height < 96);
-		// The layered `min-h-24!` beating the unlayered `min-height: 2.75rem`. An
-		// important author declaration outranks a normal one regardless of layer, so
-		// 96 is the number that proves the override actually landed.
+		// The layered `min-h-24` over the Textarea primitive's `min-h-16`. 96 is the
+		// number that proves it actually landed.
 		expect(offenders).toEqual([]);
 	});
 

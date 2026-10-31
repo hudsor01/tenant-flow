@@ -253,10 +253,8 @@ function ActiveLinkControls({
 			<Input
 				readOnly
 				value={url}
-				// `inputSize="lg"` per §D-1: the UNLAYERED `@media (max-width: 768px)`
-				// block at globals.css:1536 forces `padding: clamp(.75rem, 2vw, 1rem)`
-				// onto every input and outranks any layered utility, so the 44px
-				// default leaves an 18px content box. 48px restores the headroom.
+				// `inputSize="lg"` keeps this 48px link field consistent with the
+				// applicant form's input height.
 				inputSize="lg"
 				// `md:text-xs` IS NOT REDUNDANT WITH `text-xs`. `Input`'s cva base
 				// ends `… text-base … md:text-sm …`, and `tailwind-merge` buckets an

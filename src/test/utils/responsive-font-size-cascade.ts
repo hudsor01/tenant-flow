@@ -45,10 +45,10 @@
  * ordering this harness models.
  *
  * WHAT IT DOES NOT PROVE. Not Tailwind's real emitted CSS, not `@layer` order,
- * not geometry, and not the unlayered `@media (max-width: 768px)` block at
- * `globals.css:1536` — that one sets `min-height` and `padding` on inputs and no
- * font size at all, so it does not bear on this, but a future edit to it would
- * not be visible here. A real browser measurement is still the authority.
+ * not geometry, and not the `@layer base` touch-target rule under
+ * `@media (width < 48rem)` (D-08) — that one sets only `min-height`/`min-width`
+ * and no font size at all, so it does not bear on this, but a future edit to it
+ * would not be visible here. A real browser measurement is still the authority.
  */
 
 import { readFileSync } from "node:fs";

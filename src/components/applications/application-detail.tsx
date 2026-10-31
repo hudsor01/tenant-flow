@@ -625,15 +625,12 @@ function DetailHeader({
 /**
  * §B-5's owner notes.
  *
- * `min-h-24!` IS THE POINT OF THIS BLOCK, NOT A STYLE PREFERENCE (§D-1).
- * `globals.css:1536` opens an `@media (max-width: 768px)` block at brace depth
- * zero — outside every `@layer` — which forces `min-height: 2.75rem` onto every
- * `textarea`. An unlayered normal declaration outranks every layered one at any
- * specificity, so `min-h-16` loses and an empty notes box renders 44px tall and
- * reads as a single-line input. A LAYERED `!important` is the only thing that
- * beats it. §D-1 is viewport-scoped, not surface-scoped: the media query keys
- * off width alone, so it fires on this owner surface too, and `/applications` is
- * documented as phone-supported.
+ * `min-h-24` sets the 96px multi-line floor over the primitive's `min-h-16`, so
+ * an empty notes box never reads as a single-line input; E-3 pins the same
+ * floor on the applicant form. No important flag is needed since D-08: the
+ * `@layer base` touch-target rule below 48rem has zero specificity, so this
+ * utility wins at every width, and `/applications` is documented as
+ * phone-supported.
  */
 function OwnerNotes({
 	value,
@@ -653,7 +650,7 @@ function OwnerNotes({
 			<Label htmlFor="application-owner-notes">{NOTES_COPY.label}</Label>
 			<Textarea
 				id="application-owner-notes"
-				className="min-h-24!"
+				className="min-h-24"
 				value={value}
 				onChange={(event) => onChange(event.target.value)}
 			/>
