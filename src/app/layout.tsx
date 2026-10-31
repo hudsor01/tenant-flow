@@ -1,9 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Roboto } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
@@ -11,24 +9,10 @@ import { Providers } from "#components/providers";
 import SeoJsonLd from "#components/seo/seo-json-ld";
 import RegisterServiceWorker from "#components/sw/register-sw";
 import { Toaster } from "#components/ui/toast";
+import { geistMono, playfairDisplay, roboto } from "#lib/fonts";
 import { generateSiteMetadata } from "#lib/generate-metadata";
 
 import "./globals.css";
-
-// Roboto - clean, geometric sans-serif for body text and UI
-const roboto = Roboto({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-sans",
-	weight: ["300", "400", "500", "700"],
-});
-
-// Playfair Display - elegant serif for hero/marketing headlines
-const playfairDisplay = Playfair_Display({
-	subsets: ["latin"],
-	display: "swap",
-	variable: "--font-display",
-});
 
 // `themeColor` and `msapplication-TileColor` are HTML meta attribute
 // values, not CSS — Tailwind tokens / CSS custom properties don't apply.
@@ -67,7 +51,11 @@ export default async function RootLayout({
 	children: ReactNode;
 }) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html
+			lang="en"
+			className={`${roboto.variable} ${playfairDisplay.variable} ${geistMono.variable}`}
+			suppressHydrationWarning
+		>
 			<head>
 				{/* viewport + theme-color + color-scheme are emitted by the
 				    Viewport API export above (not raw <meta> tags) so they
@@ -90,9 +78,7 @@ export default async function RootLayout({
 				/>
 				<SeoJsonLd />
 			</head>
-			<body
-				className={`${roboto.variable} ${playfairDisplay.variable} ${GeistMono.variable} font-sans antialiased`}
-			>
+			<body className="font-sans antialiased">
 				{/* Skip-to-content for keyboard and screen-reader users. The
 				    target id="main-content" is set on <main> in PageLayout, the
 				    dashboard app-shell, the login + auth layouts, the admin

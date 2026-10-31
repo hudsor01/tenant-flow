@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 import { ErrorFallback } from "#components/error-boundary/error-fallback";
+import { geistMono, playfairDisplay, roboto } from "#lib/fonts";
 
 import "./globals.css";
 
@@ -22,7 +23,10 @@ export default function GlobalError({
 	}, [error]);
 
 	return (
-		<html lang="en">
+		<html
+			lang="en"
+			className={`${roboto.variable} ${playfairDisplay.variable} ${geistMono.variable}`}
+		>
 			<body className="font-sans antialiased">
 				<ErrorFallback error={error} reset={reset} />
 			</body>
