@@ -93,16 +93,16 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 1,556 (W1, 66.2-10; unchanged target, moves in W2) |
-| M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (W1) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 916 (W2, 66.2-15: 914 projected + 3 added non-test src files − dashboard.css) |
+| M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (W2) |
 | M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (W1) |
 | M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (W1) |
 | M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 0 (W1) |
 | M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | 7, all mode-independent (white, black, chart-1..5) (W1) |
 | M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (W1) |
-| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 44 / 46 / 89 of 131 / 1 / 12 (W1; W2 target) |
-| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | 33 of 39 / 4 (W1; W2 target) |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 139 (53 + 15 files) (W1; W4 target) |
+| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 7 / 1 / 0 of 42 / 0 / 0 (W2; the W6 remnants: the 7 zinc `@theme inline` `--color-sidebar-*` and `--sidebar-transition`, D-21/D-51) |
+| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (W2) |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 103 (51 + 15 files) (W2; W4 target) |
 | R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (W1) |
 | R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (W1) |
 | R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (W1) |
@@ -290,13 +290,13 @@ The B2 rule as validated:
 - **Exit:** R1–R5 at target; M3, M5, M7 = 0; M4 = 0 (the brand sidebar `@theme` block moved into wave 1, RESEARCH H1); M6 = 0 outside G4's allow-list (white, black, chart-1…5); every render-check contrast ≥ 4.5 (icons ≥ 3).
 
 ### Phase 2 (wave 2): Dead and misleading code, source scoping
-- [ ] B9: `source("..")`, delete the bogus `@source` and redundant exclusions.
-- [ ] B10: fold `dashboard.css`'s six live rules into `globals.css` and delete the file.
-- [ ] Rewrite every `var(--spacing-N)` / `var(--duration-N)` / `var(--radius-*)` arbitrary reference to the scale utility **first** (G7 proves none dangle).
-- [ ] Delete the Appendix A lists, X3 redundancies and the brand `--color-sidebar-*` block (B11). Keep the zinc block for Phase 6.
+- [x] B9: `source("..")`, delete the bogus `@source` and redundant exclusions.
+- [x] B10: fold `dashboard.css`'s six live rules into `globals.css` and delete the file.
+- [x] Rewrite every `var(--spacing-N)` / `var(--duration-N)` / `var(--radius-*)` arbitrary reference to the scale utility **first** (G7 proves none dangle).
+- [x] Delete the Appendix A lists, X3 redundancies and the brand `--color-sidebar-*` block (B11). Keep the zinc block for Phase 6.
 - [ ] X2 comments, X5 line-number citations, X6 cascade harness.
-- [ ] G7 lands.
-- **Exit:** M1 ≈ 914, M2 = 0, M8 all 0, M9 file gone. `candidate-css.json` diff vs baseline limited to deleted dead rules and B-fixes. Token snapshot diff vs Phase 1 is empty.
+- [x] G7 lands.
+- **Exit:** M1 ≈ 914, M2 = 0, M8 all 0, M9 file gone. `candidate-css.json` diff vs baseline limited to deleted dead rules and B-fixes. Token snapshot diff vs Phase 1 (fixed baseline list, RESEARCH H12) is empty except the two dead custom tokens border-secondary and accent-85, now transparent.
 
 ### Phase 3 (wave 3): Canonical shadcn token architecture
 - [ ] Move every semantic color into shadcn form:
@@ -394,6 +394,14 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.4 guards and build: G1-G6 red on 754c91802 (1/11/2/7/44/1) and 0 now; validate:quick, the coverage ratchet and `next build` exit 0.
   - §7.5 screenshots and owner-axe: `baseline` vs a same-session 754c91802 capture differs 92/92 after the 2026-10-26 macOS 27.2 upgrade, so W1 was diffed against that capture (`basenow`): 22 identical, 64 intended (VD-01/02/03/04/06/10/11), 6 owner data drift. CSP: no violation beyond 754c91802 (zod's caught `Function("")` probe on `/login`, pre-existing). owner-axe 36/37 with E-22 passing; `dashboard-a11y` fails locally on 754c91802 too and passes in CI.
   - §7.6 Aikido: path scans 0 issues; the SAST engine failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner.
+
+- **2026-10-31.** Wave 2 gate (66.2-15) run; not passed (two plan rules unmet on a tree that renders like W1, held for the orchestrator):
+  - §7.1 audit: M1 916, M2 0, M8 7 / 1 / 0 of 42 / 0 / 0 (exactly the W6 remnants), M9 file removed; M3-M5 and M7 0, M6 white, black, chart-1..5; source assertions 21/21 (`source-assertions-w2.mjs`).
+  - §7.2 rule parity: W1 -> W2 hunk-proof 0 unproven (469 spacing-equivalent, 11 resolved-equal, 2 scope, 30 rewrite-pair, 12 source-removed, 13 source-added); D-18 drops exactly `invert` and `table-column`; css-parity `--strict` 0 unclassified; x3 intended-check 0 mismatches.
+  - §7.3 token parity: light/dark border-secondary and accent-85 now [0,0,0,0]; slate-700 R 50 -> 49 (±1); every other token byte-identical.
+  - §7.4 guards and build: G1-G7 red on 754c91802 (1/11/2/7/44/2/10) and 0 now; validate:quick, the coverage ratchet and `next build` exit 0.
+  - §7.5 screenshots: W1 vs W2 70 identical, 18 owner data drift, 3 confirmed noise, 1 noise capture (signup-dark-390) that the single w2-repeat did not reproduce (a second repeat and the same-session W1 recapture did); the same-session W1 tree recapture differs from W2 on 1 of 92 (confirmed noise). VD-12 skeleton 4/4 harness and 4/4 live. Component probes equal the W1 archive except `update-password-badge.classes`, the source class string of the 66.2-11 `p-[var(--spacing-3)]` -> `p-3` rewrite (computed values equal). CSP: no violation beyond 754c91802.
+  - §7.6 Aikido: orchestrator path scans 0 issues over 66.2-11..14; SAST failed inside Aikido; this plan's four changed files not yet scanned.
 
 ---
 
