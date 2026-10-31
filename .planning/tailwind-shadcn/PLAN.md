@@ -93,7 +93,7 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 916 (W2, 66.2-15: 914 projected + 3 added non-test src files − dashboard.css) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 914 (W5, 66.2-29: 916 + sonner.tsx − toast.tsx, mobile-nav.tsx, the recharts-tooltip mock) |
 | M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (W2) |
 | M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (W1) |
 | M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (W1) |
@@ -102,7 +102,7 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 | M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (W1) |
 | M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 7 / 1 / 0 of 42 / 0 / 0 (W2; the W6 remnants: the 7 zinc `@theme inline` `--color-sidebar-*` and `--sidebar-transition`, D-21/D-51) |
 | M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (W2) |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 15 ui/ (tracks upstream) (W4, 66.2-19: 47 classes, all in the 15 vendored `ui/` files) |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 16 ui/ (tracks upstream) (W5, 66.2-29: 45 classes, all in the 16 vendored `ui/` files) |
 | R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (W1) |
 | R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (W1) |
 | R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (W1) |
@@ -316,8 +316,8 @@ The B2 rule as validated:
 
 ### Phase 5 (wave 5): shadcn component sync
 - **Input:** `research/shadcn-component-audit.md`, a raw report covering 42 vendored files vs new-york-v4. It is **unverified**; only the input-otp missing-`data-slot` claim has been spot-checked.
-- [ ] 66.2 research reproduces or refutes every claimed defect, sync hazard and inert class before the planner uses it. Watch especially the BlurFade claim (69 importers) and the chart gridline claim; the latter must be fixed without hex literals.
-- [ ] Sync order and rules follow the report's §"Recommended sync order", restricted to verified claims.
+- [x] 66.2 research reproduces or refutes every claimed defect, sync hazard and inert class before the planner uses it. Watch especially the BlurFade claim (69 importers) and the chart gridline claim; the latter must be fixed without hex literals. (66.2 claims ledger; proved 66.2-29: `audit/w5/claims-w5.json` 24/24 claim groups, the probe-only baseline run fails the 11 before-state claims)
+- [x] Sync order and rules follow the report's §"Recommended sync order", restricted to verified claims. (66.2-20..28; proved 66.2-29: `audit/w5/d05-accounting.json` 0 unlisted/phantom/untagged paths; `audit/w5/vendored-inventory.json` 73 files, problems [])
 
 ### Phase 6 (wave 6): Owner sidebar on canonical shadcn Sidebar
 - **Inputs:**
@@ -420,6 +420,16 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.4 guards and build: G8 red-proof 754c91802 97 (equal to 66.2-18), PRE_W4 54 (equal to the pair set), W4 0, HEAD plus one injected first-party `flex-shrink-0` 1, the injected `ui/` `bg-gradient-to-r` unreported. G8 suite 7/7 (positive test 181 ms). validate:quick, the coverage ratchet (64.95/56.84/64.22/67.07) and `next build` exit 0.
   - §7.5 screenshots at default zoom: W3 vs W4 91 identical, 1 noise (signup-dark-390, the 22 px house-icon region, also changed in the same-session W4 repeat), 0 missing; owner set captured; 92/92 themeApplied; 0 CSP console errors. VD-13 (24 rem-for-px pairs) produces no pixel change at the 16px root.
   - §7.6 Aikido: MCP unavailable to the executor; the orchestrator's path scans of the 66.2-17/18 files found 0 issues, and SAST failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner. `pair-parity.mjs` and `w4/compiled.css` are listed for the orchestrator.
+
+- **2026-10-31.** Wave 5 gate (66.2-29) passed:
+  - §7.1 audit: M1 914 (916 + 1 − 3, `w5/m1-delta.json`), M2-M9 equal W4, M10 first-party 0 (45 classes in 16 vendored `ui/` files). D-05 accounting from `git log --no-renames`: 0 unlisted, 0 phantom, 0 untagged over 66.2-20..28, plus one gate fix. Guards G1-G8 + inline-structure 0.
+  - §7.2 rule parity: css-parity `--strict` W4 vs W5: 27 removed and 48 added keys, each attributed to a file wave 5 changed; 0 changed, 0 spacing-equivalent, 0 color-inline, 0 unclassified.
+  - §7.3 token parity: `tokens-w5.json` and the render JSON identical to W4.
+  - Component probes: 26 ids in both themes; `w5-claims.mjs` passes 24/24 claim groups (C1-C16, N1-N3, SHEET, D-04, D-26); every VD row proven (VD-14..VD-25, VD-30); the probe-only baseline run fails exactly C1 C2 C3 C4 C7 C9 C12a C12b C12c N1 SHEET; self-test 20 passed.
+  - §7.4 validate and build: validate:quick, the coverage ratchet (65.21/57.4/64.53/67.36) and both `git archive` builds (HEAD, PRE_W5) exit 0. Gate fix `8361a45d8`: `shrink-0` on the raw cash-flow Export and tenant sort-header icons (4.5 and 2.4 → 16px at 390); all five 66.2-10 squashed-icon controls now 16px in both themes.
+  - §7.5 screenshots: W4 vs W5 12 identical, 80 intended (VD-19 76, VD-20 64, VD-23 32, VD-22 28, VD-21 16, VD-16 8, VD-17 8, VD-30 4, VD-19-svg-unsquash 4); iso pair 88 identical + 4 VD-19-svg-unsquash (`/properties` 390 wrap by shift proof, `/reports/cash-flow` 390 Export icon confined to its button). CSP: 0 beyond the same-session 754c91802 control (zod's eval probe on `/login` and `/auth/update-password`).
+  - §7.6 Aikido: MCP unavailable to the executor; the orchestrator scans the 166 listed paths.
+  - Owner review queued for 66.2-38: CP-1 (GridPattern on 28 captures), CP-2 (Button v4 surfaces and the VD-19b unsquash/wrap captures), CP-5 (BlurFade entrances).
 
 ---
 
