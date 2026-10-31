@@ -1521,47 +1521,41 @@
 	@apply transition-all hover:border-primary/50 hover:shadow-md cursor-pointer;
 }
 
-@media (max-width: 768px) {
-	.mobile-full-width {
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
-	}
+/*
+ * Touch-target floor below 48rem (D-08). It sits in @layer base and every
+ * selector is wrapped in :where(), so it has zero specificity and any utility
+ * on the control overrides it. It sets no padding. Radix switch, checkbox,
+ * radio and tab buttons own their geometry, so they are excluded, as are the
+ * checkbox, radio, range, file and hidden input types.
+ */
+@layer base {
+	@media (width < 48rem) {
+		:where(
+				button:not(
+					[role="switch"],
+					[role="checkbox"],
+					[role="radio"],
+					[role="tab"]
+				),
+				[role="button"]
+			) {
+			min-height: var(--touch-target-min);
+			min-width: var(--touch-target-min);
+		}
 
-	.mobile-centered {
-		text-align: center;
-	}
-
-	.mobile-padded {
-		padding: var(--container-padding-mobile);
-	}
-
-	.mobile-spaced {
-		margin: var(--section-spacing-mobile) 0;
-	}
-
-	.btn,
-	button,
-	[role="button"] {
-		min-height: var(--touch-target-min);
-		min-width: var(--touch-target-min);
-		padding: var(--touch-target-padding);
-	}
-
-	.form-input,
-	input,
-	select,
-	textarea {
-		min-height: var(--touch-target-min);
-		padding: var(--touch-target-padding);
-	}
-
-	.mobile-stack > * + * {
-		margin-block-start: var(--spacing-responsive-sm);
-	}
-
-	.mobile-nav-item {
-		padding: var(--touch-target-padding);
-		min-height: var(--touch-target-min);
+		:where(
+				input:not(
+					[type="checkbox"],
+					[type="radio"],
+					[type="range"],
+					[type="file"],
+					[type="hidden"]
+				),
+				select,
+				textarea
+			) {
+			min-height: var(--touch-target-min);
+		}
 	}
 }
 

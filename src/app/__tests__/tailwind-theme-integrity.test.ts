@@ -35,6 +35,7 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import type { AtRule, Node as PostcssNode } from "postcss";
 import { describe, expect, it } from "vitest";
 import {
 	FIXTURE_CSS_PREFIX,
@@ -42,6 +43,7 @@ import {
 	GLOBALS_CSS_PATH,
 	loadFixtureEngine,
 	loadProjectTailwindEngine,
+	parseCss,
 	REPO_ROOT,
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
@@ -360,6 +362,239 @@ describe("G2 — no non-inline @theme variable references var()", () => {
 			expect(sans).toContain("var(--font-roboto)");
 			expect(mono).toContain("var(--font-geist-mono)");
 			expect(display).toContain("var(--font-playfair)");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+});
+
+/**
+ * B2 / D-08 regression check, not a G-numbered guard. An unlayered rule beats
+ * every cascade layer at any specificity, so an unlayered element selector for
+ * a form control overrides every Tailwind utility on that control (the B2
+ * defect turned Radix Switch/Checkbox/Radio/Tab buttons into 44x44 padded
+ * shapes below 768px). A `:where()` wrapper does not exempt an unlayered rule.
+ */
+const TOUCH_TARGET_SELECTOR_PATTERNS: readonly RegExp[] = [
+	/(^|[\s>+~(,])(button|input|select|textarea)(?![\w-])/,
+	/\[role=["']?button/,
+	/\.btn\b/,
+	/\.form-input\b/,
+];
+
+function findUnlayeredTouchTargetRules(css: string): string[] {
+	const source = css.replace(/\/\*[\s\S]*?\*\//g, "");
+	const ancestors: string[] = [];
+	const violations: string[] = [];
+	let prelude = "";
+	for (const char of source) {
+		if (char === "{") {
+			const text = prelude.trim();
+			const isStyleRule = !text.startsWith("@");
+			const isLayered = ancestors.some((entry) => entry.startsWith("@layer"));
+			if (
+				isStyleRule &&
+				!isLayered &&
+				TOUCH_TARGET_SELECTOR_PATTERNS.some((pattern) => pattern.test(text))
+			) {
+				violations.push(text.replace(/\s+/g, " "));
+			}
+			ancestors.push(text);
+			prelude = "";
+		} else if (char === "}") {
+			ancestors.pop();
+			prelude = "";
+		} else if (char === ";") {
+			prelude = "";
+		} else {
+			prelude += char;
+		}
+	}
+	return violations;
+}
+
+const BASELINE_UNLAYERED_TOUCH_BLOCK = `@media (max-width: 768px) {
+	.mobile-full-width {
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	.mobile-centered {
+		text-align: center;
+	}
+
+	.mobile-padded {
+		padding: var(--container-padding-mobile);
+	}
+
+	.mobile-spaced {
+		margin: var(--section-spacing-mobile) 0;
+	}
+
+	.btn,
+	button,
+	[role="button"] {
+		min-height: var(--touch-target-min);
+		min-width: var(--touch-target-min);
+		padding: var(--touch-target-padding);
+	}
+
+	.form-input,
+	input,
+	select,
+	textarea {
+		min-height: var(--touch-target-min);
+		padding: var(--touch-target-padding);
+	}
+
+	.mobile-stack > * + * {
+		margin-block-start: var(--spacing-responsive-sm);
+	}
+
+	.mobile-nav-item {
+		padding: var(--touch-target-padding);
+		min-height: var(--touch-target-min);
+	}
+}`;
+
+const LAYERED_TOUCH_RULES = `@layer base {
+	@media (max-width: 768px) {
+		.btn,
+		button,
+		[role="button"] {
+			min-height: var(--touch-target-min);
+			min-width: var(--touch-target-min);
+			padding: var(--touch-target-padding);
+		}
+
+		.form-input,
+		input,
+		select,
+		textarea {
+			min-height: var(--touch-target-min);
+			padding: var(--touch-target-padding);
+		}
+	}
+}`;
+
+const TOUCH_TARGET_MEDIA_PARAMS = "(width < 48rem)";
+
+interface TouchTargetRule {
+	readonly selector: string;
+	readonly declarations: ReadonlyArray<readonly [string, string]>;
+}
+
+function isAtRule(node: { type: string } | undefined): node is AtRule {
+	return node?.type === "atrule";
+}
+
+function layeredTouchTargetRules(
+	engine: TailwindEngine,
+	selectorStart: string,
+): TouchTargetRule[] {
+	const found: TouchTargetRule[] = [];
+	parseCss(engine.compiledCss).walkRules((rule) => {
+		if (!rule.selector.replace(/\s+/g, "").startsWith(selectorStart)) return;
+		const media = rule.parent;
+		if (
+			!isAtRule(media) ||
+			media.name !== "media" ||
+			media.params !== TOUCH_TARGET_MEDIA_PARAMS
+		) {
+			return;
+		}
+		let layered = false;
+		for (
+			let node: PostcssNode["parent"] = media.parent;
+			node;
+			node = node.parent
+		) {
+			if (isAtRule(node) && node.name === "layer") {
+				layered = node.params === "base";
+				break;
+			}
+		}
+		if (!layered) return;
+		const declarations: Array<readonly [string, string]> = [];
+		rule.walkDecls((decl) => {
+			declarations.push([decl.prop, decl.value]);
+		});
+		found.push({ selector: rule.selector, declarations });
+	});
+	return found;
+}
+
+describe("B2 / D-08: touch-target rule layering", () => {
+	it(
+		"D-08: the compiled globals.css has no unlayered element touch-target rule",
+		async () => {
+			const { compiledCss } = await projectEngine();
+			const violations = findUnlayeredTouchTargetRules(compiledCss);
+			expect(
+				violations,
+				[
+					"Unlayered rule(s) target button/input/select/textarea/[role=button]. An unlayered rule outranks every Tailwind layer, so it overrides the component's own utilities (B2). Move it into @layer base:",
+					...violations,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"D-08: the touch-target floor is layered, scoped below 48rem and sets no padding",
+		async () => {
+			const engine = await projectEngine();
+			const buttons = layeredTouchTargetRules(engine, ":where(button:not(");
+			const inputs = layeredTouchTargetRules(engine, ":where(input:not(");
+			expect(
+				buttons,
+				`no @layer base > @media ${TOUCH_TARGET_MEDIA_PARAMS} > :where(button:not(…)) rule in the compiled CSS`,
+			).toHaveLength(1);
+			expect(
+				inputs,
+				`no @layer base > @media ${TOUCH_TARGET_MEDIA_PARAMS} > :where(input:not(…)) rule in the compiled CSS`,
+			).toHaveLength(1);
+			expect(buttons[0]?.declarations).toEqual([
+				["min-height", "var(--touch-target-min)"],
+				["min-width", "var(--touch-target-min)"],
+			]);
+			expect(inputs[0]?.declarations).toEqual([
+				["min-height", "var(--touch-target-min)"],
+			]);
+			for (const rule of [...buttons, ...inputs]) {
+				expect(
+					rule.declarations.some(([prop]) => prop.startsWith("padding")),
+					`${rule.selector} sets padding`,
+				).toBe(false);
+			}
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"D-08: flags both selector lists of the pre-phase unlayered block (negative control)",
+		async () => {
+			const expected = [
+				'.btn, button, [role="button"]',
+				".form-input, input, select, textarea",
+			];
+			expect(
+				findUnlayeredTouchTargetRules(BASELINE_UNLAYERED_TOUCH_BLOCK),
+			).toEqual(expected);
+			const { compiledCss } = await loadFixtureEngine(
+				BASELINE_UNLAYERED_TOUCH_BLOCK,
+			);
+			expect(findUnlayeredTouchTargetRules(compiledCss)).toEqual(expected);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"D-08: accepts the same rules once they sit in @layer base (layering control)",
+		async () => {
+			expect(findUnlayeredTouchTargetRules(LAYERED_TOUCH_RULES)).toEqual([]);
+			const { compiledCss } = await loadFixtureEngine(LAYERED_TOUCH_RULES);
+			expect(findUnlayeredTouchTargetRules(compiledCss)).toEqual([]);
 		},
 		ENGINE_TIMEOUT_MS,
 	);
