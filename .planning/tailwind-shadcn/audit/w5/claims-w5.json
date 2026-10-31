@@ -1,0 +1,3794 @@
+{
+  "mode": "full",
+  "probes": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-29/w5/probes-w5.json",
+  "tokens": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-29/w5/tokens-w5.json",
+  "claims": [
+    {
+      "id": "C1",
+      "pass": true,
+      "probeChecks": 12,
+      "checks": [
+        {
+          "name": "light otp-setup: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "light otp-setup: dataSlotCount 10",
+          "pass": true,
+          "expected": 10,
+          "measured": 10
+        },
+        {
+          "name": "light otp-setup: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": true,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "name": "light otp-mfa: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "light otp-mfa: dataSlotCount 10",
+          "pass": true,
+          "expected": 10,
+          "measured": 10
+        },
+        {
+          "name": "light otp-mfa: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": true,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "name": "dark otp-setup: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "dark otp-setup: dataSlotCount 10",
+          "pass": true,
+          "expected": 10,
+          "measured": 10
+        },
+        {
+          "name": "dark otp-setup: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": true,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "name": "dark otp-mfa: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "dark otp-mfa: dataSlotCount 10",
+          "pass": true,
+          "expected": 10,
+          "measured": 10
+        },
+        {
+          "name": "dark otp-mfa: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": true,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 56,
+              "fontSize": "20px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                8,
+                8,
+                8
+              ]
+            }
+          ]
+        },
+        {
+          "name": "src/components/ui/input-otp.tsx contains data-slot=\"input-otp-slot\"",
+          "pass": true,
+          "expected": "data-slot=\"input-otp-slot\"",
+          "measured": 1
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "pass": true,
+      "probeChecks": 7,
+      "checks": [
+        {
+          "name": "light chart: gridStroke rgb within tolRgb of borderToken",
+          "pass": true,
+          "expected": "rgb of borderToken",
+          "measured": [
+            [
+              209,
+              215,
+              221,
+              0.502
+            ],
+            [
+              210,
+              216,
+              222,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light chart: gridStroke alpha in [0.48, 0.52]",
+          "pass": true,
+          "expected": [
+            0.48,
+            0.52
+          ],
+          "measured": [
+            209,
+            215,
+            221,
+            0.502
+          ]
+        },
+        {
+          "name": "light chart: activeDotStroke alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark chart: gridStroke rgb within tolRgb of borderToken",
+          "pass": true,
+          "expected": "rgb of borderToken",
+          "measured": [
+            [
+              42,
+              46,
+              54,
+              0.502
+            ],
+            [
+              41,
+              46,
+              53,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark chart: gridStroke alpha in [0.48, 0.52]",
+          "pass": true,
+          "expected": [
+            0.48,
+            0.52
+          ],
+          "measured": [
+            42,
+            46,
+            54,
+            0.502
+          ]
+        },
+        {
+          "name": "dark chart: activeDotStroke alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "chart: light gridStroke differs from dark",
+          "pass": true,
+          "expected": "light != dark",
+          "measured": [
+            [
+              209,
+              215,
+              221,
+              0.502
+            ],
+            [
+              42,
+              46,
+              54,
+              0.502
+            ]
+          ]
+        },
+        {
+          "name": "src/components/ui/chart.tsx contains [&_.recharts-cartesian-grid_line[stroke]]:stroke-border/50",
+          "pass": true,
+          "expected": "[&_.recharts-cartesian-grid_line[stroke]]:stroke-border/50",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/chart.tsx contains [&_.recharts-dot[stroke]]:stroke-transparent",
+          "pass": true,
+          "expected": "[&_.recharts-dot[stroke]]:stroke-transparent",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/chart.tsx has no [stroke=' selector",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/chart.tsx non-comment lines have no hex literal",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "pass": true,
+      "probeChecks": 8,
+      "checks": [
+        {
+          "name": "light command: wrapperHeight 48",
+          "pass": true,
+          "expected": 48,
+          "measured": 48
+        },
+        {
+          "name": "light command: inputHeight 48",
+          "pass": true,
+          "expected": 48,
+          "measured": 48
+        },
+        {
+          "name": "light command: inputOverflowsWrapper false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light command: inputOverflowPx <= wrapperBorderBottomPx",
+          "pass": true,
+          "expected": "<= wrapperBorderBottomPx",
+          "measured": [
+            0.5,
+            1
+          ]
+        },
+        {
+          "name": "dark command: wrapperHeight 48",
+          "pass": true,
+          "expected": 48,
+          "measured": 48
+        },
+        {
+          "name": "dark command: inputHeight 48",
+          "pass": true,
+          "expected": 48,
+          "measured": 48
+        },
+        {
+          "name": "dark command: inputOverflowsWrapper false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark command: inputOverflowPx <= wrapperBorderBottomPx",
+          "pass": true,
+          "expected": "<= wrapperBorderBottomPx",
+          "measured": [
+            0.5,
+            1
+          ]
+        },
+        {
+          "name": "src/components/ui/command.tsx contains **:data-[slot=command-input-wrapper]:h-12",
+          "pass": true,
+          "expected": "**:data-[slot=command-input-wrapper]:h-12",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/command.tsx CommandInput keeps h-11",
+          "pass": true,
+          "expected": "h-11",
+          "measured": 1
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "pass": true,
+      "probeChecks": 32,
+      "checks": [
+        {
+          "name": "light toast-default: toastBg equals popoverToken",
+          "pass": true,
+          "expected": "popoverToken",
+          "measured": [
+            [
+              255,
+              255,
+              255,
+              1
+            ],
+            [
+              255,
+              255,
+              255,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light toast-default: toastColor equals popoverFgToken",
+          "pass": true,
+          "expected": "popoverFgToken",
+          "measured": [
+            [
+              14,
+              23,
+              30,
+              1
+            ],
+            [
+              14,
+              23,
+              30,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light toast-default: toastBorderColor equals borderToken",
+          "pass": true,
+          "expected": "borderToken",
+          "measured": [
+            [
+              210,
+              216,
+              222,
+              1
+            ],
+            [
+              210,
+              216,
+              222,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light toast-default: toastBg within tolerance of T.popover",
+          "pass": true,
+          "expected": [
+            255,
+            255,
+            255,
+            1
+          ],
+          "measured": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "light toast-default: toastColor within tolerance of T.popover-foreground",
+          "pass": true,
+          "expected": [
+            14,
+            23,
+            30,
+            1
+          ],
+          "measured": [
+            14,
+            23,
+            30,
+            1
+          ]
+        },
+        {
+          "name": "light toast-default: toastBorderColor within tolerance of T.border",
+          "pass": true,
+          "expected": [
+            210,
+            216,
+            222,
+            1
+          ],
+          "measured": [
+            210,
+            216,
+            222,
+            1
+          ]
+        },
+        {
+          "name": "light toast-default: toastRadius 8px",
+          "pass": true,
+          "expected": "8px",
+          "measured": "8px"
+        },
+        {
+          "name": "light toast-default: toasterInlineNormalBg empty",
+          "pass": true,
+          "expected": "",
+          "measured": ""
+        },
+        {
+          "name": "light toast-default: toasterClass has no toaster or group token",
+          "pass": true,
+          "expected": "no toaster/group token",
+          "measured": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!"
+        },
+        {
+          "name": "light toast-success: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": true,
+          "expected": "> 3 in some channel",
+          "measured": [
+            [
+              236,
+              253,
+              243,
+              1
+            ],
+            [
+              255,
+              255,
+              255,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light toast-success: iconWidth 16",
+          "pass": true,
+          "expected": 16,
+          "measured": 16
+        },
+        {
+          "name": "light toast-success: iconClasses contains lucide-circle-check",
+          "pass": true,
+          "expected": "lucide-circle-check",
+          "measured": [
+            "lucide",
+            "lucide-circle-check",
+            "lucide-check-circle-2",
+            "size-4"
+          ]
+        },
+        {
+          "name": "light toast-error: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": true,
+          "expected": "> 3 in some channel",
+          "measured": [
+            [
+              255,
+              240,
+              240,
+              1
+            ],
+            [
+              255,
+              255,
+              255,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light toast-error: iconWidth 16",
+          "pass": true,
+          "expected": 16,
+          "measured": 16
+        },
+        {
+          "name": "light toast-error: iconClasses contains lucide-octagon-x",
+          "pass": true,
+          "expected": "lucide-octagon-x",
+          "measured": [
+            "lucide",
+            "lucide-octagon-x",
+            "lucide-x-octagon",
+            "size-4"
+          ]
+        },
+        {
+          "name": "light toast-loading: iconClasses contains animate-spin",
+          "pass": true,
+          "expected": "animate-spin",
+          "measured": [
+            "lucide",
+            "lucide-loader-circle",
+            "lucide-loader-2",
+            "size-4",
+            "animate-spin"
+          ]
+        },
+        {
+          "name": "dark toast-default: toastBg equals popoverToken",
+          "pass": true,
+          "expected": "popoverToken",
+          "measured": [
+            [
+              3,
+              6,
+              11,
+              1
+            ],
+            [
+              3,
+              6,
+              11,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark toast-default: toastColor equals popoverFgToken",
+          "pass": true,
+          "expected": "popoverFgToken",
+          "measured": [
+            [
+              236,
+              243,
+              248,
+              1
+            ],
+            [
+              236,
+              243,
+              248,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark toast-default: toastBorderColor equals borderToken",
+          "pass": true,
+          "expected": "borderToken",
+          "measured": [
+            [
+              41,
+              46,
+              53,
+              1
+            ],
+            [
+              41,
+              46,
+              53,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark toast-default: toastBg within tolerance of T.popover",
+          "pass": true,
+          "expected": [
+            3,
+            6,
+            11,
+            1
+          ],
+          "measured": [
+            3,
+            6,
+            11,
+            1
+          ]
+        },
+        {
+          "name": "dark toast-default: toastColor within tolerance of T.popover-foreground",
+          "pass": true,
+          "expected": [
+            236,
+            243,
+            248,
+            1
+          ],
+          "measured": [
+            236,
+            243,
+            248,
+            1
+          ]
+        },
+        {
+          "name": "dark toast-default: toastBorderColor within tolerance of T.border",
+          "pass": true,
+          "expected": [
+            41,
+            46,
+            53,
+            1
+          ],
+          "measured": [
+            41,
+            46,
+            53,
+            1
+          ]
+        },
+        {
+          "name": "dark toast-default: toastRadius 8px",
+          "pass": true,
+          "expected": "8px",
+          "measured": "8px"
+        },
+        {
+          "name": "dark toast-default: toasterInlineNormalBg empty",
+          "pass": true,
+          "expected": "",
+          "measured": ""
+        },
+        {
+          "name": "dark toast-default: toasterClass has no toaster or group token",
+          "pass": true,
+          "expected": "no toaster/group token",
+          "measured": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!"
+        },
+        {
+          "name": "dark toast-success: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": true,
+          "expected": "> 3 in some channel",
+          "measured": [
+            [
+              0,
+              31,
+              15,
+              1
+            ],
+            [
+              3,
+              6,
+              11,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark toast-success: iconWidth 16",
+          "pass": true,
+          "expected": 16,
+          "measured": 16
+        },
+        {
+          "name": "dark toast-success: iconClasses contains lucide-circle-check",
+          "pass": true,
+          "expected": "lucide-circle-check",
+          "measured": [
+            "lucide",
+            "lucide-circle-check",
+            "lucide-check-circle-2",
+            "size-4"
+          ]
+        },
+        {
+          "name": "dark toast-error: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": true,
+          "expected": "> 3 in some channel",
+          "measured": [
+            [
+              45,
+              6,
+              7,
+              1
+            ],
+            [
+              3,
+              6,
+              11,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark toast-error: iconWidth 16",
+          "pass": true,
+          "expected": 16,
+          "measured": 16
+        },
+        {
+          "name": "dark toast-error: iconClasses contains lucide-octagon-x",
+          "pass": true,
+          "expected": "lucide-octagon-x",
+          "measured": [
+            "lucide",
+            "lucide-octagon-x",
+            "lucide-x-octagon",
+            "size-4"
+          ]
+        },
+        {
+          "name": "dark toast-loading: iconClasses contains animate-spin",
+          "pass": true,
+          "expected": "animate-spin",
+          "measured": [
+            "lucide",
+            "lucide-loader-circle",
+            "lucide-loader-2",
+            "size-4",
+            "animate-spin"
+          ]
+        },
+        {
+          "name": "src/components/ui/toast.tsx absent",
+          "pass": true,
+          "expected": "absent",
+          "measured": "absent"
+        },
+        {
+          "name": "src/components/ui/sonner.tsx present",
+          "pass": true,
+          "expected": "present",
+          "measured": "present"
+        },
+        {
+          "name": "src/app/layout.tsx imports #components/ui/sonner",
+          "pass": true,
+          "expected": "\"#components/ui/sonner\"",
+          "measured": 1
+        },
+        {
+          "name": "no sonner-toast or toaster group hook in src (tests excluded)",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "src/components/ui/sonner.tsx has no style= (non-comment lines)",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/sonner.tsx contains [--normal-bg:var(--color-popover)]!",
+          "pass": true,
+          "expected": "[--normal-bg:var(--color-popover)]!",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/sonner.tsx imports the five lucide icons",
+          "pass": true,
+          "expected": [
+            "CircleCheckIcon",
+            "InfoIcon",
+            "Loader2Icon",
+            "OctagonXIcon",
+            "TriangleAlertIcon"
+          ],
+          "measured": [
+            "CircleCheckIcon",
+            "InfoIcon",
+            "Loader2Icon",
+            "OctagonXIcon",
+            "TriangleAlertIcon"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/components/ui/progress.tsx contains value={value}",
+          "pass": true,
+          "expected": "value={value}",
+          "measured": 1
+        },
+        {
+          "name": "src/components/bulk-import/bulk-import-confirm-step.tsx contains aria-label=\"Import progress\"",
+          "pass": true,
+          "expected": "aria-label=\"Import progress\"",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/__tests__/progress.test.tsx passed in the unit report",
+          "pass": true,
+          "expected": "passed",
+          "measured": "passed"
+        }
+      ]
+    },
+    {
+      "id": "C6",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/components/ui/card.tsx contains has-data-[slot=card-action]:",
+          "pass": true,
+          "expected": "has-data-[slot=card-action]:",
+          "measured": 1
+        },
+        {
+          "name": "no has-.card-action selector in src",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        }
+      ]
+    },
+    {
+      "id": "C7",
+      "pass": true,
+      "probeChecks": 8,
+      "checks": [
+        {
+          "name": "light date-popover: popoverContentDataSlotCount 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light date-popover: calendarBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light date-popover: popoverBg within tolerance of T.popover",
+          "pass": true,
+          "expected": [
+            255,
+            255,
+            255,
+            1
+          ],
+          "measured": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "light date-popover: cornerPatchMaxDiffVsPlain <= 2",
+          "pass": true,
+          "expected": "<= 2",
+          "measured": 0
+        },
+        {
+          "name": "dark date-popover: popoverContentDataSlotCount 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark date-popover: calendarBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark date-popover: popoverBg within tolerance of T.popover",
+          "pass": true,
+          "expected": [
+            3,
+            6,
+            11,
+            1
+          ],
+          "measured": [
+            3,
+            6,
+            11,
+            1
+          ]
+        },
+        {
+          "name": "dark date-popover: cornerPatchMaxDiffVsPlain <= 2",
+          "pass": true,
+          "expected": "<= 2",
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/calendar.tsx contains [[data-slot=popover-content]_&]:bg-transparent",
+          "pass": true,
+          "expected": "[[data-slot=popover-content]_&]:bg-transparent",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/popover.tsx contains data-slot=\"popover-content\"",
+          "pass": true,
+          "expected": "data-slot=\"popover-content\"",
+          "measured": 1
+        }
+      ]
+    },
+    {
+      "id": "C8",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "providers.tsx has exactly one <TooltipProvider",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/tooltip.tsx has 0 <TooltipProvider",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/tooltip.tsx contains delayDuration = 0",
+          "pass": true,
+          "expected": "delayDuration = 0",
+          "measured": 1
+        },
+        {
+          "name": "<TooltipProvider in 0 non-test files outside providers.tsx and ui/",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        },
+        {
+          "name": "unit log has 0 `must be used within .TooltipProvider` lines",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "ThemeProvider opening tag byte-identical at PRE_W5 and HEAD (T-CSP)",
+          "pass": true,
+          "expected": "\t\t<ThemeProvider\n\t\t\tattribute=\"class\"\n\t\t\tdefaultTheme={initialThemeMode}\n\t\t\tenableSystem\n\t\t\tdisableTransitionOnChange\n\t\t\tstorageKey={THEME_MODE_STORAGE_KEY}\n\t\t>",
+          "measured": "\t\t<ThemeProvider\n\t\t\tattribute=\"class\"\n\t\t\tdefaultTheme={initialThemeMode}\n\t\t\tenableSystem\n\t\t\tdisableTransitionOnChange\n\t\t\tstorageKey={THEME_MODE_STORAGE_KEY}\n\t\t>"
+        }
+      ]
+    },
+    {
+      "id": "C9",
+      "pass": true,
+      "probeChecks": 128,
+      "checks": [
+        {
+          "name": "light button: default dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: default dataVariant default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: default dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: default height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: default flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "light button: default focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "light button: default focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "light button: default focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "light button: destructive dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: destructive dataVariant destructive",
+          "pass": true,
+          "expected": "destructive",
+          "measured": "destructive"
+        },
+        {
+          "name": "light button: destructive dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: destructive height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: destructive flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "light button: destructive focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "light button: destructive focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "light button: destructive focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "light button: outline dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: outline dataVariant outline",
+          "pass": true,
+          "expected": "outline",
+          "measured": "outline"
+        },
+        {
+          "name": "light button: outline dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: outline height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: outline flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "light button: outline focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "light button: outline focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "light button: outline focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+        },
+        {
+          "name": "light button: secondary dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: secondary dataVariant secondary",
+          "pass": true,
+          "expected": "secondary",
+          "measured": "secondary"
+        },
+        {
+          "name": "light button: secondary dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: secondary height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: secondary flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "light button: secondary focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "light button: secondary focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "light button: secondary focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "light button: ghost dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: ghost dataVariant ghost",
+          "pass": true,
+          "expected": "ghost",
+          "measured": "ghost"
+        },
+        {
+          "name": "light button: ghost dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: ghost height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: ghost flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "light button: ghost focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "light button: ghost focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "light button: ghost focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "light button: link dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: link dataVariant link",
+          "pass": true,
+          "expected": "link",
+          "measured": "link"
+        },
+        {
+          "name": "light button: link dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "light button: link height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: link flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "light button: link focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "light button: link focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "light button: link focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "light button: outline focus.borderColor equals refs.ring",
+          "pass": true,
+          "expected": "refs.ring",
+          "measured": [
+            [
+              0,
+              91,
+              209,
+              1
+            ],
+            [
+              0,
+              91,
+              209,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light button: default bg within tolerance of T.primary",
+          "pass": true,
+          "expected": [
+            0,
+            100,
+            239,
+            1
+          ],
+          "measured": [
+            0,
+            100,
+            239,
+            1
+          ]
+        },
+        {
+          "name": "light button: secondary bg within tolerance of T.secondary",
+          "pass": true,
+          "expected": [
+            222,
+            243,
+            255,
+            1
+          ],
+          "measured": [
+            222,
+            243,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "light button: ghost bg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light button: link bg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light button: outline borderColor equals refs.border",
+          "pass": true,
+          "expected": "refs.border",
+          "measured": [
+            [
+              210,
+              216,
+              222,
+              1
+            ],
+            [
+              210,
+              216,
+              222,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light button: outline boxShadowRest has shadow-xs (0px 1px 2px 0px)",
+          "pass": true,
+          "expected": "0px 1px 2px 0px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+        },
+        {
+          "name": "light button: invalid.borderColor equals refs.destructive",
+          "pass": true,
+          "expected": "refs.destructive",
+          "measured": [
+            [
+              231,
+              0,
+              30,
+              1
+            ],
+            [
+              231,
+              0,
+              30,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "light button: sizes.sm.height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: sizes.lg.height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "light button: sizes.icon 44x44",
+          "pass": true,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "light button: asChild tag A",
+          "pass": true,
+          "expected": "A",
+          "measured": "A"
+        },
+        {
+          "name": "light button: asChild dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "light button: asChild buttonCount 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "light button: icons.unsized [16,16]",
+          "pass": true,
+          "expected": [
+            16,
+            16
+          ],
+          "measured": [
+            16,
+            16
+          ]
+        },
+        {
+          "name": "light button: icons.size5 [20,20]",
+          "pass": true,
+          "expected": [
+            20,
+            20
+          ],
+          "measured": [
+            20,
+            20
+          ]
+        },
+        {
+          "name": "dark button: default dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: default dataVariant default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: default dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: default height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: default flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "dark button: default focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "dark button: default focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "dark button: default focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "dark button: destructive dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: destructive dataVariant destructive",
+          "pass": true,
+          "expected": "destructive",
+          "measured": "destructive"
+        },
+        {
+          "name": "dark button: destructive dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: destructive height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: destructive flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "dark button: destructive focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "dark button: destructive focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "dark button: destructive focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "dark button: outline dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: outline dataVariant outline",
+          "pass": true,
+          "expected": "outline",
+          "measured": "outline"
+        },
+        {
+          "name": "dark button: outline dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: outline height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: outline flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "dark button: outline focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "dark button: outline focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "dark button: outline focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+        },
+        {
+          "name": "dark button: secondary dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: secondary dataVariant secondary",
+          "pass": true,
+          "expected": "secondary",
+          "measured": "secondary"
+        },
+        {
+          "name": "dark button: secondary dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: secondary height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: secondary flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "dark button: secondary focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "dark button: secondary focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "dark button: secondary focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "dark button: ghost dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: ghost dataVariant ghost",
+          "pass": true,
+          "expected": "ghost",
+          "measured": "ghost"
+        },
+        {
+          "name": "dark button: ghost dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: ghost height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: ghost flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "dark button: ghost focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "dark button: ghost focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "dark button: ghost focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "dark button: link dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: link dataVariant link",
+          "pass": true,
+          "expected": "link",
+          "measured": "link"
+        },
+        {
+          "name": "dark button: link dataSize default",
+          "pass": true,
+          "expected": "default",
+          "measured": "default"
+        },
+        {
+          "name": "dark button: link height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: link flexShrink 0",
+          "pass": true,
+          "expected": "0",
+          "measured": "0"
+        },
+        {
+          "name": "dark button: link focus.focusVisible true",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "dark button: link focus.outlineStyle none",
+          "pass": true,
+          "expected": "none",
+          "measured": "none"
+        },
+        {
+          "name": "dark button: link focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": true,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        {
+          "name": "dark button: outline focus.borderColor equals refs.ring",
+          "pass": true,
+          "expected": "refs.ring",
+          "measured": [
+            [
+              67,
+              159,
+              255,
+              1
+            ],
+            [
+              67,
+              159,
+              255,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark button: default bg within tolerance of T.primary",
+          "pass": true,
+          "expected": [
+            67,
+            159,
+            255,
+            1
+          ],
+          "measured": [
+            67,
+            159,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "dark button: secondary bg within tolerance of T.secondary",
+          "pass": true,
+          "expected": [
+            37,
+            41,
+            46,
+            1
+          ],
+          "measured": [
+            37,
+            41,
+            46,
+            1
+          ]
+        },
+        {
+          "name": "dark button: ghost bg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark button: link bg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark button: outline bg alpha in (0, 1)",
+          "pass": true,
+          "expected": "(0, 1)",
+          "measured": [
+            43,
+            46,
+            50,
+            0.302
+          ]
+        },
+        {
+          "name": "dark button: destructive bg alpha in [0.55, 0.65]",
+          "pass": true,
+          "expected": [
+            0.55,
+            0.65
+          ],
+          "measured": [
+            200,
+            0,
+            0,
+            0.6
+          ]
+        },
+        {
+          "name": "dark button: invalid.borderColor equals refs.destructive",
+          "pass": true,
+          "expected": "refs.destructive",
+          "measured": [
+            [
+              201,
+              0,
+              0,
+              1
+            ],
+            [
+              201,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "dark button: sizes.sm.height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: sizes.lg.height 44",
+          "pass": true,
+          "expected": 44,
+          "measured": 44
+        },
+        {
+          "name": "dark button: sizes.icon 44x44",
+          "pass": true,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "dark button: asChild tag A",
+          "pass": true,
+          "expected": "A",
+          "measured": "A"
+        },
+        {
+          "name": "dark button: asChild dataSlot button",
+          "pass": true,
+          "expected": "button",
+          "measured": "button"
+        },
+        {
+          "name": "dark button: asChild buttonCount 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "dark button: icons.unsized [16,16]",
+          "pass": true,
+          "expected": [
+            16,
+            16
+          ],
+          "measured": [
+            16,
+            16
+          ]
+        },
+        {
+          "name": "dark button: icons.size5 [20,20]",
+          "pass": true,
+          "expected": [
+            20,
+            20
+          ],
+          "measured": [
+            20,
+            20
+          ]
+        },
+        {
+          "name": "src/components/ui/__tests__/naming-conventions.test.tsx passed in the unit report",
+          "pass": true,
+          "expected": "passed",
+          "measured": "passed"
+        },
+        {
+          "name": "src/components/ui/button.tsx contains data-slot=\"button\"",
+          "pass": true,
+          "expected": "data-slot=\"button\"",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/button.tsx contains data-variant",
+          "pass": true,
+          "expected": "data-variant",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx contains data-size",
+          "pass": true,
+          "expected": "data-size",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx contains Slot.Root",
+          "pass": true,
+          "expected": "Slot.Root",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx contains shrink-0",
+          "pass": true,
+          "expected": "shrink-0",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/button.tsx contains [&_svg:not([class*='size-'])]:size-4",
+          "pass": true,
+          "expected": "[&_svg:not([class*='size-'])]:size-4",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/button.tsx contains focus-visible:ring-[3px]",
+          "pass": true,
+          "expected": "focus-visible:ring-[3px]",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/button.tsx contains aria-invalid:border-destructive",
+          "pass": true,
+          "expected": "aria-invalid:border-destructive",
+          "measured": 1
+        },
+        {
+          "name": "census counts.convert 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "census counts.attrSized 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "census counts.mixed 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "census counts.unresolved 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "census counts.nestedSized 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "census parentSvgSelectors empty",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        },
+        {
+          "name": "census has no add-shrink row",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/components/ui/dropdown-menu.tsx contains checked={checked}",
+          "pass": true,
+          "expected": "checked={checked}",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/dropdown-menu.tsx has no checked ?? false (non-comment lines)",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/slider.tsx contains value={value}",
+          "pass": true,
+          "expected": "value={value}",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/sonner.tsx contains NonNullable<ToasterProps[\"theme\"]>",
+          "pass": true,
+          "expected": "NonNullable<ToasterProps[\"theme\"]>",
+          "measured": 1
+        }
+      ]
+    },
+    {
+      "id": "C11",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/components/ui/mobile-nav.tsx absent",
+          "pass": true,
+          "expected": "absent",
+          "measured": "absent"
+        },
+        {
+          "name": "src/components/ui/__tests__/mobile-nav.test.tsx absent",
+          "pass": true,
+          "expected": "absent",
+          "measured": "absent"
+        },
+        {
+          "name": "no ui/mobile-nav reference in src",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "w6 remnants present: sidebar/context.tsx, server-sidebar-provider.tsx",
+          "pass": true,
+          "expected": [
+            true,
+            true
+          ],
+          "measured": [
+            true,
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C12a",
+      "pass": true,
+      "probeChecks": 6,
+      "checks": [
+        {
+          "name": "light grid-pattern: svgStroke is not none",
+          "pass": true,
+          "expected": "not none",
+          "measured": "oklab(0.2 -0.00845236 -0.0181262 / 0.25)"
+        },
+        {
+          "name": "light grid-pattern: svgStrokeRgba rgb within tolerance of T.foreground",
+          "pass": true,
+          "expected": [
+            14,
+            23,
+            31,
+            1
+          ],
+          "measured": [
+            16,
+            24,
+            32,
+            0.251
+          ]
+        },
+        {
+          "name": "light grid-pattern: svgStrokeRgba alpha in [0.23, 0.27]",
+          "pass": true,
+          "expected": [
+            0.23,
+            0.27
+          ],
+          "measured": [
+            16,
+            24,
+            32,
+            0.251
+          ]
+        },
+        {
+          "name": "dark grid-pattern: svgStroke is not none",
+          "pass": true,
+          "expected": "not none",
+          "measured": "oklab(0.96 -0.005 -0.00866025 / 0.25)"
+        },
+        {
+          "name": "dark grid-pattern: svgStrokeRgba rgb within tolerance of T.foreground",
+          "pass": true,
+          "expected": [
+            236,
+            243,
+            248,
+            1
+          ],
+          "measured": [
+            235,
+            243,
+            247,
+            0.251
+          ]
+        },
+        {
+          "name": "dark grid-pattern: svgStrokeRgba alpha in [0.23, 0.27]",
+          "pass": true,
+          "expected": [
+            0.23,
+            0.27
+          ],
+          "measured": [
+            235,
+            243,
+            247,
+            0.251
+          ]
+        },
+        {
+          "name": "src/components/ui/grid-pattern.tsx has no space inside a fill-/stroke- bracket",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/grid-pattern.tsx has 0 label-primary",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "w5/candidate-css.json has >= 10 fill/stroke color-mix keys",
+          "pass": true,
+          "expected": ">= 10",
+          "measured": 10
+        }
+      ]
+    },
+    {
+      "id": "C12b",
+      "pass": true,
+      "probeChecks": 16,
+      "checks": [
+        {
+          "name": "light border-beam-stats: afterAnimationName border-beam",
+          "pass": true,
+          "expected": "border-beam",
+          "measured": "border-beam"
+        },
+        {
+          "name": "light border-beam-stats: afterAnimationDuration equals <props.duration>s",
+          "pass": true,
+          "expected": "<props.duration>s",
+          "measured": [
+            "10s",
+            10
+          ]
+        },
+        {
+          "name": "light border-beam-stats: runningAnimations >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "light border-beam-stats: afterBackgroundImage not none",
+          "pass": true,
+          "expected": "not none",
+          "measured": "linear-gradient(to left, oklch(0.54 0.23 257), oklab(0.54 -0.0517387 -0.224105 / 0.3), rgba(0, 0, 0, 0))"
+        },
+        {
+          "name": "light border-beam-grid: afterAnimationName border-beam",
+          "pass": true,
+          "expected": "border-beam",
+          "measured": "border-beam"
+        },
+        {
+          "name": "light border-beam-grid: afterAnimationDuration equals <props.duration>s",
+          "pass": true,
+          "expected": "<props.duration>s",
+          "measured": [
+            "12s",
+            12
+          ]
+        },
+        {
+          "name": "light border-beam-grid: runningAnimations >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "light border-beam-grid: afterBackgroundImage not none",
+          "pass": true,
+          "expected": "not none",
+          "measured": "linear-gradient(to left, oklab(0.54 -0.0517387 -0.224105 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))"
+        },
+        {
+          "name": "dark border-beam-stats: afterAnimationName border-beam",
+          "pass": true,
+          "expected": "border-beam",
+          "measured": "border-beam"
+        },
+        {
+          "name": "dark border-beam-stats: afterAnimationDuration equals <props.duration>s",
+          "pass": true,
+          "expected": "<props.duration>s",
+          "measured": [
+            "10s",
+            10
+          ]
+        },
+        {
+          "name": "dark border-beam-stats: runningAnimations >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "dark border-beam-stats: afterBackgroundImage not none",
+          "pass": true,
+          "expected": "not none",
+          "measured": "linear-gradient(to left, oklch(0.72 0.22 259), oklab(0.72 -0.0419779 -0.215958 / 0.3), rgba(0, 0, 0, 0))"
+        },
+        {
+          "name": "dark border-beam-grid: afterAnimationName border-beam",
+          "pass": true,
+          "expected": "border-beam",
+          "measured": "border-beam"
+        },
+        {
+          "name": "dark border-beam-grid: afterAnimationDuration equals <props.duration>s",
+          "pass": true,
+          "expected": "<props.duration>s",
+          "measured": [
+            "12s",
+            12
+          ]
+        },
+        {
+          "name": "dark border-beam-grid: runningAnimations >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "dark border-beam-grid: afterBackgroundImage not none",
+          "pass": true,
+          "expected": "not none",
+          "measured": "linear-gradient(to left, oklab(0.72 -0.0419779 -0.215958 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))"
+        },
+        {
+          "name": "w5/candidate-css.json has after:animate-border-beam",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "w5/compiled.css contains @keyframes border-beam",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "w5/report.json nonInlineThemeVarsReferencingVars empty (G2)",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        }
+      ]
+    },
+    {
+      "id": "C12c",
+      "pass": true,
+      "probeChecks": 34,
+      "checks": [
+        {
+          "name": "light blur-fade-no-js: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light blur-fade-no-js: ssrAriaHidden null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "light blur-fade-no-js: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-no-js: ariaHiddenAtEnd null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "light blur-fade-no-js: dataSlot blur-fade",
+          "pass": true,
+          "expected": "blur-fade",
+          "measured": "blur-fade"
+        },
+        {
+          "name": "light blur-fade-reduced-motion: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light blur-fade-reduced-motion: ssrAriaHidden null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "light blur-fade-reduced-motion: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-reduced-motion: ariaHiddenAtEnd null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "light blur-fade-reduced-motion: dataSlot blur-fade",
+          "pass": true,
+          "expected": "blur-fade",
+          "measured": "blur-fade"
+        },
+        {
+          "name": "light blur-fade-io-stub: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light blur-fade-io-stub: ssrAriaHidden null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "light blur-fade-io-stub: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-io-stub: ariaHiddenAtEnd null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "light blur-fade-io-stub: dataSlot blur-fade",
+          "pass": true,
+          "expected": "blur-fade",
+          "measured": "blur-fade"
+        },
+        {
+          "name": "light blur-fade-reduced-motion: opacityAtStart 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-io-stub: ioConstructions 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "dark blur-fade-no-js: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark blur-fade-no-js: ssrAriaHidden null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "dark blur-fade-no-js: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-no-js: ariaHiddenAtEnd null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "dark blur-fade-no-js: dataSlot blur-fade",
+          "pass": true,
+          "expected": "blur-fade",
+          "measured": "blur-fade"
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: ssrAriaHidden null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: ariaHiddenAtEnd null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: dataSlot blur-fade",
+          "pass": true,
+          "expected": "blur-fade",
+          "measured": "blur-fade"
+        },
+        {
+          "name": "dark blur-fade-io-stub: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark blur-fade-io-stub: ssrAriaHidden null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "dark blur-fade-io-stub: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-io-stub: ariaHiddenAtEnd null",
+          "pass": true,
+          "expected": null,
+          "measured": null
+        },
+        {
+          "name": "dark blur-fade-io-stub: dataSlot blur-fade",
+          "pass": true,
+          "expected": "blur-fade",
+          "measured": "blur-fade"
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: opacityAtStart 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-io-stub: ioConstructions 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/blur-fade.tsx non-comment lines: 0 IntersectionObserver|useInView|aria-hidden|will-change",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/blur-fade.tsx: no template-literal className",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "no <BlurFade with inView/yOffset/onAnimationComplete",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "BlurFadeProps declared only in src/types/frontend.ts",
+          "pass": true,
+          "expected": [
+            "src/types/frontend.ts"
+          ],
+          "measured": [
+            "src/types/frontend.ts"
+          ]
+        },
+        {
+          "name": "src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx passed in the unit report",
+          "pass": true,
+          "expected": "passed",
+          "measured": "passed"
+        }
+      ]
+    },
+    {
+      "id": "C13",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/components/ui/button-group.tsx contains has-[>[data-slot=button-group]]",
+          "pass": true,
+          "expected": "has-[>[data-slot=button-group]]",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/button-group.tsx has no has-[>.button-group] (non-comment lines)",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        }
+      ]
+    },
+    {
+      "id": "C14",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "plan-20 slot-diff lists twelve files",
+          "pass": true,
+          "expected": 12,
+          "measured": 12
+        },
+        {
+          "name": "src/components/ui/alert.tsx data-slot= count >= 3",
+          "pass": true,
+          "expected": ">= 3",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/badge.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/breadcrumb.tsx data-slot= count >= 6",
+          "pass": true,
+          "expected": ">= 6",
+          "measured": 6
+        },
+        {
+          "name": "src/components/ui/button-group.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/calendar.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/card.tsx data-slot= count >= 7",
+          "pass": true,
+          "expected": ">= 7",
+          "measured": 7
+        },
+        {
+          "name": "src/components/ui/chart.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/checkbox.tsx data-slot= count >= 2",
+          "pass": true,
+          "expected": ">= 2",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/collapsible.tsx data-slot= count >= 3",
+          "pass": true,
+          "expected": ">= 3",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/dropdown-menu.tsx data-slot= count >= 7",
+          "pass": true,
+          "expected": ">= 7",
+          "measured": 7
+        },
+        {
+          "name": "src/components/ui/input-group.tsx data-slot= count >= 3",
+          "pass": true,
+          "expected": ">= 3",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/input-otp.tsx data-slot= count >= 4",
+          "pass": true,
+          "expected": ">= 4",
+          "measured": 4
+        },
+        {
+          "name": "src/components/ui/input.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/popover.tsx data-slot= count >= 3",
+          "pass": true,
+          "expected": ">= 3",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/progress.tsx data-slot= count >= 2",
+          "pass": true,
+          "expected": ">= 2",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/select.tsx data-slot= count >= 8",
+          "pass": true,
+          "expected": ">= 8",
+          "measured": 8
+        },
+        {
+          "name": "src/components/ui/sheet.tsx data-slot= count >= 9",
+          "pass": true,
+          "expected": ">= 9",
+          "measured": 10
+        },
+        {
+          "name": "src/components/ui/slider.tsx data-slot= count >= 4",
+          "pass": true,
+          "expected": ">= 4",
+          "measured": 4
+        },
+        {
+          "name": "src/components/ui/tabs.tsx data-slot= count >= 4",
+          "pass": true,
+          "expected": ">= 4",
+          "measured": 4
+        },
+        {
+          "name": "src/components/ui/textarea.tsx data-slot= count >= 1",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/alert-dialog.tsx contains data-slot=\"alert-dialog-action\"",
+          "pass": true,
+          "expected": "data-slot=\"alert-dialog-action\"",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/alert-dialog.tsx contains data-slot=\"alert-dialog-cancel\"",
+          "pass": true,
+          "expected": "data-slot=\"alert-dialog-cancel\"",
+          "measured": 1
+        }
+      ]
+    },
+    {
+      "id": "C15",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/test/mocks/recharts-tooltip.ts absent",
+          "pass": true,
+          "expected": "absent",
+          "measured": "absent"
+        },
+        {
+          "name": "no \"recharts/types/ import specifier in src",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "no \"recharts/types/ in vitest.config.ts",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "no mocks/recharts-tooltip reference",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "src/components/ui/chart-tooltip.tsx contains type TooltipNameType = number | string",
+          "pass": true,
+          "expected": "type TooltipNameType = number | string",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/__tests__/chart.test.tsx passed in the unit report",
+          "pass": true,
+          "expected": "passed",
+          "measured": "passed"
+        }
+      ]
+    },
+    {
+      "id": "C16",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "src/components/ui/__tests__/alert-dialog.test.tsx passed in the unit report",
+          "pass": true,
+          "expected": "passed",
+          "measured": "passed"
+        },
+        {
+          "name": "src/components/ui/confirm-dialog.tsx contains variant={confirmVariant}",
+          "pass": true,
+          "expected": "variant={confirmVariant}",
+          "measured": 1
+        },
+        {
+          "name": "0 literal destructive class strings outside ui/",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        },
+        {
+          "name": "0 buttonVariants({ variant: \"destructive\" }) outside ui/",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        }
+      ]
+    },
+    {
+      "id": "N1",
+      "pass": true,
+      "probeChecks": 6,
+      "checks": [
+        {
+          "name": "light update-password-badge: classes contains bg-primary/10 (input echo)",
+          "pass": true,
+          "expected": "bg-primary/10",
+          "measured": "mx-auto bg-primary/10 p-3 rounded-full w-fit"
+        },
+        {
+          "name": "light update-password-badge: bg rgb within tolRgb(bg[3]) of T.primary",
+          "pass": true,
+          "expected": [
+            0,
+            100,
+            239,
+            1
+          ],
+          "measured": [
+            0,
+            98,
+            235,
+            0.102
+          ]
+        },
+        {
+          "name": "light update-password-badge: bg alpha in [0.08, 0.12]",
+          "pass": true,
+          "expected": [
+            0.08,
+            0.12
+          ],
+          "measured": [
+            0,
+            98,
+            235,
+            0.102
+          ]
+        },
+        {
+          "name": "dark update-password-badge: classes contains bg-primary/10 (input echo)",
+          "pass": true,
+          "expected": "bg-primary/10",
+          "measured": "mx-auto bg-primary/10 p-3 rounded-full w-fit"
+        },
+        {
+          "name": "dark update-password-badge: bg rgb within tolRgb(bg[3]) of T.primary",
+          "pass": true,
+          "expected": [
+            67,
+            159,
+            255,
+            1
+          ],
+          "measured": [
+            69,
+            157,
+            255,
+            0.102
+          ]
+        },
+        {
+          "name": "dark update-password-badge: bg alpha in [0.08, 0.12]",
+          "pass": true,
+          "expected": [
+            0.08,
+            0.12
+          ],
+          "measured": [
+            69,
+            157,
+            255,
+            0.102
+          ]
+        },
+        {
+          "name": "src/components/auth/update-password-form.tsx contains bg-primary/10",
+          "pass": true,
+          "expected": "bg-primary/10",
+          "measured": 1
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "pass": true,
+      "probeChecks": 8,
+      "checks": [
+        {
+          "name": "light data-table: cellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light data-table: headerCellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light data-table: hoverRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            229,
+            235,
+            241,
+            0.502
+          ]
+        },
+        {
+          "name": "light data-table: selectedRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            229,
+            236,
+            241,
+            1
+          ]
+        },
+        {
+          "name": "dark data-table: cellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark data-table: headerCellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark data-table: hoverRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            20,
+            28,
+            36,
+            0.502
+          ]
+        },
+        {
+          "name": "dark data-table: selectedRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            20,
+            27,
+            36,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "globals.css declares --animate-border-beam inside an @theme inline block",
+          "pass": true,
+          "expected": true,
+          "measured": true
+        },
+        {
+          "name": "src/app/globals.css contains @keyframes border-beam",
+          "pass": true,
+          "expected": "@keyframes border-beam",
+          "measured": 1
+        },
+        {
+          "name": "w5/report.json nonInlineThemeVarsReferencingVars empty",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        }
+      ]
+    },
+    {
+      "id": "SHEET",
+      "pass": true,
+      "probeChecks": 14,
+      "checks": [
+        {
+          "name": "light sheet: contentDataSlot sheet-content",
+          "pass": true,
+          "expected": "sheet-content",
+          "measured": "sheet-content"
+        },
+        {
+          "name": "light sheet: closeButtonCount 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light sheet: close 44x44",
+          "pass": true,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "light sheet: closeAriaLabel Close",
+          "pass": true,
+          "expected": "Close",
+          "measured": "Close"
+        },
+        {
+          "name": "light sheet: closeSrOnlyTextCount 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "light sheet-no-close: closeButtonCount 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "light sheet-slot-override: contentDataSlot sidebar",
+          "pass": true,
+          "expected": "sidebar",
+          "measured": "sidebar"
+        },
+        {
+          "name": "dark sheet: contentDataSlot sheet-content",
+          "pass": true,
+          "expected": "sheet-content",
+          "measured": "sheet-content"
+        },
+        {
+          "name": "dark sheet: closeButtonCount 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark sheet: close 44x44",
+          "pass": true,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": [
+            44,
+            44
+          ]
+        },
+        {
+          "name": "dark sheet: closeAriaLabel Close",
+          "pass": true,
+          "expected": "Close",
+          "measured": "Close"
+        },
+        {
+          "name": "dark sheet: closeSrOnlyTextCount 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "dark sheet-no-close: closeButtonCount 0",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "dark sheet-slot-override: contentDataSlot sidebar",
+          "pass": true,
+          "expected": "sidebar",
+          "measured": "sidebar"
+        },
+        {
+          "name": "src/components/ui/__tests__/sheet.test.tsx passed in the unit report",
+          "pass": true,
+          "expected": "passed",
+          "measured": "passed"
+        }
+      ]
+    },
+    {
+      "id": "D-04",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "no from \"cn\" or from \"@/\" import in src",
+          "pass": true,
+          "expected": "no match",
+          "measured": "no match"
+        },
+        {
+          "name": "every changed ui file that calls cn( imports it from #lib/utils (44 files)",
+          "pass": true,
+          "expected": [],
+          "measured": []
+        }
+      ]
+    },
+    {
+      "id": "D-26",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [
+        {
+          "name": "button.tsx has >= 4 min-h-11",
+          "pass": true,
+          "expected": ">= 4",
+          "measured": 5
+        },
+        {
+          "name": "button.tsx has >= 1 min-w-11",
+          "pass": true,
+          "expected": ">= 1",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx contains typography-small",
+          "pass": true,
+          "expected": "typography-small",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx contains text-primary-text",
+          "pass": true,
+          "expected": "text-primary-text",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx contains text-destructive-foreground",
+          "pass": true,
+          "expected": "text-destructive-foreground",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/button.tsx has no text-white (non-comment lines)",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/dialog.tsx contains intent",
+          "pass": true,
+          "expected": "intent",
+          "measured": 6
+        },
+        {
+          "name": "src/components/ui/dialog.tsx contains DialogBody",
+          "pass": true,
+          "expected": "DialogBody",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/select.tsx defaults position = \"popper\"",
+          "pass": true,
+          "expected": "position = \"popper\"",
+          "measured": true
+        },
+        {
+          "name": "src/components/ui/badge.tsx contains rounded-md",
+          "pass": true,
+          "expected": "rounded-md",
+          "measured": 3
+        },
+        {
+          "name": "src/components/ui/slider.tsx contains bg-background",
+          "pass": true,
+          "expected": "bg-background",
+          "measured": 2
+        },
+        {
+          "name": "src/components/ui/calendar.tsx contains h-11",
+          "pass": true,
+          "expected": "h-11",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/input-otp.tsx contains size-11",
+          "pass": true,
+          "expected": "size-11",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/sheet.tsx contains min-h-11",
+          "pass": true,
+          "expected": "min-h-11",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/sheet.tsx contains min-w-11",
+          "pass": true,
+          "expected": "min-w-11",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/sheet.tsx contains aria-label=\"Close\"",
+          "pass": true,
+          "expected": "aria-label=\"Close\"",
+          "measured": 1
+        },
+        {
+          "name": "src/components/ui/sheet.tsx has no Close dialog (non-comment lines)",
+          "pass": true,
+          "expected": 0,
+          "measured": 0
+        },
+        {
+          "name": "src/components/ui/sonner.tsx contains ?? \"system\"",
+          "pass": true,
+          "expected": "?? \"system\"",
+          "measured": 2
+        },
+        {
+          "name": "every tabs data-[state=active]: token at PRE_W5 is at HEAD (4)",
+          "pass": true,
+          "expected": [
+            "data-[state=active]:bg-primary",
+            "data-[state=active]:font-semibold",
+            "data-[state=active]:shadow-md",
+            "data-[state=active]:text-primary-foreground"
+          ],
+          "measured": []
+        },
+        {
+          "name": "badge.tsx keeps every cva variant key of PRE_W5 (5)",
+          "pass": true,
+          "expected": [
+            "default",
+            "info",
+            "lg",
+            "sm",
+            "trust"
+          ],
+          "measured": []
+        },
+        {
+          "name": "card.tsx keeps every cva variant key of PRE_W5 (3)",
+          "pass": true,
+          "expected": [
+            "default",
+            "elevated",
+            "stat"
+          ],
+          "measured": []
+        },
+        {
+          "name": "progress.tsx keeps every cva variant key of PRE_W5 (8)",
+          "pass": true,
+          "expected": [
+            "default",
+            "destructive",
+            "lg",
+            "secondary",
+            "sm",
+            "success",
+            "warning",
+            "xl"
+          ],
+          "measured": []
+        },
+        {
+          "name": "input.tsx keeps every cva variant key of PRE_W5 (5)",
+          "pass": true,
+          "expected": [
+            "default",
+            "invalid",
+            "lg",
+            "sm",
+            "xl"
+          ],
+          "measured": []
+        }
+      ]
+    }
+  ],
+  "vdCoverage": {
+    "VD-14": true,
+    "VD-15": true,
+    "VD-16": true,
+    "VD-17": true,
+    "VD-18": true,
+    "VD-19": true,
+    "VD-20": true,
+    "VD-21": true,
+    "VD-22": true,
+    "VD-23": true,
+    "VD-24": true,
+    "VD-25": true,
+    "VD-30": true
+  },
+  "failed": 0
+}

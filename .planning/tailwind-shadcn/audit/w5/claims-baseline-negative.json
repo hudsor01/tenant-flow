@@ -1,0 +1,2604 @@
+{
+  "mode": "probe-only",
+  "probes": ".planning/tailwind-shadcn/audit/baseline/component-probes-baseline.json",
+  "tokens": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-29/w5/tokens-w5.json",
+  "claims": [
+    {
+      "id": "C1",
+      "pass": false,
+      "probeChecks": 12,
+      "checks": [
+        {
+          "name": "light otp-setup: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "light otp-setup: dataSlotCount 10",
+          "pass": false,
+          "expected": 10,
+          "measured": 0
+        },
+        {
+          "name": "light otp-setup: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": false,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "light otp-mfa: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "light otp-mfa: dataSlotCount 10",
+          "pass": false,
+          "expected": 10,
+          "measured": 0
+        },
+        {
+          "name": "light otp-mfa: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": false,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "dark otp-setup: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "dark otp-setup: dataSlotCount 10",
+          "pass": false,
+          "expected": 10,
+          "measured": 0
+        },
+        {
+          "name": "dark otp-setup: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": false,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "dark otp-mfa: slotCount 6",
+          "pass": true,
+          "expected": 6,
+          "measured": 6
+        },
+        {
+          "name": "dark otp-mfa: dataSlotCount 10",
+          "pass": false,
+          "expected": 10,
+          "measured": 0
+        },
+        {
+          "name": "dark otp-mfa: every slot 44x56, 20px, 1px borders, 8px radii",
+          "pass": false,
+          "expected": {
+            "width": 44,
+            "height": 56,
+            "fontSize": "20px",
+            "borderWidths": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "radii": [
+              8,
+              8,
+              8,
+              8
+            ]
+          },
+          "measured": [
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                1
+              ],
+              "radii": [
+                8,
+                0,
+                0,
+                8
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "width": 44,
+              "height": 44,
+              "fontSize": "14px",
+              "borderWidths": [
+                1,
+                1,
+                1,
+                0
+              ],
+              "radii": [
+                0,
+                8,
+                8,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "pass": false,
+      "probeChecks": 7,
+      "checks": [
+        {
+          "name": "light chart: gridStroke rgb within tolRgb of borderToken",
+          "pass": false,
+          "expected": "rgb of borderToken",
+          "measured": "missing"
+        },
+        {
+          "name": "light chart: gridStroke alpha in [0.48, 0.52]",
+          "pass": false,
+          "expected": [
+            0.48,
+            0.52
+          ],
+          "measured": [
+            204,
+            204,
+            204,
+            1
+          ]
+        },
+        {
+          "name": "light chart: activeDotStroke alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "dark chart: gridStroke rgb within tolRgb of borderToken",
+          "pass": false,
+          "expected": "rgb of borderToken",
+          "measured": "missing"
+        },
+        {
+          "name": "dark chart: gridStroke alpha in [0.48, 0.52]",
+          "pass": false,
+          "expected": [
+            0.48,
+            0.52
+          ],
+          "measured": [
+            204,
+            204,
+            204,
+            1
+          ]
+        },
+        {
+          "name": "dark chart: activeDotStroke alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "chart: light gridStroke differs from dark",
+          "pass": false,
+          "expected": "light != dark",
+          "measured": [
+            [
+              204,
+              204,
+              204,
+              1
+            ],
+            [
+              204,
+              204,
+              204,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "pass": false,
+      "probeChecks": 8,
+      "checks": [
+        {
+          "name": "light command: wrapperHeight 48",
+          "pass": false,
+          "expected": 48,
+          "measured": 44
+        },
+        {
+          "name": "light command: inputHeight 48",
+          "pass": true,
+          "expected": 48,
+          "measured": 48
+        },
+        {
+          "name": "light command: inputOverflowsWrapper false",
+          "pass": false,
+          "expected": false,
+          "measured": true
+        },
+        {
+          "name": "light command: inputOverflowPx <= wrapperBorderBottomPx",
+          "pass": false,
+          "expected": "<= wrapperBorderBottomPx",
+          "measured": "missing"
+        },
+        {
+          "name": "dark command: wrapperHeight 48",
+          "pass": false,
+          "expected": 48,
+          "measured": 44
+        },
+        {
+          "name": "dark command: inputHeight 48",
+          "pass": true,
+          "expected": 48,
+          "measured": 48
+        },
+        {
+          "name": "dark command: inputOverflowsWrapper false",
+          "pass": false,
+          "expected": false,
+          "measured": true
+        },
+        {
+          "name": "dark command: inputOverflowPx <= wrapperBorderBottomPx",
+          "pass": false,
+          "expected": "<= wrapperBorderBottomPx",
+          "measured": "missing"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "pass": false,
+      "probeChecks": 32,
+      "checks": [
+        {
+          "name": "light toast-default: toastBg equals popoverToken",
+          "pass": false,
+          "expected": "popoverToken",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toastColor equals popoverFgToken",
+          "pass": false,
+          "expected": "popoverFgToken",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toastBorderColor equals borderToken",
+          "pass": false,
+          "expected": "borderToken",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toastBg within tolerance of T.popover",
+          "pass": false,
+          "expected": [
+            255,
+            255,
+            255,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toastColor within tolerance of T.popover-foreground",
+          "pass": false,
+          "expected": [
+            14,
+            23,
+            30,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toastBorderColor within tolerance of T.border",
+          "pass": false,
+          "expected": [
+            210,
+            216,
+            222,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toastRadius 8px",
+          "pass": false,
+          "expected": "8px",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toasterInlineNormalBg empty",
+          "pass": false,
+          "expected": "",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-default: toasterClass has no toaster or group token",
+          "pass": false,
+          "expected": "no toaster/group token",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-success: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": false,
+          "expected": "> 3 in some channel",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-success: iconWidth 16",
+          "pass": false,
+          "expected": 16,
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-success: iconClasses contains lucide-circle-check",
+          "pass": false,
+          "expected": "lucide-circle-check",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-error: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": false,
+          "expected": "> 3 in some channel",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-error: iconWidth 16",
+          "pass": false,
+          "expected": 16,
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-error: iconClasses contains lucide-octagon-x",
+          "pass": false,
+          "expected": "lucide-octagon-x",
+          "measured": "missing"
+        },
+        {
+          "name": "light toast-loading: iconClasses contains animate-spin",
+          "pass": false,
+          "expected": "animate-spin",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastBg equals popoverToken",
+          "pass": false,
+          "expected": "popoverToken",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastColor equals popoverFgToken",
+          "pass": false,
+          "expected": "popoverFgToken",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastBorderColor equals borderToken",
+          "pass": false,
+          "expected": "borderToken",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastBg within tolerance of T.popover",
+          "pass": false,
+          "expected": [
+            3,
+            6,
+            11,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastColor within tolerance of T.popover-foreground",
+          "pass": false,
+          "expected": [
+            236,
+            243,
+            248,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastBorderColor within tolerance of T.border",
+          "pass": false,
+          "expected": [
+            41,
+            46,
+            53,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toastRadius 8px",
+          "pass": false,
+          "expected": "8px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toasterInlineNormalBg empty",
+          "pass": false,
+          "expected": "",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-default: toasterClass has no toaster or group token",
+          "pass": false,
+          "expected": "no toaster/group token",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-success: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": false,
+          "expected": "> 3 in some channel",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-success: iconWidth 16",
+          "pass": false,
+          "expected": 16,
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-success: iconClasses contains lucide-circle-check",
+          "pass": false,
+          "expected": "lucide-circle-check",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-error: toastBg differs from popoverToken by more than 3 in some channel (richColors)",
+          "pass": false,
+          "expected": "> 3 in some channel",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-error: iconWidth 16",
+          "pass": false,
+          "expected": 16,
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-error: iconClasses contains lucide-octagon-x",
+          "pass": false,
+          "expected": "lucide-octagon-x",
+          "measured": "missing"
+        },
+        {
+          "name": "dark toast-loading: iconClasses contains animate-spin",
+          "pass": false,
+          "expected": "animate-spin",
+          "measured": "missing"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C6",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C7",
+      "pass": false,
+      "probeChecks": 8,
+      "checks": [
+        {
+          "name": "light date-popover: popoverContentDataSlotCount 1",
+          "pass": false,
+          "expected": 1,
+          "measured": 0
+        },
+        {
+          "name": "light date-popover: calendarBg alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": [
+            249,
+            250,
+            251,
+            1
+          ]
+        },
+        {
+          "name": "light date-popover: popoverBg within tolerance of T.popover",
+          "pass": true,
+          "expected": [
+            255,
+            255,
+            255,
+            1
+          ],
+          "measured": [
+            255,
+            255,
+            255,
+            1
+          ]
+        },
+        {
+          "name": "light date-popover: cornerPatchMaxDiffVsPlain <= 2",
+          "pass": false,
+          "expected": "<= 2",
+          "measured": "missing"
+        },
+        {
+          "name": "dark date-popover: popoverContentDataSlotCount 1",
+          "pass": false,
+          "expected": 1,
+          "measured": 0
+        },
+        {
+          "name": "dark date-popover: calendarBg alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": [
+            4,
+            10,
+            17,
+            1
+          ]
+        },
+        {
+          "name": "dark date-popover: popoverBg within tolerance of T.popover",
+          "pass": true,
+          "expected": [
+            3,
+            6,
+            11,
+            1
+          ],
+          "measured": [
+            3,
+            6,
+            11,
+            1
+          ]
+        },
+        {
+          "name": "dark date-popover: cornerPatchMaxDiffVsPlain <= 2",
+          "pass": false,
+          "expected": "<= 2",
+          "measured": "missing"
+        }
+      ]
+    },
+    {
+      "id": "C8",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C9",
+      "pass": false,
+      "probeChecks": 128,
+      "checks": [
+        {
+          "name": "light button: default dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default dataVariant default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive dataVariant destructive",
+          "pass": false,
+          "expected": "destructive",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: destructive focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline dataVariant outline",
+          "pass": false,
+          "expected": "outline",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary dataVariant secondary",
+          "pass": false,
+          "expected": "secondary",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost dataVariant ghost",
+          "pass": false,
+          "expected": "ghost",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link dataVariant link",
+          "pass": false,
+          "expected": "link",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline focus.borderColor equals refs.ring",
+          "pass": false,
+          "expected": "refs.ring",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: default bg within tolerance of T.primary",
+          "pass": false,
+          "expected": [
+            0,
+            100,
+            239,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light button: secondary bg within tolerance of T.secondary",
+          "pass": false,
+          "expected": [
+            222,
+            243,
+            255,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light button: ghost bg alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: link bg alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline borderColor equals refs.border",
+          "pass": false,
+          "expected": "refs.border",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: outline boxShadowRest has shadow-xs (0px 1px 2px 0px)",
+          "pass": false,
+          "expected": "0px 1px 2px 0px",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: invalid.borderColor equals refs.destructive",
+          "pass": false,
+          "expected": "refs.destructive",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: sizes.sm.height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: sizes.lg.height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: sizes.icon 44x44",
+          "pass": false,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light button: asChild tag A",
+          "pass": false,
+          "expected": "A",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: asChild dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "light button: asChild buttonCount 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "light button: icons.unsized [16,16]",
+          "pass": false,
+          "expected": [
+            16,
+            16
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light button: icons.size5 [20,20]",
+          "pass": false,
+          "expected": [
+            20,
+            20
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default dataVariant default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive dataVariant destructive",
+          "pass": false,
+          "expected": "destructive",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline dataVariant outline",
+          "pass": false,
+          "expected": "outline",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary dataVariant secondary",
+          "pass": false,
+          "expected": "secondary",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost dataVariant ghost",
+          "pass": false,
+          "expected": "ghost",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link dataVariant link",
+          "pass": false,
+          "expected": "link",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link dataSize default",
+          "pass": false,
+          "expected": "default",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link flexShrink 0",
+          "pass": false,
+          "expected": "0",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link focus.focusVisible true",
+          "pass": false,
+          "expected": true,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link focus.outlineStyle none",
+          "pass": false,
+          "expected": "none",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link focus.boxShadow has the 3px ring and no 2px or 4px ring",
+          "pass": false,
+          "expected": "0px 0px 0px 3px, not 2px/4px",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline focus.borderColor equals refs.ring",
+          "pass": false,
+          "expected": "refs.ring",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: default bg within tolerance of T.primary",
+          "pass": false,
+          "expected": [
+            67,
+            159,
+            255,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: secondary bg within tolerance of T.secondary",
+          "pass": false,
+          "expected": [
+            37,
+            41,
+            46,
+            1
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: ghost bg alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: link bg alpha 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: outline bg alpha in (0, 1)",
+          "pass": false,
+          "expected": "(0, 1)",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: destructive bg alpha in [0.55, 0.65]",
+          "pass": false,
+          "expected": [
+            0.55,
+            0.65
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: invalid.borderColor equals refs.destructive",
+          "pass": false,
+          "expected": "refs.destructive",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: sizes.sm.height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: sizes.lg.height 44",
+          "pass": false,
+          "expected": 44,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: sizes.icon 44x44",
+          "pass": false,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: asChild tag A",
+          "pass": false,
+          "expected": "A",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: asChild dataSlot button",
+          "pass": false,
+          "expected": "button",
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: asChild buttonCount 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: icons.unsized [16,16]",
+          "pass": false,
+          "expected": [
+            16,
+            16
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark button: icons.size5 [20,20]",
+          "pass": false,
+          "expected": [
+            20,
+            20
+          ],
+          "measured": "missing"
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C11",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C12a",
+      "pass": false,
+      "probeChecks": 6,
+      "checks": [
+        {
+          "name": "light grid-pattern: svgStroke is not none",
+          "pass": false,
+          "expected": "not none",
+          "measured": "none"
+        },
+        {
+          "name": "light grid-pattern: svgStrokeRgba rgb within tolerance of T.foreground",
+          "pass": false,
+          "expected": [
+            14,
+            23,
+            31,
+            1
+          ],
+          "measured": null
+        },
+        {
+          "name": "light grid-pattern: svgStrokeRgba alpha in [0.23, 0.27]",
+          "pass": false,
+          "expected": [
+            0.23,
+            0.27
+          ],
+          "measured": null
+        },
+        {
+          "name": "dark grid-pattern: svgStroke is not none",
+          "pass": false,
+          "expected": "not none",
+          "measured": "none"
+        },
+        {
+          "name": "dark grid-pattern: svgStrokeRgba rgb within tolerance of T.foreground",
+          "pass": false,
+          "expected": [
+            236,
+            243,
+            248,
+            1
+          ],
+          "measured": null
+        },
+        {
+          "name": "dark grid-pattern: svgStrokeRgba alpha in [0.23, 0.27]",
+          "pass": false,
+          "expected": [
+            0.23,
+            0.27
+          ],
+          "measured": null
+        }
+      ]
+    },
+    {
+      "id": "C12b",
+      "pass": false,
+      "probeChecks": 16,
+      "checks": [
+        {
+          "name": "light border-beam-stats: afterAnimationName border-beam",
+          "pass": false,
+          "expected": "border-beam",
+          "measured": "none"
+        },
+        {
+          "name": "light border-beam-stats: afterAnimationDuration equals <props.duration>s",
+          "pass": false,
+          "expected": "<props.duration>s",
+          "measured": [
+            "0s",
+            10
+          ]
+        },
+        {
+          "name": "light border-beam-stats: runningAnimations >= 1",
+          "pass": false,
+          "expected": ">= 1",
+          "measured": 0
+        },
+        {
+          "name": "light border-beam-stats: afterBackgroundImage not none",
+          "pass": false,
+          "expected": "not none",
+          "measured": "none"
+        },
+        {
+          "name": "light border-beam-grid: afterAnimationName border-beam",
+          "pass": false,
+          "expected": "border-beam",
+          "measured": "none"
+        },
+        {
+          "name": "light border-beam-grid: afterAnimationDuration equals <props.duration>s",
+          "pass": false,
+          "expected": "<props.duration>s",
+          "measured": [
+            "0s",
+            12
+          ]
+        },
+        {
+          "name": "light border-beam-grid: runningAnimations >= 1",
+          "pass": false,
+          "expected": ">= 1",
+          "measured": 0
+        },
+        {
+          "name": "light border-beam-grid: afterBackgroundImage not none",
+          "pass": false,
+          "expected": "not none",
+          "measured": "none"
+        },
+        {
+          "name": "dark border-beam-stats: afterAnimationName border-beam",
+          "pass": false,
+          "expected": "border-beam",
+          "measured": "none"
+        },
+        {
+          "name": "dark border-beam-stats: afterAnimationDuration equals <props.duration>s",
+          "pass": false,
+          "expected": "<props.duration>s",
+          "measured": [
+            "0s",
+            10
+          ]
+        },
+        {
+          "name": "dark border-beam-stats: runningAnimations >= 1",
+          "pass": false,
+          "expected": ">= 1",
+          "measured": 0
+        },
+        {
+          "name": "dark border-beam-stats: afterBackgroundImage not none",
+          "pass": false,
+          "expected": "not none",
+          "measured": "none"
+        },
+        {
+          "name": "dark border-beam-grid: afterAnimationName border-beam",
+          "pass": false,
+          "expected": "border-beam",
+          "measured": "none"
+        },
+        {
+          "name": "dark border-beam-grid: afterAnimationDuration equals <props.duration>s",
+          "pass": false,
+          "expected": "<props.duration>s",
+          "measured": [
+            "0s",
+            12
+          ]
+        },
+        {
+          "name": "dark border-beam-grid: runningAnimations >= 1",
+          "pass": false,
+          "expected": ">= 1",
+          "measured": 0
+        },
+        {
+          "name": "dark border-beam-grid: afterBackgroundImage not none",
+          "pass": false,
+          "expected": "not none",
+          "measured": "none"
+        }
+      ]
+    },
+    {
+      "id": "C12c",
+      "pass": false,
+      "probeChecks": 34,
+      "checks": [
+        {
+          "name": "light blur-fade-no-js: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light blur-fade-no-js: ssrAriaHidden null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "light blur-fade-no-js: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-no-js: ariaHiddenAtEnd null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "light blur-fade-no-js: dataSlot blur-fade",
+          "pass": false,
+          "expected": "blur-fade",
+          "measured": "missing"
+        },
+        {
+          "name": "light blur-fade-reduced-motion: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light blur-fade-reduced-motion: ssrAriaHidden null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "light blur-fade-reduced-motion: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-reduced-motion: ariaHiddenAtEnd null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "light blur-fade-reduced-motion: dataSlot blur-fade",
+          "pass": false,
+          "expected": "blur-fade",
+          "measured": "missing"
+        },
+        {
+          "name": "light blur-fade-io-stub: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "light blur-fade-io-stub: ssrAriaHidden null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "light blur-fade-io-stub: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-io-stub: ariaHiddenAtEnd null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "light blur-fade-io-stub: dataSlot blur-fade",
+          "pass": false,
+          "expected": "blur-fade",
+          "measured": "missing"
+        },
+        {
+          "name": "light blur-fade-reduced-motion: opacityAtStart 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "light blur-fade-io-stub: ioConstructions 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "dark blur-fade-no-js: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark blur-fade-no-js: ssrAriaHidden null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "dark blur-fade-no-js: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-no-js: ariaHiddenAtEnd null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "dark blur-fade-no-js: dataSlot blur-fade",
+          "pass": false,
+          "expected": "blur-fade",
+          "measured": "missing"
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: ssrAriaHidden null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: ariaHiddenAtEnd null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: dataSlot blur-fade",
+          "pass": false,
+          "expected": "blur-fade",
+          "measured": "missing"
+        },
+        {
+          "name": "dark blur-fade-io-stub: ssrHtmlHasOpacity0 false",
+          "pass": true,
+          "expected": false,
+          "measured": false
+        },
+        {
+          "name": "dark blur-fade-io-stub: ssrAriaHidden null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "dark blur-fade-io-stub: opacityAtEnd 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-io-stub: ariaHiddenAtEnd null",
+          "pass": false,
+          "expected": null,
+          "measured": "false"
+        },
+        {
+          "name": "dark blur-fade-io-stub: dataSlot blur-fade",
+          "pass": false,
+          "expected": "blur-fade",
+          "measured": "missing"
+        },
+        {
+          "name": "dark blur-fade-reduced-motion: opacityAtStart 1",
+          "pass": true,
+          "expected": 1,
+          "measured": 1
+        },
+        {
+          "name": "dark blur-fade-io-stub: ioConstructions 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        }
+      ]
+    },
+    {
+      "id": "C13",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C14",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C15",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "C16",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "N1",
+      "pass": false,
+      "probeChecks": 6,
+      "checks": [
+        {
+          "name": "light update-password-badge: classes contains bg-primary/10 (input echo)",
+          "pass": false,
+          "expected": "bg-primary/10",
+          "measured": "mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit"
+        },
+        {
+          "name": "light update-password-badge: bg rgb within tolRgb(bg[3]) of T.primary",
+          "pass": true,
+          "expected": [
+            0,
+            100,
+            239,
+            1
+          ],
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light update-password-badge: bg alpha in [0.08, 0.12]",
+          "pass": false,
+          "expected": [
+            0.08,
+            0.12
+          ],
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark update-password-badge: classes contains bg-primary/10 (input echo)",
+          "pass": false,
+          "expected": "bg-primary/10",
+          "measured": "mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit"
+        },
+        {
+          "name": "dark update-password-badge: bg rgb within tolRgb(bg[3]) of T.primary",
+          "pass": true,
+          "expected": [
+            67,
+            159,
+            255,
+            1
+          ],
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark update-password-badge: bg alpha in [0.08, 0.12]",
+          "pass": false,
+          "expected": [
+            0.08,
+            0.12
+          ],
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "N2",
+      "pass": true,
+      "probeChecks": 8,
+      "checks": [
+        {
+          "name": "light data-table: cellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light data-table: headerCellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "light data-table: hoverRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            229,
+            235,
+            241,
+            0.502
+          ]
+        },
+        {
+          "name": "light data-table: selectedRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            229,
+            236,
+            241,
+            1
+          ]
+        },
+        {
+          "name": "dark data-table: cellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark data-table: headerCellBg alpha 0",
+          "pass": true,
+          "expected": 0,
+          "measured": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "dark data-table: hoverRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            20,
+            28,
+            36,
+            0.502
+          ]
+        },
+        {
+          "name": "dark data-table: selectedRowBg alpha > 0",
+          "pass": true,
+          "expected": "> 0",
+          "measured": [
+            20,
+            27,
+            36,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "N3",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "SHEET",
+      "pass": false,
+      "probeChecks": 14,
+      "checks": [
+        {
+          "name": "light sheet: contentDataSlot sheet-content",
+          "pass": false,
+          "expected": "sheet-content",
+          "measured": "missing"
+        },
+        {
+          "name": "light sheet: closeButtonCount 1",
+          "pass": false,
+          "expected": 1,
+          "measured": "missing"
+        },
+        {
+          "name": "light sheet: close 44x44",
+          "pass": false,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "light sheet: closeAriaLabel Close",
+          "pass": false,
+          "expected": "Close",
+          "measured": "missing"
+        },
+        {
+          "name": "light sheet: closeSrOnlyTextCount 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "light sheet-no-close: closeButtonCount 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "light sheet-slot-override: contentDataSlot sidebar",
+          "pass": false,
+          "expected": "sidebar",
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet: contentDataSlot sheet-content",
+          "pass": false,
+          "expected": "sheet-content",
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet: closeButtonCount 1",
+          "pass": false,
+          "expected": 1,
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet: close 44x44",
+          "pass": false,
+          "expected": [
+            44,
+            44
+          ],
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet: closeAriaLabel Close",
+          "pass": false,
+          "expected": "Close",
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet: closeSrOnlyTextCount 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet-no-close: closeButtonCount 0",
+          "pass": false,
+          "expected": 0,
+          "measured": "missing"
+        },
+        {
+          "name": "dark sheet-slot-override: contentDataSlot sidebar",
+          "pass": false,
+          "expected": "sidebar",
+          "measured": "missing"
+        }
+      ]
+    },
+    {
+      "id": "D-04",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    },
+    {
+      "id": "D-26",
+      "pass": true,
+      "probeChecks": 0,
+      "checks": [],
+      "note": "probe-only: no probe check"
+    }
+  ],
+  "vdCoverage": {
+    "VD-14": false,
+    "VD-15": false,
+    "VD-16": false,
+    "VD-17": false,
+    "VD-18": false,
+    "VD-19": false,
+    "VD-20": false,
+    "VD-21": false,
+    "VD-22": false,
+    "VD-23": false,
+    "VD-24": false,
+    "VD-25": false,
+    "VD-30": false
+  },
+  "failed": 11,
+  "expectFail": [
+    "C1",
+    "C12a",
+    "C12b",
+    "C12c",
+    "C2",
+    "C3",
+    "C4",
+    "C7",
+    "C9",
+    "N1",
+    "SHEET"
+  ]
+}
