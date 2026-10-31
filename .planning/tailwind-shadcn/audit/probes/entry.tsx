@@ -11,7 +11,7 @@
 //   otp-setup, otp-mfa, chart, command, date-popover, grid-pattern, border-beam-stats,
 //   border-beam-grid, blur-fade-no-js, blur-fade-reduced-motion, blur-fade-io-stub,
 //   update-password-badge, data-table, card-action, button-group-nested, plain-popover, sheet,
-//   sheet-no-close, sheet-slot-override
+//   sheet-no-close, sheet-slot-override, button
 // card-action (ledger C6) mounts Card > CardHeader (title, description, CardAction holding a small
 // Button) + CardContent + CardFooter in a 600px wrapper; button-group-nested (ledger C13) mounts an
 // outer ButtonGroup holding two ButtonGroups of two outline Buttons. Both pass `data-probe` through
@@ -26,6 +26,13 @@
 // SheetHeader (SheetTitle, SheetDescription) and a SheetFooter with a plain button; the last two add
 // showCloseButton={false} and data-slot="sidebar" to SheetContent through a props spread, so the
 // scenario renders on a Sheet that does not know either prop yet.
+// button (66.2-22, D-29) mounts, in tab order: one Button per variant (data-probe v-<variant>,
+// labelled with the variant name), sizes sm and lg (s-sm, s-lg), an icon Button (s-icon, aria-label
+// "Probe icon"), an outline Button with aria-invalid (invalid), an asChild Button around a link
+// (aschild, inside the aschild-wrap span) and a default Button holding three Plus icons: unsized
+// (i-unsized), size-5 (i-size5) and h-5 w-5 (i-hw5). Four reference divs (ref-border, ref-input,
+// ref-destructive, ref-ring) carry border plus border-border, border-input, border-destructive and
+// border-ring, so the runner compares the Button borders with the tokens' own rendered colors.
 // BlurFade uses today's KPI props { inView: true, delay: 6, duration: 500 }; plan 66.2-27 updates
 // them when it removes `inView`.
 //
@@ -33,7 +40,7 @@
 //   #lib/supabase/client  -> probes/stubs/supabase-client.ts
 //   #lib/frontend-logger  -> probes/stubs/frontend-logger.ts
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import type { ReactElement } from "react";
 import { createRoot, hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
@@ -72,6 +79,7 @@ import {
 } from "#components/ui/sheet";
 
 type Props = Record<string, unknown>;
+const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost", "link"] as const;
 const noop = () => {};
 
 const chartConfig = { revenue: { label: "Revenue", color: "var(--color-chart-1)" } } satisfies ChartConfig;
@@ -238,6 +246,41 @@ const scenarios: Record<string, (p: Props) => ReactElement> = {
 					<Button variant="outline">Four</Button>
 				</ButtonGroup>
 			</ButtonGroup>
+		</div>
+	),
+	button: () => (
+		<div className="flex flex-wrap items-start gap-4 p-8" data-probe="button-root">
+			{BUTTON_VARIANTS.map((v) => (
+				<Button key={v} variant={v} data-probe={`v-${v}`}>
+					{v}
+				</Button>
+			))}
+			<Button size="sm" data-probe="s-sm">
+				Small
+			</Button>
+			<Button size="lg" data-probe="s-lg">
+				Large
+			</Button>
+			<Button size="icon" aria-label="Probe icon" data-probe="s-icon">
+				<Plus />
+			</Button>
+			<Button variant="outline" aria-invalid="true" data-probe="invalid">
+				Invalid
+			</Button>
+			<span data-probe="aschild-wrap">
+				<Button asChild data-probe="aschild">
+					<a href="/probe">Link</a>
+				</Button>
+			</span>
+			<Button data-probe="icons">
+				<Plus data-probe="i-unsized" />
+				<Plus className="size-5" data-probe="i-size5" />
+				<Plus className="h-5 w-5" data-probe="i-hw5" />
+			</Button>
+			<div className="size-8 border border-border" data-probe="ref-border" />
+			<div className="size-8 border border-input" data-probe="ref-input" />
+			<div className="size-8 border border-destructive" data-probe="ref-destructive" />
+			<div className="size-8 border border-ring" data-probe="ref-ring" />
 		</div>
 	),
 };

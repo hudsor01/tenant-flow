@@ -1,0 +1,3301 @@
+{
+  "meta": {
+    "files": 599,
+    "parser": "@babel/parser 7.29.3",
+    "generatedAt": "2026-10-31T18:07:24.147Z"
+  },
+  "counts": {
+    "hasSize": 152,
+    "h4w4": 58,
+    "convert": 9,
+    "attrSized": 1,
+    "mixed": 0,
+    "unsized": 13,
+    "unresolved": 0,
+    "nestedSized": 0,
+    "addShrink": 2
+  },
+  "icons": [
+    {
+      "file": "src/app/(owner)/analytics/overview/page.tsx",
+      "line": 177,
+      "host": "Button",
+      "icon": "Calendar",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-calendar size-4 mr-2"
+    },
+    {
+      "file": "src/app/(owner)/analytics/refresh-button.tsx",
+      "line": 98,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw animate-spin  size-4"
+    },
+    {
+      "file": "src/app/(owner)/billing/plans/page.tsx",
+      "line": 228,
+      "host": "Button",
+      "icon": "Settings",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-settings mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/clauses-editor.tsx",
+      "line": 37,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/clauses-editor.tsx",
+      "line": 58,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/custom-fields-editor.tsx",
+      "line": 43,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/custom-fields-editor.tsx",
+      "line": 65,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/dynamic-form.tsx",
+      "line": 144,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/dynamic-form.tsx",
+      "line": 219,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/form-builder-panel.tsx",
+      "line": 128,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/form-builder-panel.tsx",
+      "line": 132,
+      "host": "Button",
+      "icon": "Save",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-save mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/form-builder-panel.tsx",
+      "line": 157,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/template-preview-panel.tsx",
+      "line": 40,
+      "host": "Button",
+      "icon": "Eye",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-eye mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/documents/templates/components/template-preview-panel.tsx",
+      "line": 49,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/properties/[id]/edit/page.tsx",
+      "line": 68,
+      "host": "Button",
+      "icon": "ArrowLeft",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-left size-4 mr-2"
+    },
+    {
+      "file": "src/app/(owner)/properties/property-details.client.tsx",
+      "line": 123,
+      "host": "Button",
+      "icon": "Edit",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-edit size-4 mr-2"
+    },
+    {
+      "file": "src/app/(owner)/properties/property-details.client.tsx",
+      "line": 134,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/properties/units/components/unit-actions.tsx",
+      "line": 92,
+      "host": "Button",
+      "icon": "MoreHorizontalIcon",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-more-horizontal size-4"
+    },
+    {
+      "file": "src/app/(owner)/properties/units/components/unit-actions.tsx",
+      "line": 94,
+      "host": "Button",
+      "icon": "config.icon",
+      "element": "member",
+      "kind": "has-size",
+      "classes": "size-2 absolute -top-1 -right-1 opacity-60"
+    },
+    {
+      "file": "src/app/(owner)/properties/units/page.tsx",
+      "line": 220,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/balance-sheet/balance-section.tsx",
+      "line": 51,
+      "host": "Button",
+      "icon": "ChevronDown",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-chevron-down w-4 h-4 text-muted-foreground"
+    },
+    {
+      "file": "src/app/(owner)/reports/balance-sheet/balance-section.tsx",
+      "line": 53,
+      "host": "Button",
+      "icon": "ChevronRight",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-chevron-right w-4 h-4 text-muted-foreground"
+    },
+    {
+      "file": "src/app/(owner)/reports/balance-sheet/page.tsx",
+      "line": 199,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-download w-4 h-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/expenses/page.tsx",
+      "line": 146,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-download w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/app/(owner)/reports/generate/components/report-card-grid.tsx",
+      "line": 62,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx",
+      "line": 60,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-download w-4 h-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/tax-documents/page.tsx",
+      "line": 85,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw mr-2 size-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/tax-documents/page.tsx",
+      "line": 136,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/app/(owner)/reports/tax-documents/page.tsx",
+      "line": 138,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/year-end/page.tsx",
+      "line": 169,
+      "host": "Button",
+      "icon": "ChevronLeft",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-chevron-left size-4"
+    },
+    {
+      "file": "src/app/(owner)/reports/year-end/page.tsx",
+      "line": 212,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/app/(owner)/reports/year-end/page.tsx",
+      "line": 214,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4"
+    },
+    {
+      "file": "src/app/(owner)/tenants/components/tenant-details.client.tsx",
+      "line": 84,
+      "host": "Button",
+      "icon": "Edit",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-edit size-4"
+    },
+    {
+      "file": "src/app/(owner)/tenants/components/tenant-edit-form.client.tsx",
+      "line": 71,
+      "host": "Button",
+      "icon": "Save",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-save size-4"
+    },
+    {
+      "file": "src/app/(owner)/units/page.tsx",
+      "line": 186,
+      "host": "Button",
+      "icon": "MoreVertical",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-more-vertical size-4"
+    },
+    {
+      "file": "src/app/about/page.tsx",
+      "line": 275,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-4 ml-2 transition-transform group-hover:translate-x-1"
+    },
+    {
+      "file": "src/app/auth/confirm-email/confirm-email-states.tsx",
+      "line": 243,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 mr-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/app/auth/confirm-email/confirm-email-states.tsx",
+      "line": 253,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4"
+    },
+    {
+      "file": "src/app/auth/signout/page.tsx",
+      "line": 113,
+      "host": "Button",
+      "icon": "LogOut",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-log-out mr-2 size-4"
+    },
+    {
+      "file": "src/app/auth/update-password/page.tsx",
+      "line": 116,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4"
+    },
+    {
+      "file": "src/app/blog/[slug]/blog-post-page.tsx",
+      "line": 242,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-2"
+    },
+    {
+      "file": "src/app/compare/[competitor]/compare-sections.tsx",
+      "line": 224,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-2"
+    },
+    {
+      "file": "src/app/compare/[competitor]/page.tsx",
+      "line": 123,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-2"
+    },
+    {
+      "file": "src/app/faq/page.tsx",
+      "line": 81,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-2"
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 216,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-2"
+    },
+    {
+      "file": "src/app/marketing-home.tsx",
+      "line": 47,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4"
+    },
+    {
+      "file": "src/app/pricing/cancel/page.tsx",
+      "line": 55,
+      "host": "Button",
+      "icon": "ArrowLeft",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-left mr-2 size-4"
+    },
+    {
+      "file": "src/app/pricing/cancel/page.tsx",
+      "line": 61,
+      "host": "Button",
+      "icon": "Home",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-home mr-2 size-4"
+    },
+    {
+      "file": "src/app/pricing/cancel/page.tsx",
+      "line": 76,
+      "host": "Button",
+      "icon": "MessageCircle",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-message-circle mr-2 size-4"
+    },
+    {
+      "file": "src/app/pricing/pricing-content.tsx",
+      "line": 153,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-arrow-right ml-2 h-4 w-4"
+    },
+    {
+      "file": "src/app/pricing/pricing-content.tsx",
+      "line": 182,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-arrow-right ml-2 h-4 w-4"
+    },
+    {
+      "file": "src/app/resources/page.tsx",
+      "line": 230,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-3"
+    },
+    {
+      "file": "src/app/search/page.tsx",
+      "line": 99,
+      "host": "Button",
+      "icon": "Search",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-search size-4"
+    },
+    {
+      "file": "src/components/applications/application-detail.tsx",
+      "line": 611,
+      "host": "Button",
+      "icon": "MoreVertical",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-more-vertical size-4"
+    },
+    {
+      "file": "src/components/applications/application-link-panel.tsx",
+      "line": 215,
+      "host": "Button",
+      "icon": "Check",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-check size-4"
+    },
+    {
+      "file": "src/components/applications/application-link-panel.tsx",
+      "line": 217,
+      "host": "Button",
+      "icon": "Copy",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-copy size-4"
+    },
+    {
+      "file": "src/components/auth/forgot-password-modal.tsx",
+      "line": 117,
+      "host": "Button",
+      "icon": "Spinner (lucide-root src/components/ui/loading-spinner.tsx)",
+      "element": "lucide-root",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/auth/google-button.tsx",
+      "line": 59,
+      "host": "Button",
+      "icon": "HighResGoogleIcon (svg-root src/components/auth/google-button.tsx)",
+      "element": "svg-root",
+      "kind": "attr-sized",
+      "classes": "shrink-0",
+      "target": "size-4.5",
+      "attrs": {
+        "width": "18",
+        "height": "18"
+      }
+    },
+    {
+      "file": "src/components/auth/mfa-verification-dialog.tsx",
+      "line": 175,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/auth/two-factor-setup-dialog.tsx",
+      "line": 207,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/auth/two-factor-setup-steps.tsx",
+      "line": 87,
+      "host": "Button",
+      "icon": "Copy",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-copy size-4"
+    },
+    {
+      "file": "src/components/auth/two-factor-setup-steps.tsx",
+      "line": 196,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/auth/update-password-form.tsx",
+      "line": 220,
+      "host": "Button",
+      "icon": "Shield",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-shield size-4 mr-2"
+    },
+    {
+      "file": "src/components/billing/upgrade-dialog.tsx",
+      "line": 241,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 mr-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/blog/blog-inline-cta.tsx",
+      "line": 40,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-4 ml-2"
+    },
+    {
+      "file": "src/components/blog/lead-magnet-cta.tsx",
+      "line": 71,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4 mr-2"
+    },
+    {
+      "file": "src/components/bulk-import/bulk-import-dialog.tsx",
+      "line": 63,
+      "host": "Button",
+      "icon": "FileUp",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-file-up size-4 mr-2"
+    },
+    {
+      "file": "src/components/bulk-import/bulk-import-result-error-list.tsx",
+      "line": 91,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-3.5"
+    },
+    {
+      "file": "src/components/bulk-import/bulk-import-result-error-list.tsx",
+      "line": 101,
+      "host": "Button",
+      "icon": "RotateCcw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-rotate-ccw size-3.5"
+    },
+    {
+      "file": "src/components/bulk-import/bulk-import-stepper.tsx",
+      "line": 173,
+      "host": "Button",
+      "icon": "ArrowLeft",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-left size-4"
+    },
+    {
+      "file": "src/components/bulk-import/bulk-import-upload-step.tsx",
+      "line": 83,
+      "host": "Button",
+      "icon": "Upload",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-upload mr-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/bulk-import/bulk-import-upload-step.tsx",
+      "line": 113,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-3.5"
+    },
+    {
+      "file": "src/components/dashboard/components/portfolio-data-table-toolbar.tsx",
+      "line": 98,
+      "host": "Button",
+      "icon": "X",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-x"
+    },
+    {
+      "file": "src/components/dashboard/components/portfolio-preset-menu.tsx",
+      "line": 133,
+      "host": "Button",
+      "icon": "Bookmark",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-bookmark size-4"
+    },
+    {
+      "file": "src/components/dashboard/components/portfolio-preset-menu.tsx",
+      "line": 160,
+      "host": "Button",
+      "icon": "Save",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-save size-4"
+    },
+    {
+      "file": "src/components/data-table/data-table-date-filter.tsx",
+      "line": 190,
+      "host": "Button",
+      "icon": "CalendarIcon",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-calendar"
+    },
+    {
+      "file": "src/components/data-table/data-table-faceted-filter.tsx",
+      "line": 95,
+      "host": "Button",
+      "icon": "PlusCircle",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-plus-circle"
+    },
+    {
+      "file": "src/components/data-table/data-table-pagination.tsx",
+      "line": 93,
+      "host": "Button",
+      "icon": "ChevronsLeft",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-chevrons-left"
+    },
+    {
+      "file": "src/components/data-table/data-table-pagination.tsx",
+      "line": 103,
+      "host": "Button",
+      "icon": "ChevronLeft",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-chevron-left"
+    },
+    {
+      "file": "src/components/data-table/data-table-pagination.tsx",
+      "line": 113,
+      "host": "Button",
+      "icon": "ChevronRight",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-chevron-right"
+    },
+    {
+      "file": "src/components/data-table/data-table-pagination.tsx",
+      "line": 123,
+      "host": "Button",
+      "icon": "ChevronsRight",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-chevrons-right"
+    },
+    {
+      "file": "src/components/data-table/data-table-slider-filter.tsx",
+      "line": 147,
+      "host": "Button",
+      "icon": "PlusCircle",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-plus-circle"
+    },
+    {
+      "file": "src/components/data-table/data-table-toolbar.tsx",
+      "line": 58,
+      "host": "Button",
+      "icon": "X",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-x"
+    },
+    {
+      "file": "src/components/data-table/data-table-view-options.tsx",
+      "line": 54,
+      "host": "Button",
+      "icon": "Settings2",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-settings-2 text-muted-foreground"
+    },
+    {
+      "file": "src/components/documents/document-row.tsx",
+      "line": 91,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4"
+    },
+    {
+      "file": "src/components/documents/document-row.tsx",
+      "line": 144,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4 mr-2"
+    },
+    {
+      "file": "src/components/documents/documents-section.tsx",
+      "line": 318,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/documents/documents-section.tsx",
+      "line": 323,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4 mr-2"
+    },
+    {
+      "file": "src/components/documents/documents-section.tsx",
+      "line": 372,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4 mr-2"
+    },
+    {
+      "file": "src/components/documents/documents-vault.client.tsx",
+      "line": 475,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/documents/documents-vault.client.tsx",
+      "line": 483,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4 mr-2"
+    },
+    {
+      "file": "src/components/error-boundary/error-boundary.tsx",
+      "line": 97,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw size-4 mr-2"
+    },
+    {
+      "file": "src/components/error-boundary/error-fallback.tsx",
+      "line": 24,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw size-4 mr-2"
+    },
+    {
+      "file": "src/components/error-boundary/error-fallback.tsx",
+      "line": 29,
+      "host": "Button",
+      "icon": "Home",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-home size-4 mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-detail.client.tsx",
+      "line": 139,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 w-4 h-4 animate-spin mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-detail.client.tsx",
+      "line": 144,
+      "host": "Button",
+      "icon": "CheckCircle",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-check-circle w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-detail.client.tsx",
+      "line": 157,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 w-4 h-4 animate-spin mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-detail.client.tsx",
+      "line": 162,
+      "host": "Button",
+      "icon": "Send",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-send w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-detail.client.tsx",
+      "line": 228,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-plus w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-list.client.tsx",
+      "line": 120,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-plus w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-list.client.tsx",
+      "line": 164,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-plus w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/inspections/inspection-room-card.tsx",
+      "line": 141,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-trash-2 w-4 h-4"
+    },
+    {
+      "file": "src/components/inspections/inspection-room-card.tsx",
+      "line": 195,
+      "host": "Button",
+      "icon": "Camera",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-camera w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/landing/final-cta-section.tsx",
+      "line": 45,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-3 transition-transform group-hover:translate-x-1"
+    },
+    {
+      "file": "src/components/landing/final-cta-section.tsx",
+      "line": 56,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 mr-3 opacity-70 group-hover:opacity-100"
+    },
+    {
+      "file": "src/components/landing/hero-section.tsx",
+      "line": 38,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-3 transition-transform group-hover:translate-x-1"
+    },
+    {
+      "file": "src/components/landing/hero-section.tsx",
+      "line": 49,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 mr-3 opacity-70 group-hover:opacity-100"
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 40,
+      "host": "Button",
+      "icon": "Home",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-home w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 47,
+      "host": "Button",
+      "icon": "User",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-user w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 54,
+      "host": "Button",
+      "icon": "Building",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-building w-4 h-4 mr-2"
+    },
+    {
+      "file": "src/components/leases/download-signed-lease-button.tsx",
+      "line": 71,
+      "host": "Button",
+      "icon": "AlertCircle",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-alert-circle h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/download-signed-lease-button.tsx",
+      "line": 85,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/leases/download-signed-lease-button.tsx",
+      "line": 107,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/leases/download-signed-lease-button.tsx",
+      "line": 126,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-download h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/lease-action-buttons.tsx",
+      "line": 100,
+      "host": "Button",
+      "icon": "Eye",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-eye size-4"
+    },
+    {
+      "file": "src/components/leases/lease-action-buttons.tsx",
+      "line": 115,
+      "host": "Button",
+      "icon": "MoreVertical",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-more-vertical size-4"
+    },
+    {
+      "file": "src/components/leases/rent-increase-notice-dialog.tsx",
+      "line": 211,
+      "host": "Button",
+      "icon": "FileText",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-file-text size-4 mr-2"
+    },
+    {
+      "file": "src/components/leases/send-for-signature-button.tsx",
+      "line": 206,
+      "host": "Button",
+      "icon": "Send",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-send h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/send-for-signature-button.tsx",
+      "line": 281,
+      "host": "Button",
+      "icon": "FileText",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-file-text h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/send-for-signature-button.tsx",
+      "line": 301,
+      "host": "Button",
+      "icon": "Send",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-send h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/sign-lease-button.tsx",
+      "line": 84,
+      "host": "Button",
+      "icon": "CheckCircle2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-check-circle-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/sign-lease-button.tsx",
+      "line": 100,
+      "host": "Button",
+      "icon": "PenLine",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-pen-line h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/sign-lease-button.tsx",
+      "line": 153,
+      "host": "AlertDialogAction",
+      "icon": "PenLine",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-pen-line h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/sign-lease-form.tsx",
+      "line": 196,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/leases/sign-lease-form.tsx",
+      "line": 198,
+      "host": "Button",
+      "icon": "FileText",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-file-text h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/sign-lease-form.tsx",
+      "line": 267,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/leases/sign-lease-form.tsx",
+      "line": 269,
+      "host": "Button",
+      "icon": "PenLine",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-pen-line h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/template/lease-template-builder.client.tsx",
+      "line": 272,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw mr-1 size-4"
+    },
+    {
+      "file": "src/components/leases/template/pdf-preview-panel.tsx",
+      "line": 43,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw size-4 animate-spin"
+    },
+    {
+      "file": "src/components/leases/template/pdf-preview-panel.tsx",
+      "line": 47,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download mr-1 size-4"
+    },
+    {
+      "file": "src/components/leases/wizard/lease-creation-wizard.tsx",
+      "line": 323,
+      "host": "Button",
+      "icon": "ChevronLeft",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-chevron-left mr-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/wizard/lease-creation-wizard.tsx",
+      "line": 335,
+      "host": "Button",
+      "icon": "ChevronRight",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-chevron-right ml-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/wizard/lease-creation-wizard.tsx",
+      "line": 345,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 mr-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/leases/wizard/lease-creation-wizard.tsx",
+      "line": 350,
+      "host": "Button",
+      "icon": "FileText",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-file-text mr-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/leases/wizard/selection-step-filters.tsx",
+      "line": 129,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-loader-2 mr-2 h-3.5 w-3.5 animate-spin",
+      "target": "size-3.5"
+    },
+    {
+      "file": "src/components/leases/wizard/selection-step-filters.tsx",
+      "line": 134,
+      "host": "Button",
+      "icon": "UserPlus",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-user-plus mr-2 h-3.5 w-3.5",
+      "target": "size-3.5"
+    },
+    {
+      "file": "src/components/leases/wizard/selection-step-filters.tsx",
+      "line": 156,
+      "host": "Button",
+      "icon": "UserPlus",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-user-plus mr-1.5 h-3.5 w-3.5",
+      "target": "size-3.5"
+    },
+    {
+      "file": "src/components/ledger/add-line-dialog.tsx",
+      "line": 199,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/ledger/add-line-dialog.tsx",
+      "line": 204,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/components/ledger/ledger-date-field.tsx",
+      "line": 94,
+      "host": "Button",
+      "icon": "CalendarIcon",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-calendar size-4"
+    },
+    {
+      "file": "src/components/ledger/ledger-tab.tsx",
+      "line": 136,
+      "host": "Button",
+      "icon": "ReceiptText",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-receipt-text h-4 w-4"
+    },
+    {
+      "file": "src/components/ledger/ledger-tab.tsx",
+      "line": 145,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-plus h-4 w-4"
+    },
+    {
+      "file": "src/components/ledger/ledger-table-row.tsx",
+      "line": 173,
+      "host": "Button",
+      "icon": "Undo2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-undo-2 size-4"
+    },
+    {
+      "file": "src/components/ledger/record-receipt-dialog.tsx",
+      "line": 271,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/ledger/record-receipt-dialog.tsx",
+      "line": 276,
+      "host": "Button",
+      "icon": "ReceiptText",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-receipt-text size-4"
+    },
+    {
+      "file": "src/components/ledger/track-since-dialog.tsx",
+      "line": 168,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/ledger/track-since-dialog.tsx",
+      "line": 173,
+      "host": "Button",
+      "icon": "CalendarPlus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-calendar-plus size-4"
+    },
+    {
+      "file": "src/components/maintenance/detail/add-expense-dialog.tsx",
+      "line": 82,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 196,
+      "host": "Button",
+      "icon": "Edit2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-edit-2 size-4"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 207,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 212,
+      "host": "Button",
+      "icon": "Printer",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-printer size-4"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 232,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-header-card.tsx",
+      "line": 95,
+      "host": "Button",
+      "icon": "Edit2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-edit-2 size-4 mr-1.5"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-header-card.tsx",
+      "line": 105,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4"
+    },
+    {
+      "file": "src/components/maintenance/detail/photos-card.tsx",
+      "line": 155,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/maintenance/detail/photos-card.tsx",
+      "line": 160,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4 mr-2"
+    },
+    {
+      "file": "src/components/maintenance/detail/photos-card.tsx",
+      "line": 192,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4 mr-2"
+    },
+    {
+      "file": "src/components/maintenance/detail/photos-card.tsx",
+      "line": 273,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4 mr-2"
+    },
+    {
+      "file": "src/components/maintenance/detail/schedule-dialog.tsx",
+      "line": 65,
+      "host": "Button",
+      "icon": "Calendar",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-calendar size-4"
+    },
+    {
+      "file": "src/components/maintenance/maintenance-view.client.tsx",
+      "line": 196,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-plus w-5 h-5 mr-2",
+      "target": "size-5"
+    },
+    {
+      "file": "src/components/maintenance/table/columns.tsx",
+      "line": 259,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/components/maintenance/table/maintenance-table.client.tsx",
+      "line": 89,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/components/maintenance/vendor-form-dialog.tsx",
+      "line": 132,
+      "host": "Button",
+      "icon": "Pencil",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-pencil size-4"
+    },
+    {
+      "file": "src/components/maintenance/vendor-form-dialog.tsx",
+      "line": 137,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/components/maintenance/vendors-page.client.tsx",
+      "line": 75,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/components/marketing/sticky-conversion-cta.tsx",
+      "line": 99,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-4 ml-1"
+    },
+    {
+      "file": "src/components/pricing/pricing-card-featured.tsx",
+      "line": 236,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 mr-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/pricing/pricing-card-featured.tsx",
+      "line": 242,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4 transition-transform group-hover:translate-x-1"
+    },
+    {
+      "file": "src/components/pricing/pricing-card-standard.tsx",
+      "line": 216,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 mr-2 size-4 animate-spin"
+    },
+    {
+      "file": "src/components/pricing/pricing-card-standard.tsx",
+      "line": 222,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4 transition-transform group-hover:translate-x-1"
+    },
+    {
+      "file": "src/components/pricing/pricing-comparison-table.tsx",
+      "line": 184,
+      "host": "Button",
+      "icon": "ChevronDown",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-chevron-down size-5 text-muted-foreground transition-transform duration-200 rotate-180"
+    },
+    {
+      "file": "src/components/profiles/owner/personal-info-section.tsx",
+      "line": 119,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/properties/add-unit-panel.tsx",
+      "line": 245,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/properties/edit-unit-panel.tsx",
+      "line": 224,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/properties/image-lightbox.tsx",
+      "line": 115,
+      "host": "Button",
+      "icon": "ChevronLeft",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-chevron-left h-6 w-6",
+      "target": "size-6"
+    },
+    {
+      "file": "src/components/properties/image-lightbox.tsx",
+      "line": 128,
+      "host": "Button",
+      "icon": "ChevronRight",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-chevron-right h-6 w-6",
+      "target": "size-6"
+    },
+    {
+      "file": "src/components/properties/properties-filters.tsx",
+      "line": 39,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-5"
+    },
+    {
+      "file": "src/components/properties/properties-filters.tsx",
+      "line": 67,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-plus w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-action-bar.tsx",
+      "line": 55,
+      "host": "Button",
+      "icon": "Pencil",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-pencil w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-action-bar.tsx",
+      "line": 65,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-trash-2 w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-action-bar.tsx",
+      "line": 75,
+      "host": "Button",
+      "icon": "X",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-x w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-image-gallery.tsx",
+      "line": 169,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-trash-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/properties/property-table-row.tsx",
+      "line": 210,
+      "host": "Button",
+      "icon": "Eye",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-eye w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-table-row.tsx",
+      "line": 224,
+      "host": "Button",
+      "icon": "Pencil",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-pencil w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-table-row.tsx",
+      "line": 238,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-trash-2 w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-table-toolbar.tsx",
+      "line": 54,
+      "host": "Button",
+      "icon": "Settings2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-settings-2 w-4 h-4"
+    },
+    {
+      "file": "src/components/properties/property-table-toolbar.tsx",
+      "line": 56,
+      "host": "Button",
+      "icon": "ChevronDown",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-chevron-down w-3.5 h-3.5 transition-transform rotate-180",
+      "target": "size-3.5"
+    },
+    {
+      "file": "src/components/properties/property-units-single-view.tsx",
+      "line": 94,
+      "host": "Button",
+      "icon": "Pencil",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-pencil size-4"
+    },
+    {
+      "file": "src/components/properties/property-units-table-row.tsx",
+      "line": 99,
+      "host": "Button",
+      "icon": "MoreHorizontal",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-more-horizontal size-4"
+    },
+    {
+      "file": "src/components/properties/property-units-table.tsx",
+      "line": 169,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/components/properties/property-units-table.tsx",
+      "line": 185,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4"
+    },
+    {
+      "file": "src/components/properties/sections/property-form-actions.tsx",
+      "line": 48,
+      "host": "Button",
+      "icon": "CheckCircle",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-check-circle size-4"
+    },
+    {
+      "file": "src/components/reports/sections/year-end-report-section.tsx",
+      "line": 101,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4"
+    },
+    {
+      "file": "src/components/reports/sections/year-end-report-section.tsx",
+      "line": 249,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-download size-4"
+    },
+    {
+      "file": "src/components/sections/comparison-table.tsx",
+      "line": 198,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-5 ml-2"
+    },
+    {
+      "file": "src/components/sections/hero-section.tsx",
+      "line": 74,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4"
+    },
+    {
+      "file": "src/components/sections/premium-cta.tsx",
+      "line": 63,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right size-6 ml-3 transition-transform group-hover:translate-x-2 duration-500"
+    },
+    {
+      "file": "src/components/sections/premium-cta.tsx",
+      "line": 77,
+      "host": "Button",
+      "icon": "MessageCircle",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-message-circle size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500"
+    },
+    {
+      "file": "src/components/sections/testimonials-section.tsx",
+      "line": 171,
+      "host": "Button",
+      "icon": "ChevronLeft",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-chevron-left size-5"
+    },
+    {
+      "file": "src/components/sections/testimonials-section.tsx",
+      "line": 201,
+      "host": "Button",
+      "icon": "ChevronRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-chevron-right size-5"
+    },
+    {
+      "file": "src/components/settings/categories-settings.tsx",
+      "line": 230,
+      "host": "Button",
+      "icon": "Plus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-plus size-4 mr-1"
+    },
+    {
+      "file": "src/components/settings/category-create-dialog.tsx",
+      "line": 182,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/settings/category-delete-dialog.tsx",
+      "line": 114,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/settings/category-rename-dialog.tsx",
+      "line": 84,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-loader-2 size-4 mr-2 animate-spin"
+    },
+    {
+      "file": "src/components/settings/category-row.tsx",
+      "line": 73,
+      "host": "Button",
+      "icon": "Pencil",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-pencil size-4"
+    },
+    {
+      "file": "src/components/settings/category-row.tsx",
+      "line": 87,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/components/settings/category-row.tsx",
+      "line": 104,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-trash-2 size-4"
+    },
+    {
+      "file": "src/components/settings/sections/subscription-cancel-section.tsx",
+      "line": 206,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/settings/sections/subscription-cancel-section.tsx",
+      "line": 208,
+      "host": "Button",
+      "icon": "Undo2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-undo-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/settings/sections/subscription-cancel-section.tsx",
+      "line": 287,
+      "host": "AlertDialogAction",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/shared/date-range-picker.tsx",
+      "line": 63,
+      "host": "Button",
+      "icon": "CalendarIcon",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-calendar mr-2 size-4 shrink-0"
+    },
+    {
+      "file": "src/components/shared/date-range-picker.tsx",
+      "line": 89,
+      "host": "Button",
+      "icon": "X",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-x size-4"
+    },
+    {
+      "file": "src/components/shared/error-page.tsx",
+      "line": 33,
+      "host": "Button",
+      "icon": "RefreshCw",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-refresh-cw size-4 mr-2"
+    },
+    {
+      "file": "src/components/shared/error-page.tsx",
+      "line": 38,
+      "host": "Button",
+      "icon": "Home",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-home size-4 mr-2"
+    },
+    {
+      "file": "src/components/shared/export-buttons.tsx",
+      "line": 134,
+      "host": "Button",
+      "icon": "Icon",
+      "element": "bound",
+      "kind": "has-size",
+      "classes": "mr-2 size-4"
+    },
+    {
+      "file": "src/components/shared/multi-select-chips.tsx",
+      "line": 87,
+      "host": "Button",
+      "icon": "ChevronDown",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-chevron-down ml-2 size-4 shrink-0 opacity-50"
+    },
+    {
+      "file": "src/components/shared/multi-select-chips.tsx",
+      "line": 163,
+      "host": "Button",
+      "icon": "X",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-x size-4"
+    },
+    {
+      "file": "src/components/shared/not-found-page.tsx",
+      "line": 40,
+      "host": "Button",
+      "icon": "Home",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-home size-4 mr-2"
+    },
+    {
+      "file": "src/components/shared/print-button.tsx",
+      "line": 13,
+      "host": "Button",
+      "icon": "Printer",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-printer size-4 mr-2"
+    },
+    {
+      "file": "src/components/tenants/add-tenant-form.tsx",
+      "line": 269,
+      "host": "Button",
+      "icon": "UserPlus",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-user-plus size-4 mr-2"
+    },
+    {
+      "file": "src/components/tenants/tenant-action-bar.tsx",
+      "line": 49,
+      "host": "Button",
+      "icon": "Download",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-download h-4 w-4"
+    },
+    {
+      "file": "src/components/tenants/tenant-action-bar.tsx",
+      "line": 58,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-trash-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/tenants/tenant-table-row.tsx",
+      "line": 107,
+      "host": "Button",
+      "icon": "FileText",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-file-text mr-1 h-3.5 w-3.5",
+      "target": "size-3.5"
+    },
+    {
+      "file": "src/components/tenants/tenant-table-row.tsx",
+      "line": 122,
+      "host": "Button",
+      "icon": "Pencil",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-pencil h-4 w-4"
+    },
+    {
+      "file": "src/components/tenants/tenant-table-row.tsx",
+      "line": 131,
+      "host": "Button",
+      "icon": "Trash2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-trash-2 h-4 w-4"
+    },
+    {
+      "file": "src/components/tenants/tenants.tsx",
+      "line": 163,
+      "host": "Button",
+      "icon": "UserPlus",
+      "element": "lucide",
+      "kind": "convert",
+      "classes": "lucide lucide-user-plus w-5 h-5 mr-2",
+      "target": "size-5"
+    },
+    {
+      "file": "src/components/ui/bento-grid.tsx",
+      "line": 83,
+      "host": "Button",
+      "icon": "ArrowRight",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-arrow-right ml-2 size-4"
+    },
+    {
+      "file": "src/components/ui/dropzone.tsx",
+      "line": 174,
+      "host": "Button",
+      "icon": "X",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-x"
+    },
+    {
+      "file": "src/components/ui/dropzone.tsx",
+      "line": 196,
+      "host": "Button",
+      "icon": "Loader2",
+      "element": "lucide",
+      "kind": "h4w4",
+      "classes": "lucide lucide-loader-2 mr-2 h-4 w-4 animate-spin"
+    },
+    {
+      "file": "src/components/ui/mobile-nav.tsx",
+      "line": 96,
+      "host": "Button",
+      "icon": "Menu",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-menu size-5"
+    },
+    {
+      "file": "src/components/ui/mobile-nav.tsx",
+      "line": 136,
+      "host": "Button",
+      "icon": "LogOut",
+      "element": "lucide",
+      "kind": "has-size",
+      "classes": "lucide lucide-log-out size-4"
+    },
+    {
+      "file": "src/components/ui/tour.tsx",
+      "line": 1549,
+      "host": "Button",
+      "icon": "ChevronLeft",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-chevron-left"
+    },
+    {
+      "file": "src/components/ui/tour.tsx",
+      "line": 1586,
+      "host": "Button",
+      "icon": "ChevronRight",
+      "element": "lucide",
+      "kind": "unsized",
+      "classes": "lucide lucide-chevron-right"
+    }
+  ],
+  "components": [
+    {
+      "file": "src/app/(owner)/billing/checkout/cancel/page.tsx",
+      "line": 42,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/cancel/page.tsx",
+      "line": 45,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/success/page.tsx",
+      "line": 56,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/success/page.tsx",
+      "line": 59,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/documents/page.tsx",
+      "line": 116,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/properties/[id]/edit/page.tsx",
+      "line": 67,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/properties/[id]/page.tsx",
+      "line": 76,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/(owner)/properties/property-details.client.tsx",
+      "line": 122,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/about/page.tsx",
+      "line": 273,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/about/page.tsx",
+      "line": 279,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/auth/confirm-email/confirm-email-states.tsx",
+      "line": 251,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/auth/update-password/page.tsx",
+      "line": 114,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/blog/[slug]/blog-post-page.tsx",
+      "line": 240,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/compare/[competitor]/compare-sections.tsx",
+      "line": 222,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/compare/[competitor]/compare-sections.tsx",
+      "line": 228,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/compare/[competitor]/page.tsx",
+      "line": 121,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/compare/[competitor]/page.tsx",
+      "line": 127,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/faq/page.tsx",
+      "line": 79,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/faq/page.tsx",
+      "line": 90,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 96,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 121,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 214,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 225,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/marketing-home.tsx",
+      "line": 45,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/marketing-home.tsx",
+      "line": 56,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/pricing/pricing-content.tsx",
+      "line": 151,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/pricing/pricing-content.tsx",
+      "line": 180,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/pricing/pricing-content.tsx",
+      "line": 186,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/resources/landlord-tax-deduction-tracker/page.tsx",
+      "line": 215,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/resources/page.tsx",
+      "line": 228,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/resources/page.tsx",
+      "line": 239,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/resources/seasonal-maintenance-checklist/page.tsx",
+      "line": 401,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/resources/security-deposit-reference-card/page.tsx",
+      "line": 716,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/stripe/cancel/page.tsx",
+      "line": 36,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/stripe/cancel/page.tsx",
+      "line": 40,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/stripe/success/page.tsx",
+      "line": 36,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/app/stripe/success/page.tsx",
+      "line": 40,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/applications/application-detail.tsx",
+      "line": 461,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/auth/google-button.tsx",
+      "line": 56,
+      "host": "Button",
+      "name": "ButtonLoader",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/loading-spinner.tsx"
+    },
+    {
+      "file": "src/components/blog/blog-inline-cta.tsx",
+      "line": 38,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/data-table/data-table-faceted-filter.tsx",
+      "line": 99,
+      "host": "Button",
+      "name": "Separator",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/separator.tsx"
+    },
+    {
+      "file": "src/components/data-table/data-table-faceted-filter.tsx",
+      "line": 103,
+      "host": "Button",
+      "name": "Badge",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/badge.tsx"
+    },
+    {
+      "file": "src/components/data-table/data-table-faceted-filter.tsx",
+      "line": 111,
+      "host": "Button",
+      "name": "Badge",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/badge.tsx"
+    },
+    {
+      "file": "src/components/data-table/data-table-faceted-filter.tsx",
+      "line": 121,
+      "host": "Button",
+      "name": "Badge",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/badge.tsx"
+    },
+    {
+      "file": "src/components/data-table/data-table-slider-filter.tsx",
+      "line": 151,
+      "host": "Button",
+      "name": "Separator",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/separator.tsx"
+    },
+    {
+      "file": "src/components/error-boundary/error-fallback.tsx",
+      "line": 28,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/inspections/inspection-list.client.tsx",
+      "line": 163,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/inspections/inspection-list.client.tsx",
+      "line": 182,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/landing/final-cta-section.tsx",
+      "line": 42,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/landing/final-cta-section.tsx",
+      "line": 55,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/landing/hero-section.tsx",
+      "line": 35,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/landing/hero-section.tsx",
+      "line": 48,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/layout/navbar.tsx",
+      "line": 104,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/layout/navbar.tsx",
+      "line": 115,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/leases/detail/lease-header.tsx",
+      "line": 200,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 39,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 46,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 53,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-header-card.tsx",
+      "line": 94,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/maintenance/maintenance-view.client.tsx",
+      "line": 195,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/maintenance/table/columns.tsx",
+      "line": 248,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/maintenance/table/maintenance-table.client.tsx",
+      "line": 88,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/marketing/sticky-conversion-cta.tsx",
+      "line": 93,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/marketing/sticky-conversion-cta.tsx",
+      "line": 97,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/sections/comparison-table.tsx",
+      "line": 196,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/sections/hero-section.tsx",
+      "line": 72,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/sections/hero-section.tsx",
+      "line": 78,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/sections/premium-cta.tsx",
+      "line": 59,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/sections/premium-cta.tsx",
+      "line": 76,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/shared/error-page.tsx",
+      "line": 37,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/shared/not-found-page.tsx",
+      "line": 39,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/tenants/application-prefill-notice.tsx",
+      "line": 66,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/ui/bento-grid.tsx",
+      "line": 81,
+      "host": "Button",
+      "name": "Link",
+      "svgRoot": false
+    },
+    {
+      "file": "src/components/ui/loading-spinner.tsx",
+      "line": 141,
+      "host": "Button",
+      "name": "LoadingSpinner",
+      "svgRoot": false,
+      "definedIn": "src/components/ui/loading-spinner.tsx"
+    }
+  ],
+  "parentSvgSelectors": [],
+  "shrink": [
+    {
+      "file": "src/app/(auth)/login/login-form.tsx",
+      "line": 132,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "form",
+      "parentClasses": "space-y-5",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/cancel/page.tsx",
+      "line": 41,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardFooter -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "flex items-center px-6 [.border-t]:pt-6 flex flex-col gap-2",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/cancel/page.tsx",
+      "line": 44,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardFooter -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "flex items-center px-6 [.border-t]:pt-6 flex flex-col gap-2",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/success/page.tsx",
+      "line": 55,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardFooter -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "flex items-center px-6 [.border-t]:pt-6 flex flex-col gap-2",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/(owner)/billing/checkout/success/page.tsx",
+      "line": 58,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardFooter -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "flex items-center px-6 [.border-t]:pt-6 flex flex-col gap-2",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/(owner)/reports/balance-sheet/balance-section.tsx",
+      "line": 44,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/auth/signout/page.tsx",
+      "line": 85,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/auth/signout/page.tsx",
+      "line": 108,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/auth/signout/page.tsx",
+      "line": 120,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 72,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "ItemActions -> <div> in src/components/ui/item.tsx",
+      "parentClasses": "flex items-center gap-2",
+      "verdict": "exempt-sole-child",
+      "reason": "the only child of the flex row, w-full at every row breakpoint (base, sm, md, lg, xl, 2xl)",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 95,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "ItemActions -> <div> in src/components/ui/item.tsx",
+      "parentClasses": "flex items-center gap-2",
+      "verdict": "exempt-sole-child",
+      "reason": "the only child of the flex row, w-full at every row breakpoint (base, sm, md, lg, xl, 2xl)",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "line": 120,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "ItemActions -> <div> in src/components/ui/item.tsx",
+      "parentClasses": "flex items-center gap-2",
+      "verdict": "exempt-sole-child",
+      "reason": "the only child of the flex row, w-full at every row breakpoint (base, sm, md, lg, xl, 2xl)",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/marketing-home.tsx",
+      "line": 44,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col sm:flex-row gap-4 w-full sm:w-auto",
+      "verdict": "exempt-auto",
+      "reason": "w-auto at every row breakpoint (sm, md, lg, xl, 2xl)",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/marketing-home.tsx",
+      "line": 50,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col sm:flex-row gap-4 w-full sm:w-auto",
+      "verdict": "exempt-auto",
+      "reason": "w-auto at every row breakpoint (sm, md, lg, xl, 2xl)",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/pricing/cancel/page.tsx",
+      "line": 54,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "Link -> <a>",
+      "parentClasses": "",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/pricing/cancel/page.tsx",
+      "line": 60,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "Link -> <a>",
+      "parentClasses": "",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/app/stripe/cancel/page.tsx",
+      "line": 35,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/stripe/cancel/page.tsx",
+      "line": 39,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/stripe/success/page.tsx",
+      "line": 35,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/app/stripe/success/page.tsx",
+      "line": 39,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/auth/google-button.tsx",
+      "line": 33,
+      "host": "Button",
+      "risk": [
+        "w-full",
+        "overflow-hidden"
+      ],
+      "parent": "div",
+      "parentClasses": "w-full",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/auth/update-password-form.tsx",
+      "line": 197,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "form",
+      "parentClasses": "space-y-6",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/billing/plan-card.tsx",
+      "line": 135,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardFooter -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "flex items-center px-6 [.border-t]:pt-6 pt-4",
+      "verdict": "exempt-sole-child",
+      "reason": "the only child of the flex row, w-full at every row breakpoint (base, sm, md, lg, xl, 2xl)",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/contact/contact-form.tsx",
+      "line": 201,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "p-8 bg-card rounded-2xl border border-border shadow-lg",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/contact/contact-form.tsx",
+      "line": 281,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "form",
+      "parentClasses": "space-y-6",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/landing/final-cta-section.tsx",
+      "line": 37,
+      "host": "Button",
+      "risk": [
+        "overflow-hidden"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col sm:flex-row gap-6 justify-center",
+      "verdict": "add-shrink",
+      "reason": "parent is a flex row at sm, md, lg, xl, 2xl",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/landing/hero-section.tsx",
+      "line": 30,
+      "host": "Button",
+      "risk": [
+        "overflow-hidden"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col sm:flex-row gap-6 justify-center pt-4",
+      "verdict": "add-shrink",
+      "reason": "parent is a flex row at sm, md, lg, xl, 2xl",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 38,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardContent -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "px-6 space-y-2",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 45,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardContent -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "px-6 space-y-2",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/leases/detail/lease-sidebar.tsx",
+      "line": 52,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardContent -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "px-6 space-y-2",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/leases/sign-lease-form.tsx",
+      "line": 187,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-5",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/leases/sign-lease-form.tsx",
+      "line": 259,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-5",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/ledger/ledger-date-field.tsx",
+      "line": 80,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "Popover (via PopoverTrigger[asChild])",
+      "parentClasses": "",
+      "verdict": "exempt-col",
+      "reason": "Popover (radix Popover.Root) renders no DOM element, so the DOM parent of the PopoverTrigger asChild Button is Field, whose fieldVariants vertical default is flex flex-col with [&>*]:w-full",
+      "verdictSource": "manual"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 191,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardContent -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "px-6 space-y-2",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 199,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardContent -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "px-6 space-y-2",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/maintenance/detail/maintenance-details.client.tsx",
+      "line": 217,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "CardContent -> <div> in src/components/ui/card.tsx",
+      "parentClasses": "px-6 space-y-2",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/onboarding/onboarding-step-complete.tsx",
+      "line": 30,
+      "host": "Button",
+      "risk": [
+        "w-full",
+        "max-w-xs"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col items-center text-center gap-6 py-4",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/onboarding/onboarding-step-welcome.tsx",
+      "line": 33,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col gap-2 w-full max-w-xs",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/onboarding/onboarding-step-welcome.tsx",
+      "line": 36,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "flex flex-col gap-2 w-full max-w-xs",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/pricing/pricing-card-featured.tsx",
+      "line": 228,
+      "host": "Button",
+      "risk": [
+        "w-full",
+        "overflow-hidden"
+      ],
+      "parent": "div",
+      "parentClasses": "space-y-3",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/pricing/pricing-card-standard.tsx",
+      "line": 207,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col hover:border-primary/30 hover:shadow-lg transition-all duration-300",
+      "verdict": "exempt-col",
+      "reason": "parent is flex-col at every breakpoint",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/pricing/pricing-comparison-table.tsx",
+      "line": 179,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "Collapsible (via CollapsibleTrigger[asChild])",
+      "parentClasses": "",
+      "verdict": "exempt-not-flex",
+      "reason": "Collapsible renders radix Collapsible.Root, a plain div with no className at this call site, so the CollapsibleTrigger asChild Button's parent has no flex token",
+      "verdictSource": "manual"
+    },
+    {
+      "file": "src/components/properties/property-image-gallery.tsx",
+      "line": 158,
+      "host": "Button",
+      "risk": [
+        "w-8"
+      ],
+      "parent": "div",
+      "parentClasses": "relative aspect-video group overflow-hidden rounded-lg bg-muted",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/sections/premium-cta.tsx",
+      "line": 54,
+      "host": "Button",
+      "risk": [
+        "overflow-hidden"
+      ],
+      "parent": "GlowingEffect -> <div> in src/components/ui/glowing-effect.tsx",
+      "parentClasses": "relative group",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "resolved"
+    },
+    {
+      "file": "src/components/shared/not-found-page.tsx",
+      "line": 38,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "max-w-md w-full space-y-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/tenants/tenant-table-row.tsx",
+      "line": 116,
+      "host": "Button",
+      "risk": [
+        "w-8"
+      ],
+      "parent": null,
+      "parentClasses": "",
+      "verdict": "exempt-floor",
+      "reason": "min-w-8 equals w-8",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/tenants/tenant-table-row.tsx",
+      "line": 125,
+      "host": "Button",
+      "risk": [
+        "w-8"
+      ],
+      "parent": null,
+      "parentClasses": "",
+      "verdict": "exempt-floor",
+      "reason": "min-w-8 equals w-8",
+      "verdictSource": "tool"
+    },
+    {
+      "file": "src/components/ui/calendar.tsx",
+      "line": 194,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "<root>",
+      "parentClasses": "",
+      "verdict": "exempt-not-flex",
+      "reason": "CalendarDayButton is rendered by react-day-picker inside the day cell, whose classNames.day (relative w-full h-full p-0 text-center ... aspect-square select-none) has no flex token",
+      "verdictSource": "manual"
+    },
+    {
+      "file": "src/components/ui/mobile-nav.tsx",
+      "line": 129,
+      "host": "Button",
+      "risk": [
+        "w-full"
+      ],
+      "parent": "div",
+      "parentClasses": "border-t border-border p-4",
+      "verdict": "exempt-not-flex",
+      "reason": "parent is never a flex container",
+      "verdictSource": "tool"
+    }
+  ]
+}

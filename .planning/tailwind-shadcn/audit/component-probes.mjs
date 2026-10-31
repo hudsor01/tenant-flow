@@ -1,5 +1,5 @@
 // Real-component Chromium probes for the Tailwind v4 / shadcn remediation (ledger rows C1, C2, C3,
-// C6, C7, C12a, C12b, C12c, C13 and research rows N1, N2, N3, H10). jsdom computes neither layout nor oklch, so
+// C6, C7, C9, C12a, C12b, C12c, C13 and research rows N1, N2, N3, H10). jsdom computes neither layout nor oklch, so
 // these mount the REAL repo components in headless Chromium, styled by the REAL compiled
 // src/app/globals.css. Read-only against the repo: writes only to $TW_AUDIT_OUT (default:
 // <tmpdir>/tenantflow-tw-audit).
@@ -69,6 +69,20 @@
 //                            action's border-box width; columnGap = computed column-gap in px
 //   button-group-nested (C13) { outerColumnGap, innerGap }  outer computed column-gap in px
 //                            (normal = 0); innerGap = inner-2 left minus inner-1 right
+//   button (C9, D-29)       { bodyBg, variants: { <variant>: { dataSlot, dataVariant, dataSize,
+//                            height, minHeight, flexShrink, borderTopWidth, borderColor, bg, color,
+//                            boxShadowRest, contrast, hoverBg, focus: { focusVisible, outlineStyle,
+//                            boxShadow, borderColor } } }, sizes: { sm, lg, icon: { height, width,
+//                            minHeight, minWidth, dataSize } }, invalid: { borderColor },
+//                            asChild: { tag, dataSlot, buttonCount }, icons: { unsized, size5, hw5:
+//                            [w, h] }, refs: { border, input, destructive, ring } }
+//                            Rest values are read before any input. focus: Tab pressed from
+//                            document.body until the variant's Button is document.activeElement (the
+//                            variants come first in tab order), read after the transition settles.
+//                            hoverBg: read after page.hover, then the mouse moves away. Colors are
+//                            border-top colors through the canvas helper; contrast = WCAG ratio of
+//                            color over bg composited over the computed body background (2 dp);
+//                            heights and widths in CSS px (1 dp), icon boxes rounded to integers
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -483,7 +497,99 @@ const PROBES = {
 				return { outerColumnGap: gap === "normal" ? 0 : r1(parseFloat(gap)), innerGap: r1(b.left - a.right) };
 			}),
 	},
+	button: {
+		selectors: ["[data-probe=v-default]", "[data-probe=i-hw5]", "[data-probe=ref-ring]"],
+		run: async ({ page }) => measureButton(page),
+	},
 };
+
+const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost", "link"];
+const SETTLE_MS = 400;
+async function measureButton(page) {
+	await page.evaluate(() => window.__tfMeasure.settle());
+	const read = (fn, arg) => page.evaluate(fn, arg);
+	const rest = await read((variants) => {
+		const { toRgbaArray, r1 } = window.__tfMeasure;
+		const q = (id) => document.querySelector(`[data-probe=${id}]`);
+		const over = (top, bottom) => [0, 1, 2].map((i) => top[i] * top[3] + bottom[i] * (1 - top[3])).concat(1);
+		const lum = (c) => {
+			const ch = c.slice(0, 3).map((v) => {
+				const x = v / 255;
+				return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+			});
+			return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+		};
+		const ratio = (a, b) => {
+			const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+			return Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100;
+		};
+		const bodyBg = toRgbaArray(getComputedStyle(document.body).backgroundColor);
+		const base = bodyBg[3] >= 1 ? bodyBg : over(bodyBg, [255, 255, 255, 1]);
+		const out = { bodyBg, variants: {} };
+		for (const v of variants) {
+			const el = q(`v-${v}`);
+			const s = getComputedStyle(el);
+			const bg = toRgbaArray(s.backgroundColor);
+			const color = toRgbaArray(s.color);
+			const surface = over(bg, base);
+			out.variants[v] = {
+				dataSlot: el.getAttribute("data-slot"),
+				dataVariant: el.getAttribute("data-variant"),
+				dataSize: el.getAttribute("data-size"),
+				height: r1(el.getBoundingClientRect().height),
+				minHeight: s.minHeight,
+				flexShrink: s.flexShrink,
+				borderTopWidth: parseFloat(s.borderTopWidth),
+				borderColor: toRgbaArray(s.borderTopColor),
+				bg,
+				color,
+				boxShadowRest: s.boxShadow,
+				contrast: ratio(over(color, surface), surface),
+			};
+		}
+		const size = (id) => {
+			const el = q(id);
+			const b = el.getBoundingClientRect();
+			const s = getComputedStyle(el);
+			return { height: r1(b.height), width: r1(b.width), minHeight: s.minHeight, minWidth: s.minWidth, dataSize: el.getAttribute("data-size") };
+		};
+		out.sizes = { sm: size("s-sm"), lg: size("s-lg"), icon: size("s-icon") };
+		out.invalid = { borderColor: toRgbaArray(getComputedStyle(q("invalid")).borderTopColor) };
+		const a = q("aschild");
+		out.asChild = { tag: a.tagName, dataSlot: a.getAttribute("data-slot"), buttonCount: q("aschild-wrap").querySelectorAll("button").length };
+		const box = (id) => {
+			const b = q(id).getBoundingClientRect();
+			return [Math.round(b.width), Math.round(b.height)];
+		};
+		out.icons = { unsized: box("i-unsized"), size5: box("i-size5"), hw5: box("i-hw5") };
+		const ref = (id) => toRgbaArray(getComputedStyle(q(id)).borderTopColor);
+		out.refs = { border: ref("ref-border"), input: ref("ref-input"), destructive: ref("ref-destructive"), ring: ref("ref-ring") };
+		return out;
+	}, BUTTON_VARIANTS);
+	for (const v of BUTTON_VARIANTS) {
+		let reached = false;
+		for (let i = 0; i < 20 && !reached; i++) {
+			await page.keyboard.press("Tab");
+			reached = await read((id) => document.activeElement === document.querySelector(`[data-probe=${id}]`), `v-${v}`);
+		}
+		await page.waitForTimeout(SETTLE_MS);
+		rest.variants[v].focus = await read((id) => {
+			const { toRgbaArray } = window.__tfMeasure;
+			const el = document.querySelector(`[data-probe=${id}]`);
+			const s = getComputedStyle(el);
+			return { focusVisible: document.activeElement === el && el.matches(":focus-visible"), outlineStyle: s.outlineStyle, boxShadow: s.boxShadow, borderColor: toRgbaArray(s.borderTopColor) };
+		}, `v-${v}`);
+	}
+	await read(() => document.activeElement?.blur());
+	for (const v of BUTTON_VARIANTS) {
+		await page.hover(`[data-probe=v-${v}]`);
+		await page.waitForTimeout(SETTLE_MS);
+		rest.variants[v].hoverBg = await read((id) => window.__tfMeasure.toRgbaArray(getComputedStyle(document.querySelector(`[data-probe=${id}]`)).backgroundColor), `v-${v}`);
+		await page.mouse.move(1, 1);
+		await page.waitForTimeout(SETTLE_MS);
+	}
+	return rest;
+}
 
 async function measureBeam(page, props) {
 	await page.waitForTimeout(600);
