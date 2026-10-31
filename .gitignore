@@ -339,6 +339,7 @@ AGENTS.md
 # Claude Code's project instructions are local-only, never committed.
 CLAUDE.md
 QWEN.md
+.qwen/
 .fallow/
 .planning/
 .tmp*/
