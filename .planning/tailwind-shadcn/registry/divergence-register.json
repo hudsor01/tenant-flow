@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "registry": "new-york-v4",
+  "files": {
+    "src/components/ui/alert.tsx": {
+      "item": "alert",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "destructive variant text uses text-destructive-text and [&_.text-muted-foreground]:text-destructive-text/90 instead of upstream text-destructive and *:data-[slot=alert-description]:text-destructive/90",
+          "reason": "D-26 customization",
+          "ref": "D-26; CLAUDE.md AA -text companions"
+        },
+        {
+          "what": "class token order in alertVariants base and AlertDescription kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/badge.tsx": {
+      "item": "badge",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "size axis (default, sm, lg, trust) carries rounded-md/rounded-full, px, py, text size, gap and [&>svg]:size-*; the base string has no rounded-full, px-2, py-0.5, text-xs, gap-1 or [&>svg]:size-3, and each filled variant adds border-transparent",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "local variants success, warning, info and trustIndicator",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "upstream ghost and link variants, outline border-border, the data-variant attribute and the variant = \"default\" parameter default are not adopted",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; 66.2-20 Task 1 not-adopted list"
+        },
+        {
+          "what": "asChild uses Slot.Slot, not upstream Slot.Root",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
+        },
+        {
+          "what": "badgeVariants export removed",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        },
+        {
+          "what": "class token order in badgeVariants base and the destructive variant kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/breadcrumb.tsx": {
+      "item": "breadcrumb",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "BreadcrumbList uses text-foreground text-base font-medium gap-2 sm:gap-3 (no text-muted-foreground, text-sm, gap-1.5, sm:gap-2.5 or break-words); BreadcrumbLink uses hover:text-primary-text font-medium instead of hover:text-foreground",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "local export type BreadcrumbItem ({ href, label })",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "BreadcrumbPage role=\"link\" and BreadcrumbSeparator role=\"presentation\" are not adopted",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; 66.2-20 Task 1 not-adopted list"
+        },
+        {
+          "what": "asChild uses Slot.Slot, not upstream Slot.Root",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
+        },
+        {
+          "what": "BreadcrumbEllipsis and its breadcrumb-ellipsis data-slot removed",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        },
+        {
+          "what": "class token order in BreadcrumbPage kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/button-group.tsx": {
+      "item": "button-group",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "[&>.select-trigger:not([class*='w-'])]:w-fit and has-[select[aria-hidden=true]:last-child]:[&>.select-trigger:last-of-type]:rounded-r-md key on the select-trigger class instead of upstream [data-slot=select-trigger]",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "ledger C13; D-05"
+        },
+        {
+          "what": "ButtonGroupText, ButtonGroupSeparator (with its button-group-separator data-slot) and the buttonGroupVariants export removed",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        },
+        {
+          "what": "class token order in buttonGroupVariants base kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/card.tsx": {
+      "item": "card",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "Card uses cardVariants (default, elevated, interactive, pricing, pricingPopular, stat) with rounded-md instead of the upstream rounded-xl gap-6 py-6 shadow-sm string, and the file also exports cardVariants",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "CardHeader gap-1.5 instead of upstream gap-2",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "class token order in CardDescription kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/checkbox.tsx": {
+      "item": "checkbox",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "indicator uses flex-center instead of grid place-content-center",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "root uses rounded-sm instead of upstream rounded-[4px]",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        },
+        {
+          "what": "class token order in the Checkbox root kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/input-group.tsx": {
+      "item": "input-group",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "InputGroup h-11 instead of h-9; InputGroupAddon typography-small instead of text-sm font-medium",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "focus and error state selectors has-[>input:focus-visible]:* and has-[input[aria-invalid=true]]:* instead of upstream has-[[data-slot=input-group-control]:focus-visible]:* and has-[[data-slot][aria-invalid=true]]:*",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "InputGroupButton (with inputGroupButtonVariants), InputGroupText and InputGroupTextarea removed",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        },
+        {
+          "what": "class token order in InputGroup and inputGroupAddonVariants kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/input.tsx": {
+      "item": "input",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "inputVariants cva with variant (default, invalid) and inputSize (default h-11, sm, lg, xl) props replaces the upstream h-9 three-string class list",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        }
+      ]
+    },
+    "src/components/ui/select.tsx": {
+      "item": "select",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "SelectTrigger keeps the select-trigger hook class that button-group's selectors key on",
+          "reason": "D-26 customization",
+          "ref": "D-26; ledger C13"
+        },
+        {
+          "what": "SelectTrigger data-[size=default]:h-11 and data-[size=sm]:h-11 instead of h-9 and h-8",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "SelectContent position defaults to popper instead of item-aligned",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "SelectTrigger children use [&>*]:line-clamp-1 [&>*]:flex [&>*]:items-center [&>*]:gap-2 instead of upstream *:data-[slot=select-value]:*",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        },
+        {
+          "what": "SelectGroup, SelectLabel and SelectSeparator (with their select-group, select-label and select-separator data-slots) removed; SelectScrollUpButton and SelectScrollDownButton stay as internal functions without an export",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a)"
+        },
+        {
+          "what": "class token order in SelectTrigger, SelectContent and SelectItem kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/tabs.tsx": {
+      "item": "tabs",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "TabsTrigger brand active state data-[state=active]:bg-primary text-primary-foreground shadow-md font-semibold, inactive text-muted-foreground hover:bg-muted/50, typography-small and duration-200; TabsList h-11",
+          "reason": "D-26 customization",
+          "ref": "D-26"
+        },
+        {
+          "what": "upstream orientation handling (orientation default, data-orientation, group/tabs and the vertical classes), the line variant with tabsListVariants and data-variant, the after: underline indicator, relative, text-foreground/60 and the dark active border-input/bg-input/30 are not adopted",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    },
+    "src/components/ui/textarea.tsx": {
+      "item": "textarea",
+      "plan": "66.2-20",
+      "divergences": [
+        {
+          "what": "class token order in the Textarea class string kept as written locally (upstream re-sorted the same tokens)",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05"
+        }
+      ]
+    }
+  }
+}

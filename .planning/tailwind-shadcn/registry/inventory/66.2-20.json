@@ -1,0 +1,196 @@
+{
+  "label": "66.2-20",
+  "generatedAt": "2026-10-31T17:27:43.307Z",
+  "files": [
+    {
+      "file": "src/components/ui/alert.tsx",
+      "item": "alert",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 3,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__alert.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 2
+    },
+    {
+      "file": "src/components/ui/badge.tsx",
+      "item": "badge",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 10,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__badge.tsx.diff",
+      "missingExports": [
+        "badgeVariants"
+      ],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 6
+    },
+    {
+      "file": "src/components/ui/breadcrumb.tsx",
+      "item": "breadcrumb",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 8,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__breadcrumb.tsx.diff",
+      "missingExports": [
+        "BreadcrumbEllipsis"
+      ],
+      "missingDataSlots": [
+        "breadcrumb-ellipsis"
+      ],
+      "registered": true,
+      "divergenceCount": 6
+    },
+    {
+      "file": "src/components/ui/checkbox.tsx",
+      "item": "checkbox",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 2,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__checkbox.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 3
+    },
+    {
+      "file": "src/components/ui/collapsible.tsx",
+      "item": "collapsible",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "in-sync",
+      "normalizedDiffHunks": 0,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__collapsible.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": false,
+      "divergenceCount": 0
+    },
+    {
+      "file": "src/components/ui/input.tsx",
+      "item": "input",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 2,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__input.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 1
+    },
+    {
+      "file": "src/components/ui/input-group.tsx",
+      "item": "input-group",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 8,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__input-group.tsx.diff",
+      "missingExports": [
+        "InputGroupButton",
+        "InputGroupText",
+        "InputGroupTextarea"
+      ],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 4
+    },
+    {
+      "file": "src/components/ui/select.tsx",
+      "item": "select",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 8,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__select.tsx.diff",
+      "missingExports": [
+        "SelectGroup",
+        "SelectLabel",
+        "SelectScrollDownButton",
+        "SelectScrollUpButton",
+        "SelectSeparator"
+      ],
+      "missingDataSlots": [
+        "select-group",
+        "select-label",
+        "select-separator"
+      ],
+      "registered": true,
+      "divergenceCount": 6
+    },
+    {
+      "file": "src/components/ui/tabs.tsx",
+      "item": "tabs",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 8,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__tabs.tsx.diff",
+      "missingExports": [
+        "tabsListVariants"
+      ],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 2
+    },
+    {
+      "file": "src/components/ui/textarea.tsx",
+      "item": "textarea",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 1,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__textarea.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 1
+    },
+    {
+      "file": "src/components/ui/card.tsx",
+      "item": "card",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 5,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__card.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 3
+    },
+    {
+      "file": "src/components/ui/button-group.tsx",
+      "item": "button-group",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 2,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/inv/src__components__ui__button-group.tsx.diff",
+      "missingExports": [
+        "ButtonGroupSeparator",
+        "ButtonGroupText",
+        "buttonGroupVariants"
+      ],
+      "missingDataSlots": [
+        "button-group-separator"
+      ],
+      "registered": true,
+      "divergenceCount": 3
+    }
+  ],
+  "counts": {
+    "inSync": 1,
+    "divergent": 11,
+    "nonRegistry": 0
+  },
+  "problems": []
+}
