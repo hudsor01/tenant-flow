@@ -107,21 +107,21 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/5 rounded pointer-events-none transition-all duration-500 blur-sm" />
 
 			{/* Icon with enhanced animations */}
-			<div className="mb-[var(--spacing-4)] relative z-10">
+			<div className="mb-4 relative z-10">
 				{/* feature-card-icon styles inlined */}
 				<div className="size-12 rounded bg-primary/10 text-primary flex-center group-hover/feature:bg-primary/20 group-hover/feature:scale-105 transition-all duration-300 group-hover/feature:shadow-lg group-hover/feature:shadow-primary/25">
-					<div className="size-[var(--spacing-6)] group-hover/feature:scale-110 transition-transform duration-300">
+					<div className="size-6 group-hover/feature:scale-110 transition-transform duration-300">
 						{icon}
 					</div>
 				</div>
 
 				{/* Floating accent dots */}
 				<div
-					className="absolute -top-1 -right-1 size-[var(--spacing-2)] rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse"
+					className="absolute -top-1 -right-1 size-2 rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse"
 					aria-hidden="true"
 				/>
 				<div
-					className="absolute -bottom-1 -left-1 w-[var(--spacing-1_5)] h-[var(--spacing-1_5)] rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150"
+					className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150"
 					aria-hidden="true"
 				/>
 			</div>

@@ -168,15 +168,15 @@ export function ChangePasswordDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[500px]" intent="edit">
 				<DialogHeader>
-					<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
-						<Lock className="size-[var(--spacing-5)]" />
+					<DialogTitle className="flex items-center gap-2">
+						<Lock className="size-5" />
 						Change Password
 					</DialogTitle>
 					<DialogDescription>
 						Enter your current password and choose a new secure password
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="space-y-[var(--spacing-6)]">
+				<form onSubmit={handleSubmit} className="space-y-6">
 					<DialogBody>
 						{/* Current Password */}
 						<Field>
@@ -187,7 +187,7 @@ export function ChangePasswordDialog({
 								<input
 									id={currentPasswordId}
 									type={showPasswords.current ? "text" : "password"}
-									className="input w-full pr-[var(--spacing-10)]"
+									className="input w-full pr-10"
 									value={formData.currentPassword}
 									onChange={(e) =>
 										handleChange("currentPassword", e.target.value)
@@ -199,7 +199,7 @@ export function ChangePasswordDialog({
 								<button
 									type="button"
 									onClick={() => togglePasswordVisibility("current")}
-									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									className="absolute right-3 top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
 									aria-label={
 										showPasswords.current
@@ -208,9 +208,9 @@ export function ChangePasswordDialog({
 									}
 								>
 									{showPasswords.current ? (
-										<EyeOff className="size-[var(--spacing-4)]" />
+										<EyeOff className="size-4" />
 									) : (
-										<Eye className="size-[var(--spacing-4)]" />
+										<Eye className="size-4" />
 									)}
 								</button>
 							</div>
@@ -223,7 +223,7 @@ export function ChangePasswordDialog({
 								<input
 									id={newPasswordId}
 									type={showPasswords.new ? "text" : "password"}
-									className="input w-full pr-[var(--spacing-10)]"
+									className="input w-full pr-10"
 									value={formData.newPassword}
 									onChange={(e) => handleChange("newPassword", e.target.value)}
 									disabled={changePassword.isPending}
@@ -233,7 +233,7 @@ export function ChangePasswordDialog({
 								<button
 									type="button"
 									onClick={() => togglePasswordVisibility("new")}
-									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									className="absolute right-3 top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
 									aria-label={
 										showPasswords.new
@@ -242,13 +242,13 @@ export function ChangePasswordDialog({
 									}
 								>
 									{showPasswords.new ? (
-										<EyeOff className="size-[var(--spacing-4)]" />
+										<EyeOff className="size-4" />
 									) : (
-										<Eye className="size-[var(--spacing-4)]" />
+										<Eye className="size-4" />
 									)}
 								</button>
 							</div>
-							<p className="text-caption text-muted-foreground mt-[var(--spacing-1)]">
+							<p className="text-caption text-muted-foreground mt-1">
 								Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 								characters with uppercase, lowercase, number, and special
 								character
@@ -264,7 +264,7 @@ export function ChangePasswordDialog({
 								<input
 									id={confirmPasswordId}
 									type={showPasswords.confirm ? "text" : "password"}
-									className="input w-full pr-[var(--spacing-10)]"
+									className="input w-full pr-10"
 									value={formData.confirmPassword}
 									onChange={(e) =>
 										handleChange("confirmPassword", e.target.value)
@@ -276,7 +276,7 @@ export function ChangePasswordDialog({
 								<button
 									type="button"
 									onClick={() => togglePasswordVisibility("confirm")}
-									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									className="absolute right-3 top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
 									aria-label={
 										showPasswords.confirm
@@ -285,9 +285,9 @@ export function ChangePasswordDialog({
 									}
 								>
 									{showPasswords.confirm ? (
-										<EyeOff className="size-[var(--spacing-4)]" />
+										<EyeOff className="size-4" />
 									) : (
-										<Eye className="size-[var(--spacing-4)]" />
+										<Eye className="size-4" />
 									)}
 								</button>
 							</div>
@@ -295,7 +295,7 @@ export function ChangePasswordDialog({
 
 						{/* Validation Errors */}
 						{validationErrors.length > 0 && (
-							<div className="rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-4">
+							<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
 								<p className="font-semibold text-destructive-text mb-2">
 									Please fix the following errors:
 								</p>
