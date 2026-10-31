@@ -1,0 +1,1703 @@
+{
+ "summary": {
+  "identical": 12,
+  "changed": 78,
+  "sizeChanged": 2,
+  "missingInA": 0,
+  "missingInB": 0
+ },
+ "files": [
+  {
+   "name": "owner/analytics_overview-dark-1280.png",
+   "sizeA": [
+    1280,
+    1599
+   ],
+   "sizeB": [
+    1280,
+    1599
+   ],
+   "changedPixels": 10138,
+   "changedRatio": 0.004953,
+   "bbox": {
+    "x": 280,
+    "y": 2,
+    "width": 928,
+    "height": 1336
+   }
+  },
+  {
+   "name": "owner/analytics_overview-dark-390.png",
+   "sizeA": [
+    390,
+    2487
+   ],
+   "sizeB": [
+    390,
+    2487
+   ],
+   "changedPixels": 2368,
+   "changedRatio": 0.002441,
+   "bbox": {
+    "x": 44,
+    "y": 2,
+    "width": 308,
+    "height": 2052
+   }
+  },
+  {
+   "name": "owner/analytics_overview-light-1280.png",
+   "sizeA": [
+    1280,
+    1599
+   ],
+   "sizeB": [
+    1280,
+    1599
+   ],
+   "changedPixels": 11029,
+   "changedRatio": 0.005389,
+   "bbox": {
+    "x": 280,
+    "y": 2,
+    "width": 942,
+    "height": 1336
+   }
+  },
+  {
+   "name": "owner/analytics_overview-light-390.png",
+   "sizeA": [
+    390,
+    2487
+   ],
+   "sizeB": [
+    390,
+    2487
+   ],
+   "changedPixels": 2379,
+   "changedRatio": 0.002453,
+   "bbox": {
+    "x": 40,
+    "y": 2,
+    "width": 305,
+    "height": 2224
+   }
+  },
+  {
+   "name": "owner/applications-dark-1280.png",
+   "sizeA": [
+    1280,
+    2960
+   ],
+   "sizeB": [
+    1280,
+    2960
+   ],
+   "changedPixels": 71087,
+   "changedRatio": 0.018762,
+   "bbox": {
+    "x": 323,
+    "y": 2,
+    "width": 900,
+    "height": 2654
+   }
+  },
+  {
+   "name": "owner/applications-dark-320.png",
+   "sizeA": [
+    320,
+    3233
+   ],
+   "sizeB": [
+    320,
+    3233
+   ],
+   "changedPixels": 71083,
+   "changedRatio": 0.068708,
+   "bbox": {
+    "x": 41,
+    "y": 2,
+    "width": 219,
+    "height": 2919
+   }
+  },
+  {
+   "name": "owner/applications-dark-375.png",
+   "sizeA": [
+    375,
+    3161
+   ],
+   "sizeB": [
+    375,
+    3161
+   ],
+   "changedPixels": 71083,
+   "changedRatio": 0.059967,
+   "bbox": {
+    "x": 41,
+    "y": 2,
+    "width": 270,
+    "height": 2863
+   }
+  },
+  {
+   "name": "owner/applications-dark-390.png",
+   "sizeA": [
+    390,
+    3141
+   ],
+   "sizeB": [
+    390,
+    3141
+   ],
+   "changedPixels": 71083,
+   "changedRatio": 0.058027,
+   "bbox": {
+    "x": 41,
+    "y": 2,
+    "width": 285,
+    "height": 2791
+   }
+  },
+  {
+   "name": "owner/applications-light-1280.png",
+   "sizeA": [
+    1280,
+    2960
+   ],
+   "sizeB": [
+    1280,
+    2960
+   ],
+   "changedPixels": 10269,
+   "changedRatio": 0.00271,
+   "bbox": {
+    "x": 321,
+    "y": 2,
+    "width": 903,
+    "height": 2657
+   }
+  },
+  {
+   "name": "owner/applications-light-320.png",
+   "sizeA": [
+    320,
+    3233
+   ],
+   "sizeB": [
+    320,
+    3233
+   ],
+   "changedPixels": 10268,
+   "changedRatio": 0.009925,
+   "bbox": {
+    "x": 40,
+    "y": 2,
+    "width": 220,
+    "height": 2922
+   }
+  },
+  {
+   "name": "owner/applications-light-375.png",
+   "sizeA": [
+    375,
+    3161
+   ],
+   "sizeB": [
+    375,
+    3161
+   ],
+   "changedPixels": 10268,
+   "changedRatio": 0.008662,
+   "bbox": {
+    "x": 40,
+    "y": 2,
+    "width": 271,
+    "height": 2866
+   }
+  },
+  {
+   "name": "owner/applications-light-390.png",
+   "sizeA": [
+    390,
+    3141
+   ],
+   "sizeB": [
+    390,
+    3141
+   ],
+   "changedPixels": 10268,
+   "changedRatio": 0.008382,
+   "bbox": {
+    "x": 40,
+    "y": 2,
+    "width": 286,
+    "height": 2794
+   }
+  },
+  {
+   "name": "owner/dashboard-dark-1280.png",
+   "sizeA": [
+    1280,
+    3060
+   ],
+   "sizeB": [
+    1280,
+    3060
+   ],
+   "changedPixels": 20460,
+   "changedRatio": 0.005224,
+   "bbox": {
+    "x": 357,
+    "y": 2,
+    "width": 874,
+    "height": 1666
+   }
+  },
+  {
+   "name": "owner/dashboard-dark-390.png",
+   "sizeA": [
+    390,
+    6335
+   ],
+   "sizeB": [
+    390,
+    6335
+   ],
+   "changedPixels": 12669,
+   "changedRatio": 0.005128,
+   "bbox": {
+    "x": 57,
+    "y": 2,
+    "width": 292,
+    "height": 4601
+   }
+  },
+  {
+   "name": "owner/dashboard-light-1280.png",
+   "sizeA": [
+    1280,
+    3060
+   ],
+   "sizeB": [
+    1280,
+    3060
+   ],
+   "changedPixels": 6320,
+   "changedRatio": 0.001614,
+   "bbox": {
+    "x": 275,
+    "y": 2,
+    "width": 958,
+    "height": 1684
+   }
+  },
+  {
+   "name": "owner/dashboard-light-390.png",
+   "sizeA": [
+    390,
+    6335
+   ],
+   "sizeB": [
+    390,
+    6335
+   ],
+   "changedPixels": 3847,
+   "changedRatio": 0.001557,
+   "bbox": {
+    "x": 43,
+    "y": 2,
+    "width": 308,
+    "height": 4731
+   }
+  },
+  {
+   "name": "owner/documents-dark-1280.png",
+   "sizeA": [
+    1280,
+    1314
+   ],
+   "sizeB": [
+    1280,
+    1314
+   ],
+   "changedPixels": 240,
+   "changedRatio": 0.000143,
+   "bbox": {
+    "x": 1191,
+    "y": 2,
+    "width": 17,
+    "height": 16
+   }
+  },
+  {
+   "name": "owner/documents-dark-390.png",
+   "sizeA": [
+    390,
+    1881
+   ],
+   "sizeB": [
+    390,
+    1881
+   ],
+   "changedPixels": 240,
+   "changedRatio": 0.000327,
+   "bbox": {
+    "x": 309,
+    "y": 2,
+    "width": 17,
+    "height": 16
+   }
+  },
+  {
+   "name": "owner/documents-light-1280.png",
+   "sizeA": [
+    1280,
+    1314
+   ],
+   "sizeB": [
+    1280,
+    1314
+   ],
+   "changedPixels": 240,
+   "changedRatio": 0.000143,
+   "bbox": {
+    "x": 1191,
+    "y": 2,
+    "width": 17,
+    "height": 16
+   }
+  },
+  {
+   "name": "owner/documents-light-390.png",
+   "sizeA": [
+    390,
+    1881
+   ],
+   "sizeB": [
+    390,
+    1881
+   ],
+   "changedPixels": 240,
+   "changedRatio": 0.000327,
+   "bbox": {
+    "x": 309,
+    "y": 2,
+    "width": 17,
+    "height": 16
+   }
+  },
+  {
+   "name": "owner/documents_lease-template-dark-1280.png",
+   "sizeA": [
+    1280,
+    6178
+   ],
+   "sizeB": [
+    1280,
+    6178
+   ],
+   "changedPixels": 5912,
+   "changedRatio": 0.000748,
+   "bbox": {
+    "x": 1089,
+    "y": 2,
+    "width": 141,
+    "height": 594
+   }
+  },
+  {
+   "name": "owner/documents_lease-template-dark-390.png",
+   "sizeA": [
+    390,
+    10609
+   ],
+   "sizeB": [
+    390,
+    10609
+   ],
+   "changedPixels": 5917,
+   "changedRatio": 0.00143,
+   "bbox": {
+    "x": 42,
+    "y": 2,
+    "width": 292,
+    "height": 1189
+   }
+  },
+  {
+   "name": "owner/documents_lease-template-light-1280.png",
+   "sizeA": [
+    1280,
+    6178
+   ],
+   "sizeB": [
+    1280,
+    6178
+   ],
+   "changedPixels": 965,
+   "changedRatio": 0.000122,
+   "bbox": {
+    "x": 1087,
+    "y": 2,
+    "width": 145,
+    "height": 597
+   }
+  },
+  {
+   "name": "owner/documents_lease-template-light-390.png",
+   "sizeA": [
+    390,
+    10609
+   ],
+   "sizeB": [
+    390,
+    10609
+   ],
+   "changedPixels": 965,
+   "changedRatio": 0.000233,
+   "bbox": {
+    "x": 40,
+    "y": 2,
+    "width": 294,
+    "height": 1192
+   }
+  },
+  {
+   "name": "owner/leases-dark-1280.png",
+   "sizeA": [
+    1280,
+    1169
+   ],
+   "sizeB": [
+    1280,
+    1169
+   ],
+   "changedPixels": 6431,
+   "changedRatio": 0.004298,
+   "bbox": {
+    "x": 927,
+    "y": 2,
+    "width": 281,
+    "height": 169
+   }
+  },
+  {
+   "name": "owner/leases-dark-390.png",
+   "sizeA": [
+    390,
+    1462
+   ],
+   "sizeB": [
+    390,
+    1462
+   ],
+   "changedPixels": 6417,
+   "changedRatio": 0.011254,
+   "bbox": {
+    "x": 41,
+    "y": 2,
+    "width": 285,
+    "height": 222
+   }
+  },
+  {
+   "name": "owner/leases-light-1280.png",
+   "sizeA": [
+    1280,
+    1169
+   ],
+   "sizeB": [
+    1280,
+    1169
+   ],
+   "changedPixels": 1016,
+   "changedRatio": 0.000679,
+   "bbox": {
+    "x": 925,
+    "y": 2,
+    "width": 283,
+    "height": 172
+   }
+  },
+  {
+   "name": "owner/leases-light-390.png",
+   "sizeA": [
+    390,
+    1462
+   ],
+   "sizeB": [
+    390,
+    1462
+   ],
+   "changedPixels": 1016,
+   "changedRatio": 0.001782,
+   "bbox": {
+    "x": 39,
+    "y": 2,
+    "width": 287,
+    "height": 225
+   }
+  },
+  {
+   "name": "owner/maintenance-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 284,
+   "changedRatio": 0.000277,
+   "bbox": {
+    "x": 747,
+    "y": 2,
+    "width": 461,
+    "height": 191
+   }
+  },
+  {
+   "name": "owner/maintenance-dark-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 240,
+   "changedRatio": 0.000729,
+   "bbox": {
+    "x": 309,
+    "y": 2,
+    "width": 17,
+    "height": 16
+   }
+  },
+  {
+   "name": "owner/maintenance-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 285,
+   "changedRatio": 0.000278,
+   "bbox": {
+    "x": 747,
+    "y": 2,
+    "width": 461,
+    "height": 192
+   }
+  },
+  {
+   "name": "owner/maintenance-light-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 240,
+   "changedRatio": 0.000729,
+   "bbox": {
+    "x": 309,
+    "y": 2,
+    "width": 17,
+    "height": 16
+   }
+  },
+  {
+   "name": "owner/properties-dark-1280.png",
+   "sizeA": [
+    1280,
+    1346
+   ],
+   "sizeB": [
+    1280,
+    1346
+   ],
+   "changedPixels": 5737,
+   "changedRatio": 0.00333,
+   "bbox": {
+    "x": 908,
+    "y": 2,
+    "width": 300,
+    "height": 269
+   }
+  },
+  {
+   "name": "owner/properties-dark-390.png",
+   "sizeA": [
+    390,
+    1733
+   ],
+   "sizeB": [
+    390,
+    1785
+   ],
+   "changedPixels": 208516,
+   "changedRatio": 0.299527,
+   "bbox": {
+    "x": 0,
+    "y": 2,
+    "width": 390,
+    "height": 1783
+   }
+  },
+  {
+   "name": "owner/properties-light-1280.png",
+   "sizeA": [
+    1280,
+    1346
+   ],
+   "sizeB": [
+    1280,
+    1346
+   ],
+   "changedPixels": 950,
+   "changedRatio": 0.000551,
+   "bbox": {
+    "x": 906,
+    "y": 2,
+    "width": 302,
+    "height": 272
+   }
+  },
+  {
+   "name": "owner/properties-light-390.png",
+   "sizeA": [
+    390,
+    1733
+   ],
+   "sizeB": [
+    390,
+    1785
+   ],
+   "changedPixels": 226687,
+   "changedRatio": 0.32563,
+   "bbox": {
+    "x": 0,
+    "y": 2,
+    "width": 390,
+    "height": 1783
+   }
+  },
+  {
+   "name": "owner/reports_cash-flow-dark-1280.png",
+   "sizeA": [
+    1280,
+    1188
+   ],
+   "sizeB": [
+    1280,
+    1188
+   ],
+   "changedPixels": 252,
+   "changedRatio": 0.000166,
+   "bbox": {
+    "x": 282,
+    "y": 2,
+    "width": 926,
+    "height": 553
+   }
+  },
+  {
+   "name": "owner/reports_cash-flow-dark-390.png",
+   "sizeA": [
+    390,
+    2132
+   ],
+   "sizeB": [
+    390,
+    2132
+   ],
+   "changedPixels": 840,
+   "changedRatio": 0.00101,
+   "bbox": {
+    "x": 42,
+    "y": 2,
+    "width": 303,
+    "height": 855
+   }
+  },
+  {
+   "name": "owner/reports_cash-flow-light-1280.png",
+   "sizeA": [
+    1280,
+    1188
+   ],
+   "sizeB": [
+    1280,
+    1188
+   ],
+   "changedPixels": 261,
+   "changedRatio": 0.000172,
+   "bbox": {
+    "x": 280,
+    "y": 2,
+    "width": 928,
+    "height": 941
+   }
+  },
+  {
+   "name": "owner/reports_cash-flow-light-390.png",
+   "sizeA": [
+    390,
+    2132
+   ],
+   "sizeB": [
+    390,
+    2132
+   ],
+   "changedPixels": 850,
+   "changedRatio": 0.001022,
+   "bbox": {
+    "x": 40,
+    "y": 2,
+    "width": 305,
+    "height": 1894
+   }
+  },
+  {
+   "name": "owner/settings-dark-1280.png",
+   "sizeA": [
+    1280,
+    1611
+   ],
+   "sizeB": [
+    1280,
+    1611
+   ],
+   "changedPixels": 12957,
+   "changedRatio": 0.006283,
+   "bbox": {
+    "x": 293,
+    "y": 2,
+    "width": 931,
+    "height": 1346
+   }
+  },
+  {
+   "name": "owner/settings-dark-390.png",
+   "sizeA": [
+    390,
+    2122
+   ],
+   "sizeB": [
+    390,
+    2122
+   ],
+   "changedPixels": 12955,
+   "changedRatio": 0.015654,
+   "bbox": {
+    "x": 58,
+    "y": 2,
+    "width": 268,
+    "height": 1873
+   }
+  },
+  {
+   "name": "owner/settings-light-1280.png",
+   "sizeA": [
+    1280,
+    1611
+   ],
+   "sizeB": [
+    1280,
+    1611
+   ],
+   "changedPixels": 1847,
+   "changedRatio": 0.000896,
+   "bbox": {
+    "x": 293,
+    "y": 2,
+    "width": 931,
+    "height": 1372
+   }
+  },
+  {
+   "name": "owner/settings-light-390.png",
+   "sizeA": [
+    390,
+    2122
+   ],
+   "sizeB": [
+    390,
+    2122
+   ],
+   "changedPixels": 1836,
+   "changedRatio": 0.002219,
+   "bbox": {
+    "x": 32,
+    "y": 2,
+    "width": 326,
+    "height": 1899
+   }
+  },
+  {
+   "name": "owner/tenants-dark-1280.png",
+   "sizeA": [
+    1280,
+    1132
+   ],
+   "sizeB": [
+    1280,
+    1132
+   ],
+   "changedPixels": 6622,
+   "changedRatio": 0.00457,
+   "bbox": {
+    "x": 478,
+    "y": 2,
+    "width": 730,
+    "height": 839
+   }
+  },
+  {
+   "name": "owner/tenants-dark-390.png",
+   "sizeA": [
+    390,
+    1427
+   ],
+   "sizeB": [
+    390,
+    1427
+   ],
+   "changedPixels": 6616,
+   "changedRatio": 0.011888,
+   "bbox": {
+    "x": 41,
+    "y": 2,
+    "width": 285,
+    "height": 222
+   }
+  },
+  {
+   "name": "owner/tenants-light-1280.png",
+   "sizeA": [
+    1280,
+    1132
+   ],
+   "sizeB": [
+    1280,
+    1132
+   ],
+   "changedPixels": 1052,
+   "changedRatio": 0.000726,
+   "bbox": {
+    "x": 280,
+    "y": 2,
+    "width": 928,
+    "height": 886
+   }
+  },
+  {
+   "name": "owner/tenants-light-390.png",
+   "sizeA": [
+    390,
+    1427
+   ],
+   "sizeB": [
+    390,
+    1427
+   ],
+   "changedPixels": 1047,
+   "changedRatio": 0.001881,
+   "bbox": {
+    "x": 39,
+    "y": 2,
+    "width": 287,
+    "height": 1189
+   }
+  },
+  {
+   "name": "public/auth_confirm-email-dark-1280.png",
+   "sizeA": [
+    1280,
+    1062
+   ],
+   "sizeB": [
+    1280,
+    1062
+   ],
+   "changedPixels": 8888,
+   "changedRatio": 0.006538,
+   "bbox": {
+    "x": 737,
+    "y": 822,
+    "width": 217,
+    "height": 42
+   }
+  },
+  {
+   "name": "public/auth_confirm-email-dark-390.png",
+   "sizeA": [
+    390,
+    1219
+   ],
+   "sizeB": [
+    390,
+    1219
+   ],
+   "changedPixels": 14049,
+   "changedRatio": 0.029551,
+   "bbox": {
+    "x": 25,
+    "y": 948,
+    "width": 340,
+    "height": 42
+   }
+  },
+  {
+   "name": "public/auth_confirm-email-light-1280.png",
+   "sizeA": [
+    1280,
+    1062
+   ],
+   "sizeB": [
+    1280,
+    1062
+   ],
+   "changedPixels": 1030,
+   "changedRatio": 0.000758,
+   "bbox": {
+    "x": 735,
+    "y": 821,
+    "width": 221,
+    "height": 46
+   }
+  },
+  {
+   "name": "public/auth_confirm-email-light-390.png",
+   "sizeA": [
+    390,
+    1219
+   ],
+   "sizeB": [
+    390,
+    1219
+   ],
+   "changedPixels": 1522,
+   "changedRatio": 0.003201,
+   "bbox": {
+    "x": 23,
+    "y": 947,
+    "width": 344,
+    "height": 46
+   }
+  },
+  {
+   "name": "public/auth_update-password-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 8854,
+   "changedRatio": 0.008646,
+   "bbox": {
+    "x": 966,
+    "y": 503,
+    "width": 217,
+    "height": 42
+   }
+  },
+  {
+   "name": "public/auth_update-password-dark-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 14001,
+   "changedRatio": 0.042536,
+   "bbox": {
+    "x": 25,
+    "y": 586,
+    "width": 340,
+    "height": 42
+   }
+  },
+  {
+   "name": "public/auth_update-password-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 1030,
+   "changedRatio": 0.001006,
+   "bbox": {
+    "x": 964,
+    "y": 502,
+    "width": 221,
+    "height": 46
+   }
+  },
+  {
+   "name": "public/auth_update-password-light-390.png",
+   "sizeA": [
+    390,
+    844
+   ],
+   "sizeB": [
+    390,
+    844
+   ],
+   "changedPixels": 1522,
+   "changedRatio": 0.004624,
+   "bbox": {
+    "x": 23,
+    "y": 585,
+    "width": 344,
+    "height": 46
+   }
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+   "sizeA": [
+    1280,
+    11887
+   ],
+   "sizeB": [
+    1280,
+    11887
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+   "sizeA": [
+    390,
+    20930
+   ],
+   "sizeB": [
+    390,
+    20930
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+   "sizeA": [
+    1280,
+    11887
+   ],
+   "sizeB": [
+    1280,
+    11887
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+   "sizeA": [
+    390,
+    20930
+   ],
+   "sizeB": [
+    390,
+    20930
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-dark-1280.png",
+   "sizeA": [
+    1280,
+    1312
+   ],
+   "sizeB": [
+    1280,
+    1312
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-dark-390.png",
+   "sizeA": [
+    390,
+    2299
+   ],
+   "sizeB": [
+    390,
+    2299
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-light-1280.png",
+   "sizeA": [
+    1280,
+    1312
+   ],
+   "sizeB": [
+    1280,
+    1312
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/contact-light-390.png",
+   "sizeA": [
+    390,
+    2299
+   ],
+   "sizeB": [
+    390,
+    2299
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/faq-dark-1280.png",
+   "sizeA": [
+    1280,
+    3654
+   ],
+   "sizeB": [
+    1280,
+    3654
+   ],
+   "changedPixels": 11326,
+   "changedRatio": 0.002422,
+   "bbox": {
+    "x": 184,
+    "y": 578,
+    "width": 630,
+    "height": 2620
+   }
+  },
+  {
+   "name": "public/faq-dark-390.png",
+   "sizeA": [
+    390,
+    4889
+   ],
+   "sizeB": [
+    390,
+    4889
+   ],
+   "changedPixels": 29690,
+   "changedRatio": 0.015571,
+   "bbox": {
+    "x": 23,
+    "y": 487,
+    "width": 344,
+    "height": 3702
+   }
+  },
+  {
+   "name": "public/faq-light-1280.png",
+   "sizeA": [
+    1280,
+    3654
+   ],
+   "sizeB": [
+    1280,
+    3654
+   ],
+   "changedPixels": 990,
+   "changedRatio": 0.000212,
+   "bbox": {
+    "x": 182,
+    "y": 577,
+    "width": 632,
+    "height": 2621
+   }
+  },
+  {
+   "name": "public/faq-light-390.png",
+   "sizeA": [
+    390,
+    4889
+   ],
+   "sizeB": [
+    390,
+    4889
+   ],
+   "changedPixels": 2270,
+   "changedRatio": 0.001191,
+   "bbox": {
+    "x": 23,
+    "y": 486,
+    "width": 344,
+    "height": 3703
+   }
+  },
+  {
+   "name": "public/help-dark-1280.png",
+   "sizeA": [
+    1280,
+    2730
+   ],
+   "sizeB": [
+    1280,
+    2730
+   ],
+   "changedPixels": 21276,
+   "changedRatio": 0.006089,
+   "bbox": {
+    "x": 656,
+    "y": 479,
+    "width": 574,
+    "height": 1795
+   }
+  },
+  {
+   "name": "public/help-dark-390.png",
+   "sizeA": [
+    390,
+    4040
+   ],
+   "sizeB": [
+    390,
+    4040
+   ],
+   "changedPixels": 29754,
+   "changedRatio": 0.018884,
+   "bbox": {
+    "x": 23,
+    "y": 626,
+    "width": 344,
+    "height": 2714
+   }
+  },
+  {
+   "name": "public/help-light-1280.png",
+   "sizeA": [
+    1280,
+    2730
+   ],
+   "sizeB": [
+    1280,
+    2730
+   ],
+   "changedPixels": 2244,
+   "changedRatio": 0.000642,
+   "bbox": {
+    "x": 654,
+    "y": 478,
+    "width": 578,
+    "height": 1796
+   }
+  },
+  {
+   "name": "public/help-light-390.png",
+   "sizeA": [
+    390,
+    4040
+   ],
+   "sizeB": [
+    390,
+    4040
+   ],
+   "changedPixels": 2646,
+   "changedRatio": 0.001679,
+   "bbox": {
+    "x": 23,
+    "y": 625,
+    "width": 344,
+    "height": 2715
+   }
+  },
+  {
+   "name": "public/login-dark-1280.png",
+   "sizeA": [
+    1280,
+    903
+   ],
+   "sizeB": [
+    1280,
+    903
+   ],
+   "changedPixels": 14539,
+   "changedRatio": 0.012579,
+   "bbox": {
+    "x": 770,
+    "y": 716,
+    "width": 382,
+    "height": 42
+   }
+  },
+  {
+   "name": "public/login-dark-390.png",
+   "sizeA": [
+    390,
+    870
+   ],
+   "sizeB": [
+    390,
+    870
+   ],
+   "changedPixels": 12859,
+   "changedRatio": 0.037899,
+   "bbox": {
+    "x": 26,
+    "y": 707,
+    "width": 340,
+    "height": 42
+   }
+  },
+  {
+   "name": "public/login-light-1280.png",
+   "sizeA": [
+    1280,
+    903
+   ],
+   "sizeB": [
+    1280,
+    903
+   ],
+   "changedPixels": 834,
+   "changedRatio": 0.000722,
+   "bbox": {
+    "x": 767,
+    "y": 722,
+    "width": 386,
+    "height": 38
+   }
+  },
+  {
+   "name": "public/login-light-390.png",
+   "sizeA": [
+    390,
+    870
+   ],
+   "sizeB": [
+    390,
+    870
+   ],
+   "changedPixels": 750,
+   "changedRatio": 0.00221,
+   "bbox": {
+    "x": 23,
+    "y": 713,
+    "width": 344,
+    "height": 38
+   }
+  },
+  {
+   "name": "public/pricing-dark-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 23441,
+   "changedRatio": 0.004521,
+   "bbox": {
+    "x": 106,
+    "y": 992,
+    "width": 1068,
+    "height": 2387
+   }
+  },
+  {
+   "name": "public/pricing-dark-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 31969,
+   "changedRatio": 0.011697,
+   "bbox": {
+    "x": 66,
+    "y": 1066,
+    "width": 258,
+    "height": 4591
+   }
+  },
+  {
+   "name": "public/pricing-light-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 1751,
+   "changedRatio": 0.000338,
+   "bbox": {
+    "x": 104,
+    "y": 994,
+    "width": 1072,
+    "height": 2388
+   }
+  },
+  {
+   "name": "public/pricing-light-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 2371,
+   "changedRatio": 0.000868,
+   "bbox": {
+    "x": 64,
+    "y": 1068,
+    "width": 262,
+    "height": 4592
+   }
+  },
+  {
+   "name": "public/privacy-dark-1280.png",
+   "sizeA": [
+    1280,
+    6383
+   ],
+   "sizeB": [
+    1280,
+    6383
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/privacy-dark-390.png",
+   "sizeA": [
+    390,
+    9761
+   ],
+   "sizeB": [
+    390,
+    9761
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/privacy-light-1280.png",
+   "sizeA": [
+    1280,
+    6383
+   ],
+   "sizeB": [
+    1280,
+    6383
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/privacy-light-390.png",
+   "sizeA": [
+    390,
+    9761
+   ],
+   "sizeB": [
+    390,
+    9761
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "public/root-dark-1280.png",
+   "sizeA": [
+    1280,
+    6029
+   ],
+   "sizeB": [
+    1280,
+    6029
+   ],
+   "changedPixels": 31842,
+   "changedRatio": 0.004126,
+   "bbox": {
+    "x": 34,
+    "y": 586,
+    "width": 1160,
+    "height": 4760
+   }
+  },
+  {
+   "name": "public/root-dark-390.png",
+   "sizeA": [
+    390,
+    9757
+   ],
+   "sizeB": [
+    390,
+    9757
+   ],
+   "changedPixels": 66209,
+   "changedRatio": 0.017399,
+   "bbox": {
+    "x": 24,
+    "y": 481,
+    "width": 342,
+    "height": 8140
+   }
+  },
+  {
+   "name": "public/root-light-1280.png",
+   "sizeA": [
+    1280,
+    6029
+   ],
+   "sizeB": [
+    1280,
+    6029
+   ],
+   "changedPixels": 16635,
+   "changedRatio": 0.002156,
+   "bbox": {
+    "x": 32,
+    "y": 585,
+    "width": 1213,
+    "height": 4785
+   }
+  },
+  {
+   "name": "public/root-light-390.png",
+   "sizeA": [
+    390,
+    9757
+   ],
+   "sizeB": [
+    390,
+    9757
+   ],
+   "changedPixels": 39273,
+   "changedRatio": 0.010321,
+   "bbox": {
+    "x": 23,
+    "y": 480,
+    "width": 344,
+    "height": 8143
+   }
+  },
+  {
+   "name": "public/signup-dark-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 23441,
+   "changedRatio": 0.004521,
+   "bbox": {
+    "x": 106,
+    "y": 992,
+    "width": 1068,
+    "height": 2387
+   }
+  },
+  {
+   "name": "public/signup-dark-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 31969,
+   "changedRatio": 0.011697,
+   "bbox": {
+    "x": 66,
+    "y": 1066,
+    "width": 258,
+    "height": 4591
+   }
+  },
+  {
+   "name": "public/signup-light-1280.png",
+   "sizeA": [
+    1280,
+    4051
+   ],
+   "sizeB": [
+    1280,
+    4051
+   ],
+   "changedPixels": 1751,
+   "changedRatio": 0.000338,
+   "bbox": {
+    "x": 104,
+    "y": 994,
+    "width": 1072,
+    "height": 2388
+   }
+  },
+  {
+   "name": "public/signup-light-390.png",
+   "sizeA": [
+    390,
+    7008
+   ],
+   "sizeB": [
+    390,
+    7008
+   ],
+   "changedPixels": 2393,
+   "changedRatio": 0.000876,
+   "bbox": {
+    "x": 55,
+    "y": 1068,
+    "width": 271,
+    "height": 4592
+   }
+  }
+ ],
+ "missing": {
+  "inA": [],
+  "inB": []
+ }
+}

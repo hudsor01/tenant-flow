@@ -1,0 +1,627 @@
+{
+  "before": {
+    "tree": "HEAD e789b15b1 (pre-fix)",
+    "rows": [
+      {
+        "theme": "light",
+        "route": "/properties",
+        "control": "Bulk Import",
+        "text": "Bulk Import",
+        "svg": "lucide-file-up",
+        "svgClass": "lucide lucide-file-up size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "light",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-4 h-4",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "light",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors",
+        "width": 0,
+        "height": 0,
+        "declared": 20,
+        "isButton": false,
+        "hostTag": "A",
+        "hostRole": null,
+        "visible": false,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "light",
+        "route": "/reports/cash-flow",
+        "control": "Export",
+        "text": "Export",
+        "svg": "lucide-download",
+        "svgClass": "lucide lucide-download w-4 h-4",
+        "width": 4.5,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "light",
+        "route": "/analytics/overview",
+        "control": "This Month",
+        "text": "This Month",
+        "svg": "lucide-calendar",
+        "svgClass": "lucide lucide-calendar size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "light",
+        "route": "/tenants",
+        "control": "Property",
+        "text": "Property",
+        "svg": "lucide-chevrons-up-down",
+        "svgClass": "lucide lucide-chevrons-up-down h-4 w-4 opacity-50",
+        "width": 2.4,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "dark",
+        "route": "/properties",
+        "control": "Bulk Import",
+        "text": "Bulk Import",
+        "svg": "lucide-file-up",
+        "svgClass": "lucide lucide-file-up size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "dark",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-4 h-4",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "dark",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors",
+        "width": 0,
+        "height": 0,
+        "declared": 20,
+        "isButton": false,
+        "hostTag": "A",
+        "hostRole": null,
+        "visible": false,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "dark",
+        "route": "/reports/cash-flow",
+        "control": "Export",
+        "text": "Export",
+        "svg": "lucide-download",
+        "svgClass": "lucide lucide-download w-4 h-4",
+        "width": 4.5,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "dark",
+        "route": "/analytics/overview",
+        "control": "This Month",
+        "text": "This Month",
+        "svg": "lucide-calendar",
+        "svgClass": "lucide lucide-calendar size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      },
+      {
+        "theme": "dark",
+        "route": "/tenants",
+        "control": "Property",
+        "text": "Property",
+        "svg": "lucide-chevrons-up-down",
+        "svgClass": "lucide lucide-chevrons-up-down h-4 w-4 opacity-50",
+        "width": 2.4,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex"
+      }
+    ]
+  },
+  "after": {
+    "tree": "HEAD 8361a45d8",
+    "rows": [
+      {
+        "theme": "light",
+        "route": "/properties",
+        "control": "Bulk Import",
+        "text": "Bulk Import",
+        "svg": "lucide-file-up",
+        "svgClass": "lucide lucide-file-up size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 81,
+          "y": 286.8,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 64,
+          "y": 272.8,
+          "w": 138.9,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 64,
+          "y": 272.8,
+          "w": 262,
+          "h": 96
+        }
+      },
+      {
+        "theme": "light",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-4 h-4",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 80,
+          "y": 338.8,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 64,
+          "y": 324.8,
+          "w": 138.4,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 64,
+          "y": 272.8,
+          "w": 262,
+          "h": 96
+        }
+      },
+      {
+        "theme": "light",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors",
+        "width": 0,
+        "height": 0,
+        "declared": 20,
+        "isButton": false,
+        "hostTag": "A",
+        "hostRole": null,
+        "visible": false,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "hostRect": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "theme": "light",
+        "route": "/reports/cash-flow",
+        "control": "Export",
+        "text": "Export",
+        "svg": "lucide-download",
+        "svgClass": "lucide lucide-download w-4 h-4 shrink-0",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 274,
+          "y": 199,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 257,
+          "y": 184,
+          "w": 93,
+          "h": 46
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 40,
+          "y": 184,
+          "w": 310,
+          "h": 46
+        }
+      },
+      {
+        "theme": "light",
+        "route": "/analytics/overview",
+        "control": "This Month",
+        "text": "This Month",
+        "svg": "lucide-calendar",
+        "svgClass": "lucide lucide-calendar size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 210,
+          "y": 2038.7,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 198,
+          "y": 2024.7,
+          "w": 127,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 65,
+          "y": 1997.1,
+          "w": 260,
+          "h": 99.2
+        }
+      },
+      {
+        "theme": "light",
+        "route": "/tenants",
+        "control": "Property",
+        "text": "Property",
+        "svg": "lucide-chevrons-up-down",
+        "svgClass": "lucide lucide-chevrons-up-down h-4 w-4 opacity-50 shrink-0",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 514.4,
+          "y": 774.8,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 448.9,
+          "y": 760.8,
+          "w": 67.9,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "TR",
+          "x": 41,
+          "y": 752.8,
+          "w": 827.8,
+          "h": 61
+        }
+      },
+      {
+        "theme": "dark",
+        "route": "/properties",
+        "control": "Bulk Import",
+        "text": "Bulk Import",
+        "svg": "lucide-file-up",
+        "svgClass": "lucide lucide-file-up size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 81,
+          "y": 286.8,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 64,
+          "y": 272.8,
+          "w": 138.9,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 64,
+          "y": 272.8,
+          "w": 262,
+          "h": 96
+        }
+      },
+      {
+        "theme": "dark",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-4 h-4",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 80,
+          "y": 338.8,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 64,
+          "y": 324.8,
+          "w": 138.4,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 64,
+          "y": 272.8,
+          "w": 262,
+          "h": 96
+        }
+      },
+      {
+        "theme": "dark",
+        "route": "/properties",
+        "control": "Add Property",
+        "text": "Add Property",
+        "svg": "lucide-plus",
+        "svgClass": "lucide lucide-plus w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors",
+        "width": 0,
+        "height": 0,
+        "declared": 20,
+        "isButton": false,
+        "hostTag": "A",
+        "hostRole": null,
+        "visible": false,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "hostRect": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      },
+      {
+        "theme": "dark",
+        "route": "/reports/cash-flow",
+        "control": "Export",
+        "text": "Export",
+        "svg": "lucide-download",
+        "svgClass": "lucide lucide-download w-4 h-4 shrink-0",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 274,
+          "y": 199,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 257,
+          "y": 184,
+          "w": 93,
+          "h": 46
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 40,
+          "y": 184,
+          "w": 310,
+          "h": 46
+        }
+      },
+      {
+        "theme": "dark",
+        "route": "/analytics/overview",
+        "control": "This Month",
+        "text": "This Month",
+        "svg": "lucide-calendar",
+        "svgClass": "lucide lucide-calendar size-4 mr-2",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": true,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 210,
+          "y": 2038.7,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 198,
+          "y": 2024.7,
+          "w": 127,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "DIV",
+          "x": 65,
+          "y": 1997.1,
+          "w": 260,
+          "h": 99.2
+        }
+      },
+      {
+        "theme": "dark",
+        "route": "/tenants",
+        "control": "Property",
+        "text": "Property",
+        "svg": "lucide-chevrons-up-down",
+        "svgClass": "lucide lucide-chevrons-up-down h-4 w-4 opacity-50 shrink-0",
+        "width": 16,
+        "height": 16,
+        "declared": 16,
+        "isButton": false,
+        "hostTag": "BUTTON",
+        "hostRole": null,
+        "visible": true,
+        "hostDisplay": "flex",
+        "svgRect": {
+          "x": 514.4,
+          "y": 774.8,
+          "w": 16,
+          "h": 16
+        },
+        "hostRect": {
+          "x": 448.9,
+          "y": 760.8,
+          "w": 67.9,
+          "h": 44
+        },
+        "rowRect": {
+          "tag": "TR",
+          "x": 41,
+          "y": 752.8,
+          "w": 827.8,
+          "h": 61
+        }
+      }
+    ]
+  },
+  "history": {
+    "source": ".planning/tailwind-shadcn/audit/w1/icon-census-390-{basenow,w1}.json"
+  }
+}
