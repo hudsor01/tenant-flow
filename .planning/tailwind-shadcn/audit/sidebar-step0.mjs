@@ -838,8 +838,153 @@ async function runClaims(browser) {
 }
 
 // ---------- shots (66.2-30 Task 3) ----------
-async function runShots() {
-	fail("shots mode is not implemented yet", 1);
+// The wave-6 sidebar before-set. Each state has a fixed route. "park" = the pointer moved to
+// (innerWidth - 2, innerHeight - 2) so no row is hovered; every state parks after its interaction
+// except the two hover states and row-focus (parked before its Tab presses).
+const park = async (page) => {
+	const vp = page.viewportSize();
+	await page.mouse.move(vp.width - 2, vp.height - 2);
+};
+const DESKTOP_STATES = [
+	["rail-expanded", "/dashboard", async (p) => park(p)],
+	["current-row", "/properties", async (p) => park(p)],
+	["current-row-hover", "/properties", async (p) => p.locator(`${ASIDE} a[href="/properties"]`).hover()],
+	["row-hover", "/properties", async (p) => p.locator(`${ASIDE} a[href="/tenants"]`).hover()],
+	[
+		"row-focus",
+		"/properties",
+		async (p) => {
+			await park(p);
+			await p.evaluate(() => {
+				if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+			});
+			for (let i = 0; i < 60; i++) {
+				await p.keyboard.press("Tab");
+				if (await p.evaluate((sel) => document.activeElement?.matches(`${sel} a[href="/tenants"]`) === true, ASIDE)) return;
+			}
+			throw new Error('60 Tab presses never focused aside a[href="/tenants"]');
+		},
+	],
+	["reports-default", "/reports/cash-flow", async (p) => park(p)],
+	[
+		"reports-open",
+		"/reports/cash-flow",
+		async (p) => {
+			await p.locator(`${ASIDE} button[aria-controls="nav-section-Reports"]`).click();
+			await park(p);
+		},
+	],
+	["tour-step5", "/dashboard", null],
+];
+const SHEET_STATES = [
+	["closed", "/dashboard", async (p) => park(p)],
+	[
+		"sheet-open-default",
+		"/reports/cash-flow",
+		async (p) => {
+			await openDrawer(p);
+			await park(p);
+		},
+	],
+	[
+		"sheet-open-reports",
+		"/reports/cash-flow",
+		async (p) => {
+			await openDrawer(p);
+			await p.locator(`${ASIDE} button[aria-controls="nav-section-Reports"]`).click();
+			await park(p);
+		},
+	],
+	[
+		"palette-over-sheet",
+		"/reports/cash-flow",
+		async (p) => {
+			await openDrawer(p);
+			await p.locator(`${ASIDE} button`, { hasText: "Search pages and actions" }).click();
+			await p.getByRole("dialog", { name: PALETTE }).waitFor({ state: "visible", timeout: 10000 });
+			await park(p);
+		},
+	],
+	["tour-step5", "/dashboard", null],
+];
+const TOUR_INTERACTION = async (p) => {
+	await advanceTourToStep5(p);
+	await p.getByText(STEP5_TITLE, { exact: true }).waitFor({ state: "attached", timeout: 5000 });
+	await park(p);
+};
+
+async function shoot(page, consoleErrors, { outDir, state, route, theme, width, interaction }) {
+	const file = `sidebar/${state}-${theme}-${width}.png`;
+	const entry = { set: "sidebar", state, route, theme, width, file, sha256: null, status: null, finalUrl: null, themeApplied: null, consoleErrors: [] };
+	consoleErrors.length = 0;
+	try {
+		const res = await page.goto(`${BASE}${route}`, { waitUntil: "load", timeout: 60000 });
+		entry.status = res ? res.status() : null;
+		await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
+		await settle(page);
+		await interaction(page);
+		await page.evaluate(async () => {
+			await document.fonts.ready;
+		});
+		await page.waitForTimeout(500);
+		const abs = path.join(outDir, file);
+		fs.mkdirSync(path.dirname(abs), { recursive: true });
+		await page.screenshot({ path: abs, fullPage: false, animations: "disabled", caret: "hide" });
+		entry.sha256 = crypto.createHash("sha256").update(fs.readFileSync(abs)).digest("hex");
+		entry.finalUrl = page.url();
+		entry.themeApplied = await page.evaluate((t) => document.documentElement.classList.contains("dark") === (t === "dark"), theme);
+	} catch (e) {
+		entry.error = trunc(e?.message ?? e);
+	}
+	entry.consoleErrors = [...consoleErrors];
+	console.error(`capture ${file}: ${entry.status ?? "error"}${entry.error ? ` (${entry.error})` : ""}${entry.themeApplied === false ? " (theme not applied)" : ""}`);
+	return entry;
+}
+
+async function runShots(browser, args) {
+	const outDir = path.join(OUT, `screens-${args.label}`);
+	fs.mkdirSync(outDir, { recursive: true });
+	const manifest = {
+		label: args.label,
+		baseUrl: BASE,
+		startedServer: Boolean(server),
+		head: git("rev-parse", "HEAD"),
+		captures: [],
+		notApplicable: [
+			{ state: "collapsed", reason: "new behavior, VD-29" },
+			{ state: "rail-hover", reason: "new behavior, VD-29" },
+		],
+		pointer: "parked at (innerWidth - 2, innerHeight - 2) after each interaction, except current-row-hover, row-hover (hovered) and row-focus (parked before Tab)",
+	};
+	for (const theme of ["light", "dark"]) {
+		for (const width of [375, 900, 1024, 1280]) {
+			const states = width >= 1024 ? DESKTOP_STATES : SHEET_STATES;
+			const seeded = await newOwnerPage(browser, width, { theme, tourSeed: true });
+			try {
+				for (const [state, route, interaction] of states) {
+					if (!interaction) continue;
+					manifest.captures.push(await shoot(seeded.page, seeded.consoleErrors, { outDir, state, route, theme, width, interaction }));
+				}
+			} finally {
+				await seeded.ctx.close();
+			}
+			const tour = await newOwnerPage(browser, width, { theme, tourSeed: false });
+			try {
+				manifest.captures.push(await shoot(tour.page, tour.consoleErrors, { outDir, state: "tour-step5", route: "/dashboard", theme, width, interaction: TOUR_INTERACTION }));
+			} finally {
+				await tour.ctx.close();
+			}
+		}
+	}
+	manifest.writes = finalizeWrites();
+	fs.writeFileSync(path.join(outDir, "manifest.json"), `${JSON.stringify(manifest, null, 1)}\n`);
+	const failed = manifest.captures.filter((c) => c.error || c.status !== 200 || c.themeApplied !== true);
+	console.error(`sidebar-step0: ${manifest.captures.length} captures; manifest at ${path.join(outDir, "manifest.json")}`);
+	if (failed.length) {
+		console.error(`sidebar-step0: failed states: ${failed.map((c) => c.file).join(", ")}`);
+		return 1;
+	}
+	return 0;
 }
 
 // ---------- main ----------
