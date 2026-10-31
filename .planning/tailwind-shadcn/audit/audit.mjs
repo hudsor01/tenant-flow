@@ -2,7 +2,8 @@
 // $TW_AUDIT_OUT (default: <tmpdir>/tenantflow-tw-audit), never to the repo.
 // Run from the repo root:  node .planning/tailwind-shadcn/audit/audit.mjs
 // Every count it prints is a progress metric in .planning/tailwind-shadcn/PLAN.md.
-import { execFileSync } from "node:child_process";
+// scanned-files.txt lists every file the class scan read, repo-relative and sorted (M1).
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -37,6 +38,7 @@ const candidates = scanner.scan();
 const compiled = compiler.build(candidates);
 fs.writeFileSync(path.join(OUT, "compiled.css"), compiled);
 report.scannedFiles = scanner.files.length;
+fs.writeFileSync(path.join(OUT, "scanned-files.txt"), scanner.files.map((f) => path.relative(ROOT, f)).sort().join("\n"));
 report.explicitSourcesMatchingNothing = compiler.sources
 	.filter((s) => !s.negated)
 	.filter((s) => new Scanner({ sources: [s] }).scan() && new Scanner({ sources: [s] }).files.length === 0)
@@ -168,7 +170,10 @@ report.twMerge = {
 // 7. Other stylesheets (compiled separately, e.g. with @reference): dead classes and
 // var() references that the globals.css build does not define.
 const definedInCompiled = new Set([...compiled.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
-const otherSheets = execFileSync("rg", ["--files", "src", "-g", "*.css", "-g", "!src/app/globals.css"], { cwd: ROOT, encoding: "utf8" }).trim().split("\n").filter(Boolean);
+// rg exits 1 when it lists no file: that is an empty list, not an error (M9).
+const sheetList = spawnSync("rg", ["--files", "src", "-g", "*.css", "-g", "!src/app/globals.css"], { cwd: ROOT, encoding: "utf8" });
+if (sheetList.status !== 0 && sheetList.status !== 1) throw new Error(`rg --files exited with status ${sheetList.status}: ${sheetList.stderr}`);
+const otherSheets = sheetList.status === 1 ? [] : sheetList.stdout.trim().split("\n").filter(Boolean);
 report.otherStylesheets = {};
 for (const sheet of otherSheets) {
 	const sheetRoot = postcss.parse(fs.readFileSync(path.join(ROOT, sheet), "utf8"));
