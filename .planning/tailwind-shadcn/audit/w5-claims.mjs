@@ -807,7 +807,8 @@ const SOURCE_CHECKS = {
 		c.add('0 buttonVariants({ variant: "destructive" }) outside ui/', bv.length === 0, [], bv);
 	},
 	N1(c) {
-		contains(c, "src/components/auth/update-password-form.tsx", "bg-primary/10");
+		const file = "src/components/auth/update-password-form.tsx";
+		contains(c, file, "bg-primary/10");
 	},
 	N3(c) {
 		const css = readHead("src/app/globals.css");
