@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "#components/ui/tooltip";
 import { mutationKeys } from "#hooks/api/mutation-keys";
 import { CategoriesSettings } from "../categories-settings";
 
@@ -187,7 +188,7 @@ function renderSettings(): ReturnType<typeof render> & {
 			<CategoriesSettings />
 		</QueryClientProvider>
 	);
-	const result = render(ui);
+	const result = render(ui, { wrapper: TooltipProvider });
 	return { ...result, queryClient };
 }
 

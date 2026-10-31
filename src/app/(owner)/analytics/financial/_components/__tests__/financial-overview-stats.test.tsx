@@ -10,6 +10,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FinancialOverviewStats } from "#app/(owner)/analytics/financial/_components/financial-overview-stats";
+import { TooltipProvider } from "#components/ui/tooltip";
 import type { FinancialMetricSummary } from "#types/analytics";
 
 const metrics: FinancialMetricSummary = {
@@ -29,14 +30,18 @@ function labels(container: HTMLElement): string[] {
 
 describe("FinancialOverviewStats", () => {
 	it("labels the lease-derived figure Scheduled and drops the Revenue label", () => {
-		const { container } = render(<FinancialOverviewStats metrics={metrics} />);
+		const { container } = render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
 
 		expect(labels(container)).toContain("Scheduled");
 		expect(labels(container).join(" ")).not.toContain("Revenue");
 	});
 
 	it("shows Collected as a separate labeled figure", () => {
-		const { container } = render(<FinancialOverviewStats metrics={metrics} />);
+		const { container } = render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
 
 		expect(labels(container)).toContain("Collected");
 		// Two distinct cards, not one merged figure.
@@ -46,7 +51,9 @@ describe("FinancialOverviewStats", () => {
 	});
 
 	it("gives each of the two figures its own tooltip trigger", () => {
-		render(<FinancialOverviewStats metrics={metrics} />);
+		render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
 
 		expect(
 			screen.getByRole("button", { name: /Scheduled/ }),
@@ -57,7 +64,9 @@ describe("FinancialOverviewStats", () => {
 	});
 
 	it("never renders scheduled + collected as a single summed number", () => {
-		const { container } = render(<FinancialOverviewStats metrics={metrics} />);
+		const { container } = render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
 
 		const summed = String(metrics.totalRevenue + metrics.totalCollected);
 		expect(container.textContent).not.toContain(summed);
@@ -65,7 +74,9 @@ describe("FinancialOverviewStats", () => {
 	});
 
 	it("keeps Net Income and Cash Flow on the scheduled basis", () => {
-		const { container } = render(<FinancialOverviewStats metrics={metrics} />);
+		const { container } = render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
 
 		expect(labels(container)).toContain("Net Income");
 		expect(labels(container)).toContain("Cash Flow");
