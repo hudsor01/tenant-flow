@@ -21,13 +21,14 @@ import { boxesOf, polledRead, widthOf } from "../../lib/measure";
  * class checks for precisely that reason:
  *   - E-18 catches the unscoped base rule
  *     `a:not([role="button"]):not(.button):not([class*="button"])`
- *     (`globals.css:504`) tinting a whole-row link accent-blue and drawing a
+ *     tinting a whole-row link accent-blue and drawing a
  *     hover underline across it. Phase 65 shipped that. A test asserting
  *     `no-underline text-foreground` are PRESENT passes against the broken build
  *     too, because the classes were present there as well — the question is only
  *     ever whether they won the cascade.
  *   - E-20 catches the unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
- *     and `li { margin-bottom: 0.25rem }` at `globals.css:517-524`. Asserting
+ *     and `li { margin-bottom: 0.25rem }` (the `@layer base` `ul, ol` / `li`
+ *     rules in globals.css). Asserting
  *     `pl-0` and `[&>li]:mb-0` are in the class string cannot tell you whether
  *     they beat a base rule; reading the computed value can. It reads the list's
  *     OWN `margin-bottom` as well, which the first version of this test did not:

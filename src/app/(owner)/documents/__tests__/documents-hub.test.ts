@@ -219,7 +219,8 @@ describe("phase anchors opt out of the global underline", () => {
 	});
 });
 
-// globals.css:499 gives every bare `<p>` a 1rem bottom margin in @layer base.
+// The `@layer base` `p` rule in globals.css gives every bare `<p>` a 1rem
+// bottom margin.
 // Whether that is a defect depends entirely on the parent's box, so this is
 // asserted per element rather than blanket-applied:
 //

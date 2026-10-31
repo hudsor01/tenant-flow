@@ -617,8 +617,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 
 		const list = container.querySelector("ul");
 		const listClasses = list?.getAttribute("class")?.split(/\s+/) ?? [];
-		// globals.css:517-524 — `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
-		// and `li { margin-bottom: 0.25rem }`.
+		// The `@layer base` `ul, ol` / `li` rules in globals.css —
+		// `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+		// `li { margin-bottom: 0.25rem }`.
 		expect(listClasses).toContain("pl-0");
 		expect(listClasses).toContain("mt-0");
 		// `mb-0` is the other half of `margin: 1rem 0`. The computed-value test
@@ -630,7 +631,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 		// rhythm to zero (§D-2).
 		expect(listClasses).toContain("gap-2");
 
-		// globals.css:504 — the base `a` rule sets `color: var(--color-primary)`
+		// The `@layer base`
+		// `a:not([role="button"]):not(.button):not([class*="button"])` rule in
+		// globals.css sets `color: var(--color-primary)`
 		// plus an underline that becomes visible on hover. Either class missing is
 		// a visible defect: an accent-blue row, or a hover underline spanning it.
 		const link = screen.getAllByRole("link")[0];

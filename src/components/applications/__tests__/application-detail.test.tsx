@@ -570,9 +570,9 @@ describe("ApplicationDetail — the record, in the applicant's own order", () =>
  * THE BREADCRUMB IS A LIST, AND IT IS THE ONE THIS PHASE FORGOT.
  *
  * `BreadcrumbList` renders a bare `<ol>` whose only classes are layout
- * (`ui/breadcrumb.tsx:11-21`), so all three unscoped `@layer base` declarations
- * at `globals.css:517-524` landed on it: `padding-left: 1.5rem`,
- * `margin-top: 1rem` and — from the same `margin: 1rem 0` shorthand —
+ * (`ui/breadcrumb.tsx:11-21`), so all three unscoped declarations of the
+ * `@layer base` `ul, ol` / `li` rules in globals.css landed on it:
+ * `padding-left: 1.5rem`, `margin-top: 1rem` and — from the same `margin: 1rem 0` shorthand —
  * `margin-bottom: 1rem`, plus `margin-bottom: 0.25rem` on each `<li>`.
  *
  * The page shell is `p-6 lg:p-8 … flex flex-col gap-6` and the breadcrumb is its

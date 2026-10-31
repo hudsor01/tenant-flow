@@ -670,9 +670,9 @@ function OwnerNotes({
  *
  * THE NEUTRALIZERS ARE NOT OPTIONAL HERE EITHER, AND THIS IS THE LIST THE PHASE
  * FORGOT. `BreadcrumbList` renders a bare `<ol>` whose own classes are all
- * layout (`ui/breadcrumb.tsx:11-21`), so every one of globals.css:517-524's
- * unscoped `@layer base` declarations reached it: `padding-left: 1.5rem`,
- * `margin-top: 1rem`, the `margin-bottom: 1rem` half of the same
+ * layout (`ui/breadcrumb.tsx:11-21`), so every unscoped declaration of the
+ * `@layer base` `ul, ol` / `li` rules in globals.css reached it:
+ * `padding-left: 1.5rem`, `margin-top: 1rem`, the `margin-bottom: 1rem` half of the same
  * `margin: 1rem 0` shorthand, and `margin-bottom: 0.25rem` on each crumb.
  *
  * The page shell below is `p-6 lg:p-8 … flex flex-col gap-6` and this is its

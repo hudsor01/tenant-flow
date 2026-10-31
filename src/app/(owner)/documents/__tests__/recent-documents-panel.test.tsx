@@ -223,16 +223,17 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		expect(screen.queryByText("No documents yet")).not.toBeInTheDocument();
 	});
 
-	// Perfect-PR cycle 1 (second frozen state). globals.css:517-524 declares
-	// unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+	// Perfect-PR cycle 1 (second frozen state). The `@layer base` `ul, ol` /
+	// `li` rules in globals.css declare unscoped
+	// `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 	// `li { margin-bottom: 0.25rem }` in @layer base. Tailwind v4 preflight resets
 	// only `list-style` for lists and ships no universal margin/padding reset, so
 	// that base rule wins and indents the rows 24px out of alignment with the
 	// panel's own label and footer link. jsdom loads no stylesheet, so this pins
 	// the neutralizing classes rather than a measured offset.
-	// Perfect-PR cycle 2. globals.css:499-502 gives every bare `<p>` a 1rem bottom
-	// margin in @layer base — the third rule from that block to leak into this
-	// panel, after `ul,ol` and `li`. Both of these `<p>`s sit in gap-based
+	// Perfect-PR cycle 2. The `@layer base` `p` rule in globals.css gives every
+	// bare `<p>` a 1rem bottom margin — the third rule from that block to leak
+	// into this panel, after `ul,ol` and `li`. Both of these `<p>`s sit in gap-based
 	// containers (ItemContent's gap-1, Empty's gap-6), and gap does not cancel
 	// margins, so each carried 16px of dead space.
 	//

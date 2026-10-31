@@ -52,7 +52,9 @@ export function ApplicationPrefillNotice({
 					 * `asChild` renders an `<a>`, and `buttonVariants`' class string
 					 * contains no "button" substring while `Button` sets no
 					 * `role="button"` — so this anchor satisfies every `:not()` guard on
-					 * globals.css:504's base `a` rule and picks up both its
+					 * the `@layer base`
+					 * `a:not([role="button"]):not(.button):not([class*="button"])` rule
+					 * in globals.css and picks up both its
 					 * `color: var(--color-primary)` and its transparent underline, which
 					 * turns visible on hover. The `outline` variant declares no colour of
 					 * its own, so without `text-foreground` this control renders link-blue

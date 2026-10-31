@@ -17,12 +17,17 @@
 	/* ============================================================================
 	   TYPOGRAPHY SYSTEM
 	   ============================================================================
-	   Roboto - Clean geometric sans-serif for body text and UI
-	   Geist Mono - Vercel's monospace font for code
+	   Roboto (--font-sans): body text, headings and UI, through font-sans and
+	   the base html/body rule
+	   Geist Mono (--font-mono): font-mono, and code/kbd/samp/pre through
+	   Tailwind's preflight
 	   ----------------------------------------------------------------------------
-	   src/lib/fonts.ts defines the two faces and the root documents put their
-	   next/font variables (--font-roboto, --font-geist-mono) on <html>. These stacks are inline so each utility emits var(--font-roboto)
-	   etc. directly; a non-inline @theme value would resolve at :root.
+	   src/lib/fonts.ts defines both faces (Roboto via next/font/google, Geist
+	   Mono via next/font/local from the geist package's woff2), and the root
+	   documents put their next/font variables (--font-roboto,
+	   --font-geist-mono) on <html>. These stacks are inline so each utility
+	   emits var(--font-roboto) etc. directly; a non-inline @theme value would
+	   resolve at :root.
 	   ========================================================================== */
 	--font-sans:
 		var(--font-roboto), system-ui, -apple-system, BlinkMacSystemFont,
@@ -76,12 +81,15 @@
 	--tracking-wide: 0.02em; /* UI labels */
 
 	/* ============================================================================
-	   Animation Durations - UI/UX Standards
+	   Transition Durations - the duration-instant, duration-fast,
+	   duration-normal and duration-slow utilities
 	   ============================================================================ */
 	--transition-duration-instant: 150ms;
 	--transition-duration-fast: 200ms;
 	--transition-duration-normal: 300ms;
 	--transition-duration-slow: 500ms;
+	/* Colors. The :where(.dark, .dark *) block in @layer base overrides these
+	   for dark mode, except the chart and sidebar colors. */
 	--color-background: oklch(0.985 0.002 240);
 	--color-foreground: oklch(0.2 0.02 245);
 	--color-muted: oklch(0.94 0.01 240);
@@ -223,7 +231,7 @@
 	}
 
 	/* ============================================================================
-	   Heading Hierarchy - Premium Typography
+	   Heading Hierarchy - h1-h6 base styles
 	   ============================================================================ */
 	h1,
 	h2,
@@ -556,10 +564,9 @@
 }
 
 /* ============================================================================
-   Composite Animation Utilities
+   Surface Utilities
    ============================================================================
-   Semantic presets for common animation patterns to reduce repetition.
-   All use standardized duration tokens for consistency.
+   The glass border, the loading skeleton and the info/primary icon fills.
    ========================================================================== */
 
 /* Translucent white border for glass effects on primary-colored surfaces.
@@ -631,7 +638,7 @@
 }
 
 /* ============================================================================
-   Typography Utilities - Premium Semantic Styles
+   Typography Utilities - Semantic Styles
    ============================================================================
    Level 2: Titles (app UI)      → typography-h1, h2, h3, h4
    Level 3: Body (content)       → typography-large
@@ -640,7 +647,7 @@
    Numeric/Data                  → typography-stat
    ========================================================================== */
 
-/* Level 2: Titles - App headings (Geist Sans) */
+/* Level 2: Titles - App headings (Roboto, font-sans) */
 @utility typography-h1 {
 	font-family: var(--font-sans);
 	font-size: var(--text-title-1);
@@ -677,7 +684,7 @@
 	@apply scroll-m-20;
 }
 
-/* Level 3: Body - Content text (optimized for reading) */
+/* Level 3: Body - Content text */
 
 @utility typography-large {
 	font-size: var(--text-lg);

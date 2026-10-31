@@ -182,9 +182,10 @@ function RecentEmpty() {
 			<EmptyTitle>No documents yet</EmptyTitle>
 			{/*
 			 * `mb-0` for the same reason as the row meta line: EmptyDescription is a
-			 * bare `<p>` (empty.tsx:72-81) and `globals.css:499` gives every `<p>` a
-			 * 1rem bottom margin. `Empty` lays out with `gap-6`, which does not
-			 * cancel margins, and this is its LAST child — so the 16px landed
+			 * bare `<p>` (empty.tsx:72-81) and the `@layer base` `p` rule in
+			 * globals.css gives every `<p>` a 1rem bottom margin. `Empty` lays out
+			 * with `gap-6`, which does not cancel margins, and this is its LAST
+			 * child — so the 16px landed
 			 * directly on top of the `py-6` this component sets, making the panel
 			 * read as 24px above and 40px below.
 			 */}
@@ -212,7 +213,8 @@ function RecentList({
 		<>
 			{/*
 			 * These four utilities neutralize GLOBAL base rules; none is defensive
-			 * noise. `globals.css:517-524` declares unscoped
+			 * noise. The `@layer base` `ul, ol` / `li` rules in globals.css declare
+			 * unscoped
 			 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 			 * `li { margin-bottom: 0.25rem }` inside `@layer base`, and Tailwind
 			 * v4's preflight resets only `list-style` for lists (verified in the
@@ -292,7 +294,8 @@ function RecentList({
 								{/*
 								 * `mb-0` neutralizes the third rule from the same unscoped
 								 * `@layer base` block as the `<ul>` overrides above:
-								 * `globals.css:499-502` sets `p { margin-bottom: 1rem }`,
+								 * the `@layer base` `p` rule in globals.css sets
+								 * `p { margin-bottom: 1rem }`,
 								 * and ItemDescription renders a bare `<p>` (item.tsx:130-142)
 								 * with no margin utility of its own. ItemContent lays its
 								 * children out with `gap-1`, and gap does not cancel

@@ -186,10 +186,10 @@ function QueueEmpty() {
 				<EmptyTitle>No applications yet</EmptyTitle>
 				{/*
 				 * `mb-0`: EmptyDescription is a bare `<p>` (empty.tsx:72-81) and
-				 * globals.css:499 gives every `<p>` a 1rem bottom margin in @layer
-				 * base. Its parent EmptyHeader lays out with `gap-2`, and gap does not
-				 * cancel margins, so without this the title-to-button rhythm carries
-				 * 16px of dead space it never declared.
+				 * the `@layer base` `p` rule in globals.css gives every `<p>` a 1rem
+				 * bottom margin. Its parent EmptyHeader lays out with `gap-2`, and gap
+				 * does not cancel margins, so without this the title-to-button rhythm
+				 * carries 16px of dead space it never declared.
 				 */}
 				<EmptyDescription className="mb-0">
 					Create an application link for a vacant unit and share it on your
@@ -255,8 +255,9 @@ function QueueFilteredEmpty() {
 function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 	return (
 		/*
-		 * All four neutralizers are mandatory (§D-3). globals.css:517-524 declares
-		 * unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+		 * All four neutralizers are mandatory (§D-3). The `@layer base` `ul, ol` /
+		 * `li` rules in globals.css declare unscoped
+		 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 		 * `li { margin-bottom: 0.25rem }` inside @layer base, and a utility beats a
 		 * base rule by layer order — but only if it is written. Without `pl-0` the
 		 * queue indents 24px out of alignment with the page header; without `mt-0`
@@ -286,7 +287,9 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 					<Item size="default" asChild>
 						{/*
 						 * BOTH classes are required and each fixes a different half of
-						 * the same base rule (globals.css:504). `no-underline` defeats its
+						 * the same base rule (the `@layer base`
+						 * `a:not([role="button"]):not(.button):not([class*="button"])`
+						 * rule in globals.css). `no-underline` defeats its
 						 * transparent underline, which turns visible on hover and would
 						 * draw a line across the entire row; `text-foreground` defeats its
 						 * `color: var(--color-primary)`, which would tint the whole row
@@ -526,7 +529,8 @@ export function ApplicationQueue() {
 				 * unreachable by scrolling in LTR, so the first tabs would be
 				 * permanently cut off.
 				 *
-				 * `scrollbar-hide` is the existing @utility at globals.css:1797. No
+				 * `scrollbar-hide` is the existing `@utility scrollbar-hide` in
+				 * globals.css. No
 				 * counts on the tabs this phase — a per-status count needs a query
 				 * nothing else on this page issues (§F).
 				 */}

@@ -681,7 +681,8 @@ describe("ApplicationLinkPanel — a link whose unit is no longer listed", () =>
  * THE COMPUTED VALUE, NOT THE CLASS STRING. This band renders TWO `<ul>`s — the
  * listed-unit rows and the orphaned-link rows — and both shipped
  * `pl-0 mt-0 [&>li]:mb-0`, every class present and correct, while both still
- * carried a 16px bottom margin: `margin: 1rem 0` at globals.css:517-524 is a
+ * carried a 16px bottom margin: `margin: 1rem 0` in the `@layer base`
+ * `ul, ol` / `li` rules in globals.css is a
  * SHORTHAND writing both vertical margins, `mt-0` cancels only the top, and
  * `[&>li]:mb-0` targets the child `<li>` rather than the list. A class-presence
  * assertion passes against that build, which is precisely why this one reads

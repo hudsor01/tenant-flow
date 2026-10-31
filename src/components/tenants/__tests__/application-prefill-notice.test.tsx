@@ -7,8 +7,9 @@ import { ApplicationPrefillNotice } from "#components/tenants/application-prefil
  *
  * WHY A CLASS-PRESENCE TEST IS THE RIGHT SHAPE HERE, when the rest of this phase
  * deliberately measures geometry instead. The defect this guards is not a layout
- * outcome, it is a MISSING NEUTRALIZER: globals.css:504 styles
- * `a:not([role="button"]):not(.button):not([class*="button"])`, and an anchor
+ * outcome, it is a MISSING NEUTRALIZER: the `@layer base`
+ * `a:not([role="button"]):not(.button):not([class*="button"])` rule in
+ * globals.css styles every such anchor, and an anchor
  * produced by `Button asChild` passes all three guards — `buttonVariants` emits
  * no class containing the substring "button" and `Button` sets no
  * `role="button"`. So the base rule lands, painting `color: var(--color-primary)`
@@ -30,8 +31,10 @@ describe("ApplicationPrefillNotice — base-rule neutralizers", () => {
 		const link = screen.getByRole("link", { name: /Dana Rivera/ });
 		const classes = link.getAttribute("class")?.split(/\s+/) ?? [];
 
-		// Without `no-underline` the control carries globals.css:504's underline,
-		// drawn transparent and revealed on hover.
+		// Without `no-underline` the control carries the underline of the
+		// `@layer base`
+		// `a:not([role="button"]):not(.button):not([class*="button"])` rule in
+		// globals.css, drawn transparent and revealed on hover.
 		expect(classes).toContain("no-underline");
 		// Without `text-foreground` the `outline` variant — which sets no colour of
 		// its own — inherits `color: var(--color-primary)` and renders link-blue.
