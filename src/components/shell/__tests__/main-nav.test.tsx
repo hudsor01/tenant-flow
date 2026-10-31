@@ -1,16 +1,32 @@
 /**
  * MainNav Component Tests
  *
- * Tests the main navigation sidebar component including:
- * - Core navigation items rendering
- * - Expandable/collapsible sections
- * - Active state highlighting
- * - Settings menu behavior
+ * MainNav renders the owner sidebar's navigation on the canonical shadcn
+ * primitives (66.2 UIC-08): SidebarContent › SidebarGroup › SidebarMenu rows,
+ * two Collapsible sections with SidebarMenuSub children, and a SidebarFooter
+ * with the Settings and Help & Support links. Covered here:
+ * - Locked navigation (66.2 D-40): core items in order and flat, exactly two
+ *   peer sections with their children, no Templates and one /documents href
+ * - Active state: `aria-current="page"` plus `data-active` on every link
+ * - Section state (D-50): the section holding the active route is open, and a
+ *   pathname change into a section opens it; closed sections unmount
+ * - Footer (D-38): exactly Settings and Help & Support
+ * - onNavigate (D-48): once per link click, never for a section toggle
+ * - Base-rule neutralizers (D-49): every rendered list read by computed value
+ * - Collapsed-rail inert (D-34): content and footer carry `inert`
+ *
+ * MainNav reads `useSidebar()` through SidebarMenuButton, so every render goes
+ * through `NavHarness`, which hosts SidebarProvider and the lifted section
+ * state exactly as the AppShell inner child does.
  */
 
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, within } from "@testing-library/react";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
+import { usePathname } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SidebarProvider } from "#components/ui/sidebar";
+import { useNavSectionState } from "#hooks/use-nav-section-state";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { MainNav } from "../main-nav";
 
 // Mock next/navigation
@@ -19,6 +35,81 @@ vi.mock("next/navigation", () => ({
 	usePathname: () => mockPathname(),
 }));
 
+function NavHarness({
+	onNavigate,
+	defaultOpen = true,
+}: {
+	onNavigate?: () => void;
+	defaultOpen?: boolean;
+}) {
+	const pathname = usePathname();
+	const sections = useNavSectionState(pathname);
+	return (
+		<SidebarProvider defaultOpen={defaultOpen}>
+			<MainNav sections={sections} {...(onNavigate ? { onNavigate } : {})} />
+		</SidebarProvider>
+	);
+}
+
+const TRIGGER_SELECTOR = '[data-slot="collapsible-trigger"]';
+
+function getTriggers(): HTMLElement[] {
+	return Array.from(document.querySelectorAll<HTMLElement>(TRIGGER_SELECTOR));
+}
+
+function getTrigger(label: string): HTMLElement {
+	const trigger = getTriggers().find((el) => el.textContent?.trim() === label);
+	if (!trigger) throw new Error(`no section trigger named ${label}`);
+	return trigger;
+}
+
+// Closed Radix sections unmount their children (D-50), so every sweep that
+// reads sub-links opens both sections first.
+async function openAllSections(user: UserEvent) {
+	for (const trigger of document.querySelectorAll(
+		`${TRIGGER_SELECTOR}[aria-expanded="false"]`,
+	)) {
+		await user.click(trigger);
+	}
+	const triggers = getTriggers();
+	expect(triggers).toHaveLength(2);
+	for (const trigger of triggers) {
+		expect(trigger).toHaveAttribute("aria-expanded", "true");
+	}
+}
+
+function getList(selector: string, index: number): HTMLElement {
+	const list = document.querySelectorAll<HTMLElement>(selector)[index];
+	if (!list) throw new Error(`no list ${selector} at ${index}`);
+	return list;
+}
+
+const CORE = [
+	["Dashboard", "/dashboard"],
+	["Properties", "/properties"],
+	["Tenants", "/tenants"],
+	["Leases", "/leases"],
+	["Applications", "/applications"],
+	["Maintenance", "/maintenance"],
+	["Documents", "/documents"],
+] as const;
+
+const ANALYTICS_CHILDREN = [
+	["Overview", "/analytics/overview"],
+	["Financial", "/analytics/financial"],
+	["Property Performance", "/analytics/property-performance"],
+] as const;
+
+const REPORTS_CHILDREN = [
+	["Income Statement", "/reports/income-statement"],
+	["Cash Flow", "/reports/cash-flow"],
+	["Balance Sheet", "/reports/balance-sheet"],
+	["Expenses", "/reports/expenses"],
+	["Tax Documents", "/reports/tax-documents"],
+	["Generate Reports", "/reports/generate"],
+	["Year-End", "/reports/year-end"],
+] as const;
+
 describe("MainNav", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -26,64 +117,27 @@ describe("MainNav", () => {
 	});
 
 	describe("core navigation items", () => {
-		it("should render all core navigation items", () => {
-			render(<MainNav />);
+		it("renders the seven core links in order with their hrefs", () => {
+			render(<NavHarness />);
 
+			const coreList = getList('ul[data-slot="sidebar-menu"]', 0);
+			const links = within(coreList).getAllByRole("link");
 			expect(
-				screen.getByRole("link", { name: /dashboard/i }),
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("link", { name: /properties/i }),
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("link", { name: /tenants/i }),
-			).toBeInTheDocument();
-			expect(screen.getByRole("link", { name: /leases/i })).toBeInTheDocument();
-			expect(
-				screen.getByRole("link", { name: /maintenance/i }),
-			).toBeInTheDocument();
-			// Anchored regex avoids matching the "Tax Documents" sub-link
-			// once the Reports section is expanded.
-			expect(
-				screen.getByRole("link", { name: /^documents$/i }),
-			).toBeInTheDocument();
-		});
-
-		it("should render correct hrefs for core items", () => {
-			render(<MainNav />);
-
-			expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
-				"href",
-				"/dashboard",
-			);
-			expect(screen.getByRole("link", { name: /properties/i })).toHaveAttribute(
-				"href",
-				"/properties",
-			);
-			expect(screen.getByRole("link", { name: /tenants/i })).toHaveAttribute(
-				"href",
-				"/tenants",
-			);
-			expect(screen.getByRole("link", { name: /leases/i })).toHaveAttribute(
-				"href",
-				"/leases",
-			);
-			expect(
-				screen.getByRole("link", { name: /maintenance/i }),
-			).toHaveAttribute("href", "/maintenance");
-			expect(
-				screen.getByRole("link", { name: /^documents$/i }),
-			).toHaveAttribute("href", "/documents");
+				links.map((link) => [
+					link.textContent?.trim(),
+					link.getAttribute("href"),
+				]),
+			).toEqual(CORE.map(([label, href]) => [label, href]));
 		});
 
 		// Phase 65 (DOCS-01), A-1: pins the Documents entry as FLAT *structurally*.
-		// `renderNavItem`'s hasChildren branch renders a parent as a <button> toggle
-		// with no <Link> at all, so if Documents ever gained children the landing
-		// would lose its one-click sidebar door. Both halves are required: the
-		// absence of the button alone would also pass against a sidebar that renders
-		// no Documents entry whatsoever.
-		it("should render Documents as a flat link, never as an expandable button", () => {
-			render(<MainNav />);
+		// A parent with children renders as a CollapsibleTrigger button with no
+		// <Link> at all, so if Documents ever gained children the landing would
+		// lose its one-click sidebar door. Both halves are required: the absence
+		// of the button alone would also pass against a sidebar that renders no
+		// Documents entry whatsoever.
+		it("renders Documents as a flat link, never as an expandable button", () => {
+			render(<NavHarness />);
 
 			expect(
 				screen.queryByRole("button", { name: /^documents$/i }),
@@ -94,308 +148,375 @@ describe("MainNav", () => {
 		});
 	});
 
-	describe("active state highlighting", () => {
-		it("should highlight Dashboard when on /dashboard", () => {
-			mockPathname.mockReturnValue("/dashboard");
-			render(<MainNav />);
+	describe("active state", () => {
+		it("marks Dashboard current on /dashboard and leaves Properties alone", () => {
+			render(<NavHarness />);
 
-			const dashboardLink = screen.getByRole("link", { name: /dashboard/i });
-			expect(dashboardLink.className).toContain("text-primary-text");
+			const dashboard = screen.getByRole("link", { name: "Dashboard" });
+			expect(dashboard).toHaveAttribute("aria-current", "page");
+			expect(dashboard).toHaveAttribute("data-active", "true");
+
+			const properties = screen.getByRole("link", { name: "Properties" });
+			expect(properties).not.toHaveAttribute("aria-current");
+			expect(properties).toHaveAttribute("data-active", "false");
 		});
 
-		it("should highlight Properties when on /properties", () => {
-			mockPathname.mockReturnValue("/properties");
-			render(<MainNav />);
-
-			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).toContain("text-primary-text");
-		});
-
-		it("should highlight Properties when on nested property route", () => {
+		it("marks Properties current on a nested property route, icon included", () => {
 			mockPathname.mockReturnValue("/properties/123");
-			render(<MainNav />);
+			render(<NavHarness />);
 
-			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).toContain("text-primary-text");
-		});
+			const properties = screen.getByRole("link", { name: "Properties" });
+			expect(properties).toHaveAttribute("aria-current", "page");
+			expect(properties).toHaveAttribute("data-active", "true");
+			expect(properties.querySelector("svg")).toHaveClass("text-primary-text");
 
-		it("should not highlight other items when Dashboard is active", () => {
-			mockPathname.mockReturnValue("/dashboard");
-			render(<MainNav />);
-
-			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).not.toContain("text-primary-text");
+			const dashboard = screen.getByRole("link", { name: "Dashboard" });
+			expect(dashboard).not.toHaveAttribute("aria-current");
 		});
 	});
 
-	describe("expandable sections", () => {
-		it("should render Analytics as expandable button", () => {
-			render(<MainNav />);
-
-			const analyticsButton = screen.getByRole("button", {
-				name: /analytics/i,
-			});
-			expect(analyticsButton).toBeInTheDocument();
-		});
-
-		it("should render Reports as expandable button", () => {
-			render(<MainNav />);
-
-			const reportsButton = screen.getByRole("button", { name: /reports/i });
-			expect(reportsButton).toBeInTheDocument();
-		});
-
-		// D-29 FULL SEPARATION: this block carries exactly TWO peer sections —
+	describe("sections", () => {
+		// D-29 FULL SEPARATION: this block carries exactly TWO peer sections,
 		// Analytics and Reports. Asserted as an exhaustive list rather than as the
-		// absence of the one section just deleted, so a third section reappearing
-		// under any name fails here.
-		it("should render exactly two collapsible sections", () => {
-			const { container } = render(<MainNav />);
+		// absence of one deleted section, so a third section under any name fails.
+		it("renders exactly two section toggles, Analytics then Reports", () => {
+			render(<NavHarness />);
 
-			const sectionLabels = Array.from(
-				container.querySelectorAll('button[aria-controls^="nav-section-"]'),
-			).map((button) => button.textContent?.trim());
-
-			expect(sectionLabels).toEqual(["Analytics", "Reports"]);
+			const triggers = getTriggers();
+			expect(triggers.map((el) => el.textContent?.trim())).toEqual([
+				"Analytics",
+				"Reports",
+			]);
+			for (const trigger of triggers) expect(trigger.tagName).toBe("BUTTON");
 		});
 
-		it("should toggle Analytics children visibility on click", async () => {
-			const user = userEvent.setup();
-			render(<MainNav />);
+		it("keeps both sections closed and unmounted outside them", () => {
+			render(<NavHarness />);
 
-			const analyticsButton = screen.getByRole("button", {
-				name: /analytics/i,
-			});
-
-			// Click to expand
-			await user.click(analyticsButton);
-
-			// Now we should find Overview link
+			expect(getTrigger("Analytics")).toHaveAttribute("aria-expanded", "false");
+			expect(getTrigger("Reports")).toHaveAttribute("aria-expanded", "false");
 			expect(
-				screen.getByRole("link", { name: /^overview$/i }),
-			).toBeInTheDocument();
+				screen.queryByRole("link", { name: "Overview" }),
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole("link", { name: "Cash Flow" }),
+			).not.toBeInTheDocument();
+		});
+
+		it("opens Reports on a Reports route and marks the current sub link", () => {
+			mockPathname.mockReturnValue("/reports/cash-flow");
+			render(<NavHarness />);
+
+			expect(getTrigger("Reports")).toHaveAttribute("aria-expanded", "true");
+			expect(getTrigger("Analytics")).toHaveAttribute("aria-expanded", "false");
+			const cashFlow = screen.getByRole("link", { name: "Cash Flow" });
+			expect(cashFlow).toHaveAttribute("aria-current", "page");
+			expect(cashFlow).toHaveAttribute("data-active", "true");
+			const expenses = screen.getByRole("link", { name: "Expenses" });
+			expect(expenses).not.toHaveAttribute("aria-current");
+		});
+
+		it("opens Analytics on an Analytics route", () => {
+			mockPathname.mockReturnValue("/analytics/financial");
+			render(<NavHarness />);
+
+			expect(getTrigger("Analytics")).toHaveAttribute("aria-expanded", "true");
+			expect(getTrigger("Reports")).toHaveAttribute("aria-expanded", "false");
 		});
 
 		// The Analytics section is untouched by the consolidation (D-07 REVISED):
 		// /analytics/financial stays live, so removing its child would orphan a
 		// working page.
-		it("should still list all three Analytics children including Financial", async () => {
+		it("lists the three Analytics children when Analytics is clicked", async () => {
 			const user = userEvent.setup();
-			render(<MainNav />);
+			render(<NavHarness />);
 
-			await user.click(screen.getByRole("button", { name: /analytics/i }));
+			await user.click(getTrigger("Analytics"));
 
-			expect(screen.getByRole("link", { name: /^overview$/i })).toHaveAttribute(
-				"href",
-				"/analytics/overview",
-			);
-			expect(
-				screen.getByRole("link", { name: /^financial$/i }),
-			).toHaveAttribute("href", "/analytics/financial");
-			expect(
-				screen.getByRole("link", { name: /property performance/i }),
-			).toHaveAttribute("href", "/analytics/property-performance");
-		});
-
-		it("should show the seven Reports children when expanded", async () => {
-			const user = userEvent.setup();
-			render(<MainNav />);
-
-			const reportsButton = screen.getByRole("button", { name: /reports/i });
-			await user.click(reportsButton);
-
-			const expected = [
-				[/income statement/i, "/reports/income-statement"],
-				[/cash flow/i, "/reports/cash-flow"],
-				[/balance sheet/i, "/reports/balance-sheet"],
-				[/^expenses$/i, "/reports/expenses"],
-				[/tax documents/i, "/reports/tax-documents"],
-				[/generate reports/i, "/reports/generate"],
-				[/year-end/i, "/reports/year-end"],
-			] as const;
-
-			for (const [name, href] of expected) {
+			expect(getTrigger("Analytics")).toHaveAttribute("aria-expanded", "true");
+			for (const [name, href] of ANALYTICS_CHILDREN) {
 				expect(screen.getByRole("link", { name })).toHaveAttribute(
 					"href",
 					href,
 				);
 			}
 		});
+
+		it("lists the seven Reports children when Reports is clicked", async () => {
+			const user = userEvent.setup();
+			render(<NavHarness />);
+
+			await user.click(getTrigger("Reports"));
+
+			for (const [name, href] of REPORTS_CHILDREN) {
+				expect(screen.getByRole("link", { name })).toHaveAttribute(
+					"href",
+					href,
+				);
+			}
+		});
+
+		it("opens Reports without a click when the pathname moves into it", () => {
+			const { rerender } = render(<NavHarness />);
+			expect(getTrigger("Reports")).toHaveAttribute("aria-expanded", "false");
+
+			mockPathname.mockReturnValue("/reports/expenses");
+			rerender(<NavHarness />);
+
+			expect(getTrigger("Reports")).toHaveAttribute("aria-expanded", "true");
+			expect(screen.getByRole("link", { name: "Expenses" })).toHaveAttribute(
+				"aria-current",
+				"page",
+			);
+		});
 	});
 
 	describe("templates section removal (Phase 65 D-09)", () => {
-		// `getByText`'s default string match is EXACT, so the "Lease Template" label
-		// elsewhere would not satisfy this query even if it survived. After D-09 no
+		// `getByText`'s default string match is EXACT, so a "Lease Template" label
+		// would not satisfy this query even if it survived. After D-09 no
 		// "Templates" text exists anywhere in this component at all.
-		it("should NOT render a Templates section header", () => {
-			render(<MainNav />);
+		it("should NOT render a Templates section header", async () => {
+			const user = userEvent.setup();
+			render(<NavHarness />);
+			await openAllSections(user);
 
 			expect(screen.queryByText("Templates")).not.toBeInTheDocument();
 		});
 
-		it("should NOT render Generate Lease link (Session 11 P3 #36: duplicate of Leases tab New Lease CTA)", () => {
-			render(<MainNav />);
+		it("should NOT render Generate Lease link (Session 11 P3 #36: duplicate of Leases tab New Lease CTA)", async () => {
+			const user = userEvent.setup();
+			render(<NavHarness />);
+			await openAllSections(user);
 
 			expect(
 				screen.queryByRole("link", { name: /generate lease/i }),
 			).not.toBeInTheDocument();
 		});
 
-		// One exhaustive assertion pinning THREE things at once: the core entry was
-		// repointed to /documents, the Lease Template link is gone, and no new
-		// /documents/* sidebar entry crept in. It cannot pass vacuously — an empty
-		// sidebar yields [], not ["/documents"].
-		//
-		// Collapsed nav children ARE queryable here (jsdom does not implement
-		// `inert`), so the Reports and Analytics children genuinely appear in this
-		// collected set and genuinely contribute no /documents* href. The assertion
-		// is not passing because they were hidden.
-		it("should surface exactly one /documents href in the whole sidebar", () => {
-			const { container } = render(<MainNav />);
+		// One exhaustive assertion pinning THREE things at once: the core entry
+		// points at /documents, the Lease Template link is gone, and no
+		// /documents/* sidebar entry crept in. Both sections are opened first and
+		// the total link count is pinned, so the sweep reads every child and
+		// cannot pass vacuously.
+		it("should surface exactly one /documents href in the whole sidebar", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<NavHarness />);
+			await openAllSections(user);
 
-			const documentHrefs = Array.from(container.querySelectorAll("a"))
-				.map((a) => a.getAttribute("href") ?? "")
-				.filter(
+			const hrefs = Array.from(container.querySelectorAll("a")).map(
+				(a) => a.getAttribute("href") ?? "",
+			);
+			expect(hrefs).toHaveLength(
+				CORE.length + ANALYTICS_CHILDREN.length + REPORTS_CHILDREN.length + 2,
+			);
+			expect(hrefs).toHaveLength(19);
+			expect(
+				hrefs.filter(
 					(href) => href === "/documents" || href.startsWith("/documents/"),
-				);
-
-			expect(documentHrefs).toEqual(["/documents"]);
+				),
+			).toEqual(["/documents"]);
 		});
 	});
 
-	describe("settings menu", () => {
-		it("should render Settings button", () => {
-			render(<MainNav />);
+	describe("footer (D-38)", () => {
+		function getFooter(): HTMLElement {
+			const footer = document.querySelector<HTMLElement>(
+				'[data-slot="sidebar-footer"]',
+			);
+			if (!footer) throw new Error("no sidebar footer");
+			return footer;
+		}
 
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			expect(settingsButton).toBeInTheDocument();
-		});
+		it("holds exactly the Settings and Help & Support links", () => {
+			render(<NavHarness />);
 
-		it("should show dropdown menu when Settings is clicked", async () => {
-			const user = userEvent.setup();
-			render(<MainNav />);
-
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			await user.click(settingsButton);
-
+			const links = within(getFooter()).getAllByRole("link");
 			expect(
-				screen.getByRole("link", { name: /help & support/i }),
-			).toBeInTheDocument();
+				links.map((link) => [
+					link.textContent?.trim(),
+					link.getAttribute("href"),
+				]),
+			).toEqual([
+				["Settings", "/settings"],
+				["Help & Support", "/help"],
+			]);
+			expect(within(getFooter()).queryAllByRole("button")).toHaveLength(0);
 		});
 
-		it("should render Help & Support link with correct href", async () => {
-			const user = userEvent.setup();
-			render(<MainNav />);
+		it("marks Settings current on a settings route", () => {
+			mockPathname.mockReturnValue("/settings/billing");
+			render(<NavHarness />);
 
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			await user.click(settingsButton);
-
-			const helpLink = screen.getByRole("link", { name: /help & support/i });
-			expect(helpLink).toHaveAttribute("href", "/help");
+			const settings = within(getFooter()).getByRole("link", {
+				name: "Settings",
+			});
+			expect(settings).toHaveAttribute("aria-current", "page");
+			expect(settings).toHaveAttribute("data-active", "true");
 		});
 
-		it("should call onNavigate when Help & Support is clicked", async () => {
-			const user = userEvent.setup();
-			const onNavigate = vi.fn();
-			render(<MainNav onNavigate={onNavigate} />);
+		it("never marks Help & Support current", () => {
+			mockPathname.mockReturnValue("/help");
+			render(<NavHarness />);
 
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			await user.click(settingsButton);
-
-			const helpLink = screen.getByRole("link", { name: /help & support/i });
-			await user.click(helpLink);
-
-			expect(onNavigate).toHaveBeenCalledTimes(1);
+			const help = within(getFooter()).getByRole("link", {
+				name: "Help & Support",
+			});
+			expect(help).not.toHaveAttribute("aria-current");
+			expect(help).toHaveAttribute("data-active", "false");
 		});
 
-		it("should show keyboard shortcuts item in dropdown", async () => {
+		it("drops the dead shortcuts item and its kbd hint", async () => {
 			const user = userEvent.setup();
-			render(<MainNav />);
+			const { container } = render(<NavHarness />);
+			await openAllSections(user);
 
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			await user.click(settingsButton);
-
-			expect(screen.getByText(/keyboard shortcuts/i)).toBeInTheDocument();
-		});
-
-		it('should show keyboard shortcut indicator "?"', async () => {
-			const user = userEvent.setup();
-			render(<MainNav />);
-
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			await user.click(settingsButton);
-
-			expect(screen.getByText("?")).toBeInTheDocument();
-		});
-
-		it("should close dropdown when clicking outside", async () => {
-			const user = userEvent.setup();
-			render(<MainNav />);
-
-			const settingsButton = screen.getByRole("button", { name: /settings/i });
-			await user.click(settingsButton);
-
-			// Verify dropdown is open
-			expect(
-				screen.getByRole("link", { name: /help & support/i }),
-			).toBeInTheDocument();
-
-			// Click outside (on the backdrop)
-			const backdrop = document.querySelector(".fixed.inset-0");
-			expect(backdrop).toBeInTheDocument();
-			await user.click(backdrop!);
-
-			// Verify dropdown is closed
-			expect(
-				screen.queryByRole("link", { name: /help & support/i }),
-			).not.toBeInTheDocument();
+			expect(screen.queryByText(/keyboard shortcuts/i)).not.toBeInTheDocument();
+			expect(screen.queryByText("?")).not.toBeInTheDocument();
+			expect(container.querySelector("kbd")).toBeNull();
 		});
 	});
 
-	describe("onNavigate callback", () => {
-		it("should call onNavigate when a core nav item is clicked", async () => {
+	describe("onNavigate callback (D-48)", () => {
+		it.each([
+			["a core link", "Properties", null],
+			["a sub link", "Income Statement", "Reports"],
+			["the Settings link", "Settings", null],
+			["the Help & Support link", "Help & Support", null],
+			["the Documents link", "Documents", null],
+		] as const)(
+			"calls onNavigate once for %s",
+			async (_case, name, section) => {
+				const user = userEvent.setup();
+				const onNavigate = vi.fn();
+				render(<NavHarness onNavigate={onNavigate} />);
+
+				if (section) await user.click(getTrigger(section));
+				const link = screen.getByRole("link", { name });
+				// jsdom cannot navigate; cancel the default action only. React's
+				// onClick (onNavigate) still runs.
+				link.addEventListener("click", (event) => event.preventDefault());
+				await user.click(link);
+
+				expect(onNavigate).toHaveBeenCalledTimes(1);
+			},
+		);
+
+		it("does not call onNavigate for a section toggle", async () => {
 			const user = userEvent.setup();
 			const onNavigate = vi.fn();
-			render(<MainNav onNavigate={onNavigate} />);
+			render(<NavHarness onNavigate={onNavigate} />);
 
-			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			await user.click(propertiesLink);
+			await user.click(getTrigger("Analytics"));
+			await user.click(getTrigger("Analytics"));
 
-			expect(onNavigate).toHaveBeenCalledTimes(1);
+			expect(onNavigate).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("D-49 base-rule neutralizers (computed, never class presence)", () => {
+		it("zeroes every sidebar list's padding-left, both margins and its items' margin", async () => {
+			const user = userEvent.setup();
+			render(<NavHarness />);
+			await openAllSections(user);
+
+			const menus = document.querySelectorAll('ul[data-slot="sidebar-menu"]');
+			const subs = document.querySelectorAll(
+				'ul[data-slot="sidebar-menu-sub"]',
+			);
+			expect(menus).toHaveLength(3);
+			expect(subs).toHaveLength(2);
+
+			for (const list of [...menus, ...subs]) {
+				const { neutralized, baseline } = computeListCascade(list);
+
+				// POSITIVE CONTROL: an unclassed list under the same stylesheet. If
+				// the harness failed to apply globals.css, these would read 0px and
+				// the neutralization assertions would pass against nothing.
+				expect(baseline.paddingLeft).toBe("24px");
+				expect(baseline.marginTop).toBe("16px");
+				expect(baseline.marginBottom).toBe("16px");
+				expect(baseline.firstChildMarginBottom).toBe("4px");
+
+				expect(neutralized.paddingLeft).toBe("0px");
+				expect(neutralized.marginTop).toBe("0px");
+				expect(neutralized.marginBottom).toBe("0px");
+				expect(neutralized.firstChildTag).toBe("li");
+				expect(neutralized.firstChildMarginBottom).toBe("0px");
+			}
+		});
+	});
+
+	describe("twMerge resolves the S-2 overrides", () => {
+		it("drops the canonical row, sub row and sub list bases the overrides replace", async () => {
+			const user = userEvent.setup();
+			render(<NavHarness />);
+			await openAllSections(user);
+
+			const row = screen.getByRole("link", { name: "Dashboard" }).classList;
+			for (const kept of ["h-10", "px-3", "rounded-lg", "[&>svg]:size-5"]) {
+				expect(row.contains(kept)).toBe(true);
+			}
+			expect(row.contains("no-underline")).toBe(true);
+			for (const dropped of ["h-8", "rounded-md", "gap-2", "[&>svg]:size-4"]) {
+				expect(row.contains(dropped)).toBe(false);
+			}
+
+			const toggle = getTrigger("Reports").classList;
+			expect(toggle.contains("h-10")).toBe(true);
+			expect(toggle.contains("no-underline")).toBe(true);
+			expect(toggle.contains("h-8")).toBe(false);
+
+			const subRow = screen.getByRole("link", { name: "Overview" }).classList;
+			expect(subRow.contains("h-9")).toBe(true);
+			expect(subRow.contains("no-underline")).toBe(true);
+			for (const dropped of [
+				"h-7",
+				"px-2",
+				"-translate-x-px",
+				"text-sidebar-foreground",
+			]) {
+				expect(subRow.contains(dropped)).toBe(false);
+			}
+
+			const subList = getList('ul[data-slot="sidebar-menu-sub"]', 0).classList;
+			expect(subList.contains("ml-8")).toBe(true);
+			expect(subList.contains("pl-0")).toBe(true);
+			for (const dropped of ["mx-3.5", "border-l", "translate-x-px"]) {
+				expect(subList.contains(dropped)).toBe(false);
+			}
+		});
+	});
+
+	describe("collapsed rail (D-34)", () => {
+		it("makes the content and footer inert when the desktop sidebar is collapsed", () => {
+			render(<NavHarness defaultOpen={false} />);
+
+			const content = document.querySelector('[data-slot="sidebar-content"]');
+			const footer = document.querySelector('[data-slot="sidebar-footer"]');
+			expect(content).toHaveAttribute("inert");
+			expect(footer).toHaveAttribute("inert");
+			for (const link of document.querySelectorAll("a")) {
+				expect(link.closest("[inert]")).not.toBeNull();
+			}
+			expect(
+				screen
+					.getByRole("link", { name: "Dashboard", hidden: true })
+					.closest("[inert]"),
+			).not.toBeNull();
 		});
 
-		it("should call onNavigate when an expanded child is clicked", async () => {
-			const user = userEvent.setup();
-			const onNavigate = vi.fn();
-			render(<MainNav onNavigate={onNavigate} />);
+		it("leaves the content and footer live when the sidebar is expanded", () => {
+			render(<NavHarness />);
 
-			// Expand Reports
-			const reportsButton = screen.getByRole("button", { name: /reports/i });
-			await user.click(reportsButton);
-
-			// Click a child link
-			const incomeStatementLink = screen.getByRole("link", {
-				name: /income statement/i,
-			});
-			await user.click(incomeStatementLink);
-
-			expect(onNavigate).toHaveBeenCalledTimes(1);
-		});
-
-		// Phase 65 D-09 retargeted this from the deleted Lease Template link to the
-		// entry this phase actually changed. Anchored regex so it does not match the
-		// "Tax Documents" child once Reports is expanded.
-		it("should call onNavigate when the Documents link is clicked", async () => {
-			const user = userEvent.setup();
-			const onNavigate = vi.fn();
-			render(<MainNav onNavigate={onNavigate} />);
-
-			const documentsLink = screen.getByRole("link", {
-				name: /^documents$/i,
-			});
-			await user.click(documentsLink);
-
-			expect(onNavigate).toHaveBeenCalledTimes(1);
+			expect(
+				document.querySelector('[data-slot="sidebar-content"]'),
+			).not.toHaveAttribute("inert");
+			expect(
+				document.querySelector('[data-slot="sidebar-footer"]'),
+			).not.toHaveAttribute("inert");
+			expect(
+				screen.getByRole("link", { name: "Dashboard" }).closest("[inert]"),
+			).toBeNull();
 		});
 	});
 });

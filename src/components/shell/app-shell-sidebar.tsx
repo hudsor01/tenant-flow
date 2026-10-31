@@ -9,16 +9,19 @@ import {
 	SidebarRail,
 	useSidebar,
 } from "#components/ui/sidebar";
+import type { NavSectionState } from "#hooks/use-nav-section-state";
 import { MainNav } from "./main-nav";
 
 interface AppShellSidebarProps {
 	triggerRef: RefObject<HTMLButtonElement | null>;
 	onCommandOpen: () => void;
+	sections: NavSectionState;
 }
 
 export function AppShellSidebar({
 	triggerRef,
 	onCommandOpen,
+	sections,
 }: AppShellSidebarProps) {
 	const { setOpenMobile } = useSidebar();
 	const closeMobile = () => setOpenMobile(false);
@@ -85,7 +88,7 @@ export function AppShellSidebar({
 			</SidebarHeader>
 
 			{/* Navigation */}
-			<MainNav onNavigate={closeMobile} />
+			<MainNav sections={sections} onNavigate={closeMobile} />
 			<SidebarRail />
 			<SidebarSheetFocusReturn triggerRef={triggerRef} />
 		</Sidebar>

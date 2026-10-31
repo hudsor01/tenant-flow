@@ -24,6 +24,7 @@ import { useSupabaseUser } from "#hooks/api/use-auth";
 import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
 import { usePropertyList } from "#hooks/api/use-properties";
 import { useTenantList } from "#hooks/api/use-tenant";
+import { useNavSectionState } from "#hooks/use-nav-section-state";
 import { generateBreadcrumbs } from "#lib/breadcrumbs";
 import { cn } from "#lib/utils";
 import { AppShellHeader } from "./app-shell-header";
@@ -65,6 +66,9 @@ function AppShellFrame({
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const { setOpenMobile } = useSidebar();
 	const pathname = usePathname();
+	// Section open state lives here, outside the sheet, so it survives the
+	// mobile sheet unmounting its content (D-50, RESEARCH P10).
+	const navSections = useNavSectionState(pathname);
 	const breadcrumbs = generateBreadcrumbs(pathname);
 	// The floating dock is hidden on form/create routes (it would overlap the
 	// primary submit). The same condition gates the bottom-padding clearance
@@ -276,6 +280,7 @@ function AppShellFrame({
 			<AppShellSidebar
 				triggerRef={triggerRef}
 				onCommandOpen={() => setCommandOpen(true)}
+				sections={navSections}
 			/>
 
 			{/* Main content area */}
