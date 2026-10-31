@@ -30,6 +30,12 @@ type GuardContext = {
 	engine: EngineModule.TailwindEngine;
 };
 
+// Shape of <root>/src/lib/utils.ts that G5 reads; a baseline tree exports cn only.
+type RootUtilsModule = {
+	cn: GuardsModule.MergeFunction;
+	TAILWIND_MERGE_EXTENSION?: GuardsModule.MergeExtension;
+};
+
 type GuardEntry = {
 	id: string;
 	run(
@@ -107,6 +113,21 @@ const GUARDS: GuardEntry[] = [
 		id: "G3",
 		run: (ctx) =>
 			guardsModule.checkUtilityShadowing(ctx.css, path.join(ctx.root, "src/app")),
+	},
+	{
+		// G5 takes the merge function and extension from root's own utils.ts; the
+		// 754c91802 tree has no extension export, so only its merge failures count.
+		id: "G5",
+		run: async (ctx) => {
+			const utils: RootUtilsModule = await import(
+				pathToFileURL(path.join(ctx.root, "src/lib/utils.ts")).href
+			);
+			return guardsModule.checkMergeKeys(
+				ctx.css,
+				utils.TAILWIND_MERGE_EXTENSION ?? undefined,
+				utils.cn,
+			);
+		},
 	},
 ];
 
