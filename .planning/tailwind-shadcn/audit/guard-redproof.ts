@@ -154,6 +154,29 @@ const GUARDS: GuardEntry[] = [
 		},
 	},
 	{
+		// 66.2-18: canonical first-party classes (D-25). Every root is scanned with
+		// this one src/ rule (the post-W2 D-18 scan root, minus test files and the
+		// vendored src/components/ui), so the 754c91802 baseline, whose globals.css
+		// has no source(), and the current tree are measured identically. The
+		// design system is <root>'s globals.css with base <root>/src/app
+		// (loadProjectDesignSystem binds TAILWIND_BASE to root after the chdir).
+		id: "G8",
+		run: async (ctx) => {
+			const ds = await engineModule.loadProjectDesignSystem(ctx.css);
+			const src = path.join(ctx.root, "src");
+			const { candidates } = engineModule.scanSources(
+				guardsModule.firstPartyScanSources(
+					[
+						{ base: src, pattern: "**/*", negated: false },
+						{ base: src, pattern: "**/*.test.{ts,tsx}", negated: true },
+					],
+					ctx.root,
+				),
+			);
+			return guardsModule.checkCanonicalCandidates(ds, candidates);
+		},
+	},
+	{
 		// 66.2-16: D-23/X4 structure pin over <root>'s globals.css text.
 		id: "inline-structure",
 		run: (ctx) => guardsModule.checkInlineColorTokenStructure(ctx.css),
