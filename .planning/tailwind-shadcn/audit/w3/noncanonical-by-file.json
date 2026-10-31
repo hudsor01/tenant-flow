@@ -1,0 +1,269 @@
+{
+ "src/components/ui/border-beam.tsx": [
+  "![mask-clip:padding-box,border-box] -> [mask-clip:padding-box,border-box]!",
+  "![mask-composite:intersect] -> mask-intersect!"
+ ],
+ "src/components/dashboard/components/occupancy-donut-chart.tsx": [
+  "!aspect-auto -> aspect-auto!",
+  "bg-[var(--color-chart-2)] -> bg-chart-2",
+  "bg-[var(--color-chart-5)] -> bg-(--color-chart-5)",
+  "h-[180px] -> h-45",
+  "h-[240px] -> h-60"
+ ],
+ "src/components/dashboard/components/kpi-sparkline.tsx": [
+  "!aspect-auto -> aspect-auto!",
+  "[grid-column:1/-1] -> col-span-full"
+ ],
+ "src/components/dashboard/components/kpi-bento-row.tsx": [
+  "!text-warning-text -> text-warning-text!",
+  "[grid-column:1/-1] -> col-span-full"
+ ],
+ "src/components/ui/command.tsx": [
+  "**:**:**:[&_[cmdk-group-heading]]:text-muted-foreground -> **:**:**:**:[[cmdk-group-heading]]:text-muted-foreground",
+  "**:**:[&_[cmdk-group-heading]]:font-medium -> **:**:**:[[cmdk-group-heading]]:font-medium",
+  "**:**:[&_[cmdk-group-heading]]:px-2 -> **:**:**:[[cmdk-group-heading]]:px-2",
+  "**:[&_[cmdk-group]]:px-2 -> **:**:[[cmdk-group]]:px-2",
+  "**:[&_[cmdk-input]]:h-12 -> **:**:[[cmdk-input]]:h-12",
+  "**:[&_[cmdk-item]]:px-2 -> **:**:[[cmdk-item]]:px-2",
+  "**:[&_[cmdk-item]]:py-3 -> **:**:[[cmdk-item]]:py-3",
+  "[&_[cmdk-group-heading]]:font-medium -> **:[[cmdk-group-heading]]:font-medium",
+  "[&_[cmdk-group-heading]]:px-2 -> **:[[cmdk-group-heading]]:px-2",
+  "[&_[cmdk-group-heading]]:py-1.5 -> **:[[cmdk-group-heading]]:py-1.5",
+  "[&_[cmdk-group-heading]]:text-muted-foreground -> **:[[cmdk-group-heading]]:text-muted-foreground",
+  "[&_[cmdk-group-heading]]:text-xs -> **:[[cmdk-group-heading]]:text-xs"
+ ],
+ "src/components/ui/table.tsx": [
+  "*:[[role=checkbox]]:translate-y-[2px] -> *:[[role=checkbox]]:translate-y-0.5"
+ ],
+ "src/components/auth/change-password-dialog.tsx": [
+  "-translate-y-[50%] -> translate-y-[-50%]",
+  "list-[disc] -> list-disc",
+  "sm:max-w-[500px] -> sm:max-w-125"
+ ],
+ "src/components/ui/field.tsx": [
+  "@md/field-group:[&>*]:w-auto -> @md/field-group:*:w-auto",
+  "@md/field-group:[&>[data-slot=field-label]]:flex-auto -> @md/field-group:*:data-[slot=field-label]:flex-auto",
+  "[&>*]:data-[slot=field]:p-4 -> *:data-[slot=field]:p-4",
+  "[&>*]:w-full -> *:w-full",
+  "[&>[data-slot=field-group]]:gap-4 -> *:data-[slot=field-group]:gap-4",
+  "[&>[data-slot=field-label]]:flex-auto -> *:data-[slot=field-label]:flex-auto",
+  "group-has-[[data-orientation=horizontal]]/field:text-balance -> group-has-data-[orientation=horizontal]/field:text-balance"
+ ],
+ "src/components/ui/select.tsx": [
+  "[&>*]:flex -> *:flex",
+  "[&>*]:gap-2 -> *:gap-2",
+  "[&>*]:items-center -> *:items-center",
+  "[&>*]:line-clamp-1 -> *:line-clamp-1",
+  "data-[disabled]:opacity-50 -> data-disabled:opacity-50",
+  "data-[disabled]:pointer-events-none -> data-disabled:pointer-events-none",
+  "data-[placeholder]:text-muted-foreground -> data-placeholder:text-muted-foreground",
+  "h-[var(--radix-select-trigger-height)] -> h-(--radix-select-trigger-height)",
+  "min-w-[8rem] -> min-w-32",
+  "min-w-[var(--radix-select-trigger-width)] -> min-w-(--radix-select-trigger-width)"
+ ],
+ "src/components/ui/button-group.tsx": [
+  "[&>*]:focus-visible:relative -> *:focus-visible:relative",
+  "[&>*]:focus-visible:z-10 -> *:focus-visible:z-10"
+ ],
+ "src/components/ui/loading-spinner.tsx": [
+  "[animation-duration:var(--duration-1000)] -> animation-duration-(--duration-1000)",
+  "[animation-duration:var(--duration-700)] -> animation-duration-(--duration-700)"
+ ],
+ "src/components/blog/blog-card.tsx": [
+  "aspect-[16/10] -> aspect-16/10"
+ ],
+ "src/components/ui/bento-grid.tsx": [
+  "auto-rows-[18rem] -> auto-rows-72",
+  "bg-gradient-to-t -> bg-linear-to-t",
+  "group-hover:bg-primary/[0.03] -> group-hover:bg-primary/3"
+ ],
+ "src/components/auth/password-strength.tsx": [
+  "bg-(--color-accent-main) -> bg-accent-main"
+ ],
+ "src/components/contact/contact-form.tsx": [
+  "bg-gradient-to-b -> bg-linear-to-b",
+  "bg-gradient-to-br -> bg-linear-to-br"
+ ],
+ "src/components/sections/hero-dashboard-mockup.tsx": [
+  "bg-gradient-to-b -> bg-linear-to-b"
+ ],
+ "src/components/pricing/pricing-card-featured.tsx": [
+  "bg-gradient-to-b -> bg-linear-to-b",
+  "bg-gradient-to-br -> bg-linear-to-br",
+  "p-[2px] -> p-0.5"
+ ],
+ "src/components/pricing/pricing-comparison-table.tsx": [
+  "bg-gradient-to-l -> bg-linear-to-l",
+  "min-w-[640px] -> min-w-160"
+ ],
+ "src/components/sections/how-it-works.tsx": [
+  "bg-gradient-to-r -> bg-linear-to-r"
+ ],
+ "src/components/ui/dropdown-menu.tsx": [
+  "data-[disabled]:opacity-50 -> data-disabled:opacity-50",
+  "data-[disabled]:pointer-events-none -> data-disabled:pointer-events-none",
+  "data-[inset]:pl-8 -> data-inset:pl-8",
+  "data-[variant=destructive]:*:[svg]:!text-destructive -> data-[variant=destructive]:*:[svg]:text-destructive!",
+  "min-w-[8rem] -> min-w-32"
+ ],
+ "src/components/ui/slider.tsx": [
+  "data-[disabled]:opacity-50 -> data-disabled:opacity-50"
+ ],
+ "src/components/bulk-import/bulk-import-upload-step.tsx": [
+  "data-[drag-over]:bg-primary/10 -> data-drag-over:bg-primary/10",
+  "data-[drag-over]:border-primary -> data-drag-over:border-primary",
+  "data-[drag-over]:scale-[1.01] -> data-drag-over:scale-[1.01]",
+  "data-[drag-over]:shadow-lg -> data-drag-over:shadow-lg",
+  "data-[drag-over]:shadow-primary/10 -> data-drag-over:shadow-primary/10",
+  "data-[invalid]:bg-destructive/5 -> data-invalid:bg-destructive/5",
+  "data-[invalid]:border-destructive/60 -> data-invalid:border-destructive/60",
+  "group-data-[drag-over]:animate-bounce -> group-data-drag-over:animate-bounce",
+  "group-data-[drag-over]:animate-pulse -> group-data-drag-over:animate-pulse",
+  "group-data-[drag-over]:bg-primary/20 -> group-data-drag-over:bg-primary/20",
+  "group-data-[drag-over]:scale-110 -> group-data-drag-over:scale-110"
+ ],
+ "src/app/blog/page.tsx": [
+  "flex-shrink-0 -> shrink-0",
+  "min-w-[280px] -> min-w-70"
+ ],
+ "src/components/maintenance/kanban/maintenance-kanban.client.tsx": [
+  "flex-shrink-0 -> shrink-0",
+  "min-w-[280px] -> min-w-70",
+  "sm:flex-shrink -> sm:shrink"
+ ],
+ "src/components/maintenance/table/columns.tsx": [
+  "flex-shrink-0 -> shrink-0"
+ ],
+ "src/components/tenants/tenant-grid.tsx": [
+  "flex-shrink-0 -> shrink-0"
+ ],
+ "src/components/ui/item.tsx": [
+  "group-has-[[data-slot=item-description]]/item:self-start -> group-has-data-[slot=item-description]/item:self-start",
+  "group-has-[[data-slot=item-description]]/item:translate-y-0.5 -> group-has-data-[slot=item-description]/item:translate-y-0.5"
+ ],
+ "src/components/data-table/data-table-faceted-filter.tsx": [
+  "h-[300px] -> h-75",
+  "max-h-[300px] -> max-h-75"
+ ],
+ "src/components/dashboard/components/revenue-area-chart-skeleton.tsx": [
+  "h-[300px] -> h-75"
+ ],
+ "src/components/dashboard/components/revenue-area-chart.tsx": [
+  "h-[300px] -> h-75"
+ ],
+ "src/app/(owner)/properties/units/page.tsx": [
+  "h-[300px] -> h-75"
+ ],
+ "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx": [
+  "h-[400px] -> h-100",
+  "w-[140px] -> w-35"
+ ],
+ "src/components/shared/error-page.tsx": [
+  "h-[400px] -> h-100",
+  "min-h-[400px] -> min-h-100"
+ ],
+ "src/components/shared/not-found-page.tsx": [
+  "h-[400px] -> h-100",
+  "min-h-[400px] -> min-h-100"
+ ],
+ "src/components/properties/image-lightbox.tsx": [
+  "h-[400px] -> h-100",
+  "min-h-[400px] -> min-h-100"
+ ],
+ "src/components/leases/wizard/lease-creation-wizard.tsx": [
+  "h-[400px] -> h-100",
+  "min-h-[400px] -> min-h-100"
+ ],
+ "src/components/leases/template/pdf-preview-panel.tsx": [
+  "h-[480px] -> h-120"
+ ],
+ "src/app/(owner)/documents/templates/components/template-preview-panel.tsx": [
+  "h-[520px] -> h-130"
+ ],
+ "src/components/applications/application-queue.tsx": [
+  "h-[72px] -> h-18"
+ ],
+ "src/components/ui/alert.tsx": [
+  "has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] -> has-[>svg]:grid-cols-[--spacing(4)_1fr]"
+ ],
+ "src/components/sections/features-section.tsx": [
+  "inset-[-2px] -> -inset-0.5"
+ ],
+ "src/components/sections/hero-section.tsx": [
+  "leading-[1.1] -> leading-display"
+ ],
+ "src/app/resources/page.tsx": [
+  "leading-[1.1] -> leading-display"
+ ],
+ "src/app/blog/[slug]/blog-post-page.tsx": [
+  "leading-[1.1] -> leading-display"
+ ],
+ "src/components/shell/app-shell-header.tsx": [
+  "max-w-[150px] -> max-w-37.5"
+ ],
+ "src/components/sections/comparison-table.tsx": [
+  "min-w-[640px] -> min-w-160"
+ ],
+ "src/components/ui/chart-tooltip.tsx": [
+  "min-w-[8rem] -> min-w-32"
+ ],
+ "src/components/ui/tooltip.tsx": [
+  "origin-[var(--radix-tooltip-content-transform-origin)] -> origin-(--radix-tooltip-content-transform-origin)",
+  "rounded-[2px] -> rounded-xs"
+ ],
+ "src/components/ui/tabs.tsx": [
+  "p-[3px] -> p-0.75"
+ ],
+ "src/components/dashboard/components/occupancy-donut-chart-skeleton.tsx": [
+  "size-[160px] -> size-40"
+ ],
+ "src/components/auth/mfa-verification-dialog.tsx": [
+  "sm:max-w-[400px] -> sm:max-w-100"
+ ],
+ "src/components/auth/two-factor-setup-dialog.tsx": [
+  "sm:max-w-[400px] -> sm:max-w-100",
+  "sm:max-w-[480px] -> sm:max-w-120"
+ ],
+ "src/components/properties/property-form.mobile.tsx": [
+  "supports-[backdrop-filter]:bg-card/80 -> supports-backdrop-filter:bg-card/80"
+ ],
+ "src/components/blog/lead-magnet-cta.tsx": [
+  "via-primary/[0.02] -> via-primary/2"
+ ],
+ "src/components/blog/blog-inline-cta.tsx": [
+  "via-primary/[0.02] -> via-primary/2"
+ ],
+ "src/app/(owner)/reports/balance-sheet/page.tsx": [
+  "w-[100px] -> w-25",
+  "w-[130px] -> w-32.5"
+ ],
+ "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx": [
+  "w-[100px] -> w-25",
+  "w-[130px] -> w-32.5"
+ ],
+ "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx": [
+  "w-[100px] -> w-25",
+  "w-[130px] -> w-32.5"
+ ],
+ "src/components/data-table/data-table-toolbar.tsx": [
+  "w-[120px] -> w-30"
+ ],
+ "src/app/(owner)/reports/tax-documents/page.tsx": [
+  "w-[130px] -> w-32.5"
+ ],
+ "src/components/leases/template/lease-template-builder.client.tsx": [
+  "w-[160px] -> w-40"
+ ],
+ "src/app/(owner)/analytics/financial/financial-charts.tsx": [
+  "w-[160px] -> w-40"
+ ],
+ "src/app/(owner)/analytics/financial/revenue-expense-chart.tsx": [
+  "w-[160px] -> w-40"
+ ],
+ "src/components/documents/documents-section.tsx": [
+  "w-[180px] -> w-45"
+ ],
+ "src/components/dashboard/components/portfolio-data-table.tsx": [
+  "z-[1] -> z-1"
+ ]
+}
