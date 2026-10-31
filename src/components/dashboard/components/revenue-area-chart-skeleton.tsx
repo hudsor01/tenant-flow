@@ -28,7 +28,7 @@ export function RevenueAreaChartSkeleton() {
 				</div>
 			</CardHeader>
 			<CardContent>
-				<Skeleton className="h-[300px] w-full rounded-md" />
+				<Skeleton className="h-75 w-full rounded-md" />
 			</CardContent>
 		</Card>
 	);

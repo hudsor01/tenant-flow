@@ -186,7 +186,7 @@ export function RevenueAreaChart({
 			</CardHeader>
 			<CardContent>
 				{isEmpty ? (
-					<div className="flex h-[300px] flex-col items-center justify-center gap-2 text-center">
+					<div className="flex h-75 flex-col items-center justify-center gap-2 text-center">
 						<p className="text-base font-semibold text-foreground">
 							No revenue data yet
 						</p>
@@ -195,7 +195,7 @@ export function RevenueAreaChart({
 						</p>
 					</div>
 				) : (
-					<ChartContainer config={revenueConfig} className="h-[300px] w-full">
+					<ChartContainer config={revenueConfig} className="h-75 w-full">
 						<AreaChart
 							data={data}
 							margin={{ top: 10, right: 10, left: 0, bottom: 0 }}

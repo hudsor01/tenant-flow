@@ -33,7 +33,7 @@ export function IncomeStatementPageHeader({
 				</div>
 				<div className="flex gap-2">
 					<Select value={period} onValueChange={onPeriodChange}>
-						<SelectTrigger className="w-[130px]">
+						<SelectTrigger className="w-32.5">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -43,7 +43,7 @@ export function IncomeStatementPageHeader({
 						</SelectContent>
 					</Select>
 					<Select value={year} onValueChange={onYearChange}>
-						<SelectTrigger className="w-[100px]">
+						<SelectTrigger className="w-25">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>

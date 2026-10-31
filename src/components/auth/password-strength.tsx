@@ -69,8 +69,8 @@ function PasswordStrength({
 		if (strength <= 20) return "bg-destructive";
 		if (strength <= 40) return "bg-accent";
 		if (strength <= 60) return "bg-accent";
-		if (strength <= 80) return "bg-(--color-accent-main)";
-		return "bg-(--color-accent-main)";
+		if (strength <= 80) return "bg-accent-main";
+		return "bg-accent-main";
 	};
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

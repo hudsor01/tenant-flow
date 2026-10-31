@@ -96,7 +96,7 @@ export default function ResourcesPage() {
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center max-w-4xl mx-auto space-y-8">
-						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
+						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-display text-foreground">
 							Resources for <span className="hero-highlight">landlords</span>
 						</h1>
 

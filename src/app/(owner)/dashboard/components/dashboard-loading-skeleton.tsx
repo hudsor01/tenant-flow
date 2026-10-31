@@ -22,7 +22,7 @@ export function DashboardLoadingSkeleton() {
 				<div className="lg:col-span-3 border rounded-lg p-6">
 					<Skeleton className="h-6 w-48 mb-2" />
 					<Skeleton className="h-4 w-64 mb-4" />
-					<Skeleton className="h-[400px] w-full" />
+					<Skeleton className="h-100 w-full" />
 				</div>
 
 				{/* Quick actions skeleton - 25% */}
@@ -51,8 +51,8 @@ export function DashboardLoadingSkeleton() {
 				<div className="px-4 py-3 border-b flex items-center gap-3">
 					<Skeleton className="h-9 w-64" />
 					<div className="flex items-center gap-3 ml-auto">
-						<Skeleton className="h-9 w-[140px]" />
-						<Skeleton className="h-9 w-[140px]" />
+						<Skeleton className="h-9 w-35" />
+						<Skeleton className="h-9 w-35" />
 					</div>
 				</div>
 				<div className="p-4">

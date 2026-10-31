@@ -247,7 +247,7 @@ export function LeaseTemplateBuilder() {
 								value={state}
 								onValueChange={(value) => setState(value as USState)}
 							>
-								<SelectTrigger className="w-[160px]">
+								<SelectTrigger className="w-40">
 									<SelectValue placeholder="Select state" />
 								</SelectTrigger>
 								<SelectContent className="max-h-72">

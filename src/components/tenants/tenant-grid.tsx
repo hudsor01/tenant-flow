@@ -94,7 +94,7 @@ function TenantCard({
 						onClick={() => onContact("email")}
 						className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary-text transition-colors w-full group"
 					>
-						<Mail className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+						<Mail className="w-3.5 h-3.5 shrink-0 group-hover:scale-110 transition-transform" />
 						<span className="truncate">{tenant.email}</span>
 					</button>
 					{tenant.phone && (
@@ -102,7 +102,7 @@ function TenantCard({
 							onClick={() => onContact("phone")}
 							className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary-text transition-colors w-full group"
 						>
-							<Phone className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+							<Phone className="w-3.5 h-3.5 shrink-0 group-hover:scale-110 transition-transform" />
 							<span>{tenant.phone}</span>
 						</button>
 					)}
@@ -111,7 +111,7 @@ function TenantCard({
 				{/* Property/Unit */}
 				{tenant.currentProperty && (
 					<div className="flex items-start gap-2 text-sm text-muted-foreground mb-4">
-						<MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+						<MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
 						<div>
 							<p className="text-foreground">{tenant.currentProperty}</p>
 							{tenant.currentUnit && (

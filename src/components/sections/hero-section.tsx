@@ -53,7 +53,7 @@ export function HeroSection({
 							}
 						>
 							<div className="space-y-6">
-								<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-[1.1]">
+								<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-display">
 									{title}{" "}
 									{titleHighlight && (
 										<span className="hero-highlight">{titleHighlight}</span>

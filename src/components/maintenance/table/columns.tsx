@@ -183,7 +183,7 @@ export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 
 			return (
 				<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-					<MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+					<MapPin className="w-3.5 h-3.5 shrink-0" />
 					<span className="truncate">
 						{propertyName}
 						{unitName && ` · Unit ${unitName}`}

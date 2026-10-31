@@ -30,7 +30,7 @@ const KpiSparkline = dynamic(
 	() => import("./kpi-sparkline").then((m) => m.KpiSparkline),
 	{
 		ssr: false,
-		loading: () => <Skeleton className="h-16 w-full [grid-column:1/-1]" />,
+		loading: () => <Skeleton className="h-16 w-full col-span-full" />,
 	},
 );
 
@@ -296,7 +296,7 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 	const trendChip = tile.trend ? (
 		<StatTrend
 			trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
-			className={cn(tile.trend.trend === "down" && "!text-warning-text")}
+			className={cn(tile.trend.trend === "down" && "text-warning-text!")}
 		>
 			<TrendArrow direction={tile.trend.trend} />
 			<span>{formatTrendPercent(tile.trend.percentChange)}</span>

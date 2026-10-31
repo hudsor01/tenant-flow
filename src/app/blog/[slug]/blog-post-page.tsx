@@ -112,7 +112,7 @@ export default function BlogPostPage({
 						</span>
 					</div>
 
-					<h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-5 leading-[1.1]">
+					<h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-5 leading-display">
 						{post.title}
 					</h1>
 

@@ -58,10 +58,10 @@ export function TemplatePreviewPanel({
 					<iframe
 						src={previewUrl}
 						title={`${title} PDF preview`}
-						className="h-[520px] w-full rounded border"
+						className="h-130 w-full rounded border"
 					/>
 				) : (
-					<div className="flex h-[520px] items-center justify-center rounded border border-dashed text-sm text-muted-foreground">
+					<div className="flex h-130 items-center justify-center rounded border border-dashed text-sm text-muted-foreground">
 						Generate a preview to view the PDF output.
 					</div>
 				)}

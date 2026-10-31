@@ -474,13 +474,13 @@ describe("PortfolioDataTable", () => {
 			expect(
 				document.querySelector('[data-slot="table-container"]'),
 			).toBeNull();
-			// The header is sticky to scrollRef via `sticky top-0 z-[1]` utilities.
+			// The header is sticky to scrollRef via `sticky top-0 z-1` utilities.
 			const thead = document.querySelector(
 				'thead[data-slot="table-header"]',
 			) as HTMLElement;
 			expect(thead.classList.contains("sticky")).toBe(true);
 			expect(thead.classList.contains("top-0")).toBe(true);
-			expect(thead.classList.contains("z-[1]")).toBe(true);
+			expect(thead.classList.contains("z-1")).toBe(true);
 		} finally {
 			virtualMock.override = null;
 		}

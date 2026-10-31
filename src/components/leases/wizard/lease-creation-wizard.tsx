@@ -266,7 +266,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 
 			<Card>
 				<CardContent className="pt-6">
-					<div className="min-h-[400px]">
+					<div className="min-h-100">
 						{currentStep === "selection" && (
 							<SelectionStep
 								data={selectionData}

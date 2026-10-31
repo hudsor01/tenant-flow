@@ -46,7 +46,7 @@ const ChartAreaInteractive = dynamic(
 		),
 	{
 		loading: () => (
-			<div className="h-[300px] rounded-lg border bg-card shadow-sm animate-pulse" />
+			<div className="h-75 rounded-lg border bg-card shadow-sm animate-pulse" />
 		),
 		ssr: false, // Chart renders client-side only
 	},

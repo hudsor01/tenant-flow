@@ -51,7 +51,7 @@ export function PdfPreviewPanel({
 			</CardHeader>
 			<CardContent>
 				{dataUrl ? (
-					<div className="h-[480px] w-full overflow-hidden rounded-lg border">
+					<div className="h-120 w-full overflow-hidden rounded-lg border">
 						<iframe
 							src={dataUrl}
 							title="Lease PDF Preview"

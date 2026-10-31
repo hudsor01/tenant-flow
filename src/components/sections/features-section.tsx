@@ -139,7 +139,7 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 			{/* Animated border beam effect */}
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 rounded overflow-hidden pointer-events-none">
 				<div
-					className="absolute inset-[-2px] bg-primary/10 animate-pulse duration-1000 rounded"
+					className="absolute -inset-0.5 bg-primary/10 animate-pulse duration-1000 rounded"
 					aria-hidden="true"
 				/>
 			</div>

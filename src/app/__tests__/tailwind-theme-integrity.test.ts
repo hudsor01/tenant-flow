@@ -32,6 +32,17 @@
  *     `*.test.{ts,tsx}`), while the helper modules are scanned.
  *   - Every `it` that awaits an engine passes an explicit timeout; the G8 `it`
  *     takes `30_000`.
+ *
+ * G8 (landed in 66.2-18, D-25). Every class Tailwind compiles in first-party
+ * source (the project scan minus `src/components/ui/`, whose vendored files
+ * belong to W5) is already in its canonical form. The check is per candidate,
+ * with `rem: 16` and without `collapse`, the rule audit.mjs M10 and the
+ * `.planning/tailwind-shadcn/audit/canonicalize.mjs` codemod use too.
+ * Maintainer note: a future Tailwind release may add canonicalizations. G8
+ * then fails in CI's `checks` job on the bump pull request (on main that job
+ * runs `bun run test:unit -- --coverage` for every pull request, Dependabot's
+ * included) and on the next lefthook commit; Dependabot's own commits skip
+ * lefthook. Fix it by re-running the codemod with `--write`.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -49,11 +60,13 @@ import {
 	loadProjectTailwindEngine,
 	parseCss,
 	REPO_ROOT,
+	scanSources,
 	TAILWIND_BASE,
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
 import {
 	type CustomMergeKeys,
+	checkCanonicalCandidates,
 	checkG7DanglingThemeVars,
 	checkInlineColorTokenStructure,
 	checkLightOnlyColorTokens,
@@ -72,6 +85,7 @@ import {
 	extractCustomPropertyRefs,
 	findMergeConfigDrift,
 	findMergeFailures,
+	firstPartyScanSources,
 	G5_NAMESPACES,
 	type G5Namespace,
 	type G7RuntimeVars,
@@ -1568,4 +1582,109 @@ describe("G7 — every theme-namespace var() reference resolves in the compiled 
 		expect(runtime.chartConfig.has("--color-tok")).toBe(false);
 		expect(runtime.chartConfig).toContain("--color-extra");
 	});
+});
+
+describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", () => {
+	let firstPartyScanPromise:
+		| Promise<{
+				engine: TailwindEngine;
+				candidates: string[];
+				files: string[];
+		  }>
+		| undefined;
+
+	function firstPartyScan() {
+		if (firstPartyScanPromise === undefined) {
+			firstPartyScanPromise = projectEngine().then((engine) => {
+				const { candidates, files } = scanSources(
+					firstPartyScanSources(engine.sources, REPO_ROOT),
+				);
+				return { engine, candidates, files };
+			});
+		}
+		return firstPartyScanPromise;
+	}
+
+	it("scans first-party source only, and enough of it that a clean result means something", async () => {
+		const { engine, candidates, files } = await firstPartyScan();
+		const relative = files.map((f) =>
+			f.slice(REPO_ROOT.length + 1).replaceAll(sep, "/"),
+		);
+		expect(relative).toContain("src/components/shell/app-shell-header.tsx");
+		expect(relative.filter((f) => f.startsWith("src/components/ui/"))).toEqual(
+			[],
+		);
+		expect(relative.filter((f) => /\.test\.tsx?$/.test(f))).toEqual([]);
+		const { checked } = checkCanonicalCandidates(
+			engine.designSystem,
+			candidates,
+		);
+		expect(checked).toBeGreaterThan(1000);
+	}, 30_000);
+
+	it("finds no non-canonical class in first-party code", async () => {
+		const { engine, candidates } = await firstPartyScan();
+		const { violations } = checkCanonicalCandidates(
+			engine.designSystem,
+			candidates,
+		);
+		expect(
+			violations,
+			`Non-canonical Tailwind class(es) in first-party code (src/ outside src/components/ui/). Write the canonical form, or run \`node .planning/tailwind-shadcn/audit/canonicalize.mjs --write\` (after W3 only, N10):\n${violations.join("\n")}`,
+		).toEqual([]);
+	}, 30_000);
+
+	it("flags each deprecated form with its canonical replacement", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkCanonicalCandidates(designSystem, [
+			"flex-shrink-0",
+			"bg-gradient-to-r",
+			"!font-bold",
+			"data-[open]:flex",
+			"[grid-column:1/-1]",
+		]);
+		expect(result.checked).toBe(5);
+		expect(result.violations).toEqual([
+			"!font-bold -> font-bold!",
+			"[grid-column:1/-1] -> col-span-full",
+			"bg-gradient-to-r -> bg-linear-to-r",
+			"data-[open]:flex -> data-open:flex",
+			"flex-shrink-0 -> shrink-0",
+		]);
+	}, 30_000);
+
+	it("maps a px value that equals a spacing step at the 16px root", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		expect(
+			checkCanonicalCandidates(designSystem, ["w-[130px]"]).violations,
+		).toEqual(["w-[130px] -> w-32.5"]);
+	}, 30_000);
+
+	it("does not collapse two classes into a shorthand", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		expect(
+			checkCanonicalCandidates(designSystem, ["w-4", "h-4"]).violations,
+		).toEqual([]);
+	}, 30_000);
+
+	it("accepts the canonical forms", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkCanonicalCandidates(designSystem, [
+			"shrink-0",
+			"bg-linear-to-r",
+			"font-bold!",
+			"data-open:flex",
+			"col-span-full",
+			"w-32.5",
+		]);
+		expect(result.checked).toBe(6);
+		expect(result.violations).toEqual([]);
+	}, 30_000);
+
+	it("skips a token the design system does not compile", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkCanonicalCandidates(designSystem, ["not-a-class-xyz"]);
+		expect(result.checked).toBe(0);
+		expect(result.violations).toEqual([]);
+	}, 30_000);
 });

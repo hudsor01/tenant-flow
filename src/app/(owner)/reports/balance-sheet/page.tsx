@@ -163,7 +163,7 @@ export default function BalanceSheetPage() {
 					</div>
 					<div className="flex gap-2">
 						<Select value={year} onValueChange={setYear}>
-							<SelectTrigger className="w-[100px]">
+							<SelectTrigger className="w-25">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -177,7 +177,7 @@ export default function BalanceSheetPage() {
 							</SelectContent>
 						</Select>
 						<Select value={month} onValueChange={setMonth}>
-							<SelectTrigger className="w-[130px]">
+							<SelectTrigger className="w-32.5">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>

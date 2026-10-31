@@ -166,7 +166,7 @@ export function ChangePasswordDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[500px]" intent="edit">
+			<DialogContent className="sm:max-w-125" intent="edit">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Lock className="size-5" />
@@ -199,7 +199,7 @@ export function ChangePasswordDialog({
 								<button
 									type="button"
 									onClick={() => togglePasswordVisibility("current")}
-									className="absolute right-3 top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									className="absolute right-3 top-[50%] translate-y-[-50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
 									aria-label={
 										showPasswords.current
@@ -233,7 +233,7 @@ export function ChangePasswordDialog({
 								<button
 									type="button"
 									onClick={() => togglePasswordVisibility("new")}
-									className="absolute right-3 top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									className="absolute right-3 top-[50%] translate-y-[-50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
 									aria-label={
 										showPasswords.new
@@ -276,7 +276,7 @@ export function ChangePasswordDialog({
 								<button
 									type="button"
 									onClick={() => togglePasswordVisibility("confirm")}
-									className="absolute right-3 top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									className="absolute right-3 top-[50%] translate-y-[-50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
 									aria-label={
 										showPasswords.confirm
@@ -299,7 +299,7 @@ export function ChangePasswordDialog({
 								<p className="font-semibold text-destructive-text mb-2">
 									Please fix the following errors:
 								</p>
-								<ul className="list-[disc] list-inside space-y-1 text-xs text-destructive-text">
+								<ul className="list-disc list-inside space-y-1 text-xs text-destructive-text">
 									{validationErrors.map((error) => (
 										<li key={error}>{error}</li>
 									))}

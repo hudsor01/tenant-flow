@@ -217,7 +217,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 								<BlogCard
 									key={post.id}
 									post={post}
-									className="min-w-[280px] flex-shrink-0 snap-start md:min-w-[320px]"
+									className="min-w-70 shrink-0 snap-start md:min-w-[320px]"
 								/>
 							))}
 						</div>

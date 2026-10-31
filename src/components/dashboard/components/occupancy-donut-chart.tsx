@@ -58,7 +58,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<CardTitle>Occupancy</CardTitle>
 					<CardDescription>Across all units</CardDescription>
 				</CardHeader>
-				<CardContent className="flex h-[240px] flex-col items-center justify-center gap-2 text-center">
+				<CardContent className="flex h-60 flex-col items-center justify-center gap-2 text-center">
 					<p className="text-base font-semibold text-foreground">
 						No units yet
 					</p>
@@ -92,10 +92,10 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 				<CardDescription>Across all units</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div role="img" aria-label={ariaLabel} className="h-[180px] w-full">
+				<div role="img" aria-label={ariaLabel} className="h-45 w-full">
 					<ChartContainer
 						config={donutConfig}
-						className="!aspect-auto h-full w-full"
+						className="aspect-auto! h-full w-full"
 					>
 						<PieChart>
 							<Pie
@@ -147,7 +147,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-[var(--color-chart-2)]"
+							className="inline-block size-2.5 rounded-full bg-chart-2"
 						/>
 						<span className="text-muted-foreground">Occupied</span>
 						<span className="font-semibold tabular-nums text-foreground">
@@ -157,7 +157,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-[var(--color-chart-5)]"
+							className="inline-block size-2.5 rounded-full bg-(--color-chart-5)"
 						/>
 						<span className="text-muted-foreground">Vacant</span>
 						<span className="font-semibold tabular-nums text-foreground">

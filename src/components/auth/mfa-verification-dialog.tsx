@@ -108,7 +108,7 @@ export function MfaVerificationDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[400px]" intent="default">
+			<DialogContent className="sm:max-w-100" intent="default">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Shield className="size-5 text-primary" />

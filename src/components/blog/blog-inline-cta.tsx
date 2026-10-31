@@ -10,7 +10,7 @@ const benefits = [
 
 export function BlogInlineCta() {
 	return (
-		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/[0.02] to-transparent p-8">
+		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/2 to-transparent p-8">
 			<div className="flex flex-col gap-4">
 				<p className="text-sm font-semibold uppercase tracking-wider text-primary-text">
 					TenantFlow

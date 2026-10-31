@@ -220,7 +220,7 @@ function PortfolioVirtualizedTable({
 			>
 				<TableHeader
 					role="rowgroup"
-					className="bg-muted/30 grid sticky top-0 z-[1]"
+					className="bg-muted/30 grid sticky top-0 z-1"
 				>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow

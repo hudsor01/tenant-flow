@@ -292,7 +292,7 @@ export function DocumentsSection({
 					>
 						<SelectTrigger
 							size="sm"
-							className="w-[180px]"
+							className="w-45"
 							aria-label="Category for next upload"
 						>
 							<SelectValue

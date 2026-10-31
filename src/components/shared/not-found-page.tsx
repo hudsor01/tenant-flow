@@ -26,7 +26,7 @@ export function NotFoundPage({
 }: NotFoundPageProps) {
 	const label = dashboardLabel ?? inferLabel(dashboardHref);
 	return (
-		<section className="flex min-h-[400px] items-center justify-center p-8">
+		<section className="flex min-h-100 items-center justify-center p-8">
 			<div className="max-w-md w-full space-y-4">
 				<Alert variant="destructive">
 					<AlertTitle>Page not found</AlertTitle>

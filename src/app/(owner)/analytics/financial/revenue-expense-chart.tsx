@@ -73,7 +73,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 			{chartData.length > 3 && (
 				<div className="flex justify-end">
 					<Select value={timeRange} onValueChange={setTimeRange}>
-						<SelectTrigger className="w-[160px]" aria-label="Select time range">
+						<SelectTrigger className="w-40" aria-label="Select time range">
 							<SelectValue placeholder="All time" />
 						</SelectTrigger>
 						<SelectContent>

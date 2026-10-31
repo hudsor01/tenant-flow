@@ -231,10 +231,10 @@ export function PricingComparisonTable({
 
 			<div className="relative overflow-x-auto rounded-xl border border-border/50 bg-card">
 				<div
-					className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-gradient-to-l from-card to-transparent md:hidden"
+					className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-linear-to-l from-card to-transparent md:hidden"
 					aria-hidden="true"
 				/>
-				<div className="min-w-[640px]">
+				<div className="min-w-160">
 					{/* Sticky header */}
 					<div className="grid grid-cols-4 items-center py-4 px-6 bg-muted/70 backdrop-blur-sm border-b border-border sticky top-0 z-10 shadow-sm">
 						<div className="text-sm font-medium text-muted-foreground">

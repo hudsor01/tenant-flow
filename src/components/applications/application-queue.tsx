@@ -145,7 +145,7 @@ function QueueSkeletons() {
 	return (
 		<div className="flex flex-col gap-2">
 			{Array.from({ length: 5 }).map((_, index) => (
-				<Skeleton key={index} className="h-[72px] rounded-lg" />
+				<Skeleton key={index} className="h-18 rounded-lg" />
 			))}
 		</div>
 	);

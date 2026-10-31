@@ -109,7 +109,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 
 				<BlurFade delay={0.2} inView>
 					<div className="overflow-x-auto">
-						<table className="w-full min-w-[640px]">
+						<table className="w-full min-w-160">
 							<thead>
 								<tr>
 									<th className="text-left py-4 px-4 typography-small text-muted-foreground">

@@ -19,7 +19,7 @@ export function OccupancyDonutChartSkeleton() {
 				<Skeleton className="mt-2 h-4 w-28" />
 			</CardHeader>
 			<CardContent className="flex flex-col items-center gap-4">
-				<Skeleton className="size-[160px] rounded-full" />
+				<Skeleton className="size-40 rounded-full" />
 				<div className="flex items-center gap-6">
 					<div className="flex items-center gap-2">
 						<Skeleton className="size-2.5 rounded-full" />

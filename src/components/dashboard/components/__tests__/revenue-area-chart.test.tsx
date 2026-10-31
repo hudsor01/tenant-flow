@@ -211,14 +211,14 @@ describe("RevenueAreaChart", () => {
 });
 
 describe("RevenueAreaChartSkeleton", () => {
-	it("renders a Card with lg:col-span-2 + h-[300px] skeleton body", async () => {
+	it("renders a Card with lg:col-span-2 + h-75 skeleton body", async () => {
 		const { container } = render(<RevenueAreaChartSkeleton />);
 		const card = container.firstElementChild as HTMLElement | null;
 		expect(card).not.toBeNull();
 		expect(card?.className).toContain("lg:col-span-2");
-		// Skeleton body placeholder uses the Tailwind arbitrary-value h-[300px].
+		// Skeleton body placeholder uses the scale class h-75 (300px at a 16px root).
 		await waitFor(() => {
-			expect(container.querySelector('[class*="h-[300px]"]')).not.toBeNull();
+			expect(container.querySelector(".h-75")).not.toBeNull();
 		});
 	});
 

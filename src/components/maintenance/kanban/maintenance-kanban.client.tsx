@@ -162,7 +162,7 @@ function KanbanColumn({
 
 	return (
 		<BlurFade delay={0.3 + columnIndex * 0.1} inView>
-			<div className="flex flex-col min-w-[280px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink bg-muted/30 rounded-lg">
+			<div className="flex flex-col min-w-70 sm:min-w-0 snap-start shrink-0 sm:shrink bg-muted/30 rounded-lg">
 				{/* Column Header */}
 				<div className="flex items-center gap-3 p-4 border-b border-border">
 					<div

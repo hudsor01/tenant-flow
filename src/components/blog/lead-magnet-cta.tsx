@@ -50,7 +50,7 @@ export function LeadMagnetCta({
 	}
 
 	return (
-		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/[0.02] to-transparent p-8">
+		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/2 to-transparent p-8">
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-2">
 					<Icon className="size-5 text-primary" />

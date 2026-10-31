@@ -32,7 +32,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					<div className="w-12" />
 				</div>
 
-				<div className="p-4 space-y-4 bg-gradient-to-b from-background to-muted/20">
+				<div className="p-4 space-y-4 bg-linear-to-b from-background to-muted/20">
 					<div className="flex-between">
 						<div>
 							<h3 className="text-sm font-semibold text-foreground">

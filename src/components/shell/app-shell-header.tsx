@@ -115,7 +115,7 @@ export function AppShellHeader({
 												{lastCrumb.label}
 											</Link>
 										) : (
-											<span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">
+											<span className="text-foreground font-medium truncate max-w-37.5 sm:max-w-none">
 												{lastCrumb.label}
 											</span>
 										)}
