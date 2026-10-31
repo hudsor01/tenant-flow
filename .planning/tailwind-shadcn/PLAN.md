@@ -102,7 +102,7 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 | M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (W1) |
 | M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 7 / 1 / 0 of 42 / 0 / 0 (W2; the W6 remnants: the 7 zinc `@theme inline` `--color-sidebar-*` and `--sidebar-transition`, D-21/D-51) |
 | M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (W2) |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 103 (51 + 15 files) (W2; W4 target) |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 15 ui/ (tracks upstream) (W4, 66.2-19: 47 classes, all in the 15 vendored `ui/` files) |
 | R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (W1) |
 | R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (W1) |
 | R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (W1) |
@@ -309,9 +309,10 @@ The B2 rule as validated:
 - **Exit:** `render-check.mjs phase3` token snapshot **identical** to Phase 2's for all tokens, light and dark. Screenshot matrix unchanged. (proved 66.2-17)
 
 ### Phase 4 (wave 4): Canonical classes, first-party
-- [ ] Re-run the canonicalizer **against the Phase 3 theme**, so suggestions like `gap-(--spacing-2)` no longer point at variables Phase 2 deleted. Apply it to the 53 first-party files.
-- [ ] G8 lands with the vendored `ui/` registry files allow-listed.
-- **Exit:** M10 first-party = 0. Screenshot matrix unchanged.
+- [x] Re-run the canonicalizer **against the Phase 3 theme**, so suggestions like `gap-(--spacing-2)` no longer point at variables Phase 2 deleted. Apply it to the 53 first-party files. (66.2-18: 86 edits in 50 files, 54 distinct pairs; proved 66.2-19: `audit/w4/report.json` M10 first-party 0, `audit/w4/pair-parity-w4.json`, `audit/w4/merge-check-w4.json`)
+- [x] G8 lands with the vendored `ui/` registry files allow-listed. (66.2-18; proved 66.2-19: `audit/w4/redproof-g8-*.json` baseline 97, pre-W4 54, W4 0, mutation 1 with the `ui/` probe unreported)
+- Maintainer caveat (RESEARCH): a future Tailwind release may add canonicalizations. Dependabot commits skip lefthook, but origin/main's `checks` job runs `bun run test:unit -- --coverage` on every PR since #1041 (80d282a5a), so G8 then fails on the bump PR itself and on the next lefthook commit. Input to the N21 residual in 66.2-39, whose RESEARCH row "unit tests never run in CI" predates #1041.
+- **Exit:** M10 first-party = 0. Screenshot matrix unchanged. (proved 66.2-19)
 
 ### Phase 5 (wave 5): shadcn component sync
 - **Input:** `research/shadcn-component-audit.md`, a raw report covering 42 vendored files vs new-york-v4. It is **unverified**; only the input-otp missing-`data-slot` claim has been spot-checked.
@@ -411,6 +412,14 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.4 guards and build: G1-G7 pass (8/5/5/10/7/14/13 tests, 0 failed); red-proof G1-G7 + inline-structure 0 now, 754c91802 G4 7 and inline-structure 104; the `.dark --muted-foreground` fixture trips G4. validate:quick, the coverage ratchet (64.95/56.85/64.22/67.07) and `next build` exit 0.
   - §7.5 screenshots: W2 vs W3 91 identical, 1 noise (pricing-light-390, the 22 px house-icon region, confirmed in the same-session W3 repeat); 0 missing; owner set captured; 92/92 themeApplied; 0 CSP console errors.
   - §7.6 Aikido: MCP unavailable to the executor; the orchestrator's path scans of 66.2-15/16's files found 0 issues and SAST failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner; this plan's two tool files (`audit.mjs`, `source-assertions-w3.mjs`) are listed for the orchestrator.
+
+- **2026-10-31.** Wave 4 gate (66.2-19) passed:
+  - §7.1 audit: M10 first-party 0 (47 classes, all in the 15 vendored `ui/` files; `src/components/ui` has no diff since the W3 gate). M1 916, M2 0, M3 0, M4 0, M5 0, M6 chart-1..5, M7 0, M8 7 / 1 / 0 of 42 / 0 / 0, M9 none: all equal W3. No canonicalizer call passes `collapse: true`; audit.mjs, canonicalize.mjs and tailwind-guards.ts all use rem 16. The 5 N13 tests hold only the canonical forms.
+  - §7.2 rule parity: css-parity `--strict` W3 vs W4: 54 intended removals (every pair `from`), 42 intended additions (pair `to`s not already present), 0 spacing-equivalent, 0 color-inline, 0 unclassified. The independent merge check (PRE_W4 archive vs HEAD) gives calls 36, sites 4/158/0, unresolved 5, diffs [], with the 1 owner-approved cascade-equivalent site, equal to 66.2-18. Pair proof (`pair-parity.mjs`): 54 pairs, 21 text-equal, 9 computed-equal, 24 rem-for-px, 0 unproven; equal by set to 66.2-18's classes.
+  - §7.3 token parity: `tokens-w4.json` `jq -S`-identical to W3 (71 names per mode); render-check (fonts, secondary pixel, pairs, contrast, touch390) identical.
+  - §7.4 guards and build: G8 red-proof 754c91802 97 (equal to 66.2-18), PRE_W4 54 (equal to the pair set), W4 0, HEAD plus one injected first-party `flex-shrink-0` 1, the injected `ui/` `bg-gradient-to-r` unreported. G8 suite 7/7 (positive test 181 ms). validate:quick, the coverage ratchet (64.95/56.84/64.22/67.07) and `next build` exit 0.
+  - §7.5 screenshots at default zoom: W3 vs W4 91 identical, 1 noise (signup-dark-390, the 22 px house-icon region, also changed in the same-session W4 repeat), 0 missing; owner set captured; 92/92 themeApplied; 0 CSP console errors. VD-13 (24 rem-for-px pairs) produces no pixel change at the 16px root.
+  - §7.6 Aikido: MCP unavailable to the executor; the orchestrator's path scans of the 66.2-17/18 files found 0 issues, and SAST failed inside Aikido (`unknown JSON field taint_intrafile`), carried to the owner. `pair-parity.mjs` and `w4/compiled.css` are listed for the orchestrator.
 
 ---
 
