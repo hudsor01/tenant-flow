@@ -7,13 +7,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 
 const ROOT = process.cwd();
 const require = createRequire(path.join(ROOT, "package.json"));
 const { __unstable__loadDesignSystem, compile } = await import(require.resolve("@tailwindcss/node"));
 const { Scanner } = require("@tailwindcss/oxide");
 const postcss = require("postcss");
-const { twMerge } = require("tailwind-merge");
 
 const OUT = process.env.TW_AUDIT_OUT ?? path.join(os.tmpdir(), "tenantflow-tw-audit");
 fs.mkdirSync(OUT, { recursive: true });
@@ -156,9 +156,13 @@ report.lightOnlyColorTokensInUse = themeVars
 const fontSizes = themeVars.filter((v) => v.name.startsWith("--text-") && !v.name.includes("--line-height") && !deadTheme.includes(v)).map((v) => v.name.slice(7));
 const cnPath = path.join(ROOT, "src/lib/utils.ts");
 const usesExtend = /extendTailwindMerge/.test(fs.readFileSync(cnPath, "utf8"));
+// Evaluated through the project cn (Node type stripping). The 66.2-02 baseline
+// cn was vanilla twMerge, so the metric definition is unchanged.
+const { cn: projectCn } = await import(pathToFileURL(cnPath).href);
 report.twMerge = {
 	projectCnUsesExtendTailwindMerge: usesExtend,
-	fontSizesDroppedNextToAColor: fontSizes.filter((k) => twMerge(`text-${k} text-primary`) === "text-primary").map((k) => `text-${k}`),
+	evaluatedWith: "src/lib/utils.ts cn",
+	fontSizesDroppedNextToAColor: fontSizes.filter((k) => projectCn(`text-${k} text-primary`) === "text-primary").map((k) => `text-${k}`),
 };
 
 // 7. Other stylesheets (compiled separately, e.g. with @reference): dead classes and
