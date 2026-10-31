@@ -85,7 +85,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#components/ui/sheet";
-import { Toaster } from "#components/ui/toast";
+import { Toaster } from "#components/ui/sonner";
 
 type Props = Record<string, unknown>;
 const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost", "link"] as const;
