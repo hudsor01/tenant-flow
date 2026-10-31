@@ -30,8 +30,13 @@
  *   - G3 `checkUtilityShadowing`: no non-functional `@utility` name is also a
  *     core or theme utility (B8 class: Tailwind applies both rules, so the
  *     custom one silently overrides or merges with the core one).
- *   Later guard plans add their checks to this file: G5 (66.2-09), G7
- *   (66.2-14), G8 (66.2-18).
+ *   - G5 `checkMergeKeys`: every custom font-size, line-height, spacing and
+ *     transition-duration key in `@theme` is known to the project's
+ *     tailwind-merge config, in both directions, and merges with its standard
+ *     group (B7 class: an unknown font-size key is read as a text color, so
+ *     the merge drops it next to a real one).
+ *   Later guard plans add their checks to this file: G7 (66.2-14), G8
+ *   (66.2-18).
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -54,6 +59,12 @@ import type { SourceEntry } from "@tailwindcss/oxide";
 import { Scanner } from "@tailwindcss/oxide";
 import type { AtRule, Node as PostcssNode, Rule } from "postcss";
 import postcss from "postcss";
+import type {
+	ConfigExtension,
+	DefaultClassGroupIds,
+	DefaultThemeGroupIds,
+} from "tailwind-merge";
+import { twMerge } from "tailwind-merge";
 
 export type GuardResult = {
 	checked: number;
@@ -357,4 +368,180 @@ export async function checkUtilityShadowing(
 		(name) => designSystem.candidatesToCss([name])[0] != null,
 	);
 	return { checked: names.length, violations };
+}
+
+/**
+ * G5 namespaces. `utility` and `standardKey` compose a standard class of the
+ * same tailwind-merge group at run time (no complete class name sits in this
+ * scanned file); `twMergeKey` is the tailwind-merge theme key, or for
+ * transition-duration the class group, that the extension fills.
+ */
+export const G5_NAMESPACES = {
+	text: { utility: "text", standardKey: "sm", twMergeKey: "text" },
+	leading: { utility: "leading", standardKey: "tight", twMergeKey: "leading" },
+	spacing: { utility: "p", standardKey: "4", twMergeKey: "spacing" },
+	"transition-duration": {
+		utility: "duration",
+		standardKey: "200",
+		twMergeKey: "duration",
+	},
+} as const;
+
+export type G5Namespace = keyof typeof G5_NAMESPACES;
+
+export type CustomMergeKeys = Record<G5Namespace, string[]>;
+
+export type MergeExtension = ConfigExtension<
+	DefaultClassGroupIds,
+	DefaultThemeGroupIds
+>;
+
+export type MergeFunction = (...classLists: string[]) => string;
+
+const G5_NAMESPACE_ORDER: readonly G5Namespace[] = [
+	"text",
+	"leading",
+	"spacing",
+	"transition-duration",
+];
+
+const G5_THEME_DECL = /^--(text|leading|spacing|transition-duration)-(.+)$/;
+
+function isG5Namespace(value: string): value is G5Namespace {
+	return Object.hasOwn(G5_NAMESPACES, value);
+}
+
+function g5Class(ns: G5Namespace, key: string): string {
+	return `${G5_NAMESPACES[ns].utility}-${key}`;
+}
+
+function g5StandardClass(ns: G5Namespace): string {
+	return g5Class(ns, G5_NAMESPACES[ns].standardKey);
+}
+
+function emptyMergeKeys(): CustomMergeKeys {
+	return { text: [], leading: [], spacing: [], "transition-duration": [] };
+}
+
+/**
+ * Walks every `@theme` at-rule (inline or not) and returns, per namespace and
+ * in source order, the keys tailwind-merge's default config does not know: a
+ * key is kept when vanilla twMerge does not merge its class with the
+ * namespace's standard class. Sub-properties (`--text-x--line-height`) are
+ * skipped, and `_` in a key reads as `.` (as Tailwind spells `0_5`).
+ */
+export function deriveCustomMergeKeys(css: string): CustomMergeKeys {
+	const keys = emptyMergeKeys();
+	postcss.parse(css).walkAtRules("theme", (atRule) => {
+		atRule.walkDecls((decl) => {
+			const match = G5_THEME_DECL.exec(decl.prop);
+			const ns = match?.[1];
+			const rest = match?.[2];
+			if (ns === undefined || rest === undefined || !isG5Namespace(ns)) return;
+			if (rest.includes("--")) return;
+			const key = rest.replaceAll("_", ".");
+			const standard = g5StandardClass(ns);
+			if (twMerge(`${g5Class(ns, key)} ${standard}`) === standard) return;
+			if (!keys[ns].includes(key)) keys[ns].push(key);
+		});
+	});
+	return keys;
+}
+
+function stringEntries(group: readonly unknown[] | undefined): string[] {
+	return (group ?? []).filter(
+		(entry): entry is string => typeof entry === "string",
+	);
+}
+
+/**
+ * The keys a tailwind-merge extension lists for the G5 namespaces. A theme key
+ * the extension leaves out reads as `[]`.
+ */
+export function extensionKeys(ext: MergeExtension): CustomMergeKeys {
+	const theme = ext.extend?.theme;
+	const durationKey = G5_NAMESPACES["transition-duration"].twMergeKey;
+	const durations: string[] = [];
+	for (const entry of ext.extend?.classGroups?.[durationKey] ?? []) {
+		if (typeof entry !== "object" || entry === null) continue;
+		durations.push(...stringEntries(entry[durationKey]));
+	}
+	return {
+		text: stringEntries(theme?.[G5_NAMESPACES.text.twMergeKey]),
+		leading: stringEntries(theme?.[G5_NAMESPACES.leading.twMergeKey]),
+		spacing: stringEntries(theme?.[G5_NAMESPACES.spacing.twMergeKey]),
+		"transition-duration": durations,
+	};
+}
+
+/**
+ * `missing <ns>: <key>` for each expected key the config lacks, then
+ * `stale <ns>: <key>` for each configured key the stylesheet no longer has.
+ */
+export function findMergeConfigDrift(
+	expected: CustomMergeKeys,
+	configured: CustomMergeKeys,
+): string[] {
+	const missing: string[] = [];
+	const stale: string[] = [];
+	for (const ns of G5_NAMESPACE_ORDER) {
+		for (const key of expected[ns]) {
+			if (!configured[ns].includes(key)) missing.push(`missing ${ns}: ${key}`);
+		}
+		for (const key of configured[ns]) {
+			if (!expected[ns].includes(key)) stale.push(`stale ${ns}: ${key}`);
+		}
+	}
+	return [...missing, ...stale];
+}
+
+/**
+ * Runs `merge` over every key: its class must yield to the namespace's
+ * standard class, and a font-size class must survive next to a text color.
+ */
+export function findMergeFailures(
+	keys: CustomMergeKeys,
+	merge: MergeFunction,
+): string[] {
+	const colorProbe = ["text", "primary"].join("-");
+	const failures: string[] = [];
+	for (const ns of G5_NAMESPACE_ORDER) {
+		const standard = g5StandardClass(ns);
+		for (const key of keys[ns]) {
+			const cls = g5Class(ns, key);
+			if (merge(`${cls} ${standard}`) !== standard) {
+				failures.push(`${cls} does not merge with ${standard}`);
+			}
+			if (
+				ns === "text" &&
+				merge(`${cls} ${colorProbe}`) !== `${cls} ${colorProbe}`
+			) {
+				failures.push(`${cls} dropped next to ${colorProbe}`);
+			}
+		}
+	}
+	return failures;
+}
+
+/**
+ * G5. Derives the custom keys from `css`, checks `merge` against each, and
+ * (when an extension is given) diffs the extension's keys against them. A
+ * tree without an extension export (the baseline) passes `undefined`, so
+ * only its merge failures count. `checked` is the number of derived keys.
+ */
+export function checkMergeKeys(
+	css: string,
+	extension: MergeExtension | undefined,
+	merge: MergeFunction,
+): GuardResult {
+	const keys = deriveCustomMergeKeys(css);
+	const violations = findMergeFailures(keys, merge);
+	if (extension !== undefined) {
+		violations.push(...findMergeConfigDrift(keys, extensionKeys(extension)));
+	}
+	const checked = G5_NAMESPACE_ORDER.reduce(
+		(total, ns) => total + keys[ns].length,
+		0,
+	);
+	return { checked, violations };
 }

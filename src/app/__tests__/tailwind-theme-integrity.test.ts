@@ -36,7 +36,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AtRule, Node as PostcssNode } from "postcss";
+import { twMerge } from "tailwind-merge";
 import { describe, expect, it } from "vitest";
+import { cn, TAILWIND_MERGE_EXTENSION } from "#lib/utils";
 import {
 	FIXTURE_CSS_PREFIX,
 	fixtureCss,
@@ -49,14 +51,22 @@ import {
 	type TailwindEngine,
 } from "#test/utils/tailwind-engine";
 import {
+	type CustomMergeKeys,
 	checkLightOnlyColorTokens,
+	checkMergeKeys,
 	checkNonInlineThemeVarRefs,
 	checkOklchRange,
 	checkSourceGlobs,
 	checkUtilityShadowing,
 	collectCustomPropertiesByContext,
 	collectSourceCustomPropertyRefs,
+	deriveCustomMergeKeys,
+	extensionKeys,
 	extractCustomPropertyRefs,
+	findMergeConfigDrift,
+	findMergeFailures,
+	G5_NAMESPACES,
+	type G5Namespace,
 	resolveCustomPropertyChain,
 } from "#test/utils/tailwind-guards";
 
@@ -894,6 +904,162 @@ describe("G3 — no @utility name shadows a core or theme utility", () => {
 			);
 			expect(checked).toBe(1);
 			expect(violations).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+});
+
+/**
+ * G5 (D-14, D-17). tailwind-merge only knows the theme keys of its default
+ * config, so `cn("text-caption", "text-primary")` read the custom font size as
+ * a text color and dropped it (B7), and custom leading, spacing and duration
+ * keys never merged with their standard group. The expected key list is
+ * derived from the real globals.css, so TAILWIND_MERGE_EXTENSION can drift in
+ * neither direction.
+ */
+describe("G5 — tailwind-merge knows every custom theme key (B7, D-14)", () => {
+	const FIXTURE_MISSING_KEY = "@theme { --text-g5-fixture: 1rem; }";
+	const G5_NAMESPACE_LIST: readonly G5Namespace[] = [
+		"text",
+		"leading",
+		"spacing",
+		"transition-duration",
+	];
+
+	function keyCount(keys: CustomMergeKeys): number {
+		return G5_NAMESPACE_LIST.reduce((total, ns) => total + keys[ns].length, 0);
+	}
+
+	it(
+		"derives a non-empty key set",
+		async () => {
+			const keys = deriveCustomMergeKeys((await projectEngine()).css);
+			expect(
+				keys.text.length,
+				"G5 derived no custom --text-* key from globals.css: the walk is vacuous",
+			).toBeGreaterThan(0);
+			expect(
+				keys.leading.length,
+				"G5 derived no custom --leading-* key from globals.css: the walk is vacuous",
+			).toBeGreaterThan(0);
+			expect(
+				keys["transition-duration"].length,
+				"G5 derived no custom --transition-duration-* key from globals.css: the walk is vacuous",
+			).toBeGreaterThan(0);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"every derived class is a real utility",
+		async () => {
+			const { css, designSystem } = await projectEngine();
+			const keys = deriveCustomMergeKeys(css);
+			const unresolved: string[] = [];
+			for (const ns of G5_NAMESPACE_LIST) {
+				for (const key of keys[ns]) {
+					const cls = `${G5_NAMESPACES[ns].utility}-${key}`;
+					if (designSystem.candidatesToCss([cls])[0] == null) {
+						unresolved.push(cls);
+					}
+				}
+			}
+			expect(
+				unresolved,
+				[
+					"G5 derived key(s) that Tailwind does not compile to a utility: the derivation reads a declaration that is not a theme key:",
+					...unresolved,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"config == derived keys (bidirectional)",
+		async () => {
+			const derived = deriveCustomMergeKeys((await projectEngine()).css);
+			const drift = findMergeConfigDrift(
+				derived,
+				extensionKeys(TAILWIND_MERGE_EXTENSION),
+			);
+			expect(
+				drift,
+				[
+					"TAILWIND_MERGE_EXTENSION in src/lib/utils.ts is out of sync with the @theme keys in globals.css. For a missing key, add the key to TAILWIND_MERGE_EXTENSION in src/lib/utils.ts; for a stale key, remove the stale key:",
+					...drift,
+				].join("\n"),
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"project cn merges every custom key",
+		async () => {
+			const { css } = await projectEngine();
+			const failures = findMergeFailures(deriveCustomMergeKeys(css), cn);
+			expect(
+				failures,
+				[
+					"The project cn mis-merges custom theme key(s) (B7): it drops a font size next to a text color or keeps two classes of one group. Add the key to TAILWIND_MERGE_EXTENSION in src/lib/utils.ts:",
+					...failures,
+				].join("\n"),
+			).toEqual([]);
+			expect(
+				checkMergeKeys(css, TAILWIND_MERGE_EXTENSION, cn).violations,
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"baseline cn fails (negative control: vanilla twMerge, no extension)",
+		async () => {
+			const { css } = await projectEngine();
+			const keys = deriveCustomMergeKeys(css);
+			const result = checkMergeKeys(css, undefined, twMerge);
+			expect(result.checked).toBe(keyCount(keys));
+			expect(result.violations).toHaveLength(
+				2 * keys.text.length +
+					keys.leading.length +
+					keys.spacing.length +
+					keys["transition-duration"].length,
+			);
+			expect(result.violations).toContain(
+				"text-caption dropped next to text-primary",
+			);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"missing key: a fixture @theme key absent from the config is reported",
+		async () => {
+			const engine = await loadFixtureEngine(FIXTURE_MISSING_KEY);
+			expect(
+				engine.designSystem.candidatesToCss(["text-g5-fixture"])[0],
+			).not.toBeNull();
+			const drift = findMergeConfigDrift(
+				deriveCustomMergeKeys(engine.css),
+				extensionKeys(TAILWIND_MERGE_EXTENSION),
+			);
+			expect(drift).toContain("missing text: g5-fixture");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
+		"stale key: a config key absent from globals.css is reported",
+		async () => {
+			const derived = deriveCustomMergeKeys((await projectEngine()).css);
+			const configured = extensionKeys(TAILWIND_MERGE_EXTENSION);
+			expect(
+				findMergeConfigDrift(derived, {
+					...configured,
+					text: [...configured.text, "g5-stale"],
+				}),
+			).toEqual(["stale text: g5-stale"]);
 		},
 		ENGINE_TIMEOUT_MS,
 	);
