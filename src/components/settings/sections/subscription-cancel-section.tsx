@@ -119,7 +119,7 @@ export function SubscriptionCancelSection() {
 	if (subscriptionStatus === "canceled") {
 		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30);
 		return (
-			<BlurFade delay={0.55} inView>
+			<BlurFade delay={0.55}>
 				<section className="rounded-lg border border-red-300 bg-red-50 p-6 dark:border-red-700 dark:bg-red-950/50">
 					<h3 className="mb-1 text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider flex items-center gap-2">
 						<Lock className="h-4 w-4" aria-hidden="true" />
@@ -172,7 +172,7 @@ export function SubscriptionCancelSection() {
 			});
 		};
 		return (
-			<BlurFade delay={0.55} inView>
+			<BlurFade delay={0.55}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
 						<Clock className="h-4 w-4" aria-hidden="true" />
@@ -233,7 +233,7 @@ export function SubscriptionCancelSection() {
 	};
 
 	return (
-		<BlurFade delay={0.55} inView>
+		<BlurFade delay={0.55}>
 			<section className="rounded-lg border border-destructive/20 bg-destructive/5 p-6">
 				<h3 className="mb-4 text-sm font-medium text-destructive-text uppercase tracking-wider flex items-center gap-2">
 					<AlertTriangle className="h-4 w-4" aria-hidden="true" />

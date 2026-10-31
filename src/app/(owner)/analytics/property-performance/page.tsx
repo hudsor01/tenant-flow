@@ -89,7 +89,7 @@ export default function PropertyPerformancePage() {
 	if (!hasData) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="flex flex-col gap-2 mb-6">
 						<h1 className="typography-h1">Property Performance</h1>
 						<p className="text-muted-foreground">
@@ -98,7 +98,7 @@ export default function PropertyPerformancePage() {
 						</p>
 					</div>
 				</BlurFade>
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<Empty className="min-h-96 border rounded-lg">
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
@@ -118,7 +118,7 @@ export default function PropertyPerformancePage() {
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col gap-2 mb-6">
 					<h1 className="typography-h1">Property Performance</h1>
 					<p className="text-muted-foreground">
@@ -131,7 +131,7 @@ export default function PropertyPerformancePage() {
 			<PerformanceStatCards metrics={metrics} />
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-				<BlurFade delay={0.6} inView>
+				<BlurFade delay={0.6}>
 					<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -147,7 +147,7 @@ export default function PropertyPerformancePage() {
 						<PropertyOccupancyChart data={performance} />
 					</div>
 				</BlurFade>
-				<BlurFade delay={0.7} inView>
+				<BlurFade delay={0.7}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -164,7 +164,7 @@ export default function PropertyPerformancePage() {
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-				<BlurFade delay={0.8} inView>
+				<BlurFade delay={0.8}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -180,7 +180,7 @@ export default function PropertyPerformancePage() {
 						<VisitorAnalyticsChart data={visitorAnalytics} />
 					</div>
 				</BlurFade>
-				<BlurFade delay={0.9} inView>
+				<BlurFade delay={0.9}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -196,7 +196,7 @@ export default function PropertyPerformancePage() {
 				</BlurFade>
 			</div>
 
-			<BlurFade delay={1.0} inView>
+			<BlurFade delay={1.0}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<div className="flex items-center justify-between mb-6">
 						<div>

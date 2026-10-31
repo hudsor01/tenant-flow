@@ -100,7 +100,7 @@ export function PortfolioDataTable({
 	const hasNoProperties = data.length === 0;
 
 	return (
-		<BlurFade delay={0.4} inView>
+		<BlurFade delay={0.4}>
 			<div className="overflow-hidden rounded-md border border-border bg-card">
 				<PortfolioDataTableToolbar
 					table={table}

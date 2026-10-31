@@ -24,7 +24,7 @@ export function IncomeStatementPageStats({
 }: IncomeStatementPageStatsProps) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -46,7 +46,7 @@ export function IncomeStatementPageStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Expenses</StatLabel>
 					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
@@ -62,7 +62,7 @@ export function IncomeStatementPageStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					{netIncome > 0 && (
 						<BorderBeam

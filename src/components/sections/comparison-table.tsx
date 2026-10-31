@@ -94,7 +94,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 	return (
 		<section className={cn("section-spacing bg-muted/30", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							Why Landlords Choose{" "}
@@ -107,7 +107,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="overflow-x-auto">
 						<table className="w-full min-w-160">
 							<thead>
@@ -190,7 +190,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				</BlurFade>
 
 				{/* CTA */}
-				<BlurFade delay={0.3} inView>
+				<BlurFade delay={0.3}>
 					<div className="text-center mt-12">
 						<Button size="lg" className="shadow-lg shadow-primary/20" asChild>
 							<Link href="/pricing">

@@ -22,7 +22,7 @@ export function TwoFactorSection() {
 
 	return (
 		<>
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-6 relative overflow-hidden">
 					<BorderBeam
 						size={80}

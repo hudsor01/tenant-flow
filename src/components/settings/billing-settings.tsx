@@ -240,7 +240,7 @@ export function BillingSettings() {
 		);
 		return (
 			<div className="space-y-6">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="mb-6">
 						<h2 className="text-lg font-semibold">Billing & Subscription</h2>
 						<p className="text-sm text-muted-foreground">
@@ -289,7 +289,7 @@ export function BillingSettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="mb-6">
 					<h2 className="text-lg font-semibold">Billing & Subscription</h2>
 					<p className="text-sm text-muted-foreground">
@@ -299,7 +299,7 @@ export function BillingSettings() {
 			</BlurFade>
 
 			{/* Current Plan */}
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<section className="rounded-lg border bg-card p-6 relative overflow-hidden">
 					<BorderBeam
 						size={100}

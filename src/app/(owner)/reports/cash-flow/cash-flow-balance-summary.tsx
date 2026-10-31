@@ -14,7 +14,7 @@ export function CashFlowBalanceSummary({
 	closingBalance,
 }: CashFlowBalanceSummaryProps) {
 	return (
-		<BlurFade delay={0.15} inView>
+		<BlurFade delay={0.15}>
 			<div className="bg-card border border-border rounded-lg p-6 mb-8">
 				<div className="flex flex-col md:flex-row items-center justify-between gap-6">
 					<div className="flex-1 text-center">

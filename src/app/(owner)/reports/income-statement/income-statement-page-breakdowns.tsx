@@ -23,7 +23,7 @@ export function IncomeStatementPageBreakdowns({
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 			{/* Revenue Breakdown */}
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
 						<ArrowUpRight className="w-4 h-4 text-emerald-600" />
@@ -70,7 +70,7 @@ export function IncomeStatementPageBreakdowns({
 			</BlurFade>
 
 			{/* Expense Breakdown */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
 						<ArrowDownRight className="w-4 h-4 text-red-600" />

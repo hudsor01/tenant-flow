@@ -21,7 +21,7 @@ export function BentoFeaturesSection() {
 	return (
 		<section className="section-spacing">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.3} inView>
+				<BlurFade delay={0.3}>
 					<div className="text-center mb-16 space-y-6">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
 							Everything you need to{" "}

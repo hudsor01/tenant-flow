@@ -99,7 +99,7 @@ export default function TaxDocumentsPage() {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Tax Documents</h1>
@@ -144,7 +144,7 @@ export default function TaxDocumentsPage() {
 			</BlurFade>
 
 			{!hasData ? (
-				<BlurFade delay={0.15} inView>
+				<BlurFade delay={0.15}>
 					<div className="flex flex-col items-center justify-center py-16 text-center">
 						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
 							<FileText className="w-8 h-8 text-muted-foreground" />
@@ -158,7 +158,7 @@ export default function TaxDocumentsPage() {
 			) : (
 				<>
 					{/* Summary Cards */}
-					<BlurFade delay={0.15} inView>
+					<BlurFade delay={0.15}>
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 							<div className="p-4 rounded-lg border border-border bg-card">
 								<div className="flex items-center gap-3">
@@ -212,7 +212,7 @@ export default function TaxDocumentsPage() {
 
 					{/* Expense Categories */}
 					{data.expenseCategories.length > 0 && (
-						<BlurFade delay={0.2} inView>
+						<BlurFade delay={0.2}>
 							<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
 								<div className="p-4 border-b border-border bg-muted/30">
 									<h3 className="font-medium text-foreground">
@@ -254,7 +254,7 @@ export default function TaxDocumentsPage() {
 
 					{/* Property Depreciation */}
 					{data.propertyDepreciation.length > 0 && (
-						<BlurFade delay={0.25} inView>
+						<BlurFade delay={0.25}>
 							<div className="bg-card border border-border rounded-lg overflow-hidden">
 								<div className="p-4 border-b border-border bg-muted/30">
 									<h3 className="font-medium text-foreground">

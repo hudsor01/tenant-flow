@@ -34,7 +34,7 @@ export function ExpenseStats({
 }: ExpenseStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<Stat className="relative overflow-hidden">
 					{totalExpenses > 0 && (
 						<BorderBeam
@@ -55,7 +55,7 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Monthly Average</StatLabel>
 					<StatValue className="flex items-baseline">
@@ -68,7 +68,7 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Maintenance</StatLabel>
 					<StatValue className="flex items-baseline text-orange-600 dark:text-orange-400">
@@ -81,7 +81,7 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>YoY Change</StatLabel>
 					<StatValue

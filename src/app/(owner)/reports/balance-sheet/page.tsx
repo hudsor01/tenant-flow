@@ -153,7 +153,7 @@ export default function BalanceSheetPage() {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Balance Sheet</h1>
@@ -205,7 +205,7 @@ export default function BalanceSheetPage() {
 
 			{/* Summary Stats */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-				<BlurFade delay={0.15} inView>
+				<BlurFade delay={0.15}>
 					<Stat className="relative overflow-hidden">
 						<BorderBeam
 							size={100}
@@ -228,7 +228,7 @@ export default function BalanceSheetPage() {
 					</Stat>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Total Liabilities</StatLabel>
 						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
@@ -245,7 +245,7 @@ export default function BalanceSheetPage() {
 					</Stat>
 				</BlurFade>
 
-				<BlurFade delay={0.25} inView>
+				<BlurFade delay={0.25}>
 					<Stat className="relative overflow-hidden">
 						{totalEquity > 0 && (
 							<BorderBeam
@@ -272,7 +272,7 @@ export default function BalanceSheetPage() {
 			</div>
 
 			{/* Balance Equation Check */}
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<BalanceEquationCheck
 					totalAssets={totalAssets}
 					totalLiabilities={totalLiabilities}
@@ -282,7 +282,7 @@ export default function BalanceSheetPage() {
 			</BlurFade>
 
 			{/* Balance Sheet Details */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 					<BalanceSection
 						title="Assets"

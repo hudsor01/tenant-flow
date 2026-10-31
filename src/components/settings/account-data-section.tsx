@@ -144,7 +144,7 @@ export function AccountDataSection() {
 		deletionStatus.data?.deletion_requested_at !== undefined;
 
 	return (
-		<BlurFade delay={0.1} inView>
+		<BlurFade delay={0.1}>
 			<div className="space-y-6">
 				<div className="mb-6">
 					<h2 className="text-lg font-semibold">My Data</h2>

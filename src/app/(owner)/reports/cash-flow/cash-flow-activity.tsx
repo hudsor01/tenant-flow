@@ -13,7 +13,7 @@ export function CashFlowActivity({
 	netFinancingCash,
 }: CashFlowActivityProps) {
 	return (
-		<BlurFade delay={0.4} inView>
+		<BlurFade delay={0.4}>
 			<div className="bg-card border border-border rounded-lg p-6">
 				<h3 className="font-medium text-foreground mb-4">
 					Cash Flow by Activity

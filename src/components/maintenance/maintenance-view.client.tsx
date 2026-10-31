@@ -155,7 +155,7 @@ export function MaintenanceViewClient() {
 	if (requests.length === 0) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					{unitIdFilter ? (
 						<Empty>
 							<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
@@ -208,7 +208,7 @@ export function MaintenanceViewClient() {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Maintenance</h1>
@@ -228,7 +228,7 @@ export function MaintenanceViewClient() {
 
 			{/* Stats */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				<BlurFade delay={0.15} inView>
+				<BlurFade delay={0.15}>
 					<Stat className="relative overflow-hidden">
 						{openCount > 0 && (
 							<BorderBeam
@@ -251,7 +251,7 @@ export function MaintenanceViewClient() {
 						<StatDescription>awaiting action</StatDescription>
 					</Stat>
 				</BlurFade>
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>In Progress</StatLabel>
 						<StatValue className="flex items-baseline">
@@ -263,7 +263,7 @@ export function MaintenanceViewClient() {
 						<StatDescription>being worked on</StatDescription>
 					</Stat>
 				</BlurFade>
-				<BlurFade delay={0.25} inView>
+				<BlurFade delay={0.25}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Completed</StatLabel>
 						<StatValue className="flex items-baseline text-success-text">
@@ -275,7 +275,7 @@ export function MaintenanceViewClient() {
 						<StatDescription>this month</StatDescription>
 					</Stat>
 				</BlurFade>
-				<BlurFade delay={0.3} inView>
+				<BlurFade delay={0.3}>
 					<Stat className="relative overflow-hidden">
 						{urgentCount > 0 && (
 							<BorderBeam

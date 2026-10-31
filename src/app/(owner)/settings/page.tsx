@@ -178,7 +178,7 @@ export default function SettingsPage() {
 	return (
 		<div className="p-4 sm:p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="mb-6">
 					<h1 className="text-2xl font-bold">Settings</h1>
 					<p className="text-sm text-muted-foreground">
@@ -197,7 +197,7 @@ export default function SettingsPage() {
 				    caught that per-tab BlurFade wrappers nested between the
 				    tablist and its tabs broke the WAI-ARIA owns-relationship
 				    tree. Tabs are now direct DOM children of the tablist. */}
-				<BlurFade delay={0.15} inView>
+				<BlurFade delay={0.15}>
 					<nav
 						className="lg:w-56 shrink-0 space-y-1"
 						role="tablist"

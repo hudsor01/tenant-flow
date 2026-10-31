@@ -18,7 +18,7 @@ export function InvoiceSummaryList({
 	return (
 		<div className="space-y-4">
 			{invoiceSummary.map((status, index) => (
-				<BlurFade key={status.status} delay={1.3 + index * 0.05} inView>
+				<BlurFade key={status.status} delay={1.3 + index * 0.05}>
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
 							<span className="text-sm">{status.status}</span>

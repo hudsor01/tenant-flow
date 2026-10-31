@@ -68,7 +68,7 @@ export function PasswordSection() {
 	};
 
 	return (
-		<BlurFade delay={0.15} inView>
+		<BlurFade delay={0.15}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 					Password

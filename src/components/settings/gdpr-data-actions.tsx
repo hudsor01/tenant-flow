@@ -343,13 +343,13 @@ export function GdprDataActions({
 	// Standalone: full framing with BlurFade wrappers
 	return (
 		<>
-			<BlurFade delay={0.45} inView>
+			<BlurFade delay={0.45}>
 				<section className="rounded-lg border bg-card p-6">
 					{downloadBlock}
 				</section>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
+			<BlurFade delay={0.5}>
 				<section className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
 					{deletionBlock}
 				</section>

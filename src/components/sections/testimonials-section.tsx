@@ -69,7 +69,7 @@ export function TestimonialsSection({
 			>
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16 max-w-3xl mx-auto">
-						<BlurFade delay={0.1} inView>
+						<BlurFade delay={0.1}>
 							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 								What Our Customers Say
 							</h2>
@@ -81,11 +81,7 @@ export function TestimonialsSection({
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 						{testimonials.slice(0, 4).map((testimonial, index) => (
-							<BlurFade
-								key={testimonial.author}
-								delay={0.2 + index * 0.1}
-								inView
-							>
+							<BlurFade key={testimonial.author} delay={0.2 + index * 0.1}>
 								<TestimonialCard testimonial={testimonial} />
 							</BlurFade>
 						))}
@@ -98,7 +94,7 @@ export function TestimonialsSection({
 	return (
 		<section className={cn("section-spacing bg-muted/30", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-16">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							Built for <span className="hero-highlight">landlords</span>
@@ -110,7 +106,7 @@ export function TestimonialsSection({
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="relative max-w-4xl mx-auto">
 						<div className="relative bg-card rounded-2xl border border-border p-8 md:p-12 shadow-lg">
 							<div className="absolute -top-4 left-8 md:left-12">

@@ -51,7 +51,7 @@ process.env.SKIP_INTEGRATION_TESTS = "true";
 
 // A `// @vitest-environment node` file in the unit project (tailwind-theme-integrity.test.ts) has no window/document; everything in this block exists only for jsdom.
 if (typeof window !== "undefined") {
-	// Mock window.matchMedia for components that use media queries (BlurFade, etc.)
+	// Mock window.matchMedia for media-query hooks (useReducedMotion, useMediaQuery, etc.)
 	Object.defineProperty(window, "matchMedia", {
 		writable: true,
 		value: vi.fn().mockImplementation((query: string) => ({
@@ -98,7 +98,8 @@ if (typeof window !== "undefined") {
 		Element.prototype.scrollIntoView = function () {};
 	}
 
-	// Mock IntersectionObserver for components that use it (blur-fade, lazy loading, etc.)
+	// Mock IntersectionObserver for lazy loading. `configurable` lets a test replace it with
+	// vi.stubGlobal (jsdom has no IntersectionObserver, so a bare defineProperty would lock it).
 	class IntersectionObserverMock implements IntersectionObserver {
 		readonly root: Element | null = null;
 		readonly rootMargin: string = "";
@@ -134,6 +135,7 @@ if (typeof window !== "undefined") {
 	}
 	Object.defineProperty(window, "IntersectionObserver", {
 		writable: true,
+		configurable: true,
 		value: IntersectionObserverMock,
 	});
 }

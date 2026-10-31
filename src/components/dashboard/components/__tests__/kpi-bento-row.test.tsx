@@ -260,7 +260,7 @@ describe("KpiBentoRow", () => {
 		);
 	});
 
-	it("reduced-motion bypasses BlurFade wrapping", () => {
+	it("reduced-motion renders KPI tiles without BlurFade wrappers", () => {
 		stubMatchMedia(true);
 		const { container } = render(
 			<KpiBentoRow
@@ -270,9 +270,27 @@ describe("KpiBentoRow", () => {
 				timeSeries={mockTimeSeries}
 			/>,
 		);
-		expect(
-			container.querySelector("[class*=will-change-transform]"),
-		).toBeNull();
+		expect(container.querySelectorAll('[data-slot="blur-fade"]')).toHaveLength(
+			0,
+		);
+		expect(screen.getAllByRole("listitem")).toHaveLength(6);
+	});
+
+	it("default motion wraps each KPI tile in one BlurFade inside its listitem", () => {
+		stubMatchMedia(false);
+		const { container } = render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const wrappers = container.querySelectorAll('[data-slot="blur-fade"]');
+		expect(wrappers).toHaveLength(6);
+		for (const wrapper of wrappers) {
+			expect(wrapper.parentElement?.getAttribute("role")).toBe("listitem");
+		}
 		expect(screen.getAllByRole("listitem")).toHaveLength(6);
 	});
 

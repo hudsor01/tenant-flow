@@ -32,7 +32,7 @@ export function ResultsProofSection() {
 	return (
 		<section className="section-spacing bg-muted/30">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.4} inView>
+				<BlurFade delay={0.4}>
 					<div className="text-center mb-16">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
 							What ships in the box

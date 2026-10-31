@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Analytics</h1>
@@ -128,14 +128,14 @@ export default function AnalyticsPage() {
 				maintenanceChange={maintenanceChange}
 			/>
 
-			<BlurFade delay={0.55} inView>
+			<BlurFade delay={0.55}>
 				<div className="mb-8">
 					<OwnerPaymentSummary summary={paymentSummary} />
 				</div>
 			</BlurFade>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-				<BlurFade delay={0.6} inView>
+				<BlurFade delay={0.6}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -162,7 +162,7 @@ export default function AnalyticsPage() {
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.7} inView>
+				<BlurFade delay={0.7}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -184,7 +184,6 @@ export default function AnalyticsPage() {
 									<BlurFade
 										key={property.property ?? `property-${index}`}
 										delay={0.8 + index * 0.05}
-										inView
 									>
 										<div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors">
 											<div className="flex items-center gap-3">

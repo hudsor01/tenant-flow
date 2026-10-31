@@ -22,7 +22,7 @@ export function CashFlowBreakdown({
 	totalOutflows,
 }: CashFlowBreakdownProps) {
 	return (
-		<BlurFade delay={0.35} inView>
+		<BlurFade delay={0.35}>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 				{/* Cash Inflows */}
 				<div className="bg-card border border-border rounded-lg p-6">

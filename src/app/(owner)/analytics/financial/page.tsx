@@ -90,7 +90,7 @@ export default function FinancialAnalyticsPage() {
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="p-6 lg:p-8 bg-background min-h-full">
 				{/* Header */}
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 						<div>
 							<h1 className="typography-h1">Financial Analytics</h1>
@@ -109,7 +109,7 @@ export default function FinancialAnalyticsPage() {
 				<FinancialOverviewStats metrics={metrics} />
 
 				{/* Payment Summary */}
-				<BlurFade delay={0.55} inView>
+				<BlurFade delay={0.55}>
 					<div className="mb-8">
 						<OwnerPaymentSummary summary={paymentSummary} />
 					</div>
@@ -117,7 +117,7 @@ export default function FinancialAnalyticsPage() {
 
 				{/* Charts Row 1: Revenue & Expenses + Breakdowns */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-					<BlurFade delay={0.6} inView>
+					<BlurFade delay={0.6}>
 						<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
@@ -135,7 +135,7 @@ export default function FinancialAnalyticsPage() {
 					</BlurFade>
 
 					<div className="space-y-6">
-						<BlurFade delay={0.7} inView>
+						<BlurFade delay={0.7}>
 							<div className="bg-card border border-border rounded-lg p-6">
 								<div className="flex items-center justify-between mb-4">
 									<div>
@@ -154,7 +154,7 @@ export default function FinancialAnalyticsPage() {
 							</div>
 						</BlurFade>
 
-						<BlurFade delay={0.8} inView>
+						<BlurFade delay={0.8}>
 							<div className="bg-card border border-border rounded-lg p-6">
 								<div className="flex items-center justify-between mb-4">
 									<div>
@@ -177,7 +177,7 @@ export default function FinancialAnalyticsPage() {
 
 				{/* Charts Row 2: NOI & Lease Profitability */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-					<BlurFade delay={0.9} inView>
+					<BlurFade delay={0.9}>
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
@@ -194,7 +194,7 @@ export default function FinancialAnalyticsPage() {
 						</div>
 					</BlurFade>
 
-					<BlurFade delay={1.0} inView>
+					<BlurFade delay={1.0}>
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
@@ -213,7 +213,7 @@ export default function FinancialAnalyticsPage() {
 
 				{/* Charts Row 3: Billing & Invoice Summary */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<BlurFade delay={1.1} inView>
+					<BlurFade delay={1.1}>
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
@@ -230,7 +230,7 @@ export default function FinancialAnalyticsPage() {
 						</div>
 					</BlurFade>
 
-					<BlurFade delay={1.2} inView>
+					<BlurFade delay={1.2}>
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>

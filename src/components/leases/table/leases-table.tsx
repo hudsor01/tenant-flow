@@ -85,7 +85,7 @@ export function LeasesTable({
 	});
 
 	return (
-		<BlurFade delay={0.6} inView>
+		<BlurFade delay={0.6}>
 			<div className="bg-card border border-border rounded-sm overflow-hidden">
 				<LeasesTableToolbar
 					searchQuery={searchQuery}

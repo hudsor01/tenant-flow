@@ -64,7 +64,7 @@ export function FinancialOverviewStats({
 }: FinancialOverviewStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -99,7 +99,7 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					<LabelWithTooltip
 						label="Collected"
@@ -118,7 +118,7 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Net Income</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
@@ -144,7 +144,7 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Portfolio ROI</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
@@ -173,7 +173,7 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
+			<BlurFade delay={0.5}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Cash Flow</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">

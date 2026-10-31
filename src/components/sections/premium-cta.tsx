@@ -20,7 +20,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<div className="max-w-5xl mx-auto text-center">
 					{/* Headline */}
-					<BlurFade delay={0.1} inView>
+					<BlurFade delay={0.1}>
 						<div className="mb-8">
 							<h2 className="text-responsive-display-xl font-bold tracking-tight text-foreground mb-6 leading-[1.05]">
 								Stop juggling{" "}
@@ -31,7 +31,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					</BlurFade>
 
 					{/* Value Proposition */}
-					<BlurFade delay={0.2} inView>
+					<BlurFade delay={0.2}>
 						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
 							Run your rentals from one place — with the document vault as your
 							single source of truth.
@@ -43,7 +43,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					</BlurFade>
 
 					{/* CTA Buttons */}
-					<BlurFade delay={0.3} inView>
+					<BlurFade delay={0.3}>
 						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
 							{/* Primary CTA with Glow */}
 							<GlowingEffect
@@ -82,7 +82,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					</BlurFade>
 
 					{/* Trust Signals Grid */}
-					<BlurFade delay={0.4} inView>
+					<BlurFade delay={0.4}>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
 							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
 								<Check className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />

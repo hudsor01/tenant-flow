@@ -18,7 +18,7 @@ export function ExpenseCategoryBreakdown({
 	if (categories.length === 0) return null;
 
 	return (
-		<BlurFade delay={0.35} inView>
+		<BlurFade delay={0.35}>
 			<div className="bg-card border border-border rounded-lg p-4 mb-6">
 				<h3 className="text-sm font-medium text-foreground mb-3">
 					Expense Breakdown

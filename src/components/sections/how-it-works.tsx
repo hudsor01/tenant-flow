@@ -57,7 +57,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_3%,transparent),transparent_70%)]" />
 
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-16">
 						<p className="typography-small text-primary-text uppercase tracking-wider mb-3">
 							Three Steps to Set Up
@@ -83,7 +83,6 @@ export function HowItWorks({ className }: HowItWorksProps) {
 							<BlurFade
 								key={step.number}
 								delay={0.2 + index * 0.1}
-								inView
 								className="h-full"
 							>
 								<StepCard step={step} index={index} />

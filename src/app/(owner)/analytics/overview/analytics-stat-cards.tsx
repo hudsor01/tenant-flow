@@ -37,7 +37,7 @@ export function AnalyticsStatCards({
 }: AnalyticsStatCardsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -68,7 +68,7 @@ export function AnalyticsStatCards({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Active Tenants</StatLabel>
 					<StatValue className="flex items-baseline">
@@ -86,7 +86,7 @@ export function AnalyticsStatCards({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -116,7 +116,7 @@ export function AnalyticsStatCards({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
+			<BlurFade delay={0.5}>
 				<Stat className="relative overflow-hidden">
 					{openMaintenance > 3 && (
 						<BorderBeam

@@ -22,7 +22,7 @@ export function CashFlowStats({
 }: CashFlowStatsProps) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -45,7 +45,7 @@ export function CashFlowStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Outflows</StatLabel>
 					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
@@ -62,7 +62,7 @@ export function CashFlowStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					{netCashFlow > 0 && (
 						<BorderBeam

@@ -52,7 +52,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 		>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<div className="text-center mb-16 max-w-3xl mx-auto">
-					<BlurFade delay={0.1} inView>
+					<BlurFade delay={0.1}>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
 							Made for real
 							<span className="text-primary block">owner workflows</span>
@@ -66,7 +66,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
 					{stats.map((stat, index) => (
-						<BlurFade key={stat.label} delay={0.2 + index * 0.1} inView>
+						<BlurFade key={stat.label} delay={0.2 + index * 0.1}>
 							<div className="relative group">
 								<div className="showcase-card">
 									{/* Animated border beam */}

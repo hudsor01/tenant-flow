@@ -103,25 +103,10 @@ export type ComponentPropsWithChildren<P = unknown> = P & {
 	children?: ReactNode;
 };
 
-export interface BlurFadeVariant {
-	y?: number;
-	x?: number;
-	scale?: number;
-	opacity: number;
-	filter: string;
-}
-
 export interface BlurFadeProps
 	extends Omit<ComponentPropsWithChildren, "children"> {
 	children: ReactNode;
-	variant?: {
-		hidden: BlurFadeVariant;
-		visible: BlurFadeVariant;
-	};
 	delay?: number;
-	yOffset?: number;
-	inView?: boolean;
-	blur?: string;
 	preset?:
 		| "default"
 		| "scale"
@@ -131,6 +116,5 @@ export interface BlurFadeProps
 		| "slide-right";
 	duration?: number;
 	reducedMotion?: boolean;
-	onAnimationComplete?: () => void;
 	className?: string;
 }

@@ -41,7 +41,7 @@ export function PersonalInfoSection({
 	onFormChange,
 }: PersonalInfoSectionProps) {
 	return (
-		<BlurFade delay={0.3} inView>
+		<BlurFade delay={0.3}>
 			<section className="rounded-lg border bg-card p-6">
 				<div className="mb-4 flex items-center justify-between">
 					<h3 className="text-lg font-semibold">Personal Information</h3>
@@ -134,7 +134,7 @@ export function PersonalInfoSection({
 					</div>
 				) : (
 					<div className="grid gap-4 sm:grid-cols-2">
-						<BlurFade delay={0.35} inView>
+						<BlurFade delay={0.35}>
 							<div className="space-y-1">
 								<label className="text-xs font-medium text-muted-foreground">
 									Full Name
@@ -146,7 +146,7 @@ export function PersonalInfoSection({
 							</div>
 						</BlurFade>
 
-						<BlurFade delay={0.4} inView>
+						<BlurFade delay={0.4}>
 							<div className="space-y-1">
 								<label className="text-xs font-medium text-muted-foreground">
 									Email Address
@@ -158,7 +158,7 @@ export function PersonalInfoSection({
 							</div>
 						</BlurFade>
 
-						<BlurFade delay={0.45} inView>
+						<BlurFade delay={0.45}>
 							<div className="space-y-1">
 								<label className="text-xs font-medium text-muted-foreground">
 									Phone Number
@@ -172,7 +172,7 @@ export function PersonalInfoSection({
 							</div>
 						</BlurFade>
 
-						<BlurFade delay={0.5} inView>
+						<BlurFade delay={0.5}>
 							<div className="space-y-1">
 								<label className="text-xs font-medium text-muted-foreground">
 									Account Status

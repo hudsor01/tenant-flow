@@ -59,7 +59,7 @@ export function ProfileCard({
 	})();
 
 	return (
-		<BlurFade delay={0.15} inView>
+		<BlurFade delay={0.15}>
 			<div className="lg:col-span-1">
 				<div className="rounded-lg border bg-card p-6 relative overflow-hidden">
 					<BorderBeam
@@ -130,7 +130,7 @@ export function ProfileCard({
 
 					{profile.owner_profile && (
 						<div className="mt-6 grid grid-cols-2 gap-4 border-t pt-6">
-							<BlurFade delay={0.2} inView>
+							<BlurFade delay={0.2}>
 								<Stat className="text-center">
 									<StatValue className="flex items-center justify-center text-primary">
 										<NumberTicker
@@ -143,7 +143,7 @@ export function ProfileCard({
 									</StatDescription>
 								</Stat>
 							</BlurFade>
-							<BlurFade delay={0.25} inView>
+							<BlurFade delay={0.25}>
 								<Stat className="text-center">
 									<StatValue className="flex items-center justify-center text-primary">
 										<NumberTicker

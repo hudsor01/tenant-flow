@@ -61,7 +61,7 @@ export function NotificationSettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="mb-6">
 					<h2 className="text-lg font-semibold">Notification Settings</h2>
 					<p className="text-sm text-muted-foreground">
@@ -71,7 +71,7 @@ export function NotificationSettings() {
 			</BlurFade>
 
 			{/* Quick Toggle */}
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<section className="rounded-lg border bg-card p-6">
 					<div className="flex items-center justify-between">
 						<div>
@@ -91,7 +91,7 @@ export function NotificationSettings() {
 			</BlurFade>
 
 			{/* Channel Toggles */}
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Notification Channels
@@ -120,7 +120,7 @@ export function NotificationSettings() {
 			</BlurFade>
 
 			{/* Category Preferences */}
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Notification Categories

@@ -146,7 +146,7 @@ export function Tenants({
 	if (tenants.length === 0) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<Empty>
 						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
 							<Users />
@@ -173,7 +173,7 @@ export function Tenants({
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Page Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Tenants</h1>
@@ -207,7 +207,7 @@ export function Tenants({
 			<TenantQuickActions onAdd={handleAddClick} />
 
 			{/* View Toggle & Filters */}
-			<BlurFade delay={0.6} inView>
+			<BlurFade delay={0.6}>
 				<div className="bg-card border border-border rounded-lg overflow-hidden">
 					<TenantToolbar
 						searchQuery={searchQuery}

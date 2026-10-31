@@ -195,7 +195,7 @@ export default function OwnerProfilePage() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div>
 					<h1 className="text-2xl font-bold">My Profile</h1>
 					<p className="text-muted-foreground">

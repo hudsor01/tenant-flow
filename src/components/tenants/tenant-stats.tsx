@@ -25,7 +25,7 @@ export function TenantStats({
 }: TenantStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={80}
@@ -44,7 +44,7 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Active</StatLabel>
 					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
@@ -57,7 +57,7 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				<Stat className="relative overflow-hidden">
 					{pendingTenants > 0 && (
 						<BorderBeam
@@ -78,7 +78,7 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
+			<BlurFade delay={0.5}>
 				<Stat>
 					<StatLabel>Ended</StatLabel>
 					<StatValue className="flex items-baseline">

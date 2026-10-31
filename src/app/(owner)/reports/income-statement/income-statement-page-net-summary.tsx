@@ -24,7 +24,7 @@ export function IncomeStatementPageNetSummary({
 	previousPeriod,
 }: IncomeStatementPageNetSummaryProps) {
 	return (
-		<BlurFade delay={0.4} inView>
+		<BlurFade delay={0.4}>
 			<div className="bg-card border border-border rounded-lg p-6">
 				<h3 className="font-medium text-foreground mb-4">Net Income Summary</h3>
 				<div className="space-y-3">

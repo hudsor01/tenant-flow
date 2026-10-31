@@ -220,7 +220,7 @@ export function GeneralSettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="mb-6">
 					<h2 className="text-lg font-semibold">General Settings</h2>
 					<p className="text-sm text-muted-foreground">
@@ -230,7 +230,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Contact Info */}
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Contact Info
@@ -275,7 +275,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Preferences */}
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Preferences
@@ -371,7 +371,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Save Button */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="flex justify-end">
 					<button
 						onClick={handleSaveChanges}
@@ -391,7 +391,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Emergency Contact (F-3 from 2026-05-03 audit) */}
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				<OwnerEmergencyContactSection />
 			</BlurFade>
 		</div>

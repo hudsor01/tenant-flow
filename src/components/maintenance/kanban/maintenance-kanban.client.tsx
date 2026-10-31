@@ -161,7 +161,7 @@ function KanbanColumn({
 	});
 
 	return (
-		<BlurFade delay={0.3 + columnIndex * 0.1} inView>
+		<BlurFade delay={0.3 + columnIndex * 0.1}>
 			<div className="flex flex-col min-w-70 sm:min-w-0 snap-start shrink-0 sm:shrink bg-muted/30 rounded-lg">
 				{/* Column Header */}
 				<div className="flex items-center gap-3 p-4 border-b border-border">
@@ -192,7 +192,6 @@ function KanbanColumn({
 							<BlurFade
 								key={request.id}
 								delay={0.4 + columnIndex * 0.1 + idx * 0.03}
-								inView
 							>
 								<MaintenanceSortableCard
 									request={request}

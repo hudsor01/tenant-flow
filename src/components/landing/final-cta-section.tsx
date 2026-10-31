@@ -16,7 +16,7 @@ export function FinalCtaSection() {
 			<div className="absolute inset-0 bg-muted/40" />
 
 			<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
-				<BlurFade delay={0.5} inView>
+				<BlurFade delay={0.5}>
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
 							<span className="text-foreground">

@@ -20,7 +20,7 @@ interface PerformanceStatCardsProps {
 export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -39,7 +39,7 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -68,7 +68,7 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Best performer</StatLabel>
 					<StatValue className="flex items-baseline text-base font-semibold truncate">
@@ -81,7 +81,7 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
+			<BlurFade delay={0.5}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Monthly revenue</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">

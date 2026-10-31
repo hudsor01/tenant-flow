@@ -30,7 +30,7 @@ export function TestimonialsSection() {
 	return (
 		<section className="section-spacing-compact bg-muted/50">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="text-center space-y-8">
 						<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
 							<div className="flex items-center space-x-2">

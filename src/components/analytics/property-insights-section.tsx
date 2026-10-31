@@ -50,7 +50,7 @@ export function PropertyInsightsSection() {
 		<div className="space-y-6">
 			{/* Charts Row */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
@@ -67,7 +67,7 @@ export function PropertyInsightsSection() {
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>

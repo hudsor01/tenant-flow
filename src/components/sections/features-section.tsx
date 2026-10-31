@@ -83,7 +83,7 @@ export default function FeaturesSectionDemo({
 					)}
 				>
 					{features.map((feature, index) => (
-						<BlurFade key={feature.title} delay={0.2 + index * 0.1} inView>
+						<BlurFade key={feature.title} delay={0.2 + index * 0.1}>
 							<Feature {...feature} />
 						</BlurFade>
 					))}

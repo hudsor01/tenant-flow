@@ -1,121 +1,94 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+/**
+ * BlurFade: a mount-time entrance that is never invisible (66.2-27, C12c, D-30).
+ *
+ * The old wrapper built its hidden-state classes from template literals, which
+ * Tailwind never generates, and the inverted visibility gate skipped the hidden
+ * state anyway, so it never animated. This version is a pure CSS entrance:
+ *
+ * - The resting state is the element's own style (opacity 1, no transform, no
+ *   filter, no will-change). Only the finite tw-animate-css `enter` animation
+ *   hides it, and `fill-mode-backwards` applies the start frame only during the
+ *   delay and the run. Nothing waits on JavaScript: with JS disabled the
+ *   animation still runs and ends visible.
+ * - `motion-reduce:animate-none` removes the animation under
+ *   `prefers-reduced-motion: reduce`, so content is visible at frame 0. The
+ *   `reducedMotion` prop renders the resting state with no entrance classes.
+ * - No IntersectionObserver and no aria-hidden: content is never hidden from
+ *   assistive technology and never depends on an observer firing.
+ * - Every class is a complete static literal, so Tailwind always generates it.
+ *
+ * Delay: `delay` x BLUR_FADE_DELAY_STEP_MS, capped at BLUR_FADE_MAX_DELAY_MS
+ * (480ms = the KPI wave maximum, 6 x 80ms). Index-driven lists would otherwise
+ * grow without bound; with the cap the longest time to full opacity at any call
+ * site is 480ms + the 500ms slow duration. The delay rides the
+ * `--tw-animation-delay` custom property that tw-animate's `--animate-in`
+ * shorthand reads. It is a runtime-computed value, which zero-tolerance rule 5
+ * allows as an inline style (D-30); the property does not inherit, so nested
+ * BlurFades keep their own delay.
+ */
+
+import type { CSSProperties } from "react";
 import { cn } from "#lib/utils";
 import type { BlurFadeProps } from "#types/frontend";
+
+// `string &` drops `undefined` from the optional prop: the six preset names.
+export const BLUR_FADE_PRESET_CLASSES: Record<
+	string & BlurFadeProps["preset"],
+	string
+> = {
+	default:
+		"animate-in fade-in slide-in-from-bottom-[6px] blur-in-xs fill-mode-backwards ease-out motion-reduce:animate-none",
+	scale:
+		"animate-in fade-in zoom-in-95 blur-in-xs fill-mode-backwards ease-out motion-reduce:animate-none",
+	"slide-up":
+		"animate-in fade-in slide-in-from-bottom-3 blur-in-xs fill-mode-backwards ease-out motion-reduce:animate-none",
+	"slide-down":
+		"animate-in fade-in slide-in-from-top-3 blur-in-xs fill-mode-backwards ease-out motion-reduce:animate-none",
+	"slide-left":
+		"animate-in fade-in slide-in-from-left-3 blur-in-xs fill-mode-backwards ease-out motion-reduce:animate-none",
+	"slide-right":
+		"animate-in fade-in slide-in-from-right-3 blur-in-xs fill-mode-backwards ease-out motion-reduce:animate-none",
+};
+
+export const BLUR_FADE_DURATION_CLASSES: Record<number, string> = {
+	150: "duration-instant",
+	200: "duration-fast",
+	300: "duration-normal",
+	500: "duration-slow",
+};
+
+export const BLUR_FADE_DELAY_STEP_MS = 80;
+export const BLUR_FADE_MAX_DELAY_MS = 480;
 
 export function BlurFade({
 	children,
 	className,
 	delay = 0,
-	yOffset = 6,
-	inView = true,
-	blur = "4px",
 	preset = "default",
 	duration = 200,
 	reducedMotion = false,
-	onAnimationComplete,
 }: BlurFadeProps) {
-	const elementRef = useRef<HTMLDivElement>(null);
-	const [isVisible, setIsVisible] = useState(false);
-
-	// Check for prefers-reduced-motion - initialize false to match SSR, update in useEffect
-	const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-	useEffect(() => {
-		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-		setPrefersReducedMotion(mediaQuery.matches);
-		const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
-		mediaQuery.addEventListener("change", handleChange);
-		return () => mediaQuery.removeEventListener("change", handleChange);
-	}, []);
-
-	// Intersection Observer for performance
-	useEffect(() => {
-		if (!elementRef.current || inView === undefined) return;
-
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const entry = entries[0];
-				if (entry && entry.isIntersecting) {
-					setIsVisible(true);
-					if (onAnimationComplete) {
-						setTimeout(onAnimationComplete, duration);
-					}
-				}
-			},
-			{
-				threshold: 0.1,
-				rootMargin: "50px 0px -50px 0px",
-			},
-		);
-
-		observer.observe(elementRef.current);
-		return () => observer.disconnect();
-	}, [inView, duration, onAnimationComplete]);
-
-	// Animation presets with CSS classes
-	const presetClasses: Record<string, { hidden: string; visible: string }> = {
-		default: {
-			hidden: `translate-y-[${yOffset}px] opacity-0 blur-[${blur}]`,
-			visible: "translate-y-0 opacity-100 blur-0",
-		},
-		scale: {
-			hidden: `scale-95 opacity-0 blur-[${blur}]`,
-			visible: "scale-100 opacity-100 blur-0",
-		},
-		"slide-up": {
-			hidden: `translate-y-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
-			visible: "translate-y-0 opacity-100 blur-0",
-		},
-		"slide-down": {
-			hidden: `-translate-y-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
-			visible: "translate-y-0 opacity-100 blur-0",
-		},
-		"slide-left": {
-			hidden: `-translate-x-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
-			visible: "translate-x-0 opacity-100 blur-0",
-		},
-		"slide-right": {
-			hidden: `translate-x-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
-			visible: "translate-x-0 opacity-100 blur-0",
-		},
-	};
-
-	const selectedPreset = presetClasses[preset];
-	const shouldAnimate = inView !== undefined ? inView || isVisible : true;
-	const shouldReduceMotion = reducedMotion || prefersReducedMotion;
-
-	// Determine current state classes
-	const stateClasses = shouldReduceMotion
-		? shouldAnimate
-			? "opacity-100"
-			: "opacity-0"
-		: shouldAnimate
-			? selectedPreset?.visible
-			: selectedPreset?.hidden;
-
-	const durationClass =
-		{
-			150: "duration-instant",
-			200: "duration-fast",
-			300: "duration-normal",
-			500: "duration-slow",
-		}[duration] || "duration-fast";
+	const delayMs = Math.min(
+		Math.round(delay * BLUR_FADE_DELAY_STEP_MS),
+		BLUR_FADE_MAX_DELAY_MS,
+	);
+	const durationClass = BLUR_FADE_DURATION_CLASSES[duration] ?? "duration-fast";
+	const style =
+		!reducedMotion && delayMs > 0
+			? ({ "--tw-animation-delay": `${delayMs}ms` } as CSSProperties)
+			: undefined;
 
 	return (
 		<div
-			ref={elementRef}
+			data-slot="blur-fade"
 			className={cn(
-				"will-change-transform transition-all",
-				durationClass,
-				stateClasses,
+				reducedMotion ? undefined : BLUR_FADE_PRESET_CLASSES[preset],
+				reducedMotion ? undefined : durationClass,
 				className,
 			)}
-			style={{
-				transitionDelay: shouldReduceMotion ? "0ms" : `${delay * 80}ms`,
-			}}
-			aria-hidden={!shouldAnimate}
+			style={style}
 		>
 			{children}
 		</div>

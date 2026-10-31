@@ -134,7 +134,7 @@ export default function ExpensesPage() {
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Expenses</h1>
