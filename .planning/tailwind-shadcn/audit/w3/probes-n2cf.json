@@ -1,0 +1,64 @@
+{
+ "meta": {
+  "tailwindVersion": "4.3.3",
+  "scannedFiles": 916,
+  "candidates": 15632,
+  "bundleBytes": 2790688
+ },
+ "results": {
+  "data-table": {
+   "light": {
+    "cellBg": [
+     249,
+     250,
+     251,
+     1
+    ],
+    "headerCellBg": [
+     249,
+     250,
+     251,
+     1
+    ],
+    "hoverRowBg": [
+     229,
+     235,
+     241,
+     0.502
+    ],
+    "selectedRowBg": [
+     229,
+     236,
+     241,
+     1
+    ]
+   },
+   "dark": {
+    "cellBg": [
+     4,
+     10,
+     17,
+     1
+    ],
+    "headerCellBg": [
+     4,
+     10,
+     17,
+     1
+    ],
+    "hoverRowBg": [
+     20,
+     28,
+     36,
+     0.502
+    ],
+    "selectedRowBg": [
+     20,
+     27,
+     36,
+     1
+    ]
+   }
+  }
+ }
+}
