@@ -247,7 +247,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 						<div className="grid gap-2">
 							<Label htmlFor="property_id">Property</Label>
 							<Select name="property_id" required>
-								<SelectTrigger>
+								<SelectTrigger id="property_id">
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>

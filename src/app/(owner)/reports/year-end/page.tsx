@@ -186,7 +186,10 @@ export default function YearEndReportsPage() {
 						value={String(selectedYear)}
 						onValueChange={(v) => setSelectedYear(parseInt(v, 10))}
 					>
-						<SelectTrigger className="w-32 h-11">
+						<SelectTrigger
+							className="w-32 h-11"
+							aria-label={`${selectedYear} (year)`}
+						>
 							<SelectValue placeholder="Year" />
 						</SelectTrigger>
 						<SelectContent>

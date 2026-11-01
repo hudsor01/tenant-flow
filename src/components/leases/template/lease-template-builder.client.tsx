@@ -245,7 +245,10 @@ export function LeaseTemplateBuilder() {
 							value={state}
 							onValueChange={(value) => setState(value as USState)}
 						>
-							<SelectTrigger className="w-40">
+							<SelectTrigger
+								className="w-40"
+								aria-label={`${stateNames[state] ?? state} (state)`}
+							>
 								<SelectValue placeholder="Select state" />
 							</SelectTrigger>
 							<SelectContent className="max-h-72">

@@ -196,7 +196,10 @@ export function VendorsPageClient() {
 					/>
 				</div>
 				<Select value={tradeFilter} onValueChange={setTradeFilter}>
-					<SelectTrigger className="w-full sm:w-48 h-11">
+					<SelectTrigger
+						className="w-full sm:w-48 h-11"
+						aria-label={`${tradeFilter === "all" ? "All trades" : (TRADE_LABELS[tradeFilter] ?? tradeFilter)} (trade)`}
+					>
 						<SelectValue placeholder="All trades" />
 					</SelectTrigger>
 					<SelectContent>

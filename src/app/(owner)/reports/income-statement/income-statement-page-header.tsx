@@ -32,8 +32,13 @@ export function IncomeStatementPageHeader({
 					</p>
 				</div>
 				<div className="flex gap-2">
+					{/* Each trigger's name starts with the value it shows, then says
+					    what it picks (WCAG 2.5.3; a bare trigger had no name). */}
 					<Select value={period} onValueChange={onPeriodChange}>
-						<SelectTrigger className="w-32.5">
+						<SelectTrigger
+							className="w-32.5"
+							aria-label={`${period.charAt(0).toUpperCase()}${period.slice(1)} (period)`}
+						>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -43,7 +48,7 @@ export function IncomeStatementPageHeader({
 						</SelectContent>
 					</Select>
 					<Select value={year} onValueChange={onYearChange}>
-						<SelectTrigger className="w-25">
+						<SelectTrigger className="w-25" aria-label={`${year} (year)`}>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>

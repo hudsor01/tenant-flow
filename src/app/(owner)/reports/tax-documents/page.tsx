@@ -112,7 +112,10 @@ export default function TaxDocumentsPage() {
 							value={taxYear.toString()}
 							onValueChange={(v) => setTaxYear(parseInt(v, 10))}
 						>
-							<SelectTrigger className="w-32.5">
+							<SelectTrigger
+								className="w-32.5"
+								aria-label={`${taxYear} (tax year)`}
+							>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>

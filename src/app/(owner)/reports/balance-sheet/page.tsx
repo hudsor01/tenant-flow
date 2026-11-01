@@ -34,6 +34,13 @@ export default function BalanceSheetPage() {
 		String(now.getMonth() + 1).padStart(2, "0"),
 	);
 
+	// Each Select trigger's name starts with the value it shows, then says what
+	// it picks (WCAG 2.5.3 label in name; a bare trigger had no name at all).
+	const monthName = new Date(2000, parseInt(month, 10) - 1, 1).toLocaleString(
+		"en-US",
+		{ month: "long" },
+	);
+
 	const asOfDate = `${year}-${month}-${new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate()}`;
 	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate);
 	const balanceData = data?.data;
@@ -163,7 +170,7 @@ export default function BalanceSheetPage() {
 					</div>
 					<div className="flex gap-2">
 						<Select value={year} onValueChange={setYear}>
-							<SelectTrigger className="w-25">
+							<SelectTrigger className="w-25" aria-label={`${year} (year)`}>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -177,7 +184,10 @@ export default function BalanceSheetPage() {
 							</SelectContent>
 						</Select>
 						<Select value={month} onValueChange={setMonth}>
-							<SelectTrigger className="w-32.5">
+							<SelectTrigger
+								className="w-32.5"
+								aria-label={`${monthName} (month)`}
+							>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
