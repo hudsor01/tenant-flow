@@ -1,0 +1,1796 @@
+{
+ "generatedFrom": "66.2-37 final gate",
+ "reviewTree": ".planning/tailwind-shadcn/audit/screens/review/ (git-ignored; hard links of the persisted captures)",
+ "cps": [
+  {
+   "id": "CP-1",
+   "vd": [
+    "VD-22"
+   ],
+   "default": "the grid, restored",
+   "fallback": "`PageLayout` `showGridPattern` defaults to `false`, and the two auth-page GridPatterns are removed. The broken classes are never left in place",
+   "beforeLabel": "basenow37 (754c91802, same session)",
+   "afterLabel": "final",
+   "before": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-dark-1280.png"
+   ],
+   "after": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-dark-1280.png"
+   ],
+   "pairs": [
+    {
+     "surface": "/",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/pricing",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/pricing",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/pricing",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/pricing",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/help",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/help",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/help",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/help",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/faq",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/faq",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/faq",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/faq",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/contact",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/contact",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/contact",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/contact",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/privacy",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/privacy",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/privacy",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/privacy",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/confirm-email",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/confirm-email",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/confirm-email",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/confirm-email",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/update-password",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/update-password",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/update-password",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/auth/update-password",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    }
+   ],
+   "measured": {
+    "C12a": [
+     {
+      "name": "light grid-pattern: svgStroke is not none",
+      "pass": true,
+      "measured": "oklab(0.2 -0.00845236 -0.0181262 / 0.25)"
+     },
+     {
+      "name": "light grid-pattern: svgStrokeRgba rgb within tolerance of T.foreground",
+      "pass": true,
+      "measured": [
+       16,
+       24,
+       32,
+       0.251
+      ]
+     },
+     {
+      "name": "light grid-pattern: svgStrokeRgba alpha in [0.23, 0.27]",
+      "pass": true,
+      "measured": [
+       16,
+       24,
+       32,
+       0.251
+      ]
+     },
+     {
+      "name": "dark grid-pattern: svgStroke is not none",
+      "pass": true,
+      "measured": "oklab(0.96 -0.005 -0.00866025 / 0.25)"
+     },
+     {
+      "name": "dark grid-pattern: svgStrokeRgba rgb within tolerance of T.foreground",
+      "pass": true,
+      "measured": [
+       235,
+       243,
+       247,
+       0.251
+      ]
+     },
+     {
+      "name": "dark grid-pattern: svgStrokeRgba alpha in [0.23, 0.27]",
+      "pass": true,
+      "measured": [
+       235,
+       243,
+       247,
+       0.251
+      ]
+     },
+     {
+      "name": "src/components/ui/grid-pattern.tsx has no space inside a fill-/stroke- bracket",
+      "pass": true,
+      "measured": 0
+     },
+     {
+      "name": "src/components/ui/grid-pattern.tsx has 0 label-primary",
+      "pass": true,
+      "measured": 0
+     },
+     {
+      "name": "w5/candidate-css.json has >= 10 fill/stroke color-mix keys",
+      "pass": true,
+      "measured": 10
+     }
+    ],
+    "gridPatternProbe": {
+     "light": {
+      "svgStroke": "oklab(0.2 -0.00845236 -0.0181262 / 0.25)",
+      "pathStroke": "oklab(0.2 -0.00845236 -0.0181262 / 0.25)",
+      "svgStrokeRgba": [
+       16,
+       24,
+       32,
+       0.251
+      ]
+     },
+     "dark": {
+      "svgStroke": "oklab(0.96 -0.005 -0.00866025 / 0.25)",
+      "pathStroke": "oklab(0.96 -0.005 -0.00866025 / 0.25)",
+      "svgStrokeRgba": [
+       235,
+       243,
+       247,
+       0.251
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "CP-2",
+   "vd": [
+    "VD-19"
+   ],
+   "default": "upstream v4",
+   "fallback": "keep `border-input`, or the local dark class for that variant, as a divergence documented in the `button.tsx` header",
+   "beforeLabel": "w4 (captures), pre-w5 (element shots, 84f3c58d3 tree)",
+   "afterLabel": "final",
+   "before": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/button-light.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/button-dark.png"
+   ],
+   "after": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/button-light.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/button-dark.png"
+   ],
+   "pairs": [
+    {
+     "surface": "owner/dashboard",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/dashboard",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/dashboard",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/dashboard",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/properties",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/properties",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/properties",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/properties",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/settings",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/settings",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/settings",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "owner/settings",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "public/pricing",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "public/pricing",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "public/pricing",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "public/pricing",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "Button element shot (all variants)",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/button-light.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/button-light.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "Button element shot (all variants)",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/button-dark.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/button-dark.png",
+     "newState": false,
+     "pairing": "same-state"
+    }
+   ],
+   "measured": {
+    "C9": {
+     "variants": {
+      "light": {
+       "default": {
+        "borderColor": [
+         210,
+         216,
+         222,
+         1
+        ],
+        "bg": [
+         0,
+         100,
+         239,
+         1
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         0,
+         100,
+         239,
+         0.902
+        ]
+       },
+       "destructive": {
+        "borderColor": [
+         210,
+         216,
+         222,
+         1
+        ],
+        "bg": [
+         231,
+         0,
+         30,
+         1
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         231,
+         0,
+         30,
+         0.902
+        ]
+       },
+       "outline": {
+        "borderColor": [
+         210,
+         216,
+         222,
+         1
+        ],
+        "bg": [
+         249,
+         250,
+         251,
+         1
+        ],
+        "boxShadowRest": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+        "hoverBg": [
+         0,
+         157,
+         91,
+         1
+        ]
+       },
+       "secondary": {
+        "borderColor": [
+         210,
+         216,
+         222,
+         1
+        ],
+        "bg": [
+         222,
+         243,
+         255,
+         1
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         221,
+         242,
+         255,
+         0.8
+        ]
+       },
+       "ghost": {
+        "borderColor": [
+         210,
+         216,
+         222,
+         1
+        ],
+        "bg": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         0,
+         157,
+         91,
+         1
+        ]
+       },
+       "link": {
+        "borderColor": [
+         210,
+         216,
+         222,
+         1
+        ],
+        "bg": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         0,
+         0,
+         0,
+         0
+        ]
+       }
+      },
+      "dark": {
+       "default": {
+        "borderColor": [
+         41,
+         46,
+         53,
+         1
+        ],
+        "bg": [
+         67,
+         159,
+         255,
+         1
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         68,
+         159,
+         255,
+         0.902
+        ]
+       },
+       "destructive": {
+        "borderColor": [
+         41,
+         46,
+         53,
+         1
+        ],
+        "bg": [
+         200,
+         0,
+         0,
+         0.6
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         201,
+         0,
+         0,
+         0.902
+        ]
+       },
+       "outline": {
+        "borderColor": [
+         42,
+         46,
+         51,
+         1
+        ],
+        "bg": [
+         43,
+         46,
+         50,
+         0.302
+        ],
+        "boxShadowRest": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+        "hoverBg": [
+         42,
+         46,
+         52,
+         0.502
+        ]
+       },
+       "secondary": {
+        "borderColor": [
+         41,
+         46,
+         53,
+         1
+        ],
+        "bg": [
+         37,
+         41,
+         46,
+         1
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         37,
+         41,
+         46,
+         0.8
+        ]
+       },
+       "ghost": {
+        "borderColor": [
+         41,
+         46,
+         53,
+         1
+        ],
+        "bg": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         0,
+         189,
+         120,
+         0.502
+        ]
+       },
+       "link": {
+        "borderColor": [
+         41,
+         46,
+         53,
+         1
+        ],
+        "bg": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "boxShadowRest": "none",
+        "hoverBg": [
+         0,
+         0,
+         0,
+         0
+        ]
+       }
+      }
+     },
+     "refs": {
+      "light": {
+       "border": [
+        210,
+        216,
+        222,
+        1
+       ],
+       "input": [
+        182,
+        191,
+        199,
+        1
+       ]
+      },
+      "dark": {
+       "border": [
+        41,
+        46,
+        53,
+        1
+       ],
+       "input": [
+        42,
+        46,
+        51,
+        1
+       ]
+      }
+     }
+    },
+    "vd19Captures": 88
+   }
+  },
+  {
+   "id": "CP-3",
+   "vd": [
+    "VD-19",
+    "VD-34"
+   ],
+   "default": "canonical",
+   "fallback": "Button: D-29 locks the v4 ring, so this review is visual only. Sidebar rows: restore today's global indicator on the row className with `focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-4 focus-visible:ring-ring/20` (verified canonical)",
+   "beforeLabel": "pre-w5 (button), w6-before (sidebar)",
+   "afterLabel": "final, final-sidebar",
+   "before": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/button-focus-light.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/button-focus-dark.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-dark-1280.png"
+   ],
+   "after": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/button-focus-light.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/button-focus-dark.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-dark-1280.png"
+   ],
+   "pairs": [
+    {
+     "surface": "Button focus-visible (outline variant focused)",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/button-focus-light.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/button-focus-light.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "Button focus-visible (outline variant focused)",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/button-focus-dark.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/button-focus-dark.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "sidebar row-focus",
+     "theme": "light",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-light-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-light-1024.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "sidebar row-focus",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "sidebar row-focus",
+     "theme": "dark",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-dark-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-dark-1024.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "sidebar row-focus",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    }
+   ],
+   "measured": {
+    "buttonFocus": {
+     "light": {
+      "default": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "destructive": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "outline": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "secondary": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "ghost": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "link": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      }
+     },
+     "dark": {
+      "default": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "destructive": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "outline": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "secondary": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "ghost": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "link": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      }
+     }
+    },
+    "refsRing": {
+     "light": [
+      0,
+      91,
+      209,
+      1
+     ],
+     "dark": [
+      67,
+      159,
+      255,
+      1
+     ]
+    },
+    "vd34E2E": {
+     "tests": [
+      {
+       "project": "owner-axe",
+       "title": "desktop rail at 1280px > VD-26/VD-34: hover never underlines, current row keeps its tint, focus ring",
+       "status": "expected"
+      }
+     ],
+     "asserted": "focused Dashboard row computed box-shadow contains `0px 0px 0px 2px` and the resolved --sidebar-ring color (app-shell-sidebar.spec.ts)"
+    }
+   }
+  },
+  {
+   "id": "CP-4",
+   "vd": [
+    "VD-29",
+    "VD-31"
+   ],
+   "default": "adopted (D-34)",
+   "fallback": "D-52: `lg:hidden` on the trigger, no SidebarRail, and a `document` keydown `stopPropagation()` for Cmd/Ctrl+B (measured: no collapse, no cookie)",
+   "beforeLabel": "w6-before (66.2-30), w5 (header-390)",
+   "afterLabel": "final-sidebar, final",
+   "before": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/owner_dashboard-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/owner_dashboard-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-dark-1280.png"
+   ],
+   "after": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/owner_dashboard-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/owner_dashboard-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-light-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-dark-1024.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-dark-1280.png"
+   ],
+   "pairs": [
+    {
+     "surface": "rail-expanded + header",
+     "theme": "light",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-light-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1024.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "rail-expanded + header",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "rail-expanded + header",
+     "theme": "dark",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-dark-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-dark-1024.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "rail-expanded + header",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "header-390",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/owner_dashboard-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/owner_dashboard-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "header-390",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/owner_dashboard-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/owner_dashboard-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "collapsed",
+     "theme": "light",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-light-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1024.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "collapsed",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1280.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "collapsed",
+     "theme": "dark",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-dark-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1024.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "collapsed",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1280.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "rail-hover",
+     "theme": "light",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-light-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-light-1024.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "rail-hover",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-light-1280.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "rail-hover",
+     "theme": "dark",
+     "width": 1024,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-dark-1024.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-dark-1024.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    },
+    {
+     "surface": "rail-hover",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-dark-1280.png",
+     "newState": true,
+     "pairing": "no-before-state (VD-29)"
+    }
+   ],
+   "measured": {
+    "e2e": [
+     {
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > sidebar_state absent: 375, 900, 1024 and 1280 hydrate cleanly with one main",
+      "status": "expected"
+     },
+     {
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > sidebar_state true: 375, 900, 1024 and 1280 hydrate cleanly with one main",
+      "status": "expected"
+     },
+     {
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > sidebar_state false: 375, 900, 1024 and 1280 hydrate cleanly with one main",
+      "status": "expected"
+     },
+     {
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > D-34/D-52/D-36: collapse controls, shortcut guards, cookie and SSR state (T-COOKIE)",
+      "status": "expected"
+     },
+     {
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > S12/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers",
+      "status": "expected"
+     }
+    ],
+    "cookieAsserted": "every write matches ^sidebar_state=(true|false); path=/; max-age=604800; SameSite=Lax(; Secure)?$, Secure exactly on https; the jar holds SameSite Lax, path /, secure false on the http E2E origin; SSR state collapsed after a collapse + reload and expanded with the cookie absent or true (app-shell-sidebar.spec.ts D-34/D-52/D-36)",
+    "triggerBox": "44x44 hit area, PanelLeft at 20px (VD-31; S-2/S-9 test and app-shell.test.tsx)",
+    "dockCentering": {
+     "light": {
+      "viewportWidth": 1280,
+      "sidebarWidthToken": "14rem",
+      "expandedLeft": 752,
+      "collapsedLeft": 640,
+      "collapsedAttr": "offcanvas",
+      "reExpandedLeft": 752,
+      "transitionProperty": "left",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "linear"
+     },
+     "dark": {
+      "viewportWidth": 1280,
+      "sidebarWidthToken": "14rem",
+      "expandedLeft": 752,
+      "collapsedLeft": 640,
+      "collapsedAttr": "offcanvas",
+      "reExpandedLeft": 752,
+      "transitionProperty": "left",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "linear"
+     }
+    },
+    "d52FallbackRecipe": "D-52: `lg:hidden` on the trigger, no SidebarRail, and a `document` keydown `stopPropagation()` for Cmd/Ctrl+B (measured: no collapse, no cookie)"
+   }
+  },
+  {
+   "id": "CP-5",
+   "vd": [
+    "VD-23"
+   ],
+   "default": "motion on (D-30)",
+   "fallback": "the resting state only (`animate-none`); it stays never-invisible",
+   "beforeLabel": "w4",
+   "afterLabel": "final",
+   "before": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-dark-1280.png"
+   ],
+   "after": [
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-light-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-light-1280.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-dark-390.png",
+    ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-dark-1280.png"
+   ],
+   "pairs": [
+    {
+     "surface": "/dashboard",
+     "theme": "light",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-light-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-light-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/dashboard",
+     "theme": "light",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-light-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-light-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/dashboard",
+     "theme": "dark",
+     "width": 390,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-dark-390.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-dark-390.png",
+     "newState": false,
+     "pairing": "same-state"
+    },
+    {
+     "surface": "/dashboard",
+     "theme": "dark",
+     "width": 1280,
+     "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-dark-1280.png",
+     "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-dark-1280.png",
+     "newState": false,
+     "pairing": "same-state"
+    }
+   ],
+   "measured": {
+    "C12c": [
+     {
+      "name": "light blur-fade-no-js: ssrHtmlHasOpacity0 false",
+      "pass": true,
+      "measured": false
+     },
+     {
+      "name": "light blur-fade-no-js: ssrAriaHidden null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "light blur-fade-no-js: opacityAtEnd 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "light blur-fade-no-js: ariaHiddenAtEnd null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "light blur-fade-no-js: dataSlot blur-fade",
+      "pass": true,
+      "measured": "blur-fade"
+     },
+     {
+      "name": "light blur-fade-reduced-motion: ssrHtmlHasOpacity0 false",
+      "pass": true,
+      "measured": false
+     },
+     {
+      "name": "light blur-fade-reduced-motion: ssrAriaHidden null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "light blur-fade-reduced-motion: opacityAtEnd 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "light blur-fade-reduced-motion: ariaHiddenAtEnd null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "light blur-fade-reduced-motion: dataSlot blur-fade",
+      "pass": true,
+      "measured": "blur-fade"
+     },
+     {
+      "name": "light blur-fade-io-stub: ssrHtmlHasOpacity0 false",
+      "pass": true,
+      "measured": false
+     },
+     {
+      "name": "light blur-fade-io-stub: ssrAriaHidden null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "light blur-fade-io-stub: opacityAtEnd 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "light blur-fade-io-stub: ariaHiddenAtEnd null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "light blur-fade-io-stub: dataSlot blur-fade",
+      "pass": true,
+      "measured": "blur-fade"
+     },
+     {
+      "name": "light blur-fade-reduced-motion: opacityAtStart 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "light blur-fade-io-stub: ioConstructions 0",
+      "pass": true,
+      "measured": 0
+     },
+     {
+      "name": "dark blur-fade-no-js: ssrHtmlHasOpacity0 false",
+      "pass": true,
+      "measured": false
+     },
+     {
+      "name": "dark blur-fade-no-js: ssrAriaHidden null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "dark blur-fade-no-js: opacityAtEnd 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "dark blur-fade-no-js: ariaHiddenAtEnd null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "dark blur-fade-no-js: dataSlot blur-fade",
+      "pass": true,
+      "measured": "blur-fade"
+     },
+     {
+      "name": "dark blur-fade-reduced-motion: ssrHtmlHasOpacity0 false",
+      "pass": true,
+      "measured": false
+     },
+     {
+      "name": "dark blur-fade-reduced-motion: ssrAriaHidden null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "dark blur-fade-reduced-motion: opacityAtEnd 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "dark blur-fade-reduced-motion: ariaHiddenAtEnd null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "dark blur-fade-reduced-motion: dataSlot blur-fade",
+      "pass": true,
+      "measured": "blur-fade"
+     },
+     {
+      "name": "dark blur-fade-io-stub: ssrHtmlHasOpacity0 false",
+      "pass": true,
+      "measured": false
+     },
+     {
+      "name": "dark blur-fade-io-stub: ssrAriaHidden null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "dark blur-fade-io-stub: opacityAtEnd 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "dark blur-fade-io-stub: ariaHiddenAtEnd null",
+      "pass": true,
+      "measured": null
+     },
+     {
+      "name": "dark blur-fade-io-stub: dataSlot blur-fade",
+      "pass": true,
+      "measured": "blur-fade"
+     },
+     {
+      "name": "dark blur-fade-reduced-motion: opacityAtStart 1",
+      "pass": true,
+      "measured": 1
+     },
+     {
+      "name": "dark blur-fade-io-stub: ioConstructions 0",
+      "pass": true,
+      "measured": 0
+     },
+     {
+      "name": "src/components/ui/blur-fade.tsx non-comment lines: 0 IntersectionObserver|useInView|aria-hidden|will-change",
+      "pass": true,
+      "measured": 0
+     },
+     {
+      "name": "src/components/ui/blur-fade.tsx: no template-literal className",
+      "pass": true,
+      "measured": 0
+     },
+     {
+      "name": "no <BlurFade with inView/yOffset/onAnimationComplete",
+      "pass": true,
+      "measured": "no match"
+     },
+     {
+      "name": "BlurFadeProps declared only in src/types/frontend.ts",
+      "pass": true,
+      "measured": [
+       "src/types/frontend.ts"
+      ]
+     },
+     {
+      "name": "src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx passed in the unit report",
+      "pass": true,
+      "measured": "passed"
+     }
+    ],
+    "blurFade": {
+     "blur-fade-io-stub": {
+      "light": {
+       "opacityAtStart": 0,
+       "opacityAtEnd": 1,
+       "animationNameAtStart": "enter",
+       "animationDuration": "0.5s"
+      },
+      "dark": {
+       "opacityAtStart": 0,
+       "opacityAtEnd": 1,
+       "animationNameAtStart": "enter",
+       "animationDuration": "0.5s"
+      }
+     },
+     "blur-fade-no-js": {
+      "light": {
+       "opacityAtStart": 0,
+       "opacityAtEnd": 1,
+       "animationNameAtStart": "enter",
+       "animationDuration": "0.5s"
+      },
+      "dark": {
+       "opacityAtStart": 0,
+       "opacityAtEnd": 1,
+       "animationNameAtStart": "enter",
+       "animationDuration": "0.5s"
+      }
+     },
+     "blur-fade-reduced-motion": {
+      "light": {
+       "opacityAtStart": 1,
+       "opacityAtEnd": 1,
+       "animationNameAtStart": "none",
+       "animationDuration": "1e-05s"
+      },
+      "dark": {
+       "opacityAtStart": 1,
+       "opacityAtEnd": 1,
+       "animationNameAtStart": "none",
+       "animationDuration": "1e-05s"
+      }
+     }
+    }
+   },
+   "liveView": "cd /Users/richard/Developer/tenant-flow-tw-shadcn && SKIP_ENV_VALIDATION=true node_modules/.bin/next start -p 3062"
+  }
+ ]
+}

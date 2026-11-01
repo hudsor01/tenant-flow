@@ -3,7 +3,7 @@
 //
 //   bun .planning/tailwind-shadcn/audit/screens.mjs <label> [--sets public,owner] [--routes /a,/b]
 //       [--widths 390,1280] [--base-url <url>] [--start [--port 3062]] [--blog-slug <slug>]
-//       [--style <css-file>] [--markers <json-file>]
+//       [--style <css-file>] [--markers <json-file>] [--visible <json-file>]
 //   bun .planning/tailwind-shadcn/audit/screens.mjs --diff <labelA> <labelB>
 //
 // Capture writes $TW_AUDIT_OUT/screens-<label>/<set>/<slug>-<theme>-<width>.png and
@@ -20,6 +20,11 @@
 // as `style`. --markers <json-file>: a { "<key>": "<css selector>" } map; before each screenshot the
 // capture entry records markers: { "<key>": <document.querySelectorAll(selector).length> } (null for
 // a selector the page rejects).
+// --visible <json-file> (66.2-37): a JSON array of CSS selectors; each capture entry records
+// visibility: { "<selector>": <getComputedStyle(first match).visibility, or null when nothing
+// matches or the page rejects the selector> }, read with the --style stylesheet injected as a
+// temporary <style> element (removed again before the screenshot, which applies --style through
+// Playwright as before). Without --visible every output is unchanged.
 //
 // Diff writes $TW_AUDIT_OUT/diff-<A>-vs-<B>.json = { summary: { identical, changed, sizeChanged,
 // missingInA, missingInB }, files: [{ name, sizeA, sizeB, changedPixels, changedRatio, bbox }],
@@ -86,7 +91,7 @@ const heightFor = (w) => (w < 768 ? 844 : 800);
 
 // ---------- argv ----------
 function parseArgs(argv) {
-	const a = { label: null, sets: ["public", "owner"], routes: null, widths: null, baseUrl: null, start: false, port: 3062, blogSlug: null, diff: null, style: null, markers: null };
+	const a = { label: null, sets: ["public", "owner"], routes: null, widths: null, baseUrl: null, start: false, port: 3062, blogSlug: null, diff: null, style: null, markers: null, visible: null };
 	const pos = [];
 	for (let i = 0; i < argv.length; i++) {
 		const x = argv[i];
@@ -109,6 +114,7 @@ function parseArgs(argv) {
 		else if (x === "--blog-slug") a.blogSlug = val();
 		else if (x === "--style") a.style = val();
 		else if (x === "--markers") a.markers = val();
+		else if (x === "--visible") a.visible = val();
 		else if (x.startsWith("--")) fail(`unknown flag ${x}`);
 		else pos.push(x);
 	}
@@ -138,6 +144,17 @@ function parseArgs(argv) {
 		}
 		if (!m || typeof m !== "object" || Array.isArray(m) || Object.values(m).some((v) => typeof v !== "string")) fail('--markers must map "<key>" to a selector string');
 		a.markerMap = m;
+	}
+	if (a.visible) {
+		if (!fs.existsSync(a.visible)) fail(`--visible file not found: ${a.visible}`);
+		let v;
+		try {
+			v = JSON.parse(fs.readFileSync(a.visible, "utf8"));
+		} catch {
+			fail("--visible must be a JSON array");
+		}
+		if (!Array.isArray(v) || v.some((x) => typeof x !== "string")) fail("--visible must be an array of selector strings");
+		a.visibleList = v;
 	}
 	return a;
 }
@@ -471,6 +488,29 @@ async function runCapture(args) {
 											}
 											return out;
 										}, args.markerMap);
+									}
+									if (args.visibleList) {
+										entry.visibility = await page.evaluate(
+											({ list, css }) => {
+												const tag = css ? document.createElement("style") : null;
+												if (tag) {
+													tag.textContent = css;
+													document.head.append(tag);
+												}
+												const out = {};
+												for (const sel of list) {
+													try {
+														const el = document.querySelector(sel);
+														out[sel] = el ? getComputedStyle(el).visibility : null;
+													} catch {
+														out[sel] = null;
+													}
+												}
+												tag?.remove();
+												return out;
+											},
+											{ list: args.visibleList, css: args.styleText ?? "" },
+										);
 									}
 									const shotOptions = { path: path.join(outDir, file), fullPage: true, animations: "disabled", caret: "hide" };
 									if (args.styleText) shotOptions.style = args.styleText;

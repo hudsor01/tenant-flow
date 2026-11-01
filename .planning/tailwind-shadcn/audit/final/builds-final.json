@@ -1,0 +1,21 @@
+{
+  "head-3062": {
+    "tree": "HEAD",
+    "origin": "http://localhost:3062",
+    "exit": 0,
+    "fontRerun": false
+  },
+  "prew6-3062": {
+    "tree": "PRE_W6 9ab6f9b11 (git archive, APFS-cloned node_modules)",
+    "origin": "http://localhost:3062",
+    "exit": 0,
+    "fontRerun": false
+  },
+  "ctrl754-3062": {
+    "tree": "754c91802 (git archive, APFS-cloned node_modules), same-session control for the cumulative screenshots and CSP",
+    "origin": "http://localhost:3062",
+    "exit": 0,
+    "fontRerun": false
+  },
+  "command": "NEXT_PUBLIC_APP_URL=<origin> SKIP_ENV_VALIDATION=true NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder bun .planning/tailwind-shadcn/audit/with-env.mjs bash -c \"cd <tree> && bun run build\""
+}

@@ -841,28 +841,66 @@ async function runClaims(browser) {
 // The wave-6 sidebar before-set. Each state has a fixed route. "park" = the pointer moved to
 // (innerWidth - 2, innerHeight - 2) so no row is hovered; every state parks after its interaction
 // except the two hover states and row-focus (parked before its Tab presses).
+// Post-W6 (66.2-37): the same states run against the shadcn Sidebar shell, detected per page by
+// the SidebarProvider root [data-slot="sidebar-wrapper"]. The PRE_W6 selectors (the aside, the
+// hamburger) get their post-W6 alternatives: the desktop rail [data-slot="sidebar"] without
+// data-mobile, the mobile sheet [data-slot="sidebar"][data-mobile="true"] and the header
+// [data-slot="sidebar-trigger"]. reports-open and sheet-open-reports click the Reports
+// [data-slot="collapsible-trigger"] only while its aria-expanded is "false" (D-50 opens the active
+// section on /reports/cash-flow, so an unconditional click would close it) and throw unless it
+// reads "true" before the capture. Two states exist only after W6 and run at 1024/1280 after the
+// desktop list: rail-hover (/dashboard, the pointer on [data-slot="sidebar-rail"]) and collapsed
+// (/dashboard after one trigger click, parked; it must read data-state="collapsed"). A missing
+// post-W6 element throws, so the capture records the error and the run exits 1 naming the state.
 const park = async (page) => {
 	const vp = page.viewportSize();
 	await page.mouse.move(vp.width - 2, vp.height - 2);
 };
+const W6_DESKTOP = '[data-slot="sidebar"]:not([data-mobile="true"])';
+const W6_SHEET = '[data-slot="sidebar"][data-mobile="true"]';
+const W6_TRIGGER = '[data-slot="sidebar-trigger"]';
+const isPostW6 = (p) => p.evaluate(() => document.querySelector('[data-slot="sidebar-wrapper"]') !== null);
+const desktopScope = async (p) => ((await isPostW6(p)) ? W6_DESKTOP : ASIDE);
+const sheetScope = async (p) => ((await isPostW6(p)) ? W6_SHEET : ASIDE);
+const openNavForShots = async (p) => {
+	if (!(await isPostW6(p))) return openDrawer(p);
+	await p.locator(W6_TRIGGER).first().click();
+	await p.locator(W6_SHEET).waitFor({ state: "visible", timeout: 10000 });
+	await settle(p);
+};
+const openReportsForShots = async (p, scope) => {
+	if (!(await isPostW6(p))) {
+		await p.locator(`${ASIDE} button[aria-controls="nav-section-Reports"]`).click();
+		return;
+	}
+	const toggle = p.locator(`${scope} [data-slot="collapsible-trigger"]`, { hasText: "Reports" }).first();
+	await toggle.waitFor({ state: "visible", timeout: 10000 });
+	if ((await toggle.getAttribute("aria-expanded")) === "false") {
+		await toggle.click();
+		await settle(p);
+	}
+	const expanded = await toggle.getAttribute("aria-expanded");
+	if (expanded !== "true") throw new Error(`Reports section not open before the capture (aria-expanded=${expanded})`);
+};
 const DESKTOP_STATES = [
 	["rail-expanded", "/dashboard", async (p) => park(p)],
 	["current-row", "/properties", async (p) => park(p)],
-	["current-row-hover", "/properties", async (p) => p.locator(`${ASIDE} a[href="/properties"]`).hover()],
-	["row-hover", "/properties", async (p) => p.locator(`${ASIDE} a[href="/tenants"]`).hover()],
+	["current-row-hover", "/properties", async (p) => p.locator(`${await desktopScope(p)} a[href="/properties"]`).hover()],
+	["row-hover", "/properties", async (p) => p.locator(`${await desktopScope(p)} a[href="/tenants"]`).hover()],
 	[
 		"row-focus",
 		"/properties",
 		async (p) => {
+			const scope = await desktopScope(p);
 			await park(p);
 			await p.evaluate(() => {
 				if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
 			});
 			for (let i = 0; i < 60; i++) {
 				await p.keyboard.press("Tab");
-				if (await p.evaluate((sel) => document.activeElement?.matches(`${sel} a[href="/tenants"]`) === true, ASIDE)) return;
+				if (await p.evaluate((sel) => document.activeElement?.matches(`${sel} a[href="/tenants"]`) === true, scope)) return;
 			}
-			throw new Error('60 Tab presses never focused aside a[href="/tenants"]');
+			throw new Error(`60 Tab presses never focused ${scope} a[href="/tenants"]`);
 		},
 	],
 	["reports-default", "/reports/cash-flow", async (p) => park(p)],
@@ -870,11 +908,27 @@ const DESKTOP_STATES = [
 		"reports-open",
 		"/reports/cash-flow",
 		async (p) => {
-			await p.locator(`${ASIDE} button[aria-controls="nav-section-Reports"]`).click();
+			await openReportsForShots(p, await desktopScope(p));
 			await park(p);
 		},
 	],
 	["tour-step5", "/dashboard", null],
+];
+// Post-W6 only (66.2-37), run after DESKTOP_STATES at 1024/1280; rail-hover before collapsed,
+// because the collapse persists in the context's sidebar_state cookie.
+const W6_ONLY_DESKTOP_STATES = [
+	["rail-hover", "/dashboard", async (p) => p.locator('[data-slot="sidebar-rail"]').first().hover()],
+	[
+		"collapsed",
+		"/dashboard",
+		async (p) => {
+			await p.locator(W6_TRIGGER).first().click();
+			await settle(p);
+			const state = await p.locator(W6_DESKTOP).first().getAttribute("data-state");
+			if (state !== "collapsed") throw new Error(`sidebar did not collapse (data-state=${state})`);
+			await park(p);
+		},
+	],
 ];
 const SHEET_STATES = [
 	["closed", "/dashboard", async (p) => park(p)],
@@ -882,7 +936,7 @@ const SHEET_STATES = [
 		"sheet-open-default",
 		"/reports/cash-flow",
 		async (p) => {
-			await openDrawer(p);
+			await openNavForShots(p);
 			await park(p);
 		},
 	],
@@ -890,8 +944,8 @@ const SHEET_STATES = [
 		"sheet-open-reports",
 		"/reports/cash-flow",
 		async (p) => {
-			await openDrawer(p);
-			await p.locator(`${ASIDE} button[aria-controls="nav-section-Reports"]`).click();
+			await openNavForShots(p);
+			await openReportsForShots(p, await sheetScope(p));
 			await park(p);
 		},
 	],
@@ -899,8 +953,8 @@ const SHEET_STATES = [
 		"palette-over-sheet",
 		"/reports/cash-flow",
 		async (p) => {
-			await openDrawer(p);
-			await p.locator(`${ASIDE} button`, { hasText: "Search pages and actions" }).click();
+			await openNavForShots(p);
+			await p.locator(`${await sheetScope(p)} button`, { hasText: "Search pages and actions" }).click();
 			await p.getByRole("dialog", { name: PALETTE }).waitFor({ state: "visible", timeout: 10000 });
 			await park(p);
 		},
@@ -965,6 +1019,13 @@ async function runShots(browser, args) {
 					if (!interaction) continue;
 					manifest.captures.push(await shoot(seeded.page, seeded.consoleErrors, { outDir, state, route, theme, width, interaction }));
 				}
+				const postW6 = await isPostW6(seeded.page);
+				manifest.shellMode ??= postW6 ? "post-w6" : "pre-w6";
+				if (postW6 && width >= 1024) {
+					for (const [state, route, interaction] of W6_ONLY_DESKTOP_STATES) {
+						manifest.captures.push(await shoot(seeded.page, seeded.consoleErrors, { outDir, state, route, theme, width, interaction }));
+					}
+				}
 			} finally {
 				await seeded.ctx.close();
 			}
@@ -977,6 +1038,7 @@ async function runShots(browser, args) {
 		}
 	}
 	manifest.writes = finalizeWrites();
+	if (manifest.shellMode === "post-w6") manifest.notApplicable = [];
 	fs.writeFileSync(path.join(outDir, "manifest.json"), `${JSON.stringify(manifest, null, 1)}\n`);
 	const failed = manifest.captures.filter((c) => c.error || c.status !== 200 || c.themeApplied !== true);
 	console.error(`sidebar-step0: ${manifest.captures.length} captures; manifest at ${path.join(outDir, "manifest.json")}`);

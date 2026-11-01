@@ -1,0 +1,2766 @@
+{
+ "rows": [
+  {
+   "id": "VD-01",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:secondaryPixel.light within 1 of 222,243,255",
+     "pass": true,
+     "measured": [
+      222,
+      243,
+      255
+     ]
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-02",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:touch390.switch 32x18.4 (0.5)",
+     "pass": true,
+     "measured": {
+      "width": 32,
+      "height": 18.4,
+      "padding": "0px",
+      "minHeight": "0px"
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-03",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:touch390.buttonSecondary >= 44px, padding 8px 16px",
+     "pass": true,
+     "measured": {
+      "width": 76.2,
+      "height": 44,
+      "padding": "8px 16px",
+      "minHeight": "44px"
+     }
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:touch390.iconButton 44x44, padding 0",
+     "pass": true,
+     "measured": {
+      "width": 44,
+      "height": 44,
+      "padding": "0px",
+      "minHeight": "44px"
+     }
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:touch390.input 44px, padding 4px 12px",
+     "pass": true,
+     "measured": {
+      "width": 390,
+      "height": 44,
+      "padding": "4px 12px",
+      "minHeight": "44px"
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/public/apply-token.spec.ts :: /E-2: every applicant input renders exactly 48px tall at 375px/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [public] /apply — the rendered applicant form > E-2: every applicant input renders exactly 48px tall at 375px"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/public/apply-token.spec.ts :: /E-3: every textarea renders at least 96px tall at 375px/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [public] /apply — the rendered applicant form > E-3: every textarea renders at least 96px tall at 375px"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-04",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/applications.spec.ts [owner-axe] :: /E-22: the status tabs fit or scroll in place at 375px/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] /applications — the owner review queue > E-22: the status tabs fit or scroll in place at 375px, scroll at 320px, the page never scrolls, and no label clips"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-05",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:fonts.light.html starts Stubfontroboto",
+     "pass": true,
+     "measured": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif"
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:fonts.dark.html starts Stubfontroboto",
+     "pass": true,
+     "measured": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif"
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:globalError.fontVarsOn == html",
+     "pass": true,
+     "measured": "html"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-06",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:fonts.light.fontMono starts Stubfontgeistmono",
+     "pass": true,
+     "measured": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace"
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:fonts.dark.fontMono starts Stubfontgeistmono",
+     "pass": true,
+     "measured": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-07",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:fonts.light.codeTag starts Stubfontgeistmono",
+     "pass": true,
+     "measured": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace"
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:fonts.dark.codeTag starts Stubfontgeistmono",
+     "pass": true,
+     "measured": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-08",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.light[\"renew-lease heading\"] >= 4.5",
+     "pass": true,
+     "measured": 15.16
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.light[\"renew-lease body\"] >= 4.5",
+     "pass": true,
+     "measured": 5.44
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.light[\"renew-lease icon\"] >= 3",
+     "pass": true,
+     "measured": 5.44
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"renew-lease heading\"] >= 4.5",
+     "pass": true,
+     "measured": 15.46
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"renew-lease body\"] >= 4.5",
+     "pass": true,
+     "measured": 7.53
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"renew-lease icon\"] >= 3",
+     "pass": true,
+     "measured": 7.53
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-09",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "redproof-head-final.json:guards.G4.count == 0 (no light-only black-alpha token)",
+     "pass": true,
+     "measured": 0
+    },
+    {
+     "kind": "json",
+     "ref": "token-parity-final.json:cumulative.deletedNotZero empty (the 12 label/fill/separator tokens are gone)",
+     "pass": true,
+     "measured": []
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-10",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"lease template preview h2\"] >= 13.5",
+     "pass": true,
+     "measured": 19.87
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"lease template preview p\"] >= 13.5",
+     "pass": true,
+     "measured": 13.5
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"lease template preview strong\"] >= 13.5",
+     "pass": true,
+     "measured": 19.87
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"lease template preview a\"] >= 13.5",
+     "pass": true,
+     "measured": 19.87
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"admin blog review h2\"] >= 13.5",
+     "pass": true,
+     "measured": 19.87
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"admin blog review p\"] >= 13.5",
+     "pass": true,
+     "measured": 17.74
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"admin blog review strong\"] >= 13.5",
+     "pass": true,
+     "measured": 19.87
+    },
+    {
+     "kind": "json",
+     "ref": "render-final.json:contrast.dark[\"admin blog review a\"] >= 13.5",
+     "pass": true,
+     "measured": 19.87
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-11",
+   "wave": 1,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "probes-final.json:results.border-beam-grid.light.afterBackgroundImage != none",
+     "pass": true,
+     "measured": "linear-gradient(to left, oklab(0.54 -0.0517387 -0.224105 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))"
+    },
+    {
+     "kind": "json",
+     "ref": "probes-final.json:results.border-beam-grid.dark.afterBackgroundImage != none",
+     "pass": true,
+     "measured": "linear-gradient(to left, oklab(0.72 -0.0419779 -0.215958 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))"
+    },
+    {
+     "kind": "json",
+     "ref": "probes-final.json:results.border-beam-stats.light.afterBackgroundImage != none",
+     "pass": true,
+     "measured": "linear-gradient(to left, oklch(0.54 0.23 257), oklab(0.54 -0.0517387 -0.224105 / 0.3), rgba(0, 0, 0, 0))"
+    },
+    {
+     "kind": "json",
+     "ref": "probes-final.json:results.border-beam-stats.dark.afterBackgroundImage != none",
+     "pass": true,
+     "measured": "linear-gradient(to left, oklch(0.72 0.22 259), oklab(0.72 -0.0419779 -0.215958 / 0.3), rgba(0, 0, 0, 0))"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-12",
+   "wave": 2,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "owner-loading-final.json:(.captures|length)==4 and all(.captures[].allPass)",
+     "pass": true,
+     "measured": [
+      {
+       "theme": "light",
+       "width": 390,
+       "status": "ok",
+       "checks": [
+        {
+         "name": "root.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "root.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "root.rowGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingTop",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingBottom",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "header.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "header.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "header.rowGap",
+         "expected": "8px",
+         "actual": "8px",
+         "pass": true
+        },
+        {
+         "name": "actionInner.columnGap",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "grid.display",
+         "expected": "grid",
+         "actual": "grid",
+         "pass": true
+        },
+        {
+         "name": "grid.rowGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.columnGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.marginBottom",
+         "expected": "0px",
+         "actual": "0px",
+         "pass": true
+        },
+        {
+         "name": "grid.gridTemplateColumns",
+         "expected": "1 track >= 320px",
+         "actual": "390px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopLeftRadius",
+         "expected": "12px",
+         "actual": "12px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopColor",
+         "expected": "oklch(0.88 0.01 245)",
+         "actual": "oklch(0.88 0.01 245)",
+         "pass": true
+        },
+        {
+         "name": "card.backgroundColor",
+         "expected": "oklch(0.99 0.003 240)",
+         "actual": "oklch(0.99 0.003 240)",
+         "pass": true
+        },
+        {
+         "name": "card.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "card.overflow",
+         "expected": "hidden",
+         "actual": "hidden",
+         "pass": true
+        },
+        {
+         "name": "cardInner.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopLeftRadius",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopColor",
+         "expected": "oklch(0.88 0.01 245)",
+         "actual": "oklch(0.88 0.01 245)",
+         "pass": true
+        },
+        {
+         "name": "table.backgroundColor",
+         "expected": "oklch(0.99 0.003 240)",
+         "actual": "oklch(0.99 0.003 240)",
+         "pass": true
+        },
+        {
+         "name": "table.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "tableInner.paddingTop",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.columnGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.marginBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.borderBottomWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "skeletonCount",
+         "expected": "37",
+         "actual": "37",
+         "pass": true
+        },
+        {
+         "name": "dashboardClassCount",
+         "expected": "0",
+         "actual": "0",
+         "pass": true
+        },
+        {
+         "name": "horizontalOverflow",
+         "expected": "<= 0",
+         "actual": "0",
+         "pass": true
+        }
+       ],
+       "allPass": true,
+       "png": "owner-loading-final/harness-light-390.png",
+       "skeletonRects": [
+        [
+         0,
+         4,
+         192,
+         32
+        ],
+        [
+         0,
+         44,
+         384,
+         16
+        ],
+        [
+         0,
+         96,
+         180.52,
+         40
+        ],
+        [
+         196.52,
+         96,
+         90.25,
+         40
+        ],
+        [
+         286.77,
+         96,
+         103.23,
+         40
+        ],
+        [
+         17,
+         185,
+         96,
+         16
+        ],
+        [
+         17,
+         209,
+         64,
+         32
+        ],
+        [
+         17,
+         299,
+         96,
+         16
+        ],
+        [
+         17,
+         323,
+         64,
+         32
+        ],
+        [
+         17,
+         413,
+         96,
+         16
+        ],
+        [
+         17,
+         437,
+         64,
+         32
+        ],
+        [
+         17,
+         527,
+         96,
+         16
+        ],
+        [
+         17,
+         551,
+         64,
+         32
+        ],
+        [
+         33,
+         665,
+         58.84,
+         16
+        ],
+        [
+         123.84,
+         665,
+         88.25,
+         16
+        ],
+        [
+         244.09,
+         665,
+         44.13,
+         16
+        ],
+        [
+         320.22,
+         665,
+         36.78,
+         16
+        ],
+        [
+         33,
+         730,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         730,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         730,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         730,
+         36.78,
+         20
+        ],
+        [
+         33,
+         782,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         782,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         782,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         782,
+         36.78,
+         20
+        ],
+        [
+         33,
+         834,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         834,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         834,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         834,
+         36.78,
+         20
+        ],
+        [
+         33,
+         886,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         886,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         886,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         886,
+         36.78,
+         20
+        ],
+        [
+         33,
+         938,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         938,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         938,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         938,
+         36.78,
+         20
+        ]
+       ]
+      },
+      {
+       "theme": "light",
+       "width": 1280,
+       "status": "ok",
+       "checks": [
+        {
+         "name": "root.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "root.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "root.rowGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingTop",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingBottom",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "header.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "header.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "header.rowGap",
+         "expected": "8px",
+         "actual": "8px",
+         "pass": true
+        },
+        {
+         "name": "actionInner.columnGap",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "grid.display",
+         "expected": "grid",
+         "actual": "grid",
+         "pass": true
+        },
+        {
+         "name": "grid.rowGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.columnGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.marginBottom",
+         "expected": "0px",
+         "actual": "0px",
+         "pass": true
+        },
+        {
+         "name": "grid.gridTemplateColumns",
+         "expected": "every track >= 320px",
+         "actual": "410.656px 410.672px 410.656px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopLeftRadius",
+         "expected": "12px",
+         "actual": "12px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopColor",
+         "expected": "oklch(0.88 0.01 245)",
+         "actual": "oklch(0.88 0.01 245)",
+         "pass": true
+        },
+        {
+         "name": "card.backgroundColor",
+         "expected": "oklch(0.99 0.003 240)",
+         "actual": "oklch(0.99 0.003 240)",
+         "pass": true
+        },
+        {
+         "name": "card.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "card.overflow",
+         "expected": "hidden",
+         "actual": "hidden",
+         "pass": true
+        },
+        {
+         "name": "cardInner.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopLeftRadius",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopColor",
+         "expected": "oklch(0.88 0.01 245)",
+         "actual": "oklch(0.88 0.01 245)",
+         "pass": true
+        },
+        {
+         "name": "table.backgroundColor",
+         "expected": "oklch(0.99 0.003 240)",
+         "actual": "oklch(0.99 0.003 240)",
+         "pass": true
+        },
+        {
+         "name": "table.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "tableInner.paddingTop",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.columnGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.marginBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.borderBottomWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "skeletonCount",
+         "expected": "37",
+         "actual": "37",
+         "pass": true
+        },
+        {
+         "name": "dashboardClassCount",
+         "expected": "0",
+         "actual": "0",
+         "pass": true
+        },
+        {
+         "name": "horizontalOverflow",
+         "expected": "<= 0",
+         "actual": "0",
+         "pass": true
+        }
+       ],
+       "allPass": true,
+       "png": "owner-loading-final/harness-light-1280.png",
+       "skeletonRects": [
+        [
+         0,
+         4,
+         192,
+         32
+        ],
+        [
+         0,
+         44,
+         384,
+         16
+        ],
+        [
+         0,
+         96,
+         256,
+         40
+        ],
+        [
+         272,
+         96,
+         128,
+         40
+        ],
+        [
+         1136,
+         96,
+         144,
+         40
+        ],
+        [
+         17,
+         185,
+         96,
+         16
+        ],
+        [
+         17,
+         209,
+         64,
+         32
+        ],
+        [
+         451.66,
+         185,
+         96,
+         16
+        ],
+        [
+         451.66,
+         209,
+         64,
+         32
+        ],
+        [
+         886.33,
+         185,
+         96,
+         16
+        ],
+        [
+         886.33,
+         209,
+         64,
+         32
+        ],
+        [
+         17,
+         299,
+         96,
+         16
+        ],
+        [
+         17,
+         323,
+         64,
+         32
+        ],
+        [
+         33,
+         437,
+         128,
+         16
+        ],
+        [
+         193,
+         437,
+         192,
+         16
+        ],
+        [
+         417,
+         437,
+         96,
+         16
+        ],
+        [
+         545,
+         437,
+         80,
+         16
+        ],
+        [
+         33,
+         502,
+         128,
+         20
+        ],
+        [
+         193,
+         502,
+         192,
+         20
+        ],
+        [
+         417,
+         502,
+         96,
+         20
+        ],
+        [
+         545,
+         502,
+         80,
+         20
+        ],
+        [
+         33,
+         554,
+         128,
+         20
+        ],
+        [
+         193,
+         554,
+         192,
+         20
+        ],
+        [
+         417,
+         554,
+         96,
+         20
+        ],
+        [
+         545,
+         554,
+         80,
+         20
+        ],
+        [
+         33,
+         606,
+         128,
+         20
+        ],
+        [
+         193,
+         606,
+         192,
+         20
+        ],
+        [
+         417,
+         606,
+         96,
+         20
+        ],
+        [
+         545,
+         606,
+         80,
+         20
+        ],
+        [
+         33,
+         658,
+         128,
+         20
+        ],
+        [
+         193,
+         658,
+         192,
+         20
+        ],
+        [
+         417,
+         658,
+         96,
+         20
+        ],
+        [
+         545,
+         658,
+         80,
+         20
+        ],
+        [
+         33,
+         710,
+         128,
+         20
+        ],
+        [
+         193,
+         710,
+         192,
+         20
+        ],
+        [
+         417,
+         710,
+         96,
+         20
+        ],
+        [
+         545,
+         710,
+         80,
+         20
+        ]
+       ]
+      },
+      {
+       "theme": "dark",
+       "width": 390,
+       "status": "ok",
+       "checks": [
+        {
+         "name": "root.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "root.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "root.rowGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingTop",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingBottom",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "header.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "header.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "header.rowGap",
+         "expected": "8px",
+         "actual": "8px",
+         "pass": true
+        },
+        {
+         "name": "actionInner.columnGap",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "grid.display",
+         "expected": "grid",
+         "actual": "grid",
+         "pass": true
+        },
+        {
+         "name": "grid.rowGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.columnGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.marginBottom",
+         "expected": "0px",
+         "actual": "0px",
+         "pass": true
+        },
+        {
+         "name": "grid.gridTemplateColumns",
+         "expected": "1 track >= 320px",
+         "actual": "390px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopLeftRadius",
+         "expected": "12px",
+         "actual": "12px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopColor",
+         "expected": "oklch(0.3 0.015 255)",
+         "actual": "oklch(0.3 0.015 255)",
+         "pass": true
+        },
+        {
+         "name": "card.backgroundColor",
+         "expected": "oklch(0.16 0.02 255)",
+         "actual": "oklch(0.16 0.02 255)",
+         "pass": true
+        },
+        {
+         "name": "card.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "card.overflow",
+         "expected": "hidden",
+         "actual": "hidden",
+         "pass": true
+        },
+        {
+         "name": "cardInner.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopLeftRadius",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopColor",
+         "expected": "oklch(0.3 0.015 255)",
+         "actual": "oklch(0.3 0.015 255)",
+         "pass": true
+        },
+        {
+         "name": "table.backgroundColor",
+         "expected": "oklch(0.16 0.02 255)",
+         "actual": "oklch(0.16 0.02 255)",
+         "pass": true
+        },
+        {
+         "name": "table.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "tableInner.paddingTop",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.columnGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.marginBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.borderBottomWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "skeletonCount",
+         "expected": "37",
+         "actual": "37",
+         "pass": true
+        },
+        {
+         "name": "dashboardClassCount",
+         "expected": "0",
+         "actual": "0",
+         "pass": true
+        },
+        {
+         "name": "horizontalOverflow",
+         "expected": "<= 0",
+         "actual": "0",
+         "pass": true
+        }
+       ],
+       "allPass": true,
+       "png": "owner-loading-final/harness-dark-390.png",
+       "skeletonRects": [
+        [
+         0,
+         4,
+         192,
+         32
+        ],
+        [
+         0,
+         44,
+         384,
+         16
+        ],
+        [
+         0,
+         96,
+         180.52,
+         40
+        ],
+        [
+         196.52,
+         96,
+         90.25,
+         40
+        ],
+        [
+         286.77,
+         96,
+         103.23,
+         40
+        ],
+        [
+         17,
+         185,
+         96,
+         16
+        ],
+        [
+         17,
+         209,
+         64,
+         32
+        ],
+        [
+         17,
+         299,
+         96,
+         16
+        ],
+        [
+         17,
+         323,
+         64,
+         32
+        ],
+        [
+         17,
+         413,
+         96,
+         16
+        ],
+        [
+         17,
+         437,
+         64,
+         32
+        ],
+        [
+         17,
+         527,
+         96,
+         16
+        ],
+        [
+         17,
+         551,
+         64,
+         32
+        ],
+        [
+         33,
+         665,
+         58.84,
+         16
+        ],
+        [
+         123.84,
+         665,
+         88.25,
+         16
+        ],
+        [
+         244.09,
+         665,
+         44.13,
+         16
+        ],
+        [
+         320.22,
+         665,
+         36.78,
+         16
+        ],
+        [
+         33,
+         730,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         730,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         730,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         730,
+         36.78,
+         20
+        ],
+        [
+         33,
+         782,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         782,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         782,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         782,
+         36.78,
+         20
+        ],
+        [
+         33,
+         834,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         834,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         834,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         834,
+         36.78,
+         20
+        ],
+        [
+         33,
+         886,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         886,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         886,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         886,
+         36.78,
+         20
+        ],
+        [
+         33,
+         938,
+         58.84,
+         20
+        ],
+        [
+         123.84,
+         938,
+         88.25,
+         20
+        ],
+        [
+         244.09,
+         938,
+         44.13,
+         20
+        ],
+        [
+         320.22,
+         938,
+         36.78,
+         20
+        ]
+       ]
+      },
+      {
+       "theme": "dark",
+       "width": 1280,
+       "status": "ok",
+       "checks": [
+        {
+         "name": "root.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "root.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "root.rowGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingTop",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "section.paddingBottom",
+         "expected": "4px",
+         "actual": "4px",
+         "pass": true
+        },
+        {
+         "name": "header.display",
+         "expected": "flex",
+         "actual": "flex",
+         "pass": true
+        },
+        {
+         "name": "header.flexDirection",
+         "expected": "column",
+         "actual": "column",
+         "pass": true
+        },
+        {
+         "name": "header.rowGap",
+         "expected": "8px",
+         "actual": "8px",
+         "pass": true
+        },
+        {
+         "name": "actionInner.columnGap",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "grid.display",
+         "expected": "grid",
+         "actual": "grid",
+         "pass": true
+        },
+        {
+         "name": "grid.rowGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.columnGap",
+         "expected": "24px",
+         "actual": "24px",
+         "pass": true
+        },
+        {
+         "name": "grid.marginBottom",
+         "expected": "0px",
+         "actual": "0px",
+         "pass": true
+        },
+        {
+         "name": "grid.gridTemplateColumns",
+         "expected": "every track >= 320px",
+         "actual": "410.656px 410.672px 410.656px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopLeftRadius",
+         "expected": "12px",
+         "actual": "12px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "card.borderTopColor",
+         "expected": "oklch(0.3 0.015 255)",
+         "actual": "oklch(0.3 0.015 255)",
+         "pass": true
+        },
+        {
+         "name": "card.backgroundColor",
+         "expected": "oklch(0.16 0.02 255)",
+         "actual": "oklch(0.16 0.02 255)",
+         "pass": true
+        },
+        {
+         "name": "card.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "card.overflow",
+         "expected": "hidden",
+         "actual": "hidden",
+         "pass": true
+        },
+        {
+         "name": "cardInner.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopLeftRadius",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "table.borderTopColor",
+         "expected": "oklch(0.3 0.015 255)",
+         "actual": "oklch(0.3 0.015 255)",
+         "pass": true
+        },
+        {
+         "name": "table.backgroundColor",
+         "expected": "oklch(0.16 0.02 255)",
+         "actual": "oklch(0.16 0.02 255)",
+         "pass": true
+        },
+        {
+         "name": "table.boxShadow",
+         "expected": "not none",
+         "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+         "pass": true
+        },
+        {
+         "name": "tableInner.paddingTop",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.columnGap",
+         "expected": "32px",
+         "actual": "32px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.marginBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "headerRow.borderBottomWidth",
+         "expected": "1px",
+         "actual": "1px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingTop",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "row.paddingBottom",
+         "expected": "16px",
+         "actual": "16px",
+         "pass": true
+        },
+        {
+         "name": "skeletonCount",
+         "expected": "37",
+         "actual": "37",
+         "pass": true
+        },
+        {
+         "name": "dashboardClassCount",
+         "expected": "0",
+         "actual": "0",
+         "pass": true
+        },
+        {
+         "name": "horizontalOverflow",
+         "expected": "<= 0",
+         "actual": "0",
+         "pass": true
+        }
+       ],
+       "allPass": true,
+       "png": "owner-loading-final/harness-dark-1280.png",
+       "skeletonRects": [
+        [
+         0,
+         4,
+         192,
+         32
+        ],
+        [
+         0,
+         44,
+         384,
+         16
+        ],
+        [
+         0,
+         96,
+         256,
+         40
+        ],
+        [
+         272,
+         96,
+         128,
+         40
+        ],
+        [
+         1136,
+         96,
+         144,
+         40
+        ],
+        [
+         17,
+         185,
+         96,
+         16
+        ],
+        [
+         17,
+         209,
+         64,
+         32
+        ],
+        [
+         451.66,
+         185,
+         96,
+         16
+        ],
+        [
+         451.66,
+         209,
+         64,
+         32
+        ],
+        [
+         886.33,
+         185,
+         96,
+         16
+        ],
+        [
+         886.33,
+         209,
+         64,
+         32
+        ],
+        [
+         17,
+         299,
+         96,
+         16
+        ],
+        [
+         17,
+         323,
+         64,
+         32
+        ],
+        [
+         33,
+         437,
+         128,
+         16
+        ],
+        [
+         193,
+         437,
+         192,
+         16
+        ],
+        [
+         417,
+         437,
+         96,
+         16
+        ],
+        [
+         545,
+         437,
+         80,
+         16
+        ],
+        [
+         33,
+         502,
+         128,
+         20
+        ],
+        [
+         193,
+         502,
+         192,
+         20
+        ],
+        [
+         417,
+         502,
+         96,
+         20
+        ],
+        [
+         545,
+         502,
+         80,
+         20
+        ],
+        [
+         33,
+         554,
+         128,
+         20
+        ],
+        [
+         193,
+         554,
+         192,
+         20
+        ],
+        [
+         417,
+         554,
+         96,
+         20
+        ],
+        [
+         545,
+         554,
+         80,
+         20
+        ],
+        [
+         33,
+         606,
+         128,
+         20
+        ],
+        [
+         193,
+         606,
+         192,
+         20
+        ],
+        [
+         417,
+         606,
+         96,
+         20
+        ],
+        [
+         545,
+         606,
+         80,
+         20
+        ],
+        [
+         33,
+         658,
+         128,
+         20
+        ],
+        [
+         193,
+         658,
+         192,
+         20
+        ],
+        [
+         417,
+         658,
+         96,
+         20
+        ],
+        [
+         545,
+         658,
+         80,
+         20
+        ],
+        [
+         33,
+         710,
+         128,
+         20
+        ],
+        [
+         193,
+         710,
+         192,
+         20
+        ],
+        [
+         417,
+         710,
+         96,
+         20
+        ],
+        [
+         545,
+         710,
+         80,
+         20
+        ]
+       ]
+      }
+     ]
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-13",
+   "wave": 4,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "redproof-head-final.json:guards.G8.count == 0",
+     "pass": true,
+     "measured": 0
+    },
+    {
+     "kind": "json",
+     "ref": "w4/pair-parity-w4.json: every pair text-equal, computed-equal or rem-for-px, unproven 0",
+     "pass": true,
+     "measured": {
+      "counts": {
+       "text-equal": 21,
+       "computed-equal": 9,
+       "rem-for-px": 24,
+       "unproven": 0
+      },
+      "total": 54
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-14",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C1",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 13,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-15",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C7",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 10,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-16",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C2",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 11,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-17",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C2",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 11,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-18",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C3",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 10,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-19",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C9",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 144,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-20",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C9",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 144,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-21",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C12b",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 19,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-22",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C12a",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 9,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-23",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C12c",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 39,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-24",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C4",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 39,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-25",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:C4",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 39,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-26",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /VD-26\\/VD-34: hover never underlines/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > VD-26/VD-34: hover never underlines, current row keeps its tint, focus ring"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "assert",
+     "ref": "w6-assertions-final.txt:PASS S-NEUTRALIZE",
+     "pass": true,
+     "measured": "PASS S-NEUTRALIZE 2 checks"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-27",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "unit",
+     "ref": "src/components/shell/__tests__/main-nav.test.tsx :: /opens Reports on a Reports route and marks the current sub link/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: MainNav sections opens Reports on a Reports route and marks the current sub link"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "unit",
+     "ref": "src/components/shell/__tests__/main-nav.test.tsx :: /opens Reports without a click when the pathname moves into it/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: MainNav sections opens Reports without a click when the pathname moves into it"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /VD-27\\/VD-35: active section open/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > VD-27/VD-35: active section open, sub rows and pinned footer"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-28",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "unit",
+     "ref": "src/components/shell/__tests__/main-nav.test.tsx :: /holds exactly the Settings and Help & Support links/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: MainNav footer (D-38) holds exactly the Settings and Help & Support links"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "unit",
+     "ref": "src/components/shell/__tests__/main-nav.test.tsx :: /marks Settings current on a settings route/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: MainNav footer (D-38) marks Settings current on a settings route"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "unit",
+     "ref": "src/components/shell/__tests__/main-nav.test.tsx :: /drops the dead shortcuts item and its kbd hint/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: MainNav footer (D-38) drops the dead shortcuts item and its kbd hint"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "assert",
+     "ref": "w6-assertions-final.txt:PASS S-NAV",
+     "pass": true,
+     "measured": "PASS S-NAV 4 checks"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-29",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /D-34\\/D-52\\/D-36: collapse controls, shortcut guards, cookie and SSR state/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > D-34/D-52/D-36: collapse controls, shortcut guards, cookie and SSR state (T-COOKIE)"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /S12\\/VD-37: collapsed rail is inert and skipped by Tab/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > S12/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "assert",
+     "ref": "w6-assertions-final.txt:PASS S-COLLAPSE",
+     "pass": true,
+     "measured": "PASS S-COLLAPSE 5 checks"
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-30",
+   "wave": 5,
+   "proofs": [
+    {
+     "kind": "claim",
+     "ref": "claims-final.json:N1",
+     "pass": true,
+     "measured": {
+      "pass": true,
+      "checks": 7,
+      "failedChecks": 0
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-31",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "unit",
+     "ref": "src/components/shell/__tests__/app-shell.test.tsx :: /names the header trigger and reports the expanded rail/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: AppShell desktop sidebar names the header trigger and reports the expanded rail"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "unit",
+     "ref": "src/components/ui/__tests__/sidebar.test.tsx :: /SidebarTrigger toggles, reports aria-expanded, calls onClick and persists the cookie/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: SidebarTrigger toggles, reports aria-expanded, calls onClick and persists the cookie"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /S-2\\/S-9: geometry, list neutralizers and locked navigation/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > S-2/S-9: geometry, list neutralizers and locked navigation (D-40, D-49)"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-32",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /open: named Radix dialog, 288px, focus moves in and stays trapped/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] mobile sheet at 375px > open: named Radix dialog, 288px, focus moves in and stays trapped (D-41)",
+       "expected: [owner-axe] mobile sheet at 900px > open: named Radix dialog, 288px, focus moves in and stays trapped (D-41)"
+      ],
+      "matchedCount": 2
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /every close path returns focus to the trigger/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] mobile sheet at 375px > every close path returns focus to the trigger (D-46, D-47, D-48)",
+       "expected: [owner-axe] mobile sheet at 900px > every close path returns focus to the trigger (D-46, D-47, D-48)"
+      ],
+      "matchedCount": 2
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-33",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /every sheet row is at least 44px below 48rem \\(VD-33\\)/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] mobile sheet at 375px > every sheet row is at least 44px below 48rem (VD-33)"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-34",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /VD-26\\/VD-34: hover never underlines, current row keeps its tint, focus ring/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > VD-26/VD-34: hover never underlines, current row keeps its tint, focus ring"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-35",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /VD-27\\/VD-35: active section open, sub rows and pinned footer/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > VD-27/VD-35: active section open, sub rows and pinned footer"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-36",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "unit",
+     "ref": "src/components/tours/__tests__/sidebar-tour-target.test.ts :: /targets the trigger when the sidebar is a sheet/",
+     "pass": true,
+     "measured": {
+      "fileStatus": "passed",
+      "matched": [
+       "passed: getSidebarTourTarget targets the trigger when the sidebar is a sheet, whatever the desktop state says",
+       "passed: getSidebarTourTarget targets the trigger when the sidebar is a sheet and collapsed"
+      ],
+      "matchedCount": 2
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /step 5 sits below the trigger with the menu copy/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 375px sheet: step 5 sits below the trigger with the menu copy",
+       "expected: [owner-axe] tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 900px sheet: step 5 sits below the trigger with the menu copy",
+       "expected: [owner-axe] tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 1280px collapsed: step 5 sits below the trigger with the menu copy"
+      ],
+      "matchedCount": 3
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /1280px expanded: step 5 sits right of the rail with the rail copy/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 1280px expanded: step 5 sits right of the rail with the rail copy"
+      ],
+      "matchedCount": 1
+     }
+    }
+   ],
+   "pass": true
+  },
+  {
+   "id": "VD-37",
+   "wave": 6,
+   "proofs": [
+    {
+     "kind": "json",
+     "ref": "probes-final.json:results.quick-actions-dock-centering.light meets the 66.2-35 thresholds",
+     "pass": true,
+     "measured": {
+      "viewportWidth": 1280,
+      "sidebarWidthToken": "14rem",
+      "expandedLeft": 752,
+      "collapsedLeft": 640,
+      "collapsedAttr": "offcanvas",
+      "reExpandedLeft": 752,
+      "transitionProperty": "left",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "linear"
+     }
+    },
+    {
+     "kind": "json",
+     "ref": "probes-final.json:results.quick-actions-dock-centering.dark meets the 66.2-35 thresholds",
+     "pass": true,
+     "measured": {
+      "viewportWidth": 1280,
+      "sidebarWidthToken": "14rem",
+      "expandedLeft": 752,
+      "collapsedLeft": 640,
+      "collapsedAttr": "offcanvas",
+      "reExpandedLeft": 752,
+      "transitionProperty": "left",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "linear"
+     }
+    },
+    {
+     "kind": "e2e",
+     "ref": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts [owner-axe] :: /S12\\/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers/",
+     "pass": true,
+     "measured": {
+      "matched": [
+       "expected: [owner-axe] desktop rail at 1280px > S12/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers"
+      ],
+      "matchedCount": 1
+     }
+    },
+    {
+     "kind": "assert",
+     "ref": "w6-assertions-final.txt:PASS S-DOCK",
+     "pass": true,
+     "measured": "PASS S-DOCK 3 checks"
+    }
+   ],
+   "pass": true
+  }
+ ],
+ "failed": 0
+}

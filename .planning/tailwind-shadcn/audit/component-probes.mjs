@@ -5,7 +5,16 @@
 // <tmpdir>/tenantflow-tw-audit).
 //
 // Usage (from the repo root):
-//   node .planning/tailwind-shadcn/audit/component-probes.mjs <label> [--only id,id]
+//   node .planning/tailwind-shadcn/audit/component-probes.mjs <label> [--only id,id] [--shots <dir>]
+//
+// --shots <dir> (66.2-37): after each scenario is measured, writes an element screenshot
+// (`animations: "disabled"`) of the scenario root #root to <dir>/<id>-<theme>.png, or a viewport
+// screenshot when #root has no box (portaled content); for the `button` probe it also writes
+// <dir>/button-focus-<theme>.png with [data-probe="v-outline"] keyboard-focused (Tab from
+// document.body until it is document.activeElement and matches :focus-visible). The shots are
+// taken after the measurement returns, so every probe output is byte-identical with or without
+// the option. <dir>/shots-manifest.json lists { file, id, theme, mode: element|viewport|error }.
+// A <dir> inside the repo is refused (exit 2), as in screens.mjs.
 //
 // Build: probes/entry.tsx is bundled with the repo's rolldown (never Bun.build, which mis-bundles
 // radix-ui's `import * as Dialog`) into $TW_AUDIT_OUT/.probes/entry.js. One resolver plugin maps
@@ -149,8 +158,10 @@ const THEMES = ["light", "dark"];
 const argv = process.argv.slice(2);
 let label = null;
 let only = null;
+let shotsDir = null;
 for (let i = 0; i < argv.length; i++) {
 	if (argv[i] === "--only") only = (argv[++i] ?? "").split(",").filter(Boolean);
+	else if (argv[i] === "--shots") shotsDir = argv[++i] ? path.resolve(argv[i]) : null;
 	else if (argv[i].startsWith("--")) {
 		console.error(`component-probes: unknown flag ${argv[i]}`);
 		process.exit(2);
@@ -161,9 +172,67 @@ for (let i = 0; i < argv.length; i++) {
 	}
 }
 if (!label) {
-	console.error("usage: component-probes.mjs <label> [--only id,id]");
+	console.error("usage: component-probes.mjs <label> [--only id,id] [--shots <dir>]");
 	process.exit(2);
 }
+// The nearest existing ancestor's realpath plus the missing tail (the screens.mjs rule).
+const realish = (p) => {
+	let head = path.resolve(p);
+	const tail = [];
+	while (!fs.existsSync(head)) {
+		tail.unshift(path.basename(head));
+		const up = path.dirname(head);
+		if (up === head) break;
+		head = up;
+	}
+	return path.join(fs.realpathSync(head), ...tail);
+};
+if (argv.includes("--shots")) {
+	const rel = shotsDir ? path.relative(realish(ROOT), realish(shotsDir)) : "";
+	if (!shotsDir || (!rel.startsWith("..") && !path.isAbsolute(rel))) {
+		console.error(`component-probes: refusing --shots inside the repo or without a directory (${shotsDir})`);
+		process.exit(2);
+	}
+	fs.mkdirSync(shotsDir, { recursive: true });
+}
+const shotsManifest = [];
+// Element shot of the scenario root, or the viewport when the scenario renders through a portal.
+const takeShot = async (page, file, id, theme) => {
+	if (!shotsDir) return;
+	const target = path.join(shotsDir, file);
+	try {
+		const box = await page.locator("#root").boundingBox();
+		if (box && box.width > 0 && box.height > 0) {
+			await page.locator("#root").screenshot({ path: target, animations: "disabled", timeout: 5000 });
+			shotsManifest.push({ file, id, theme, mode: "element" });
+		} else {
+			await page.screenshot({ path: target, animations: "disabled", timeout: 5000 });
+			shotsManifest.push({ file, id, theme, mode: "viewport" });
+		}
+	} catch (e) {
+		shotsManifest.push({ file, id, theme, mode: "error", error: String(e?.message ?? e).split("\n")[0].slice(0, 200) });
+	}
+};
+// The Button focus shot: the outline variant keyboard-focused the way measureButton reads focus.
+const takeButtonFocusShot = async (page, theme) => {
+	if (!shotsDir) return;
+	const file = `button-focus-${theme}.png`;
+	await page.evaluate(() => document.activeElement?.blur());
+	let reached = false;
+	for (let i = 0; i < 20 && !reached; i++) {
+		await page.keyboard.press("Tab");
+		reached = await page.evaluate(() => {
+			const el = document.querySelector("[data-probe=v-outline]");
+			return document.activeElement === el && el.matches(":focus-visible");
+		});
+	}
+	if (!reached) {
+		shotsManifest.push({ file, id: "button", theme, mode: "error", error: "v-outline never reached :focus-visible" });
+		return;
+	}
+	await page.waitForTimeout(400);
+	await takeShot(page, file, "button", theme);
+};
 
 // ---------- source-derived props ----------
 const readRepo = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
@@ -777,6 +846,7 @@ async function runBlur(id, mode, theme) {
 		await o.page.waitForTimeout(1500);
 		const end = await read(o.page);
 		const ioConstructions = mode === "io-stub" ? await o.page.evaluate(() => window.__tfIoConstructions ?? 0) : null;
+		await takeShot(o.page, `${id}-${theme}.png`, id, theme);
 		return {
 			...base,
 			opacityAtStart: start.opacity,
@@ -822,6 +892,8 @@ try {
 					await waitAll(o.page, probe.selectors);
 					const r = await probe.run({ page: o.page, props, theme });
 					results[id][theme] = o.pageErrors.length ? { ...r, pageErrors: o.pageErrors } : r;
+					await takeShot(o.page, `${id}-${theme}.png`, id, theme);
+					if (id === "button") await takeButtonFocusShot(o.page, theme);
 				} finally {
 					await o.ctx.close();
 				}
@@ -860,4 +932,8 @@ const report = {
 const outFile = path.join(OUT, `probes-${label}.json`);
 fs.writeFileSync(outFile, JSON.stringify(report, null, 1));
 console.error(`report: ${outFile}`);
+if (shotsDir) {
+	fs.writeFileSync(path.join(shotsDir, "shots-manifest.json"), `${JSON.stringify(shotsManifest, null, 1)}\n`);
+	console.error(`shots: ${shotsManifest.length} in ${shotsDir} (${shotsManifest.filter((s) => s.mode === "error").length} errors)`);
+}
 process.exit(failed ? 1 : 0);
