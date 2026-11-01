@@ -143,7 +143,7 @@ function PasswordStrength({
 										data-tokens="applied"
 										className={cn(
 											"flex items-center gap-x-2 transition-colors",
-											passed ? "text-accent" : "text-muted-foreground",
+											passed ? "text-success-text" : "text-muted-foreground",
 										)}
 									>
 										{passed ? (
