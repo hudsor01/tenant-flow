@@ -19,8 +19,9 @@ interface CategoryRowProps {
 
 /**
  * Single category row in the settings list. Drag handle + label + slug
- * + rename + delete. Default categories surface a tooltip-disabled
- * delete button (the RPC also rejects server-side as defense-in-depth).
+ * + rename + delete. A default category's delete button is aria-disabled
+ * and its tooltip says why (the RPC also rejects server-side as
+ * defense-in-depth).
  */
 export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 	const {
@@ -74,17 +75,18 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 			{category.is_default ? (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<span tabIndex={0}>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="size-9 p-0 text-muted-foreground"
-								disabled
-								aria-label="Default categories can't be deleted"
-							>
-								<Trash2 className="size-4" aria-hidden="true" />
-							</Button>
-						</span>
+						{/* One focusable control: `aria-disabled` rather than `disabled`,
+						    so the button keeps its tab stop and pointer events and the
+						    tooltip opens on focus and hover alike. It has no handler. */}
+						<Button
+							variant="ghost"
+							size="sm"
+							className="size-9 cursor-not-allowed p-0 text-muted-foreground opacity-50 hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent"
+							aria-disabled="true"
+							aria-label={`Delete ${category.label}`}
+						>
+							<Trash2 className="size-4" aria-hidden="true" />
+						</Button>
 					</TooltipTrigger>
 					<TooltipContent>
 						Default categories can&rsquo;t be deleted.

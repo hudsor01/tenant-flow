@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -229,22 +229,52 @@ describe("CategoriesSettings", () => {
 		expect(warrantyRow!.textContent).not.toMatch(/Default/);
 	});
 
-	it("disables the delete button on default categories with a tooltip", () => {
+	it("renders each default delete as one aria-disabled, named button", () => {
 		mockUseDocumentCategories.mockReturnValue({
 			categories: SEVEN_DEFAULTS,
 			isLoading: false,
 			isError: false,
 		});
 		renderSettings();
-		// Every default row renders the same aria-label for its disabled
-		// delete button — assert ALL of them are present and disabled.
-		const disabledButtons = screen.getAllByLabelText(
-			"Default categories can't be deleted",
-		);
-		expect(disabledButtons).toHaveLength(SEVEN_DEFAULTS.length);
-		for (const btn of disabledButtons) {
-			expect(btn).toBeDisabled();
+		// Each default row's delete control is ONE focusable, named button:
+		// aria-disabled (so it keeps its tab stop and the tooltip opens on focus),
+		// never `disabled`, and never wrapped in an unnamed tabIndex span.
+		for (const category of SEVEN_DEFAULTS) {
+			const button = screen.getByRole("button", {
+				name: `Delete ${category.label}`,
+			});
+			expect(button).toHaveAttribute("aria-disabled", "true");
+			expect(button).not.toBeDisabled();
+			expect(button.parentElement?.tagName).toBe("LI");
 		}
+		expect(document.querySelectorAll("li span[tabindex]")).toHaveLength(0);
+	});
+
+	it("explains a default category's delete on focus and deletes nothing", async () => {
+		mockUseDocumentCategories.mockReturnValue({
+			categories: SEVEN_DEFAULTS,
+			isLoading: false,
+			isError: false,
+		});
+		const user = userEvent.setup();
+		renderSettings();
+		const first = SEVEN_DEFAULTS[0];
+		if (first === undefined) {
+			throw new Error("no default categories");
+		}
+		const button = screen.getByRole("button", {
+			name: `Delete ${first.label}`,
+		});
+
+		await act(async () => {
+			button.focus();
+		});
+		expect(await screen.findByRole("tooltip")).toHaveTextContent(
+			"Default categories can’t be deleted.",
+		);
+		await user.click(button);
+		expect(mockDelete).not.toHaveBeenCalled();
+		expect(screen.queryByRole("alertdialog")).toBeNull();
 	});
 
 	it("enables the delete button on custom categories", () => {
