@@ -83,20 +83,14 @@ export function UpdatePasswordForm({
 	};
 
 	return (
-		<div
-			className={cn(
-				"form-container max-w-md mx-auto animate-fade-in",
-				className,
-			)}
-			{...props}
-		>
+		<div className={cn("max-w-md mx-auto", className)} {...props}>
 			<Card
 				className={cn(
 					cardVariants({ variant: "default" }),
 					"shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out",
 				)}
 			>
-				<CardHeader className="text-center space-y-4 animate-slide-in-top">
+				<CardHeader className="text-center space-y-4">
 					<div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
 						<Lock className="size-6 text-primary" />
 					</div>
@@ -107,7 +101,7 @@ export function UpdatePasswordForm({
 						</CardDescription>
 					</div>
 				</CardHeader>
-				<CardContent className="space-y-6 animate-slide-in-bottom">
+				<CardContent className="space-y-6">
 					<form onSubmit={handleUpdatePassword} className="space-y-6">
 						<div className="space-y-4">
 							{/* New Password Field with PasswordStrength */}
@@ -199,7 +193,6 @@ export function UpdatePasswordForm({
 							className={cn(
 								"bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8",
 								"w-full font-semibold hover:scale-105",
-								"transition-fast-transform",
 							)}
 							disabled={
 								updatePasswordMutation.isPending ||
