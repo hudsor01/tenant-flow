@@ -229,15 +229,16 @@ describe("AppShell", () => {
 			).not.toBeInTheDocument();
 		});
 
-		// The lg:pb-28 bottom clearance on <main> is gated by the SAME
-		// dockVisible condition as the dock itself, so form/create routes
-		// (where the dock is suppressed) don't get 7rem of dead space.
-		it("reserves lg:pb-28 clearance only when the dock is visible", () => {
+		// The lg:pb-(--dock-clearance) bottom clearance on <main> is gated by
+		// the SAME dockVisible condition as the dock itself, so form/create
+		// routes (where the dock is suppressed) get no dead space at the end.
+		it("reserves the dock clearance only when the dock is visible", () => {
 			const { container } = render(<AppShell>Content</AppShell>);
 			expect(screen.getByTestId("quick-actions-dock")).toBeInTheDocument();
-			expect(container.querySelector("#main-content")?.className).toContain(
-				"lg:pb-28",
-			);
+			const tokens =
+				container.querySelector("#main-content")?.className.split(/\s+/) ?? [];
+			expect(tokens).toContain("lg:pb-(--dock-clearance)");
+			expect(tokens).not.toContain("lg:pb-28");
 		});
 
 		// The dock's collapsed-centering variant keys on the
@@ -252,14 +253,14 @@ describe("AppShell", () => {
 			).not.toBeNull();
 		});
 
-		it("drops both the dock and the lg:pb-28 clearance on /new routes", () => {
+		it("drops both the dock and its clearance on /new routes", () => {
 			mockPathname.mockReturnValue("/properties/new");
 			const { container } = render(<AppShell>Content</AppShell>);
 			expect(
 				screen.queryByTestId("quick-actions-dock"),
 			).not.toBeInTheDocument();
 			expect(container.querySelector("#main-content")?.className).not.toContain(
-				"lg:pb-28",
+				"--dock-clearance",
 			);
 		});
 	});

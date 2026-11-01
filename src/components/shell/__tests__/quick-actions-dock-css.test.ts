@@ -91,6 +91,46 @@ describe("QuickActionsDock centering classes (D-39, D-51)", () => {
 	);
 
 	it(
+		"derives the dock offset, panel height, main clearance and root scroll padding from one token set (CP-4 follow-up)",
+		async () => {
+			const engine = await projectEngine();
+			const candidates = [
+				"bottom-(--dock-offset)",
+				"h-(--dock-height)",
+				"lg:pb-(--dock-clearance)",
+			] as const;
+			for (const candidate of candidates) {
+				expect(engine.candidates).toContain(candidate);
+				expect(
+					engine.designSystem.canonicalizeCandidates([candidate], {
+						rem: 16,
+					})[0],
+				).toBe(candidate);
+			}
+			const [offset, height, clearance] = candidates.map((candidate) =>
+				ruleFor(engine, candidate),
+			);
+			expect(offset).toContain("bottom: var(--dock-offset)");
+			expect(height).toContain("height: var(--dock-height)");
+			expect(clearance).toContain("64rem");
+			expect(clearance).toContain("padding-bottom: var(--dock-clearance)");
+
+			const css = engine.compiledCss;
+			expect(css).toMatch(/--dock-height:\s*calc\(var\(--spacing\) \* 16\.5\)/);
+			expect(css).toMatch(/--dock-offset:\s*calc\(var\(--spacing\) \* 6\)/);
+			expect(css).toMatch(
+				/--dock-clearance:\s*calc\(var\(--dock-height\) \+ var\(--dock-offset\)\)/,
+			);
+			// The scroll padding is the root's, gated on the mounted dock and on
+			// the same lg breakpoint that shows it.
+			const scrollRule =
+				/@media \(width >= 64rem\)\s*\{\s*html:has\(\[data-slot="quick-actions-dock"\]\)\s*\{\s*scroll-padding-bottom:\s*var\(--dock-clearance\);/;
+			expect(css).toMatch(scrollRule);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it(
 		"declares the 14rem sidebar width token and no 16rem leftover (D-51)",
 		async () => {
 			const engine = await projectEngine();

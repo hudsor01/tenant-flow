@@ -72,7 +72,7 @@ function AppShellFrame({
 	const breadcrumbs = generateBreadcrumbs(pathname);
 	// The floating dock is hidden on form/create routes (it would overlap the
 	// primary submit). The same condition gates the bottom-padding clearance
-	// below so form pages don't get 7rem of dead space with no dock.
+	// below so form pages get no reserved dead space with no dock.
 	const dockVisible =
 		showQuickActionsDock && !/\/(new|edit)(?:\/|$)/.test(pathname);
 	const { data: user } = useSupabaseUser();
@@ -295,14 +295,15 @@ function AppShellFrame({
 					onSignOut={() => signOutMutation.mutate()}
 				/>
 
-				{/* Page content. When the dock is visible, lg:pb-28 reserves
-				    clearance for it (hidden lg:block, fixed bottom-6) so it
-				    never overlaps the last rows / footer at scroll end. */}
+				{/* Page content. When the dock is visible (hidden lg:block, fixed),
+				    lg:pb-(--dock-clearance) reserves the band it covers, the dock's
+				    height plus its offset (globals.css), so the last rows and the
+				    footer scroll clear of it. */}
 				<main
 					id="main-content"
 					className={cn(
 						"flex-1 bg-muted/30 pb-24 sm:pb-6",
-						dockVisible && "lg:pb-28",
+						dockVisible && "lg:pb-(--dock-clearance)",
 					)}
 				>
 					<div className="p-4 lg:p-6">{children}</div>

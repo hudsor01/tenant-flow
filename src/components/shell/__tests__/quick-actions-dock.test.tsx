@@ -144,7 +144,7 @@ describe("QuickActionsDock", () => {
 	describe("sidebar-aware centering (D-39, D-51)", () => {
 		const CENTERING_TOKENS = [
 			"fixed",
-			"bottom-6",
+			"bottom-(--dock-offset)",
 			"left-1/2",
 			"-translate-x-1/2",
 			"z-50",

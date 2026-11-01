@@ -923,6 +923,26 @@
 	--color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* The floating quick-actions dock (src/components/shell/quick-actions-dock.tsx),
+   shown from lg up: its panel height and its gap above the viewport bottom.
+   --dock-clearance is the band it covers. While the dock is mounted the owner
+   <main> reserves that band as bottom padding, so the last content scrolls
+   clear of it, and the root reserves it as scroll padding, so scrolled-to and
+   keyboard-focused elements stop above it (WCAG 2.4.11, CP-4 follow-up). */
+:root {
+	--dock-height: --spacing(16.5);
+	--dock-offset: --spacing(6);
+	--dock-clearance: calc(var(--dock-height) + var(--dock-offset));
+}
+
+@layer base {
+	html:has([data-slot="quick-actions-dock"]) {
+		@variant lg {
+			scroll-padding-bottom: var(--dock-clearance);
+		}
+	}
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;
