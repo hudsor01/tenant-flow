@@ -77,6 +77,7 @@ import {
 	type CustomMergeKeys,
 	checkCanonicalCandidates,
 	checkDeadClassTokens,
+	checkFractionEquivalents,
 	checkG7DanglingThemeVars,
 	checkInlineColorTokenStructure,
 	checkLightOnlyColorTokens,
@@ -1922,6 +1923,35 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
 		const result = checkCanonicalCandidates(designSystem, ["not-a-class-xyz"]);
 		expect(result.checked).toBe(0);
 		expect(result.violations).toEqual([]);
+	}, 30_000);
+
+	// 66.2-39: the canonicalizer keeps `translate-y-[-50%]` and `h-[40%]`, so
+	// G8 also asks whether a fraction utility spells the same percentage.
+	it("finds no arbitrary percentage a fraction utility spells", async () => {
+		const { engine, candidates } = await firstPartyScan();
+		const result = checkFractionEquivalents(engine.designSystem, candidates);
+		expect(result.checked).toBeGreaterThan(5);
+		expect(
+			result.violations,
+			`Arbitrary percentage(s) with a fraction utility. Write the fraction:\n${result.violations.join("\n")}`,
+		).toEqual([]);
+	}, 30_000);
+
+	it("reports a percentage that is a fraction and keeps one that is not", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkFractionEquivalents(designSystem, [
+			"translate-y-[-50%]",
+			"md:h-[40%]",
+			"-top-[25%]",
+			"h-[35%]",
+			"w-[100%]",
+		]);
+		expect(result.violations).toEqual([
+			"-top-[25%] -> -top-1/4",
+			"md:h-[40%] -> md:h-2/5",
+			"translate-y-[-50%] -> -translate-y-1/2",
+		]);
+		expect(result.checked).toBe(5);
 	}, 30_000);
 });
 

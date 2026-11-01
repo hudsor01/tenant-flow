@@ -232,7 +232,7 @@ export function MaintenanceBoard() {
 
 export function AnalyticsPreview() {
 	return (
-		<div className="absolute inset-x-0 top-0 bottom-[40%] p-4 overflow-hidden">
+		<div className="absolute inset-x-0 top-0 bottom-2/5 p-4 overflow-hidden">
 			<div className="space-y-3 opacity-70">
 				<div className="card-standard p-3">
 					<div className="flex-between mb-2">
@@ -255,7 +255,7 @@ export function AnalyticsPreview() {
 							"h-[78%]",
 							"h-[72%]",
 							"h-[85%]",
-							"h-[80%]",
+							"h-4/5",
 							"h-[92%]",
 						].map((h, i) => (
 							<div

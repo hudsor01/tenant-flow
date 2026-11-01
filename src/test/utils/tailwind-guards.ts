@@ -50,6 +50,9 @@
  *     per-candidate canonical form differs, over the scope
  *     `firstPartyScanSources` builds (the project scan minus the vendored
  *     directory).
+ *   - G8 fraction equivalents (66.2-39): `checkFractionEquivalents` reports
+ *     each first-party arbitrary percentage the design system also spells as
+ *     a fraction (`[-50%]` is `-1/2`), which the canonicalizer leaves alone.
  *   - G9 class strings emit CSS (66.2-39): `checkDeadClassTokens` reports each
  *     token of a class string in a shipped source that the design system
  *     compiles to nothing and the caller does not list as a hook name (an
@@ -1119,4 +1122,53 @@ export function checkDeadClassTokens(
 		}
 	}
 	return { checked, violations: [...violations].sort() };
+}
+
+/** G8 fractions: the denominators a fraction utility is written with here. */
+const FRACTION_DENOMINATORS = [2, 3, 4, 5, 6, 12];
+
+/** A candidate whose utility value is an arbitrary percentage: variants, sign, root, value sign, number. */
+const ARBITRARY_PERCENT =
+	/^((?:[^:[\]]+:)*)(-?)([a-z][a-z-]*)-\[(-?)(\d+(?:\.\d+)?)%\]$/;
+
+/**
+ * G8 fraction equivalents (66.2-39). The canonicalizer rewrites `[100%]` to
+ * `full` but keeps `[50%]`, whose fraction utility compiles to a different
+ * expression of the same length. Each compiled candidate with an arbitrary
+ * percentage that equals `a/b` (b in FRACTION_DENOMINATORS) for which
+ * `root-a/b` (sign and variants kept) also compiles is reported as
+ * `<candidate> -> <fraction form>`, sorted.
+ */
+export function checkFractionEquivalents(
+	designSystem: Pick<
+		Awaited<ReturnType<typeof __unstable__loadDesignSystem>>,
+		"candidatesToCss"
+	>,
+	candidates: readonly string[],
+): GuardResult {
+	const list = [...candidates];
+	const css = designSystem.candidatesToCss(list);
+	let checked = 0;
+	const violations: string[] = [];
+	list.forEach((candidate, index) => {
+		if (css[index] == null) return;
+		const match = ARBITRARY_PERCENT.exec(candidate);
+		if (!match) return;
+		checked += 1;
+		const [, variants = "", sign = "", root = "", valueSign = "", number = ""] =
+			match;
+		const negative = (sign === "-") !== (valueSign === "-");
+		const percent = Number(number);
+		for (const denominator of FRACTION_DENOMINATORS) {
+			const numerator = (percent * denominator) / 100;
+			if (!Number.isInteger(numerator) || numerator < 1) continue;
+			if (numerator >= denominator) continue;
+			const fraction = `${variants}${negative ? "-" : ""}${root}-${numerator}/${denominator}`;
+			if (designSystem.candidatesToCss([fraction])[0] != null) {
+				violations.push(`${candidate} -> ${fraction}`);
+				return;
+			}
+		}
+	});
+	return { checked, violations: violations.sort() };
 }

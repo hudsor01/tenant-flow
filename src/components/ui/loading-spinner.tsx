@@ -34,7 +34,7 @@ const spinnerVariants = cva(
 			},
 			variant: {
 				default: "text-muted-foreground",
-				primary: "text-(--color-accent-main)",
+				primary: "text-accent-main",
 				muted: "text-muted-foreground",
 			},
 		},
@@ -57,7 +57,7 @@ const spinnerTextVariants = cva(
 			},
 			variant: {
 				default: "text-muted-foreground",
-				primary: "text-(--color-accent-main)",
+				primary: "text-accent-main",
 				muted: "text-muted-foreground",
 			},
 		},
@@ -158,7 +158,7 @@ const dotsVariants = cva("rounded-full animate-bounce bg-current", {
 		},
 		variant: {
 			default: "text-muted-foreground",
-			primary: "text-(--color-accent-main)",
+			primary: "text-accent-main",
 			muted: "text-muted-foreground",
 		},
 	},

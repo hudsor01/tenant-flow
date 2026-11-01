@@ -173,7 +173,7 @@ export function RentAdjustment({
 					<div className="flex items-center gap-4">
 						<DollarSign className="size-5 text-muted-foreground shrink-0" />
 						<div className="flex-1 relative">
-							<span className="absolute left-3 top-1/2 translate-y-[-50%] text-sm text-muted-foreground">
+							<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
 								$
 							</span>
 							<Input

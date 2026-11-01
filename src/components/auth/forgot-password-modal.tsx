@@ -71,7 +71,7 @@ export function ForgotPasswordModal({
 							<div className="space-y-2">
 								<Label htmlFor="email">Email address</Label>
 								<div className="relative">
-									<Mail className="absolute left-3 top-[50%] translate-y-[-50%] size-4 text-muted-foreground" />
+									<Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 									<Input
 										id="email"
 										name="email"

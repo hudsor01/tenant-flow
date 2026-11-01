@@ -83,7 +83,7 @@ export default async function SearchPage({
 					<div className="relative flex-1">
 						<Search
 							aria-hidden="true"
-							className="absolute left-3 top-1/2 size-4 translate-y-[-50%] text-muted-foreground"
+							className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
 						/>
 						<Input
 							id="blog-search"

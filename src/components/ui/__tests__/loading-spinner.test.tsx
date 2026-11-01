@@ -44,7 +44,7 @@ describe("LoadingSpinner text sizes come from the theme (D-30, C12d)", () => {
 		render(<LoadingSpinner size="lg" variant="primary" text={TEXT} />);
 		const classes = textClasses();
 		expect(classes).toContain("text-base/normal");
-		expect(classes).toContain("text-(--color-accent-main)");
+		expect(classes).toContain("text-accent-main");
 	});
 
 	it("renders no text paragraph without text, and still renders the icon", () => {
