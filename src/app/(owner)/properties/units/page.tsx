@@ -122,10 +122,12 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Vacant</h3>
-						<div className="size-2 rounded-full bg-chart-7" />
+						<div className="size-2 rounded-full bg-chart-3" />
 					</div>
 					<div className="typography-h3">{vacantCount}</div>
-					<div className="text-xs mt-1 text-chart-7">Available now</div>
+					<div className="text-xs mt-1 text-muted-foreground">
+						Available now
+					</div>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
@@ -216,7 +218,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button className="flex items-center gap-2 bg-chart-7 hover:bg-chart-7/90">
+				<Button className="flex items-center gap-2">
 					<Plus className="size-4" />
 					Add Unit
 				</Button>
