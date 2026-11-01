@@ -212,7 +212,7 @@ export function RentAdjustment({
 								<div className="flex justify-between pt-1 mt-1 border-t border-border">
 									<span className="text-muted-foreground">Change:</span>
 									<span
-										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-accent-main" : "text-error-main"}`}
+										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-success-text" : "text-destructive-text"}`}
 									>
 										{rentIncreaseAmount >= 0 ? "+" : ""}
 										{formatCurrency(rentIncreaseAmount)} (
