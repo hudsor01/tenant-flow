@@ -7,7 +7,8 @@
  * with the Settings and Help & Support links. Covered here:
  * - Locked navigation (66.2 D-40): core items in order and flat, exactly two
  *   peer sections with their children, no Templates and one /documents href
- * - Active state: `aria-current="page"` plus `data-active` on every link
+ * - Active state: `data-active` on every active link; `aria-current="page"`
+ *   only on the exact current page, `"true"` on an ancestor section of it
  * - Section state (D-50): the section holding the active route is open, and a
  *   pathname change into a section opens it; closed sections unmount
  * - Footer (D-38): exactly Settings and Help & Support
@@ -162,12 +163,24 @@ describe("MainNav", () => {
 			expect(properties).toHaveAttribute("data-active", "false");
 		});
 
-		it("marks Properties current on a nested property route, icon included", () => {
-			mockPathname.mockReturnValue("/properties/123");
+		it("marks Properties current as the page on /properties", () => {
+			mockPathname.mockReturnValue("/properties");
 			render(<NavHarness />);
 
 			const properties = screen.getByRole("link", { name: "Properties" });
 			expect(properties).toHaveAttribute("aria-current", "page");
+			expect(properties).toHaveAttribute("data-active", "true");
+		});
+
+		it("marks Properties as the current section, not the page, on a nested route", () => {
+			mockPathname.mockReturnValue("/properties/123");
+			render(<NavHarness />);
+
+			const properties = screen.getByRole("link", { name: "Properties" });
+			expect(properties).toHaveAttribute("aria-current", "true");
+			expect(document.querySelectorAll('[aria-current="page"]')).toHaveLength(
+				0,
+			);
 			expect(properties).toHaveAttribute("data-active", "true");
 			expect(properties.querySelector("svg")).toHaveClass("text-primary-text");
 
@@ -344,14 +357,25 @@ describe("MainNav", () => {
 			expect(within(getFooter()).queryAllByRole("button")).toHaveLength(0);
 		});
 
-		it("marks Settings current on a settings route", () => {
-			mockPathname.mockReturnValue("/settings/billing");
+		it("marks Settings current as the page on /settings", () => {
+			mockPathname.mockReturnValue("/settings");
 			render(<NavHarness />);
 
 			const settings = within(getFooter()).getByRole("link", {
 				name: "Settings",
 			});
 			expect(settings).toHaveAttribute("aria-current", "page");
+			expect(settings).toHaveAttribute("data-active", "true");
+		});
+
+		it("marks Settings as the current section on a settings subroute", () => {
+			mockPathname.mockReturnValue("/settings/billing");
+			render(<NavHarness />);
+
+			const settings = within(getFooter()).getByRole("link", {
+				name: "Settings",
+			});
+			expect(settings).toHaveAttribute("aria-current", "true");
 			expect(settings).toHaveAttribute("data-active", "true");
 		});
 

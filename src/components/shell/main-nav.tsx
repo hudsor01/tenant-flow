@@ -39,6 +39,7 @@ import {
 	isNavPathActive,
 	type NavSectionState,
 } from "#hooks/use-nav-section-state";
+import { navAriaCurrent } from "#lib/is-active-link";
 
 export interface NavigationItem {
 	label: string;
@@ -138,7 +139,7 @@ export function MainNav({ onNavigate, sections }: MainNavProps) {
 					<Link
 						href={item.href}
 						onClick={handleNavigate}
-						aria-current={active ? "page" : undefined}
+						aria-current={navAriaCurrent(item.href, pathname, active)}
 					>
 						<Icon
 							className={active ? "text-primary-text" : "text-muted-foreground"}
@@ -185,7 +186,11 @@ export function MainNav({ onNavigate, sections }: MainNavProps) {
 											<Link
 												href={child.href}
 												onClick={handleNavigate}
-												aria-current={childActive ? "page" : undefined}
+												aria-current={navAriaCurrent(
+													child.href,
+													pathname,
+													childActive,
+												)}
 											>
 												<span>{child.label}</span>
 											</Link>

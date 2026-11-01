@@ -45,10 +45,12 @@ describe("NavbarDesktopNav", () => {
 		expect(pricing).toHaveAttribute("aria-current", "page");
 	});
 
-	it('marks Compare aria-current="page" on a /compare child route (CONS-03)', () => {
+	it('marks Compare aria-current="true", not "page", on a /compare child route', () => {
 		// Pins isActiveLink's descendant-route prefix branch
-		// (`pathname.startsWith(`${href}/`)`). A revert to a pure exact-match
-		// matcher (`pathname === href`) would fail here.
+		// (`pathname.startsWith(`${href}/`)`): a revert to a pure exact-match
+		// matcher (`pathname === href`) would drop the attribute here. Compare is
+		// the current section of /compare/yardi, not the page itself, so only an
+		// exact match is "page" (navAriaCurrent).
 		render(
 			<NavbarDesktopNav
 				navItems={DEFAULT_NAV_ITEMS}
@@ -56,7 +58,8 @@ describe("NavbarDesktopNav", () => {
 			/>,
 		);
 		const compare = screen.getByRole("link", { name: /^Compare/ });
-		expect(compare).toHaveAttribute("aria-current", "page");
+		expect(compare).toHaveAttribute("aria-current", "true");
+		expect(document.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
 	});
 
 	it("does not false-highlight Compare on a /compare-prefixed sibling (CONS-03)", () => {
@@ -69,6 +72,6 @@ describe("NavbarDesktopNav", () => {
 			/>,
 		);
 		const compare = screen.getByRole("link", { name: /^Compare/ });
-		expect(compare).not.toHaveAttribute("aria-current", "page");
+		expect(compare).not.toHaveAttribute("aria-current");
 	});
 });

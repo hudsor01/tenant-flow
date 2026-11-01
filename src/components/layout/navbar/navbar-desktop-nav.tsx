@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { KeyboardEvent } from "react";
 import { useRef, useState } from "react";
-import { isActiveLink } from "#lib/is-active-link";
+import { isActiveLink, navAriaCurrent } from "#lib/is-active-link";
 import { cn } from "#lib/utils";
 import type { NavItem } from "./types";
 
@@ -95,9 +95,11 @@ export function NavbarDesktopNav({
 					<Link
 						href={item.href}
 						onKeyDown={(e) => handleKeyDown(e, item)}
-						aria-current={
-							isActiveLink(item.href, pathname) ? "page" : undefined
-						}
+						aria-current={navAriaCurrent(
+							item.href,
+							pathname,
+							isActiveLink(item.href, pathname),
+						)}
 						aria-haspopup={item.hasDropdown ? "menu" : undefined}
 						aria-expanded={
 							item.hasDropdown ? openDropdown === item.name : undefined
@@ -135,11 +137,11 @@ export function NavbarDesktopNav({
 									href={dropdownItem.href}
 									data-dropdown-item={`${item.name}-${index}`}
 									onKeyDown={(e) => handleKeyDown(e, item, index)}
-									aria-current={
-										isActiveLink(dropdownItem.href, pathname)
-											? "page"
-											: undefined
-									}
+									aria-current={navAriaCurrent(
+										dropdownItem.href,
+										pathname,
+										isActiveLink(dropdownItem.href, pathname),
+									)}
 									className="block px-4 py-2.5 text-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors duration-fast text-base"
 								>
 									{dropdownItem.name}
