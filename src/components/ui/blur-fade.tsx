@@ -59,7 +59,7 @@ export const BLUR_FADE_DURATION_CLASSES: Record<number, string> = {
 	500: "duration-slow",
 };
 
-export const BLUR_FADE_DELAY_STEP_MS = 80;
+const BLUR_FADE_DELAY_STEP_MS = 80;
 export const BLUR_FADE_MAX_DELAY_MS = 480;
 
 export function BlurFade({
