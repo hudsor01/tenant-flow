@@ -146,7 +146,7 @@ export function AccountDataSection() {
 	return (
 		<BlurFade delay={0.1}>
 			<div className="space-y-6">
-				<div className="mb-6">
+				<div>
 					<h2 className="text-lg font-semibold">My Data</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your personal data in accordance with GDPR and CCPA rights

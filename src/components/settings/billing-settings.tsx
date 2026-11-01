@@ -214,7 +214,7 @@ export function BillingSettings() {
 	if (isLoading) {
 		return (
 			<div className="space-y-6">
-				<div className="mb-6">
+				<div>
 					<Skeleton className="h-6 w-48 mb-2" />
 					<Skeleton className="h-4 w-64" />
 				</div>
@@ -241,7 +241,7 @@ export function BillingSettings() {
 		return (
 			<div className="space-y-6">
 				<BlurFade delay={0.1}>
-					<div className="mb-6">
+					<div>
 						<h2 className="text-lg font-semibold">Billing & Subscription</h2>
 						<p className="text-sm text-muted-foreground">
 							We couldn&apos;t load your subscription details.
@@ -290,7 +290,7 @@ export function BillingSettings() {
 	return (
 		<div className="space-y-6">
 			<BlurFade delay={0.1}>
-				<div className="mb-6">
+				<div>
 					<h2 className="text-lg font-semibold">Billing & Subscription</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your subscription and payment methods

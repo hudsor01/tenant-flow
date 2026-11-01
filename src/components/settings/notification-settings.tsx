@@ -62,7 +62,7 @@ export function NotificationSettings() {
 	return (
 		<div className="space-y-6">
 			<BlurFade delay={0.1}>
-				<div className="mb-6">
+				<div>
 					<h2 className="text-lg font-semibold">Notification Settings</h2>
 					<p className="text-sm text-muted-foreground">
 						Choose how you want to be notified

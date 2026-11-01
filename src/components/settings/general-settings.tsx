@@ -221,7 +221,7 @@ export function GeneralSettings() {
 	return (
 		<div className="space-y-6">
 			<BlurFade delay={0.1}>
-				<div className="mb-6">
+				<div>
 					<h2 className="text-lg font-semibold">General Settings</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your business profile and preferences

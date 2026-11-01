@@ -228,7 +228,7 @@ export default function UpdatePasswordPage() {
 			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
 				<div className="w-full max-w-md space-y-8">
 					{/* Logo (Mobile only) */}
-					<div className="lg:hidden flex justify-center mb-8">
+					<div className="lg:hidden flex justify-center">
 						<Link href="/" className="flex items-center space-x-3">
 							<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex-center shadow-lg">
 								<svg
