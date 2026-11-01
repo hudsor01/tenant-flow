@@ -161,17 +161,17 @@ export function getTimelineIcon(type: LeaseTimelineEvent["type"]) {
 /** Get color classes for timeline event type */
 export function getTimelineColor(type: LeaseTimelineEvent["type"]) {
 	const colorMap = {
-		created: "text-stone-500 bg-stone-100 dark:bg-stone-800",
-		sent_for_signature: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-		owner_signed: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
-		tenant_signed: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
-		activated: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
-		renewed: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-		terminated: "text-red-600 bg-red-100 dark:bg-red-900/30",
-		ended: "text-stone-500 bg-stone-100 dark:bg-stone-800",
-		expired: "text-amber-600 bg-amber-100 dark:bg-amber-900/30",
+		created: "text-muted-foreground bg-muted",
+		sent_for_signature: "text-info-text bg-info/10",
+		owner_signed: "text-success-text bg-success/10",
+		tenant_signed: "text-success-text bg-success/10",
+		activated: "text-success-text bg-success/10",
+		renewed: "text-info-text bg-info/10",
+		terminated: "text-destructive-text bg-destructive/10",
+		ended: "text-muted-foreground bg-muted",
+		expired: "text-warning-text bg-warning/10",
 	};
-	return colorMap[type] || "text-stone-500 bg-stone-100 dark:bg-stone-800";
+	return colorMap[type] || "text-muted-foreground bg-muted";
 }
 
 /** Status badge configuration */
@@ -184,46 +184,40 @@ export interface StatusConfig {
 export function getStatusConfig(status: string): StatusConfig {
 	const config: Record<string, StatusConfig> = {
 		draft: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+			className: "bg-muted text-muted-foreground",
 			label: "Draft",
 		},
 		pending_signature: {
-			className:
-				"bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+			className: "bg-warning/10 text-warning-text",
 			label: "Pending Signature",
 		},
 		active: {
-			className:
-				"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+			className: "bg-success/10 text-success-text",
 			label: "Active",
 		},
 		ended: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+			className: "bg-muted text-muted-foreground",
 			label: "Ended",
 		},
 		expired: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+			className: "bg-muted text-muted-foreground",
 			label: "Expired",
 		},
 		terminated: {
-			className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+			className: "bg-destructive/10 text-destructive-text",
 			label: "Terminated",
 		},
 		// Pseudo-status produced by transformLease (table/lease-utils.ts) for an
 		// active lease within 30 days of its end date. Not a stored lease_status.
 		expiring: {
-			className:
-				"bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+			className: "bg-warning/10 text-warning-text",
 			label: "Expiring",
 		},
 	};
 
 	return (
 		config[status] ?? {
-			className: "bg-stone-100 text-stone-600",
+			className: "bg-muted text-muted-foreground",
 			label: status,
 		}
 	);

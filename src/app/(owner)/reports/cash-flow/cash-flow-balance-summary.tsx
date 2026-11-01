@@ -29,7 +29,7 @@ export function CashFlowBalanceSummary({
 					<div className="flex-1 text-center">
 						<p className="text-sm text-muted-foreground mb-1">Net Cash Flow</p>
 						<p
-							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? "text-emerald-600" : "text-red-600"}`}
+							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? "text-success-text" : "text-destructive-text"}`}
 						>
 							{netCashFlow >= 0 ? "+" : ""}
 							{formatCents(netCashFlow * 100)}

@@ -2,15 +2,15 @@
 /**
  * Tailwind theme integrity guards (UIC-03; PLAN.md §6; D-17).
  *
- * This file is the single home of guards G1-G9. Each guard compiles the REAL
+ * This file is the single home of guards G1-G10. Each guard compiles the REAL
  * `src/app/globals.css` with Tailwind's own engine (`#test/utils/tailwind-engine`)
  * instead of reading a regex copy of it, because regex copies (X1/X6) are how
  * the theme defects shipped.
  *
  * ORDER (P4). lefthook runs the whole unit suite on every commit, so a guard
  * can only land in the same commit as its fix: G1-G6 arrive with their fixes
- * in 66.2-04..09, G7 in 66.2-14, G8 in 66.2-18 and G9 in 66.2-39 (after the
- * dead-class fixes it pins). No guard is added ahead of its fix. The harness self-tests come first; each guard follows them.
+ * in 66.2-04..09, G7 in 66.2-14, G8 in 66.2-18, and G9 and G10 in 66.2-39 (after
+ * the dead-class and status-color fixes they pin). No guard is added ahead of its fix. The harness self-tests come first; each guard follows them.
  *
  * ENVIRONMENT (N6). The file runs in node, not jsdom: `src/test/unit-setup.ts`
  * touches the DOM only behind `typeof window !== "undefined"`, so the shared
@@ -51,6 +51,13 @@
  * compiling tokens and the listed hook names. A one-token string outside
  * `className=` (`cn("x")`) is not classified, and a data-* variant on an
  * attribute nothing sets compiles, so neither is in G9's reach.
+ *
+ * G10 (66.2-39). No shipped source reaches Tailwind's default color palette:
+ * status meaning reads the semantic tokens (`success`, `warning`,
+ * `destructive`, `info`, `primary`, `muted`) and their AA `-text` companions,
+ * which carry their own dark values. The compiler decides, so every utility
+ * type, variant, opacity modifier and arbitrary form is covered, and a raw
+ * palette variable name in a chart config or style value is read too.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -84,6 +91,7 @@ import {
 	checkMergeKeys,
 	checkNonInlineThemeVarRefs,
 	checkOklchRange,
+	checkRawPaletteColors,
 	checkSourceGlobs,
 	checkSourceRoot,
 	checkUtilityShadowing,
@@ -1966,13 +1974,19 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
  * violations in 11 files.
  */
 describe("G9 every first-party class string token emits CSS (66.2-39)", () => {
-	/** group/peer markers, the typography plugin's opt-out, a page-local print rule, a button-group selector. */
+	/**
+	 * group/peer markers, the typography plugin's opt-out, a page-local print
+	 * rule, a button-group selector, and the theme scope class that the
+	 * `globals.css` `.dark` rule keys the dark token values on (next-themes sets
+	 * it on <html>; the image-upload overlay sets it on its always-dark scrim).
+	 */
 	const HOOK_NAMES = new Set([
 		"group",
 		"peer",
 		"not-prose",
 		"page-break",
 		"select-trigger",
+		"dark",
 	]);
 	const isHook = (token: string) =>
 		HOOK_NAMES.has(token) || /^(group|peer)\/[\w-]+$/.test(token);
@@ -2034,5 +2048,101 @@ describe("G9 every first-party class string token emits CSS (66.2-39)", () => {
 		);
 		expect(result.violations).toEqual([]);
 		expect(result.checked).toBeGreaterThan(0);
+	}, 30_000);
+});
+
+/**
+ * G10 (66.2-39): status color goes through the token layer. The cycle-1 review
+ * found raw palette classes carrying status meaning across settings, billing,
+ * maintenance, leases, tenants, properties, reports and analytics, many with a
+ * hand-written dark pair and some with none. Run against d0cc141b5 (before
+ * 66.2-39 part C) the check reports 374 violations in 44 files, the same set a
+ * regex walk of `src/` over every palette family and color utility finds.
+ * The scope is every shipped source under `src/` (a superset of `src/app` and
+ * `src/components`); test files and the `src/test/` harness do not ship.
+ */
+describe("G10 no shipped source reaches the default color palette (66.2-39)", () => {
+	/**
+	 * `<path>` -> hits that may stay. Empty: every palette use found had a token
+	 * with the same meaning. An entry needs a reason the token layer cannot
+	 * serve (a renderer without CSS variables, a third-party brand color).
+	 */
+	const PALETTE_EXEMPTIONS: ReadonlyMap<string, readonly string[]> = new Map();
+	const isExempt = (path: string, hit: string) =>
+		PALETTE_EXEMPTIONS.get(path)?.includes(hit) ?? false;
+
+	it(
+		"finds no default-palette color in a shipped source",
+		async () => {
+			const { designSystem } = await projectEngine();
+			const sources = collectG7SourceTexts(REPO_ROOT);
+			const result = checkRawPaletteColors(designSystem, sources, isExempt);
+			expect(sources.length).toBeGreaterThan(500);
+			expect(result.checked).toBeGreaterThan(10_000);
+			expect(
+				result.violations,
+				`Default-palette color(s) in shipped source. Status text uses the AA companions (text-success-text, text-warning-text, text-destructive-text, text-info-text, text-primary-text, text-muted-foreground); tints, fills and borders use the token (bg-success/10, border-warning/30); a chart series uses var(--color-chart-N) or a semantic token:\n${result.violations.join("\n")}`,
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it("reports each utility, variant, modifier and arbitrary form, and a raw variable", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkRawPaletteColors(
+			designSystem,
+			[
+				{
+					path: "src/a.tsx",
+					text: '<p className="flex text-emerald-600 dark:text-emerald-400" />',
+				},
+				{
+					path: "src/b.ts",
+					text: 'const c = cn("bg-red-500/10", "hover:border-amber-300");',
+				},
+				{
+					path: "src/c.tsx",
+					text: '<i className="shadow-sky-500/20 bg-[var(--color-rose-50)] [color:var(--color-stone-600)]" />',
+				},
+				{
+					path: "src/d.ts",
+					text: 'const config = {\n\tpaid: { label: "Paid", color: "var(--color-green-600)" },\n};',
+				},
+			],
+			() => false,
+		);
+		expect(result.violations).toEqual([
+			"src/a.tsx:1: dark:text-emerald-400",
+			"src/a.tsx:1: text-emerald-600",
+			"src/b.ts:1: bg-red-500/10",
+			"src/b.ts:1: hover:border-amber-300",
+			"src/c.tsx:1: [color:var(--color-stone-600)]",
+			"src/c.tsx:1: bg-[var(--color-rose-50)]",
+			"src/c.tsx:1: shadow-sky-500/20",
+			"src/d.ts:2: --color-green-600",
+		]);
+	}, 30_000);
+
+	it("passes the token forms and honors an exemption", async () => {
+		const { designSystem } = await loadFixtureEngine(
+			"@theme inline { --color-success: oklch(0.66 0.2 160); --color-success-text: oklch(0.5 0.15 158); --color-chart-1: oklch(0.63 0.22 259); }",
+		);
+		const result = checkRawPaletteColors(
+			designSystem,
+			[
+				{
+					path: "src/a.tsx",
+					text: '<p className="bg-success/10 text-success-text bg-black/75 text-white fill-chart-1" />',
+				},
+				{
+					path: "src/b.ts",
+					text: 'const config = { revenue: { color: "var(--color-chart-1)" } };',
+				},
+				{ path: "src/c.tsx", text: '<p className="text-blue-600" />' },
+			],
+			(path, hit) => path === "src/c.tsx" && hit === "text-blue-600",
+		);
+		expect(result.violations).toEqual([]);
+		expect(result.checked).toBeGreaterThanOrEqual(6);
 	}, 30_000);
 });

@@ -224,7 +224,7 @@ export default function BalanceSheetPage() {
 							colorTo="oklch(from var(--color-success) l c h / 0.3)"
 						/>
 						<StatLabel>Total Assets</StatLabel>
-						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+						<StatValue className="flex items-baseline text-success-text">
 							$
 							{totalAssets.toLocaleString("en-US", {
 								minimumFractionDigits: 2,
@@ -241,7 +241,7 @@ export default function BalanceSheetPage() {
 				<BlurFade delay={0.2}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Total Liabilities</StatLabel>
-						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+						<StatValue className="flex items-baseline text-destructive-text">
 							$
 							{totalLiabilities.toLocaleString("en-US", {
 								minimumFractionDigits: 2,
@@ -300,7 +300,7 @@ export default function BalanceSheetPage() {
 						items={assetsItems}
 						total={totalAssets}
 						totalLabel="Total Assets"
-						colorClass="text-emerald-600"
+						colorClass="text-success-text"
 					/>
 
 					<div className="space-y-6">
@@ -310,7 +310,7 @@ export default function BalanceSheetPage() {
 							items={liabilitiesItems}
 							total={totalLiabilities}
 							totalLabel="Total Liabilities"
-							colorClass="text-red-600"
+							colorClass="text-destructive-text"
 						/>
 						<EquitySection items={equityItems} totalEquity={totalEquity} />
 					</div>

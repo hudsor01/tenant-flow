@@ -1,5 +1,5 @@
 /**
- * The pure check functions behind the Tailwind theme guards G1-G9 in
+ * The pure check functions behind the Tailwind theme guards G1-G10 in
  * `src/app/__tests__/tailwind-theme-integrity.test.ts` and the git-baseline
  * red-proof runner `.planning/tailwind-shadcn/audit/guard-redproof.ts`.
  *
@@ -58,6 +58,10 @@
  *     compiles to nothing and the caller does not list as a hook name (an
  *     undefined custom name, a v3-only or misspelled utility). Sources come
  *     from `collectG7SourceTexts`.
+ *   - G10 status color through the token layer (66.2-39):
+ *     `checkRawPaletteColors` reports each candidate in a shipped source whose
+ *     compiled CSS references a default-palette color variable, and each raw
+ *     palette variable name outside a candidate, with its line.
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -1171,4 +1175,94 @@ export function checkFractionEquivalents(
 		}
 	});
 	return { checked, violations: violations.sort() };
+}
+
+/**
+ * G10: a reference to a default-palette color variable, the family name and a
+ * shade step (50, 100 to 900, 950). Project tokens never carry a shade step.
+ */
+const G10_PALETTE_REFERENCE = /--color-([a-z]+)-(?:50|[1-9]00|950)(?![\w-])/;
+
+const G10_PALETTE_REFERENCE_GLOBAL = new RegExp(
+	G10_PALETTE_REFERENCE.source,
+	"g",
+);
+
+/** The 1-based line of a character offset. */
+function g10Line(text: string, offset: number): number {
+	let line = 1;
+	for (let index = 0; index < offset; index += 1) {
+		if (text.charCodeAt(index) === 10) line += 1;
+	}
+	return line;
+}
+
+/**
+ * G10 status color through the token layer (66.2-39). A shipped source may not
+ * reach Tailwind's default color palette: status meaning reads the semantic
+ * tokens and their AA text companions, which carry their own dark values. Two
+ * forms are read:
+ *   - every candidate Oxide extracts from the source whose compiled CSS
+ *     references a default-palette variable (any utility, variant, opacity
+ *     modifier or arbitrary form, because the compiler is asked);
+ *   - every raw `--color-<family>-<shade>` name in the source text outside a
+ *     candidate (a chart config color or an inline style value).
+ * Each hit the caller does not exempt is reported as `<path>:<line>: <text>`,
+ * sorted and de-duplicated. `checked` counts the candidates that compile.
+ */
+export function checkRawPaletteColors(
+	designSystem: Pick<
+		Awaited<ReturnType<typeof __unstable__loadDesignSystem>>,
+		"candidatesToCss"
+	>,
+	sources: readonly G7SourceText[],
+	isExempt: (path: string, hit: string) => boolean,
+): GuardResult {
+	const scanner = new Scanner({});
+	const perSource = sources.map((source) => {
+		const extension = source.path.slice(source.path.lastIndexOf(".") + 1);
+		return {
+			source,
+			candidates: scanner.getCandidatesWithPositions({
+				content: source.text,
+				extension,
+			}),
+		};
+	});
+	const unique = [
+		...new Set(
+			perSource.flatMap((entry) =>
+				entry.candidates.map((found) => found.candidate),
+			),
+		),
+	];
+	const css = designSystem.candidatesToCss(unique);
+	const compiled = new Map(unique.map((candidate, i) => [candidate, css[i]]));
+	let checked = 0;
+	const violations = new Set<string>();
+	for (const { source, candidates } of perSource) {
+		const spans: [number, number][] = [];
+		for (const { candidate, position } of candidates) {
+			spans.push([position, position + candidate.length]);
+			const rule = compiled.get(candidate);
+			if (rule == null) continue;
+			checked += 1;
+			if (!G10_PALETTE_REFERENCE.test(rule)) continue;
+			if (isExempt(source.path, candidate)) continue;
+			violations.add(
+				`${source.path}:${g10Line(source.text, position)}: ${candidate}`,
+			);
+		}
+		for (const match of source.text.matchAll(G10_PALETTE_REFERENCE_GLOBAL)) {
+			const offset = match.index ?? 0;
+			if (spans.some(([start, end]) => offset >= start && offset < end)) {
+				continue;
+			}
+			if (isExempt(source.path, match[0])) continue;
+			violations.add(
+				`${source.path}:${g10Line(source.text, offset)}: ${match[0]}`,
+			);
+		}
+	}
+	return { checked, violations: [...violations].sort() };
 }

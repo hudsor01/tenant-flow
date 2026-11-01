@@ -19,16 +19,16 @@ export function CashFlowActivity({
 					Cash Flow by Activity
 				</h3>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div className="text-center p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
-						<p className="text-2xl font-semibold text-emerald-600 tabular-nums">
+					<div className="text-center p-4 bg-success/10 rounded-lg">
+						<p className="text-2xl font-semibold text-success-text tabular-nums">
 							{formatCents(netOperatingCash * 100)}
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
 							Operating Activities
 						</p>
 					</div>
-					<div className="text-center p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
-						<p className="text-2xl font-semibold text-red-600 tabular-nums">
+					<div className="text-center p-4 bg-destructive/10 rounded-lg">
+						<p className="text-2xl font-semibold text-destructive-text tabular-nums">
 							{formatCents(netInvestingCash * 100)}
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">

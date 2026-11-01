@@ -102,7 +102,7 @@ export function PropertyCard({
 					<div className="text-center">
 						<p className="text-muted-foreground mb-1">Revenue</p>
 						<div className="flex items-center justify-center gap-1">
-							<DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+							<DollarSign className="w-3.5 h-3.5 text-success-text" />
 							<span className="font-semibold text-foreground">
 								{formatCompactCurrency(property.monthlyRevenue)}
 							</span>

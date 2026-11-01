@@ -161,11 +161,11 @@ export function AccountInfoSection({
 					<p className="text-muted-foreground">Identity</p>
 					<p className="font-medium text-foreground">
 						{tenant.identityVerified ? (
-							<span className="text-emerald-600 flex items-center gap-1">
+							<span className="text-success-text flex items-center gap-1">
 								<Check className="w-3 h-3" /> Verified
 							</span>
 						) : (
-							<span className="text-amber-600">Not verified</span>
+							<span className="text-warning-text">Not verified</span>
 						)}
 					</p>
 				</div>

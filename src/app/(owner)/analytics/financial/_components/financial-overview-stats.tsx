@@ -76,7 +76,7 @@ export function FinancialOverviewStats({
 						label="Scheduled"
 						help="Rent expected from active lease terms this period."
 					/>
-					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
+					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<span className="text-lg">$</span>
 						<NumberTicker value={metrics.totalRevenue} duration={1500} />
 					</StatValue>

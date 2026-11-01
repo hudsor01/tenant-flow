@@ -45,7 +45,7 @@ export function ExpenseStats({
 						/>
 					)}
 					<StatLabel>Total Expenses</StatLabel>
-					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+					<StatValue className="flex items-baseline text-destructive-text">
 						${formatUsd(totalExpenses)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
@@ -71,7 +71,7 @@ export function ExpenseStats({
 			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Maintenance</StatLabel>
-					<StatValue className="flex items-baseline text-orange-600 dark:text-orange-400">
+					<StatValue className="flex items-baseline text-warning-text">
 						${formatUsd(maintenanceTotal)}
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">
@@ -85,7 +85,7 @@ export function ExpenseStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>YoY Change</StatLabel>
 					<StatValue
-						className={`flex items-baseline gap-0.5 ${yoyChange !== null && yoyChange > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}
+						className={`flex items-baseline gap-0.5 ${yoyChange !== null && yoyChange > 0 ? "text-destructive-text" : "text-success-text"}`}
 					>
 						{yoyChange !== null ? (
 							<>

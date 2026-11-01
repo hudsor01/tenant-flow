@@ -73,7 +73,7 @@ function TenantCard({
 							{tenant.fullName}
 						</button>
 						{isActive && (
-							<span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded">
+							<span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-success/10 text-success-text rounded">
 								<Check className="w-3 h-3" />
 								Active
 							</span>

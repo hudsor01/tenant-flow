@@ -78,7 +78,7 @@ export function AnalyticsStatCards({
 						<Users />
 					</StatIndicator>
 					<StatTrend trend="up">
-						<span className="text-emerald-600 dark:text-emerald-400 font-medium">
+						<span className="text-success-text font-medium">
 							+{tenantsChange}
 						</span>
 						<span className="text-muted-foreground">this month</span>
@@ -95,7 +95,7 @@ export function AnalyticsStatCards({
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
 					<StatLabel>Monthly Revenue</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
+					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<span className="text-lg">$</span>
 						<NumberTicker value={monthlyRevenue} duration={1500} />
 					</StatValue>
@@ -127,7 +127,7 @@ export function AnalyticsStatCards({
 						/>
 					)}
 					<StatLabel>Open Maintenance</StatLabel>
-					<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
+					<StatValue className="flex items-baseline text-warning-text">
 						<NumberTicker value={openMaintenance} duration={1000} />
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">
@@ -135,11 +135,11 @@ export function AnalyticsStatCards({
 					</StatIndicator>
 					<StatDescription>
 						{maintenanceChange < 0 ? (
-							<span className="text-emerald-600 dark:text-emerald-400">
+							<span className="text-success-text">
 								{maintenanceChange} from last week
 							</span>
 						) : (
-							<span className="text-amber-600 dark:text-amber-400">
+							<span className="text-warning-text">
 								+{maintenanceChange} from last week
 							</span>
 						)}

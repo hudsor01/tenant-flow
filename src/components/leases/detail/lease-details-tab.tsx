@@ -55,7 +55,7 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 									className={cn(
 										"text-sm",
 										isExpiringSoon
-											? "text-orange-600 dark:text-orange-400"
+											? "text-warning-text"
 											: "text-muted-foreground",
 									)}
 								>

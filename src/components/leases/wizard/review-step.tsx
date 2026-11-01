@@ -252,17 +252,15 @@ export function ReviewStep({
 							<CheckCircle2
 								className={`h-4 w-4 ${
 									data.lead_paint_disclosure_acknowledged
-										? "text-green-500"
-										: "text-amber-500"
+										? "text-success-text"
+										: "text-warning-text"
 								}`}
 							/>
 							<h4 className="font-medium">Lead Paint Disclosure</h4>
 						</div>
 						<div className="pl-6">
 							{data.lead_paint_disclosure_acknowledged ? (
-								<Badge variant="outline" className="text-green-600">
-									Disclosure Acknowledged
-								</Badge>
+								<Badge variant="success">Disclosure Acknowledged</Badge>
 							) : (
 								<Badge variant="destructive">Acknowledgment Required</Badge>
 							)}

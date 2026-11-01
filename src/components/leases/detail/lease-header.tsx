@@ -115,10 +115,7 @@ export function LeaseHeader({
 					{statusConfig.label}
 				</span>
 				{isExpiringSoon && (
-					<Badge
-						variant="outline"
-						className="border-orange-500 text-orange-600 dark:text-orange-400"
-					>
+					<Badge variant="warning">
 						<AlertTriangle className="w-3 h-3 mr-1" />
 						Expires in {daysUntilExpiry} days
 					</Badge>

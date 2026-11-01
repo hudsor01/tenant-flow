@@ -29,7 +29,7 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 	const normalizedStatus = status?.toLowerCase();
 	const config: Record<string, { className: string; label: string }> = {
 		open: {
-			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			className: "bg-warning/10 text-warning-text",
 			label: "Open",
 		},
 		assigned: {
@@ -41,11 +41,11 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 			label: "In Progress",
 		},
 		needs_reassignment: {
-			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			className: "bg-warning/10 text-warning-text",
 			label: "Needs Reassignment",
 		},
 		completed: {
-			className: "bg-green-500/10 text-green-600 dark:text-green-400",
+			className: "bg-success/10 text-success-text",
 			label: "Completed",
 		},
 		on_hold: {
@@ -89,7 +89,7 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 			label: "Normal",
 		},
 		high: {
-			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			className: "bg-warning/10 text-warning-text",
 			label: "High",
 		},
 		urgent: {
@@ -128,14 +128,13 @@ function getAgingBadge(timestamp: string | null | undefined) {
 	let label: string;
 
 	if (days <= 3) {
-		className = "bg-green-500/10 text-green-600 dark:text-green-400";
+		className = "bg-success/10 text-success-text";
 		label = days === 0 ? "Today" : days === 1 ? "1 day" : `${days} days`;
 	} else if (days <= 7) {
-		className = "bg-orange-500/10 text-orange-600 dark:text-orange-400";
+		className = "bg-warning/10 text-warning-text";
 		label = `${days} days`;
 	} else if (days <= 14) {
-		className =
-			"bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400";
+		className = "bg-warning/20 text-warning-text";
 		label = `${days} days`;
 	} else {
 		className = "bg-destructive/10 text-destructive-text";

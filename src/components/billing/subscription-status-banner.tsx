@@ -32,14 +32,14 @@ export function SubscriptionStatusBanner() {
 	// state), not when the lookup couldn't resolve a status.
 	if (!subscription || subscription.subscriptionStatus === null) {
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-200">
+			<div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/10 px-4 py-3 text-sm text-info-text">
 				<Info className="size-5 shrink-0" />
 				<p className="flex-1">
 					Start your subscription to unlock all property management features.
 				</p>
 				<Link
 					href="/pricing"
-					className="shrink-0 font-medium underline underline-offset-4 hover:text-blue-900 dark:hover:text-blue-100"
+					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
 				>
 					View plans
 				</Link>
@@ -63,12 +63,12 @@ export function SubscriptionStatusBanner() {
 					: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`;
 
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-indigo-300 bg-indigo-50 px-4 py-3 text-sm text-indigo-800 dark:border-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
+			<div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary-text">
 				<Clock className="size-5 shrink-0" />
 				<p className="flex-1">{message}</p>
 				<Link
 					href="/billing/plans?source=trial_banner"
-					className="shrink-0 font-medium underline underline-offset-4 hover:text-indigo-900 dark:hover:text-indigo-100"
+					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
 				>
 					Upgrade
 				</Link>
@@ -84,7 +84,7 @@ export function SubscriptionStatusBanner() {
 	// Past due: yellow warning
 	if (status === "past_due") {
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
+			<div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-text">
 				<AlertTriangle className="size-5 shrink-0" />
 				<p className="flex-1">
 					Your subscription payment failed. Please update your payment method to
@@ -92,7 +92,7 @@ export function SubscriptionStatusBanner() {
 				</p>
 				<Link
 					href="/settings?tab=billing"
-					className="shrink-0 font-medium underline underline-offset-4 hover:text-amber-900 dark:hover:text-amber-100"
+					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
 				>
 					Update billing
 				</Link>
@@ -105,7 +105,7 @@ export function SubscriptionStatusBanner() {
 	// shows Manage Subscription for unpaid (live sub → portal) or a fresh
 	// checkout for canceled/expired (no live sub → resubscribe).
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950/50 dark:text-red-200">
+		<div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive-text">
 			<Lock className="size-5 shrink-0" />
 			<p className="flex-1">
 				Your subscription is inactive. Premium features are disabled until your
@@ -113,7 +113,7 @@ export function SubscriptionStatusBanner() {
 			</p>
 			<Link
 				href="/billing/plans"
-				className="shrink-0 font-medium underline underline-offset-4 hover:text-red-900 dark:hover:text-red-100"
+				className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
 			>
 				Reactivate
 			</Link>

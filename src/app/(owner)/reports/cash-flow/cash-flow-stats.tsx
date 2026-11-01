@@ -31,7 +31,7 @@ export function CashFlowStats({
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
 					<StatLabel>Total Inflows</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+					<StatValue className="flex items-baseline text-success-text">
 						$
 						{totalInflows.toLocaleString("en-US", {
 							minimumFractionDigits: 2,
@@ -48,7 +48,7 @@ export function CashFlowStats({
 			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Outflows</StatLabel>
-					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+					<StatValue className="flex items-baseline text-destructive-text">
 						$
 						{totalOutflows.toLocaleString("en-US", {
 							minimumFractionDigits: 2,

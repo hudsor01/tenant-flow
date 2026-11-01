@@ -30,7 +30,7 @@ export function IncomeStatementPageNetSummary({
 				<div className="space-y-3">
 					<div className="flex justify-between py-2 border-b border-border">
 						<span className="text-sm text-foreground">Total Revenue</span>
-						<span className="text-sm font-medium text-emerald-600 tabular-nums">
+						<span className="text-sm font-medium text-success-text tabular-nums">
 							{formatCents(totalRevenue * 100)}
 						</span>
 					</div>
@@ -38,7 +38,7 @@ export function IncomeStatementPageNetSummary({
 						<span className="text-sm text-foreground">
 							Total Operating Expenses
 						</span>
-						<span className="text-sm font-medium text-red-600 tabular-nums">
+						<span className="text-sm font-medium text-destructive-text tabular-nums">
 							-{formatCents(totalExpenses * 100)}
 						</span>
 					</div>
@@ -62,7 +62,7 @@ export function IncomeStatementPageNetSummary({
 				<div className="flex items-center justify-between p-4 mt-4 bg-primary/5 rounded-lg">
 					<span className="font-medium text-foreground">Net Income</span>
 					<span
-						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-emerald-600" : "text-destructive-text"}`}
+						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-success-text" : "text-destructive-text"}`}
 					>
 						{netIncome >= 0 ? "+" : ""}
 						{formatCents(netIncome * 100)}
@@ -79,7 +79,7 @@ export function IncomeStatementPageNetSummary({
 								{formatCents(previousPeriod.netIncome * 100)}
 							</span>
 							<span
-								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? "text-emerald-600" : "text-destructive-text"}`}
+								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? "text-success-text" : "text-destructive-text"}`}
 							>
 								({previousPeriod.changePercent >= 0 ? "+" : ""}
 								{previousPeriod.changePercent.toFixed(1)}%)

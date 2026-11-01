@@ -14,7 +14,7 @@ export function BalanceEquationCheck({
 }) {
 	return (
 		<div
-			className={`p-4 rounded-lg border mb-6 ${isBalanced ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800"}`}
+			className={`p-4 rounded-lg border mb-6 ${isBalanced ? "bg-success/10 border-success/30" : "bg-destructive/10 border-destructive/30"}`}
 		>
 			<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
 				<span className="font-medium">
@@ -29,12 +29,12 @@ export function BalanceEquationCheck({
 					Equity ({formatCents(totalEquity * 100)})
 				</span>
 				{isBalanced ? (
-					<span className="text-emerald-600 font-medium inline-flex items-center gap-1">
+					<span className="text-success-text font-medium inline-flex items-center gap-1">
 						<Check className="size-4" aria-hidden="true" />
 						Balanced
 					</span>
 				) : (
-					<span className="text-red-600 font-medium inline-flex items-center gap-1">
+					<span className="text-destructive-text font-medium inline-flex items-center gap-1">
 						<X className="size-4" aria-hidden="true" />
 						Unbalanced
 					</span>

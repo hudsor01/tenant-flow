@@ -31,8 +31,7 @@ function getAgingDisplay(timestamp: string | null | undefined) {
 	} else if (days <= 14) {
 		return {
 			label: `${days} days`,
-			className:
-				"bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400",
+			className: "bg-warning/20 text-warning-text",
 		};
 	} else {
 		return {

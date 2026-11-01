@@ -157,17 +157,17 @@ export function YearEndReportSection({
 												<TableCell className="font-medium">
 													{p.propertyName}
 												</TableCell>
-												<TableCell className="text-right text-emerald-600">
+												<TableCell className="text-right text-success-text">
 													{formatMoney(p.income)}
 												</TableCell>
-												<TableCell className="text-right text-red-500">
+												<TableCell className="text-right text-destructive-text">
 													{formatMoney(p.expenses)}
 												</TableCell>
 												<TableCell
 													className={`text-right font-medium ${
 														p.netIncome >= 0
-															? "text-emerald-600"
-															: "text-red-500"
+															? "text-success-text"
+															: "text-destructive-text"
 													}`}
 												>
 													{formatMoney(p.netIncome)}
@@ -213,7 +213,7 @@ export function YearEndReportSection({
 											).map((cat, i) => (
 												<TableRow key={i}>
 													<TableCell>{cat.category}</TableCell>
-													<TableCell className="text-right text-red-500">
+													<TableCell className="text-right text-destructive-text">
 														{formatMoney(cat.amount)}
 													</TableCell>
 												</TableRow>
@@ -231,7 +231,7 @@ export function YearEndReportSection({
 				<div className="flex items-center justify-between">
 					<div>
 						<h2 className="text-lg font-semibold flex items-center gap-2">
-							<AlertCircle className="size-5 text-amber-500" />
+							<AlertCircle className="size-5 text-warning-text" />
 							1099-NEC Vendors ({year})
 						</h2>
 						<p className="text-sm text-muted-foreground">
@@ -285,12 +285,7 @@ export function YearEndReportSection({
 												{formatMoney(r.totalPaid)}
 											</TableCell>
 											<TableCell className="text-right">
-												<Badge
-													variant="outline"
-													className="text-amber-600 border-amber-300"
-												>
-													1099 Required
-												</Badge>
+												<Badge variant="warning">1099 Required</Badge>
 											</TableCell>
 										</TableRow>
 									))}

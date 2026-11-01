@@ -44,11 +44,11 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 					<BorderBeam
 						size={100}
 						duration={12}
-						colorFrom="hsl(142 76% 36%)"
-						colorTo="hsl(142 76% 36% / 0.3)"
+						colorFrom="var(--color-success)"
+						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
 					<StatLabel>Average occupancy</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
+					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<NumberTicker
 							value={metrics.averageOccupancy}
 							duration={1500}

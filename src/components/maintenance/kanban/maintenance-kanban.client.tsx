@@ -71,10 +71,8 @@ const COLUMNS: ColumnConfig[] = [
 	{
 		id: "needs_reassignment",
 		title: "Needs Reassignment",
-		colorClass: "bg-orange-500/10",
-		icon: (
-			<RotateCcw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-		),
+		colorClass: "bg-warning/10",
+		icon: <RotateCcw className="w-4 h-4 text-warning-text" />,
 	},
 	{
 		id: "completed",

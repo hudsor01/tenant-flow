@@ -47,7 +47,7 @@ export function TenantStats({
 			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Active</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+					<StatValue className="flex items-baseline text-success-text">
 						<NumberTicker value={activeTenants} duration={1000} />
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
@@ -63,12 +63,12 @@ export function TenantStats({
 						<BorderBeam
 							size={80}
 							duration={6}
-							colorFrom="hsl(45 93% 47%)"
-							colorTo="hsl(45 93% 47% / 0.3)"
+							colorFrom="var(--color-warning)"
+							colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 						/>
 					)}
 					<StatLabel>Pending</StatLabel>
-					<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
+					<StatValue className="flex items-baseline text-warning-text">
 						<NumberTicker value={pendingTenants} duration={1000} />
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">

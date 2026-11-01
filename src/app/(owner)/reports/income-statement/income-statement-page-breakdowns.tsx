@@ -26,7 +26,7 @@ export function IncomeStatementPageBreakdowns({
 			<BlurFade delay={0.3}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowUpRight className="w-4 h-4 text-emerald-600" />
+						<ArrowUpRight className="w-4 h-4 text-success-text" />
 						Revenue Breakdown
 					</h3>
 					<div className="space-y-3">
@@ -41,7 +41,7 @@ export function IncomeStatementPageBreakdowns({
 									className="flex items-center justify-between py-2 border-b border-border last:border-0"
 								>
 									<div className="flex items-center gap-3">
-										<div className="w-2 h-2 rounded-full bg-emerald-500" />
+										<div className="w-2 h-2 rounded-full bg-success-text" />
 										<span className="text-sm text-foreground">
 											{item.label}
 										</span>
@@ -61,7 +61,7 @@ export function IncomeStatementPageBreakdowns({
 							<span className="text-sm font-medium text-foreground">
 								Total Revenue
 							</span>
-							<span className="text-sm font-semibold text-emerald-600 tabular-nums">
+							<span className="text-sm font-semibold text-success-text tabular-nums">
 								{formatCents(totalRevenue * 100)}
 							</span>
 						</div>
@@ -73,7 +73,7 @@ export function IncomeStatementPageBreakdowns({
 			<BlurFade delay={0.35}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowDownRight className="w-4 h-4 text-red-600" />
+						<ArrowDownRight className="w-4 h-4 text-destructive-text" />
 						Expense Breakdown
 					</h3>
 					<div className="space-y-3">
@@ -90,7 +90,7 @@ export function IncomeStatementPageBreakdowns({
 										className="flex items-center justify-between py-2 border-b border-border last:border-0"
 									>
 										<div className="flex items-center gap-3">
-											<div className="w-2 h-2 rounded-full bg-red-500" />
+											<div className="w-2 h-2 rounded-full bg-destructive-text" />
 											<span className="text-sm text-foreground">
 												{item.label}
 											</span>
@@ -110,7 +110,7 @@ export function IncomeStatementPageBreakdowns({
 							<span className="text-sm font-medium text-foreground">
 								Total Expenses
 							</span>
-							<span className="text-sm font-semibold text-red-600 tabular-nums">
+							<span className="text-sm font-semibold text-destructive-text tabular-nums">
 								{formatCents(totalExpenses * 100)}
 							</span>
 						</div>

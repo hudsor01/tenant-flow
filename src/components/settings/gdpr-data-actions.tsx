@@ -204,13 +204,13 @@ export function GdprDataActions({
 
 			{isPending ? (
 				<div className="space-y-4">
-					<div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+					<div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4">
 						<Clock
-							className="h-5 w-5 text-amber-600 mt-0.5 shrink-0"
+							className="h-5 w-5 text-warning-text mt-0.5 shrink-0"
 							aria-hidden="true"
 						/>
 						<div>
-							<p className="text-sm font-medium text-amber-700">
+							<p className="text-sm font-medium text-warning-text">
 								Account scheduled for deletion
 							</p>
 							<p className="text-sm text-muted-foreground mt-1">

@@ -46,7 +46,7 @@ const twMerge = extendTailwindMerge(TAILWIND_MERGE_EXTENSION);
  * @example
  * cn('p-4', 'p-2') // 'p-2' (latter wins)
  * cn("text-caption", "text-primary") // keeps both
- * cn('text-red-500', className) // merges with passed className
+ * cn('text-destructive-text', className) // merges with passed className
  * cn({ 'hidden': isHidden }, 'flex') // conditional classes
  */
 export function cn(...inputs: ClassValue[]) {

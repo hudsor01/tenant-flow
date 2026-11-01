@@ -24,8 +24,8 @@ export function TimelineCard({ timeline }: TimelineCardProps) {
 									<div
 										className={`absolute left-0 size-6 rounded-full flex items-center justify-center ${
 											event.type === "completed"
-												? "bg-green-500/10 text-green-600"
-												: "bg-primary/10 text-primary"
+												? "bg-success/10 text-success-text"
+												: "bg-primary/10 text-primary-text"
 										}`}
 									>
 										{event.type === "completed" ? (

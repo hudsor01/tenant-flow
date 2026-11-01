@@ -69,7 +69,7 @@ export function BalanceSection({
 											{item.name}
 										</span>
 										<span
-											className={`text-sm tabular-nums ${item.amount < 0 ? "text-red-600" : ""}`}
+											className={`text-sm tabular-nums ${item.amount < 0 ? "text-destructive-text" : ""}`}
 										>
 											{formatCents(item.amount * 100)}
 										</span>

@@ -79,27 +79,23 @@ function resolvePlanTitle(
 const STATUS_BADGE_VARIANTS = {
 	active: {
 		label: "Active",
-		className:
-			"bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+		className: "bg-success/10 text-success-text",
 	},
 	trialing: {
 		label: "Trial",
-		className:
-			"bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+		className: "bg-info/10 text-info-text",
 	},
 	past_due: {
 		label: "Past Due",
-		className:
-			"bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+		className: "bg-warning/10 text-warning-text",
 	},
 	unpaid: {
 		label: "Unpaid",
-		className:
-			"bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+		className: "bg-warning/10 text-warning-text",
 	},
 	canceled: {
 		label: "Canceled",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+		className: "bg-destructive/10 text-destructive-text",
 	},
 	incomplete: {
 		label: "Incomplete",
@@ -107,14 +103,14 @@ const STATUS_BADGE_VARIANTS = {
 	},
 	incomplete_expired: {
 		label: "Expired",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+		className: "bg-destructive/10 text-destructive-text",
 	},
 	paused: { label: "Paused", className: "bg-muted text-muted-foreground" },
 	// Written by `expire_trials()` when a DB-managed trial lapses — the cohort
 	// that most needs the resubscribe treatment (BILL-11).
 	expired: {
 		label: "Trial Expired",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+		className: "bg-destructive/10 text-destructive-text",
 	},
 } as const satisfies Record<string, { label: string; className: string }>;
 

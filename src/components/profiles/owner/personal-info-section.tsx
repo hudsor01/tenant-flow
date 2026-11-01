@@ -178,7 +178,7 @@ export function PersonalInfoSection({
 									Account Status
 								</label>
 								<div className="flex items-center gap-2">
-									<CheckCircle className="h-4 w-4 text-emerald-500" />
+									<CheckCircle className="h-4 w-4 text-success-text" />
 									<p className="text-sm font-medium capitalize">
 										{profile.status}
 									</p>

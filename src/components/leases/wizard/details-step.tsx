@@ -267,7 +267,7 @@ export function DetailsStep({ data, onChange, errors }: DetailsStepProps) {
 
 			<div className="space-y-4 p-4 border rounded-lg bg-muted/50">
 				<div className="flex items-start gap-3">
-					<AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
+					<AlertTriangle className="h-5 w-5 text-warning-text mt-0.5" />
 					<div className="space-y-3 flex-1">
 						<h4 className="font-medium">Lead-Based Paint Disclosure</h4>
 						<p className="text-sm text-muted-foreground">

@@ -19,27 +19,27 @@ export const STATUS_CONFIG: Record<
 > = {
 	open: {
 		label: "Open",
-		className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+		className: "bg-warning/10 text-warning-text",
 		icon: createElement(Clock, { className: "size-3.5" }),
 	},
 	assigned: {
 		label: "Assigned",
-		className: "bg-primary/10 text-primary",
+		className: "bg-primary/10 text-primary-text",
 		icon: createElement(UserCheck, { className: "size-3.5" }),
 	},
 	in_progress: {
 		label: "In Progress",
-		className: "bg-primary/10 text-primary",
+		className: "bg-primary/10 text-primary-text",
 		icon: createElement(AlertTriangle, { className: "size-3.5" }),
 	},
 	needs_reassignment: {
 		label: "Needs Reassignment",
-		className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+		className: "bg-warning/10 text-warning-text",
 		icon: createElement(RotateCcw, { className: "size-3.5" }),
 	},
 	completed: {
 		label: "Completed",
-		className: "bg-green-500/10 text-green-600 dark:text-green-400",
+		className: "bg-success/10 text-success-text",
 		icon: createElement(CheckCircle, { className: "size-3.5" }),
 	},
 	on_hold: {
@@ -60,13 +60,16 @@ export const PRIORITY_CONFIG: Record<
 	{ label: string; className: string }
 > = {
 	low: { label: "Low", className: "bg-muted text-muted-foreground" },
-	normal: { label: "Normal", className: "bg-primary/10 text-primary" },
-	medium: { label: "Medium", className: "bg-primary/10 text-primary" },
+	normal: { label: "Normal", className: "bg-primary/10 text-primary-text" },
+	medium: { label: "Medium", className: "bg-primary/10 text-primary-text" },
 	high: {
 		label: "High",
-		className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+		className: "bg-warning/10 text-warning-text",
 	},
-	urgent: { label: "Urgent", className: "bg-destructive/10 text-destructive" },
+	urgent: {
+		label: "Urgent",
+		className: "bg-destructive/10 text-destructive-text",
+	},
 };
 
 export function generateTimeline(request: {

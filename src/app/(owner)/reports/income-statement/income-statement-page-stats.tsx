@@ -33,7 +33,7 @@ export function IncomeStatementPageStats({
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
 					<StatLabel>Total Revenue</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+					<StatValue className="flex items-baseline text-success-text">
 						{`$${totalRevenue.toLocaleString("en-US", {
 							minimumFractionDigits: 2,
 							maximumFractionDigits: 2,
@@ -49,7 +49,7 @@ export function IncomeStatementPageStats({
 			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Expenses</StatLabel>
-					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+					<StatValue className="flex items-baseline text-destructive-text">
 						{`$${totalExpenses.toLocaleString("en-US", {
 							minimumFractionDigits: 2,
 							maximumFractionDigits: 2,

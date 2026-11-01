@@ -127,11 +127,11 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 						<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 							Disclosures
 						</h3>
-						<div className="p-3 rounded-lg border bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
-							<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+						<div className="p-3 rounded-lg border bg-warning/5 border-warning/30">
+							<p className="text-sm font-medium text-warning-text">
 								Lead Paint Disclosure
 							</p>
-							<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+							<p className="text-sm text-warning-text mt-1">
 								Property built before 1978.
 								{lease.lead_paint_disclosure_acknowledged
 									? " Disclosure acknowledged by tenant."

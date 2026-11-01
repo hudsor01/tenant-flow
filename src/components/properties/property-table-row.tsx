@@ -134,10 +134,10 @@ export function PropertyTableRow({
 								className={cn(
 									"h-full rounded-full",
 									property.occupancyRate === 100
-										? "bg-emerald-500"
+										? "bg-success-text"
 										: property.occupancyRate >= 80
-											? "bg-blue-500"
-											: "bg-amber-500",
+											? "bg-info-text"
+											: "bg-warning-text",
 								)}
 								style={{ width: `${property.occupancyRate}%` }}
 							/>
@@ -155,28 +155,19 @@ export function PropertyTableRow({
 				>
 					<div className="flex items-center gap-1">
 						{property.availableUnits > 0 && (
-							<Badge
-								variant="outline"
-								className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0"
-							>
+							<Badge variant="success" className="border-0">
 								{property.availableUnits} available
 							</Badge>
 						)}
 						{property.maintenanceUnits > 0 && (
-							<Badge
-								variant="outline"
-								className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-0"
-							>
+							<Badge variant="warning" className="border-0">
 								<Wrench className="w-3 h-3 mr-1" />
 								{property.maintenanceUnits}
 							</Badge>
 						)}
 						{property.availableUnits === 0 &&
 							property.maintenanceUnits === 0 && (
-								<Badge
-									variant="outline"
-									className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-0"
-								>
+								<Badge variant="info" className="border-0">
 									Full
 								</Badge>
 							)}
@@ -188,7 +179,7 @@ export function PropertyTableRow({
 					className={cn(PROPERTY_COLUMN_CLASS.revenue, "px-4 py-3")}
 					role="cell"
 				>
-					<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+					<span className="text-sm font-medium text-success-text">
 						{formatCurrency(property.monthlyRevenue)}
 					</span>
 				</td>

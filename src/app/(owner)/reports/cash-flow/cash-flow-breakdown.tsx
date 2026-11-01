@@ -27,7 +27,7 @@ export function CashFlowBreakdown({
 				{/* Cash Inflows */}
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowUpCircle className="w-4 h-4 text-emerald-600" />
+						<ArrowUpCircle className="w-4 h-4 text-success-text" />
 						Cash Inflows
 					</h3>
 					<div className="space-y-4">
@@ -41,14 +41,14 @@ export function CashFlowBreakdown({
 										<span className="text-sm text-muted-foreground">
 											{item.percentage.toFixed(1)}%
 										</span>
-										<span className="text-sm font-medium text-emerald-600 tabular-nums">
+										<span className="text-sm font-medium text-success-text tabular-nums">
 											{formatCents(item.amount * 100)}
 										</span>
 									</div>
 								</div>
 								<div className="h-2 bg-muted rounded-full overflow-hidden">
 									<div
-										className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+										className="h-full bg-success-text rounded-full transition-all duration-500"
 										style={{ width: `${item.percentage}%` }}
 									/>
 								</div>
@@ -63,7 +63,7 @@ export function CashFlowBreakdown({
 							<span className="text-sm font-medium text-foreground">
 								Total Inflows
 							</span>
-							<span className="text-sm font-semibold text-emerald-600 tabular-nums">
+							<span className="text-sm font-semibold text-success-text tabular-nums">
 								{formatCents(totalInflows * 100)}
 							</span>
 						</div>
@@ -73,7 +73,7 @@ export function CashFlowBreakdown({
 				{/* Cash Outflows */}
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowDownCircle className="w-4 h-4 text-red-600" />
+						<ArrowDownCircle className="w-4 h-4 text-destructive-text" />
 						Cash Outflows
 					</h3>
 					<div className="space-y-4">
@@ -87,14 +87,14 @@ export function CashFlowBreakdown({
 										<span className="text-sm text-muted-foreground">
 											{item.percentage.toFixed(1)}%
 										</span>
-										<span className="text-sm font-medium text-red-600 tabular-nums">
+										<span className="text-sm font-medium text-destructive-text tabular-nums">
 											{formatCents(item.amount * 100)}
 										</span>
 									</div>
 								</div>
 								<div className="h-2 bg-muted rounded-full overflow-hidden">
 									<div
-										className="h-full bg-red-500 rounded-full transition-all duration-500"
+										className="h-full bg-destructive-text rounded-full transition-all duration-500"
 										style={{ width: `${item.percentage}%` }}
 									/>
 								</div>
@@ -109,7 +109,7 @@ export function CashFlowBreakdown({
 							<span className="text-sm font-medium text-foreground">
 								Total Outflows
 							</span>
-							<span className="text-sm font-semibold text-red-600 tabular-nums">
+							<span className="text-sm font-semibold text-destructive-text tabular-nums">
 								{formatCents(totalOutflows * 100)}
 							</span>
 						</div>
