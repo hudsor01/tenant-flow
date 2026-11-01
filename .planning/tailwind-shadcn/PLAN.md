@@ -454,6 +454,7 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - Carried: CP-1..CP-5 to 66.2-38; CI `checks`/`e2e-smoke`/`rls-security` and the perfect-PR gate to 66.2-39.
 
 - **2026-11-01.** 66.2-38 owner review recorded: CP-1 default, CP-2 default, CP-3 default, CP-4 default, CP-5 default; fallbacks applied in 66.2-39 (none chosen). All five decided by the owner (AskUserQuestion); the CP-4 layout follow-up runs separately before 66.2-39 (`deferred-items.md`).
+- **2026-11-01.** CP-4 layout follow-up done (owner: "fix everything and put it in this pr"). All three defects predate 66.2: production builds lay out identically at equal content widths, 10/10 pairs vs `754c91802`. Fixes: KPI values one unwrappable line, `efb0a6fb9`; trends row on a 56rem `dashboard` container, `036184de1`; dock band from `--dock-height`/`--dock-offset`/`--dock-clearance` as `<main>` and root scroll padding, `1a7eecd2a`; owner-axe assertions `9393102aa`. Red-proof: every new e2e and unit assertion that targets a defect failed on the pre-fix build and passes now. Owner-axe 64 passed, coverage 65.52/57.79/64.89/67.68. Evidence: `audit/cp4-followup/`, `deferred-items.md`.
 
 ---
 
