@@ -223,12 +223,15 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
 			<div className="flex flex-col items-center gap-y-1">
 				<p className="text-caption text-muted-foreground">
 					Drag and drop or{" "}
-					<a
+					{/* A target inside a sentence (the WCAG 2.5.8 inline exception):
+					    the below-48rem 44px touch floor would grow the line box. */}
+					<button
+						type="button"
 						onClick={() => inputRef.current?.click()}
-						className="underline cursor-pointer transition hover:text-foreground"
+						className="min-h-0 min-w-0 cursor-pointer text-primary-text underline underline-offset-4 transition-colors hover:text-foreground"
 					>
 						select {maxFiles === 1 ? `file` : "files"}
-					</a>{" "}
+					</button>{" "}
 					to upload
 				</p>
 				{maxFileSize !== Number.POSITIVE_INFINITY && (
