@@ -1,0 +1,383 @@
+{
+	"mode": "full",
+	"checks": [
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "page-layout has showGridPattern = true",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "marketing-home passes showGridPattern={true}",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "src/app/auth/update-password/page.tsx imports GridPattern",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "src/app/auth/confirm-email/page.tsx imports GridPattern",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: default focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: destructive focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: outline focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: secondary focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: ghost focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: link focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "dark button: default focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "dark button: destructive focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "dark button: outline focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "dark button: secondary focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "dark button: ghost focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "dark button: link focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
+			"pass": true,
+			"expected": "0px 0px 0px 3px",
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+		},
+		{
+			"cp": "CP-2",
+			"choice": "default",
+			"name": "light button: outline borderColor within tolerance of refs.border",
+			"pass": true,
+			"expected": "refs.border",
+			"measured": [
+				[
+					210,
+					216,
+					222,
+					1
+				],
+				[
+					210,
+					216,
+					222,
+					1
+				]
+			]
+		},
+		{
+			"cp": "CP-3",
+			"choice": "default",
+			"name": "sidebar.tsx contains focus-visible:ring-2",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-3",
+			"choice": "default",
+			"name": "main-nav.tsx has no focus-visible:ring-4",
+			"pass": true,
+			"expected": 0,
+			"measured": 0
+		},
+		{
+			"cp": "CP-4",
+			"choice": "default",
+			"name": "header SidebarTrigger has no lg:hidden",
+			"pass": true,
+			"expected": "1 trigger, no lg:hidden",
+			"measured": "1 trigger(s), lg:hidden false"
+		},
+		{
+			"cp": "CP-4",
+			"choice": "default",
+			"name": "<SidebarRail appears once in app-shell-sidebar.tsx",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-4",
+			"choice": "default",
+			"name": "owner-dashboard-layout reads sidebar_state through #lib/sidebar-state",
+			"pass": true,
+			"expected": true,
+			"measured": {
+				"readsCookies": true,
+				"importsState": true
+			}
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "blur-fade.tsx keeps the animate-in entrance",
+			"pass": true,
+			"expected": ">0",
+			"measured": 6
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-no-js: opacityAtEnd 1",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-no-js: ssrAriaHidden null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-no-js: ariaHiddenAtEnd null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-reduced-motion: opacityAtEnd 1",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-reduced-motion: ssrAriaHidden null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-reduced-motion: ariaHiddenAtEnd null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-io-stub: opacityAtEnd 1",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-io-stub: ssrAriaHidden null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-io-stub: ariaHiddenAtEnd null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-no-js: opacityAtStart < 1",
+			"pass": true,
+			"expected": "< 1",
+			"measured": 0
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "light blur-fade-no-js: animationNameAtStart enter",
+			"pass": true,
+			"expected": "enter",
+			"measured": "enter"
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-no-js: opacityAtEnd 1",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-no-js: ssrAriaHidden null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-no-js: ariaHiddenAtEnd null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-reduced-motion: opacityAtEnd 1",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-reduced-motion: ssrAriaHidden null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-reduced-motion: ariaHiddenAtEnd null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-io-stub: opacityAtEnd 1",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-io-stub: ssrAriaHidden null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-io-stub: ariaHiddenAtEnd null",
+			"pass": true,
+			"expected": null,
+			"measured": null
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-no-js: opacityAtStart < 1",
+			"pass": true,
+			"expected": "< 1",
+			"measured": 0
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "dark blur-fade-no-js: animationNameAtStart enter",
+			"pass": true,
+			"expected": "enter",
+			"measured": "enter"
+		}
+	],
+	"failedCps": [],
+	"failed": 0
+}

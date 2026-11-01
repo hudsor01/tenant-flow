@@ -1,0 +1,52 @@
+{
+  "CP-1": {
+    "choice": "default",
+    "options": [
+      "cp1-default"
+    ],
+    "ownerReview": "closed",
+    "decidedBy": "owner",
+    "files": [],
+    "source": "66.2-38-CP-DECISIONS.json#/checkpoints/0"
+  },
+  "CP-2": {
+    "choice": "default",
+    "options": [
+      "cp2-default"
+    ],
+    "ownerReview": "closed",
+    "decidedBy": "owner",
+    "files": [],
+    "source": "66.2-38-CP-DECISIONS.json#/checkpoints/1"
+  },
+  "CP-3": {
+    "choice": "default",
+    "options": [
+      "cp3-default"
+    ],
+    "ownerReview": "closed",
+    "decidedBy": "owner",
+    "files": [],
+    "source": "66.2-38-CP-DECISIONS.json#/checkpoints/2"
+  },
+  "CP-4": {
+    "choice": "default",
+    "options": [
+      "cp4-default"
+    ],
+    "ownerReview": "closed",
+    "decidedBy": "owner",
+    "files": [],
+    "source": "66.2-38-CP-DECISIONS.json#/checkpoints/3"
+  },
+  "CP-5": {
+    "choice": "default",
+    "options": [
+      "cp5-default"
+    ],
+    "ownerReview": "closed",
+    "decidedBy": "owner",
+    "files": [],
+    "source": "66.2-38-CP-DECISIONS.json#/checkpoints/4"
+  }
+}

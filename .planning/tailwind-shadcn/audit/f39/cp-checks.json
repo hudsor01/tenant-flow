@@ -1,0 +1,90 @@
+{
+	"mode": "source-only",
+	"checks": [
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "page-layout has showGridPattern = true",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "marketing-home passes showGridPattern={true}",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "src/app/auth/update-password/page.tsx imports GridPattern",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-1",
+			"choice": "default",
+			"name": "src/app/auth/confirm-email/page.tsx imports GridPattern",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-3",
+			"choice": "default",
+			"name": "sidebar.tsx contains focus-visible:ring-2",
+			"pass": true,
+			"expected": true,
+			"measured": true
+		},
+		{
+			"cp": "CP-3",
+			"choice": "default",
+			"name": "main-nav.tsx has no focus-visible:ring-4",
+			"pass": true,
+			"expected": 0,
+			"measured": 0
+		},
+		{
+			"cp": "CP-4",
+			"choice": "default",
+			"name": "header SidebarTrigger has no lg:hidden",
+			"pass": true,
+			"expected": "1 trigger, no lg:hidden",
+			"measured": "1 trigger(s), lg:hidden false"
+		},
+		{
+			"cp": "CP-4",
+			"choice": "default",
+			"name": "<SidebarRail appears once in app-shell-sidebar.tsx",
+			"pass": true,
+			"expected": 1,
+			"measured": 1
+		},
+		{
+			"cp": "CP-4",
+			"choice": "default",
+			"name": "owner-dashboard-layout reads sidebar_state through #lib/sidebar-state",
+			"pass": true,
+			"expected": true,
+			"measured": {
+				"readsCookies": true,
+				"importsState": true
+			}
+		},
+		{
+			"cp": "CP-5",
+			"choice": "default",
+			"name": "blur-fade.tsx keeps the animate-in entrance",
+			"pass": true,
+			"expected": ">0",
+			"measured": 6
+		}
+	],
+	"failedCps": [],
+	"failed": 0
+}

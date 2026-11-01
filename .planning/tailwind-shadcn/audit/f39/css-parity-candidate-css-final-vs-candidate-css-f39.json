@@ -1,0 +1,41 @@
+{
+ "baseline": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-39/raw/candidate-css-final.json",
+ "current": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-39/raw/candidate-css-f39.json",
+ "strict": true,
+ "total": 1984,
+ "identical": 1972,
+ "changed": 12,
+ "counts": {
+  "spacing-equivalent": 0,
+  "color-inline": 0,
+  "added": 0,
+  "removed": 0,
+  "unclassified": 0,
+  "intended:cp4-followup-added": 9,
+  "intended:cp4-followup-removed": 3
+ },
+ "lists": {
+  "spacing-equivalent": [],
+  "color-inline": [],
+  "added": [],
+  "removed": [],
+  "unclassified": [],
+  "intended:cp4-followup-added": [
+   "@4xl/dashboard:col-span-1",
+   "@4xl/dashboard:col-span-2",
+   "@4xl/dashboard:col-span-3",
+   "@4xl/dashboard:grid-cols-4",
+   "@container/dashboard",
+   "@container/kpi-bento",
+   "bottom-(--dock-offset)",
+   "h-(--dock-height)",
+   "lg:pb-(--dock-clearance)"
+  ],
+  "intended:cp4-followup-removed": [
+   "@container",
+   "lg:col-span-3",
+   "lg:pb-28"
+  ]
+ },
+ "unclassified": []
+}

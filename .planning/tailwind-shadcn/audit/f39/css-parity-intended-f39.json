@@ -1,0 +1,18 @@
+{
+	"cp4-followup-added": [
+		"@4xl/dashboard:col-span-1",
+		"@4xl/dashboard:col-span-2",
+		"@4xl/dashboard:col-span-3",
+		"@4xl/dashboard:grid-cols-4",
+		"@container/dashboard",
+		"@container/kpi-bento",
+		"bottom-(--dock-offset)",
+		"h-(--dock-height)",
+		"lg:pb-(--dock-clearance)"
+	],
+	"cp4-followup-removed": [
+		"@container",
+		"lg:col-span-3",
+		"lg:pb-28"
+	]
+}

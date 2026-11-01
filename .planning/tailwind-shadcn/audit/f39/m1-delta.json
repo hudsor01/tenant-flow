@@ -1,0 +1,15 @@
+{
+	"rule": "66.2-29 M1-delta rule, anchored on FINAL (66.2-37) and attributed per the 2026-11-01 amendment: f39 changed src, then the CP-4 follow-up, then MAIN_MERGE",
+	"final": 917,
+	"added": 0,
+	"deleted": 1,
+	"expected": 916,
+	"actual": 916,
+	"addedPaths": [],
+	"deletedPaths": [
+		{
+			"path": "src/types/jest-dom.d.ts",
+			"source": "main-merge (MAIN_MERGE^1..MAIN_MERGE)"
+		}
+	]
+}

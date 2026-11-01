@@ -1,0 +1,86 @@
+[
+	{
+		"side": "added",
+		"key": "@4xl/dashboard:col-span-1",
+		"label": "cp4-followup",
+		"file": "src/components/dashboard/components/occupancy-donut-chart-skeleton.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "@4xl/dashboard:col-span-2",
+		"label": "cp4-followup",
+		"file": "src/components/dashboard/components/revenue-area-chart-skeleton.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "@4xl/dashboard:col-span-3",
+		"label": "cp4-followup",
+		"file": "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "@4xl/dashboard:grid-cols-4",
+		"label": "cp4-followup",
+		"file": "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "@container/dashboard",
+		"label": "cp4-followup",
+		"file": "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "@container/kpi-bento",
+		"label": "cp4-followup",
+		"file": "src/components/dashboard/components/kpi-bento-row.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "bottom-(--dock-offset)",
+		"label": "cp4-followup",
+		"file": "src/components/shell/quick-actions-dock.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "h-(--dock-height)",
+		"label": "cp4-followup",
+		"file": "src/components/shell/quick-actions-dock.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "added",
+		"key": "lg:pb-(--dock-clearance)",
+		"label": "cp4-followup",
+		"file": "src/components/shell/app-shell.tsx",
+		"at": "54fc508299a90eb501a91caf74de8950fd002d5f^1"
+	},
+	{
+		"side": "removed",
+		"key": "@container",
+		"label": "cp4-followup",
+		"file": "src/components/dashboard/components/kpi-bento-row.tsx",
+		"at": "cdcffc1e157e13fca5cc5fa6e4d6c316a97e2adb"
+	},
+	{
+		"side": "removed",
+		"key": "lg:col-span-3",
+		"label": "cp4-followup",
+		"file": "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+		"at": "cdcffc1e157e13fca5cc5fa6e4d6c316a97e2adb"
+	},
+	{
+		"side": "removed",
+		"key": "lg:pb-28",
+		"label": "cp4-followup",
+		"file": "src/components/shell/app-shell.tsx",
+		"at": "cdcffc1e157e13fca5cc5fa6e4d6c316a97e2adb"
+	}
+]
