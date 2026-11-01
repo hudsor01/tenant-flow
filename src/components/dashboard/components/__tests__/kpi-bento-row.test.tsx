@@ -128,6 +128,20 @@ describe("KpiBentoRow", () => {
 		vi.unstubAllGlobals();
 	});
 
+	it("declares the kpi-bento container with a utility, not an inline style", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const grid = screen.getByRole("list");
+		expect(grid.classList.contains("@container/kpi-bento")).toBe(true);
+		expect(grid.getAttribute("style")).toBeNull();
+	});
+
 	it("renders 6 tiles in D-01 order", () => {
 		render(
 			<KpiBentoRow

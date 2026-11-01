@@ -34,17 +34,9 @@ const KpiSparkline = dynamic(
 	},
 );
 
-// Grid wrapper styles for the `@container` parent. Tailwind v4 has no
-// parent-side container-type utility — this `style={{}}` PROP is the SOLE
-// inline-style exemption in Phase 3 (03-UI-SPEC § 3.1 + § 13). Carries
-// only static container-query keys; NO color, NO duration, NO spacing.
-const GRID_CONTAINER_STYLE = {
-	containerType: "inline-size",
-	containerName: "kpi-bento",
-} as const;
-
+// The grid is the `kpi-bento` inline-size container its tiles query.
 const GRID_CLASSES = cn(
-	"grid gap-4",
+	"@container/kpi-bento grid gap-4",
 	"grid-cols-[repeat(auto-fit,minmax(180px,1fr))]",
 	"@4xl/kpi-bento:gap-6",
 );
@@ -125,7 +117,7 @@ function KpiSkeletonGrid() {
 			<h2 id="kpi-bento-heading" className="sr-only">
 				Portfolio summary
 			</h2>
-			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE}>
+			<div className={GRID_CLASSES}>
 				{hasSparkline.map((sparkline, idx) => (
 					<KpiSkeletonTile key={`skeleton-${idx}`} hasSparkline={sparkline} />
 				))}
@@ -364,7 +356,7 @@ export function KpiBentoRow({
 			<h2 id="kpi-bento-heading" className="sr-only">
 				Portfolio summary
 			</h2>
-			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE} role="list">
+			<div className={GRID_CLASSES} role="list">
 				{tiles.map((tile) => (
 					// WR-01 cycle-1 fix: `role="listitem"` MUST be a direct child of
 					// the parent `role="list"`. The previous wiring placed BlurFade

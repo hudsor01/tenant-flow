@@ -82,3 +82,24 @@ describe("dashboard trends grid keys on the dashboard container", () => {
 		ENGINE_TIMEOUT_MS,
 	);
 });
+
+describe("KPI grid declares its container through a utility", () => {
+	it(
+		"compiles @container/kpi-bento to the named inline-size container",
+		async () => {
+			const engine = await projectEngine();
+			expect(engine.candidates).toContain("@container/kpi-bento");
+			expect(
+				engine.designSystem.canonicalizeCandidates(["@container/kpi-bento"], {
+					rem: 16,
+				})[0],
+			).toBe("@container/kpi-bento");
+			const [container] = engine.designSystem.candidatesToCss([
+				"@container/kpi-bento",
+			]);
+			expect(container).toContain("container-type: inline-size");
+			expect(container).toContain("container-name: kpi-bento");
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+});
