@@ -2,7 +2,10 @@
   "phase": "66.2",
   "plan": "66.2-38",
   "reviewedHead": "838a43c0cf271e408adb97531c446370bbc6967a",
-  "recordedAt": null,
+  "recordedAt": "2026-11-01T14:49:53Z",
+  "autoModeActive": true,
+  "autoModeNote": "`gsd-sdk query check auto-mode --pick active` printed true. The plan's Task 4 rule assumes auto mode auto-selects without showing the owner; here the orchestrator put CP-1..CP-5 to the owner with AskUserQuestion on 2026-11-01 and relayed the selected labels, so every entry is recorded as the owner's decision at the orchestrator's direction.",
+  "decisionChannel": "AskUserQuestion (orchestrator session), 2026-11-01; ownerReply is the selected option label verbatim",
   "checkpoints": [
     {
       "id": "CP-1",
@@ -12,12 +15,14 @@
       "sources": [
         "C12a"
       ],
-      "status": "pending",
-      "decision": null,
-      "choice": [],
-      "decidedBy": null,
-      "ownerReply": null,
-      "ownerReview": null,
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp1-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep grid (Recommended)",
+      "ownerReview": "closed",
       "defaultMeasured": {
         "pass": true,
         "checks": [
@@ -588,12 +593,14 @@
       "sources": [
         "D-29"
       ],
-      "status": "pending",
-      "decision": null,
-      "choice": [],
-      "decidedBy": null,
-      "ownerReply": null,
-      "ownerReview": null,
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp2-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep v4 (Recommended)",
+      "ownerReview": "closed",
       "defaultMeasured": {
         "pass": true,
         "checks": [
@@ -962,12 +969,14 @@
       "sources": [
         "D-29"
       ],
-      "status": "pending",
-      "decision": null,
-      "choice": [],
-      "decidedBy": null,
-      "ownerReply": null,
-      "ownerReview": null,
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp3-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep v4 rings (Recommended)",
+      "ownerReview": "closed",
       "defaultMeasured": {
         "pass": true,
         "checks": [
@@ -1106,12 +1115,27 @@
         "D-34",
         "D-52"
       ],
-      "status": "pending",
-      "decision": null,
-      "choice": [],
-      "decidedBy": null,
-      "ownerReply": null,
-      "ownerReview": null,
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp4-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep + fix layout (Recommended)",
+      "ownerReview": "closed",
+      "followUp": {
+        "requestedBy": "owner",
+        "note": "The owner asked to fix the layout defects the 66.2-38 review found, if this phase caused them. Recorded as a follow-up, not a fallback; run separately after 66.2-38 and before 66.2-39 (deferred-items.md).",
+        "defects": [
+          "collapsed desktop rail at 1024 and 1280: the dashboard KPI values wrap (\"$\" / \"7,500\" at both widths, \"33\" / \"%\" at 1280)",
+          "expanded rail at 1024: the Quick Actions \"Add Property\" card overflows its column by about 10px, and the quick-actions dock overlaps the occupancy donut"
+        ],
+        "evidence": [
+          ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1280.png",
+          ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1024.png",
+          ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1024.png"
+        ]
+      },
       "defaultMeasured": {
         "pass": true,
         "checks": [
@@ -1381,12 +1405,14 @@
         "D-30",
         "C12c"
       ],
-      "status": "pending",
-      "decision": null,
-      "choice": [],
-      "decidedBy": null,
-      "ownerReply": null,
-      "ownerReview": null,
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp5-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep entrance (Recommended)",
+      "ownerReview": "closed",
       "defaultMeasured": {
         "pass": true,
         "checks": [

@@ -372,6 +372,11 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
 | 9 | One branch, one PR for all six waves (owner, 2026-10-25) | The owner wants everything gated together. The wave exit metrics keep each step independently provable inside the single PR. | One PR per wave |
 | 10 | Run as GSD Phase 66.2 (decimal, INSERTED), not 74 | `phase.complete` on the highest integer would stamp v10.0 complete with 67-73 open (the 2026-08-04 renumber's root cause); 66.1 is the precedent | Integer 74; a GSD workstream, which in flat mode MOVES v10.0's ROADMAP/STATE/phases into `.planning/workstreams/` |
 | 11 | Work in a sibling worktree | Other sessions share the main checkout; this follows the repo's existing worktree practice | Switching the main checkout's branch under another session |
+| 12 | CP-1: grid restored (owner, 2026-11-01, "Keep grid") | The owner kept the repaired GridPattern (VD-22) after the before/after review. The broken classes can never be the fallback | `cp1-fallback` (no grid: PageLayout default false, auth-page grids removed) |
+| 13 | CP-2: upstream v4 surfaces (owner, 2026-11-01, "Keep v4") | The owner kept the registry-identical Button surfaces (VD-19), so future syncs stay diff-clean | `cp2-fallback-border-input`, `cp2-fallback-dark-outline`, `cp2-fallback-dark-ghost`, `cp2-fallback-dark-destructive` |
+| 14 | CP-3: canonical rings (owner, 2026-11-01, "Keep v4 rings") | The owner kept the Button 3px `ring/50` (D-29) and the sidebar rows' 2px `--sidebar-ring` ring (VD-34) | `cp3-fallback` (today's outline + offset + 4px halo on sidebar rows) |
+| 15 | CP-4: desktop collapse adopted (owner, 2026-11-01, "Keep + fix layout") | The owner kept desktop collapse, SidebarRail, Cmd/Ctrl+B and the `sidebar_state` cookie (VD-29, VD-31) and asked for the layout defects the review found (collapsed KPI value wrap at 1024/1280; Quick Actions overflow and dock-over-donut at 1024) to be fixed if this phase caused them, as a separate step before 66.2-39 | `cp4-fallback` (D-52: `lg:hidden` trigger, no rail, Cmd/Ctrl+B stopped, no cookie read) |
+| 16 | CP-5: entrance motion on (owner, 2026-11-01, "Keep entrance") | The owner kept the mount-time BlurFade entrance (VD-23); it never runs under reduced motion and ends at opacity 1 | `cp5-fallback` (resting state only, `animate-none`) |
 
 ---
 
@@ -447,6 +452,8 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - §7.6 Aikido: 312/312 files scanned; 1 carried pre-existing finding (the Supabase local-demo anon JWT at `tests/e2e/playwright.config.ts:35`, not a secret, untouched by 66.2); SAST failed inside Aikido (`unknown JSON field taint_intrafile`).
   - VD register 37/37 (`final/vd-register.json`); owner-review evidence pack `final/evidence-pack.json`.
   - Carried: CP-1..CP-5 to 66.2-38; CI `checks`/`e2e-smoke`/`rls-security` and the perfect-PR gate to 66.2-39.
+
+- **2026-11-01.** 66.2-38 owner review recorded: CP-1 default, CP-2 default, CP-3 default, CP-4 default, CP-5 default; fallbacks applied in 66.2-39 (none chosen). All five decided by the owner (AskUserQuestion); the CP-4 layout follow-up runs separately before 66.2-39 (`deferred-items.md`).
 
 ---
 
