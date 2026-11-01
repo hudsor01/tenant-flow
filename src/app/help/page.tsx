@@ -205,7 +205,7 @@ export default function HelpPage() {
 					<h2 className="typography-h1 text-primary-foreground mb-4">
 						Ready to centralize your portfolio?
 					</h2>
-					<p className="text-xl text-primary-foreground/90 mb-8">
+					<p className="text-xl text-primary-foreground mb-8">
 						Replace spreadsheets, Dropbox, and email with a single landlord-only
 						platform. Our team is here to help you migrate and get going.
 					</p>
@@ -219,7 +219,7 @@ export default function HelpPage() {
 						<Button
 							size="lg"
 							variant="outline"
-							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text"
+							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground"
 							asChild
 						>
 							<Link href="/contact">Talk to an Expert</Link>

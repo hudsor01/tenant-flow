@@ -295,9 +295,11 @@ describe("LeaseSignatureStatus", () => {
 
 			render(<LeaseSignatureStatus leaseId={mockLeaseId} />);
 
-			// The badge should have green background class
+			// The success status badge: a success tint behind the AA success
+			// text, not the vivid fill (light text on it read 2.54:1)
 			const badge = screen.getByText(/fully signed/i);
-			expect(badge).toHaveClass("bg-success");
+			expect(badge).toHaveClass("bg-success/10", "text-success-text");
+			expect(badge).not.toHaveClass("bg-success");
 		});
 
 		test("shows both signature dates", () => {
@@ -339,11 +341,12 @@ describe("LeaseSignatureStatus", () => {
 
 			render(<LeaseSignatureStatus leaseId={mockLeaseId} compact />);
 
-			// Owner badge (signed) should have green background - Badge component is a span
+			// Owner badge (signed) is the success status badge - Badge component is a span
 			const ownerText = screen.getByText("Owner");
 			// Find the badge by traversing up to the span element
 			const ownerBadge = ownerText.closest("span");
-			expect(ownerBadge).toHaveClass("bg-success");
+			expect(ownerBadge).toHaveClass("bg-success/10", "text-success-text");
+			expect(ownerBadge).not.toHaveClass("bg-success");
 		});
 	});
 

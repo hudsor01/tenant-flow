@@ -70,7 +70,7 @@ export default function FAQPage() {
 					<h2 className="typography-h1 text-primary-foreground mb-4">
 						Still have questions?
 					</h2>
-					<p className="text-xl text-primary-foreground/90 mb-8">
+					<p className="text-xl text-primary-foreground mb-8">
 						Talk to our team about your portfolio, the document vault, and which
 						plan tier fits.
 					</p>
@@ -85,7 +85,7 @@ export default function FAQPage() {
 							asChild
 							size="lg"
 							variant="outline"
-							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text"
+							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground"
 						>
 							<Link href="/pricing">View Pricing</Link>
 						</Button>

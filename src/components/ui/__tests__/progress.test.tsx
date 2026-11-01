@@ -65,7 +65,8 @@ describe("Progress", () => {
 			name: "Success progress",
 		});
 		expect(success).toHaveClass("bg-success/20", "h-3");
-		expect(success.firstElementChild).toHaveClass("bg-success");
+		expect(success.firstElementChild).toHaveClass("bg-success-text");
+		expect(success.firstElementChild).not.toHaveClass("bg-success");
 		const fallback = screen.getByRole("progressbar", {
 			name: "Default progress",
 		});

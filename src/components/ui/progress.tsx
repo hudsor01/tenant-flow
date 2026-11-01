@@ -6,6 +6,14 @@
  *
  * Local divergences (recorded in the divergence register):
  * - variant and size cva maps for the track and the indicator;
+ * - the status indicators fill with the AA companion tokens (`success-text`,
+ *   `warning-text`, `destructive-text`), not the vivid fills: a meter fill is
+ *   a graphical object (WCAG 1.4.11, 3:1), and the vivid success and warning
+ *   fills read 2.62:1 and 2.18:1 on the light card, 2.15:1 and 1.87:1 on their
+ *   own track, and the dark destructive fill 2.97:1 on its track. The default
+ *   indicator keeps upstream's `bg-primary` (5.02:1 on the card, 3.76:1 on its
+ *   track, light). There is no `secondary` variant: no caller used it, and its
+ *   fill read 1.11:1 on the card;
  * - `value` is forwarded to the Radix root explicitly, so the progressbar
  *   exposes its value, value text and state to assistive technology.
  */
@@ -19,7 +27,6 @@ const progressVariants = cva("relative w-full overflow-hidden rounded-full", {
 	variants: {
 		variant: {
 			default: "bg-primary/20",
-			secondary: "bg-secondary/20",
 			success: "bg-success/20",
 			warning: "bg-warning/20",
 			destructive: "bg-destructive/20",
@@ -41,10 +48,9 @@ const progressIndicatorVariants = cva("h-full w-full flex-1 transition-all", {
 	variants: {
 		variant: {
 			default: "bg-primary",
-			secondary: "bg-secondary",
-			success: "bg-success",
-			warning: "bg-warning",
-			destructive: "bg-destructive",
+			success: "bg-success-text",
+			warning: "bg-warning-text",
+			destructive: "bg-destructive-text",
 		},
 	},
 	defaultVariants: {

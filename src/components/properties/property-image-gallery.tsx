@@ -148,7 +148,7 @@ export function PropertyImageGallery({
 
 							{/* Primary badge */}
 							{isPrimary && (
-								<Badge className="pointer-events-none absolute top-2 left-2 z-20 bg-primary text-white">
+								<Badge className="pointer-events-none absolute top-2 left-2 z-20">
 									Primary
 								</Badge>
 							)}

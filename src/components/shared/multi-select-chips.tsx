@@ -107,7 +107,7 @@ export function MultiSelectChips<T extends string>({
 										role="option"
 										aria-selected={checked}
 										onClick={() => toggle(opt.value)}
-										className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent focus:bg-accent focus:outline-none"
+										className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted focus:bg-muted focus:outline-none"
 									>
 										<Checkbox
 											checked={checked}

@@ -21,6 +21,12 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+	contrast,
+	over,
+	type Theme,
+	tokenColor,
+} from "#test/utils/oklch-contrast";
 
 type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs" | "modernColor";
 
@@ -329,7 +335,97 @@ function sub3MarkTokenViolations(rel: string, content: string): string[] {
 	return out;
 }
 
-describe("no chart mark reads a token under 3:1 on the card (66.2-39 VD-53)", () => {
+// 66.2-39 VD-55: the vivid success (2.62:1) and warning (2.18:1) fills fail
+// 3:1 on every light surface (the card is the lightest one), so as a utility
+// they are only ever a tint (/5 to /20) behind -text companion text or icons.
+// A solid bg-, fill- or stroke- form (a meter fill, a status dot, a step mark,
+// a filled badge) takes the companion: success-text, warning-text.
+const SOLID_VIVID_STATUS_FILL =
+	/(?<![\w/-])!?(?:bg|fill|stroke)-(?:success|warning)!?(?![\w/-])/g;
+
+function solidVividFillViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	for (const literal of stringLiteralsOutsideComments(content)) {
+		for (const m of literal.matchAll(SOLID_VIVID_STATUS_FILL)) {
+			out.push(`${rel}: ${m[0]}`);
+		}
+	}
+	return out;
+}
+
+// 66.2-39 VD-55: a Progress indicator is a meter fill, a graphical object
+// (WCAG 1.4.11): it needs 3:1 against the card it sits on and against its own
+// track (the track variant's tint composited over the card), in both themes.
+// Both cva maps are read from the primitive's source, so a variant added later
+// is measured too; the colors are the globals.css token values.
+const PROGRESS_SOURCE = "src/components/ui/progress.tsx";
+const GLOBALS_CSS = "src/app/globals.css";
+const SINGLE_FILL_CLASS = /^bg-([a-z0-9-]+?)(?:\/(\d+))?$/;
+
+function cvaVariantMap(source: string, name: string): Record<string, string> {
+	const block = new RegExp(
+		`const ${name} = cva\\([\\s\\S]*?variant:\\s*\\{([\\s\\S]*?)\\}`,
+	).exec(source);
+	if (!block?.[1])
+		throw new Error(`${PROGRESS_SOURCE}: no ${name} variant map`);
+	return Object.fromEntries(
+		[...block[1].matchAll(/(\w+):\s*"([^"]*)"/g)].map((m) => [
+			m[1] ?? "",
+			m[2] ?? "",
+		]),
+	);
+}
+
+function fillOf(classes: string): { token: string; alpha: number } {
+	for (const cls of classes.split(/\s+/)) {
+		const m = SINGLE_FILL_CLASS.exec(cls);
+		if (m?.[1]) return { token: m[1], alpha: m[2] ? Number(m[2]) / 100 : 1 };
+	}
+	throw new Error(`no single bg- fill class in "${classes}"`);
+}
+
+function meterFillViolations(progressSource: string, css: string): string[] {
+	const tracks = cvaVariantMap(progressSource, "progressVariants");
+	const indicators = cvaVariantMap(progressSource, "progressIndicatorVariants");
+	const out: string[] = [];
+	for (const [variant, indicatorClasses] of Object.entries(indicators)) {
+		const trackClasses = tracks[variant];
+		if (trackClasses === undefined) {
+			out.push(`${variant}: no track variant`);
+			continue;
+		}
+		const indicator = fillOf(indicatorClasses);
+		const track = fillOf(trackClasses);
+		for (const theme of ["light", "dark"] as Theme[]) {
+			const card = tokenColor(css, theme, "card");
+			const fill = over(
+				tokenColor(css, theme, indicator.token),
+				indicator.alpha,
+				card,
+			);
+			const trackColor = over(
+				tokenColor(css, theme, track.token),
+				track.alpha,
+				card,
+			);
+			const onCard = contrast(fill, card);
+			const onTrack = contrast(fill, trackColor);
+			if (onCard < 3) {
+				out.push(
+					`${variant} ${theme}: ${indicatorClasses} on the card ${onCard.toFixed(2)}:1`,
+				);
+			}
+			if (onTrack < 3) {
+				out.push(
+					`${variant} ${theme}: ${indicatorClasses} on ${trackClasses} ${onTrack.toFixed(2)}:1`,
+				);
+			}
+		}
+	}
+	return out;
+}
+
+describe("no chart or meter mark reads a token under 3:1 on the card (66.2-39 VD-53, VD-55)", () => {
 	const scanned: string[] = [];
 	const violations: string[] = [];
 	for (const abs of walkSourceFiles(join(cwd, "src"))) {
@@ -387,6 +483,152 @@ describe("no chart mark reads a token under 3:1 on the card (66.2-39 VD-53)", ()
 				'<BorderBeam colorFrom="var(--color-success)" />',
 			),
 		).toEqual([]);
+	});
+
+	it("draws no meter, dot or step mark in the vivid success or warning fill (VD-55)", () => {
+		const fills: string[] = [];
+		for (const abs of walkSourceFiles(join(cwd, "src"))) {
+			const rel = relative(cwd, abs).replace(/\\/g, "/");
+			if (rel.startsWith("src/test/") || rel.startsWith("src/app/api/og/")) {
+				continue;
+			}
+			fills.push(...solidVividFillViolations(rel, readFileSync(abs, "utf8")));
+		}
+		expect(
+			fills,
+			`Solid vivid success/warning fill(s), under 3:1 on the light card. Use bg-success-text / bg-warning-text for a mark, or a /5-/20 tint behind -text companion text:\n${fills.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("draws every Progress indicator 3:1 against the card and its track in both themes (VD-55)", () => {
+		const violations = meterFillViolations(
+			readFileSync(join(cwd, PROGRESS_SOURCE), "utf8"),
+			readFileSync(join(cwd, GLOBALS_CSS), "utf8"),
+		);
+		expect(
+			violations,
+			`Progress indicator(s) under 3:1 (WCAG 1.4.11). Use the -text companion fill:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("flags the solid vivid fills and a sub-3:1 meter, and passes tints and companions (VD-55)", () => {
+		expect(
+			solidVividFillViolations(
+				"x.tsx",
+				[
+					"// a comment naming bg-success is not a mark",
+					'<span className="size-3 rounded-full bg-success" />',
+					'cn("data-[state=completed]:bg-warning", "!fill-success stroke-warning!")',
+					'<Badge className="bg-success/10 text-success-text bg-success-text border-success/20 bg-warning-foreground" />',
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: bg-success",
+			"x.tsx: bg-warning",
+			"x.tsx: !fill-success",
+			"x.tsx: stroke-warning!",
+		]);
+		const css = readFileSync(join(cwd, GLOBALS_CSS), "utf8");
+		const meter = (success: string) =>
+			[
+				'const progressVariants = cva("x", { variants: { variant: {',
+				'default: "bg-primary/20", success: "bg-success/20",',
+				"} } });",
+				'const progressIndicatorVariants = cva("y", { variants: { variant: {',
+				`default: "bg-primary", success: "${success}",`,
+				"} } });",
+			].join("\n");
+		expect(meterFillViolations(meter("bg-success"), css)).toEqual([
+			"success light: bg-success on the card 2.63:1",
+			"success light: bg-success on bg-success/20 2.15:1",
+		]);
+		expect(meterFillViolations(meter("bg-success-text"), css)).toEqual([]);
+	});
+});
+
+// 66.2-39 VD-56: the brand `--accent` is an emerald fill. Under the default
+// text it reads 2.19:1 in dark, and under muted text 1.85:1 light and 1.07:1
+// dark, so outside the vendored primitives it is never a surface behind text
+// the state does not recolor: a state-prefixed accent surface
+// (`hover:bg-accent`, `focus:bg-accent`, `data-[state=open]:bg-accent`) sets
+// `text-accent-foreground` under the same prefix, and an unprefixed one carries
+// no other text color. A row or addon takes the neutral `bg-muted` instead.
+// (The pair itself, accent-foreground on accent, reads 3.34:1 in light; that
+// token decision is open and is not what this block checks.) A literal with
+// the fill alone is a mark (the password-strength segments, decorative dots).
+const ACCENT_SURFACE = /(?<![\w/-])((?:[^\s"'`]*:)?)!?bg-accent!?(?![\w/-])/g;
+const TEXT_COLOR_CLASS =
+	/(?<![\w:/-])text-(?!(?:xs|sm|base|lg|[2-9]?xl|left|center|right|justify|start|end|wrap|nowrap|balance|pretty|ellipsis|clip|accent-foreground)(?![\w-]))[a-z][\w-]*/;
+
+function accentSurfaceViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	for (const literal of stringLiteralsOutsideComments(content)) {
+		for (const m of literal.matchAll(ACCENT_SURFACE)) {
+			const prefix = m[1] ?? "";
+			const unpaired =
+				prefix === ""
+					? TEXT_COLOR_CLASS.test(literal)
+					: !literal.includes(`${prefix}text-accent-foreground`);
+			if (unpaired) out.push(`${rel}: ${m[0]}`);
+		}
+	}
+	return out;
+}
+
+describe("no row hover or addon reads text on the emerald accent fill (66.2-39 VD-56)", () => {
+	const violations: string[] = [];
+	const scanned: string[] = [];
+	for (const abs of walkSourceFiles(join(cwd, "src"))) {
+		const rel = relative(cwd, abs).replace(/\\/g, "/");
+		if (
+			rel.startsWith("src/test/") ||
+			rel.startsWith("src/app/api/og/") ||
+			rel.startsWith("src/components/ui/")
+		) {
+			continue;
+		}
+		scanned.push(rel);
+		violations.push(...accentSurfaceViolations(rel, readFileSync(abs, "utf8")));
+	}
+
+	it("scans the first-party rows and data-table addons", () => {
+		for (const rel of [
+			"src/components/notifications/notification-item.tsx",
+			"src/components/data-table/data-table-toolbar.tsx",
+			"src/components/auth/password-strength.tsx",
+		]) {
+			expect(scanned).toContain(rel);
+		}
+	});
+
+	it("finds no accent surface behind unrecolored text", () => {
+		expect(
+			violations,
+			`Accent surface(s) behind text the state does not recolor. Use hover:bg-muted / bg-muted for a row or addon:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("flags an unpaired hover, focus or open accent and an addon with muted text", () => {
+		expect(
+			accentSurfaceViolations(
+				"x.tsx",
+				[
+					"// hover:bg-accent in a comment is not a surface",
+					'<a className="flex px-2 hover:bg-accent text-left" />',
+					'<b className="hover:bg-accent focus:bg-accent hover:text-accent-foreground" />',
+					'<i className="data-[state=open]:bg-accent [&_svg]:text-muted-foreground" />',
+					'<span className="absolute bg-accent px-2 text-muted-foreground text-sm" />',
+					'const seg = "bg-accent";',
+					'<u className="size-2 rounded-full bg-accent opacity-0" />',
+					'<s className="text-sm hover:bg-muted bg-accent-main" />',
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: hover:bg-accent",
+			"x.tsx: focus:bg-accent",
+			"x.tsx: data-[state=open]:bg-accent",
+			"x.tsx: bg-accent",
+		]);
 	});
 });
 

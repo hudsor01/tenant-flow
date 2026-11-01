@@ -590,9 +590,14 @@
       "plan": "66.2-26",
       "divergences": [
         {
-          "what": "progressVariants and progressIndicatorVariants cva maps (variant default, secondary, success, warning, destructive; size default, sm, lg, xl) replace upstream's fixed h-2 bg-primary/20 track and bg-primary indicator classes",
+          "what": "progressVariants and progressIndicatorVariants cva maps (variant default, success, warning, destructive; size default, sm, lg, xl) replace upstream's fixed h-2 bg-primary/20 track and bg-primary indicator classes",
           "reason": "D-26 customization",
           "ref": "D-26; UI-SPEC Progress (C5, wave 5)"
+        },
+        {
+          "what": "the success, warning and destructive indicators fill with bg-success-text, bg-warning-text and bg-destructive-text instead of the vivid bg-success, bg-warning and bg-destructive (2.62:1 and 2.18:1 on the light card, 2.97:1 for destructive on its dark track); the unused secondary variant (1.11:1) is removed",
+          "reason": "D-26 customization",
+          "ref": "D-26; UI-SPEC VD-55 (WCAG 1.4.11 meter fills, 66.2-39 fix round 1)"
         },
         {
           "what": "Progress passes value={value} to the Radix root explicitly, so the bar exposes aria-valuenow, aria-valuetext and data-state; upstream destructures value for the indicator transform and never forwards it",

@@ -1,0 +1,64 @@
+/**
+ * The `/faq` and `/help` closing CTA bands paint `bg-primary` and set their
+ * copy and the outline CTA in `text-primary-foreground` (66.2-39 VD-56).
+ *
+ * - The outline Button variant fills `bg-background` (dark: `input/30`), so
+ *   with the band's foreground label it read 1.01:1 light and 4.38:1 dark.
+ *   The CTA is transparent on the band instead: its label reads 4.88:1 light
+ *   and 6.84:1 dark on `bg-primary`, and its hover, `primary-text` on
+ *   `primary-foreground`, 6.81:1 / 9.55:1 in both themes (the variant's dark
+ *   `input/50` hover and `input` border no longer win in dark).
+ * - The 20px regular paragraph read `text-primary-foreground/90`, 4.24:1
+ *   light; the full token reads 4.88:1.
+ *
+ * Ratios: Chrome canvas readback under the compiled project CSS
+ * (`.planning/tailwind-shadcn/audit/fix-round-1/status-colors.md` section 6).
+ */
+import { screen } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { describe, expect, it } from "vitest";
+import FaqPage from "#app/faq/page";
+import HelpPage from "#app/help/page";
+import { render } from "#test/utils/test-render";
+
+const BANDS: Array<{ page: string; render: () => ReactElement; cta: string }> =
+	[
+		{ page: "/faq", render: () => <FaqPage />, cta: "View Pricing" },
+		{ page: "/help", render: () => <HelpPage />, cta: "Talk to an Expert" },
+	];
+
+describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
+	it("draws the outline CTA transparent on the primary band in both themes", () => {
+		render(page());
+		const link = screen.getByRole("link", { name: cta });
+		const classes = link.className.split(/\s+/);
+		expect(link.closest("section")).toHaveClass("bg-primary");
+		expect(classes).toEqual(
+			expect.arrayContaining([
+				"bg-transparent",
+				"dark:bg-transparent",
+				"text-primary-foreground",
+				"hover:bg-primary-foreground",
+				"dark:hover:bg-primary-foreground",
+				"hover:text-primary-text",
+				"dark:border-primary-foreground/50",
+			]),
+		);
+		for (const cls of [
+			"bg-background",
+			"dark:bg-input/30",
+			"dark:hover:bg-input/50",
+			"dark:border-input",
+		]) {
+			expect(classes).not.toContain(cls);
+		}
+	});
+
+	it("sets the band paragraph in the full primary-foreground token", () => {
+		render(page());
+		const section = screen.getByRole("link", { name: cta }).closest("section");
+		const paragraph = section?.querySelector("p");
+		expect(paragraph).toHaveClass("text-primary-foreground");
+		expect(paragraph).not.toHaveClass("text-primary-foreground/90");
+	});
+});

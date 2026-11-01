@@ -160,10 +160,7 @@ function FullSignatureStatus({
 			<CardContent className="space-y-4">
 				<div className="flex-between">
 					<span className="text-muted-foreground">Overall Status</span>
-					<Badge
-						variant={status.both_signed ? "default" : "secondary"}
-						className={cn(status.both_signed && "bg-success hover:bg-success")}
-					>
+					<Badge variant={status.both_signed ? "success" : "secondary"}>
 						{getStatusText()}
 					</Badge>
 				</div>
@@ -206,8 +203,8 @@ function SignatureBadge({
 }) {
 	return (
 		<Badge
-			variant={signed ? "default" : "outline"}
-			className={cn("gap-1", signed && "bg-success hover:bg-success")}
+			variant={signed ? "success" : "outline"}
+			className="gap-1"
 			title={
 				signedAt
 					? `Signed on ${new Date(signedAt).toLocaleString()}`
