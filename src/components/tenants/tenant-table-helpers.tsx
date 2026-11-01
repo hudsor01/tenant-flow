@@ -98,15 +98,16 @@ export function SortableHeader({
 
 	return (
 		<button
+			type="button"
 			onClick={() => onSort(field)}
 			className="flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors"
 		>
 			{title}
 			{isActive ? (
 				currentDirection === "asc" ? (
-					<ChevronUp className="h-4 w-4" />
+					<ChevronUp className="h-4 w-4 shrink-0" />
 				) : (
-					<ChevronDown className="h-4 w-4" />
+					<ChevronDown className="h-4 w-4 shrink-0" />
 				)
 			) : (
 				<ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
