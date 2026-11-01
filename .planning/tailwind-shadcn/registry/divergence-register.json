@@ -111,6 +111,11 @@
           "ref": "D-26"
         },
         {
+          "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
+          "reason": "D-26 customization",
+          "ref": "D-26; D-29 (the Button destructive pairing)"
+        },
+        {
           "what": "upstream ghost and link variants, outline border-border, the data-variant attribute and the variant = \"default\" parameter default are not adopted",
           "reason": "upstream drift not adopted (D-05)",
           "ref": "D-05; 66.2-20 Task 1 not-adopted list"
