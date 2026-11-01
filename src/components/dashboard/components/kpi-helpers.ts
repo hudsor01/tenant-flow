@@ -54,9 +54,14 @@ export function formatTrendPercent(percentChange: number): string {
 /**
  * Returns a shadcn {@link ChartConfig} keyed by `spark` whose theme map
  * routes the sparkline stroke + fill through a status token:
- * - `up` → `--color-success`
- * - `down` → `--color-warning`
+ * - `up` → `--color-success-text`
+ * - `down` → `--color-warning-text`
  * - `stable` → `--color-muted-foreground`
+ *
+ * The stroke is a graphical object (WCAG 1.4.11, 3:1 on the card): the AA
+ * companions read 5.23:1 / 5.48:1 light and 11.04:1 / 11.73:1 dark, where the
+ * vivid `--color-success` / `--color-warning` fills read 2.62:1 / 2.18:1 on the
+ * light card (66.2-39 VD-53).
  *
  * `ChartContainer` (src/components/ui/chart.tsx) consumes the returned config
  * and injects a scoped `--color-spark` CSS variable, so the sparkline JSX
@@ -65,16 +70,16 @@ export function formatTrendPercent(percentChange: number): string {
  *
  * Both `theme.light` and `theme.dark` point at the same token because the
  * status tokens already resolve to dark-mode-correct `oklch()` values:
- * `--color-success`, `--color-warning` and `--color-muted-foreground` alias
- * `--success`, `--warning` and `--muted-foreground`, which `.dark` redefines
- * in `globals.css`.
+ * `--color-success-text`, `--color-warning-text` and `--color-muted-foreground`
+ * alias `--success-text`, `--warning-text` and `--muted-foreground`, which
+ * `.dark` redefines in `globals.css`.
  */
 export function sparklineConfigForTrend(trend: TrendDirection): ChartConfig {
 	const token =
 		trend === "up"
-			? "--color-success"
+			? "--color-success-text"
 			: trend === "down"
-				? "--color-warning"
+				? "--color-warning-text"
 				: "--color-muted-foreground";
 	return {
 		spark: {

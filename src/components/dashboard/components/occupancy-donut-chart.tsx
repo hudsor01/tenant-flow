@@ -13,8 +13,10 @@
  *
  * `units.total === 0` triggers the empty branch (04-CONTEXT.md D-03 + D-08 —
  * no fabricated `0%` donut for zero-unit owners; same honesty rule as
- * Phase 1 D-09 / POLISH-11). Wedge colors source from `var(--color-chart-2)`
- * (occupied) and `var(--color-chart-5)` (vacant) — 04-CONTEXT.md D-09.
+ * Phase 1 D-09 / POLISH-11). Wedge colors follow the unit status badge
+ * (`unit-status-badge.tsx`): `var(--color-success-text)` occupied and
+ * `var(--color-primary-text)` vacant, each 5.2:1 or more on the card in both
+ * themes (WCAG 1.4.11; chart-2 read 2.25:1 on the light card, 66.2-39 VD-53).
  * Entrance animation gates on `useReducedMotion()` (Phase 3 canonical hook).
  *
  * Per-chart inline `donutConfig` per 04-UI-SPEC § 16 — the shared
@@ -40,13 +42,15 @@ interface OccupancyDonutChartProps {
 
 // Per-chart inline config (04-UI-SPEC § 16). `ChartContainer` turns each
 // `color` into a `--color-<key>` variable on its wrapper. The wedges below take
-// their fill straight from `pieData` (`var(--color-chart-2)` occupied,
-// `var(--color-chart-5)` vacant, SVG fill values rather than classes), and the
-// legend swatches use the `bg-chart-2` / `bg-chart-5` utilities, which resolve
-// to the same `--chart-2` / `--chart-5` tokens.
+// their fill straight from `pieData` (`var(--color-success-text)` occupied,
+// `var(--color-primary-text)` vacant, SVG fill values rather than classes), and
+// the legend swatches use the `bg-success-text` / `bg-primary-text` utilities,
+// which resolve to the same tokens. The two wedges sit close in luminance
+// (1.34:1 light), so each is outlined in the card color to keep the boundary
+// visible.
 const donutConfig = {
-	occupied: { label: "Occupied", color: "var(--color-chart-2)" },
-	vacant: { label: "Vacant", color: "var(--color-chart-5)" },
+	occupied: { label: "Occupied", color: "var(--color-success-text)" },
+	vacant: { label: "Vacant", color: "var(--color-primary-text)" },
 } as const satisfies ChartConfig;
 
 export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
@@ -78,12 +82,12 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 		{
 			name: "Occupied",
 			value: units.occupied,
-			fill: "var(--color-chart-2)",
+			fill: "var(--color-success-text)",
 		},
 		{
 			name: "Vacant",
 			value: units.vacant,
-			fill: "var(--color-chart-5)",
+			fill: "var(--color-primary-text)",
 		},
 	];
 
@@ -106,7 +110,8 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 								nameKey="name"
 								innerRadius={50}
 								outerRadius={80}
-								strokeWidth={0}
+								stroke="var(--color-card)"
+								strokeWidth={2}
 								isAnimationActive={!reducedMotion}
 								animationDuration={800}
 								animationEasing="ease-out"
@@ -149,7 +154,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-chart-2"
+							className="inline-block size-2.5 rounded-full bg-success-text"
 						/>
 						<span className="text-muted-foreground">Occupied</span>
 						<span className="font-semibold tabular-nums text-foreground">
@@ -159,7 +164,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-chart-5"
+							className="inline-block size-2.5 rounded-full bg-primary-text"
 						/>
 						<span className="text-muted-foreground">Vacant</span>
 						<span className="font-semibold tabular-nums text-foreground">

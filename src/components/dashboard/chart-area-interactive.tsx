@@ -41,7 +41,7 @@ const chartConfig = {
 	},
 	expenses: {
 		label: "Expenses",
-		color: "var(--color-chart-2)",
+		color: "var(--color-chart-4)",
 	},
 } satisfies ChartConfig;
 
@@ -233,12 +233,12 @@ export function ChartAreaInteractive({
 								<linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="var(--color-chart-2)"
+										stopColor="var(--color-chart-4)"
 										stopOpacity={0.8}
 									/>
 									<stop
 										offset="95%"
-										stopColor="var(--color-chart-2)"
+										stopColor="var(--color-chart-4)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -274,7 +274,7 @@ export function ChartAreaInteractive({
 								dataKey="expenses"
 								type="natural"
 								fill="url(#fillExpenses)"
-								stroke="var(--color-chart-2)"
+								stroke="var(--color-chart-4)"
 								strokeWidth={2}
 							/>
 							<Area

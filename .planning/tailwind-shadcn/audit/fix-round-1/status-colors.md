@@ -1,6 +1,6 @@
-# 66.2-39 fix round 1, part C: status colors and chart series through the token layer
+# 66.2-39 fix round 1, parts C and D: status colors and chart marks through the token layer
 
-Owner decision, 2026-11-01: "Fix all in this PR", including every raw-palette status color moving to the project tokens, with each visual change measured before it ships. This file is the measurement record for that change: status colors (UI-SPEC VD-51, sections 1-3) and chart series (VD-52, section 4).
+Owner decision, 2026-11-01: "Fix all in this PR", including every raw-palette status color moving to the project tokens, with each visual change measured before it ships. This file is the measurement record for that change: status colors (UI-SPEC VD-51, sections 1-3) chart series (VD-52, section 4) and, from part D, the dashboard chart marks and the remaining chart-2 / chart-3 uses (VD-53, section 5).
 
 Base: `d0cc141b5`. Every ratio below is painted WCAG contrast read back from a 1x1 canvas in Chrome (Playwright 1.64.1 headless shell) under the project's own compiled stylesheet: `loadProjectTailwindEngine()` compiles `src/app/globals.css` with the project scan plus the probe classes, and each background stack is painted in order over white, so opacity tints compose the way they do on the page. Light is `<html>` without a class, dark is `<html class="dark">`. Probe scripts: `scratchpad/exec/fix3/pairs.mjs` (derived from part B's `fix2/contrast.mjs`) with the cases in `status-cases.mjs`; chart colors with `fix2/contrast.mjs` itself.
 
@@ -201,7 +201,7 @@ Which tokens qualify, measured as a mark on the card (`bg-card`, light `#fafcfe`
 | warning-text | `#965900` 5.48 | `#fbc044` 11.73 | warning series |
 | destructive-text | `#be000d` 6.39 | `#ff6762` 6.79 | destructive series |
 
-The chart tokens are mode-independent and the blog OG renderer mirrors their values in hsl (`src/app/api/og/blog/[slug]/route.tsx`, out of bounds here), so chart-2 and chart-3 are not retuned in this change; their existing dashboard uses (the occupancy donut, the interactive area chart, the analytics and units legends) are unchanged.
+The chart tokens are mode-independent and the blog OG renderer mirrors their values in hsl (`src/app/api/og/blog/[slug]/route.tsx`, out of bounds here), so chart-2 and chart-3 are not retuned. Their remaining uses (the occupancy donut, the interactive area chart, the analytics and units legends) and the dashboard sparkline move off them in section 5 (VD-53), which also re-points the two `/properties/units` captions above to the hue of their new dots.
 
 | File:line | Series | Before (light / dark on card) | After token | After (light / dark) |
 |-----------|--------|-------------------------------|-------------|----------------------|
@@ -236,3 +236,58 @@ Chart tokens as text. The same sweep for a chart token used as a text color (`gi
 | 2 | units/page.tsx:139 Needs attention caption (12px) | text (4.5) | `text-chart-5` / `bg-background` > `bg-card` | `text-info-text` / `bg-background` > `bg-card` | #3275b4 on #fafcfe = **4.71** | #0064b2 on #fafcfe = **5.89** | #3275b4 on #080e16 = **4** | #6cc3ff on #080e16 = **10.04** |
 
 Regression test: `describe("chart series and BorderBeam colors reference a token (66.2-39)")` in `src/app/__tests__/design-token-drift.test.ts`. In every `src/app` / `src/components` file outside `src/components/ui/` that mentions `ChartConfig`, each `color:` string is exactly `var(--color-<token>)`; every BorderBeam `colorFrom` / `colorTo` string references `var(--color-…)` and holds no literal color function; and no `text-chart-N` class appears. Red with the eight pre-fix files checked out from `d0cc141b5`: 24 violations (the 20 series and both beams' `colorFrom` and `colorTo`) and the two `text-chart-1` / `text-chart-5` captions; green after. A fixture `it` proves the predicate flags a literal series and a literal beam and passes the token forms.
+
+## 5. Dashboard chart marks and the remaining chart-2 / chart-3 uses (VD-53)
+
+Base: `0145eec0f`. Same instrument as section 4 (`node scratchpad/exec/fix2/contrast.mjs scratchpad/exec/fix4/cases.json`, output `scratchpad/exec/fix4/contrast.txt`): each token painted as a mark over `bg-card` (light `#fafcfe`, dark `#080e16`), 3:1 needed in both themes. A wedge-to-wedge row paints one token over the other.
+
+Sweep, every reference to a sub-3:1 chart token and to the vivid status fills in a chart: `rg -nP '(?<![\w-])(?:[\w-]+:)*(?:bg|fill|stroke)-(?:success|warning|accent|chart-[0-9])(?![\w/-])' src -g '!**/__tests__/**' -g '!src/test/**'` plus `` git grep -nE -- '--color-(success|warning|accent|chart-2|chart-3)["`)]' -- src ':!**/__tests__/**' ':!src/app/globals.css' ':!src/test/**' `` and `git grep -nE 'chart-[0-9]' -- src` (OG route excluded). On `0145eec0f`, outside the vendored primitives and the satori route:
+
+- chart-2: the occupancy donut's occupied wedge and swatch (`occupancy-donut-chart.tsx`, config, `pieData` fill, `bg-chart-2`) and the interactive area chart's expenses series (`chart-area-interactive.tsx`, config, both gradient stops, the stroke).
+- chart-3: the `/analytics/overview` Revenue legend swatch (`overview/page.tsx:153`) and the `/properties/units` Vacant dot (`units/page.tsx:125`, set by VD-47).
+- chart-5: the donut's vacant wedge and swatch, the `/analytics/overview` Expenses swatch (`overview/page.tsx:157`) and the `/properties/units` Maintenance dot (`units/page.tsx:136`). chart-5 clears 3:1 (4.71 / 4.00), but each of the three sat in a set that changes below.
+- Vivid status fills in a chart: the dashboard KPI sparkline (`kpi-helpers.ts` `sparklineConfigForTrend`: up `--color-success`, down `--color-warning`), the one chart outside the chart-2/3/5 list. The BorderBeam `--color-success` / `--color-warning` hits are decorative animated borders (VD-51) and stay; the remaining `bg-success` / `bg-warning` / `bg-accent` hits are non-chart surfaces (hover fills, the password-strength bar, the Progress variants, steppers, marketing) outside this chart item.
+- chart-2 / chart-3 in `src/components/ui/__tests__/chart.test.tsx` and `src/test/utils/tailwind-guards.ts` are test fixtures and the mode-independent token list, not marks.
+
+Tokens as a mark on the card:
+
+| Token | Light | Dark | Use after this change |
+|-------|-------|------|-----------------------|
+| chart-1 | `#2381ff` 3.61 | 5.21 | revenue series and its legend swatch |
+| chart-2 | `#00c0a3` **2.25** | 8.36 | none |
+| chart-3 | `#d29a00` **2.44** | 7.71 | none |
+| chart-4 | `#e85760` 3.42 | 5.50 | expenses series and its legend swatch |
+| chart-5 | `#3275b4` 4.71 | 4.00 | none in a chart (passes; replaced for coherence below) |
+| success (vivid) | `#00b565` **2.62** | 7.34 | none in a chart |
+| warning (vivid) | `#e1a200` **2.18** | 7.69 | none in a chart |
+| muted-foreground | `#575f66` 6.31 | `#a2acb7` 8.41 | stable sparkline, Total Units dot |
+| success-text | `#007b40` 5.23 | `#4bdc95` 11.04 | occupied wedge, swatch and dot; up sparkline |
+| warning-text | `#965900` 5.48 | `#fbc044` 11.73 | down sparkline |
+| primary-text | `#004fc4` 7.00 | `#7cbeff` 9.83 | vacant wedge, swatch and dot |
+| destructive-text | `#be000d` 6.39 | `#ff6762` 6.79 | Maintenance dot |
+
+Status marks follow the unit status badge (`properties/units/components/unit-status-badge.tsx`: occupied `text-success-text`, available `text-primary-text`, maintenance `text-destructive-text`), so the donut, the `/properties/units` metric dots and the units table badges read one palette. A neutral series takes chart-1 / chart-4.
+
+| # | Site | Mark | Before: token, light / dark | After: token, light / dark |
+|---|------|------|-----------------------------|----------------------------|
+| 1 | `occupancy-donut-chart.tsx` occupied wedge (config, `pieData`) and swatch | wedge, 10px swatch (3) | chart-2 **2.25** / 8.36 | success-text 5.23 / 11.04 |
+| 2 | `occupancy-donut-chart.tsx` vacant wedge and swatch | wedge, swatch (3) | chart-5 4.71 / 4.00 | primary-text 7.00 / 9.83 |
+| 3 | donut wedge against wedge | boundary | chart-2 / chart-5 **2.09** / **2.09**, no stroke (`strokeWidth={0}`) | success-text / primary-text 1.34 / 1.12, so each wedge is outlined in the card color: `stroke="var(--color-card)"` `strokeWidth={2}`; each wedge then meets the card, 5.23 / 11.04 and 7.00 / 9.83 |
+| 4 | `chart-area-interactive.tsx` expenses series (config, gradient stops, stroke) | 2px line (3) | chart-2 **2.25** / 8.36 | chart-4 3.42 / 5.50 |
+| 5 | `chart-area-interactive.tsx` revenue series | 2px line (3) | chart-1 3.61 / 5.21 | unchanged |
+| 6 | revenue line against expenses line | separate lines | chart-1 / chart-2 1.60 / 1.60, blue 259 against teal 180 | chart-1 / chart-4 1.05 / 1.05, blue 259 against red 20; two lines, not adjacent fills, named in the tooltip and the summary row |
+| 7 | `analytics/overview/page.tsx:153` Revenue legend swatch | 12px swatch (3) | chart-3 **2.44** / 7.71, and not the series color (the series is chart-1) | chart-1 3.61 / 5.21, the series color |
+| 8 | `analytics/overview/page.tsx:157` Expenses legend swatch | swatch (3) | chart-5 4.71 / 4.00, and not the series color (chart-2) | chart-4 3.42 / 5.50, the series color |
+| 9 | `properties/units/page.tsx:103` Total Units dot | 8px dot (3) | chart-4 3.42 / 5.50 | muted-foreground 6.31 / 8.41 (neutral, and no longer a red beside the Maintenance dot) |
+| 10 | `properties/units/page.tsx:114` Occupied dot | dot (3) | chart-1 3.61 / 5.21 | success-text 5.23 / 11.04 |
+| 11 | `properties/units/page.tsx:117` occupancy caption (12px) | text (4.5) | primary-text 7.00 / 9.83 (section 4) | success-text 5.23 / 11.04, the dot's hue |
+| 12 | `properties/units/page.tsx:125` Vacant dot | dot (3) | chart-3 **2.44** / 7.71 (VD-47) | primary-text 7.00 / 9.83 |
+| 13 | `properties/units/page.tsx:136` Maintenance dot | dot (3) | chart-5 4.71 / 4.00 | destructive-text 6.39 / 6.79 |
+| 14 | `properties/units/page.tsx:139` Needs attention caption (12px) | text (4.5) | info-text 5.89 / 10.04 (section 4) | destructive-text 6.39 / 6.79, the dot's hue |
+| 15 | `kpi-helpers.ts` sparkline, up trend | 1.5px line (3) | success **2.62** / 7.34 | success-text 5.23 / 11.04 |
+| 16 | `kpi-helpers.ts` sparkline, down trend | line (3) | warning **2.18** / 7.69 | warning-text 5.48 / 11.73 |
+| 17 | `kpi-helpers.ts` sparkline, stable | line (3) | muted-foreground 6.31 / 8.41 | unchanged |
+
+Before: 7 of the 17 rows failed (bold): six marks under 3:1 on the light card, and the two donut wedges 2.09:1 apart with no separating stroke in either theme, and the two overview swatches named colors the chart did not draw. After: 0 fail in either theme; the worst mark is chart-4 at 3.42 light, the worst text 5.23. The donut's loading skeleton (`occupancy-donut-chart-skeleton.tsx`) draws `Skeleton` placeholders only and holds no chart color. Every new class is canonical (`designSystem.canonicalizeCandidates([c], { rem: 16 })` and `{ collapse: true }` return it unchanged: `bg-success-text`, `bg-primary-text`, `bg-destructive-text`, `bg-muted-foreground`, `bg-chart-1`, `bg-chart-4`, `text-success-text`, `text-destructive-text`), and `--color-card`, `--color-success-text`, `--color-primary-text`, `--color-warning-text` resolve in the compiled theme (G7).
+
+Regression test: `describe("no chart mark reads a token under 3:1 on the card (66.2-39 VD-53)")` in `src/app/__tests__/design-token-drift.test.ts`. Every shipped `.ts`/`.tsx` file under `src/` (minus tests, `src/test/` and `src/app/api/og/`) is scanned in its string literals only (comments skipped): no chart-2 or chart-3 in any utility (`bg-chart-2`, `dark:fill-chart-3`) or variable (`--color-chart-2`, `--chart-3`) form, and, in a file that builds a `ChartConfig`, no vivid `--color-success` / `--color-warning`. Red on `0145eec0f` (the five source files checked out from it, the test unchanged): 11 violations, `chart-area-interactive.tsx` `--color-chart-2` x4, `kpi-helpers.ts` `--color-success` and `--color-warning`, `occupancy-donut-chart.tsx` `--color-chart-2` x2 and `bg-chart-2`, `overview/page.tsx` `bg-chart-3`, `units/page.tsx` `bg-chart-3`; green after. A fixture `it` proves each form is flagged and that a comment, the companions, chart-1/4/5, `bg-chart-20` and a BorderBeam outside a chart file pass. The component tests (`occupancy-donut-chart.test.tsx`: swatch classes, wedge fills from `pieData`, the card-color stroke; `kpi-helpers.test.ts`: the sparkline tokens) fail on `0145eec0f` with `expected 'var(--color-success)' to be 'var(--color-success-text)'` and `expected "inline-block size-2.5 rounded-full bg-chart-2" to contain "bg-success-text"`.

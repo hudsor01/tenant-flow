@@ -100,7 +100,7 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Total Units</h3>
-						<div className="size-2 rounded-full bg-chart-4" />
+						<div className="size-2 rounded-full bg-muted-foreground" />
 					</div>
 					<div className="typography-h3">{totalUnits}</div>
 					<p className="text-caption text-muted-foreground mt-1">
@@ -111,10 +111,10 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Occupied</h3>
-						<div className="size-2 rounded-full bg-chart-1" />
+						<div className="size-2 rounded-full bg-success-text" />
 					</div>
 					<div className="typography-h3">{occupiedCount}</div>
-					<div className="text-xs mt-1 text-primary-text">
+					<div className="text-xs mt-1 text-success-text">
 						{occupancyRate.toFixed(1)}% occupancy
 					</div>
 				</div>
@@ -122,7 +122,7 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Vacant</h3>
-						<div className="size-2 rounded-full bg-chart-3" />
+						<div className="size-2 rounded-full bg-primary-text" />
 					</div>
 					<div className="typography-h3">{vacantCount}</div>
 					<div className="text-xs mt-1 text-muted-foreground">
@@ -133,10 +133,12 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Maintenance</h3>
-						<div className="size-2 rounded-full bg-chart-5" />
+						<div className="size-2 rounded-full bg-destructive-text" />
 					</div>
 					<div className="typography-h3">{maintenanceCount}</div>
-					<div className="text-xs mt-1 text-info-text">Needs attention</div>
+					<div className="text-xs mt-1 text-destructive-text">
+						Needs attention
+					</div>
 				</div>
 			</div>
 

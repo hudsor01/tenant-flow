@@ -59,7 +59,7 @@ describe("formatTrendPercent", () => {
 });
 
 describe("sparklineConfigForTrend", () => {
-	it("maps `up` → `--color-success` in both light + dark theme entries", () => {
+	it("maps `up` → `--color-success-text` in both light + dark theme entries", () => {
 		const config = sparklineConfigForTrend("up");
 		const spark = config.spark;
 		// Narrow `spark` past `noUncheckedIndexedAccess` (always present — the
@@ -68,18 +68,18 @@ describe("sparklineConfigForTrend", () => {
 		if (!spark || !("theme" in spark) || !spark.theme) {
 			throw new Error("sparklineConfigForTrend must populate `spark.theme`");
 		}
-		expect(spark.theme.light).toBe("var(--color-success)");
-		expect(spark.theme.dark).toBe("var(--color-success)");
+		expect(spark.theme.light).toBe("var(--color-success-text)");
+		expect(spark.theme.dark).toBe("var(--color-success-text)");
 	});
 
-	it("maps `down` → `--color-warning` in both light + dark theme entries", () => {
+	it("maps `down` → `--color-warning-text` in both light + dark theme entries", () => {
 		const config = sparklineConfigForTrend("down");
 		const spark = config.spark;
 		if (!spark || !("theme" in spark) || !spark.theme) {
 			throw new Error("sparklineConfigForTrend must populate `spark.theme`");
 		}
-		expect(spark.theme.light).toBe("var(--color-warning)");
-		expect(spark.theme.dark).toBe("var(--color-warning)");
+		expect(spark.theme.light).toBe("var(--color-warning-text)");
+		expect(spark.theme.dark).toBe("var(--color-warning-text)");
 	});
 
 	it("maps `stable` → `--color-muted-foreground` in both light + dark theme entries", () => {

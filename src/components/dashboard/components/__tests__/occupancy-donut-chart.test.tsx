@@ -113,16 +113,37 @@ describe("OccupancyDonutChart", () => {
 		});
 	});
 
-	// 66.2-39 F10: both legend swatches use the named chart utility for the
-	// token their wedge fills with, spelled the same way.
-	it("colors the legend swatches with the bg-chart-2 and bg-chart-5 utilities", () => {
+	// 66.2-39 F10 / VD-53: both legend swatches use the named utility for the
+	// token their wedge fills with, spelled the same way. The wedges follow the
+	// unit status badge (occupied success-text, vacant primary-text), each
+	// 5.2:1 or more on the card in both themes; chart-2 read 2.25:1 light.
+	it("colors the legend swatches with the bg-success-text and bg-primary-text utilities", () => {
 		render(<OccupancyDonutChart units={populated} />);
 		const swatchOf = (label: string) =>
 			screen
 				.getByText(label)
 				.parentElement?.querySelector('[aria-hidden="true"]');
-		expect(swatchOf("Occupied")?.classList).toContain("bg-chart-2");
-		expect(swatchOf("Vacant")?.classList).toContain("bg-chart-5");
+		expect(swatchOf("Occupied")?.classList).toContain("bg-success-text");
+		expect(swatchOf("Vacant")?.classList).toContain("bg-primary-text");
+	});
+
+	it("fills the wedges with the swatch tokens and outlines them in the card color", async () => {
+		render(<OccupancyDonutChart units={populated} />);
+		const pie = await screen.findByTestId("pie");
+		const fills = (
+			JSON.parse(pie.getAttribute("data-data") ?? "[]") as {
+				name: string;
+				fill: string;
+			}[]
+		).map(({ name, fill }) => [name, fill]);
+		expect(fills).toEqual([
+			["Occupied", "var(--color-success-text)"],
+			["Vacant", "var(--color-primary-text)"],
+		]);
+		// The two wedges read 1.34:1 against each other (light), so the
+		// boundary is drawn in the card color, not left to the fills.
+		expect(pie.getAttribute("data-stroke")).toBe("var(--color-card)");
+		expect(Number(pie.getAttribute("data-stroke-width"))).toBeGreaterThan(0);
 	});
 
 	it("does NOT render a tooltip (UI-SPEC § 3.6)", () => {

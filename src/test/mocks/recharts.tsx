@@ -37,6 +37,8 @@ interface PieProps {
 	innerRadius?: number;
 	outerRadius?: number;
 	fill?: string;
+	stroke?: string;
+	strokeWidth?: number;
 	label?: boolean | unknown;
 	labelLine?: boolean;
 	isAnimationActive?: boolean;
@@ -87,7 +89,7 @@ export const PieChart = ({ children }: ChartProps) => (
 );
 
 export const Pie = ({
-	data: _data,
+	data,
 	dataKey,
 	nameKey,
 	cx,
@@ -95,6 +97,8 @@ export const Pie = ({
 	innerRadius,
 	outerRadius,
 	fill,
+	stroke,
+	strokeWidth,
 	label,
 	labelLine,
 	isAnimationActive,
@@ -102,6 +106,7 @@ export const Pie = ({
 }: PieProps) => (
 	<g
 		data-testid="pie"
+		data-data={JSON.stringify(data)}
 		data-key={dataKey}
 		data-name-key={nameKey}
 		data-cx={cx}
@@ -109,6 +114,8 @@ export const Pie = ({
 		data-inner-radius={innerRadius}
 		data-outer-radius={outerRadius}
 		data-fill={fill}
+		data-stroke={stroke}
+		data-stroke-width={strokeWidth}
 		data-has-label={!!label}
 		data-label-line={labelLine}
 		data-is-animation-active={

@@ -293,6 +293,103 @@ describe("chart series and BorderBeam colors reference a token (66.2-39)", () =>
 	});
 });
 
+// 66.2-39 VD-53: a chart mark is a graphical object (WCAG 1.4.11, 3:1 on the
+// card). chart-2 (2.25:1) and chart-3 (2.44:1) fail on the light card, and the
+// tokens are not retuned (the satori blog-cover renderers mirror their exact
+// values), so no shipped source references either one, in any utility or var()
+// form. A chart series or sparkline (any file that builds a ChartConfig) also
+// never reads the vivid success (2.62:1) or warning (2.18:1) fill: it takes the
+// -text companion. Only string-literal content is scanned, so a comment that
+// names a token does not trip it. The satori OG route is out of scope.
+const SUB_3_MARK_CHART_TOKEN =
+	/(?<![\w-])(?:[\w-]+:)*[a-z]+-chart-[23](?![\w-])|--(?:color-)?chart-[23](?![\w-])/g;
+const SUB_3_MARK_STATUS_TOKEN = /--color-(?:success|warning)(?![\w-])/g;
+const CODE_STRING_OR_COMMENT =
+	/\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g;
+
+function stringLiteralsOutsideComments(content: string): string[] {
+	return [...content.matchAll(CODE_STRING_OR_COMMENT)]
+		.map((m) => m[0])
+		.filter((token) => !token.startsWith("//") && !token.startsWith("/*"));
+}
+
+function sub3MarkTokenViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	const strings = stringLiteralsOutsideComments(content);
+	const isChartSource = content.includes("ChartConfig");
+	for (const literal of strings) {
+		for (const m of literal.matchAll(SUB_3_MARK_CHART_TOKEN)) {
+			out.push(`${rel}: ${m[0]}`);
+		}
+		if (!isChartSource) continue;
+		for (const m of literal.matchAll(SUB_3_MARK_STATUS_TOKEN)) {
+			out.push(`${rel}: ${m[0]}`);
+		}
+	}
+	return out;
+}
+
+describe("no chart mark reads a token under 3:1 on the card (66.2-39 VD-53)", () => {
+	const scanned: string[] = [];
+	const violations: string[] = [];
+	for (const abs of walkSourceFiles(join(cwd, "src"))) {
+		const rel = relative(cwd, abs).replace(/\\/g, "/");
+		if (rel.startsWith("src/test/") || rel.startsWith("src/app/api/og/")) {
+			continue;
+		}
+		scanned.push(rel);
+		violations.push(...sub3MarkTokenViolations(rel, readFileSync(abs, "utf8")));
+	}
+
+	it("scans the dashboard charts, the units page and the sparkline helper", () => {
+		for (const rel of [
+			"src/components/dashboard/components/occupancy-donut-chart.tsx",
+			"src/components/dashboard/chart-area-interactive.tsx",
+			"src/components/dashboard/components/kpi-helpers.ts",
+			"src/app/(owner)/analytics/overview/page.tsx",
+			"src/app/(owner)/properties/units/page.tsx",
+		]) {
+			expect(scanned).toContain(rel);
+		}
+		expect(scanned.length).toBeGreaterThan(500);
+	});
+
+	it("finds no chart-2, chart-3 or vivid success/warning chart mark", () => {
+		expect(
+			violations,
+			`Chart mark(s) on a token under 3:1 on the light card. Use chart-1 or chart-4 for a neutral series, or the -text companion (success-text, warning-text, primary-text, destructive-text) for a status series:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("flags each sub-3:1 form and passes the companions and comments", () => {
+		expect(
+			sub3MarkTokenViolations(
+				"x.tsx",
+				[
+					"// the old wedge was var(--color-chart-2)",
+					'const c = { occupied: { color: "var(--color-chart-2)" }, vacant: { color: "var(--color-primary-text)" } } satisfies ChartConfig;',
+					'<span className="size-2 rounded-full bg-chart-3" />',
+					'<span className="dark:fill-chart-2 bg-chart-1 bg-chart-4 bg-chart-5 bg-chart-20" />',
+					'const t = up ? "--color-success" : "--color-warning-text";',
+					"const u = `var(--chart-3)`;",
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: --color-chart-2",
+			"x.tsx: bg-chart-3",
+			"x.tsx: dark:fill-chart-2",
+			"x.tsx: --color-success",
+			"x.tsx: --chart-3",
+		]);
+		expect(
+			sub3MarkTokenViolations(
+				"y.tsx",
+				'<BorderBeam colorFrom="var(--color-success)" />',
+			),
+		).toEqual([]);
+	});
+});
+
 describe("drift regexes catch known drift (meta-test)", () => {
 	it("hex regex catches a 6-digit hex", () =>
 		expect("#2563eb".match(DRIFT_PATTERNS.hex)).not.toBeNull());

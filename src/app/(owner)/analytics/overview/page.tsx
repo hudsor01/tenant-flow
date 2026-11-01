@@ -150,11 +150,11 @@ export default function AnalyticsPage() {
 						</div>
 						<div className="flex items-center gap-4 mb-4">
 							<div className="flex items-center gap-2">
-								<div className="size-3 rounded-sm bg-chart-3" />
+								<div className="size-3 rounded-sm bg-chart-1" />
 								<span className="text-sm text-muted-foreground">Revenue</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<div className="size-3 rounded-sm bg-chart-5" />
+								<div className="size-3 rounded-sm bg-chart-4" />
 								<span className="text-sm text-muted-foreground">Expenses</span>
 							</div>
 						</div>
