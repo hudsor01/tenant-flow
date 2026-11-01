@@ -160,11 +160,15 @@ function measureInPage(arg: MeasureArg): Measured {
 			headerRow: read(headerRow),
 			row: read(row),
 		};
+		// The references read the runtime tokens that :root and .dark declare (D-23). Since W3 the
+		// colors are `@theme inline`, so Tailwind emits a --color-* variable only when CSS text
+		// references it (--color-border is; --color-card is not, which made this reference
+		// transparent, 66.2-37).
 		const cardProbe = document.createElement("div");
-		cardProbe.style.setProperty("background-color", "var(--color-card)");
+		cardProbe.style.setProperty("background-color", "var(--card)");
 		cardProbe.hidden = true;
 		const borderProbe = document.createElement("div");
-		borderProbe.style.setProperty("color", "var(--color-border)");
+		borderProbe.style.setProperty("color", "var(--border)");
 		borderProbe.hidden = true;
 		document.body.append(cardProbe, borderProbe);
 		const refs = { card: getComputedStyle(cardProbe).backgroundColor, border: getComputedStyle(borderProbe).color };
