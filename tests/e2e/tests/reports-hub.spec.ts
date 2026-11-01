@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../auth-helpers";
+import { waitForEntranceAnimations } from "../lib/authed-dashboard";
+import { boxesOf, polledRead } from "../lib/measure";
 import { ROUTES } from "./constants/routes";
 
 /**
@@ -284,4 +286,167 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 			expect(total(item), `${item} in the CSV`).toBe(shown);
 		}
 	});
+});
+
+/**
+ * The report headers' control rows below `sm` (66.2-39 VD-57). Below 640px the
+ * header stacks and the row of selects and Export spans it. The row used to be
+ * `flex` without wrap, so at 390px the cash-flow selects shrank from 130/100px
+ * to 109.7/85.6px, and at 375px and below they clipped their own values
+ * ("2026" to "20…"); the balance-sheet month select clipped "November" at
+ * 390px. The row now wraps instead of shrinking. Each header is measured at
+ * 390px (the brief's width) and 360px (the narrowest common phone), with its
+ * default values and with its widest option selected.
+ */
+const NARROW_WIDTHS = [390, 360] as const;
+
+const REPORT_HEADERS = [
+	{
+		path: ROUTES.REPORTS_CASH_FLOW,
+		heading: "Cash Flow",
+		widest: { picks: "(period)", option: "Quarterly" },
+	},
+	{
+		path: ROUTES.REPORTS_INCOME_STATEMENT,
+		heading: "Income Statement",
+		widest: { picks: "(period)", option: "Quarterly" },
+	},
+	{
+		path: ROUTES.REPORTS_BALANCE_SHEET,
+		heading: "Balance Sheet",
+		widest: { picks: "(month)", option: "September" },
+	},
+] as const;
+
+async function expectHeaderRowFits(row: Locator, label: string): Promise<void> {
+	// One snapshot of the row and its three controls (document order: the row,
+	// then each control), so containment and overlap compare boxes from the
+	// same moment.
+	const [rowBox, ...controlBoxes] = await boxesOf(
+		row.or(row.locator(":scope > button")),
+		{ min: 4 },
+	);
+	if (!rowBox) throw new Error(`${label}: no header control row`);
+
+	// Overflow and clipping, in one browser-side snapshot.
+	const fit = await polledRead(
+		() =>
+			row.evaluate((rowEl) => ({
+				viewport: document.documentElement.clientWidth,
+				rowScrollWidth: rowEl.scrollWidth,
+				rowClientWidth: rowEl.clientWidth,
+				controls: [...rowEl.querySelectorAll(":scope > button")].map(
+					(button) => {
+						const value = button.querySelector('[data-slot="select-value"]');
+						return {
+							name:
+								button.getAttribute("aria-label") ??
+								button.textContent?.trim() ??
+								"",
+							scrollWidth: button.scrollWidth,
+							clientWidth: button.clientWidth,
+							value: value
+								? {
+										text: value.textContent ?? "",
+										scrollWidth: value.scrollWidth,
+										clientWidth: value.clientWidth,
+										scrollHeight: value.scrollHeight,
+										clientHeight: value.clientHeight,
+									}
+								: null,
+						};
+					},
+				),
+			})),
+		(snapshot) =>
+			snapshot.controls.length === 3 &&
+			snapshot.controls.every((control) => control.clientWidth > 0),
+	);
+
+	expect(fit.controls.at(-1)?.name, label).toBe("Export");
+	expect(fit.rowScrollWidth, label).toBeLessThanOrEqual(fit.rowClientWidth);
+	expect(controlBoxes, label).toHaveLength(3);
+	const rowRight = rowBox.x + rowBox.width;
+	for (const [index, box] of controlBoxes.entries()) {
+		const name = `${label}: ${fit.controls[index]?.name ?? index}`;
+		expect(box.x, name).toBeGreaterThanOrEqual(rowBox.x);
+		expect(box.x + box.width, name).toBeLessThanOrEqual(rowRight);
+		expect(box.x + box.width, name).toBeLessThanOrEqual(fit.viewport);
+		for (const other of controlBoxes.slice(index + 1)) {
+			const overlapX =
+				Math.min(box.x + box.width, other.x + other.width) -
+				Math.max(box.x, other.x);
+			const overlapY =
+				Math.min(box.y + box.height, other.y + other.height) -
+				Math.max(box.y, other.y);
+			expect(
+				overlapX > 0.5 && overlapY > 0.5,
+				`${name} overlaps a sibling`,
+			).toBe(false);
+		}
+	}
+	for (const control of fit.controls) {
+		expect(
+			control.scrollWidth,
+			`${label}: ${control.name}`,
+		).toBeLessThanOrEqual(control.clientWidth);
+		if (!control.value) continue;
+		const value = control.value;
+		expect(
+			value.scrollWidth,
+			`${label}: "${value.text}" is clipped`,
+		).toBeLessThanOrEqual(value.clientWidth);
+		expect(
+			value.scrollHeight,
+			`${label}: "${value.text}" wraps`,
+		).toBeLessThanOrEqual(value.clientHeight);
+	}
+}
+
+test.describe("Report header controls below sm (66.2-39 VD-57)", () => {
+	test.use({ viewport: { width: 390, height: 844 } });
+
+	for (const header of REPORT_HEADERS) {
+		test(`${header.heading}: the selects and Export fit at 390 and 360px with no clipped value`, async ({
+			page,
+		}) => {
+			await gotoReport(page, header.path, header.heading);
+			const main = page.locator("main#main-content");
+			const firstTrigger = main
+				.locator('button[data-slot="select-trigger"]')
+				.first();
+			await waitForHydrated(firstTrigger);
+			await waitForEntranceAnimations(page);
+			const row = firstTrigger.locator("xpath=..");
+
+			for (const state of ["default", "widest"] as const) {
+				if (state === "widest") {
+					const { picks, option } = header.widest;
+					const trigger = row.locator(
+						`:scope > button[aria-label$="${picks}"]`,
+					);
+					await page.setViewportSize({ width: 390, height: 844 });
+					await trigger.click();
+					await page.getByRole("option", { name: option, exact: true }).click();
+					await expect(trigger).toHaveAttribute(
+						"aria-label",
+						`${option} ${picks}`,
+					);
+					await expect(page.getByRole("listbox")).toHaveCount(0);
+				}
+				for (const width of NARROW_WIDTHS) {
+					await page.setViewportSize({ width, height: 844 });
+					await expect
+						.poll(() =>
+							page.evaluate(() => document.documentElement.clientWidth),
+						)
+						.toBe(width);
+					await expectHeaderRowFits(
+						row,
+						`${header.heading} (${state} values) at ${width}px`,
+					);
+				}
+			}
+		});
+	}
 });

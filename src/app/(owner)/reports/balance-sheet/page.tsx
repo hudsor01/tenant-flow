@@ -168,7 +168,9 @@ export default function BalanceSheetPage() {
 							As of {formatDate(asOfDate, { style: "long" })}
 						</p>
 					</div>
-					<div className="flex gap-2">
+					{/* Below sm the header stacks and this row spans it: the controls wrap
+				    rather than shrink, since a shrunk select clips its value. */}
+					<div className="flex flex-wrap gap-2 sm:flex-nowrap">
 						<Select value={year} onValueChange={setYear}>
 							<SelectTrigger className="w-25" aria-label={`${year} (year)`}>
 								<SelectValue />

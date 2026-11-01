@@ -39,7 +39,9 @@ export function CashFlowHeader({
 						Track money coming in and going out.
 					</p>
 				</div>
-				<div className="flex gap-2">
+				{/* Below sm the header stacks and this row spans it: the controls wrap
+				    rather than shrink, since a shrunk select clips its value. */}
+				<div className="flex flex-wrap gap-2 sm:flex-nowrap">
 					{/* Each trigger's name starts with the value it shows, then says
 					    what it picks (WCAG 2.5.3; a bare trigger had no name). */}
 					<Select value={period} onValueChange={onPeriodChange}>
