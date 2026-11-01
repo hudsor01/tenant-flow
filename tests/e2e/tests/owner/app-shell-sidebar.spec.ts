@@ -935,6 +935,7 @@ test.describe("desktop rail at 1280px", () => {
 		await page.keyboard.press("ControlOrMeta+k");
 		const palette = page.getByPlaceholder("Search pages and actions...");
 		await expect(palette).toBeVisible();
+		await expect(palette).toBeFocused();
 		const writesBeforePalette = (await readCookieWrites(page)).length;
 		await page.keyboard.press("ControlOrMeta+b");
 		expect((await readCookieWrites(page)).length).toBe(writesBeforePalette);
@@ -1083,6 +1084,32 @@ async function openSheet(page: Page): Promise<Locator> {
 	return sheet;
 }
 
+/**
+ * Readiness gate for Escape layering, not the property under test. Radix
+ * DismissableLayer (1.2.1) attaches each layer's Escape listener in an effect
+ * keyed on whether that layer was the highest one at its last render. When the
+ * palette mounts over the sheet, both layers learn the new stack only on a
+ * re-render that the palette's mount effect schedules, so for about a frame the
+ * sheet still holds the only Escape listener (measured: 6 of 10 production-build
+ * runs closed the sheet when Escape followed the palette's focus). The same
+ * re-render restyles both layers while body pointer events are disabled: the
+ * palette's content becomes `pointer-events: auto` and the sheet's `none`. Wait
+ * for both, then one frame for the effects of that commit to run.
+ */
+async function waitForLayerStack(page: Page, lower: Locator): Promise<void> {
+	await expect(page.getByRole("dialog", { name: "Command Palette" })).toHaveCSS(
+		"pointer-events",
+		"auto",
+	);
+	await expect(lower).toHaveCSS("pointer-events", "none");
+	await page.evaluate(
+		() =>
+			new Promise<void>((resolve) => {
+				requestAnimationFrame(() => setTimeout(resolve, 0));
+			}),
+	);
+}
+
 const SHEET_VIEWPORTS = [
 	{ width: 375, height: 667 },
 	{ width: 900, height: 800 },
@@ -1204,10 +1231,20 @@ for (const viewport of SHEET_VIEWPORTS) {
 			await page.goto("/dashboard");
 			await waitForHydration(page, TRIGGER);
 			await expect(page.locator(DESKTOP_SIDEBAR)).toHaveCount(0);
+			// Readiness gate: the dashboard's data tables write their nuqs page
+			// state into the URL once their data lands, and a write that lands
+			// while the palette's router.push is in flight replaces it (measured:
+			// two "/dashboard?page=1&perPage=10" navigations and no /properties in
+			// 2 of 16 production-build runs; deferred-items.md). Let the page
+			// finish loading before the palette navigates.
+			await waitForDashboardContent(page);
+			await page.waitForLoadState("networkidle");
 			sheet = await openSheet(page);
 			const palette = page.getByPlaceholder("Search pages and actions...");
 			await page.keyboard.press("ControlOrMeta+k");
 			await expect(palette).toBeVisible();
+			await expect(palette).toBeFocused();
+			await waitForLayerStack(page, sheetElement);
 			await expect(sheetElement).toHaveAttribute("data-state", "open");
 			// Escape layering: one Escape closes only the palette.
 			await page.keyboard.press("Escape");
@@ -1217,6 +1254,7 @@ for (const viewport of SHEET_VIEWPORTS) {
 
 			await page.keyboard.press("ControlOrMeta+k");
 			await expect(palette).toBeVisible();
+			await expect(palette).toBeFocused();
 			await palette.fill("Properties");
 			await page
 				.getByRole("option", { name: "Properties", exact: true })
