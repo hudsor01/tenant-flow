@@ -212,7 +212,7 @@ export function UpdatePasswordForm({
 						>
 							{updatePasswordMutation.isPending ? (
 								<>
-									<div className="animate-spin rounded-full size-4 border-b-2 border-white mr-2" />
+									<div className="animate-spin rounded-full size-4 border-b-2 border-primary-foreground mr-2" />
 									Saving...
 								</>
 							) : (
