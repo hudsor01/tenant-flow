@@ -82,13 +82,14 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
 		await loginAsOwner(page);
 	});
 
-	// NOTE: the "Export" control in the income-statement page header
-	// (`income-statement-page-header.tsx`) is rendered with NO click handler
-	// attached, a recorded pre-existing defect carried over verbatim from the
-	// legacy financials route tree. It must never be clicked here, nor asserted
-	// as functional: that would turn a known-dead control into a passing claim
-	// that it works. The cash-flow Export is wired (66.2-39 VD-54) and is
-	// exercised by the describe block below.
+	// NOTE: the "Export" controls in the income-statement and balance-sheet
+	// headers (`income-statement-page-header.tsx`, `balance-sheet/page.tsx`) are
+	// rendered with NO click handler attached, a recorded pre-existing defect
+	// carried over verbatim from the legacy financials route tree. They must
+	// never be clicked here, nor asserted as functional: that would turn a
+	// known-dead control into a passing claim that it works (the header layout
+	// test below measures them, it does not click them). The cash-flow Export is
+	// wired (66.2-39 VD-54) and is exercised by the export test below.
 	for (const { path, heading } of hubRoutes) {
 		test(`renders ${heading} at ${path}`, async ({ page }) => {
 			await page.goto(path);
