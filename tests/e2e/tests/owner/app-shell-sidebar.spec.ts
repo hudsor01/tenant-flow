@@ -290,6 +290,16 @@ async function ssrSidebarState(page: Page): Promise<string> {
 	return value;
 }
 
+/** `expectNear` as a soft assertion, so one run reports every failing cell. */
+function expectNearSoft(actual: number, expected: number, label: string): void {
+	expect
+		.soft(
+			Math.abs(actual - expected),
+			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+		)
+		.toBeLessThanOrEqual(0.5);
+}
+
 /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
 function expectNear(actual: number, expected: number, label: string): void {
 	expect(
@@ -1516,4 +1526,318 @@ test.describe("tour step 5 targets the trigger when the sidebar is a sheet or co
 		record("tour progress traffic", traffic);
 		expect(errors).toEqual([]);
 	});
+});
+
+/**
+ * CP-4 follow-up: the dashboard layout at every rail state the sidebar makes
+ * reachable. Collapsing the rail widens the dashboard to the whole viewport, so
+ * the same viewport now lays the dashboard out at two content widths; these
+ * checks run at both. Measured before the fixes (owner A, production build):
+ *   - the KPI row's Revenue tile split "$" from "7,500" onto two lines at 900,
+ *     1024 collapsed, 1280 collapsed and 1440 (and Occupancy "33" from "%" at
+ *     1280 collapsed), and its stat grid overflowed the tile by 1px at 1280
+ *     collapsed;
+ *   - at 1024 expanded the four-column trends row gave Quick Actions a 158px
+ *     column and its buttons overflowed the card by 10.31px;
+ *   - the dock reserved 112px of main padding for a 90px band and no scroll
+ *     padding, so a focused quick action stayed under the dock.
+ */
+interface DashboardCell {
+	width: number;
+	height: number;
+	collapsed: boolean;
+}
+
+const KPI_STAT = '[data-testid="kpi-bento-row"] [data-slot="stat"]';
+const QUICK_ACTIONS = '[data-tour="quick-actions"]';
+const DOCK_PANEL = '[data-testid="quick-actions-dock"] > div';
+
+const DESKTOP_DASHBOARD_CELLS: readonly DashboardCell[] = [
+	{ width: 1024, height: 768, collapsed: false },
+	{ width: 1024, height: 768, collapsed: true },
+	{ width: 1280, height: 720, collapsed: false },
+	{ width: 1280, height: 720, collapsed: true },
+	{ width: 1440, height: 900, collapsed: false },
+	{ width: 1440, height: 900, collapsed: true },
+];
+
+const KPI_CELLS: readonly DashboardCell[] = [
+	{ width: 375, height: 667, collapsed: false },
+	{ width: 900, height: 800, collapsed: false },
+	...DESKTOP_DASHBOARD_CELLS,
+];
+
+function cellLabel(cell: DashboardCell): string {
+	if (cell.width < 1024) return `${cell.width}px`;
+	return `${cell.width}px ${cell.collapsed ? "collapsed" : "expanded"}`;
+}
+
+/**
+ * Reloads the populated dashboard at `cell`: the rail state through the
+ * `sidebar_state` cookie, the viewport, then hydration, the six KPI values and
+ * the client-loaded trends charts.
+ */
+async function openDashboardCell(
+	page: Page,
+	cell: DashboardCell,
+): Promise<void> {
+	await seedSidebarCookie(page, cell.collapsed ? "false" : "true");
+	await page.setViewportSize({ width: cell.width, height: cell.height });
+	await page.reload();
+	await waitForHydration(page, TRIGGER);
+	await expect(
+		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }),
+	).toBeVisible({ timeout: 10000 });
+	await expect(
+		page.locator(`${KPI_STAT} [data-slot="stat-value"]`),
+	).toHaveCount(6);
+	await waitForHydration(page, '[data-testid="kpi-bento-row"]');
+	await expect(
+		page.locator('[data-tour="trends-section"] [role="img"] svg').first(),
+	).toBeAttached({ timeout: 15000 });
+	if (cell.width >= 1024) {
+		await expect(page.locator(DESKTOP_SIDEBAR)).toHaveAttribute(
+			"data-state",
+			cell.collapsed ? "collapsed" : "expanded",
+		);
+	}
+}
+
+interface Insets {
+	left: number;
+	right: number;
+	scrollWidth: number;
+	clientWidth: number;
+}
+
+/** Border plus padding on each side, and the overflow pair, of `locator`. */
+async function insetsOf(locator: Locator): Promise<Insets> {
+	return locator.evaluate((node) => {
+		const style = getComputedStyle(node);
+		return {
+			left:
+				Number.parseFloat(style.borderLeftWidth) +
+				Number.parseFloat(style.paddingLeft),
+			right:
+				Number.parseFloat(style.borderRightWidth) +
+				Number.parseFloat(style.paddingRight),
+			scrollWidth: node.scrollWidth,
+			clientWidth: node.clientWidth,
+		};
+	});
+}
+
+async function pixels(locator: Locator, property: string): Promise<string> {
+	return locator.evaluate(
+		(node, name) => getComputedStyle(node).getPropertyValue(name),
+		property,
+	);
+}
+
+test.describe("CP-4 follow-up: dashboard layout at every rail state", () => {
+	test("each KPI value stays on one line inside its tile", async ({ page }) => {
+		test.setTimeout(120_000);
+		const errors = await openShell(page);
+		for (const cell of KPI_CELLS) {
+			await openDashboardCell(page, cell);
+			const stats = page.locator(KPI_STAT);
+			for (let index = 0; index < 6; index += 1) {
+				const stat = stats.nth(index);
+				const label =
+					(await stat.locator('[data-slot="stat-label"]').textContent()) ?? "";
+				const where = `${cellLabel(cell)} ${label}`;
+				const value = stat.locator('[data-slot="stat-value"]');
+				const lineHeight = Number.parseFloat(
+					await pixels(value, "line-height"),
+				);
+				const tile = await boxOf(stat);
+				const insets = await insetsOf(stat);
+				const parts = await boxesOf(value.locator(":scope > *"), { min: 1 });
+				const ticker = await boxOf(value.locator(":scope > .tabular-nums"));
+				record(`kpi ${where}`, { tile, insets, parts, lineHeight });
+
+				expectNearSoft(ticker.height, lineHeight, `${where} ticker height`);
+				const contentLeft = tile.x + insets.left;
+				const contentRight = tile.x + tile.width - insets.right;
+				let previousRight = Number.NEGATIVE_INFINITY;
+				for (const part of parts) {
+					const centerY = part.y + part.height / 2;
+					expect
+						.soft(
+							centerY >= ticker.y - 0.5 &&
+								centerY <= ticker.y + ticker.height + 0.5,
+							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+						)
+						.toBe(true);
+					expect
+						.soft(part.x, `${where}: value parts run left to right on one line`)
+						.toBeGreaterThanOrEqual(previousRight - 0.5);
+					previousRight = part.x + part.width;
+					expect
+						.soft(part.x, `${where}: value starts inside the tile`)
+						.toBeGreaterThanOrEqual(contentLeft - 0.5);
+					expect
+						.soft(part.x + part.width, `${where}: value ends inside the tile`)
+						.toBeLessThanOrEqual(contentRight + 0.5);
+				}
+				expect
+					.soft(insets.scrollWidth, `${where}: tile scrollWidth vs clientWidth`)
+					.toBeLessThanOrEqual(insets.clientWidth);
+			}
+		}
+		expect(errors).toEqual([]);
+	});
+
+	test("the Quick Actions card's content stays inside its column", async ({
+		page,
+	}) => {
+		test.setTimeout(90_000);
+		const errors = await openShell(page);
+		for (const cell of DESKTOP_DASHBOARD_CELLS) {
+			await openDashboardCell(page, cell);
+			const where = cellLabel(cell);
+			const card = page.locator(QUICK_ACTIONS);
+			const cardBox = await boxOf(card);
+			const insets = await insetsOf(card);
+			const buttons = await boxesOf(card.locator("button"), { min: 4 });
+			record(`quick actions ${where}`, { cardBox, insets, buttons });
+			expect
+				.soft(
+					insets.scrollWidth,
+					`${where}: Quick Actions scrollWidth vs clientWidth`,
+				)
+				.toBeLessThanOrEqual(insets.clientWidth);
+			for (const button of buttons) {
+				expect
+					.soft(
+						button.x + button.width,
+						`${where}: a quick action ends inside the card`,
+					)
+					.toBeLessThanOrEqual(cardBox.x + cardBox.width - insets.right + 0.5);
+			}
+		}
+		expect(errors).toEqual([]);
+	});
+
+	test("the dock's band is reserved: main padding, scroll padding and scroll end", async ({
+		page,
+	}) => {
+		test.setTimeout(90_000);
+		const errors = await openShell(page);
+		for (const cell of DESKTOP_DASHBOARD_CELLS) {
+			await openDashboardCell(page, cell);
+			const where = cellLabel(cell);
+			const dock = await boxOf(page.locator(DOCK_PANEL));
+			const clearance = cell.height - dock.y;
+			const mainPadding = Number.parseFloat(
+				await pixels(page.locator("main#main-content"), "padding-bottom"),
+			);
+			const scrollPadding = Number.parseFloat(
+				await pixels(page.locator("html"), "scroll-padding-bottom"),
+			);
+			expectNearSoft(mainPadding, clearance, `${where}: main padding-bottom`);
+			expectNearSoft(
+				scrollPadding,
+				clearance,
+				`${where}: html scroll-padding-bottom`,
+			);
+
+			await page.evaluate(() =>
+				window.scrollTo({
+					top: document.documentElement.scrollHeight,
+					behavior: "instant",
+				}),
+			);
+			const footer = await boxOf(page.locator("main#main-content > footer"));
+			const dockAtEnd = await boxOf(page.locator(DOCK_PANEL));
+			record(`dock band ${where}`, { dock, clearance, footer, dockAtEnd });
+			expect
+				.soft(
+					footer.y + footer.height,
+					`${where}: the last content ends above the dock at scroll end`,
+				)
+				.toBeLessThanOrEqual(dockAtEnd.y + 0.5);
+		}
+		expect(errors).toEqual([]);
+	});
+
+	test("a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11)", async ({
+		page,
+	}) => {
+		test.setTimeout(90_000);
+		const errors = await openShell(page);
+		for (const cell of DESKTOP_DASHBOARD_CELLS) {
+			await openDashboardCell(page, cell);
+			const where = cellLabel(cell);
+			// The last quick action: low enough in the page at every cell to be
+			// scrolled under the dock (the first one sits above it at 1440x900).
+			const target = page.locator(QUICK_ACTIONS).locator("button").last();
+			const dock = await boxOf(page.locator(DOCK_PANEL));
+			const before = await boxOf(target);
+			const scrollY = await page.evaluate(() => window.scrollY);
+			const parkAt = before.y + scrollY - (dock.y + 4);
+			await page.evaluate(
+				(top) => window.scrollTo({ top, behavior: "instant" }),
+				parkAt,
+			);
+			const parked = await boxOf(target);
+			// Positive control: the target really is under the dock before Tab.
+			expect(
+				parked.y < dock.y + dock.height && parked.y + parked.height > dock.y,
+				`${where}: the target is parked under the dock (target ${parked.y}..${parked.y + parked.height}, dock ${dock.y}..${dock.y + dock.height})`,
+			).toBe(true);
+
+			await target.evaluate((node) => {
+				const tabbable = Array.from(
+					document.querySelectorAll<HTMLElement>(
+						'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+					),
+				).filter(
+					(element) =>
+						element.tabIndex >= 0 &&
+						element.getClientRects().length > 0 &&
+						element.closest("[inert]") === null,
+				);
+				const previous = tabbable[tabbable.indexOf(node as HTMLElement) - 1];
+				if (previous === undefined) {
+					throw new Error("no tabbable element precedes the quick action");
+				}
+				previous.focus({ preventScroll: true });
+			});
+			await page.keyboard.press("Tab");
+			expect(
+				await target.evaluate((node) => node === document.activeElement),
+				`${where}: Tab reached the quick action`,
+			).toBe(true);
+			const focused = await boxOf(target);
+			const dockAfter = await boxOf(page.locator(DOCK_PANEL));
+			record(`focus clearance ${where}`, { dock, parked, focused, dockAfter });
+			expect
+				.soft(
+					focused.y + focused.height,
+					`${where}: the focused quick action ends above the dock`,
+				)
+				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+		}
+		expect(errors).toEqual([]);
+	});
+
+	for (const viewport of SHEET_VIEWPORTS) {
+		test(`${viewport.width}px: no dock, so no reserved band`, async ({
+			page,
+		}) => {
+			test.setTimeout(60_000);
+			const errors = await openShell(page);
+			await openDashboardCell(page, { ...viewport, collapsed: false });
+			await expect(page.getByTestId("quick-actions-dock")).toBeHidden();
+			// pb-24 below 40rem and sm:pb-6 above it, as before the dock band.
+			expect(
+				await pixels(page.locator("main#main-content"), "padding-bottom"),
+			).toBe(viewport.width < 640 ? "96px" : "24px");
+			expect(await pixels(page.locator("html"), "scroll-padding-bottom")).toBe(
+				"auto",
+			);
+			expect(errors).toEqual([]);
+		});
+	}
 });
