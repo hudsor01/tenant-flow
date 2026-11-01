@@ -344,6 +344,24 @@ function record(type: string, value: unknown): void {
 	test.info().annotations.push({ type, description: JSON.stringify(value) });
 }
 
+/**
+ * The accessible names of the navigation landmarks Chromium exposes: every
+ * AX node with the `navigation` role that the browser does not mark ignored.
+ * Playwright's role engine does not model `inert`, so this reads the browser's
+ * own accessibility tree through CDP (owner-axe runs Desktop Chrome only).
+ */
+async function exposedNavigationNames(page: Page): Promise<string[]> {
+	const cdp = await page.context().newCDPSession(page);
+	try {
+		const { nodes } = await cdp.send("Accessibility.getFullAXTree");
+		return nodes
+			.filter((node) => !node.ignored && node.role?.value === "navigation")
+			.map((node) => String(node.name?.value ?? ""));
+	} finally {
+		await cdp.detach();
+	}
+}
+
 interface RowWidths {
 	inner: number;
 	coreW: number;
@@ -945,6 +963,16 @@ test.describe("desktop rail at 1280px", () => {
 			expandedWalk.filter((stop) => stop.inSidebar).length,
 			"Tab stops inside the expanded rail",
 		).toBeGreaterThanOrEqual(1);
+		// The rail's one unnamed `nav` (S-1) is exposed while expanded: this is the
+		// positive control for the collapsed read below.
+		await expect
+			.poll(
+				async () =>
+					(await exposedNavigationNames(page)).filter((name) => name === "")
+						.length,
+				{ message: "unnamed navigation landmarks, rail expanded" },
+			)
+			.toBe(1);
 
 		await trigger.click();
 		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
@@ -957,6 +985,22 @@ test.describe("desktop rail at 1280px", () => {
 			collapsedWalk.filter((stop) => stop.inSidebar).length,
 			"Tab stops inside the collapsed rail",
 		).toBe(0);
+		// S-5: the collapsed rail is hidden from assistive tech, its `nav`
+		// landmark included, not only the regions inside it.
+		await expect
+			.poll(
+				async () =>
+					(await exposedNavigationNames(page)).filter((name) => name === "")
+						.length,
+				{ message: "unnamed navigation landmarks, rail collapsed" },
+			)
+			.toBe(0);
+		expect(
+			await sidebar
+				.getByRole("navigation")
+				.evaluate((node) => node.closest("[inert]") !== null),
+			"the rail nav sits inside an inert subtree",
+		).toBe(true);
 		expect(
 			collapsedWalk.filter((stop) => stop.isTrigger).length,
 			"the collapsed walk reached the trigger",

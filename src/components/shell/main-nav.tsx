@@ -33,6 +33,7 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
 	SidebarSeparator,
+	useCollapsedInert,
 } from "#components/ui/sidebar";
 import {
 	isNavPathActive,
@@ -117,6 +118,9 @@ const footerItems: NavigationItem[] = [
 
 export function MainNav({ onNavigate, sections }: MainNavProps) {
 	const pathname = usePathname();
+	// The collapsed desktop rail hides this landmark too, not only the regions
+	// inside it, so no empty navigation landmark stays exposed (UI-SPEC S-5).
+	const collapsedInert = useCollapsedInert();
 
 	const handleNavigate = () => {
 		onNavigate?.();
@@ -194,7 +198,7 @@ export function MainNav({ onNavigate, sections }: MainNavProps) {
 	};
 
 	return (
-		<nav className="flex min-h-0 flex-1 flex-col">
+		<nav className="flex min-h-0 flex-1 flex-col" inert={collapsedInert}>
 			<SidebarContent className="gap-0 px-3 py-2">
 				<SidebarGroup className="p-0">
 					<SidebarMenu className="gap-0.5">

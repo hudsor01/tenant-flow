@@ -714,12 +714,12 @@
           "ref": "D-41 (V11); UI-SPEC S-4"
         },
         {
-          "what": "V12: the file exports 16 parts; the trimmed upstream parts are listed one per entry below, and the Input and Skeleton imports are gone with them",
+          "what": "V12: the file exports the 16 upstream parts it keeps, plus the D-34 useCollapsedInert hook; the trimmed upstream parts are listed one per entry below, and the Input and Skeleton imports are gone with them",
           "reason": "upstream drift not adopted (D-05)",
           "ref": "D-32 (V12)"
         },
         {
-          "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\"; the container stays non-inert so the SidebarRail child keeps re-expanding the rail; before a desktop collapse, setOpen moves focus held in the desktop sidebar to the wrapper's [data-slot=\"sidebar-trigger\"]",
+          "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\", and is exported so the owner shell puts the same inert on its nav; the container stays non-inert so the SidebarRail child keeps re-expanding the rail; before a desktop collapse, setOpen moves focus held in the desktop sidebar to the wrapper's [data-slot=\"sidebar-trigger\"]",
           "reason": "D-26 customization",
           "ref": "D-34; S12; UI-SPEC S-5"
         },

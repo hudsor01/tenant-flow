@@ -13,7 +13,8 @@
  * - Footer (D-38): exactly Settings and Help & Support
  * - onNavigate (D-48): once per link click, never for a section toggle
  * - Base-rule neutralizers (D-49): every rendered list read by computed value
- * - Collapsed-rail inert (D-34): content and footer carry `inert`
+ * - Collapsed-rail inert (D-34): the nav landmark, content and footer carry
+ *   `inert`
  *
  * MainNav reads `useSidebar()` through SidebarMenuButton, so every render goes
  * through `NavHarness`, which hosts SidebarProvider and the lifted section
@@ -488,6 +489,19 @@ describe("MainNav", () => {
 	});
 
 	describe("collapsed rail (D-34)", () => {
+		it("makes the nav landmark inert when the desktop sidebar is collapsed", () => {
+			render(<NavHarness defaultOpen={false} />);
+
+			const nav = screen.getByRole("navigation", { hidden: true });
+			expect(nav).toHaveAttribute("inert");
+		});
+
+		it("leaves the nav landmark live when the sidebar is expanded", () => {
+			render(<NavHarness />);
+
+			expect(screen.getByRole("navigation")).not.toHaveAttribute("inert");
+		});
+
 		it("makes the content and footer inert when the desktop sidebar is collapsed", () => {
 			render(<NavHarness defaultOpen={false} />);
 

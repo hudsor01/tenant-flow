@@ -67,8 +67,10 @@
  *        tabbable nor exposed to assistive tech. The container is NOT inert:
  *        SidebarRail is composed as its child, and the rail click is what
  *        expands the collapsed sidebar again (UI-SPEC S-5). Nothing is inert in
- *        the mobile sheet. Before a desktop collapse, `setOpen` moves focus
- *        held anywhere in the desktop sidebar to the wrapper's
+ *        the mobile sheet. `useCollapsedInert` is exported, so the owner shell
+ *        puts the same `inert` on the `nav` that wraps SidebarContent and
+ *        SidebarFooter. Before a desktop collapse, `setOpen` moves focus held
+ *        anywhere in the desktop sidebar to the wrapper's
  *        `[data-slot="sidebar-trigger"]`, because an inert subtree would drop
  *        it to `body` (every path: the trigger, the rail, the shortcut, a
  *        direct `setOpen(false)`).
@@ -443,6 +445,11 @@ function SidebarRail({ className, ...props }: ComponentProps<"button">) {
 	);
 }
 
+/**
+ * `true` while the desktop sidebar is collapsed (D-34), else `undefined`, for an
+ * `inert` prop. Exported so a consumer that wraps the inert parts in its own
+ * landmark (the owner shell's `nav`) can make that landmark inert as well.
+ */
 function useCollapsedInert(): true | undefined {
 	const { isMobile, state } = useSidebar();
 	return (!isMobile && state === "collapsed") || undefined;
@@ -692,5 +699,6 @@ export {
 	SidebarRail,
 	SidebarSeparator,
 	SidebarTrigger,
+	useCollapsedInert,
 	useSidebar,
 };
