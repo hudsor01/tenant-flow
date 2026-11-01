@@ -15,6 +15,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import { buildFailedRowsCsv } from "../bulk-import-result-error-list";
 import { buildCsvTemplate, parseCsvWithSchema } from "../parse-csv-with-schema";
 
 const schema = z.object({ name: z.string(), count: z.number() });
@@ -54,5 +55,42 @@ describe("failed-rows CSV download", () => {
 		// bulk-import-result-error-list.ts falls through to a synthetic
 		// `row,error` CSV in this case so the user gets a non-empty download.
 		expect(failedRows).toHaveLength(0);
+	});
+});
+
+// 66.2-39 fix round 1 part E: Papa's header mode leaves the fields a short row
+// lacks off its object, so a header taken from the first row alone dropped,
+// from every row of the failed-rows download, each column that row was short
+// of. The header is every parsed row's keys in first-seen order.
+describe("buildFailedRowsCsv headers", () => {
+	it("keeps a column the first data row is short of", () => {
+		const result = parseCsvWithSchema("name,count\nalpha\nbeta,2\n", {
+			schema,
+			mapRow,
+		});
+		const csv = buildFailedRowsCsv(
+			[
+				{ row: 2, error: "count is required" },
+				{ row: 3, error: "simulated DB error" },
+			],
+			result,
+		);
+		expect(csv.split("\n")).toEqual([
+			'"name","count","_error"',
+			'"alpha","","count is required"',
+			'"beta","2","simulated DB error"',
+		]);
+	});
+
+	it("writes no column for Papa's extra-fields array", () => {
+		const result = parseCsvWithSchema("name,count\nalpha,1,stray\n", {
+			schema,
+			mapRow,
+		});
+		const csv = buildFailedRowsCsv([{ row: 2, error: "bad row" }], result);
+		expect(csv.split("\n")).toEqual([
+			'"name","count","_error"',
+			'"alpha","1","bad row"',
+		]);
 	});
 });
