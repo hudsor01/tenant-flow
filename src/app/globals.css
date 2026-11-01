@@ -423,7 +423,9 @@
 	--accent-foreground: oklch(0.98 0.01 160);
 	--accent-main: oklch(0.65 0.23 260);
 	--destructive: oklch(0.577 0.245 25);
-	--destructive-foreground: oklch(0.98 0.01 90);
+	/* 4.63:1 on --destructive (measured in Chrome); the former 0.98 0.01 90
+	   read 4.48:1, under AA for the 12-14px destructive Button and Badge text. */
+	--destructive-foreground: oklch(0.99 0.006 90);
 	--success: oklch(0.66 0.2 160);
 	--success-foreground: oklch(0.2 0.02 160);
 	--warning: oklch(0.75 0.18 85);
