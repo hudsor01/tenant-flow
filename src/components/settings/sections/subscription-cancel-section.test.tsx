@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { expectLabelInName } from "#test/utils/label-in-name";
 
 const hooks = vi.hoisted(() => ({
 	useSubscriptionStatus: vi.fn(),
@@ -20,10 +21,8 @@ vi.mock("#hooks/api/use-billing-mutations", () => ({
 vi.mock("#components/settings/gdpr-data-actions", () => ({
 	GdprDataActions: ({ variant }: { variant?: string }) => (
 		<div data-testid="gdpr-actions" data-variant={variant}>
-			<button aria-label="Download my data as JSON">Download My Data</button>
-			<button aria-label="Request permanent account deletion">
-				Delete Account
-			</button>
+			<button type="button">Download My Data</button>
+			<button type="button">Delete Account</button>
 		</div>
 	),
 }));
@@ -192,11 +191,9 @@ describe("SubscriptionCancelSection", () => {
 		render(<SubscriptionCancelSection />);
 		expect(screen.getByText(/subscription ends/i)).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /reactivate subscription/i }),
+			screen.getByRole("button", { name: /^reactivate plan$/i }),
 		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: /cancel my subscription/i }),
-		).toBeNull();
+		expect(screen.queryByRole("button", { name: /^cancel plan$/i })).toBeNull();
 	});
 
 	it("renders State 1 (Cancel) for a trialing Stripe subscriber not yet scheduled to cancel", () => {
@@ -209,7 +206,7 @@ describe("SubscriptionCancelSection", () => {
 		render(<SubscriptionCancelSection />);
 		expect(screen.getByText("Cancel Subscription")).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /cancel my subscription/i }),
+			screen.getByRole("button", { name: /^cancel plan$/i }),
 		).toBeInTheDocument();
 	});
 
@@ -255,7 +252,7 @@ describe("SubscriptionCancelSection", () => {
 		render(<SubscriptionCancelSection />);
 		expect(screen.getByText("Cancel Subscription")).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /cancel my subscription/i }),
+			screen.getByRole("button", { name: /^cancel plan$/i }),
 		).toBeInTheDocument();
 		expect(screen.queryByText(/subscription ends/i)).toBeNull();
 		expect(screen.queryByText(/your plan ended on/i)).toBeNull();
@@ -266,7 +263,7 @@ describe("SubscriptionCancelSection", () => {
 		mockActive();
 		render(<SubscriptionCancelSection />);
 		await userEvent.click(
-			screen.getByRole("button", { name: /cancel my subscription/i }),
+			screen.getByRole("button", { name: /^cancel plan$/i }),
 		);
 		expect(screen.getByRole("alertdialog")).toBeInTheDocument();
 		expect(screen.getByText("Cancel your subscription?")).toBeInTheDocument();
@@ -279,7 +276,7 @@ describe("SubscriptionCancelSection", () => {
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", {
-				name: /confirm subscription cancellation/i,
+				name: /^yes, cancel plan$/i,
 			}),
 		).toBeInTheDocument();
 	});
@@ -293,11 +290,11 @@ describe("SubscriptionCancelSection", () => {
 		);
 		render(<SubscriptionCancelSection />);
 		await userEvent.click(
-			screen.getByRole("button", { name: /cancel my subscription/i }),
+			screen.getByRole("button", { name: /^cancel plan$/i }),
 		);
 		await userEvent.click(
 			screen.getByRole("button", {
-				name: /confirm subscription cancellation/i,
+				name: /^yes, cancel plan$/i,
 			}),
 		);
 		expect(mutate).toHaveBeenCalledTimes(1);
@@ -309,11 +306,9 @@ describe("SubscriptionCancelSection", () => {
 		render(<SubscriptionCancelSection />);
 		expect(screen.getByText(/subscription ends/i)).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /reactivate subscription/i }),
+			screen.getByRole("button", { name: /^reactivate plan$/i }),
 		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: /cancel my subscription/i }),
-		).toBeNull();
+		expect(screen.queryByRole("button", { name: /^cancel plan$/i })).toBeNull();
 	});
 
 	it("clicking Reactivate Plan fires useReactivateSubscriptionMutation().mutate()", async () => {
@@ -325,7 +320,7 @@ describe("SubscriptionCancelSection", () => {
 		);
 		render(<SubscriptionCancelSection />);
 		await userEvent.click(
-			screen.getByRole("button", { name: /reactivate subscription/i }),
+			screen.getByRole("button", { name: /^reactivate plan$/i }),
 		);
 		expect(mutate).toHaveBeenCalledTimes(1);
 		expect(screen.queryByRole("alertdialog")).toBeNull();
@@ -355,13 +350,34 @@ describe("SubscriptionCancelSection", () => {
 		);
 		render(<SubscriptionCancelSection />);
 		await userEvent.click(
-			screen.getByRole("button", { name: /cancel my subscription/i }),
+			screen.getByRole("button", { name: /^cancel plan$/i }),
 		);
 		const confirm = screen.getByRole("button", {
-			name: /confirm subscription cancellation/i,
+			name: /^canceling\.\.\.$/i,
 		});
 		expect(confirm).toBeDisabled();
 		expect(confirm).toHaveTextContent(/canceling\.\.\./i);
+	});
+
+	// WCAG 2.5.3 (66.2-39 sweep 2): the three actions carried aria-labels
+	// ("Cancel my subscription", "Confirm subscription cancellation",
+	// "Reactivate subscription") that did not contain their visible text.
+	it("names every action by its visible text", async () => {
+		cleanup();
+		mockActive();
+		render(<SubscriptionCancelSection />);
+		const cancel = screen.getByRole("button", { name: /^cancel plan$/i });
+		expectLabelInName(cancel);
+		await userEvent.click(cancel);
+		expectLabelInName(
+			screen.getByRole("button", { name: /^yes, cancel plan$/i }),
+		);
+		cleanup();
+		mockActive({ cancelAtPeriodEnd: true });
+		render(<SubscriptionCancelSection />);
+		expectLabelInName(
+			screen.getByRole("button", { name: /^reactivate plan$/i }),
+		);
 	});
 
 	it("isError state renders neutral fallback with Retry", () => {

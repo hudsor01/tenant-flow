@@ -181,7 +181,6 @@ export function GdprDataActions({
 			<button
 				onClick={() => exportData.mutate()}
 				disabled={exportData.isPending}
-				aria-label="Download my data as JSON"
 				className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 			>
 				{exportData.isPending ? (
@@ -233,7 +232,6 @@ export function GdprDataActions({
 					<button
 						onClick={() => cancelDeletion.mutate()}
 						disabled={cancelDeletion.isPending}
-						aria-label="Cancel account deletion"
 						className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 					>
 						{cancelDeletion.isPending ? (
@@ -255,7 +253,6 @@ export function GdprDataActions({
 					{!showDeleteDialog ? (
 						<button
 							onClick={() => setShowDeleteDialog(true)}
-							aria-label="Request permanent account deletion"
 							className="flex items-center gap-2 rounded-lg border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive-text hover:bg-destructive/10 transition-colors"
 						>
 							<Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -310,7 +307,6 @@ export function GdprDataActions({
 									disabled={
 										deleteConfirmText !== "DELETE" || requestDeletion.isPending
 									}
-									aria-label="Confirm account deletion"
 									className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 								>
 									{requestDeletion.isPending ? (

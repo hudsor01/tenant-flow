@@ -446,7 +446,7 @@ describe("LeaseDetails", () => {
 
 			await waitFor(() => {
 				const editButton = screen.getByRole("button", {
-					name: /editing is locked/i,
+					name: /^edit lease: locked/i,
 				});
 				expect(editButton).toBeDisabled();
 			});

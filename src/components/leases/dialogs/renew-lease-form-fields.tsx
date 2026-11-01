@@ -142,7 +142,7 @@ export function RentAdjustment({
 						variant="outline"
 						size="sm"
 						disabled
-						aria-label="Rent is locked and cannot be adjusted after the lease has been sent for signature or signed"
+						aria-label="Adjust Rent: locked because the lease has been sent for signature or signed"
 					>
 						Adjust Rent
 					</Button>

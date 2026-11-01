@@ -190,7 +190,7 @@ export function LeaseHeader({
 						variant="outline"
 						size="sm"
 						disabled
-						aria-label="Editing is locked because this lease has been sent for signature or signed"
+						aria-label="Edit Lease: locked because this lease has been sent for signature or signed"
 						title="Editing is locked because this lease has been sent for signature or signed"
 					>
 						Edit Lease

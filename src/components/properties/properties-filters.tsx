@@ -59,11 +59,7 @@ export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
 			</div>
 			<div className="flex flex-wrap items-center gap-2">
 				<BulkImportDialog config={propertyBulkImportConfig()} />
-				<Button
-					onClick={onAddProperty}
-					className="gap-2 min-h-11"
-					aria-label="Add a new property"
-				>
+				<Button onClick={onAddProperty} className="gap-2 min-h-11">
 					<Plus className="w-4 h-4" />
 					Add Property
 				</Button>
@@ -86,11 +82,7 @@ export function NoResultsFilter({ onClearFilters }: NoResultsFilterProps) {
 				<EmptyDescription>No properties match your filters</EmptyDescription>
 			</EmptyHeader>
 			<div className="flex items-center gap-3 mt-2">
-				<Button
-					variant="link"
-					onClick={onClearFilters}
-					aria-label="Clear all filters"
-				>
+				<Button variant="link" onClick={onClearFilters}>
 					Clear filters
 				</Button>
 			</div>

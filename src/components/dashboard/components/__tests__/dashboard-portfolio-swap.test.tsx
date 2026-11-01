@@ -363,7 +363,7 @@ describe("dashboard portfolio swap", () => {
 		).toBeInTheDocument();
 
 		// Hide it via the table's view-options menu -> writes to presets store.
-		await user.click(screen.getByRole("combobox", { name: /toggle columns/i }));
+		await user.click(screen.getByRole("combobox", { name: /^view columns$/i }));
 		await user.click(
 			await screen.findByRole("option", { name: /maintenance/i }),
 		);

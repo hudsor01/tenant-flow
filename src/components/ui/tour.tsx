@@ -1575,7 +1575,9 @@ function TourNext(props: ComponentProps<typeof Button>) {
 	return (
 		<Button
 			type="button"
-			aria-label="Next step"
+			// 66.2-39 divergence from DiceUI: the last step shows "Finish", so its
+			// name says so (WCAG 2.5.3 label in name; upstream always says "Next step").
+			aria-label={isLastStep ? "Finish tour" : "Next step"}
 			data-slot="tour-next"
 			{...nextButtonProps}
 			onClick={onClick}

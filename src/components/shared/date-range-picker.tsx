@@ -58,7 +58,9 @@ export function DateRangePicker({
 							"flex-1 justify-start text-left font-normal",
 							!hasRange && "text-muted-foreground",
 						)}
-						aria-label={ariaLabel}
+						// The name starts with the range the trigger shows, then says what
+						// it filters (WCAG 2.5.3 label in name).
+						aria-label={`${label} (${ariaLabel})`}
 					>
 						<CalendarIcon className="mr-2 size-4 shrink-0" aria-hidden="true" />
 						<span className="truncate">{label}</span>

@@ -198,7 +198,6 @@ export function SubscriptionCancelSection() {
 						variant="outline"
 						onClick={onReactivate}
 						disabled={reactivateMutation.isPending}
-						aria-label="Reactivate subscription"
 						className="gap-2"
 					>
 						{reactivateMutation.isPending ? (
@@ -251,7 +250,6 @@ export function SubscriptionCancelSection() {
 						<AlertDialogTrigger asChild>
 							<Button
 								variant="outline"
-								aria-label="Cancel my subscription"
 								className="text-destructive-text border-destructive/20 hover:bg-destructive/10"
 							>
 								Cancel Plan
@@ -276,7 +274,6 @@ export function SubscriptionCancelSection() {
 										onConfirmCancel();
 									}}
 									disabled={cancelMutation.isPending}
-									aria-label="Confirm subscription cancellation"
 									variant="destructive"
 								>
 									{cancelMutation.isPending && (

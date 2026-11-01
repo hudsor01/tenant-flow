@@ -122,21 +122,21 @@ export function ChartAreaInteractive({
 							<ToggleGroupItem
 								value="3m"
 								className="rounded-lg px-3 text-sm data-[state=on]:bg-card-foreground data-[state=on]:text-card"
-								aria-label="Last 3 months"
+								aria-label="3M, last 3 months"
 							>
 								3M
 							</ToggleGroupItem>
 							<ToggleGroupItem
 								value="6m"
 								className="rounded-lg px-3 text-sm data-[state=on]:bg-card-foreground data-[state=on]:text-card"
-								aria-label="Last 6 months"
+								aria-label="6M, last 6 months"
 							>
 								6M
 							</ToggleGroupItem>
 							<ToggleGroupItem
 								value="1y"
 								className="rounded-lg px-3 text-sm data-[state=on]:bg-card-foreground data-[state=on]:text-card"
-								aria-label="Last year"
+								aria-label="1Y, last year"
 							>
 								1Y
 							</ToggleGroupItem>

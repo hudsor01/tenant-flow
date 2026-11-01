@@ -165,7 +165,6 @@ export function AccountDataSection() {
 					<button
 						onClick={() => exportData.mutate()}
 						disabled={exportData.isPending}
-						aria-label="Download my data as JSON"
 						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium rounded-lg border bg-background hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 					>
 						{exportData.isPending ? (
@@ -215,7 +214,6 @@ export function AccountDataSection() {
 							<button
 								onClick={() => cancelDeletion.mutate()}
 								disabled={cancelDeletion.isPending}
-								aria-label="Cancel account deletion"
 								className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium rounded-lg border bg-background hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 							>
 								{cancelDeletion.isPending ? (

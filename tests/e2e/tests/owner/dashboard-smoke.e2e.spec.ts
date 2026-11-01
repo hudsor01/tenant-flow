@@ -294,8 +294,8 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		const maintenanceHeader = columnHeader(page, "Maintenance");
 		await expect(maintenanceHeader).toBeVisible();
 
-		// Open the DataTableViewOptions popover (combobox "Toggle columns").
-		const viewOptions = page.getByRole("combobox", { name: "Toggle columns" });
+		// Open the DataTableViewOptions popover (combobox "View columns").
+		const viewOptions = page.getByRole("combobox", { name: "View columns" });
 		await viewOptions.click();
 		await page.getByRole("option", { name: "Maintenance" }).click();
 		await page.keyboard.press("Escape");

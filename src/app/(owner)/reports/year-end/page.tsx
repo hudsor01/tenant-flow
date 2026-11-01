@@ -206,7 +206,11 @@ export default function YearEndReportsPage() {
 						disabled={
 							downloadPdfMutation.isPending || isLoadingYearEnd || !hasData
 						}
-						aria-label="Download year-end report as PDF"
+						aria-label={
+							downloadPdfMutation.isPending
+								? "Generating..."
+								: "Download PDF of the year-end report"
+						}
 					>
 						{downloadPdfMutation.isPending ? (
 							<Loader2 className="size-4 animate-spin" />

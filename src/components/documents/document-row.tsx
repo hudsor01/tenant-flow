@@ -57,7 +57,6 @@ export function DocumentRow({
 							type="button"
 							className="flex-1 min-w-0 flex items-center gap-3 rounded-md -mx-2 px-2 py-1.5 transition-colors hover:bg-accent text-left"
 							disabled={!doc.signed_url}
-							aria-label={`Preview ${displayName}`}
 							aria-haspopup="dialog"
 						>
 							<Icon

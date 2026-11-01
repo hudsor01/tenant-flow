@@ -11,6 +11,7 @@ import { PortfolioDataTable } from "#components/dashboard/components/portfolio-d
 import { PortfolioDataTableToolbar } from "#components/dashboard/components/portfolio-data-table-toolbar";
 import type { PortfolioRow } from "#components/dashboard/dashboard-types";
 import { useClientDataTable } from "#hooks/use-client-data-table";
+import { expectLabelInName } from "#test/utils/label-in-name";
 
 // The global unit-setup mocks nuqs (reads -> null, writes swallowed). This suite
 // drives a REAL TanStack table through `useClientDataTable`, whose filter/sort/
@@ -221,8 +222,13 @@ describe("PortfolioDataTableToolbar", () => {
 			render(<ToolbarHarness data={makeRows(3)} />, { wrapper: Wrapper });
 		});
 
-		// DataTableViewOptions trigger is role="combobox" aria-label="Toggle columns".
-		await user.click(screen.getByRole("combobox", { name: /toggle columns/i }));
+		// DataTableViewOptions trigger is role="combobox" aria-label="View columns",
+		// which starts with its visible "View" (WCAG 2.5.3, 66.2-39).
+		const viewOptions = screen.getByRole("combobox", {
+			name: /^view columns$/i,
+		});
+		expectLabelInName(viewOptions);
+		await user.click(viewOptions);
 		// meta.label values appear in the view-options popover.
 		expect(await screen.findByText("Monthly Rent")).toBeInTheDocument();
 		expect(screen.getByText("Maintenance")).toBeInTheDocument();
@@ -631,7 +637,7 @@ describe("PortfolioDataTable", () => {
 
 		// Toggling visibility via the view-options menu fires the PARENT handler.
 		// "Monthly Rent" also renders as a <th>, so target the popover option role.
-		await user.click(screen.getByRole("combobox", { name: /toggle columns/i }));
+		await user.click(screen.getByRole("combobox", { name: /^view columns$/i }));
 		await user.click(
 			await screen.findByRole("option", { name: /monthly rent/i }),
 		);

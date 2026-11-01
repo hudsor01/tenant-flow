@@ -80,7 +80,9 @@ export function MultiSelectChips<T extends string>({
 							"flex-1 justify-between font-normal",
 							selected.size === 0 && "text-muted-foreground",
 						)}
-						aria-label={ariaLabel}
+						// The name starts with the summary the trigger shows, then says what
+						// it filters (WCAG 2.5.3 label in name).
+						aria-label={ariaLabel ? `${summary} (${ariaLabel})` : undefined}
 						disabled={disabled}
 					>
 						<span className="truncate">{summary}</span>

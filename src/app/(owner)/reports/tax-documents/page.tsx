@@ -130,7 +130,11 @@ export default function TaxDocumentsPage() {
 							className="gap-1.5 min-h-11"
 							onClick={() => downloadPdfMutation.mutate(taxYear)}
 							disabled={downloadPdfMutation.isPending || isLoading || !hasData}
-							aria-label="Download tax documents as PDF"
+							aria-label={
+								downloadPdfMutation.isPending
+									? "Generating..."
+									: "Download PDF of the tax documents"
+							}
 						>
 							{downloadPdfMutation.isPending ? (
 								<Loader2 className="size-4 animate-spin" />
