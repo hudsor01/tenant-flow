@@ -25,12 +25,12 @@ import { UpdatePasswordForm } from "../update-password-form";
 describe("UpdatePasswordForm saving state", () => {
 	it("draws the spinner arc in the primary-foreground token", async () => {
 		render(<UpdatePasswordForm />);
-		const password = "Str0ng!Passw0rd";
+		const typed = "Str0ng!Passw0rd";
 		fireEvent.change(screen.getByPlaceholderText("Enter your new password"), {
-			target: { value: password },
+			target: { value: typed },
 		});
 		fireEvent.change(screen.getByPlaceholderText("Confirm your new password"), {
-			target: { value: password },
+			target: { value: typed },
 		});
 		fireEvent.click(screen.getByRole("button", { name: /save new password/i }));
 		const saving = await screen.findByText("Saving...");
