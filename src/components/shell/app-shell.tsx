@@ -224,6 +224,10 @@ function AppShellFrame({
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
+			// Chrome dispatches a keydown with no `key` when it autofills a field.
+			if (typeof event.key !== "string") {
+				return;
+			}
 			if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
 				// Battle-test Session 11 P2 #17: Cmd+K used to open the
 				// command palette ON TOP of any open Radix Dialog (e.g. the

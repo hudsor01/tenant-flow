@@ -354,6 +354,33 @@ describe("keyboard shortcut (D-52)", () => {
 		expect(STATE()).toBe("expanded");
 	});
 
+	it("ignores a keydown with no key (Chrome autofill) without throwing", () => {
+		const errors: unknown[] = [];
+		const onError = (event: ErrorEvent) => {
+			errors.push(event.error);
+			event.preventDefault();
+		};
+		window.addEventListener("error", onError);
+		try {
+			render(<Shell />);
+			// Chrome's autofill dispatches a plain Event named keydown: no `key`.
+			const autofill = new Event("keydown", {
+				bubbles: true,
+				cancelable: true,
+			});
+			expect(window.dispatchEvent(autofill)).toBe(true);
+			expect(errors).toEqual([]);
+			expect(STATE()).toBe("expanded");
+			// Positive control: the listener is attached and still handles a press.
+			expect(fireEvent.keyDown(window, { key: "b", ctrlKey: true })).toBe(
+				false,
+			);
+			expect(STATE()).toBe("collapsed");
+		} finally {
+			window.removeEventListener("error", onError);
+		}
+	});
+
 	it("is not blocked by the open nav sheet (data-slot='sidebar')", () => {
 		render(
 			<Shell>

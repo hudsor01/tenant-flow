@@ -40,8 +40,9 @@
  *   V7  SidebarTrigger sets `aria-expanded` from `openMobile` on mobile and
  *       `open` on desktop, renders a `size-5` PanelLeft icon and drops the
  *       sr-only label text in favor of its aria-label.
- *   V8  The Cmd/Ctrl+B handler compares `event.key.toLowerCase()` (D-52 guard
- *       list below).
+ *   V8  The Cmd/Ctrl+B handler returns at once when `event.key` is not a
+ *       string (Chrome's autofill keydown carries no `key`), then compares
+ *       `event.key.toLowerCase()` (D-52 guard list below).
  *   V9  Each desktop toggle persists through `persistSidebarOpen` from
  *       `#lib/sidebar-state` (D-36), which owns the cookie name, max-age,
  *       SameSite and the https Secure flag. This file never touches
@@ -202,6 +203,10 @@ function SidebarProvider({
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
+			// Chrome dispatches a keydown with no `key` when it autofills a field.
+			if (typeof event.key !== "string") {
+				return;
+			}
 			if (
 				event.key.toLowerCase() !== SIDEBAR_KEYBOARD_SHORTCUT ||
 				!(event.metaKey || event.ctrlKey)

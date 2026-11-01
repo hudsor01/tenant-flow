@@ -694,7 +694,7 @@
           "ref": "D-41 (V7)"
         },
         {
-          "what": "V8: the keydown handler compares event.key.toLowerCase() to SIDEBAR_KEYBOARD_SHORTCUT",
+          "what": "V8: the keydown handler returns at once when event.key is not a string (Chrome's autofill keydown carries no key), then compares event.key.toLowerCase() to SIDEBAR_KEYBOARD_SHORTCUT",
           "reason": "D-26 customization",
           "ref": "D-52 (V8)"
         },

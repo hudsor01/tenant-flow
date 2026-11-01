@@ -765,6 +765,35 @@ describe("AppShell", () => {
 			).toBeInTheDocument();
 		});
 
+		it("ignores a keydown with no key (Chrome autofill) without throwing", () => {
+			const errors: unknown[] = [];
+			const onError = (event: ErrorEvent) => {
+				errors.push(event.error);
+				event.preventDefault();
+			};
+			window.addEventListener("error", onError);
+			try {
+				render(<AppShell>Content</AppShell>);
+				// Chrome's autofill dispatches a plain Event named keydown: no `key`.
+				const autofill = new Event("keydown", {
+					bubbles: true,
+					cancelable: true,
+				});
+				expect(window.dispatchEvent(autofill)).toBe(true);
+				expect(errors).toEqual([]);
+				expect(
+					screen.queryByPlaceholderText("Search pages and actions..."),
+				).not.toBeInTheDocument();
+				// Positive control: the listener is attached and still opens on Cmd+K.
+				fireEvent.keyDown(window, { key: "k", metaKey: true });
+				expect(
+					screen.getByPlaceholderText("Search pages and actions..."),
+				).toBeInTheDocument();
+			} finally {
+				window.removeEventListener("error", onError);
+			}
+		});
+
 		it("should close command palette with keyboard shortcut", async () => {
 			render(<AppShell>Content</AppShell>);
 
