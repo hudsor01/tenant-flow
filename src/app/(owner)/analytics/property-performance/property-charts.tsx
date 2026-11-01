@@ -30,26 +30,26 @@ import type {
 const occupancyConfig = {
 	occupancy: {
 		label: "Occupancy %",
-		color: "oklch(0.62 0.12 240)",
+		color: "var(--color-chart-1)",
 	},
 	revenue: {
 		label: "Monthly Revenue",
-		color: "oklch(0.68 0.14 150)",
+		color: "var(--color-success-text)",
 	},
 } satisfies ChartConfig;
 
 const visitorConfig = {
 	visits: {
 		label: "Visits",
-		color: "oklch(0.73 0.08 40)",
+		color: "var(--color-chart-1)",
 	},
 	inquiries: {
 		label: "Inquiries",
-		color: "oklch(0.6 0.16 120)",
+		color: "var(--color-chart-4)",
 	},
 	conversions: {
 		label: "Applications",
-		color: "oklch(0.67 0.14 180)",
+		color: "var(--color-success-text)",
 	},
 } satisfies ChartConfig;
 

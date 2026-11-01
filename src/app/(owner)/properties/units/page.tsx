@@ -114,7 +114,7 @@ export default function UnitsPage() {
 						<div className="size-2 rounded-full bg-chart-1" />
 					</div>
 					<div className="typography-h3">{occupiedCount}</div>
-					<div className="text-xs mt-1 text-chart-1">
+					<div className="text-xs mt-1 text-primary-text">
 						{occupancyRate.toFixed(1)}% occupancy
 					</div>
 				</div>
@@ -136,7 +136,7 @@ export default function UnitsPage() {
 						<div className="size-2 rounded-full bg-chart-5" />
 					</div>
 					<div className="typography-h3">{maintenanceCount}</div>
-					<div className="text-xs mt-1 text-chart-5">Needs attention</div>
+					<div className="text-xs mt-1 text-info-text">Needs attention</div>
 				</div>
 			</div>
 

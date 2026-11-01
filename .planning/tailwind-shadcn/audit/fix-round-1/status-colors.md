@@ -1,6 +1,6 @@
 # 66.2-39 fix round 1, part C: status colors and chart series through the token layer
 
-Owner decision, 2026-11-01: "Fix all in this PR", including every raw-palette status color moving to the project tokens, with each visual change measured before it ships. This file is the measurement record for that change: status colors (UI-SPEC VD-51, sections 1-3).
+Owner decision, 2026-11-01: "Fix all in this PR", including every raw-palette status color moving to the project tokens, with each visual change measured before it ships. This file is the measurement record for that change: status colors (UI-SPEC VD-51, sections 1-3) and chart series (VD-52, section 4).
 
 Base: `d0cc141b5`. Every ratio below is painted WCAG contrast read back from a 1x1 canvas in Chrome (Playwright 1.64.1 headless shell) under the project's own compiled stylesheet: `loadProjectTailwindEngine()` compiles `src/app/globals.css` with the project scan plus the probe classes, and each background stack is painted in order over white, so opacity tints compose the way they do on the page. Light is `<html>` without a class, dark is `<html class="dark">`. Probe scripts: `scratchpad/exec/fix3/pairs.mjs` (derived from part B's `fix2/contrast.mjs`) with the cases in `status-cases.mjs`; chart colors with `fix2/contrast.mjs` itself.
 
@@ -174,3 +174,65 @@ BorderBeam before/after (decorative, no minimum; on the card): `hsl(142 76% 36%)
 - Exemptions: `PALETTE_EXEMPTIONS`, empty.
 
 Red on `d0cc141b5` (`node scratchpad/exec/fix3/g10-run.mjs d0cc141b5`, the check run over `git show d0cc141b5:<path>` for the same source set): `sources=892 checked=27110 violations=374`, the section 1 set exactly. Green on this change: `violations=0`, and the vitest `it` passes (`checked` > 10 000). The two fixture controls report each form above plus a raw config variable (8 hits) and pass the token forms and an exempted hit.
+
+## 4. Chart series (VD-52)
+
+Sweep: `git grep -nE '(oklch|hsl|hsla|rgb|rgba)\([0-9]|#[0-9a-fA-F]{3,8}\b'` over `src/**/*.{ts,tsx}` minus tests, `src/test/` and `src/app/api/og/**`, after dropping `#` import specifiers and comment lines. On `d0cc141b5`: 20 `ChartConfig` color literals in 6 files, 2 BorderBeam hsl literals (moved with the status colors, section 2), and 7 others that stay:
+
+- `documents/templates/components/{maintenance-request,property-inspection,rental-application,tenant-notice}-template.client.tsx`: `primaryColor: "oklch(0.35 0.08 250)"`, the default of a user-editable `<input type="color">` that `build-template-html.ts` writes into a standalone generated document, where no CSS variable exists (the D-03 class `design-token-drift.test.ts` already exempts for that builder). Chrome reads the oklch default as `#143c62`, so the swatch shows it.
+- `src/app/layout.tsx:26,68` and `src/lib/generate-metadata.ts:112`: `#2563eb` in `<meta>` theme color, the tile color and the Safari mask-icon color, HTML attribute values that cannot read a custom property (documented in place; D-03).
+- Out of bounds by instruction: `src/app/api/og/**` and `scripts/render-blog-cover.tsx` keep their hsl() literals (satori renders oklch as black).
+
+Convention followed: the dashboard charts reference the token in the config (`color: "var(--color-chart-1)"`, `revenue-area-chart.tsx`, `chart-area-interactive.tsx`, `occupancy-donut-chart.tsx`), and `ChartStyle` (`ui/chart.tsx`) writes it as `--color-<key>` on the chart. A series with status meaning takes the semantic token; a neutral series takes a chart token.
+
+Which tokens qualify, measured as a mark on the card (`bg-card`, light `#fafcfe`, dark `#080e16`; 3:1 needed in both themes):
+
+| Token | Light | Dark | Series use |
+|-------|-------|------|------------|
+| chart-1 | `#2381ff` 3.61 | `#2381ff` 5.21 | neutral series |
+| chart-2 | `#00c0a3` 2.25 | 8.36 | not used: fails light |
+| chart-3 | `#d29a00` 2.44 | 7.71 | not used: fails light |
+| chart-4 | `#e85760` 3.42 | 5.50 | a second neutral series |
+| chart-5 | `#3275b4` 4.71 | 4.00 | not used here: the same hue as chart-1 (250 vs 259), so two series could not be told apart |
+| success (vivid) | `#00b565` 2.62 | 7.34 | not used: fails light |
+| warning (vivid) | `#e1a200` 2.18 | 7.69 | not used: fails light |
+| destructive (vivid) | `#e7001e` 4.62 | `#c90000` 3.21 | not used: the companion has the margin |
+| success-text | `#007b40` 5.23 | `#4bdc95` 11.04 | success series |
+| warning-text | `#965900` 5.48 | `#fbc044` 11.73 | warning series |
+| destructive-text | `#be000d` 6.39 | `#ff6762` 6.79 | destructive series |
+
+The chart tokens are mode-independent and the blog OG renderer mirrors their values in hsl (`src/app/api/og/blog/[slug]/route.tsx`, out of bounds here), so chart-2 and chart-3 are not retuned in this change; their existing dashboard uses (the occupancy donut, the interactive area chart, the analytics and units legends) are unchanged.
+
+| File:line | Series | Before (light / dark on card) | After token | After (light / dark) |
+|-----------|--------|-------------------------------|-------------|----------------------|
+| `revenue-expense-chart.tsx:28` | revenue | `oklch(0.6 0.16 138)` `#4a952a` 3.63 / 5.18 | `var(--color-success-text)` | 5.23 / 11.04 |
+| `revenue-expense-chart.tsx:29` | expenses | `oklch(0.75 0.08 20)` `#dc9a99` **2.24** / 8.41 | `var(--color-destructive-text)` | 6.39 / 6.79 |
+| `revenue-expense-chart.tsx:30` | net income | `oklch(0.64 0.19 162)` `#00ad67` **2.85** / 6.61 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `financial-charts.tsx:42` | invoiced | `oklch(0.72 0.08 45)` `#cf957b` **2.48** / 7.60 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `financial-charts.tsx:43` | paid | `oklch(0.55 0.18 140)` `#258900` 4.39 / 4.29 | `var(--color-success-text)` | 5.23 / 11.04 |
+| `financial-charts.tsx:44` | overdue | `oklch(0.72 0.15 30)` `#f47c6b` **2.57** / 7.32 | `var(--color-destructive-text)` | 6.39 / 6.79 |
+| `financial-charts.tsx:48` | NOI | `oklch(0.68 0.1 255)` `#6d9bd5` **2.80** / 6.73 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `property-performance/property-charts.tsx:33` | occupancy % | `oklch(0.62 0.12 240)` `#328fc7` 3.47 / 5.43 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `property-performance/property-charts.tsx:37` | monthly revenue | `oklch(0.68 0.14 150)` `#4eb068` **2.64** / 7.13 | `var(--color-success-text)` | 5.23 / 11.04 |
+| `property-performance/property-charts.tsx:44` | visits | `oklch(0.73 0.08 40)` `#d49782` **2.39** / 7.88 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `property-performance/property-charts.tsx:48` | inquiries | `oklch(0.6 0.16 120)` `#758c00` 3.71 / 5.08 | `var(--color-chart-4)` | 3.42 / 5.50 |
+| `property-performance/property-charts.tsx:52` | applications | `oklch(0.67 0.14 180)` `#00b098` **2.67** / 7.07 | `var(--color-success-text)` | 5.23 / 11.04 |
+| `analytics/lease-charts.tsx:24` | renewals | `oklch(0.65 0.14 150)` `#43a65f` **2.98** / 6.32 | `var(--color-success-text)` | 5.23 / 11.04 |
+| `analytics/lease-charts.tsx:28` | expirations | `oklch(0.68 0.12 30)` `#d87a6b` **2.95** / 6.38 | `var(--color-warning-text)` | 5.48 / 11.73 |
+| `analytics/lease-charts.tsx:32` | notices | `oklch(0.72 0.09 220)` `#5db2cc` **2.35** / 8.03 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `analytics/lease-charts.tsx:39` | status share | `oklch(0.58 0.16 140)` `#3d9028` 3.91 / 4.81 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `analytics/maintenance-charts.tsx:24` | completed | `oklch(0.6 0.16 160)` `#009c5e` 3.45 / 5.46 | `var(--color-success-text)` | 5.23 / 11.04 |
+| `analytics/maintenance-charts.tsx:28` | pending | `oklch(0.68 0.12 20)` `#d87879` **2.97** / 6.35 | `var(--color-warning-text)` | 5.48 / 11.73 |
+| `analytics/maintenance-charts.tsx:35` | cost | `oklch(0.62 0.14 230)` `#0094c9` 3.36 / 5.61 | `var(--color-chart-1)` | 3.61 / 5.21 |
+| `analytics/property-charts.tsx:21` | occupancy rate | `oklch(0.65 0.13 210)` `#00a3bb` **2.94** / 6.41 | `var(--color-chart-1)` | 3.61 / 5.21 |
+
+Before: 13 of the 20 series failed 3:1 on the light card (bold). After: 0 of 20 in either theme. Each chart's series keep distinct hues (blue chart-1, red-orange chart-4, green success, amber warning, red destructive); no chart pairs chart-1 with chart-5. Every token named resolves in the compiled theme (G7, and `--color-success-text: var(--success-text)` and the rest are declared in the project build).
+
+Chart tokens as text. The same sweep for a chart token used as a text color (`git grep -nE '(text|stroke|fill|border|decoration|outline|ring)-chart-[0-9]'` over shipped `src/`) finds two 12px captions on `/properties/units`; a chart token is a fill, and both failed AA in one theme. Each now reads the AA companion of its dot's hue (chart-1 hue 259 -> primary-text, chart-5 hue 250 -> info-text):
+
+| # | Site | Kind (min) | Before: fg classes / bg stack | After: fg classes / bg stack | Light before | Light after | Dark before | Dark after |
+|---|------|------------|-------------------------------|------------------------------|--------------|-------------|-------------|------------|
+| 1 | units/page.tsx:117 occupancy caption (12px) | text (4.5) | `text-chart-1` / `bg-background` > `bg-card` | `text-primary-text` / `bg-background` > `bg-card` | #2381ff on #fafcfe = **3.61** | #004fc4 on #fafcfe = **7** | #2381ff on #080e16 = **5.21** | #7cbeff on #080e16 = **9.83** |
+| 2 | units/page.tsx:139 Needs attention caption (12px) | text (4.5) | `text-chart-5` / `bg-background` > `bg-card` | `text-info-text` / `bg-background` > `bg-card` | #3275b4 on #fafcfe = **4.71** | #0064b2 on #fafcfe = **5.89** | #3275b4 on #080e16 = **4** | #6cc3ff on #080e16 = **10.04** |
+
+Regression test: `describe("chart series and BorderBeam colors reference a token (66.2-39)")` in `src/app/__tests__/design-token-drift.test.ts`. In every `src/app` / `src/components` file outside `src/components/ui/` that mentions `ChartConfig`, each `color:` string is exactly `var(--color-<token>)`; every BorderBeam `colorFrom` / `colorTo` string references `var(--color-…)` and holds no literal color function; and no `text-chart-N` class appears. Red with the eight pre-fix files checked out from `d0cc141b5`: 24 violations (the 20 series and both beams' `colorFrom` and `colorTo`) and the two `text-chart-1` / `text-chart-5` captions; green after. A fixture `it` proves the predicate flags a literal series and a literal beam and passes the token forms.

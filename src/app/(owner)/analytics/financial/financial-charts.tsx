@@ -39,13 +39,13 @@ import type {
 } from "#types/analytics";
 
 const billingTimelineConfig = {
-	invoiced: { label: "Invoiced", color: "oklch(0.72 0.08 45)" },
-	paid: { label: "Paid", color: "oklch(0.55 0.18 140)" },
-	overdue: { label: "Overdue", color: "oklch(0.72 0.15 30)" },
+	invoiced: { label: "Invoiced", color: "var(--color-chart-1)" },
+	paid: { label: "Paid", color: "var(--color-success-text)" },
+	overdue: { label: "Overdue", color: "var(--color-destructive-text)" },
 } satisfies ChartConfig;
 
 const noiConfig = {
-	noi: { label: "NOI", color: "oklch(0.68 0.1 255)" },
+	noi: { label: "NOI", color: "var(--color-chart-1)" },
 } satisfies ChartConfig;
 
 type NetOperatingIncomeChartProps = { data: NetOperatingIncomeByProperty[] };

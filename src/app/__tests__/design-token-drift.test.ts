@@ -199,6 +199,100 @@ for (const root of ["src/components", "src/app"]) {
 	});
 }
 
+// 66.2-39: a chart series and a BorderBeam color reference a theme token, so
+// both themes and the measured contrast travel with the token (UI-SPEC VD-51,
+// VD-52). A ChartConfig `color` is exactly `var(--color-<token>)`, the form the
+// dashboard charts use; a beam color may wrap a token (`oklch(from var(...)
+// l c h / 0.3)`, `color-mix(...)`) but never a literal color. The vendored
+// primitives under src/components/ui are not callers and are skipped.
+const CHART_CONFIG_COLOR = /\bcolor:\s*(["'`])((?:(?!\1).)*)\1/g;
+const CHART_TOKEN_REFERENCE = /^var\(--color-[a-z0-9-]+\)$/;
+const BEAM_COLOR_PROP = /\bcolor(?:From|To)=(["'])((?:(?!\1).)*)\1/g;
+const LITERAL_COLOR_FUNCTION = /(?:oklch|oklab|lab|lch|hsla?|rgba?)\(\s*[\d.]/i;
+
+function chartAndBeamColorViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	if (content.includes("ChartConfig")) {
+		for (const m of content.matchAll(CHART_CONFIG_COLOR)) {
+			const value = m[2] ?? "";
+			if (!CHART_TOKEN_REFERENCE.test(value))
+				out.push(`${rel}: color ${value}`);
+		}
+	}
+	for (const m of content.matchAll(BEAM_COLOR_PROP)) {
+		const value = m[2] ?? "";
+		if (value === "transparent") continue;
+		if (!value.includes("var(--color-") || LITERAL_COLOR_FUNCTION.test(value)) {
+			out.push(`${rel}: beam ${value}`);
+		}
+	}
+	return out;
+}
+
+describe("chart series and BorderBeam colors reference a token (66.2-39)", () => {
+	const scanned: string[] = [];
+	const violations: string[] = [];
+	for (const root of ["src/components", "src/app"]) {
+		for (const abs of walkSourceFiles(join(cwd, root))) {
+			const rel = relative(cwd, abs).replace(/\\/g, "/");
+			if (rel.startsWith("src/components/ui/")) continue;
+			const content = readFileSync(abs, "utf8");
+			if (!content.includes("ChartConfig") && !content.includes("BorderBeam"))
+				continue;
+			scanned.push(rel);
+			violations.push(...chartAndBeamColorViolations(rel, content));
+		}
+	}
+
+	it("scans the chart and beam callers", () => {
+		expect(scanned).toContain(
+			"src/app/(owner)/analytics/financial/revenue-expense-chart.tsx",
+		);
+		expect(scanned).toContain("src/components/tenants/tenant-stats.tsx");
+		expect(scanned.length).toBeGreaterThan(15);
+	});
+
+	it("finds no literal chart series or beam color", () => {
+		expect(
+			violations,
+			`Literal chart/beam color(s). Use color: "var(--color-chart-N)" or the semantic token the series means (status series: the -text companions), and a var(--color-...) beam color:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	// A chart token is a fill: as text it fails AA (chart-1 3.61:1 light,
+	// chart-5 4.00:1 dark on the card). Text uses an AA companion.
+	it("uses no chart token as a text color", () => {
+		const textChart: string[] = [];
+		for (const root of ["src/components", "src/app"]) {
+			for (const abs of walkSourceFiles(join(cwd, root))) {
+				const rel = relative(cwd, abs).replace(/\\/g, "/");
+				for (const m of readFileSync(abs, "utf8").matchAll(
+					/(?<![\w-])(?:[\w-]+:)*text-chart-\d(?![\w-])/g,
+				)) {
+					textChart.push(`${rel}: ${m[0]}`);
+				}
+			}
+		}
+		expect(textChart).toEqual([]);
+	});
+
+	it("flags a literal series and beam color and passes the token forms", () => {
+		expect(
+			chartAndBeamColorViolations(
+				"x.tsx",
+				[
+					'const c = { a: { label: "A", color: "oklch(0.6 0.16 138)" }, b: { color: "var(--color-chart-1)" } } satisfies ChartConfig;',
+					'<BorderBeam colorFrom="hsl(142 76% 36%)" colorTo="oklch(from var(--color-success) l c h / 0.3)" />',
+					'<BorderBeam colorFrom="var(--color-warning)" colorTo="transparent" />',
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: color oklch(0.6 0.16 138)",
+			"x.tsx: beam hsl(142 76% 36%)",
+		]);
+	});
+});
+
 describe("drift regexes catch known drift (meta-test)", () => {
 	it("hex regex catches a 6-digit hex", () =>
 		expect("#2563eb".match(DRIFT_PATTERNS.hex)).not.toBeNull());

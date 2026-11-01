@@ -25,9 +25,9 @@ import {
 import type { MonthlyFinancialMetric } from "#types/analytics";
 
 const revenueExpenseConfig = {
-	revenue: { label: "Revenue", color: "oklch(0.6 0.16 138)" },
-	expenses: { label: "Expenses", color: "oklch(0.75 0.08 20)" },
-	netIncome: { label: "Net Income", color: "oklch(0.64 0.19 162)" },
+	revenue: { label: "Revenue", color: "var(--color-success-text)" },
+	expenses: { label: "Expenses", color: "var(--color-destructive-text)" },
+	netIncome: { label: "Net Income", color: "var(--color-chart-1)" },
 } satisfies ChartConfig;
 
 type RevenueExpenseChartProps = { data: MonthlyFinancialMetric[] };

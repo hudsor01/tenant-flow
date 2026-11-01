@@ -18,7 +18,7 @@ import type {
 const occupancyConfig = {
 	occupancyRate: {
 		label: "Occupancy Rate",
-		color: "oklch(0.65 0.13 210)",
+		color: "var(--color-chart-1)",
 	},
 } satisfies ChartConfig;
 

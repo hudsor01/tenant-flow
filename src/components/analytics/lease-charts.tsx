@@ -21,22 +21,22 @@ import type {
 const lifecycleConfig = {
 	renewals: {
 		label: "Renewals",
-		color: "oklch(0.65 0.14 150)",
+		color: "var(--color-success-text)",
 	},
 	expirations: {
 		label: "Expirations",
-		color: "oklch(0.68 0.12 30)",
+		color: "var(--color-warning-text)",
 	},
 	notices: {
 		label: "Notices",
-		color: "oklch(0.72 0.09 220)",
+		color: "var(--color-chart-1)",
 	},
 } satisfies ChartConfig;
 
 const statusConfig = {
 	percentage: {
 		label: "Share",
-		color: "oklch(0.58 0.16 140)",
+		color: "var(--color-chart-1)",
 	},
 } satisfies ChartConfig;
 

@@ -21,18 +21,18 @@ import type {
 const trendConfig = {
 	completed: {
 		label: "Completed",
-		color: "oklch(0.6 0.16 160)",
+		color: "var(--color-success-text)",
 	},
 	pending: {
 		label: "Pending",
-		color: "oklch(0.68 0.12 20)",
+		color: "var(--color-warning-text)",
 	},
 } satisfies ChartConfig;
 
 const costConfig = {
 	amount: {
 		label: "Cost",
-		color: "oklch(0.62 0.14 230)",
+		color: "var(--color-chart-1)",
 	},
 } satisfies ChartConfig;
 
