@@ -470,6 +470,11 @@ describe("MainNav", () => {
 			const subRow = screen.getByRole("link", { name: "Overview" }).classList;
 			expect(subRow.contains("h-9")).toBe(true);
 			expect(subRow.contains("no-underline")).toBe(true);
+			// S-3: the sub rows end flush with CollapsibleContent's overflow-hidden
+			// box, so only their ring is inset; the core row keeps the flush outset
+			// ring (geometry proved in app-shell-sidebar.spec.ts).
+			expect(subRow.contains("focus-visible:ring-inset")).toBe(true);
+			expect(row.contains("focus-visible:ring-inset")).toBe(false);
 			for (const dropped of [
 				"h-7",
 				"px-2",

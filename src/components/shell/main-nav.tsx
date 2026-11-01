@@ -168,6 +168,9 @@ export function MainNav({ onNavigate, sections }: MainNavProps) {
 							<ChevronDown className="ml-auto text-muted-foreground transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
 						</SidebarMenuButton>
 					</CollapsibleTrigger>
+					{/* The sub rows end flush with this overflow-hidden box, so their
+					    focus ring is inset (UI-SPEC S-3): an outset ring would lose its
+					    inline-end 2px to the clip. */}
 					<CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
 						<SidebarMenuSub className="mx-0 ml-8 translate-x-0 gap-0.5 border-l-0 pl-0 pr-0 py-1">
 							{item.children?.map((child) => {
@@ -177,7 +180,7 @@ export function MainNav({ onNavigate, sections }: MainNavProps) {
 										<SidebarMenuSubButton
 											asChild
 											isActive={childActive}
-											className="h-9 translate-x-0 gap-3 rounded-lg px-3 text-muted-foreground transition-colors no-underline max-md:min-h-11 data-[active=true]:bg-primary/5 data-[active=true]:font-medium data-[active=true]:text-primary-text"
+											className="h-9 translate-x-0 gap-3 rounded-lg px-3 text-muted-foreground transition-colors no-underline focus-visible:ring-inset max-md:min-h-11 data-[active=true]:bg-primary/5 data-[active=true]:font-medium data-[active=true]:text-primary-text"
 										>
 											<Link
 												href={child.href}

@@ -362,6 +362,149 @@ async function exposedNavigationNames(page: Page): Promise<string[]> {
 	}
 }
 
+/**
+ * Focuses `target` with a real Tab press, so `:focus-visible` matches: the
+ * tabbable element before it is focused programmatically, then Tab moves on.
+ */
+async function focusByTab(page: Page, target: Locator): Promise<void> {
+	await target.evaluate((node) => {
+		const tabbable = Array.from(
+			document.querySelectorAll<HTMLElement>(
+				'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+			),
+		).filter(
+			(element) =>
+				element.tabIndex >= 0 &&
+				element.getClientRects().length > 0 &&
+				element.closest("[inert]") === null,
+		);
+		const previous = tabbable[tabbable.indexOf(node as HTMLElement) - 1];
+		if (previous === undefined) {
+			throw new Error("focusByTab: no tabbable element precedes the target");
+		}
+		previous.focus({ preventScroll: true });
+	});
+	await page.keyboard.press("Tab");
+	await expect(target).toBeFocused();
+}
+
+interface Rect {
+	left: number;
+	top: number;
+	right: number;
+	bottom: number;
+}
+
+interface RingPaint {
+	/** The rect the focus ring paints: the border box, grown by any outset ring. */
+	ring: Rect;
+	/** The padding box of the nearest ancestor that clips overflow. */
+	clip: Rect;
+	clipSlot: string;
+	inset: boolean;
+	spread: number;
+	boxShadow: string;
+}
+
+/**
+ * Where the focused row's ring paints, against the nearest ancestor that clips
+ * overflow (any `overflow-x`/`overflow-y` other than `visible`). A box-shadow
+ * is clipped by an ancestor's overflow, never by the element's own, so the walk
+ * starts at the parent; the ancestor is tagged so `boxOf` can measure it. The
+ * spread is the largest non-zero spread among the computed shadow layers; an
+ * `inset` ring paints inside the border box. The clip's padding box is its
+ * border box minus its left/top borders, `clientWidth` by `clientHeight`.
+ */
+async function ringPaintOf(page: Page, row: Locator): Promise<RingPaint> {
+	const style = await row.evaluate((node) => {
+		const computed = getComputedStyle(node);
+		const layers: string[] = [];
+		let depth = 0;
+		let current = "";
+		for (const char of computed.boxShadow) {
+			if (char === "(") depth += 1;
+			if (char === ")") depth -= 1;
+			if (char === "," && depth === 0) {
+				layers.push(current.trim());
+				current = "";
+			} else {
+				current += char;
+			}
+		}
+		layers.push(current.trim());
+		let spread = 0;
+		let inset = false;
+		for (const layer of layers) {
+			const lengths = layer
+				.replace(/[a-z-]+\([^)]*\)/g, "")
+				.match(/-?[\d.]+px/g);
+			const value =
+				lengths && lengths.length >= 4
+					? Number.parseFloat(lengths[3] ?? "0")
+					: 0;
+			if (value > spread) {
+				spread = value;
+				inset = /\binset\b/.test(layer);
+			}
+		}
+		for (const tagged of document.querySelectorAll("[data-e2e-ring-clip]")) {
+			tagged.removeAttribute("data-e2e-ring-clip");
+		}
+		let clipNode = node.parentElement;
+		while (clipNode !== null) {
+			const clipStyle = getComputedStyle(clipNode);
+			if (
+				clipStyle.overflowX !== "visible" ||
+				clipStyle.overflowY !== "visible"
+			) {
+				break;
+			}
+			clipNode = clipNode.parentElement;
+		}
+		const clip = clipNode ?? document.documentElement;
+		clip.setAttribute("data-e2e-ring-clip", "");
+		const clipStyle = getComputedStyle(clip);
+		return {
+			spread,
+			inset,
+			boxShadow: computed.boxShadow,
+			clipSlot: clip.getAttribute("data-slot") ?? clip.tagName.toLowerCase(),
+			clipBorderLeft: Number.parseFloat(clipStyle.borderLeftWidth),
+			clipBorderTop: Number.parseFloat(clipStyle.borderTopWidth),
+			clipWidth: clip.clientWidth,
+			clipHeight: clip.clientHeight,
+		};
+	});
+	const box = await boxOf(row);
+	const clipBox = await boxOf(page.locator("[data-e2e-ring-clip]"));
+	await page.evaluate(() => {
+		for (const tagged of document.querySelectorAll("[data-e2e-ring-clip]")) {
+			tagged.removeAttribute("data-e2e-ring-clip");
+		}
+	});
+	const grow = style.inset ? 0 : style.spread;
+	const clipLeft = clipBox.x + style.clipBorderLeft;
+	const clipTop = clipBox.y + style.clipBorderTop;
+	return {
+		ring: {
+			left: box.x - grow,
+			top: box.y - grow,
+			right: box.x + box.width + grow,
+			bottom: box.y + box.height + grow,
+		},
+		clip: {
+			left: clipLeft,
+			top: clipTop,
+			right: clipLeft + style.clipWidth,
+			bottom: clipTop + style.clipHeight,
+		},
+		clipSlot: style.clipSlot,
+		inset: style.inset,
+		spread: style.spread,
+		boxShadow: style.boxShadow,
+	};
+}
+
 interface RowWidths {
 	inner: number;
 	coreW: number;
@@ -1044,6 +1187,84 @@ test.describe("desktop rail at 1280px", () => {
 		await expect(trigger).toBeFocused();
 		await trigger.click();
 		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+
+		expect(errors).toEqual([]);
+	});
+
+	test("VD-34: every row's focus ring paints inside its clipping ancestor", async ({
+		page,
+	}) => {
+		const errors = await openShell(page);
+		await page.goto("/reports/cash-flow");
+		await waitForHydration(page, TRIGGER);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const reports = sidebar.locator('[data-slot="collapsible-trigger"]', {
+			hasText: "Reports",
+		});
+		await expect(reports).toHaveAttribute("aria-expanded", "true");
+		const ring = await resolveColor(page, "--sidebar-ring");
+
+		const rows: Array<{ label: string; row: Locator; inset: boolean }> = [
+			{
+				label: "core row Dashboard",
+				row: sidebar
+					.locator('[data-slot="sidebar-menu"]')
+					.first()
+					.locator('[data-slot="sidebar-menu-button"]')
+					.first(),
+				inset: false,
+			},
+			{ label: "section toggle Reports", row: reports, inset: false },
+			{
+				label: "sub row Income Statement",
+				row: sidebar.locator('[data-slot="sidebar-menu-sub-button"]', {
+					hasText: "Income Statement",
+				}),
+				inset: true,
+			},
+			{
+				label: "current sub row Cash Flow",
+				row: sidebar.locator('[data-slot="sidebar-menu-sub-button"]', {
+					hasText: "Cash Flow",
+				}),
+				inset: true,
+			},
+			{
+				label: "footer row Settings",
+				row: sidebar
+					.locator('[data-slot="sidebar-footer"]')
+					.locator('[data-slot="sidebar-menu-button"]')
+					.first(),
+				inset: false,
+			},
+		];
+
+		for (const { label, row, inset } of rows) {
+			await focusByTab(page, row);
+			const paint = await ringPaintOf(page, row);
+			record(`ring paint ${label}`, paint);
+			expect(paint.boxShadow, `${label}: ring color`).toContain(ring);
+			expect(paint.spread, `${label}: ring width`).toBe(2);
+			expect(
+				paint.ring.left,
+				`${label}: ring left vs ${paint.clipSlot}`,
+			).toBeGreaterThanOrEqual(paint.clip.left - 0.5);
+			expect(
+				paint.ring.top,
+				`${label}: ring top vs ${paint.clipSlot}`,
+			).toBeGreaterThanOrEqual(paint.clip.top - 0.5);
+			expect(
+				paint.ring.right,
+				`${label}: ring right vs ${paint.clipSlot}`,
+			).toBeLessThanOrEqual(paint.clip.right + 0.5);
+			expect(
+				paint.ring.bottom,
+				`${label}: ring bottom vs ${paint.clipSlot}`,
+			).toBeLessThanOrEqual(paint.clip.bottom + 0.5);
+			// The mechanism (S-3): sub rows sit flush with the clipping
+			// CollapsibleContent's inline end, so their ring is inset.
+			expect(paint.inset, `${label}: inset ring`).toBe(inset);
+		}
 
 		expect(errors).toEqual([]);
 	});
