@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { boxOf } from "../../lib/measure";
+import { waitForSheetReady } from "../../lib/sheet-ready";
 
 test.describe("Mobile nav at 375px viewport", () => {
 	test.use({ viewport: { width: 375, height: 667 } });
@@ -117,6 +118,9 @@ test.describe("Mobile nav at 375px viewport", () => {
 		await page.getByTestId("mobile-nav-toggle").click();
 		const drawer = page.getByRole("dialog");
 		await expect(drawer).toBeVisible();
+		// A coordinate click skips Playwright's actionability checks, so it can
+		// land before Radix attaches the outside-click listener; wait for that.
+		await waitForSheetReady(drawer);
 		// Coordinate-only outside-click: at 375px viewport with default SheetContent
 		// (right-side drawer, w-3/4 = ~281px wide, left edge at ~94px), x:10 is safely
 		// outside the drawer body and falls on the SheetOverlay. No locator needed —

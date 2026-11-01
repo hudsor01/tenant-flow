@@ -6,6 +6,7 @@ import {
 	waitForDashboardContent,
 } from "../../lib/authed-dashboard";
 import { type Box, boxesOf, boxOf, polledRead } from "../../lib/measure";
+import { waitForSheetReady } from "../../lib/sheet-ready";
 
 /**
  * The canonical owner Sidebar in a real browser — Phase 66.2 wave 6, UI-SPEC
@@ -50,9 +51,11 @@ import { type Box, boxesOf, boxOf, polledRead } from "../../lib/measure";
  * against production).
  */
 
-// The 200ms sheet and collapse transitions become instant under the global
-// reduced-motion rule in globals.css, which removes the transition race rather
-// than waiting it out (the dashboard-smoke posture).
+// The 200ms sheet and collapse transitions shrink to 0.01ms under the global
+// reduced-motion rule in globals.css (the dashboard-smoke posture). That shortens
+// the race without removing it: until the next frame starts the sheet's entrance
+// it sits at its first keyframe, so every sheet open still goes through
+// `waitForSheetReady`.
 test.use({ contextOptions: { reducedMotion: "reduce" } });
 
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
@@ -1304,11 +1307,17 @@ async function openSheetShell(page: Page): Promise<string[]> {
 	return errors;
 }
 
-/** Opens the nav sheet from the trigger and returns the dialog. */
+/**
+ * Opens the nav sheet from the trigger and returns the dialog once its entrance
+ * has finished and a scrim click dismisses it (`waitForSheetReady`). Visibility
+ * alone came too early: a scrim click sent right after a reopen was ignored
+ * (2 of 2 runs at 375 and at 900 on a production build, 66.2-39).
+ */
 async function openSheet(page: Page): Promise<Locator> {
 	await page.locator(TRIGGER).click();
 	const sheet = page.getByRole("dialog", { name: "Navigation menu" });
 	await expect(sheet).toBeVisible();
+	await waitForSheetReady(sheet);
 	return sheet;
 }
 
@@ -1366,6 +1375,9 @@ for (const viewport of SHEET_VIEWPORTS) {
 			);
 			await expect(trigger).toHaveAttribute("aria-expanded", "true");
 
+			// Before its entrance finishes the sheet still sits at the first
+			// keyframe, x = -288 (measured once at 375).
+			await waitForSheetReady(sheet);
 			const sheetBox = await boxOf(page.locator(MOBILE_SHEET));
 			record("sheet box", sheetBox);
 			expectNear(sheetBox.width, 288, "sheet width");
