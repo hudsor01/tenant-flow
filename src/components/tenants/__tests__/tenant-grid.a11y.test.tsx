@@ -51,10 +51,12 @@ describe("TenantGrid accessibility (A11Y-02)", () => {
 			/>,
 		);
 
-		// Resolves ONLY if the read-only badge carries
-		// aria-label="Lease status for Jane Doe" (accessible name preserved
-		// after the writable <select> was removed in TEN-03).
-		const statusBadge = screen.getByLabelText(/lease status for jane doe/i);
-		expect(statusBadge).toBeInTheDocument();
+		// The read-only badge says whose lease status it is (kept after the
+		// writable <select> was removed in TEN-03) in sr-only text before the
+		// visible status. An aria-label on the role-less span would not be
+		// announced (66.2-39).
+		const context = screen.getByText(/^lease status for jane doe:/i);
+		expect(context).toHaveClass("sr-only");
+		expect(context.parentElement).not.toHaveAttribute("aria-label");
 	});
 });

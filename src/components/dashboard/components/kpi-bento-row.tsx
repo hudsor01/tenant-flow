@@ -301,6 +301,9 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 	return (
 		<Stat
 			className="h-full @4xl/kpi-bento:p-6 transition-colors duration-200"
+			// A generic div cannot be named, so the narrated label needs a role
+			// that can (66.2-39).
+			role="group"
 			aria-label={ariaLabel}
 		>
 			{/* The label and the value share one wrapping row, and the value never

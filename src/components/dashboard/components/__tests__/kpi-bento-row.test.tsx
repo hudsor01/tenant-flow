@@ -302,6 +302,24 @@ describe("KpiBentoRow", () => {
 		);
 	});
 
+	// The narrated label sits on the Stat div; a role-less div cannot be
+	// named, so the tile is a named group (66.2-39).
+	it("exposes each tile's narrated label on a named group", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		expect(
+			screen.getByRole("group", {
+				name: "Revenue: $14,250. This month. Up 12 percent vs. last month.",
+			}),
+		).toBeInTheDocument();
+	});
+
 	it("reduced-motion renders KPI tiles without BlurFade wrappers", () => {
 		stubMatchMedia(true);
 		const { container } = render(

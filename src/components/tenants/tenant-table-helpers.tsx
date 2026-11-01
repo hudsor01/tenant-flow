@@ -62,20 +62,23 @@ export function TenantLeaseStatusBadge({
 }) {
 	if (!status) {
 		return (
-			<span className="text-sm text-muted-foreground" aria-label={ariaLabel}>
-				—
+			<span className="text-sm text-muted-foreground">
+				<span aria-hidden="true">—</span>
+				<span className="sr-only">
+					{ariaLabel ? `${ariaLabel}: none` : "None"}
+				</span>
 			</span>
 		);
 	}
 
 	return (
 		<span
-			aria-label={ariaLabel}
 			className={cn(
 				"inline-flex items-center rounded border px-2 py-0.5 font-medium text-xs",
 				STATUS_CHIP[status],
 			)}
 		>
+			{ariaLabel ? <span className="sr-only">{`${ariaLabel}: `}</span> : null}
 			{STATUS_LABELS[status]}
 		</span>
 	);

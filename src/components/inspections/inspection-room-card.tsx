@@ -217,6 +217,7 @@ export function InspectionRoomCard({
 										) : (
 											<div
 												className="flex h-full w-full items-center justify-center text-muted-foreground"
+												role="img"
 												aria-label={photo.file_name}
 											>
 												<Camera className="w-5 h-5" aria-hidden="true" />

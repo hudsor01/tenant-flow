@@ -76,6 +76,7 @@ export function AnimatedTrendIndicator({
 				className,
 			)}
 			style={{ animationDelay: `${delay}ms` }}
+			role="img"
 			aria-label={`${isPositive ? "Increased" : isNegative ? "Decreased" : "No change"} by ${formattedValue}`}
 		>
 			<Icon className={cn(iconSize, "shrink-0")} />

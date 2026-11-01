@@ -41,11 +41,9 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 							<div className="text-muted-foreground text-xs">Tenants</div>
 							<div>
 								{row.tenant ?? (
-									<span
-										aria-label="No tenants"
-										className="text-muted-foreground"
-									>
-										--
+									<span className="text-muted-foreground">
+										<span aria-hidden="true">--</span>
+										<span className="sr-only">No tenants</span>
 									</span>
 								)}
 							</div>
@@ -60,11 +58,9 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 								{row.maintenanceOpen > 0 ? (
 									`${row.maintenanceOpen} open`
 								) : (
-									<span
-										aria-label="No open requests"
-										className="text-muted-foreground"
-									>
-										--
+									<span className="text-muted-foreground">
+										<span aria-hidden="true">--</span>
+										<span className="sr-only">No open requests</span>
 									</span>
 								)}
 							</div>

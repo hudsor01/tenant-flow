@@ -27,11 +27,9 @@ function MaintenanceCell({ openCount }: { openCount: number }) {
 		);
 	}
 	return (
-		<span
-			aria-label="No open requests"
-			className="text-sm text-muted-foreground"
-		>
-			--
+		<span className="text-sm text-muted-foreground">
+			<span aria-hidden="true">--</span>
+			<span className="sr-only">No open requests</span>
 		</span>
 	);
 }
@@ -116,8 +114,9 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 			row.original.tenant ? (
 				<span className="text-sm">{row.original.tenant}</span>
 			) : (
-				<span aria-label="No tenants" className="text-sm text-muted-foreground">
-					--
+				<span className="text-sm text-muted-foreground">
+					<span aria-hidden="true">--</span>
+					<span className="sr-only">No tenants</span>
 				</span>
 			),
 	},

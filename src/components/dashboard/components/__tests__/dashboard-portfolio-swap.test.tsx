@@ -466,7 +466,7 @@ describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occu
 
 		// occupancyRate 85 -> ">=80 && <100" -> leaseStatus "expiring" -> chip
 		// renders exactly "Expiring" in grid mode (pins the >=80 boundary).
-		const { getByText: getInExpiring, queryByLabelText: queryExpiringTenant } =
+		const { getByText: getInExpiring, queryByText: queryExpiringTenant } =
 			within(expiringCard);
 		expect(getInExpiring("Expiring")).toBeInTheDocument();
 		// Partial occupancy (5 > 0) -> tenant "5 tenants" (NOT the "--" no-tenant
@@ -475,8 +475,8 @@ describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occu
 		expect(queryExpiringTenant("No tenants")).toBeNull();
 
 		// occupancyRate 0 (<80) -> leaseStatus "vacant" -> chip "Vacant"; zero
-		// occupancy -> tenant null -> "--" placeholder (aria-label "No tenants").
-		const { getByText: getInVacant, getByLabelText: getVacantTenant } =
+		// occupancy -> tenant null -> "--" placeholder (sr-only "No tenants").
+		const { getByText: getInVacant, getByText: getVacantTenant } =
 			within(vacantCard);
 		expect(getInVacant("Vacant")).toBeInTheDocument();
 		expect(getVacantTenant("No tenants")).toBeInTheDocument();

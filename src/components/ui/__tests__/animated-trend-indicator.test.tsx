@@ -184,6 +184,15 @@ describe("AnimatedTrendIndicator", () => {
 			expect(element).toBeInTheDocument();
 		});
 
+		// An aria-label on a role-less span is not announced, so the indicator
+		// is a named image (66.2-39).
+		it("is an image named by its trend", () => {
+			render(<AnimatedTrendIndicator value={-8.3} />);
+			expect(
+				screen.getByRole("img", { name: "Decreased by 8.3%" }),
+			).toBeInTheDocument();
+		});
+
 		it("should have aria-label for negative value", () => {
 			render(<AnimatedTrendIndicator value={-8.3} />);
 

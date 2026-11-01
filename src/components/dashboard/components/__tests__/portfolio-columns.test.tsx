@@ -263,8 +263,16 @@ describe("portfolioColumns", () => {
 		// units cell renders occupied/total.
 		expect(screen.getByText("3/4")).toBeInTheDocument();
 
-		// null tenant renders the muted "--" placeholder.
-		expect(screen.getByLabelText("No tenants")).toBeInTheDocument();
+		// null tenant renders the muted "--" placeholder, hidden from assistive
+		// tech, beside sr-only text that says what it means. An aria-label on
+		// the role-less span would not be announced (66.2-39).
+		const placeholder = screen.getByText("No tenants");
+		expect(placeholder).toHaveClass("sr-only");
+		expect(placeholder.previousElementSibling).toHaveAttribute(
+			"aria-hidden",
+			"true",
+		);
+		expect(placeholder.parentElement).not.toHaveAttribute("aria-label");
 
 		// the sortable Property header's <th> exposes aria-sort (NOT the button).
 		const th = screen.getByRole("columnheader", { name: /property/i });

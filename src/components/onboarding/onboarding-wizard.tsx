@@ -45,7 +45,11 @@ function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
 	}
 
 	return (
-		<div className="flex items-center gap-1.5" aria-label="Setup progress">
+		<div
+			className="flex items-center gap-1.5"
+			role="group"
+			aria-label="Setup progress"
+		>
 			{displaySteps.map((step) => {
 				const stepIndex = STEPS.indexOf(step);
 				const isCompleted = stepIndex < currentIndex;

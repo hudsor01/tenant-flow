@@ -60,6 +60,7 @@ export function SubscriptionCancelSection() {
 		return (
 			<div
 				className="h-32 rounded-lg border bg-muted animate-pulse"
+				role="status"
 				aria-label="Loading subscription status"
 			/>
 		);
