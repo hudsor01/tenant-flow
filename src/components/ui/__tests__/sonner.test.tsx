@@ -10,7 +10,7 @@
 
 import { act, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { render } from "#test/utils/test-render";
 import { Toaster } from "../sonner";
 
@@ -132,12 +132,37 @@ describe("Toaster", () => {
 		expect(hooked).toHaveLength(0);
 	});
 
-	test("resolves the system theme without a ThemeProvider", async () => {
-		render(<Toaster />);
-		await raise(
-			() => toast("Probe theme", { duration: Number.POSITIVE_INFINITY }),
-			"default",
-		);
-		expect(toaster()).toHaveAttribute("data-sonner-theme", "light");
-	});
+	// Without a ThemeProvider the guard passes "system", and Sonner resolves
+	// "system" through `prefers-color-scheme`. Each case stubs that query, so
+	// the attribute can only follow it if "system" really reached Sonner (a
+	// hard-coded "light" would fail the dark case).
+	test.each([
+		["dark", true],
+		["light", false],
+	] as const)(
+		"resolves the system theme to %s without a ThemeProvider",
+		async (expected, prefersDark) => {
+			const saved = window.matchMedia;
+			window.matchMedia = vi.fn((query: string) => ({
+				matches: query === "(prefers-color-scheme: dark)" && prefersDark,
+				media: query,
+				onchange: null,
+				addListener: vi.fn(),
+				removeListener: vi.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
+			}));
+			try {
+				render(<Toaster />);
+				await raise(
+					() => toast("Probe theme", { duration: Number.POSITIVE_INFINITY }),
+					"default",
+				);
+				expect(toaster()).toHaveAttribute("data-sonner-theme", expected);
+			} finally {
+				window.matchMedia = saved;
+			}
+		},
+	);
 });
