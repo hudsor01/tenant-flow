@@ -405,7 +405,8 @@ test.describe("/applications — the owner review queue", () => {
 				parentWidth,
 				`strip container width at ${width}px`,
 			).toBeGreaterThan(0);
-			// At 320 the five labels genuinely exceed the 272px box, so the strip
+			// At 320 the strip's natural width (about 319px) exceeds its 240px
+			// container (both measured in Chrome, see the JSDoc above), so the strip
 			// must overflow; without this the scroll assertions below would be
 			// satisfied by a strip that had nothing to scroll.
 			if (width === 320) {
