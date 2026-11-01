@@ -121,10 +121,11 @@ describe("OccupancyDonutChart", () => {
 });
 
 describe("OccupancyDonutChartSkeleton", () => {
-	it("renders a Card with lg:col-span-1 + size-40 donut placeholder", () => {
+	it("renders a Card on one dashboard-container column + size-40 donut placeholder", () => {
 		const { container } = render(<OccupancyDonutChartSkeleton />);
 		const card = container.firstElementChild;
-		expect(card?.className).toContain("lg:col-span-1");
+		expect(card?.className.split(/\s+/)).toContain("@4xl/dashboard:col-span-1");
+		expect(card?.className).not.toContain("lg:col-span");
 		const donutPlaceholder = container.querySelector(".size-40.rounded-full");
 		expect(donutPlaceholder).not.toBeNull();
 	});

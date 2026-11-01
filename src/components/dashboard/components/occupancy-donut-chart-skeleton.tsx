@@ -13,7 +13,7 @@ import { Skeleton } from "#components/ui/skeleton";
 
 export function OccupancyDonutChartSkeleton() {
 	return (
-		<Card className="lg:col-span-1">
+		<Card className="@4xl/dashboard:col-span-1">
 			<CardHeader>
 				<Skeleton className="h-5 w-24" />
 				<Skeleton className="mt-2 h-4 w-28" />

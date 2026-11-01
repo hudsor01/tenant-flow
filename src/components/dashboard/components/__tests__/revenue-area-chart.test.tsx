@@ -211,11 +211,15 @@ describe("RevenueAreaChart", () => {
 });
 
 describe("RevenueAreaChartSkeleton", () => {
-	it("renders a Card with lg:col-span-2 + h-75 skeleton body", async () => {
+	it("renders a Card spanning two dashboard-container columns + h-75 skeleton body", async () => {
 		const { container } = render(<RevenueAreaChartSkeleton />);
 		const card = container.firstElementChild as HTMLElement | null;
 		expect(card).not.toBeNull();
-		expect(card?.className).toContain("lg:col-span-2");
+		// The span keys on the `dashboard` container like the trends grid, not on
+		// the viewport (CP-4 follow-up): a viewport span on a one-column grid
+		// would add an implicit second column.
+		expect(card?.className.split(/\s+/)).toContain("@4xl/dashboard:col-span-2");
+		expect(card?.className).not.toContain("lg:col-span");
 		// Skeleton body placeholder uses the scale class h-75 (300px at a 16px root).
 		await waitFor(() => {
 			expect(container.querySelector(".h-75")).not.toBeNull();

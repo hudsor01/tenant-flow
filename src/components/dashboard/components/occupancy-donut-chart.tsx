@@ -53,7 +53,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 
 	if (isEmpty) {
 		return (
-			<Card className="lg:col-span-1">
+			<Card className="@4xl/dashboard:col-span-1">
 				<CardHeader>
 					<CardTitle>Occupancy</CardTitle>
 					<CardDescription>Across all units</CardDescription>
@@ -86,7 +86,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 	];
 
 	return (
-		<Card className="lg:col-span-1">
+		<Card className="@4xl/dashboard:col-span-1">
 			<CardHeader>
 				<CardTitle>Occupancy</CardTitle>
 				<CardDescription>Across all units</CardDescription>

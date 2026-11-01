@@ -162,7 +162,7 @@ export function RevenueAreaChart({
 	const isEmpty = data.length === 0;
 
 	return (
-		<Card className="lg:col-span-2" data-tour="charts-section">
+		<Card className="@4xl/dashboard:col-span-2" data-tour="charts-section">
 			<CardHeader className="flex flex-row items-center justify-between space-y-0">
 				<div>
 					<CardTitle>Revenue</CardTitle>
