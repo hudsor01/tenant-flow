@@ -113,6 +113,18 @@ describe("OccupancyDonutChart", () => {
 		});
 	});
 
+	// 66.2-39 F10: both legend swatches use the named chart utility for the
+	// token their wedge fills with, spelled the same way.
+	it("colors the legend swatches with the bg-chart-2 and bg-chart-5 utilities", () => {
+		render(<OccupancyDonutChart units={populated} />);
+		const swatchOf = (label: string) =>
+			screen
+				.getByText(label)
+				.parentElement?.querySelector('[aria-hidden="true"]');
+		expect(swatchOf("Occupied")?.classList).toContain("bg-chart-2");
+		expect(swatchOf("Vacant")?.classList).toContain("bg-chart-5");
+	});
+
 	it("does NOT render a tooltip (UI-SPEC § 3.6)", () => {
 		render(<OccupancyDonutChart units={populated} />);
 		expect(screen.queryByTestId("tooltip")).toBeNull();

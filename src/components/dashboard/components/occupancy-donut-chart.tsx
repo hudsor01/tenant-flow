@@ -38,10 +38,12 @@ interface OccupancyDonutChartProps {
 	units: { occupied: number; vacant: number; total: number };
 }
 
-// Per-chart inline config (04-UI-SPEC § 16). `ChartContainer` resolves the
-// CSS variables via the `theme` map, but the JSX below references
-// `var(--color-chart-2)` / `var(--color-chart-5)` directly so the
-// design-token-drift scanner reads explicit token references.
+// Per-chart inline config (04-UI-SPEC § 16). `ChartContainer` turns each
+// `color` into a `--color-<key>` variable on its wrapper. The wedges below take
+// their fill straight from `pieData` (`var(--color-chart-2)` occupied,
+// `var(--color-chart-5)` vacant, SVG fill values rather than classes), and the
+// legend swatches use the `bg-chart-2` / `bg-chart-5` utilities, which resolve
+// to the same `--chart-2` / `--chart-5` tokens.
 const donutConfig = {
 	occupied: { label: "Occupied", color: "var(--color-chart-2)" },
 	vacant: { label: "Vacant", color: "var(--color-chart-5)" },
@@ -157,7 +159,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-(--color-chart-5)"
+							className="inline-block size-2.5 rounded-full bg-chart-5"
 						/>
 						<span className="text-muted-foreground">Vacant</span>
 						<span className="font-semibold tabular-nums text-foreground">
