@@ -20,8 +20,8 @@ import { cn } from "#lib/utils";
  * - link text-primary-text, the AA text companion.
  *
  * An svg inside a Button renders 16px unless it carries a size- class, so
- * callers size icons with size-N, never h-N w-N. CP-2 (66.2-38) reviews the
- * outline and dark surfaces.
+ * callers size icons with size-N, never h-N w-N. The outline and dark surfaces
+ * are the v4 ones: the owner kept them at CP-2 (66.2-38, "Keep v4").
  */
 const buttonVariants = cva(
 	"inline-flex shrink-0 items-center justify-center gap-2 rounded-md typography-small whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
