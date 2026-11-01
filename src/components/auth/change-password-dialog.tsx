@@ -14,6 +14,11 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { Field, FieldLabel } from "#components/ui/field";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from "#components/ui/input-group";
 import { useChangePasswordMutation } from "#hooks/api/use-auth-mutations";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { logger } from "#lib/frontend-logger";
@@ -183,11 +188,10 @@ export function ChangePasswordDialog({
 							<FieldLabel htmlFor={currentPasswordId}>
 								Current Password *
 							</FieldLabel>
-							<div className="relative">
-								<input
+							<InputGroup>
+								<InputGroupInput
 									id={currentPasswordId}
 									type={showPasswords.current ? "text" : "password"}
-									className="input w-full pr-10"
 									value={formData.currentPassword}
 									onChange={(e) =>
 										handleChange("currentPassword", e.target.value)
@@ -196,58 +200,61 @@ export function ChangePasswordDialog({
 									required
 									autoComplete="current-password"
 								/>
-								<button
-									type="button"
-									onClick={() => togglePasswordVisibility("current")}
-									className="absolute right-3 top-[50%] translate-y-[-50%] text-muted-foreground hover:text-foreground"
-									disabled={changePassword.isPending}
-									aria-label={
-										showPasswords.current
-											? "Hide current password"
-											: "Show current password"
-									}
-								>
-									{showPasswords.current ? (
-										<EyeOff className="size-4" />
-									) : (
-										<Eye className="size-4" />
-									)}
-								</button>
-							</div>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility("current")}
+										className="text-muted-foreground hover:text-foreground transition-colors"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.current
+												? "Hide current password"
+												: "Show current password"
+										}
+									>
+										{showPasswords.current ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
 						</Field>
 
 						{/* New Password */}
 						<Field>
 							<FieldLabel htmlFor={newPasswordId}>New Password *</FieldLabel>
-							<div className="relative">
-								<input
+							<InputGroup>
+								<InputGroupInput
 									id={newPasswordId}
 									type={showPasswords.new ? "text" : "password"}
-									className="input w-full pr-10"
 									value={formData.newPassword}
 									onChange={(e) => handleChange("newPassword", e.target.value)}
 									disabled={changePassword.isPending}
 									required
 									autoComplete="new-password"
 								/>
-								<button
-									type="button"
-									onClick={() => togglePasswordVisibility("new")}
-									className="absolute right-3 top-[50%] translate-y-[-50%] text-muted-foreground hover:text-foreground"
-									disabled={changePassword.isPending}
-									aria-label={
-										showPasswords.new
-											? "Hide new password"
-											: "Show new password"
-									}
-								>
-									{showPasswords.new ? (
-										<EyeOff className="size-4" />
-									) : (
-										<Eye className="size-4" />
-									)}
-								</button>
-							</div>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility("new")}
+										className="text-muted-foreground hover:text-foreground transition-colors"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.new
+												? "Hide new password"
+												: "Show new password"
+										}
+									>
+										{showPasswords.new ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
 							<p className="text-caption text-muted-foreground mt-1">
 								Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 								characters with uppercase, lowercase, number, and special
@@ -260,11 +267,10 @@ export function ChangePasswordDialog({
 							<FieldLabel htmlFor={confirmPasswordId}>
 								Confirm New Password *
 							</FieldLabel>
-							<div className="relative">
-								<input
+							<InputGroup>
+								<InputGroupInput
 									id={confirmPasswordId}
 									type={showPasswords.confirm ? "text" : "password"}
-									className="input w-full pr-10"
 									value={formData.confirmPassword}
 									onChange={(e) =>
 										handleChange("confirmPassword", e.target.value)
@@ -273,24 +279,26 @@ export function ChangePasswordDialog({
 									required
 									autoComplete="new-password"
 								/>
-								<button
-									type="button"
-									onClick={() => togglePasswordVisibility("confirm")}
-									className="absolute right-3 top-[50%] translate-y-[-50%] text-muted-foreground hover:text-foreground"
-									disabled={changePassword.isPending}
-									aria-label={
-										showPasswords.confirm
-											? "Hide confirm password"
-											: "Show confirm password"
-									}
-								>
-									{showPasswords.confirm ? (
-										<EyeOff className="size-4" />
-									) : (
-										<Eye className="size-4" />
-									)}
-								</button>
-							</div>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility("confirm")}
+										className="text-muted-foreground hover:text-foreground transition-colors"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.confirm
+												? "Hide confirm password"
+												: "Show confirm password"
+										}
+									>
+										{showPasswords.confirm ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
 						</Field>
 
 						{/* Validation Errors */}

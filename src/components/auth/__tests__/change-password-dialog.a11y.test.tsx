@@ -87,4 +87,34 @@ describe("ChangePasswordDialog — A11Y-01 programmatic labels", () => {
 			getByRole("button", { name: "Show confirm password" }),
 		).toBeInTheDocument();
 	});
+
+	// 66.2-39 F16: the fields used a bare `input` class that no stylesheet
+	// defines, so they rendered with no border, padding or height. Each is now
+	// the shadcn InputGroup control (as on /login), and its show/hide toggle
+	// sits in the group's inline-end addon, a flex item beside the text rather
+	// than an absolutely positioned overlay on it.
+	it("renders each password field as an InputGroup control with the toggle in its addon", () => {
+		const { getByLabelText } = renderWithClient(
+			createElement(ChangePasswordDialog, {
+				open: true,
+				onOpenChange: vi.fn(),
+			}),
+		);
+		for (const label of [
+			"Current Password *",
+			"New Password *",
+			"Confirm New Password *",
+		]) {
+			const input = getByLabelText(label);
+			expect(input).toHaveAttribute("data-slot", "input-group-control");
+			expect(input.classList).not.toContain("input");
+			const group = input.closest('[data-slot="input-group"]');
+			expect(group).not.toBeNull();
+			const toggle = group?.querySelector("button");
+			expect(
+				toggle?.closest('[data-slot="input-group-addon"]'),
+			).toHaveAttribute("data-align", "inline-end");
+			expect(toggle?.classList).not.toContain("absolute");
+		}
+	});
 });
