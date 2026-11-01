@@ -2,15 +2,15 @@
 /**
  * Tailwind theme integrity guards (UIC-03; PLAN.md §6; D-17).
  *
- * This file is the single home of guards G1-G8. Each guard compiles the REAL
+ * This file is the single home of guards G1-G9. Each guard compiles the REAL
  * `src/app/globals.css` with Tailwind's own engine (`#test/utils/tailwind-engine`)
  * instead of reading a regex copy of it, because regex copies (X1/X6) are how
  * the theme defects shipped.
  *
  * ORDER (P4). lefthook runs the whole unit suite on every commit, so a guard
  * can only land in the same commit as its fix: G1-G6 arrive with their fixes
- * in 66.2-04..09, G7 in 66.2-14 and G8 in 66.2-18. No guard is added ahead of
- * its fix. The harness self-tests come first; each guard follows them.
+ * in 66.2-04..09, G7 in 66.2-14, G8 in 66.2-18 and G9 in 66.2-39 (after the
+ * dead-class fixes it pins). No guard is added ahead of its fix. The harness self-tests come first; each guard follows them.
  *
  * ENVIRONMENT (N6). The file runs in node, not jsdom: `src/test/unit-setup.ts`
  * touches the DOM only behind `typeof window !== "undefined"`, so the shared
@@ -43,6 +43,14 @@
  * runs `bun run test:unit -- --coverage` for every pull request, Dependabot's
  * included) and on the next lefthook commit; Dependabot's own commits skip
  * lefthook. Fix it by re-running the codemod with `--write`.
+ *
+ * G9 (66.2-39). Every token of a first-party class string emits CSS. G8 skips
+ * a token the design system does not compile, so G9 covers that half: a
+ * `className=` value (and each string a `className={`...`}` template picks), or
+ * a string of two or more tokens at least half of which compile, may hold only
+ * compiling tokens and the listed hook names. A one-token string outside
+ * `className=` (`cn("x")`) is not classified, and a data-* variant on an
+ * attribute nothing sets compiles, so neither is in G9's reach.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -68,6 +76,7 @@ import {
 import {
 	type CustomMergeKeys,
 	checkCanonicalCandidates,
+	checkDeadClassTokens,
 	checkG7DanglingThemeVars,
 	checkInlineColorTokenStructure,
 	checkLightOnlyColorTokens,
@@ -1913,5 +1922,87 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
 		const result = checkCanonicalCandidates(designSystem, ["not-a-class-xyz"]);
 		expect(result.checked).toBe(0);
 		expect(result.violations).toEqual([]);
+	}, 30_000);
+});
+
+/**
+ * G9 (66.2-39): every token of a first-party class string compiles to CSS. The
+ * cycle-1 review found classes that render nothing: an undefined custom name
+ * (`input`, `form-container`), an undefined token (`text-error-main`,
+ * `bg-chart-7`, `bg-overlay`), and a utility size v4 does not have
+ * (`hover:shadow-3xl`, `blur-0`). The hook names below are the only no-CSS
+ * tokens a class string may carry, each read by something other than Tailwind.
+ * Run against 1294dc80f (before 66.2-39 part B) the check reports 18
+ * violations in 11 files.
+ */
+describe("G9 every first-party class string token emits CSS (66.2-39)", () => {
+	/** group/peer markers, the typography plugin's opt-out, a page-local print rule, a button-group selector. */
+	const HOOK_NAMES = new Set([
+		"group",
+		"peer",
+		"not-prose",
+		"page-break",
+		"select-trigger",
+	]);
+	const isHook = (token: string) =>
+		HOOK_NAMES.has(token) || /^(group|peer)\/[\w-]+$/.test(token);
+
+	it(
+		"finds no token that compiles to nothing in a shipped class string",
+		async () => {
+			const { designSystem } = await projectEngine();
+			const result = checkDeadClassTokens(
+				designSystem,
+				collectG7SourceTexts(REPO_ROOT),
+				isHook,
+			);
+			expect(result.checked).toBeGreaterThan(10_000);
+			expect(
+				result.violations,
+				`Class-string token(s) that emit no CSS. Use a defined utility or token, or delete the class:\n${result.violations.join("\n")}`,
+			).toEqual([]);
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+
+	it("reports a dead token in a className value and in a multi-class string", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkDeadClassTokens(
+			designSystem,
+			[
+				{ path: "src/a.tsx", text: '<i className="g9-dead" />' },
+				{ path: "src/b.ts", text: 'const x = cn("flex px-4 g9-gone", y);' },
+				{
+					path: "src/c.tsx",
+					text: '<p className={`flex ${on ? "g9-on" : "px-4"}`} />',
+				},
+			],
+			() => false,
+		);
+		expect(result.violations).toEqual([
+			"src/a.tsx: g9-dead",
+			"src/b.ts: g9-gone",
+			"src/c.tsx: g9-on",
+		]);
+	}, 30_000);
+
+	it("skips prose, comparison operands, comments, hook names and non-ts sources", async () => {
+		const { designSystem } = await loadFixtureEngine("");
+		const result = checkDeadClassTokens(
+			designSystem,
+			[
+				{ path: "src/a.ts", text: 'const msg = "Save the lease and close";' },
+				{
+					path: "src/b.tsx",
+					text: '<p className={`flex ${s === "g9-state" ? "px-4" : ""}`} />',
+				},
+				{ path: "src/c.ts", text: '// "flex px-4 g9-comment"\nconst a = 1;' },
+				{ path: "src/d.tsx", text: '<div className="group px-4" />' },
+				{ path: "src/e.css", text: '.x { content: "flex px-4 g9-css"; }' },
+			],
+			(token) => token === "group",
+		);
+		expect(result.violations).toEqual([]);
+		expect(result.checked).toBeGreaterThan(0);
 	}, 30_000);
 });

@@ -1,5 +1,5 @@
 /**
- * The pure check functions behind the Tailwind theme guards G1-G8 in
+ * The pure check functions behind the Tailwind theme guards G1-G9 in
  * `src/app/__tests__/tailwind-theme-integrity.test.ts` and the git-baseline
  * red-proof runner `.planning/tailwind-shadcn/audit/guard-redproof.ts`.
  *
@@ -50,6 +50,11 @@
  *     per-candidate canonical form differs, over the scope
  *     `firstPartyScanSources` builds (the project scan minus the vendored
  *     directory).
+ *   - G9 class strings emit CSS (66.2-39): `checkDeadClassTokens` reports each
+ *     token of a class string in a shipped source that the design system
+ *     compiles to nothing and the caller does not list as a hook name (an
+ *     undefined custom name, a v3-only or misspelled utility). Sources come
+ *     from `collectG7SourceTexts`.
  *
  * CONSTRAINTS.
  *   1. Imports are bare packages and `node:*` only: no `#` alias and no
@@ -1007,4 +1012,111 @@ export function checkCanonicalCandidates(
 		}
 	});
 	return { checked, violations: violations.sort() };
+}
+
+/** G9: a quoted or template-literal string body (template expressions blanked). */
+const G9_STRING_LITERAL =
+	/(className=\s*\{?\s*)?(?:"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\.)*)`)/g;
+
+const G9_TEMPLATE_EXPRESSION = /\$\{[^}]*\}/g;
+
+/** G9: a string compared with `===` / `!==` is a value, not a class. */
+const G9_COMPARED_BEFORE = /[=!]==?\s*$/;
+
+const G9_COMPARED_AFTER = /^\s*[=!]==?/;
+
+/** G9: a quoted string inside a template expression. */
+const G9_QUOTED_LITERAL = /"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.)*)'/g;
+
+const G9_BLOCK_COMMENT = /\/\*[\s\S]*?\*\//g;
+
+const G9_LINE_COMMENT = /(^|[\s;{}(),])\/\/[^\n]*/g;
+
+/** A compiled token with one of these characters reads as a utility, not a word. */
+const G9_UTILITY_SHAPE = /[-:/[]/;
+
+/**
+ * G9. Each quoted or template string is read, and so is each quoted string
+ * inside a template expression (a ternary picking one class per branch; an
+ * operand of an equality comparison is a value and is skipped). A
+ * string is a class string when it is a `className=` value (directly or as a
+ * `className={`...`}` template, whose expression strings count too), or when it
+ * has two or more tokens, at least half of them compile, and one compiled
+ * token has a utility shape (a hyphen, colon, slash or bracket), which prose
+ * and identifiers do not. Each token of a class string that compiles to no CSS
+ * and is not a hook name (`isHook`: group and peer markers, selector hooks
+ * another rule or library reads) is reported as `<path>: <token>`, sorted and
+ * de-duplicated. `checked` counts the class-string tokens that compile.
+ */
+export function checkDeadClassTokens(
+	designSystem: Pick<
+		Awaited<ReturnType<typeof __unstable__loadDesignSystem>>,
+		"candidatesToCss"
+	>,
+	sources: readonly G7SourceText[],
+	isHook: (token: string) => boolean,
+): GuardResult {
+	const strings: { path: string; tokens: string[]; attribute: boolean }[] = [];
+	for (const source of sources) {
+		if (!/\.(ts|tsx)$/.test(source.path)) continue;
+		const code = source.text
+			.replace(G9_BLOCK_COMMENT, " ")
+			.replace(G9_LINE_COMMENT, "$1");
+		for (const match of code.matchAll(G9_STRING_LITERAL)) {
+			const template = match[4];
+			const bodies: { text: string; attribute: boolean }[] = [
+				{
+					text: (match[2] ?? match[3] ?? template ?? "").replace(
+						G9_TEMPLATE_EXPRESSION,
+						" ",
+					),
+					attribute: match[1] !== undefined,
+				},
+			];
+			for (const expression of template?.match(G9_TEMPLATE_EXPRESSION) ?? []) {
+				for (const inner of expression.matchAll(G9_QUOTED_LITERAL)) {
+					const start = inner.index ?? 0;
+					const before = expression.slice(0, start);
+					const after = expression.slice(start + inner[0].length);
+					if (
+						G9_COMPARED_BEFORE.test(before) ||
+						G9_COMPARED_AFTER.test(after)
+					) {
+						continue;
+					}
+					bodies.push({
+						text: inner[1] ?? inner[2] ?? "",
+						attribute: match[1] !== undefined,
+					});
+				}
+			}
+			for (const body of bodies) {
+				const tokens = body.text.split(/\s+/).filter((token) => token !== "");
+				if (tokens.length === 0) continue;
+				strings.push({ path: source.path, tokens, attribute: body.attribute });
+			}
+		}
+	}
+	const unique = [...new Set(strings.flatMap((entry) => entry.tokens))];
+	const css = designSystem.candidatesToCss(unique);
+	const compiles = new Map(
+		unique.map((token, index) => [token, css[index] != null]),
+	);
+	let checked = 0;
+	const violations = new Set<string>();
+	for (const entry of strings) {
+		const compiled = entry.tokens.filter((token) => compiles.get(token));
+		const classString =
+			entry.attribute ||
+			(entry.tokens.length >= 2 &&
+				compiled.length * 2 >= entry.tokens.length &&
+				compiled.some((token) => G9_UTILITY_SHAPE.test(token)));
+		if (!classString) continue;
+		checked += compiled.length;
+		for (const token of entry.tokens) {
+			if (compiles.get(token) || isHook(token)) continue;
+			violations.add(`${entry.path}: ${token}`);
+		}
+	}
+	return { checked, violations: [...violations].sort() };
 }
