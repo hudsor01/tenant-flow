@@ -419,6 +419,67 @@ describe("collapsed inert regions (D-34)", () => {
 	});
 });
 
+describe("focus on a desktop collapse (D-34)", () => {
+	function trigger(container: HTMLElement): HTMLElement {
+		return getSlot(container, "sidebar-trigger");
+	}
+
+	it("moves focus from a content link to the trigger on Ctrl+b", () => {
+		const { container } = render(<Shell />);
+		const link = screen.getByRole("link", { name: "Content link" });
+		link.focus();
+		expect(document.activeElement).toBe(link);
+
+		fireEvent.keyDown(link, { key: "b", ctrlKey: true });
+		expect(STATE()).toBe("collapsed");
+		expect(document.activeElement).toBe(trigger(container));
+	});
+
+	it("moves focus from the rail to the trigger on a rail click", () => {
+		const { container } = render(<Shell />);
+		const rail = getSlot(container, "sidebar-rail");
+		rail.focus();
+		expect(document.activeElement).toBe(rail);
+
+		fireEvent.click(rail);
+		expect(STATE()).toBe("collapsed");
+		expect(document.activeElement).toBe(trigger(container));
+	});
+
+	it("moves focus from the footer to the trigger on a direct setOpen(false)", () => {
+		const { container } = render(<Shell />);
+		const link = screen.getByRole("link", { name: "Footer link" });
+		link.focus();
+
+		fireEvent.click(screen.getByRole("button", { name: "Collapse directly" }));
+		expect(STATE()).toBe("collapsed");
+		expect(document.activeElement).toBe(trigger(container));
+	});
+
+	it("leaves focus outside the sidebar where it is", () => {
+		render(<Shell />);
+		const outside = screen.getByRole("button", { name: "Collapse directly" });
+		outside.focus();
+
+		fireEvent.keyDown(outside, { key: "b", ctrlKey: true });
+		expect(STATE()).toBe("collapsed");
+		expect(document.activeElement).toBe(outside);
+	});
+
+	it("does not move focus when the sidebar expands", () => {
+		const { container } = render(<Shell defaultOpen={false} />);
+		const link = screen.getByRole("link", {
+			name: "Content link",
+			hidden: true,
+		});
+		link.focus();
+
+		fireEvent.click(getSlot(container, "sidebar-rail"));
+		expect(STATE()).toBe("expanded");
+		expect(document.activeElement).toBe(link);
+	});
+});
+
 describe("mobile sheet", () => {
 	it("opens a named dialog that hides the sheet's own close button", async () => {
 		stubMobile();

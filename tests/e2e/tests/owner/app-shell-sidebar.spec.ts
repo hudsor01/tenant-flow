@@ -969,6 +969,41 @@ test.describe("desktop rail at 1280px", () => {
 		expect(errors).toEqual([]);
 	});
 
+	test("D-34: collapsing with focus inside the rail moves focus to the trigger", async ({
+		page,
+	}) => {
+		const errors = await openShell(page);
+		const sidebar = page.locator(DESKTOP_SIDEBAR);
+		const trigger = page.locator(TRIGGER);
+		const rail = page.locator(RAIL);
+		const dashboardRow = sidebar
+			.locator('[data-slot="sidebar-menu"]')
+			.first()
+			.locator('[data-slot="sidebar-menu-button"]')
+			.first();
+
+		// Shortcut path: focus on a rail link, then Cmd/Ctrl+B.
+		await dashboardRow.focus();
+		await expect(dashboardRow).toBeFocused();
+		await page.keyboard.press("ControlOrMeta+b");
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		await expect(trigger).toBeFocused();
+		// From the trigger the shortcut expands again and focus stays put.
+		await page.keyboard.press("ControlOrMeta+b");
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+		await expect(trigger).toBeFocused();
+
+		// Rail path: the click focuses the rail button inside the sidebar.
+		await dashboardRow.focus();
+		await rail.click({ position: { x: 12, y: 200 } });
+		await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+		await expect(trigger).toBeFocused();
+		await trigger.click();
+		await expect(sidebar).toHaveAttribute("data-state", "expanded");
+
+		expect(errors).toEqual([]);
+	});
+
 	test("D-41/D-44: zero WCAG 2.1 A/AA violations, rail expanded and collapsed", async ({
 		page,
 	}) => {

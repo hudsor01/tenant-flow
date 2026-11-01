@@ -719,7 +719,7 @@
           "ref": "D-32 (V12)"
         },
         {
-          "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\"; the container stays non-inert so the SidebarRail child keeps re-expanding the rail",
+          "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\"; the container stays non-inert so the SidebarRail child keeps re-expanding the rail; before a desktop collapse, setOpen moves focus held in the desktop sidebar to the wrapper's [data-slot=\"sidebar-trigger\"]",
           "reason": "D-26 customization",
           "ref": "D-34; S12; UI-SPEC S-5"
         },

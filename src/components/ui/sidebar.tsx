@@ -67,7 +67,11 @@
  *        tabbable nor exposed to assistive tech. The container is NOT inert:
  *        SidebarRail is composed as its child, and the rail click is what
  *        expands the collapsed sidebar again (UI-SPEC S-5). Nothing is inert in
- *        the mobile sheet.
+ *        the mobile sheet. Before a desktop collapse, `setOpen` moves focus
+ *        held anywhere in the desktop sidebar to the wrapper's
+ *        `[data-slot="sidebar-trigger"]`, because an inert subtree would drop
+ *        it to `body` (every path: the trigger, the rail, the shortcut, a
+ *        direct `setOpen(false)`).
  *   D-46 The mobile SheetContent keeps the upstream `[&>button]:hidden`, so the
  *        sheet's own corner close button (a direct child button of the dialog)
  *        never shows. The visible, labelled 44px close control is the
@@ -159,6 +163,29 @@ function hasBlockingDialog(): boolean {
 	);
 }
 
+/**
+ * Collapsing the desktop sidebar makes its header, nav and footer `inert`
+ * (D-34), and an inert subtree drops the focus it holds to `body`. When focus
+ * sits anywhere in the desktop sidebar, move it to the header trigger of the
+ * same wrapper first, so a keyboard user keeps their place.
+ */
+function moveFocusOutOfDesktopSidebar(): void {
+	const active = document.activeElement;
+	if (!(active instanceof HTMLElement)) {
+		return;
+	}
+	const sidebar = active.closest(
+		'[data-slot="sidebar"]:not([data-mobile="true"])',
+	);
+	if (sidebar === null) {
+		return;
+	}
+	sidebar
+		.closest('[data-slot="sidebar-wrapper"]')
+		?.querySelector<HTMLElement>('[data-slot="sidebar-trigger"]')
+		?.focus();
+}
+
 function SidebarProvider({
 	defaultOpen = true,
 	open: openProp,
@@ -180,6 +207,9 @@ function SidebarProvider({
 	const open = openProp ?? _open;
 	const setOpen = (value: boolean | ((value: boolean) => boolean)) => {
 		const openState = typeof value === "function" ? value(open) : value;
+		if (!openState && !isMobile) {
+			moveFocusOutOfDesktopSidebar();
+		}
 		if (setOpenProp) {
 			setOpenProp(openState);
 		} else {
