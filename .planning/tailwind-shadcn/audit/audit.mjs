@@ -152,7 +152,9 @@ report.nonInlineThemeVarsReferencingVars = themeVars.filter((v) => v.mode !== "i
 // `.dark` / `:where(.dark, .dark *)` rule at any depth, and an inline `--color-<n>:
 // var(--<m>)` token is light-only when `--<m>` is declared in a :root rule and in no
 // dark rule. A non-inline literal `--color-<n>` is light-only when no dark rule
-// declares `--color-<n>`.
+// declares `--color-<n>`. A :root value that is itself a bare `var(--<k>)` alias (the
+// W6 `--sidebar: var(--card)` brand aliases, D-37) is followed to its end: the token is
+// light-only only when no name on that chain is declared in a dark rule (66.2-37).
 const darkSelectors = new Set([".dark", ":where(.dark, .dark *)"]);
 const darkKeys = new Set();
 const rootValues = new Map();
@@ -161,11 +163,24 @@ root.walkRules((r) => {
 	if (darkSelectors.has(sel)) r.walkDecls((d) => d.prop.startsWith("--") && darkKeys.add(d.prop));
 	else if (sel === ":root") r.walkDecls((d) => d.prop.startsWith("--") && !rootValues.has(d.prop) && rootValues.set(d.prop, d.value));
 });
+const BARE_VAR = /^var\(\s*(--[a-z0-9-]+)\s*\)$/;
+// The light-only :root value an alias chain ends in, or null when any link has a dark value.
+const lightOnlyRootValue = (name, seen = new Set()) => {
+	if (seen.has(name) || darkKeys.has(name) || !rootValues.has(name)) return null;
+	seen.add(name);
+	const value = rootValues.get(name);
+	const next = BARE_VAR.exec(value.trim());
+	if (!next) return value;
+	return rootValues.has(next[1]) || darkKeys.has(next[1]) ? lightOnlyRootValue(next[1], seen) : value;
+};
 report.lightOnlyColorTokensInUse = themeVars
 	.filter((v) => v.name.startsWith("--color-") && !deadTheme.includes(v))
 	.map((v) => {
-		const alias = v.mode === "inline" ? /^var\(\s*(--[a-z0-9-]+)\s*\)$/.exec(v.value.trim()) : null;
-		if (alias) return rootValues.has(alias[1]) && !darkKeys.has(alias[1]) ? `${v.name}: ${rootValues.get(alias[1])}` : null;
+		const alias = v.mode === "inline" ? BARE_VAR.exec(v.value.trim()) : null;
+		if (alias) {
+			const end = lightOnlyRootValue(alias[1]);
+			return end === null ? null : `${v.name}: ${end}`;
+		}
 		if (/var\(/.test(v.value)) return null;
 		return darkKeys.has(v.name) ? null : `${v.name}: ${v.value}`;
 	})
