@@ -93,21 +93,21 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 914 (W5, 66.2-29: 916 + sonner.tsx − toast.tsx, mobile-nav.tsx, the recharts-tooltip mock) |
-| M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (W2) |
-| M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (W1) |
-| M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (W1) |
-| M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 0 (W1) |
-| M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | 7, all mode-independent (white, black, chart-1..5) (W1) |
-| M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (W1) |
-| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 7 / 1 / 0 of 42 / 0 / 0 (W2; the W6 remnants: the 7 zinc `@theme inline` `--color-sidebar-*` and `--sidebar-transition`, D-21/D-51) |
-| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (W2) |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 16 ui/ (tracks upstream) (W5, 66.2-29: 45 classes, all in the 16 vendored `ui/` files) |
-| R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (W1) |
-| R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (W1) |
-| R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (W1) |
-| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | worst 5.44 (renew-lease body/icon, light); dark ≥ 7.53, prose ≥ 13.5 (W1) |
-| R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | 32×18.4, padding 0 (W1) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 917 (final, 66.2-37: W5 914 + 5 added − 2 deleted non-test `src/` files, `final/m1-delta.json`) |
+| M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (final) |
+| M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (final) |
+| M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (final) |
+| M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 0 (final) |
+| M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | chart-1..5 only, all mode-independent (final; the 8 W6 sidebar aliases resolve through `var(--card)`… and are not light-only) |
+| M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (final) |
+| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 0 / 0 / 0 of 42 / 0 / 0 (final; the W6 remnants are gone) |
+| M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (final) |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 17 ui/ (tracks upstream) (final: 48 classes, all in the 17 vendored `ui/` files, `sidebar.tsx` included) |
+| R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (final) |
+| R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (final) |
+| R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (final) |
+| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | worst 5.44 (renew-lease body/icon, light); dark ≥ 7.53, prose ≥ 13.5 (final) |
+| R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | 32×18.4, padding 0 (final) |
 
 ---
 
@@ -436,6 +436,17 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - Registry: sidebar content sha256 `2ba1a9b9…` and use-mobile `ad0936f8…`, both unchanged since research; 13/13 anchors, 24 exports.
   - Typecheck (A4/N18): the import-rewritten canonical sidebar.tsx has 0 errors under tsc 7.0.2 against the post-W5 button/sheet/tooltip; the negative control fails with TS2322.
   - Before-set: 52 captures (`w6/sidebar-before-manifest.json`, PNGs git-ignored); the same-session repeat has 1 noise file (row-focus-dark-1280, 2 px).
+
+- **2026-11-01.** Final gate (66.2-37) passed (also the wave 6 exit, D-43):
+  - §7.1 audit: M1 917 (W5 914 + 5 − 2), M2-M5 0, M6 chart-1..5 only (audit.mjs now follows `:root` alias chains, fix `6f9a01791`), M7 0, M8 0 / 0 / 0 of 42 / 0 / 0, M9 none, M10 first-party 0. D-05 accounting over 66.2-01..36: 0 unlisted, 0 phantom, 0 untagged, 0 outside the W6 tags. `w6-assertions.mjs` 13/13 PASS on HEAD and 13 FAIL on PRE_W6; `source-assertions-w2` 21/21.
+  - §7.2 rule parity: W5 -> final `--strict` 8 removed and 88 added keys, each attributed to a W6 file, 0 unclassified; cumulative baseline -> final 1,202 hunks, every one a classified hunk of one wave link (0 unclassified).
+  - §7.3 token parity: W5 -> final only the 16 `sidebar*` entries, each equal to its T-2 alias in both themes; the cumulative set is the enumerated one (slate-700 R 50 -> 49, equal to W2); R1-R5 at target and the render JSON equal to W5.
+  - Component probes: 26 ids equal to W5 except the W6 dock id, which meets the 66.2-35 thresholds; `w5-claims` only C11's superseded remnant check fails; vendored inventory 0 problems; VD-12 4/4 (probe reference fixed, `fb6320a72`). Guards G1-G8 + inline-structure red on 754c91802 (1/11/2/7/44/2/10/97/104) and 0 on HEAD.
+  - §7.4 validate and build: validate:quick, the coverage ratchet (65.52/57.8/64.89/67.68; 754c91802 64.94/56.71/64.19/67.06) and every build exit 0.
+  - §7.5 screenshots and owner flows: W5 -> final 41 identical, 48 intended (VD-27..VD-37 markers), 3 noise; iso pair 88 identical + 4 noise; cumulative vs a same-session 754c91802 capture 84 intended, 8 identical; sidebar set 52 intended + 8 new-state. CSP 0 beyond the same-session 754c91802 control. smoke/public/owner-axe 155 passed, 0 unexpected, 0 flaky, `app-shell-sidebar.spec.ts` 21/21 and E-22 passing.
+  - §7.6 Aikido: 312/312 files scanned; 1 carried pre-existing finding (the Supabase local-demo anon JWT at `tests/e2e/playwright.config.ts:35`, not a secret, untouched by 66.2); SAST failed inside Aikido (`unknown JSON field taint_intrafile`).
+  - VD register 37/37 (`final/vd-register.json`); owner-review evidence pack `final/evidence-pack.json`.
+  - Carried: CP-1..CP-5 to 66.2-38; CI `checks`/`e2e-smoke`/`rls-security` and the perfect-PR gate to 66.2-39.
 
 ---
 
