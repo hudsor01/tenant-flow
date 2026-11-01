@@ -142,6 +142,34 @@ describe("KpiBentoRow", () => {
 		expect(grid.getAttribute("style")).toBeNull();
 	});
 
+	// A container query matches ancestors only, so a `@…/kpi-bento:` variant on
+	// the element that declares `@container/kpi-bento` can never apply (66.2-39
+	// F6). Checked on the loaded grid and on its skeleton twin.
+	it.each([
+		["loaded", false],
+		["loading", true],
+	] as const)(
+		"never queries kpi-bento on the %s grid that declares it",
+		(_state, isLoading) => {
+			const { container } = render(
+				<KpiBentoRow
+					isLoading={isLoading}
+					stats={mockStats}
+					metricTrends={mockTrends}
+					timeSeries={mockTimeSeries}
+				/>,
+			);
+			const declaring = Array.from(
+				container.querySelectorAll<HTMLElement>("[class]"),
+			).filter((el) => el.classList.contains("@container/kpi-bento"));
+			expect(declaring).toHaveLength(1);
+			const selfQueries = Array.from(declaring[0]?.classList ?? []).filter(
+				(c) => /^@[^/]+\/kpi-bento:/.test(c),
+			);
+			expect(selfQueries).toEqual([]);
+		},
+	);
+
 	it("renders 6 tiles in D-01 order", () => {
 		render(
 			<KpiBentoRow

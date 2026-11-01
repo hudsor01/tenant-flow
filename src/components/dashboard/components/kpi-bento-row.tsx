@@ -34,11 +34,12 @@ const KpiSparkline = dynamic(
 	},
 );
 
-// The grid is the `kpi-bento` inline-size container its tiles query.
+// The grid is the `kpi-bento` inline-size container its tiles query. A
+// container query matches ancestors only, so nothing on this element may use a
+// `@…/kpi-bento:` variant: the gap stays a fixed `gap-4` at every width.
 const GRID_CLASSES = cn(
 	"@container/kpi-bento grid gap-4",
 	"grid-cols-[repeat(auto-fit,minmax(180px,1fr))]",
-	"@4xl/kpi-bento:gap-6",
 );
 
 function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
