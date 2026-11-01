@@ -1,5 +1,7 @@
 import { Download } from "lucide-react";
+import { useId } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -13,6 +15,9 @@ interface CashFlowHeaderProps {
 	year: string;
 	onPeriodChange: (value: string) => void;
 	onYearChange: (value: string) => void;
+	onExport: () => void;
+	/** Why the export is unavailable right now, or null when it can run. */
+	exportUnavailableReason: string | null;
 }
 
 export function CashFlowHeader({
@@ -20,7 +25,11 @@ export function CashFlowHeader({
 	year,
 	onPeriodChange,
 	onYearChange,
+	onExport,
+	exportUnavailableReason,
 }: CashFlowHeaderProps) {
+	const exportReasonId = useId();
+	const exportUnavailable = exportUnavailableReason !== null;
 	return (
 		<BlurFade delay={0.1}>
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
@@ -60,10 +69,23 @@ export function CashFlowHeader({
 							))}
 						</SelectContent>
 					</Select>
-					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
-						<Download className="w-4 h-4 shrink-0" />
+					{/* aria-disabled, not disabled, keeps the tab stop so the reason
+					    stays reachable; the click is ignored while it is set. */}
+					<Button
+						variant="outline"
+						onClick={exportUnavailable ? undefined : onExport}
+						aria-disabled={exportUnavailable || undefined}
+						aria-describedby={exportUnavailable ? exportReasonId : undefined}
+						className="aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+					>
+						<Download aria-hidden="true" />
 						Export
-					</button>
+					</Button>
+					{exportUnavailable ? (
+						<span id={exportReasonId} className="sr-only">
+							{exportUnavailableReason}
+						</span>
+					) : null}
 				</div>
 			</div>
 		</BlurFade>

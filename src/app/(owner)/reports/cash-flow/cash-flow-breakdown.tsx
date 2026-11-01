@@ -1,16 +1,11 @@
 import { ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { formatCents } from "#lib/utils/currency";
-
-interface FlowItem {
-	category: string;
-	amount: number;
-	percentage: number;
-}
+import type { CashFlowCategory } from "#types/financial-statements";
 
 interface CashFlowBreakdownProps {
-	inflowItems: FlowItem[];
-	outflowItems: FlowItem[];
+	inflowItems: CashFlowCategory[];
+	outflowItems: CashFlowCategory[];
 	totalInflows: number;
 	totalOutflows: number;
 }
