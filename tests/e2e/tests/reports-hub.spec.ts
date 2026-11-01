@@ -1,4 +1,5 @@
-import { expect, type Page, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { loginAsOwner } from "../auth-helpers";
 import { ROUTES } from "./constants/routes";
 
@@ -38,10 +39,12 @@ import { ROUTES } from "./constants/routes";
  *
  * COVERAGE BUDGET: the config runs with `maxFailures: 0`, `retries: 2`,
  * `workers: 2` and `timeout: 30_000` under a 9-minute `globalTimeout` (the real
- * ceiling, inside a 15-minute job), so every test does exactly three things —
- * navigate, prove it did not land on `/login`, prove the page's `<h1>`
- * rendered. No value assertions: an owner fixture with no ledger data
- * legitimately renders `$0.00`, and asserting on figures would be flaky.
+ * ceiling, inside a 15-minute job), so every route test does exactly three
+ * things — navigate, prove it did not land on `/login`, prove the page's `<h1>`
+ * rendered. No fixed-value assertions: an owner fixture with no ledger data
+ * legitimately renders `$0.00`, and asserting on figures would be flaky. The
+ * cash-flow export tests below compare the downloaded file with what the page
+ * itself shows, which holds for any data, and seed nothing.
  */
 
 /**
@@ -77,13 +80,13 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
 		await loginAsOwner(page);
 	});
 
-	// NOTE: the "Export" controls in the income-statement and cash-flow page
-	// headers (`income-statement-page-header.tsx:59`, `cash-flow-header.tsx:58`)
-	// are rendered with NO click handler attached. That is a recorded
-	// pre-existing defect carried over verbatim from the legacy financials route
-	// tree, not this phase's to repair — so they must never be clicked here, nor
-	// asserted as functional. Doing either would turn a known-dead control into
-	// a passing claim that it works.
+	// NOTE: the "Export" control in the income-statement page header
+	// (`income-statement-page-header.tsx`) is rendered with NO click handler
+	// attached, a recorded pre-existing defect carried over verbatim from the
+	// legacy financials route tree. It must never be clicked here, nor asserted
+	// as functional: that would turn a known-dead control into a passing claim
+	// that it works. The cash-flow Export is wired (66.2-39 VD-54) and is
+	// exercised by the describe block below.
 	for (const { path, heading } of hubRoutes) {
 		test(`renders ${heading} at ${path}`, async ({ page }) => {
 			await page.goto(path);
@@ -120,5 +123,165 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
 		await expect(main.getByRole("heading", { name: "Analytics" })).toHaveCount(
 			0,
 		);
+	});
+});
+
+/**
+ * Cash-flow CSV export (66.2-39 UI-SPEC VD-54).
+ *
+ * The Export button downloads the cached `financialQueries.cashFlow` data
+ * through the view the page renders (`cash-flow-csv.ts`), so the file's totals
+ * must equal the stat tiles on screen, whatever the owner's data is. Nothing is
+ * seeded: the comparison is page against file.
+ *
+ * Settling: the button is `aria-disabled` until the selected period's data is
+ * on screen (it stays so while `isPlaceholderData` shows the previous period),
+ * so the click waits for a hydrated button with no `aria-disabled`, not for
+ * visibility. The onboarding tour is marked completed first, as
+ * `gotoAuthedDashboard` does, so its spotlight can never sit over the header.
+ */
+const CASH_FLOW_CSV_HEADER =
+	"Period,Start Date,End Date,Currency,Section,Line Item,Share (%),Amount";
+const CASH_FLOW_FILENAME =
+	/^tenantflow-cash-flow-(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2})\.csv$/;
+
+async function gotoReport(
+	page: Page,
+	path: string,
+	heading: string,
+): Promise<void> {
+	await loginAsOwner(page);
+	await page.evaluate(() => {
+		localStorage.setItem(
+			"tenantflow:tour-progress",
+			JSON.stringify({ "owner-onboarding": "completed" }),
+		);
+	});
+	await page.goto(path);
+	expect(page.url()).not.toContain("/login");
+	await expect(pageHeading(page, heading)).toBeVisible({ timeout: 15000 });
+}
+
+/**
+ * Waits until react-dom has hydrated `locator`'s node: react-dom precaches a
+ * fiber on every host node it hydrates (`__reactFiber$<random>`), so an own key
+ * starting with `__react` is the hydration signal; visibility is not (the
+ * apply-token.spec.ts and app-shell-sidebar.spec.ts gate).
+ */
+async function waitForHydrated(locator: Locator): Promise<void> {
+	await expect
+		.poll(
+			() =>
+				locator.evaluate((node) =>
+					Object.keys(node).some((key) => key.startsWith("__react")),
+				),
+			{ timeout: 15000 },
+		)
+		.toBe(true);
+}
+
+/** The Export button once hydrated and enabled (its data is the period shown). */
+async function settledExportButton(page: Page): Promise<Locator> {
+	const exportButton = page
+		.locator("main#main-content")
+		.getByRole("button", { name: "Export", exact: true });
+	await waitForHydrated(exportButton);
+	await expect(exportButton).not.toHaveAttribute("aria-disabled", {
+		timeout: 15000,
+	});
+	return exportButton;
+}
+
+/** A stat tile's value as the page shows it, digits only: "+$1,234.50" -> "1234.50". */
+async function statAmount(page: Page, label: string): Promise<string> {
+	const tile = page.locator('[data-slot="stat"]').filter({
+		has: page.locator('[data-slot="stat-label"]', { hasText: label }),
+	});
+	const text = await tile.locator('[data-slot="stat-value"]').innerText();
+	const compact = text.replace(/\s+/g, "");
+	const match = /^([+-]?)\$([\d,]+\.\d{2})$/.exec(compact);
+	if (!match) {
+		throw new Error(`${label} tile shows "${text}", not a dollar amount`);
+	}
+	const digits = (match[2] ?? "").replace(/,/g, "");
+	return match[1] === "-" && Number(digits) !== 0 ? `-${digits}` : digits;
+}
+
+/** RFC 4180 rows (quoted fields, doubled quotes, CRLF or LF line ends). */
+function parseCsv(text: string): string[][] {
+	const rows: string[][] = [];
+	let row: string[] = [];
+	let field = "";
+	let quoted = false;
+	for (let i = 0; i < text.length; i += 1) {
+		const ch = text[i];
+		if (quoted) {
+			if (ch === '"' && text[i + 1] === '"') {
+				field += '"';
+				i += 1;
+			} else if (ch === '"') {
+				quoted = false;
+			} else {
+				field += ch;
+			}
+		} else if (ch === '"') {
+			quoted = true;
+		} else if (ch === ",") {
+			row.push(field);
+			field = "";
+		} else if (ch === "\n" || ch === "\r") {
+			if (ch === "\r" && text[i + 1] === "\n") i += 1;
+			row.push(field);
+			rows.push(row);
+			row = [];
+			field = "";
+		} else {
+			field += ch;
+		}
+	}
+	if (field !== "" || row.length > 0) {
+		row.push(field);
+		rows.push(row);
+	}
+	return rows;
+}
+
+test.describe("Cash flow export (66.2-39 VD-54)", () => {
+	test("downloads the figures on screen as tenantflow-cash-flow-<start>-to-<end>.csv", async ({
+		page,
+	}) => {
+		await gotoReport(page, ROUTES.REPORTS_CASH_FLOW, "Cash Flow");
+		const exportButton = await settledExportButton(page);
+
+		const onScreen = {
+			"Total Inflows": await statAmount(page, "Total Inflows"),
+			"Total Outflows": await statAmount(page, "Total Outflows"),
+			"Net Cash Flow": await statAmount(page, "Net Cash Flow"),
+		};
+
+		const downloadEvent = page.waitForEvent("download");
+		await exportButton.click();
+		const download = await downloadEvent;
+
+		const name = download.suggestedFilename();
+		const dates = CASH_FLOW_FILENAME.exec(name);
+		expect(dates, `filename ${name}`).not.toBeNull();
+		const [, startDate, endDate] = dates ?? [];
+		expect(startDate && endDate && startDate <= endDate).toBe(true);
+
+		const rows = parseCsv(await readFile(await download.path(), "utf8"));
+		const [header, ...body] = rows;
+		expect(header?.join(",")).toBe(CASH_FLOW_CSV_HEADER);
+		expect(body.length).toBeGreaterThan(0);
+		for (const row of body) {
+			expect(row).toHaveLength(8);
+			expect(row.slice(1, 4)).toEqual([startDate, endDate, "USD"]);
+		}
+
+		const total = (item: string) =>
+			body.find((row) => row[4] === "Totals" && row[5] === item)?.[7];
+		for (const [item, shown] of Object.entries(onScreen)) {
+			expect(total(item), `${item} in the CSV`).toBe(shown);
+		}
 	});
 });
