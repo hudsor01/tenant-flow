@@ -74,7 +74,13 @@ export function ImageLightbox({
 
 	return (
 		<Dialog open={open} onOpenChange={onClose}>
-			<DialogContent className="max-w-[95vw] max-h-[95vh] w-full p-0 border-0 bg-black/95">
+			{/* `sm:max-w-[95vw]` replaces the primitive's `sm:max-w-lg`, which
+			    otherwise caps the lightbox at 512px from 640px up. Its corner
+			    close is off: the 44px close below is the only one. */}
+			<DialogContent
+				showCloseButton={false}
+				className="max-w-[95vw] sm:max-w-[95vw] max-h-[95vh] w-full p-0 border-0 bg-black/95"
+			>
 				{/* Accessibility: Hidden title and description for screen readers */}
 				<DialogTitle className="sr-only">
 					Property Image {currentIndex + 1} of {images.length}
@@ -84,7 +90,7 @@ export function ImageLightbox({
 				</DialogDescription>
 
 				{/* Close button */}
-				<DialogClose className="absolute right-4 top-4 z-50 bg-black/50 hover:bg-black/70 rounded-full p-2 transition-colors">
+				<DialogClose className="absolute right-4 top-4 z-50 flex size-11 items-center justify-center bg-black/50 hover:bg-black/70 rounded-full transition-colors">
 					<X className="h-5 w-5 text-white" />
 					<span className="sr-only">Close</span>
 				</DialogClose>

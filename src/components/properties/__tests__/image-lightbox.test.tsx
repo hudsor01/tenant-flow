@@ -151,9 +151,26 @@ describe("ImageLightbox Component", () => {
 				/>,
 			);
 
-			// Close button should exist (may be multiple due to Radix UI)
-			const closeButtons = screen.getAllByRole("button");
-			expect(closeButtons.length).toBeGreaterThan(0);
+			// Exactly one named Close button (the primitive's default corner close
+			// is turned off), at the 44px touch floor (66.2-39).
+			const closeButtons = screen.getAllByRole("button", { name: "Close" });
+			expect(closeButtons).toHaveLength(1);
+			expect(closeButtons[0]?.classList).toContain("size-11");
+		});
+
+		it("lets the 95vw width win at every breakpoint", () => {
+			render(
+				<ImageLightboxWithState
+					images={MOCK_IMAGES}
+					open={true}
+					onClose={() => {}}
+				/>,
+			);
+			// The primitive's `sm:max-w-lg` (512px from 640px up) outranked the
+			// unprefixed `max-w-[95vw]`; the matching `sm:` width replaces it.
+			const content = screen.getByRole("dialog");
+			expect(content.classList).toContain("sm:max-w-[95vw]");
+			expect(content.classList).not.toContain("sm:max-w-lg");
 		});
 	});
 
