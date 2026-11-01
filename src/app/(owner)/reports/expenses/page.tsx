@@ -8,6 +8,10 @@ import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { useExpenses } from "#hooks/api/use-expense-mutations";
 import { useExpenseSummary } from "#hooks/api/use-financials";
+import { formatLocalYmd } from "#lib/formatters/date";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { ExpenseCategoryBreakdown } from "./_components/expense-category-breakdown";
 import { ExpenseStats } from "./_components/expense-stats";
 import { ExpenseTable } from "./_components/expense-table";
@@ -54,16 +58,20 @@ export default function ExpensesPage() {
 			toast.error("No data to download");
 			return;
 		}
-		const csv = buildExpensesCsv(filteredExpenses);
-		const blob = new Blob([csv], { type: "text/csv" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `expenses-${new Date().toISOString().slice(0, 10)}.csv`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		setTimeout(() => URL.revokeObjectURL(url), 100);
+		try {
+			downloadBlob(
+				new Blob([buildExpensesCsv(filteredExpenses)], {
+					type: CSV_MIME_TYPE,
+				}),
+				`expenses-${formatLocalYmd(new Date())}.csv`,
+			);
+		} catch (exportError) {
+			handleMutationError(
+				exportError,
+				"Export expenses CSV",
+				"Couldn't export the expenses. Please try again.",
+			);
+		}
 	};
 
 	const totalExpenses = summary?.total_amount ?? 0;

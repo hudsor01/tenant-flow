@@ -3,7 +3,6 @@
 import { ChevronLeft, Download, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 import { YearEndReportSection } from "#components/reports/sections/year-end-report-section";
 import { Button } from "#components/ui/button";
 import {
@@ -18,6 +17,10 @@ import {
 	useReport1099Summary,
 	useYearEndSummary,
 } from "#hooks/api/use-reports";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { build1099Csv, buildYearEndCsv } from "./year-end-csv";
 
 function buildYearOptions(): number[] {
 	const currentYear = new Date().getFullYear();
@@ -28,35 +31,8 @@ function buildYearOptions(): number[] {
 	return years;
 }
 
-function downloadCsv(rows: Record<string, unknown>[], filename: string) {
-	if (rows.length === 0) {
-		toast.error("No data to download");
-		return;
-	}
-	const firstRow = rows[0];
-	if (!firstRow) return;
-	const headers = Object.keys(firstRow);
-	const csv = [
-		headers.join(","),
-		...rows.map((row) =>
-			headers
-				.map((h) => {
-					const val = String(row[h] ?? "");
-					return val.includes(",") ? `"${val}"` : val;
-				})
-				.join(","),
-		),
-	].join("\n");
-
-	const blob = new Blob([csv], { type: "text/csv" });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	document.body.appendChild(a);
-	a.click();
-	document.body.removeChild(a);
-	setTimeout(() => URL.revokeObjectURL(url), 100);
+function downloadCsv(csv: string, filename: string) {
+	downloadBlob(new Blob([csv], { type: CSV_MIME_TYPE }), filename);
 }
 
 export default function YearEndReportsPage() {
@@ -84,47 +60,15 @@ export default function YearEndReportsPage() {
 		if (!yearEndResponse) return;
 		setIsExportingYearEnd(true);
 		try {
-			const overviewRows = [
-				{
-					section: "Overview",
-					item: "Tax Year",
-					value: String(yearEndResponse.year),
-				},
-				{
-					section: "Overview",
-					item: "Gross Rental Income",
-					value: yearEndResponse.grossRentalIncome.toFixed(2),
-				},
-				{
-					section: "Overview",
-					item: "Operating Expenses",
-					value: yearEndResponse.operatingExpenses.toFixed(2),
-				},
-				{
-					section: "Overview",
-					item: "Net Income",
-					value: yearEndResponse.netIncome.toFixed(2),
-				},
-			];
-			const propertyRows = yearEndResponse.byProperty.map((p) => ({
-				section: "By Property",
-				item: p.propertyName,
-				income: p.income.toFixed(2),
-				expenses: p.expenses.toFixed(2),
-				net: p.netIncome.toFixed(2),
-				value: "",
-			}));
-			const categoryRows = yearEndResponse.expenseByCategory.map((c) => ({
-				section: "Expense Categories",
-				item: c.category,
-				value: c.amount.toFixed(2),
-				income: "",
-				expenses: "",
-				net: "",
-			}));
 			downloadCsv(
-				[...overviewRows, ...propertyRows, ...categoryRows],
+				buildYearEndCsv(yearEndResponse),
 				`year-end-${selectedYear}.csv`,
+			);
+		} catch (error) {
+			handleMutationError(
+				error,
+				"Export year-end CSV",
+				"Couldn't export the year-end report. Please try again.",
 			);
 		} finally {
 			setIsExportingYearEnd(false);
@@ -135,26 +79,16 @@ export default function YearEndReportsPage() {
 		if (!data1099Response) return;
 		setIsExporting1099(true);
 		try {
-			if (data1099Response.recipients.length === 0) {
-				downloadCsv(
-					[
-						{
-							message: `No vendors met the $${data1099Response.threshold} 1099-NEC threshold for ${selectedYear}`,
-						},
-					],
-					`1099-${selectedYear}.csv`,
-				);
-				return;
-			}
-			const rows = data1099Response.recipients.map((r) => ({
-				vendor_name: r.vendorName,
-				total_paid: r.totalPaid.toFixed(2),
-				job_count: String(r.jobCount),
-				year: String(selectedYear),
-				threshold: String(data1099Response.threshold),
-				requires_1099: "Yes",
-			}));
-			downloadCsv(rows, `1099-${selectedYear}.csv`);
+			downloadCsv(
+				build1099Csv(data1099Response, selectedYear),
+				`1099-${selectedYear}.csv`,
+			);
+		} catch (error) {
+			handleMutationError(
+				error,
+				"Export 1099 CSV",
+				"Couldn't export the 1099 summary. Please try again.",
+			);
 		} finally {
 			setIsExporting1099(false);
 		}
