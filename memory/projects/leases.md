@@ -9,8 +9,8 @@ Full lease lifecycle management — create, sign, renew, expire. Supports single
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
+| File                                   | Purpose           |
+| -------------------------------------- | ----------------- |
 | src/hooks/api/query-keys/lease-keys.ts | Query key factory |
 
 ## Key Conventions

@@ -53,7 +53,12 @@ const SHA_PIN_WITH_COMMENT = /@[0-9a-f]{40}\s+#\s*v\d/;
 const FIRST_PARTY_OWNERS = new Set(["actions", "github"]);
 
 function collectUses(): UsesEntry[] {
-	const files = readdirSync(WORKFLOWS_DIR).filter((f) => f.endsWith(".yml"));
+	// `.yaml` too: GitHub accepts both extensions, and scripts/workflow-contract.ts
+	// collects both -- so a `.yaml` workflow was checked by the contract gate
+	// while escaping this one entirely.
+	const files = readdirSync(WORKFLOWS_DIR).filter(
+		(f) => f.endsWith(".yml") || f.endsWith(".yaml"),
+	);
 	const entries: UsesEntry[] = [];
 
 	for (const file of files) {

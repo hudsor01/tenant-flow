@@ -13,7 +13,6 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
-import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Unit } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
@@ -32,20 +31,6 @@ const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] =>
 /**
  * Hook to fetch units by property ID
  * Optimized for property detail pages showing all units
- * Uses queryOptions pattern with automatic prefetching of individual units
- *
- * @see https://tanstack.com/query/latest/docs/framework/react/guides/render-optimizations
- */
-export function useUnitsByProperty(property_id: string) {
-	return useQuery({
-		...unitQueries.byProperty(property_id),
-		...QUERY_CACHE_TIMES.LIST,
-		gcTime: 30 * 60 * 1000, // 30 minutes cache time
-		structuralSharing: true,
-		// Only re-render when these properties change
-		notifyOnChangeProps: ["data", "error", "isPending", "isFetching"],
-	});
-}
 
 /**
  * Hook to fetch all units with optional filters

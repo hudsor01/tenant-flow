@@ -65,10 +65,7 @@ function isAbortError(error: unknown): boolean {
  * 4. Network errors → retry (transient)
  * 5. Unknown errors → retry (assume transient)
  */
-export function shouldRetryQuery(
-	failureCount: number,
-	error: unknown,
-): boolean {
+function shouldRetryQuery(failureCount: number, error: unknown): boolean {
 	// Never retry more than 3 times
 	if (failureCount >= 3) return false;
 
@@ -101,7 +98,7 @@ export function shouldRetryQuery(
  * 2nd retry: 2000ms
  * 3rd retry: 4000ms (max)
  */
-export function getRetryDelay(attemptIndex: number): number {
+function getRetryDelay(attemptIndex: number): number {
 	return Math.min(1000 * Math.pow(2, attemptIndex), 4000);
 }
 

@@ -106,7 +106,7 @@ const RAW_DB_INTERNALS =
  * `plan_limit_exceeded:` prefix) both render under this id, so a batch upload
  * shows a SINGLE 'Plan limit reached' toast rather than one per rejected file.
  */
-export const STORAGE_QUOTA_TOAST_ID = "storage-quota-upgrade";
+const STORAGE_QUOTA_TOAST_ID = "storage-quota-upgrade";
 
 /**
  * Render the shared 'Plan limit reached' Upgrade toast. When `toastId` is

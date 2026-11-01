@@ -15,6 +15,32 @@ Sentry.init({
 	// Performance Monitoring
 	tracesSampleRate: isProduction ? 0.2 : 1.0,
 
+	// SDK v11 replaced `sendDefaultPii` with `dataCollection` and flipped the
+	// default: left unset, it collects cookies, every HTTP request/response
+	// body, user IPs and database query text. Request bodies here carry tenant,
+	// lease and payment details, so this pins the v10 `sendDefaultPii: false`
+	// baseline (the migration guide's equivalent) instead of inheriting v11's.
+	dataCollection: {
+		userInfo: false,
+		cookies: false,
+		httpHeaders: {
+			request: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+			response: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+		},
+		httpBodies: [],
+		urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+		genAI: { inputs: false, outputs: false },
+		databaseQueryData: false,
+		queues: false,
+		graphQL: { document: false, variables: false },
+	},
+
+	// v11 defaults this to true, which attaches a synthetic stack to every
+	// captureMessage call: new issue groups on the first v11 release (read by
+	// the post-deploy Sentry gate as a regression) and errored sessions. Kept
+	// at the v10 default.
+	attachStacktrace: false,
+
 	// Filter noisy errors
 	ignoreErrors: [
 		"NEXT_NOT_FOUND",

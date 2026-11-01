@@ -1,0 +1,45 @@
+{
+	"entry": [
+		"src/app/**/*.{ts,tsx}",
+		"src/proxy.ts",
+		"src/instrumentation.ts",
+		"scripts/**/*.ts",
+		"supabase/functions/**/index.ts"
+	],
+	"project": [
+		"src/**/*.{ts,tsx}",
+		"scripts/**/*.ts",
+		"tests/e2e/**/*.{ts,tsx}",
+		"supabase/functions/__tests__/**/*.ts",
+		"supabase/functions/tests/**/*.ts"
+	],
+	"paths": {
+		"#proxy": ["./src/proxy.ts"],
+		"#env": ["./src/env.ts"],
+		"#app/*": ["./src/app/*"],
+		"#components/*": ["./src/components/*"],
+		"#lib/*": ["./src/lib/*"],
+		"#hooks/*": ["./src/hooks/*"],
+		"#stores/*": ["./src/stores/*"],
+		"#types/*": ["./src/types/*"],
+		"#providers/*": ["./src/providers/*"],
+		"#test/*": ["./src/test/*"],
+		"#config/*": ["./src/config/*"]
+	},
+	"ignoreDependencies": [
+		"@tailwindcss/typography",
+		"tailwindcss",
+		"tw-animate-css"
+	],
+	"ignoreBinaries": ["supabase", "gitleaks"],
+	"ignore": [
+		"**/*.test.ts",
+		"**/*.test.tsx",
+		"**/*.spec.ts",
+		"tests/e2e/**",
+		"src/test/**",
+		"supabase/functions/tests/**",
+		"supabase/functions/**/index.ts",
+		"supabase/functions/_shared/**/*.ts"
+	]
+}

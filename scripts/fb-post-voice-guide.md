@@ -26,6 +26,7 @@ modify any file except via the append script and your own /tmp scratch file.
 ## Richard's voice — match this verbatim sample's register
 
 ---
+
 Quick one for the landlords here.
 
 Your state has a hard security deposit return deadline, and a lot of people blow right past it without realizing. In a bunch of states, if you're even a few days late your tenant can come after you for 2-3x the deposit... even if every deduction you made was completely fair.
@@ -40,8 +41,7 @@ We put together a free breakdown of the deposit rules for every state, written f
 
 Which state are your rentals in? I'll reply with your exact deadline and what it could cost you to miss it.
 
-#LandlordTips #SecurityDeposit #LandlordLife
----
+## #LandlordTips #SecurityDeposit #LandlordLife
 
 Voice DNA: one landlord texting another, zero marketing energy. Plain
 colloquial verbs ("blow right past it", "catch people off guard", "squared

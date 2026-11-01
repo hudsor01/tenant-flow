@@ -9,15 +9,15 @@ Stripe subscription management for property owners (subscription tiers) and tena
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| supabase/functions/stripe-webhooks/ | Webhook handler — modular, one file per event type |
-| supabase/functions/stripe-checkout-session/ | Checkout session creation (rate-limited) |
-| supabase/functions/detach-payment-method/ | Detach from Stripe before DB deletion |
-| src/hooks/api/query-keys/billing-keys.ts | Query key factory for billing queries |
-| src/hooks/api/query-keys/payment-keys.ts | Query key factory for payment queries |
-| stripe.subscriptions (PostgREST) | Query for subscription status — don't call Stripe API for reads |
-| stripe.invoices (PostgREST) | Query for invoice history |
+| File                                        | Purpose                                                         |
+| ------------------------------------------- | --------------------------------------------------------------- |
+| supabase/functions/stripe-webhooks/         | Webhook handler — modular, one file per event type              |
+| supabase/functions/stripe-checkout-session/ | Checkout session creation (rate-limited)                        |
+| supabase/functions/detach-payment-method/   | Detach from Stripe before DB deletion                           |
+| src/hooks/api/query-keys/billing-keys.ts    | Query key factory for billing queries                           |
+| src/hooks/api/query-keys/payment-keys.ts    | Query key factory for payment queries                           |
+| stripe.subscriptions (PostgREST)            | Query for subscription status — don't call Stripe API for reads |
+| stripe.invoices (PostgREST)                 | Query for invoice history                                       |
 
 ## Key Conventions
 

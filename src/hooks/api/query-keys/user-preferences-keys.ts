@@ -24,14 +24,14 @@ type UserPreferencesRow =
 
 // Fallbacks match the General Settings select defaults so the form always
 // shows a valid selected option even before a user_preferences row exists.
-export const DEFAULT_USER_PREFERENCES: UserPreferences = {
+const DEFAULT_USER_PREFERENCES: UserPreferences = {
 	timezone: "America/Chicago",
 	language: "en-US",
 };
 
 // Typed boundary mapper (no `as unknown as`): coalesces the nullable
 // timezone/language columns to the UI defaults.
-export function mapUserPreferencesRow(
+function mapUserPreferencesRow(
 	row: Pick<UserPreferencesRow, "timezone" | "language">,
 ): UserPreferences {
 	return {

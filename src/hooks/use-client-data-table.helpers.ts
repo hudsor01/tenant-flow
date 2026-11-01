@@ -6,7 +6,7 @@ import {
 	type UseQueryStateOptions,
 } from "nuqs";
 
-export const ARRAY_SEPARATOR = ",";
+const ARRAY_SEPARATOR = ",";
 
 export type FilterValues = Record<string, string | string[] | null>;
 export type FilterParsers = Record<

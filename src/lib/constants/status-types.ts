@@ -24,7 +24,7 @@ export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 /**
  * PROPERTY TYPE ENUMERATION - App-level property classification
  */
-export const PROPERTY_TYPES = {
+const PROPERTY_TYPES = {
 	SINGLE_FAMILY: "SINGLE_FAMILY",
 	MULTI_UNIT: "MULTI_UNIT",
 	APARTMENT: "APARTMENT",

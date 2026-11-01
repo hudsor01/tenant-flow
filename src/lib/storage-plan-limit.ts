@@ -39,7 +39,7 @@ export const STORAGE_PLAN_LIMIT_PREFIX = "plan_limit_exceeded:";
  * strips everything except this code, and every other trigger exception on that
  * path also reports P0001.
  */
-export const STORAGE_PLAN_LIMIT_SQLSTATE = "PLIM1";
+const STORAGE_PLAN_LIMIT_SQLSTATE = "PLIM1";
 
 const BYTES_PER_GB = 1024 ** 3;
 

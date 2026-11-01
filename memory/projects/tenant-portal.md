@@ -9,12 +9,12 @@ The tenant-facing side of TenantFlow. Tenants pay rent, set up autopay, submit a
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| src/hooks/api/use-tenant-payments.ts | Tenant payment hooks (flat naming, max 300 lines) |
-| src/hooks/api/query-keys/payment-keys.ts | Payment query key factory |
-| supabase/functions/tenant-invitation-accept/ | Accept invite — rate-limited (10 req/min per IP) |
-| supabase/functions/tenant-invitation-validate/ | Validate invite token — rate-limited |
+| File                                           | Purpose                                           |
+| ---------------------------------------------- | ------------------------------------------------- |
+| src/hooks/api/use-tenant-payments.ts           | Tenant payment hooks (flat naming, max 300 lines) |
+| src/hooks/api/query-keys/payment-keys.ts       | Payment query key factory                         |
+| supabase/functions/tenant-invitation-accept/   | Accept invite — rate-limited (10 req/min per IP)  |
+| supabase/functions/tenant-invitation-validate/ | Validate invite token — rate-limited              |
 
 ## Key Conventions
 

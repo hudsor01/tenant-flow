@@ -7,42 +7,42 @@ Owners manage properties/units/leases. Tenants pay rent, submit maintenance requ
 
 ## Stack
 
-| Tool | Used for | Notes |
-|------|----------|-------|
-| Next.js 16 | Frontend framework | App Router, React 19, port 3050 |
-| Supabase | DB + Auth + Edge Functions | PostgreSQL hosted, primary backend |
-| Stripe | Payments + subscriptions | stripe@20, apiVersion 2026-02-25.clover |
-| Vercel | Frontend deploy | CSP enforced via vercel.json |
-| Sentry | Error monitoring | Picks up user_errors table via cron |
-| shadcn/ui | UI component library | lucide-react for all icons |
-| TanStack Query | Server state management | queryOptions() factory pattern |
-| TanStack Form | Form state | Zod schemas for validation |
-| Zustand | Client UI state | Not server state |
-| nuqs | URL state | Query params |
-| bun 1.3 | Package manager | Never use npm/yarn |
-| Tailwind CSS v4 | Styling | Utilities only, no inline styles |
+| Tool            | Used for                   | Notes                                   |
+| --------------- | -------------------------- | --------------------------------------- |
+| Next.js 16      | Frontend framework         | App Router, React 19, port 3050         |
+| Supabase        | DB + Auth + Edge Functions | PostgreSQL hosted, primary backend      |
+| Stripe          | Payments + subscriptions   | stripe@20, apiVersion 2026-02-25.clover |
+| Vercel          | Frontend deploy            | CSP enforced via vercel.json            |
+| Sentry          | Error monitoring           | Picks up user_errors table via cron     |
+| shadcn/ui       | UI component library       | lucide-react for all icons              |
+| TanStack Query  | Server state management    | queryOptions() factory pattern          |
+| TanStack Form   | Form state                 | Zod schemas for validation              |
+| Zustand         | Client UI state            | Not server state                        |
+| nuqs            | URL state                  | Query params                            |
+| bun 1.3         | Package manager            | Never use npm/yarn                      |
+| Tailwind CSS v4 | Styling                    | Utilities only, no inline styles        |
 
 ## Key Commands
 
-| Command | What |
-|---------|------|
-| bun run dev | Start dev server (port 3050) |
-| bun run validate:quick | types + lint + unit tests |
-| bun run typecheck && bun run lint | CI quality gate |
-| bun run test:unit | Vitest unit tests |
-| bun run test:integration | RLS security tests |
-| bun run test:e2e | Playwright E2E tests |
-| bun run db:types | Regenerate Supabase types from live DB |
-| gh issue list --assignee=@me | View open GitHub issues |
+| Command                           | What                                   |
+| --------------------------------- | -------------------------------------- |
+| bun run dev                       | Start dev server (port 3050)           |
+| bun run validate:quick            | types + lint + unit tests              |
+| bun run typecheck && bun run lint | CI quality gate                        |
+| bun run test:unit                 | Vitest unit tests                      |
+| bun run test:integration          | RLS security tests                     |
+| bun run test:e2e                  | Playwright E2E tests                   |
+| bun run db:types                  | Regenerate Supabase types from live DB |
+| gh issue list --assignee=@me      | View open GitHub issues                |
 
 ## User Types
 
-| Type | Routes | Description |
-|------|--------|-------------|
-| OWNER | /dashboard/* | Property owner — pays subscription, manages properties |
-| TENANT | /tenant/* | Renter — pays rent, submits maintenance requests |
-| ADMIN | /admin/* | Platform admin — error monitoring RPCs only |
-| PENDING | /auth/select-role | New user — no role assigned yet |
+| Type    | Routes            | Description                                            |
+| ------- | ----------------- | ------------------------------------------------------ |
+| OWNER   | /dashboard/*      | Property owner — pays subscription, manages properties |
+| TENANT  | /tenant/*         | Renter — pays rent, submits maintenance requests       |
+| ADMIN   | /admin/*          | Platform admin — error monitoring RPCs only            |
+| PENDING | /auth/select-role | New user — no role assigned yet                        |
 
 ## Architectural Rules (Zero Tolerance)
 
@@ -58,31 +58,31 @@ Owners manage properties/units/leases. Tenants pay rent, submit maintenance requ
 
 ## Key File Locations
 
-| What | Where |
-|------|-------|
-| Shared types | src/types/ |
-| Validation schemas | src/lib/validation/ |
-| Query key factories | src/hooks/api/query-keys/ |
-| Edge Functions | supabase/functions/ |
-| Shared Edge Fn utilities | supabase/functions/_shared/ |
-| DB migrations | supabase/migrations/ |
-| Generated types (don't edit) | src/types/supabase.ts |
-| Route middleware | proxy.ts (project root) |
-| RLS integration tests | tests/integration/rls/ |
-| E2E tests | tests/e2e/tests/ |
+| What                         | Where                       |
+| ---------------------------- | --------------------------- |
+| Shared types                 | src/types/                  |
+| Validation schemas           | src/lib/validation/         |
+| Query key factories          | src/hooks/api/query-keys/   |
+| Edge Functions               | supabase/functions/         |
+| Shared Edge Fn utilities     | supabase/functions/_shared/ |
+| DB migrations                | supabase/migrations/        |
+| Generated types (don't edit) | src/types/supabase.ts       |
+| Route middleware             | proxy.ts (project root)     |
+| RLS integration tests        | tests/integration/rls/      |
+| E2E tests                    | tests/e2e/tests/            |
 
 ## Cron Jobs (pg_cron, run 3 AM UTC window)
 
-| Job | What |
-|-----|------|
-| expire-leases | Expire active leases past end_date |
-| calculate_late_fees | Calculate late fees on overdue rent |
-| process-autopay-charges | Process autopay for due rent via Edge Fn |
-| cleanup-security-events | Archive + delete events > 90 days |
-| cleanup-errors | Archive + delete errors > 90 days |
-| cleanup-webhook-events | Archive webhooks (90d succeeded / 180d failed) |
-| check-cron-health | Monitor job failures hourly via cron.job_run_details |
-| process-account-deletions | GDPR: anonymize users past 30-day grace period |
+| Job                       | What                                                 |
+| ------------------------- | ---------------------------------------------------- |
+| expire-leases             | Expire active leases past end_date                   |
+| calculate_late_fees       | Calculate late fees on overdue rent                  |
+| process-autopay-charges   | Process autopay for due rent via Edge Fn             |
+| cleanup-security-events   | Archive + delete events > 90 days                    |
+| cleanup-errors            | Archive + delete errors > 90 days                    |
+| cleanup-webhook-events    | Archive webhooks (90d succeeded / 180d failed)       |
+| check-cron-health         | Monitor job failures hourly via cron.job_run_details |
+| process-account-deletions | GDPR: anonymize users past 30-day grace period       |
 
 ## Public Routes (skip auth)
 

@@ -14,12 +14,12 @@ Please include:
 
 You'll receive an acknowledgement within 2 business days. Resolution timelines depend on severity:
 
-| Severity | Initial response | Fix target |
-|---------|------------------|------------|
-| Critical (RCE, auth bypass, data breach) | < 24 hours | < 7 days |
-| High (privilege escalation, account takeover) | < 48 hours | < 14 days |
-| Medium (information disclosure, CSRF, XSS in dashboard) | < 5 business days | < 30 days |
-| Low (defense-in-depth, hardening) | Best effort | Triaged into roadmap |
+| Severity                                                | Initial response  | Fix target           |
+| ------------------------------------------------------- | ----------------- | -------------------- |
+| Critical (RCE, auth bypass, data breach)                | < 24 hours        | < 7 days             |
+| High (privilege escalation, account takeover)           | < 48 hours        | < 14 days            |
+| Medium (information disclosure, CSRF, XSS in dashboard) | < 5 business days | < 30 days            |
+| Low (defense-in-depth, hardening)                       | Best effort       | Triaged into roadmap |
 
 We follow [coordinated disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure) — please give us a reasonable window to ship a fix before any public discussion.
 
@@ -27,10 +27,10 @@ We follow [coordinated disclosure](https://en.wikipedia.org/wiki/Coordinated_vul
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| `main` (production at tenantflow.app) | ✅ |
-| Anything else | ❌ |
+| Version                               | Supported |
+| ------------------------------------- | --------- |
+| `main` (production at tenantflow.app) | ✅        |
+| Anything else                         | ❌        |
 
 There is no semver release train. Production tracks `main`; security fixes ship as soon as they pass the perfect-PR review gate.
 
@@ -63,17 +63,19 @@ Every storage bucket policy enforces folder-uuid → owner ID via `storage.folde
 - **Auth**: Bearer + `supabase.auth.getUser(token)`. Identity is never derived from the request body.
 - **CORS**: fail-closed when `NEXT_PUBLIC_APP_URL` is unset.
 - **Errors**: generic `{ error: 'An error occurred' }` to clients; full detail to Sentry + structured console.
-- **Rate limiting**: Postgres `check_rate_limit` (SECURITY DEFINER, service_role only), approximated sliding window, **fail-closed**. The decision and the increment are one `INSERT ... ON CONFLICT DO UPDATE` carrying two guards, so concurrent callers serialize and a denied request writes nothing. IP extraction prefers an address forwarded by a caller that proved it holds `CLIENT_IP_FORWARD_SECRET` (constant-time compare, address-shape validated after the compare), then `cf-connecting-ip`, then the *last* `x-forwarded-for` segment — the first segment is attacker-controlled.
+- **Rate limiting**: Postgres `check_rate_limit` (SECURITY DEFINER, service_role only), approximated sliding window, **fail-closed**. The decision and the increment are one `INSERT ... ON CONFLICT DO UPDATE` carrying two guards, so concurrent callers serialize and a denied request writes nothing. IP extraction prefers an address forwarded by a caller that proved it holds `CLIENT_IP_FORWARD_SECRET` (constant-time compare, address-shape validated after the compare), then `cf-connecting-ip`, then the _last_ `x-forwarded-for` segment — the first segment is attacker-controlled.
 - **HMAC** verification on webhooks (Stripe, Resend, n8n) using `crypto.subtle.timingSafeEqual` with length pre-check.
 - **Stripe Checkout** validates `price_id` against an allowlist; arbitrary-price + promo-code bypass is closed.
 
 ### Build, CI, and Dependency Hygiene
 
 - **Pre-commit:** gitleaks (secret scanning, push protection on), lockfile-verify, lint, typecheck, unit tests.
-- **CI:** lint + typecheck + Next.js build + Playwright smoke + RLS integration tests on every PR; required status checks via branch protection on `main`.
+- **CI:** on every PR — a dependency-audit gate (fails on high/critical, with a positive control so it cannot fail open), lint, typecheck, the unit suite under coverage thresholds, a Next.js build, Playwright smoke, and RLS integration tests; required status checks via branch protection on `main`.
+- **Gate self-tests:** the credential gate, the migration-replay assertions, the platform-config drift assertions and the workflow contract each ship negative controls that run in CI, and `scripts/mutation-sweep.sh` breaks an enumerated list of their decision points in turn, requiring a control to fail for each.
 - **Dependabot:** weekly scans; high/critical alerts auto-trigger Dependabot PRs. Resolved alerts to date: GHSA-w5hq-g745-h8pq (uuid), GHSA-qx2v-qp2m-jg93 (postcss), GHSA-v2v4-37r5-5v8g (ip-address).
 - **Secret scanning** with push protection enabled at the GitHub repo level.
-- **Branch protection** on `main`: required checks, force-push and deletion blocked, admin-bypass disabled.
+- **Branch protection** on `main`: required checks (`checks`, `e2e-smoke`, `rls-security`), force-push and deletion blocked. **Admin bypass is currently ENABLED** (`enforce_admins: false`), so a repository admin can merge or push past the required checks — this line previously claimed the opposite. `scripts/verify-platform-config.ts` asserts the required-check set and the enforcement level daily, and will report drift in either direction.
+- **Platform-config drift:** Supabase's GitHub integration holds no deploy authority over production (`git_branch` cleared 2026-10-25), and Vercel deploys `main` only. Both are asserted daily rather than assumed, because the Supabase setting had been ON for four months against what this repo documented.
 - **No `auth-helpers-nextjs`** anywhere — only `@supabase/ssr`.
 
 ### Frontend Security

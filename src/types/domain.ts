@@ -29,13 +29,6 @@ export interface CSPReportBody {
 
 // UI-only const for contact form types (not stored in database)
 // Using `satisfies` for type validation while preserving literal types
-export const ContactFormType = {
-	GENERAL_INQUIRY: "general",
-	SALES: "sales",
-	SUPPORT: "support",
-	PARTNERSHIP: "partnership",
-	DEMO_REQUEST: "demo",
-} as const satisfies Record<string, string>;
 
 export interface ContactFormRequest {
 	name: string;
@@ -54,7 +47,7 @@ export interface ContactFormResponse {
 	contactId?: string;
 }
 
-export const WebVitalMetricName = {
+const WebVitalMetricName = {
 	CLS: "CLS",
 	FCP: "FCP",
 	FID: "FID",
@@ -63,18 +56,18 @@ export const WebVitalMetricName = {
 	TTFB: "TTFB",
 } as const satisfies Record<string, string>;
 
-export const WebVitalRating = {
+const WebVitalRating = {
 	GOOD: "good",
 	NEEDS_IMPROVEMENT: "needs-improvement",
 	POOR: "poor",
 } as const satisfies Record<string, string>;
 
-export const WebVitalLabel = {
+const WebVitalLabel = {
 	WEB_VITAL: "web-vital",
 	CUSTOM: "custom",
 } as const satisfies Record<string, string>;
 
-export const WebVitalNavigationType = {
+const WebVitalNavigationType = {
 	NAVIGATE: "navigate",
 	RELOAD: "reload",
 	BACK_FORWARD: "back-forward",
@@ -93,7 +86,7 @@ export type WebVitalNavigationTypeValue =
 // STRIPE WEBHOOK DOMAIN
 
 // Use Stripe SDK types directly when available, or const for known webhook event types
-export const StripeWebhookEventType = {
+const StripeWebhookEventType = {
 	CUSTOMER_SUBSCRIPTION_CREATED: "customer.subscription.created",
 	CUSTOMER_SUBSCRIPTION_UPDATED: "customer.subscription.updated",
 	CUSTOMER_SUBSCRIPTION_DELETED: "customer.subscription.deleted",

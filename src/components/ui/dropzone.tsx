@@ -6,7 +6,7 @@ import { Button } from "#components/ui/button";
 import { type UseSupabaseUploadReturn } from "#hooks/use-supabase-upload";
 import { cn } from "#lib/utils";
 
-export const formatBytes = (
+const formatBytes = (
 	bytes: number,
 	decimals = 2,
 	size?: "bytes" | "KB" | "MB" | "GB" | "TB" | "PB" | "EB" | "ZB" | "YB",

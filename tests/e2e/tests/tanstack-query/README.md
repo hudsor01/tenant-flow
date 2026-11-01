@@ -5,10 +5,9 @@ Comprehensive end-to-end tests for TanStack Query functionality in the TenantFlo
 ## Purpose
 
 These tests ensure that TanStack Query integration works correctly from a **user's perspective**, testing:
-
 - **Optimistic Updates** - Immediate UI feedback with proper rollback on failures
 - **Infinite Scrolling** - Intersection observer triggers and performance
-- **Error Handling** - Network failures, API errors, and recovery mechanisms 
+- **Error Handling** - Network failures, API errors, and recovery mechanisms
 - **Cache Behavior** - Invalidation, persistence, and stale-while-revalidate
 - **Real User Workflows** - Complete business scenarios end-to-end
 - **Performance** - Responsive UI under various network conditions
@@ -37,11 +36,13 @@ Shared fixtures live in `apps/frontend/tests/fixtures/property-data.ts`.
 ## Quick Start
 
 ### Run All Tests
+
 ```bash
 npm run test:tanstack
 ```
 
 ### Run Specific Test Suites
+
 ```bash
 # Optimistic updates only
 npm run test:tanstack:optimistic
@@ -60,6 +61,7 @@ npm run test:tanstack:workflows
 ```
 
 ### Run Test Categories
+
 ```bash
 # Critical business logic tests
 npm run test:tanstack:critical
@@ -75,6 +77,7 @@ npm run test:tanstack:smoke
 ```
 
 ### Debug Mode
+
 ```bash
 # Run with browser visible and debugging enabled
 npm run test:tanstack:debug
@@ -175,9 +178,8 @@ Tests complete business scenarios from a user's perspective.
 ### Playwright Config (`playwright.config.ts`)
 
 Optimized for TanStack Query testing:
-
 - **Timeout**: 60 seconds for complex workflows
-- **Workers**: Single worker to avoid cache conflicts 
+- **Workers**: Single worker to avoid cache conflicts
 - **Retries**: 2 in CI, 1 locally
 - **Trace**: Retained on failure for debugging
 - **Video**: Retained on failure for visual debugging
@@ -198,7 +200,6 @@ Optimized for TanStack Query testing:
 ## Test Reports
 
 Test results are generated in multiple formats:
-
 - **HTML Report**: `tanstack-test-results/index.html`
 - **JSON Results**: `tanstack-test-results/results.json`
 - **JUnit XML**: For CI integration
@@ -257,7 +258,6 @@ The `run-tanstack-tests.sh` script provides advanced options:
 ### Performance Monitoring
 
 Performance metrics are collected during test execution:
-
 - Scroll performance measurements
 - Page load times
 - Network request timing
@@ -269,20 +269,24 @@ Performance metrics are collected during test execution:
 ### Common Issues
 
 1. **QueryClient not exposed**
- - Ensure the global setup properly exposes `window.__QUERY_CLIENT__`
- - Check browser console for exposure confirmation
 
-2. **Cache conflicts between tests** 
- - Tests run sequentially to avoid cache conflicts
- - Each test clears cache in `beforeEach`
+- Ensure the global setup properly exposes `window.__QUERY_CLIENT__`
+- Check browser console for exposure confirmation
+
+2. **Cache conflicts between tests**
+
+- Tests run sequentially to avoid cache conflicts
+- Each test clears cache in `beforeEach`
 
 3. **Network simulation not working**
- - Verify route mocking is properly configured
- - Check browser network tab during test execution
+
+- Verify route mocking is properly configured
+- Check browser network tab during test execution
 
 4. **Intersection observer not triggering**
- - Verify proper scroll positioning
- - Check element visibility thresholds
+
+- Verify proper scroll positioning
+- Check element visibility thresholds
 
 ### Debug Mode
 
@@ -313,7 +317,6 @@ npx playwright show-trace trace.zip
 ## CI/CD Integration
 
 These tests are designed for CI/CD environments:
-
 - **Deterministic**: Consistent results across runs
 - **Fast**: Optimized for quick feedback
 - **Reliable**: Proper error handling and cleanup
@@ -350,16 +353,14 @@ These tests are designed for CI/CD environments:
 ### Performance Monitoring
 
 Regular performance benchmarking ensures tests remain fast and reliable:
-
 - Monitor test execution times
-- Track memory usage patterns 
+- Track memory usage patterns
 - Verify scroll performance metrics
 - Analyze network request efficiency
 
 ## Success Metrics
 
 These tests ensure:
-
 - **Zero production bugs** related to TanStack Query
 - **Consistent user experience** across all scenarios
 - **Proper error handling** and recovery

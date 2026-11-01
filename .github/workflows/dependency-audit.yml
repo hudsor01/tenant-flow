@@ -39,7 +39,7 @@ on:
     # Daily 13:17 UTC. Off the top of the hour on purpose -- GitHub queues
     # scheduled runs and the hour boundary is the busiest slot -- and clear of
     # CodeQL (Mon 04:27 UTC) and RLS Security Tests (Mon 09:00 UTC).
-    - cron: '17 13 * * *'
+    - cron: "17 13 * * *"
   workflow_dispatch:
   # Also run on a PR that touches the gate itself. Without this nothing in CI
   # exercises this workflow before it merges, and its invocation differs from
