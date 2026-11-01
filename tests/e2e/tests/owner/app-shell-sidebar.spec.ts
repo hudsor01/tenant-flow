@@ -1528,21 +1528,31 @@ interface Insets {
 	clientWidth: number;
 }
 
-/** Border plus padding on each side, and the overflow pair, of `locator`. */
+/**
+ * Border plus padding on each side, and the overflow pair, of `locator`, in
+ * one snapshot polled until the box has laid out. A node with no layout box
+ * reads `scrollWidth` 0 and `clientWidth` 0, which would satisfy every
+ * `scrollWidth <= clientWidth` assertion vacuously, so `clientWidth > 0` is the
+ * gate.
+ */
 async function insetsOf(locator: Locator): Promise<Insets> {
-	return locator.evaluate((node) => {
-		const style = getComputedStyle(node);
-		return {
-			left:
-				Number.parseFloat(style.borderLeftWidth) +
-				Number.parseFloat(style.paddingLeft),
-			right:
-				Number.parseFloat(style.borderRightWidth) +
-				Number.parseFloat(style.paddingRight),
-			scrollWidth: node.scrollWidth,
-			clientWidth: node.clientWidth,
-		};
-	});
+	return polledRead(
+		() =>
+			locator.evaluate((node) => {
+				const style = getComputedStyle(node);
+				return {
+					left:
+						Number.parseFloat(style.borderLeftWidth) +
+						Number.parseFloat(style.paddingLeft),
+					right:
+						Number.parseFloat(style.borderRightWidth) +
+						Number.parseFloat(style.paddingRight),
+					scrollWidth: node.scrollWidth,
+					clientWidth: node.clientWidth,
+				};
+			}),
+		(value) => value.clientWidth > 0,
+	);
 }
 
 async function pixels(locator: Locator, property: string): Promise<string> {
