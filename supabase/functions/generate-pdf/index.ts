@@ -17,6 +17,7 @@ import {
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
+import { reportColumns } from "../_shared/report-csv.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	checkTierEntitlement,
@@ -49,7 +50,7 @@ function buildReportHtml(
 	rows: ReportRow[],
 ): string {
 	const title = `${reportType.replace(/-/g, " ").toUpperCase()} REPORT — ${year}`;
-	const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+	const headers = reportColumns(rows);
 
 	const headerCells = headers
 		.map((h) => `<th class="th">${escapeHtml(h)}</th>`)

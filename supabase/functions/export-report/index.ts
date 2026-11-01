@@ -12,6 +12,7 @@ import {
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
+import { reportColumns, rowsToCsv } from "../_shared/report-csv.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	checkTierEntitlement,
@@ -192,7 +193,7 @@ function buildReportHtml(
 	const title = escapeHtml(
 		`${reportType.replace(/-/g, " ").toUpperCase()} REPORT — ${year}`,
 	);
-	const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+	const headers = reportColumns(rows);
 
 	const tableRows = rows
 		.map(
@@ -241,24 +242,4 @@ function flattenToRows(data: unknown): Record<string, unknown>[] {
 			value: typeof value === "object" ? JSON.stringify(value) : value,
 		}),
 	);
-}
-
-function rowsToCsv(rows: Record<string, unknown>[]): string {
-	if (rows.length === 0) return "No data available\n";
-	const headers = Object.keys(rows[0]);
-	const csvRows = [
-		headers.join(","),
-		...rows.map((row) =>
-			headers
-				.map((h) => {
-					const val = row[h];
-					const str = val === null || val === undefined ? "" : String(val);
-					return str.includes(",") || str.includes('"') || str.includes("\n")
-						? `"${str.replace(/"/g, '""')}"`
-						: str;
-				})
-				.join(","),
-		),
-	];
-	return csvRows.join("\n");
 }
