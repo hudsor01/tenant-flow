@@ -7,6 +7,17 @@
  * States:
  * - Saved: No pending mutations (Cloud icon)
  * - Syncing: Mutations in progress (Spinner + count)
+ *
+ * Both states render ONE structure, so React updates it in place:
+ * - The tooltip trigger is a `button`, the canonical Radix Tooltip trigger, so
+ *   keyboard users reach the tooltip by focus as pointer users do by hover
+ *   (WCAG 1.4.13, 2.1.1). Its name is its visible text ("Saved", "Syncing...",
+ *   "Syncing (2)"); in compact mode the text is sr-only and still names it.
+ *   It has no action, so Enter and Space do nothing beyond what focus shows.
+ * - The text sits in a `role="status"` live region that stays mounted across
+ *   the state switch, so "Syncing..." and the return to "Saved" are announced.
+ * - The tooltip text is a `span`: a `p` would take the 16px `@layer base`
+ *   paragraph margin and leave a blank band at the foot of the tooltip.
  */
 
 import { Cloud, Loader2 } from "lucide-react";
@@ -24,85 +35,49 @@ interface GlobalSyncIndicatorProps {
 	compact?: boolean;
 }
 
+const SAVED_TOOLTIP = "All changes saved to TenantFlow.";
+
 export function GlobalSyncIndicator({
 	className,
 	compact = false,
 }: GlobalSyncIndicatorProps) {
 	const { isPending, count, operations } = usePendingMutations();
 
-	if (!isPending) {
-		// Session 11 P3 #30 + cycle-2 review: rely on `role="status"`
-		// live-region announcement for screen readers (the pill is
-		// purely informational, not a control — Enter/Space have
-		// nothing to do here). Sighted keyboard users discover the
-		// tooltip if they happen to hover. We deliberately do NOT add
-		// tabIndex={0} — cycle-2 reviewer caught that as introducing
-		// an inert tab stop on every authenticated page.
-		const savedTooltip = "All changes saved to TenantFlow.";
-		if (compact) {
-			return (
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div
-							role="status"
-							aria-label={savedTooltip}
-							className={cn(
-								"flex items-center text-muted-foreground",
-								className,
-							)}
-						>
-							<Cloud className="h-4 w-4" />
-						</div>
-					</TooltipTrigger>
-					<TooltipContent>
-						<p>{savedTooltip}</p>
-					</TooltipContent>
-				</Tooltip>
-			);
-		}
-
-		return (
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<div
-						role="status"
-						aria-label={savedTooltip}
-						className={cn(
-							"flex items-center gap-1.5 text-muted-foreground",
-							className,
-						)}
-					>
-						<Cloud className="h-4 w-4" />
-						<span className="text-xs">Saved</span>
-					</div>
-				</TooltipTrigger>
-				<TooltipContent>
-					<p>{savedTooltip}</p>
-				</TooltipContent>
-			</Tooltip>
-		);
-	}
-
-	const tooltipContent =
-		operations.length > 0 ? operations.join("\n") : "Syncing...";
+	const statusText = isPending
+		? `Syncing${count > 1 ? ` (${count})` : "..."}`
+		: "Saved";
+	const tooltipText = isPending
+		? operations.length > 0
+			? operations.join("\n")
+			: "Syncing..."
+		: SAVED_TOOLTIP;
+	const Icon = isPending ? Loader2 : Cloud;
 
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
-				<div
+				<button
+					type="button"
 					className={cn(
-						"flex items-center gap-1.5 text-primary-text",
+						"flex items-center gap-1.5 rounded-sm",
+						isPending ? "text-primary-text" : "text-muted-foreground",
 						className,
 					)}
 				>
-					<Loader2 className="h-4 w-4 animate-spin" />
-					<span className="text-xs">
-						Syncing{count > 1 ? ` (${count})` : "..."}
+					<Icon
+						className={cn("size-4", isPending && "animate-spin")}
+						aria-hidden="true"
+					/>
+					<span
+						role="status"
+						className={compact && !isPending ? "sr-only" : "text-xs"}
+					>
+						{statusText}
 					</span>
-				</div>
+				</button>
 			</TooltipTrigger>
 			<TooltipContent>
-				<p className="whitespace-pre-line">{tooltipContent}</p>
+				<span className="whitespace-pre-line">{tooltipText}</span>
 			</TooltipContent>
 		</Tooltip>
 	);
