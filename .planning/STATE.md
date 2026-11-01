@@ -71,6 +71,9 @@ See: .planning/PROJECT.md
 
 Phase: 66.2 (tailwind-v4-and-shadcn-ui-canonical-remediation) — EXECUTING
 Plan: 39 of 39
+Status: PR open for the merge gates; the owner merges (2026-11-01). Code state frozen at
+`d2b7b5124` (`.planning/tailwind-shadcn/audit/f39/freeze.json`); CI `checks` / `e2e-smoke` /
+`rls-security` and two consecutive clean perfect-PR cycles run on the PR head.
 
 66.1-01 authored the migration; **66.1-02 APPLIED IT TO PRODUCTION** as version
 `20260818031338` (see that plan's ADDENDUM — the earlier "BLOCKED on a dead PAT" body is

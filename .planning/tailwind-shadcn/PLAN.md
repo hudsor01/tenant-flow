@@ -93,7 +93,7 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 917 (final, 66.2-37: W5 914 + 5 added − 2 deleted non-test `src/` files, `final/m1-delta.json`) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 916 (66.2-39 f39: final 917 − `src/types/jest-dom.d.ts`, deleted on `main` and brought in by the merge `54fc50829`, `f39/m1-delta.json`; final 66.2-37: W5 914 + 5 added − 2 deleted non-test `src/` files) |
 | M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (final) |
 | M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (final) |
 | M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (final) |
@@ -102,7 +102,7 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 | M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (final) |
 | M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 0 / 0 / 0 of 42 / 0 / 0 (final; the W6 remnants are gone) |
 | M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (final) |
-| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 17 ui/ (tracks upstream) (final: 48 classes, all in the 17 vendored `ui/` files, `sidebar.tsx` included) |
+| M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 17 ui/ (tracks upstream) (final and f39: 48 classes, all in the 17 vendored `ui/` files, `sidebar.tsx` included) |
 | R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (final) |
 | R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (final) |
 | R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (final) |
@@ -325,6 +325,9 @@ The B2 rule as validated:
   - The capability-comparison workflow (2026-10-25). So far 100 behaviors are inventoried and none is impossible with shadcn; the a11y group verification is still pending.
 - **Locked decisions to preserve:** 56 D-07, 56 D-24, 65 D-08/D-09/D-10.
 - [x] Phase 6 Step 0 confirms the hand-rolled drawer's claimed defects with computed styles before the migration claims to fix them. (66.2-30: `audit/w6/step0-claims.json` S1-S8 8/8 CONFIRMED on the live post-W5 shell, each control passing)
+- [x] Migration (66.2-31..36): canonical `sidebar.tsx`, shell host, MainNav, dock and tour, owner-axe spec; proved by the final gate (66.2-37: `final/vd-register.json` 37/37, `app-shell-sidebar.spec.ts` 21/21).
+- [x] Owner checkpoints CP-1..CP-5 (66.2-38: all five owner defaults, `66.2-38-CP-DECISIONS.json`) and the owner-approved CP-4 layout follow-up (`audit/cp4-followup/`).
+- [x] Final (66.2-39): no fallback applied, re-measured and frozen (`audit/f39/freeze.json`), one PR opened for the merge gates (PR pending).
 
 ---
 
@@ -455,6 +458,9 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
 
 - **2026-11-01.** 66.2-38 owner review recorded: CP-1 default, CP-2 default, CP-3 default, CP-4 default, CP-5 default; fallbacks applied in 66.2-39 (none chosen). All five decided by the owner (AskUserQuestion); the CP-4 layout follow-up runs separately before 66.2-39 (`deferred-items.md`).
 - **2026-11-01.** CP-4 layout follow-up done (owner: "fix everything and put it in this pr"). All three defects predate 66.2: production builds lay out identically at equal content widths, 10/10 pairs vs `754c91802`. Fixes: KPI values one unwrappable line, `efb0a6fb9`; trends row on a 56rem `dashboard` container, `036184de1`; dock band from `--dock-height`/`--dock-offset`/`--dock-clearance` as `<main>` and root scroll padding, `1a7eecd2a`; owner-axe assertions `9393102aa`. Red-proof: every new e2e and unit assertion that targets a defect failed on the pre-fix build and passes now. Owner-axe 64 passed, coverage 65.52/57.79/64.89/67.68. Evidence: `audit/cp4-followup/`, `deferred-items.md`.
+- **2026-11-01.** Final (66.2-39): CP decisions applied (none: all five owner defaults), state frozen, PR opened for the merge gates.
+  - Merge of `main` (`54fc50829`, 55 commits of dependency bumps and #1041/#1044) re-measured: audit M2-M10 equal to final, M1 916 (`jest-dom.d.ts` deleted on main); css-parity FINAL -> f39 9 added + 3 removed keys, all CP-4 follow-up, 0 unclassified; tokens and render equal; G1-G8 + inline-structure 0; unit 363 files / 110,597 tests, coverage 66.7/58.58/65.3/68.75; validate:quick and build exit 0; CSP equal to the 754c91802 control.
+  - Code state `d2b7b5124` (`audit/f39/freeze.json`); D-04 measured against `MAIN_MERGE^2` (amendment `a8bb75744`); `.planning/` stays tracked in this PR by owner decision although main's `381c85d5f` ignores it.
 
 ---
 

@@ -100,14 +100,14 @@ Discovered during Phase 66's review: every rate limit in the product had been a 
 
 Found by the 2026-10-25 measured audit of the Tailwind v4 + shadcn/ui implementation (source package `.planning/tailwind-shadcn/`). Two defects are live for every visitor: light-mode `bg-secondary` renders pure magenta, and below 768px an unlayered global rule deforms Radix controls into 44×44 discs.
 
-- [ ] **UIC-01**: Every measured user-visible styling defect is fixed at its root:
+- [x] **UIC-01**: Every measured user-visible styling defect is fixed at its root:
   - light `--color-secondary` renders the intended pale blue;
   - below 48rem the touch-target rule is layered and scoped, so Radix role controls keep their geometry and buttons keep their own padding while 44px minimums hold;
   - Geist Mono renders for `font-mono` and `<code>`, and `<html>` and the global-error page render Roboto;
   - the Renew Lease dialog, the lease template preview and the admin blog review meet WCAG AA in both themes;
   - BorderBeam colors resolve.
-- [ ] **UIC-02**: `cn()` merges every custom theme key correctly. A custom font size is never dropped next to a text color, and custom leading, duration and spacing keys merge. The tailwind-merge key list is guarded against `globals.css` so it cannot drift.
-- [ ] **UIC-03**: Permanent guards compile the real CSS with Tailwind's own engine and fail on each defect class found:
+- [x] **UIC-02**: `cn()` merges every custom theme key correctly. A custom font size is never dropped next to a text color, and custom leading, duration and spacing keys merge. The tailwind-merge key list is guarded against `globals.css` so it cannot drift.
+- [x] **UIC-03**: Permanent guards compile the real CSS with Tailwind's own engine and fail on each defect class found:
   - invalid `oklch()`;
   - non-inline theme variables that reference other variables;
   - `@utility` names that shadow core utilities;
@@ -118,19 +118,19 @@ Found by the 2026-10-25 measured audit of the Tailwind v4 + shadcn/ui implementa
   - non-canonical first-party classes.
 
   The two tautological token tests are replaced.
-- [ ] **UIC-04**: Dead and misleading styling code is removed:
+- [x] **UIC-04**: Dead and misleading styling code is removed:
   - Tailwind scans only `src/`;
   - `globals.css` carries zero dead theme variables, custom properties, `@utility` rules, keyframes or class selectors;
   - `dashboard.css` is folded into the single build and deleted;
   - false comments and line-number citations are corrected;
   - theme values that duplicate Tailwind's defaults are removed, with rule-level parity proof.
-- [ ] **UIC-05**: The token layer follows the canonical shadcn/ui structure: semantic variables in `:root`/`.dark`, exposed through `@theme inline`. Every color token's computed light and dark value is unchanged.
-- [ ] **UIC-06**: First-party code uses only canonical Tailwind v4 classes, as defined by Tailwind's own canonicalizer.
-- [ ] **UIC-07**: Vendored shadcn/ui components track the new-york-v4 registry:
+- [x] **UIC-05**: The token layer follows the canonical shadcn/ui structure: semantic variables in `:root`/`.dark`, exposed through `@theme inline`. Every color token's computed light and dark value is unchanged.
+- [x] **UIC-06**: First-party code uses only canonical Tailwind v4 classes, as defined by Tailwind's own canonicalizer.
+- [x] **UIC-07**: Vendored shadcn/ui components track the new-york-v4 registry:
   - each intentional local customization is preserved and documented;
   - every live defect the component audit claims is verified and, if real, fixed;
   - registry derivatives outside shadcn (BlurFade, BorderBeam, GridPattern, LoadingSpinner) are fixed.
-- [ ] **UIC-08**: The owner dashboard uses the canonical shadcn/ui Sidebar: brand `--sidebar-*` tokens, an `lg` breakpoint, offcanvas collapse with persisted state, and a mobile Sheet with Radix focus management. It preserves:
+- [x] **UIC-08**: The owner dashboard uses the canonical shadcn/ui Sidebar: brand `--sidebar-*` tokens, an `lg` breakpoint, offcanvas collapse with persisted state, and a mobile Sheet with Radix focus management. It preserves:
   - locked decisions 56 D-07, 56 D-24 and 65 D-08–D-10;
   - exactly one `<main id="main-content">`;
   - label-in-name;
@@ -246,14 +246,14 @@ Populated by roadmap creation (2026-07-19). Every v10 requirement maps to exactl
 | RATE-02 | Phase 66.1 | Pending |
 | RATE-03 | Phase 66.1 | Pending |
 | RATE-04 | Phase 66.1 | Pending |
-| UIC-01 | Phase 66.2 | Pending |
-| UIC-02 | Phase 66.2 | Pending |
-| UIC-03 | Phase 66.2 | Pending |
-| UIC-04 | Phase 66.2 | Pending |
-| UIC-05 | Phase 66.2 | Pending |
-| UIC-06 | Phase 66.2 | Pending |
-| UIC-07 | Phase 66.2 | Pending |
-| UIC-08 | Phase 66.2 | Pending |
+| UIC-01 | Phase 66.2 | Complete |
+| UIC-02 | Phase 66.2 | Complete |
+| UIC-03 | Phase 66.2 | Complete |
+| UIC-04 | Phase 66.2 | Complete |
+| UIC-05 | Phase 66.2 | Complete |
+| UIC-06 | Phase 66.2 | Complete |
+| UIC-07 | Phase 66.2 | Complete |
+| UIC-08 | Phase 66.2 | Complete |
 | COMMS-01 | Phase 67 | Pending |
 | COMMS-02 | Phase 67 | Pending |
 | COMMS-03 | Phase 67 | Pending |

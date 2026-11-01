@@ -1,0 +1,84 @@
+{
+	"codeStateSha": "d2b7b51242d8611d6ae9fb19341d22adcecd3352",
+	"branch": "gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation",
+	"mergeBase": "d9c7329f0fa500a597e87e7ac02d5a4fb0cf2f2d",
+	"pre39": "23f42a97635ff9c8cb157be63ee7d365dd5f20d8",
+	"g38": "cdcffc1e157e13fca5cc5fa6e4d6c316a97e2adb",
+	"mainMerge": "54fc508299a90eb501a91caf74de8950fd002d5f",
+	"applied": [],
+	"carriedForward": true,
+	"carriedForwardNote": "No src, tests, scripts or vitest.config.ts change since PRE_39 (no fallback applied). The 66.2-37 FINAL probes, screenshot sets and local E2E describe the G38 tree; the CP-4 follow-up carries its own measured evidence (.planning/tailwind-shadcn/audit/cp4-followup/: 12-cell production-build matrix, red-proof, owner-axe 64 passed); the merge of main is measured here by the always-run checks plus a capture build and the CSP probe, and CI's e2e-smoke (smoke, public, owner-axe) on FROZEN is the run of record for the E2E projects",
+	"finalDir": ".planning/tailwind-shadcn/audit/final",
+	"checks": {
+		"preconditions": {
+			"command": "gsd-sdk query config-get workflow.use_worktrees / workflow.test_command / workflow.build_command, jq -e",
+			"exit": 0,
+			"value": "false / \"bun run test:unit\" / \"SKIP_ENV_VALIDATION=true bun run build\""
+		},
+		"anchors": {
+			"command": "G38 -> MAIN_MERGE -> PRE_39 ancestry, MAIN_MERGE^2 in origin/main, follow-up paths allowlisted, subjects fix|test|refactor|docs(66.2)",
+			"exit": 0,
+			"value": "pass"
+		},
+		"f39SelfTest": {
+			"command": "node .planning/tailwind-shadcn/audit/f39-checks.mjs --self-test",
+			"exit": 0,
+			"value": "25 passed"
+		},
+		"cpChecksSource": {
+			"command": "f39-checks.mjs --decisions f39/cp-decisions.json --out f39/cp-checks.json",
+			"exit": 0,
+			"value": "10 checks, 0 failed"
+		},
+		"cpChecksFinalProbes": {
+			"command": "f39-checks.mjs --decisions f39/cp-decisions.json --probes final/probes-final.json --tokens f39/tokens-f39.json --out f39/cp-checks-final-probes.json",
+			"exit": 0,
+			"value": "45 checks, 0 failed"
+		},
+		"audit": {
+			"command": "TW_AUDIT_OUT=$OUT node .planning/tailwind-shadcn/audit/audit.mjs",
+			"exit": 0,
+			"value": "noncanonical first-party 0 (48 classes, 17 vendored ui files); M2-M9 jq-equal to FINAL; scannedFiles 916 (m1-delta expected 916 = actual 916)"
+		},
+		"cssParity": {
+			"command": "node css-parity.mjs final/candidate-css.json f39/candidate-css.json --intended f39/css-parity-intended-f39.json --strict",
+			"exit": 0,
+			"value": "intended:cp4-followup-added 9, intended:cp4-followup-removed 3, main-merge 0, spacing-equivalent 0, color-inline 0, unclassified 0"
+		},
+		"tokens": {
+			"command": "node render-check.mjs f39 --tokens baseline/token-list.json",
+			"exit": 0,
+			"value": "tokens-f39.json jq -S equal to final/tokens-final.json; render-f39.json (minus label) equal to render-final.json"
+		},
+		"guards": {
+			"command": "bun guard-redproof.ts --root <worktree> --guards G1,G2,G3,G4,G5,G6,G7,G8,inline-structure",
+			"exit": 0,
+			"value": "9 entries, every count 0"
+		},
+		"unit": {
+			"command": "CI=true bun run test:unit -- --coverage --reporter=default --reporter=json",
+			"exit": 0,
+			"value": "363 files, 110597 tests, 0 failed; coverage 66.7 / 58.58 / 65.3 / 68.75 (ratchet 64/56/63/66); threshold lines unchanged since 754c91802"
+		},
+		"validateQuick": {
+			"command": "bun run validate:quick",
+			"exit": 0,
+			"value": "typecheck, lint (1463 files), 363 files / 110597 tests passed"
+		},
+		"build": {
+			"command": "NEXT_PUBLIC_APP_URL=http://localhost:3062 SKIP_ENV_VALIDATION=true NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder bun with-env.mjs bun run build",
+			"exit": 0,
+			"value": "compiled, 255/255 static pages; no font #99114 rerun"
+		},
+		"csp": {
+			"command": "serve-csp.sh: next start :3062 + csp-probe.mjs on /login, /auth/confirm-email, /auth/update-password",
+			"exit": 0,
+			"value": "1 / 0 / 1, the zod eval probe (02w0d8rlgrux_.js:2:4409), identical to the 66.2-37 HEAD and 754c91802 control; 0 beyond control; :3062 free afterwards"
+		},
+		"aikido": {
+			"command": "Aikido MCP full scan",
+			"exit": null,
+			"value": "Aikido MCP unavailable in the executor session: https://help.aikido.dev/ide-plugins/aikido-mcp; scan delegated to the orchestrator/main context"
+		}
+	}
+}
