@@ -292,6 +292,11 @@
           "ref": "D-28; ledger C2; VD-16; VD-17"
         },
         {
+          "what": "ChartContainer adds [&_.recharts-surface:focus-visible]:outline-2, :-outline-offset-2, :outline-ring and :outline-solid after upstream's [&_.recharts-surface]:outline-hidden, so the tab-focusable recharts surface shows an inset 2px ring-colored focus outline (outline-solid because outline-hidden sets --tw-outline-style: none)",
+          "reason": "D-26 customization",
+          "ref": "D-26; WCAG 2.4.7; cycle-1 c1 A11Y (chart.tsx:75)"
+        },
+        {
           "what": "class token order in ChartContainer",
           "reason": "upstream drift not adopted (D-05)",
           "ref": "D-05"

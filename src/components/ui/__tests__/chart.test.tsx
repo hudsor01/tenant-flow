@@ -139,6 +139,18 @@ describe("ChartContainer recharts stroke selectors (D-28, C2)", () => {
 		}
 	});
 
+	it("gives the tab-focusable recharts surface a visible inset focus outline", () => {
+		const classes = chartRootClass(renderChart(REVENUE_CONFIG));
+		for (const token of [
+			"[&_.recharts-surface:focus-visible]:outline-2",
+			"[&_.recharts-surface:focus-visible]:-outline-offset-2",
+			"[&_.recharts-surface:focus-visible]:outline-ring",
+			"[&_.recharts-surface:focus-visible]:outline-solid",
+		]) {
+			expect(classes).toContain(token);
+		}
+	});
+
 	it("appends a consumer className and keeps all 5 selectors", () => {
 		const classes = chartRootClass(
 			renderChart(REVENUE_CONFIG, "!aspect-auto h-full w-full"),

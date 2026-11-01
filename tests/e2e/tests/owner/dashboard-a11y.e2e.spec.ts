@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { gotoAuthedDashboard } from "../../lib/authed-dashboard";
+import { boxOf } from "../../lib/measure";
 
 /**
  * Dashboard Accessibility + Responsiveness E2E (Phase 6, POLISH-05 / POLISH-06)
@@ -45,6 +46,69 @@ test.describe("Dashboard accessibility (axe-core)", () => {
 			.analyze();
 
 		expect(results.violations).toEqual([]);
+	});
+});
+
+test.describe("Dashboard chart focus indicator (WCAG 2.4.7)", () => {
+	test.beforeEach(async ({ page }) => {
+		await gotoAuthedDashboard(page);
+	});
+
+	test("a chart surface focused by Tab draws a visible ring-colored outline", async ({
+		page,
+	}) => {
+		// Recharts' accessibility layer makes every surface a tab stop. axe has no
+		// rule for a missing focus indicator, so this reads the computed outline.
+		const surface = page
+			.locator('[data-slot="chart"] .recharts-surface[tabindex="0"]')
+			.first();
+		await expect(surface).toBeAttached({ timeout: 20000 });
+		await surface.evaluate((node) => {
+			const tabbable = Array.from(
+				document.querySelectorAll<HTMLElement | SVGElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+				),
+			).filter(
+				(element) =>
+					element.tabIndex >= 0 &&
+					element.getClientRects().length > 0 &&
+					element.closest("[inert]") === null,
+			);
+			const previous = tabbable[tabbable.indexOf(node as SVGElement) - 1];
+			if (previous === undefined) {
+				throw new Error("no tabbable element precedes the chart surface");
+			}
+			previous.focus({ preventScroll: true });
+		});
+		await page.keyboard.press("Tab");
+		await expect(surface).toBeFocused();
+
+		const ring = await page.evaluate(() => {
+			const probe = document.createElement("span");
+			probe.style.color = "var(--color-ring)";
+			document.body.appendChild(probe);
+			const value = getComputedStyle(probe).color;
+			probe.remove();
+			return value;
+		});
+		// Positive control: the surface has a laid-out box to draw around.
+		expect((await boxOf(surface)).height).toBeGreaterThan(0);
+		const outline = await surface.evaluate((node) => {
+			const style = getComputedStyle(node);
+			return {
+				focusVisible: node.matches(":focus-visible"),
+				style: style.outlineStyle,
+				width: style.outlineWidth,
+				color: style.outlineColor,
+				offset: style.outlineOffset,
+			};
+		});
+		expect(outline.focusVisible).toBe(true);
+		expect(outline.style).toBe("solid");
+		expect(outline.width).toBe("2px");
+		expect(outline.color).toBe(ring);
+		// Inset by its own width, so an overflow-hidden card cannot clip it.
+		expect(outline.offset).toBe("-2px");
 	});
 });
 
