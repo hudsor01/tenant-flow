@@ -158,7 +158,7 @@ export default function BlogPostPage({
 							"object-cover transition-all duration-700 ease-out",
 							heroBlurUp
 								? "blur-sm opacity-0 scale-105"
-								: "blur-0 opacity-100 scale-100",
+								: "blur-none opacity-100 scale-100",
 						)}
 						onLoad={() => setImageLoaded(true)}
 					/>
