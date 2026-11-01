@@ -310,16 +310,26 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 			className="h-full @4xl/kpi-bento:p-6 transition-colors duration-200"
 			aria-label={ariaLabel}
 		>
-			<StatLabel>{tile.label}</StatLabel>
-			<StatValue>
-				{tile.prefix ? <span aria-hidden="true">{tile.prefix}</span> : null}
-				<KpiNumberTicker
-					value={tile.value}
-					decimalPlaces={tile.decimalPlaces}
-					duration={800}
-				/>
-				{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
-			</StatValue>
+			{/* The label and the value share one wrapping row, and the value never
+			    breaks: when a tile is too narrow for both side by side, the whole
+			    value drops below its label instead of splitting "$" from the number
+			    (CP-4 follow-up). At widths where both fit, the row renders exactly
+			    as the stat's 1fr/auto grid columns did. */}
+			<div
+				data-slot="kpi-heading"
+				className="col-span-2 flex flex-wrap justify-between gap-x-4 gap-y-1"
+			>
+				<StatLabel>{tile.label}</StatLabel>
+				<StatValue className="whitespace-nowrap">
+					{tile.prefix ? <span aria-hidden="true">{tile.prefix}</span> : null}
+					<KpiNumberTicker
+						value={tile.value}
+						decimalPlaces={tile.decimalPlaces}
+						duration={800}
+					/>
+					{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
+				</StatValue>
+			</div>
 			{trendChip}
 			{tile.description ? (
 				<StatDescription>{tile.description}</StatDescription>

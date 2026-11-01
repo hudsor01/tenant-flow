@@ -294,6 +294,54 @@ describe("KpiBentoRow", () => {
 		expect(screen.getAllByRole("listitem")).toHaveLength(6);
 	});
 
+	// CP-4 follow-up: a narrow tile used to split "$" from "7,500" because the
+	// prefix and the ticker were separate inline boxes in the stat's 1fr/auto
+	// grid row. The label and the value now share one wrapping row and the
+	// value never breaks, so a value that does not fit beside its label drops
+	// below it whole.
+	it("puts each label and its non-wrapping value in one wrapping row", () => {
+		stubMatchMedia(true);
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const items = screen.getAllByRole("listitem");
+		expect(items).toHaveLength(6);
+		for (const item of items) {
+			const stat = item.querySelector('[data-slot="stat"]');
+			const row = stat?.querySelector(':scope > [data-slot="kpi-heading"]');
+			expect(row, "heading row is a direct child of the stat").not.toBeNull();
+			const rowTokens = row?.className.split(/\s+/) ?? [];
+			for (const token of [
+				"col-span-2",
+				"flex",
+				"flex-wrap",
+				"justify-between",
+				"gap-x-4",
+				"gap-y-1",
+			]) {
+				expect(rowTokens).toContain(token);
+			}
+			const children = Array.from(row?.children ?? []);
+			expect(children.map((child) => child.getAttribute("data-slot"))).toEqual([
+				"stat-label",
+				"stat-value",
+			]);
+			expect(children[1]?.className.split(/\s+/)).toContain(
+				"whitespace-nowrap",
+			);
+		}
+		const revenueValue = items[0]?.querySelector('[data-slot="stat-value"]');
+		expect(revenueValue?.textContent).toBe("$14,250");
+		expect(revenueValue?.firstElementChild?.textContent).toBe("$");
+		const occupancyValue = items[1]?.querySelector('[data-slot="stat-value"]');
+		expect(occupancyValue?.textContent).toBe("87%");
+	});
+
 	it("down-trend override class applied to Open Maintenance StatTrend", () => {
 		render(
 			<KpiBentoRow
