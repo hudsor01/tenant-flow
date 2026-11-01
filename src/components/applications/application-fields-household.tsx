@@ -71,8 +71,9 @@ export const ApplicationFieldsHousehold = withForm({
 						{/* min-h-24 sets the 96px multi-line floor over the primitive's
 						    `min-h-16`, so an empty textarea never reads as a single-line
 						    text input; E-3 pins it at 375px. No important flag is needed
-						    since D-08: the `@layer base` touch-target rule has zero
-						    specificity. */}
+						    since D-08: the touch-target rule lives in `@layer base`, which
+						    the cascade orders before `@layer utilities`, so the utility
+						    wins. */}
 						<form.AppField name="pet_details">
 							{(field) => (
 								<field.TextareaField

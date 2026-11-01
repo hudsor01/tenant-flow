@@ -628,8 +628,9 @@ function DetailHeader({
  * `min-h-24` sets the 96px multi-line floor over the primitive's `min-h-16`, so
  * an empty notes box never reads as a single-line input; E-3 pins the same
  * floor on the applicant form. No important flag is needed since D-08: the
- * `@layer base` touch-target rule below 48rem has zero specificity, so this
- * utility wins at every width, and `/applications` is documented as
+ * touch-target rule below 48rem lives in `@layer base`, and the cascade orders
+ * `@layer utilities` after it, so this utility wins at every width whatever
+ * either selector's specificity, and `/applications` is documented as
  * phone-supported.
  */
 function OwnerNotes({

@@ -820,9 +820,11 @@
 }
 
 /*
- * Touch-target floor below 48rem (D-08). It sits in @layer base and every
- * selector is wrapped in :where(), so it has zero specificity and any utility
- * on the control overrides it. It sets no padding. Radix switch, checkbox,
+ * Touch-target floor below 48rem (D-08). It sits in @layer base, and the
+ * cascade orders @layer utilities after @layer base, so any utility on the
+ * control overrides it whatever the specificity (layer order is compared
+ * before specificity). Every selector is also wrapped in :where(), which keeps
+ * it at zero specificity against other @layer base rules. It sets no padding. Radix switch, checkbox,
  * radio and tab buttons own their geometry, so they are excluded, as are the
  * checkbox, radio, range, file and hidden input types.
  */
