@@ -44,9 +44,10 @@ import {
  */
 
 /**
- * Authenticate in-test, suppress the onboarding tour, and wait for a definitive
- * loaded marker (populated heading OR empty-state title). Mirrors
- * dashboard-a11y.e2e.spec.ts gotoAuthedDashboard.
+ * Authenticate in-test, suppress the onboarding tour, and wait for the terminal
+ * data state the RPC predicts (the KPI row OR the empty-state title). It
+ * follows `gotoAuthedDashboard` in `lib/authed-dashboard.ts` up to the reload,
+ * then waits for that one predicted marker rather than accepting either.
  */
 async function gotoAuthedDashboard(page: Page): Promise<void> {
 	await loginAsOwner(page);

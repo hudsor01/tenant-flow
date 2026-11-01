@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { loginAsOwner } from "../../auth-helpers";
+import { gotoAuthedDashboard } from "../../lib/authed-dashboard";
 
 /**
  * Dashboard Accessibility + Responsiveness E2E (Phase 6, POLISH-05 / POLISH-06)
@@ -22,86 +22,14 @@ import { loginAsOwner } from "../../auth-helpers";
  *    in portfolio-data-table.tsx forces the portfolio table into grid mode below
  *    1024px, which satisfies this.
  *
- * Auth/beforeEach: loginAsOwner lands on an authenticated /dashboard, then we
- * mark the onboarding tour completed, reload, and wait for the heading.
+ * Auth/beforeEach: `gotoAuthedDashboard` (`lib/authed-dashboard.ts`) lands on
+ * an authenticated /dashboard, marks the onboarding tour completed so its
+ * overlay never masks focusable elements from axe, reloads, waits for the
+ * loaded marker, and waits out the BlurFade entrances so axe measures the
+ * resting state (this file runs with motion enabled).
  */
 
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
-
-/**
- * axe measures the resting state. BlurFade's tw-animate `enter` entrance
- * (66.2-27) is finite: the KPI tiles and the portfolio table fade in for up to
- * 480 ms delay + 500 ms after mount, and axe color-contrast blends element
- * opacity, so a sweep taken mid-fade would measure a translucent foreground
- * that no user sees once the page settles. Wait until no `enter` animation is
- * still running.
- */
-async function waitForEntranceAnimations(
-	page: import("@playwright/test").Page,
-) {
-	await expect
-		.poll(
-			() =>
-				page.evaluate(
-					() =>
-						document
-							.getAnimations()
-							.filter(
-								(a) =>
-									a instanceof CSSAnimation &&
-									a.animationName === "enter" &&
-									a.playState === "running",
-							).length,
-				),
-			{ timeout: 5000 },
-		)
-		.toBe(0);
-}
-
-/**
- * Shared authed-dashboard navigation used by both the axe sweep and the 375px
- * probe. `loginAsOwner` authenticates via the Supabase token API and injects the
- * session into the browser (landing on /dashboard); we then mark the onboarding
- * tour completed (so its overlay never opens to mask focusable elements from
- * axe) and wait for the dashboard heading to confirm the client-fetched content
- * has resolved past the loading skeleton.
- */
-async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
-	// loginAsOwner already lands on an authenticated /dashboard, so we only mark
-	// the onboarding tour completed and reload — no redundant re-navigation.
-	await loginAsOwner(page);
-	// Mark the owner onboarding tour completed so its spotlight overlay never
-	// auto-opens over the axe sweep. The app reads tour state from the
-	// "tenantflow:tour-progress" localStorage key as JSON keyed by tour name
-	// (getTourProgress short-circuits on "completed"/"skipped" —
-	// src/hooks/api/use-tour-progress.ts).
-	await page.evaluate(() => {
-		localStorage.setItem(
-			"tenantflow:tour-progress",
-			JSON.stringify({ "owner-onboarding": "completed" }),
-		);
-	});
-	await page.reload();
-	// Wait for a definitive loaded marker (past the skeleton) before sweeping.
-	// Tolerate BOTH valid loaded states the rest of the suite treats as
-	// non-guaranteed: the populated dashboard renders the exact <h1>Dashboard</h1>
-	// (dashboard.tsx), while the zero-data path renders DashboardEmptyState's
-	// "Welcome to TenantFlow" (no "Dashboard" heading). The synthetic owner's
-	// property/tenant data is not a guaranteed invariant, so hard-coupling to the
-	// populated path would time out and fail CI whenever the owner has no data.
-	// The exact h1 match still avoids resolving on a loose sub-heading mid-render.
-	// Empty-state branch is scoped to the EmptyTitle slot (a <div>, not a heading)
-	// so it can't collide with the onboarding tour's "Welcome to TenantFlow"
-	// TourTitle text (the tour is already suppressed above; this is belt-and-braces).
-	await expect(
-		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }).or(
-			page.locator('[data-slot="empty-title"]', {
-				hasText: "Welcome to TenantFlow",
-			}),
-		),
-	).toBeVisible({ timeout: 10000 });
-	await waitForEntranceAnimations(page);
-}
 
 test.describe("Dashboard accessibility (axe-core)", () => {
 	test.beforeEach(async ({ page }) => {
