@@ -36,7 +36,7 @@ export function FinalCtaSection() {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center">
 							<Button
 								size="lg"
-								className="shrink group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-10 py-5"
+								className="shrink group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-10 py-5"
 								asChild
 							>
 								<Link href="/pricing" aria-label="Start free — no card">
