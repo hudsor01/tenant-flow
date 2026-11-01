@@ -639,10 +639,24 @@ describe("SidebarMenuButton", () => {
 				Large
 			</SidebarMenuButton>,
 		);
-		expect(screen.getByRole("button", { name: "Large" })).toHaveAttribute(
-			"data-size",
-			"lg",
-		);
+		const button = screen.getByRole("button", { name: "Large" });
+		expect(button).toHaveAttribute("data-size", "lg");
+		expect(button).toHaveClass("h-12");
+		// The outline variant's own surface and hairline, absent from default.
+		for (const outline of [
+			"bg-background",
+			"shadow-[0_0_0_1px_var(--sidebar-border)]",
+			"hover:shadow-[0_0_0_1px_var(--sidebar-accent)]",
+		]) {
+			expect(button).toHaveClass(outline);
+		}
+	});
+
+	it("renders no outline surface for the default variant", () => {
+		renderInMenu(<SidebarMenuButton>Plain</SidebarMenuButton>);
+		const button = screen.getByRole("button", { name: "Plain" });
+		expect(button).not.toHaveClass("bg-background");
+		expect(button).not.toHaveClass("shadow-[0_0_0_1px_var(--sidebar-border)]");
 	});
 
 	it.each([
