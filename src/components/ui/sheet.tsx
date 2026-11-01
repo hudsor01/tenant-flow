@@ -16,10 +16,6 @@ function SheetTrigger({
 	return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
-function SheetClose({ ...props }: ComponentProps<typeof SheetPrimitive.Close>) {
-	return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
-}
-
 function SheetPortal({
 	...props
 }: ComponentProps<typeof SheetPrimitive.Portal>) {
@@ -46,11 +42,9 @@ function SheetContent({
 	className,
 	children,
 	side = "right",
-	showCloseButton = true,
 	...props
 }: ComponentProps<typeof SheetPrimitive.Content> & {
 	side?: "top" | "right" | "bottom" | "left";
-	showCloseButton?: boolean;
 }) {
 	return (
 		<SheetPortal>
@@ -72,14 +66,12 @@ function SheetContent({
 				{...props}
 			>
 				{children}
-				{showCloseButton && (
-					<SheetPrimitive.Close
-						aria-label="Close"
-						className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 inline-flex items-center justify-center min-h-11 min-w-11 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
-					>
-						<XIcon className="size-4" />
-					</SheetPrimitive.Close>
-				)}
+				<SheetPrimitive.Close
+					aria-label="Close"
+					className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 inline-flex items-center justify-center min-h-11 min-w-11 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
+				>
+					<XIcon className="size-4" />
+				</SheetPrimitive.Close>
 			</SheetPrimitive.Content>
 		</SheetPortal>
 	);
@@ -133,7 +125,6 @@ function SheetDescription({
 
 export {
 	Sheet,
-	SheetClose,
 	SheetContent,
 	SheetDescription,
 	SheetFooter,

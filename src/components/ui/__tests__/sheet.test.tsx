@@ -3,18 +3,20 @@
  * Sheet parts after the new-york-v4 sync (research H10, the D-46 prerequisite).
  *
  * Every part carries its upstream data-slot before the props spread, so a consumer data-slot (the
- * canonical sidebar's `sidebar`) wins on the dialog element. SheetContent's corner close renders by
- * default, is named "Close" by its aria-label and keeps the 44px target; `showCloseButton={false}`
- * removes it. SheetClose wraps the Radix close.
+ * canonical sidebar's `sidebar`) wins on the dialog element. SheetContent's corner close always
+ * renders as a direct child button of the dialog (the target of the sidebar's D-46
+ * `[&>button]:hidden`), is named "Close" by its aria-label and keeps the 44px target. Upstream's
+ * `SheetClose` export (trimmed in Phase 19, D-26) and `showCloseButton` prop (no caller) are not
+ * adopted.
  */
 
-import { fireEvent, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
+import * as sheetModule from "#components/ui/sheet";
 import {
 	Sheet,
-	SheetClose,
 	SheetContent,
 	SheetDescription,
 	SheetFooter,
@@ -26,19 +28,16 @@ import { render } from "#test/utils/test-render";
 
 function renderSheet(
 	contentProps: Partial<ComponentProps<typeof SheetContent>> = {},
-	onOpenChange?: (open: boolean) => void,
 ) {
 	return render(
-		<Sheet open onOpenChange={onOpenChange}>
+		<Sheet open>
 			<SheetTrigger>Open sheet</SheetTrigger>
 			<SheetContent side="left" {...contentProps}>
 				<SheetHeader>
 					<SheetTitle>Probe sheet</SheetTitle>
 					<SheetDescription>Probe description</SheetDescription>
 				</SheetHeader>
-				<SheetFooter>
-					<SheetClose>Done</SheetClose>
-				</SheetFooter>
+				<SheetFooter>Probe footer</SheetFooter>
 			</SheetContent>
 		</Sheet>,
 	);
@@ -74,10 +73,25 @@ describe("Sheet", () => {
 		expect(screen.queryByText("Close dialog")).toBeNull();
 	});
 
-	it("drops the corner close when showCloseButton is false", () => {
-		renderSheet({ showCloseButton: false });
+	it("renders the corner close as a direct child button of the dialog", () => {
+		renderSheet();
 
-		expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+		const dialog = screen.getByRole("dialog");
+		const close = screen.getByRole("button", { name: "Close" });
+		expect(close.parentElement).toBe(dialog);
+		expect(dialog.querySelectorAll(":scope > button")).toHaveLength(1);
+	});
+
+	it("exports no SheetClose (Phase 19 trim, D-26)", () => {
+		expect(Object.keys(sheetModule).sort()).toEqual([
+			"Sheet",
+			"SheetContent",
+			"SheetDescription",
+			"SheetFooter",
+			"SheetHeader",
+			"SheetTitle",
+			"SheetTrigger",
+		]);
 	});
 
 	it("lets a consumer data-slot win on the dialog element", () => {
@@ -91,15 +105,5 @@ describe("Sheet", () => {
 		);
 
 		expect(screen.getByRole("dialog").dataset.slot).toBe("sidebar");
-	});
-
-	it("tags SheetClose and closes the sheet through onOpenChange", () => {
-		const onOpenChange = vi.fn();
-		renderSheet({}, onOpenChange);
-
-		const done = screen.getByRole("button", { name: "Done" });
-		expect(done.dataset.slot).toBe("sheet-close");
-		fireEvent.click(done);
-		expect(onOpenChange).toHaveBeenCalledWith(false);
 	});
 });

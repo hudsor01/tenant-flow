@@ -648,6 +648,16 @@
           "ref": "D-26; D-46; research H10"
         },
         {
+          "what": "SheetClose and its sheet-close data-slot removed (no consumer; never re-added)",
+          "reason": "Phase 19 trim",
+          "ref": "Phase 19 (d825f7b6a); D-26"
+        },
+        {
+          "what": "upstream showCloseButton prop not adopted: SheetContent always renders its corner close, which the sidebar sheet hides with the canonical [&>button]:hidden (D-46); no caller passes the prop",
+          "reason": "upstream drift not adopted (D-05)",
+          "ref": "D-05; D-46"
+        },
+        {
           "what": "class token order in SheetOverlay, SheetContent (base and all four sides), the corner close, SheetTitle and SheetDescription",
           "reason": "upstream drift not adopted (D-05)",
           "ref": "D-05"
