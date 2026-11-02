@@ -963,6 +963,41 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		);
 	});
 
+	it("reports a tie with no year-end figure as missing, not as a mismatch", () => {
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_b_tie: {
+					...(parsed["owner_b_tie"] as object),
+					collected_2025_end: null,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_b_tie: expected five numbers");
+		expect(result.message).not.toContain(
+			"owner_b_tie: the year-end summary reads",
+		);
+	});
+
+	it("fails when the summary's expenses differ from a table that reads the year's", () => {
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_b_tie: {
+					...(parsed["owner_b_tie"] as object),
+					expense_total: 0,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b_tie: the year-end summary reads 0 of 2025 expenses and its table 10; both must be 10.",
+		);
+	});
+
 	it("fails when owner A's tie was not reported", () => {
 		const { owner_a_tie: _omitted, ...rest } = performanceLine();
 		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
@@ -1920,6 +1955,11 @@ describe("expectedOwnerFigures", () => {
 				"overview_a_open_end.lease_profitability.leases"
 			]?.map((row) => [row["lease_id"], row["expenses"]]);
 		expect(leases("2026-11-02")).toEqual([
+			["d4000000-0000-4000-8000-0000000000a1", 0],
+			["d4000000-0000-4000-8000-00000000a012", 30],
+		]);
+		// T-2 is M0 itself: L12 ran that day.
+		expect(leases("2026-11-03")).toEqual([
 			["d4000000-0000-4000-8000-0000000000a1", 0],
 			["d4000000-0000-4000-8000-00000000a012", 30],
 		]);
