@@ -231,14 +231,43 @@ describe("PropertyForm", () => {
 			expect(submitButton).not.toBeDisabled();
 		});
 
-		test("populates property type select with correct value", () => {
+		// A stored type in another case or the older multi_family alias is the
+		// form's type, so the select shows the type the property page names and
+		// an update sends the form's value without the owner re-picking it.
+		test("populates the property type select with the stored type, whatever its case", async () => {
+			const user = userEvent.setup();
 			renderWithQueryClient(
 				<PropertyForm mode="edit" property={DEFAULT_PROPERTY} />,
 			);
 
-			// Verify Property Type label exists and form is rendered
-			expect(screen.getByText(/property type \*/i)).toBeInTheDocument();
-			// The form should be rendered in edit mode successfully
+			expect(
+				screen.getByRole("combobox", { name: /property type/i }),
+			).toHaveTextContent("Multi Family");
+
+			await user.click(
+				screen.getByRole("button", { name: /update property/i }),
+			);
+			await waitFor(() => {
+				expect(mockUpdateProperty).toHaveBeenCalled();
+			});
+			expect(mockUpdateProperty).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({ property_type: "MULTI_UNIT" }),
+				}),
+			);
+		});
+
+		test("selects no type for a stored type outside the set", () => {
+			renderWithQueryClient(
+				<PropertyForm
+					mode="edit"
+					property={{ ...DEFAULT_PROPERTY, property_type: "duplex" }}
+				/>,
+			);
+
+			const select = screen.getByRole("combobox", { name: /property type/i });
+			expect(select).toHaveTextContent("Select property type");
+			expect(select).not.toHaveTextContent("Single Family");
 		});
 
 		// PROP-05: clearing the optional Address line 2 must null the column in the

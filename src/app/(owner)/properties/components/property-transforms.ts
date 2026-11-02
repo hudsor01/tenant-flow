@@ -1,26 +1,8 @@
 import type {
-	DesignPropertyType,
 	PortfolioSummary,
 	PropertyItem,
 } from "#components/properties/types";
 import type { Property as ApiProperty, Unit } from "#types/core";
-
-/**
- * Map API property type to design-os PropertyType
- */
-function mapPropertyType(
-	apiType: string | null | undefined,
-): DesignPropertyType {
-	const typeMap: Record<string, DesignPropertyType> = {
-		single_family: "single_family",
-		multi_family: "multi_family",
-		multi_unit: "multi_family",
-		apartment: "apartment",
-		condo: "condo",
-		townhouse: "townhouse",
-	};
-	return typeMap[apiType?.toLowerCase() ?? ""] ?? "single_family";
-}
 
 /**
  * Transform API property to design-os PropertyItem format
@@ -55,7 +37,7 @@ export function transformToPropertyItem(
 		city: property.city,
 		state: property.state,
 		postalCode: property.postal_code,
-		propertyType: mapPropertyType(property.property_type),
+		propertyType: property.property_type,
 		status:
 			property.status === "active"
 				? "active"

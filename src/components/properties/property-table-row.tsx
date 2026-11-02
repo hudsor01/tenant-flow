@@ -15,13 +15,11 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "#components/ui/tooltip";
+import { propertyTypeLabel } from "#lib/constants/status-types";
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import type { ColumnId } from "./property-table-types";
-import {
-	formatPropertyType,
-	PROPERTY_COLUMN_CLASS,
-} from "./property-table-types";
+import { PROPERTY_COLUMN_CLASS } from "./property-table-types";
 import type { PropertyItem } from "./types";
 
 interface PropertyTableRowProps {
@@ -94,7 +92,7 @@ export function PropertyTableRow({
 								{property.name}
 							</p>
 							<p className="text-xs text-muted-foreground truncate">
-								{formatPropertyType(property.propertyType)}
+								{propertyTypeLabel(property.propertyType)}
 							</p>
 						</div>
 					</div>

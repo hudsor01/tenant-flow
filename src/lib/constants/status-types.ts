@@ -52,18 +52,33 @@ function isPropertyType(value: string): value is PropertyType {
 }
 
 /**
- * A stored property_type as its label; a value outside the set as written.
- * properties.property_type is free text with no CHECK: the form writes the
+ * A stored property_type as the form's type, or null for a value outside the
+ * set. properties.property_type is free text with no CHECK: the form writes the
  * upper-case values above, but rows written by other paths hold lower-case ones
- * ("single_family") and the older "multi_family" for MULTI_UNIT, which
- * property-transforms.ts already reads as the same type. So the match ignores
- * case and takes that alias.
+ * ("single_family") and the older "multi_family" for MULTI_UNIT. So the match
+ * ignores case and takes that alias. Null is never a guess: a reader shows the
+ * value as written (propertyTypeLabel) and a filter matches no type with it.
  */
-export function propertyTypeLabel(value: string): string {
+export function toPropertyType(value: string): PropertyType | null {
 	const key = value.toUpperCase();
 	const type = key === "MULTI_FAMILY" ? "MULTI_UNIT" : key;
-	return isPropertyType(type) ? PROPERTY_TYPE_LABELS[type] : value;
+	return isPropertyType(type) ? type : null;
 }
+
+/** A stored property_type as its label; a value outside the set as written. */
+export function propertyTypeLabel(value: string): string {
+	const type = toPropertyType(value);
+	return type === null ? value : PROPERTY_TYPE_LABELS[type];
+}
+
+/** Every property type as a select option, in the form's order. */
+export const PROPERTY_TYPE_OPTIONS: readonly {
+	readonly value: PropertyType;
+	readonly label: string;
+}[] = Object.values(PROPERTY_TYPES).map((value) => ({
+	value,
+	label: PROPERTY_TYPE_LABELS[value],
+}));
 
 /**
  * SINGLE-UNIT PROPERTY TYPES - Property types that have exactly one unit

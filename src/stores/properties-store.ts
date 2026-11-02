@@ -12,7 +12,7 @@
  */
 
 import { create } from "zustand";
-import type { DesignPropertyType } from "#components/properties/types";
+import type { PropertyType } from "#lib/constants/status-types";
 import type { PropertyStatus } from "#types/core";
 
 export type PropertyStatusFilter =
@@ -21,6 +21,9 @@ export type PropertyStatusFilter =
 	| "available"
 	| "maintenance";
 
+/** Every property, or the properties of one type (toPropertyType's). */
+export type PropertyTypeFilter = "all" | PropertyType;
+
 export interface PropertiesState {
 	// View state
 	viewMode: "grid" | "table";
@@ -28,7 +31,7 @@ export interface PropertiesState {
 	// Filter state
 	searchQuery: string;
 	statusFilter: PropertyStatusFilter;
-	typeFilter: string;
+	typeFilter: PropertyTypeFilter;
 
 	// Selection state
 	selectedRows: Set<string>;
@@ -36,7 +39,12 @@ export interface PropertiesState {
 	// Bulk Edit dialog state
 	isBulkEditOpen: boolean;
 	bulkEditStatus: PropertyStatus;
-	bulkEditType: DesignPropertyType;
+	/**
+	 * The type the dialog would apply: the first selected property's, or null
+	 * when its stored type is outside the set, so the dialog asks for one
+	 * rather than showing a type the property does not have.
+	 */
+	bulkEditType: PropertyType | null;
 	applyBulkStatus: boolean;
 	applyBulkType: boolean;
 	isBulkSaving: boolean;
@@ -49,7 +57,7 @@ export interface PropertiesActions {
 	// Filter actions
 	setSearchQuery: (query: string) => void;
 	setStatusFilter: (filter: PropertyStatusFilter) => void;
-	setTypeFilter: (filter: string) => void;
+	setTypeFilter: (filter: PropertyTypeFilter) => void;
 	clearFilters: () => void;
 
 	// Selection actions
@@ -64,11 +72,11 @@ export interface PropertiesActions {
 	// Bulk Edit actions
 	openBulkEdit: (
 		initialStatus: PropertyStatus,
-		initialType: DesignPropertyType,
+		initialType: PropertyType | null,
 	) => void;
 	closeBulkEdit: () => void;
 	setBulkEditStatus: (status: PropertyStatus) => void;
-	setBulkEditType: (type: DesignPropertyType) => void;
+	setBulkEditType: (type: PropertyType) => void;
 	setApplyBulkStatus: (apply: boolean) => void;
 	setApplyBulkType: (apply: boolean) => void;
 	setIsBulkSaving: (saving: boolean) => void;
@@ -85,7 +93,7 @@ const initialState: PropertiesState = {
 	selectedRows: new Set(),
 	isBulkEditOpen: false,
 	bulkEditStatus: "active",
-	bulkEditType: "single_family",
+	bulkEditType: null,
 	applyBulkStatus: false,
 	applyBulkType: false,
 	isBulkSaving: false,

@@ -13,6 +13,7 @@ import {
 } from "#hooks/api/use-property-mutations";
 import { useCurrentUser } from "#hooks/use-current-user";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { toPropertyType } from "#lib/constants/status-types";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
@@ -100,8 +101,13 @@ export function PropertyForm({
 		...propertyFormOptions,
 		defaultValues: {
 			name: property?.name ?? "",
-			property_type: (property?.property_type ??
-				"SINGLE_FAMILY") as PropertyType,
+			// The stored type as the form's own value (any case, the multi_family
+			// alias), so the select shows the type the property page names. A
+			// value outside the set selects nothing (the select's placeholder, and
+			// the schema asks for a type), never another type preselected.
+			property_type: (property
+				? (toPropertyType(property.property_type) ?? "")
+				: "SINGLE_FAMILY") as PropertyType,
 			address_line1: property?.address_line1 ?? "",
 			address_line2: property?.address_line2 ?? "",
 			city: property?.city ?? "",

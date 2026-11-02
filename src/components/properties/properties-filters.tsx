@@ -8,10 +8,10 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { type PropertyType, toPropertyType } from "#lib/constants/status-types";
 import { intersectSelection } from "#lib/intersect-selection";
 import type { PropertyStatus } from "#types/core";
 import { propertyBulkImportConfig } from "./bulk-import-config";
-import type { DesignPropertyType } from "./types";
 
 export interface EmptyPropertiesProps {
 	onAddProperty?: (() => void) | undefined;
@@ -95,11 +95,11 @@ export function useBulkHandlers(
 	properties: {
 		id: string;
 		status: PropertyStatus;
-		propertyType: DesignPropertyType;
+		propertyType: string;
 	}[],
 	openBulkEdit: (
 		initialStatus: PropertyStatus,
-		initialType: DesignPropertyType,
+		initialType: PropertyType | null,
 	) => void,
 	deletePropertyMutation: { mutateAsync: (id: string) => Promise<unknown> },
 	clearSelection: () => void,
@@ -108,7 +108,10 @@ export function useBulkHandlers(
 		if (selectedRows.size === 0) return;
 		const firstSelected = properties.find((p) => selectedRows.has(p.id));
 		if (firstSelected) {
-			openBulkEdit(firstSelected.status, firstSelected.propertyType);
+			openBulkEdit(
+				firstSelected.status,
+				toPropertyType(firstSelected.propertyType),
+			);
 		}
 	};
 
