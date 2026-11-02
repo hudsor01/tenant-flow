@@ -4,9 +4,13 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { cn } from "#lib/utils";
 import type { StatusFilter } from "#stores/leases-store";
 import type { LeaseDisplay, SortDirection, SortField } from "./lease-utils";
+import { buildLeasesCsv, leasesCsvFilename } from "./leases-csv";
 import {
 	LEASE_COLUMN_CLASS,
 	LeaseRow,
@@ -61,6 +65,25 @@ export function LeasesTable({
 	onTerminate,
 	onClearSelection,
 }: LeasesTableProps) {
+	// The selected leases, in table order. Exporting writes a file and leaves
+	// the selection as it is.
+	const handleExportSelected = () => {
+		const selected = leases.filter((l) => selectedRows.has(l.id));
+		if (selected.length === 0) return;
+		try {
+			downloadBlob(
+				new Blob([buildLeasesCsv(selected)], { type: CSV_MIME_TYPE }),
+				leasesCsvFilename(new Date()),
+			);
+		} catch (exportError) {
+			handleMutationError(
+				exportError,
+				"Export leases",
+				"Couldn't export the leases. Please try again.",
+			);
+		}
+	};
+
 	const handleClearFilters = () => {
 		onSearchChange("");
 		onStatusFilterChange("all");
@@ -99,7 +122,11 @@ export function LeasesTable({
 							{selectedRows.size} selected
 						</span>
 						<div className="flex items-center gap-2">
-							<button className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-sm hover:bg-muted transition-colors">
+							<button
+								type="button"
+								onClick={handleExportSelected}
+								className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-sm hover:bg-muted transition-colors"
+							>
 								Export
 							</button>
 							<button

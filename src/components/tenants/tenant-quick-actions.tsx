@@ -1,20 +1,29 @@
 "use client";
 
-import { BarChart3, Download, Mail, UserPlus } from "lucide-react";
+import { BarChart3, Download, UserPlus } from "lucide-react";
+import Link from "next/link";
 
 interface TenantQuickActionsProps {
 	onAdd: () => void;
+	/** Downloads the tenants the list shows as CSV. */
+	onExport: () => void;
+	/** True when the list shows no tenant, so there is nothing to export. */
+	exportDisabled: boolean;
 }
 
-export function TenantQuickActions({ onAdd }: TenantQuickActionsProps) {
+const ACTION_CLASS =
+	"flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors";
+
+export function TenantQuickActions({
+	onAdd,
+	onExport,
+	exportDisabled,
+}: TenantQuickActionsProps) {
 	return (
 		<div className="flex items-center gap-3 mb-6">
-			<button
-				onClick={onAdd}
-				className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors"
-			>
+			<button type="button" onClick={onAdd} className={ACTION_CLASS}>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-					<UserPlus className="w-4 h-4" />
+					<UserPlus className="w-4 h-4" aria-hidden="true" />
 				</div>
 				<div className="text-left">
 					<div className="text-sm font-medium">Add Tenant</div>
@@ -23,33 +32,29 @@ export function TenantQuickActions({ onAdd }: TenantQuickActionsProps) {
 					</div>
 				</div>
 			</button>
-			<button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+			<button
+				type="button"
+				onClick={onExport}
+				disabled={exportDisabled}
+				className={`${ACTION_CLASS} disabled:pointer-events-none disabled:opacity-50`}
+			>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-					<Mail className="w-4 h-4" />
-				</div>
-				<div className="text-left">
-					<div className="text-sm font-medium">Message All</div>
-					<div className="text-xs text-muted-foreground">Bulk email</div>
-				</div>
-			</button>
-			<button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors">
-				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-					<Download className="w-4 h-4" />
+					<Download className="w-4 h-4" aria-hidden="true" />
 				</div>
 				<div className="text-left">
 					<div className="text-sm font-medium">Export</div>
 					<div className="text-xs text-muted-foreground">Download data</div>
 				</div>
 			</button>
-			<button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+			<Link href="/analytics/overview" className={ACTION_CLASS}>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-					<BarChart3 className="w-4 h-4" />
+					<BarChart3 className="w-4 h-4" aria-hidden="true" />
 				</div>
 				<div className="text-left">
 					<div className="text-sm font-medium">Analytics</div>
 					<div className="text-xs text-muted-foreground">View insights</div>
 				</div>
-			</button>
+			</Link>
 		</div>
 	);
 }

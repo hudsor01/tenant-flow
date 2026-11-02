@@ -29,7 +29,7 @@ export const TENANT_COLUMN_CLASS = {
 	actions: "flex w-28 shrink-0 items-center justify-end",
 } as const;
 
-const STATUS_LABELS: Record<LeaseStatus, string> = {
+export const TENANT_LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
 	draft: "Draft",
 	pending_signature: "Pending",
 	active: "Active",
@@ -79,7 +79,7 @@ export function TenantLeaseStatusBadge({
 			)}
 		>
 			{ariaLabel ? <span className="sr-only">{`${ariaLabel}: `}</span> : null}
-			{STATUS_LABELS[status]}
+			{TENANT_LEASE_STATUS_LABELS[status]}
 		</span>
 	);
 }

@@ -14,10 +14,12 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
-import { createLogger } from "#lib/frontend-logger";
 import { intersectSelection } from "#lib/intersect-selection";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { useTenantsStore } from "#stores/tenants-store";
-import type { TenantsProps } from "#types/sections/tenants";
+import type { TenantItem, TenantsProps } from "#types/sections/tenants";
 import { tenantBulkImportConfig } from "./bulk-import-config";
 import { TenantActionBar } from "./tenant-action-bar";
 import { TenantDetailSheet } from "./tenant-detail-sheet";
@@ -26,8 +28,22 @@ import { TenantQuickActions } from "./tenant-quick-actions";
 import { TenantStats } from "./tenant-stats";
 import { TenantTable } from "./tenant-table";
 import { TenantToolbar } from "./tenant-toolbar";
+import { buildTenantsCsv, tenantsCsvFilename } from "./tenants-csv";
 
-const logger = createLogger({ component: "Tenants" });
+function exportTenantsCsv(list: readonly TenantItem[]): void {
+	try {
+		downloadBlob(
+			new Blob([buildTenantsCsv(list)], { type: CSV_MIME_TYPE }),
+			tenantsCsvFilename(new Date()),
+		);
+	} catch (exportError) {
+		handleMutationError(
+			exportError,
+			"Export tenants",
+			"Couldn't export the tenants. Please try again.",
+		);
+	}
+}
 
 export function Tenants({
 	tenants,
@@ -131,11 +147,22 @@ export function Tenants({
 		onBulkDelete(ids, clearSelection);
 	};
 
+	// The selected tenants still in the list (the delete guard's STATE-12 rule),
+	// in list order. Exporting writes a file and leaves the selection as it is.
 	const handleBulkExport = () => {
-		logger.info("Bulk export initiated", {
-			selectedIds: Array.from(selectedIds),
-		});
-		clearSelection();
+		const ids = new Set(
+			intersectSelection(
+				selectedIds,
+				tenants.map((t) => t.id),
+			),
+		);
+		if (ids.size === 0) return;
+		exportTenantsCsv(tenants.filter((t) => ids.has(t.id)));
+	};
+
+	// The tenants the list shows under the current search and status filter.
+	const handleExportShown = () => {
+		exportTenantsCsv(filteredTenants);
 	};
 
 	const handleViewTenant = (tenantId: string) => {
@@ -204,7 +231,11 @@ export function Tenants({
 				endedTenants={endedTenants}
 			/>
 
-			<TenantQuickActions onAdd={handleAddClick} />
+			<TenantQuickActions
+				onAdd={handleAddClick}
+				onExport={handleExportShown}
+				exportDisabled={filteredTenants.length === 0}
+			/>
 
 			{/* View Toggle & Filters */}
 			<BlurFade delay={0.6}>
