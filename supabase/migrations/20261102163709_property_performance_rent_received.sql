@@ -3,8 +3,11 @@
 -- received, from the rent ledger, over a window the caller can name exactly
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
--- 20261102055449_billing_insights_from_rent_ledger.sql (the two are
--- independent functions; the order only keeps the ledger sequential). Until
+-- 20261102055449_billing_insights_from_rent_ledger.sql, which creates
+-- rent_ledger_receipts, the receipts this body reads. Applied before it, this
+-- body raises "function public.rent_ledger_receipts(uuid) does not exist" on
+-- its first call (PL/pgSQL resolves the name when it runs, not when it is
+-- created). Until
 -- this PR, production's `main` labels the figure "Monthly revenue" and
 -- "Revenue", and the year-end report asks for no window at all, so it would
 -- print the last 30 days' receipts as a tax year's income. After the merge the
