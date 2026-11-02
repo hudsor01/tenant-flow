@@ -141,7 +141,7 @@ Command: `rg -n` over `src/**/*.tsx` minus tests for the labels (`>\s*(Export|Do
 | Settings "Download My Data" (account data, GDPR) | `exportData.mutate()` |
 | Billing history "Download" | `<a href={downloadHref}>` |
 | Tax documents and Year-end "Download PDF" | `downloadPdfMutation.mutate(…)` |
-| Year-end "Download CSV" x2, `export-buttons.tsx`, the `/analytics/financial` export | wired; out of this part (owner decision pending) |
+| Year-end "Download CSV" x2, `export-buttons.tsx`, the `/analytics/financial` export | wired; out of this part. The owner decided on 2026-11-01: "Server, keep paywall (Recommended)"; part G implemented it in `ba4fdf927`..`1792b8781` |
 | Download Signed Lease | `handleDownload` |
 | Print / Save as PDF (`print-button.tsx`) | `window.print()` |
 | Maintenance "Print work order", maintenance header "Export request" | `handleDownloadWorkOrder`, `handleExport` |
@@ -167,7 +167,11 @@ Result on `f48046894`: 140 exports, **97 with no importer**. Pruned to a fixpoin
 
 ### 3.3 deno check
 
-Command: `deno check --no-lock --cached-only --node-modules-dir=none --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts` for all 17 functions.
+Command (as run for this part): `deno check --no-lock --cached-only --node-modules-dir=none --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts` for all 17 functions.
+
+That command no longer works for export-report: part G's SheetJS import (`xlsx` in `supabase/functions/deno.json`, `https://cdn.sheetjs.com/...`) fails `--cached-only` with `Requires import access to "cdn.sheetjs.com:443", run again with the --allow-import flag`. The command that checks all 17 now, used from fix round 1 part H on (all 17 clean, 0 diagnostics, at `805c0c2ad`):
+
+`deno check --no-lock --node-modules-dir=none --allow-import=deno.land:443,jsr.io:443,esm.sh:443,raw.esm.sh:443,cdn.jsdelivr.net:443,raw.githubusercontent.com:443,gist.githubusercontent.com:443,cdn.sheetjs.com:443 --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts`
 
 | Function | Diagnostics on `f48046894` | Here |
 |----------|---------------------------|------|
