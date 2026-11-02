@@ -99,7 +99,7 @@ function answers(): RpcAnswers {
 			error: null,
 		},
 		get_billing_insights: {
-			data: { unpaidTotal: 0, unpaidCount: 0, lateFeeTotal: 0, tenantCount: 3 },
+			data: { unpaidTotal: 1185.5, unpaidCount: 4, lateFeeTotal: 115, tenantCount: 3 },
 			error: null,
 		},
 		get_dashboard_stats: {
@@ -421,6 +421,9 @@ Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", as
 		assertStringIncludes(post.body.html, '<td class="td">=HYPERLINK(1)</td>');
 		assertStringIncludes(post.body.html, '<td class="td num">$61,200.00</td>');
 		assertStringIncludes(post.body.html, '<td class="td num">$2,000.50</td>');
+		// The Payment Summary's ledger figures, in dollars as the cards print them.
+		assertStringIncludes(post.body.html, '<td class="td num">$1,185.50</td>');
+		assertStringIncludes(post.body.html, '<td class="td num">$115.00</td>');
 		assert(!post.body.html.includes(">61200<"), "no bare amount");
 		assert(!post.body.html.includes(">2000.5<"), "no bare amount");
 		assertPrintsMoney(post.body.html, expectedTable(scenario()));

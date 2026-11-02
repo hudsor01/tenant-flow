@@ -172,6 +172,20 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
+ * A JSON object, `{}` for null or undefined, and a throw for any other value,
+ * an array included: the page's `jsonObjectOrEmpty` throws there too, so the
+ * page shows its error state and the export fails rather than writing zeros.
+ */
+function objectOrEmpty(value: unknown, what: string): Record<string, unknown> {
+	if (value === null || value === undefined) return {};
+	const record = asRecord(value);
+	if (record === null) {
+		throw new Error(`Expected a JSON object for ${what}`);
+	}
+	return record;
+}
+
+/**
  * A JSON array, `[]` for null or undefined, and a throw for any other value:
  * the page's `jsonArrayOrEmpty` throws there too, so the page shows its error
  * state and the export fails rather than writing a report the page never shows.
@@ -277,7 +291,7 @@ export function buildFinancialAnalyticsTable(
 		},
 	);
 
-	const billing = asRecord(sources.billingInsights) ?? {};
+	const billing = objectOrEmpty(sources.billingInsights, "billing insights");
 
 	const rows: Row[] = [
 		valueRow("Overview", "Scheduled", money(totalRevenue)),

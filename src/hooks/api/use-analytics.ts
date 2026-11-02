@@ -7,7 +7,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { jsonArrayOrEmpty } from "#lib/rpc-shape";
+import { jsonArrayOrEmpty, jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PropertyPerformanceEntry } from "#types/analytics";
@@ -287,17 +287,20 @@ export const analyticsQueries = {
 					owner_id_param: user.id,
 				});
 				if (error) handlePostgrestError(error, "analytics");
-				const raw = data as Record<string, unknown> | null;
+				// Dollars from the rent ledger, and counts (20261102055449). A null
+				// payload is "no data yet"; any other non-object throws, so the page
+				// shows its error state rather than a summary of zeros.
+				const raw = jsonObjectOrEmpty<Record<string, unknown>>(data, {});
 				return {
 					lateFeeTotal:
-						typeof raw?.lateFeeTotal === "number" ? raw.lateFeeTotal : 0,
+						typeof raw.lateFeeTotal === "number" ? raw.lateFeeTotal : 0,
 					unpaidTotal:
-						typeof raw?.unpaidTotal === "number" ? raw.unpaidTotal : 0,
+						typeof raw.unpaidTotal === "number" ? raw.unpaidTotal : 0,
 					unpaidCount:
-						typeof raw?.unpaidCount === "number" ? raw.unpaidCount : 0,
+						typeof raw.unpaidCount === "number" ? raw.unpaidCount : 0,
 					tenantCount:
-						typeof raw?.tenantCount === "number" ? raw.tenantCount : 0,
-				} as OwnerPaymentSummaryResponse;
+						typeof raw.tenantCount === "number" ? raw.tenantCount : 0,
+				};
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,

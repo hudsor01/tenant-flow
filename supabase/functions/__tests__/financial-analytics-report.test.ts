@@ -140,9 +140,11 @@ function richAnswers(): RpcAnswers {
 				totalRevenue: 61200,
 				mrr: 5100,
 				churnRate: 12.5,
-				unpaidTotal: 0,
-				unpaidCount: 0,
-				lateFeeTotal: 0,
+				// The ledger's figures since 20261102055449: numeric(10,2) dollars
+				// and a count, none of them zero, so a dropped figure shows.
+				unpaidTotal: 1185.5,
+				unpaidCount: 4,
+				lateFeeTotal: 115,
 				tenantCount: 7,
 			},
 			error: null,
@@ -308,7 +310,22 @@ describe("every figure the page renders is a row of the file", () => {
 		const { page, payments } = await screen(answers);
 		const { rows } = await exported(answers);
 		expect(rows).toEqual(rowsFromScreen(page, payments));
-		// Guards against both sides being empty: the fixture fills every section.
+		// Guards against both sides being empty: the fixture fills every section,
+		// the four payment figures included.
+		for (const figure of [
+			payments.lateFeeTotal,
+			payments.unpaidTotal,
+			payments.unpaidCount,
+			payments.tenantCount,
+		]) {
+			expect(figure).toBeGreaterThan(0);
+		}
+		expect(section(rows, "Payment Summary").map((r) => r[2])).toEqual([
+			cents(payments.lateFeeTotal),
+			cents(payments.unpaidTotal),
+			payments.unpaidCount,
+			payments.tenantCount,
+		]);
 		expect(section(rows, "Revenue & Expenses")).toHaveLength(12);
 		expect(section(rows, "Expense Breakdown")).toHaveLength(6);
 		expect(section(rows, "Net Operating Income")).toHaveLength(12);
@@ -490,6 +507,24 @@ describe("an RPC shape the page cannot render fails the export", () => {
 			message: expect.stringContaining("array"),
 		});
 	});
+
+	it.each([
+		["an array", [{ unpaidTotal: 1185.5 }]],
+		["a scalar", 0],
+	])(
+		"throws on billing insights that are %s, as the page does",
+		async (_what, data) => {
+			const answers = richAnswers();
+			answers.get_billing_insights = { data, error: null };
+			mockRpc.mockImplementation(answer(answers));
+			await expect(fetchPaymentSummary()).rejects.toMatchObject({
+				message: expect.stringContaining("Expected JSON object"),
+			});
+			await expect(exported(answers)).rejects.toMatchObject({
+				message: expect.stringContaining("JSON object"),
+			});
+		},
+	);
 
 	it("throws on monthly expense totals that are not an array, as the page does", async () => {
 		const answers = richAnswers();
