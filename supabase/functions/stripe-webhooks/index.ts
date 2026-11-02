@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
 			id: event.id,
 			event_type: event.type,
 			livemode: event.livemode,
-			data: event.data as unknown as Record<string, unknown>,
+			data: event.data,
 			status: "processing",
 		});
 

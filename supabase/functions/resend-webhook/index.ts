@@ -13,6 +13,7 @@
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
+import type { SubtleCryptoWithTimingSafeEqual } from "../_shared/timing-safe.ts";
 
 // Must match the CHECK constraint on public.email_deliverability.event_type.
 // Events outside this list are intentionally ignored (200 response) so Resend does not retry them.
@@ -148,9 +149,7 @@ async function verifySvixSignature(
 		const a = new TextEncoder().encode(candidate);
 		const b = new TextEncoder().encode(expectedBase64);
 		try {
-			const subtleWithTSE = crypto.subtle as unknown as {
-				timingSafeEqual?: (x: Uint8Array, y: Uint8Array) => boolean;
-			};
+			const subtleWithTSE: SubtleCryptoWithTimingSafeEqual = crypto.subtle;
 			if (typeof subtleWithTSE.timingSafeEqual === "function") {
 				return subtleWithTSE.timingSafeEqual(a, b);
 			}
