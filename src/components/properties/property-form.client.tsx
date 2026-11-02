@@ -1,6 +1,6 @@
 "use client";
 
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -141,7 +141,7 @@ export function PropertyForm({
 	// FORMFIX-01: read dirty REACTIVELY from the form store so the beforeunload
 	// guard re-arms as the user edits (a `form.state.isDirty` snapshot is read
 	// once at mount and never updates).
-	const isDirty = useStore(form.store, (s) => s.isDirty);
+	const isDirty = useSelector(form.store, (s) => s.isDirty);
 	useUnsavedChangesWarning(isDirty);
 
 	async function handleCreateSubmit(

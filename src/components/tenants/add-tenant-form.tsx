@@ -1,6 +1,6 @@
 "use client";
 
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -221,7 +221,7 @@ export function AddTenantForm({
 	// FORMFIX-01: read dirty REACTIVELY from the form store so the boolean
 	// re-renders as the user types (a `form.state.isDirty` snapshot is read once
 	// at mount and never re-arms the guard's effect).
-	const isDirty = useStore(form.store, (s) => s.isDirty);
+	const isDirty = useSelector(form.store, (s) => s.isDirty);
 	useUnsavedChangesWarning(isDirty);
 
 	// Filter units based on selected property
