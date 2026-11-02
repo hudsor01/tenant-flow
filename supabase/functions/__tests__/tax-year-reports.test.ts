@@ -21,7 +21,9 @@
  *   3. the section the export leaves out (Property Depreciation) is empty on
  *      the page too;
  *   4. an RPC shape that makes the page fail makes the export fail;
- *   5. an RPC error fails the export load, naming the RPC.
+ *   5. an RPC error fails the export load, naming the RPC;
+ *   6. every amount is rounded as the pages print it (`formatCurrency`), and
+ *      each column carries the format the PDF and XLSX print it in.
  * The specifier carries no `.ts` extension (TS5097, see report-csv.test.ts).
  *
  * WHAT NOTHING HERE PROVES. That the functions print this table: the Deno
@@ -33,6 +35,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { sortExpenseCategoriesDesc } from "#components/reports/sections/year-end-report-section-utils";
+import { formatCurrency } from "#lib/utils/currency";
 import type { TaxDocumentsData } from "#types/financial-statements";
 import type { Year1099Summary, YearEndSummary } from "#types/reports";
 import type {
@@ -45,8 +48,13 @@ import {
 	REPORT_1099_SECTION,
 	REPORT_1099_THRESHOLD,
 	REPORT_1099_TYPE,
+	TAX_DOCUMENTS_FORMATS,
+	TAX_DOCUMENTS_HEADER,
 	TAX_DOCUMENTS_REPORT_TYPE,
+	TAX_YEAR_REPORT_TYPES,
 	taxYearReportCalls,
+	YEAR_END_FORMATS,
+	YEAR_END_HEADER,
 	YEAR_END_REPORT_TYPE,
 } from "../_shared/tax-year-reports";
 
@@ -176,7 +184,13 @@ async function screen(answers: RpcAnswers): Promise<Screen> {
 async function exported(
 	reportType: string,
 	answers: RpcAnswers,
-): Promise<{ rows: readonly (readonly ReportCell[])[]; calls: RpcCall[]; title: string; header: readonly string[] }> {
+): Promise<{
+	rows: readonly (readonly ReportCell[])[];
+	formats: readonly (readonly string[])[];
+	calls: RpcCall[];
+	title: string;
+	header: readonly string[];
+}> {
 	const calls: RpcCall[] = [];
 	const load = await loadTaxYearSources(
 		(name, args) => {
@@ -191,13 +205,16 @@ async function exported(
 	const report = buildTaxYearReport(reportType, load.sources, YEAR);
 	return {
 		rows: report.table.rows,
+		formats: report.table.formats,
 		calls,
 		title: report.title,
 		header: report.table.header,
 	};
 }
 
-const cents = (value: number) => Math.round(value * 100) / 100;
+/** An amount as the pages print it (`formatCurrency`), back as a number. */
+const cents = (value: number) =>
+	Number(formatCurrency(value).replace(/[$,]/g, ""));
 const distinct = (calls: readonly RpcCall[]) =>
 	[...new Set(calls.map((c) => JSON.stringify(c)))].sort();
 
@@ -233,8 +250,26 @@ function expected1099Rows(summary: Year1099Summary): ReportCell[][] {
 function expectedYearEndRows(page: Screen): ReportCell[][] {
 	const s = page.yearEnd;
 	return [
-		["Summary", "Gross Rental Income", null, cents(s.grossRentalIncome), null, null, null, null],
-		["Summary", "Operating Expenses", null, cents(s.operatingExpenses), null, null, null, null],
+		[
+			"Summary",
+			"Gross Rental Income",
+			null,
+			cents(s.grossRentalIncome),
+			null,
+			null,
+			null,
+			null,
+		],
+		[
+			"Summary",
+			"Operating Expenses",
+			null,
+			cents(s.operatingExpenses),
+			null,
+			null,
+			null,
+			null,
+		],
 		["Summary", "Net Income", null, cents(s.netIncome), null, null, null, null],
 		...s.byProperty.map((p): ReportCell[] => [
 			"By Property",
@@ -265,7 +300,12 @@ function expectedTaxRows(data: TaxDocumentsData): ReportCell[][] {
 	return [
 		["Summary", "Gross Income", cents(data.totals.totalIncome), null],
 		["Summary", "Total Deductions", cents(data.totals.totalDeductions), null],
-		["Summary", "Net Taxable Income", cents(data.totals.netTaxableIncome), null],
+		[
+			"Summary",
+			"Net Taxable Income",
+			cents(data.totals.netTaxableIncome),
+			null,
+		],
 		...data.expenseCategories
 			.filter((c) => c.deductible)
 			.map((c): ReportCell[] => [
@@ -318,6 +358,60 @@ describe("tax-year reports hold their pages' figures", () => {
 		expect(file.rows.map((r) => r[3])).toContain(0.1);
 	});
 
+	it("rounds an amount as formatCurrency does", async () => {
+		// 9000.505 and -199.995: Math.round wrote 9000.5 and -199.99 where the
+		// pages print $9,000.51 and -$200.00.
+		const answers = richAnswers();
+		answers.get_property_performance_analytics = {
+			data: [
+				{
+					property_id: "p1",
+					property_name: "Maple Court",
+					total_revenue: 9000.505,
+					total_expenses: 9200.5,
+					net_income: -199.995,
+				},
+			],
+			error: null,
+		};
+		const page = await screen(answers);
+		const file = await exported(YEAR_END_REPORT_TYPE, answers);
+		expect(file.rows).toEqual(expectedYearEndRows(page));
+		const maple = file.rows.find((r) => r[1] === "Maple Court");
+		expect([maple?.[4], maple?.[6]]).toEqual([9000.51, -200]);
+	});
+
+	it("gives each column one format: amounts money, shares a percentage", async () => {
+		expect(YEAR_END_FORMATS).toHaveLength(YEAR_END_HEADER.length);
+		expect(TAX_DOCUMENTS_FORMATS).toHaveLength(TAX_DOCUMENTS_HEADER.length);
+		const byColumn = (header: readonly string[], formats: readonly string[]) =>
+			Object.fromEntries(header.map((h, i) => [h, formats[i]]));
+		expect(byColumn(YEAR_END_HEADER, YEAR_END_FORMATS)).toEqual({
+			Section: "plain",
+			Item: "plain",
+			Jobs: "plain",
+			Amount: "money",
+			Income: "money",
+			Expenses: "money",
+			"Net Income": "money",
+			Status: "plain",
+		});
+		expect(byColumn(TAX_DOCUMENTS_HEADER, TAX_DOCUMENTS_FORMATS)).toEqual({
+			Section: "plain",
+			Item: "plain",
+			Amount: "money",
+			"Share of Expenses (%)": "percent",
+		});
+		for (const type of TAX_YEAR_REPORT_TYPES) {
+			const file = await exported(type, richAnswers());
+			const columns =
+				type === TAX_DOCUMENTS_REPORT_TYPE
+					? TAX_DOCUMENTS_FORMATS
+					: YEAR_END_FORMATS;
+			expect(file.formats, type).toEqual(file.rows.map(() => columns));
+		}
+	});
+
 	it("reads the year asked for", () => {
 		for (const type of [
 			YEAR_END_REPORT_TYPE,
@@ -345,9 +439,11 @@ describe("tax-year reports hold their pages' figures", () => {
 		await expect(exported(YEAR_END_REPORT_TYPE, bad)).rejects.toMatchObject({
 			message: expect.stringContaining("expense categories"),
 		});
-		await expect(exported(TAX_DOCUMENTS_REPORT_TYPE, bad)).rejects.toMatchObject(
-			{ message: expect.stringContaining("expense categories") },
-		);
+		await expect(
+			exported(TAX_DOCUMENTS_REPORT_TYPE, bad),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("expense categories"),
+		});
 	});
 
 	it("an RPC error fails the load, naming the RPC", async () => {

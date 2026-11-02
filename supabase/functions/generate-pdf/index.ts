@@ -278,12 +278,10 @@ export async function handleRequest(
 						rpc: load.rpc,
 					});
 				}
-				const table = buildFinancialAnalyticsTable(load.sources);
 				html = sectionedReportHtml(
 					"Financial Analytics",
 					today,
-					table.header,
-					table.rows,
+					buildFinancialAnalyticsTable(load.sources),
 				);
 			} else {
 				const load = await loadTaxYearSources(
@@ -303,12 +301,7 @@ export async function handleRequest(
 					load.sources,
 					body.year,
 				);
-				html = sectionedReportHtml(
-					report.title,
-					today,
-					report.table.header,
-					report.table.rows,
-				);
+				html = sectionedReportHtml(report.title, today, report.table);
 			}
 		}
 

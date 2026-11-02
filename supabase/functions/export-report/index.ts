@@ -26,6 +26,7 @@ import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
 import {
 	buildFinancialAnalyticsTable,
 	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	type FinancialAnalyticsTable,
 	loadFinancialAnalyticsSources,
 } from "../_shared/financial-analytics-report.ts";
 import { tableToCsv } from "../_shared/report-csv.ts";
@@ -78,10 +79,7 @@ export interface ExportReportDeps {
 interface ReportContent {
 	readonly title: string;
 	readonly filename: string;
-	readonly header: readonly string[];
-	readonly rows: readonly (readonly unknown[])[];
-	readonly csv: string;
-	readonly html: string;
+	readonly table: FinancialAnalyticsTable;
 }
 
 function fileHeaders(
@@ -189,15 +187,10 @@ export async function handleRequest(
 				user.id,
 			);
 			if (!load.ok) return rpcErrorResponse(req, load.rpc, load.error);
-			const table = buildFinancialAnalyticsTable(load.sources);
-			const title = "Financial Analytics";
 			content = {
-				title,
+				title: "Financial Analytics",
 				filename: `${FINANCIAL_ANALYTICS_REPORT_TYPE}-${today}`,
-				header: table.header,
-				rows: table.rows,
-				csv: tableToCsv(table.header, table.rows),
-				html: sectionedReportHtml(title, today, table.header, table.rows),
+				table: buildFinancialAnalyticsTable(load.sources),
 			};
 		} else {
 			const load = await loadTaxYearSources(
@@ -211,15 +204,7 @@ export async function handleRequest(
 			content = {
 				title: report.title,
 				filename: taxYearReportFilename(reportType, year),
-				header: report.table.header,
-				rows: report.table.rows,
-				csv: tableToCsv(report.table.header, report.table.rows),
-				html: sectionedReportHtml(
-					report.title,
-					today,
-					report.table.header,
-					report.table.rows,
-				),
+				table: report.table,
 			};
 		}
 
@@ -234,7 +219,7 @@ export async function handleRequest(
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					html: content.html,
+					html: sectionedReportHtml(content.title, today, content.table),
 					filename: `${content.filename}.pdf`,
 				}),
 			});
@@ -261,18 +246,14 @@ export async function handleRequest(
 		}
 
 		if (format === "xlsx") {
-			const workbook = reportTableToXlsx(
-				content.title,
-				content.header,
-				content.rows,
-			);
+			const workbook = reportTableToXlsx(content.title, content.table);
 			return new Response(workbook, {
 				status: 200,
 				headers: fileHeaders(req, XLSX_MIME_TYPE, `${content.filename}.xlsx`),
 			});
 		}
 
-		return new Response(content.csv, {
+		return new Response(tableToCsv(content.table.header, content.table.rows), {
 			status: 200,
 			headers: fileHeaders(req, CSV_MIME_TYPE, `${content.filename}.csv`),
 		});

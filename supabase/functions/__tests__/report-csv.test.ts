@@ -95,7 +95,10 @@ describe("the report Edge Functions use the leaf", () => {
 			'import { tableToCsv } from "../_shared/report-csv.ts";',
 		);
 		expect(exportReport).not.toMatch(/function (rowsToCsv|tableToCsv)\b/);
-		expect(exportReport.match(/csv: tableToCsv\(/g)).toHaveLength(2);
+		expect(exportReport.match(/tableToCsv\(/g)).toHaveLength(1);
+		expect(exportReport).toContain(
+			"tableToCsv(content.table.header, content.table.rows)",
+		);
 	});
 
 	it("neither function keeps the row-report path", () => {

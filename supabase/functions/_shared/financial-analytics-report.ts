@@ -5,7 +5,7 @@
  *
  * THIS MODULE IS A DEPENDENCY-FREE LEAF. It has no import statement and no
  * reference to a runtime global (no Deno namespace, no Response, no network:
- * the RPC caller is passed in), so `__tests__/financial-analytics-report.test.ts`
+ * the RPC caller is passed in; `Intl` is the language's own), so `__tests__/financial-analytics-report.test.ts`
  * imports it from Vitest next to the page's own query functions and mapper. Do
  * not add an import.
  *
@@ -38,7 +38,17 @@
  * NUMBERS. Every amount is dollars, rounded to cents (the ledger's collected
  * receipts are summed in floating point, so the raw sum can carry noise such
  * as 0.30000000000000004). Portfolio ROI is a percentage rounded to one
- * decimal, as the card shows it. Counts are written as they come.
+ * decimal, as the card shows it. Counts are written as they come. Rounding is
+ * `Intl.NumberFormat`'s, the formatter behind the page's `formatCurrency` and
+ * `NumberTicker`, so a figure in the file is the figure on the screen:
+ * `Math.round(v * 10) / 10` wrote -124.7 where the ROI card shows -124.8
+ * (`Math.round` takes a tie toward +Infinity), and `toFixed(1)` writes 0.1
+ * where it shows 0.2 (it rounds the binary value, Intl the shortest decimal).
+ *
+ * FORMATS. Each cell carries how it prints (`ReportCellFormat`, parallel to
+ * the rows): `money` (dollars), `percent` or `plain`. The CSV writes the raw
+ * number; the PDF prints `formatReportCell` (`report-format.ts`); the XLSX
+ * keeps the number and gives a money cell a currency number format.
  */
 
 export const FINANCIAL_ANALYTICS_REPORT_TYPE = "financial-analytics";
@@ -55,9 +65,18 @@ export const FINANCIAL_ANALYTICS_HEADER = [
 /** One cell: text, a number, or empty. */
 export type ReportCell = string | number | null;
 
+/**
+ * How a cell prints: `money` is dollars (`$1,234.50`), `percent` a percentage
+ * to one decimal (`49.1%`), and `plain` anything else (text, and counts,
+ * written as they are).
+ */
+export type ReportCellFormat = "money" | "percent" | "plain";
+
 export interface FinancialAnalyticsTable {
 	readonly header: readonly string[];
 	readonly rows: readonly (readonly ReportCell[])[];
+	/** Each cell's format: one array per row, the same shape as `rows`. */
+	readonly formats: readonly (readonly ReportCellFormat[])[];
 }
 
 export interface RpcCall {
@@ -165,22 +184,44 @@ function arrayOrEmpty(value: unknown, what: string): readonly unknown[] {
 	return value;
 }
 
+const ROUND_TO_CENTS = new Intl.NumberFormat("en-US", {
+	maximumFractionDigits: 2,
+	useGrouping: false,
+});
+const ROUND_TO_TENTHS = new Intl.NumberFormat("en-US", {
+	maximumFractionDigits: 1,
+	useGrouping: false,
+});
+
+/** Dollars rounded to cents as `formatCurrency` rounds them. */
 function money(value: number): number {
-	return Math.round(value * 100) / 100;
+	return Number(ROUND_TO_CENTS.format(value));
 }
 
+/** A percentage rounded to one decimal as the ROI card's ticker rounds it. */
 function percentOneDecimal(value: number): number {
-	return Math.round(value * 10) / 10;
+	return Number(ROUND_TO_TENTHS.format(value));
 }
 
 function numberOrZero(value: unknown): number {
 	return typeof value === "number" ? value : 0;
 }
 
-type Row = readonly ReportCell[];
+interface Row {
+	readonly cells: readonly ReportCell[];
+	readonly formats: readonly ReportCellFormat[];
+}
 
-function valueRow(section: string, item: string, value: number): Row {
-	return [section, item, value, null, null, null];
+function valueRow(
+	section: string,
+	item: string,
+	value: number,
+	format: ReportCellFormat = "money",
+): Row {
+	return {
+		cells: [section, item, value, null, null, null],
+		formats: ["plain", "plain", format, "plain", "plain", "plain"],
+	};
 }
 
 /**
@@ -242,7 +283,12 @@ export function buildFinancialAnalyticsTable(
 		valueRow("Overview", "Scheduled", money(totalRevenue)),
 		valueRow("Overview", "Collected", money(totalCollected)),
 		valueRow("Overview", "Net Income", money(netIncome)),
-		valueRow("Overview", "Portfolio ROI (%)", percentOneDecimal(profitMargin)),
+		valueRow(
+			"Overview",
+			"Portfolio ROI (%)",
+			percentOneDecimal(profitMargin),
+			"percent",
+		),
 		valueRow("Overview", "Cash Flow", money(netIncome)),
 		valueRow(
 			"Payment Summary",
@@ -258,21 +304,26 @@ export function buildFinancialAnalyticsTable(
 			"Payment Summary",
 			"Outstanding invoices",
 			numberOrZero(billing["unpaidCount"]),
+			"plain",
 		),
 		valueRow(
 			"Payment Summary",
 			"Tenants monitored",
 			numberOrZero(billing["tenantCount"]),
+			"plain",
 		),
 		...months.map(
-			(m): Row => [
-				"Revenue & Expenses",
-				m.month,
-				null,
-				money(m.revenue),
-				money(m.expenses),
-				money(m.net),
-			],
+			(m): Row => ({
+				cells: [
+					"Revenue & Expenses",
+					m.month,
+					null,
+					money(m.revenue),
+					money(m.expenses),
+					money(m.net),
+				],
+				formats: ["plain", "plain", "plain", "money", "money", "money"],
+			}),
 		),
 		...expenseCategories.map(
 			(c): Row => valueRow("Expense Breakdown", c.label, money(c.amount)),
@@ -282,5 +333,9 @@ export function buildFinancialAnalyticsTable(
 		),
 	];
 
-	return { header: FINANCIAL_ANALYTICS_HEADER, rows };
+	return {
+		header: FINANCIAL_ANALYTICS_HEADER,
+		rows: rows.map((row) => row.cells),
+		formats: rows.map((row) => row.formats),
+	};
 }

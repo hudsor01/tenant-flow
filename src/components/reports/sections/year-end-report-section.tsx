@@ -19,17 +19,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "#components/ui/table";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Year1099Summary, YearEndSummary } from "#types/reports";
 import { sortExpenseCategoriesDesc } from "./year-end-report-section-utils";
-
-function formatMoney(amount: number): string {
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(amount);
-}
 
 interface YearEndReportSectionProps {
 	year: number;
@@ -107,20 +99,26 @@ export function YearEndReportSection({
 					<SummaryCard
 						label="Gross Rental Income"
 						value={
-							yearEndData ? formatMoney(yearEndData.grossRentalIncome) : "$0.00"
+							yearEndData
+								? formatCurrency(yearEndData.grossRentalIncome)
+								: "$0.00"
 						}
 						isLoading={isLoadingYearEnd}
 					/>
 					<SummaryCard
 						label="Operating Expenses"
 						value={
-							yearEndData ? formatMoney(yearEndData.operatingExpenses) : "$0.00"
+							yearEndData
+								? formatCurrency(yearEndData.operatingExpenses)
+								: "$0.00"
 						}
 						isLoading={isLoadingYearEnd}
 					/>
 					<SummaryCard
 						label="Net Income"
-						value={yearEndData ? formatMoney(yearEndData.netIncome) : "$0.00"}
+						value={
+							yearEndData ? formatCurrency(yearEndData.netIncome) : "$0.00"
+						}
 						isLoading={isLoadingYearEnd}
 					/>
 				</div>
@@ -158,10 +156,10 @@ export function YearEndReportSection({
 													{p.propertyName}
 												</TableCell>
 												<TableCell className="text-right text-success-text">
-													{formatMoney(p.income)}
+													{formatCurrency(p.income)}
 												</TableCell>
 												<TableCell className="text-right text-destructive-text">
-													{formatMoney(p.expenses)}
+													{formatCurrency(p.expenses)}
 												</TableCell>
 												<TableCell
 													className={`text-right font-medium ${
@@ -170,7 +168,7 @@ export function YearEndReportSection({
 															: "text-destructive-text"
 													}`}
 												>
-													{formatMoney(p.netIncome)}
+													{formatCurrency(p.netIncome)}
 												</TableCell>
 											</TableRow>
 										))}
@@ -214,7 +212,7 @@ export function YearEndReportSection({
 												<TableRow key={i}>
 													<TableCell>{cat.category}</TableCell>
 													<TableCell className="text-right text-destructive-text">
-														{formatMoney(cat.amount)}
+														{formatCurrency(cat.amount)}
 													</TableCell>
 												</TableRow>
 											))}
@@ -282,7 +280,7 @@ export function YearEndReportSection({
 											</TableCell>
 											<TableCell className="text-right">{r.jobCount}</TableCell>
 											<TableCell className="text-right font-medium">
-												{formatMoney(r.totalPaid)}
+												{formatCurrency(r.totalPaid)}
 											</TableCell>
 											<TableCell className="text-right">
 												<Badge variant="warning">1099 Required</Badge>

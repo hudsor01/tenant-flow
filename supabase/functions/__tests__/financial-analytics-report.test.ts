@@ -12,7 +12,10 @@
  *   2. every figure the page renders is a table row, in the page's order;
  *   3. the page sections the export leaves out are empty on the page too;
  *   4. an RPC shape that makes the page fail makes the export fail;
- *   5. an RPC error fails the export load, naming the RPC.
+ *   5. an RPC error fails the export load, naming the RPC;
+ *   6. each figure is rounded as the page prints it (`formatCurrency` for an
+ *      amount, the ROI card's `NumberTicker` for Portfolio ROI, rendered
+ *      here) and carries the format the PDF and XLSX print it in.
  * The specifier carries no `.ts` extension (TS5097, see report-csv.test.ts).
  *
  * WHAT NOTHING HERE PROVES. That export-report writes this table to the file:
@@ -21,7 +24,11 @@
  */
 
 import { QueryClient } from "@tanstack/react-query";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render } from "@testing-library/react";
+import { createElement } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NumberTicker } from "#components/ui/number-ticker";
+import { formatCurrency } from "#lib/utils/currency";
 import type { FinancialAnalyticsPageData } from "#types/analytics-page-data";
 import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 import {
@@ -30,6 +37,7 @@ import {
 	type FinancialAnalyticsSources,
 	loadFinancialAnalyticsSources,
 	type ReportCell,
+	type ReportCellFormat,
 	type RpcCall,
 } from "../_shared/financial-analytics-report";
 
@@ -171,6 +179,7 @@ async function screen(answers: RpcAnswers): Promise<{
 /** What the export loads and writes, against the same `answers`. */
 async function exported(answers: RpcAnswers): Promise<{
 	rows: readonly (readonly ReportCell[])[];
+	formats: readonly (readonly ReportCellFormat[])[];
 	calls: RpcCall[];
 	sources: FinancialAnalyticsSources;
 }> {
@@ -180,15 +189,39 @@ async function exported(answers: RpcAnswers): Promise<{
 		return answer(answers)(name);
 	}, USER_ID);
 	if (!load.ok) throw new Error(`load failed on ${load.rpc}`);
+	const table = buildFinancialAnalyticsTable(load.sources);
 	return {
-		rows: buildFinancialAnalyticsTable(load.sources).rows,
+		rows: table.rows,
+		formats: table.formats,
 		calls,
 		sources: load.sources,
 	};
 }
 
-const cents = (value: number) => Math.round(value * 100) / 100;
-const oneDecimal = (value: number) => Math.round(value * 10) / 10;
+/** An amount as the page prints it (`formatCurrency`), back as a number. */
+const cents = (value: number) =>
+	Number(formatCurrency(value).replace(/[$,]/g, ""));
+
+/** Portfolio ROI as the ROI card prints it (its NumberTicker), as a number. */
+function oneDecimal(value: number): number {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		dispatchEvent: vi.fn(),
+	}));
+	const { container, unmount } = render(
+		createElement(NumberTicker, { value, decimalPlaces: 1, duration: 1500 }),
+	);
+	const text = container.textContent ?? "";
+	unmount();
+	vi.unstubAllGlobals();
+	return Number(text.replace(/,/g, ""));
+}
 
 function section(
 	rows: readonly (readonly ReportCell[])[],
@@ -252,6 +285,10 @@ function rowsFromScreen(
 
 beforeEach(() => {
 	mockRpc.mockReset();
+});
+
+afterEach(() => {
+	vi.unstubAllGlobals();
 });
 
 describe("the export calls the RPCs the page calls", () => {
@@ -331,6 +368,94 @@ describe("every figure the page renders is a row of the file", () => {
 		expect(table.header).toEqual(FINANCIAL_ANALYTICS_HEADER);
 		for (const row of table.rows) {
 			expect(row).toHaveLength(FINANCIAL_ANALYTICS_HEADER.length);
+		}
+	});
+});
+
+describe("each figure is rounded and formatted as the page prints it", () => {
+	it.each([
+		// [total_revenue, net_income]: ROI -124.75 (a tie Math.round took toward
+		// +Infinity), 0.15 (toFixed rounds the binary value down), -24.95.
+		[400, -499],
+		[2000, 3],
+		[2000, -499],
+	])(
+		"rounds Portfolio ROI as the card shows it (revenue %d, net %d)",
+		async (revenue, net) => {
+			const answers = richAnswers();
+			answers.get_financial_overview = {
+				data: {
+					overview: {
+						total_revenue: revenue,
+						total_expenses: revenue - net,
+						net_income: net,
+					},
+				},
+				error: null,
+			};
+			const { page, payments } = await screen(answers);
+			const { rows } = await exported(answers);
+			const roi = section(rows, "Overview").find(
+				(r) => r[1] === "Portfolio ROI (%)",
+			);
+			expect(roi?.[2]).toBe(oneDecimal(page.metrics.profitMargin ?? 0));
+			expect(rows).toEqual(rowsFromScreen(page, payments));
+		},
+	);
+
+	it("rounds an amount as formatCurrency does", async () => {
+		const answers = richAnswers();
+		// -199.995: Math.round wrote -199.99 where formatCurrency prints -$200.00.
+		answers.get_financial_overview = {
+			data: {
+				overview: {
+					total_revenue: 100.005,
+					total_expenses: 300,
+					net_income: -199.995,
+				},
+			},
+			error: null,
+		};
+		const { page, payments } = await screen(answers);
+		const { rows } = await exported(answers);
+		const net = section(rows, "Overview").find((r) => r[1] === "Net Income");
+		expect(net?.[2]).toBe(-200);
+		expect(formatCurrency(page.metrics.netIncome)).toBe("-$200.00");
+		expect(rows).toEqual(rowsFromScreen(page, payments));
+	});
+
+	it("gives every cell a format: money, Portfolio ROI a percentage, counts plain", async () => {
+		const { rows, formats } = await exported(richAnswers());
+		expect(formats.map((f) => f.length)).toEqual(rows.map((r) => r.length));
+		const valueFormat = (item: string) => {
+			const index = rows.findIndex((r) => r[1] === item);
+			return formats[index]?.[2];
+		};
+		expect(valueFormat("Portfolio ROI (%)")).toBe("percent");
+		expect(valueFormat("Outstanding invoices")).toBe("plain");
+		expect(valueFormat("Tenants monitored")).toBe("plain");
+		for (const item of [
+			"Scheduled",
+			"Collected",
+			"Net Income",
+			"Cash Flow",
+			"Late fees cumulative",
+			"Unpaid invoice total",
+			"Acme Plumbing",
+		]) {
+			expect(valueFormat(item), item).toBe("money");
+		}
+		for (const [index, row] of rows.entries()) {
+			const f = formats[index] ?? [];
+			expect([f[0], f[1]]).toEqual(["plain", "plain"]);
+			if (row[0] === "Revenue & Expenses") {
+				expect(f.slice(2)).toEqual(["plain", "money", "money", "money"]);
+			} else if (
+				row[0] === "Expense Breakdown" ||
+				row[0] === "Net Operating Income"
+			) {
+				expect(f.slice(2)).toEqual(["money", "plain", "plain", "plain"]);
+			}
 		}
 	});
 });

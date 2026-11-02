@@ -5,28 +5,52 @@
  * Each run of rows with the same section becomes a heading and a table of its
  * own, and a section's table keeps only the columns that hold a value in that
  * section, so the Overview prints Item and Value while Revenue & Expenses
- * prints Item, Revenue, Expenses and Net Income. Every value is escaped.
+ * prints Item, Revenue, Expenses and Net Income. Each cell prints as its
+ * format says (`formatReportCell`: `$61,200.00`, `49.1%`, text as it is), a
+ * money or percentage cell is right-aligned, as the pages align their
+ * amounts, and so is a column header whose cells all are. Every value is
+ * escaped.
  *
- * Callers: `export-report/index.ts` (the `pdf` format of `financial-analytics`,
- * posted to generate-pdf as Mode 2 HTML) and `generate-pdf/index.ts` (Mode 1
- * `financial-analytics`), so both paths print the same document.
+ * Callers: `export-report/index.ts` (the `pdf` format of every report type,
+ * posted to generate-pdf as Mode 2 HTML) and `generate-pdf/index.ts` (Mode 1),
+ * so both paths print the same document.
  */
 
 import { escapeHtml } from "./escape-html.ts";
+import type {
+	FinancialAnalyticsTable,
+	ReportCell,
+	ReportCellFormat,
+} from "./financial-analytics-report.ts";
+import { formatReportCell } from "./report-format.ts";
+
+interface SectionRow {
+	readonly cells: readonly ReportCell[];
+	readonly formats: readonly ReportCellFormat[];
+}
 
 interface Section {
 	readonly title: string;
-	readonly rows: (readonly unknown[])[];
+	readonly rows: SectionRow[];
 }
 
-function cellText(value: unknown): string {
+function cellText(value: ReportCell | undefined): string {
 	return value === null || value === undefined ? "" : String(value);
 }
 
-function sections(rows: readonly (readonly unknown[])[]): Section[] {
+function isNumeric(format: ReportCellFormat | undefined): boolean {
+	return format === "money" || format === "percent";
+}
+
+function sections(table: FinancialAnalyticsTable): Section[] {
 	const out: Section[] = [];
-	for (const row of rows) {
-		const title = cellText(row[0]);
+	for (const [index, cells] of table.rows.entries()) {
+		const formats = table.formats[index];
+		if (!formats || formats.length !== cells.length) {
+			throw new Error(`report row ${index} has no format for every cell`);
+		}
+		const row = { cells, formats };
+		const title = cellText(cells[0]);
 		const last = out[out.length - 1];
 		if (last && last.title === title) last.rows.push(row);
 		else out.push({ title, rows: [row] });
@@ -39,19 +63,29 @@ function sectionHtml(header: readonly string[], section: Section): string {
 		.map((_, index) => index)
 		.filter(
 			(index) =>
-				index > 0 && section.rows.some((row) => cellText(row[index]) !== ""),
+				index > 0 &&
+				section.rows.some((row) => cellText(row.cells[index]) !== ""),
 		);
 	const head = columns
-		.map((index) => `<th class="th">${escapeHtml(header[index] ?? "")}</th>`)
+		.map((index) => {
+			const numeric = section.rows.every(
+				(row) =>
+					cellText(row.cells[index]) === "" || isNumeric(row.formats[index]),
+			);
+			const cls = numeric ? "th num" : "th";
+			return `<th class="${cls}">${escapeHtml(header[index] ?? "")}</th>`;
+		})
 		.join("");
 	const body = section.rows
 		.map(
 			(row) =>
 				`<tr>${columns
-					.map(
-						(index) =>
-							`<td class="td">${escapeHtml(cellText(row[index]))}</td>`,
-					)
+					.map((index) => {
+						const value = row.cells[index] ?? null;
+						const format = row.formats[index] ?? "plain";
+						const cls = value !== null && isNumeric(format) ? "td num" : "td";
+						return `<td class="${cls}">${escapeHtml(formatReportCell(value, format))}</td>`;
+					})
 					.join("")}</tr>`,
 		)
 		.join("");
@@ -61,14 +95,13 @@ function sectionHtml(header: readonly string[], section: Section): string {
 export function sectionedReportHtml(
 	title: string,
 	generatedOn: string,
-	header: readonly string[],
-	rows: readonly (readonly unknown[])[],
+	table: FinancialAnalyticsTable,
 ): string {
 	const content =
-		rows.length === 0
+		table.rows.length === 0
 			? '<p class="empty">No data available for this report.</p>'
-			: sections(rows)
-					.map((section) => sectionHtml(header, section))
+			: sections(table)
+					.map((section) => sectionHtml(table.header, section))
 					.join("");
 	return `<!DOCTYPE html>
 <html lang="en">
@@ -83,6 +116,7 @@ export function sectionedReportHtml(
     .table { border-collapse: collapse; width: 100%; font-size: 13px; }
     .th { border: 1px solid #ccc; padding: 6px 10px; background: #f0f0f0; text-align: left; }
     .td { border: 1px solid #ccc; padding: 6px 10px; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
     .empty { color: #666; font-size: 13px; }
   </style>
 </head>

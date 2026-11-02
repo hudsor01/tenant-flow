@@ -5,7 +5,7 @@
  *
  * THIS MODULE HAS NO RUNTIME DEPENDENCY. Its only import is type-only (erased),
  * it references no runtime global (no Deno namespace, no Response, no network:
- * the RPC caller is passed in), so `__tests__/tax-year-reports.test.ts` imports
+ * the RPC caller is passed in; `Intl` is the language's own), so `__tests__/tax-year-reports.test.ts` imports
  * it from Vitest next to the pages' own query functions. Do not add a value
  * import.
  *
@@ -31,14 +31,18 @@
  * The test runs each page query and this module against the same RPC answers
  * and asserts the calls are identical and every figure matches.
  *
- * NUMBERS. Every amount is dollars, rounded to cents; a share is a percentage
+ * NUMBERS. Every amount is dollars, rounded to cents as the pages'
+ * `formatCurrency` (`Intl.NumberFormat`) rounds them; a share is a percentage
  * rounded to one decimal with the page's own `toFixed(1)`; counts are written
- * as they come.
+ * as they come. Each column has one format (`YEAR_END_FORMATS`, `TAX_DOCUMENTS_FORMATS`):
+ * the PDF prints money and shares as the pages do, the CSV writes the raw
+ * number, the XLSX gives money a currency number format.
  */
 
 import type {
 	FinancialAnalyticsTable,
 	ReportCell,
+	ReportCellFormat,
 	RpcCall,
 	RpcCaller,
 } from "./financial-analytics-report.ts";
@@ -68,6 +72,26 @@ export const TAX_DOCUMENTS_HEADER = [
 	"Amount",
 	"Share of Expenses (%)",
 ] as const;
+
+/** Each year-end column's format, in `YEAR_END_HEADER` order. */
+export const YEAR_END_FORMATS: readonly ReportCellFormat[] =
+	YEAR_END_HEADER.map(
+		(column): ReportCellFormat =>
+			column === "Amount" ||
+			column === "Income" ||
+			column === "Expenses" ||
+			column === "Net Income"
+				? "money"
+				: "plain",
+	);
+
+/** Each tax-documents column's format, in `TAX_DOCUMENTS_HEADER` order. */
+export const TAX_DOCUMENTS_FORMATS: readonly ReportCellFormat[] = [
+	"plain",
+	"plain",
+	"money",
+	"percent",
+];
 
 /** The raw `data` of each RPC a tax-year report reads (null when not read). */
 export interface TaxYearSources {
@@ -192,8 +216,14 @@ function arrayOrEmpty(value: unknown, what: string): readonly unknown[] {
 	return value;
 }
 
+const ROUND_TO_CENTS = new Intl.NumberFormat("en-US", {
+	maximumFractionDigits: 2,
+	useGrouping: false,
+});
+
+/** Dollars rounded to cents as `formatCurrency` rounds them. */
 function money(value: number): number {
-	return Math.round(value * 100) / 100;
+	return Number(ROUND_TO_CENTS.format(value));
 }
 
 /** A share as the page prints it: `toFixed(1)`, which rounds the exact decimal. */
@@ -328,6 +358,15 @@ function taxDocumentRows(sources: TaxYearSources): Row[] {
 	];
 }
 
+/** A table whose every row takes its columns' formats. */
+function columnTable(
+	header: readonly string[],
+	formats: readonly ReportCellFormat[],
+	rows: readonly Row[],
+): FinancialAnalyticsTable {
+	return { header, rows, formats: rows.map(() => formats) };
+}
+
 export interface TaxYearReport {
 	readonly title: string;
 	readonly table: FinancialAnalyticsTable;
@@ -342,22 +381,31 @@ export function buildTaxYearReport(
 	if (reportType === YEAR_END_REPORT_TYPE) {
 		return {
 			title: `Year-End Report ${year}`,
-			table: { header: YEAR_END_HEADER, rows: yearEndRows(sources) },
+			table: columnTable(
+				YEAR_END_HEADER,
+				YEAR_END_FORMATS,
+				yearEndRows(sources),
+			),
 		};
 	}
 	if (reportType === REPORT_1099_TYPE) {
 		return {
 			title: `1099-NEC Summary ${year}`,
-			table: {
-				header: YEAR_END_HEADER,
-				rows: rows1099(sources.expenseSummary),
-			},
+			table: columnTable(
+				YEAR_END_HEADER,
+				YEAR_END_FORMATS,
+				rows1099(sources.expenseSummary),
+			),
 		};
 	}
 	if (reportType === TAX_DOCUMENTS_REPORT_TYPE) {
 		return {
 			title: `Tax Documents ${year}`,
-			table: { header: TAX_DOCUMENTS_HEADER, rows: taxDocumentRows(sources) },
+			table: columnTable(
+				TAX_DOCUMENTS_HEADER,
+				TAX_DOCUMENTS_FORMATS,
+				taxDocumentRows(sources),
+			),
 		};
 	}
 	throw new Error(`unknown report ${reportType}`);

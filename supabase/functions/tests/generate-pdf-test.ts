@@ -8,7 +8,7 @@
 // export-report's (the 402 with upgrade_url, no RPC), its RPC errors are a
 // 500, and a paid owner's PDF is printed from the same document
 // export-report's pdf format posts here (`sectionedReportHtml` over the
-// leaf's table): the
+// leaf's table, money in dollars as the pages print it): the
 // /analytics/financial export, and the year-end, 1099-NEC and tax-documents
 // pages for the year asked for (`_shared/tax-year-reports.ts`, whose rows the
 // Vitest `__tests__/tax-year-reports.test.ts` proves equal to the pages').
@@ -155,13 +155,12 @@ Deno.test("Mode 1 financial-analytics prints export-report's document", async ()
 			expenseSummary: ANSWERS.get_expense_summary?.data,
 			billingInsights: ANSWERS.get_billing_insights?.data,
 		});
+		const html = htmlPosts[0] ?? "";
+		assert(html.includes('<td class="td num">$1,200.00</td>'), "Scheduled");
+		assert(html.includes('<td class="td num">$200.00</td>'), "an expense");
+		assert(!html.includes(">1200<"), "no bare amount");
 		assertEquals(htmlPosts, [
-			sectionedReportHtml(
-				"Financial Analytics",
-				"2026-11-01",
-				table.header,
-				table.rows,
-			),
+			sectionedReportHtml("Financial Analytics", "2026-11-01", table),
 		]);
 	});
 });
@@ -269,15 +268,17 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 				},
 				2024,
 			);
-			assertEquals(htmlPosts, [
-				sectionedReportHtml(
-					report.title,
-					"2026-11-01",
-					report.table.header,
-					report.table.rows,
-				),
-			]);
 			const html = htmlPosts[0] ?? "";
+			assert(
+				html.includes('<td class="td num">$61,200.00</td>') ||
+					reportType === REPORT_1099_TYPE,
+				`${reportType}: Gross income in dollars`,
+			);
+			assert(!html.includes(">61200<"), `${reportType}: no bare amount`);
+			assert(!html.includes(">9000.5<"), `${reportType}: no bare amount`);
+			assertEquals(htmlPosts, [
+				sectionedReportHtml(report.title, "2026-11-01", report.table),
+			]);
 			assert(html.includes("2024"), reportType);
 			assert(!html.includes("<b>Vendor</b>"), reportType);
 			assert(!html.includes("overview"), reportType);

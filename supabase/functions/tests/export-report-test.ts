@@ -17,7 +17,10 @@
 //   - year-end, 1099 and financial (the tax-documents page) write the leaf's
 //     table of their page's figures for the year asked for, in every format
 //     (`_shared/tax-year-reports.ts`; the Vitest `__tests__/tax-year-reports
-//     .test.ts` proves those rows equal the pages').
+//     .test.ts` proves those rows equal the pages');
+//   - the PDF prints money as the pages do ($61,200.00, right-aligned), never
+//     a bare number, and every XLSX money cell is a number with a currency
+//     number format, read back here ("$61,200.00" as Excel shows it).
 //
 // Run: deno test --allow-all --no-check \
 //   --import-map=supabase/functions/deno.json \
@@ -31,8 +34,10 @@ import * as XLSX from "xlsx";
 import {
 	buildFinancialAnalyticsTable,
 	FINANCIAL_ANALYTICS_HEADER,
+	type FinancialAnalyticsTable,
 } from "../_shared/financial-analytics-report.ts";
 import { tableToCsv } from "../_shared/report-csv.ts";
+import { XLSX_MONEY_FORMAT } from "../_shared/report-format.ts";
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import {
@@ -83,6 +88,13 @@ function answers(): RpcAnswers {
 					{ category: "Roof, Gutter & Co", amount: 2000.5, percentage: 99 },
 				],
 				monthly_totals: [{ month: "2026-10", amount: 2120.5 }],
+				vendor_payments: [
+					{
+						vendor_name: "Roof, Gutter & Co",
+						total_paid: 2000.5,
+						job_count: 2,
+					},
+				],
 			},
 			error: null,
 		},
@@ -245,6 +257,74 @@ function expectedTable(s: Scenario) {
 
 const FA = "?type=financial-analytics";
 
+/** An amount as the pages print it (en-US dollars, two decimals). */
+const dollars = (value: number) =>
+	new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+		value,
+	);
+
+/** Every money cell of `table` is printed as dollars, right-aligned. */
+function assertPrintsMoney(html: string, table: FinancialAnalyticsTable): void {
+	let money = 0;
+	for (const [r, row] of table.rows.entries()) {
+		for (const [c, value] of row.entries()) {
+			if (typeof value !== "number" || table.formats[r]?.[c] !== "money") {
+				continue;
+			}
+			money++;
+			assertStringIncludes(html, `<td class="td num">${dollars(value)}</td>`);
+		}
+	}
+	assert(money > 0, "the table has money cells");
+}
+
+/**
+ * The workbook holds the table cell for cell: the raw numbers, a money cell
+ * with the currency format (Excel shows it as the pages print it), any other
+ * number in General, text as text, no formula anywhere.
+ */
+function assertXlsxIsTable(
+	bytes: Uint8Array,
+	sheetName: string,
+	table: FinancialAnalyticsTable,
+): void {
+	const workbook = XLSX.read(bytes, { type: "array", cellNF: true });
+	assertEquals(workbook.SheetNames, [sheetName]);
+	const sheet = workbook.Sheets[sheetName];
+	assert(sheet, "the sheet exists");
+	assertEquals(
+		XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: null }),
+		[[...table.header], ...table.rows.map((row) => [...row])],
+	);
+	let money = 0;
+	for (const [r, row] of table.rows.entries()) {
+		for (const [c, value] of row.entries()) {
+			const cell = sheet[XLSX.utils.encode_cell({ r: r + 1, c })] as
+				| XLSX.CellObject
+				| undefined;
+			if (value === null) {
+				assertEquals(cell, undefined);
+				continue;
+			}
+			assert(cell, `cell ${r + 1},${c}`);
+			assertEquals(cell.f, undefined);
+			if (typeof value === "number") {
+				assertEquals(cell.t, "n");
+				if (table.formats[r]?.[c] === "money") {
+					money++;
+					assertEquals(cell.z, XLSX_MONEY_FORMAT);
+					assertEquals(cell.w, dollars(value));
+				} else {
+					assertEquals(cell.z, "General");
+				}
+			} else {
+				assertEquals(cell.t, "s");
+			}
+		}
+	}
+	assert(money > 0, "the table has money cells");
+}
+
 Deno.test("financial-analytics csv is the leaf's table, from the four page RPCs", async () => {
 	const s = scenario();
 	const { res, calls } = await run(get(`${FA}&format=csv`), s);
@@ -290,25 +370,22 @@ Deno.test("financial-analytics xlsx is a real workbook with typed cells", async 
 		`attachment; filename="financial-analytics-${TODAY}.xlsx"`,
 	);
 
-	const workbook = XLSX.read(bytes, { type: "array" });
-	assertEquals(workbook.SheetNames, ["Financial Analytics"]);
+	const workbook = XLSX.read(bytes, { type: "array", cellNF: true });
 	const sheet = workbook.Sheets["Financial Analytics"];
 	assert(sheet, "the sheet exists");
-
-	const table = expectedTable(s);
-	const grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
-		header: 1,
-		defval: null,
-	});
-	assertEquals(grid, [[...table.header], ...table.rows.map((row) => [...row])]);
-
-	// Types: text cells are strings, figures are numbers, no cell is a formula.
 	assertEquals(sheet.A1?.t, "s");
 	assertEquals(sheet.A1?.v, "Section");
-	const scheduled = sheet.C2;
+	// Scheduled: a number Excel shows in dollars.
 	assertEquals(sheet.B2?.v, "Scheduled");
-	assertEquals(scheduled?.t, "n");
-	assertEquals(scheduled?.v, 61200);
+	assertEquals(sheet.C2?.t, "n");
+	assertEquals(sheet.C2?.v, 61200);
+	assertEquals(sheet.C2?.w, "$61,200.00");
+	// Portfolio ROI (row 5) is a percentage and Tenants monitored (row 10) a
+	// count: numbers in General.
+	assertEquals(sheet.B5?.v, "Portfolio ROI (%)");
+	assertEquals(sheet.C5?.z, "General");
+	assertEquals(sheet.B10?.v, "Tenants monitored");
+	assertEquals(sheet.C10?.w, "3");
 	const formulaText = Object.entries(sheet).find(
 		([address, cell]) =>
 			!address.startsWith("!") &&
@@ -318,10 +395,8 @@ Deno.test("financial-analytics xlsx is a real workbook with typed cells", async 
 	const cell = formulaText[1] as XLSX.CellObject;
 	assertEquals(cell.t, "s");
 	assertEquals(cell.f, undefined);
-	for (const [address, value] of Object.entries(sheet)) {
-		if (address.startsWith("!")) continue;
-		assertEquals((value as XLSX.CellObject).f, undefined, address);
-	}
+
+	assertXlsxIsTable(bytes, "Financial Analytics", expectedTable(s));
 });
 
 Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", async () => {
@@ -344,6 +419,11 @@ Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", as
 		}
 		assertStringIncludes(post.body.html, "Roof, Gutter &amp; Co");
 		assertStringIncludes(post.body.html, '<td class="td">=HYPERLINK(1)</td>');
+		assertStringIncludes(post.body.html, '<td class="td num">$61,200.00</td>');
+		assertStringIncludes(post.body.html, '<td class="td num">$2,000.50</td>');
+		assert(!post.body.html.includes(">61200<"), "no bare amount");
+		assert(!post.body.html.includes(">2000.5<"), "no bare amount");
+		assertPrintsMoney(post.body.html, expectedTable(scenario()));
 		assertStringIncludes(post.body.html, `Generated: ${TODAY}`);
 		assertEquals(post.body.filename, `financial-analytics-${TODAY}.pdf`);
 		assertEquals(res.headers.get("Content-Type"), "application/pdf");
@@ -517,17 +597,50 @@ Deno.test("year-end, 1099 and tax documents pdf post the sectioned HTML", async 
 			assertEquals(res.status, 200, type);
 			const report = expectedTaxYearReport(s, type, 2024);
 			assertEquals(posts.length, 1);
+			const html = posts[0]?.body.html ?? "";
+			assertStringIncludes(html, "2024");
+			assertStringIncludes(
+				html,
+				type === REPORT_1099_TYPE
+					? '<td class="td num">$2,000.50</td>'
+					: '<td class="td num">$61,200.00</td>',
+			);
+			assert(!html.includes(">61200<"), `${type}: no bare amount`);
+			assert(!html.includes(">2120.5<"), `${type}: no bare amount`);
+			assert(!html.includes(">2000.5<"), `${type}: no bare amount`);
+			assertPrintsMoney(html, report.table);
 			assertEquals(posts[0]?.body, {
-				html: sectionedReportHtml(
-					report.title,
-					TODAY,
-					report.table.header,
-					report.table.rows,
-				),
+				html: sectionedReportHtml(report.title, TODAY, report.table),
 				filename: `${filename}.pdf`,
 			});
-			assertStringIncludes(posts[0]?.body.html ?? "", "2024");
 		});
+	}
+});
+
+Deno.test("year-end, 1099 and tax documents xlsx keep numbers, money in dollars", async () => {
+	for (const [type, filename] of TAX_YEAR_FILES) {
+		const s = scenario();
+		const { res } = await run(get(`?type=${type}&format=xlsx&year=2024`), s);
+		assertEquals(res.status, 200, type);
+		assertEquals(
+			res.headers.get("Content-Disposition"),
+			`attachment; filename="${filename}.xlsx"`,
+		);
+		const report = expectedTaxYearReport(s, type, 2024);
+		const bytes = new Uint8Array(await res.arrayBuffer());
+		const sheet = XLSX.read(bytes, { type: "array", cellNF: true }).Sheets[
+			report.title
+		];
+		assert(sheet, `${type}: the sheet exists`);
+		// Row 2 is Gross Rental Income / Gross Income, or the 1099 vendor.
+		const amount = type === TAX_DOCUMENTS_REPORT_TYPE ? sheet.C2 : sheet.D2;
+		assertEquals(amount?.t, "n", type);
+		assertEquals(
+			amount?.w,
+			type === REPORT_1099_TYPE ? "$2,000.50" : "$61,200.00",
+			type,
+		);
+		assertXlsxIsTable(bytes, report.title, report.table);
 	}
 });
 
