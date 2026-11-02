@@ -79,12 +79,12 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 			</div>
 
 			<div className="flex items-center gap-2">
-				<Link href={`/tenants/${id}/edit`}>
-					<Button variant="outline" className="flex items-center gap-2">
+				<Button asChild variant="outline" className="flex items-center gap-2">
+					<Link href={`/tenants/${id}/edit`}>
 						<Edit className="size-4" />
 						Edit
-					</Button>
-				</Link>
+					</Link>
+				</Button>
 			</div>
 		</div>
 	);

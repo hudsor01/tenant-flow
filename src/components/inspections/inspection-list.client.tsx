@@ -115,12 +115,12 @@ export function InspectionListClient() {
 						Move-in and move-out inspection reports
 					</p>
 				</div>
-				<Link href="/inspections/new">
-					<Button className="shrink-0">
+				<Button asChild className="shrink-0">
+					<Link href="/inspections/new">
 						<Plus className="w-4 h-4 mr-2" aria-hidden="true" />
 						New Inspection
-					</Button>
-				</Link>
+					</Link>
+				</Button>
 			</div>
 
 			{/* Content */}

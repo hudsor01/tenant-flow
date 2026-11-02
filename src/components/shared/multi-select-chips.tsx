@@ -1,9 +1,8 @@
 "use client";
 
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, CheckIcon, ChevronDown, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
-import { Checkbox } from "#components/ui/checkbox";
 import {
 	Popover,
 	PopoverContent,
@@ -109,11 +108,15 @@ export function MultiSelectChips<T extends string>({
 										onClick={() => toggle(opt.value)}
 										className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted focus:bg-muted focus:outline-none"
 									>
-										<Checkbox
-											checked={checked}
-											tabIndex={-1}
+										{/* The checkbox's look, not a checkbox: Radix's renders a
+										    <button>, and this row is already the control. */}
+										<span
 											aria-hidden="true"
-										/>
+											data-state={checked ? "checked" : "unchecked"}
+											className="flex-center size-4 shrink-0 rounded-sm border border-input shadow-xs transition-shadow dark:bg-input/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary"
+										>
+											{checked && <CheckIcon className="size-3.5" />}
+										</span>
 										<span className="flex-1 text-left">{opt.label}</span>
 										{checked && (
 											<Check

@@ -332,10 +332,10 @@ describe("dashboard portfolio swap", () => {
 		expect(await screen.findByText("Keep me")).toBeInTheDocument();
 		expect(screen.getByText("Delete me")).toBeInTheDocument();
 
-		// Click the trash button for "Delete me" (the menu item carries a per-preset
-		// "Delete preset {name}" button).
+		// Click "Delete me"'s delete item (each preset row holds an apply item and
+		// a "Delete preset {name}" item).
 		await user.click(
-			screen.getByRole("button", { name: /delete preset delete me/i }),
+			screen.getByRole("menuitem", { name: /delete preset delete me/i }),
 		);
 
 		// The preset is gone from BOTH the store and the rendered list; the sibling

@@ -268,9 +268,9 @@ export default function UnitsPage() {
 						Manage your rental units across all properties
 					</p>
 				</div>
-				<Link href="/units/new">
-					<Button>Add Unit</Button>
-				</Link>
+				<Button asChild>
+					<Link href="/units/new">Add Unit</Link>
+				</Button>
 			</div>
 
 			{/* DataTable with Toolbar */}

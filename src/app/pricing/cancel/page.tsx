@@ -50,18 +50,18 @@ export default function CheckoutCancelPage() {
 								Ready to get started?
 							</h3>
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-								<Link href="/pricing">
-									<Button className="w-full" size="lg">
+								<Button asChild className="w-full" size="lg">
+									<Link href="/pricing">
 										<ArrowLeft className="mr-2 size-4" />
 										Back to Pricing
-									</Button>
-								</Link>
-								<Link href="/dashboard">
-									<Button variant="outline" className="w-full" size="lg">
+									</Link>
+								</Button>
+								<Button asChild variant="outline" className="w-full" size="lg">
+									<Link href="/dashboard">
 										<Home className="mr-2 size-4" />
 										Go to Dashboard
-									</Button>
-								</Link>
+									</Link>
+								</Button>
 							</div>
 						</div>
 
@@ -71,17 +71,15 @@ export default function CheckoutCancelPage() {
 								right plan?
 							</p>
 							<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-								<Link href="/contact">
-									<Button variant="outline" size="sm">
+								<Button asChild variant="outline" size="sm">
+									<Link href="/contact">
 										<MessageCircle className="mr-2 size-4" />
 										Contact Support
-									</Button>
-								</Link>
-								<Link href="/features">
-									<Button variant="ghost" size="sm">
-										View Features
-									</Button>
-								</Link>
+									</Link>
+								</Button>
+								<Button asChild variant="ghost" size="sm">
+									<Link href="/features">View Features</Link>
+								</Button>
 							</div>
 						</div>
 					</div>

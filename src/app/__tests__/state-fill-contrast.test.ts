@@ -52,7 +52,6 @@ const ICON_ONLY: Reviewed[] = [
 		"src/components/settings/sections/active-sessions-section.tsx",
 		"src/components/tenants/tenant-grid.tsx",
 		"src/components/tenants/tenant-table-row.tsx",
-		"src/components/dashboard/components/portfolio-preset-menu.tsx",
 		"src/components/inspections/inspection-room-card.tsx",
 		"src/components/maintenance/table/columns.tsx",
 		"src/components/maintenance/vendors-page.client.tsx",

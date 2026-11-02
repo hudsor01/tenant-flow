@@ -5,6 +5,7 @@
 import type { SortingState } from "@tanstack/react-table";
 import { Bookmark, Save, Trash2 } from "lucide-react";
 import {
+	type inferParserType,
 	parseAsArrayOf,
 	parseAsInteger,
 	parseAsString,
@@ -40,8 +41,8 @@ const PORTFOLIO_COLUMN_IDS = portfolioColumns
 	.filter((id): id is string => Boolean(id));
 
 // Parser element type the sort nuqs key serializes (ExtendedColumnSort<PortfolioRow>[]).
-type PortfolioSort = ReturnType<
-	ReturnType<typeof getSortingStateParser<PortfolioRow>>["parseServerSide"]
+type PortfolioSort = inferParserType<
+	ReturnType<typeof getSortingStateParser<PortfolioRow>>
 >;
 
 /**
@@ -166,25 +167,27 @@ export function PortfolioPresetMenu() {
 						<DropdownMenuSeparator />
 						<DropdownMenuLabel>Saved presets</DropdownMenuLabel>
 						{presets.map((preset) => (
-							<DropdownMenuItem
-								key={preset.name}
-								onSelect={() => handleApply(preset.name)}
-								className="justify-between gap-2"
-							>
-								<span className="truncate">{preset.name}</span>
-								<button
-									type="button"
+							// Apply and delete are two menu items in one row, so the arrow
+							// keys reach both (a button inside the item was mouse-only).
+							<div key={preset.name} className="flex items-center">
+								<DropdownMenuItem
+									onSelect={() => handleApply(preset.name)}
+									className="min-w-0 flex-1"
+								>
+									<span className="truncate">{preset.name}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
 									aria-label={`Delete preset ${preset.name}`}
-									className="text-muted-foreground hover:text-destructive"
-									onClick={(event) => {
+									onSelect={(event) => {
+										// Keep the menu open, as the inline delete did.
 										event.preventDefault();
-										event.stopPropagation();
 										deletePreset(preset.name);
 									}}
+									className="shrink-0"
 								>
 									<Trash2 aria-hidden="true" className="size-4" />
-								</button>
-							</DropdownMenuItem>
+								</DropdownMenuItem>
+							</div>
 						))}
 					</>
 				)}
