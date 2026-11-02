@@ -38,6 +38,7 @@ import { Skeleton } from "#components/ui/skeleton";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { useClientDataTable } from "#hooks/use-client-data-table";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Unit } from "#types/core";
 
 export default function UnitsPage() {
@@ -155,7 +156,7 @@ export default function UnitsPage() {
 			enableColumnFilter: true,
 			cell: ({ row }) =>
 				row.original.rent_amount
-					? `$${row.original.rent_amount.toLocaleString()}/mo`
+					? `${formatCurrency(row.original.rent_amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`
 					: "-",
 		},
 		{

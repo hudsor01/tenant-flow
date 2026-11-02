@@ -61,19 +61,24 @@ function KpiNumberTicker({
 	value,
 	decimalPlaces = 0,
 	duration = 800,
+	currency = false,
 }: {
 	value: number;
 	decimalPlaces?: number;
 	duration?: number;
+	currency?: boolean;
 }) {
 	const reducedMotion = useReducedMotion();
 	if (reducedMotion) {
+		const digits = {
+			minimumFractionDigits: decimalPlaces,
+			maximumFractionDigits: decimalPlaces,
+		};
 		return (
 			<span className="inline-block tabular-nums tracking-wider">
-				{Intl.NumberFormat("en-US", {
-					minimumFractionDigits: decimalPlaces,
-					maximumFractionDigits: decimalPlaces,
-				}).format(value)}
+				{currency
+					? formatCurrency(value, digits)
+					: Intl.NumberFormat("en-US", digits).format(value)}
 			</span>
 		);
 	}
@@ -82,6 +87,7 @@ function KpiNumberTicker({
 			value={value}
 			decimalPlaces={decimalPlaces}
 			duration={duration}
+			currency={currency}
 		/>
 	);
 }
@@ -186,7 +192,7 @@ function buildKpiTileConfigs(
 			spokenDescription: "This month",
 			value: stats.revenue.monthly,
 			decimalPlaces: 0,
-			prefix: "$",
+			currency: true,
 			trend: revenueTrend,
 			trendLabel: "vs. last month",
 			sparkline: buildSparkline(
@@ -317,11 +323,11 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 			>
 				<StatLabel>{tile.label}</StatLabel>
 				<StatValue className="whitespace-nowrap">
-					{tile.prefix ? <span aria-hidden="true">{tile.prefix}</span> : null}
 					<KpiNumberTicker
 						value={tile.value}
 						decimalPlaces={tile.decimalPlaces}
 						duration={800}
+						currency={tile.currency ?? false}
 					/>
 					{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
 				</StatValue>

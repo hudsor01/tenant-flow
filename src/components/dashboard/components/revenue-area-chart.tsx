@@ -111,7 +111,7 @@ function format6moTick(yyyymm: string): string {
 }
 
 function formatYAxisThousands(value: number): string {
-	return `$${(value / 1000).toFixed(0)}k`;
+	return `${formatCurrency(value / 1000, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}k`;
 }
 
 // Recharts widens the `tickFormatter` parameter to `unknown` through its

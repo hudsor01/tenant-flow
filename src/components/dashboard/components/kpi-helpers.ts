@@ -106,7 +106,8 @@ export function sparklineConfigForTrend(trend: TrendDirection): ChartConfig {
  *   when no secondary signal applies.
  * - `spokenDescription` — aria-label fragment for the description (e.g.
  *   `"87 of 100 units occupied"`); falls back to `description` when undefined.
- * - `value` / `decimalPlaces` / `prefix` / `suffix` — `<NumberTicker>` driver.
+ * - `value` / `decimalPlaces` / `currency` / `suffix` — `<NumberTicker>` driver;
+ *   `currency` formats the value as dollars (sign before the symbol).
  * - `trend` — `MetricTrend | null`; render `<StatTrend>` only when non-null
  *   (CONTEXT.md D-04 honesty rule).
  * - `trendLabel` — secondary text right of the percent (e.g.
@@ -123,7 +124,7 @@ export interface KpiTileConfig {
 	spokenDescription?: string;
 	value: number;
 	decimalPlaces: number;
-	prefix?: string;
+	currency?: boolean;
 	suffix?: string;
 	trend: MetricTrend | null;
 	trendLabel?: string;

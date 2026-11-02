@@ -31,6 +31,10 @@ import {
 } from "#hooks/api/use-owner-dashboard-financial";
 import { useMediaQuery } from "#hooks/use-media-query";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
+
+/** The chart's figures are whole dollars, as its axis and tooltip read. */
+const WHOLE_DOLLARS = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 export const description = "Revenue vs Expenses Chart - Dashboard Focal Point";
 
@@ -150,13 +154,13 @@ export function ChartAreaInteractive({
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Revenue</p>
 					<p className="typography-large text-success-text">
-						${totalRevenue.toLocaleString()}
+						{formatCurrency(totalRevenue, WHOLE_DOLLARS)}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Expenses</p>
 					<p className="typography-large text-warning-text">
-						${totalExpenses.toLocaleString()}
+						{formatCurrency(totalExpenses, WHOLE_DOLLARS)}
 					</p>
 				</div>
 				<div className="space-y-1">
@@ -172,7 +176,7 @@ export function ChartAreaInteractive({
 						) : (
 							<TrendingDown className="size-4" />
 						)}
-						${Math.abs(netProfit).toLocaleString()}
+						{formatCurrency(netProfit, WHOLE_DOLLARS)}
 					</p>
 				</div>
 				<div className="space-y-1">
@@ -255,7 +259,9 @@ export function ChartAreaInteractive({
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+								tickFormatter={(value) =>
+									`${formatCurrency(value / 1000, WHOLE_DOLLARS)}k`
+								}
 							/>
 							<ChartTooltip
 								cursor={false}
@@ -263,7 +269,7 @@ export function ChartAreaInteractive({
 									<ChartTooltipContent
 										labelFormatter={(value) => value}
 										formatter={(value, name) => [
-											`$${Number(value).toLocaleString()}`,
+											formatCurrency(Number(value), WHOLE_DOLLARS),
 											name === "revenue" ? "Revenue" : "Expenses",
 										]}
 										indicator="dot"

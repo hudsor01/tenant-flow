@@ -85,8 +85,12 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Monthly revenue</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalRevenue} duration={1500} />
+						<NumberTicker
+							value={metrics.totalRevenue}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />

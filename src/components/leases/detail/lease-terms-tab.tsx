@@ -62,7 +62,12 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 									{lease.pets_allowed && lease.pet_deposit && (
 										<span className="text-muted-foreground">
 											{" "}
-											(${lease.pet_deposit} deposit)
+											(
+											{formatCurrency(lease.pet_deposit, {
+												minimumFractionDigits: 0,
+												maximumFractionDigits: 0,
+											})}{" "}
+											deposit)
 										</span>
 									)}
 								</p>

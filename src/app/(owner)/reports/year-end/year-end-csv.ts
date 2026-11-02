@@ -1,4 +1,5 @@
 import { type CsvCell, csvNumber, toCsv } from "#lib/reports/csv";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Year1099Summary, YearEndSummary } from "#types/reports";
 
 /**
@@ -76,7 +77,7 @@ export function build1099Csv(summary: Year1099Summary, year: number): string {
 			["message"],
 			[
 				[
-					`No vendors met the $${summary.threshold} 1099-NEC threshold for ${year}`,
+					`No vendors met the ${formatCurrency(summary.threshold, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} 1099-NEC threshold for ${year}`,
 				],
 			],
 		);

@@ -17,6 +17,7 @@ import type { ReportType } from "#app/(owner)/reports/generate/components/report
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
 import { parseLocalYmd } from "#lib/formatters/date";
+import { formatCurrency } from "#lib/utils/currency";
 import type {
 	FinancialReport,
 	MaintenanceReport,
@@ -192,11 +193,10 @@ const YEAREND_FALLBACK: YearEndSummary = {
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 const fmtMoney = (n: number): string =>
-	new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
+	formatCurrency(Number.isFinite(n) ? n : 0, {
+		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
-	}).format(Number.isFinite(n) ? n : 0);
+	});
 
 const fmtPct = (n: number): string =>
 	`${(Number.isFinite(n) ? n : 0).toFixed(1)}%`;

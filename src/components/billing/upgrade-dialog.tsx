@@ -13,6 +13,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface UpgradeDialogProps {
 	targetPlan: Plan | null;
@@ -148,7 +149,9 @@ export function UpgradeDialog({
 						<div className="flex items-center justify-between">
 							<span className="text-sm text-muted-foreground">New price</span>
 							<span className="text-lg font-bold">
-								{targetPlan.price === 0 ? "Free" : `$${targetPlan.price}/mo`}
+								{targetPlan.price === 0
+									? "Free"
+									: `${formatCurrency(targetPlan.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`}
 							</span>
 						</div>
 						{currentPlan && (
@@ -164,10 +167,9 @@ export function UpgradeDialog({
 										priceDifference === 0 && "text-muted-foreground",
 									)}
 								>
-									{priceDifference > 0 && "+"}
 									{priceDifference === 0
 										? "No change"
-										: `$${priceDifference}/mo`}
+										: `${priceDifference > 0 ? "+" : ""}${formatCurrency(priceDifference, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`}
 								</span>
 							</div>
 						)}

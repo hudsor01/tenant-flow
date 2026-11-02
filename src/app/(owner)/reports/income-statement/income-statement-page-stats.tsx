@@ -8,6 +8,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface IncomeStatementPageStatsProps {
 	totalRevenue: number;
@@ -34,10 +35,7 @@ export function IncomeStatementPageStats({
 					/>
 					<StatLabel>Total Revenue</StatLabel>
 					<StatValue className="flex items-baseline text-success-text">
-						{`$${totalRevenue.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}`}
+						{formatCurrency(totalRevenue)}
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<TrendingUp />
@@ -50,10 +48,7 @@ export function IncomeStatementPageStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Expenses</StatLabel>
 					<StatValue className="flex items-baseline text-destructive-text">
-						{`$${totalExpenses.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}`}
+						{formatCurrency(totalExpenses)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<TrendingDown />
@@ -76,10 +71,7 @@ export function IncomeStatementPageStats({
 					<StatValue
 						className={`flex items-baseline ${netIncome >= 0 ? "" : "text-destructive-text"}`}
 					>
-						{`${netIncome >= 0 ? "" : "-"}$${Math.abs(netIncome).toLocaleString(
-							"en-US",
-							{ minimumFractionDigits: 2, maximumFractionDigits: 2 },
-						)}`}
+						{formatCurrency(netIncome)}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<DollarSign />

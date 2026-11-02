@@ -35,6 +35,7 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import { useDeleteVendorMutation, useVendors } from "#hooks/api/use-vendor";
 import { useDebouncedCallback } from "#hooks/use-debounced-callback";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Vendor, VendorFilters } from "#types/domain";
 
 const TRADE_LABELS: Record<string, string> = {
@@ -114,7 +115,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 				{vendor.hourly_rate && (
 					<div className="flex items-center gap-2 text-sm text-muted-foreground">
 						<DollarSign className="size-3.5 shrink-0" />
-						<span>${vendor.hourly_rate}/hour</span>
+						<span>{formatCurrency(vendor.hourly_rate)}/hour</span>
 					</div>
 				)}
 				{vendor.notes && (

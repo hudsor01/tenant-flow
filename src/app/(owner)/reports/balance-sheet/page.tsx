@@ -23,6 +23,7 @@ import { formatDate, formatLocalYmd } from "#lib/formatters/date";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
+import { formatCurrency } from "#lib/utils/currency";
 import { ReportExportButton } from "../report-export-button";
 import { BalanceEquationCheck } from "./balance-equation-check";
 import { BalanceSection } from "./balance-section";
@@ -164,11 +165,7 @@ export default function BalanceSheetPage() {
 						/>
 						<StatLabel>Total Assets</StatLabel>
 						<StatValue className="flex items-baseline text-success-text">
-							$
-							{totalAssets.toLocaleString("en-US", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-							})}
+							{formatCurrency(totalAssets)}
 						</StatValue>
 						<StatIndicator variant="icon" color="success">
 							<Building2 />
@@ -181,11 +178,7 @@ export default function BalanceSheetPage() {
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Total Liabilities</StatLabel>
 						<StatValue className="flex items-baseline text-destructive-text">
-							$
-							{totalLiabilities.toLocaleString("en-US", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-							})}
+							{formatCurrency(totalLiabilities)}
 						</StatValue>
 						<StatIndicator variant="icon" color="destructive">
 							<CreditCard />
@@ -206,11 +199,7 @@ export default function BalanceSheetPage() {
 						)}
 						<StatLabel>Total Equity</StatLabel>
 						<StatValue className="flex items-baseline">
-							$
-							{totalEquity.toLocaleString("en-US", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-							})}
+							{formatCurrency(totalEquity)}
 						</StatValue>
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />

@@ -8,15 +8,9 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { formatCurrency } from "#lib/utils/currency";
 
 // Match financials-summary-stats: dollars, two decimals, no /100 mis-conversion.
-function formatUsd(value: number): string {
-	return value.toLocaleString("en-US", {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	});
-}
-
 interface ExpenseStatsProps {
 	totalExpenses: number;
 	monthlyAvg: number;
@@ -46,7 +40,7 @@ export function ExpenseStats({
 					)}
 					<StatLabel>Total Expenses</StatLabel>
 					<StatValue className="flex items-baseline text-destructive-text">
-						${formatUsd(totalExpenses)}
+						{formatCurrency(totalExpenses)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<TrendingDown />
@@ -59,7 +53,7 @@ export function ExpenseStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Monthly Average</StatLabel>
 					<StatValue className="flex items-baseline">
-						${formatUsd(monthlyAvg)}
+						{formatCurrency(monthlyAvg)}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<Calendar />
@@ -72,7 +66,7 @@ export function ExpenseStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Maintenance</StatLabel>
 					<StatValue className="flex items-baseline text-warning-text">
-						${formatUsd(maintenanceTotal)}
+						{formatCurrency(maintenanceTotal)}
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">
 						<Wrench />

@@ -12,6 +12,7 @@ export type UnitRow = UnitRowWithRelations;
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Bath, Bed, MapPin, Maximize2 } from "lucide-react";
+import { formatCurrency } from "#lib/utils/currency";
 import { UnitActions } from "./components/unit-actions";
 // Import extracted components
 import { statusConfig, UnitStatusBadge } from "./components/unit-status-badge";
@@ -122,15 +123,16 @@ export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 			variant: "range",
 			range: [0, 10000],
 			unit: "$",
+			formatValue: (value: number) =>
+				formatCurrency(value, {
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0,
+				}),
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const rent = parseFloat(row.getValue("rent_amount"));
-			const rentFormatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD",
-				minimumFractionDigits: 0,
-			}).format(rent);
+			const rentFormatted = formatCurrency(rent, { minimumFractionDigits: 0 });
 
 			return (
 				<div className="text-right space-y-1 py-2">

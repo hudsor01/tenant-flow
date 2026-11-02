@@ -21,6 +21,7 @@ import {
 	createCustomerPortalSession,
 } from "#lib/stripe/stripe-client";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 const TIER_BY_PLAN_ID: Record<PricingConfig["planId"], number> = {
 	trial: 0,
@@ -240,7 +241,7 @@ export default function BillingPlansPage() {
 							<p className="text-sm text-muted-foreground">
 								{currentPlan.price === 0
 									? "Free"
-									: `$${currentPlan.price}/month`}
+									: `${formatCurrency(currentPlan.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/month`}
 							</p>
 						</div>
 					</div>

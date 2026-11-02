@@ -96,8 +96,12 @@ export function AnalyticsStatCards({
 					/>
 					<StatLabel>Monthly Revenue</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
-						<span className="text-lg">$</span>
-						<NumberTicker value={monthlyRevenue} duration={1500} />
+						<NumberTicker
+							value={monthlyRevenue}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />

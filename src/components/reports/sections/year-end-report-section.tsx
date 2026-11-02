@@ -233,8 +233,12 @@ export function YearEndReportSection({
 							1099-NEC Vendors ({year})
 						</h2>
 						<p className="text-sm text-muted-foreground">
-							Vendors paid ${data1099?.threshold ?? 600}+ — may require 1099-NEC
-							filing
+							Vendors paid{" "}
+							{formatCurrency(data1099?.threshold ?? 600, {
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 0,
+							})}
+							+ — may require 1099-NEC filing
 						</p>
 					</div>
 					<Button
@@ -259,8 +263,12 @@ export function YearEndReportSection({
 							</div>
 						) : (data1099?.recipients.length ?? 0) === 0 ? (
 							<p className="text-sm text-muted-foreground text-center py-4">
-								No vendors exceeded the ${data1099?.threshold ?? 600} threshold
-								in {year}.
+								No vendors exceeded the{" "}
+								{formatCurrency(data1099?.threshold ?? 600, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}{" "}
+								threshold in {year}.
 							</p>
 						) : (
 							<Table>

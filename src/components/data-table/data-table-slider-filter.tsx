@@ -91,9 +91,11 @@ export function DataTableSliderFilter<TData>({
 
 	const range: RangeValue = columnFilterValue ?? [min, max];
 
-	const formatValue = (value: number) => {
-		return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
-	};
+	const formatBound = column.columnDef.meta?.formatValue;
+	const formatValue = (value: number) =>
+		formatBound
+			? formatBound(value)
+			: value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
 	const onFromInputChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const numValue = Number(event.target.value);
@@ -154,7 +156,7 @@ export function DataTableSliderFilter<TData>({
 								/>
 								{formatValue(columnFilterValue[0])} -{" "}
 								{formatValue(columnFilterValue[1])}
-								{unit ? ` ${unit}` : ""}
+								{unit && !formatBound ? ` ${unit}` : ""}
 							</>
 						) : null}
 					</Button>

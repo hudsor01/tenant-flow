@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * NumberTicker: counts up to `value` once it scrolls near the viewport.
+ *
+ * MONEY. Pass `currency` and the ticker formats every frame as US dollars the
+ * way `formatCurrency` does (Intl's currency style: the sign before the
+ * symbol, so -250 is "-$250", never "$-250"), with `decimalPlaces` digits.
+ * The symbol is rendered as its own span so a card can size and space it apart
+ * from the digits (`symbolClassName`), and it takes the surrounding text's
+ * letter-spacing while the sign and digits keep the ticker's `tracking-wider`.
+ * Never place a "$" next to a ticker by hand: the ticker's minus sign then
+ * lands between the two (66.2-39).
+ */
+
 import {
 	ComponentPropsWithoutRef,
 	RefObject,
@@ -18,6 +31,23 @@ interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
 	delay?: number;
 	decimalPlaces?: number;
 	duration?: number;
+	/** Format as US dollars, sign before the symbol, as `formatCurrency` does. */
+	currency?: boolean;
+	/** Classes for the currency symbol's span; only used with `currency`. */
+	symbolClassName?: string;
+}
+
+/** Each frame's text, split so the currency symbol can carry its own classes. */
+function formatTickerParts(
+	value: number,
+	decimalPlaces: number,
+	currency: boolean,
+): Intl.NumberFormatPart[] {
+	return new Intl.NumberFormat("en-US", {
+		...(currency ? { style: "currency", currency: "USD" } : {}),
+		minimumFractionDigits: decimalPlaces,
+		maximumFractionDigits: decimalPlaces,
+	}).formatToParts(value);
 }
 
 export function NumberTicker({
@@ -28,6 +58,8 @@ export function NumberTicker({
 	className,
 	decimalPlaces = 0,
 	duration = 2000,
+	currency = false,
+	symbolClassName,
 	...props
 }: NumberTickerProps) {
 	const ref = useRef<HTMLSpanElement>(null);
@@ -95,16 +127,35 @@ export function NumberTicker({
 		};
 	}, [reducedMotion, hasIntersected, from, to, delay, duration]);
 
+	const parts = formatTickerParts(displayValue, decimalPlaces, currency);
+	const symbolAt = parts.findIndex((part) => part.type === "currency");
+	const text = (list: Intl.NumberFormatPart[]) =>
+		list.map((part) => part.value).join("");
+
+	if (symbolAt === -1) {
+		return (
+			<span
+				ref={ref}
+				className={cn("inline-block tabular-nums tracking-wider", className)}
+				{...props}
+			>
+				{text(parts)}
+			</span>
+		);
+	}
+
+	// The sign and the digits keep the ticker's wide tracking; the symbol keeps
+	// the surrounding text's, as the hand-placed "$" it replaces did, so a
+	// positive amount lays out exactly as it did with the symbol outside.
 	return (
 		<span
 			ref={ref}
-			className={cn("inline-block tabular-nums tracking-wider", className)}
+			className={cn("inline-block tabular-nums", className)}
 			{...props}
 		>
-			{Intl.NumberFormat("en-US", {
-				minimumFractionDigits: decimalPlaces,
-				maximumFractionDigits: decimalPlaces,
-			}).format(displayValue)}
+			<span className="tracking-wider">{text(parts.slice(0, symbolAt))}</span>
+			<span className={symbolClassName}>{parts[symbolAt]?.value}</span>
+			<span className="tracking-wider">{text(parts.slice(symbolAt + 1))}</span>
 		</span>
 	);
 }

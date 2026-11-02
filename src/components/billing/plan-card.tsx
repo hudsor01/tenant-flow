@@ -5,6 +5,7 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "#components/ui/card";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 export interface PlanFeature {
 	name: string;
@@ -93,7 +94,10 @@ export function PlanCard({
 					) : (
 						<div className="flex items-baseline gap-1">
 							<span className="text-4xl font-bold text-foreground">
-								${plan.price}
+								{formatCurrency(plan.price, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}
 							</span>
 							<span className="text-muted-foreground">/mo</span>
 						</div>

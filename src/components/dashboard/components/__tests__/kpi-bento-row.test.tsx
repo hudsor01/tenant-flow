@@ -397,7 +397,10 @@ describe("KpiBentoRow", () => {
 		}
 		const revenueValue = items[0]?.querySelector('[data-slot="stat-value"]');
 		expect(revenueValue?.textContent).toBe("$14,250");
-		expect(revenueValue?.firstElementChild?.textContent).toBe("$");
+		// The ticker formats the dollars itself (66.2-39): a separate "$" box
+		// put a negative value's sign after the symbol ("$-250").
+		expect(revenueValue?.children).toHaveLength(1);
+		expect(revenueValue?.firstElementChild?.textContent).toBe("$14,250");
 		const occupancyValue = items[1]?.querySelector('[data-slot="stat-value"]');
 		expect(occupancyValue?.textContent).toBe("87%");
 	});

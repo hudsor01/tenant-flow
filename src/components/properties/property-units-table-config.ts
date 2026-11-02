@@ -1,4 +1,5 @@
 import { Home, User, Wrench } from "lucide-react";
+import { formatCurrency } from "#lib/utils/currency";
 import type { UnitStatus } from "#types/core";
 
 // Status badge configuration matching spec
@@ -29,10 +30,8 @@ export const statusConfig: Record<
 };
 
 export function formatUnitCurrency(amount: number): string {
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
+	return formatCurrency(amount, {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
-	}).format(amount);
+	});
 }

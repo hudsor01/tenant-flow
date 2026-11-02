@@ -15,6 +15,7 @@ import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useUser } from "#hooks/api/use-auth";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
+import { formatCurrency } from "#lib/utils/currency";
 
 // Resolve a plan from the `subscription_plan` column. The Stripe webhook
 // handlers write `subscription_plan: tier ?? planLookup ?? priceId`, so the
@@ -318,10 +319,12 @@ export function BillingSettings() {
 							{isActive && currentPlan && (
 								<>
 									<p className="text-2xl font-bold text-primary-text">
-										$
-										{currentPeriod === "annual"
-											? currentPlan.price.annual
-											: currentPlan.price.monthly}
+										{formatCurrency(
+											currentPeriod === "annual"
+												? currentPlan.price.annual
+												: currentPlan.price.monthly,
+											{ minimumFractionDigits: 0, maximumFractionDigits: 0 },
+										)}
 										<span className="text-sm font-normal text-muted-foreground">
 											/{currentPeriod === "annual" ? "year" : "month"}
 										</span>

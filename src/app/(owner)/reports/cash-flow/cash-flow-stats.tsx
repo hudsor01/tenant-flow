@@ -8,6 +8,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface CashFlowStatsProps {
 	totalInflows: number;
@@ -32,11 +33,7 @@ export function CashFlowStats({
 					/>
 					<StatLabel>Total Inflows</StatLabel>
 					<StatValue className="flex items-baseline text-success-text">
-						$
-						{totalInflows.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}
+						{formatCurrency(totalInflows)}
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<ArrowUpCircle />
@@ -49,11 +46,7 @@ export function CashFlowStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Outflows</StatLabel>
 					<StatValue className="flex items-baseline text-destructive-text">
-						$
-						{totalOutflows.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}
+						{formatCurrency(totalOutflows)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<ArrowDownCircle />
@@ -76,11 +69,8 @@ export function CashFlowStats({
 					<StatValue
 						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive-text"}`}
 					>
-						{netCashFlow >= 0 ? "+" : "-"}$
-						{Math.abs(netCashFlow).toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}
+						{netCashFlow > 0 ? "+" : ""}
+						{formatCurrency(netCashFlow)}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<Wallet />

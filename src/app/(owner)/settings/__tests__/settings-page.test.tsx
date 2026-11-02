@@ -220,11 +220,6 @@ vi.stubGlobal(
 	}),
 );
 
-// Mock formatCurrency
-vi.mock("#lib/utils/currency", () => ({
-	formatCurrency: (amount: number) => `$${amount.toFixed(2)}`,
-}));
-
 function createTestQueryClient() {
 	return new QueryClient({
 		defaultOptions: {

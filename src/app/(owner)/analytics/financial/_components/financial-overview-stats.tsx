@@ -77,8 +77,12 @@ export function FinancialOverviewStats({
 						help="Rent expected from active lease terms this period."
 					/>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalRevenue} duration={1500} />
+						<NumberTicker
+							value={metrics.totalRevenue}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
@@ -106,8 +110,12 @@ export function FinancialOverviewStats({
 						help="Payments you've recorded against charges this period."
 					/>
 					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalCollected} duration={1500} />
+						<NumberTicker
+							value={metrics.totalCollected}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="info">
 						<ReceiptText />
@@ -122,8 +130,12 @@ export function FinancialOverviewStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Net Income</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.netIncome} duration={1500} />
+						<NumberTicker
+							value={metrics.netIncome}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<TrendingUp />
@@ -177,8 +189,12 @@ export function FinancialOverviewStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Cash Flow</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.cashFlow} duration={1500} />
+						<NumberTicker
+							value={metrics.cashFlow}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />

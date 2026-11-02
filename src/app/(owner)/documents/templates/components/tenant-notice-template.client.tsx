@@ -5,6 +5,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { Badge } from "#components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { formatTypedAmount } from "#lib/utils/currency";
 import { BrandingEditor } from "./branding-editor";
 import { ClausesEditor } from "./clauses-editor";
 import { CustomFieldsEditor } from "./custom-fields-editor";
@@ -151,7 +152,7 @@ export function TenantNoticeTemplate() {
 						?.label,
 					issueDate: values.issueDate,
 					cureDate: values.dueDate,
-					amountDue: values.amountDue,
+					amountDue: formatTypedAmount(String(values.amountDue ?? "")),
 					details: values.details,
 				},
 				tenant: {
@@ -226,7 +227,9 @@ export function TenantNoticeTemplate() {
 					<p className="text-sm text-muted-foreground">
 						{form.state.values.tenantName} • {form.state.values.propertyAddress}
 					</p>
-					<p className="text-sm">Amount due: ${form.state.values.amountDue}</p>
+					<p className="text-sm">
+						Amount due: {formatTypedAmount(form.state.values.amountDue)}
+					</p>
 					<p className="text-sm">Cure by: {form.state.values.dueDate}</p>
 				</div>
 			</TemplatePreviewPanel>

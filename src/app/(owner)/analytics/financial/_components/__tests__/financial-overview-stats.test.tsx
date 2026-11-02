@@ -7,8 +7,8 @@
  * and Net Income / Cash Flow still come from Scheduled minus expenses.
  */
 
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { FinancialOverviewStats } from "#app/(owner)/analytics/financial/_components/financial-overview-stats";
 import { TooltipProvider } from "#components/ui/tooltip";
 import type { FinancialMetricSummary } from "#types/analytics";
@@ -81,5 +81,40 @@ describe("FinancialOverviewStats", () => {
 		expect(labels(container)).toContain("Net Income");
 		expect(labels(container)).toContain("Cash Flow");
 		expect(screen.getByText("Scheduled minus expenses")).toBeInTheDocument();
+	});
+
+	it("puts a loss's sign before the dollar sign on Net Income and Cash Flow", async () => {
+		// The cards rendered -250 as "$-250": a "$" span sat before the ticker.
+		// Reduced motion, so each ticker shows its final value without a timer.
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query.includes("prefers-reduced-motion"),
+			media: query,
+			onchange: null,
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		}));
+		const { container } = render(
+			<FinancialOverviewStats
+				metrics={{ ...metrics, netIncome: -250, cashFlow: -250 }}
+			/>,
+			{ wrapper: TooltipProvider },
+		);
+		const value = (label: string) => {
+			const stat = Array.from(
+				container.querySelectorAll("[data-slot=stat]"),
+			).find(
+				(node) =>
+					node.querySelector("[data-slot=stat-label]")?.textContent?.trim() ===
+					label,
+			);
+			return stat?.querySelector("[data-slot=stat-value]")?.textContent;
+		};
+		await waitFor(() => expect(value("Net Income")).toBe("-$250"));
+		expect(value("Cash Flow")).toBe("-$250");
+		expect(container.textContent).not.toContain("$-");
+		vi.unstubAllGlobals();
 	});
 });

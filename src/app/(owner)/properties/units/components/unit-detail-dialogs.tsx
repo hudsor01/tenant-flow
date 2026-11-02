@@ -9,6 +9,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { Label } from "#components/ui/label";
+import { formatCurrency } from "#lib/utils/currency";
 import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
 import { UnitStatusBadge } from "./unit-status-badge";
 
@@ -47,7 +48,13 @@ export function UnitViewDialog({
 						)}
 						<div className="flex items-center gap-2">
 							<DollarSign className="size-4 text-muted-foreground" />
-							<span>${unit.rent_amount}/month</span>
+							<span>
+								{formatCurrency(unit.rent_amount, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}
+								/month
+							</span>
 						</div>
 					</div>
 					<div>
@@ -101,7 +108,12 @@ export function UnitEditDialog({
 					</div>
 					<div>
 						<Label>Rent Amount</Label>
-						<p className="mt-1 text-sm">${unit.rent_amount}</p>
+						<p className="mt-1 text-sm">
+							{formatCurrency(unit.rent_amount, {
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 0,
+							})}
+						</p>
 					</div>
 					<div>
 						<Label>Status</Label>
