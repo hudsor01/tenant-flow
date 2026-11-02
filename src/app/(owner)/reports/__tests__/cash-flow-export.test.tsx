@@ -32,20 +32,11 @@ const data: CashFlowData = {
 	},
 	operatingActivities: {
 		rentalPaymentsReceived: 4500,
-		operatingExpensesPaid: 1500,
-		maintenancePaid: 0,
+		expensesPaid: 1500,
 		netOperatingCash: 3000,
 	},
-	investingActivities: {
-		propertyAcquisitions: 0,
-		propertyImprovements: 0,
-		netInvestingCash: 0,
-	},
 	financingActivities: {
-		mortgagePayments: 0,
-		loanProceeds: 0,
 		ownerContributions: 0,
-		ownerDistributions: 0,
 		netFinancingCash: 0,
 	},
 	netCashFlow: 3000,
@@ -126,8 +117,7 @@ describe("cash flow Export", () => {
 			...data,
 			operatingActivities: {
 				rentalPaymentsReceived: 1475,
-				operatingExpensesPaid: 260.5,
-				maintenancePaid: 0,
+				expensesPaid: 260.5,
 				netOperatingCash: 1214.5,
 			},
 			financingActivities: {
@@ -152,11 +142,31 @@ describe("cash flow Export", () => {
 		expect(amount("Balance Summary", "Closing Balance")).toBe("4515.00");
 		expect(amount("Cash Inflows", "Rent Received")).toBe("1475.00");
 		expect(amount("Cash Inflows", "Owner Funds for Expenses")).toBe("260.50");
-		expect(amount("Cash Outflows", "Operating Expenses Paid")).toBe("260.50");
+		expect(amount("Cash Outflows", "Expenses")).toBe("260.50");
 		expect(screen.getByText("$3,040.00")).toBeInTheDocument();
 		expect(screen.getByText("$4,515.00")).toBeInTheDocument();
 		expect(screen.getByText("Rent Received")).toBeInTheDocument();
 		expect(screen.getByText("Owner Funds for Expenses")).toBeInTheDocument();
+	});
+
+	it("shows only the activities and lines the ledger records", () => {
+		render(<CashFlowPage />);
+		const page = document.body.textContent ?? "";
+		expect(page).toContain("Operating Activities");
+		expect(page).toContain("Financing Activities");
+		// Always $0: nothing records a purchase, an improvement, a loan, a
+		// mortgage payment or a distribution.
+		for (const gone of [
+			"Investing Activities",
+			"Loan Proceeds",
+			"Maintenance Paid",
+			"Property Acquisitions",
+			"Property Improvements",
+			"Mortgage Payments",
+			"Owner Distributions",
+		]) {
+			expect(page).not.toContain(gone);
+		}
 	});
 
 	it("waits for the selected period while the previous one is on screen", () => {

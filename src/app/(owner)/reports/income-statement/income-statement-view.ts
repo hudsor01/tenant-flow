@@ -1,3 +1,4 @@
+import { EXPENSES_LABEL } from "#lib/reports/statement-labels";
 import type { IncomeStatementData } from "#types/financial-statements";
 
 /** One breakdown line: its amount and its share of the section total, in %. */
@@ -20,7 +21,7 @@ export interface IncomeStatementView {
 	profitMargin: number;
 	/** Every revenue line, zero amounts included, as the page lists them. */
 	revenueItems: IncomeStatementLine[];
-	/** The expense lines with an amount; the page hides the empty ones. */
+	/** The one expense line, when there were expenses (no category to split). */
 	expenseItems: IncomeStatementLine[];
 	grossProfit: number | undefined;
 	operatingIncome: number | undefined;
@@ -56,18 +57,9 @@ export function buildIncomeStatementView(
 		totalRevenue,
 	);
 	const expenseItems = withShares(
-		[
-			{
-				label: "Property Management",
-				amount: data?.expenses.propertyManagement || 0,
-			},
-			{ label: "Maintenance", amount: data?.expenses.maintenance || 0 },
-			{ label: "Utilities", amount: data?.expenses.utilities || 0 },
-			{ label: "Insurance", amount: data?.expenses.insurance || 0 },
-			{ label: "Property Tax", amount: data?.expenses.propertyTax || 0 },
-			{ label: "Mortgage", amount: data?.expenses.mortgage || 0 },
-			{ label: "Other", amount: data?.expenses.other || 0 },
-		].filter((item) => item.amount > 0),
+		[{ label: EXPENSES_LABEL, amount: totalExpenses }].filter(
+			(item) => item.amount > 0,
+		),
 		totalExpenses,
 	);
 

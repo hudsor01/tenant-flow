@@ -39,8 +39,8 @@ export function buildBalanceSheetView(
 			equityItems: [],
 		};
 	}
-	const { currentAssets, fixedAssets } = data.assets;
-	const { currentLiabilities, longTermLiabilities } = data.liabilities;
+	const { currentAssets } = data.assets;
+	const { currentLiabilities } = data.liabilities;
 	return {
 		totalAssets: data.assets.totalAssets || 0,
 		totalLiabilities: data.liabilities.totalLiabilities || 0,
@@ -55,29 +55,8 @@ export function buildBalanceSheetView(
 						name: "Accounts Receivable",
 						amount: currentAssets.accountsReceivable,
 					},
-					{
-						name: "Security Deposits",
-						amount: currentAssets.security_deposits,
-					},
 				],
-				subtotal:
-					currentAssets.cash +
-					currentAssets.accountsReceivable +
-					currentAssets.security_deposits,
-			},
-			{
-				label: "Fixed Assets",
-				items: [
-					{ name: "Property Values", amount: fixedAssets.propertyValues },
-					{
-						name: "Accumulated Depreciation",
-						// Shown as a deduction. `0 - x`, not `-x`: negating 0 gives -0,
-						// which formats as "-$0.00" on the page.
-						amount: 0 - fixedAssets.accumulatedDepreciation,
-					},
-					{ name: "Net Property Value", amount: fixedAssets.netPropertyValue },
-				],
-				subtotal: fixedAssets.netPropertyValue,
+				subtotal: currentAssets.total,
 			},
 		],
 		liabilityGroups: [
@@ -85,37 +64,11 @@ export function buildBalanceSheetView(
 				label: "Current Liabilities",
 				items: [
 					{
-						name: "Accounts Payable",
-						amount: currentLiabilities.accountsPayable,
-					},
-					{
 						name: "Tenant Credit Balances",
 						amount: currentLiabilities.tenantCreditBalances,
 					},
-					{
-						name: "Security Deposit Liability",
-						amount: currentLiabilities.security_depositLiability,
-					},
-					{
-						name: "Accrued Expenses",
-						amount: currentLiabilities.accruedExpenses,
-					},
 				],
-				subtotal:
-					currentLiabilities.accountsPayable +
-					currentLiabilities.tenantCreditBalances +
-					currentLiabilities.security_depositLiability +
-					currentLiabilities.accruedExpenses,
-			},
-			{
-				label: "Long-Term Liabilities",
-				items: [
-					{
-						name: "Mortgages Payable",
-						amount: longTermLiabilities.mortgagesPayable,
-					},
-				],
-				subtotal: longTermLiabilities.mortgagesPayable,
+				subtotal: currentLiabilities.total,
 			},
 		],
 		equityItems: [

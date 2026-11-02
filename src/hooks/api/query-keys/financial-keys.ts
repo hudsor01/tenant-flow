@@ -252,14 +252,16 @@ function toCents(amount: number): number {
  *       from it: the data model records no account an expense was paid from).
  *     Accounts Receivable = unpaidTotal: what tenants still owe, the Payment
  *       Summary's figure as of the date.
- *     Security Deposits, Property Values, Accumulated Depreciation: 0. Nothing
- *       records a deposit received or a property's value.
+ *     No other asset line: nothing records a deposit received
+ *       (leases.security_deposit is the amount agreed, not money held) or a
+ *       property's value or depreciation, so the sheet shows none rather than
+ *       $0 lines.
  *   Liabilities
  *     Tenant Credit Balances = creditBalanceTotal: money received that no charge
  *       has used yet (a lease paid ahead or overpaid), which the owner holds for
  *       the tenant.
- *     Accounts Payable, Security Deposit Liability, Accrued Expenses, Mortgages
- *       Payable: 0. Nothing records a bill owed, a deposit held or a loan.
+ *     No other liability line: nothing records a bill owed, a deposit held, an
+ *       accrual or a loan.
  *   Equity
  *     Owner Capital = openingTotal + every expense dated on or before the date.
  *       Opening balances are money owed before the ledger began: brought in,
@@ -309,26 +311,15 @@ function buildLedgerBalanceSheet(input: {
 			currentAssets: {
 				cash,
 				accountsReceivable,
-				security_deposits: 0,
 				total: totalAssets,
-			},
-			fixedAssets: {
-				propertyValues: 0,
-				accumulatedDepreciation: 0,
-				netPropertyValue: 0,
-				total: 0,
 			},
 			totalAssets,
 		},
 		liabilities: {
 			currentLiabilities: {
-				accountsPayable: 0,
 				tenantCreditBalances,
-				security_depositLiability: 0,
-				accruedExpenses: 0,
 				total: tenantCreditBalances,
 			},
-			longTermLiabilities: { mortgagesPayable: 0, total: 0 },
 			totalLiabilities: tenantCreditBalances,
 		},
 		equity: {
@@ -350,7 +341,8 @@ function buildLedgerBalanceSheet(input: {
  * any other, net of the charge it reverses within its type) in its own, and a
  * credit lowers revenue. Opening balances are not revenue: money owed before
  * the ledger began, which the balance sheet carries in owner capital.
- * Expenses are the period's (get_expense_summary), as before.
+ * Expenses are the period's (get_expense_summary), one line: there is no
+ * category to split them by.
  *
  * It ties to the balance sheet by construction: the by-type figures and
  * openingTotal partition chargedTotal, so this net income for January 1 to a
@@ -382,16 +374,7 @@ function buildLedgerIncomeStatement(input: {
 			creditsIssued,
 			totalRevenue,
 		},
-		expenses: {
-			propertyManagement: 0,
-			maintenance: 0,
-			utilities: 0,
-			insurance: 0,
-			propertyTax: 0,
-			mortgage: 0,
-			other: totalExpenses,
-			totalExpenses,
-		},
+		expenses: { totalExpenses },
 		grossProfit: net,
 		operatingIncome: net,
 		netIncome: net,
@@ -410,6 +393,8 @@ function buildLedgerIncomeStatement(input: {
  *     as of the day before it: every receipt by received date, a reversal on
  *     the day it was posted) in, the period's expenses out.
  *   Financing: the same expenses in, as owner funds.
+ *   No investing section and no purchase, improvement, loan, mortgage or
+ *   distribution line: the data model records none of them.
  *   Net cash flow is the rent received, and the opening and closing balances
  *   are the balance sheet's Cash the day before the period and on its last
  *   day.
@@ -428,20 +413,11 @@ function buildLedgerCashFlow(input: {
 		period: input.period,
 		operatingActivities: {
 			rentalPaymentsReceived: rentReceived,
-			operatingExpensesPaid: expensesPaid,
-			maintenancePaid: 0,
+			expensesPaid,
 			netOperatingCash: toCents(rentReceived - expensesPaid),
 		},
-		investingActivities: {
-			propertyAcquisitions: 0,
-			propertyImprovements: 0,
-			netInvestingCash: 0,
-		},
 		financingActivities: {
-			mortgagePayments: 0,
-			loanProceeds: 0,
 			ownerContributions: expensesPaid,
-			ownerDistributions: 0,
 			netFinancingCash: expensesPaid,
 		},
 		netCashFlow: rentReceived,

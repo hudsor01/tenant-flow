@@ -1,3 +1,4 @@
+import { EXPENSES_LABEL } from "#lib/reports/statement-labels";
 import type {
 	CashFlowCategory,
 	CashFlowData,
@@ -17,7 +18,6 @@ export interface CashFlowView {
 	totalInflows: number;
 	totalOutflows: number;
 	netOperatingCash: number;
-	netInvestingCash: number;
 	netFinancingCash: number;
 }
 
@@ -44,40 +44,17 @@ export function buildCashFlowView(
 					amount: data.operatingActivities.rentalPaymentsReceived,
 				},
 				{
-					category: "Loan Proceeds",
-					amount: data.financingActivities.loanProceeds,
-				},
-				{
 					category: "Owner Funds for Expenses",
 					amount: data.financingActivities.ownerContributions,
 				},
 			])
 		: [];
+	// One label for expenses on every statement and the expenses page.
 	const outflowItems = data
 		? withShares([
 				{
-					category: "Operating Expenses Paid",
-					amount: Math.abs(data.operatingActivities.operatingExpensesPaid),
-				},
-				{
-					category: "Maintenance Paid",
-					amount: Math.abs(data.operatingActivities.maintenancePaid),
-				},
-				{
-					category: "Property Acquisitions",
-					amount: Math.abs(data.investingActivities.propertyAcquisitions),
-				},
-				{
-					category: "Property Improvements",
-					amount: Math.abs(data.investingActivities.propertyImprovements),
-				},
-				{
-					category: "Mortgage Payments",
-					amount: Math.abs(data.financingActivities.mortgagePayments),
-				},
-				{
-					category: "Owner Distributions",
-					amount: Math.abs(data.financingActivities.ownerDistributions),
+					category: EXPENSES_LABEL,
+					amount: Math.abs(data.operatingActivities.expensesPaid),
 				},
 			])
 		: [];
@@ -91,7 +68,6 @@ export function buildCashFlowView(
 		totalInflows: inflowItems.reduce((sum, i) => sum + i.amount, 0),
 		totalOutflows: outflowItems.reduce((sum, i) => sum + i.amount, 0),
 		netOperatingCash: data?.operatingActivities.netOperatingCash || 0,
-		netInvestingCash: data?.investingActivities.netInvestingCash || 0,
 		netFinancingCash: data?.financingActivities.netFinancingCash || 0,
 	};
 }

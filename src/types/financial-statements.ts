@@ -163,32 +163,24 @@ export interface TaxReportGenerationResponse {
  */
 export interface BalanceSheetData {
 	period: { start_date: string; end_date: string; label: string };
+	/**
+	 * Only the lines the data model records. Nothing records a deposit held
+	 * (leases.security_deposit is the amount agreed, not money received), a
+	 * property's value or depreciation, a bill owed, an accrual or a loan, so
+	 * the sheet has no such lines rather than lines that always read $0.
+	 */
 	assets: {
 		currentAssets: {
 			cash: number;
 			accountsReceivable: number;
-			security_deposits: number;
-			total: number;
-		};
-		fixedAssets: {
-			propertyValues: number;
-			accumulatedDepreciation: number;
-			netPropertyValue: number;
 			total: number;
 		};
 		totalAssets: number;
 	};
 	liabilities: {
 		currentLiabilities: {
-			accountsPayable: number;
 			/** Money received that no charge has used yet, held for tenants. */
 			tenantCreditBalances: number;
-			security_depositLiability: number;
-			accruedExpenses: number;
-			total: number;
-		};
-		longTermLiabilities: {
-			mortgagesPayable: number;
 			total: number;
 		};
 		totalLiabilities: number;
@@ -219,24 +211,22 @@ export type BalanceSheetResult =
  * `endingCash` are the balance sheet's Cash the day before the period and on
  * its last day.
  */
+/**
+ * The cash flow on the rent ledger's basis. Only the flows the data model
+ * records: no purchase, improvement, loan, mortgage payment or distribution is
+ * recorded, so there is no investing section and no such line (each read $0).
+ */
 export interface CashFlowData {
 	period: { start_date: string; end_date: string; label: string };
 	operatingActivities: {
 		rentalPaymentsReceived: number;
-		operatingExpensesPaid: number;
-		maintenancePaid: number;
+		/** The period's expenses (every one is on a maintenance request). */
+		expensesPaid: number;
 		netOperatingCash: number;
 	};
-	investingActivities: {
-		propertyAcquisitions: number;
-		propertyImprovements: number;
-		netInvestingCash: number;
-	};
 	financingActivities: {
-		mortgagePayments: number;
-		loanProceeds: number;
+		/** The same expenses, as the owner's own funds (see the balance sheet). */
 		ownerContributions: number;
-		ownerDistributions: number;
 		netFinancingCash: number;
 	};
 	netCashFlow: number;
@@ -275,14 +265,13 @@ export interface IncomeStatementData {
 		creditsIssued: number;
 		totalRevenue: number;
 	};
+	/**
+	 * The period's expenses: one line, as the expenses page counts them
+	 * (get_expense_summary). The data model has no expense category (a
+	 * "category" is a vendor name, and every expense is on a maintenance
+	 * request), so there is no split by type to show.
+	 */
 	expenses: {
-		propertyManagement: number;
-		maintenance: number;
-		utilities: number;
-		insurance: number;
-		propertyTax: number;
-		mortgage: number;
-		other: number;
 		totalExpenses: number;
 	};
 	grossProfit: number;

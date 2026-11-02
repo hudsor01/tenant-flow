@@ -47,26 +47,15 @@ function sheet(asOf: string): BalanceSheetData {
 			currentAssets: {
 				cash: 54000,
 				accountsReceivable: 1250.5,
-				security_deposits: 0,
 				total: 55250.5,
-			},
-			fixedAssets: {
-				propertyValues: 0,
-				accumulatedDepreciation: 0,
-				netPropertyValue: 0,
-				total: 0,
 			},
 			totalAssets: 55250.5,
 		},
 		liabilities: {
 			currentLiabilities: {
-				accountsPayable: 0,
 				tenantCreditBalances: 750,
-				security_depositLiability: 0,
-				accruedExpenses: 0,
 				total: 750,
 			},
-			longTermLiabilities: { mortgagesPayable: 0, total: 0 },
 			totalLiabilities: 750,
 		},
 		equity: {
@@ -226,10 +215,23 @@ describe("the balance sheet file holds the figures on screen", () => {
 		}
 
 		const rows = await exportedRows();
-		// The 3 totals and the balance check; 6 asset lines, 2 subtotals and the
-		// total; 5 liability lines, 2 subtotals and the total; 3 equity lines and
-		// the total.
-		expect(rows).toHaveLength(25);
+		// The 3 totals and the balance check; 2 asset lines, a subtotal and the
+		// total; 1 liability line, a subtotal and the total; 3 equity lines and
+		// the total. No line the data model has no source for (each read $0).
+		expect(rows).toHaveLength(15);
+		for (const gone of [
+			"Security Deposits",
+			"Property Values",
+			"Accumulated Depreciation",
+			"Net Property Value",
+			"Accounts Payable",
+			"Security Deposit Liability",
+			"Accrued Expenses",
+			"Mortgages Payable",
+		]) {
+			expect(rows.map((r) => r[4])).not.toContain(gone);
+			expect(document.body.textContent).not.toContain(gone);
+		}
 		const page = document.body.textContent ?? "";
 		for (const [, , section, group, item, amount] of rows) {
 			if (section === "Balance Check") {

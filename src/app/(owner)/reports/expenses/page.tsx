@@ -134,7 +134,7 @@ export default function ExpensesPage() {
 					<div>
 						<h1 className="typography-h1">Expenses</h1>
 						<p className="text-muted-foreground">
-							Track maintenance costs and operating expenses.
+							Every expense recorded on your maintenance requests.
 						</p>
 					</div>
 					<Button variant="outline" onClick={handleExportCsv}>

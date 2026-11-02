@@ -132,7 +132,6 @@ export default function CashFlowPage() {
 
 					<CashFlowActivity
 						netOperatingCash={view.netOperatingCash}
-						netInvestingCash={view.netInvestingCash}
 						netFinancingCash={view.netFinancingCash}
 					/>
 				</>

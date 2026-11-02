@@ -92,11 +92,6 @@ export function buildCashFlowCsv({
 		),
 		line(
 			"Cash Flow by Activity",
-			"Investing Activities",
-			view.netInvestingCash,
-		),
-		line(
-			"Cash Flow by Activity",
 			"Financing Activities",
 			view.netFinancingCash,
 		),

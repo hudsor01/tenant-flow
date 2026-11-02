@@ -184,7 +184,8 @@ describe("useIncomeStatement", () => {
 			creditsIssued: -100,
 			totalRevenue: 1260.5,
 		});
-		expect(data.statement.expenses.totalExpenses).toBe(260.5);
+		// One expense figure: there is no category to split it by.
+		expect(data.statement.expenses).toEqual({ totalExpenses: 260.5 });
 		expect(data.statement.netIncome).toBe(1000);
 		expect(data.statement.profitMargin).toBeCloseTo((1000 / 1260.5) * 100);
 		// As of the period's end and of the day before it starts.
@@ -337,9 +338,14 @@ describe("useCashFlow", () => {
 		const { report } = data;
 		expect(report.operatingActivities).toEqual({
 			rentalPaymentsReceived: 1475,
-			operatingExpensesPaid: 260.5,
-			maintenancePaid: 0,
+			expensesPaid: 260.5,
 			netOperatingCash: 1214.5,
+		});
+		// No investing section, and no line nothing records (each read $0).
+		expect(Object.keys(report)).not.toContain("investingActivities");
+		expect(report.financingActivities).toEqual({
+			ownerContributions: 260.5,
+			netFinancingCash: 260.5,
 		});
 		// The period's expenses, not the trailing twelve months' average.
 		expect(report.financingActivities.ownerContributions).toBe(260.5);
@@ -465,6 +471,16 @@ describe("useBalanceSheet", () => {
 		expect(assets.totalAssets).toBe(4660.5);
 		expect(liabilities.currentLiabilities.tenantCreditBalances).toBe(500);
 		expect(liabilities.totalLiabilities).toBe(500);
+		// Only the lines the ledger records: no deposit, property value,
+		// depreciation, payable, accrual or mortgage line reading $0.
+		expect(assets).toEqual({
+			currentAssets: { cash: 4515, accountsReceivable: 145.5, total: 4660.5 },
+			totalAssets: 4660.5,
+		});
+		expect(liabilities).toEqual({
+			currentLiabilities: { tenantCreditBalances: 500, total: 500 },
+			totalLiabilities: 500,
+		});
 		// Owner capital: opening balances plus every expense through the date.
 		expect(equity.ownerCapital).toBe(1599.99);
 		// Earned before 2026 (charged less opening) less the expenses then.

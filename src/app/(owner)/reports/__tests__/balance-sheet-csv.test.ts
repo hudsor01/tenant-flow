@@ -21,26 +21,15 @@ function balanceData(
 			currentAssets: {
 				cash: 54000,
 				accountsReceivable: 1250.5,
-				security_deposits: 0,
 				total: 55250.5,
-			},
-			fixedAssets: {
-				propertyValues: 0,
-				accumulatedDepreciation: 0,
-				netPropertyValue: 0,
-				total: 0,
 			},
 			totalAssets: 55250.5,
 		},
 		liabilities: {
 			currentLiabilities: {
-				accountsPayable: 0,
 				tenantCreditBalances: 750,
-				security_depositLiability: 0,
-				accruedExpenses: 0,
 				total: 750,
 			},
-			longTermLiabilities: { mortgagesPayable: 0, total: 0 },
 			totalLiabilities: 750,
 		},
 		equity: {
@@ -64,56 +53,24 @@ const CONTEXT = ["2026-11-30", "USD"];
 
 describe("buildBalanceSheetView", () => {
 	it("groups the lines the page lists, with each group's subtotal", () => {
-		const view = buildBalanceSheetView(
-			balanceData({
-				assets: {
-					currentAssets: {
-						cash: 100,
-						accountsReceivable: 20,
-						security_deposits: 3,
-						total: 123,
-					},
-					fixedAssets: {
-						propertyValues: 1000,
-						accumulatedDepreciation: 50,
-						netPropertyValue: 950,
-						total: 950,
-					},
-					totalAssets: 1073,
-				},
-			}),
-		);
+		const view = buildBalanceSheetView(balanceData());
 		expect(view.assetGroups).toEqual([
 			{
 				label: "Current Assets",
 				items: [
-					{ name: "Cash", amount: 100 },
-					{ name: "Accounts Receivable", amount: 20 },
-					{ name: "Security Deposits", amount: 3 },
+					{ name: "Cash", amount: 54000 },
+					{ name: "Accounts Receivable", amount: 1250.5 },
 				],
-				subtotal: 123,
+				subtotal: 55250.5,
 			},
+		]);
+		expect(view.liabilityGroups).toEqual([
 			{
-				label: "Fixed Assets",
-				items: [
-					{ name: "Property Values", amount: 1000 },
-					{ name: "Accumulated Depreciation", amount: -50 },
-					{ name: "Net Property Value", amount: 950 },
-				],
-				subtotal: 950,
+				label: "Current Liabilities",
+				items: [{ name: "Tenant Credit Balances", amount: 750 }],
+				subtotal: 750,
 			},
 		]);
-		expect(view.liabilityGroups.map((g) => g.label)).toEqual([
-			"Current Liabilities",
-			"Long-Term Liabilities",
-		]);
-		expect(view.liabilityGroups[0]?.items.map((i) => i.name)).toEqual([
-			"Accounts Payable",
-			"Tenant Credit Balances",
-			"Security Deposit Liability",
-			"Accrued Expenses",
-		]);
-		expect(view.liabilityGroups[0]?.subtotal).toBe(750);
 		expect(view.equityItems.map((i) => i.name)).toEqual([
 			"Owner Capital",
 			"Retained Earnings",
@@ -121,12 +78,27 @@ describe("buildBalanceSheetView", () => {
 		]);
 	});
 
-	it("shows no depreciation as 0, not -0 (which formats as -$0.00)", () => {
-		const [, fixed] = buildBalanceSheetView(balanceData()).assetGroups;
-		const depreciation = fixed?.items.find(
-			(i) => i.name === "Accumulated Depreciation",
+	it("lists no line the data model has no source for", () => {
+		// Each read $0 for every owner: nothing records a deposit held, a
+		// property's value or depreciation, a bill owed, an accrual or a loan.
+		const view = buildBalanceSheetView(balanceData());
+		const names = [...view.assetGroups, ...view.liabilityGroups].flatMap(
+			(g) => [g.label, ...g.items.map((i) => i.name)],
 		);
-		expect(Object.is(depreciation?.amount, 0)).toBe(true);
+		for (const gone of [
+			"Security Deposits",
+			"Fixed Assets",
+			"Property Values",
+			"Accumulated Depreciation",
+			"Net Property Value",
+			"Accounts Payable",
+			"Security Deposit Liability",
+			"Accrued Expenses",
+			"Long-Term Liabilities",
+			"Mortgages Payable",
+		]) {
+			expect(names).not.toContain(gone);
+		}
 	});
 
 	it("is empty and balanced with no data", () => {
@@ -164,26 +136,8 @@ describe("buildBalanceSheetCsv", () => {
 				"Accounts Receivable",
 				"1250.50",
 			],
-			[...CONTEXT, "Assets", "Current Assets", "Security Deposits", "0.00"],
 			[...CONTEXT, "Assets", "Current Assets", "Subtotal", "55250.50"],
-			[...CONTEXT, "Assets", "Fixed Assets", "Property Values", "0.00"],
-			[
-				...CONTEXT,
-				"Assets",
-				"Fixed Assets",
-				"Accumulated Depreciation",
-				"0.00",
-			],
-			[...CONTEXT, "Assets", "Fixed Assets", "Net Property Value", "0.00"],
-			[...CONTEXT, "Assets", "Fixed Assets", "Subtotal", "0.00"],
 			[...CONTEXT, "Assets", "", "Total Assets", "55250.50"],
-			[
-				...CONTEXT,
-				"Liabilities",
-				"Current Liabilities",
-				"Accounts Payable",
-				"0.00",
-			],
 			[
 				...CONTEXT,
 				"Liabilities",
@@ -191,29 +145,7 @@ describe("buildBalanceSheetCsv", () => {
 				"Tenant Credit Balances",
 				"750.00",
 			],
-			[
-				...CONTEXT,
-				"Liabilities",
-				"Current Liabilities",
-				"Security Deposit Liability",
-				"0.00",
-			],
-			[
-				...CONTEXT,
-				"Liabilities",
-				"Current Liabilities",
-				"Accrued Expenses",
-				"0.00",
-			],
 			[...CONTEXT, "Liabilities", "Current Liabilities", "Subtotal", "750.00"],
-			[
-				...CONTEXT,
-				"Liabilities",
-				"Long-Term Liabilities",
-				"Mortgages Payable",
-				"0.00",
-			],
-			[...CONTEXT, "Liabilities", "Long-Term Liabilities", "Subtotal", "0.00"],
 			[...CONTEXT, "Liabilities", "", "Total Liabilities", "750.00"],
 			[...CONTEXT, "Equity", "", "Owner Capital", "3300.00"],
 			[...CONTEXT, "Equity", "", "Retained Earnings", "40000.00"],
@@ -222,34 +154,12 @@ describe("buildBalanceSheetCsv", () => {
 		]);
 	});
 
-	it("names an unbalanced sheet and keeps depreciation negative", () => {
+	it("names an unbalanced sheet", () => {
 		const csv = buildBalanceSheetCsv({
 			asOfDate: "2026-11-30",
-			view: buildBalanceSheetView(
-				balanceData({
-					balanceCheck: false,
-					assets: {
-						currentAssets: {
-							cash: 0,
-							accountsReceivable: 0,
-							security_deposits: 0,
-							total: 0,
-						},
-						fixedAssets: {
-							propertyValues: 900,
-							accumulatedDepreciation: 100,
-							netPropertyValue: 800,
-							total: 800,
-						},
-						totalAssets: 800,
-					},
-				}),
-			),
+			view: buildBalanceSheetView(balanceData({ balanceCheck: false })),
 		});
 		expect(csv).toContain("2026-11-30,USD,Balance Check,,Unbalanced,\r\n");
-		expect(csv).toContain(
-			"2026-11-30,USD,Assets,Fixed Assets,Accumulated Depreciation,-100.00",
-		);
 	});
 });
 

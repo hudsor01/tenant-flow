@@ -218,7 +218,7 @@ describe("the statements tie", () => {
 		);
 		// The period's one expense, paid with the owner's funds, as the sheet
 		// carries it.
-		expect(report.operatingActivities.operatingExpensesPaid).toBe(45.45);
+		expect(report.operatingActivities.expensesPaid).toBe(45.45);
 		expect(report.financingActivities.ownerContributions).toBe(45.45);
 	});
 

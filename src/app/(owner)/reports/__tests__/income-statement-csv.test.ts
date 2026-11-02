@@ -24,16 +24,7 @@ function incomeData(
 			creditsIssued: 0,
 			totalRevenue: 54000,
 		},
-		expenses: {
-			propertyManagement: 0,
-			maintenance: 1200,
-			utilities: 0,
-			insurance: 0,
-			propertyTax: 0,
-			mortgage: 0,
-			other: 300,
-			totalExpenses: 1500,
-		},
+		expenses: { totalExpenses: 1500 },
 		grossProfit: 52500,
 		operatingIncome: 52500,
 		netIncome: 52500,
@@ -62,7 +53,7 @@ function csvFor(data: IncomeStatementData, period = "monthly"): string[][] {
 }
 
 describe("buildIncomeStatementView", () => {
-	it("keeps every revenue line, drops the empty expense lines, and shares each", () => {
+	it("keeps every revenue line, shows the one expense line, and shares each", () => {
 		const view = buildIncomeStatementView(incomeData());
 		expect(view.revenueItems.map((i) => [i.label, i.amount, i.share])).toEqual([
 			["Rent Charged", 54000, 100],
@@ -70,9 +61,10 @@ describe("buildIncomeStatementView", () => {
 			["Other Charges", 0, 0],
 			["Credits Issued", 0, 0],
 		]);
+		// One line, the expenses page's own name: no category exists to split
+		// by, and the type lines (Maintenance, Utilities, Mortgage ...) read $0.
 		expect(view.expenseItems.map((i) => [i.label, i.amount, i.share])).toEqual([
-			["Maintenance", 1200, 80],
-			["Other", 300, 20],
+			["Expenses", 1500, 100],
 		]);
 		expect(view.profitMargin).toBeCloseTo((52500 / 54000) * 100, 10);
 	});
@@ -109,8 +101,7 @@ describe("buildIncomeStatementCsv", () => {
 			[...CONTEXT, "Revenue Breakdown", "Other Charges", "0.0", "0.00"],
 			[...CONTEXT, "Revenue Breakdown", "Credits Issued", "0.0", "0.00"],
 			[...CONTEXT, "Revenue Breakdown", "Total Revenue", "", "54000.00"],
-			[...CONTEXT, "Expense Breakdown", "Maintenance", "80.0", "1200.00"],
-			[...CONTEXT, "Expense Breakdown", "Other", "20.0", "300.00"],
+			[...CONTEXT, "Expense Breakdown", "Expenses", "100.0", "1500.00"],
 			[...CONTEXT, "Expense Breakdown", "Total Expenses", "", "1500.00"],
 			[...CONTEXT, "Net Income Summary", "Total Revenue", "", "54000.00"],
 			[

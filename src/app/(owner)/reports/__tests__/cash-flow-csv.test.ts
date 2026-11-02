@@ -20,20 +20,11 @@ function cashFlowData(overrides: Partial<CashFlowData> = {}): CashFlowData {
 		},
 		operatingActivities: {
 			rentalPaymentsReceived: 4500,
-			operatingExpensesPaid: 1500,
-			maintenancePaid: 0,
+			expensesPaid: 1500,
 			netOperatingCash: 3000,
 		},
-		investingActivities: {
-			propertyAcquisitions: 0,
-			propertyImprovements: 0,
-			netInvestingCash: 0,
-		},
 		financingActivities: {
-			mortgagePayments: 0,
-			loanProceeds: 0,
 			ownerContributions: 0,
-			ownerDistributions: 0,
 			netFinancingCash: 0,
 		},
 		netCashFlow: 3000,
@@ -71,13 +62,7 @@ describe("buildCashFlowCsv", () => {
 			[...CONTEXT, "Totals", "Net Cash Flow", "", "3000.00"],
 			[...CONTEXT, "Cash Inflows", "Rent Received", "100.0", "4500.00"],
 			[...CONTEXT, "Cash Inflows", "Total Inflows", "", "4500.00"],
-			[
-				...CONTEXT,
-				"Cash Outflows",
-				"Operating Expenses Paid",
-				"100.0",
-				"1500.00",
-			],
+			[...CONTEXT, "Cash Outflows", "Expenses", "100.0", "1500.00"],
 			[...CONTEXT, "Cash Outflows", "Total Outflows", "", "1500.00"],
 			[
 				...CONTEXT,
@@ -86,7 +71,6 @@ describe("buildCashFlowCsv", () => {
 				"",
 				"3000.00",
 			],
-			[...CONTEXT, "Cash Flow by Activity", "Investing Activities", "", "0.00"],
 			[...CONTEXT, "Cash Flow by Activity", "Financing Activities", "", "0.00"],
 		]);
 	});
@@ -95,11 +79,8 @@ describe("buildCashFlowCsv", () => {
 		const view = buildCashFlowView(
 			cashFlowData({
 				financingActivities: {
-					mortgagePayments: 1000,
-					loanProceeds: 1500,
-					ownerContributions: 0,
-					ownerDistributions: 0,
-					netFinancingCash: 500,
+					ownerContributions: 1500,
+					netFinancingCash: 1500,
 				},
 			}),
 		);
@@ -115,13 +96,12 @@ describe("buildCashFlowCsv", () => {
 			rows.filter((r) => r[4] === name).map((r) => [r[5], r[6], r[7]]);
 		expect(section("Cash Inflows")).toEqual([
 			["Rent Received", "75.0", "4500.00"],
-			["Loan Proceeds", "25.0", "1500.00"],
+			["Owner Funds for Expenses", "25.0", "1500.00"],
 			["Total Inflows", "", "6000.00"],
 		]);
 		expect(section("Cash Outflows")).toEqual([
-			["Operating Expenses Paid", "60.0", "1500.00"],
-			["Mortgage Payments", "40.0", "1000.00"],
-			["Total Outflows", "", "2500.00"],
+			["Expenses", "100.0", "1500.00"],
+			["Total Outflows", "", "1500.00"],
 		]);
 		expect(rows[1]?.slice(0, 4)).toEqual([
 			"Quarterly",
@@ -137,8 +117,7 @@ describe("buildCashFlowCsv", () => {
 				netCashFlow: -1234.5,
 				operatingActivities: {
 					rentalPaymentsReceived: 0,
-					operatingExpensesPaid: -1234.5,
-					maintenancePaid: 0,
+					expensesPaid: -1234.5,
 					netOperatingCash: -1234.5,
 				},
 			}),
@@ -159,9 +138,7 @@ describe("buildCashFlowCsv", () => {
 			"-1234.50",
 		);
 		// Outflow lines are listed positive, as the page shows them.
-		expect(amountOf("Cash Outflows", "Operating Expenses Paid")).toBe(
-			"1234.50",
-		);
+		expect(amountOf("Cash Outflows", "Expenses")).toBe("1234.50");
 	});
 
 	it("neutralizes a text cell that would run as a formula", () => {
@@ -199,8 +176,7 @@ describe("buildCashFlowCsv", () => {
 					cashFlowData({
 						operatingActivities: {
 							rentalPaymentsReceived: 0,
-							operatingExpensesPaid: 0,
-							maintenancePaid: 0,
+							expensesPaid: 0,
 							netOperatingCash: 0,
 						},
 						netCashFlow: 0,
@@ -219,7 +195,6 @@ describe("buildCashFlowCsv", () => {
 			["Cash Inflows", "Total Inflows", "", "0.00"],
 			["Cash Outflows", "Total Outflows", "", "0.00"],
 			["Cash Flow by Activity", "Operating Activities", "", "0.00"],
-			["Cash Flow by Activity", "Investing Activities", "", "0.00"],
 			["Cash Flow by Activity", "Financing Activities", "", "0.00"],
 		]);
 		expect(rows.slice(1).every((r) => r[0] === "Yearly")).toBe(true);
@@ -248,5 +223,28 @@ describe("cashFlowCsvFilename", () => {
 		expect(() => cashFlowCsvFilename("2026-02-30", "2026-03-31")).toThrow(
 			RangeError,
 		);
+	});
+});
+
+describe("the cash flow's lines", () => {
+	it("lists no line or activity the data model has no source for", () => {
+		// Each read $0 for every owner: nothing records a purchase, an
+		// improvement, a loan, a mortgage payment or a distribution.
+		const view = buildCashFlowView(cashFlowData());
+		const lines = [...view.inflowItems, ...view.outflowItems].map(
+			(i) => i.category,
+		);
+		for (const gone of [
+			"Loan Proceeds",
+			"Maintenance Paid",
+			"Property Acquisitions",
+			"Property Improvements",
+			"Mortgage Payments",
+			"Owner Distributions",
+			"Operating Expenses Paid",
+		]) {
+			expect(lines).not.toContain(gone);
+		}
+		expect(Object.keys(view)).not.toContain("netInvestingCash");
 	});
 });
