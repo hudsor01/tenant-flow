@@ -1,6 +1,6 @@
 import { ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import type { CashFlowCategory } from "#types/financial-statements";
 
 interface CashFlowBreakdownProps {
@@ -37,7 +37,7 @@ export function CashFlowBreakdown({
 											{item.percentage.toFixed(1)}%
 										</span>
 										<span className="text-sm font-medium text-success-text tabular-nums">
-											{formatCents(item.amount * 100)}
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
@@ -59,7 +59,7 @@ export function CashFlowBreakdown({
 								Total Inflows
 							</span>
 							<span className="text-sm font-semibold text-success-text tabular-nums">
-								{formatCents(totalInflows * 100)}
+								{formatCurrency(totalInflows)}
 							</span>
 						</div>
 					</div>
@@ -83,7 +83,7 @@ export function CashFlowBreakdown({
 											{item.percentage.toFixed(1)}%
 										</span>
 										<span className="text-sm font-medium text-destructive-text tabular-nums">
-											{formatCents(item.amount * 100)}
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
@@ -105,7 +105,7 @@ export function CashFlowBreakdown({
 								Total Outflows
 							</span>
 							<span className="text-sm font-semibold text-destructive-text tabular-nums">
-								{formatCents(totalOutflows * 100)}
+								{formatCurrency(totalOutflows)}
 							</span>
 						</div>
 					</div>

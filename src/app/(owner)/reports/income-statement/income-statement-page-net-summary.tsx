@@ -1,5 +1,5 @@
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface PreviousPeriod {
 	netIncome: number;
@@ -31,7 +31,7 @@ export function IncomeStatementPageNetSummary({
 					<div className="flex justify-between py-2 border-b border-border">
 						<span className="text-sm text-foreground">Total Revenue</span>
 						<span className="text-sm font-medium text-success-text tabular-nums">
-							{formatCents(totalRevenue * 100)}
+							{formatCurrency(totalRevenue)}
 						</span>
 					</div>
 					<div className="flex justify-between py-2 border-b border-border">
@@ -39,14 +39,14 @@ export function IncomeStatementPageNetSummary({
 							Total Operating Expenses
 						</span>
 						<span className="text-sm font-medium text-destructive-text tabular-nums">
-							-{formatCents(totalExpenses * 100)}
+							-{formatCurrency(totalExpenses)}
 						</span>
 					</div>
 					{grossProfit !== undefined && (
 						<div className="flex justify-between py-2 border-b border-border">
 							<span className="text-sm text-foreground">Gross Profit</span>
 							<span className="text-sm font-medium text-foreground tabular-nums">
-								{formatCents((grossProfit || 0) * 100)}
+								{formatCurrency(grossProfit || 0)}
 							</span>
 						</div>
 					)}
@@ -54,7 +54,7 @@ export function IncomeStatementPageNetSummary({
 						<div className="flex justify-between py-2 border-b border-border">
 							<span className="text-sm text-foreground">Operating Income</span>
 							<span className="text-sm font-medium text-foreground tabular-nums">
-								{formatCents((operatingIncome || 0) * 100)}
+								{formatCurrency(operatingIncome || 0)}
 							</span>
 						</div>
 					)}
@@ -65,7 +65,7 @@ export function IncomeStatementPageNetSummary({
 						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-success-text" : "text-destructive-text"}`}
 					>
 						{netIncome >= 0 ? "+" : ""}
-						{formatCents(netIncome * 100)}
+						{formatCurrency(netIncome)}
 					</span>
 				</div>
 				{previousPeriod && (
@@ -76,7 +76,7 @@ export function IncomeStatementPageNetSummary({
 						<div className="flex items-center gap-2">
 							<span className="text-sm text-foreground">Previous Period:</span>
 							<span className="text-sm font-medium tabular-nums">
-								{formatCents(previousPeriod.netIncome * 100)}
+								{formatCurrency(previousPeriod.netIncome)}
 							</span>
 							<span
 								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? "text-success-text" : "text-destructive-text"}`}

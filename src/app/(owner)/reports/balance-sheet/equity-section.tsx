@@ -1,5 +1,5 @@
 import { Wallet } from "lucide-react";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import type { FinancialLineItem } from "#types/financial-statements";
 
 export function EquitySection({
@@ -23,7 +23,7 @@ export function EquitySection({
 					>
 						<span className="text-sm">{item.name}</span>
 						<span className="text-sm font-medium tabular-nums">
-							{formatCents(item.amount * 100)}
+							{formatCurrency(item.amount)}
 						</span>
 					</div>
 				))}
@@ -32,7 +32,7 @@ export function EquitySection({
 				<div className="flex items-center justify-between">
 					<span className="text-sm font-semibold">Total Equity</span>
 					<span className="text-lg font-bold text-primary-text tabular-nums">
-						{formatCents(totalEquity * 100)}
+						{formatCurrency(totalEquity)}
 					</span>
 				</div>
 			</div>

@@ -23,7 +23,7 @@ export const INCOME_STATEMENT_CSV_HEADER = [
 	"Amount",
 ] as const;
 
-/** The page renders every amount in US dollars (`formatCents`, `$`). */
+/** The page renders every amount in US dollars (`formatCurrency`, `$`). */
 const CURRENCY = "USD";
 
 const PERIOD_LABELS: Record<string, string> = {

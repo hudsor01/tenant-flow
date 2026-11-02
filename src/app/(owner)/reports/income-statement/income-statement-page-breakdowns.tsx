@@ -1,6 +1,6 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import type { IncomeStatementLine } from "./income-statement-view";
 
 interface IncomeStatementPageBreakdownsProps {
@@ -43,7 +43,7 @@ export function IncomeStatementPageBreakdowns({
 											{item.share.toFixed(1)}%
 										</span>
 										<span className="text-sm font-medium text-foreground tabular-nums">
-											{formatCents(item.amount * 100)}
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
@@ -54,7 +54,7 @@ export function IncomeStatementPageBreakdowns({
 								Total Revenue
 							</span>
 							<span className="text-sm font-semibold text-success-text tabular-nums">
-								{formatCents(totalRevenue * 100)}
+								{formatCurrency(totalRevenue)}
 							</span>
 						</div>
 					</div>
@@ -86,7 +86,7 @@ export function IncomeStatementPageBreakdowns({
 											{item.share.toFixed(1)}%
 										</span>
 										<span className="text-sm font-medium text-foreground tabular-nums">
-											{formatCents(item.amount * 100)}
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
@@ -97,7 +97,7 @@ export function IncomeStatementPageBreakdowns({
 								Total Expenses
 							</span>
 							<span className="text-sm font-semibold text-destructive-text tabular-nums">
-								{formatCents(totalExpenses * 100)}
+								{formatCurrency(totalExpenses)}
 							</span>
 						</div>
 					</div>

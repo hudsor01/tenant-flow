@@ -1,5 +1,5 @@
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface CashFlowActivityProps {
 	netOperatingCash: number;
@@ -21,7 +21,7 @@ export function CashFlowActivity({
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					<div className="text-center p-4 bg-success/10 rounded-lg">
 						<p className="text-2xl font-semibold text-success-text tabular-nums">
-							{formatCents(netOperatingCash * 100)}
+							{formatCurrency(netOperatingCash)}
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
 							Operating Activities
@@ -29,7 +29,7 @@ export function CashFlowActivity({
 					</div>
 					<div className="text-center p-4 bg-destructive/10 rounded-lg">
 						<p className="text-2xl font-semibold text-destructive-text tabular-nums">
-							{formatCents(netInvestingCash * 100)}
+							{formatCurrency(netInvestingCash)}
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
 							Investing Activities
@@ -37,7 +37,7 @@ export function CashFlowActivity({
 					</div>
 					<div className="text-center p-4 bg-primary/5 rounded-lg">
 						<p className="text-2xl font-semibold text-foreground tabular-nums">
-							{formatCents(netFinancingCash * 100)}
+							{formatCurrency(netFinancingCash)}
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
 							Financing Activities

@@ -1,5 +1,5 @@
 import { Check, X } from "lucide-react";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 
 export function BalanceEquationCheck({
 	totalAssets,
@@ -18,15 +18,15 @@ export function BalanceEquationCheck({
 		>
 			<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
 				<span className="font-medium">
-					Assets ({formatCents(totalAssets * 100)})
+					Assets ({formatCurrency(totalAssets)})
 				</span>
 				<span className="text-muted-foreground">=</span>
 				<span className="font-medium">
-					Liabilities ({formatCents(totalLiabilities * 100)})
+					Liabilities ({formatCurrency(totalLiabilities)})
 				</span>
 				<span className="text-muted-foreground">+</span>
 				<span className="font-medium">
-					Equity ({formatCents(totalEquity * 100)})
+					Equity ({formatCurrency(totalEquity)})
 				</span>
 				{isBalanced ? (
 					<span className="text-success-text font-medium inline-flex items-center gap-1">

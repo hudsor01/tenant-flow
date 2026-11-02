@@ -4,7 +4,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 
 interface OwnerPaymentSummaryProps {
@@ -25,7 +25,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 				<CardHeader>
 					<CardDescription>Late fees cumulative</CardDescription>
 					<CardTitle className="typography-h3 text-destructive-text">
-						{formatCents(values.lateFeeTotal)}
+						{formatCurrency(values.lateFeeTotal)}
 					</CardTitle>
 				</CardHeader>
 			</Card>
@@ -33,7 +33,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 				<CardHeader>
 					<CardDescription>Unpaid invoice total</CardDescription>
 					<CardTitle className="typography-h3">
-						{formatCents(values.unpaidTotal)}
+						{formatCurrency(values.unpaidTotal)}
 					</CardTitle>
 				</CardHeader>
 			</Card>

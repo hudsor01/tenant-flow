@@ -19,7 +19,7 @@ export const BALANCE_SHEET_CSV_HEADER = [
 	"Amount",
 ] as const;
 
-/** The page renders every amount in US dollars (`formatCents`, `$`). */
+/** The page renders every amount in US dollars (`formatCurrency`, `$`). */
 const CURRENCY = "USD";
 
 export function balanceSheetCsvFilename(asOfDate: string): string {
