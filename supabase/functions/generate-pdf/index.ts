@@ -1,6 +1,8 @@
 // Supabase Edge Function: generate-pdf
 // Accepts three request modes:
 //   1. { reportType, year }   — server-side report data fetch + HTML build
+//      (`financial-analytics` prints the /analytics/financial export, the same
+//      document export-report's pdf format prints; `year` is not used for it)
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
 //   3. { leaseId }            — fetch lease+property data, build HTML summary
 // Calls the self-hosted StirlingPDF k3s instance and streams the resulting PDF blob.
@@ -17,7 +19,13 @@ import {
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
+import {
+	buildFinancialAnalyticsTable,
+	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	loadFinancialAnalyticsSources,
+} from "../_shared/financial-analytics-report.ts";
 import { reportColumns } from "../_shared/report-csv.ts";
+import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	checkTierEntitlement,
@@ -33,6 +41,7 @@ const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
 	"1099",
 	"financial",
+	"financial-analytics",
 	"income-statement",
 	"cash-flow",
 ]);
@@ -246,7 +255,17 @@ async function buildLeasePreviewHtml(
 </html>`;
 }
 
-Deno.serve(async (req: Request) => {
+/** Injectable dependencies for `deno test` (mirrors lease-signature). */
+export interface GeneratePdfDeps {
+	createClient?: (url: string, key: string) => SupabaseClient;
+	now?: () => Date;
+}
+
+/** Core request handler, exported so the Deno test drives it directly. */
+export async function handleRequest(
+	req: Request,
+	deps: GeneratePdfDeps = {},
+): Promise<Response> {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
 
@@ -259,7 +278,8 @@ Deno.serve(async (req: Request) => {
 			],
 		});
 
-		const supabase = createAdminClient(
+		const makeClient = deps.createClient ?? createAdminClient;
+		const supabase = makeClient(
 			env["SUPABASE_URL"],
 			env["SUPABASE_SERVICE_ROLE_KEY"],
 		);
@@ -341,13 +361,33 @@ Deno.serve(async (req: Request) => {
 				if (entitlementBlock) return entitlementBlock;
 			}
 
-			const rows = await fetchReportRows(
-				supabase,
-				user.id,
-				body.reportType,
-				body.year,
-			);
-			html = buildReportHtml(body.reportType, body.year, rows);
+			if (body.reportType === FINANCIAL_ANALYTICS_REPORT_TYPE) {
+				const load = await loadFinancialAnalyticsSources(
+					(name, args) => supabase.rpc(name, args),
+					user.id,
+				);
+				if (!load.ok) {
+					return errorResponse(req, 500, load.error, {
+						action: "generate_pdf_rpc",
+						rpc: load.rpc,
+					});
+				}
+				const table = buildFinancialAnalyticsTable(load.sources);
+				html = sectionedReportHtml(
+					"Financial Analytics",
+					(deps.now ?? (() => new Date()))().toISOString().slice(0, 10),
+					table.header,
+					table.rows,
+				);
+			} else {
+				const rows = await fetchReportRows(
+					supabase,
+					user.id,
+					body.reportType,
+					body.year,
+				);
+				html = buildReportHtml(body.reportType, body.year, rows);
+			}
 		}
 
 		const formData = new FormData();
@@ -398,4 +438,12 @@ Deno.serve(async (req: Request) => {
 		}
 		return errorResponse(req, 500, err, { action: "generate_pdf" });
 	}
-});
+}
+
+// The handler registers Deno.serve() as a module side-effect (like every edge fn
+// in this repo). The unit test sets DENO_TEST_NO_SERVE=1 and dynamic-imports this
+// module, driving handleRequest() directly, so no real listener binds during
+// `deno test`. In prod the var is never set, so Deno.serve always runs.
+if (!Deno.env.get("DENO_TEST_NO_SERVE")) {
+	Deno.serve((req: Request) => handleRequest(req));
+}

@@ -21,10 +21,17 @@ import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
 import {
+	buildFinancialAnalyticsTable,
+	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	loadFinancialAnalyticsSources,
+} from "../_shared/financial-analytics-report.ts";
+import {
 	reportColumns,
 	rowsToCsv,
 	rowsToTable,
+	tableToCsv,
 } from "../_shared/report-csv.ts";
+import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { reportTableToXlsx, XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
@@ -34,11 +41,13 @@ import {
 
 // Report types gated behind Growth/Max (REQ-46-02).
 // Free-tier keeps basic reports (maintenance, default revenue trends) so the
-// product is usable without upgrading; tax-prep + year-end reports require paid.
+// product is usable without upgrading; tax-prep, year-end and the financial
+// analytics export require paid.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
 	"1099",
 	"financial",
+	"financial-analytics",
 	"income-statement",
 	"cash-flow",
 ]);
@@ -226,17 +235,37 @@ export async function handleRequest(
 			if (entitlementBlock) return entitlementBlock;
 		}
 
-		const result = await fetchReportRows(supabase, user.id, reportType, year);
-		if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
-		const table = rowsToTable(result.rows);
-		const content: ReportContent = {
-			title: `${reportType.replace(/-/g, " ").toUpperCase()} REPORT ${year}`,
-			filename: rowsReportFilename(reportType, year),
-			header: table.header.length > 0 ? table.header : ["No data available"],
-			rows: table.rows,
-			csv: rowsToCsv(result.rows),
-			html: buildReportHtml(result.rows, reportType, year),
-		};
+		const today = now.toISOString().slice(0, 10);
+		let content: ReportContent;
+		if (reportType === FINANCIAL_ANALYTICS_REPORT_TYPE) {
+			const load = await loadFinancialAnalyticsSources(
+				(name, args) => supabase.rpc(name, args),
+				user.id,
+			);
+			if (!load.ok) return rpcErrorResponse(req, load.rpc, load.error);
+			const table = buildFinancialAnalyticsTable(load.sources);
+			const title = "Financial Analytics";
+			content = {
+				title,
+				filename: `${FINANCIAL_ANALYTICS_REPORT_TYPE}-${today}`,
+				header: table.header,
+				rows: table.rows,
+				csv: tableToCsv(table.header, table.rows),
+				html: sectionedReportHtml(title, today, table.header, table.rows),
+			};
+		} else {
+			const result = await fetchReportRows(supabase, user.id, reportType, year);
+			if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
+			const table = rowsToTable(result.rows);
+			content = {
+				title: `${reportType.replace(/-/g, " ").toUpperCase()} REPORT ${year}`,
+				filename: rowsReportFilename(reportType, year),
+				header: table.header.length > 0 ? table.header : ["No data available"],
+				rows: table.rows,
+				csv: rowsToCsv(result.rows),
+				html: buildReportHtml(result.rows, reportType, year),
+			};
+		}
 
 		// PDF format: delegate to generate-pdf Edge Function (StirlingPDF on k3s)
 		if (format === "pdf") {

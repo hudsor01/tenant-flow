@@ -147,10 +147,13 @@ describe("the report Edge Functions use the leaf", () => {
 
 	it("export-report imports its CSV writer and columns from the leaf", () => {
 		expect(exportReport).toMatch(
-			/import \{\s*reportColumns,\s*rowsToCsv,\s*rowsToTable,\s*\} from "\.\.\/_shared\/report-csv\.ts";/,
+			/import \{\s*reportColumns,\s*rowsToCsv,\s*rowsToTable,\s*tableToCsv,\s*\} from "\.\.\/_shared\/report-csv\.ts";/,
 		);
 		expect(exportReport).not.toMatch(/function (rowsToCsv|tableToCsv)\b/);
 		expect(exportReport).toMatch(/csv: rowsToCsv\(result\.rows\),/);
+		expect(exportReport).toMatch(
+			/csv: tableToCsv\(table\.header, table\.rows\),/,
+		);
 		expect(exportReport).toMatch(/const headers = reportColumns\(rows\);/);
 	});
 

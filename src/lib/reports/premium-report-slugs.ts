@@ -17,6 +17,7 @@ export const PREMIUM_REPORT_SLUGS: ReadonlySet<string> = new Set([
 	"year-end",
 	"1099",
 	"financial",
+	"financial-analytics",
 	"income-statement",
 	"cash-flow",
 ]);

@@ -3,8 +3,13 @@
 // `functions serve`, no deploy (mirrors lease-signature-metering-test.ts).
 //
 // What it pins:
-//   - a row report's xlsx is a real .xlsx (parsed back here with the same
-//     SheetJS build);
+//   - the function reads the query string and ignores a request body;
+//   - financial-analytics writes the leaf's table (the page's figures) as CSV,
+//     as a real .xlsx (parsed back here with the same SheetJS build: sheet,
+//     cells, cell types, a leading `=` kept as text) and as PDF through the
+//     generate-pdf delegate;
+//   - the paywall: a free-tier owner gets the 402 with upgrade_url and no RPC
+//     runs;
 //   - every RPC error is a 500 and never a file;
 //   - format and year are validated, and a year-end export reads that year.
 //
@@ -16,6 +21,11 @@ import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
 // @deno-types="https://cdn.sheetjs.com/xlsx-0.20.3/package/types/index.d.ts"
 import * as XLSX from "xlsx";
+import {
+	buildFinancialAnalyticsTable,
+	FINANCIAL_ANALYTICS_HEADER,
+} from "../_shared/financial-analytics-report.ts";
+import { tableToCsv } from "../_shared/report-csv.ts";
 import { XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 
 Deno.env.set("DENO_TEST_NO_SERVE", "1");
@@ -27,6 +37,7 @@ const { handleRequest } = await import("../export-report/index.ts");
 
 const OWNER_ID = "owner-1";
 const NOW = new Date("2026-11-01T18:30:00Z");
+const TODAY = "2026-11-01";
 
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
 
@@ -134,6 +145,43 @@ function makeClient(s: Scenario): { client: SupabaseClient; calls: Calls } {
 	return { client, calls };
 }
 
+interface PdfPost {
+	url: string;
+	authorization: string | null;
+	body: { html: string; filename: string };
+}
+
+/** Stub the generate-pdf delegate; record every POST. */
+async function withPdfStub(
+	ok: boolean,
+	fn: (posts: PdfPost[]) => Promise<void>,
+): Promise<void> {
+	const prev = globalThis.fetch;
+	const posts: PdfPost[] = [];
+	globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+		const url =
+			typeof input === "string"
+				? input
+				: input instanceof URL
+					? input.href
+					: input.url;
+		const headers = new Headers(init?.headers);
+		posts.push({
+			url,
+			authorization: headers.get("Authorization"),
+			body: JSON.parse(String(init?.body)),
+		});
+		return ok
+			? new Response(new Uint8Array([37, 80, 68, 70]), { status: 200 })
+			: new Response("stirling down", { status: 503 });
+	}) as typeof fetch;
+	try {
+		await fn(posts);
+	} finally {
+		globalThis.fetch = prev;
+	}
+}
+
 function get(query: string, init: RequestInit = {}): Request {
 	return new Request(
 		`https://supabase.test/functions/v1/export-report${query}`,
@@ -158,9 +206,175 @@ async function run(req: Request, s: Scenario) {
 	return { res, calls };
 }
 
+/** The table the leaf builds from the scenario's answers. */
+function expectedTable(s: Scenario) {
+	return buildFinancialAnalyticsTable({
+		overview: s.rpc.get_financial_overview?.data,
+		revenueTrends: s.rpc.get_revenue_trends_optimized?.data,
+		expenseSummary: s.rpc.get_expense_summary?.data,
+		billingInsights: s.rpc.get_billing_insights?.data,
+	});
+}
+
 const FA = "?type=financial-analytics";
 
+Deno.test("financial-analytics csv is the leaf's table, from the four page RPCs", async () => {
+	const s = scenario();
+	const { res, calls } = await run(get(`${FA}&format=csv`), s);
+	assertEquals(res.status, 200);
+	const table = expectedTable(s);
+	const body = await res.text();
+	assertEquals(body, tableToCsv(table.header, table.rows));
+	assertEquals(res.headers.get("Content-Type"), "text/csv; charset=utf-8");
+	assertEquals(
+		res.headers.get("Content-Disposition"),
+		`attachment; filename="financial-analytics-${TODAY}.csv"`,
+	);
+	const lines = body.split("\n");
+	assertEquals(lines[0], FINANCIAL_ANALYTICS_HEADER.join(","));
+	assert(
+		lines.includes("Overview,Collected,0.3,,,"),
+		"collected rounds to cents",
+	);
+	assert(lines.includes("Expense Breakdown,'=HYPERLINK(1),120,,,"));
+	assert(lines.includes('Expense Breakdown,"Roof, Gutter & Co",2000.5,,,'));
+	assertEquals(calls.rpcs.map((c) => c.name).sort(), [
+		"get_billing_insights",
+		"get_expense_summary",
+		"get_financial_overview",
+		"get_revenue_trends_optimized",
+	]);
+	assertEquals(
+		calls.rpcs.find((c) => c.name === "get_financial_overview")?.args,
+		{ p_user_id: OWNER_ID },
+	);
+});
+
+Deno.test("financial-analytics xlsx is a real workbook with typed cells", async () => {
+	const s = scenario();
+	const { res } = await run(get(`${FA}&format=xlsx`), s);
+	assertEquals(res.status, 200);
+	const bytes = new Uint8Array(await res.arrayBuffer());
+	// An .xlsx is a zip: the local file header magic "PK\x03\x04".
+	assertEquals([...bytes.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
+	assertEquals(res.headers.get("Content-Type"), XLSX_MIME_TYPE);
+	assertEquals(
+		res.headers.get("Content-Disposition"),
+		`attachment; filename="financial-analytics-${TODAY}.xlsx"`,
+	);
+
+	const workbook = XLSX.read(bytes, { type: "array" });
+	assertEquals(workbook.SheetNames, ["Financial Analytics"]);
+	const sheet = workbook.Sheets["Financial Analytics"];
+	assert(sheet, "the sheet exists");
+
+	const table = expectedTable(s);
+	const grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
+		header: 1,
+		defval: null,
+	});
+	assertEquals(grid, [[...table.header], ...table.rows.map((row) => [...row])]);
+
+	// Types: text cells are strings, figures are numbers, no cell is a formula.
+	assertEquals(sheet.A1?.t, "s");
+	assertEquals(sheet.A1?.v, "Section");
+	const scheduled = sheet.C2;
+	assertEquals(sheet.B2?.v, "Scheduled");
+	assertEquals(scheduled?.t, "n");
+	assertEquals(scheduled?.v, 61200);
+	const formulaText = Object.entries(sheet).find(
+		([address, cell]) =>
+			!address.startsWith("!") &&
+			(cell as XLSX.CellObject).v === "=HYPERLINK(1)",
+	);
+	assert(formulaText, "the formula-like category is in the sheet");
+	const cell = formulaText[1] as XLSX.CellObject;
+	assertEquals(cell.t, "s");
+	assertEquals(cell.f, undefined);
+	for (const [address, value] of Object.entries(sheet)) {
+		if (address.startsWith("!")) continue;
+		assertEquals((value as XLSX.CellObject).f, undefined, address);
+	}
+});
+
+Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", async () => {
+	await withPdfStub(true, async (posts) => {
+		const { res } = await run(get(`${FA}&format=pdf`), scenario());
+		assertEquals(res.status, 200);
+		assertEquals(posts.length, 1);
+		const post = posts[0];
+		assert(post);
+		assertEquals(post.url, "http://supabase.test/functions/v1/generate-pdf");
+		assertEquals(post.authorization, "Bearer user-jwt");
+		for (const heading of [
+			"Overview",
+			"Payment Summary",
+			"Revenue &amp; Expenses",
+			"Expense Breakdown",
+			"Net Operating Income",
+		]) {
+			assertStringIncludes(post.body.html, `<h2>${heading}</h2>`);
+		}
+		assertStringIncludes(post.body.html, "Roof, Gutter &amp; Co");
+		assertStringIncludes(post.body.html, '<td class="td">=HYPERLINK(1)</td>');
+		assertStringIncludes(post.body.html, `Generated: ${TODAY}`);
+		assertEquals(post.body.filename, `financial-analytics-${TODAY}.pdf`);
+		assertEquals(res.headers.get("Content-Type"), "application/pdf");
+		assertEquals(
+			res.headers.get("Content-Disposition"),
+			`attachment; filename="financial-analytics-${TODAY}.pdf"`,
+		);
+		assertEquals(
+			[...new Uint8Array(await res.arrayBuffer())],
+			[37, 80, 68, 70],
+		);
+	});
+});
+
+Deno.test("a generate-pdf failure is a 502, not a file", async () => {
+	await withPdfStub(false, async () => {
+		const { res } = await run(get(`${FA}&format=pdf`), scenario());
+		assertEquals(res.status, 502);
+		assertEquals(await res.json(), { error: "An error occurred" });
+	});
+});
+
+Deno.test("a free-tier owner gets the 402 with upgrade_url, and no RPC runs", async () => {
+	for (const format of ["csv", "xlsx", "pdf"]) {
+		const { res, calls } = await run(
+			get(`${FA}&format=${format}`),
+			scenario({ plan: "free", status: "active" }),
+		);
+		assertEquals(res.status, 402);
+		const body = (await res.json()) as {
+			upgrade_required?: boolean;
+			upgrade_url?: string;
+		};
+		assertEquals(body.upgrade_required, true);
+		assertEquals(body.upgrade_url, "/billing/plans?source=reports_gate");
+		assertEquals(calls.rpcs.length, 0);
+		assertEquals(calls.gateEvents, 1);
+	}
+});
+
 Deno.test("every RPC error is a 500 and never a file", async () => {
+	for (const rpc of [
+		"get_financial_overview",
+		"get_revenue_trends_optimized",
+		"get_expense_summary",
+		"get_billing_insights",
+	]) {
+		for (const format of ["csv", "xlsx", "pdf"]) {
+			await withPdfStub(true, async (posts) => {
+				const s = scenario();
+				s.rpc[rpc] = { data: null, error: { message: "permission denied" } };
+				const { res } = await run(get(`${FA}&format=${format}`), s);
+				assertEquals(res.status, 500, `${rpc} ${format}`);
+				assertEquals(await res.json(), { error: "An error occurred" });
+				assertEquals(posts.length, 0);
+			});
+		}
+	}
 	for (const type of ["year-end", "1099", "maintenance", "revenue"]) {
 		const s = scenario();
 		for (const name of Object.keys(s.rpc)) {
@@ -169,6 +383,29 @@ Deno.test("every RPC error is a 500 and never a file", async () => {
 		const { res } = await run(get(`?type=${type}&format=csv&year=2026`), s);
 		assertEquals(res.status, 500, type);
 	}
+});
+
+Deno.test("an RPC shape the page cannot render is a 500", async () => {
+	const s = scenario();
+	s.rpc.get_revenue_trends_optimized = { data: { month: "x" }, error: null };
+	const { res } = await run(get(`${FA}&format=csv`), s);
+	assertEquals(res.status, 500);
+});
+
+Deno.test("the query string is read and a request body is ignored", async () => {
+	const s = scenario();
+	const { res } = await run(
+		get(`${FA}&format=csv`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ format: "pdf", type: "maintenance", payload: {} }),
+		}),
+		s,
+	);
+	assertEquals(res.status, 200);
+	assertEquals(res.headers.get("Content-Type"), "text/csv; charset=utf-8");
+	const table = expectedTable(s);
+	assertEquals(await res.text(), tableToCsv(table.header, table.rows));
 });
 
 Deno.test("format and year are validated", async () => {
