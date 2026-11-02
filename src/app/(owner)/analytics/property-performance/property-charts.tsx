@@ -5,7 +5,6 @@ import {
 	Bar,
 	BarChart,
 	CartesianGrid,
-	Legend,
 	Line,
 	LineChart,
 	Tooltip,
@@ -14,7 +13,11 @@ import {
 } from "recharts";
 
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
-import { ChartTooltipContent } from "#components/ui/chart-tooltip";
+import {
+	ChartLegend,
+	ChartLegendContent,
+	ChartTooltipContent,
+} from "#components/ui/chart-tooltip";
 import {
 	Empty,
 	EmptyDescription,
@@ -113,7 +116,7 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 					/>
 				)}
 				<Tooltip content={<ChartTooltipContent />} />
-				<Legend />
+				<ChartLegend content={<ChartLegendContent />} />
 				<Bar
 					yAxisId="occupancy"
 					dataKey="occupancy"
@@ -164,7 +167,7 @@ export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />
 				<YAxis tickLine={false} axisLine={false} />
 				<Tooltip content={<ChartTooltipContent indicator="line" />} />
-				<Legend />
+				<ChartLegend content={<ChartLegendContent />} />
 				<Line
 					type="monotone"
 					dataKey="visits"
