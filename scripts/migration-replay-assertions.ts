@@ -1175,8 +1175,8 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		);
 	}
 	const ytd = atPath(printed, "expenses_c_year_to_date");
+	// A missing call is no old body: its change reads undefined, not null.
 	if (
-		asJsonObject(ytd) !== null &&
 		atPath(printed, "expenses_c_year_to_date.year_over_year_change") === null &&
 		!hasKey(ytd, "year_over_year_prior_period")
 	) {

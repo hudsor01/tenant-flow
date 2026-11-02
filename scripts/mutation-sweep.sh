@@ -234,8 +234,6 @@ mutate "$REPLAY" 'asJsonObject(atPath(printed, "dashboard_v2_a.units")) !== null
                  'a missing v2 payload is called the old body'
 mutate "$REPLAY" '!hasKey(atPath(printed, "dashboard_v2_a.units"), "occupancyChangeWindow")' 'false' \
                  'the v2 diagnosis is removed'
-mutate "$REPLAY" 'asJsonObject(ytd) !== null &&' '' \
-                 'a missing year-to-date call is called the old body'
 mutate "$REPLAY" 'atPath(printed, "expenses_c_year_to_date.year_over_year_change") === null &&' '' \
                  'the expense diagnosis ignores the change'
 mutate "$REPLAY" '!hasKey(ytd, "year_over_year_prior_period")' 'true' \
@@ -244,7 +242,9 @@ mutate "$REPLAY" 'atPath(printed, "maintenance_a.total_cost") === 0 &&' '' \
                  'the maintenance diagnosis ignores the cost'
 mutate "$REPLAY" '!hasKey(maintenance, "costed_requests")' 'true' \
                  'the maintenance diagnosis ignores costed_requests'
-mutate "$REPLAY" 'if (hasKey(atPath(printed, "overview_a_window.overview"), "accounts_receivable")) {' 'if (false) {' \
+mutate "$REPLAY" 'hasKey(atPath(printed, "overview_a_window.overview"), "accounts_receivable")
+	) {' 'false
+	) {' \
                  'the financial-overview diagnosis is removed'
 mutate "$REPLAY" 'if (!hasKey(parent, key)) {' 'if (false) {' \
                  'an absent owner figure is reported as undefined, not absent'
