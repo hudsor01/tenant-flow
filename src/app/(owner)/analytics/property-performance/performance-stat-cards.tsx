@@ -10,6 +10,7 @@ import {
 	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
+import { formatDate } from "#lib/formatters/date";
 import { formatNumber } from "#lib/utils/currency";
 import type { PropertyPerformanceSummary } from "#types/analytics";
 
@@ -83,19 +84,31 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 
 			<BlurFade delay={0.5}>
 				<Stat className="relative overflow-hidden">
-					<StatLabel>Monthly revenue</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5">
-						<NumberTicker
-							value={metrics.totalRevenue}
-							duration={1500}
-							currency
-							symbolClassName="text-lg mr-0.5"
-						/>
-					</StatValue>
+					<StatLabel>Rent received</StatLabel>
+					{metrics.rentReceived === null ? (
+						<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
+							Unavailable
+						</StatValue>
+					) : (
+						<StatValue className="flex items-baseline gap-0.5">
+							<NumberTicker
+								value={metrics.rentReceived}
+								duration={1500}
+								currency
+								symbolClassName="text-lg mr-0.5"
+							/>
+						</StatValue>
+					)}
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
 					</StatIndicator>
-					<StatDescription>Combined across properties</StatDescription>
+					<StatDescription>
+						{metrics.rentReceivedWindow
+							? `${formatDate(metrics.rentReceivedWindow.start_date)} to ${formatDate(metrics.rentReceivedWindow.end_date)}, all properties`
+							: metrics.rentReceived === null
+								? "Your rent ledger's totals aren't available yet"
+								: "Last 30 days, all properties"}
+					</StatDescription>
 				</Stat>
 			</BlurFade>
 		</div>

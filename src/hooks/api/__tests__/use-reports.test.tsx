@@ -448,7 +448,7 @@ describe("reportAnalyticsQueries.properties", () => {
 					total_revenue: 120000,
 					total_expenses: 30000,
 					net_income: 90000,
-					timeframe: "2024",
+					timeframe: "2024-01-01/2024-12-31",
 				},
 				{
 					property_id: "p2",
@@ -457,7 +457,7 @@ describe("reportAnalyticsQueries.properties", () => {
 					total_revenue: 80000,
 					total_expenses: 20000,
 					net_income: 60000,
-					timeframe: "2024",
+					timeframe: "2024-01-01/2024-12-31",
 				},
 			],
 			error: null,
@@ -480,8 +480,72 @@ describe("reportAnalyticsQueries.properties", () => {
 		expect(result.current.data?.byProperty?.[0]?.propertyName).toBe(
 			"Maple Court",
 		);
+		expect(result.current.data?.byProperty?.[1]?.rentReceived).toBe(80000);
+		// The export's own period, not the function's 30-day default.
 		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
 			p_user_id: "user-1",
+			p_timeframe: "2024-01-01..2024-12-31",
+		});
+	});
+
+	it.each([
+		[
+			"the body before 20261102163709, which echoes the request",
+			"2024-01-01..2024-12-31",
+		],
+		["a body that computed another window", "2024-12-02/2024-12-31"],
+		["no window at all", null],
+	])("reports no rent received from %s", async (_what, timeframe) => {
+		mockRpc.mockResolvedValueOnce({
+			data: [
+				{
+					property_id: "p1",
+					property_name: "Maple Court",
+					occupancy_rate: 90,
+					total_revenue: 0,
+					total_expenses: 300,
+					net_income: -300,
+					timeframe,
+				},
+			],
+			error: null,
+		});
+
+		const { result } = renderHook(
+			() =>
+				useQuery(reportAnalyticsQueries.properties("2024-01-01", "2024-12-31")),
+			{ wrapper: createWrapper() },
+		);
+
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+
+		expect(result.current.data?.byProperty).toEqual([
+			{
+				propertyId: "p1",
+				propertyName: "Maple Court",
+				occupancyRate: 90,
+				vacantUnits: 0,
+				rentReceived: null,
+				expenses: null,
+				netIncome: null,
+			},
+		]);
+	});
+
+	it("asks for the trailing 30 days when the report has no period", async () => {
+		mockRpc.mockResolvedValueOnce({ data: [], error: null });
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.properties()),
+			{ wrapper: createWrapper() },
+		);
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
+			p_user_id: "user-1",
+			p_timeframe: "30d",
 		});
 	});
 
@@ -1007,7 +1071,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(result.current.data?.totalReported).toBe(23001);
 	});
 
-	it("reportAnalyticsQueries.properties keeps per-property revenue/expenses/net in dollars", async () => {
+	it("reportAnalyticsQueries.properties keeps per-property rent received/expenses/net in dollars", async () => {
 		mockRpc.mockResolvedValueOnce({
 			data: [
 				{
@@ -1017,7 +1081,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 					total_revenue: 123456.78,
 					total_expenses: 23456.12,
 					net_income: 100000.66,
-					timeframe: "2024",
+					timeframe: "2024-01-01/2024-12-31",
 				},
 			],
 			error: null,
@@ -1035,8 +1099,8 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 
 		const prop = result.current.data?.byProperty?.[0];
 		// magnitude preserved: no *100 (12345678) or /100 (1234.5678).
-		expect(prop?.revenue).toBe(123456.78);
+		expect(prop?.rentReceived).toBe(123456.78);
 		expect(prop?.expenses).toBe(23456.12);
-		expect(prop?.netOperatingIncome).toBe(100000.66);
+		expect(prop?.netIncome).toBe(100000.66);
 	});
 });

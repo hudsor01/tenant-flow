@@ -36,7 +36,8 @@ const PROPERTY_PERFORMANCE = {
 		totalUnits: 2,
 		occupiedUnits: 1,
 		averageOccupancy: 50,
-		totalRevenue: 1500,
+		rentReceived: 1500,
+		rentReceivedWindow: { start_date: "2026-10-03", end_date: "2026-11-02" },
 	},
 	performance: [],
 	units: [],
@@ -120,7 +121,7 @@ describe("analytics chart rows span two of three tracks", () => {
 		[
 			"property performance",
 			"../property-performance/page",
-			"Occupancy & revenue by property",
+			"Occupancy & rent received by property",
 		],
 		["financial", "../financial/page", "Revenue & Expenses"],
 	])("%s: the span sits on the grid item", async (_name, modulePath, title) => {

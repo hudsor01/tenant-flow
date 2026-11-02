@@ -334,12 +334,26 @@ export interface OccupancyAnalyticsPageResponse {
 	vacancyAnalysis: VacancyAnalysisEntry[];
 }
 
+/**
+ * The days a rent-received figure covers, both included: the window
+ * get_property_performance_analytics states in its `timeframe` column
+ * (20261102163709).
+ */
+export interface RentReceivedWindow {
+	start_date: string;
+	end_date: string;
+}
+
 export interface PropertyPerformanceEntry {
 	property_id: string;
 	propertyName: string;
 	occupancyRate: number;
-	monthlyRevenue: number;
-	annualRevenue: number;
+	/**
+	 * Rent received over the page's window, from the rent ledger, in dollars;
+	 * null when the server cannot report it yet (the body before
+	 * 20261102163709, whose 0 is no figure).
+	 */
+	rentReceived: number | null;
 	totalUnits: number;
 	occupiedUnits: number;
 	vacantUnits: number;
@@ -358,7 +372,10 @@ export interface PropertyPerformanceSummary {
 	totalUnits: number;
 	occupiedUnits: number;
 	averageOccupancy: number;
-	totalRevenue: number;
+	/** Rent received across the properties over the window; null as above. */
+	rentReceived: number | null;
+	/** The window rent received covers; null when it is unavailable. */
+	rentReceivedWindow: RentReceivedWindow | null;
 	bestPerformer?: string;
 	worstPerformer?: string;
 }

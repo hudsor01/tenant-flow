@@ -93,7 +93,7 @@ export default function PropertyPerformancePage() {
 					<div className="flex flex-col gap-2 mb-6">
 						<h1 className="typography-h1">Property Performance</h1>
 						<p className="text-muted-foreground">
-							Monitor occupancy, revenue, and demand signals across your
+							Monitor occupancy, rent received, and demand signals across your
 							portfolio.
 						</p>
 					</div>
@@ -122,7 +122,7 @@ export default function PropertyPerformancePage() {
 				<div className="flex flex-col gap-2 mb-6">
 					<h1 className="typography-h1">Property Performance</h1>
 					<p className="text-muted-foreground">
-						Monitor occupancy, revenue, and demand signals across your
+						Monitor occupancy, rent received, and demand signals across your
 						portfolio.
 					</p>
 				</div>
@@ -136,7 +136,7 @@ export default function PropertyPerformancePage() {
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">
-									Occupancy & revenue by property
+									Occupancy & rent received by property
 								</h3>
 								<p className="text-sm text-muted-foreground">
 									Compare current performance across the portfolio

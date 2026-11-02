@@ -54,14 +54,19 @@ export interface PropertyReport {
 		occupiedUnits: number;
 		occupancyRate: number;
 	};
+	/**
+	 * Per property over the report's period. The three dollar figures are null
+	 * when the server cannot report rent received yet (the body before
+	 * 20261102163709): never 0 for a figure that was not computed.
+	 */
 	byProperty: Array<{
 		propertyId: string;
 		propertyName: string;
 		occupancyRate: number;
 		vacantUnits: number;
-		revenue: number;
-		expenses: number;
-		netOperatingIncome: number;
+		rentReceived: number | null;
+		expenses: number | null;
+		netIncome: number | null;
 	}>;
 	occupancyTrend: Array<{
 		month: string;

@@ -15,6 +15,10 @@ import type { PaginatedResponse } from "#types/api-contracts";
 import type { Property, PropertyStatus, PropertyType, Unit } from "#types/core";
 import type { Tables } from "#types/supabase";
 import { mutationKeys } from "../mutation-keys";
+import {
+	mapPropertyPerformance,
+	type PropertyPerformanceResult,
+} from "./property-performance-mappers";
 
 export interface PropertyFilters {
 	status?: PropertyStatus;
@@ -122,12 +126,13 @@ export const propertyQueries = {
 				...propertyQueries.detail(property_id).queryKey,
 				"performance",
 			],
-			queryFn: async () => {
+			queryFn: async (): Promise<PropertyPerformanceResult | null> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) return null;
-				// Valid p_timeframe values: '7d' | '30d' | '90d' | '180d' | '365d'.
-				// Anything else silently falls through to the 30d default.
+				// The trailing 365 days ending today; get_property_performance_
+				// analytics also takes 'YYYY-MM-DD..YYYY-MM-DD' (20261102163709),
+				// and reads anything else as 30 days.
 				const { data, error } = await supabase.rpc(
 					"get_property_performance_analytics",
 					{
@@ -137,16 +142,10 @@ export const propertyQueries = {
 					},
 				);
 				if (error) handlePostgrestError(error, "property performance");
-				const rows = (data ?? []) as Array<{
-					property_id: string;
-					property_name: string;
-					timeframe: string;
-					total_revenue: number;
-					total_expenses: number;
-					net_income: number;
-					occupancy_rate: number;
-				}>;
-				return rows[0] ?? null;
+				const result = mapPropertyPerformance(data);
+				const rows =
+					result.status === "ready" ? result.properties : result.occupancy;
+				return rows.length > 0 ? result : null;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,

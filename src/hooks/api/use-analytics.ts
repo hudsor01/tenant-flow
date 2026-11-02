@@ -25,6 +25,7 @@ import {
 	mapMaintenanceAnalytics,
 	mapOccupancyAnalytics,
 } from "./query-keys/analytics-mappers";
+import { mapPropertyPerformance } from "./query-keys/property-performance-mappers";
 
 /**
  * MIS-WIRE (captured follow-up, DATA-01): the "lease analytics" page and the
@@ -211,46 +212,55 @@ export const analyticsQueries = {
 				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
+				// The trailing 30 days, named rather than left to the default, so
+				// the window the page states is the one it asked for.
 				const { data, error } = await supabase.rpc(
 					"get_property_performance_analytics",
-					{
-						p_user_id: user.id,
-					},
+					{ p_user_id: user.id, p_timeframe: "30d" },
 				);
 				if (error) handlePostgrestError(error, "analytics");
 				// `get_property_performance_analytics` returns flat per-property
-				// rows; the dashboard contract expects a structured
+				// rows; the page contract expects a structured
 				// PropertyPerformancePageData with metrics/performance/units/
-				// unitStats/visitorAnalytics/revenueTrends. This is a known data
-				// gap from the rent-payment demolish; surface what the RPC does
-				// give us (per-property revenue + occupancy) under `performance`
-				// and leave the rest as empty so each section renders its empty
-				// state cleanly instead of throwing on undefined access.
-				const rows = data ?? [];
-				const totalRevenue = rows.reduce(
-					(sum, r) => sum + Number(r.total_revenue ?? 0),
+				// unitStats/visitorAnalytics/revenueTrends. Surface what the RPC
+				// gives (per-property rent received and occupancy) under
+				// `performance` and leave the rest empty, so each section renders
+				// its empty state instead of throwing on undefined access. Rent
+				// received is null, never 0, when the server's body predates
+				// 20261102163709 (property-performance-mappers.ts).
+				const result = mapPropertyPerformance(data);
+				const occupancy =
+					result.status === "ready" ? result.properties : result.occupancy;
+				const totalOccupancy = occupancy.reduce(
+					(sum, r) => sum + r.occupancyRate,
 					0,
 				);
-				const totalOccupancy = rows.reduce(
-					(sum, r) => sum + Number(r.occupancy_rate ?? 0),
-					0,
-				);
+				const received =
+					result.status === "ready"
+						? new Map(
+								result.properties.map((p) => [p.propertyId, p.rentReceived]),
+							)
+						: null;
 				return {
 					metrics: {
-						totalProperties: rows.length,
+						totalProperties: occupancy.length,
 						totalUnits: 0,
 						occupiedUnits: 0,
 						averageOccupancy:
-							rows.length > 0 ? totalOccupancy / rows.length : 0,
-						totalRevenue,
+							occupancy.length > 0 ? totalOccupancy / occupancy.length : 0,
+						rentReceived:
+							result.status === "ready"
+								? result.properties.reduce((sum, p) => sum + p.rentReceived, 0)
+								: null,
+						rentReceivedWindow:
+							result.status === "ready" ? result.window : null,
 					},
-					performance: rows.map(
+					performance: occupancy.map(
 						(r): PropertyPerformanceEntry => ({
-							property_id: r.property_id,
-							propertyName: r.property_name,
-							occupancyRate: Number(r.occupancy_rate),
-							monthlyRevenue: Number(r.total_revenue),
-							annualRevenue: Number(r.total_revenue) * 12,
+							property_id: r.propertyId,
+							propertyName: r.propertyName,
+							occupancyRate: r.occupancyRate,
+							rentReceived: received?.get(r.propertyId) ?? null,
 							totalUnits: 0,
 							occupiedUnits: 0,
 							vacantUnits: 0,

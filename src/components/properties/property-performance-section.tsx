@@ -11,6 +11,7 @@ import {
 } from "#components/ui/card";
 import { Skeleton } from "#components/ui/skeleton";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { formatDate } from "#lib/formatters/date";
 import { formatCurrency, formatPercentage } from "#lib/utils/currency";
 
 interface PropertyPerformanceSectionProps {
@@ -30,7 +31,7 @@ export function PropertyPerformanceSection({
 				<CardHeader>
 					<CardTitle>Performance (last 12 months)</CardTitle>
 					<CardDescription>
-						Trailing 12-month revenue, expenses, and occupancy
+						Trailing 12-month rent received, expenses, and occupancy
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -50,7 +51,7 @@ export function PropertyPerformanceSection({
 				<CardHeader>
 					<CardTitle>Performance (last 12 months)</CardTitle>
 					<CardDescription>
-						Trailing 12-month revenue, expenses, and occupancy
+						Trailing 12-month rent received, expenses, and occupancy
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -63,42 +64,56 @@ export function PropertyPerformanceSection({
 		);
 	}
 
+	// The server's body before 20261102163709 reports no rent received, and its
+	// expenses cover another window: the money tiles say so instead of $0.
+	const property =
+		data.status === "ready" ? (data.properties[0] ?? null) : null;
+	const occupancyRate =
+		data.status === "ready"
+			? (data.properties[0]?.occupancyRate ?? 0)
+			: (data.occupancy[0]?.occupancyRate ?? 0);
+	const unavailable = "Unavailable";
+	const muted = "text-muted-foreground";
 	const metrics = [
 		{
-			label: "Revenue",
-			value: formatCurrency(data.total_revenue ?? 0),
+			label: "Rent Received",
+			value: property ? formatCurrency(property.rentReceived) : unavailable,
 			icon: DollarSign,
-			tone: "text-success-text",
+			tone: property ? "text-success-text" : muted,
 		},
 		{
 			label: "Expenses",
-			value: formatCurrency(data.total_expenses ?? 0),
+			value: property ? formatCurrency(property.expenses) : unavailable,
 			icon: Receipt,
-			tone: "text-destructive-text",
+			tone: property ? "text-destructive-text" : muted,
 		},
 		{
 			label: "Net Income",
-			value: formatCurrency(data.net_income ?? 0),
+			value: property ? formatCurrency(property.netIncome) : unavailable,
 			icon: TrendingUp,
-			tone:
-				(data.net_income ?? 0) >= 0
+			tone: !property
+				? muted
+				: property.netIncome >= 0
 					? "text-success-text"
 					: "text-destructive-text",
 		},
 		{
 			label: "Occupancy",
-			value: formatPercentage(data.occupancy_rate ?? 0),
+			value: formatPercentage(occupancyRate),
 			icon: Percent,
 			tone: "text-info-text",
 		},
 	];
+	const statedWindow = data.status === "ready" ? data.window : null;
 
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Performance (last 12 months)</CardTitle>
 				<CardDescription>
-					Trailing 12-month revenue, expenses, and occupancy
+					{statedWindow
+						? `Rent received, expenses, and occupancy, ${formatDate(statedWindow.start_date)} to ${formatDate(statedWindow.end_date)}`
+						: "Rent received isn't available yet. Occupancy is current."}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

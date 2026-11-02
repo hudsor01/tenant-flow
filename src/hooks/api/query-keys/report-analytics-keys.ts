@@ -20,6 +20,10 @@ import type {
 	YearEndSummary,
 } from "#types/reports";
 import { fetchOccupancyTrends } from "./analytics-keys";
+import {
+	mapPropertyPerformance,
+	propertyPerformanceRange,
+} from "./property-performance-mappers";
 import { reportKeys } from "./report-keys";
 
 const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
@@ -156,21 +160,31 @@ export const reportAnalyticsQueries = {
 						vacancyTrend: [],
 					};
 				}
+				// The report's own period when it has one (the export always passes
+				// both dates), else the trailing 30 days. Before 20261102163709 the
+				// call named no window and got the last 30 days whatever the period.
+				const requested =
+					start_date && end_date ? { start_date, end_date } : undefined;
 				const { data, error } = await supabase.rpc(
 					"get_property_performance_analytics",
-					{ p_user_id: user.id },
+					{
+						p_user_id: user.id,
+						p_timeframe: requested
+							? propertyPerformanceRange(start_date ?? "", end_date ?? "")
+							: "30d",
+					},
 				);
 				if (error) handlePostgrestError(error, "property report");
-				type PropRow = {
-					property_id: string;
-					property_name: string;
-					occupancy_rate: number;
-					total_revenue: number;
-					total_expenses: number;
-					net_income: number;
-					timeframe: string;
-				};
-				const rows: PropRow[] = data ?? [];
+				const result = mapPropertyPerformance(data, requested);
+				const rows =
+					result.status === "ready"
+						? result.properties
+						: result.occupancy.map((r) => ({
+								...r,
+								rentReceived: null,
+								expenses: null,
+								netIncome: null,
+							}));
 				return {
 					summary: {
 						totalProperties: rows.length,
@@ -178,18 +192,18 @@ export const reportAnalyticsQueries = {
 						occupiedUnits: 0,
 						occupancyRate:
 							rows.length > 0
-								? rows.reduce((sum, r) => sum + (r.occupancy_rate ?? 0), 0) /
+								? rows.reduce((sum, r) => sum + r.occupancyRate, 0) /
 									rows.length
 								: 0,
 					},
 					byProperty: rows.map((r) => ({
-						propertyId: r.property_id,
-						propertyName: r.property_name,
-						occupancyRate: r.occupancy_rate ?? 0,
+						propertyId: r.propertyId,
+						propertyName: r.propertyName,
+						occupancyRate: r.occupancyRate,
 						vacantUnits: 0,
-						revenue: r.total_revenue ?? 0,
-						expenses: r.total_expenses ?? 0,
-						netOperatingIncome: r.net_income ?? 0,
+						rentReceived: r.rentReceived,
+						expenses: r.expenses,
+						netIncome: r.netIncome,
 					})),
 					occupancyTrend: [],
 					vacancyTrend: [],

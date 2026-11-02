@@ -1,0 +1,119 @@
+/**
+ * get_property_performance_analytics at the RPC boundary (20261102163709).
+ *
+ * The body before that migration returns `0::numeric AS total_revenue` and
+ * echoes p_timeframe as `timeframe`; the new body returns each property's rent
+ * received and states the window it computed, as 'YYYY-MM-DD/YYYY-MM-DD'. No
+ * input the new body accepts is in that form (a range is asked for with
+ * '..'), so a row whose timeframe is not a stated window, or not the window
+ * asked for, is the old body's: its revenue is no figure, and these mappers say
+ * so instead of passing its 0 on as money.
+ */
+import type { RentReceivedWindow } from "#types/analytics";
+import type { Database } from "#types/supabase";
+
+type PerformanceRow =
+	Database["public"]["Functions"]["get_property_performance_analytics"]["Returns"][number];
+
+/** p_timeframe for an inclusive calendar range, both days included. */
+export function propertyPerformanceRange(
+	start_date: string,
+	end_date: string,
+): string {
+	return `${start_date}..${end_date}`;
+}
+
+/** p_timeframe for a calendar tax year. */
+export function taxYearRange(year: number): string {
+	return propertyPerformanceRange(`${year}-01-01`, `${year}-12-31`);
+}
+
+const STATED_WINDOW = /^(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})$/;
+
+/** The window a row states, or null for any other value. */
+export function parseStatedWindow(
+	timeframe: unknown,
+): RentReceivedWindow | null {
+	if (typeof timeframe !== "string") return null;
+	const match = STATED_WINDOW.exec(timeframe);
+	const start_date = match?.[1];
+	const end_date = match?.[2];
+	return start_date && end_date ? { start_date, end_date } : null;
+}
+
+/** One property's figures over the window, in dollars. */
+export interface PropertyRentReceived {
+	readonly propertyId: string;
+	readonly propertyName: string;
+	readonly occupancyRate: number;
+	readonly rentReceived: number;
+	readonly expenses: number;
+	readonly netIncome: number;
+}
+
+/**
+ * The rows, when every one states the same window (the one asked for, when a
+ * range was asked for). `window` is null only when there are no rows to state
+ * it. `rent-received-unavailable` carries what the old body still gets right,
+ * occupancy, and nothing in dollars: its expenses were over a different window
+ * than any range asked for.
+ */
+export type PropertyPerformanceResult =
+	| {
+			readonly status: "ready";
+			readonly window: RentReceivedWindow | null;
+			readonly properties: readonly PropertyRentReceived[];
+	  }
+	| {
+			readonly status: "rent-received-unavailable";
+			readonly occupancy: readonly Pick<
+				PropertyRentReceived,
+				"propertyId" | "propertyName" | "occupancyRate"
+			>[];
+	  };
+
+export function mapPropertyPerformance(
+	data: readonly PerformanceRow[] | null,
+	requested?: RentReceivedWindow,
+): PropertyPerformanceResult {
+	const rows = data ?? [];
+	if (rows.length === 0) {
+		return { status: "ready", window: requested ?? null, properties: [] };
+	}
+	const stated = rows.map((row) => parseStatedWindow(row.timeframe));
+	const first = stated[0];
+	const consistent =
+		first !== null &&
+		first !== undefined &&
+		stated.every(
+			(window) =>
+				window !== null &&
+				window.start_date === first.start_date &&
+				window.end_date === first.end_date,
+		) &&
+		(requested === undefined ||
+			(first.start_date === requested.start_date &&
+				first.end_date === requested.end_date));
+	if (!consistent || first === null || first === undefined) {
+		return {
+			status: "rent-received-unavailable",
+			occupancy: rows.map((row) => ({
+				propertyId: row.property_id,
+				propertyName: row.property_name,
+				occupancyRate: Number(row.occupancy_rate),
+			})),
+		};
+	}
+	return {
+		status: "ready",
+		window: first,
+		properties: rows.map((row) => ({
+			propertyId: row.property_id,
+			propertyName: row.property_name,
+			occupancyRate: Number(row.occupancy_rate),
+			rentReceived: Number(row.total_revenue),
+			expenses: Number(row.total_expenses),
+			netIncome: Number(row.net_income),
+		})),
+	};
+}

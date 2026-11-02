@@ -32,8 +32,8 @@ const occupancyConfig = {
 		label: "Occupancy %",
 		color: "var(--color-chart-1)",
 	},
-	revenue: {
-		label: "Monthly Revenue",
+	rentReceived: {
+		label: "Rent received",
 		color: "var(--color-success-text)",
 	},
 } satisfies ChartConfig;
@@ -78,10 +78,13 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 		);
 	}
 
+	// Rent received is null on every row when the server cannot report it yet:
+	// the chart then draws occupancy alone rather than bars of $0.
+	const rentReceivedAvailable = data.some((item) => item.rentReceived !== null);
 	const chartData = data.map((item) => ({
 		property: item.propertyName,
 		occupancy: Number(item.occupancyRate?.toFixed?.(1) ?? item.occupancyRate),
-		revenue: item.monthlyRevenue,
+		rentReceived: item.rentReceived,
 	}));
 
 	return (
@@ -101,12 +104,14 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 					height={80}
 				/>
 				<YAxis yAxisId="occupancy" tickLine={false} axisLine={false} unit="%" />
-				<YAxis
-					yAxisId="revenue"
-					orientation="right"
-					tickLine={false}
-					axisLine={false}
-				/>
+				{rentReceivedAvailable && (
+					<YAxis
+						yAxisId="rentReceived"
+						orientation="right"
+						tickLine={false}
+						axisLine={false}
+					/>
+				)}
 				<Tooltip content={<ChartTooltipContent />} />
 				<Legend />
 				<Bar
@@ -115,12 +120,14 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 					fill="var(--color-occupancy)"
 					radius={[6, 6, 0, 0]}
 				/>
-				<Bar
-					yAxisId="revenue"
-					dataKey="revenue"
-					fill="var(--color-revenue)"
-					radius={[6, 6, 0, 0]}
-				/>
+				{rentReceivedAvailable && (
+					<Bar
+						yAxisId="rentReceived"
+						dataKey="rentReceived"
+						fill="var(--color-rentReceived)"
+						radius={[6, 6, 0, 0]}
+					/>
+				)}
 			</BarChart>
 		</ChartContainer>
 	);

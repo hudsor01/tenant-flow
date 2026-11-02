@@ -509,18 +509,25 @@ async function buildFinancialPerformance(
 	};
 }
 
+/** A dollar figure the server could not compute yet, written as such. */
+const UNAVAILABLE = "Unavailable";
+
 function propertyPerformanceRows(
 	properties: PropertyReport,
 ): Array<Array<string | number>> {
+	const money = (n: number | null) => (n === null ? UNAVAILABLE : fmtMoney(n));
 	return properties.byProperty.map((p) => [
 		p.propertyName,
 		fmtPct(p.occupancyRate),
 		fmtNumber(p.vacantUnits),
-		fmtMoney(p.revenue),
-		fmtMoney(p.expenses),
-		fmtMoney(p.netOperatingIncome),
+		money(p.rentReceived),
+		money(p.expenses),
+		money(p.netIncome),
 	]);
 }
+
+const RENT_RECEIVED_UNAVAILABLE_NOTE =
+	"Rent received isn't available yet: the server's rent ledger totals for properties are pending an update.";
 
 function propertyOccupancyTrendRows(
 	properties: PropertyReport,
@@ -557,12 +564,15 @@ function propertyPortfolioSections(
 					"Property",
 					"Occupancy",
 					"Vacant",
-					"Revenue",
+					"Rent Received",
 					"Expenses",
-					"NOI",
+					"Net Income",
 				],
 				rows: propertyPerformanceRows(properties),
 			},
+			...(properties.byProperty.some((p) => p.rentReceived === null)
+				? { note: RENT_RECEIVED_UNAVAILABLE_NOTE }
+				: {}),
 		},
 		{
 			heading: "Occupancy Trend",
