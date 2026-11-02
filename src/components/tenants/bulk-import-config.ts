@@ -35,7 +35,7 @@ import {
 // so an unknown value FAILS the row instead of being silently coerced to a
 // default.
 const tenantImportSchema = z.object({
-	email: z.email({ message: "Valid email is required" }),
+	email: z.email({ error: "Valid email is required" }),
 	first_name: z
 		.string()
 		.min(1, "First name is required")

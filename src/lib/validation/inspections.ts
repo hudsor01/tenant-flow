@@ -22,9 +22,9 @@ const roomTypeSchema = z.enum(ROOM_TYPES);
 const conditionRatingSchema = z.enum(CONDITION_RATINGS);
 
 const createInspectionSchema = z.object({
-	lease_id: z.string().uuid(),
-	property_id: z.string().uuid(),
-	unit_id: z.string().uuid().optional().nullable(),
+	lease_id: z.uuid(),
+	property_id: z.uuid(),
+	unit_id: z.uuid().optional().nullable(),
 	inspection_type: inspectionTypeSchema,
 	scheduled_date: z.string().optional().nullable(),
 });
@@ -41,7 +41,7 @@ const updateInspectionSchema = z.object({
 });
 
 const createInspectionRoomSchema = z.object({
-	inspection_id: z.string().uuid(),
+	inspection_id: z.uuid(),
 	room_name: z.string().min(1).max(100),
 	room_type: roomTypeSchema,
 	condition_rating: conditionRatingSchema,
@@ -56,8 +56,8 @@ const updateInspectionRoomSchema = z.object({
 });
 
 const createInspectionPhotoSchema = z.object({
-	inspection_room_id: z.string().uuid(),
-	inspection_id: z.string().uuid(),
+	inspection_room_id: z.uuid(),
+	inspection_id: z.uuid(),
 	storage_path: z.string().min(1),
 	file_name: z.string().min(1),
 	file_size: z.number().int().positive().optional(),

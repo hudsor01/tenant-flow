@@ -35,7 +35,7 @@ export const validationSchema = z
 			const end = new Date(`${data.end_date}T00:00:00.000Z`);
 			return end > start;
 		},
-		{ message: "End date must be after start date", path: ["end_date"] },
+		{ error: "End date must be after start date", path: ["end_date"] },
 	);
 
 /**

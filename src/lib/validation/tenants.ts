@@ -55,7 +55,7 @@ export const tenantInputSchema = z.object({
 
 	name: z.string().max(200, "Name cannot exceed 200 characters").optional(),
 
-	email: z.email({ message: "Valid email is required" }).optional(),
+	email: z.email({ error: "Valid email is required" }).optional(),
 
 	phone: phoneSchema.optional(),
 
@@ -193,7 +193,7 @@ export type TransformedTenantData = ReturnType<typeof transformTenantFormData>;
 // Schema for adding a tenant to the platform (NO lease required)
 // Flat structure - used for simple validation
 export const addTenantSchema = z.object({
-	email: z.email({ message: "Valid email is required" }),
+	email: z.email({ error: "Valid email is required" }),
 	first_name: z.string().trim().min(1, "First name is required").max(100),
 	last_name: z.string().trim().min(1, "Last name is required").max(100),
 	phone: phoneSchema.optional(),
@@ -207,7 +207,7 @@ export const addTenantSchema = z.object({
 // Used for API requests
 export const addTenantRequestSchema = z.object({
 	tenantData: z.object({
-		email: z.email({ message: "Valid email is required" }),
+		email: z.email({ error: "Valid email is required" }),
 		first_name: z.string().trim().min(1, "First name is required").max(100),
 		last_name: z.string().trim().min(1, "Last name is required").max(100),
 		phone: phoneSchema.optional(),
