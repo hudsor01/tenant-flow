@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Mail } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { useFormWithProgress } from "#hooks/use-form-progress";
@@ -155,7 +155,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 		},
 	);
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 		setErrors({});
 

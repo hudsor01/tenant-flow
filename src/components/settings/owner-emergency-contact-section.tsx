@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useEffect, useId, useState } from "react";
 
 import { Button } from "#components/ui/button";
@@ -62,7 +62,7 @@ export function OwnerEmergencyContactSection() {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
-	const handleSave = async (e: FormEvent) => {
+	const handleSave = async (e: SubmitEvent) => {
 		e.preventDefault();
 		// FORMFIX-08: catch the mutateAsync rejection locally so it does not escape
 		// the async submit handler as an unhandled rejection (duplicate Sentry +

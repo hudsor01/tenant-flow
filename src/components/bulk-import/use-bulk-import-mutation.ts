@@ -22,7 +22,7 @@ interface UseBulkImportMutationArgs<T> {
 	config: BulkImportConfig<T>;
 	setImportProgress: (progress: ImportProgress | null) => void;
 	setResult: (result: BulkImportResult | null) => void;
-	mountedRef: React.MutableRefObject<boolean>;
+	mountedRef: React.RefObject<boolean>;
 }
 
 // Per-row insertRow failures AND thrown exceptions both surface as errors[];

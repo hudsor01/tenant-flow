@@ -54,11 +54,11 @@ function queryClient(): QueryClient {
 
 /** The page's two queries, run as the page runs them: through a QueryClient. */
 function fetchFinancialPageData(): Promise<FinancialAnalyticsPageData> {
-	return queryClient().fetchQuery(analyticsQueries.financialPageData());
+	return queryClient().query(analyticsQueries.financialPageData());
 }
 
 function fetchPaymentSummary(): Promise<OwnerPaymentSummaryResponse> {
-	return queryClient().fetchQuery(analyticsQueries.ownerPaymentSummary());
+	return queryClient().query(analyticsQueries.ownerPaymentSummary());
 }
 
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;

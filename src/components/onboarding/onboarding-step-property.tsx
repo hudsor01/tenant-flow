@@ -49,7 +49,7 @@ export function OnboardingStepProperty({
 	const [propertyType, setPropertyType] =
 		useState<PropertyTypeValue>("SINGLE_FAMILY");
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.SubmitEvent) => {
 		e.preventDefault();
 
 		if (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, EyeOff, Lock } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useId, useState } from "react";
 import { Button } from "#components/ui/button";
 import {
@@ -101,7 +101,7 @@ export function ChangePasswordDialog({
 		return errors;
 	};
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 
 		// Validation

@@ -107,7 +107,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		// must still upload; the DB trigger is authoritative). Ignore usage-read
 		// failures so the pre-check can never block an upload.
 		try {
-			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const usage = await queryClient.query({
+				...usageQueries.storage(),
+				staleTime: "static",
+			});
 			const totalBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
 			if (wouldExceedStorageQuota(usage, totalBytes)) {
 				showStorageQuotaUpgradeToast();

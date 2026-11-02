@@ -10,7 +10,7 @@ import {
 	Shield,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ComponentPropsWithoutRef, FormEvent } from "react";
+import type { ComponentPropsWithoutRef, SubmitEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -77,7 +77,7 @@ export function UpdatePasswordForm({
 		},
 	});
 
-	const handleUpdatePassword = async (e: FormEvent) => {
+	const handleUpdatePassword = async (e: SubmitEvent) => {
 		e.preventDefault();
 		updatePasswordMutation.mutate(password);
 	};

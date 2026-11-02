@@ -16,8 +16,7 @@
 		"tests/**/*.ts",
 		"lib/**/*.ts",
 		"auth-helpers.ts",
-		"playwright.config.ts",
-		"global.d.ts"
+		"playwright.config.ts"
 	],
 	"exclude": ["tests/**/__snapshots__/**"]
 }

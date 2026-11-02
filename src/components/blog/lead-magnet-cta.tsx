@@ -1,7 +1,7 @@
 "use client";
 
 import { ClipboardCheck, Download, FileText, Table } from "lucide-react";
-import { type FormEvent, useRef, useState } from "react";
+import { type SubmitEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "#components/ui/button";
@@ -32,7 +32,7 @@ export function LeadMagnetCta({
 	const [unlocked, setUnlocked] = useState(false);
 	const Icon = resourceIcons[resourceType];
 
-	function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
 		const email = inputRef.current?.value?.trim();
 		if (!email) return;

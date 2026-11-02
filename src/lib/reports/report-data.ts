@@ -3,7 +3,7 @@
  * into a normalized `ReportData` shape that PDF + Excel writers consume
  * uniformly. One builder per report type.
  *
- * Builders use the imperative `queryClient.fetchQuery()` form so they can run
+ * Builders use the imperative `queryClient.query()` form so they can run
  * inside the `handleGenerateReport` click handler (which is not a React hook
  * context). They reuse the same query factories the existing report pages
  * already consume so cache + dedup are shared.
@@ -12,7 +12,7 @@
  * delegating the per-section row literals to `*Rows()` helpers.
  */
 
-import type { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryExecuteOptions } from "@tanstack/react-query";
 import type { ReportType } from "#app/(owner)/reports/generate/components/report-types";
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
@@ -78,7 +78,7 @@ export function isMissingRelationError(err: unknown): boolean {
 }
 
 /**
- * Safe-fetch wrapper around `queryClient.fetchQuery`. Some report RPCs may
+ * Safe-fetch wrapper around `queryClient.query`. Some report RPCs may
  * reference a missing table or view (e.g. a fresh-DB chain replay where a
  * dependent migration hasn't landed yet, or a partially-rolled-back schema).
  * Rather than blocking the entire report on one broken RPC, we narrow the
@@ -88,11 +88,11 @@ export function isMissingRelationError(err: unknown): boolean {
  */
 export async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	queryClient: QueryClient,
-	options: FetchQueryOptions<TData, Error, TData, TQueryKey>,
+	options: QueryExecuteOptions<TData, Error, TData, TData, TQueryKey>,
 	fallback: TData,
 ): Promise<{ data: TData; available: boolean }> {
 	try {
-		const data = await queryClient.fetchQuery(options);
+		const data = await queryClient.query(options);
 		return { data, available: true };
 	} catch (err) {
 		if (!isMissingRelationError(err)) {

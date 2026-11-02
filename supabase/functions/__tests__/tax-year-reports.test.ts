@@ -158,15 +158,15 @@ async function screen(answers: RpcAnswers): Promise<Screen> {
 		},
 	);
 	sink = calls.yearEnd;
-	const yearEnd = await queryClient().fetchQuery(
+	const yearEnd = await queryClient().query(
 		reportAnalyticsQueries.yearEnd(YEAR),
 	);
 	sink = calls.report1099;
-	const report1099 = await queryClient().fetchQuery(
+	const report1099 = await queryClient().query(
 		reportAnalyticsQueries.report1099(YEAR),
 	);
 	sink = calls.taxDocuments;
-	const taxDocuments = await queryClient().fetchQuery(
+	const taxDocuments = await queryClient().query(
 		financialTaxQueries.taxDocuments(YEAR),
 	);
 	return { yearEnd, report1099, taxDocuments, calls };

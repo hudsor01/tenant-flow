@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
@@ -62,7 +62,7 @@ export function PasswordSection() {
 		},
 	});
 
-	const handlePasswordSubmit = (e: FormEvent) => {
+	const handlePasswordSubmit = (e: SubmitEvent) => {
 		e.preventDefault();
 		updatePassword.mutate();
 	};

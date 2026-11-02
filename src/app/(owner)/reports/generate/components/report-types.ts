@@ -88,7 +88,7 @@ export const reportCards: ReportCard[] = [
 ];
 
 // Client-side report generation. Pulls data via the existing
-// reportAnalyticsQueries factories using `queryClient.fetchQuery()` (cache-
+// reportAnalyticsQueries factories using `queryClient.query()` (cache-
 // aware), shapes into a generic `ReportData` payload, renders to PDF
 // (jspdf + jspdf-autotable) or XLSX (sheetjs), and triggers an immediate
 // browser download. No backend or Edge Function dependency — runs entirely

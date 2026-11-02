@@ -181,7 +181,10 @@ export function DocumentsSection({
 		// owners must still upload; the DB trigger is authoritative). A usage-read
 		// failure must never block the upload either.
 		try {
-			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const usage = await queryClient.query({
+				...usageQueries.storage(),
+				staleTime: "static",
+			});
 			const totalIncomingBytes = valid.reduce((sum, f) => sum + f.size, 0);
 			if (wouldExceedStorageQuota(usage, totalIncomingBytes)) {
 				showStorageQuotaUpgradeToast();

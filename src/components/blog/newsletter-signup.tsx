@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Mail } from "lucide-react";
-import { type FormEvent, useRef } from "react";
+import { type SubmitEvent, useRef } from "react";
 import { toast } from "sonner";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
@@ -40,7 +40,7 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 			),
 	});
 
-	function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
 		const email = inputRef.current?.value?.trim();
 		if (email) {
