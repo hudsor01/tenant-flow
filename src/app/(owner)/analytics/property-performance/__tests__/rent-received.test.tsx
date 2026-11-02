@@ -76,10 +76,22 @@ describe("the Rent received tile", () => {
 		render(createElement(PerformanceStatCards, { metrics: summary({}) }));
 		expect(screen.getByText("Rent received")).toBeInTheDocument();
 		expect(screen.getByText("$2670.75")).toBeInTheDocument();
-		expect(
-			screen.getByText("Oct 3, 2026 to Nov 2, 2026, all properties"),
-		).toBeInTheDocument();
+		expect(screen.getByText("Oct 3 to Nov 2, 2026")).toBeInTheDocument();
 		expect(screen.queryByText("Monthly revenue")).not.toBeInTheDocument();
+	});
+
+	it("gives the start its year when the window crosses one", () => {
+		render(
+			createElement(PerformanceStatCards, {
+				metrics: summary({
+					rentReceivedWindow: {
+						start_date: "2025-12-03",
+						end_date: "2026-01-02",
+					},
+				}),
+			}),
+		);
+		expect(screen.getByText("Dec 3, 2025 to Jan 2, 2026")).toBeInTheDocument();
 	});
 
 	it("says it is unavailable, with no amount, when the server cannot report it", () => {
@@ -89,9 +101,7 @@ describe("the Rent received tile", () => {
 			}),
 		);
 		expect(screen.getByText("Unavailable")).toBeInTheDocument();
-		expect(
-			screen.getByText("Your rent ledger's totals aren't available yet"),
-		).toBeInTheDocument();
+		expect(screen.getByText("Ledger totals pending")).toBeInTheDocument();
 		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
 	});
 });

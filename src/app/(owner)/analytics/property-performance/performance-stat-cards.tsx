@@ -12,7 +12,25 @@ import {
 } from "#components/ui/stat";
 import { formatDate } from "#lib/formatters/date";
 import { formatNumber } from "#lib/utils/currency";
-import type { PropertyPerformanceSummary } from "#types/analytics";
+import type {
+	PropertyPerformanceSummary,
+	RentReceivedWindow,
+} from "#types/analytics";
+
+/**
+ * The days rent received covers, short enough for one line of the tile:
+ * "Oct 3 to Nov 2, 2026", with the start's year only when it differs.
+ */
+function formatWindow(days: RentReceivedWindow): string {
+	const sameYear = days.start_date.slice(0, 4) === days.end_date.slice(0, 4);
+	const start = formatDate(
+		days.start_date,
+		sameYear
+			? { formatOptions: { month: "short", day: "numeric", timeZone: "UTC" } }
+			: {},
+	);
+	return `${start} to ${formatDate(days.end_date)}`;
+}
 
 interface PerformanceStatCardsProps {
 	metrics: PropertyPerformanceSummary;
@@ -104,10 +122,10 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 					</StatIndicator>
 					<StatDescription>
 						{metrics.rentReceivedWindow
-							? `${formatDate(metrics.rentReceivedWindow.start_date)} to ${formatDate(metrics.rentReceivedWindow.end_date)}, all properties`
+							? formatWindow(metrics.rentReceivedWindow)
 							: metrics.rentReceived === null
-								? "Your rent ledger's totals aren't available yet"
-								: "Last 30 days, all properties"}
+								? "Ledger totals pending"
+								: "Last 30 days"}
 					</StatDescription>
 				</Stat>
 			</BlurFade>
