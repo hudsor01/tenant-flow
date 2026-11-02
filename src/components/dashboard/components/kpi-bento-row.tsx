@@ -174,7 +174,7 @@ function buildKpiTileConfigs(
 	// WR-04 cycle-1 fix: keep `spokenValue` symmetric with the other tiles —
 	// just the formatted currency, no period qualifier. The "This month"
 	// qualifier moves to `spokenDescription` (matching the visible
-	// `description`) so the aria-label narrates "Scheduled Rent: $14,250. This
+	// `description`) so the aria-label narrates "Scheduled: $14,250. This
 	// month. Up 12 percent vs. 30 days ago." instead of duplicating the
 	// period if a future maintainer adds the spokenDescription field. Each
 	// chip states the window its trend computes (the trend's own `window`,
@@ -189,9 +189,11 @@ function buildKpiTileConfigs(
 		{
 			// stats.revenue.monthly and its sparkline are the active leases' rent:
 			// scheduled rent, not money received (66.2-39 part P names every
-			// scheduled-rent chart so, as part N named the financial page's).
+			// scheduled-rent chart so, as part N named the financial page's). The
+			// tile takes D-07's short label, the financial analytics card's: at
+			// 1280 "Scheduled Rent" pushed the figure below its label (VD-114).
 			id: "revenue",
-			label: "Scheduled Rent",
+			label: "Scheduled",
 			spokenValue: revenueSpoken,
 			description: "This month",
 			spokenDescription: "This month",
