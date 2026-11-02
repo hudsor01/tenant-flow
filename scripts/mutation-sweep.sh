@@ -113,6 +113,43 @@ mutate "$REPLAY" 'if ([...widened].sort().join("\n") === expected.join("\n")) {'
                  'the t/f boolean diagnosis is removed'
 mutate "$REPLAY" 'const duplicated = [' 'const duplicated: string[] = []; const unusedDuplicated = [' \
                  'duplicate-row detection is removed'
+mutate "$REPLAY" 'if (trimmed === "") {' 'if (false) {' \
+                 'empty billing-insights output is not reported as a broken fixture'
+mutate "$REPLAY" 'if (parsed === null) {' 'if (false) {' \
+                 'unparseable billing-insights output is compared anyway'
+mutate "$REPLAY" 'if (value === null || typeof value !== "object" || Array.isArray(value)) {' \
+                 'if (value === null || typeof value !== "object") {' \
+                 'a JSON array is read as the billing-insights object'
+mutate "$REPLAY" 'ownerA !== null &&
+		ownerA["unpaidTotal"] === 0 &&' 'false &&
+		ownerA["unpaidTotal"] === 0 &&' \
+                 'the hard-coded-body diagnosis is removed'
+mutate "$REPLAY" 'ownerA["unpaidTotal"] === 0 &&
+		' '' \
+                 'the hard-coded-body diagnosis ignores unpaidTotal'
+mutate "$REPLAY" 'ownerA["unpaidCount"] === 0 &&
+		' '' \
+                 'the hard-coded-body diagnosis ignores unpaidCount'
+mutate "$REPLAY" ' &&
+		ownerA["lateFeeTotal"] === 0' '' \
+                 'the hard-coded-body diagnosis ignores lateFeeTotal'
+mutate "$REPLAY" 'if (actual === null) {' 'if (false) {' \
+                 'a missing billing-insights call is not reported'
+mutate "$REPLAY" 'if (actual[key] !== value) {' 'if (false) {' \
+                 'the billing-insights figure comparison always passes'
+mutate "$REPLAY" 'Object.entries(EXPECTED_BILLING_INSIGHTS)' 'Object.entries({})' \
+                 'no billing-insights call is compared'
+mutate "$REPLAY" 'EXPECTED_BILLING_INSIGHTS_EXECUTE,
+		mismatches,' '{},
+		mismatches,' \
+                 'the billing-insights grants are not compared'
+mutate "$REPLAY" 'if (parsed["guard_refuses_another_owner"] !== true) {' 'if (false) {' \
+                 'the billing-insights guard result is ignored'
+mutate "$REPLAY" 'if (parsed["guard_refuses_another_owner"] !== true) {' \
+                 'if (parsed["guard_refuses_another_owner"] === false) {' \
+                 'an unreported billing-insights guard result passes'
+mutate "$REPLAY" 'if (mismatches.length > 0) {' 'if (false) {' \
+                 'billing-insights mismatches are not reported'
 
 echo
 echo "=== platform-config assertions ==="
@@ -239,6 +276,9 @@ mutate "$REPLAY_CLI" 'console.log(errorAnnotation(result.message));
                      'the replay CLI exits 0 on a failed assertion'
 mutate "$REPLAY_CLI" 'process.exit(2);' 'process.exit(0);' \
                      'the replay CLI exits 0 on misuse'
+mutate "$REPLAY_CLI" 'finish(assertBillingInsightsFromLedger(readFileSync(0, "utf8")));' \
+                     'finish({ ok: true, message: "billing-insights" });' \
+                     'the replay CLI ignores the billing-insights input'
 
 echo
 echo "=== restore check ==="

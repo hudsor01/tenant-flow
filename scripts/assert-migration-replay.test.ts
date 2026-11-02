@@ -35,6 +35,10 @@ const CORRECT_CAST = [
 	"e2e-owner-b@tenantflow.app|false|active|1",
 ].join("\n");
 
+/** What the replay's billing-insights fixture printed (see the assertions' tests). */
+const BILLING_LINE =
+	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 4, "unpaidTotal": 1185.50, "lateFeeTotal": 115.00, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 2, "unpaidTotal": 720.00, "lateFeeTotal": 20.00, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 3, "unpaidTotal": 925.50, "lateFeeTotal": 75.00, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
+
 describe("exit codes", () => {
 	it("exits 0 and annotates nothing when the chain is complete", () => {
 		const { status, out } = run(["applied", "348", "348"]);
@@ -83,6 +87,26 @@ describe("exit codes", () => {
 
 	it("exits 1 on empty stdin rather than treating no rows as no problem", () => {
 		expect(run(["test-cast"], "").status).toBe(1);
+	});
+
+	it("exits 0 on the billing-insights line the replayed stack printed", () => {
+		const { status, out } = run(["billing-insights"], `${BILLING_LINE}\n`);
+		expect(status).toBe(0);
+		expect(out).not.toContain("::error::");
+	});
+
+	it("exits 1 on the hard-coded zeros, with an error annotation", () => {
+		const zeros = BILLING_LINE.replace('"unpaidCount": 4', '"unpaidCount": 0')
+			.replace('"unpaidTotal": 1185.50', '"unpaidTotal": 0')
+			.replace('"lateFeeTotal": 115.00', '"lateFeeTotal": 0');
+		const { status, out } = run(["billing-insights"], `${zeros}\n`);
+		expect(status).toBe(1);
+		expect(out).toContain("::error::");
+		expect(out).toContain("hard-coded body");
+	});
+
+	it("exits 1 when the billing-insights fixture printed nothing", () => {
+		expect(run(["billing-insights"], "").status).toBe(1);
 	});
 
 	it("exits 2 on misuse, which is neither a pass nor a gate failure", () => {

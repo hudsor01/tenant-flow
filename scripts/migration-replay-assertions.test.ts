@@ -11,6 +11,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+	assertBillingInsightsFromLedger,
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
 	assertSeededCast,
@@ -181,5 +182,210 @@ describe("assertSeededCast", () => {
 		const result = assertSeededCast("\n  \n");
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("no rows at all");
+	});
+});
+
+/**
+ * The line `scripts/migration-replay-billing-insights.sql` printed against the
+ * replayed stack with 20261102055449 applied (2026-11-02), verbatim: jsonb's
+ * own key order and its `0.00`-style scale, which JSON.parse reads as numbers.
+ */
+const REPLAYED_BILLING_LINE =
+	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 4, "unpaidTotal": 1185.50, "lateFeeTotal": 115.00, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 2, "unpaidTotal": 720.00, "lateFeeTotal": 20.00, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 3, "unpaidTotal": 925.50, "lateFeeTotal": 75.00, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
+
+/**
+ * The same fixture against PRODUCTION's body as of 2026-11-02 (the literal
+ * zeros), applied to the same stack: the defect this assertion exists for.
+ */
+const HARD_CODED_BODY_LINE =
+	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
+
+/** The replayed line with one key of one call's figures replaced. */
+function withFigure(label: string, key: string, value: unknown): string {
+	const parsed: Record<string, Record<string, unknown>> = JSON.parse(
+		REPLAYED_BILLING_LINE,
+	);
+	return JSON.stringify({
+		...parsed,
+		[label]: { ...parsed[label], [key]: value },
+	});
+}
+
+describe("assertBillingInsightsFromLedger", () => {
+	it("passes on the line the replayed stack printed", () => {
+		const result = assertBillingInsightsFromLedger(
+			`${REPLAYED_BILLING_LINE}\n`,
+		);
+		expect(result.ok).toBe(true);
+		expect(result.message).toContain("from the ledger");
+	});
+
+	it("names the hard-coded body when production's zeros come back", () => {
+		const result = assertBillingInsightsFromLedger(HARD_CODED_BODY_LINE);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("hard-coded body");
+		expect(result.message).not.toContain("expected 1185.5");
+	});
+
+	it.each([
+		["unpaidTotal", 1185.5],
+		["unpaidCount", 4],
+		["lateFeeTotal", 115],
+	])(
+		"does not call it the hard-coded body when %s is the one figure that is right",
+		(key, value) => {
+			const line = JSON.stringify({
+				...JSON.parse(HARD_CODED_BODY_LINE),
+				owner_a: {
+					...JSON.parse(HARD_CODED_BODY_LINE).owner_a,
+					[key]: value,
+				},
+			});
+			const result = assertBillingInsightsFromLedger(line);
+			expect(result.ok).toBe(false);
+			expect(result.message).not.toContain("hard-coded body");
+			expect(result.message).toContain("does not return the figures");
+		},
+	);
+
+	it("fails when a prepaid lease's negative balance is summed in", () => {
+		// No per-lease floor: lease A2's -500 hides 500 of lease A1's debt.
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_a", "unpaidTotal", 685.5),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a.unpaidTotal: expected 1185.5, got 685.5",
+		);
+	});
+
+	it("fails when an inactive lease is counted", () => {
+		const line = JSON.stringify({
+			...JSON.parse(REPLAYED_BILLING_LINE),
+			owner_a: {
+				...JSON.parse(REPLAYED_BILLING_LINE).owner_a,
+				unpaidTotal: 2115.5,
+				unpaidCount: 6,
+				lateFeeTotal: 145,
+			},
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a.unpaidTotal: expected 1185.5, got 2115.5",
+		);
+		expect(result.message).toContain("owner_a.unpaidCount: expected 4, got 6");
+		expect(result.message).toContain(
+			"owner_a.lateFeeTotal: expected 115, got 145",
+		);
+	});
+
+	it("fails when a reversed late fee still counts", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_a", "lateFeeTotal", 200),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a.lateFeeTotal: expected 115, got 200",
+		);
+	});
+
+	it("fails when the date window is ignored", () => {
+		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
+		const line = JSON.stringify({
+			...parsed,
+			owner_a_february: parsed.owner_a,
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_february.unpaidTotal: expected 925.5, got 1185.5",
+		);
+		expect(result.message).toContain(
+			"owner_a_february.unpaidCount: expected 3, got 4",
+		);
+	});
+
+	it("fails when another owner's rows reach owner B's figures", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_b", "unpaidTotal", 1119),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b.unpaidTotal: expected 720, got 1119",
+		);
+	});
+
+	it("fails when one of the unchanged figures moves", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_a", "mrr", 3400),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_a.mrr: expected 2500, got 3400");
+	});
+
+	it("fails on a figure that arrives as a string", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_a", "unpaidTotal", "1185.50"),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'owner_a.unpaidTotal: expected 1185.5, got "1185.50"',
+		);
+	});
+
+	it("fails when a call's figures are missing, naming the call", () => {
+		const { owner_b: _omitted, ...rest } = JSON.parse(REPLAYED_BILLING_LINE);
+		const result = assertBillingInsightsFromLedger(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_b: absent or not an object");
+	});
+
+	it("fails when the guard lets owner A read owner B's figures", () => {
+		const line = JSON.stringify({
+			...JSON.parse(REPLAYED_BILLING_LINE),
+			guard_refuses_another_owner: false,
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"guard_refuses_another_owner: expected true, got false",
+		);
+	});
+
+	it("fails when the fixture did not report the guard at all", () => {
+		const { guard_refuses_another_owner: _omitted, ...rest } = JSON.parse(
+			REPLAYED_BILLING_LINE,
+		);
+		const result = assertBillingInsightsFromLedger(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"guard_refuses_another_owner: expected true, got undefined",
+		);
+	});
+
+	it("fails when anon can execute the function", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("execute", "anon", true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("execute.anon: expected false, got true");
+	});
+
+	it("fails on no output, calling it a broken fixture rather than a wrong figure", () => {
+		const result = assertBillingInsightsFromLedger("\n  \n");
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("printed nothing");
+		expect(result.message).not.toContain("does not return the figures");
+	});
+
+	it.each([
+		["not JSON", "INSERT 0 1"],
+		["a JSON array", "[1, 2]"],
+		["a JSON scalar", "0"],
+	])("fails on output that is %s", (_what, raw) => {
+		const result = assertBillingInsightsFromLedger(raw);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("did not print a JSON object");
 	});
 });

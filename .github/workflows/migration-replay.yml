@@ -47,6 +47,7 @@ on:
       - scripts/seed-test-users.ts
       - scripts/migration-replay-assertions.ts
       - scripts/assert-migration-replay.ts
+      - scripts/migration-replay-billing-insights.sql
       # The negative controls, and the shared result module: a change that
       # weakens a control has to run the gate it guards. (The result module's
       # own controls are in scripts/assertion-result.test.ts, because a green
@@ -87,7 +88,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       # A GATE THAT PASSES PROVES NOTHING UNTIL SOMETHING HAS WATCHED IT FAIL.
-      # These are the negative controls for the three assertions below: each is
+      # These are the negative controls for the four assertions below: each is
       # fed the input it should accept and every wrong input that matters, the
       # `t`/`f` regression described in the header included. They are part of
       # the unit suite, so the `checks` job runs them on every PR as well --
@@ -179,6 +180,25 @@ jobs:
              where u.email like 'e2e-%@tenantflow.app' order by u.email;")
           printf '%s\n' "$rows"
           printf '%s\n' "$rows" | bun scripts/assert-migration-replay.ts test-cast
+
+      - name: Assert get_billing_insights computes the Payment Summary from the ledger
+        run: |
+          set -euo pipefail
+          # From 20260528231201 until 20261102055449 the function returned
+          # unpaidTotal, unpaidCount and lateFeeTotal as the literal 0, so every
+          # owner's Payment Summary read 0 while the rent ledger held the real
+          # figures -- and no job could see it, because none ran the function
+          # against a ledger (rls-security only asserts who may call it).
+          # The fixture seeds a ledger for the two seeded owners (so it runs
+          # after the cast step), calls the function as each owner, prints ONE
+          # JSON line and rolls back. The expected figures, and the arithmetic
+          # behind each, live in scripts/migration-replay-assertions.ts.
+          # A herestring rather than a pipe, so under pipefail the step's status
+          # is the assertion's alone and never a writer's SIGPIPE.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-billing-insights.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts billing-insights <<<"$result"
 
       - name: Stop the stack
         if: always()
