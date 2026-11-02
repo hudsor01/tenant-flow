@@ -96,12 +96,17 @@ function coerceCell(value: unknown): string | number | null {
 	return JSON.stringify(value);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 // Mirror of export-report's flattenToRows, coerced to the ReportRow cell shape:
-// object-shaped RPC results -> [{ metric, value }] rows; array results -> rows.
+// array results -> one row per element (a non-object element as { value });
+// object-shaped RPC results -> [{ metric, value }] rows.
 function flattenToReportRows(data: unknown): ReportRow[] {
-	if (!data || typeof data !== "object") return [];
 	if (Array.isArray(data)) {
-		return (data as Record<string, unknown>[]).map((row) => {
+		return data.map((row: unknown) => {
+			if (!isRecord(row)) return { value: coerceCell(row) };
 			const out: ReportRow = {};
 			for (const [key, value] of Object.entries(row)) {
 				out[key] = coerceCell(value);
@@ -109,9 +114,11 @@ function flattenToReportRows(data: unknown): ReportRow[] {
 			return out;
 		});
 	}
-	return Object.entries(data as Record<string, unknown>).map(
-		([key, value]) => ({ metric: key, value: coerceCell(value) }),
-	);
+	if (!isRecord(data)) return [];
+	return Object.entries(data).map(([key, value]) => ({
+		metric: key,
+		value: coerceCell(value),
+	}));
 }
 
 // Branch by reportType to the SAME RPCs export-report's CSV path uses so the

@@ -1,8 +1,14 @@
 // Supabase Edge Function: export-report
-// Generates CSV, XLSX (CSV-compatible), and PDF report exports.
-// Authenticates via JWT bearer token — no anon access.
-// PDF format: delegates to generate-pdf Edge Function (StirlingPDF via k3s).
+// GET /functions/v1/export-report?type=<report type>&format=<csv|xlsx|pdf>[&year=YYYY]
+// Reads only the query string; a request body is ignored. `format` defaults to
+// csv and `type` to financial.
+// Formats: csv (`_shared/report-csv.ts`), xlsx (CSV-compatible), pdf (HTML
+// delegated to the generate-pdf Edge Function, StirlingPDF).
+// Authenticates via JWT bearer token, no anon access. Premium report types
+// return 402 with `upgrade_url` below Growth (`_shared/tier-gate.ts`).
+// Every RPC error is a 500 (`errorResponse`), never an empty export.
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { validateBearerAuth } from "../_shared/auth.ts";
 import {
 	getCorsHeaders,
@@ -30,7 +36,85 @@ const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"cash-flow",
 ]);
 
-Deno.serve(async (req: Request) => {
+/** Injectable dependencies for `deno test` (mirrors lease-signature). */
+export interface ExportReportDeps {
+	createClient?: (url: string, key: string) => SupabaseClient;
+}
+
+type RowsResult =
+	| { readonly ok: true; readonly rows: Record<string, unknown>[] }
+	| { readonly ok: false; readonly rpc: string; readonly error: unknown };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * An RPC's JSON as report rows: an array's objects as they are (any other
+ * element as `{ value }`), an object as one `{ metric, value }` row per key
+ * (a nested value as its JSON text), and nothing for anything else.
+ */
+function flattenToRows(data: unknown): Record<string, unknown>[] {
+	if (Array.isArray(data)) {
+		return data.map((row: unknown) => (isRecord(row) ? row : { value: row }));
+	}
+	if (!isRecord(data)) return [];
+	return Object.entries(data).map(([key, value]) => ({
+		metric: key,
+		value:
+			value !== null && typeof value === "object"
+				? JSON.stringify(value)
+				: value,
+	}));
+}
+
+// Branch by report type to the RPC that backs it.
+async function fetchReportRows(
+	supabase: SupabaseClient,
+	userId: string,
+	reportType: string,
+): Promise<RowsResult> {
+	let rpc: string;
+	let args: Record<string, string | number>;
+	if (reportType === "year-end" || reportType === "financial") {
+		rpc = "get_financial_overview";
+		args = { p_user_id: userId };
+	} else if (reportType === "1099") {
+		rpc = "get_billing_insights";
+		args = { owner_id_param: userId };
+	} else if (reportType === "maintenance") {
+		rpc = "get_maintenance_analytics";
+		args = { user_id: userId };
+	} else {
+		rpc = "get_revenue_trends_optimized";
+		args = { p_user_id: userId, p_months: 12 };
+	}
+	const { data, error } = await supabase.rpc(rpc, args);
+	if (error) return { ok: false, rpc, error };
+	return { ok: true, rows: flattenToRows(data) };
+}
+
+function rowsReportFilename(reportType: string, year: number): string {
+	if (reportType === "year-end" || reportType === "financial") {
+		return `year-end-${year}`;
+	}
+	if (reportType === "1099") return `1099-vendors-${year}`;
+	if (reportType === "maintenance") return `maintenance-report-${year}`;
+	return `revenue-report-${year}`;
+}
+
+function rpcErrorResponse(req: Request, rpc: string, error: unknown): Response {
+	return errorResponse(req, 500, error, {
+		action: "export_report_rpc",
+		rpc,
+	});
+}
+
+/** Core request handler, exported so the Deno test drives it directly. */
+export async function handleRequest(
+	req: Request,
+	deps: ExportReportDeps = {},
+): Promise<Response> {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
 
@@ -46,10 +130,8 @@ Deno.serve(async (req: Request) => {
 	try {
 		// Authenticate
 		const supabaseUrl = env.SUPABASE_URL;
-		const supabase = createAdminClient(
-			supabaseUrl,
-			env.SUPABASE_SERVICE_ROLE_KEY,
-		);
+		const makeClient = deps.createClient ?? createAdminClient;
+		const supabase = makeClient(supabaseUrl, env.SUPABASE_SERVICE_ROLE_KEY);
 
 		const auth = await validateBearerAuth(req, supabase);
 		if ("error" in auth) {
@@ -84,36 +166,10 @@ Deno.serve(async (req: Request) => {
 			if (entitlementBlock) return entitlementBlock;
 		}
 
-		// Fetch data based on report type
-		let rows: Record<string, unknown>[] = [];
-		let filename = `report-${reportType}-${year}`;
-
-		if (reportType === "year-end" || reportType === "financial") {
-			const { data } = await supabase.rpc("get_financial_overview", {
-				p_user_id: user.id,
-			});
-			rows = flattenToRows(data);
-			filename = `year-end-${year}`;
-		} else if (reportType === "1099") {
-			const { data } = await supabase.rpc("get_billing_insights", {
-				owner_id_param: user.id,
-			});
-			rows = flattenToRows(data);
-			filename = `1099-vendors-${year}`;
-		} else if (reportType === "maintenance") {
-			const { data } = await supabase.rpc("get_maintenance_analytics", {
-				user_id: user.id,
-			});
-			rows = flattenToRows(data);
-			filename = `maintenance-report-${year}`;
-		} else {
-			const { data } = await supabase.rpc("get_revenue_trends_optimized", {
-				p_user_id: user.id,
-				p_months: 12,
-			});
-			rows = Array.isArray(data) ? (data as Record<string, unknown>[]) : [];
-			filename = `revenue-report-${year}`;
-		}
+		const result = await fetchReportRows(supabase, user.id, reportType);
+		if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
+		const rows = result.rows;
+		const filename = rowsReportFilename(reportType, year);
 
 		// PDF format: delegate to generate-pdf Edge Function (StirlingPDF on k3s)
 		if (format === "pdf") {
@@ -183,7 +239,7 @@ Deno.serve(async (req: Request) => {
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "export_report" });
 	}
-});
+}
 
 function buildReportHtml(
 	rows: Record<string, unknown>[],
@@ -232,14 +288,10 @@ function buildReportHtml(
 </html>`;
 }
 
-function flattenToRows(data: unknown): Record<string, unknown>[] {
-	if (!data || typeof data !== "object") return [];
-	if (Array.isArray(data)) return data as Record<string, unknown>[];
-	// For object-shaped RPC results, convert to key-value rows
-	return Object.entries(data as Record<string, unknown>).map(
-		([key, value]) => ({
-			metric: key,
-			value: typeof value === "object" ? JSON.stringify(value) : value,
-		}),
-	);
+// The handler registers Deno.serve() as a module side-effect (like every edge fn
+// in this repo). The unit test sets DENO_TEST_NO_SERVE=1 and dynamic-imports this
+// module, driving handleRequest() directly, so no real listener binds during
+// `deno test`. In prod the var is never set, so Deno.serve always runs.
+if (!Deno.env.get("DENO_TEST_NO_SERVE")) {
+	Deno.serve((req: Request) => handleRequest(req));
 }
