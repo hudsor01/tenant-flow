@@ -364,14 +364,6 @@ export interface OwnerPaymentSummaryResponse {
 	tenantCount: number;
 }
 
-/** Default empty response for graceful degradation when API fails */
-export const EMPTY_PAYMENT_SUMMARY: OwnerPaymentSummaryResponse = {
-	lateFeeTotal: 0,
-	unpaidTotal: 0,
-	unpaidCount: 0,
-	tenantCount: 0,
-} as const;
-
 export interface CreateLeaseInput {
 	// Selection (Step 1)
 	unit_id: string;

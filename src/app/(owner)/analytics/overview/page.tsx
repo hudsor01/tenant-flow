@@ -23,7 +23,6 @@ import {
 	usePropertyPerformance,
 } from "#hooks/api/use-dashboard-hooks";
 import { formatCurrency } from "#lib/utils/currency";
-import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
 import type { PropertyPerformance } from "#types/core";
 import { AnalyticsStatCards } from "./analytics-stat-cards";
 
@@ -92,7 +91,7 @@ export default function AnalyticsPage() {
 	const { data: overviewData, isLoading: overviewLoading } = useQuery(
 		analyticsQueries.overviewPageData(),
 	);
-	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(
+	const { data: paymentSummary, isError: paymentSummaryError } = useQuery(
 		analyticsQueries.ownerPaymentSummary(),
 	);
 	const { data: dashboardStats } = useDashboardStats();
@@ -151,7 +150,10 @@ export default function AnalyticsPage() {
 
 			<BlurFade delay={0.55}>
 				<div className="mb-8">
-					<OwnerPaymentSummary summary={paymentSummary} />
+					<OwnerPaymentSummary
+						summary={paymentSummary}
+						isError={paymentSummaryError}
+					/>
 				</div>
 			</BlurFade>
 

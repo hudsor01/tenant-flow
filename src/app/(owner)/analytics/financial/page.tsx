@@ -9,7 +9,6 @@ import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton"
 import { ExportButtons } from "#components/shared/export-buttons";
 import { BlurFade } from "#components/ui/blur-fade";
 import { analyticsQueries } from "#hooks/api/use-analytics";
-import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
 
 const RevenueExpenseChart = dynamic(
 	() =>
@@ -37,7 +36,7 @@ export default function FinancialAnalyticsPage() {
 	const { data, isLoading, isError } = useQuery(
 		analyticsQueries.financialPageData(),
 	);
-	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(
+	const { data: paymentSummary, isError: paymentSummaryError } = useQuery(
 		analyticsQueries.ownerPaymentSummary(),
 	);
 
@@ -111,7 +110,10 @@ export default function FinancialAnalyticsPage() {
 				{/* Payment Summary */}
 				<BlurFade delay={0.55}>
 					<div className="mb-8">
-						<OwnerPaymentSummary summary={paymentSummary} />
+						<OwnerPaymentSummary
+							summary={paymentSummary}
+							isError={paymentSummaryError}
+						/>
 					</div>
 				</BlurFade>
 

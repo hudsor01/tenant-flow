@@ -28,8 +28,39 @@ describe("OwnerPaymentSummary", () => {
 		expect(screen.queryByText("$12.50")).not.toBeInTheDocument();
 	});
 
-	it("renders zero dollars for a missing summary", () => {
-		render(<OwnerPaymentSummary summary={null} />);
-		expect(screen.getAllByText("$0.00")).toHaveLength(2);
+	it("renders a skeleton per figure while the summary loads, not zeros", () => {
+		const { container } = render(<OwnerPaymentSummary summary={undefined} />);
+		expect(
+			container.querySelectorAll(
+				'[data-slot="card-title"] [data-slot="skeleton"]',
+			),
+		).toHaveLength(4);
+		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+		expect(screen.queryByText("0")).not.toBeInTheDocument();
+	});
+
+	it("says the read failed instead of rendering zeros as figures", () => {
+		render(<OwnerPaymentSummary summary={undefined} isError />);
+		expect(
+			screen.getByText("Couldn't load the payment summary."),
+		).toBeInTheDocument();
+		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+		expect(screen.queryByText("Late fees cumulative")).not.toBeInTheDocument();
+	});
+
+	it("keeps the figures it has when a later refetch fails", () => {
+		render(
+			<OwnerPaymentSummary
+				summary={{
+					lateFeeTotal: 115,
+					unpaidTotal: 1185.5,
+					unpaidCount: 4,
+					tenantCount: 2,
+				}}
+				isError
+			/>,
+		);
+		expect(screen.getByText("$1,185.50")).toBeInTheDocument();
+		expect(screen.getByText("4")).toBeInTheDocument();
 	});
 });
