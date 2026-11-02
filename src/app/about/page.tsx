@@ -79,7 +79,7 @@ export default function AboutPage() {
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.2}>
-						<div className="grid xl:grid-cols-2 gap-16 items-center">
+						<div className="grid grid-cols-1 xl:grid-cols-2 gap-16 items-center">
 							<div className="space-y-6">
 								<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 									Our Mission

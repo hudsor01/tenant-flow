@@ -197,7 +197,7 @@ function PrintablesBand() {
 				 */}
 				<p className="text-sm text-muted-foreground mb-0">{band.description}</p>
 			</div>
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{DOCUMENTS_HUB_ENTRIES.filter(
 					(entry) => entry.band === "printables",
 				).map((entry) => (

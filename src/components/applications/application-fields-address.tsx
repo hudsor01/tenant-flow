@@ -45,7 +45,7 @@ export const ApplicationFieldsAddress = withForm({
 
 					{/* Single column below 640px without exception (A-3). City takes two
 					    of the four columns at sm and above so state and ZIP each get one. */}
-					<div className="grid gap-4 sm:grid-cols-4">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
 						{/* The span sits on a wrapper, not on the field: TextField forwards
 						    className to the <input>, so a col-span there would size the
 						    control instead of the grid cell. */}

@@ -118,7 +118,7 @@ export function MaintenanceHeaderCard({
 				</section>
 
 				{/* Location & Schedule */}
-				<section className="grid gap-4 md:grid-cols-2">
+				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<MapPin className="size-4" />
@@ -163,7 +163,7 @@ export function MaintenanceHeaderCard({
 				</section>
 
 				{/* Cost Summary */}
-				<section className="grid gap-4 md:grid-cols-3">
+				<section className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<DollarSign className="size-4" />

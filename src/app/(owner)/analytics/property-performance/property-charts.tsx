@@ -85,7 +85,10 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-80" config={occupancyConfig}>
+		<ChartContainer
+			className="aspect-auto h-80 w-full"
+			config={occupancyConfig}
+		>
 			<BarChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" vertical={false} />
 				<XAxis
@@ -148,7 +151,7 @@ export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-80" config={visitorConfig}>
+		<ChartContainer className="aspect-auto h-80 w-full" config={visitorConfig}>
 			<LineChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />

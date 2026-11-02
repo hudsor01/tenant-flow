@@ -54,7 +54,10 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-75" config={occupancyConfig}>
+		<ChartContainer
+			className="aspect-auto h-75 w-full"
+			config={occupancyConfig}
+		>
 			<AreaChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />

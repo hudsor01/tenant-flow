@@ -660,7 +660,7 @@ export default function SecurityDepositReferenceCardPage() {
 					<h2 className="text-2xl font-bold text-foreground mb-6">
 						Security Deposit Best Practices
 					</h2>
-					<div className="grid md:grid-cols-2 gap-6">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="rounded-xl border border-border p-6">
 							<h3 className="font-semibold text-foreground mb-2">
 								Document Everything

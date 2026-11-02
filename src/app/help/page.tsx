@@ -136,7 +136,7 @@ export default function HelpPage() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-2 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 						{[
 							{
 								title: "Set up the document vault",

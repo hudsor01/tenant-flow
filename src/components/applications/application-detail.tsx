@@ -378,7 +378,7 @@ function DetailCard({
 				</h2>
 			</CardHeader>
 			<CardContent>
-				<dl className="grid gap-3 sm:grid-cols-2">
+				<dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 					{fields.map((field) => (
 						<div key={field.label} className="flex flex-col gap-1">
 							<dt className="text-xs text-muted-foreground">{field.label}</dt>

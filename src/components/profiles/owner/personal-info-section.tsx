@@ -59,7 +59,7 @@ export function PersonalInfoSection({
 
 				{isEditing ? (
 					<div className="space-y-4">
-						<div className="grid gap-4 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="first_name">First Name</Label>
 								<Input
@@ -133,7 +133,7 @@ export function PersonalInfoSection({
 						</div>
 					</div>
 				) : (
-					<div className="grid gap-4 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<BlurFade delay={0.35}>
 							<div className="space-y-1">
 								<label className="text-xs font-medium text-muted-foreground">

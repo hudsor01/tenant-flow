@@ -37,7 +37,7 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 				<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-center mb-16">
 					Pricing Comparison
 				</h2>
-				<div className="grid md:grid-cols-2 gap-8">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 					<div className="rounded-2xl border-2 border-primary bg-background p-8">
 						<h3 className="text-xl font-bold text-foreground mb-1">
 							TenantFlow
@@ -167,7 +167,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 	return (
 		<section className="section-spacing bg-muted/30">
 			<div className="max-w-4xl mx-auto px-6 lg:px-8">
-				<div className="grid md:grid-cols-2 gap-12">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-12">
 					<div>
 						<h2 className="text-2xl font-bold text-foreground mb-6">
 							Why Switch to TenantFlow

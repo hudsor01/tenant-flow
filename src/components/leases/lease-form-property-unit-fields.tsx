@@ -45,7 +45,7 @@ export const LeaseFormPropertyUnitFields = withForm({
 		return (
 			<>
 				{/* Property Selection (for filtering units, not stored in lease) */}
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor="property-select">Property *</FieldLabel>
 						<Select

@@ -72,7 +72,10 @@ export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-75" config={lifecycleConfig}>
+		<ChartContainer
+			className="aspect-auto h-75 w-full"
+			config={lifecycleConfig}
+		>
 			<AreaChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />
@@ -126,7 +129,7 @@ export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-75" config={statusConfig}>
+		<ChartContainer className="aspect-auto h-75 w-full" config={statusConfig}>
 			<BarChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" vertical={false} />
 				<XAxis dataKey="status" tickLine={false} axisLine={false} />

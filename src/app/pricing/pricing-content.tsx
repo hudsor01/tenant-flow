@@ -68,7 +68,7 @@ export function PricingStatsGrid() {
 	return (
 		<section className="section-spacing animate-in fade-in duration-700 delay-150">
 			<div className="mx-auto max-w-7xl px-6 lg:px-8">
-				<div className="grid gap-8 text-left sm:grid-cols-3">
+				<div className="grid grid-cols-1 gap-8 text-left sm:grid-cols-3">
 					{STATS.map((stat) => (
 						<Card key={stat.label} variant="stat">
 							<div className="relative">
@@ -107,7 +107,7 @@ export function PricingFaqSection() {
 							records, not users — they never log in.
 						</p>
 					</div>
-					<div className="grid gap-4 lg:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 						{FAQS.map((faq, index) => (
 							<Accordion
 								key={faq.question}
@@ -165,7 +165,7 @@ export function PricingCtaSection() {
 	return (
 		<section className="section-spacing animate-in fade-in duration-700 delay-400">
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
-				<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
+				<div className="grid grid-cols-1 gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 					<div className="space-y-6 text-left">
 						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
 							Ready to centralize your portfolio?

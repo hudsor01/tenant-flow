@@ -20,7 +20,7 @@ export function TenantQuickActions({
 	exportDisabled,
 }: TenantQuickActionsProps) {
 	return (
-		<div className="flex items-center gap-3 mb-6">
+		<div className="flex flex-wrap items-center gap-3 mb-6">
 			<button type="button" onClick={onAdd} className={ACTION_CLASS}>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
 					<UserPlus className="w-4 h-4" aria-hidden="true" />

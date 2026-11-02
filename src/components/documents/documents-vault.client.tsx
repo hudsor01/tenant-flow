@@ -379,7 +379,7 @@ export function DocumentsVaultClient() {
 					<CardTitle className="text-base">Search & filter</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid gap-3 md:grid-cols-[1fr_160px_180px_220px]">
+					<div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_160px_180px_220px]">
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 							<Input
@@ -438,7 +438,7 @@ export function DocumentsVaultClient() {
 			</Card>
 
 			<Card aria-busy={isFetching}>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0">
+				<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
 					<CardTitle className="text-base flex items-center gap-2">
 						{totalCount > 0
 							? `${totalCount} document${totalCount === 1 ? "" : "s"}`
@@ -450,7 +450,7 @@ export function DocumentsVaultClient() {
 							/>
 						)}
 					</CardTitle>
-					<div className="flex items-center gap-3">
+					<div className="flex flex-wrap items-center gap-3">
 						{showRangeHeader && (
 							<p className="text-xs text-muted-foreground">
 								Showing {pageStart + 1}-{pageEnd} of {totalCount}

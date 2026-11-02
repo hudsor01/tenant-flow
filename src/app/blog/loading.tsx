@@ -50,7 +50,7 @@ export default function BlogLoading() {
 			<section className="section-spacing">
 				<div className="mx-auto max-w-6xl px-6 lg:px-8">
 					<div className="mb-6 h-7 w-48 animate-pulse rounded bg-muted" />
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{Array.from({ length: 6 }).map((_, i) => (
 							<BlogLoadingSkeleton key={i} />
 						))}

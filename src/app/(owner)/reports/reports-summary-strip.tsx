@@ -104,7 +104,7 @@ export function ReportsSummaryStrip() {
 	if (isError || (!data && !isPending)) {
 		return (
 			<div
-				className="grid gap-4 sm:grid-cols-3"
+				className="grid grid-cols-1 gap-4 sm:grid-cols-3"
 				data-testid="reports-summary-strip"
 			>
 				<p className="text-sm text-muted-foreground">
@@ -143,7 +143,7 @@ export function ReportsSummaryStrip() {
 			<p className="mb-2 text-sm capitalize text-muted-foreground">
 				{PERIOD_LABEL}
 			</p>
-			<div className="grid gap-4 sm:grid-cols-3">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<MetricCard
 					icon={CalendarClock}
 					label="Scheduled"

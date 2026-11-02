@@ -37,7 +37,7 @@ export const ApplicationFieldsAbout = withForm({
 				    decision for a 26-field public form, still a multiple of 4. */}
 				<FieldGroup className="gap-5">
 					{/* Paired below 640px means stacked, without exception (A-3). */}
-					<div className="grid gap-4 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<form.AppField name="first_name">
 							{(field) => (
 								<field.TextField

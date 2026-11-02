@@ -270,7 +270,7 @@ export function DocumentsSection({
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3">
+			<CardHeader className="flex flex-row flex-wrap items-start justify-between space-y-0 gap-3">
 				<div>
 					<CardTitle>
 						Documents
@@ -284,7 +284,7 @@ export function DocumentsSection({
 						Attach PDFs or images you want to keep alongside this {entityLabel}.
 					</CardDescription>
 				</div>
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2">
 					<Select
 						value={category}
 						onValueChange={(value) => setCategory(value as DocumentCategory)}

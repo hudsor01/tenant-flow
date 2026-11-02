@@ -275,7 +275,7 @@ export function LeaseTemplateBuilder() {
 					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="grid gap-6 lg:grid-cols-[20rem_1fr]">
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
 						<aside className="space-y-6">
 							<ConfigurationPanel
 								builderInputs={builderInputs}
@@ -321,7 +321,7 @@ export function LeaseTemplateBuilder() {
 						terminology.
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+				<CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
 					{Object.entries(leaseTemplateSchema.glossary).map(
 						([term, definition]) => (
 							<div

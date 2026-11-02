@@ -17,7 +17,7 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-lg font-semibold">Security Status</h3>
 
-				<div className="grid gap-3 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 					<BlurFade delay={0.65}>
 						<div className="flex items-center justify-between rounded-lg bg-muted/50 p-4 hover:bg-muted/70 transition-colors">
 							<div className="flex items-center gap-3">

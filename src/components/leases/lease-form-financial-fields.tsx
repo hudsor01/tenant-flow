@@ -31,7 +31,7 @@ export const LeaseFormFinancialFields = withForm({
 			<>
 				{/* Rent Amount and Security Deposit — number fields with non-null
 				    defaults (empty -> 0) kept inline; NumberField is for number|null. */}
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<form.AppField name="rent_amount">
 						{(field) => (
 							<Field>
@@ -93,7 +93,7 @@ export const LeaseFormFinancialFields = withForm({
 					)}
 				</form.AppField>
 
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<form.AppField name="rent_currency">
 						{(field) => (
 							<field.SelectField

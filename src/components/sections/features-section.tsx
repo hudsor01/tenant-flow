@@ -79,7 +79,7 @@ export default function FeaturesSectionDemo({
 
 				<div
 					className={cn(
-						"grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10",
+						"grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10",
 					)}
 				>
 					{features.map((feature, index) => (

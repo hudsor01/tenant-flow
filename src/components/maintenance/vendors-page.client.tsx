@@ -129,7 +129,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 
 function VendorsSkeleton() {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{Array.from({ length: 6 }).map((_, i) => (
 				<Card key={i}>
 					<CardHeader className="pb-2">
@@ -231,7 +231,7 @@ export function VendorsPageClient() {
 					{!search && tradeFilter === "all" && <VendorFormDialog />}
 				</div>
 			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{vendors.map((vendor) => (
 						<VendorCard key={vendor.id} vendor={vendor} />
 					))}

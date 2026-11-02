@@ -68,7 +68,7 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-75" config={trendConfig}>
+		<ChartContainer className="aspect-auto h-75 w-full" config={trendConfig}>
 			<LineChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />
@@ -115,7 +115,7 @@ export function MaintenanceCostChart({ entries }: MaintenanceCostChartProps) {
 	}));
 
 	return (
-		<ChartContainer className="h-75" config={costConfig}>
+		<ChartContainer className="aspect-auto h-75 w-full" config={costConfig}>
 			<BarChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" vertical={false} />
 				<XAxis

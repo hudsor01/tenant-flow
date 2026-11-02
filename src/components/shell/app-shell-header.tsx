@@ -33,8 +33,10 @@ export function AppShellHeader({
 }: AppShellHeaderProps) {
 	return (
 		<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-card border-b border-border">
-			{/* Left side - sidebar toggle + breadcrumbs */}
-			<div className="flex items-center gap-3">
+			{/* Left side - sidebar toggle + breadcrumbs. min-w-0 lets it give way to
+			    the right-hand controls instead of pushing them past a narrow
+			    viewport (WCAG 1.4.10 at 320px). */}
+			<div className="flex min-w-0 items-center gap-3">
 				<SidebarTrigger
 					ref={triggerRef}
 					aria-label="Toggle navigation menu"
@@ -50,19 +52,27 @@ export function AppShellHeader({
 						return (
 							<nav
 								aria-label="Breadcrumb"
-								className="flex items-center gap-1 text-sm"
+								className="flex min-w-0 items-center gap-1 text-sm"
 							>
-								{/* First crumb always visible */}
-								<div className="flex items-center gap-1">
+								{/* Below sm only the current page shows: a 320px header has
+								    about 110px for the trail beside its controls. A lone crumb
+								    always shows. */}
+								<div
+									className={
+										breadcrumbs.length > 1
+											? "hidden items-center gap-1 sm:flex"
+											: "flex min-w-0 items-center gap-1"
+									}
+								>
 									{firstCrumb.href ? (
 										<Link
 											href={firstCrumb.href}
-											className="text-muted-foreground hover:text-foreground transition-colors"
+											className="text-muted-foreground hover:text-foreground transition-colors truncate"
 										>
 											{firstCrumb.label}
 										</Link>
 									) : (
-										<span className="text-foreground font-medium">
+										<span className="text-foreground font-medium truncate">
 											{firstCrumb.label}
 										</span>
 									)}
@@ -93,27 +103,22 @@ export function AppShellHeader({
 												</div>
 											))}
 										</span>
-										{/* Collapsed indicator: visible on mobile only */}
-										<span className="flex items-center gap-1 sm:hidden">
-											<ChevronRight className="size-3.5 text-muted-foreground" />
-											<span className="text-muted-foreground">...</span>
-										</span>
 									</>
 								)}
 
 								{/* Last crumb (when more than 1) */}
 								{breadcrumbs.length > 1 && lastCrumb && (
-									<div className="flex items-center gap-1">
-										<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+									<div className="flex min-w-0 items-center gap-1">
+										<ChevronRight className="hidden w-3.5 h-3.5 shrink-0 text-muted-foreground sm:block" />
 										{lastCrumb.href ? (
 											<Link
 												href={lastCrumb.href}
-												className="text-muted-foreground hover:text-foreground transition-colors"
+												className="text-muted-foreground hover:text-foreground transition-colors truncate"
 											>
 												{lastCrumb.label}
 											</Link>
 										) : (
-											<span className="text-foreground font-medium truncate max-w-37.5 sm:max-w-none">
+											<span className="text-foreground font-medium truncate">
 												{lastCrumb.label}
 											</span>
 										)}
@@ -124,9 +129,10 @@ export function AppShellHeader({
 					})()}
 			</div>
 
-			{/* Right side - sync status, notifications, user */}
-			<div className="flex items-center gap-2">
-				<GlobalSyncIndicator />
+			{/* Right side - sync status, notifications, user. Below sm the sync
+			    status shows its icon, its text kept for screen readers. */}
+			<div className="flex shrink-0 items-center gap-2">
+				<GlobalSyncIndicator compactBelowSm />
 				<NotificationBell />
 
 				{/* User profile */}

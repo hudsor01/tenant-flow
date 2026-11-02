@@ -12,7 +12,8 @@
  * - The tooltip trigger is a `button`, the canonical Radix Tooltip trigger, so
  *   keyboard users reach the tooltip by focus as pointer users do by hover
  *   (WCAG 1.4.13, 2.1.1). Its name is its visible text ("Saved", "Syncing...",
- *   "Syncing (2)"); in compact mode the text is sr-only and still names it.
+ *   "Syncing (2)"); in compact mode (or below sm with `compactBelowSm`) the
+ *   saved text is sr-only and still names it.
  *   It has no action, so Enter and Space do nothing beyond what focus shows.
  * - The text sits in a `role="status"` live region that stays mounted across
  *   the state switch, so "Syncing..." and the return to "Saved" are announced.
@@ -33,6 +34,11 @@ interface GlobalSyncIndicatorProps {
 	className?: string;
 	/** Show in compact mode (icon only when saved) */
 	compact?: boolean;
+	/**
+	 * Compact below the sm breakpoint only (the app header at phone widths):
+	 * the saved state shows its icon there, its text kept for screen readers.
+	 */
+	compactBelowSm?: boolean;
 }
 
 const SAVED_TOOLTIP = "All changes saved to TenantFlow.";
@@ -40,6 +46,7 @@ const SAVED_TOOLTIP = "All changes saved to TenantFlow.";
 export function GlobalSyncIndicator({
 	className,
 	compact = false,
+	compactBelowSm = false,
 }: GlobalSyncIndicatorProps) {
 	const { isPending, count, operations } = usePendingMutations();
 
@@ -70,7 +77,15 @@ export function GlobalSyncIndicator({
 					/>
 					<span
 						role="status"
-						className={compact && !isPending ? "sr-only" : "text-xs"}
+						className={
+							isPending
+								? "text-xs"
+								: compact
+									? "sr-only"
+									: compactBelowSm
+										? "text-xs max-sm:sr-only"
+										: "text-xs"
+						}
 					>
 						{statusText}
 					</span>

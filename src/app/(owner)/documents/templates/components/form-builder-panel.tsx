@@ -116,7 +116,7 @@ export function FormBuilderPanel({
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between">
+			<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
 				<div>
 					<CardTitle>Form builder</CardTitle>
 					<p className="text-sm text-muted-foreground">
@@ -157,7 +157,7 @@ export function FormBuilderPanel({
 								<Trash2 className="size-4" />
 							</Button>
 						</div>
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor={`builder-field-${index}-label`}>Label</Label>
 								<Input

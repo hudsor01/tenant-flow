@@ -24,7 +24,7 @@ export function FeatureCallouts() {
 	return (
 		<section className="section-spacing-compact">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<div className="grid gap-3 md:grid-cols-3">
+				<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 					{callouts.map((callout) => (
 						<div
 							key={callout.title}

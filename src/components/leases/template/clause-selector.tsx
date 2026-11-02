@@ -68,7 +68,7 @@ export function ClauseSelector({
 									>
 										<div className="flex items-start justify-between gap-2">
 											<label
-												className="flex flex-1 cursor-pointer items-start gap-3 text-sm"
+												className="flex min-w-0 flex-1 cursor-pointer items-start gap-3 text-sm"
 												htmlFor={clause.id}
 											>
 												<Checkbox
@@ -76,8 +76,8 @@ export function ClauseSelector({
 													checked={selected}
 													onCheckedChange={() => onToggleClause(clause.id)}
 												/>
-												<span>
-													<span className="font-medium text-foreground flex items-center gap-2">
+												<span className="min-w-0">
+													<span className="font-medium text-foreground flex flex-wrap items-center gap-2">
 														{clause.title}
 														{recommended && (
 															<Badge variant="secondary">Recommended</Badge>
@@ -93,7 +93,7 @@ export function ClauseSelector({
 													<button
 														type="button"
 														aria-label="More information about this clause"
-														className="text-muted-foreground"
+														className="shrink-0 text-muted-foreground"
 													>
 														<Info className="size-4" />
 													</button>

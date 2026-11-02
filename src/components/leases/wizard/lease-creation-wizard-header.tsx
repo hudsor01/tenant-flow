@@ -43,7 +43,11 @@ export function LeaseCreationWizardHeader({
 						<StepperTrigger className="gap-3">
 							<StepperIndicator />
 							<div className="flex flex-col items-start">
-								<StepperTitle>{step.title}</StepperTitle>
+								{/* Four titles do not fit beside their indicators below sm
+								    (WCAG 1.4.10 at 320px); they stay the triggers' names. */}
+								<StepperTitle className="max-sm:sr-only">
+									{step.title}
+								</StepperTitle>
 								<StepperDescription className="hidden sm:block">
 									{step.description}
 								</StepperDescription>

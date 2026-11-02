@@ -18,7 +18,7 @@ export function DashboardLoadingSkeleton() {
 
 			{/* Main content skeleton: four columns from the same 56rem `dashboard`
 			    container width as Dashboard's trends grid, stacked below it. */}
-			<div className="grid gap-6 @4xl/dashboard:grid-cols-4">
+			<div className="grid grid-cols-1 gap-6 @4xl/dashboard:grid-cols-4">
 				{/* Chart skeleton - 75% */}
 				<div className="@4xl/dashboard:col-span-3 border rounded-lg p-6">
 					<Skeleton className="h-6 w-48 mb-2" />

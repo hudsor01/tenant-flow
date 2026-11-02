@@ -134,7 +134,7 @@ export function OwnerEmergencyContactSection() {
 			description="Someone we can contact in case of emergency"
 		>
 			<form onSubmit={handleSave} className="space-y-6">
-				<div className="grid gap-6 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor={nameId}>Contact Name</FieldLabel>
 						<Input

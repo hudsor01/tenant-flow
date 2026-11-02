@@ -78,7 +78,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 					{/* Connecting line - desktop only */}
 					<div className="hidden lg:block absolute top-24 left-[16.67%] right-[16.67%] h-0.5 bg-linear-to-r from-primary via-info to-success opacity-20" />
 
-					<div className="grid md:grid-cols-3 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 						{steps.map((step, index) => (
 							<BlurFade
 								key={step.number}

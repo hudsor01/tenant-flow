@@ -26,7 +26,7 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 					<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 						Financial Terms
 					</h3>
-					<div className="grid gap-3 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						<div className="p-3 rounded-lg border">
 							<p className="text-sm text-muted-foreground">Late Fee</p>
 							<p className="font-medium">
@@ -48,7 +48,7 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 						<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 							Property Rules
 						</h3>
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 							{lease.max_occupants !== null && (
 								<div className="p-3 rounded-lg border">
 									<p className="text-sm text-muted-foreground">Max Occupants</p>

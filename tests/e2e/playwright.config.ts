@@ -271,6 +271,11 @@ export default defineConfig({
 				// jsdom can decide none of them. Listing it here is what makes it gate
 				// a PR — CI runs `--project=owner-axe` and never runs `owner`.
 				"**/owner/app-shell-sidebar.spec.ts",
+				// Phase 66.2 WCAG 1.4.10 reflow sweep (fix round 1, part F) — every
+				// owner page at 320px, self-authenticating via loginAsOwner (no
+				// storageState). Listed here so it gates a PR; the public half runs
+				// under the `public` project (tests/public/reflow-320.spec.ts).
+				"**/owner-reflow-320.spec.ts",
 			],
 		},
 
@@ -293,6 +298,7 @@ export default defineConfig({
 				"**/notifications.spec.ts",
 				"**/reports-hub.spec.ts",
 				"**/documents-hub.spec.ts",
+				"**/owner-reflow-320.spec.ts",
 			],
 		},
 
