@@ -77,7 +77,7 @@ export function ChartAreaInteractive({
 	const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
 	return (
-		<Card className={cn("", className)}>
+		<Card className={cn("@container/chart-card", className)}>
 			<CardHeader className="flex flex-col items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
 				<div className="grid flex-1 gap-1 text-center sm:text-left">
 					<CardTitle className="flex items-center gap-2">
@@ -149,8 +149,10 @@ export function ChartAreaInteractive({
 				</div>
 			</CardHeader>
 
-			{/* Summary metrics */}
-			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
+			{/* Summary metrics: four columns only when the card itself is wide
+			    enough for four amounts (the analytics overview places it in a
+			    narrow column, where four overflowed). */}
+			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:@xl/chart-card:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Revenue</p>
 					<p className="typography-large text-success-text">
