@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FinancialOverviewStats } from "#app/(owner)/analytics/financial/_components/financial-overview-stats";
 import { AnalyticsStatCards } from "#app/(owner)/analytics/overview/analytics-stat-cards";
+import { LeasesStatCards } from "#app/(owner)/leases/leases-stat-cards";
 import { ExpenseStats } from "#app/(owner)/reports/expenses/_components/expense-stats";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { render } from "#test/utils/test-render";
@@ -29,6 +30,33 @@ function expectRowsOneHeight() {
 }
 
 describe("stat rows", () => {
+	// "Pending Signature" (66.2-39 part P, one label per lease status) wraps to
+	// two lines at 390, measured on the production build: 113 x 40 beside a
+	// 20-high "Expiring Soon". The grid row already stretches the tiles to one
+	// height; each tile is a column with its figure row at the foot, so the two
+	// figures in the row stay on one line.
+	it("keep the leases tiles' figures on one line when a label wraps", () => {
+		render(
+			<LeasesStatCards
+				totalLeases={2}
+				activeLeases={1}
+				expiringLeases={1}
+				pendingLeases={1}
+			/>,
+		);
+		const label = [...document.querySelectorAll("p")].find(
+			(p) => p.textContent === "Pending Signature",
+		);
+		const tiles = [
+			...(label?.closest(".grid")?.querySelectorAll(":scope > div") ?? []),
+		];
+		expect(tiles).toHaveLength(4);
+		for (const tile of tiles) {
+			expect(tile.className).toContain("flex-col");
+			expect(tile.lastElementChild?.className ?? "").toContain("mt-auto");
+		}
+	});
+
 	it("hold the overview's tiles to one height", () => {
 		render(
 			<AnalyticsStatCards

@@ -35,14 +35,17 @@ export function LeasesStatCards({
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 			{cards.map((card) => (
+				// A column, its figure row at the foot: the grid stretches a row's
+				// tiles to one height, so a label that wraps (Pending Signature at
+				// 390px) leaves every figure in the row on one line (66.2-39 VD-111).
 				<div
 					key={card.label}
-					className="bg-card border border-border rounded-sm p-4"
+					className="flex flex-col bg-card border border-border rounded-sm p-4"
 				>
 					<div className="flex items-center justify-between mb-2">
 						<p className="text-sm text-muted-foreground">{card.label}</p>
 					</div>
-					<div className="flex items-end justify-between">
+					<div className="mt-auto flex items-end justify-between">
 						<p className="text-2xl font-bold text-foreground">{card.value}</p>
 						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
 							<card.icon className="w-4 h-4 text-primary" />
