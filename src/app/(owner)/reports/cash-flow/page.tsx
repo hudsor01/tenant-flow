@@ -7,6 +7,7 @@ import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
+import { StatementBasisNote } from "../statement-basis-note";
 import { CashFlowActivity } from "./cash-flow-activity";
 import { CashFlowBalanceSummary } from "./cash-flow-balance-summary";
 import { CashFlowBreakdown } from "./cash-flow-breakdown";
@@ -134,6 +135,8 @@ export default function CashFlowPage() {
 						netOperatingCash={view.netOperatingCash}
 						netFinancingCash={view.netFinancingCash}
 					/>
+
+					<StatementBasisNote />
 				</>
 			)}
 		</div>

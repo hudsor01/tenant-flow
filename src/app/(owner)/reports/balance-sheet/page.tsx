@@ -26,6 +26,7 @@ import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
 import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 import { ReportExportButton } from "../report-export-button";
+import { StatementBasisNote } from "../statement-basis-note";
 import { BalanceEquationCheck } from "./balance-equation-check";
 import { BalanceSection } from "./balance-section";
 import {
@@ -272,6 +273,8 @@ function BalanceSheetFigures({ view }: { view: BalanceSheetView }) {
 					</div>
 				</div>
 			</BlurFade>
+
+			<StatementBasisNote />
 		</>
 	);
 }

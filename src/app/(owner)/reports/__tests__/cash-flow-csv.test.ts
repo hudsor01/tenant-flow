@@ -9,6 +9,7 @@ import {
 	buildCashFlowView,
 	type CashFlowView,
 } from "#app/(owner)/reports/cash-flow/cash-flow-view";
+import { STATEMENT_BASIS_NOTE } from "#lib/reports/statement-basis";
 import type { CashFlowData } from "#types/financial-statements";
 
 function cashFlowData(overrides: Partial<CashFlowData> = {}): CashFlowData {
@@ -72,6 +73,13 @@ describe("buildCashFlowCsv", () => {
 				"3000.00",
 			],
 			[...CONTEXT, "Cash Flow by Activity", "Financing Activities", "", "0.00"],
+			...STATEMENT_BASIS_NOTE.map((sentence) => [
+				...CONTEXT,
+				"Basis of Presentation",
+				sentence,
+				"",
+				"",
+			]),
 		]);
 	});
 
@@ -196,6 +204,12 @@ describe("buildCashFlowCsv", () => {
 			["Cash Outflows", "Total Outflows", "", "0.00"],
 			["Cash Flow by Activity", "Operating Activities", "", "0.00"],
 			["Cash Flow by Activity", "Financing Activities", "", "0.00"],
+			...STATEMENT_BASIS_NOTE.map((sentence) => [
+				"Basis of Presentation",
+				sentence,
+				"",
+				"",
+			]),
 		]);
 		expect(rows.slice(1).every((r) => r[0] === "Yearly")).toBe(true);
 	});

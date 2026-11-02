@@ -1,4 +1,8 @@
 import { type CsvCell, csvIsoDate, csvNumber, toCsv } from "#lib/reports/csv";
+import {
+	STATEMENT_BASIS_HEADING,
+	STATEMENT_BASIS_NOTE,
+} from "#lib/reports/statement-basis";
 import type { IncomeStatementView } from "./income-statement-view";
 
 /**
@@ -106,5 +110,11 @@ export function buildIncomeStatementCsv({
 			),
 		);
 	}
+	// The note under the page's figures, one row per sentence, no amount.
+	rows.push(
+		...STATEMENT_BASIS_NOTE.map((sentence) =>
+			row(STATEMENT_BASIS_HEADING, sentence, null),
+		),
+	);
 	return toCsv(INCOME_STATEMENT_CSV_HEADER, rows);
 }

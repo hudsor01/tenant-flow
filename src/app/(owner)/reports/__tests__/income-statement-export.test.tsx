@@ -4,8 +4,9 @@
  * fix round 1, part F). It had no handler: clicking it did nothing.
  */
 
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { STATEMENT_BASIS_NOTE } from "#lib/reports/statement-basis";
 import { expectLabelInName } from "#test/utils/label-in-name";
 import { render } from "#test/utils/test-render";
 import type { IncomeStatementData } from "#types/financial-statements";
@@ -158,6 +159,16 @@ describe("income statement Export", () => {
 		}
 	});
 
+	// The basis the figures are presented on, under them (66.2-39 part P):
+	// one copy, STATEMENT_BASIS_NOTE, which the CSV writes too.
+	it("states the basis of presentation under its figures", () => {
+		render(<IncomeStatementPage />);
+		const note = screen.getByRole("region", { name: "Basis of Presentation" });
+		for (const sentence of STATEMENT_BASIS_NOTE) {
+			expect(within(note).getByText(sentence)).toBeInTheDocument();
+		}
+	});
+
 	it("waits for the selected period while the previous one is on screen", () => {
 		useIncomeStatementMock.mockReturnValue(
 			queryState({ isPlaceholderData: true }),
@@ -207,6 +218,9 @@ describe("income statement Export", () => {
 			),
 		).toBeInTheDocument();
 		expect(screen.queryByText("Total Revenue")).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("region", { name: "Basis of Presentation" }),
+		).not.toBeInTheDocument();
 		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
 		const button = screen.getByRole("button", { name: "Export" });
 		expect(button).toHaveAttribute("aria-disabled", "true");

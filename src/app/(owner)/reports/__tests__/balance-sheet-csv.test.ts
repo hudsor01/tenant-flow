@@ -6,6 +6,7 @@ import {
 	buildBalanceSheetCsv,
 } from "#app/(owner)/reports/balance-sheet/balance-sheet-csv";
 import { buildBalanceSheetView } from "#app/(owner)/reports/balance-sheet/balance-sheet-view";
+import { STATEMENT_BASIS_NOTE } from "#lib/reports/statement-basis";
 import type { BalanceSheetData } from "#types/financial-statements";
 
 function balanceData(
@@ -151,6 +152,14 @@ describe("buildBalanceSheetCsv", () => {
 			[...CONTEXT, "Equity", "", "Retained Earnings", "40000.00"],
 			[...CONTEXT, "Equity", "", "Year-to-Date Income", "11200.50"],
 			[...CONTEXT, "Equity", "", "Total Equity", "54500.50"],
+			// The note under the page's figures, one row per sentence.
+			...STATEMENT_BASIS_NOTE.map((sentence) => [
+				...CONTEXT,
+				"Basis of Presentation",
+				"",
+				sentence,
+				"",
+			]),
 		]);
 	});
 

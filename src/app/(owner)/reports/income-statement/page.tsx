@@ -6,6 +6,7 @@ import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
+import { StatementBasisNote } from "../statement-basis-note";
 import {
 	buildIncomeStatementCsv,
 	incomeStatementCsvFilename,
@@ -123,6 +124,8 @@ export default function IncomeStatementPage() {
 						operatingIncome={view.operatingIncome}
 						previousPeriod={view.previousPeriod}
 					/>
+
+					<StatementBasisNote />
 				</>
 			)}
 		</div>

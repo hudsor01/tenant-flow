@@ -1,4 +1,8 @@
 import { type CsvCell, csvIsoDate, csvNumber, toCsv } from "#lib/reports/csv";
+import {
+	STATEMENT_BASIS_HEADING,
+	STATEMENT_BASIS_NOTE,
+} from "#lib/reports/statement-basis";
 import type { BalanceSheetGroup, BalanceSheetView } from "./balance-sheet-view";
 
 /**
@@ -7,8 +11,9 @@ import type { BalanceSheetGroup, BalanceSheetView } from "./balance-sheet-view";
  * every group's lines and subtotal, the Equity card). A balance sheet is a
  * position on one day, so every row repeats that as-of date and the currency
  * rather than a range. Amounts are dollars with 2 decimals and no symbol,
- * signed as the page shows them (accumulated depreciation negative). The
- * balance check row names its outcome and carries no amount.
+ * signed as the page shows them. The balance check row names its outcome and
+ * carries no amount, and so do the closing Basis of Presentation rows, one per
+ * sentence of the note under the page's figures (STATEMENT_BASIS_NOTE).
  */
 export const BALANCE_SHEET_CSV_HEADER = [
 	"As Of Date",
@@ -65,6 +70,9 @@ export function buildBalanceSheetCsv({
 		row("Liabilities", "", "Total Liabilities", view.totalLiabilities),
 		...view.equityItems.map((i) => row("Equity", "", i.name, i.amount)),
 		row("Equity", "", "Total Equity", view.totalEquity),
+		...STATEMENT_BASIS_NOTE.map((sentence) =>
+			row(STATEMENT_BASIS_HEADING, "", sentence, null),
+		),
 	];
 	return toCsv(BALANCE_SHEET_CSV_HEADER, rows);
 }

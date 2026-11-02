@@ -6,6 +6,7 @@ import {
 	incomeStatementCsvFilename,
 } from "#app/(owner)/reports/income-statement/income-statement-csv";
 import { buildIncomeStatementView } from "#app/(owner)/reports/income-statement/income-statement-view";
+import { STATEMENT_BASIS_NOTE } from "#lib/reports/statement-basis";
 import type { IncomeStatementData } from "#types/financial-statements";
 
 function incomeData(
@@ -114,6 +115,13 @@ describe("buildIncomeStatementCsv", () => {
 			[...CONTEXT, "Net Income Summary", "Gross Profit", "", "52500.00"],
 			[...CONTEXT, "Net Income Summary", "Operating Income", "", "52500.00"],
 			[...CONTEXT, "Net Income Summary", "Net Income", "", "52500.00"],
+			...STATEMENT_BASIS_NOTE.map((sentence) => [
+				...CONTEXT,
+				"Basis of Presentation",
+				sentence,
+				"",
+				"",
+			]),
 		]);
 	});
 
@@ -139,7 +147,7 @@ describe("buildIncomeStatementCsv", () => {
 		expect(find("Totals", "Net Income")?.[7]).toBe("-500.00");
 		expect(find("Totals", "Profit Margin")?.[6]).toBe("-50.0");
 		expect(find("Net Income Summary", "Net Income")?.[7]).toBe("-500.00");
-		expect(rows.at(-1)).toEqual([
+		expect(rows.find((r) => r[4] === "Period Comparison")).toEqual([
 			"Quarterly",
 			"2026-11-01",
 			"2026-11-30",

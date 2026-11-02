@@ -217,8 +217,9 @@ describe("the balance sheet file holds the figures on screen", () => {
 		const rows = await exportedRows();
 		// The 3 totals and the balance check; 2 asset lines, a subtotal and the
 		// total; 1 liability line, a subtotal and the total; 3 equity lines and
-		// the total. No line the data model has no source for (each read $0).
-		expect(rows).toHaveLength(15);
+		// the total; the basis note's 3 sentences. No line the data model has no
+		// source for (each read $0).
+		expect(rows).toHaveLength(18);
 		for (const gone of [
 			"Security Deposits",
 			"Property Values",
@@ -237,6 +238,12 @@ describe("the balance sheet file holds the figures on screen", () => {
 			if (section === "Balance Check") {
 				expect(item).toBe("Balanced");
 				expect(page).toContain("Balanced");
+				continue;
+			}
+			// The basis note: each sentence the file writes is under the figures.
+			if (section === "Basis of Presentation") {
+				expect(amount).toBe("");
+				expect(page).toContain(item);
 				continue;
 			}
 			const shown = formatCurrency(Number(amount));
