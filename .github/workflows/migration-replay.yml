@@ -49,6 +49,7 @@ on:
       - scripts/assert-migration-replay.ts
       - scripts/migration-replay-billing-insights.sql
       - scripts/migration-replay-property-performance.sql
+      - scripts/migration-replay-owner-figures.sql
       # The negative controls, and the shared result module: a change that
       # weakens a control has to run the gate it guards. (The result module's
       # own controls are in scripts/assertion-result.test.ts, because a green
@@ -219,6 +220,26 @@ jobs:
             -v ON_ERROR_STOP=1 < scripts/migration-replay-property-performance.sql)
           printf '%s\n' "$result"
           bun scripts/assert-migration-replay.ts property-performance <<<"$result"
+
+      - name: Assert the dashboard, expense and maintenance figures are computed
+        run: |
+          set -euo pipefail
+          # Until 20261102184501..20261102184504, get_dashboard_stats returned
+          # occupancyChange and revenue growth as 0, get_dashboard_data_v2
+          # compared today's leases with only the leases still active today,
+          # get_expense_summary returned year_over_year_change as null,
+          # get_maintenance_analytics returned every cost as 0 or [], and
+          # get_financial_overview returned receivables, payables and trends as
+          # literals no caller reads -- and no job ran any of them against
+          # data. The fixture seeds leases, maintenance requests and expenses
+          # for the three seeded users (so it runs after the cast step), calls
+          # each function as its owner, prints ONE JSON line and rolls back.
+          # The expected figures, and the arithmetic behind each, live in
+          # scripts/migration-replay-assertions.ts. A herestring, as above.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-owner-figures.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts owner-figures <<<"$result"
 
       - name: Stop the stack
         if: always()

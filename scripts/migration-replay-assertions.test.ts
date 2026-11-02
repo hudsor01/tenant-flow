@@ -14,10 +14,12 @@ import {
 	assertBillingInsightsFromLedger,
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
+	assertOwnerFiguresComputed,
 	assertPropertyPerformanceRentReceived,
 	assertSeededCast,
 	EXPECTED_BILLING_INSIGHTS,
 	EXPECTED_SEEDED_CAST,
+	expectedOwnerFigures,
 	expectedPropertyPerformance,
 } from "./migration-replay-assertions";
 
@@ -952,5 +954,464 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		const result = assertPropertyPerformanceRentReceived(raw);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("did not print a JSON object");
+	});
+});
+
+/**
+ * The line `scripts/migration-replay-owner-figures.sql` printed against the
+ * replayed stack with 20261102184501..20261102184504 applied, on 2026-11-02,
+ * verbatim. Every window and month in it follows from `today`, which the
+ * assertion computes them from, so the line stays valid on any later day.
+ */
+const REPLAYED_FIGURES_LINE =
+	'{"today": "2026-11-02", "execute": {"public.get_dashboard_stats(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_dashboard_data_v2(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_maintenance_analytics(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.dashboard_lease_position(uuid,date)": {"anon": false, "service_role": false, "authenticated": false}, "public.get_expense_summary(uuid,date,date)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_financial_overview(uuid,date,date)": {"anon": false, "service_role": true, "authenticated": true}}, "maintenance_a": {"total_cost": 790.50, "average_cost": 197.63, "monthly_cost": [{"cost": 0, "month": "2025-12"}, {"cost": 0, "month": "2026-01"}, {"cost": 0, "month": "2026-02"}, {"cost": 0, "month": "2026-03"}, {"cost": 0, "month": "2026-04"}, {"cost": 0, "month": "2026-05"}, {"cost": 0, "month": "2026-06"}, {"cost": 0, "month": "2026-07"}, {"cost": 0, "month": "2026-08"}, {"cost": 250.50, "month": "2026-09"}, {"cost": 110.00, "month": "2026-10"}, {"cost": 30.00, "month": "2026-11"}], "trendsOverTime": [{"month": "2025-12", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-01", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-02", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-03", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-04", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-05", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-06", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-07", "pending": 2, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-08", "pending": 4, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-09", "pending": 4, "completed": 1, "avg_resolution_hours": 48.33}, {"month": "2026-10", "pending": 4, "completed": 1, "avg_resolution_hours": 1406.00}, {"month": "2026-11", "pending": 3, "completed": 1, "avg_resolution_hours": 734.00}], "costed_requests": 4, "vendor_performance": [{"jobs": 1, "total_spend": 400.00, "vendor_name": "Roof Co"}, {"jobs": 2, "total_spend": 260.50, "vendor_name": "Plumber"}, {"jobs": 1, "total_spend": 100.00, "vendor_name": "Heat Co"}, {"jobs": 1, "total_spend": 30.00, "vendor_name": "Other"}]}, "dashboard_v2_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": -25.00, "totalActualRent": 2200, "totalPotentialRent": 3600, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": -10.18, "yearly": 26400, "monthly": 2200, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "down", "change": -280, "current": 2470, "previous": 2750, "percentChange": -10.18}, "trend_occupancy": {"trend": "down", "change": -25.00, "current": 75.00, "previous": 100.00, "percentChange": -25.00}}, "dashboard_v2_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 8400, "monthly": 700, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "up", "change": 700, "current": 700, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 100.00, "current": 100.00, "previous": 0.00, "percentChange": 0}}, "dashboard_v2_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 6000, "monthly": 500, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "up", "change": 500, "current": 500, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 33.33, "current": 33.33, "previous": 0.00, "percentChange": 0}}, "position_a_then": {"occupancy_rate": 100.00, "scheduled_rent": 2750}, "position_nobody": {"occupancy_rate": 0, "scheduled_rent": 0}, "position_a_today": {"occupancy_rate": 75.00, "scheduled_rent": 2470}, "dashboard_stats_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": -25.00, "totalActualRent": 2200, "totalPotentialRent": 3600, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": -10.18, "yearly": 86400, "monthly": 7200, "growthWindow": "2026-10-03/2026-11-02"}}, "dashboard_stats_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 8400, "monthly": 700, "growthWindow": "2026-10-03/2026-11-02"}}, "dashboard_stats_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 6000, "monthly": 500, "growthWindow": "2026-10-03/2026-11-02"}}, "overview_a_window": {"overview": {"net_income": 86039.50, "total_revenue": 86400, "total_expenses": 360.50}}, "maintenance_nobody": {"total_cost": 0, "average_cost": null, "monthly_cost": [{"cost": 0, "month": "2025-12"}, {"cost": 0, "month": "2026-01"}, {"cost": 0, "month": "2026-02"}, {"cost": 0, "month": "2026-03"}, {"cost": 0, "month": "2026-04"}, {"cost": 0, "month": "2026-05"}, {"cost": 0, "month": "2026-06"}, {"cost": 0, "month": "2026-07"}, {"cost": 0, "month": "2026-08"}, {"cost": 0, "month": "2026-09"}, {"cost": 0, "month": "2026-10"}, {"cost": 0, "month": "2026-11"}], "trendsOverTime": [{"month": "2025-12", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-01", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-02", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-03", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-04", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-05", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-06", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-07", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-08", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-09", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-10", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-11", "pending": 0, "completed": 0, "avg_resolution_hours": null}], "costed_requests": 0, "vendor_performance": []}, "expenses_b_leap_day": {"categories": [{"amount": 7.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 7.00, "year_over_year_change": null, "year_over_year_prior_period": "2023-02-28/2023-02-28"}, "overview_a_open_end": {"overview": {"net_income": 86370.00, "total_revenue": 86400, "total_expenses": 30.00}}, "expenses_b_unbounded": {"categories": [{"amount": 286.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 286.00, "year_over_year_change": null, "year_over_year_prior_period": null}, "expenses_b_open_ended": {"categories": [{"amount": 1149.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 1149.00, "year_over_year_change": null, "year_over_year_prior_period": null}, "expenses_b_spring_2025": {"categories": [{"amount": 150.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 150.00, "year_over_year_change": 25.00, "year_over_year_prior_period": "2024-03-01/2024-06-30"}, "expenses_c_year_to_date": {"categories": [{"amount": 320.00, "category": "Porch Co", "percentage": 100.00}], "total_amount": 320.00, "year_over_year_change": 33.33, "year_over_year_prior_period": "2025-01-01/2025-11-02"}, "guard_refuses_another_owner": {"get_dashboard_stats": true, "get_expense_summary": true, "get_dashboard_data_v2": true, "get_financial_overview": true, "get_maintenance_analytics": true}}';
+
+/**
+ * The same fixture against PRODUCTION's five bodies as of 2026-11-02, on the
+ * same stack (the helper left in place, which only the new bodies call): the
+ * literal zeros and nulls, the v2 trend against leases still active today,
+ * the year to date with the future expense, the dead overview keys.
+ * `execute` shows anon=true where the replayed chain grants it and production
+ * does not; the migrations revoke it.
+ */
+const PRODUCTION_FIGURES_LINE =
+	'{"today": "2026-11-02", "execute": {"public.get_dashboard_stats(uuid)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_dashboard_data_v2(uuid)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_maintenance_analytics(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.dashboard_lease_position(uuid,date)": {"anon": false, "service_role": false, "authenticated": false}, "public.get_expense_summary(uuid,date,date)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_financial_overview(uuid,date,date)": {"anon": true, "service_role": true, "authenticated": true}}, "maintenance_a": {"total_cost": 0, "average_cost": 0, "monthly_cost": [], "trendsOverTime": [], "vendor_performance": []}, "dashboard_v2_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": 25.00, "totalActualRent": 2200, "totalPotentialRent": 3600}, "revenue": {"growth": 100.00, "yearly": 26400, "monthly": 2200}, "trend_revenue": {"trend": "up", "change": 1200, "current": 2200, "previous": 1000, "percentChange": 100.00}, "trend_occupancy": {"trend": "up", "change": 25.00, "current": 50.00, "previous": 25.00, "percentChange": 100.00}}, "dashboard_v2_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700}, "revenue": {"growth": 0, "yearly": 8400, "monthly": 700}, "trend_revenue": {"trend": "up", "change": 700, "current": 700, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 100.00, "current": 100.00, "previous": 0.00, "percentChange": 0}}, "dashboard_v2_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500}, "revenue": {"growth": 0, "yearly": 6000, "monthly": 500}, "trend_revenue": {"trend": "up", "change": 500, "current": 500, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 33.33, "current": 33.33, "previous": 0.00, "percentChange": 0}}, "position_a_then": {"occupancy_rate": 100.00, "scheduled_rent": 2750}, "position_nobody": {"occupancy_rate": 0, "scheduled_rent": 0}, "position_a_today": {"occupancy_rate": 75.00, "scheduled_rent": 2470}, "dashboard_stats_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": 0, "totalActualRent": 2200, "totalPotentialRent": 3600}, "revenue": {"growth": 0, "yearly": 86400, "monthly": 7200}}, "dashboard_stats_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 0, "totalActualRent": 700, "totalPotentialRent": 700}, "revenue": {"growth": 0, "yearly": 8400, "monthly": 700}}, "dashboard_stats_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 0, "totalActualRent": 500, "totalPotentialRent": 1500}, "revenue": {"growth": 0, "yearly": 6000, "monthly": 500}}, "overview_a_window": {"overview": {"net_income": 86039.50, "total_revenue": 86400, "total_expenses": 360.50, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 99.6}, {"label": "Cash Position", "trend": null, "value": 86039.50}]}, "maintenance_nobody": {"total_cost": 0, "average_cost": 0, "monthly_cost": [], "trendsOverTime": [], "vendor_performance": []}, "expenses_b_leap_day": {"categories": [{"amount": 7.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 7.00, "year_over_year_change": null}, "overview_a_open_end": {"overview": {"net_income": 86288.00, "total_revenue": 86400, "total_expenses": 112.00, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 99.9}, {"label": "Cash Position", "trend": null, "value": 86288.00}]}, "expenses_b_unbounded": {"categories": [{"amount": 286.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 286.00, "year_over_year_change": null}, "expenses_b_open_ended": {"categories": [{"amount": 1149.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 1149.00, "year_over_year_change": null}, "expenses_b_spring_2025": {"categories": [{"amount": 150.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 150.00, "year_over_year_change": null}, "expenses_c_year_to_date": {"categories": [{"amount": 386.00, "category": "Porch Co", "percentage": 100.00}], "total_amount": 386.00, "year_over_year_change": null}, "guard_refuses_another_owner": {"get_dashboard_stats": true, "get_expense_summary": true, "get_dashboard_data_v2": true, "get_financial_overview": true, "get_maintenance_analytics": true}}';
+
+type FiguresLine = Record<string, Record<string, unknown>>;
+
+/** The replayed figures line, parsed, for a test to edit. */
+function figuresLine(): FiguresLine {
+	return JSON.parse(REPLAYED_FIGURES_LINE);
+}
+
+/** The replayed line with the value at a dotted path replaced (or removed). */
+function withFigureAt(path: string, value: unknown, remove = false): string {
+	const parsed = figuresLine();
+	const steps = path.split(".");
+	const last = steps.pop() ?? "";
+	let at: Record<string, unknown> = parsed;
+	for (const step of steps) {
+		at = at[step] as Record<string, unknown>;
+	}
+	if (remove) {
+		delete at[last];
+	} else {
+		at[last] = value;
+	}
+	return JSON.stringify(parsed);
+}
+
+/** The replayed line with one call's payload taken from production's line. */
+function withProductionCall(...labels: string[]): string {
+	const production: FiguresLine = JSON.parse(PRODUCTION_FIGURES_LINE);
+	const parsed = figuresLine();
+	for (const label of labels) {
+		parsed[label] = production[label] ?? {};
+	}
+	return JSON.stringify(parsed);
+}
+
+describe("assertOwnerFiguresComputed", () => {
+	it("passes on the line the replayed stack printed", () => {
+		const result = assertOwnerFiguresComputed(`${REPLAYED_FIGURES_LINE}\n`);
+		expect(result.ok).toBe(true);
+		expect(result.message).toContain("the owner figures are computed");
+		expect(result.message).toContain("2026-10-03/2026-11-02");
+	});
+
+	it("names every body production runs, and compares no figure", () => {
+		const result = assertOwnerFiguresComputed(PRODUCTION_FIGURES_LINE);
+		expect(result.ok).toBe(false);
+		for (const name of [
+			"get_dashboard_stats returned occupancyChange and growth as the literal 0",
+			"get_dashboard_data_v2 returned no occupancyChangeWindow",
+			"get_expense_summary returned year_over_year_change as the literal null",
+			"get_maintenance_analytics returned total_cost as the literal 0",
+			"get_financial_overview still returns accounts_receivable",
+		]) {
+			expect(result.message).toContain(name);
+		}
+		expect(result.message).not.toContain("expected -25");
+	});
+
+	it.each([
+		[["dashboard_stats_a"], "before 20261102184501"],
+		[
+			["dashboard_v2_a"],
+			"get_dashboard_data_v2 returned no occupancyChangeWindow",
+		],
+		[["expenses_c_year_to_date"], "before 20261102184502"],
+		[["maintenance_a"], "before 20261102184503"],
+		[["overview_a_window"], "before 20261102184504"],
+	])("names %j alone when only that body is production's", (labels, text) => {
+		const result = assertOwnerFiguresComputed(withProductionCall(...labels));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(text);
+		expect(result.message.split("\n")).toHaveLength(2);
+	});
+
+	it("does not call it get_dashboard_stats' old body when the window is there", () => {
+		const parsed = figuresLine();
+		const units = parsed["dashboard_stats_a"]?.["units"] as Record<
+			string,
+			unknown
+		>;
+		const revenue = parsed["dashboard_stats_a"]?.["revenue"] as Record<
+			string,
+			unknown
+		>;
+		units["occupancyChange"] = 0;
+		revenue["growth"] = 0;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal 0");
+		expect(result.message).toContain(
+			"dashboard_stats_a.units.occupancyChange: expected -25, got 0",
+		);
+		expect(result.message).toContain(
+			"dashboard_stats_a.revenue.growth: expected -10.18, got 0",
+		);
+	});
+
+	it("does not call it get_dashboard_stats' old body when only one figure is 0", () => {
+		const parsed = figuresLine();
+		const units = parsed["dashboard_stats_a"]?.["units"] as Record<
+			string,
+			unknown
+		>;
+		units["occupancyChange"] = 0;
+		delete units["occupancyChangeWindow"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal 0");
+		expect(result.message).toContain(
+			'dashboard_stats_a.units.occupancyChangeWindow: expected "2026-10-03/2026-11-02", absent',
+		);
+	});
+
+	it("does not call it get_dashboard_stats' old body when the change is a figure", () => {
+		const parsed = figuresLine();
+		const units = parsed["dashboard_stats_a"]?.["units"] as Record<
+			string,
+			unknown
+		>;
+		const revenue = parsed["dashboard_stats_a"]?.["revenue"] as Record<
+			string,
+			unknown
+		>;
+		revenue["growth"] = 0;
+		delete units["occupancyChangeWindow"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal 0");
+		expect(result.message).toContain(
+			"dashboard_stats_a.revenue.growth: expected -10.18, got 0",
+		);
+	});
+
+	it("reports a missing year-to-date call as missing figures, not as the old body", () => {
+		const parsed = figuresLine();
+		delete parsed["expenses_c_year_to_date"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal null");
+		expect(result.message).toContain(
+			"expenses_c_year_to_date.total_amount: expected 320, absent",
+		);
+	});
+
+	it("reports a missing v2 payload as missing figures, not as the old body", () => {
+		const parsed = figuresLine();
+		delete parsed["dashboard_v2_a"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("returned no occupancyChangeWindow");
+		expect(result.message).toContain(
+			"dashboard_v2_a.units.occupancyChange: expected -25, absent",
+		);
+	});
+
+	it("does not call it get_expense_summary's old body when the prior period is there", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("expenses_c_year_to_date.year_over_year_change", null),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal null");
+		expect(result.message).toContain(
+			"expenses_c_year_to_date.year_over_year_change: expected 33.33, got null",
+		);
+	});
+
+	it("does not call it get_expense_summary's old body when the change is a figure", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt(
+				"expenses_c_year_to_date.year_over_year_prior_period",
+				null,
+				true,
+			),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal null");
+		expect(result.message).toContain(
+			'expenses_c_year_to_date.year_over_year_prior_period: expected "2025-01-01/2025-11-02", absent',
+		);
+	});
+
+	it("does not call it get_maintenance_analytics' old body when costed_requests is there", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("maintenance_a.total_cost", 0),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal 0");
+		expect(result.message).toContain(
+			"maintenance_a.total_cost: expected 790.5, got 0",
+		);
+	});
+
+	it("does not call it get_maintenance_analytics' old body when the cost is a figure", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("maintenance_a.costed_requests", null, true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("literal 0");
+		expect(result.message).toContain(
+			"maintenance_a.costed_requests: expected 4, absent",
+		);
+	});
+
+	it("fails when the earlier day counts only leases active today", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("dashboard_v2_a.units.occupancyChange", 25),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"dashboard_v2_a.units.occupancyChange: expected -25, got 25",
+		);
+	});
+
+	it("fails when no prior rent reads as 0% growth, telling 0 from null", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("dashboard_v2_b.revenue.growth", 0),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"dashboard_v2_b.revenue.growth: expected null, got 0",
+		);
+	});
+
+	it("fails when no prior rent leaves growth out, telling absent from null", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("dashboard_stats_b.revenue.growth", null, true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"dashboard_stats_b.revenue.growth: expected null, absent",
+		);
+	});
+
+	it("fails when the year to date counts an expense dated in the future", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("expenses_c_year_to_date.total_amount", 386),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"expenses_c_year_to_date.total_amount: expected 320, got 386",
+		);
+	});
+
+	it("fails when a vendor is out of order", () => {
+		const parsed = figuresLine();
+		const vendors = parsed["maintenance_a"]?.[
+			"vendor_performance"
+		] as unknown[];
+		vendors.reverse();
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'maintenance_a.vendor_performance[0].vendor_name: expected "Roof Co", got "Other"',
+		);
+	});
+
+	it("fails when a series is a month short, naming the count", () => {
+		const parsed = figuresLine();
+		const months = parsed["maintenance_a"]?.["monthly_cost"] as unknown[];
+		months.pop();
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"maintenance_a.monthly_cost: expected 12 rows, got",
+		);
+	});
+
+	it("fails when a request open at a month's end is not counted", () => {
+		const parsed = figuresLine();
+		const trends = parsed["maintenance_a"]?.["trendsOverTime"] as Record<
+			string,
+			unknown
+		>[];
+		const august = trends[8];
+		if (august) august["pending"] = 2;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"maintenance_a.trendsOverTime[8].pending: expected 4, got 2",
+		);
+	});
+
+	it("fails when the overview keeps a key no caller reads", () => {
+		const parsed = figuresLine();
+		const window = parsed["overview_a_window"] as Record<string, unknown>;
+		window["highlights"] = [];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'overview_a_window: expected exactly the keys ["overview"], got ["highlights","overview"]',
+		);
+	});
+
+	it("fails when the overview's figures carry an extra key", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("overview_a_window.overview.accounts_payable", 0),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'overview_a_window.overview: expected exactly the keys ["net_income","total_expenses","total_revenue"]',
+		);
+	});
+
+	it("fails when the functions disagree with their helper", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("position_a_then.occupancy_rate", 99),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"dashboard_stats_a.units.occupancyChange: -25 is not the helper's -24",
+		);
+		expect(result.message).toContain(
+			"dashboard_v2_a.trend_occupancy.change: -25 is not the helper's -24",
+		);
+	});
+
+	it("does not report a disagreement when both helper positions move together", () => {
+		const parsed = figuresLine();
+		(parsed["position_a_today"] as Record<string, unknown>)["occupancy_rate"] =
+			74;
+		(parsed["position_a_then"] as Record<string, unknown>)["occupancy_rate"] =
+			99;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("is not the helper's");
+		expect(result.message).toContain(
+			"position_a_today.occupancy_rate: expected 75, got 74",
+		);
+	});
+
+	it.each([
+		["public.dashboard_lease_position(uuid,date)", "authenticated", true],
+		["public.dashboard_lease_position(uuid,date)", "service_role", true],
+		["public.get_dashboard_stats(uuid)", "anon", true],
+		["public.get_maintenance_analytics(uuid)", "service_role", false],
+	])("fails when %s's %s grant is %s", (signature, role, value) => {
+		const parsed = figuresLine();
+		const execute = parsed["execute"] as Record<
+			string,
+			Record<string, unknown>
+		>;
+		const grants = execute[signature];
+		if (grants) grants[role] = value;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			`execute.${signature}.${role}: expected ${!value}, got ${value}`,
+		);
+	});
+
+	it("fails when one guard lets owner A read owner B's figures", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("guard_refuses_another_owner.get_expense_summary", false),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"guard_refuses_another_owner.get_expense_summary: expected true, got false",
+		);
+	});
+
+	it("fails when the fixture did not report the guards at all", () => {
+		const parsed = figuresLine();
+		delete parsed["guard_refuses_another_owner"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"guard_refuses_another_owner.get_financial_overview: expected true, got undefined",
+		);
+	});
+
+	it("computes every window from the day the fixture ran", () => {
+		const result = assertOwnerFiguresComputed(
+			JSON.stringify({ ...figuresLine(), today: "2026-11-03" }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'dashboard_stats_a.units.occupancyChangeWindow: expected "2026-10-04/2026-11-03", got "2026-10-03/2026-11-02"',
+		);
+	});
+
+	it.each([
+		["absent", undefined],
+		["not a string", 20261102],
+		["no calendar day", "2026-02-30"],
+	])(
+		"fails on a today that is %s, calling it a broken fixture",
+		(_what, today) => {
+			const result = assertOwnerFiguresComputed(
+				JSON.stringify({ ...figuresLine(), today }),
+			);
+			expect(result.ok).toBe(false);
+			expect(result.message).toContain("printed no usable `today`");
+		},
+	);
+
+	it("fails on no output, calling it a broken fixture rather than a wrong figure", () => {
+		const result = assertOwnerFiguresComputed("\n  \n");
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("printed nothing");
+	});
+
+	it.each([
+		["not JSON", "INSERT 0 1"],
+		["a JSON array", "[1, 2]"],
+	])("fails on output that is %s", (_what, raw) => {
+		const result = assertOwnerFiguresComputed(raw);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("did not print a JSON object");
+	});
+});
+
+describe("expectedOwnerFigures", () => {
+	it("moves February 29 back a year to February 28, as Postgres does", () => {
+		expect(
+			expectedOwnerFigures("2028-02-29").figures[
+				"expenses_c_year_to_date.year_over_year_prior_period"
+			],
+		).toBe("2027-01-01/2027-02-28");
+	});
+
+	it("starts the 12 months eleven before today's, across a year", () => {
+		const months = expectedOwnerFigures("2027-01-15").series[
+			"maintenance_a.monthly_cost"
+		]?.map((row) => row["month"]);
+		expect(months?.[0]).toBe("2026-02");
+		expect(months?.[11]).toBe("2027-01");
+	});
+
+	it("measures each resolution over the calendar months between", () => {
+		// M0-3 is January 1 and M0-1 March 1: 59 days, so R7's is 1416 - 58 =
+		// 1358 hours; M0-1 to M0 is March's 31 days, so R2's is 744 - 10 = 734.
+		const trends =
+			expectedOwnerFigures("2026-04-15").series["maintenance_a.trendsOverTime"];
+		expect(trends?.[9]?.["avg_resolution_hours"]).toBe(48.33);
+		expect(trends?.[10]?.["avg_resolution_hours"]).toBe(1358);
+		expect(trends?.[11]?.["avg_resolution_hours"]).toBe(734);
+		expect(trends?.[8]?.["avg_resolution_hours"]).toBeNull();
 	});
 });

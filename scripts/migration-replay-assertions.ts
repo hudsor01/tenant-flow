@@ -404,7 +404,7 @@ function parseJsonObject(raw: string): Record<string, unknown> | null {
 function collectMismatches(
 	label: string,
 	actual: Record<string, unknown> | null,
-	expected: Readonly<Record<string, number | boolean | string>>,
+	expected: Readonly<Record<string, number | boolean | string | null>>,
 	mismatches: string[],
 ): void {
 	if (actual === null) {
@@ -826,6 +826,521 @@ export function assertPropertyPerformanceRentReceived(
 	return {
 		ok: true,
 		message: `get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; over ${trailingStart}/${today}: Alpha Court -79.75, Beta House 200.00; owner B 700.00), states each window, refuses a backwards range and another owner, and is executable by authenticated and service_role only`,
+	};
+}
+
+/** `ymd`'s calendar parts, or null when it is no calendar day. */
+function ymdParts(ymd: string): [number, number, number] | null {
+	return shiftYmd(ymd, 0) === null
+		? null
+		: [
+				Number(ymd.slice(0, 4)),
+				Number(ymd.slice(5, 7)),
+				Number(ymd.slice(8, 10)),
+			];
+}
+
+/** A UTC calendar day as 'YYYY-MM-DD'. */
+function utcYmd(year: number, monthIndex: number, day: number): string {
+	return new Date(Date.UTC(year, monthIndex, day)).toISOString().slice(0, 10);
+}
+
+/**
+ * `ymd` a year earlier, as Postgres's `date - interval '1 year'` moves it: the
+ * same month and day, February 29 becoming February 28.
+ */
+function yearBeforeYmd(ymd: string): string {
+	const [year, month, day] = ymdParts(ymd) ?? [0, 1, 1];
+	const lastDay = new Date(Date.UTC(year - 1, month, 0)).getUTCDate();
+	return utcYmd(year - 1, month - 1, Math.min(day, lastDay));
+}
+
+/** The first day of the month `offset` months from `ymd`'s, as 'YYYY-MM-DD'. */
+function monthStartYmd(ymd: string, offset: number): string {
+	const [year, month] = ymdParts(ymd) ?? [0, 1, 1];
+	return utcYmd(year, month - 1 + offset, 1);
+}
+
+/** Whole days from `from` to `to`, both 'YYYY-MM-DD'. */
+function daysBetween(from: string, to: string): number {
+	return (
+		(Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+		86_400_000
+	);
+}
+
+/** The calls the owner-figures fixture makes, and what each must return. */
+interface OwnerFiguresExpectation {
+	/** Flat figures: `<call>.<path>` (dots into nested objects) -> value. */
+	readonly figures: Readonly<Record<string, number | string | null>>;
+	/** Arrays compared element by element, every key of every element. */
+	readonly series: Readonly<
+		Record<string, readonly Readonly<Record<string, number | string | null>>[]>
+	>;
+	/** Objects whose keys must be exactly these (no literal left behind). */
+	readonly keys: Readonly<Record<string, readonly string[]>>;
+}
+
+/**
+ * What `scripts/migration-replay-owner-figures.sql` must print, given the day
+ * the gate runs (T, `today`; M0 the first of its month). The fixture's header
+ * lists what it seeds; the arithmetic is here.
+ *
+ * Dashboard trends, owner A (both functions, and the helper): on T the
+ *   running leases are L1, L3, L12 (ends on T) and L13 (starts on T), on N1,
+ *   N2 and N3, 3 of the 4 units that are not inactive (N5 is), 75.00%, and
+ *   1000 + 1200 + 250 + 20 = 2470 of scheduled rent; on T-30 L1, L2 (ended
+ *   T-10), L6 (expired T-20), L10 (starts on T-30) and L11 (ends on T-30),
+ *   on all 4, 100.00%, and 1000 + 800 + 600 + 300 + 50 = 2750. Not L4
+ *   (pending), L5 (terminated), L8 (its property is inactive), L9
+ *   (soft-deleted). So occupancyChange 75 - 100 = -25.00 points and growth
+ *   (2470 - 2750) / 2750 = -10.18%. The body before compares only leases
+ *   active TODAY on T-30 (L1 alone: +25.00 and, in integer division, +100%)
+ *   and get_dashboard_stats returns 0 and 0. In get_dashboard_data_v2 the
+ *   occupancy trend reads the same 75 and 100 and the revenue trend 2470 and
+ *   2750. Both windows are T-30/T. With nothing at all (NOBODY) the helper
+ *   reads 0 and 0.
+ * Owner B: LB1 started T-3, so 100.00% today and none 30 days ago: +100.00
+ *   points, and growth NULL (nothing was scheduled then), never 0. Owner C:
+ *   1 of 3 units, 33.33 points (two decimals), and growth NULL.
+ * Expenses, owner B: 2025-03-01..2025-06-30 is 100 + 50 = 150.00 (not the
+ *   soft-deleted 25 or 2025-07-01's 999) against 2024-03-01..2024-06-30's
+ *   80 + 40 = 120.00 (not 2024-02-29's 7 or 2024-07-01's 9): +25.00%.
+ *   2024-02-29 alone is 7.00 against 2023-02-28, which has none: NULL. As the
+ *   soft-deleted 30 of 2024-04-10 is not in the prior total either. As the
+ *   balance sheet asks ('-infinity'..2025-06-30) every expense up to it,
+ *   286.00, has no year before it: NULL change and NULL prior period; nor
+ *   has 2025-03-01..'infinity', 100 + 50 + 999 = 1149.00. Each call's one
+ *   vendor holds all of its total.
+ * Expenses, owner C, the year to date (no dates): January 1 of T's year's 300
+ *   and T's 20, 320.00, not T+5's 66 (the body before had no end: 386.00),
+ *   against January 1 of the year before .. T a year earlier, 200 + 40 =
+ *   240.00: +33.33%.
+ * Maintenance, owner A: total_cost 200 + 50.50 + 100 + 10 + 30 + 400 =
+ *   790.50 (not the soft-deleted 15, nor T+40's 77 or T+1's 5, dated in the
+ *   future), on
+ *   4 requests (R1, R2, R3, R5): average 197.625, 197.63. By vendor, largest
+ *   first: Roof Co 400.00 on 1, Plumber 260.50 on 2 (R1, R2), Heat Co 100.00
+ *   on 1, Other 30.00 on 1 (R3's had no vendor). Monthly, M0-11..M0: M0-2
+ *   250.50, M0-1 110.00, M0 30.00, the rest 0 (R5's 400 is M0-12). Trends:
+ *   completed in M0-2 R1, in M0-1 R7 (at its first instant) and in M0 R2 (at
+ *   its first instant, so not in M0-1); R6 has no completed_at and R8 was
+ *   reopened. Open at each month's end: R5 throughout, R8 from M0-4 (open
+ *   now, so open throughout), R3 from M0-3, R7 at the ends of M0-3 and M0-2
+ *   (completed at the instant M0-2 ends, which is not before it), and R2 at
+ *   the end of M0-1 (likewise): 1 a month to M0-5, then 2, 4, 4, 4, 3. Never
+ *   R4 (cancelled), R6 (completed, no completed_at) or R1 (completed in the
+ *   month it was opened). Resolution: M0-2 R1's 48 h 20 min, 48.33; M0-1
+ *   R7's hours (M0-3 + 2 days 10:00 to M0-1); M0 R2's (M0-1 10:00 to M0). With nothing at all (NOBODY, as the service role reads
+ *   it): 0 spent, 0 requests with costs, no average (NULL), no vendor, and
+ *   12 empty months.
+ * Financial overview, owner A: total_revenue is the active leases'
+ *   scheduled rent times twelve, (1000 + 1200 + 5000) x 12 = 86400 (unchanged:
+ *   it counts L8, on the inactive property). M0-2mo .. M0-1mo+5d holds
+ *   200 + 50.50 + 100 + 10 = 360.50 of expenses; from M0 with no end, 30.00
+ *   (not T+40's 77: 107.00 before). net_income is the difference. Only those
+ *   three keys remain.
+ */
+const PENDING_AT_MONTH_END: readonly number[] = [
+	1, 1, 1, 1, 1, 1, 1, 2, 4, 4, 4, 3,
+];
+
+export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
+	const window = `${shiftYmd(today, -30)}/${today}`;
+	const months = Array.from({ length: 12 }, (_, at) =>
+		monthStartYmd(today, at - 11).slice(0, 7),
+	);
+	const cost: Record<number, number> = { 9: 250.5, 10: 110, 11: 30 };
+	// R7 from M0-3mo + 2 days 10:00 to M0-1mo 00:00; R2 from M0-1mo 10:00 to
+	// M0 00:00. Each is a whole number of hours.
+	const r7Hours =
+		daysBetween(monthStartYmd(today, -3), monthStartYmd(today, -1)) * 24 - 58;
+	const r2Hours =
+		daysBetween(monthStartYmd(today, -1), monthStartYmd(today, 0)) * 24 - 10;
+	const completed: Record<number, number> = { 9: 1, 10: 1, 11: 1 };
+	const resolution: Record<number, number> = {
+		9: 48.33,
+		10: r7Hours,
+		11: r2Hours,
+	};
+	const trend = {
+		units: { occupancyChange: -25, occupancyChangeWindow: window },
+		revenue: { growth: -10.18, growthWindow: window },
+	};
+	const flatten = (
+		prefix: string,
+		object: Record<string, Record<string, number | string | null>>,
+	) =>
+		Object.fromEntries(
+			Object.entries(object).flatMap(([group, values]) =>
+				Object.entries(values).map(([key, value]) => [
+					`${prefix}.${group}.${key}`,
+					value,
+				]),
+			),
+		);
+	const ownerB = {
+		units: { occupancyChange: 100, occupancyChangeWindow: window },
+		revenue: { growth: null, growthWindow: window },
+	};
+	const ownerC = {
+		units: { occupancyChange: 33.33, occupancyChangeWindow: window },
+		revenue: { growth: null, growthWindow: window },
+	};
+	return {
+		figures: {
+			...flatten("dashboard_stats_a", trend),
+			...flatten("dashboard_v2_a", {
+				...trend,
+				trend_occupancy: { current: 75, previous: 100, change: -25 },
+				trend_revenue: { current: 2470, previous: 2750, change: -280 },
+			}),
+			...flatten("dashboard_stats_b", ownerB),
+			...flatten("dashboard_v2_b", ownerB),
+			...flatten("dashboard_stats_c", ownerC),
+			...flatten("dashboard_v2_c", ownerC),
+			"position_a_today.occupancy_rate": 75,
+			"position_a_today.scheduled_rent": 2470,
+			"position_a_then.occupancy_rate": 100,
+			"position_a_then.scheduled_rent": 2750,
+			"position_nobody.occupancy_rate": 0,
+			"position_nobody.scheduled_rent": 0,
+			"expenses_b_spring_2025.total_amount": 150,
+			"expenses_b_spring_2025.year_over_year_change": 25,
+			"expenses_b_spring_2025.year_over_year_prior_period":
+				"2024-03-01/2024-06-30",
+			"expenses_b_leap_day.total_amount": 7,
+			"expenses_b_leap_day.year_over_year_change": null,
+			"expenses_b_leap_day.year_over_year_prior_period":
+				"2023-02-28/2023-02-28",
+			"expenses_b_unbounded.total_amount": 286,
+			"expenses_b_unbounded.year_over_year_change": null,
+			"expenses_b_unbounded.year_over_year_prior_period": null,
+			"expenses_b_open_ended.total_amount": 1149,
+			"expenses_b_open_ended.year_over_year_change": null,
+			"expenses_b_open_ended.year_over_year_prior_period": null,
+			"expenses_c_year_to_date.total_amount": 320,
+			"expenses_c_year_to_date.year_over_year_change": 33.33,
+			"expenses_c_year_to_date.year_over_year_prior_period": `${Number(today.slice(0, 4)) - 1}-01-01/${yearBeforeYmd(today)}`,
+			"maintenance_a.total_cost": 790.5,
+			"maintenance_a.costed_requests": 4,
+			"maintenance_a.average_cost": 197.63,
+			"maintenance_nobody.total_cost": 0,
+			"maintenance_nobody.costed_requests": 0,
+			"maintenance_nobody.average_cost": null,
+			"overview_a_window.overview.total_revenue": 86400,
+			"overview_a_window.overview.total_expenses": 360.5,
+			"overview_a_window.overview.net_income": 86039.5,
+			"overview_a_open_end.overview.total_revenue": 86400,
+			"overview_a_open_end.overview.total_expenses": 30,
+			"overview_a_open_end.overview.net_income": 86370,
+		},
+		series: {
+			"expenses_b_spring_2025.categories": [
+				{ category: "Gate Co", amount: 150, percentage: 100 },
+			],
+			"expenses_b_open_ended.categories": [
+				{ category: "Gate Co", amount: 1149, percentage: 100 },
+			],
+			"expenses_c_year_to_date.categories": [
+				{ category: "Porch Co", amount: 320, percentage: 100 },
+			],
+			"maintenance_a.vendor_performance": [
+				{ vendor_name: "Roof Co", total_spend: 400, jobs: 1 },
+				{ vendor_name: "Plumber", total_spend: 260.5, jobs: 2 },
+				{ vendor_name: "Heat Co", total_spend: 100, jobs: 1 },
+				{ vendor_name: "Other", total_spend: 30, jobs: 1 },
+			],
+			"maintenance_a.monthly_cost": months.map((month, at) => ({
+				month,
+				cost: cost[at] ?? 0,
+			})),
+			"maintenance_a.trendsOverTime": months.map((month, at) => ({
+				month,
+				completed: completed[at] ?? 0,
+				pending: PENDING_AT_MONTH_END[at] ?? 0,
+				avg_resolution_hours: resolution[at] ?? null,
+			})),
+			"maintenance_nobody.vendor_performance": [],
+			"maintenance_nobody.monthly_cost": months.map((month) => ({
+				month,
+				cost: 0,
+			})),
+			"maintenance_nobody.trendsOverTime": months.map((month) => ({
+				month,
+				completed: 0,
+				pending: 0,
+				avg_resolution_hours: null,
+			})),
+		},
+		keys: {
+			overview_a_window: ["overview"],
+			"overview_a_window.overview": [
+				"net_income",
+				"total_expenses",
+				"total_revenue",
+			],
+		},
+	};
+}
+
+/** The six functions' EXECUTE grants: the helper is no client role's. */
+export const EXPECTED_OWNER_FIGURES_EXECUTE: Readonly<
+	Record<
+		string,
+		Readonly<Record<"anon" | "authenticated" | "service_role", boolean>>
+	>
+> = {
+	"public.dashboard_lease_position(uuid,date)": {
+		anon: false,
+		authenticated: false,
+		service_role: false,
+	},
+	"public.get_dashboard_stats(uuid)": {
+		anon: false,
+		authenticated: true,
+		service_role: true,
+	},
+	"public.get_dashboard_data_v2(uuid)": {
+		anon: false,
+		authenticated: true,
+		service_role: true,
+	},
+	"public.get_expense_summary(uuid,date,date)": {
+		anon: false,
+		authenticated: true,
+		service_role: true,
+	},
+	"public.get_maintenance_analytics(uuid)": {
+		anon: false,
+		authenticated: true,
+		service_role: true,
+	},
+	"public.get_financial_overview(uuid,date,date)": {
+		anon: false,
+		authenticated: true,
+		service_role: true,
+	},
+};
+
+/** The functions whose guard the fixture tries, owner A asking for owner B. */
+const OWNER_FIGURES_GUARDED = [
+	"get_dashboard_stats",
+	"get_dashboard_data_v2",
+	"get_expense_summary",
+	"get_maintenance_analytics",
+	"get_financial_overview",
+] as const;
+
+/** The value at a dotted path, or undefined when any step is not an object. */
+function atPath(root: Record<string, unknown>, path: string): unknown {
+	let at: unknown = root;
+	for (const step of path.split(".")) {
+		const object = asJsonObject(at);
+		if (object === null) return undefined;
+		at = object[step];
+	}
+	return at;
+}
+
+/** Whether `object` has `key` of its own (a JSON null counts; absence not). */
+function hasKey(object: unknown, key: string): boolean {
+	const record = asJsonObject(object);
+	return record !== null && Object.hasOwn(record, key);
+}
+
+/**
+ * The bodies before 20261102184501..20261102184504, named by what only they
+ * return. One line per function, so a body left behind is named, never read
+ * as an arithmetic slip.
+ */
+function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
+	const found: string[] = [];
+	const stats = atPath(printed, "dashboard_stats_a.units");
+	if (
+		atPath(printed, "dashboard_stats_a.units.occupancyChange") === 0 &&
+		atPath(printed, "dashboard_stats_a.revenue.growth") === 0 &&
+		!hasKey(stats, "occupancyChangeWindow")
+	) {
+		found.push(
+			"get_dashboard_stats returned occupancyChange and growth as the literal 0 with no window for an owner whose occupancy fell from 100.00% to 75.00%: that is the body before 20261102184501.",
+		);
+	}
+	if (
+		asJsonObject(atPath(printed, "dashboard_v2_a.units")) !== null &&
+		!hasKey(atPath(printed, "dashboard_v2_a.units"), "occupancyChangeWindow")
+	) {
+		found.push(
+			"get_dashboard_data_v2 returned no occupancyChangeWindow: that is the body before 20261102184501, which compares today's leases with only the leases still active today.",
+		);
+	}
+	const ytd = atPath(printed, "expenses_c_year_to_date");
+	if (
+		asJsonObject(ytd) !== null &&
+		atPath(printed, "expenses_c_year_to_date.year_over_year_change") === null &&
+		!hasKey(ytd, "year_over_year_prior_period")
+	) {
+		found.push(
+			"get_expense_summary returned year_over_year_change as the literal null with no prior period, for an owner who spent 240.00 a year earlier: that is the body before 20261102184502.",
+		);
+	}
+	const maintenance = atPath(printed, "maintenance_a");
+	if (
+		atPath(printed, "maintenance_a.total_cost") === 0 &&
+		!hasKey(maintenance, "costed_requests")
+	) {
+		found.push(
+			"get_maintenance_analytics returned total_cost as the literal 0 with no costed_requests, for an owner with 790.50 of maintenance expenses: that is the body before 20261102184503.",
+		);
+	}
+	if (
+		hasKey(atPath(printed, "overview_a_window.overview"), "accounts_receivable")
+	) {
+		found.push(
+			"get_financial_overview still returns accounts_receivable (and the other literals no caller reads): that is the body before 20261102184504.",
+		);
+	}
+	return found;
+}
+
+/**
+ * The five functions must compute the figures they returned as literals, from
+ * one definition, and say over which days.
+ *
+ * Before 20261102184501..20261102184504, get_dashboard_stats returned
+ * occupancyChange and growth as 0 and get_dashboard_data_v2 computed them
+ * against only the leases still active today; get_expense_summary returned
+ * year_over_year_change as null; get_maintenance_analytics returned every
+ * cost as 0 or []; get_financial_overview returned accounts receivable and
+ * payable as 0 and trends as null. No job ran any of them against data. This
+ * checks every computed figure, the windows and markers the app keys its
+ * "unavailable" states on, that the two dashboard functions agree with each
+ * other and with their helper, the period ends, the soft-deleted rows, the
+ * owner scoping, the guards and the grants, against the fixture's portfolio.
+ */
+export function assertOwnerFiguresComputed(raw: string): AssertionResult {
+	const text = raw.trim();
+	if (text === "") {
+		return {
+			ok: false,
+			message:
+				"the owner-figures fixture printed nothing. psql ran scripts/migration-replay-owner-figures.sql without producing its one JSON line, so this is a broken fixture or query (an owner it looks up was not seeded?), NOT a wrong figure.",
+		};
+	}
+	const parsedFigures = parseJsonObject(text);
+	if (parsedFigures === null) {
+		return {
+			ok: false,
+			message: `the owner-figures fixture did not print a JSON object, read ${JSON.stringify(text)}. The fixture's final select or the psql flags (-t -A -q) changed, so nothing here can compare a figure.`,
+		};
+	}
+	const today = parsedFigures["today"];
+	if (typeof today !== "string" || shiftYmd(today, 0) === null) {
+		return {
+			ok: false,
+			message: `the owner-figures fixture printed no usable \`today\` (read ${JSON.stringify(today)}), so the windows and months it implies cannot be computed. The fixture's first insert changed; fix it, not this check.`,
+		};
+	}
+
+	// THE DEFECT THIS CHECK EXISTS FOR, per function.
+	const diagnoses = oldBodyDiagnoses(parsedFigures);
+	if (diagnoses.length > 0) {
+		return {
+			ok: false,
+			message: `the owner-figures fixture reached a body that returns a literal, not a figure. The migration that computes it did not apply, or a later one replaced it with a copy of an older body.\n${diagnoses.join("\n")}`,
+		};
+	}
+
+	const failures: string[] = [];
+	const expected = expectedOwnerFigures(today);
+	for (const [path, value] of Object.entries(expected.figures)) {
+		const dot = path.lastIndexOf(".");
+		const parent = atPath(parsedFigures, path.slice(0, dot));
+		const key = path.slice(dot + 1);
+		if (!hasKey(parent, key)) {
+			failures.push(`${path}: expected ${JSON.stringify(value)}, absent`);
+			continue;
+		}
+		const actual = atPath(parsedFigures, path);
+		if (actual !== value) {
+			failures.push(
+				`${path}: expected ${JSON.stringify(value)}, got ${JSON.stringify(actual)}`,
+			);
+		}
+	}
+	for (const [path, rows] of Object.entries(expected.series)) {
+		const actual = atPath(parsedFigures, path);
+		if (!Array.isArray(actual) || actual.length !== rows.length) {
+			failures.push(
+				`${path}: expected ${rows.length} rows, got ${JSON.stringify(actual)}`,
+			);
+			continue;
+		}
+		for (const [index, expectedRow] of rows.entries()) {
+			collectMismatches(
+				`${path}[${index}]`,
+				asJsonObject(actual[index]),
+				{ ...expectedRow },
+				failures,
+			);
+		}
+	}
+	for (const [path, keys] of Object.entries(expected.keys)) {
+		const object = asJsonObject(atPath(parsedFigures, path));
+		const actualKeys = object === null ? null : Object.keys(object).sort();
+		if (JSON.stringify(actualKeys) !== JSON.stringify(keys)) {
+			failures.push(
+				`${path}: expected exactly the keys ${JSON.stringify(keys)}, got ${JSON.stringify(actualKeys)}`,
+			);
+		}
+	}
+
+	// One definition: the two dashboard functions and the trend agree with the
+	// helper's two positions, in whole hundredths of a point.
+	const now = cents(atPath(parsedFigures, "position_a_today.occupancy_rate"));
+	const then = cents(atPath(parsedFigures, "position_a_then.occupancy_rate"));
+	if (now !== null && then !== null) {
+		for (const path of [
+			"dashboard_stats_a.units.occupancyChange",
+			"dashboard_v2_a.units.occupancyChange",
+			"dashboard_v2_a.trend_occupancy.change",
+		]) {
+			if (cents(atPath(parsedFigures, path)) !== now - then) {
+				failures.push(
+					`${path}: ${JSON.stringify(atPath(parsedFigures, path))} is not the helper's ${(now - then) / 100}, its occupancy today less its occupancy 30 days ago. Both functions must read one definition.`,
+				);
+			}
+		}
+	}
+
+	for (const [signature, grants] of Object.entries(
+		EXPECTED_OWNER_FIGURES_EXECUTE,
+	)) {
+		collectMismatches(
+			`execute.${signature}`,
+			asJsonObject(asJsonObject(parsedFigures["execute"])?.[signature]),
+			grants,
+			failures,
+		);
+	}
+	const guard = asJsonObject(parsedFigures["guard_refuses_another_owner"]);
+	for (const name of OWNER_FIGURES_GUARDED) {
+		if (guard?.[name] !== true) {
+			failures.push(
+				`guard_refuses_another_owner.${name}: expected true, got ${JSON.stringify(guard?.[name])}. Owner A asked for owner B's figures and was not refused with 'Access denied'.`,
+			);
+		}
+	}
+
+	if (failures.length > 0) {
+		return {
+			ok: false,
+			message: `the five owner-figure functions do not return what the seeded portfolio implies. expectedOwnerFigures in scripts/migration-replay-assertions.ts shows the arithmetic for each; fix the function (or, if the fixture changed, both files together), not this check.\n${failures.join("\n")}`,
+		};
+	}
+	return {
+		ok: true,
+		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +33.33%; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures alone), every guard refuses another owner, and the helper is no client role's`,
 	};
 }
 

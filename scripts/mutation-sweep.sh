@@ -215,6 +215,73 @@ mutate "$REPLAY" 'if (guard !== true) {' 'if (guard === false) {' \
                  'an unreported property-performance guard result passes'
 mutate "$REPLAY" 'if (problems.length > 0) {' 'if (false) {' \
                  'property-performance mismatches are not reported'
+mutate "$REPLAY" 'if (text === "") {' 'if (false) {' \
+                 'empty owner-figures output is not reported as a broken fixture'
+mutate "$REPLAY" 'if (parsedFigures === null) {' 'if (false) {' \
+                 'unparseable owner-figures output is compared anyway'
+mutate "$REPLAY" 'if (typeof today !== "string" || shiftYmd(today, 0) === null) {' \
+                 'if (typeof today !== "string") {' \
+                 'an owner-figures today that is no calendar day is compared anyway'
+mutate "$REPLAY" 'if (diagnoses.length > 0) {' 'if (false) {' \
+                 'an old owner-figures body is not named'
+mutate "$REPLAY" 'atPath(printed, "dashboard_stats_a.units.occupancyChange") === 0 &&' '' \
+                 'the dashboard-stats diagnosis ignores occupancyChange'
+mutate "$REPLAY" 'atPath(printed, "dashboard_stats_a.revenue.growth") === 0 &&' '' \
+                 'the dashboard-stats diagnosis ignores growth'
+mutate "$REPLAY" '		!hasKey(stats, "occupancyChangeWindow")' '		true' \
+                 'the dashboard-stats diagnosis ignores the window'
+mutate "$REPLAY" 'asJsonObject(atPath(printed, "dashboard_v2_a.units")) !== null &&' '' \
+                 'a missing v2 payload is called the old body'
+mutate "$REPLAY" '!hasKey(atPath(printed, "dashboard_v2_a.units"), "occupancyChangeWindow")' 'false' \
+                 'the v2 diagnosis is removed'
+mutate "$REPLAY" 'asJsonObject(ytd) !== null &&' '' \
+                 'a missing year-to-date call is called the old body'
+mutate "$REPLAY" 'atPath(printed, "expenses_c_year_to_date.year_over_year_change") === null &&' '' \
+                 'the expense diagnosis ignores the change'
+mutate "$REPLAY" '!hasKey(ytd, "year_over_year_prior_period")' 'true' \
+                 'the expense diagnosis ignores the prior period'
+mutate "$REPLAY" 'atPath(printed, "maintenance_a.total_cost") === 0 &&' '' \
+                 'the maintenance diagnosis ignores the cost'
+mutate "$REPLAY" '!hasKey(maintenance, "costed_requests")' 'true' \
+                 'the maintenance diagnosis ignores costed_requests'
+mutate "$REPLAY" 'if (hasKey(atPath(printed, "overview_a_window.overview"), "accounts_receivable")) {' 'if (false) {' \
+                 'the financial-overview diagnosis is removed'
+mutate "$REPLAY" 'if (!hasKey(parent, key)) {' 'if (false) {' \
+                 'an absent owner figure is reported as undefined, not absent'
+mutate "$REPLAY" 'if (actual !== value) {' 'if (false) {' \
+                 'the owner-figure comparison always passes'
+mutate "$REPLAY" 'if (!Array.isArray(actual) || actual.length !== rows.length) {' \
+                 'if (!Array.isArray(actual)) {' \
+                 'a series of the wrong length is not reported'
+mutate "$REPLAY" '{ ...expectedRow },' '{},' \
+                 'no series row is compared'
+mutate "$REPLAY" 'if (JSON.stringify(actualKeys) !== JSON.stringify(keys)) {' 'if (false) {' \
+                 'a key left behind in the overview is ignored'
+mutate "$REPLAY" 'if (now !== null && then !== null) {' 'if (false) {' \
+                 'the dashboard functions are not checked against their helper'
+mutate "$REPLAY" 'if (cents(atPath(parsedFigures, path)) !== now - then) {' 'if (false) {' \
+                 'a disagreement with the helper is ignored'
+mutate "$REPLAY" 'EXPECTED_OWNER_FIGURES_EXECUTE,
+	)) {' '{},
+	)) {' \
+                 'the owner-figure grants are not compared'
+mutate "$REPLAY" 'if (guard?.[name] !== true) {' 'if (guard?.[name] === false) {' \
+                 'an unreported owner-figure guard passes'
+mutate "$REPLAY" 'if (failures.length > 0) {' 'if (false) {' \
+                 'owner-figure mismatches are not reported'
+mutate "$REPLAY" 'const window = `${shiftYmd(today, -30)}/${today}`;' \
+                 'const window = `${shiftYmd(today, -31)}/${today}`;' \
+                 'the trend window is expected to start a day early'
+mutate "$REPLAY" 'return utcYmd(year - 1, month - 1, Math.min(day, lastDay));' \
+                 'return utcYmd(year - 1, month - 1, day);' \
+                 'February 29 a year back rolls over into March'
+mutate "$REPLAY" 'monthStartYmd(today, at - 11).slice(0, 7),' 'monthStartYmd(today, at - 12).slice(0, 7),' \
+                 'the 12 months are expected a month early'
+mutate "$REPLAY" 'daysBetween(monthStartYmd(today, -3), monthStartYmd(today, -1)) * 24 - 58;' \
+                 'daysBetween(monthStartYmd(today, -3), monthStartYmd(today, -1)) * 24 - 34;' \
+                 'a resolution is measured from the wrong hour'
+mutate "$REPLAY" 'pending: PENDING_AT_MONTH_END[at] ?? 0,' 'pending: 1,' \
+                 'a request open across month ends is not expected'
 
 echo
 echo "=== platform-config assertions ==="

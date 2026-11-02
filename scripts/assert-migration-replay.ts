@@ -12,6 +12,7 @@
  *   bun scripts/assert-migration-replay.ts test-cast   # rows on stdin
  *   bun scripts/assert-migration-replay.ts billing-insights   # JSON on stdin
  *   bun scripts/assert-migration-replay.ts property-performance   # JSON on stdin
+ *   bun scripts/assert-migration-replay.ts owner-figures   # JSON on stdin
  *
  * Exit 0 on success, 1 on a failed assertion (with a GitHub `::error::`
  * annotation), 2 on misuse.
@@ -26,6 +27,7 @@ import {
 	assertBillingInsightsFromLedger,
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
+	assertOwnerFiguresComputed,
 	assertPropertyPerformanceRentReceived,
 	assertSeededCast,
 } from "./migration-replay-assertions";
@@ -35,7 +37,8 @@ const USAGE = `usage:
   bun scripts/assert-migration-replay.ts no-network <wrappers> <server> <tables>
   bun scripts/assert-migration-replay.ts test-cast   # rows on stdin
   bun scripts/assert-migration-replay.ts billing-insights   # JSON on stdin
-  bun scripts/assert-migration-replay.ts property-performance   # JSON on stdin`;
+  bun scripts/assert-migration-replay.ts property-performance   # JSON on stdin
+  bun scripts/assert-migration-replay.ts owner-figures   # JSON on stdin`;
 
 function finish(result: AssertionResult): never {
 	if (!result.ok) {
@@ -93,5 +96,8 @@ if (subcommand === "billing-insights") {
 }
 if (subcommand === "property-performance") {
 	finish(assertPropertyPerformanceRentReceived(readFileSync(0, "utf8")));
+}
+if (subcommand === "owner-figures") {
+	finish(assertOwnerFiguresComputed(readFileSync(0, "utf8")));
 }
 misuse(`unknown subcommand ${JSON.stringify(subcommand ?? "")}`);
