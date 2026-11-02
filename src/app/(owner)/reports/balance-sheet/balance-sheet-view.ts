@@ -71,7 +71,9 @@ export function buildBalanceSheetView(
 					{ name: "Property Values", amount: fixedAssets.propertyValues },
 					{
 						name: "Accumulated Depreciation",
-						amount: -fixedAssets.accumulatedDepreciation,
+						// Shown as a deduction. `0 - x`, not `-x`: negating 0 gives -0,
+						// which formats as "-$0.00" on the page.
+						amount: 0 - fixedAssets.accumulatedDepreciation,
 					},
 					{ name: "Net Property Value", amount: fixedAssets.netPropertyValue },
 				],

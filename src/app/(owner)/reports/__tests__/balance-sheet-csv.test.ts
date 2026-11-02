@@ -113,6 +113,14 @@ describe("buildBalanceSheetView", () => {
 		]);
 	});
 
+	it("shows no depreciation as 0, not -0 (which formats as -$0.00)", () => {
+		const [, fixed] = buildBalanceSheetView(balanceData()).assetGroups;
+		const depreciation = fixed?.items.find(
+			(i) => i.name === "Accumulated Depreciation",
+		);
+		expect(Object.is(depreciation?.amount, 0)).toBe(true);
+	});
+
 	it("is empty and balanced with no data", () => {
 		expect(buildBalanceSheetView(undefined)).toEqual({
 			totalAssets: 0,
