@@ -16,6 +16,7 @@ import { FinancialOverviewStats } from "#app/(owner)/analytics/financial/_compon
 import { AnalyticsStatCards } from "#app/(owner)/analytics/overview/analytics-stat-cards";
 import { LeasesStatCards } from "#app/(owner)/leases/leases-stat-cards";
 import { ExpenseStats } from "#app/(owner)/reports/expenses/_components/expense-stats";
+import { TenantStats } from "#components/tenants/tenant-stats";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { render } from "#test/utils/test-render";
 
@@ -35,6 +36,22 @@ describe("stat rows", () => {
 	// 20-high "Expiring Soon". The grid row already stretches the tiles to one
 	// height; each tile is a column with its figure row at the foot, so the two
 	// figures in the row stay on one line.
+	// "Total Tenants" and "Pending Signature" wrap at 390 (measured on the
+	// production build: 40 high beside 20-high "Active" and "Ended"), so the
+	// tenants page's tiles take the same one-height rows as the analytics tiles.
+	it("hold the tenants page's tiles to one height", () => {
+		render(
+			<TenantStats
+				totalTenants={3}
+				activeTenants={1}
+				pendingTenants={1}
+				endedTenants={1}
+			/>,
+		);
+		expectRowsOneHeight();
+		expect(document.querySelectorAll("[data-slot=stat]")).toHaveLength(4);
+	});
+
 	it("keep the leases tiles' figures on one line when a label wraps", () => {
 		render(
 			<LeasesStatCards

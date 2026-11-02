@@ -24,10 +24,14 @@ export function TenantStats({
 	pendingTenants,
 	endedTenants,
 }: TenantStatsProps) {
+	// Each wrapper fills its grid cell and each tile its wrapper, rows held to
+	// the top, as the analytics tiles are (66.2-39 part M): at 390 "Total
+	// Tenants" and "Pending Signature" wrap, and a tile no longer stands taller
+	// than its neighbour (VD-111).
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-			<BlurFade delay={0.2}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={80}
 						duration={10}
@@ -45,8 +49,8 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.3} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<StatLabel>{LEASE_STATUS_LABELS.active}</StatLabel>
 					<StatValue className="flex items-baseline text-success-text">
 						<NumberTicker value={activeTenants} duration={1000} />
@@ -58,8 +62,8 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.4} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					{pendingTenants > 0 && (
 						<BorderBeam
 							size={80}
@@ -79,8 +83,8 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5}>
-				<Stat>
+			<BlurFade delay={0.5} className="h-full">
+				<Stat className="h-full content-start">
 					<StatLabel>Ended</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={endedTenants} duration={1000} />
