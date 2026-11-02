@@ -1,6 +1,6 @@
-# 66.2-39 fix round 1, parts C, D and E: status colors, chart marks and meter fills through the token layer
+# 66.2-39 fix round 1, parts C to F: status colors, chart marks, meter fills and state labels through the token layer
 
-Owner decision, 2026-11-01: "Fix all in this PR", including every raw-palette status color moving to the project tokens, with each visual change measured before it ships. This file is the measurement record for that change: status colors (UI-SPEC VD-51, sections 1-3) chart series (VD-52, section 4) and, from part D, the dashboard chart marks and the remaining chart-2 / chart-3 uses (VD-53, section 5); from part E, the meter fills, status marks and labels on the vivid fills (VD-55, VD-56, section 6).
+Owner decision, 2026-11-01: "Fix all in this PR", including every raw-palette status color moving to the project tokens, with each visual change measured before it ships. This file is the measurement record for that change: status colors (UI-SPEC VD-51, sections 1-3) chart series (VD-52, section 4) and, from part D, the dashboard chart marks and the remaining chart-2 / chart-3 uses (VD-53, section 5); from part E, the meter fills, status marks and labels on the vivid fills (VD-55, VD-56, section 6); from part F, the label of every interactive state (VD-59, section 7) and the vivid status tokens used as text (VD-60, section 8).
 
 Base: `d0cc141b5`. Every ratio below is painted WCAG contrast read back from a 1x1 canvas in Chrome (Playwright 1.64.1 headless shell) under the project's own compiled stylesheet: `loadProjectTailwindEngine()` compiles `src/app/globals.css` with the project scan plus the probe classes, and each background stack is painted in order over white, so opacity tints compose the way they do on the page. Light is `<html>` without a class, dark is `<html class="dark">`. Probe scripts: `scratchpad/exec/fix3/pairs.mjs` (derived from part B's `fix2/contrast.mjs`) with the cases in `status-cases.mjs`; chart colors with `fix2/contrast.mjs` itself.
 
@@ -367,7 +367,7 @@ Before: 21 of the 25 rows failed their minimum in at least one theme (bold). Aft
 
 Measured and passing, unchanged (`P-mark`, `P-label`): stepper-header indicators and separators `bg-primary` 4.94 / 7.23 with their `text-primary-foreground` labels 4.88 / 6.84; the password-strength segments on the popover (`bg-destructive` 4.75 / 3.37, `bg-accent` 3.52 / 8.27, `bg-accent-main` 3.53 / 6.79); checkbox, switch track and thumb, slider range (4.33 on its `bg-muted` track light), tabs, calendar selected day, the property-table column checkbox and its check (4.88 / 6.84); the Google loading dots, the inspection-template checklist dots (on 5.02, off `bg-muted-foreground` 6.31), the testimonial carousel's current dot, the `/analytics/overview` legend swatches (section 5); every `bg-primary` / `bg-destructive` button, badge, pill and icon tile at rest (4.88 / 6.84 and 4.63 / 9.67); the photo-upload error overlay icon (3.59 / 4.15 over a white photo, 8.24 / 9.93 over black).
 
-### 6.4 Open: hover and focus fills under 4.5:1 (a token decision, not changed here)
+### 6.4 Hover and focus fills under 4.5:1 (open in part E; fixed in part F, section 7)
 
 These three fail at rest-to-hover or on focus in every primitive that uses them, so the fix is a token or variant decision for the owner, not a per-site edit. Measured:
 
@@ -645,3 +645,152 @@ Not changed, by measurement: the onboarding wizard's completed-step dot (`bg-pri
 | components/ui/tabs.tsx | P-label | 49: `data-[state=active]:bg-primary` |
 | components/ui/toggle.tsx | O-R1 | 6: `data-[state=on]:hover:bg-primary/90` |
 | components/ui/toggle.tsx | P-label | 6: `data-[state=on]:bg-primary` |
+
+## 7. Every interactive state's label (VD-59)
+
+Part F, base `f48046894`. WCAG 1.4.3 holds in every state, not only at rest: a label that a hover, focus, selection or open state repaints must clear 4.5:1 against the fill that state paints (3:1 for a control whose only content is an icon, 1.4.11).
+
+### 7.1 Sweep
+
+- Unit: one class string (a `className` literal, a `cn()` argument, a cva base or variant string), read by `classStrings` in `src/test/utils/state-fill-pairs.ts` (comments removed; a template's `${…}` parts cut).
+- States: `hover`, `focus`, `focus-visible`, `active`, `group-hover` (named too), `data-highlighted`, `data-[highlighted]`, `data-[state=open|on|active|checked]`, `data-[selected=true]`, `data-selected`, `data-[active=true]`, `data-active`, `aria-selected`, `aria-pressed`, `aria-current` (and their bracket forms), under a compound selector too (`[a&]:hover`, `[a]:hover`).
+- Pairing (`statePairs`): for each state chain, the fill is the background the most specific matching chain sets (ties go to the variant Tailwind compiles later: `data-*` after `aria-*` after the pseudo-classes), else the resting background, else the surface; the label likewise; `dark:` forms override in dark; a descendant variant (`[&_svg…]:`) paints over the element's own state fill.
+- Measure (`worstStateContrast`): the label over the fill composited on each of the page, card and popover surfaces, both themes, from the `globals.css` token values (`oklch-contrast.ts`, within 0.01 of Chrome's readback). An inherited label is read as both `foreground` and `muted-foreground`.
+- Command: `bun scratchpad/exec/fix6/state-sweep.mts <files> <out.tsv> [globals.css]` over every tracked `.ts`/`.tsx` under `src/` minus tests, `__tests__/`, `src/test/` and `.d.ts` (894 files on `f48046894`; 896 here).
+
+Result on `f48046894`: 287 class strings carry a state pair; 596 pairs (each in both themes); **77 under 4.5:1**. Here: 284 strings, 596 pairs, 28 under 4.5:1, every one of them classified below and held by the guard.
+
+### 7.2 Classification of the 77
+
+| Pair (worst surface) | Pairs | Resolution |
+|----------------------|-------|------------|
+| `primary-foreground` on `primary/90` (Button default, Badge default anchor, Toggle on, 20 raw first-party buttons) | 23 | fixed: light hover `bg-primary-text` (6.81:1), dark keeps `primary/90` through `dark:hover:` (5.94:1) |
+| `accent-foreground` on `accent` (outline and ghost Button light hover, Badge outline anchor, Select, DropdownMenu, Command, Combobox focus, the Google button, blog chips, blog pagination) | 11 | fixed at the token: light `--accent-foreground` `oklch(0.98 0.01 160)` -> `oklch(0.24 0.01 160)`, same hue and chroma: 3.34 -> 4.66:1 (dark unchanged, 7.98) |
+| `destructive-foreground` on `destructive/90` (Button and Badge destructive, the GDPR and account-data delete buttons) | 4 | fixed: light hover `bg-destructive-text` (6.40:1), dark keeps `destructive/90` (6.05) |
+| `accent-foreground` on `input/50` (outline Button, dark hover) | 1 | fixed: `dark:hover:text-foreground` (1.17 -> 14.95:1); the CP-2 fill `dark:hover:bg-input/50` stays |
+| `accent-foreground` on `accent/50` (ghost Button, dark hover) | 1 | fixed: `dark:hover:text-foreground` (2.80 -> 6.25:1); the CP-2 fill `dark:hover:bg-accent/50` stays |
+| `accent-foreground`, no fill of its own (Calendar day button, dark hover over the ghost fill) | 1 | fixed: `dark:hover:text-foreground` (2.64 -> 6.64:1) |
+| inherited `muted-foreground` on `accent/50` (Item anchor hover) | 2 | fixed: `[a]:hover:bg-accent/25` (3.47 / 3.04 -> 4.69 / 5.59) |
+| inherited `muted-foreground` on `accent/30` (FileUploadDropzone hover and drag) | 1 | fixed: `accent/25` (4.36 -> 4.62) |
+| `success-text` on `success/15` (Badge success anchor hover) | 1 | fixed: `success/12` (4.45 -> 4.58) |
+| `primary/80` on the page (blog post link hover, x2) | 2 | fixed: `hover:text-primary-text/80` (3.58 -> 4.58 light, 5.30 -> 6.99 dark) |
+| `destructive` on `muted` (leases Terminate icon button) | 2 | fixed: `hover:text-destructive-text` (2.87 dark -> 6.08; the icon is the button's only content, so 3:1 applied and failed) |
+| `destructive` on `destructive/10` and on no fill (nine Trash2 icon buttons) | 13 | kept: icon-only, 3.13:1 at worst (dark card), over the 3:1 non-text minimum (ICON_ONLY) |
+| `primary` on `muted` (leases Renew icon button) | 1 | kept: icon-only, 4.33:1 (ICON_ONLY) |
+| `primary` on `primary/15` and `primary/20` (bulk-import Upload tile, feature card tile) | 2 | kept: icon tiles beside their own text, 3.99 and 3.70:1 (ICON_ONLY) |
+| inherited `muted-foreground` on `primary` (Switch track x2, the pricing Switch override x2, Stepper indicator x2) | 6 | not a label pair: the switch track carries no text (the thumb is the mark, P-mark in 6.6); the stepper indicator's label is `text-primary-foreground` in another class string, measured 4.88 / 6.84 (LABEL_ELSEWHERE) |
+| inherited `muted-foreground` on `black/70` (lightbox close, gallery "+N" overlay) | 2 | not a label pair: both labels are `text-white` in another class string, white on black/70 over a white image 8.4:1 (LABEL_ELSEWHERE) |
+| inherited `muted-foreground` on `muted-foreground/50` (testimonial carousel dot hover) | 2 | not a label pair: a dot button with no text (NO_LABEL) |
+| `muted-foreground` on `accent` (Dialog close `data-[state=open]:`) | 2 | never rendered: Radix `DialogClose` sets no `data-state` (read in `node_modules/@radix-ui/react-dialog/dist/index.mjs`), so the upstream class never matches (NO_LABEL) |
+
+Also fixed in the same class, though the string-level read cannot see them: the icons of a focused Select, DropdownMenu and Command item stayed `muted-foreground` on the emerald focus fill (1.85:1 light, 1.07:1 dark; for Select that is the selected check). They now follow the label: `focus:[&_svg:not([class*='text-'])]:text-accent-foreground` (Command: `data-[selected=true]:`), 4.66 / 7.98.
+
+Every other use of `accent-foreground` was checked on its surface after the token change: all are on an `accent` fill (4.66 light / 7.98 dark), except the accent BorderBeam variants' gradient end (`to: var(--color-accent-foreground)`), which is decorative and now fades to the dark green in light mode instead of near-white.
+
+### 7.3 Before and after, measured in Chrome
+
+Same instrument as sections 2-6: each pair painted over white on a 1x1 canvas in Chrome (Playwright 1.64.1 headless shell) under the compiled project stylesheet; "before" compiles the `f48046894` `globals.css`. A state's resolved classes are written directly (`bg-primary-text dark:bg-primary/90` for `hover:bg-primary-text dark:hover:bg-primary/90`). Cases: `scratchpad/exec/fix6/state-cases-before.json`, `state-cases-after.json`; probe `scratchpad/exec/fix5/contrast.mjs`. Bold: under its minimum (4.5, or 3 for the icon rows 7 and 17).
+
+| # | Pair | Light before | Light after | Dark before | Dark after |
+|---|------|--------------|-------------|-------------|------------|
+| 1 | R1 Button default hover (card) | #f4f9ff on #1973f1 **4.16** | #f4f9ff on #004fc4 6.81 | #0e1216 on #3e90ff 5.94 | #0e1216 on #3e90ff 5.94 |
+| 2 | R1 Button default hover (popover) | #f4f9ff on #1973f1 **4.16** | #f4f9ff on #004fc4 6.81 | #0e1216 on #3d90ff 5.94 | #0e1216 on #3d90ff 5.94 |
+| 3 | R2 Button destructive hover (card) | #fdfcf7 on #e91934 **4.39** | #fdfcf7 on #be000d 6.4 | #f6ede0 on #b60102 6.05 | #f6ede0 on #b60102 6.05 |
+| 4 | R2 Button destructive hover (popover) | #fdfcf7 on #e91934 **4.39** | #fdfcf7 on #be000d 6.4 | #f6ede0 on #b50101 6.1 | #f6ede0 on #b50101 6.1 |
+| 5 | R3 outline/ghost hover light, chips, google, pagination (background) | #f3fbf6 on #009d5b **3.34** | #1b211e on #009d5b 4.66 | #040e08 on #00bd79 7.98 | #040e08 on #00bd79 7.98 |
+| 6 | R3 menu item focus label (popover) | #f3fbf6 on #009d5b **3.34** | #1b211e on #009d5b 4.66 | #040e08 on #00bd79 7.98 | #040e08 on #00bd79 7.98 |
+| 7 | R3 menu item focus icon (popover) | #575f66 on #009d5b **1.85** | #1b211e on #009d5b 4.66 | #a2acb7 on #00bd79 **1.07** | #040e08 on #00bd79 7.98 |
+| 8 | R3 outline dark hover (card) | (dark only) | (dark only) | #040e08 on #191e25 **1.17** | #ecf3f8 on #191e25 14.95 |
+| 9 | R3 ghost dark hover (card) | (dark only) | (dark only) | #040e08 on #046647 **2.8** | #ecf3f8 on #046647 6.25 |
+| 10 | R3 ghost dark hover (popover) | (dark only) | (dark only) | #040e08 on #016241 **2.64** | #ecf3f8 on #016241 6.64 |
+| 11 | R3 calendar day dark hover (popover) | (dark only) | (dark only) | #040e08 on #016241 **2.64** | #ecf3f8 on #016241 6.64 |
+| 12 | Item anchor hover, muted text (card) | #575f66 on #7dcdad **3.47** | #575f66 on #bbe4d5 4.69 | #a2acb7 on #046647 **3.04** | #a2acb7 on #06392e 5.59 |
+| 13 | Dropzone hover/drag, muted text (background) | #575f66 on #aedeca **4.36** | #575f66 on #bbe2d3 4.62 | #a2acb7 on #034030 5.12 | #a2acb7 on #03362b 5.82 |
+| 14 | Badge success anchor hover (background) | #007b40 on #d4f0e5 **4.45** | #007b40 on #dbf2e8 4.58 | #4bdc95 on #03251a 9.33 | #4bdc95 on #041f18 9.86 |
+| 15 | Toggle on hover (background) | #f4f9ff on #1873f1 **4.17** | #f4f9ff on #004fc4 6.81 | #0e1216 on #3d90ff 5.94 | #0e1216 on #3d90ff 5.94 |
+| 16 | Blog post link hover (background) | #3282f2 on #f9fafb **3.58** | #3271ce on #f9fafb 4.58 | #3781f3 on #040a11 5.3 | #649aed on #040a11 6.99 |
+| 17 | Leases Terminate icon hover (background) | #e7001e on #e5ecf1 3.99 | #be000d on #e5ecf1 5.51 | #c90000 on #141b24 **2.87** | #ff6762 on #141b24 6.08 |
+
+Before: all 17 rows fail in at least one theme. After: none; the worst label is 4.58:1 (the success badge anchor hover and the blog link hover, light).
+
+### 7.4 Guard
+
+`src/app/__tests__/state-fill-contrast.test.ts` runs the 7.1 pairing and measurement over every shipped source (`collectG7SourceTexts`) and fails on a label under 4.5:1 that no reviewed list explains. The lists (ICON_ONLY, LABEL_ELSEWHERE, NO_LABEL) name a file and the source token; an icon-only entry must clear 3:1, a label-elsewhere entry is re-measured with its real label, and an entry that matches nothing fails as stale. A fixture `it` pins the cascade reading (the dark outline hover, the toggle's on-hover label, the menu icon on its focus fill). Red on the `f48046894` sources of the part F state fixes: `AssertionError: expected [ …(45) ] to deeply equal []`.
+
+## 8. Vivid status tokens used as text (VD-60)
+
+CLAUDE.md: status-colored TEXT uses the AA `-text` companions; the vivid tokens are for fills and icons. As text they fail on the light surfaces (section 8.3).
+
+### 8.1 Sweep
+
+Command: `node scratchpad/exec/fix6/vivid-classify.mjs <files> <out.tsv> [--base <sha>]`. It parses each `.ts`/`.tsx` (oxc, `rolldown/utils`), finds every string holding a vivid text color (`text-success`, `-warning`, `-destructive`, `-info`, `-accent`, `-primary`, `-chart-N`, any variant, optional opacity; the regex part E used) and walks up to the JSX element whose attribute the string sits in:
+
+- icon: a lucide component, an `svg`, an `…Icon` component, or a class aimed at descendant svgs (`[&_svg]:`);
+- icon-container: an element with children and no visible text below it (text is JSX text or an expression that is not an icon variable);
+- text: an element that shows text;
+- leaf: a childless non-icon element;
+- config: a string outside any JSX attribute (a color map).
+
+`git grep` of part E's pattern returns 236 lines on `f48046894`; the AST pass finds 237 tokens (one line holds two).
+
+| Class on `f48046894` | Tokens | Resolution |
+|----------------------|--------|------------|
+| text | 35 | 30 moved to the companion (`primary` -> `primary-text`, `success` -> `success-text`, `warning` -> `warning-text`, `destructive` -> `destructive-text`, `accent` -> `success-text`, the AA token of its hue); 2 moved in section 7 (the blog link hover); 3 kept: they style icon-only buttons whose only text is sr-only or an aria-label (active sessions sign-out, the tenant row delete x2), measured as icons at 3.13:1 |
+| icon | 137 | 5 moved: the comparison cells' check and partial marks (`/compare/[competitor]` x2, `ComparisonTable` x2, `PricingComparisonTable`) carry their meaning alone and read 2.33 (success) and 1.99 (warning) on their tiles, 2.47 and 2.05 on the `muted` rows (success-text 4.66, warning-text 5.00); 132 kept: an icon beside text that says the same (a status icon by its label, a heading's icon, a tile by its title), or an icon that alone carries its meaning and clears 3:1 (the comparison add-on mark, `info`, 3.14 at worst; the not-included mark, `destructive`, 3.21 dark; every `primary` icon) |
+| icon-container | 49 | 1 moved in section 7 (leases Terminate); 48 kept on the same rule as icons |
+| leaf | 4 | kept: three native checkboxes (with no forms plugin `text-primary` paints nothing) and `<card.icon>`, a lucide component held in data |
+| config | 12 | 2 moved: `getDashboardPercentage` colors text; 10 kept: the collection-rate KPI icon colors, the resources page icon colors, the how-it-works step tile and its opacity-20 decorative step number |
+| total | 237 | 37 moved here, 3 in section 7; 197 remain, each classified |
+
+Every hit and its class: `scratchpad/exec/fix6/vivid-base.tsv` (base) and `vivid-final.tsv` (here); the edits: `vivid-edits.txt`.
+
+### 8.2 Guard
+
+`design-token-drift.test.ts`, block "no vivid status color on an element that shows text": `vividTextUses` (`src/test/utils/vivid-text-elements.ts`, the 8.1 classification) over every shipped source; a text, leaf or config use fails unless `VIVID_TEXT_REVIEWED` names its file and kind with what it colors, and a reviewed file that no longer has a use fails as stale. A fixture `it` pins the classification. Red on the `f48046894` sources: `AssertionError: expected [ …(32) ] to deeply equal []`.
+
+### 8.3 The tokens as text, measured in Chrome
+
+Each vivid token and its companion as a foreground on the card, the muted fill and the `muted/30` section band, light and dark (`scratchpad/exec/fix6/vivid-cases.json`, `vivid-after.txt`; the companions are unaffected by section 7's token change). Bold: under 4.5 (3 for the two icon rows).
+
+| Pair | Light | Dark |
+|------|-------|------|
+| text-primary on card | #0064ef on #fafcfe 5.02 | #439fff on #080e16 7.05 |
+| text-primary-text on card | #004fc4 on #fafcfe 7 | #7cbeff on #080e16 9.83 |
+| text-primary on muted | #0064ef on #e5ecf1 **4.33** | #439fff on #141b24 6.31 |
+| text-primary-text on muted | #004fc4 on #e5ecf1 6.04 | #7cbeff on #141b24 8.8 |
+| text-primary on muted/30 section | #0064ef on #f3f5f8 4.73 | #439fff on #080e16 7.05 |
+| text-primary-text on muted/30 section | #004fc4 on #f3f5f8 6.59 | #7cbeff on #080e16 9.83 |
+| text-success on card | #00b565 on #fafcfe **2.62** | #00b84e on #080e16 7.34 |
+| text-success-text on card | #007b40 on #fafcfe 5.23 | #4bdc95 on #080e16 11.04 |
+| text-success on muted | #00b565 on #e5ecf1 **2.26** | #00b84e on #141b24 6.57 |
+| text-success-text on muted | #007b40 on #e5ecf1 4.5 | #4bdc95 on #141b24 9.88 |
+| text-success on muted/30 section | #00b565 on #f3f5f8 **2.47** | #00b84e on #080e16 7.34 |
+| text-success-text on muted/30 section | #007b40 on #f3f5f8 4.92 | #4bdc95 on #080e16 11.04 |
+| text-warning on card | #e1a200 on #fafcfe **2.18** | #de9400 on #080e16 7.69 |
+| text-warning-text on card | #965900 on #fafcfe 5.48 | #fbc044 on #080e16 11.73 |
+| text-warning on muted | #e1a200 on #e5ecf1 **1.88** | #de9400 on #141b24 6.88 |
+| text-warning-text on muted | #965900 on #e5ecf1 4.72 | #fbc044 on #141b24 10.5 |
+| text-warning on muted/30 section | #e1a200 on #f3f5f8 **2.05** | #de9400 on #080e16 7.69 |
+| text-warning-text on muted/30 section | #965900 on #f3f5f8 5.16 | #fbc044 on #080e16 11.73 |
+| text-destructive on card | #e7001e on #fafcfe 4.62 | #c90000 on #080e16 **3.21** |
+| text-destructive-text on card | #be000d on #fafcfe 6.39 | #ff6762 on #080e16 6.79 |
+| text-destructive on muted | #e7001e on #e5ecf1 **3.99** | #c90000 on #141b24 **2.87** |
+| text-destructive-text on muted | #be000d on #e5ecf1 5.51 | #ff6762 on #141b24 6.08 |
+| text-destructive on muted/30 section | #e7001e on #f3f5f8 **4.35** | #c90000 on #080e16 **3.21** |
+| text-destructive-text on muted/30 section | #be000d on #f3f5f8 6.02 | #ff6762 on #080e16 6.79 |
+| text-info on card | #008feb on #fafcfe **3.33** | #1795fa on #080e16 6.19 |
+| text-info-text on card | #0064b2 on #fafcfe 5.89 | #6cc3ff on #080e16 10.04 |
+| text-info on muted | #008feb on #e5ecf1 **2.87** | #1795fa on #141b24 5.54 |
+| text-info-text on muted | #0064b2 on #e5ecf1 5.08 | #6cc3ff on #141b24 8.98 |
+| text-info on muted/30 section | #008feb on #f3f5f8 **3.14** | #1795fa on #080e16 6.19 |
+| text-info-text on muted/30 section | #0064b2 on #f3f5f8 5.55 | #6cc3ff on #080e16 10.04 |
+| text-accent on card | #009d5b on #fafcfe **3.42** | #00bd79 on #080e16 7.89 |
+| text-success-text on card | #007b40 on #fafcfe 5.23 | #4bdc95 on #080e16 11.04 |
+| text-accent on muted | #009d5b on #e5ecf1 **2.95** | #00bd79 on #141b24 7.06 |
+| text-success-text on muted | #007b40 on #e5ecf1 4.5 | #4bdc95 on #141b24 9.88 |
+| text-accent on muted/30 section | #009d5b on #f3f5f8 **3.22** | #00bd79 on #080e16 7.89 |
+| text-success-text on muted/30 section | #007b40 on #f3f5f8 4.92 | #4bdc95 on #080e16 11.04 |
+| comparison-table icon text-success on bg-success/10 | #00b565 on #e0f3eb **2.33** | #00b84e on #041b17 6.78 |
+| comparison-table icon text-success-text on bg-success/10 | #007b40 on #e0f3eb 4.66 | #4bdc95 on #041b17 10.19 |
+| comparison-table icon text-warning on bg-warning/10 | #e1a200 on #f7f1e1 **1.99** | #de9400 on #1a180f 7.06 |
+| comparison-table icon text-warning-text on bg-warning/10 | #965900 on #f7f1e1 5 | #fbc044 on #1a180f 10.77 |
