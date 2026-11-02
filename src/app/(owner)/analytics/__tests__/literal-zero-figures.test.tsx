@@ -118,13 +118,22 @@ describe("expenses stats", () => {
 			<ExpenseStats
 				totalExpenses={1200}
 				monthlyAvg={100}
-				maintenanceTotal={0}
-				maintenancePercent="0.0"
 				yearOverYear={yearOverYear}
 			/>,
 		);
 	}
 	const PRIOR = { start_date: "2025-01-01", end_date: "2025-11-02" };
+
+	it("show no Maintenance tile, which could only restate Total Expenses", () => {
+		// Every expense is on a maintenance request and the categories are
+		// vendor names: the tile looked for a "maintenance" category and read $0.
+		renderStats({ status: "ready", change: 12.5, priorPeriod: PRIOR });
+		const labels = [...document.querySelectorAll("[data-slot=stat-label]")].map(
+			(label) => label.textContent,
+		);
+		expect(labels).toEqual(["Total Expenses", "Monthly Average", "YoY Change"]);
+		expect(screen.queryByText(/% of total/)).not.toBeInTheDocument();
+	});
 
 	it("show the year over year against the prior period", () => {
 		renderStats({ status: "ready", change: 12.5, priorPeriod: PRIOR });

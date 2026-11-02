@@ -1,10 +1,4 @@
-import {
-	Calendar,
-	Minus,
-	TrendingDown,
-	TrendingUp,
-	Wrench,
-} from "lucide-react";
+import { Calendar, Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import {
@@ -19,11 +13,14 @@ import { formatCurrency } from "#lib/utils/currency";
 import type { ExpenseYearOverYear } from "#types/analytics";
 
 // Match financials-summary-stats: dollars, two decimals, no /100 mis-conversion.
+// There is no "Maintenance" tile: get_expense_summary's categories are vendor
+// names, and every expense is on a maintenance request
+// (expenses.maintenance_request_id is NOT NULL), so all of it is maintenance
+// spend and the tile could only restate Total Expenses (it looked for a
+// category named "maintenance", which no vendor is, and read $0).
 interface ExpenseStatsProps {
 	totalExpenses: number;
 	monthlyAvg: number;
-	maintenanceTotal: number;
-	maintenancePercent: string;
 	yearOverYear: ExpenseYearOverYear;
 }
 
@@ -96,12 +93,10 @@ function YearOverYearTile({
 export function ExpenseStats({
 	totalExpenses,
 	monthlyAvg,
-	maintenanceTotal,
-	maintenancePercent,
 	yearOverYear,
 }: ExpenseStatsProps) {
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+		<div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
 			<BlurFade delay={0.15} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
 					{totalExpenses > 0 && (
@@ -136,20 +131,9 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel>Maintenance</StatLabel>
-					<StatValue className="flex items-baseline text-warning-text">
-						{formatCurrency(maintenanceTotal)}
-					</StatValue>
-					<StatIndicator variant="icon" color="warning">
-						<Wrench />
-					</StatIndicator>
-					<StatDescription>{maintenancePercent}% of total</StatDescription>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.3} className="h-full">
+			{/* Its window ("vs Jan 1 to Nov 2, 2025") gets the row to itself
+			    below lg, beside no half-width neighbour. */}
+			<BlurFade delay={0.25} className="col-span-2 h-full lg:col-span-1">
 				<YearOverYearTile yearOverYear={yearOverYear} />
 			</BlurFade>
 		</div>

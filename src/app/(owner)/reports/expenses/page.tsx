@@ -77,19 +77,6 @@ export default function ExpensesPage() {
 	const totalExpenses = summary?.total_amount ?? 0;
 	const monthlyAvg = summary?.monthly_average ?? 0;
 
-	const maintenanceTotal = (() => {
-		if (!summary?.categories) return 0;
-		const maintenance = summary.categories.find(
-			(c) => c.category === "maintenance",
-		);
-		return maintenance?.amount ?? 0;
-	})();
-
-	const maintenancePercent =
-		totalExpenses > 0
-			? ((maintenanceTotal / totalExpenses) * 100).toFixed(1)
-			: "0";
-
 	if (isLoading || summaryLoading) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -100,9 +87,12 @@ export default function ExpensesPage() {
 					</div>
 					<Skeleton className="h-10 w-24" />
 				</div>
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-					{[1, 2, 3, 4].map((i) => (
-						<Skeleton key={i} className="h-24 rounded-lg" />
+				<div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+					{[1, 2, 3].map((i) => (
+						<Skeleton
+							key={i}
+							className={`h-24 rounded-lg ${i === 3 ? "col-span-2 lg:col-span-1" : ""}`}
+						/>
 					))}
 				</div>
 				<Skeleton className="h-12 w-full mb-4 rounded-lg" />
@@ -157,8 +147,6 @@ export default function ExpensesPage() {
 			<ExpenseStats
 				totalExpenses={totalExpenses}
 				monthlyAvg={monthlyAvg}
-				maintenanceTotal={maintenanceTotal}
-				maintenancePercent={maintenancePercent}
 				yearOverYear={summary?.yearOverYear ?? { status: "unavailable" }}
 			/>
 

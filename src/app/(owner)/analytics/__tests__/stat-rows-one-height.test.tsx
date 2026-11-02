@@ -52,8 +52,6 @@ describe("stat rows", () => {
 			<ExpenseStats
 				totalExpenses={1}
 				monthlyAvg={1}
-				maintenanceTotal={0}
-				maintenancePercent="0"
 				yearOverYear={{ status: "unavailable" }}
 			/>,
 		);
