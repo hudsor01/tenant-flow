@@ -282,7 +282,16 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // financial metrics no cashFlow. A v3 entry would draw the overview's and the
 // expenses page's trends as unavailable and crash the insights tab on its
 // missing costs until the refetch landed.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v4";
+// v5: part N's shapes. The owner dashboard payload's metricTrends carry a
+// window and a nullable percentChange; analyticsQueries.financialPageData
+// carries leaseProfitability (and .leaseProfitability() is new); the income
+// statement's expenses, the cash flow's activities and the balance sheet's
+// groups lost their no-source lines; reportAnalyticsQueries.yearEnd and
+// .properties rows carry `deleted`, .properties lost its literal summary
+// counts and trends, .financial is the expenses by vendor alone and .tenants
+// the three figures with a source. A v4 entry would read as a sheet, statement
+// or table missing the fields the pages now expect until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v5";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {
