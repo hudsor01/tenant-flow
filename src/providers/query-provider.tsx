@@ -263,7 +263,11 @@ export function QueryProvider({
 }
 
 const QUERY_CACHE_KEY = "tenantflow-query-cache";
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v1";
+// Bump when a persisted query's return shape changes (CLAUDE.md, Data layer).
+// v2: financialQueries.balanceSheet returns BalanceSheetResult
+// ({ status, sheet }), not ApiResponse<BalanceSheetData>; a v1 entry read back
+// from IndexedDB is neither shape the page knows and rendered as a $0 sheet.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v2";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {
