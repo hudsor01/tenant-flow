@@ -81,7 +81,7 @@ export interface Box {
 }
 
 /** A `Box` plus the element's id, so an offender can name itself in a failure. */
-export interface MeasuredBox extends Box {
+interface MeasuredBox extends Box {
 	/** The empty string when the element carries no `id`. */
 	id: string;
 }
@@ -163,14 +163,6 @@ export async function widthOf(
 	timeout = 15_000,
 ): Promise<number> {
 	return (await boxOf(locator, timeout)).width;
-}
-
-/** Rendered height in CSS pixels, measured after layout has committed. */
-export async function heightOf(
-	locator: Locator,
-	timeout = 15_000,
-): Promise<number> {
-	return (await boxOf(locator, timeout)).height;
 }
 
 /**
