@@ -1,953 +1,998 @@
 {
-  "schema": 1,
-  "registry": "new-york-v4",
-  "files": {
-    "src/components/ui/accordion.tsx": {
-      "item": "accordion",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "AccordionTrigger uses typography-small in place of text-sm font-medium",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small)"
-        },
-        {
-          "what": "class token order in AccordionTrigger, its ChevronDownIcon and AccordionContent",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
+ "schema": 1,
+ "registry": "new-york-v4",
+ "files": {
+  "src/components/ui/accordion.tsx": {
+   "item": "accordion",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "AccordionTrigger uses typography-small in place of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small)"
     },
-    "src/components/ui/alert-dialog.tsx": {
-      "item": "alert-dialog",
-      "plan": "66.2-23",
-      "divergences": [
-        {
-          "what": "local AlertDialogContent, AlertDialogHeader (flex flex-col gap-2 text-center sm:text-left), AlertDialogFooter (flex flex-col-reverse gap-2 sm:flex-row sm:justify-end) and AlertDialogTitle (text-lg font-semibold) layout kept byte-identical; only AlertDialogAction and AlertDialogCancel follow upstream (Button asChild, variant/size, alert-dialog-action and alert-dialog-cancel data-slots)",
-          "reason": "D-26 customization",
-          "ref": "D-26; ledger C14, C16"
-        },
-        {
-          "what": "AlertDialogContent size prop (default | sm), its data-size attribute, the group/alert-dialog-content group and the data-[size=sm]:max-w-xs / data-[size=default]:sm:max-w-lg widths",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; ledger C14, C16"
-        },
-        {
-          "what": "grid AlertDialogHeader (grid-rows-[auto_1fr], place-items-center, gap-1.5 and its size-group and media-row variants)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; ledger C14, C16"
-        },
-        {
-          "what": "size-group AlertDialogFooter classes (group-data-[size=sm]/alert-dialog-content grid two-column footer) and the AlertDialogTitle media col-start-2 class",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; ledger C14, C16"
-        },
-        {
-          "what": "AlertDialogMedia export and its alert-dialog-media data-slot (upstream exports 12 data-slots, manifest-w5.json; this repo vendors and exports 11, no consumer uses a media part)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; ledger C14, C16"
-        },
-        {
-          "what": "AlertDialogOverlay and AlertDialogPortal exports (both stay internal to AlertDialogContent; the export list is unchanged)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; ledger C14, C16"
-        },
-        {
-          "what": "class token order in AlertDialogOverlay and AlertDialogDescription",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/alert.tsx": {
-      "item": "alert",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "destructive variant text uses text-destructive-text and [&_.text-muted-foreground]:text-destructive-text/90 instead of upstream text-destructive and *:data-[slot=alert-description]:text-destructive/90",
-          "reason": "D-26 customization",
-          "ref": "D-26; CLAUDE.md AA -text companions"
-        },
-        {
-          "what": "class token order in alertVariants base and AlertDescription kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/avatar.tsx": {
-      "item": "avatar",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "Avatar has no size prop, data-size attribute, group/avatar or select-none, and AvatarFallback keeps its shorter class list (no text-sm, text-muted-foreground or sm text size)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "upstream AvatarBadge, AvatarGroup and AvatarGroupCount (avatar-badge, avatar-group, avatar-group-count data-slots) not adopted: never vendored, no consumer",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in AvatarFallback",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/badge.tsx": {
-      "item": "badge",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "size axis (default, sm, lg, trust) carries rounded-md/rounded-full, px, py, text size, gap and [&>svg]:size-*; the base string has no rounded-full, px-2, py-0.5, text-xs, gap-1 or [&>svg]:size-3, and each filled variant adds border-transparent",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "local variants success, warning, info and trustIndicator",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-29 (the Button destructive pairing)"
-        },
-        {
-          "what": "upstream ghost and link variants, outline border-border, the data-variant attribute and the variant = \"default\" parameter default are not adopted",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; 66.2-20 Task 1 not-adopted list"
-        },
-        {
-          "what": "asChild uses Slot.Slot, not upstream Slot.Root",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
-        },
-        {
-          "what": "badgeVariants export removed",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "class token order in badgeVariants base and the destructive variant kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/breadcrumb.tsx": {
-      "item": "breadcrumb",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "BreadcrumbList uses text-foreground text-base font-medium gap-2 sm:gap-3 (no text-muted-foreground, text-sm, gap-1.5, sm:gap-2.5 or break-words); BreadcrumbLink uses hover:text-primary-text font-medium instead of hover:text-foreground",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "local export type BreadcrumbItem ({ href, label })",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "BreadcrumbPage role=\"link\" and BreadcrumbSeparator role=\"presentation\" are not adopted",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; 66.2-20 Task 1 not-adopted list"
-        },
-        {
-          "what": "asChild uses Slot.Slot, not upstream Slot.Root",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
-        },
-        {
-          "what": "BreadcrumbEllipsis and its breadcrumb-ellipsis data-slot removed",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "class token order in BreadcrumbPage kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/button-group.tsx": {
-      "item": "button-group",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "[&>.select-trigger:not([class*='w-'])]:w-fit and has-[select[aria-hidden=true]:last-child]:[&>.select-trigger:last-of-type]:rounded-r-md key on the select-trigger class instead of upstream [data-slot=select-trigger]",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "ledger C13; D-05"
-        },
-        {
-          "what": "ButtonGroupText, ButtonGroupSeparator (with its button-group-separator data-slot) and the buttonGroupVariants export removed",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "class token order in buttonGroupVariants base kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/button.tsx": {
-      "item": "button",
-      "plan": "66.2-22",
-      "divergences": [
-        {
-          "what": "base string uses typography-small instead of text-sm font-medium",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-29"
-        },
-        {
-          "what": "the 44px touch floor: min-h-11 on every size and min-w-11 on icon, with heights default h-10 px-4 py-2, sm h-9 px-3, lg h-11 px-8 and icon size-10 instead of upstream h-9, h-8 gap-1.5, h-10 px-6 and size-9",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-29; UI-SPEC §Button"
-        },
-        {
-          "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-29"
-        },
-        {
-          "what": "link variant uses text-primary-text (the AA text companion) instead of text-primary",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-29; CLAUDE.md AA -text companions"
-        },
-        {
-          "what": "no has-[>svg] padding reductions on the default, sm and lg sizes, and no xs, icon-xs, icon-sm or icon-lg sizes",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; UI-SPEC §Button"
-        }
-      ]
-    },
-    "src/components/ui/calendar.tsx": {
-      "item": "calendar",
-      "plan": "66.2-21",
-      "divergences": [
-        {
-          "what": "CalendarDayButton export removed (the function stays internal to Calendar)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "local nav and caption classNames: month_caption flex-center, dropdowns typography-small, caption_label h-11 dropdown target",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "day cell uses first:[&[data-selected=true]_button]:rounded-l-md and last:[&[data-selected=true]_button]:rounded-r-md instead of the upstream showWeekNumber-dependent nth-child form; month_grid drops defaultClassNames.month_grid",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in the root, months, month, nav, button_previous, button_next, dropdown_root, dropdown, caption_label, weekday, week, week_number_header, week_number, today and CalendarDayButton class strings",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/card.tsx": {
-      "item": "card",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "Card uses cardVariants (default, elevated, interactive, pricing, pricingPopular, stat) with rounded-md instead of the upstream rounded-xl gap-6 py-6 shadow-sm string, and the file also exports cardVariants",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "CardHeader gap-1.5 instead of upstream gap-2",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "class token order in CardDescription kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/chart.tsx": {
-      "item": "chart",
-      "plan": "66.2-25",
-      "divergences": [
-        {
-          "what": "ChartContainer keeps the requestAnimationFrame mount gate and ResponsiveContainer minWidth={1} minHeight={1} instead of upstream's initialDimension prop and INITIAL_DIMENSION constant (battle-test Session 8 width(-1) warnings)",
-          "reason": "D-26 customization",
-          "ref": "D-26; 66.2-25"
-        },
-        {
-          "what": "ChartTooltip, ChartTooltipContent, ChartLegend and ChartLegendContent (with the local TooltipNameType) live in the split chart-tooltip.tsx, so chart.tsx exports useChart and getPayloadConfigFromPayload for it",
-          "reason": "D-26 customization",
-          "ref": "D-26 (split chart-tooltip.tsx); ledger C15"
-        },
-        {
-          "what": "ChartStyle stays module-private (not exported) and keeps the SSR guard that returns null for an undefined or non-object config, with || fallbacks for the theme color and the chart id where upstream uses ??",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "the cartesian-grid, polar-grid, reference-line, dot and sector recolour selectors match the stroke attribute's presence ([stroke]) instead of upstream's hex attribute values",
-          "reason": "D-26 customization",
-          "ref": "D-28; ledger C2; VD-16; VD-17"
-        },
-        {
-          "what": "ChartContainer adds [&_.recharts-surface:focus-visible]:outline-2, :-outline-offset-2, :outline-ring and :outline-solid after upstream's [&_.recharts-surface]:outline-hidden, so the tab-focusable recharts surface shows an inset 2px ring-colored focus outline (outline-solid because outline-hidden sets --tw-outline-style: none)",
-          "reason": "D-26 customization",
-          "ref": "D-26; WCAG 2.4.7; cycle-1 c1 A11Y (chart.tsx:75)"
-        },
-        {
-          "what": "class token order in ChartContainer",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "ChartConfig as a mapped type instead of Record, and getPayloadConfigFromPayload's payload typed Record<string, unknown> | undefined instead of unknown",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/checkbox.tsx": {
-      "item": "checkbox",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "indicator uses flex-center instead of grid place-content-center",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "root uses rounded-sm instead of upstream rounded-[4px]",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in the Checkbox root kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/combobox.tsx": {
-      "item": "combobox",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "the local file is the Dice UI combobox on @diceui/combobox (Combobox, ComboboxAnchor, ComboboxInput, ComboboxTrigger, ComboboxContent, ComboboxEmpty, ComboboxItem); upstream new-york-v4 combobox is a different component on @base-ui/react and is not adopted, so its ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxCollection, ComboboxGroup, ComboboxLabel, ComboboxList, ComboboxSeparator, ComboboxValue and useComboboxAnchor exports and its combobox-value, combobox-trigger-icon, combobox-clear, input-group-button, combobox-list, combobox-item-indicator, combobox-group, combobox-label, combobox-collection, combobox-separator, combobox-chips, combobox-chip, combobox-chip-remove and combobox-chip-input data-slots are absent",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-04 (no new dependency); D-05; CLAUDE.md Primitives (no Base UI)"
-        },
-        {
-          "what": "the local Dice UI ComboboxLabel, ComboboxCancel, ComboboxBadgeList, ComboboxBadgeItem, ComboboxLoading, ComboboxGroup, ComboboxGroupLabel and ComboboxSeparator parts removed",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        }
-      ]
-    },
-    "src/components/ui/command.tsx": {
-      "item": "command",
-      "plan": "66.2-21",
-      "divergences": [
-        {
-          "what": "CommandInput wrapper h-11 (44px row outside CommandDialog) instead of h-9; inside the dialog the upstream **:data-[slot=command-input-wrapper]:h-12 raises it to 48px",
-          "reason": "D-26 customization",
-          "ref": "D-26; ledger C3; VD-18"
-        },
-        {
-          "what": "CommandList max-h-75 instead of the equal max-h-[300px]",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in Command, CommandInput, CommandGroup, CommandSeparator, CommandItem and CommandShortcut",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/dialog.tsx": {
-      "item": "dialog",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "DialogContent intent variants (default, create, read, edit, delete) through dialogContentVariants and the exported DialogIntent type",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC §Preserved Customizations (Dialog intent + DialogBody)"
-        },
-        {
-          "what": "DialogBody export (space-y-4 wrapper)",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC §Preserved Customizations (Dialog intent + DialogBody)"
-        },
-        {
-          "what": "DialogOverlay and DialogPortal are module-private (not exported)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "DialogFooter has no showCloseButton prop and renders no footer Close button",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "DialogContent base string has no outline-none",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in DialogOverlay, the DialogContent close button and DialogDescription",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/dropdown-menu.tsx": {
-      "item": "dropdown-menu",
-      "plan": "66.2-26",
-      "divergences": [
-        {
-          "what": "DropdownMenuItem destructive text uses data-[variant=destructive]:text-destructive-text and data-[variant=destructive]:focus:text-destructive-text instead of text-destructive (AA text companion); the destructive icon keeps the vivid data-[variant=destructive]:*:[svg]:text-destructive! class",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC Preserved Customizations"
-        },
-        {
-          "what": "DropdownMenuLabel uses typography-small instead of text-sm font-medium",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC Preserved Customizations"
-        },
-        {
-          "what": "DropdownMenuPortal, DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubTrigger and DropdownMenuSubContent are not exported, so their dropdown-menu-portal, dropdown-menu-group, dropdown-menu-radio-group, dropdown-menu-radio-item, dropdown-menu-shortcut, dropdown-menu-sub, dropdown-menu-sub-trigger and dropdown-menu-sub-content data-slots are absent (the manifest lists 15 upstream data-slots; the local file carries the 7 of its exported parts)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        }
-      ]
-    },
-    "src/components/ui/empty.tsx": {
-      "item": "empty",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "EmptyMedia carries data-slot empty-media where upstream writes empty-icon",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "EmptyDescription renders a p element where upstream renders a div",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "EmptyDescription link hover uses text-primary-text in place of text-primary",
-          "reason": "D-26 customization",
-          "ref": "D-26; CLAUDE.md status text on -text AA companions"
-        },
-        {
-          "what": "class token order in emptyMediaVariants and its icon variant",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/field.tsx": {
-      "item": "field",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "FieldSet, FieldLegend, FieldContent, FieldTitle and FieldSeparator removed (field-set, field-legend, field-content, field-separator, field-separator-content data-slots)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "invalid field text and FieldError use text-destructive-text, FieldDescription link hover uses text-primary-text",
-          "reason": "D-26 customization",
-          "ref": "D-26; CLAUDE.md status text on -text AA companions"
-        },
-        {
-          "what": "FieldError accepts string and null entries, builds its message list without useMemo and keys list items by message",
-          "reason": "D-26 customization",
-          "ref": "D-26 (local behavior kept)"
-        },
-        {
-          "what": "class token order in the horizontal fieldVariants orientation, FieldLabel and FieldDescription",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/input-group.tsx": {
-      "item": "input-group",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "InputGroup h-11 instead of h-9; InputGroupAddon typography-small instead of text-sm font-medium",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "focus and error state selectors has-[>input:focus-visible]:* and has-[input[aria-invalid=true]]:* instead of upstream has-[[data-slot=input-group-control]:focus-visible]:* and has-[[data-slot][aria-invalid=true]]:*",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "InputGroupButton (with inputGroupButtonVariants), InputGroupText and InputGroupTextarea removed",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "class token order in InputGroup and inputGroupAddonVariants kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/input-otp.tsx": {
-      "item": "input-otp",
-      "plan": "66.2-21",
-      "divergences": [
-        {
-          "what": "InputOTPSlot size-11 (44px) instead of upstream h-9 w-9",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC Input OTP (C1, wave 5)"
-        },
-        {
-          "what": "fake-caret wrapper uses flex-center instead of flex items-center justify-center",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "class token order in InputOTPSlot and the caret line",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/input.tsx": {
-      "item": "input",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "inputVariants cva with variant (default, invalid) and inputSize (default h-11, sm, lg, xl) props replaces the upstream h-9 three-string class list",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        }
-      ]
-    },
-    "src/components/ui/item.tsx": {
-      "item": "item",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "ItemHeader and ItemFooter removed (item-header, item-footer data-slots)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "Item asChild renders Slot.Slot where upstream renders Slot.Root",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "ItemDescription link hover uses text-primary-text in place of text-primary",
-          "reason": "D-26 customization",
-          "ref": "D-26; CLAUDE.md status text on -text AA companions"
-        },
-        {
-          "what": "class token order in itemVariants (the default size string keeps a trailing space), itemMediaVariants and ItemDescription",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/popover.tsx": {
-      "item": "popover",
-      "plan": "66.2-21",
-      "divergences": [
-        {
-          "what": "PopoverAnchor and its popover-anchor data-slot removed",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a); D-26"
-        },
-        {
-          "what": "upstream PopoverHeader, PopoverTitle and PopoverDescription (popover-header, popover-title, popover-description data-slots) not adopted: no consumer; manifest-w5 lists 7 upstream popover slots",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; D-26; 66.2-20 slot-count notes"
-        },
-        {
-          "what": "class token order in PopoverContent",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/progress.tsx": {
-      "item": "progress",
-      "plan": "66.2-26",
-      "divergences": [
-        {
-          "what": "progressVariants and progressIndicatorVariants cva maps (variant default, success, warning, destructive; size default, sm, lg, xl) replace upstream's fixed h-2 bg-primary/20 track and bg-primary indicator classes",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC Progress (C5, wave 5)"
-        },
-        {
-          "what": "the success, warning and destructive indicators fill with bg-success-text, bg-warning-text and bg-destructive-text instead of the vivid bg-success, bg-warning and bg-destructive (2.62:1 and 2.18:1 on the light card, 2.97:1 for destructive on its dark track); the unused secondary variant (1.11:1) is removed",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC VD-55 (WCAG 1.4.11 meter fills, 66.2-39 fix round 1)"
-        },
-        {
-          "what": "Progress passes value={value} to the Radix root explicitly, so the bar exposes aria-valuenow, aria-valuetext and data-state; upstream destructures value for the indicator transform and never forwards it",
-          "reason": "D-26 customization",
-          "ref": "D-05; ledger C5"
-        }
-      ]
-    },
-    "src/components/ui/select.tsx": {
-      "item": "select",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "SelectTrigger keeps the select-trigger hook class that button-group's selectors key on",
-          "reason": "D-26 customization",
-          "ref": "D-26; ledger C13"
-        },
-        {
-          "what": "SelectTrigger data-[size=default]:h-11 and data-[size=sm]:h-11 instead of h-9 and h-8",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "SelectContent position defaults to popper instead of item-aligned",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "SelectTrigger children use [&>*]:line-clamp-1 [&>*]:flex [&>*]:items-center [&>*]:gap-2 instead of upstream *:data-[slot=select-value]:*",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "SelectGroup, SelectLabel and SelectSeparator (with their select-group, select-label and select-separator data-slots) removed; SelectScrollUpButton and SelectScrollDownButton stay as internal functions without an export",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "class token order in SelectTrigger, SelectContent and SelectItem kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/separator.tsx": {
-      "item": "separator",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "class token order in Separator",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/sheet.tsx": {
-      "item": "sheet",
-      "plan": "66.2-21",
-      "divergences": [
-        {
-          "what": "SheetContent corner close keeps the always-on 44px target (inline-flex items-center justify-center min-h-11 min-w-11) and aria-label=\"Close\" in place of upstream's sr-only Close text",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-46; research H10"
-        },
-        {
-          "what": "SheetClose and its sheet-close data-slot removed (no consumer; never re-added)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a); D-26"
-        },
-        {
-          "what": "upstream showCloseButton prop not adopted: SheetContent always renders its corner close, which the sidebar sheet hides with the canonical [&>button]:hidden (D-46); no caller passes the prop",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05; D-46"
-        },
-        {
-          "what": "class token order in SheetOverlay, SheetContent (base and all four sides), the corner close, SheetTitle and SheetDescription",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/sidebar.tsx": {
-      "item": "sidebar",
-      "plan": "66.2-32",
-      "divergences": [
-        {
-          "what": "V1: `#` subpath imports (#components/ui/button, separator, sheet, tooltip, #hooks/use-mobile, #lib/sidebar-state, #lib/utils); React hooks and the ComponentProps type imported by name instead of the `React` namespace; Biome formatting",
-          "reason": "D-26 customization",
-          "ref": "D-04; D-32 (V1)"
-        },
-        {
-          "what": "V2: SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE and SIDEBAR_WIDTH_ICON constants and both static style objects removed; widths come from the globals.css :root --sidebar-width / --sidebar-width-mobile / --sidebar-width-icon tokens; the mobile SheetContent uses w-(--sidebar-width-mobile); SidebarProvider no longer destructures `style`",
-          "reason": "D-26 customization",
-          "ref": "CLAUDE.md rule 5; D-32 (V2)"
-        },
-        {
-          "what": "V3: lg:block on the outer desktop div and lg:flex on sidebar-container replace md:block / md:flex; useIsMobile matches (width < 64rem)",
-          "reason": "D-26 customization",
-          "ref": "D-33 (V3)"
-        },
-        {
-          "what": "V4: base-rule neutralizers: SidebarMenu adds mt-0 mb-0 pl-0 [&>li]:mb-0, SidebarMenuSub adds mt-0 mb-0 [&>li]:mb-0, sidebarMenuButtonVariants base and SidebarMenuSubButton add no-underline; SidebarMenuItem and SidebarMenuSubItem stay upstream",
-          "reason": "D-26 customization",
-          "ref": "D-49 (V4); PATTERNS #1; S8"
-        },
-        {
-          "what": "V5: SidebarSeparator passes data-[orientation=horizontal]:w-auto in place of w-auto so tailwind-merge drops the Separator's data-[orientation=horizontal]:w-full",
-          "reason": "D-26 customization",
-          "ref": "S11 (V5)"
-        },
-        {
-          "what": "V6: SheetTitle \"Navigation menu\", SheetDescription \"Main navigation for your TenantFlow account\"; SidebarRail aria-label and title \"Toggle navigation menu\"",
-          "reason": "D-26 customization",
-          "ref": "D-41 (V6); UI-SPEC §Copywriting Contract"
-        },
-        {
-          "what": "V7: SidebarTrigger reads isMobile/open/openMobile, sets aria-label \"Toggle navigation menu\" and aria-expanded={isMobile ? openMobile : open}, renders PanelLeftIcon with size-5 and drops the sr-only \"Toggle Sidebar\" span",
-          "reason": "D-26 customization",
-          "ref": "D-41 (V7)"
-        },
-        {
-          "what": "V8: the keydown handler returns at once when event.key is not a string (Chrome's autofill keydown carries no key), then compares event.key.toLowerCase() to SIDEBAR_KEYBOARD_SHORTCUT",
-          "reason": "D-26 customization",
-          "ref": "D-52 (V8)"
-        },
-        {
-          "what": "V9: setOpen calls persistSidebarOpen(openState) from #lib/sidebar-state in place of the document.cookie assignment; SIDEBAR_COOKIE_NAME and SIDEBAR_COOKIE_MAX_AGE are not redeclared",
-          "reason": "D-26 customization",
-          "ref": "D-36 (V9); CLAUDE.md rule 3"
-        },
-        {
-          "what": "V10: no useCallback / useMemo (React Compiler): setOpen, toggleSidebar and contextValue are plain consts, and the keydown useEffect calls toggleSidebar through useEffectEvent with an empty dependency array (attached once)",
-          "reason": "D-26 customization",
-          "ref": "D-32 (V10)"
-        },
-        {
-          "what": "V11: the mobile SheetContent adds data-[state=closed]:duration-200 data-[state=open]:duration-200 ease-out",
-          "reason": "D-26 customization",
-          "ref": "D-41 (V11); UI-SPEC S-4"
-        },
-        {
-          "what": "V12: the file exports the 16 upstream parts it keeps, plus the D-34 useCollapsedInert hook; the trimmed upstream parts are listed one per entry below, and the Input and Skeleton imports are gone with them",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\", and is exported so the owner shell puts the same inert on its nav; the container stays non-inert so the SidebarRail child keeps re-expanding the rail; before a desktop collapse, setOpen moves focus held in the desktop sidebar to the wrapper's [data-slot=\"sidebar-trigger\"]",
-          "reason": "D-26 customization",
-          "ref": "D-34; S12; UI-SPEC S-5"
-        },
-        {
-          "what": "D-46: the mobile SheetContent keeps the canonical [&>button]:hidden, so the sheet's own corner \"Close\" button never shows; the visible \"Close navigation menu\" button is rendered by the owner shell in SidebarHeader",
-          "reason": "D-26 customization",
-          "ref": "D-46; UI-SPEC S-4"
-        },
-        {
-          "what": "D-52: isEditableTarget() and hasBlockingDialog() guards; the shortcut returns without preventDefault on Shift, Alt, event.repeat, an input/textarea/select/[contenteditable] target (not contenteditable=\"false\"), or an open dialog/alertdialog other than [data-slot=\"sidebar\"]",
-          "reason": "D-26 customization",
-          "ref": "D-52 (V8); D-34"
-        },
-        {
-          "what": "SidebarInset and its data-slot sidebar-inset (it renders a <main>; the shell owns the only main landmark)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-35; D-32 (V12)"
-        },
-        {
-          "what": "SidebarInput and its data-slot sidebar-input",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "SidebarGroupLabel and its data-slot sidebar-group-label",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "SidebarGroupAction and its data-slot sidebar-group-action",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "SidebarGroupContent and its data-slot sidebar-group-content",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "SidebarMenuAction and its data-slot sidebar-menu-action",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "SidebarMenuBadge and its data-slot sidebar-menu-badge",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        },
-        {
-          "what": "SidebarMenuSkeleton and its data-slot sidebar-menu-skeleton",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-32 (V12)"
-        }
-      ]
-    },
-    "src/components/ui/skeleton.tsx": {
-      "item": "skeleton",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "skeletonVariants cva (variant default, circle, text, card; size default, sm, md, lg, xl, avatar, avatar-sm, avatar-lg, icon, button, input) on bg-muted, in place of the upstream single class list on bg-accent",
-          "reason": "D-26 customization",
-          "ref": "D-26 (local variants kept)"
-        }
-      ]
-    },
-    "src/components/ui/slider.tsx": {
-      "item": "slider",
-      "plan": "66.2-26",
-      "divergences": [
-        {
-          "what": "Slider thumb uses bg-background instead of upstream's literal white fill utility, which the design-token drift test bans",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC Preserved Customizations"
-        }
-      ]
-    },
-    "src/components/ui/sonner.tsx": {
-      "item": "sonner",
-      "plan": "66.2-26",
-      "divergences": [
-        {
-          "what": "theme guard useTheme().theme ?? \"system\" with one NonNullable<ToasterProps[\"theme\"]> cast instead of the destructured default and the ToasterProps[\"theme\"] cast, which fails TS2375 under exactOptionalPropertyTypes",
-          "reason": "D-26 customization",
-          "ref": "D-26; ledger C10"
-        },
-        {
-          "what": "token map as important arbitrary properties on the toaster className ([--normal-bg:var(--color-popover)]!, [--normal-text:var(--color-popover-foreground)]!, [--normal-border:var(--color-border)]!, [--border-radius:var(--radius)]!) instead of upstream's static style object and its toaster group classes",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-31; RESEARCH N20 and A2; zero-tolerance rule 5"
-        },
-        {
-          "what": "toastOptions gets a 4000 ms default duration; a caller duration still wins",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "className and toastOptions are destructured and the caller className is merged with cn; the lucide icon map is a module constant (TOAST_ICONS, typed with satisfies) instead of an inline object",
-          "reason": "D-26 customization",
-          "ref": "D-26; D-04"
-        }
-      ]
-    },
-    "src/components/ui/switch.tsx": {
-      "item": "switch",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "Switch has no size prop or data-size attribute (upstream default and sm sizes, group/switch size selectors); the track is fixed h-[1.15rem] w-8 and the thumb size-4",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in the Switch root and thumb",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/table.tsx": {
-      "item": "table",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "TableCell without whitespace-nowrap",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC §Preserved Customizations (table cells without nowrap)"
-        },
-        {
-          "what": "TableRow has no has-aria-expanded:bg-muted/50",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "TableHead and TableCell checkbox selectors written has-[[role=checkbox]]:pr-0 and *:[[role=checkbox]]:translate-y-[2px], where upstream writes the arbitrary-variant forms of the same selectors",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        },
-        {
-          "what": "class token order in TableFooter, TableRow, TableHead and TableCaption",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/tabs.tsx": {
-      "item": "tabs",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "TabsTrigger brand active state data-[state=active]:bg-primary text-primary-foreground shadow-md font-semibold, inactive text-muted-foreground hover:bg-muted/50, typography-small and duration-200; TabsList h-11",
-          "reason": "D-26 customization",
-          "ref": "D-26"
-        },
-        {
-          "what": "upstream orientation handling (orientation default, data-orientation, group/tabs and the vertical classes), the line variant with tabsListVariants and data-variant, the after: underline indicator, relative, text-foreground/60 and the dark active border-input/bg-input/30 are not adopted",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/textarea.tsx": {
-      "item": "textarea",
-      "plan": "66.2-20",
-      "divergences": [
-        {
-          "what": "class token order in the Textarea class string kept as written locally (upstream re-sorted the same tokens)",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/toggle-group.tsx": {
-      "item": "toggle-group",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "ToggleGroup has no spacing prop (no data-spacing attribute, --gap custom property, context spacing or spacing-0 item selectors): items always join (rounded-none, shadow-none, first/last rounded, outline border-l-0 with first:border-l) and grow with flex-1 in place of w-auto px-3",
-          "reason": "upstream drift not adopted (D-05)",
-          "ref": "D-05"
-        }
-      ]
-    },
-    "src/components/ui/toggle.tsx": {
-      "item": "toggle",
-      "plan": "66.2-29",
-      "divergences": [
-        {
-          "what": "Toggle component removed; only toggleVariants is exported (no toggle data-slot)",
-          "reason": "Phase 19 trim",
-          "ref": "Phase 19 (d825f7b6a)"
-        },
-        {
-          "what": "toggleVariants base uses inline-flex-center and typography-small, transition-all duration-200, and a primary on-state (bg-primary, text-primary-foreground, shadow-md, font-semibold, hover:bg-primary/90) in place of the upstream accent on-state; the outline variant hovers bg-muted and adds data-[state=on]:border-primary",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small, flex-center)"
-        },
-        {
-          "what": "44px targets: sizes default h-11 min-w-11, sm h-11 min-w-11, lg h-12 min-w-12",
-          "reason": "D-26 customization",
-          "ref": "D-26; UI-SPEC §Preserved Customizations (44px targets)"
-        }
-      ]
+    {
+     "what": "class token order in AccordionTrigger, its ChevronDownIcon and AccordionContent",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
     }
+   ]
+  },
+  "src/components/ui/alert-dialog.tsx": {
+   "item": "alert-dialog",
+   "plan": "66.2-23",
+   "divergences": [
+    {
+     "what": "local AlertDialogContent, AlertDialogHeader (flex flex-col gap-2 text-center sm:text-left), AlertDialogFooter (flex flex-col-reverse gap-2 sm:flex-row sm:justify-end) and AlertDialogTitle (text-lg font-semibold) layout kept byte-identical; only AlertDialogAction and AlertDialogCancel follow upstream (Button asChild, variant/size, alert-dialog-action and alert-dialog-cancel data-slots)",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C14, C16"
+    },
+    {
+     "what": "AlertDialogContent size prop (default | sm), its data-size attribute, the group/alert-dialog-content group and the data-[size=sm]:max-w-xs / data-[size=default]:sm:max-w-lg widths",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "grid AlertDialogHeader (grid-rows-[auto_1fr], place-items-center, gap-1.5 and its size-group and media-row variants)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "size-group AlertDialogFooter classes (group-data-[size=sm]/alert-dialog-content grid two-column footer) and the AlertDialogTitle media col-start-2 class",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "AlertDialogMedia export and its alert-dialog-media data-slot (upstream exports 12 data-slots, manifest-w5.json; this repo vendors and exports 11, no consumer uses a media part)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "AlertDialogOverlay and AlertDialogPortal exports (both stay internal to AlertDialogContent; the export list is unchanged)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "class token order in AlertDialogOverlay and AlertDialogDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/alert.tsx": {
+   "item": "alert",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "destructive variant text uses text-destructive-text and [&_.text-muted-foreground]:text-destructive-text/90 instead of upstream text-destructive and *:data-[slot=alert-description]:text-destructive/90",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md AA -text companions"
+    },
+    {
+     "what": "class token order in alertVariants base and AlertDescription kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/avatar.tsx": {
+   "item": "avatar",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "Avatar has no size prop, data-size attribute, group/avatar or select-none, and AvatarFallback keeps its shorter class list (no text-sm, text-muted-foreground or sm text size)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "upstream AvatarBadge, AvatarGroup and AvatarGroupCount (avatar-badge, avatar-group, avatar-group-count data-slots) not adopted: never vendored, no consumer",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in AvatarFallback",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/badge.tsx": {
+   "item": "badge",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "size axis (default, sm, lg, trust) carries rounded-md/rounded-full, px, py, text size, gap and [&>svg]:size-*; the base string has no rounded-full, px-2, py-0.5, text-xs, gap-1 or [&>svg]:size-3, and each filled variant adds border-transparent",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "local variants success, warning, info and trustIndicator",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29 (the Button destructive pairing)"
+    },
+    {
+     "what": "upstream ghost and link variants, outline border-border, the data-variant attribute and the variant = \"default\" parameter default are not adopted",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; 66.2-20 Task 1 not-adopted list"
+    },
+    {
+     "what": "asChild uses Slot.Slot, not upstream Slot.Root",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
+    },
+    {
+     "what": "badgeVariants export removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in badgeVariants base and the destructive variant kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button); the success anchor hover is bg-success/12, not /15 (success-text 4.57:1 against 4.44:1)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/breadcrumb.tsx": {
+   "item": "breadcrumb",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "BreadcrumbList uses text-foreground text-base font-medium gap-2 sm:gap-3 (no text-muted-foreground, text-sm, gap-1.5, sm:gap-2.5 or break-words); BreadcrumbLink uses hover:text-primary-text font-medium instead of hover:text-foreground",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "local export type BreadcrumbItem ({ href, label })",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "BreadcrumbPage role=\"link\" and BreadcrumbSeparator role=\"presentation\" are not adopted",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; 66.2-20 Task 1 not-adopted list"
+    },
+    {
+     "what": "asChild uses Slot.Slot, not upstream Slot.Root",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
+    },
+    {
+     "what": "BreadcrumbEllipsis and its breadcrumb-ellipsis data-slot removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in BreadcrumbPage kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/button-group.tsx": {
+   "item": "button-group",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "[&>.select-trigger:not([class*='w-'])]:w-fit and has-[select[aria-hidden=true]:last-child]:[&>.select-trigger:last-of-type]:rounded-r-md key on the select-trigger class instead of upstream [data-slot=select-trigger]",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "ledger C13; D-05"
+    },
+    {
+     "what": "ButtonGroupText, ButtonGroupSeparator (with its button-group-separator data-slot) and the buttonGroupVariants export removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in buttonGroupVariants base kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/button.tsx": {
+   "item": "button",
+   "plan": "66.2-22",
+   "divergences": [
+    {
+     "what": "base string uses typography-small instead of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29"
+    },
+    {
+     "what": "the 44px touch floor: min-h-11 on every size and min-w-11 on icon, with heights default h-10 px-4 py-2, sm h-9 px-3, lg h-11 px-8 and icon size-10 instead of upstream h-9, h-8 gap-1.5, h-10 px-6 and size-9",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29; UI-SPEC §Button"
+    },
+    {
+     "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29"
+    },
+    {
+     "what": "link variant uses text-primary-text (the AA text companion) instead of text-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29; CLAUDE.md AA -text companions"
+    },
+    {
+     "what": "no has-[>svg] padding reductions on the default, sm and lg sizes, and no xs, icon-xs, icon-sm or icon-lg sizes",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; UI-SPEC §Button"
+    },
+    {
+     "what": "the default and destructive hovers fill with bg-primary-text and bg-destructive-text in light (primary-foreground 6.84:1, destructive-foreground 6.38:1) instead of upstream's /90 tints (4.16:1 and 4.39:1, under AA); dark keeps the /90 hovers through dark:hover:bg-primary/90 and dark:hover:bg-destructive/90",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "the outline and ghost variants add dark:hover:text-foreground: upstream's dark accent-foreground is near-white, this theme's is near-black (the dark accent is a bright emerald), so the dark hover label read 1.17:1 on input/50 (outline) and 2.63:1 on accent/50 (ghost); the CP-2 fills dark:hover:bg-input/50 and dark:hover:bg-accent/50 are kept",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/calendar.tsx": {
+   "item": "calendar",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "CalendarDayButton export removed (the function stays internal to Calendar)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "local nav and caption classNames: month_caption flex-center, dropdowns typography-small, caption_label h-11 dropdown target",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "day cell uses first:[&[data-selected=true]_button]:rounded-l-md and last:[&[data-selected=true]_button]:rounded-r-md instead of the upstream showWeekNumber-dependent nth-child form; month_grid drops defaultClassNames.month_grid",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in the root, months, month, nav, button_previous, button_next, dropdown_root, dropdown, caption_label, weekday, week, week_number_header, week_number, today and CalendarDayButton class strings",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the day button's dark hover label is text-foreground, not upstream's dark:hover:text-accent-foreground, which is near-black on this theme's emerald accent/50 hover (2.63:1)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/card.tsx": {
+   "item": "card",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "Card uses cardVariants (default, elevated, interactive, pricing, pricingPopular, stat) with rounded-md instead of the upstream rounded-xl gap-6 py-6 shadow-sm string, and the file also exports cardVariants",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "CardHeader gap-1.5 instead of upstream gap-2",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "class token order in CardDescription kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/chart.tsx": {
+   "item": "chart",
+   "plan": "66.2-25",
+   "divergences": [
+    {
+     "what": "ChartContainer keeps the requestAnimationFrame mount gate and ResponsiveContainer minWidth={1} minHeight={1} instead of upstream's initialDimension prop and INITIAL_DIMENSION constant (battle-test Session 8 width(-1) warnings)",
+     "reason": "D-26 customization",
+     "ref": "D-26; 66.2-25"
+    },
+    {
+     "what": "ChartTooltip, ChartTooltipContent, ChartLegend and ChartLegendContent (with the local TooltipNameType) live in the split chart-tooltip.tsx, so chart.tsx exports useChart and getPayloadConfigFromPayload for it",
+     "reason": "D-26 customization",
+     "ref": "D-26 (split chart-tooltip.tsx); ledger C15"
+    },
+    {
+     "what": "ChartStyle stays module-private (not exported) and keeps the SSR guard that returns null for an undefined or non-object config, with || fallbacks for the theme color and the chart id where upstream uses ??",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "the cartesian-grid, polar-grid, reference-line, dot and sector recolour selectors match the stroke attribute's presence ([stroke]) instead of upstream's hex attribute values",
+     "reason": "D-26 customization",
+     "ref": "D-28; ledger C2; VD-16; VD-17"
+    },
+    {
+     "what": "ChartContainer adds [&_.recharts-surface:focus-visible]:outline-2, :-outline-offset-2, :outline-ring and :outline-solid after upstream's [&_.recharts-surface]:outline-hidden, so the tab-focusable recharts surface shows an inset 2px ring-colored focus outline (outline-solid because outline-hidden sets --tw-outline-style: none)",
+     "reason": "D-26 customization",
+     "ref": "D-26; WCAG 2.4.7; cycle-1 c1 A11Y (chart.tsx:75)"
+    },
+    {
+     "what": "class token order in ChartContainer",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "ChartConfig as a mapped type instead of Record, and getPayloadConfigFromPayload's payload typed Record<string, unknown> | undefined instead of unknown",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/checkbox.tsx": {
+   "item": "checkbox",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "indicator uses flex-center instead of grid place-content-center",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "root uses rounded-sm instead of upstream rounded-[4px]",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in the Checkbox root kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/combobox.tsx": {
+   "item": "combobox",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "the local file is the Dice UI combobox on @diceui/combobox (Combobox, ComboboxAnchor, ComboboxInput, ComboboxTrigger, ComboboxContent, ComboboxEmpty, ComboboxItem); upstream new-york-v4 combobox is a different component on @base-ui/react and is not adopted, so its ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxCollection, ComboboxGroup, ComboboxLabel, ComboboxList, ComboboxSeparator, ComboboxValue and useComboboxAnchor exports and its combobox-value, combobox-trigger-icon, combobox-clear, input-group-button, combobox-list, combobox-item-indicator, combobox-group, combobox-label, combobox-collection, combobox-separator, combobox-chips, combobox-chip, combobox-chip-remove and combobox-chip-input data-slots are absent",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-04 (no new dependency); D-05; CLAUDE.md Primitives (no Base UI)"
+    },
+    {
+     "what": "the local Dice UI ComboboxLabel, ComboboxCancel, ComboboxBadgeList, ComboboxBadgeItem, ComboboxLoading, ComboboxGroup, ComboboxGroupLabel and ComboboxSeparator parts removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    }
+   ]
+  },
+  "src/components/ui/command.tsx": {
+   "item": "command",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "CommandInput wrapper h-11 (44px row outside CommandDialog) instead of h-9; inside the dialog the upstream **:data-[slot=command-input-wrapper]:h-12 raises it to 48px",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C3; VD-18"
+    },
+    {
+     "what": "CommandList max-h-75 instead of the equal max-h-[300px]",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in Command, CommandInput, CommandGroup, CommandSeparator, CommandItem and CommandShortcut",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "a selected item's icons take text-accent-foreground through data-[selected=true]:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald fill (1.86:1 light, 1.06:1 dark)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/dialog.tsx": {
+   "item": "dialog",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "DialogContent intent variants (default, create, read, edit, delete) through dialogContentVariants and the exported DialogIntent type",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (Dialog intent + DialogBody)"
+    },
+    {
+     "what": "DialogBody export (space-y-4 wrapper)",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (Dialog intent + DialogBody)"
+    },
+    {
+     "what": "DialogOverlay and DialogPortal are module-private (not exported)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "DialogFooter has no showCloseButton prop and renders no footer Close button",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "DialogContent base string has no outline-none",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in DialogOverlay, the DialogContent close button and DialogDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/dropdown-menu.tsx": {
+   "item": "dropdown-menu",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "DropdownMenuItem destructive text uses data-[variant=destructive]:text-destructive-text and data-[variant=destructive]:focus:text-destructive-text instead of text-destructive (AA text companion); the destructive icon keeps the vivid data-[variant=destructive]:*:[svg]:text-destructive! class",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Preserved Customizations"
+    },
+    {
+     "what": "DropdownMenuLabel uses typography-small instead of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Preserved Customizations"
+    },
+    {
+     "what": "DropdownMenuPortal, DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubTrigger and DropdownMenuSubContent are not exported, so their dropdown-menu-portal, dropdown-menu-group, dropdown-menu-radio-group, dropdown-menu-radio-item, dropdown-menu-shortcut, dropdown-menu-sub, dropdown-menu-sub-trigger and dropdown-menu-sub-content data-slots are absent (the manifest lists 15 upstream data-slots; the local file carries the 7 of its exported parts)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "a focused item's icons take text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1 dark)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/empty.tsx": {
+   "item": "empty",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "EmptyMedia carries data-slot empty-media where upstream writes empty-icon",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "EmptyDescription renders a p element where upstream renders a div",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "EmptyDescription link hover uses text-primary-text in place of text-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md status text on -text AA companions"
+    },
+    {
+     "what": "class token order in emptyMediaVariants and its icon variant",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/field.tsx": {
+   "item": "field",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "FieldSet, FieldLegend, FieldContent, FieldTitle and FieldSeparator removed (field-set, field-legend, field-content, field-separator, field-separator-content data-slots)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "invalid field text and FieldError use text-destructive-text, FieldDescription link hover uses text-primary-text",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md status text on -text AA companions"
+    },
+    {
+     "what": "FieldError accepts string and null entries, builds its message list without useMemo and keys list items by message",
+     "reason": "D-26 customization",
+     "ref": "D-26 (local behavior kept)"
+    },
+    {
+     "what": "class token order in the horizontal fieldVariants orientation, FieldLabel and FieldDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/input-group.tsx": {
+   "item": "input-group",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "InputGroup h-11 instead of h-9; InputGroupAddon typography-small instead of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "focus and error state selectors has-[>input:focus-visible]:* and has-[input[aria-invalid=true]]:* instead of upstream has-[[data-slot=input-group-control]:focus-visible]:* and has-[[data-slot][aria-invalid=true]]:*",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "InputGroupButton (with inputGroupButtonVariants), InputGroupText and InputGroupTextarea removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in InputGroup and inputGroupAddonVariants kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/input-otp.tsx": {
+   "item": "input-otp",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "InputOTPSlot size-11 (44px) instead of upstream h-9 w-9",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Input OTP (C1, wave 5)"
+    },
+    {
+     "what": "fake-caret wrapper uses flex-center instead of flex items-center justify-center",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "class token order in InputOTPSlot and the caret line",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/input.tsx": {
+   "item": "input",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "inputVariants cva with variant (default, invalid) and inputSize (default h-11, sm, lg, xl) props replaces the upstream h-9 three-string class list",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    }
+   ]
+  },
+  "src/components/ui/item.tsx": {
+   "item": "item",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "ItemHeader and ItemFooter removed (item-header, item-footer data-slots)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "Item asChild renders Slot.Slot where upstream renders Slot.Root",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "ItemDescription link hover uses text-primary-text in place of text-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md status text on -text AA companions"
+    },
+    {
+     "what": "class token order in itemVariants (the default size string keeps a trailing space), itemMediaVariants and ItemDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the anchor hover fill is accent/25, not upstream's accent/50: muted-foreground descriptions read 3.43:1 (light) and 3.07:1 (dark) on the emerald accent/50",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/popover.tsx": {
+   "item": "popover",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "PopoverAnchor and its popover-anchor data-slot removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a); D-26"
+    },
+    {
+     "what": "upstream PopoverHeader, PopoverTitle and PopoverDescription (popover-header, popover-title, popover-description data-slots) not adopted: no consumer; manifest-w5 lists 7 upstream popover slots",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; D-26; 66.2-20 slot-count notes"
+    },
+    {
+     "what": "class token order in PopoverContent",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/progress.tsx": {
+   "item": "progress",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "progressVariants and progressIndicatorVariants cva maps (variant default, success, warning, destructive; size default, sm, lg, xl) replace upstream's fixed h-2 bg-primary/20 track and bg-primary indicator classes",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Progress (C5, wave 5)"
+    },
+    {
+     "what": "the success, warning and destructive indicators fill with bg-success-text, bg-warning-text and bg-destructive-text instead of the vivid bg-success, bg-warning and bg-destructive (2.62:1 and 2.18:1 on the light card, 2.97:1 for destructive on its dark track); the unused secondary variant (1.11:1) is removed",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC VD-55 (WCAG 1.4.11 meter fills, 66.2-39 fix round 1)"
+    },
+    {
+     "what": "Progress passes value={value} to the Radix root explicitly, so the bar exposes aria-valuenow, aria-valuetext and data-state; upstream destructures value for the indicator transform and never forwards it",
+     "reason": "D-26 customization",
+     "ref": "D-05; ledger C5"
+    }
+   ]
+  },
+  "src/components/ui/select.tsx": {
+   "item": "select",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "SelectTrigger keeps the select-trigger hook class that button-group's selectors key on",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C13"
+    },
+    {
+     "what": "SelectTrigger data-[size=default]:h-11 and data-[size=sm]:h-11 instead of h-9 and h-8",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "SelectContent position defaults to popper instead of item-aligned",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "SelectTrigger children use [&>*]:line-clamp-1 [&>*]:flex [&>*]:items-center [&>*]:gap-2 instead of upstream *:data-[slot=select-value]:*",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "SelectGroup, SelectLabel and SelectSeparator (with their select-group, select-label and select-separator data-slots) removed; SelectScrollUpButton and SelectScrollDownButton stay as internal functions without an export",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in SelectTrigger, SelectContent and SelectItem kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "a focused item's icons (the selected check included) take text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1 dark)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
+  },
+  "src/components/ui/separator.tsx": {
+   "item": "separator",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "class token order in Separator",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/sheet.tsx": {
+   "item": "sheet",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "SheetContent corner close keeps the always-on 44px target (inline-flex items-center justify-center min-h-11 min-w-11) and aria-label=\"Close\" in place of upstream's sr-only Close text",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-46; research H10"
+    },
+    {
+     "what": "SheetClose and its sheet-close data-slot removed (no consumer; never re-added)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a); D-26"
+    },
+    {
+     "what": "upstream showCloseButton prop not adopted: SheetContent always renders its corner close, which the sidebar sheet hides with the canonical [&>button]:hidden (D-46); no caller passes the prop",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; D-46"
+    },
+    {
+     "what": "class token order in SheetOverlay, SheetContent (base and all four sides), the corner close, SheetTitle and SheetDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/sidebar.tsx": {
+   "item": "sidebar",
+   "plan": "66.2-32",
+   "divergences": [
+    {
+     "what": "V1: `#` subpath imports (#components/ui/button, separator, sheet, tooltip, #hooks/use-mobile, #lib/sidebar-state, #lib/utils); React hooks and the ComponentProps type imported by name instead of the `React` namespace; Biome formatting",
+     "reason": "D-26 customization",
+     "ref": "D-04; D-32 (V1)"
+    },
+    {
+     "what": "V2: SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE and SIDEBAR_WIDTH_ICON constants and both static style objects removed; widths come from the globals.css :root --sidebar-width / --sidebar-width-mobile / --sidebar-width-icon tokens; the mobile SheetContent uses w-(--sidebar-width-mobile); SidebarProvider no longer destructures `style`",
+     "reason": "D-26 customization",
+     "ref": "CLAUDE.md rule 5; D-32 (V2)"
+    },
+    {
+     "what": "V3: lg:block on the outer desktop div and lg:flex on sidebar-container replace md:block / md:flex; useIsMobile matches (width < 64rem)",
+     "reason": "D-26 customization",
+     "ref": "D-33 (V3)"
+    },
+    {
+     "what": "V4: base-rule neutralizers: SidebarMenu adds mt-0 mb-0 pl-0 [&>li]:mb-0, SidebarMenuSub adds mt-0 mb-0 [&>li]:mb-0, sidebarMenuButtonVariants base and SidebarMenuSubButton add no-underline; SidebarMenuItem and SidebarMenuSubItem stay upstream",
+     "reason": "D-26 customization",
+     "ref": "D-49 (V4); PATTERNS #1; S8"
+    },
+    {
+     "what": "V5: SidebarSeparator passes data-[orientation=horizontal]:w-auto in place of w-auto so tailwind-merge drops the Separator's data-[orientation=horizontal]:w-full",
+     "reason": "D-26 customization",
+     "ref": "S11 (V5)"
+    },
+    {
+     "what": "V6: SheetTitle \"Navigation menu\", SheetDescription \"Main navigation for your TenantFlow account\"; SidebarRail aria-label and title \"Toggle navigation menu\"",
+     "reason": "D-26 customization",
+     "ref": "D-41 (V6); UI-SPEC §Copywriting Contract"
+    },
+    {
+     "what": "V7: SidebarTrigger reads isMobile/open/openMobile, sets aria-label \"Toggle navigation menu\" and aria-expanded={isMobile ? openMobile : open}, renders PanelLeftIcon with size-5 and drops the sr-only \"Toggle Sidebar\" span",
+     "reason": "D-26 customization",
+     "ref": "D-41 (V7)"
+    },
+    {
+     "what": "V8: the keydown handler returns at once when event.key is not a string (Chrome's autofill keydown carries no key), then compares event.key.toLowerCase() to SIDEBAR_KEYBOARD_SHORTCUT",
+     "reason": "D-26 customization",
+     "ref": "D-52 (V8)"
+    },
+    {
+     "what": "V9: setOpen calls persistSidebarOpen(openState) from #lib/sidebar-state in place of the document.cookie assignment; SIDEBAR_COOKIE_NAME and SIDEBAR_COOKIE_MAX_AGE are not redeclared",
+     "reason": "D-26 customization",
+     "ref": "D-36 (V9); CLAUDE.md rule 3"
+    },
+    {
+     "what": "V10: no useCallback / useMemo (React Compiler): setOpen, toggleSidebar and contextValue are plain consts, and the keydown useEffect calls toggleSidebar through useEffectEvent with an empty dependency array (attached once)",
+     "reason": "D-26 customization",
+     "ref": "D-32 (V10)"
+    },
+    {
+     "what": "V11: the mobile SheetContent adds data-[state=closed]:duration-200 data-[state=open]:duration-200 ease-out",
+     "reason": "D-26 customization",
+     "ref": "D-41 (V11); UI-SPEC S-4"
+    },
+    {
+     "what": "V12: the file exports the 16 upstream parts it keeps, plus the D-34 useCollapsedInert hook; the trimmed upstream parts are listed one per entry below, and the Input and Skeleton imports are gone with them",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\", and is exported so the owner shell puts the same inert on its nav; the container stays non-inert so the SidebarRail child keeps re-expanding the rail; before a desktop collapse, setOpen moves focus held in the desktop sidebar to the wrapper's [data-slot=\"sidebar-trigger\"]",
+     "reason": "D-26 customization",
+     "ref": "D-34; S12; UI-SPEC S-5"
+    },
+    {
+     "what": "D-46: the mobile SheetContent keeps the canonical [&>button]:hidden, so the sheet's own corner \"Close\" button never shows; the visible \"Close navigation menu\" button is rendered by the owner shell in SidebarHeader",
+     "reason": "D-26 customization",
+     "ref": "D-46; UI-SPEC S-4"
+    },
+    {
+     "what": "D-52: isEditableTarget() and hasBlockingDialog() guards; the shortcut returns without preventDefault on Shift, Alt, event.repeat, an input/textarea/select/[contenteditable] target (not contenteditable=\"false\"), or an open dialog/alertdialog other than [data-slot=\"sidebar\"]",
+     "reason": "D-26 customization",
+     "ref": "D-52 (V8); D-34"
+    },
+    {
+     "what": "SidebarInset and its data-slot sidebar-inset (it renders a <main>; the shell owns the only main landmark)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-35; D-32 (V12)"
+    },
+    {
+     "what": "SidebarInput and its data-slot sidebar-input",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarGroupLabel and its data-slot sidebar-group-label",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarGroupAction and its data-slot sidebar-group-action",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarGroupContent and its data-slot sidebar-group-content",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarMenuAction and its data-slot sidebar-menu-action",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarMenuBadge and its data-slot sidebar-menu-badge",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarMenuSkeleton and its data-slot sidebar-menu-skeleton",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    }
+   ]
+  },
+  "src/components/ui/skeleton.tsx": {
+   "item": "skeleton",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "skeletonVariants cva (variant default, circle, text, card; size default, sm, md, lg, xl, avatar, avatar-sm, avatar-lg, icon, button, input) on bg-muted, in place of the upstream single class list on bg-accent",
+     "reason": "D-26 customization",
+     "ref": "D-26 (local variants kept)"
+    }
+   ]
+  },
+  "src/components/ui/slider.tsx": {
+   "item": "slider",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "Slider thumb uses bg-background instead of upstream's literal white fill utility, which the design-token drift test bans",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Preserved Customizations"
+    }
+   ]
+  },
+  "src/components/ui/sonner.tsx": {
+   "item": "sonner",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "theme guard useTheme().theme ?? \"system\" with one NonNullable<ToasterProps[\"theme\"]> cast instead of the destructured default and the ToasterProps[\"theme\"] cast, which fails TS2375 under exactOptionalPropertyTypes",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C10"
+    },
+    {
+     "what": "token map as important arbitrary properties on the toaster className ([--normal-bg:var(--color-popover)]!, [--normal-text:var(--color-popover-foreground)]!, [--normal-border:var(--color-border)]!, [--border-radius:var(--radius)]!) instead of upstream's static style object and its toaster group classes",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-31; RESEARCH N20 and A2; zero-tolerance rule 5"
+    },
+    {
+     "what": "toastOptions gets a 4000 ms default duration; a caller duration still wins",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "className and toastOptions are destructured and the caller className is merged with cn; the lucide icon map is a module constant (TOAST_ICONS, typed with satisfies) instead of an inline object",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-04"
+    }
+   ]
+  },
+  "src/components/ui/switch.tsx": {
+   "item": "switch",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "Switch has no size prop or data-size attribute (upstream default and sm sizes, group/switch size selectors); the track is fixed h-[1.15rem] w-8 and the thumb size-4",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in the Switch root and thumb",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/table.tsx": {
+   "item": "table",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "TableCell without whitespace-nowrap",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (table cells without nowrap)"
+    },
+    {
+     "what": "TableRow has no has-aria-expanded:bg-muted/50",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "TableHead and TableCell checkbox selectors written has-[[role=checkbox]]:pr-0 and *:[[role=checkbox]]:translate-y-[2px], where upstream writes the arbitrary-variant forms of the same selectors",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in TableFooter, TableRow, TableHead and TableCaption",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/tabs.tsx": {
+   "item": "tabs",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "TabsTrigger brand active state data-[state=active]:bg-primary text-primary-foreground shadow-md font-semibold, inactive text-muted-foreground hover:bg-muted/50, typography-small and duration-200; TabsList h-11",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "upstream orientation handling (orientation default, data-orientation, group/tabs and the vertical classes), the line variant with tabsListVariants and data-variant, the after: underline indicator, relative, text-foreground/60 and the dark active border-input/bg-input/30 are not adopted",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/textarea.tsx": {
+   "item": "textarea",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "class token order in the Textarea class string kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/toggle-group.tsx": {
+   "item": "toggle-group",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "ToggleGroup has no spacing prop (no data-spacing attribute, --gap custom property, context spacing or spacing-0 item selectors): items always join (rounded-none, shadow-none, first/last rounded, outline border-l-0 with first:border-l) and grow with flex-1 in place of w-auto px-3",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/toggle.tsx": {
+   "item": "toggle",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "Toggle component removed; only toggleVariants is exported (no toggle data-slot)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "toggleVariants base uses inline-flex-center and typography-small, transition-all duration-200, and a primary on-state (bg-primary, text-primary-foreground, shadow-md, font-semibold, hover:bg-primary/90) in place of the upstream accent on-state; the outline variant hovers bg-muted and adds data-[state=on]:border-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small, flex-center)"
+    },
+    {
+     "what": "44px targets: sizes default h-11 min-w-11, sm h-11 min-w-11, lg h-12 min-w-12",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (44px targets)"
+    },
+    {
+     "what": "the on-state hover fills with bg-primary-text in light (primary-foreground 6.84:1), keeping primary/90 in dark, instead of primary/90 in both (4.16:1 light)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    }
+   ]
   }
+ }
 }

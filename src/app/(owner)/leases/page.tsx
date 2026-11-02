@@ -236,7 +236,7 @@ export default function LeasesPage() {
 					<div className="flex items-center gap-3 mt-2">
 						<Link
 							href="/leases/new"
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<Plus className="size-5" />
 							Create First Lease
@@ -263,7 +263,7 @@ export default function LeasesPage() {
 						/>
 						<Link
 							href="/leases/new"
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<Plus className="w-4 h-4" />
 							New Lease

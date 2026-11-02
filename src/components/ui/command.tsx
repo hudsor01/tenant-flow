@@ -1,5 +1,19 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `command`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - CommandInput wrapper h-11 (44px row outside CommandDialog) instead of h-9;
+ *   inside the dialog the upstream **:data-[slot=command-input-wrapper]:h-12
+ *   raises it to 48px;
+ * - CommandList max-h-75 instead of the equal max-h-[300px];
+ * - class token order in Command, CommandInput, CommandGroup,
+ *   CommandSeparator, CommandItem and CommandShortcut;
+ * - a selected item's icons take text-accent-foreground through
+ *   data-[selected=true]:[&_svg:not([class*='text-'])]:, so they do not stay
+ *   muted-foreground on the emerald fill (1.86:1 light, 1.06:1 dark).
+ */
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -147,7 +161,7 @@ function CommandItem({
 		<CommandPrimitive.Item
 			data-slot="command-item"
 			className={cn(
-				"data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+				"data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground data-[selected=true]:[&_svg:not([class*='text-'])]:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				className,
 			)}
 			{...props}

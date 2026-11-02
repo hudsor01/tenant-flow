@@ -120,7 +120,7 @@ export function NavbarMobileMenu({
 							<Link
 								href="/dashboard"
 								onClick={() => onClose()}
-								className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
+								className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
 							>
 								Dashboard
 								<ArrowRight className="ml-2 size-4" />
@@ -137,7 +137,7 @@ export function NavbarMobileMenu({
 								<Link
 									href={ctaHref}
 									onClick={() => onClose()}
-									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
+									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
 								>
 									{ctaText}
 									<ArrowRight className="ml-2 size-4" />

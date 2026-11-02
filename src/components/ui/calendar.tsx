@@ -1,5 +1,25 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `calendar`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - CalendarDayButton export removed (the function stays internal to
+ *   Calendar);
+ * - local nav and caption classNames: month_caption flex-center, dropdowns
+ *   typography-small, caption_label h-11 dropdown target;
+ * - day cell uses first:[&[data-selected=true]_button]:rounded-l-md and
+ *   last:[&[data-selected=true]_button]:rounded-r-md instead of the upstream
+ *   showWeekNumber-dependent nth-child form; month_grid drops
+ *   defaultClassNames.month_grid;
+ * - class token order in the root, months, month, nav, button_previous,
+ *   button_next, dropdown_root, dropdown, caption_label, weekday, week,
+ *   week_number_header, week_number, today and CalendarDayButton class
+ *   strings;
+ * - the day button's dark hover label is text-foreground, not upstream's
+ *   dark:hover:text-accent-foreground, which is near-black on this theme's
+ *   emerald accent/50 hover (2.63:1).
+ */
 import {
 	ChevronDownIcon,
 	ChevronLeftIcon,
@@ -206,7 +226,7 @@ function CalendarDayButton({
 			data-range-end={modifiers.range_end}
 			data-range-middle={modifiers.range_middle}
 			className={cn(
-				"data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+				"data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
 				defaultClassNames.day,
 				className,
 			)}

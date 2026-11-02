@@ -1,5 +1,28 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `select`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - SelectTrigger keeps the select-trigger hook class that button-group's
+ *   selectors key on;
+ * - SelectTrigger data-[size=default]:h-11 and data-[size=sm]:h-11 instead of
+ *   h-9 and h-8;
+ * - SelectContent position defaults to popper instead of item-aligned;
+ * - SelectTrigger children use [&>*]:line-clamp-1 [&>*]:flex
+ *   [&>*]:items-center [&>*]:gap-2 instead of upstream
+ *   *:data-[slot=select-value]:*;
+ * - SelectGroup, SelectLabel and SelectSeparator (with their select-group,
+ *   select-label and select-separator data-slots) removed;
+ *   SelectScrollUpButton and SelectScrollDownButton stay as internal functions
+ *   without an export;
+ * - class token order in SelectTrigger, SelectContent and SelectItem kept as
+ *   written locally (upstream re-sorted the same tokens);
+ * - a focused item's icons (the selected check included) take
+ *   text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so
+ *   they do not stay muted-foreground on the emerald focus fill (1.86:1 light,
+ *   1.06:1 dark).
+ */
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { Select as SelectPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -88,7 +111,7 @@ function SelectItem({
 		<SelectPrimitive.Item
 			data-slot="select-item"
 			className={cn(
-				"focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+				"focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus:[&_svg:not([class*='text-'])]:text-accent-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
 				className,
 			)}
 			{...props}

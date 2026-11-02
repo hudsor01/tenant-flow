@@ -84,7 +84,7 @@ export function ProfileCard({
 								type="button"
 								onClick={onAvatarClick}
 								disabled={isPending}
-								className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+								className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary-text dark:hover:bg-primary/90 transition-colors disabled:opacity-50"
 								aria-label="Upload new avatar"
 							>
 								{isUploadingAvatar ? (

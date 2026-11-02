@@ -420,7 +420,10 @@
 	--secondary: oklch(0.9546 0.0351 246.58);
 	--secondary-foreground: oklch(0.2 0 0);
 	--accent: oklch(0.6 0.17 160);
-	--accent-foreground: oklch(0.98 0.01 160);
+	/* 4.67:1 on --accent (token math; Chrome readback in status-colors.md
+	   section 7); the former 0.98 0.01 160 read 3.32:1, under AA for the outline
+	   and ghost hover and menu focus labels. Same hue and chroma, darkened. */
+	--accent-foreground: oklch(0.24 0.01 160);
 	--accent-main: oklch(0.65 0.23 260);
 	--destructive: oklch(0.577 0.245 25);
 	/* 4.63:1 on --destructive (measured in Chrome); the former 0.98 0.01 90

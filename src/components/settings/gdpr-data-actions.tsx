@@ -307,7 +307,7 @@ export function GdprDataActions({
 									disabled={
 										deleteConfirmText !== "DELETE" || requestDeletion.isPending
 									}
-									className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+									className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive-text dark:hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 								>
 									{requestDeletion.isPending ? (
 										<Loader2

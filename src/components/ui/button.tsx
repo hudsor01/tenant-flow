@@ -17,7 +17,13 @@ import { cn } from "#lib/utils";
  * - no has-[>svg] padding reductions and no xs, icon-xs, icon-sm or icon-lg
  *   sizes;
  * - text-destructive-foreground on destructive instead of a named white;
- * - link text-primary-text, the AA text companion.
+ * - link text-primary-text, the AA text companion;
+ * - the default and destructive light hovers fill with bg-primary-text and
+ *   bg-destructive-text (6.84:1 and 6.38:1), where upstream's /90 tints read
+ *   4.16:1 and 4.39:1; dark keeps the /90 hovers;
+ * - outline and ghost add dark:hover:text-foreground: this theme's dark
+ *   accent-foreground is near-black, so upstream's dark hover label read
+ *   1.17:1 on input/50 and 2.63:1 on accent/50 (the CP-2 fills stay).
  *
  * An svg inside a Button renders 16px unless it carries a size- class, so
  * callers size icons with size-N, never h-N w-N. The outline and dark surfaces
@@ -28,15 +34,16 @@ const buttonVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: "bg-primary text-primary-foreground hover:bg-primary/90",
+				default:
+					"bg-primary text-primary-foreground hover:bg-primary-text dark:hover:bg-primary/90",
 				destructive:
-					"bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+					"bg-destructive text-destructive-foreground hover:bg-destructive-text dark:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
 				outline:
-					"border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+					"border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 dark:hover:text-foreground",
 				secondary:
 					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				ghost:
-					"hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+					"hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 dark:hover:text-foreground",
 				link: "text-primary-text underline-offset-4 hover:underline",
 			},
 			size: {

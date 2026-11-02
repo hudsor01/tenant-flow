@@ -43,8 +43,12 @@ const LEGACY_DESTRUCTIVE =
 const VD19_DESTRUCTIVE_DELTA = [
 	"+dark:bg-destructive/60",
 	"+dark:focus-visible:ring-destructive/40",
+	"+dark:hover:bg-destructive/90",
 	"+focus-visible:ring-destructive/20",
+	"+hover:bg-destructive-text",
+	"-dark:hover:bg-primary/90",
 	"-focus-visible:ring-ring/50",
+	"-hover:bg-destructive/90",
 ];
 
 // Same signing, against the legacy `cn(buttonVariants({ variant }), "flex-1")` compositions.
@@ -120,10 +124,18 @@ describe("alert-dialog parts", () => {
 		);
 		const legacy = tokens(cn(buttonVariants(), LEGACY_DESTRUCTIVE));
 		const delta = signedDelta(rendered, legacy);
+		// VD-19 adds only dark and ring tokens; 66.2-39 part F moves the light
+		// hover from destructive/90 (4.39:1) to destructive-text (6.38:1).
+		const PART_F_HOVER = new Set([
+			"hover:bg-destructive-text",
+			"hover:bg-destructive/90",
+		]);
 		for (const entry of delta) {
 			const token = entry.slice(1);
 			expect(
-				token.startsWith("dark:") || token.startsWith("focus-visible:ring-"),
+				token.startsWith("dark:") ||
+					token.startsWith("focus-visible:ring-") ||
+					PART_F_HOVER.has(token),
 			).toBe(true);
 		}
 		expect(delta).toEqual(VD19_DESTRUCTIVE_DELTA);

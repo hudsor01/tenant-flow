@@ -39,7 +39,8 @@ const DEFAULT_BUTTON_CLASSES = [
 	"[&_svg:not([class*='size-'])]:size-4",
 	"bg-primary",
 	"text-primary-foreground",
-	"hover:bg-primary/90",
+	"hover:bg-primary-text",
+	"dark:hover:bg-primary/90",
 	"h-10",
 	"px-4",
 	"py-2",
@@ -179,7 +180,8 @@ describe("Button v4 contract (D-29)", () => {
 			expect(button).toHaveClass(
 				"bg-destructive",
 				"text-destructive-foreground",
-				"hover:bg-destructive/90",
+				"hover:bg-destructive-text",
+				"dark:hover:bg-destructive/90",
 				"focus-visible:ring-destructive/20",
 				"dark:bg-destructive/60",
 				"dark:focus-visible:ring-destructive/40",
@@ -311,12 +313,12 @@ describe("Button v4 contract (D-29)", () => {
 	});
 
 	describe("class list", () => {
-		it("renders exactly the 28 default classes with no duplicate or conflict", () => {
+		it("renders exactly the 29 default classes with no duplicate or conflict", () => {
 			render(<Button>Button</Button>);
 			const button = screen.getByRole("button");
 			const classList = button.className.split(" ");
 
-			expect(DEFAULT_BUTTON_CLASSES).toHaveLength(28);
+			expect(DEFAULT_BUTTON_CLASSES).toHaveLength(29);
 			expect([...classList].sort()).toEqual([...DEFAULT_BUTTON_CLASSES].sort());
 			expect(new Set(classList).size).toBe(classList.length);
 			expect(cn(button.className)).toBe(button.className);

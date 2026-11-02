@@ -284,7 +284,7 @@ export function AccountDataSection() {
 											disabled={
 												confirmText !== "DELETE" || requestDeletion.isPending
 											}
-											className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+											className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive-text dark:hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 										>
 											{requestDeletion.isPending ? (
 												<Loader2

@@ -53,7 +53,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							>
 								<Button
 									size="lg"
-									className="relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
+									className="relative overflow-hidden bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
 									asChild
 								>
 									<Link href="/pricing" aria-label="Start free — no card">

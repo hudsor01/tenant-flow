@@ -166,7 +166,7 @@ export function LeaseRow({
 							</button>
 							<button
 								onClick={() => onTerminate(lease)}
-								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
+								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-destructive-text transition-colors"
 								title="Terminate Lease"
 								aria-label={`Terminate lease for ${lease.tenantName}`}
 							>

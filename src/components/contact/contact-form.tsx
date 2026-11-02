@@ -282,7 +282,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							type="submit"
 							disabled={isSubmitting}
 							size="lg"
-							className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+							className="w-full bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground"
 						>
 							{isSubmitting ? "Sending..." : "Send Message"}
 						</Button>

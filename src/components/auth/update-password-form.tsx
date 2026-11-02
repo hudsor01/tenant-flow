@@ -191,7 +191,7 @@ export function UpdatePasswordForm({
 						<Button
 							type="submit"
 							className={cn(
-								"bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8",
+								"bg-primary text-primary-foreground hover:bg-primary-text dark:hover:bg-primary/90 h-11 rounded-md px-8",
 								"w-full font-semibold hover:scale-105",
 							)}
 							disabled={
