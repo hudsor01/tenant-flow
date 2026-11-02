@@ -119,6 +119,19 @@
 -- lease, the charge and the receipt as get_lease_ledger_summary scopes its CTEs,
 -- and skips soft-deleted leases (lease_status = 'inactive').
 --
+-- ONE DEFINITION OF THE ROWS THAT COUNT. Which leases a ledger figure reads,
+-- and which receipts on them, is defined once, here, by two private helpers
+-- that get_billing_insights and get_property_performance_analytics
+-- (20261102163709) both read, so the year-end summary's rent received and
+-- its By Property table can never count different receipts:
+--   rent_ledger_leases(owner): the owner's leases that are not soft-deleted,
+--     with the property each one's unit is on (whatever that property's or
+--     unit's status: a soft-deleted unit or property keeps its ledger).
+--   rent_ledger_receipts(owner): the receipts on those leases that carry the
+--     owner's id, each at its signed amount, with its lease's property.
+-- Both run as their SECURITY DEFINER callers (postgres) and no client role
+-- may execute them.
+--
 -- THE DATES. start_date_param and end_date_param are optional and compared on
 -- the calendar day, inclusive. The two Payment Summary callers,
 -- analyticsQueries.ownerPaymentSummary() and the export leaf, pass neither, so
@@ -168,6 +181,40 @@
 -- scripts/migration-replay-assertions.ts).
 -- =============================================================================
 
+create or replace function public.rent_ledger_leases(p_owner_id uuid)
+ returns table(lease_id uuid, property_id uuid)
+ language sql
+ stable
+ set search_path to 'public'
+as $function$
+  select l.id, u.property_id
+  from leases l
+  left join units u on u.id = l.unit_id
+  where l.owner_user_id = p_owner_id
+    and l.lease_status <> 'inactive';
+$function$;
+
+comment on function public.rent_ledger_leases(uuid) is
+  'Private helper of get_billing_insights and get_property_performance_analytics: the owner''s leases that are not soft-deleted, with the property each one''s unit is on. The one definition of which leases a rent-ledger figure reads. No client role may execute it.';
+
+create or replace function public.rent_ledger_receipts(p_owner_id uuid)
+ returns table(lease_id uuid, charge_id uuid, received_date date, amount numeric, property_id uuid)
+ language sql
+ stable
+ set search_path to 'public'
+as $function$
+  select rr.lease_id, rr.charge_id, rr.received_date, rr.amount, ll.property_id
+  from rent_receipts rr
+  join public.rent_ledger_leases(p_owner_id) ll on ll.lease_id = rr.lease_id
+  where rr.owner_user_id = p_owner_id;
+$function$;
+
+comment on function public.rent_ledger_receipts(uuid) is
+  'Private helper of get_billing_insights and get_property_performance_analytics: the receipts that carry the owner''s id on the leases rent_ledger_leases counts, signed, with the lease''s property. The one definition of which receipts a rent-ledger figure reads. No client role may execute it.';
+
+revoke all on function public.rent_ledger_leases(uuid) from public, anon, authenticated, service_role;
+revoke all on function public.rent_ledger_receipts(uuid) from public, anon, authenticated, service_role;
+
 CREATE OR REPLACE FUNCTION public.get_billing_insights(owner_id_param uuid, start_date_param timestamp without time zone DEFAULT NULL::timestamp without time zone, end_date_param timestamp without time zone DEFAULT NULL::timestamp without time zone)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -197,8 +244,7 @@ BEGIN
 
   -- The ledger figures (see the header for each definition and for the dates).
   WITH owned_leases AS (
-    SELECT l.id FROM leases l
-    WHERE l.owner_user_id = owner_id_param AND l.lease_status <> 'inactive'
+    SELECT ll.lease_id AS id FROM public.rent_ledger_leases(owner_id_param) ll
   ),
   -- The ledger as of v_end (all of it when NULL): every charge dated on or
   -- before it ...
@@ -210,12 +256,11 @@ BEGIN
     WHERE rc.owner_user_id = owner_id_param
       AND (v_end IS NULL OR coalesce(rc.period_start, rc.created_at::date) <= v_end)
   ),
-  -- ... and every receipt received on or before it.
+  -- ... and every receipt on those leases received on or before it.
   r AS (
     SELECT rr.lease_id, rr.charge_id, rr.amount
-    FROM rent_receipts rr
-    WHERE rr.owner_user_id = owner_id_param
-      AND (v_end IS NULL OR rr.received_date <= v_end)
+    FROM public.rent_ledger_receipts(owner_id_param) rr
+    WHERE (v_end IS NULL OR rr.received_date <= v_end)
   ),
   -- The charges that stand on that ledger, dated on or after v_start when it is
   -- given: not a reversal, and not reversed by a reversal on it, each with what

@@ -215,6 +215,26 @@ mutate "$REPLAY" 'if (guard !== true) {' 'if (guard === false) {' \
                  'an unreported property-performance guard result passes'
 mutate "$REPLAY" 'if (problems.length > 0) {' 'if (false) {' \
                  'property-performance mismatches are not reported'
+mutate "$REPLAY" 'for (const helper of LEDGER_HELPERS) {' 'for (const helper of [] as string[]) {' \
+                 'the ledger helpers'"'"' grants are not compared'
+mutate "$REPLAY" 'asJsonObject(helpers?.[helper]),
+			NO_CLIENT_ROLE,' 'asJsonObject(helpers?.[helper]),
+			{},' \
+                 'a ledger helper'"'"'s grants are compared with nothing'
+mutate "$REPLAY" '	collectYearEndTie(printed["owner_b_tie"], problems);' '' \
+                 'the year-end tie is not checked'
+mutate "$REPLAY" 'if (end === null || start === null || table === null) {' 'if (false) {' \
+                 'a missing tie is reported as a mismatch, not as missing'
+mutate "$REPLAY" 'if (end - start !== table || table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {' \
+                 'if (table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {' \
+                 'the summary is not compared with the table'
+mutate "$REPLAY" 'if (end - start !== table || table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {' \
+                 'if (end - start !== table) {' \
+                 'a tie on the wrong figure passes'
+mutate "$REPLAY" 'Object.entries(EVERY_PROPERTY_LISTED)' 'Object.entries({})' \
+                 'the full property list is not checked'
+mutate "$REPLAY" 'if (printed[key] !== value) {' 'if (false) {' \
+                 'a property list cut short passes'
 mutate "$REPLAY" 'if (text === "") {' 'if (false) {' \
                  'empty owner-figures output is not reported as a broken fixture'
 mutate "$REPLAY" 'if (parsedFigures === null) {' 'if (false) {' \

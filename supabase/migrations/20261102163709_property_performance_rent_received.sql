@@ -34,12 +34,12 @@
 --
 -- STARTED FROM THE LIVE PRODUCTION BODY (pg_get_functiondef, 2026-11-02), not a
 -- repo copy. Unchanged: the signature and defaults (p_timeframe '30d',
--- p_limit NULL meaning 100), the RETURNS TABLE columns and their types,
+-- p_limit NULL), the RETURNS TABLE columns and their types,
 -- LANGUAGE plpgsql, SECURITY DEFINER, the pinned search_path, the volatility
 -- (VOLATILE, the default), the p_user_id != auth.uid() guard as written, the
 -- property list (the owner's, not inactive, p_property_id when given),
 -- occupancy_rate and how it is computed, the expense join, the ordering by
--- name and the limit, and the ACL (EXECUTE for authenticated and service_role
+-- name, and the ACL (EXECUTE for authenticated and service_role
 -- only). Under the service role auth.uid() is NULL, so the guard's comparison
 -- is NULL and passes: export-report and generate-pdf call this with the admin
 -- client and the owner id they validated from the Bearer token, so for them
@@ -54,12 +54,18 @@
 --     receipt reversed after the window still counts in it, and the reversal
 --     counts in the window it was posted in: the money was received then, and
 --     handed back later. A receipt reaches a property through its lease's
---     unit (rent_receipts.lease_id -> leases.unit_id -> units.property_id). It
---     reads only the owner's own rows, scoped by owner_user_id on the receipt
---     and on the lease, as get_lease_ledger_summary (20260726020701) scopes its
---     CTEs, and skips soft-deleted leases (lease_status = 'inactive'), as every
---     ledger figure does. It is cash: money recorded as received, never
---     scheduled rent, and never sums the two (CLAUDE.md, Domain model).
+--     unit (rent_receipts.lease_id -> leases.unit_id -> units.property_id).
+--     Which receipts count is rent_ledger_receipts (20261102055449), the
+--     definition get_billing_insights reads too: the receipts that carry the
+--     owner's id on the owner's leases that are not soft-deleted
+--     (lease_status = 'inactive'), as get_lease_ledger_summary
+--     (20260726020701) scopes its CTEs. So a tax year's rent received in the
+--     year-end summary (collectedTotal, differenced) and the sum of this
+--     table over that year count the same receipts, a soft-deleted unit's
+--     included; a soft-deleted PROPERTY's receipts are in the summary but not
+--     here, because the property list skips it (see THE PROPERTY LIST). It is
+--     cash: money recorded as received, never scheduled rent, and never sums
+--     the two (CLAUDE.md, Domain model).
 --
 --   total_expenses: unchanged, except that the window now has an upper bound
 --     (see THE WINDOW): the expenses of the property's maintenance requests,
@@ -88,6 +94,14 @@
 -- Anything else, NULL included, is a 30-day trailing window, as before.
 -- Receipts are compared on received_date and expenses on expense_date, both
 -- inclusive at both ends.
+--
+-- THE PROPERTY LIST. The owner's properties that are not soft-deleted
+-- (p_property_id for one), ordered by name: every one, unless p_limit names a
+-- smaller number. p_limit NULL used to mean 100, so a tax report, a year-end
+-- table or a property export for an owner with more properties dropped the
+-- rest and their rent received; NULL now means no limit, and no caller passes
+-- one. (A REST caller still reads at most the API's max-rows a request; the
+-- callers that need every row page through them.)
 --
 -- MONEY. Dollars throughout: rent_receipts.amount and expenses.amount are
 -- numeric(10,2). No cents, no scaling (D-00).
@@ -148,18 +162,13 @@ BEGIN
     WHERE p.owner_user_id = p_user_id AND p.status <> 'inactive' AND (p_property_id IS NULL OR p.id = p_property_id)
     GROUP BY p.id
   ),
-  -- Rent received (see the header): the owner's receipts on the owner's leases
-  -- that are not soft-deleted, received in the window, signed, by property.
+  -- Rent received (see the header): the receipts rent_ledger_receipts counts,
+  -- received in the window, signed, by property.
   property_receipts AS (
-    SELECT u.property_id AS prop_id, SUM(rr.amount)::numeric AS received
-    FROM rent_receipts rr
-    JOIN leases l ON l.id = rr.lease_id
-    JOIN units u ON u.id = l.unit_id
-    WHERE rr.owner_user_id = p_user_id
-      AND l.owner_user_id = p_user_id
-      AND l.lease_status <> 'inactive'
-      AND rr.received_date >= v_start_date AND rr.received_date <= v_end_date
-    GROUP BY u.property_id
+    SELECT lr.property_id AS prop_id, SUM(lr.amount)::numeric AS received
+    FROM public.rent_ledger_receipts(p_user_id) lr
+    WHERE lr.received_date >= v_start_date AND lr.received_date <= v_end_date
+    GROUP BY lr.property_id
   )
   SELECT po.prop_id, po.prop_name, po.occ_rate,
     COALESCE(pr.received, 0)::numeric AS total_revenue,
@@ -169,12 +178,12 @@ BEGIN
   FROM property_occupancy po
   LEFT JOIN property_expenses pe ON pe.prop_id = po.prop_id
   LEFT JOIN property_receipts pr ON pr.prop_id = po.prop_id
-  ORDER BY po.prop_name LIMIT COALESCE(p_limit, 100);
+  ORDER BY po.prop_name LIMIT p_limit;
 END;
 $function$;
 
 comment on function public.get_property_performance_analytics(uuid, uuid, text, integer) is
-  'Per-property performance for the owner''s properties that are not inactive (p_property_id for one; ordered by name, p_limit rows, default 100). occupancy_rate: occupied units over units not inactive, in percent. total_revenue: rent received, the rent ledger''s receipts on the property''s leases (through the lease''s unit) received in the window, signed so reversals net, owner-scoped on receipt and lease, inactive leases skipped; dollars. total_expenses: the property''s maintenance expenses dated in the window. net_income: total_revenue - total_expenses. timeframe: the window computed, ''YYYY-MM-DD/YYYY-MM-DD'', both days included. p_timeframe: ''7d''/''30d''/''90d''/''180d''/''365d'' (trailing, ending today) or ''YYYY-MM-DD..YYYY-MM-DD'' (inclusive; refused with 22023 when it starts after it ends); anything else is 30 days. Guards p_user_id against auth.uid(); service_role (auth.uid() NULL) passes the guard.';
+  'Per-property performance for the owner''s properties that are not inactive (p_property_id for one; ordered by name; p_limit rows, NULL for all). occupancy_rate: occupied units over units not inactive, in percent. total_revenue: rent received, the receipts rent_ledger_receipts counts (owner-scoped on receipt and lease, inactive leases skipped) on the property''s leases (through the lease''s unit) received in the window, signed so reversals net; dollars. total_expenses: the property''s maintenance expenses dated in the window. net_income: total_revenue - total_expenses. timeframe: the window computed, ''YYYY-MM-DD/YYYY-MM-DD'', both days included. p_timeframe: ''7d''/''30d''/''90d''/''180d''/''365d'' (trailing, ending today) or ''YYYY-MM-DD..YYYY-MM-DD'' (inclusive; refused with 22023 when it starts after it ends); anything else is 30 days. Guards p_user_id against auth.uid(); service_role (auth.uid() NULL) passes the guard.';
 
 revoke all on function public.get_property_performance_analytics(uuid, uuid, text, integer) from public, anon, authenticated;
 grant execute on function public.get_property_performance_analytics(uuid, uuid, text, integer) to authenticated, service_role;

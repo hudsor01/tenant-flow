@@ -644,8 +644,11 @@ function shiftYmd(ymd: string, days: number): string | null {
  * owner_a_beta_2025: p_property_id = Beta House: that one row.
  * owner_a_limit_1: p_limit 1: Alpha Court's row alone.
  * owner_b_tax_2025: Bravo Place, 700.00 received (not the 111 stamped with
- *   owner A's id), 10.00 of expenses, 690.00 net, 100.00 occupied; none of
- *   owner A's properties.
+ *   owner A's id), 10.00 of expenses, 690.00 net, 100.00 occupied; Cedar Row,
+ *   400.00 + 100.00 - 100.00 (a reversal in the year) + 250.00 (on C2, a
+ *   soft-deleted unit) = 650.00, not LC3's 90.00 (a soft-deleted lease) nor
+ *   2024's 55.00, no expenses, 100.00 occupied (C1 of C1; C2 is out of the
+ *   denominator); none of owner A's properties.
  */
 export function expectedPropertyPerformance(
 	trailingWindow: string,
@@ -673,6 +676,7 @@ export function expectedPropertyPerformance(
 	const BETA = "c1000000-0000-4000-8000-00000000a002";
 	const DELTA = "c1000000-0000-4000-8000-00000000a003";
 	const BRAVO = "c1000000-0000-4000-8000-00000000b001";
+	const CEDAR = "c1000000-0000-4000-8000-00000000b002";
 	const alpha2025 = row(
 		ALPHA,
 		"Alpha Court",
@@ -700,6 +704,7 @@ export function expectedPropertyPerformance(
 		owner_a_limit_1: [alpha2025],
 		owner_b_tax_2025: [
 			row(BRAVO, "Bravo Place", 100, 700, 10, 690, TAX_2025_WINDOW),
+			row(CEDAR, "Cedar Row", 100, 650, 0, 650, TAX_2025_WINDOW),
 		],
 	};
 }
@@ -708,6 +713,55 @@ export function expectedPropertyPerformance(
 export const EXPECTED_PROPERTY_PERFORMANCE_EXECUTE: Readonly<
 	Record<"anon" | "authenticated" | "service_role", boolean>
 > = { anon: false, authenticated: true, service_role: true };
+
+/** The two ledger helpers both functions read (20261102055449). */
+const LEDGER_HELPERS = [
+	"public.rent_ledger_leases(uuid)",
+	"public.rent_ledger_receipts(uuid)",
+] as const;
+
+/** A private helper's EXECUTE: no client role may call it. */
+const NO_CLIENT_ROLE: Readonly<
+	Record<"anon" | "authenticated" | "service_role", boolean>
+> = { anon: false, authenticated: false, service_role: false };
+
+/**
+ * Owner C's 101 properties, all listed with p_limit NULL ("Lot 101" sorts
+ * last), and p_limit 5 still five.
+ */
+const EVERY_PROPERTY_LISTED: Readonly<Record<string, number | string>> = {
+	owner_c_all_count: 101,
+	owner_c_last_name: "Lot 101",
+	owner_c_limit_5_count: 5,
+};
+
+/** Owner B's 2025 rent received, to the cent: 700.00 + 650.00. */
+const OWNER_B_RENT_RECEIVED_2025_CENTS = 135_000;
+
+/**
+ * Push a line unless owner B's year-end summary and tax table tie: the
+ * summary's rent received (collectedTotal as of 2025-12-31 less as of
+ * 2024-12-31, get_billing_insights) must equal the table's total (the sum of
+ * get_property_performance_analytics' total_revenue over 2025) and 1350.00, in
+ * whole cents, across a reversal, a soft-deleted unit and a soft-deleted lease.
+ */
+function collectYearEndTie(value: unknown, problems: string[]): void {
+	const tie = asJsonObject(value);
+	const end = cents(tie?.["collected_2025_end"]);
+	const start = cents(tie?.["collected_2024_end"]);
+	const table = cents(tie?.["table_total"]);
+	if (end === null || start === null || table === null) {
+		problems.push(
+			`owner_b_tie: expected three numbers, got ${JSON.stringify(value)}`,
+		);
+		return;
+	}
+	if (end - start !== table || table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {
+		problems.push(
+			`owner_b_tie: the year-end summary reads ${(end - start) / 100} of 2025 rent received and its table ${table / 100}; both must be 1350. The two functions must count the same receipts.`,
+		);
+	}
+}
 
 /** What a backwards range must raise: invalid_parameter_value. */
 const BACKWARDS_RANGE_SQLSTATE = "22023";
@@ -805,6 +859,23 @@ export function assertPropertyPerformanceRentReceived(
 		EXPECTED_PROPERTY_PERFORMANCE_EXECUTE,
 		problems,
 	);
+	const helpers = asJsonObject(printed["execute_ledger_helpers"]);
+	for (const helper of LEDGER_HELPERS) {
+		collectMismatches(
+			`execute_ledger_helpers.${helper}`,
+			asJsonObject(helpers?.[helper]),
+			NO_CLIENT_ROLE,
+			problems,
+		);
+	}
+	collectYearEndTie(printed["owner_b_tie"], problems);
+	for (const [key, value] of Object.entries(EVERY_PROPERTY_LISTED)) {
+		if (printed[key] !== value) {
+			problems.push(
+				`${key}: expected ${JSON.stringify(value)}, got ${JSON.stringify(printed[key])}. With p_limit NULL every one of owner C's 101 properties must be listed (the body before returned 100), and p_limit 5 must still return 5.`,
+			);
+		}
+	}
 	if (printed["backwards_range_sqlstate"] !== BACKWARDS_RANGE_SQLSTATE) {
 		problems.push(
 			`backwards_range_sqlstate: expected ${JSON.stringify(BACKWARDS_RANGE_SQLSTATE)}, got ${JSON.stringify(printed["backwards_range_sqlstate"])}. A range that starts after it ends (2025-12-31..2025-01-01) must be refused, not read as some other window.`,
@@ -825,7 +896,7 @@ export function assertPropertyPerformanceRentReceived(
 	}
 	return {
 		ok: true,
-		message: `get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; over ${trailingStart}/${today}: Alpha Court -79.75, Beta House 200.00; owner B 700.00), states each window, refuses a backwards range and another owner, and is executable by authenticated and service_role only`,
+		message: `get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; over ${trailingStart}/${today}: Alpha Court -79.75, Beta House 200.00; owner B 700.00 and 650.00, tying to the year-end summary's 1350.00), lists all 101 of owner C's properties, states each window, refuses a backwards range and another owner, and is executable by authenticated and service_role only; the ledger helpers by no client role`,
 	};
 }
 

@@ -661,7 +661,7 @@ describe("assertBillingInsightsFromLedger", () => {
  * from `today`, so the line stays valid on any later day.
  */
 const REPLAYED_PERFORMANCE_LINE =
-	'{"today": "2026-11-02", "execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_default": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}], "owner_a_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 690.00, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 700.00, "occupancy_rate": 100.00, "total_expenses": 10.00}], "owner_a_beta_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}], "backwards_range_sqlstate": "22023", "guard_refuses_another_owner": true}';
+	'{"today": "2026-11-02", "execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tie": {"table_total": 1350.00, "collected_2024_end": 55.00, "collected_2025_end": 1405.00}, "owner_a_default": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}], "owner_a_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 690.00, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 700.00, "occupancy_rate": 100.00, "total_expenses": 10.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000b002", "property_name": "Cedar Row", "total_revenue": 650.00, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}], "owner_c_all_count": 101, "owner_c_last_name": "Lot 101", "owner_c_limit_5_count": 5, "execute_ledger_helpers": {"public.rent_ledger_leases(uuid)": {"anon": false, "service_role": false, "authenticated": false}, "public.rent_ledger_receipts(uuid)": {"anon": false, "service_role": false, "authenticated": false}}, "backwards_range_sqlstate": "22023", "guard_refuses_another_owner": true}';
 
 /**
  * The same fixture against PRODUCTION's body as of 2026-11-02, on the same
@@ -670,7 +670,7 @@ const REPLAYED_PERFORMANCE_LINE =
  * backwards range accepted. `execute.anon` is true for the reason given above.
  */
 const PRODUCTION_PERFORMANCE_LINE =
-	'{"today": "2026-11-02", "execute": {"anon": true, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_default": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}], "owner_a_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}], "backwards_range_sqlstate": null, "guard_refuses_another_owner": true}';
+	'{"today": "2026-11-02", "execute": {"anon": true, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tie": {"table_total": 0, "collected_2024_end": 55.00, "collected_2025_end": 1405.00}, "owner_a_default": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}], "owner_a_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b002", "property_name": "Cedar Row", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}], "owner_c_all_count": 100, "owner_c_last_name": "Lot 100", "owner_c_limit_5_count": 5, "execute_ledger_helpers": {"public.rent_ledger_leases(uuid)": {"anon": false, "service_role": false, "authenticated": false}, "public.rent_ledger_receipts(uuid)": {"anon": false, "service_role": false, "authenticated": false}}, "backwards_range_sqlstate": null, "guard_refuses_another_owner": true}';
 
 type PerformanceLine = Record<string, unknown> & {
 	owner_a_tax_2025: Record<string, unknown>[];
@@ -879,6 +879,124 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
 			'owner_a_tax_2025[0].total_revenue: expected 2750.5, got "2750.50"',
+		);
+	});
+
+	it("fails when the year-end summary and its table count different receipts", () => {
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_b_tie: {
+					...(parsed["owner_b_tie"] as object),
+					table_total: 1100,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b_tie: the year-end summary reads 1350 of 2025 rent received and its table 1100; both must be 1350.",
+		);
+	});
+
+	it("fails when the summary differs from a table that reads the year's figure", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...performanceLine(),
+				owner_b_tie: {
+					collected_2025_end: 1500,
+					collected_2024_end: 55,
+					table_total: 1350,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b_tie: the year-end summary reads 1445 of 2025 rent received and its table 1350",
+		);
+	});
+
+	it("fails when the two agree on a figure that is not the year's", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...performanceLine(),
+				owner_b_tie: {
+					collected_2025_end: 1495,
+					collected_2024_end: 55,
+					table_total: 1440,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b_tie: the year-end summary reads 1440 of 2025 rent received and its table 1440",
+		);
+	});
+
+	it("compares the tie in whole cents", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...performanceLine(),
+				owner_b_tie: {
+					collected_2025_end: 1350.1 + 1349.9 - 1349.9,
+					collected_2024_end: 0.1,
+					table_total: 1350,
+				},
+			}),
+		);
+		expect(result.message).not.toContain("owner_b_tie");
+	});
+
+	it("fails when the tie was not reported", () => {
+		const { owner_b_tie: _omitted, ...rest } = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b_tie: expected three numbers, got undefined",
+		);
+	});
+
+	it.each([
+		["owner_c_all_count", 100],
+		["owner_c_last_name", "Lot 100"],
+		["owner_c_limit_5_count", 101],
+	])(
+		"fails when %s reads %j: a list cut short, or a limit ignored",
+		(key, value) => {
+			const result = assertPropertyPerformanceRentReceived(
+				JSON.stringify({ ...performanceLine(), [key]: value }),
+			);
+			expect(result.ok).toBe(false);
+			expect(result.message).toContain(`${key}: expected`);
+		},
+	);
+
+	it.each([
+		["public.rent_ledger_leases(uuid)", "authenticated"],
+		["public.rent_ledger_receipts(uuid)", "service_role"],
+	])("fails when %s is executable by %s", (helper, role) => {
+		const parsed = performanceLine();
+		const helpers = parsed["execute_ledger_helpers"] as Record<
+			string,
+			Record<string, unknown>
+		>;
+		const grants = helpers[helper];
+		if (grants) grants[role] = true;
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify(parsed),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			`execute_ledger_helpers.${helper}.${role}: expected false, got true`,
+		);
+	});
+
+	it("fails when the ledger helpers' grants were not reported", () => {
+		const { execute_ledger_helpers: _omitted, ...rest } = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"execute_ledger_helpers.public.rent_ledger_leases(uuid): absent or not an object",
 		);
 	});
 
