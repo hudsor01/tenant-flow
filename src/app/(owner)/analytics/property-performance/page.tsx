@@ -131,8 +131,8 @@ export default function PropertyPerformancePage() {
 			<PerformanceStatCards metrics={metrics} />
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-				<BlurFade delay={0.6}>
-					<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
+				<BlurFade delay={0.6} className="lg:col-span-2">
+					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">
