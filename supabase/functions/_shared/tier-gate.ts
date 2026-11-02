@@ -92,22 +92,24 @@ export async function checkTierEntitlement(
 	// Phase 46 gate hit.
 	//
 	// Reference: https://supabase.com/docs/guides/functions/background-tasks
-	const insertPromise = supabase
-		.from("gate_events")
-		.insert({
+	//
+	// An async function, so waitUntil gets the Promise its contract names: the
+	// query builder's own `.then()` is typed PromiseLike, which is not one.
+	const recordGateHit = async (): Promise<void> => {
+		const { error } = await supabase.from("gate_events").insert({
 			user_id: userId,
 			feature: config.feature,
 			current_plan: ownerPlan,
 			current_status: ownerStatus,
-		})
-		.then(({ error }) => {
-			if (error) {
-				captureWebhookError(error, {
-					message: `gate_events insert failed (${config.feature})`,
-					user_id: userId,
-				});
-			}
 		});
+		if (error) {
+			captureWebhookError(error, {
+				message: `gate_events insert failed (${config.feature})`,
+				user_id: userId,
+			});
+		}
+	};
+	const insertPromise = recordGateHit();
 
 	// EdgeRuntime is a Deno Edge runtime global. In the local `deno test`
 	// harness or a non-Edge runtime it may be undefined, so we feature-detect.
