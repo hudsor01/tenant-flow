@@ -151,8 +151,8 @@ export function MaintenanceInsightsSection() {
 		<div className="space-y-6">
 			{/* Charts Row */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<BlurFade delay={0.1}>
-					<div className="bg-card border border-border rounded-lg p-6">
+				<BlurFade delay={0.1} className="h-full">
+					<div className="h-full bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Request trends</h3>
@@ -166,8 +166,8 @@ export function MaintenanceInsightsSection() {
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2}>
-					<div className="bg-card border border-border rounded-lg p-6">
+				<BlurFade delay={0.2} className="h-full">
+					<div className="h-full bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Spend by vendor</h3>

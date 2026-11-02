@@ -65,8 +65,8 @@ export function FinancialOverviewStats({
 }: FinancialOverviewStatsProps) {
 	return (
 		<div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={100}
 						duration={10}
@@ -92,8 +92,8 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.25} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<LabelWithTooltip
 						label="Collected"
 						help="Payments you've recorded against charges this period."
@@ -115,8 +115,8 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.3} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<StatLabel>Scheduled Net</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
@@ -133,8 +133,8 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.4} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<StatLabel>Scheduled Margin</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker

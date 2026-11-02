@@ -43,7 +43,7 @@ function YearOverYearTile({
 }) {
 	if (yearOverYear.status === "unavailable" || yearOverYear.change === null) {
 		return (
-			<Stat className="relative overflow-hidden">
+			<Stat className="relative h-full content-start overflow-hidden">
 				<StatLabel>YoY Change</StatLabel>
 				<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
 					{yearOverYear.status === "unavailable"
@@ -64,7 +64,7 @@ function YearOverYearTile({
 	const rounded = Math.round(yearOverYear.change * 10) / 10;
 	const sign = rounded > 0 ? "+" : rounded < 0 ? MINUS : "";
 	return (
-		<Stat className="relative overflow-hidden">
+		<Stat className="relative h-full content-start overflow-hidden">
 			<StatLabel>YoY Change</StatLabel>
 			<StatValue
 				className={`flex items-baseline ${rounded > 0 ? "text-destructive-text" : rounded < 0 ? "text-success-text" : ""}`}
@@ -102,8 +102,8 @@ export function ExpenseStats({
 }: ExpenseStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-			<BlurFade delay={0.15}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.15} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					{totalExpenses > 0 && (
 						<BorderBeam
 							size={80}
@@ -123,8 +123,8 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.2}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<StatLabel>Monthly Average</StatLabel>
 					<StatValue className="flex items-baseline">
 						{formatCurrency(monthlyAvg)}
@@ -136,8 +136,8 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.25} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<StatLabel>Maintenance</StatLabel>
 					<StatValue className="flex items-baseline text-warning-text">
 						{formatCurrency(maintenanceTotal)}
@@ -149,7 +149,7 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3}>
+			<BlurFade delay={0.3} className="h-full">
 				<YearOverYearTile yearOverYear={yearOverYear} />
 			</BlurFade>
 		</div>
