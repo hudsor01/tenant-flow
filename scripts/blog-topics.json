@@ -354,7 +354,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "DoorLoop alternatives under $40/month for single-property owners",
+		"topic": "DoorLoop alternatives under $40/month for single-property landlords",
 		"category": "software-vault",
 		"slug": "doorloop-alternatives-under-40-month-for-single-property-owners",
 		"tier": "reclaim"
@@ -498,7 +498,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "How to increase rental income by 5% as a single-property owner",
+		"topic": "How to increase rental income by 5% as a single-property landlord",
 		"category": "software-vault",
 		"slug": "how-to-increase-rental-income-by-5-as-a-single-property-owner",
 		"tier": "reclaim"
@@ -1248,7 +1248,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "Picking the one property management app you need as a single-property owner",
+		"topic": "Picking the one property management app you need as a single-property landlord",
 		"category": "software-vault",
 		"slug": "top-1-property-management-app-for-single-property-owners",
 		"tier": "reclaim"
@@ -1284,7 +1284,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "Top 10 property management apps for single-property owners",
+		"topic": "Top 10 property management apps for single-property landlords",
 		"category": "software-vault",
 		"slug": "top-10-property-management-apps-for-single-property-owners",
 		"tier": "reclaim"
@@ -1560,7 +1560,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "Vendor management for property owners: a beginner's guide",
+		"topic": "Vendor management for landlords: a beginner's guide",
 		"category": "maintenance",
 		"slug": "vendor-management-for-property-owners-a-beginner-s-guide",
 		"tier": "reclaim"
@@ -5604,7 +5604,7 @@
 		"tier": "evergreen"
 	},
 	{
-		"topic": "How long to keep maintenance records: retention guidelines for rental property owners",
+		"topic": "How long to keep maintenance records: retention guidelines for landlords",
 		"category": "maintenance",
 		"slug": "how-long-to-keep-maintenance-records",
 		"tier": "evergreen"
