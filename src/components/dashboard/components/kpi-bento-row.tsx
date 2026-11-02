@@ -18,7 +18,7 @@ import { formatCurrency } from "#lib/utils/currency";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
 import {
 	buildTileAriaLabel,
-	formatTrendPercent,
+	describeTrend,
 	type KpiBentoRowProps,
 	type KpiTileConfig,
 } from "./kpi-helpers";
@@ -175,8 +175,10 @@ function buildKpiTileConfigs(
 	// just the formatted currency, no period qualifier. The "This month"
 	// qualifier moves to `spokenDescription` (matching the visible
 	// `description`) so the aria-label narrates "Revenue: $14,250. This
-	// month. Up 12 percent vs. last month." instead of duplicating the
-	// period if a future maintainer adds the spokenDescription field.
+	// month. Up 12 percent vs. 30 days ago." instead of duplicating the
+	// period if a future maintainer adds the spokenDescription field. Each
+	// chip states the window its trend computes (the trend's own `window`,
+	// 30 days in get_dashboard_data_v2), never "last month".
 	const revenueSpoken = formatCurrency(stats.revenue.monthly, {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
@@ -194,7 +196,8 @@ function buildKpiTileConfigs(
 			decimalPlaces: 0,
 			currency: true,
 			trend: revenueTrend,
-			trendLabel: "vs. last month",
+			trendUnit: "percent",
+			noPriorText: "No rent scheduled",
 			sparkline: buildSparkline(
 				timeSeries.monthlyRevenue,
 				revenueTrend,
@@ -213,7 +216,9 @@ function buildKpiTileConfigs(
 			decimalPlaces: 0,
 			suffix: "%",
 			trend: occupancyTrend,
-			trendLabel: "vs. last month",
+			// In percentage points, as the analytics overview's tile states it.
+			trendUnit: "points",
+			noPriorText: "No units let",
 			sparkline: buildSparkline(
 				timeSeries.occupancyRate,
 				occupancyTrend,
@@ -233,6 +238,8 @@ function buildKpiTileConfigs(
 			// hold N leases), so attributing it to "Active leases" is dishonest.
 			// Omit until the data layer exposes the right signal.
 			trend: null,
+			trendUnit: "percent",
+			noPriorText: "",
 			sparkline: null,
 			waveDelay: 2,
 			...(stats.leases.expiringSoon > 0 && {
@@ -251,7 +258,8 @@ function buildKpiTileConfigs(
 			value: stats.maintenance.open,
 			decimalPlaces: 0,
 			trend: maintenanceTrend,
-			trendLabel: "vs. last month",
+			trendUnit: "percent",
+			noPriorText: "None open",
 			sparkline: null,
 			waveDelay: 4,
 		},
@@ -264,6 +272,8 @@ function buildKpiTileConfigs(
 			trend: null,
 			sparkline: null,
 			waveDelay: 5,
+			trendUnit: "percent",
+			noPriorText: "",
 		},
 		{
 			id: "units",
@@ -274,6 +284,8 @@ function buildKpiTileConfigs(
 			value: stats.units.total,
 			decimalPlaces: 0,
 			trend: null,
+			trendUnit: "percent",
+			noPriorText: "",
 			sparkline: null,
 			waveDelay: 6,
 		},
@@ -287,23 +299,33 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 		label: tile.label,
 		spokenValue: tile.spokenValue,
 		trend: tile.trend,
+		trendUnit: tile.trendUnit,
+		noPriorText: tile.noPriorText,
 		...(tile.spokenDescription && {
 			spokenDescription: tile.spokenDescription,
 		}),
-		...(tile.trendLabel && { trendLabel: tile.trendLabel }),
 	});
-	const trendChip = tile.trend ? (
-		<StatTrend
-			trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
-			className={cn(tile.trend.trend === "down" && "text-warning-text!")}
-		>
-			<TrendArrow direction={tile.trend.trend} />
-			<span>{formatTrendPercent(tile.trend.percentChange)}</span>
-			{tile.trendLabel ? (
-				<span className="text-muted-foreground">{tile.trendLabel}</span>
-			) : null}
-		</StatTrend>
-	) : null;
+	const chip = tile.trend
+		? describeTrend(tile.trend, tile.trendUnit, tile.noPriorText)
+		: null;
+	const trendChip =
+		tile.trend && chip ? (
+			chip.kind === "change" ? (
+				<StatTrend
+					trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
+					className={cn(tile.trend.trend === "down" && "text-warning-text!")}
+				>
+					<TrendArrow direction={tile.trend.trend} />
+					<span>{chip.figure}</span>
+					<span className="text-muted-foreground">{chip.windowLabel}</span>
+				</StatTrend>
+			) : (
+				// No figure to show: say why, in the muted body color.
+				<StatTrend trend="neutral">
+					<span className="text-muted-foreground">{chip.text}</span>
+				</StatTrend>
+			)
+		) : null;
 	return (
 		<Stat
 			className="h-full @4xl/kpi-bento:p-6 transition-colors duration-200"

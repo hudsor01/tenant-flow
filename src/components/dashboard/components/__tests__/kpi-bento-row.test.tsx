@@ -35,6 +35,7 @@ function makeTrend(overrides: Partial<MetricTrend> = {}): MetricTrend {
 		change: 10,
 		percentChange: 12,
 		trend: "up",
+		window: { start_date: "2026-10-03", end_date: "2026-11-02" },
 		...overrides,
 	};
 }
@@ -297,7 +298,7 @@ describe("KpiBentoRow", () => {
 		expect(stat?.getAttribute("aria-label")).toBe(
 			// WR-04 cycle-1 fix: "this month" now lives in spokenDescription
 			// (symmetric with the other tiles), not baked into spokenValue.
-			"Revenue: $14,250. This month. Up 12 percent vs. last month.",
+			"Revenue: $14,250. This month. Up 12 percent vs. 30 days ago.",
 		);
 	});
 
@@ -314,7 +315,7 @@ describe("KpiBentoRow", () => {
 		);
 		expect(
 			screen.getByRole("group", {
-				name: "Revenue: $14,250. This month. Up 12 percent vs. last month.",
+				name: "Revenue: $14,250. This month. Up 12 percent vs. 30 days ago.",
 			}),
 		).toBeInTheDocument();
 	});
@@ -402,6 +403,98 @@ describe("KpiBentoRow", () => {
 		expect(revenueValue?.firstElementChild?.textContent).toBe("$14,250");
 		const occupancyValue = items[1]?.querySelector('[data-slot="stat-value"]');
 		expect(occupancyValue?.textContent).toBe("87%");
+	});
+
+	it("states the window each chip computes, never 'last month'", () => {
+		const { container } = render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const chips = [...container.querySelectorAll("[data-slot=stat-trend]")].map(
+			(chip) => chip.textContent,
+		);
+		expect(chips).toEqual([
+			"+12%vs. 30 days ago",
+			"+10.0 ptsvs. 30 days ago",
+			"\u22128%vs. 30 days ago",
+		]);
+		expect(container.textContent).not.toContain("last month");
+	});
+
+	it("shows occupancy's change in percentage points, as the overview tile does", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={{
+					...mockTrends,
+					occupancyRate: makeTrend({
+						current: 75,
+						previous: 100,
+						change: -25,
+						percentChange: -25,
+						trend: "down",
+					}),
+				}}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const chip = screen
+			.getAllByRole("listitem")[1]
+			?.querySelector("[data-slot=stat-trend]");
+		expect(chip?.textContent).toBe("\u221225.0 ptsvs. 30 days ago");
+	});
+
+	it("says there was no prior figure when percentChange is null", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={{
+					...mockTrends,
+					monthlyRevenue: makeTrend({ previous: 0, percentChange: null }),
+					openMaintenance: makeTrend({ previous: 0, percentChange: null }),
+				}}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const items = screen.getAllByRole("listitem");
+		expect(items[0]?.querySelector("[data-slot=stat-trend]")?.textContent).toBe(
+			"No rent scheduled 30 days ago",
+		);
+		expect(items[3]?.querySelector("[data-slot=stat-trend]")?.textContent).toBe(
+			"None open 30 days ago",
+		);
+		expect(items[0]?.textContent).not.toContain("0%");
+	});
+
+	it("says the change is unavailable when the server states no window", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={{
+					occupancyRate: makeTrend({ window: null }),
+					activeTenants: makeTrend({ window: null }),
+					monthlyRevenue: makeTrend({ window: null }),
+					openMaintenance: makeTrend({ window: null }),
+				}}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const chips = screen
+			.getAllByRole("listitem")
+			.map((item) => item.querySelector("[data-slot=stat-trend]")?.textContent)
+			.filter((text) => text !== undefined);
+		expect(chips).toEqual([
+			"Change unavailable",
+			"Change unavailable",
+			"Change unavailable",
+		]);
 	});
 
 	it("down-trend override class applied to Open Maintenance StatTrend", () => {

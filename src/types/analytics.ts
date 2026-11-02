@@ -28,13 +28,20 @@ export interface MonthlyRevenuePoint {
 	value: number; // dollars
 }
 
-// Analytics trend indicator
+/**
+ * One of get_dashboard_data_v2's `trends` (20261102184501): today's figure
+ * against the earlier day's. `percentChange` is the change over the earlier
+ * figure, null when that was 0 (no prior figure, never 0%); `window` the two
+ * days compared, null from a body that states none (its figures are no
+ * change: mapMetricTrend).
+ */
 export interface MetricTrend {
 	current: number;
 	previous: number | null;
 	change: number; // Absolute change
-	percentChange: number; // Percentage change
+	percentChange: number | null; // Percentage change; null with no prior figure
 	trend: "up" | "down" | "stable"; // Direction derived from change sign
+	window: DateWindow | null;
 }
 
 // Common analytics metric summary

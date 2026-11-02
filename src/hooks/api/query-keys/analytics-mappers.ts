@@ -16,6 +16,7 @@ import type {
 	MaintenanceCostSummary,
 	MaintenanceMetricSummary,
 	MaintenanceTrendPoint,
+	MetricTrend,
 	MonthlyFinancialMetric,
 	NetOperatingIncomeByProperty,
 	OccupancyMetricSummary,
@@ -228,6 +229,38 @@ export function mapFinancialOverview(
 // the bodies before 20261102184501 return them with no window (get_dashboard_
 // stats as the literal 0, get_dashboard_data_v2 against only the leases still
 // active today). A figure without its stated window is no figure.
+
+/**
+ * One of get_dashboard_data_v2's `trends`, or null when it is not one (no
+ * numbers to show). `window` is the two days it compares, null from a body
+ * that states none: the bodies before 20261102184501 compare today's leases
+ * with only the leases still active today, and read 0% with no earlier
+ * figure, so a caller shows no change without a window. `percentChange` is
+ * null when the earlier figure was 0. Never throws.
+ */
+export function mapMetricTrend(raw: unknown): MetricTrend | null {
+	const trend = asObject(raw);
+	const current = trend?.current;
+	const change = trend?.change;
+	if (typeof current !== "number" || typeof change !== "number") return null;
+	const previous = trend?.previous;
+	const percentChange = trend?.percentChange;
+	const direction = trend?.trend;
+	return {
+		current,
+		previous: typeof previous === "number" ? previous : null,
+		change,
+		percentChange:
+			typeof percentChange === "number" && Number.isFinite(percentChange)
+				? percentChange
+				: null,
+		trend:
+			direction === "up" || direction === "down" || direction === "stable"
+				? direction
+				: "stable",
+		window: parseStatedWindow(trend?.window),
+	};
+}
 
 /**
  * The trends in a dashboard `stats` payload, each `ready` only beside its

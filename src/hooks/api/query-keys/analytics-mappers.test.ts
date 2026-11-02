@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import {
 	mapFinancialOverview,
 	mapMaintenanceAnalytics,
+	mapMetricTrend,
 	mapOccupancyAnalytics,
 	mapPortfolioTrends,
 } from "./analytics-mappers";
@@ -210,6 +211,50 @@ const COMPUTED_MAINTENANCE = {
 		{ month: "2026-10", completed: 1, pending: 4, avg_resolution_hours: null },
 	],
 };
+
+describe("mapMetricTrend (20261102184501)", () => {
+	const WINDOW = "2026-10-03/2026-11-02";
+	const raw = {
+		current: 4,
+		previous: 3,
+		change: 1,
+		percentChange: 33.33,
+		trend: "up",
+		window: WINDOW,
+	};
+
+	it("reads a trend and the window it computes", () => {
+		expect(mapMetricTrend(raw)).toEqual({
+			current: 4,
+			previous: 3,
+			change: 1,
+			percentChange: 33.33,
+			trend: "up",
+			window: { start_date: "2026-10-03", end_date: "2026-11-02" },
+		});
+	});
+
+	it("keeps a NULL percentChange (no prior figure) null, never 0", () => {
+		expect(
+			mapMetricTrend({ ...raw, previous: 0, percentChange: null }),
+		).toMatchObject({ previous: 0, percentChange: null });
+	});
+
+	it("states no window from a body that states none (the body before)", () => {
+		const { window: _omit, ...old } = raw;
+		expect(mapMetricTrend({ ...old, percentChange: 0 })).toMatchObject({
+			window: null,
+		});
+	});
+
+	it.each([
+		["no payload", undefined],
+		["not an object", 3],
+		["no current figure", { change: 1 }],
+	])("reads %s as no trend", (_what, value) => {
+		expect(mapMetricTrend(value)).toBeNull();
+	});
+});
 
 describe("mapPortfolioTrends (20261102184501)", () => {
 	const WINDOW = "2026-10-03/2026-11-02";

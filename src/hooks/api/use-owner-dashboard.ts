@@ -20,7 +20,10 @@ import type { PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
 import type { Database } from "#types/supabase";
-import { mapPortfolioTrends } from "./query-keys/analytics-mappers";
+import {
+	mapMetricTrend,
+	mapPortfolioTrends,
+} from "./query-keys/analytics-mappers";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 // Types exported for use-dashboard-hooks.ts
@@ -160,7 +163,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	const result = jsonObject<{
 		stats: DashboardStats;
-		trends: Record<string, MetricTrend>;
+		trends: Record<string, unknown>;
 		time_series: Record<string, TimeSeriesDataPoint[]> & {
 			monthly_revenue_6mo?: MonthlyRevenuePoint[];
 		};
@@ -203,11 +206,13 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		stats: result.stats,
 		portfolioTrends: mapPortfolioTrends(result.stats),
 		activity: (result.activities ?? []).map(mapDashboardActivityRow),
+		// Each trend at the boundary (mapMetricTrend): its window is the marker
+		// the chips key on, and a null percentChange means no prior figure.
 		metricTrends: {
-			occupancyRate: result.trends?.occupancy_rate ?? null,
-			activeTenants: result.trends?.active_tenants ?? null,
-			monthlyRevenue: result.trends?.monthly_revenue ?? null,
-			openMaintenance: result.trends?.open_maintenance ?? null,
+			occupancyRate: mapMetricTrend(result.trends?.occupancy_rate),
+			activeTenants: mapMetricTrend(result.trends?.active_tenants),
+			monthlyRevenue: mapMetricTrend(result.trends?.monthly_revenue),
+			openMaintenance: mapMetricTrend(result.trends?.open_maintenance),
 		},
 		timeSeries: {
 			occupancyRate: result.time_series?.occupancy_rate ?? [],

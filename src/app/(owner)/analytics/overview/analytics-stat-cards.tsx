@@ -18,6 +18,7 @@ import {
 	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
+import { formatSignedOneDecimal } from "#lib/formatters/signed";
 import { windowDays } from "#lib/stated-window";
 import type { DateWindow, PortfolioTrends } from "#types/analytics";
 
@@ -39,16 +40,6 @@ interface AnalyticsStatCardsProps {
 	maintenanceChange: number;
 	/** Undefined while the dashboard payload loads. */
 	trends: PortfolioTrends | undefined;
-}
-
-/** The U+2212 typographic minus the dashboard's trend chips use. */
-const MINUS = String.fromCharCode(0x2212);
-
-/** A signed figure to one decimal: "+1.5", "−25.0", "0.0". */
-function signed(value: number): string {
-	const rounded = Math.round(value * 10) / 10;
-	const sign = rounded > 0 ? "+" : rounded < 0 ? MINUS : "";
-	return `${sign}${Math.abs(rounded).toFixed(1)}`;
 }
 
 /** "vs 30 days ago": the window's first day, counted back from its last. */
@@ -74,7 +65,7 @@ function ChangeLine({
 		<StatTrend trend={direction}>
 			<Icon aria-hidden="true" />
 			<span>
-				{signed(value)}
+				{formatSignedOneDecimal(value)}
 				{unit}
 			</span>
 			<span className="text-muted-foreground">{since(window)}</span>
