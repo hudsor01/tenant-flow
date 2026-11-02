@@ -27,7 +27,6 @@ import {
 } from "#components/ui/select";
 import { createClient } from "#lib/supabase/client";
 import {
-	type CustomClause,
 	createDefaultContext,
 	getDefaultSelections,
 	type LeaseTemplateContext,
@@ -123,7 +122,6 @@ export function LeaseTemplateBuilder() {
 		() =>
 			getDefaultSelections(leaseTemplateSchema, defaultState).selectedClauses,
 	);
-	const customClauses: CustomClause[] = [];
 	const [pdfPreview, setPdfPreview] = useState<string | null>(null);
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -163,7 +161,6 @@ export function LeaseTemplateBuilder() {
 		selectedClauses,
 		includeFederalDisclosures,
 		includeStateDisclosures,
-		customClauses,
 	};
 
 	const previewHtml = (() => {
