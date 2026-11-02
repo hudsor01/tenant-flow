@@ -16,6 +16,7 @@ import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Button } from "#components/ui/button";
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
@@ -296,9 +297,11 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 						</div>
 					</div>
 					<div className="flex justify-end gap-2 pt-2">
-						<Button ref={closeButtonRef} type="button" variant="outline">
-							Cancel
-						</Button>
+						<DialogClose asChild>
+							<Button ref={closeButtonRef} type="button" variant="outline">
+								Cancel
+							</Button>
+						</DialogClose>
 						<Button type="submit" disabled={create.isPending}>
 							{create.isPending ? "Creating..." : "Add Unit"}
 						</Button>

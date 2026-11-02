@@ -151,12 +151,9 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							<span className="text-xs font-medium text-foreground">
 								Recent Activity
 							</span>
-							<button
-								type="button"
-								className="text-xs text-primary-text hover:underline flex items-center"
-							>
+							<span className="text-xs text-primary-text flex items-center">
 								View all <ChevronRight className="size-3" />
-							</button>
+							</span>
 						</div>
 						<div className="space-y-2">
 							<ActivityItem
@@ -251,12 +248,9 @@ function QuickAction({
 	};
 
 	return (
-		<button
-			type="button"
-			className="w-full card-standard p-2.5 flex-between hover:border-primary/20 hover:bg-primary/5 transition-all group"
-		>
+		<div className="w-full card-standard p-2.5 flex-between">
 			<div className="flex items-center gap-2">
-				<div className="icon-container-sm bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+				<div className="icon-container-sm bg-primary/10 text-primary">
 					{icon}
 				</div>
 				<span className="text-xs font-medium text-foreground">{label}</span>
@@ -271,9 +265,9 @@ function QuickAction({
 					{badge}
 				</span>
 			) : (
-				<ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+				<ChevronRight className="size-3.5 text-muted-foreground" />
 			)}
-		</button>
+		</div>
 	);
 }
 

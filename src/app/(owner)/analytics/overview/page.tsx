@@ -13,17 +13,10 @@ const ChartAreaInteractive = dynamic(
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
 
-import {
-	BarChart3,
-	Building2,
-	Calendar,
-	TrendingDown,
-	TrendingUp,
-} from "lucide-react";
+import { BarChart3, Building2, TrendingDown, TrendingUp } from "lucide-react";
 import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
 import { Badge } from "#components/ui/badge";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { useDashboardStats } from "#hooks/api/use-dashboard-hooks";
 import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
@@ -173,10 +166,6 @@ export default function AnalyticsPage() {
 									Ranked by monthly revenue
 								</p>
 							</div>
-							<Button variant="ghost" size="sm">
-								<Calendar className="size-4 mr-2" />
-								This Month
-							</Button>
 						</div>
 						<div className="space-y-3">
 							{properties.length > 0 ? (

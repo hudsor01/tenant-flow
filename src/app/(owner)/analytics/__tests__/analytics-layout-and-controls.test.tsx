@@ -1,5 +1,5 @@
 /**
- * Grid placement on the analytics pages.
+ * Grid placement on the analytics pages, and the overview's dead control.
  *
  * `/analytics/property-performance` and `/analytics/financial` lay their first
  * chart row out as `grid lg:grid-cols-3` with the chart card meant to span two
@@ -8,6 +8,9 @@
  * nothing. Measured in Chrome at 1280px the chart card was one track (298.66px)
  * wide, the side column took the second track and the third stayed empty. The
  * span now sits on the BlurFade, the grid item (621.33px, two tracks).
+ *
+ * `/analytics/overview`'s "Top Performing Properties" header carried a ghost
+ * "This Month" button with no handler and no period feature behind it.
  */
 
 import {
@@ -123,5 +126,17 @@ describe("analytics chart rows span two of three tracks", () => {
 		expect(item.getAttribute("data-slot")).toBe("blur-fade");
 		expect(item.classList.contains("lg:col-span-2")).toBe(true);
 		expect(card.className).not.toMatch(/col-span/);
+	});
+});
+
+describe("analytics overview", () => {
+	it("has no dead period button in Top Performing Properties", async () => {
+		const { default: Page } = await import("../overview/page");
+		renderPage(createElement(Page));
+		const heading = await screen.findByText("Top Performing Properties");
+		const card = heading.closest(".bg-card");
+		expect(card).not.toBeNull();
+		expect(card?.querySelectorAll("button")).toHaveLength(0);
+		expect(screen.queryByRole("button", { name: /this month/i })).toBeNull();
 	});
 });
