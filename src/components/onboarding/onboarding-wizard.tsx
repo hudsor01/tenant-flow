@@ -36,10 +36,9 @@ const STEP_LABELS: Record<WizardStep, string> = {
 	complete: "All Done",
 };
 
+// The welcome and complete steps show no indicator, so it renders only on the
+// property step, the one step between them, as that step's current bar.
 function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
-	const currentIndex = STEPS.indexOf(currentStep);
-	const displaySteps = STEPS.filter((s) => s !== "welcome" && s !== "complete");
-
 	if (currentStep === "welcome" || currentStep === "complete") {
 		return null;
 	}
@@ -50,26 +49,10 @@ function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
 			role="group"
 			aria-label="Setup progress"
 		>
-			{displaySteps.map((step) => {
-				const stepIndex = STEPS.indexOf(step);
-				const isCompleted = stepIndex < currentIndex;
-				const isCurrent = step === currentStep;
-
-				return (
-					<div
-						key={step}
-						title={STEP_LABELS[step]}
-						className={[
-							"h-1.5 rounded-full transition-all duration-200",
-							isCurrent
-								? "w-6 bg-primary"
-								: isCompleted
-									? "w-3 bg-primary/50"
-									: "w-3 bg-muted",
-						].join(" ")}
-					/>
-				);
-			})}
+			<div
+				title={STEP_LABELS[currentStep]}
+				className="h-1.5 rounded-full transition-all duration-200 w-6 bg-primary"
+			/>
 		</div>
 	);
 }
