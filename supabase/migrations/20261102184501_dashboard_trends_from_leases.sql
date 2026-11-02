@@ -5,7 +5,10 @@
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
 -- 20261102163709_property_performance_rent_received.sql (independent functions;
--- the order only keeps the ledger sequential). After the merge the main
+-- the order only keeps the ledger sequential). Apply
+-- 20261102200501_occupancy_trends_exclude_soft_deleted.sql with it: the two
+-- carry one rule (ONE DEFINITION below), and with only one of them applied the
+-- tile and the occupancy chart count a soft-deleted unit's lease differently. After the merge the main
 -- session applies this file with MCP `apply_migration`, reads
 -- `list_migrations`, and renames the file to the version production assigned,
 -- in a follow-up PR. Until it is applied, the analytics overview finds no
@@ -34,25 +37,35 @@
 -- service_role only). In get_dashboard_data_v2 the `trends.occupancy_rate` and
 -- `trends.monthly_revenue` objects now read the same two figures (current and
 -- previous below), so `stats.units.occupancyChange` equals
--- `trends.occupancy_rate.change`; their `percentChange` and `trend` keep their
--- formulas (the dashboard's KPI chips read them). `trends.active_tenants` and
--- `trends.open_maintenance` are untouched.
+-- `trends.occupancy_rate.change`, and `trends.active_tenants` reads the
+-- helper's tenant count on the same two days (it compared today's active
+-- leases with only the leases still active TODAY that ran 30 days ago, the
+-- defect the occupancy trend had). In all four trends (occupancy_rate,
+-- monthly_revenue, active_tenants, open_maintenance) `percentChange` is NULL
+-- when the earlier figure is 0 (it was 0, a figure no caller could tell from
+-- "unchanged") and each states its two days in `window`, the dashboard KPI
+-- chips' marker. `trend` and `open_maintenance`'s two counts keep their
+-- formulas.
 --
 -- ONE DEFINITION. dashboard_lease_position(owner, day) returns the owner's
--- occupancy rate and scheduled monthly rent on a day, from leases, the rule
--- get_occupancy_trends_optimized (the occupancy trend series) applies to a
--- month, applied to one day:
---   - a lease counts on a day when its status is 'active', 'ended' or
---     'expired' (it was running then, whatever it is now) and the day is
---     within start_date .. end_date (an open end runs on);
---   - occupancy_rate: the units with such a lease, over the owner's units
---     that are not inactive, on properties that are not inactive, in percent,
---     rounded to 2 decimals (0 with no units). The numerator counts a lease's
---     unit as the series does (a soft-deleted unit's lease included); the
---     denominator is today's unit list on both dates (there is no unit
---     history), as the series' is.
+-- occupancy rate, scheduled monthly rent and tenants on a day, from leases,
+-- the rule get_occupancy_trends_optimized (the occupancy trend series, as
+-- 20261102200501 leaves it) applies to a month, applied to one day:
+--   - the counted units: the owner's units that are not soft-deleted
+--     (status 'inactive'), on properties that are not soft-deleted;
+--   - a lease counts on a day when it is on a counted unit, its status is
+--     'active', 'ended' or 'expired' (it was running then, whatever it is
+--     now; a soft-deleted lease is 'inactive') and the day is within
+--     start_date .. end_date (an open end runs on);
+--   - occupancy_rate: the counted units with such a lease, over the counted
+--     units, in percent, rounded to 2 decimals (0 with no units). One unit
+--     list for the numerator and the denominator, so a soft-deleted unit's
+--     lease never counts (it used to, and could put the rate over 100%);
+--     the list is today's on both dates (there is no unit history), as the
+--     series' is.
 --   - scheduled_rent: the sum of those leases' rent_amount, the dashboard's
 --     "Revenue" (scheduled rent, never cash; CLAUDE.md, Domain model).
+--   - tenant_count: the distinct primary tenants of those leases.
 -- Both ends of each comparison come from it, so today's figure is never
 -- units.status (the stored occupancy the tiles display) set against a lease
 -- count 30 days ago. Both callers are SECURITY DEFINER and run it as postgres,
@@ -69,48 +82,55 @@
 --   revenue.growth: the percent change of scheduled_rent between the two days,
 --     rounded to 2 decimals, or NULL when nothing was scheduled 30 days ago
 --     (no prior figure to compare: never 0, never a division by zero).
+--   trends.<each>.window (get_dashboard_data_v2): the same two days.
+--   trends.<each>.percentChange: the change over the earlier figure, in
+--     percent, rounded to 2 decimals, or NULL when the earlier figure is 0.
+--     For occupancy_rate it is relative; the change in points is `change`.
+--   trends.active_tenants: tenant_count today and 30 days ago.
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
 -- to an empty database, seeds a portfolio (scripts/migration-replay-owner-figures.sql)
--- and asserts both functions' figures, that they agree with each other and
--- with the helper, the windows, the guard and the grants
+-- and asserts both functions' figures, every trend's (its percentChange NULL
+-- with no earlier figure, its window, the tenants by the helper's rule), that
+-- they agree with each other and with the helper, that the helper equals the
+-- occupancy series on every month whose leases hold, the windows, the guard
+-- and the grants
 -- (assertOwnerFiguresComputed in scripts/migration-replay-assertions.ts).
 -- =============================================================================
 
 create or replace function public.dashboard_lease_position(p_owner_id uuid, p_on date)
- returns table(occupancy_rate numeric, scheduled_rent numeric)
+ returns table(occupancy_rate numeric, scheduled_rent numeric, tenant_count integer)
  language sql
  stable
  set search_path to 'public'
 as $function$
+  -- The counted units (see the header): one list for both sides of the rate.
   with counted_units as (
-    select count(*) filter (where u.status <> 'inactive') as total_units
+    select u.id
     from units u
     join properties p on p.id = u.property_id
     where p.owner_user_id = p_owner_id
       and p.status <> 'inactive'
+      and u.status <> 'inactive'
   ),
   running_leases as (
-    select l.unit_id, l.rent_amount
+    select l.unit_id, l.rent_amount, l.primary_tenant_id
     from leases l
-    join units u on u.id = l.unit_id
-    join properties p on p.id = u.property_id
-    where p.owner_user_id = p_owner_id
-      and p.status <> 'inactive'
-      and l.lease_status in ('active', 'ended', 'expired')
+    join counted_units cu on cu.id = l.unit_id
+    where l.lease_status in ('active', 'ended', 'expired')
       and l.start_date <= p_on
       and (l.end_date is null or l.end_date >= p_on)
   )
   select
     coalesce(round(
       (select count(distinct rl.unit_id) from running_leases rl)::numeric
-        / nullif(cu.total_units, 0)::numeric * 100, 2), 0) as occupancy_rate,
-    coalesce((select sum(rl.rent_amount) from running_leases rl), 0)::numeric as scheduled_rent
-  from counted_units cu;
+        / nullif((select count(*) from counted_units), 0)::numeric * 100, 2), 0) as occupancy_rate,
+    coalesce((select sum(rl.rent_amount) from running_leases rl), 0)::numeric as scheduled_rent,
+    (select count(distinct rl.primary_tenant_id) from running_leases rl)::integer as tenant_count;
 $function$;
 
 comment on function public.dashboard_lease_position(uuid, date) is
-  'Private helper of get_dashboard_stats and get_dashboard_data_v2: the owner''s occupancy rate (units with a lease in status active/ended/expired running on p_on, over units not inactive on properties not inactive, percent, 2 decimals) and scheduled monthly rent (sum of those leases'' rent_amount) on p_on. The rule get_occupancy_trends_optimized applies to a month. No client role may execute it.';
+  'Private helper of get_dashboard_stats and get_dashboard_data_v2: on p_on, over the counted units (the owner''s units not inactive on properties not inactive), the occupancy rate (counted units with a lease in status active/ended/expired running on p_on, over the counted units, percent, 2 decimals), the scheduled monthly rent (sum of those leases'' rent_amount) and the tenants (distinct primary tenants of those leases). The rule get_occupancy_trends_optimized applies to a month (20261102200501). No client role may execute it.';
 
 revoke all on function public.dashboard_lease_position(uuid, date) from public, anon, authenticated, service_role;
 
@@ -464,16 +484,11 @@ begin
       (select scheduled_rent from public.dashboard_lease_position(p_user_id, current_date - 30)) as previous_val
   ),
 
+  -- Tenants with a running lease today and 30 days ago, from the same rule.
   trend_tenants as (
     select
-      (select count(distinct al.primary_tenant_id)::numeric from active_leases al) as current_val,
-      coalesce((
-        select count(distinct l.primary_tenant_id)::numeric
-        from all_leases l
-        where l.lease_status = 'active'
-          and l.start_date <= current_date - interval '30 days'
-          and (l.end_date is null or l.end_date >= current_date - interval '30 days')
-      ), 0) as previous_val
+      (select tenant_count from public.dashboard_lease_position(p_user_id, current_date))::numeric as current_val,
+      (select tenant_count from public.dashboard_lease_position(p_user_id, current_date - 30))::numeric as previous_val
   ),
 
   trend_maintenance as (
@@ -737,8 +752,9 @@ begin
         'percentChange', case
           when tocc.previous_val > 0
           then round(((tocc.current_val - tocc.previous_val) / tocc.previous_val) * 100, 2)
-          else 0
+          else null
         end,
+        'window', to_char(current_date - 30, 'YYYY-MM-DD') || '/' || to_char(current_date, 'YYYY-MM-DD'),
         'trend', case
           when tocc.current_val > tocc.previous_val then 'up'
           when tocc.current_val < tocc.previous_val then 'down'
@@ -752,8 +768,9 @@ begin
         'percentChange', case
           when trev.previous_val > 0
           then round(((trev.current_val - trev.previous_val) / trev.previous_val) * 100, 2)
-          else 0
+          else null
         end,
+        'window', to_char(current_date - 30, 'YYYY-MM-DD') || '/' || to_char(current_date, 'YYYY-MM-DD'),
         'trend', case
           when trev.current_val > trev.previous_val then 'up'
           when trev.current_val < trev.previous_val then 'down'
@@ -767,8 +784,9 @@ begin
         'percentChange', case
           when tten.previous_val > 0
           then round(((tten.current_val - tten.previous_val) / tten.previous_val) * 100, 2)
-          else 0
+          else null
         end,
+        'window', to_char(current_date - 30, 'YYYY-MM-DD') || '/' || to_char(current_date, 'YYYY-MM-DD'),
         'trend', case
           when tten.current_val > tten.previous_val then 'up'
           when tten.current_val < tten.previous_val then 'down'
@@ -782,8 +800,9 @@ begin
         'percentChange', case
           when tmnt.previous_val > 0
           then round(((tmnt.current_val - tmnt.previous_val) / tmnt.previous_val) * 100, 2)
-          else 0
+          else null
         end,
+        'window', to_char(current_date - 30, 'YYYY-MM-DD') || '/' || to_char(current_date, 'YYYY-MM-DD'),
         'trend', case
           when tmnt.current_val > tmnt.previous_val then 'up'
           when tmnt.current_val < tmnt.previous_val then 'down'

@@ -221,16 +221,26 @@ mutate "$REPLAY" 'asJsonObject(helpers?.[helper]),
 			NO_CLIENT_ROLE,' 'asJsonObject(helpers?.[helper]),
 			{},' \
                  'a ledger helper'"'"'s grants are compared with nothing'
-mutate "$REPLAY" '	collectYearEndTie(printed["owner_b_tie"], problems);' '' \
+mutate "$REPLAY" '		collectYearEndTie(label, printed[label], problems);' '' \
                  'the year-end tie is not checked'
-mutate "$REPLAY" 'if (end === null || start === null || table === null) {' 'if (false) {' \
+mutate "$REPLAY" '	owner_a_tie: { received: 383_350, expenses: 31_225 },' '' \
+                 'owner A'"'"'s tie (a deleted property'"'"'s rent) is not checked'
+mutate "$REPLAY" '		end === null ||' '		false ||' \
                  'a missing tie is reported as a mismatch, not as missing'
-mutate "$REPLAY" 'if (end - start !== table || table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {' \
-                 'if (table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {' \
+mutate "$REPLAY" '		spent === null ||' '		false ||' \
+                 'a tie with no expense figure is not reported as missing'
+mutate "$REPLAY" 'if (end - start !== table || table !== expected.received) {' \
+                 'if (table !== expected.received) {' \
                  'the summary is not compared with the table'
-mutate "$REPLAY" 'if (end - start !== table || table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {' \
+mutate "$REPLAY" 'if (end - start !== table || table !== expected.received) {' \
                  'if (end - start !== table) {' \
                  'a tie on the wrong figure passes'
+mutate "$REPLAY" 'if (spent !== tableSpent || tableSpent !== expected.expenses) {' \
+                 'if (tableSpent !== expected.expenses) {' \
+                 'the summary'"'"'s expenses are not compared with the table'"'"'s'
+mutate "$REPLAY" 'if (spent !== tableSpent || tableSpent !== expected.expenses) {' \
+                 'if (spent !== tableSpent) {' \
+                 'an expense tie on the wrong figure passes'
 mutate "$REPLAY" 'Object.entries(EVERY_PROPERTY_LISTED)' 'Object.entries({})' \
                  'the full property list is not checked'
 mutate "$REPLAY" 'if (printed[key] !== value) {' 'if (false) {' \
@@ -266,6 +276,38 @@ mutate "$REPLAY" 'hasKey(atPath(printed, "overview_a_window.overview"), "account
 	) {' 'false
 	) {' \
                  'the financial-overview diagnosis is removed'
+mutate "$REPLAY" '		hasKey(atPath(printed, "dashboard_v2_a.units"), "occupancyChangeWindow") &&' '' \
+                 'the v2 trends diagnosis also names production'"'"'s body'
+mutate "$REPLAY" '		!hasKey(trendOccupancy, "window")' '		false' \
+                 'the v2 trends diagnosis is removed'
+mutate "$REPLAY" '				month["occupied_units"] > month["total_units"]' '				false' \
+                 'the occupancy series diagnosis is removed'
+mutate "$REPLAY" '				month["occupied_units"] > month["total_units"]' '				month["occupied_units"] >= month["total_units"]' \
+                 'a fully let month is called the series'"'"' old body'
+mutate "$REPLAY" '		!hasKey(overview, "lease_profitability")' '		false' \
+                 'the lease profitability diagnosis is removed'
+mutate "$REPLAY" '		asJsonObject(overview) !== null &&' '' \
+                 'a missing overview call is called the old body'
+mutate "$REPLAY" '		if (seriesRow?.["occupancy_rate"] !== helperRow["occupancy_rate"]) continue;' '		continue;' \
+                 'the helper is never compared with the series'
+mutate "$REPLAY" '		if (seriesRow?.["occupancy_rate"] !== helperRow["occupancy_rate"]) continue;' '' \
+                 'the helper is compared with the series on a month whose leases change'
+mutate "$REPLAY" '		if (helperRate === undefined || helperRate !== seriesRate) {' '		if (helperRate !== seriesRate) {' \
+                 'two missing rates pass as equal'
+mutate "$REPLAY" '		if (helperRate === undefined || helperRate !== seriesRate) {' '		if (helperRate === undefined) {' \
+                 'a disagreement of the helper and the series passes'
+mutate "$REPLAY" '			OWNER_A_COUNTED_UNITS.has(lease.unit) &&' '' \
+                 'the occupancy model counts a soft-deleted unit'"'"'s lease'
+mutate "$REPLAY" '			RUNNING_STATUSES.has(lease.status) &&' '' \
+                 'the occupancy model counts a lease that never ran'
+mutate "$REPLAY" '			start <= to &&' '' \
+                 'the occupancy model counts a lease before it starts'
+mutate "$REPLAY" '			end >= from' '			true' \
+                 'the occupancy model counts a lease after it ends'
+mutate "$REPLAY" 'return utcYmd(year, month - 1 + months, Math.min(day, lastDay));' 'return utcYmd(year, month - 1 + months, day);' \
+                 'a month shorter than the day rolls over'
+mutate "$REPLAY" 'const l12RanOnM0 = (shiftYmd(today, -2) ?? "") <= monthStartYmd(today, 0);' 'const l12RanOnM0 = (shiftYmd(today, -2) ?? "") < monthStartYmd(today, 0);' \
+                 'R3'"'"'s spend goes to L1 on the day L12 starts'
 mutate "$REPLAY" 'if (!hasKey(parent, key)) {' 'if (false) {' \
                  'an absent owner figure is reported as undefined, not absent'
 mutate "$REPLAY" 'if (actual !== value) {' 'if (false) {' \

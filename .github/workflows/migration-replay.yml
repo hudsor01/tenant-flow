@@ -230,8 +230,10 @@ jobs:
           # get_expense_summary returned year_over_year_change as null,
           # get_maintenance_analytics returned every cost as 0 or [], and
           # get_financial_overview returned receivables, payables and trends as
-          # literals no caller reads -- and no job ran any of them against
-          # data. The fixture seeds leases, maintenance requests and expenses
+          # literals no caller reads (and no lease's profitability), and until
+          # 20261102200501 get_occupancy_trends_optimized counted a soft-deleted
+          # unit's lease -- and no job ran any of them against data. The
+          # fixture seeds leases, rent receipts, maintenance requests and expenses
           # for the three seeded users (so it runs after the cast step), calls
           # each function as its owner, prints ONE JSON line and rolls back.
           # The expected figures, and the arithmetic behind each, live in

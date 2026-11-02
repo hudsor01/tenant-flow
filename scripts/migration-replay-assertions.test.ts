@@ -21,6 +21,7 @@ import {
 	EXPECTED_SEEDED_CAST,
 	expectedOwnerFigures,
 	expectedPropertyPerformance,
+	occupancySeriesMonth,
 } from "./migration-replay-assertions";
 
 const CORRECT_ROWS = EXPECTED_SEEDED_CAST.join("\n");
@@ -661,7 +662,7 @@ describe("assertBillingInsightsFromLedger", () => {
  * from `today`, so the line stays valid on any later day.
  */
 const REPLAYED_PERFORMANCE_LINE =
-	'{"today": "2026-11-02", "execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tie": {"table_total": 1350.00, "collected_2024_end": 55.00, "collected_2025_end": 1405.00}, "owner_a_default": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}], "owner_a_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 690.00, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 700.00, "occupancy_rate": 100.00, "total_expenses": 10.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000b002", "property_name": "Cedar Row", "total_revenue": 650.00, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}], "owner_c_all_count": 101, "owner_c_last_name": "Lot 101", "owner_c_limit_5_count": 5, "execute_ledger_helpers": {"public.rent_ledger_leases(uuid)": {"anon": false, "service_role": false, "authenticated": false}, "public.rent_ledger_receipts(uuid)": {"anon": false, "service_role": false, "authenticated": false}}, "backwards_range_sqlstate": "22023", "guard_refuses_another_owner": true}';
+	'{"today": "2026-11-02", "execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_tie": {"table_total": 3833.50, "expense_total": 312.25, "table_expenses": 312.25, "collected_2024_end": 1044.00, "collected_2025_end": 4877.50}, "owner_b_tie": {"table_total": 1350.00, "expense_total": 10.00, "table_expenses": 10.00, "collected_2024_end": 55.00, "collected_2025_end": 1405.00}, "owner_a_default": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}], "owner_a_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}, {"timeframe": "2025-01-01/2025-12-31", "net_income": -12.00, "property_id": "c1000000-0000-4000-8000-00000000a005", "property_name": "Echo Barn", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 12.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 333.00, "property_id": "c1000000-0000-4000-8000-00000000a004", "property_name": "Gamma Flats", "total_revenue": 333.00, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 690.00, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 700.00, "occupancy_rate": 100.00, "total_expenses": 10.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000b002", "property_name": "Cedar Row", "total_revenue": 650.00, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}], "owner_c_all_count": 101, "owner_c_last_name": "Lot 101", "owner_c_limit_5_count": 5, "execute_ledger_helpers": {"public.rent_ledger_leases(uuid)": {"anon": false, "service_role": false, "authenticated": false}, "public.rent_ledger_receipts(uuid)": {"anon": false, "service_role": false, "authenticated": false}}, "backwards_range_sqlstate": "22023", "guard_refuses_another_owner": true}';
 
 /**
  * The same fixture against PRODUCTION's body as of 2026-11-02, on the same
@@ -670,7 +671,7 @@ const REPLAYED_PERFORMANCE_LINE =
  * backwards range accepted. `execute.anon` is true for the reason given above.
  */
 const PRODUCTION_PERFORMANCE_LINE =
-	'{"today": "2026-11-02", "execute": {"anon": true, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tie": {"table_total": 0, "collected_2024_end": 55.00, "collected_2025_end": 1405.00}, "owner_a_default": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}], "owner_a_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b002", "property_name": "Cedar Row", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}], "owner_c_all_count": 100, "owner_c_last_name": "Lot 100", "owner_c_limit_5_count": 5, "execute_ledger_helpers": {"public.rent_ledger_leases(uuid)": {"anon": false, "service_role": false, "authenticated": false}, "public.rent_ledger_receipts(uuid)": {"anon": false, "service_role": false, "authenticated": false}}, "backwards_range_sqlstate": null, "guard_refuses_another_owner": true}';
+	'{"today": "2026-11-02", "execute": {"anon": true, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_tie": {"table_total": 0, "expense_total": 312.25, "table_expenses": 131.00, "collected_2024_end": 1044.00, "collected_2025_end": 4877.50}, "owner_b_tie": {"table_total": 0, "expense_total": 10.00, "table_expenses": 0, "collected_2024_end": 55.00, "collected_2025_end": 1405.00}, "owner_a_default": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}], "owner_a_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b002", "property_name": "Cedar Row", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}], "owner_c_all_count": 100, "owner_c_last_name": "Lot 100", "owner_c_limit_5_count": 5, "execute_ledger_helpers": {"public.rent_ledger_leases(uuid)": {"anon": false, "service_role": false, "authenticated": false}, "public.rent_ledger_receipts(uuid)": {"anon": false, "service_role": false, "authenticated": false}}, "backwards_range_sqlstate": null, "guard_refuses_another_owner": true}';
 
 type PerformanceLine = Record<string, unknown> & {
 	owner_a_tax_2025: Record<string, unknown>[];
@@ -729,7 +730,7 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		expect(result.ok).toBe(false);
 		expect(result.message).not.toContain("hard-coded body");
 		expect(result.message).toContain(
-			"owner_a_tax_2025[0].total_revenue: expected 2750.5, got 0",
+			"owner_a_limit_1[0].total_revenue: expected 2750.5, got 0",
 		);
 	});
 
@@ -745,7 +746,7 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		expect(result.ok).toBe(false);
 		expect(result.message).not.toContain("hard-coded body");
 		expect(result.message).toContain(
-			'owner_a_tax_2025[0].timeframe: expected "2025-01-01/2025-12-31", got "2025-01-01..2025-12-31"',
+			'owner_a_limit_1[0].timeframe: expected "2025-01-01/2025-12-31", got "2025-01-01..2025-12-31"',
 		);
 	});
 
@@ -756,7 +757,7 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		expect(result.ok).toBe(false);
 		expect(result.message).not.toContain("hard-coded body");
 		expect(result.message).toContain(
-			"owner_a_tax_2025: expected 3 rows, got 0",
+			"owner_a_tax_2025: expected 5 rows, got 0",
 		);
 	});
 
@@ -906,7 +907,9 @@ describe("assertPropertyPerformanceRentReceived", () => {
 				owner_b_tie: {
 					collected_2025_end: 1500,
 					collected_2024_end: 55,
+					expense_total: 10,
 					table_total: 1350,
+					table_expenses: 10,
 				},
 			}),
 		);
@@ -923,7 +926,9 @@ describe("assertPropertyPerformanceRentReceived", () => {
 				owner_b_tie: {
 					collected_2025_end: 1495,
 					collected_2024_end: 55,
+					expense_total: 10,
 					table_total: 1440,
+					table_expenses: 10,
 				},
 			}),
 		);
@@ -940,7 +945,9 @@ describe("assertPropertyPerformanceRentReceived", () => {
 				owner_b_tie: {
 					collected_2025_end: 1350.1 + 1349.9 - 1349.9,
 					collected_2024_end: 0.1,
+					expense_total: 0.1 + 0.2 + 9.7,
 					table_total: 1350,
+					table_expenses: 10,
 				},
 			}),
 		);
@@ -952,7 +959,135 @@ describe("assertPropertyPerformanceRentReceived", () => {
 		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			"owner_b_tie: expected three numbers, got undefined",
+			"owner_b_tie: expected five numbers, got undefined",
+		);
+	});
+
+	it("fails when owner A's tie was not reported", () => {
+		const { owner_a_tie: _omitted, ...rest } = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tie: expected five numbers, got undefined",
+		);
+	});
+
+	it("fails when a tie lacks its expense figures", () => {
+		const parsed = performanceLine();
+		const { expense_total: _omitted, ...tie } = parsed["owner_a_tie"] as Record<
+			string,
+			unknown
+		>;
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...parsed, owner_a_tie: tie }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_a_tie: expected five numbers");
+	});
+
+	it("fails when a property deleted after the year drops out of its table", () => {
+		// The body before: Gamma Flats (deleted, 333.00 received in 2025) and
+		// Echo Barn (deleted, 12.00 spent) not listed, so the table is short.
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_a_tax_2025: parsed.owner_a_tax_2025.slice(0, 3),
+				owner_a_tie: {
+					...(parsed["owner_a_tie"] as object),
+					table_total: 3500.5,
+					table_expenses: 300.25,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tax_2025: expected 5 rows, got 3",
+		);
+		expect(result.message).toContain(
+			"owner_a_tie: the year-end summary reads 3833.5 of 2025 rent received and its table 3500.5; both must be 3833.5.",
+		);
+		expect(result.message).toContain(
+			"owner_a_tie: the year-end summary reads 312.25 of 2025 expenses and its table 300.25; both must be 312.25.",
+		);
+	});
+
+	it("fails when a deleted property is listed for a trailing window", () => {
+		const parsed = performanceLine();
+		const gamma = {
+			property_id: "c1000000-0000-4000-8000-00000000a004",
+			property_name: "Gamma Flats",
+			occupancy_rate: 100,
+			total_revenue: 33,
+			total_expenses: 0,
+			net_income: 33,
+			timeframe: "2026-10-03/2026-11-02",
+		};
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_a_30d: [...parsed.owner_a_30d, gamma],
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_a_30d: expected 3 rows, got 4");
+	});
+
+	it("fails when a deleted property with nothing in the year is listed", () => {
+		const parsed = performanceLine();
+		const foxtrot = {
+			property_id: "c1000000-0000-4000-8000-00000000a006",
+			property_name: "Foxtrot Mews",
+			occupancy_rate: 0,
+			total_revenue: 0,
+			total_expenses: 0,
+			net_income: 0,
+			timeframe: "2025-01-01/2025-12-31",
+		};
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_a_tax_2025: [...parsed.owner_a_tax_2025, foxtrot],
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tax_2025: expected 5 rows, got 6",
+		);
+	});
+
+	it("fails when the summary's expenses and the table's differ", () => {
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_b_tie: {
+					...(parsed["owner_b_tie"] as object),
+					table_expenses: 0,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_b_tie: the year-end summary reads 10 of 2025 expenses and its table 0; both must be 10.",
+		);
+	});
+
+	it("fails when the expenses agree on a figure that is not the year's", () => {
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_a_tie: {
+					...(parsed["owner_a_tie"] as object),
+					expense_total: 300.25,
+					table_expenses: 300.25,
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tie: the year-end summary reads 300.25 of 2025 expenses and its table 300.25; both must be 312.25.",
 		);
 	});
 
@@ -1077,23 +1212,25 @@ describe("assertPropertyPerformanceRentReceived", () => {
 
 /**
  * The line `scripts/migration-replay-owner-figures.sql` printed against the
- * replayed stack with 20261102184501..20261102184504 applied, on 2026-11-02,
- * verbatim. Every window and month in it follows from `today`, which the
+ * replayed stack with 20261102184501..20261102184504 and 20261102200501
+ * applied, on 2026-11-02, verbatim. Every window and month in it follows from `today`, which the
  * assertion computes them from, so the line stays valid on any later day.
  */
 const REPLAYED_FIGURES_LINE =
-	'{"today": "2026-11-02", "execute": {"public.get_dashboard_stats(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_dashboard_data_v2(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_maintenance_analytics(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.dashboard_lease_position(uuid,date)": {"anon": false, "service_role": false, "authenticated": false}, "public.get_expense_summary(uuid,date,date)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_financial_overview(uuid,date,date)": {"anon": false, "service_role": true, "authenticated": true}}, "maintenance_a": {"total_cost": 790.50, "average_cost": 197.63, "monthly_cost": [{"cost": 0, "month": "2025-12"}, {"cost": 0, "month": "2026-01"}, {"cost": 0, "month": "2026-02"}, {"cost": 0, "month": "2026-03"}, {"cost": 0, "month": "2026-04"}, {"cost": 0, "month": "2026-05"}, {"cost": 0, "month": "2026-06"}, {"cost": 0, "month": "2026-07"}, {"cost": 0, "month": "2026-08"}, {"cost": 250.50, "month": "2026-09"}, {"cost": 110.00, "month": "2026-10"}, {"cost": 30.00, "month": "2026-11"}], "trendsOverTime": [{"month": "2025-12", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-01", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-02", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-03", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-04", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-05", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-06", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-07", "pending": 2, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-08", "pending": 4, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-09", "pending": 4, "completed": 1, "avg_resolution_hours": 48.33}, {"month": "2026-10", "pending": 4, "completed": 1, "avg_resolution_hours": 1406.00}, {"month": "2026-11", "pending": 3, "completed": 1, "avg_resolution_hours": 734.00}], "costed_requests": 4, "vendor_performance": [{"jobs": 1, "total_spend": 400.00, "vendor_name": "Roof Co"}, {"jobs": 2, "total_spend": 260.50, "vendor_name": "Plumber"}, {"jobs": 1, "total_spend": 100.00, "vendor_name": "Heat Co"}, {"jobs": 1, "total_spend": 30.00, "vendor_name": "Other"}]}, "dashboard_v2_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": -25.00, "totalActualRent": 2200, "totalPotentialRent": 3600, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": -10.18, "yearly": 26400, "monthly": 2200, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "down", "change": -280, "current": 2470, "previous": 2750, "percentChange": -10.18}, "trend_occupancy": {"trend": "down", "change": -25.00, "current": 75.00, "previous": 100.00, "percentChange": -25.00}}, "dashboard_v2_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 8400, "monthly": 700, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "up", "change": 700, "current": 700, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 100.00, "current": 100.00, "previous": 0.00, "percentChange": 0}}, "dashboard_v2_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 6000, "monthly": 500, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "up", "change": 500, "current": 500, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 33.33, "current": 33.33, "previous": 0.00, "percentChange": 0}}, "position_a_then": {"occupancy_rate": 100.00, "scheduled_rent": 2750}, "position_nobody": {"occupancy_rate": 0, "scheduled_rent": 0}, "position_a_today": {"occupancy_rate": 75.00, "scheduled_rent": 2470}, "dashboard_stats_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": -25.00, "totalActualRent": 2200, "totalPotentialRent": 3600, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": -10.18, "yearly": 86400, "monthly": 7200, "growthWindow": "2026-10-03/2026-11-02"}}, "dashboard_stats_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 8400, "monthly": 700, "growthWindow": "2026-10-03/2026-11-02"}}, "dashboard_stats_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 6000, "monthly": 500, "growthWindow": "2026-10-03/2026-11-02"}}, "overview_a_window": {"overview": {"net_income": 86039.50, "total_revenue": 86400, "total_expenses": 360.50}}, "maintenance_nobody": {"total_cost": 0, "average_cost": null, "monthly_cost": [{"cost": 0, "month": "2025-12"}, {"cost": 0, "month": "2026-01"}, {"cost": 0, "month": "2026-02"}, {"cost": 0, "month": "2026-03"}, {"cost": 0, "month": "2026-04"}, {"cost": 0, "month": "2026-05"}, {"cost": 0, "month": "2026-06"}, {"cost": 0, "month": "2026-07"}, {"cost": 0, "month": "2026-08"}, {"cost": 0, "month": "2026-09"}, {"cost": 0, "month": "2026-10"}, {"cost": 0, "month": "2026-11"}], "trendsOverTime": [{"month": "2025-12", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-01", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-02", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-03", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-04", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-05", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-06", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-07", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-08", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-09", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-10", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-11", "pending": 0, "completed": 0, "avg_resolution_hours": null}], "costed_requests": 0, "vendor_performance": []}, "expenses_b_leap_day": {"categories": [{"amount": 7.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 7.00, "year_over_year_change": null, "year_over_year_prior_period": "2023-02-28/2023-02-28"}, "overview_a_open_end": {"overview": {"net_income": 86370.00, "total_revenue": 86400, "total_expenses": 30.00}}, "expenses_b_unbounded": {"categories": [{"amount": 286.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 286.00, "year_over_year_change": null, "year_over_year_prior_period": null}, "expenses_b_open_ended": {"categories": [{"amount": 1149.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 1149.00, "year_over_year_change": null, "year_over_year_prior_period": null}, "expenses_b_spring_2025": {"categories": [{"amount": 150.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 150.00, "year_over_year_change": 25.00, "year_over_year_prior_period": "2024-03-01/2024-06-30"}, "expenses_c_year_to_date": {"categories": [{"amount": 320.00, "category": "Porch Co", "percentage": 100.00}], "total_amount": 320.00, "year_over_year_change": 33.33, "year_over_year_prior_period": "2025-01-01/2025-11-02"}, "guard_refuses_another_owner": {"get_dashboard_stats": true, "get_expense_summary": true, "get_dashboard_data_v2": true, "get_financial_overview": true, "get_maintenance_analytics": true}}';
+	'{"today": "2026-11-02", "execute": {"public.get_dashboard_stats(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_dashboard_data_v2(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_maintenance_analytics(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.dashboard_lease_position(uuid,date)": {"anon": false, "service_role": false, "authenticated": false}, "public.get_expense_summary(uuid,date,date)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_financial_overview(uuid,date,date)": {"anon": false, "service_role": true, "authenticated": true}, "public.get_occupancy_trends_optimized(uuid,integer)": {"anon": false, "service_role": true, "authenticated": true}}, "maintenance_a": {"total_cost": 790.50, "average_cost": 197.63, "monthly_cost": [{"cost": 0, "month": "2025-12"}, {"cost": 0, "month": "2026-01"}, {"cost": 0, "month": "2026-02"}, {"cost": 0, "month": "2026-03"}, {"cost": 0, "month": "2026-04"}, {"cost": 0, "month": "2026-05"}, {"cost": 0, "month": "2026-06"}, {"cost": 0, "month": "2026-07"}, {"cost": 0, "month": "2026-08"}, {"cost": 250.50, "month": "2026-09"}, {"cost": 110.00, "month": "2026-10"}, {"cost": 30.00, "month": "2026-11"}], "trendsOverTime": [{"month": "2025-12", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-01", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-02", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-03", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-04", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-05", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-06", "pending": 1, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-07", "pending": 2, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-08", "pending": 4, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-09", "pending": 4, "completed": 1, "avg_resolution_hours": 48.33}, {"month": "2026-10", "pending": 4, "completed": 1, "avg_resolution_hours": 1406.00}, {"month": "2026-11", "pending": 3, "completed": 1, "avg_resolution_hours": 734.00}], "costed_requests": 4, "vendor_performance": [{"jobs": 1, "total_spend": 400.00, "vendor_name": "Roof Co"}, {"jobs": 2, "total_spend": 260.50, "vendor_name": "Plumber"}, {"jobs": 1, "total_spend": 100.00, "vendor_name": "Heat Co"}, {"jobs": 1, "total_spend": 30.00, "vendor_name": "Other"}]}, "dashboard_v2_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": -25.00, "totalActualRent": 2200, "totalPotentialRent": 3600, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": -10.18, "yearly": 26400, "monthly": 2200, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "down", "change": -280, "window": "2026-10-03/2026-11-02", "current": 2470, "previous": 2750, "percentChange": -10.18}, "trend_tenants": {"trend": "up", "change": 1, "window": "2026-10-03/2026-11-02", "current": 4, "previous": 3, "percentChange": 33.33}, "trend_occupancy": {"trend": "down", "change": -25.00, "window": "2026-10-03/2026-11-02", "current": 75.00, "previous": 100.00, "percentChange": -25.00}, "trend_maintenance": {"trend": "down", "change": -1, "window": "2026-10-03/2026-11-02", "current": 3, "previous": 4, "percentChange": -25.00}}, "dashboard_v2_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 8400, "monthly": 700, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "up", "change": 700, "window": "2026-10-03/2026-11-02", "current": 700, "previous": 0, "percentChange": null}, "trend_tenants": {"trend": "up", "change": 1, "window": "2026-10-03/2026-11-02", "current": 1, "previous": 0, "percentChange": null}, "trend_occupancy": {"trend": "up", "change": 100.00, "window": "2026-10-03/2026-11-02", "current": 100.00, "previous": 0.00, "percentChange": null}, "trend_maintenance": {"trend": "up", "change": 1, "window": "2026-10-03/2026-11-02", "current": 1, "previous": 0, "percentChange": null}}, "dashboard_v2_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 6000, "monthly": 500, "growthWindow": "2026-10-03/2026-11-02"}, "trend_revenue": {"trend": "up", "change": 500, "window": "2026-10-03/2026-11-02", "current": 500, "previous": 0, "percentChange": null}, "trend_occupancy": {"trend": "up", "change": 33.33, "window": "2026-10-03/2026-11-02", "current": 33.33, "previous": 0.00, "percentChange": null}}, "overview_b_2025": {"overview": {"net_income": 7251.00, "total_revenue": 8400, "total_expenses": 1149.00}, "lease_profitability": {"leases": [{"net": 600.00, "expenses": 100.00, "lease_id": "d4000000-0000-4000-8000-0000000000b2", "tenant_name": "Flo West", "unit_number": "W1", "property_name": "West Place", "rent_received": 700.00, "property_deleted": false}, {"net": 590.00, "expenses": 50.00, "lease_id": "d4000000-0000-4000-8000-0000000000b3", "tenant_name": "Hal West", "unit_number": "W1", "property_name": "West Place", "rent_received": 640.00, "property_deleted": false}], "window": "2025-01-01/2025-12-31"}}, "position_a_then": {"tenant_count": 3, "occupancy_rate": 100.00, "scheduled_rent": 2750}, "position_nobody": {"tenant_count": 0, "occupancy_rate": 0, "scheduled_rent": 0}, "position_a_today": {"tenant_count": 4, "occupancy_rate": 75.00, "scheduled_rent": 2470}, "dashboard_stats_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": -25.00, "totalActualRent": 2200, "totalPotentialRent": 3600, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": -10.18, "yearly": 86400, "monthly": 7200, "growthWindow": "2026-10-03/2026-11-02"}}, "dashboard_stats_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 8400, "monthly": 700, "growthWindow": "2026-10-03/2026-11-02"}}, "dashboard_stats_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500, "occupancyChangeWindow": "2026-10-03/2026-11-02"}, "revenue": {"growth": null, "yearly": 6000, "monthly": 500, "growthWindow": "2026-10-03/2026-11-02"}}, "overview_a_future": {"lease_profitability": {"leases": [], "window": "2027-05-20/2027-05-22"}}, "overview_a_window": {"overview": {"net_income": 86039.50, "total_revenue": 86400, "total_expenses": 360.50}, "lease_profitability": {"leases": [{"net": 5000.00, "expenses": 0, "lease_id": "d4000000-0000-4000-8000-0000000000a8", "tenant_name": "Ed South", "unit_number": "S1", "property_name": "South House", "rent_received": 5000.00, "property_deleted": true}, {"net": 1639.50, "expenses": 360.50, "lease_id": "d4000000-0000-4000-8000-0000000000a1", "tenant_name": "Ann North", "unit_number": "N1", "property_name": "North Court", "rent_received": 2000.00, "property_deleted": false}, {"net": 800.00, "expenses": 0, "lease_id": "d4000000-0000-4000-8000-0000000000a2", "tenant_name": "Bea North", "unit_number": "N2", "property_name": "North Court", "rent_received": 800.00, "property_deleted": false}], "window": "2026-09-01/2026-10-06"}}, "position_a_months": [{"months_ago": 1, "occupancy_rate": 75.00}, {"months_ago": 2, "occupancy_rate": 75.00}, {"months_ago": 3, "occupancy_rate": 75.00}, {"months_ago": 4, "occupancy_rate": 75.00}, {"months_ago": 5, "occupancy_rate": 75.00}, {"months_ago": 6, "occupancy_rate": 75.00}, {"months_ago": 7, "occupancy_rate": 50.00}, {"months_ago": 8, "occupancy_rate": 50.00}, {"months_ago": 9, "occupancy_rate": 75.00}, {"months_ago": 10, "occupancy_rate": 50.00}, {"months_ago": 11, "occupancy_rate": 50.00}], "maintenance_nobody": {"total_cost": 0, "average_cost": null, "monthly_cost": [{"cost": 0, "month": "2025-12"}, {"cost": 0, "month": "2026-01"}, {"cost": 0, "month": "2026-02"}, {"cost": 0, "month": "2026-03"}, {"cost": 0, "month": "2026-04"}, {"cost": 0, "month": "2026-05"}, {"cost": 0, "month": "2026-06"}, {"cost": 0, "month": "2026-07"}, {"cost": 0, "month": "2026-08"}, {"cost": 0, "month": "2026-09"}, {"cost": 0, "month": "2026-10"}, {"cost": 0, "month": "2026-11"}], "trendsOverTime": [{"month": "2025-12", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-01", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-02", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-03", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-04", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-05", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-06", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-07", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-08", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-09", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-10", "pending": 0, "completed": 0, "avg_resolution_hours": null}, {"month": "2026-11", "pending": 0, "completed": 0, "avg_resolution_hours": null}], "costed_requests": 0, "vendor_performance": []}, "occupancy_series_a": [{"month": "2026-11", "total_units": 4, "occupancy_rate": 50.00, "occupied_units": 2}, {"month": "2026-10", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-09", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-08", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-07", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-06", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-05", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-04", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-03", "total_units": 4, "occupancy_rate": 50.00, "occupied_units": 2}, {"month": "2026-02", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-01", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2025-12", "total_units": 4, "occupancy_rate": 50.00, "occupied_units": 2}], "expenses_b_leap_day": {"categories": [{"amount": 7.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 7.00, "year_over_year_change": null, "year_over_year_prior_period": "2023-02-28/2023-02-28"}, "overview_a_open_end": {"overview": {"net_income": 86370.00, "total_revenue": 86400, "total_expenses": 30.00}, "lease_profitability": {"leases": [{"net": 1000.00, "expenses": 0, "lease_id": "d4000000-0000-4000-8000-0000000000a1", "tenant_name": "Ann North", "unit_number": "N1", "property_name": "North Court", "rent_received": 1000.00, "property_deleted": false}, {"net": -30.00, "expenses": 30.00, "lease_id": "d4000000-0000-4000-8000-00000000a012", "tenant_name": "Bea North", "unit_number": "N1", "property_name": "North Court", "rent_received": 0, "property_deleted": false}], "window": "2026-11-01/2026-11-02"}}, "expenses_b_unbounded": {"categories": [{"amount": 286.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 286.00, "year_over_year_change": null, "year_over_year_prior_period": null}, "expenses_b_open_ended": {"categories": [{"amount": 1149.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 1149.00, "year_over_year_change": null, "year_over_year_prior_period": null}, "expenses_b_spring_2025": {"categories": [{"amount": 150.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 150.00, "year_over_year_change": 25.00, "year_over_year_prior_period": "2024-03-01/2024-06-30"}, "overview_b_spring_2025": {"overview": {"net_income": 8250.00, "total_revenue": 8400, "total_expenses": 150.00}, "lease_profitability": {"leases": [{"net": -50.00, "expenses": 50.00, "lease_id": "d4000000-0000-4000-8000-0000000000b3", "tenant_name": "Hal West", "unit_number": "W1", "property_name": "West Place", "rent_received": 0, "property_deleted": false}, {"net": -100.00, "expenses": 100.00, "lease_id": "d4000000-0000-4000-8000-0000000000b2", "tenant_name": "Flo West", "unit_number": "W1", "property_name": "West Place", "rent_received": 0, "property_deleted": false}], "window": "2025-03-01/2025-06-30"}}, "expenses_c_year_to_date": {"categories": [{"amount": 320.00, "category": "Porch Co", "percentage": 100.00}], "total_amount": 320.00, "year_over_year_change": 33.33, "year_over_year_prior_period": "2025-01-01/2025-11-02"}, "guard_refuses_another_owner": {"get_dashboard_stats": true, "get_expense_summary": true, "get_dashboard_data_v2": true, "get_financial_overview": true, "get_maintenance_analytics": true, "get_occupancy_trends_optimized": true}}';
 
 /**
- * The same fixture against PRODUCTION's five bodies as of 2026-11-02, on the
+ * The same fixture against PRODUCTION's six bodies as of 2026-11-02, on the
  * same stack (the helper left in place, which only the new bodies call): the
- * literal zeros and nulls, the v2 trend against leases still active today,
- * the year to date with the future expense, the dead overview keys.
+ * literal zeros and nulls, the v2 trend against leases still active today and
+ * with no window, the occupancy series counting a soft-deleted unit's lease,
+ * the year to date with the future expense, the dead overview keys and no
+ * lease profitability.
  * `execute` shows anon=true where the replayed chain grants it and production
  * does not; the migrations revoke it.
  */
 const PRODUCTION_FIGURES_LINE =
-	'{"today": "2026-11-02", "execute": {"public.get_dashboard_stats(uuid)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_dashboard_data_v2(uuid)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_maintenance_analytics(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.dashboard_lease_position(uuid,date)": {"anon": false, "service_role": false, "authenticated": false}, "public.get_expense_summary(uuid,date,date)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_financial_overview(uuid,date,date)": {"anon": true, "service_role": true, "authenticated": true}}, "maintenance_a": {"total_cost": 0, "average_cost": 0, "monthly_cost": [], "trendsOverTime": [], "vendor_performance": []}, "dashboard_v2_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": 25.00, "totalActualRent": 2200, "totalPotentialRent": 3600}, "revenue": {"growth": 100.00, "yearly": 26400, "monthly": 2200}, "trend_revenue": {"trend": "up", "change": 1200, "current": 2200, "previous": 1000, "percentChange": 100.00}, "trend_occupancy": {"trend": "up", "change": 25.00, "current": 50.00, "previous": 25.00, "percentChange": 100.00}}, "dashboard_v2_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700}, "revenue": {"growth": 0, "yearly": 8400, "monthly": 700}, "trend_revenue": {"trend": "up", "change": 700, "current": 700, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 100.00, "current": 100.00, "previous": 0.00, "percentChange": 0}}, "dashboard_v2_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500}, "revenue": {"growth": 0, "yearly": 6000, "monthly": 500}, "trend_revenue": {"trend": "up", "change": 500, "current": 500, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 33.33, "current": 33.33, "previous": 0.00, "percentChange": 0}}, "position_a_then": {"occupancy_rate": 100.00, "scheduled_rent": 2750}, "position_nobody": {"occupancy_rate": 0, "scheduled_rent": 0}, "position_a_today": {"occupancy_rate": 75.00, "scheduled_rent": 2470}, "dashboard_stats_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": 0, "totalActualRent": 2200, "totalPotentialRent": 3600}, "revenue": {"growth": 0, "yearly": 86400, "monthly": 7200}}, "dashboard_stats_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 0, "totalActualRent": 700, "totalPotentialRent": 700}, "revenue": {"growth": 0, "yearly": 8400, "monthly": 700}}, "dashboard_stats_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 0, "totalActualRent": 500, "totalPotentialRent": 1500}, "revenue": {"growth": 0, "yearly": 6000, "monthly": 500}}, "overview_a_window": {"overview": {"net_income": 86039.50, "total_revenue": 86400, "total_expenses": 360.50, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 99.6}, {"label": "Cash Position", "trend": null, "value": 86039.50}]}, "maintenance_nobody": {"total_cost": 0, "average_cost": 0, "monthly_cost": [], "trendsOverTime": [], "vendor_performance": []}, "expenses_b_leap_day": {"categories": [{"amount": 7.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 7.00, "year_over_year_change": null}, "overview_a_open_end": {"overview": {"net_income": 86288.00, "total_revenue": 86400, "total_expenses": 112.00, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 99.9}, {"label": "Cash Position", "trend": null, "value": 86288.00}]}, "expenses_b_unbounded": {"categories": [{"amount": 286.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 286.00, "year_over_year_change": null}, "expenses_b_open_ended": {"categories": [{"amount": 1149.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 1149.00, "year_over_year_change": null}, "expenses_b_spring_2025": {"categories": [{"amount": 150.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 150.00, "year_over_year_change": null}, "expenses_c_year_to_date": {"categories": [{"amount": 386.00, "category": "Porch Co", "percentage": 100.00}], "total_amount": 386.00, "year_over_year_change": null}, "guard_refuses_another_owner": {"get_dashboard_stats": true, "get_expense_summary": true, "get_dashboard_data_v2": true, "get_financial_overview": true, "get_maintenance_analytics": true}}';
+	'{"today": "2026-11-02", "execute": {"public.get_dashboard_stats(uuid)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_dashboard_data_v2(uuid)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_maintenance_analytics(uuid)": {"anon": false, "service_role": true, "authenticated": true}, "public.dashboard_lease_position(uuid,date)": {"anon": false, "service_role": false, "authenticated": false}, "public.get_expense_summary(uuid,date,date)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_financial_overview(uuid,date,date)": {"anon": true, "service_role": true, "authenticated": true}, "public.get_occupancy_trends_optimized(uuid,integer)": {"anon": true, "service_role": true, "authenticated": true}}, "maintenance_a": {"total_cost": 0, "average_cost": 0, "monthly_cost": [], "trendsOverTime": [], "vendor_performance": []}, "dashboard_v2_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": 25.00, "totalActualRent": 2200, "totalPotentialRent": 3600}, "revenue": {"growth": 100.00, "yearly": 26400, "monthly": 2200}, "trend_revenue": {"trend": "up", "change": 1200, "current": 2200, "previous": 1000, "percentChange": 100.00}, "trend_tenants": {"trend": "up", "change": 1, "current": 2, "previous": 1, "percentChange": 100.00}, "trend_occupancy": {"trend": "up", "change": 25.00, "current": 50.00, "previous": 25.00, "percentChange": 100.00}, "trend_maintenance": {"trend": "down", "change": -1, "current": 3, "previous": 4, "percentChange": -25.00}}, "dashboard_v2_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 100.00, "totalActualRent": 700, "totalPotentialRent": 700}, "revenue": {"growth": 0, "yearly": 8400, "monthly": 700}, "trend_revenue": {"trend": "up", "change": 700, "current": 700, "previous": 0, "percentChange": 0}, "trend_tenants": {"trend": "up", "change": 1, "current": 1, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 100.00, "current": 100.00, "previous": 0.00, "percentChange": 0}, "trend_maintenance": {"trend": "up", "change": 1, "current": 1, "previous": 0, "percentChange": 0}}, "dashboard_v2_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 33.33, "totalActualRent": 500, "totalPotentialRent": 1500}, "revenue": {"growth": 0, "yearly": 6000, "monthly": 500}, "trend_revenue": {"trend": "up", "change": 500, "current": 500, "previous": 0, "percentChange": 0}, "trend_occupancy": {"trend": "up", "change": 33.33, "current": 33.33, "previous": 0.00, "percentChange": 0}}, "overview_b_2025": {"overview": {"net_income": 7251.00, "total_revenue": 8400, "total_expenses": 1149.00, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 700.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 86.3}, {"label": "Cash Position", "trend": null, "value": 7251.00}]}, "position_a_then": {"tenant_count": 3, "occupancy_rate": 100.00, "scheduled_rent": 2750}, "position_nobody": {"tenant_count": 0, "occupancy_rate": 0, "scheduled_rent": 0}, "position_a_today": {"tenant_count": 4, "occupancy_rate": 75.00, "scheduled_rent": 2470}, "dashboard_stats_a": {"units": {"total": 4, "vacant": 2, "occupied": 2, "available": 2, "averageRent": 900.0000000000000000, "maintenance": 0, "occupancyRate": 50.00, "occupancyChange": 0, "totalActualRent": 2200, "totalPotentialRent": 3600}, "revenue": {"growth": 0, "yearly": 86400, "monthly": 7200}}, "dashboard_stats_b": {"units": {"total": 1, "vacant": 0, "occupied": 1, "available": 0, "averageRent": 700.0000000000000000, "maintenance": 0, "occupancyRate": 100.00, "occupancyChange": 0, "totalActualRent": 700, "totalPotentialRent": 700}, "revenue": {"growth": 0, "yearly": 8400, "monthly": 700}}, "dashboard_stats_c": {"units": {"total": 3, "vacant": 2, "occupied": 1, "available": 2, "averageRent": 500.0000000000000000, "maintenance": 0, "occupancyRate": 33.33, "occupancyChange": 0, "totalActualRent": 500, "totalPotentialRent": 1500}, "revenue": {"growth": 0, "yearly": 6000, "monthly": 500}}, "overview_a_future": {"highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 100.0}, {"label": "Cash Position", "trend": null, "value": 86391.00}]}, "overview_a_window": {"overview": {"net_income": 86039.50, "total_revenue": 86400, "total_expenses": 360.50, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 99.6}, {"label": "Cash Position", "trend": null, "value": 86039.50}]}, "position_a_months": [{"months_ago": 1, "occupancy_rate": 75.00}, {"months_ago": 2, "occupancy_rate": 75.00}, {"months_ago": 3, "occupancy_rate": 75.00}, {"months_ago": 4, "occupancy_rate": 75.00}, {"months_ago": 5, "occupancy_rate": 75.00}, {"months_ago": 6, "occupancy_rate": 75.00}, {"months_ago": 7, "occupancy_rate": 50.00}, {"months_ago": 8, "occupancy_rate": 50.00}, {"months_ago": 9, "occupancy_rate": 75.00}, {"months_ago": 10, "occupancy_rate": 50.00}, {"months_ago": 11, "occupancy_rate": 50.00}], "maintenance_nobody": {"total_cost": 0, "average_cost": 0, "monthly_cost": [], "trendsOverTime": [], "vendor_performance": []}, "occupancy_series_a": [{"month": "2026-11", "total_units": 4, "occupancy_rate": 50.00, "occupied_units": 2}, {"month": "2026-10", "total_units": 4, "occupancy_rate": 125.00, "occupied_units": 5}, {"month": "2026-09", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-08", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-07", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-06", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-05", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-04", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-03", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}, {"month": "2026-02", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2026-01", "total_units": 4, "occupancy_rate": 100.00, "occupied_units": 4}, {"month": "2025-12", "total_units": 4, "occupancy_rate": 75.00, "occupied_units": 3}], "expenses_b_leap_day": {"categories": [{"amount": 7.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 7.00, "year_over_year_change": null}, "overview_a_open_end": {"overview": {"net_income": 86279.00, "total_revenue": 86400, "total_expenses": 121.00, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 7200.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 99.9}, {"label": "Cash Position", "trend": null, "value": 86279.00}]}, "expenses_b_unbounded": {"categories": [{"amount": 286.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 286.00, "year_over_year_change": null}, "expenses_b_open_ended": {"categories": [{"amount": 1149.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 1149.00, "year_over_year_change": null}, "expenses_b_spring_2025": {"categories": [{"amount": 150.00, "category": "Gate Co", "percentage": 100.00}], "total_amount": 150.00, "year_over_year_change": null}, "overview_b_spring_2025": {"overview": {"net_income": 8250.00, "total_revenue": 8400, "total_expenses": 150.00, "accounts_payable": 0, "accounts_receivable": 0}, "highlights": [{"label": "Monthly Revenue", "trend": null, "value": 700.0000000000000000}, {"label": "Operating Margin", "trend": null, "value": 98.2}, {"label": "Cash Position", "trend": null, "value": 8250.00}]}, "expenses_c_year_to_date": {"categories": [{"amount": 9.00, "category": "Cross Co", "percentage": 2.28}, {"amount": 386.00, "category": "Porch Co", "percentage": 97.72}], "total_amount": 395.00, "year_over_year_change": null}, "guard_refuses_another_owner": {"get_dashboard_stats": true, "get_expense_summary": true, "get_dashboard_data_v2": true, "get_financial_overview": true, "get_maintenance_analytics": true, "get_occupancy_trends_optimized": true}}';
 
 type FiguresLine = Record<string, Record<string, unknown>>;
 
@@ -1117,6 +1254,16 @@ function withFigureAt(path: string, value: unknown, remove = false): string {
 		at[last] = value;
 	}
 	return JSON.stringify(parsed);
+}
+
+/** The rows a call printed as a JSON array, for a test to edit in place. */
+function rowsOf(line: FiguresLine, label: string): Record<string, unknown>[] {
+	const rows: unknown = line[label];
+	if (!Array.isArray(rows)) throw new Error(`${label} is not an array`);
+	return rows.filter(
+		(row): row is Record<string, unknown> =>
+			typeof row === "object" && row !== null,
+	);
 }
 
 /** The replayed line with one call's payload taken from production's line. */
@@ -1146,6 +1293,7 @@ describe("assertOwnerFiguresComputed", () => {
 			"get_expense_summary returned year_over_year_change as the literal null",
 			"get_maintenance_analytics returned total_cost as the literal 0",
 			"get_financial_overview still returns accounts_receivable",
+			"get_occupancy_trends_optimized counted more occupied units than units",
 		]) {
 			expect(result.message).toContain(name);
 		}
@@ -1161,6 +1309,7 @@ describe("assertOwnerFiguresComputed", () => {
 		[["expenses_c_year_to_date"], "before 20261102184502"],
 		[["maintenance_a"], "before 20261102184503"],
 		[["overview_a_window"], "before 20261102184504"],
+		[["occupancy_series_a"], "before 20261102200501"],
 	])("names %j alone when only that body is production's", (labels, text) => {
 		const result = assertOwnerFiguresComputed(withProductionCall(...labels));
 		expect(result.ok).toBe(false);
@@ -1383,7 +1532,232 @@ describe("assertOwnerFiguresComputed", () => {
 		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			'overview_a_window: expected exactly the keys ["overview"], got ["highlights","overview"]',
+			'overview_a_window: expected exactly the keys ["lease_profitability","overview"], got ["highlights","lease_profitability","overview"]',
+		);
+	});
+
+	it("names the body before when the overview reports no lease profitability", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("overview_a_window.lease_profitability", null, true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"get_financial_overview returned no lease_profitability: that is a body before 20261102184504",
+		);
+	});
+
+	it("does not call it the body before when only the leases are missing", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("overview_a_window.lease_profitability.leases", null, true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("returned no lease_profitability");
+		expect(result.message).toContain(
+			"overview_a_window.lease_profitability.leases: expected 3 rows, got undefined",
+		);
+	});
+
+	it.each([
+		[
+			"a soft-deleted lease's receipts count",
+			"overview_a_window.lease_profitability.leases",
+			0,
+			"rent_received",
+			9444,
+		],
+		[
+			"a deleted property's lease is not said to be",
+			"overview_a_window.lease_profitability.leases",
+			0,
+			"property_deleted",
+			false,
+		],
+		[
+			"an expense on a day two leases ran counts for the earlier lease",
+			"overview_b_spring_2025.lease_profitability.leases",
+			0,
+			"expenses",
+			0,
+		],
+		[
+			"a reversal does not net",
+			"overview_b_2025.lease_profitability.leases",
+			1,
+			"rent_received",
+			750,
+		],
+		[
+			"net is not rent received less expenses",
+			"overview_b_2025.lease_profitability.leases",
+			0,
+			"net",
+			700,
+		],
+	])("fails when %s", (_what, path, index, key, value) => {
+		const parsed = figuresLine();
+		const steps = path.split(".");
+		let at: unknown = parsed;
+		for (const step of steps) at = (at as Record<string, unknown>)[step];
+		const row = (at as Record<string, unknown>[])[index];
+		if (row) row[key] = value;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(`${path}[${index}].${key}: expected`);
+	});
+
+	it("fails when the lease profitability states another window", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt(
+				"overview_b_2025.lease_profitability.window",
+				"2025-01-01..2025-12-31",
+			),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'overview_b_2025.lease_profitability.window: expected "2025-01-01/2025-12-31", got "2025-01-01..2025-12-31"',
+		);
+	});
+
+	it("fails when a lease with an expense on no lease's day is listed", () => {
+		const parsed = figuresLine();
+		const spring = parsed["overview_b_spring_2025"]?.[
+			"lease_profitability"
+		] as Record<string, unknown[]>;
+		spring["leases"]?.push({
+			lease_id: "d4000000-0000-4000-8000-0000000000b1",
+		});
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"overview_b_spring_2025.lease_profitability.leases: expected 2 rows, got",
+		);
+	});
+
+	it("names the occupancy series' body before when a month counts more units than it has", () => {
+		const parsed = figuresLine();
+		const series = rowsOf(parsed, "occupancy_series_a");
+		const latest = series[1];
+		if (latest) latest["occupied_units"] = 5;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("before 20261102200501");
+	});
+
+	it("does not call it the series' body before when a month is short", () => {
+		const parsed = figuresLine();
+		const series = rowsOf(parsed, "occupancy_series_a");
+		const third = series[3];
+		if (third) {
+			third["occupied_units"] = 4;
+			third["occupancy_rate"] = 100;
+		}
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("before 20261102200501");
+		expect(result.message).toContain(
+			"occupancy_series_a[3].occupancy_rate: expected 75, got 100",
+		);
+		expect(result.message).toContain(
+			"occupancy 3 months ago: the helper reads 75 and the series 100",
+		);
+	});
+
+	it("fails when the helper and the series disagree on a month whose leases hold", () => {
+		const parsed = figuresLine();
+		const months = rowsOf(parsed, "position_a_months");
+		const second = months[1];
+		if (second) second["occupancy_rate"] = 100;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"occupancy 2 months ago: the helper reads 100 and the series 75",
+		);
+	});
+
+	it("does not compare the helper and the series on a month a lease starts or ends in", () => {
+		// 1 month ago L3 and L10 start and L2, L6 and L11 end inside the month:
+		// the series reads 100.00, the helper on its first day 75.00.
+		const result = assertOwnerFiguresComputed(REPLAYED_FIGURES_LINE);
+		expect(result.ok).toBe(true);
+		expect(result.message).not.toContain("months ago");
+	});
+
+	it("fails when neither the helper's months nor the series were reported", () => {
+		const parsed = figuresLine();
+		delete parsed["position_a_months"];
+		delete parsed["occupancy_series_a"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"occupancy 2 months ago: the helper reads undefined and the series undefined",
+		);
+	});
+
+	it("reports a missing overview call as missing figures, not as the old body", () => {
+		const parsed = figuresLine();
+		delete parsed["overview_a_window"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("returned no lease_profitability");
+		expect(result.message).toContain(
+			"overview_a_window.overview.total_revenue: expected 86400, absent",
+		);
+	});
+
+	it("fails when the helper's months were not reported", () => {
+		const parsed = figuresLine();
+		delete parsed["position_a_months"];
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"position_a_months: expected 11 rows, got undefined",
+		);
+		expect(result.message).toContain(
+			"occupancy 2 months ago: the helper reads undefined and the series 75",
+		);
+	});
+
+	it.each([
+		["dashboard_v2_a.trend_tenants.previous", 1, "expected 3, got 1"],
+		["dashboard_v2_a.trend_tenants.current", 3, "expected 4, got 3"],
+		["position_a_today.tenant_count", 3, "expected 4, got 3"],
+		["dashboard_v2_b.trend_occupancy.percentChange", 0, "expected null, got 0"],
+		["dashboard_v2_b.trend_revenue.percentChange", 0, "expected null, got 0"],
+		["dashboard_v2_b.trend_tenants.percentChange", 0, "expected null, got 0"],
+		[
+			"dashboard_v2_b.trend_maintenance.percentChange",
+			0,
+			"expected null, got 0",
+		],
+		["dashboard_v2_a.trend_occupancy.percentChange", 0, "expected -25, got 0"],
+		[
+			"dashboard_v2_a.trend_maintenance.window",
+			"2026-10-02/2026-11-02",
+			'expected "2026-10-03/2026-11-02"',
+		],
+	])("fails when %s reads %j", (path, value, text) => {
+		const result = assertOwnerFiguresComputed(withFigureAt(path, value));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(`${path}: ${text}`);
+	});
+
+	it("names the body before when the trends state no window", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("dashboard_v2_a.trend_occupancy.window", null, true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"get_dashboard_data_v2's trends state no window",
+		);
+	});
+
+	it("tells a NULL percentChange from an absent one", () => {
+		const result = assertOwnerFiguresComputed(
+			withFigureAt("dashboard_v2_b.trend_tenants.percentChange", null, true),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"dashboard_v2_b.trend_tenants.percentChange: expected null, absent",
 		);
 	});
 
@@ -1520,6 +1894,38 @@ describe("expectedOwnerFigures", () => {
 		]?.map((row) => row["month"]);
 		expect(months?.[0]).toBe("2026-02");
 		expect(months?.[11]).toBe("2027-01");
+	});
+
+	it.each([
+		// Postgres: (d - n months)::date, and that + 1 month - 1 day.
+		["2026-12-31", 1, "2026-11-30", "2026-12-29"],
+		["2026-12-31", 11, "2026-01-31", "2026-02-27"],
+		["2027-01-31", 1, "2026-12-31", "2027-01-30"],
+		["2027-01-31", 11, "2026-02-28", "2026-03-27"],
+		["2027-03-31", 1, "2027-02-28", "2027-03-27"],
+		["2027-03-31", 2, "2027-01-31", "2027-02-27"],
+		["2027-05-31", 3, "2027-02-28", "2027-03-27"],
+		["2028-02-29", 1, "2028-01-29", "2028-02-28"],
+		["2028-02-29", 11, "2027-03-29", "2027-04-28"],
+	])(
+		"puts the occupancy series' month %s less %i months at %s..%s, as Postgres does",
+		(today, monthsAgo, from, to) => {
+			expect(occupancySeriesMonth(today, monthsAgo)).toEqual([from, to]);
+		},
+	);
+
+	it("gives R3's spend of M0 to L12 only when L12 ran on M0", () => {
+		const leases = (today: string) =>
+			expectedOwnerFigures(today).series[
+				"overview_a_open_end.lease_profitability.leases"
+			]?.map((row) => [row["lease_id"], row["expenses"]]);
+		expect(leases("2026-11-02")).toEqual([
+			["d4000000-0000-4000-8000-0000000000a1", 0],
+			["d4000000-0000-4000-8000-00000000a012", 30],
+		]);
+		expect(leases("2026-11-04")).toEqual([
+			["d4000000-0000-4000-8000-0000000000a1", 30],
+		]);
 	});
 
 	it("measures each resolution over the calendar months between", () => {

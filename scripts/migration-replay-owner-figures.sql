@@ -1,7 +1,9 @@
 -- Fixture for the migration-replay gate's owner-figures assertion: the
 -- figures get_dashboard_stats, get_dashboard_data_v2, get_expense_summary,
 -- get_maintenance_analytics and get_financial_overview returned as literals
--- before 20261102184501..20261102184504.
+-- before 20261102184501..20261102184504, and the occupancy series
+-- get_occupancy_trends_optimized counts by the helper's rule
+-- (20261102200501).
 --
 -- Run by .github/workflows/migration-replay.yml after the test cast is seeded,
 -- against the replayed EMPTY database only:
@@ -28,21 +30,29 @@
 --           L2 N2 ended              T-400 .. T-10    800
 --           L3 N3 active             T-5   .. T+360  1200
 --           L4 N4 pending_signature  T-60  .. T+300   999  (never running)
---           L5 N4 terminated         T-100 .. T-1     555  (not counted, as
+--           L5 N3 terminated         T-100 .. T-1     555  (not counted, as
 --                                                          the occupancy
 --                                                          series counts it)
 --           L6 N4 expired            T-200 .. T-20    600
 --           L8 S1 active             T-400 .. T+300  5000  (inactive property)
 --           L9 N2 inactive           T-400 .. T+300  4444  (soft-deleted)
---          L10 N3 ended              T-30  .. T-29    300  (starts on T-30)
+--          L10 N3 ended              T-30  .. T-29    300  (starts on T-30; Ann's)
 --          L11 N2 ended              T-500 .. T-30     50  (ends on T-30)
---          L12 N1 ended              T-2   .. T       250  (ends on T)
---          L13 N2 expired            T     .. T        20  (starts on T)
+--          L12 N1 ended              T-2   .. T       250  (ends on T; Bea's)
+--          L13 N2 expired            T     .. T        20  (starts on T; Di's)
+--          L14 N5 expired            T-400 .. T         7  (on N5, soft-deleted
+--                                                          after it: never
+--                                                          counted)
+--          L15 N4 ended              T-300 .. T-250   450  (months ago: in the
+--                                                          occupancy series
+--                                                          only)
 --   so on T the running leases are L1, L3, L12 and L13 (units N1, N2 and N3,
---   3 of 4; 2470 of rent) and on T-30 L1, L2, L6, L10 and L11 (all 4 units;
---   2750). L10 and L13 are their unit's only lease on their day, so the
---   occupancy moves a day either side of each window's end; L11 and L12 share
---   a unit with another lease, so they move only the rent.
+--   3 of 4; 2470 of rent; tenants Ann, Bea, Cy and Di: two on N1) and on
+--   T-30 L1, L2, L6, L10 and L11 (all 4 units; 2750; Ann, Bea and Di: Ann on
+--   two units). L10 and L13 are
+--   their unit's only lease on their day, so the occupancy moves a day either
+--   side of each window's end; L11 and L12 share a unit with another lease,
+--   so they move only the rent.
 --   maintenance requests on N1:
 --           R1 completed    created M0-2mo+1d, completed M0-2mo+3d (48 h)
 --           R2 completed    created M0-1mo 10:00, completed M0 00:00 (the
@@ -61,8 +71,25 @@
 --             (Plumber) on T+40 and 5.00 (Plumber) on T+1 when that is still in
 --             T's month (both dated in the future); R5 400.00 (Roof Co) on
 --             M0-12mo (before the 12-month series).
+--   and a request RX on N1 that owner C's id is on (a row the app never
+--   writes), with an expense of 9.00 on T+200, a day L1 and L3 run: no
+--   lease's of owner A's. And LXC, a lease of OWNER C's on N1 (likewise),
+--   ended, M0-2mo-5d .. M0-1mo, rent 0, Ann's: it runs on the days of R1's
+--   and R2's expenses and starts after L1, and no expense of owner A's is
+--   its (it changes no occupancy, rent or tenant count: N1 and Ann are
+--   counted then anyway).
+--   rent receipts: L1 1000.00 on M0-2mo+2d, 1000.00 on M0-1mo+2d and
+--             1000.00 on M0; L2 800.00 on M0-2mo+3d; L8 (South House,
+--             soft-deleted property) 5000.00 on M0-2mo+4d; L9 (soft-deleted
+--             lease) 4444.00 on M0-2mo+3d.
 -- OWNER B, West Place (unit W1): lease LB1 active T-3 .. T+360, 700 (nothing
---   ran 30 days ago); request RB1 with expenses 7.00 on 2024-02-29, 80.00 on
+--   ran 30 days ago), and two leases of 2025, both ended: LB2 2025-01-01 ..
+--   2025-06-30 (Flo) and LB3 2025-06-01 .. 2025-06-30 (Hal; both ran in
+--   June, and neither on 2025-07-01), and LB9 2025-06-15 .. 2025-06-30,
+--   soft-deleted: no expense is its. Receipts: LB2 700.00 on 2025-02-01;
+--   LB3 640.00 on 2025-07-05, 100.00 on 2025-08-01 and its reversal,
+--   -100.00, on 2025-08-02. Request
+--   RB1 with expenses 7.00 on 2024-02-29, 80.00 on
 --   2024-03-01, 30.00 on 2024-04-10 SOFT-DELETED, 40.00 on 2024-06-30, 9.00
 --   on 2024-07-01, 100.00 on 2025-03-01, 25.00 on 2025-04-10 SOFT-DELETED,
 --   50.00 on 2025-06-30 and 999.00 on 2025-07-01.
@@ -119,6 +146,7 @@ values
   ('d3000000-0000-4000-8000-00000000a004', :'owner_a', 'Di',  'North'),
   ('d3000000-0000-4000-8000-00000000a005', :'owner_a', 'Ed',  'South'),
   ('d3000000-0000-4000-8000-00000000b001', :'owner_b', 'Flo', 'West'),
+  ('d3000000-0000-4000-8000-00000000b002', :'owner_b', 'Hal', 'West'),
   ('d3000000-0000-4000-8000-00000000c001', :'owner_c', 'Gus', 'East');
 
 insert into public.leases (id, owner_user_id, unit_id, primary_tenant_id, start_date, end_date,
@@ -132,7 +160,7 @@ values
    'd3000000-0000-4000-8000-00000000a003', current_date - 5, current_date + 360, 1200, 1200, 'active'),
   ('d4000000-0000-4000-8000-0000000000a4', :'owner_a', 'd2000000-0000-4000-8000-0000000000a4',
    'd3000000-0000-4000-8000-00000000a004', current_date - 60, current_date + 300, 999, 999, 'pending_signature'),
-  ('d4000000-0000-4000-8000-0000000000a5', :'owner_a', 'd2000000-0000-4000-8000-0000000000a4',
+  ('d4000000-0000-4000-8000-0000000000a5', :'owner_a', 'd2000000-0000-4000-8000-0000000000a3',
    'd3000000-0000-4000-8000-00000000a004', current_date - 100, current_date - 1, 555, 555, 'terminated'),
   ('d4000000-0000-4000-8000-0000000000a6', :'owner_a', 'd2000000-0000-4000-8000-0000000000a4',
    'd3000000-0000-4000-8000-00000000a004', current_date - 200, current_date - 20, 600, 600, 'expired'),
@@ -141,15 +169,28 @@ values
   ('d4000000-0000-4000-8000-0000000000a9', :'owner_a', 'd2000000-0000-4000-8000-0000000000a2',
    'd3000000-0000-4000-8000-00000000a002', current_date - 400, current_date + 300, 4444, 4444, 'inactive'),
   ('d4000000-0000-4000-8000-00000000a010', :'owner_a', 'd2000000-0000-4000-8000-0000000000a3',
-   'd3000000-0000-4000-8000-00000000a003', current_date - 30, current_date - 29, 300, 300, 'ended'),
+   'd3000000-0000-4000-8000-00000000a001', current_date - 30, current_date - 29, 300, 300, 'ended'),
   ('d4000000-0000-4000-8000-00000000a011', :'owner_a', 'd2000000-0000-4000-8000-0000000000a2',
    'd3000000-0000-4000-8000-00000000a002', current_date - 500, current_date - 30, 50, 50, 'ended'),
   ('d4000000-0000-4000-8000-00000000a012', :'owner_a', 'd2000000-0000-4000-8000-0000000000a1',
-   'd3000000-0000-4000-8000-00000000a001', current_date - 2, current_date, 250, 250, 'ended'),
+   'd3000000-0000-4000-8000-00000000a002', current_date - 2, current_date, 250, 250, 'ended'),
   ('d4000000-0000-4000-8000-00000000a013', :'owner_a', 'd2000000-0000-4000-8000-0000000000a2',
-   'd3000000-0000-4000-8000-00000000a002', current_date, current_date, 20, 20, 'expired'),
+   'd3000000-0000-4000-8000-00000000a004', current_date, current_date, 20, 20, 'expired'),
+  ('d4000000-0000-4000-8000-00000000a014', :'owner_a', 'd2000000-0000-4000-8000-0000000000a5',
+   'd3000000-0000-4000-8000-00000000a004', current_date - 400, current_date, 7, 7, 'expired'),
+  ('d4000000-0000-4000-8000-00000000a015', :'owner_a', 'd2000000-0000-4000-8000-0000000000a4',
+   'd3000000-0000-4000-8000-00000000a004', current_date - 300, current_date - 250, 450, 450, 'ended'),
+  ('d4000000-0000-4000-8000-0000000000c9', :'owner_c', 'd2000000-0000-4000-8000-0000000000a1',
+   'd3000000-0000-4000-8000-00000000a001', (date_trunc('month', current_date) - interval '2 months' - interval '5 days')::date,
+   (date_trunc('month', current_date) - interval '1 month')::date, 0, 0, 'ended'),
   ('d4000000-0000-4000-8000-0000000000b1', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1',
    'd3000000-0000-4000-8000-00000000b001', current_date - 3, current_date + 360, 700, 700, 'active'),
+  ('d4000000-0000-4000-8000-0000000000b2', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1',
+   'd3000000-0000-4000-8000-00000000b001', '2025-01-01', '2025-06-30', 700, 700, 'ended'),
+  ('d4000000-0000-4000-8000-0000000000b3', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1',
+   'd3000000-0000-4000-8000-00000000b002', '2025-06-01', '2025-06-30', 650, 650, 'ended'),
+  ('d4000000-0000-4000-8000-0000000000b9', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1',
+   'd3000000-0000-4000-8000-00000000b001', '2025-06-15', '2025-06-30', 650, 650, 'inactive'),
   ('d4000000-0000-4000-8000-0000000000c1', :'owner_c', 'd2000000-0000-4000-8000-0000000000c1',
    'd3000000-0000-4000-8000-00000000c001', current_date - 7, current_date + 300, 500, 500, 'active');
 
@@ -183,7 +224,8 @@ values
    date_trunc('month', current_date) - interval '4 months' + interval '10 hours',
    date_trunc('month', current_date) - interval '2 months' + interval '10 days 10 hours'),
   ('d7000000-0000-4000-8000-0000000000b1', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1', 'd3000000-0000-4000-8000-00000000b001', 'Gate', 'Gate hinge', 'open', now(), null),
-  ('d7000000-0000-4000-8000-0000000000c1', :'owner_c', 'd2000000-0000-4000-8000-0000000000c1', 'd3000000-0000-4000-8000-00000000c001', 'Porch', 'Porch step', 'open', now(), null);
+  ('d7000000-0000-4000-8000-0000000000c1', :'owner_c', 'd2000000-0000-4000-8000-0000000000c1', 'd3000000-0000-4000-8000-00000000c001', 'Porch', 'Porch step', 'open', now(), null),
+  ('d7000000-0000-4000-8000-0000000000c9', :'owner_c', 'd2000000-0000-4000-8000-0000000000a1', 'd3000000-0000-4000-8000-00000000c001', 'Cross', 'Another owner''s request', 'open', now(), null);
 
 insert into public.expenses (maintenance_request_id, amount, expense_date, vendor_name, status)
 values
@@ -208,7 +250,34 @@ values
   ('d7000000-0000-4000-8000-0000000000c1',  20.00, current_date, 'Porch Co', 'active'),
   ('d7000000-0000-4000-8000-0000000000c1',  66.00, current_date + 5, 'Porch Co', 'active'),
   ('d7000000-0000-4000-8000-0000000000c1', 200.00, (date_trunc('year', current_date) - interval '1 year')::date, 'Porch Co', 'active'),
-  ('d7000000-0000-4000-8000-0000000000c1',  40.00, (current_date - interval '1 year')::date, 'Porch Co', 'active');
+  ('d7000000-0000-4000-8000-0000000000c1',  40.00, (current_date - interval '1 year')::date, 'Porch Co', 'active'),
+  ('d7000000-0000-4000-8000-0000000000c9',   9.00, current_date + 200, 'Cross Co', 'active');
+
+-- The rent ledger the lease profitability reads: one charge per lease, and
+-- the receipts the header lists.
+insert into public.rent_charges (id, lease_id, owner_user_id, type, amount, period_start, due_date, description)
+values
+  ('d5000000-0000-4000-8000-0000000000a1', 'd4000000-0000-4000-8000-0000000000a1', :'owner_a', 'rent', 1000.00, current_date - 400, current_date - 400, 'Monthly rent'),
+  ('d5000000-0000-4000-8000-0000000000a2', 'd4000000-0000-4000-8000-0000000000a2', :'owner_a', 'rent',  800.00, current_date - 400, current_date - 400, 'Monthly rent'),
+  ('d5000000-0000-4000-8000-0000000000a8', 'd4000000-0000-4000-8000-0000000000a8', :'owner_a', 'rent', 5000.00, current_date - 400, current_date - 400, 'Monthly rent'),
+  ('d5000000-0000-4000-8000-0000000000a9', 'd4000000-0000-4000-8000-0000000000a9', :'owner_a', 'rent', 4444.00, current_date - 400, current_date - 400, 'Monthly rent'),
+  ('d5000000-0000-4000-8000-0000000000b2', 'd4000000-0000-4000-8000-0000000000b2', :'owner_b', 'rent',  700.00, '2025-01-01', '2025-01-01', 'Monthly rent'),
+  ('d5000000-0000-4000-8000-0000000000b3', 'd4000000-0000-4000-8000-0000000000b3', :'owner_b', 'rent',  650.00, '2025-06-01', '2025-06-01', 'Monthly rent');
+insert into public.rent_receipts (id, charge_id, lease_id, owner_user_id, amount, method, received_date)
+values
+  ('d6000000-0000-4000-8000-0000000000a1', 'd5000000-0000-4000-8000-0000000000a1', 'd4000000-0000-4000-8000-0000000000a1', :'owner_a', 1000.00, 'check', (date_trunc('month', current_date) - interval '2 months' + interval '2 days')::date),
+  ('d6000000-0000-4000-8000-0000000000a2', 'd5000000-0000-4000-8000-0000000000a1', 'd4000000-0000-4000-8000-0000000000a1', :'owner_a', 1000.00, 'check', (date_trunc('month', current_date) - interval '1 month' + interval '2 days')::date),
+  ('d6000000-0000-4000-8000-0000000000a3', 'd5000000-0000-4000-8000-0000000000a1', 'd4000000-0000-4000-8000-0000000000a1', :'owner_a', 1000.00, 'check', date_trunc('month', current_date)::date),
+  ('d6000000-0000-4000-8000-0000000000a4', 'd5000000-0000-4000-8000-0000000000a2', 'd4000000-0000-4000-8000-0000000000a2', :'owner_a',  800.00, 'check', (date_trunc('month', current_date) - interval '2 months' + interval '3 days')::date),
+  ('d6000000-0000-4000-8000-0000000000a8', 'd5000000-0000-4000-8000-0000000000a8', 'd4000000-0000-4000-8000-0000000000a8', :'owner_a', 5000.00, 'check', (date_trunc('month', current_date) - interval '2 months' + interval '4 days')::date),
+  ('d6000000-0000-4000-8000-0000000000a9', 'd5000000-0000-4000-8000-0000000000a9', 'd4000000-0000-4000-8000-0000000000a9', :'owner_a', 4444.00, 'check', (date_trunc('month', current_date) - interval '2 months' + interval '3 days')::date),
+  ('d6000000-0000-4000-8000-0000000000b2', 'd5000000-0000-4000-8000-0000000000b2', 'd4000000-0000-4000-8000-0000000000b2', :'owner_b',  700.00, 'check', '2025-02-01'),
+  ('d6000000-0000-4000-8000-0000000000b3', 'd5000000-0000-4000-8000-0000000000b3', 'd4000000-0000-4000-8000-0000000000b3', :'owner_b',  640.00, 'check', '2025-07-05'),
+  ('d6000000-0000-4000-8000-0000000000b4', 'd5000000-0000-4000-8000-0000000000b3', 'd4000000-0000-4000-8000-0000000000b3', :'owner_b',  100.00, 'check', '2025-08-01');
+insert into public.rent_receipts (id, charge_id, lease_id, owner_user_id, amount, method, received_date, reverses_id)
+values
+  ('d6000000-0000-4000-8000-0000000000b5', 'd5000000-0000-4000-8000-0000000000b3', 'd4000000-0000-4000-8000-0000000000b3', :'owner_b', -100.00, 'check', '2025-08-02',
+   'd6000000-0000-4000-8000-0000000000b4');
 
 -- Spend dated tomorrow, while tomorrow is still in this month (on a month's
 -- last day there is no such day): spent in no month yet.
@@ -221,7 +290,12 @@ insert into replay_figures values
   ('today', to_jsonb(to_char(current_date, 'YYYY-MM-DD'))),
   ('position_a_today', (select to_jsonb(r) from public.dashboard_lease_position(:'owner_a', current_date) r)),
   ('position_a_then', (select to_jsonb(r) from public.dashboard_lease_position(:'owner_a', current_date - 30) r)),
-  ('position_nobody', (select to_jsonb(r) from public.dashboard_lease_position('d0000000-0000-4000-8000-000000000999', current_date) r));
+  ('position_nobody', (select to_jsonb(r) from public.dashboard_lease_position('d0000000-0000-4000-8000-000000000999', current_date) r)),
+  -- On the first day of each of the occupancy series' past months (n months
+  -- before T), for the series and the tile to be compared.
+  ('position_a_months', (select jsonb_agg(jsonb_build_object('months_ago', n, 'occupancy_rate', r.occupancy_rate) order by n)
+     from generate_series(1, 11) n,
+     lateral public.dashboard_lease_position(:'owner_a', (current_date - (n || ' months')::interval)::date) r));
 
 -- From here on, act as each owner, exactly as PostgREST would for the app.
 select set_config('replay.owner_a', :'owner_a', true) as ignored \gset
@@ -236,8 +310,12 @@ select 'dashboard_stats_a', jsonb_build_object('units', s->'units', 'revenue', s
 from (select public.get_dashboard_stats(current_setting('replay.owner_a')::uuid)::jsonb as s) x;
 insert into replay_figures
 select 'dashboard_v2_a', jsonb_build_object('units', d->'stats'->'units', 'revenue', d->'stats'->'revenue',
-  'trend_occupancy', d->'trends'->'occupancy_rate', 'trend_revenue', d->'trends'->'monthly_revenue')
+  'trend_occupancy', d->'trends'->'occupancy_rate', 'trend_revenue', d->'trends'->'monthly_revenue',
+  'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance')
 from (select public.get_dashboard_data_v2(current_setting('replay.owner_a')::uuid) as d) x;
+-- The occupancy chart's series, as the app asks for it.
+insert into replay_figures values
+  ('occupancy_series_a', public.get_occupancy_trends_optimized(current_setting('replay.owner_a')::uuid, 12));
 -- The function payloads less the keys this gate does not assert, removed by
 -- name so a key the body does not return stays absent (the markers are keys).
 insert into replay_figures values
@@ -248,7 +326,9 @@ insert into replay_figures values
      (date_trunc('month', current_date) - interval '2 months')::date,
      (date_trunc('month', current_date) - interval '1 month' + interval '5 days')::date)),
   ('overview_a_open_end', public.get_financial_overview(current_setting('replay.owner_a')::uuid,
-     date_trunc('month', current_date)::date));
+     date_trunc('month', current_date)::date)),
+  ('overview_a_future', public.get_financial_overview(current_setting('replay.owner_a')::uuid,
+     current_date + 199, current_date + 201) - 'overview');
 
 -- The guard, kept as written in every function: owner A asking for owner B's
 -- figures is refused.
@@ -259,7 +339,8 @@ declare
   v_name text;
 begin
   foreach v_name in array array['get_dashboard_stats', 'get_dashboard_data_v2', 'get_expense_summary',
-                                'get_maintenance_analytics', 'get_financial_overview'] loop
+                                'get_maintenance_analytics', 'get_financial_overview',
+                                'get_occupancy_trends_optimized'] loop
     begin
       execute format('select public.%I($1)', v_name) using v_owner_b;
       v_refused := v_refused || jsonb_build_object(v_name, false);
@@ -277,7 +358,8 @@ select 'dashboard_stats_b', jsonb_build_object('units', s->'units', 'revenue', s
 from (select public.get_dashboard_stats(current_setting('replay.owner_b')::uuid)::jsonb as s) x;
 insert into replay_figures
 select 'dashboard_v2_b', jsonb_build_object('units', d->'stats'->'units', 'revenue', d->'stats'->'revenue',
-  'trend_occupancy', d->'trends'->'occupancy_rate', 'trend_revenue', d->'trends'->'monthly_revenue')
+  'trend_occupancy', d->'trends'->'occupancy_rate', 'trend_revenue', d->'trends'->'monthly_revenue',
+  'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance')
 from (select public.get_dashboard_data_v2(current_setting('replay.owner_b')::uuid) as d) x;
 insert into replay_figures values
   ('expenses_b_spring_2025', public.get_expense_summary(current_setting('replay.owner_b')::uuid, '2025-03-01', '2025-06-30')
@@ -288,7 +370,11 @@ insert into replay_figures values
   ('expenses_b_unbounded', public.get_expense_summary(current_setting('replay.owner_b')::uuid, '-infinity', '2025-06-30')
      - array['monthly_totals', 'monthly_average']),
   ('expenses_b_open_ended', public.get_expense_summary(current_setting('replay.owner_b')::uuid, '2025-03-01', 'infinity')
-     - array['monthly_totals', 'monthly_average']);
+     - array['monthly_totals', 'monthly_average']),
+  -- The lease profitability over a year and over a spring (two leases ran in
+  -- June; the March expense is on one alone).
+  ('overview_b_2025', public.get_financial_overview(current_setting('replay.owner_b')::uuid, '2025-01-01', '2025-12-31')),
+  ('overview_b_spring_2025', public.get_financial_overview(current_setting('replay.owner_b')::uuid, '2025-03-01', '2025-06-30'));
 
 select set_config('request.jwt.claims', json_build_object('sub', :'owner_c', 'role', 'authenticated')::text, true) as ignored \gset
 -- As the expenses page asks: no dates, the year to date.
@@ -324,7 +410,8 @@ from unnest(array[
   'public.get_dashboard_data_v2(uuid)',
   'public.get_expense_summary(uuid,date,date)',
   'public.get_maintenance_analytics(uuid)',
-  'public.get_financial_overview(uuid,date,date)']) as f(sig);
+  'public.get_financial_overview(uuid,date,date)',
+  'public.get_occupancy_trends_optimized(uuid,integer)']) as f(sig);
 
 select jsonb_object_agg(label, payload)::text from replay_figures;
 

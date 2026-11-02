@@ -40,9 +40,9 @@
 -- p_limit NULL), the RETURNS TABLE columns and their types,
 -- LANGUAGE plpgsql, SECURITY DEFINER, the pinned search_path, the volatility
 -- (VOLATILE, the default), the p_user_id != auth.uid() guard as written, the
--- property list (the owner's, not inactive, p_property_id when given),
--- occupancy_rate and how it is computed, the expense join, the ordering by
--- name, and the ACL (EXECUTE for authenticated and service_role
+-- property list for a trailing window (the owner's, not inactive,
+-- p_property_id when given), occupancy_rate and how it is computed, the
+-- expense join, the ordering by name, and the ACL (EXECUTE for authenticated and service_role
 -- only). Under the service role auth.uid() is NULL, so the guard's comparison
 -- is NULL and passes: export-report and generate-pdf call this with the admin
 -- client and the owner id they validated from the Bearer token, so for them
@@ -65,8 +65,9 @@
 --     (20260726020701) scopes its CTEs. So a tax year's rent received in the
 --     year-end summary (collectedTotal, differenced) and the sum of this
 --     table over that year count the same receipts, a soft-deleted unit's
---     included; a soft-deleted PROPERTY's receipts are in the summary but not
---     here, because the property list skips it (see THE PROPERTY LIST). It is
+--     and a soft-deleted property's included: an explicit range lists a
+--     property the owner has since deleted when it received rent or spent in
+--     the range (see THE PROPERTY LIST), so the two tie to the cent. It is
 --     cash: money recorded as received, never scheduled rent, and never sums
 --     the two (CLAUDE.md, Domain model).
 --
@@ -98,9 +99,24 @@
 -- Receipts are compared on received_date and expenses on expense_date, both
 -- inclusive at both ends.
 --
--- THE PROPERTY LIST. The owner's properties that are not soft-deleted
--- (p_property_id for one), ordered by name: every one, unless p_limit names a
--- smaller number. p_limit NULL used to mean 100, so a tax report, a year-end
+-- THE PROPERTY LIST. The owner's properties (p_property_id for one), ordered
+-- by name: every one, unless p_limit names a smaller number. Which ones
+-- depends on the window:
+--   - a trailing window ('7d'..'365d', and the 30-day default) is the
+--     current portfolio: the properties that are not soft-deleted, as
+--     CLAUDE.md's soft-delete rule has every read exclude them;
+--   - an explicit range is a period's books (the year-end report, its tax
+--     exports, the property portfolio export): every property that is not
+--     soft-deleted, AND every soft-deleted one that has a receipt or an
+--     expense in the range, so rent received in a tax year is never dropped
+--     from a tax report because the property was deleted later. A
+--     soft-deleted property with nothing in the range is not listed. The row
+--     does not say the property is deleted (the RETURNS TABLE is unchanged);
+--     a caller that lists these rows reads properties.status for the ids and
+--     labels a deleted one so.
+-- The expense side of a listed row is the same join whatever the property's
+-- status, so the table's expenses tie to get_expense_summary's over the range
+-- too. p_limit NULL used to mean 100, so a tax report, a year-end
 -- table or a property export for an owner with more properties dropped the
 -- rest and their rent received; NULL now means no limit, and no caller passes
 -- one. (A REST caller still reads at most the API's max-rows a request; the
@@ -114,7 +130,9 @@
 -- (scripts/migration-replay-property-performance.sql) and asserts every
 -- column of every row for a tax year, a trailing window and the default, the
 -- window's edges, reversals, the owner scoping, soft-deleted leases and
--- properties, p_property_id, p_limit, the refused range, the guard and the
+-- properties (listed for a range when they received rent or spent in it, not
+-- otherwise, never for a trailing window), the year-end summary's tie to the
+-- table for both owners, p_property_id, p_limit, the refused range, the guard and the
 -- grants (assertPropertyPerformanceRentReceived in
 -- scripts/migration-replay-assertions.ts).
 -- =============================================================================
@@ -126,6 +144,8 @@ CREATE OR REPLACE FUNCTION public.get_property_performance_analytics(p_user_id u
  SET search_path TO 'public'
 AS $function$
 DECLARE v_days integer; v_start_date date; v_end_date date;
+  -- An explicit range lists the soft-deleted properties with activity in it.
+  v_range boolean := false;
 BEGIN
   IF p_user_id != (SELECT auth.uid()) THEN
     RAISE EXCEPTION 'Access denied: cannot request data for another user';
@@ -134,6 +154,7 @@ BEGIN
   IF p_timeframe ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}\.\.[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN
     v_start_date := split_part(p_timeframe, '..', 1)::date;
     v_end_date := split_part(p_timeframe, '..', 2)::date;
+    v_range := true;
     IF v_start_date > v_end_date THEN
       RAISE EXCEPTION 'Invalid timeframe %: it starts after it ends', p_timeframe
         USING ERRCODE = '22023';
@@ -145,26 +166,7 @@ BEGIN
     v_end_date := CURRENT_DATE;
   END IF;
   RETURN QUERY
-  WITH property_units AS (
-    SELECT p.id AS prop_id, p.name AS prop_name, u.id AS unit_id, u.status AS unit_status
-    FROM properties p LEFT JOIN units u ON u.property_id = p.id
-    WHERE p.owner_user_id = p_user_id AND p.status <> 'inactive' AND (p_property_id IS NULL OR p.id = p_property_id)
-  ),
-  property_occupancy AS (
-    SELECT pu.prop_id, pu.prop_name,
-      COALESCE(ROUND((COUNT(*) FILTER (WHERE pu.unit_status = 'occupied')::numeric /
-        NULLIF(COUNT(*) FILTER (WHERE pu.unit_status IS DISTINCT FROM 'inactive')::numeric, 0)) * 100, 2), 0) AS occ_rate
-    FROM property_units pu GROUP BY pu.prop_id, pu.prop_name
-  ),
-  property_expenses AS (
-    SELECT p.id AS prop_id, COALESCE(SUM(e.amount), 0)::numeric AS expenses
-    FROM properties p LEFT JOIN units u ON u.property_id = p.id
-    LEFT JOIN maintenance_requests mr ON mr.unit_id = u.id AND mr.owner_user_id = p_user_id
-    LEFT JOIN expenses e ON e.maintenance_request_id = mr.id AND e.status <> 'inactive'
-      AND e.expense_date >= v_start_date AND e.expense_date <= v_end_date
-    WHERE p.owner_user_id = p_user_id AND p.status <> 'inactive' AND (p_property_id IS NULL OR p.id = p_property_id)
-    GROUP BY p.id
-  ),
+  WITH
   -- Rent received (see the header): the receipts rent_ledger_receipts counts,
   -- received in the window, signed, by property.
   property_receipts AS (
@@ -172,6 +174,40 @@ BEGIN
     FROM public.rent_ledger_receipts(p_user_id) lr
     WHERE lr.received_date >= v_start_date AND lr.received_date <= v_end_date
     GROUP BY lr.property_id
+  ),
+  -- Each of the owner's properties' expenses dated in the window, and how
+  -- many there are (whatever the property's status: THE PROPERTY LIST picks).
+  property_expenses AS (
+    SELECT p.id AS prop_id, COALESCE(SUM(e.amount), 0)::numeric AS expenses,
+      COUNT(e.id) AS expense_count
+    FROM properties p LEFT JOIN units u ON u.property_id = p.id
+    LEFT JOIN maintenance_requests mr ON mr.unit_id = u.id AND mr.owner_user_id = p_user_id
+    LEFT JOIN expenses e ON e.maintenance_request_id = mr.id AND e.status <> 'inactive'
+      AND e.expense_date >= v_start_date AND e.expense_date <= v_end_date
+    WHERE p.owner_user_id = p_user_id AND (p_property_id IS NULL OR p.id = p_property_id)
+    GROUP BY p.id
+  ),
+  -- THE PROPERTY LIST (see the header): not soft-deleted, or, for an
+  -- explicit range, soft-deleted with a receipt or an expense in it.
+  listed_properties AS (
+    SELECT p.id AS prop_id
+    FROM properties p
+    LEFT JOIN property_expenses pe ON pe.prop_id = p.id
+    WHERE p.owner_user_id = p_user_id AND (p_property_id IS NULL OR p.id = p_property_id)
+      AND (p.status <> 'inactive'
+        OR (v_range AND (EXISTS (SELECT 1 FROM property_receipts pr WHERE pr.prop_id = p.id)
+                         OR pe.expense_count > 0)))
+  ),
+  property_units AS (
+    SELECT p.id AS prop_id, p.name AS prop_name, u.id AS unit_id, u.status AS unit_status
+    FROM listed_properties lp JOIN properties p ON p.id = lp.prop_id
+    LEFT JOIN units u ON u.property_id = p.id
+  ),
+  property_occupancy AS (
+    SELECT pu.prop_id, pu.prop_name,
+      COALESCE(ROUND((COUNT(*) FILTER (WHERE pu.unit_status = 'occupied')::numeric /
+        NULLIF(COUNT(*) FILTER (WHERE pu.unit_status IS DISTINCT FROM 'inactive')::numeric, 0)) * 100, 2), 0) AS occ_rate
+    FROM property_units pu GROUP BY pu.prop_id, pu.prop_name
   )
   SELECT po.prop_id, po.prop_name, po.occ_rate,
     COALESCE(pr.received, 0)::numeric AS total_revenue,
@@ -186,7 +222,7 @@ END;
 $function$;
 
 comment on function public.get_property_performance_analytics(uuid, uuid, text, integer) is
-  'Per-property performance for the owner''s properties that are not inactive (p_property_id for one; ordered by name; p_limit rows, NULL for all). occupancy_rate: occupied units over units not inactive, in percent. total_revenue: rent received, the receipts rent_ledger_receipts counts (owner-scoped on receipt and lease, inactive leases skipped) on the property''s leases (through the lease''s unit) received in the window, signed so reversals net; dollars. total_expenses: the property''s maintenance expenses dated in the window. net_income: total_revenue - total_expenses. timeframe: the window computed, ''YYYY-MM-DD/YYYY-MM-DD'', both days included. p_timeframe: ''7d''/''30d''/''90d''/''180d''/''365d'' (trailing, ending today) or ''YYYY-MM-DD..YYYY-MM-DD'' (inclusive; refused with 22023 when it starts after it ends); anything else is 30 days. Guards p_user_id against auth.uid(); service_role (auth.uid() NULL) passes the guard.';
+  'Per-property performance (p_property_id for one; ordered by name; p_limit rows, NULL for all): for a trailing window the owner''s properties that are not inactive; for an explicit range those and every inactive (soft-deleted) one with a receipt or an expense in the range (the row does not say which: read properties.status). occupancy_rate: occupied units over units not inactive, in percent. total_revenue: rent received, the receipts rent_ledger_receipts counts (owner-scoped on receipt and lease, inactive leases skipped) on the property''s leases (through the lease''s unit) received in the window, signed so reversals net; dollars. total_expenses: the property''s maintenance expenses dated in the window. net_income: total_revenue - total_expenses. timeframe: the window computed, ''YYYY-MM-DD/YYYY-MM-DD'', both days included. p_timeframe: ''7d''/''30d''/''90d''/''180d''/''365d'' (trailing, ending today) or ''YYYY-MM-DD..YYYY-MM-DD'' (inclusive; refused with 22023 when it starts after it ends); anything else is 30 days. Guards p_user_id against auth.uid(); service_role (auth.uid() NULL) passes the guard.';
 
 revoke all on function public.get_property_performance_analytics(uuid, uuid, text, integer) from public, anon, authenticated;
 grant execute on function public.get_property_performance_analytics(uuid, uuid, text, integer) to authenticated, service_role;

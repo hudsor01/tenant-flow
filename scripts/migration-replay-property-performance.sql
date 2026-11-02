@@ -50,8 +50,17 @@
 --                   B's lease: it counts for neither owner.
 --     expenses (B1): 100.00 on 2025-12-31, 25.00 on T-30.
 --   Delta Lot    no units: no occupancy, no receipts, no expenses.
---   Gamma Flats  INACTIVE property, unit G1 occupied (lease LG1, active),
---                receipts 333.00 on 2025-04-04 and 33.00 on T-2: no row.
+--   Gamma Flats  INACTIVE property (soft-deleted after its lease), unit G1
+--                occupied (lease LG1, active), receipts 333.00 on 2025-04-04
+--                and 33.00 on T-2: a row for the tax year, none for a
+--                trailing window.
+--   Echo Barn    INACTIVE property, unit H1 available, no lease; an expense
+--                of 12.00 on 2025-08-01 and a soft-deleted one of 9.99 on
+--                2025-09-09: a row for the tax year (spent in it).
+--   Foxtrot Mews INACTIVE property, unit F1 (lease LF1, ended in 2024): a
+--                receipt of 44.00 on 2024-06-01, a soft-deleted expense of
+--                8.00 on 2025-05-05 and an expense of 6.00 on 2026-01-01:
+--                nothing in 2025, so no row.
 --   Bravo Place  OWNER B's, unit Z1 occupied (lease LZ, active), receipt
 --                700.00 on 2025-07-01, a 111.00 receipt on 2025-07-02
 --                stamped with owner A's id (counts for neither), and an
@@ -64,12 +73,13 @@
 --                250.00 on 2025-09-09 (on the soft-deleted unit: it counts);
 --                LC3 90.00 on 2025-10-10 (on the soft-deleted lease: it does
 --                not).
---   So owner B's 2025 rent received ties, to the cent, between the year-end
---   summary (get_billing_insights' collectedTotal as of 2025-12-31 less as of
---   2024-12-31) and the sum of the tax-year table: every soft-delete but a
---   property's. (Owner A's does not: Gamma Flats, a soft-deleted property,
---   received 333.00 in 2025, which the summary counts and the table cannot
---   show.)
+--   So each owner's 2025 rent received ties, to the cent, between the
+--   year-end summary (get_billing_insights' collectedTotal as of 2025-12-31
+--   less as of 2024-12-31) and the sum of the tax-year table, across every
+--   soft-delete: owner A's 3833.50 includes Gamma Flats' 333.00, a property
+--   deleted after the year. Their 2025 expenses tie too, between
+--   get_expense_summary for the year and the table's expenses (owner A's
+--   312.25 includes Echo Barn's 12.00).
 --   Lot 001..Lot 101, e2e-admin's (owner C): 101 properties with no units,
 --   more than the 100 the body before this one returned when p_limit was
 --   NULL.
@@ -97,6 +107,8 @@ values
   ('c1000000-0000-4000-8000-00000000a002', :'owner_a', 'Beta House',  '2 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active'),
   ('c1000000-0000-4000-8000-00000000a003', :'owner_a', 'Delta Lot',   '3 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active'),
   ('c1000000-0000-4000-8000-00000000a004', :'owner_a', 'Gamma Flats', '4 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active'),
+  ('c1000000-0000-4000-8000-00000000a005', :'owner_a', 'Echo Barn',   '7 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active'),
+  ('c1000000-0000-4000-8000-00000000a006', :'owner_a', 'Foxtrot Mews', '8 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active'),
   ('c1000000-0000-4000-8000-00000000b001', :'owner_b', 'Bravo Place', '5 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active'),
   ('c1000000-0000-4000-8000-00000000b002', :'owner_b', 'Cedar Row',   '6 Rent St', 'Austin', 'TX', '78701', 'SINGLE_FAMILY', 'active');
 
@@ -111,6 +123,8 @@ values
   ('c2000000-0000-4000-8000-0000000000a3', :'owner_a', 'c1000000-0000-4000-8000-00000000a001', 'A3', 1200),
   ('c2000000-0000-4000-8000-0000000000b1', :'owner_a', 'c1000000-0000-4000-8000-00000000a002', 'B1', 900),
   ('c2000000-0000-4000-8000-0000000000c1', :'owner_a', 'c1000000-0000-4000-8000-00000000a004', 'G1', 800),
+  ('c2000000-0000-4000-8000-0000000000f1', :'owner_a', 'c1000000-0000-4000-8000-00000000a005', 'H1', 750),
+  ('c2000000-0000-4000-8000-0000000000f2', :'owner_a', 'c1000000-0000-4000-8000-00000000a006', 'F1', 650),
   ('c2000000-0000-4000-8000-0000000000d1', :'owner_b', 'c1000000-0000-4000-8000-00000000b001', 'Z1', 700),
   ('c2000000-0000-4000-8000-0000000000e1', :'owner_b', 'c1000000-0000-4000-8000-00000000b002', 'C1', 600),
   ('c2000000-0000-4000-8000-0000000000e2', :'owner_b', 'c1000000-0000-4000-8000-00000000b002', 'C2', 500);
@@ -121,6 +135,7 @@ values
   ('c3000000-0000-4000-8000-00000000a002', :'owner_a', 'Ben', 'Alpha'),
   ('c3000000-0000-4000-8000-00000000a003', :'owner_a', 'Cal', 'Beta'),
   ('c3000000-0000-4000-8000-00000000a004', :'owner_a', 'Dot', 'Gamma'),
+  ('c3000000-0000-4000-8000-00000000a005', :'owner_a', 'Ivy', 'Foxtrot'),
   ('c3000000-0000-4000-8000-00000000b001', :'owner_b', 'Eve', 'Bravo'),
   ('c3000000-0000-4000-8000-00000000b002', :'owner_b', 'Fay', 'Bravo'),
   ('c3000000-0000-4000-8000-00000000b003', :'owner_b', 'Gil', 'Cedar'),
@@ -137,6 +152,8 @@ values
    'c3000000-0000-4000-8000-00000000a003', '2024-01-01', '2027-12-31', 900, 900, 'active', '2024-01-01'),
   ('c4000000-0000-4000-8000-0000000000c1', :'owner_a', 'c2000000-0000-4000-8000-0000000000c1',
    'c3000000-0000-4000-8000-00000000a004', '2024-01-01', '2027-12-31', 800, 800, 'active', '2024-01-01'),
+  ('c4000000-0000-4000-8000-0000000000a6', :'owner_a', 'c2000000-0000-4000-8000-0000000000f2',
+   'c3000000-0000-4000-8000-00000000a005', '2024-01-01', '2024-12-31', 650, 650, 'ended', '2024-01-01'),
   ('c4000000-0000-4000-8000-0000000000d1', :'owner_b', 'c2000000-0000-4000-8000-0000000000d1',
    'c3000000-0000-4000-8000-00000000b001', '2024-01-01', '2027-12-31', 700, 700, 'active', '2024-01-01'),
   ('c4000000-0000-4000-8000-0000000000e1', :'owner_b', 'c2000000-0000-4000-8000-0000000000b1',
@@ -149,12 +166,13 @@ values
    'c3000000-0000-4000-8000-00000000b003', '2024-01-01', '2027-12-31', 600, 600, 'inactive', '2024-01-01');
 
 -- The occupancy each property is asserted with, set after the leases so no
--- lease trigger decides it. Gamma is soft-deleted only now, after its lease.
+-- lease trigger decides it. Gamma, Echo and Foxtrot are soft-deleted only
+-- now, after their leases.
 update public.units set status = 'occupied'  where id in ('c2000000-0000-4000-8000-0000000000a1', 'c2000000-0000-4000-8000-0000000000b1', 'c2000000-0000-4000-8000-0000000000c1', 'c2000000-0000-4000-8000-0000000000d1');
-update public.units set status = 'available' where id = 'c2000000-0000-4000-8000-0000000000a2';
+update public.units set status = 'available' where id in ('c2000000-0000-4000-8000-0000000000a2', 'c2000000-0000-4000-8000-0000000000f1', 'c2000000-0000-4000-8000-0000000000f2');
 update public.units set status = 'inactive'  where id in ('c2000000-0000-4000-8000-0000000000a3', 'c2000000-0000-4000-8000-0000000000e2');
 update public.units set status = 'occupied'  where id = 'c2000000-0000-4000-8000-0000000000e1';
-update public.properties set status = 'inactive' where id = 'c1000000-0000-4000-8000-00000000a004';
+update public.properties set status = 'inactive' where id in ('c1000000-0000-4000-8000-00000000a004', 'c1000000-0000-4000-8000-00000000a005', 'c1000000-0000-4000-8000-00000000a006');
 
 -- One charge per lease for the receipts to be allocated to.
 insert into public.rent_charges (id, lease_id, owner_user_id, type, amount, period_start, due_date, description)
@@ -163,6 +181,7 @@ values
   ('c5000000-0000-4000-8000-0000000000a2', 'c4000000-0000-4000-8000-0000000000a2', :'owner_a', 'rent', 1100.00, '2024-12-01', '2024-12-01', 'Monthly rent'),
   ('c5000000-0000-4000-8000-0000000000b1', 'c4000000-0000-4000-8000-0000000000b1', :'owner_a', 'rent',  900.00, '2024-12-01', '2024-12-01', 'Monthly rent'),
   ('c5000000-0000-4000-8000-0000000000c1', 'c4000000-0000-4000-8000-0000000000c1', :'owner_a', 'rent',  800.00, '2024-12-01', '2024-12-01', 'Monthly rent'),
+  ('c5000000-0000-4000-8000-0000000000a6', 'c4000000-0000-4000-8000-0000000000a6', :'owner_a', 'rent',  650.00, '2024-06-01', '2024-06-01', 'Monthly rent'),
   ('c5000000-0000-4000-8000-0000000000d1', 'c4000000-0000-4000-8000-0000000000d1', :'owner_b', 'rent',  700.00, '2024-12-01', '2024-12-01', 'Monthly rent'),
   ('c5000000-0000-4000-8000-0000000000e1', 'c4000000-0000-4000-8000-0000000000e1', :'owner_b', 'rent',  900.00, '2023-01-01', '2023-01-01', 'Monthly rent'),
   ('c5000000-0000-4000-8000-0000000000f1', 'c4000000-0000-4000-8000-0000000000f1', :'owner_b', 'rent',  600.00, '2024-12-01', '2024-12-01', 'Monthly rent'),
@@ -188,6 +207,7 @@ values
   ('c6000000-0000-4000-8000-0000000000e1', 'c5000000-0000-4000-8000-0000000000e1', 'c4000000-0000-4000-8000-0000000000e1', :'owner_a',  222.00, 'cash',  '2025-08-08'),
   ('c6000000-0000-4000-8000-0000000000c1', 'c5000000-0000-4000-8000-0000000000c1', 'c4000000-0000-4000-8000-0000000000c1', :'owner_a',  333.00, 'check', '2025-04-04'),
   ('c6000000-0000-4000-8000-0000000000c2', 'c5000000-0000-4000-8000-0000000000c1', 'c4000000-0000-4000-8000-0000000000c1', :'owner_a',   33.00, 'check', current_date - 2),
+  ('c6000000-0000-4000-8000-00000000a601', 'c5000000-0000-4000-8000-0000000000a6', 'c4000000-0000-4000-8000-0000000000a6', :'owner_a',   44.00, 'check', '2024-06-01'),
   ('c6000000-0000-4000-8000-0000000000d1', 'c5000000-0000-4000-8000-0000000000d1', 'c4000000-0000-4000-8000-0000000000d1', :'owner_b',  700.00, 'check', '2025-07-01'),
   ('c6000000-0000-4000-8000-0000000000d2', 'c5000000-0000-4000-8000-0000000000d1', 'c4000000-0000-4000-8000-0000000000d1', :'owner_a',  111.00, 'check', '2025-07-02'),
   ('c6000000-0000-4000-8000-0000000000f0', 'c5000000-0000-4000-8000-0000000000f1', 'c4000000-0000-4000-8000-0000000000f1', :'owner_b',   55.00, 'check', '2024-12-31'),
@@ -207,7 +227,9 @@ insert into public.maintenance_requests (id, owner_user_id, unit_id, tenant_id, 
 values
   ('c7000000-0000-4000-8000-0000000000a1', :'owner_a', 'c2000000-0000-4000-8000-0000000000a1', 'c3000000-0000-4000-8000-00000000a001', 'Leak', 'Kitchen leak'),
   ('c7000000-0000-4000-8000-0000000000b1', :'owner_a', 'c2000000-0000-4000-8000-0000000000b1', 'c3000000-0000-4000-8000-00000000a003', 'Heater', 'Water heater'),
-  ('c7000000-0000-4000-8000-0000000000d1', :'owner_b', 'c2000000-0000-4000-8000-0000000000d1', 'c3000000-0000-4000-8000-00000000b001', 'Lock', 'Front door lock');
+  ('c7000000-0000-4000-8000-0000000000d1', :'owner_b', 'c2000000-0000-4000-8000-0000000000d1', 'c3000000-0000-4000-8000-00000000b001', 'Lock', 'Front door lock'),
+  ('c7000000-0000-4000-8000-0000000000a5', :'owner_a', 'c2000000-0000-4000-8000-0000000000f1', 'c3000000-0000-4000-8000-00000000a005', 'Door', 'Barn door'),
+  ('c7000000-0000-4000-8000-0000000000a6', :'owner_a', 'c2000000-0000-4000-8000-0000000000f2', 'c3000000-0000-4000-8000-00000000a005', 'Tap', 'Dripping tap');
 
 insert into public.expenses (maintenance_request_id, amount, expense_date, vendor_name, status)
 values
@@ -218,7 +240,11 @@ values
   ('c7000000-0000-4000-8000-0000000000a1',  15.00, '2025-12-31',        'Plumber',  'inactive'),
   ('c7000000-0000-4000-8000-0000000000b1', 100.00, '2025-12-31',        'Heat Co',  'active'),
   ('c7000000-0000-4000-8000-0000000000b1',  25.00, current_date - 30,   'Heat Co',  'active'),
-  ('c7000000-0000-4000-8000-0000000000d1',  10.00, '2025-01-15',        'Lock Co',  'active');
+  ('c7000000-0000-4000-8000-0000000000d1',  10.00, '2025-01-15',        'Lock Co',  'active'),
+  ('c7000000-0000-4000-8000-0000000000a5',  12.00, '2025-08-01',        'Barn Co',  'active'),
+  ('c7000000-0000-4000-8000-0000000000a5',   9.99, '2025-09-09',        'Barn Co',  'inactive'),
+  ('c7000000-0000-4000-8000-0000000000a6',   8.00, '2025-05-05',        'Tap Co',   'inactive'),
+  ('c7000000-0000-4000-8000-0000000000a6',   6.00, '2026-01-01',        'Tap Co',   'active');
 
 -- From here on, act as the owner, exactly as PostgREST would for the app.
 select set_config('replay.owner_a', :'owner_a', true) as ignored \gset
@@ -262,6 +288,19 @@ begin
 end
 $$;
 
+-- The year-end summary's rent received and expenses and its table, as the
+-- page reads them, for owner A (a soft-deleted property received rent in the
+-- year and another spent in it).
+insert into replay_performance values
+  ('owner_a_tie', jsonb_build_object(
+     'collected_2025_end', public.get_billing_insights(current_setting('replay.owner_a')::uuid, null, '2025-12-31')->'collectedTotal',
+     'collected_2024_end', public.get_billing_insights(current_setting('replay.owner_a')::uuid, null, '2024-12-31')->'collectedTotal',
+     'expense_total', public.get_expense_summary(current_setting('replay.owner_a')::uuid, '2025-01-01', '2025-12-31')->'total_amount',
+     'table_total', (select sum(r.total_revenue) from public.get_property_performance_analytics(
+        current_setting('replay.owner_a')::uuid, null, '2025-01-01..2025-12-31', null) r),
+     'table_expenses', (select sum(r.total_expenses) from public.get_property_performance_analytics(
+        current_setting('replay.owner_a')::uuid, null, '2025-01-01..2025-12-31', null) r)));
+
 -- The guard, kept as written: owner A asking for owner B's figures is refused.
 do $$
 declare
@@ -284,7 +323,10 @@ insert into replay_performance values
   ('owner_b_tie', jsonb_build_object(
      'collected_2025_end', public.get_billing_insights(current_setting('replay.owner_b')::uuid, null, '2025-12-31')->'collectedTotal',
      'collected_2024_end', public.get_billing_insights(current_setting('replay.owner_b')::uuid, null, '2024-12-31')->'collectedTotal',
+     'expense_total', public.get_expense_summary(current_setting('replay.owner_b')::uuid, '2025-01-01', '2025-12-31')->'total_amount',
      'table_total', (select sum(r.total_revenue) from public.get_property_performance_analytics(
+        current_setting('replay.owner_b')::uuid, null, '2025-01-01..2025-12-31', null) r),
+     'table_expenses', (select sum(r.total_expenses) from public.get_property_performance_analytics(
         current_setting('replay.owner_b')::uuid, null, '2025-01-01..2025-12-31', null) r)));
 
 select set_config('replay.owner_c', :'owner_c', true) as ignored \gset

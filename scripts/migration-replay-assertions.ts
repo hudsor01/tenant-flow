@@ -629,7 +629,16 @@ function shiftYmd(ymd: string, days: number): string | null {
  *     owner B's lease (reading the receipt's owner alone would count it).
  *     Expenses 100.00 (Dec 31). Net 650.00. Occupancy 100.00.
  *   Delta Lot: no units, so 0 everywhere.
- *   Gamma Flats is inactive: no row, for all its receipts.
+ *   Echo Barn, soft-deleted, spent 12.00 in the year (not the soft-deleted
+ *     9.99) and received nothing: listed, 0.00 received, 12.00 spent, -12.00
+ *     net, 0.00 occupied (H1 available).
+ *   Gamma Flats, soft-deleted after the year, received 333.00 in it: listed,
+ *     333.00 received, nothing spent, 333.00 net, 100.00 occupied (G1). A
+ *     tax year's rent received is never dropped because the property was
+ *     deleted later. (Its 33.00 of T-2 is in no trailing window: there a
+ *     deleted property is not listed.)
+ *   Foxtrot Mews, soft-deleted, has nothing in the year (its 44.00 was
+ *     received in 2024, its 8.00 is soft-deleted, its 6.00 is 2026's): no row.
  *   Every row's timeframe is 2025-01-01/2025-12-31: the body before this one
  *     echoes the request, 2025-01-01..2025-12-31.
  * owner_a_30d and owner_a_default, the trailing 30 days [T-30, T]:
@@ -675,6 +684,8 @@ export function expectedPropertyPerformance(
 	const ALPHA = "c1000000-0000-4000-8000-00000000a001";
 	const BETA = "c1000000-0000-4000-8000-00000000a002";
 	const DELTA = "c1000000-0000-4000-8000-00000000a003";
+	const GAMMA = "c1000000-0000-4000-8000-00000000a004";
+	const ECHO = "c1000000-0000-4000-8000-00000000a005";
 	const BRAVO = "c1000000-0000-4000-8000-00000000b001";
 	const CEDAR = "c1000000-0000-4000-8000-00000000b002";
 	const alpha2025 = row(
@@ -697,6 +708,8 @@ export function expectedPropertyPerformance(
 			alpha2025,
 			beta2025,
 			row(DELTA, "Delta Lot", 0, 0, 0, 0, TAX_2025_WINDOW),
+			row(ECHO, "Echo Barn", 0, 0, 12, -12, TAX_2025_WINDOW),
+			row(GAMMA, "Gamma Flats", 100, 333, 0, 333, TAX_2025_WINDOW),
 		],
 		owner_a_30d: trailing,
 		owner_a_default: trailing,
@@ -735,30 +748,61 @@ const EVERY_PROPERTY_LISTED: Readonly<Record<string, number | string>> = {
 	owner_c_limit_5_count: 5,
 };
 
-/** Owner B's 2025 rent received, to the cent: 700.00 + 650.00. */
-const OWNER_B_RENT_RECEIVED_2025_CENTS = 135_000;
+/**
+ * Each owner's 2025 rent received and expenses, to the cent, from the year-end
+ * summary and from its table. Owner A: 2750.50 + 750.00 + 333.00 (Gamma
+ * Flats, deleted after the year) received, 200.25 + 100.00 + 12.00 (Echo
+ * Barn, deleted) spent. Owner B: 700.00 + 650.00, and 10.00.
+ */
+const YEAR_END_TIES_2025_CENTS: Readonly<
+	Record<string, { readonly received: number; readonly expenses: number }>
+> = {
+	owner_a_tie: { received: 383_350, expenses: 31_225 },
+	owner_b_tie: { received: 135_000, expenses: 1_000 },
+};
 
 /**
- * Push a line unless owner B's year-end summary and tax table tie: the
+ * Push a line unless an owner's year-end summary and tax table tie: the
  * summary's rent received (collectedTotal as of 2025-12-31 less as of
  * 2024-12-31, get_billing_insights) must equal the table's total (the sum of
- * get_property_performance_analytics' total_revenue over 2025) and 1350.00, in
- * whole cents, across a reversal, a soft-deleted unit and a soft-deleted lease.
+ * get_property_performance_analytics' total_revenue over 2025), and the
+ * summary's expenses (get_expense_summary for the year) the table's, each the
+ * figure YEAR_END_TIES_2025_CENTS states, in whole cents: across a reversal,
+ * a soft-deleted unit, a soft-deleted lease and soft-deleted properties.
  */
-function collectYearEndTie(value: unknown, problems: string[]): void {
+function collectYearEndTie(
+	label: string,
+	value: unknown,
+	problems: string[],
+): void {
+	const expected = YEAR_END_TIES_2025_CENTS[label];
 	const tie = asJsonObject(value);
 	const end = cents(tie?.["collected_2025_end"]);
 	const start = cents(tie?.["collected_2024_end"]);
 	const table = cents(tie?.["table_total"]);
-	if (end === null || start === null || table === null) {
+	const spent = cents(tie?.["expense_total"]);
+	const tableSpent = cents(tie?.["table_expenses"]);
+	if (
+		expected === undefined ||
+		end === null ||
+		start === null ||
+		table === null ||
+		spent === null ||
+		tableSpent === null
+	) {
 		problems.push(
-			`owner_b_tie: expected three numbers, got ${JSON.stringify(value)}`,
+			`${label}: expected five numbers, got ${JSON.stringify(value)}`,
 		);
 		return;
 	}
-	if (end - start !== table || table !== OWNER_B_RENT_RECEIVED_2025_CENTS) {
+	if (end - start !== table || table !== expected.received) {
 		problems.push(
-			`owner_b_tie: the year-end summary reads ${(end - start) / 100} of 2025 rent received and its table ${table / 100}; both must be 1350. The two functions must count the same receipts.`,
+			`${label}: the year-end summary reads ${(end - start) / 100} of 2025 rent received and its table ${table / 100}; both must be ${expected.received / 100}. The two functions must count the same receipts, a property deleted later included.`,
+		);
+	}
+	if (spent !== tableSpent || tableSpent !== expected.expenses) {
+		problems.push(
+			`${label}: the year-end summary reads ${spent / 100} of 2025 expenses and its table ${tableSpent / 100}; both must be ${expected.expenses / 100}. The table must list every property that spent in the year, a deleted one included.`,
 		);
 	}
 }
@@ -826,7 +870,7 @@ export function assertPropertyPerformanceRentReceived(
 	) {
 		return {
 			ok: false,
-			message: `get_property_performance_analytics returned 0 as every property's revenue and echoed the window it was asked for (${TAX_2025_REQUEST}) for an owner whose seeded ledger received 3500.50 in 2025: that is the hard-coded body before 20261102163709, not a ledger computation. The migration that computes rent received did not apply, or a later one replaced it with a copy of an older body.`,
+			message: `get_property_performance_analytics returned 0 as every property's revenue and echoed the window it was asked for (${TAX_2025_REQUEST}) for an owner whose seeded ledger received 3833.50 in 2025: that is the hard-coded body before 20261102163709, not a ledger computation. The migration that computes rent received did not apply, or a later one replaced it with a copy of an older body.`,
 		};
 	}
 
@@ -868,7 +912,9 @@ export function assertPropertyPerformanceRentReceived(
 			problems,
 		);
 	}
-	collectYearEndTie(printed["owner_b_tie"], problems);
+	for (const label of Object.keys(YEAR_END_TIES_2025_CENTS)) {
+		collectYearEndTie(label, printed[label], problems);
+	}
 	for (const [key, value] of Object.entries(EVERY_PROPERTY_LISTED)) {
 		if (printed[key] !== value) {
 			problems.push(
@@ -896,7 +942,7 @@ export function assertPropertyPerformanceRentReceived(
 	}
 	return {
 		ok: true,
-		message: `get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; over ${trailingStart}/${today}: Alpha Court -79.75, Beta House 200.00; owner B 700.00 and 650.00, tying to the year-end summary's 1350.00), lists all 101 of owner C's properties, states each window, refuses a backwards range and another owner, and is executable by authenticated and service_role only; the ledger helpers by no client role`,
+		message: `get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; Gamma Flats, deleted, 333.00; Echo Barn, deleted, 12.00 spent; tying to the year-end summary's 3833.50 and 312.25; over ${trailingStart}/${today}: Alpha Court -79.75, Beta House 200.00, no deleted property; owner B 700.00 and 650.00, tying to the year-end summary's 1350.00 and 10.00), lists all 101 of owner C's properties, states each window, refuses a backwards range and another owner, and is executable by authenticated and service_role only; the ledger helpers by no client role`,
 	};
 }
 
@@ -932,6 +978,94 @@ function monthStartYmd(ymd: string, offset: number): string {
 	return utcYmd(year, month - 1 + offset, 1);
 }
 
+/**
+ * `ymd` moved by whole months as Postgres moves a date by `n months`: the same
+ * day of the target month, or its last day when it has fewer.
+ */
+function addMonthsYmd(ymd: string, months: number): string {
+	const [year, month, day] = ymdParts(ymd) ?? [0, 1, 1];
+	const lastDay = new Date(Date.UTC(year, month + months, 0)).getUTCDate();
+	return utcYmd(year, month - 1 + months, Math.min(day, lastDay));
+}
+
+/** One of owner A's leases, as the fixture's header lists it: days from T. */
+interface OccupancyModelLease {
+	readonly unit: string;
+	readonly status: string;
+	readonly start: number;
+	readonly end: number;
+}
+
+/** Owner A's leases, L1..L15 (L7 is unused), in the fixture's order. */
+const OWNER_A_LEASES: readonly OccupancyModelLease[] = [
+	{ unit: "N1", status: "active", start: -400, end: 300 },
+	{ unit: "N2", status: "ended", start: -400, end: -10 },
+	{ unit: "N3", status: "active", start: -5, end: 360 },
+	{ unit: "N4", status: "pending_signature", start: -60, end: 300 },
+	{ unit: "N3", status: "terminated", start: -100, end: -1 },
+	{ unit: "N4", status: "expired", start: -200, end: -20 },
+	{ unit: "S1", status: "active", start: -400, end: 300 },
+	{ unit: "N2", status: "inactive", start: -400, end: 300 },
+	{ unit: "N3", status: "ended", start: -30, end: -29 },
+	{ unit: "N2", status: "ended", start: -500, end: -30 },
+	{ unit: "N1", status: "ended", start: -2, end: 0 },
+	{ unit: "N2", status: "expired", start: 0, end: 0 },
+	{ unit: "N5", status: "expired", start: -400, end: 0 },
+	{ unit: "N4", status: "ended", start: -300, end: -250 },
+];
+
+/**
+ * Owner A's counted units: N5 is soft-deleted and S1 is on a soft-deleted
+ * property, so neither is in the denominator and no lease on them counts.
+ */
+const OWNER_A_COUNTED_UNITS: ReadonlySet<string> = new Set([
+	"N1",
+	"N2",
+	"N3",
+	"N4",
+]);
+
+/** The statuses of a lease that ran, whatever it is now. */
+const RUNNING_STATUSES: ReadonlySet<string> = new Set([
+	"active",
+	"ended",
+	"expired",
+]);
+
+/**
+ * Owner A's occupancy over `from`..`to` (both 'YYYY-MM-DD', inclusive) by the
+ * one rule the series and the helper share: the counted units with a lease
+ * that ran on any of those days, over the counted units, in percent to two
+ * decimals.
+ */
+function ownerAOccupancy(today: string, from: string, to: string): number {
+	const occupied = new Set<string>();
+	for (const lease of OWNER_A_LEASES) {
+		const start = shiftYmd(today, lease.start) ?? "";
+		const end = shiftYmd(today, lease.end) ?? "";
+		if (
+			OWNER_A_COUNTED_UNITS.has(lease.unit) &&
+			RUNNING_STATUSES.has(lease.status) &&
+			start <= to &&
+			end >= from
+		) {
+			occupied.add(lease.unit);
+		}
+	}
+	return (
+		Math.round((occupied.size / OWNER_A_COUNTED_UNITS.size) * 10_000) / 100
+	);
+}
+
+/** The first and last day of the series' month `monthsAgo` months before T. */
+export function occupancySeriesMonth(
+	today: string,
+	monthsAgo: number,
+): [string, string] {
+	const from = addMonthsYmd(today, -monthsAgo);
+	return [from, shiftYmd(addMonthsYmd(from, 1), -1) ?? ""];
+}
+
 /** Whole days from `from` to `to`, both 'YYYY-MM-DD'. */
 function daysBetween(from: string, to: string): number {
 	return (
@@ -946,7 +1080,10 @@ interface OwnerFiguresExpectation {
 	readonly figures: Readonly<Record<string, number | string | null>>;
 	/** Arrays compared element by element, every key of every element. */
 	readonly series: Readonly<
-		Record<string, readonly Readonly<Record<string, number | string | null>>[]>
+		Record<
+			string,
+			readonly Readonly<Record<string, number | boolean | string | null>>[]
+		>
 	>;
 	/** Objects whose keys must be exactly these (no literal left behind). */
 	readonly keys: Readonly<Record<string, readonly string[]>>;
@@ -970,9 +1107,27 @@ interface OwnerFiguresExpectation {
  *   and get_dashboard_stats returns 0 and 0. In get_dashboard_data_v2 the
  *   occupancy trend reads the same 75 and 100 and the revenue trend 2470 and
  *   2750. Both windows are T-30/T. With nothing at all (NOBODY) the helper
- *   reads 0 and 0.
+ *   reads 0 and 0. L14 runs on both days but on N5, soft-deleted: never
+ *   counted (the helper before counted it, 4 of 4 today and 5 of 4 then).
+ *   Tenants (get_dashboard_data_v2's active_tenants, by the helper's rule):
+ *   Ann, Bea, Cy and Di today (L1, L3, L12, L13: two on N1), Ann, Bea and
+ *   Di 30 days ago (L1, L2, L6, L10, L11: Ann on N1 and N3): 4 against 3,
+ *   +33.33%, never the units (3 and 4). The body before
+ *   compared today's active leases (L1, L3: 2) with the leases still active
+ *   today that ran then (L1: 1), +100%. Every trend states T-30/T as its
+ *   window, and its percentChange is the change over the earlier figure
+ *   (occupancy -25.00, revenue -10.18).
+ * The occupancy series, owner A (get_occupancy_trends_optimized): this month
+ *   is the stored occupancy, N1 and N3 of the 4 counted units, 50.00; each
+ *   past month the counted units with a lease that overlapped it
+ *   (ownerAOccupancy, over the month that starts n months before T). The
+ *   helper, on that first day, is the same rule on one day, so the two agree
+ *   on every month in which no counted lease starts or ends. The body before
+ *   counted L14 on N5 in every past month: 5 of 4 in the latest.
  * Owner B: LB1 started T-3, so 100.00% today and none 30 days ago: +100.00
- *   points, and growth NULL (nothing was scheduled then), never 0. Owner C:
+ *   points, and growth NULL (nothing was scheduled then), never 0. Every one
+ *   of the four trends has no earlier figure (no lease, tenant or open
+ *   request 30 days ago): percentChange NULL, never 0. Owner C:
  *   1 of 3 units, 33.33 points (two decimals), and growth NULL.
  * Expenses, owner B: 2025-03-01..2025-06-30 is 100 + 50 = 150.00 (not the
  *   soft-deleted 25 or 2025-07-01's 999) against 2024-03-01..2024-06-30's
@@ -1010,7 +1165,25 @@ interface OwnerFiguresExpectation {
  *   it counts L8, on the inactive property). M0-2mo .. M0-1mo+5d holds
  *   200 + 50.50 + 100 + 10 = 360.50 of expenses; from M0 with no end, 30.00
  *   (not T+40's 77: 107.00 before). net_income is the difference. Only those
- *   three keys remain.
+ *   three keys remain in `overview`, beside `lease_profitability`.
+ * Lease profitability (get_financial_overview, 20261102184504), largest net
+ *   first. Owner A, M0-2mo .. M0-1mo+5d: L8 on South House (soft-deleted
+ *   property: listed, and says so) 5000.00 received; L1 2000.00 received
+ *   (M0-2mo+2d, M0-1mo+2d) less 360.50 of N1's expenses (R1 200 + 50.50,
+ *   R2 100 + 10; not the soft-deleted 15), each on a day L1 ran and L12 did
+ *   not, 1639.50; L2 800.00. Not L9's 4444.00 (a soft-deleted lease). From
+ *   M0 to T: L1's 1000.00 of M0, and R3's 30.00 of M0 on the lease that ran
+ *   on N1 that day and started later: L12 (T-2 .. T) when T-2 is on or
+ *   before M0, so L1 1000.00 and L12 -30.00; else L1 alone, 970.00. Owner B,
+ *   2025: LB2 700.00 less 100.00 (2025-03-01), 600.00; LB3 640.00 (the
+ *   100.00 and its reversal net) less 50.00 (2025-06-30, a day LB2 and LB3
+ *   both ran: the later-starting LB3's alone; LB9, later still, is
+ *   soft-deleted), 590.00. The 999.00 of
+ *   2025-07-01 is no lease's (both had ended), nor are 2024's (none had
+ *   begun). Not LB1 (nothing in 2025).
+ *   2025-03-01 .. 2025-06-30: LB3 -50.00, LB2 -100.00, nothing received.
+ *   Owner A, T+199 .. T+201: nothing. RX's 9.00 on T+200 is on N1 while L1
+ *   and L3 run, but RX carries owner C's id: no lease of owner A's gets it.
  */
 const PENDING_AT_MONTH_END: readonly number[] = [
 	1, 1, 1, 1, 1, 1, 1, 2, 4, 4, 4, 3,
@@ -1058,24 +1231,117 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 		units: { occupancyChange: 33.33, occupancyChangeWindow: window },
 		revenue: { growth: null, growthWindow: window },
 	};
+	const fromNothing = (current: number) => ({
+		current,
+		previous: 0,
+		change: current,
+		percentChange: null,
+		window,
+	});
+	const seriesRows = Array.from({ length: 12 }, (_, monthsAgo) => {
+		const [from, to] = occupancySeriesMonth(today, monthsAgo);
+		const occupancy = monthsAgo === 0 ? 50 : ownerAOccupancy(today, from, to);
+		return {
+			month: from.slice(0, 7),
+			occupancy_rate: occupancy,
+			total_units: 4,
+			occupied_units: (occupancy / 100) * 4,
+		};
+	});
+	const lease = (
+		id: string,
+		property: string,
+		deleted: boolean,
+		unit: string,
+		tenant: string,
+		received: number,
+		expenses: number,
+	) => ({
+		lease_id: id,
+		property_name: property,
+		property_deleted: deleted,
+		unit_number: unit,
+		tenant_name: tenant,
+		rent_received: received,
+		expenses,
+		net: Math.round((received - expenses) * 100) / 100,
+	});
+	const L1 = "d4000000-0000-4000-8000-0000000000a1";
+	const lb2 = (received: number, expenses: number) =>
+		lease(
+			"d4000000-0000-4000-8000-0000000000b2",
+			"West Place",
+			false,
+			"W1",
+			"Flo West",
+			received,
+			expenses,
+		);
+	const lb3 = (received: number, expenses: number) =>
+		lease(
+			"d4000000-0000-4000-8000-0000000000b3",
+			"West Place",
+			false,
+			"W1",
+			"Hal West",
+			received,
+			expenses,
+		);
+	const l12RanOnM0 = (shiftYmd(today, -2) ?? "") <= monthStartYmd(today, 0);
+	const helperMonths = Array.from({ length: 11 }, (_, at) => {
+		const [from] = occupancySeriesMonth(today, at + 1);
+		return {
+			months_ago: at + 1,
+			occupancy_rate: ownerAOccupancy(today, from, from),
+		};
+	});
 	return {
 		figures: {
 			...flatten("dashboard_stats_a", trend),
 			...flatten("dashboard_v2_a", {
 				...trend,
-				trend_occupancy: { current: 75, previous: 100, change: -25 },
-				trend_revenue: { current: 2470, previous: 2750, change: -280 },
+				trend_occupancy: {
+					current: 75,
+					previous: 100,
+					change: -25,
+					percentChange: -25,
+					window,
+				},
+				trend_revenue: {
+					current: 2470,
+					previous: 2750,
+					change: -280,
+					percentChange: -10.18,
+					window,
+				},
+				trend_tenants: {
+					current: 4,
+					previous: 3,
+					change: 1,
+					percentChange: 33.33,
+					window,
+				},
+				trend_maintenance: { window },
 			}),
 			...flatten("dashboard_stats_b", ownerB),
-			...flatten("dashboard_v2_b", ownerB),
+			...flatten("dashboard_v2_b", {
+				...ownerB,
+				trend_occupancy: fromNothing(100),
+				trend_revenue: fromNothing(700),
+				trend_tenants: fromNothing(1),
+				trend_maintenance: fromNothing(1),
+			}),
 			...flatten("dashboard_stats_c", ownerC),
 			...flatten("dashboard_v2_c", ownerC),
 			"position_a_today.occupancy_rate": 75,
 			"position_a_today.scheduled_rent": 2470,
+			"position_a_today.tenant_count": 4,
 			"position_a_then.occupancy_rate": 100,
 			"position_a_then.scheduled_rent": 2750,
+			"position_a_then.tenant_count": 3,
 			"position_nobody.occupancy_rate": 0,
 			"position_nobody.scheduled_rent": 0,
+			"position_nobody.tenant_count": 0,
 			"expenses_b_spring_2025.total_amount": 150,
 			"expenses_b_spring_2025.year_over_year_change": 25,
 			"expenses_b_spring_2025.year_over_year_prior_period":
@@ -1105,8 +1371,60 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			"overview_a_open_end.overview.total_revenue": 86400,
 			"overview_a_open_end.overview.total_expenses": 30,
 			"overview_a_open_end.overview.net_income": 86370,
+			"overview_a_window.lease_profitability.window": `${monthStartYmd(today, -2)}/${shiftYmd(monthStartYmd(today, -1), 5)}`,
+			"overview_a_open_end.lease_profitability.window": `${monthStartYmd(today, 0)}/${today}`,
+			"overview_b_2025.lease_profitability.window": "2025-01-01/2025-12-31",
+			"overview_a_future.lease_profitability.window": `${shiftYmd(today, 199)}/${shiftYmd(today, 201)}`,
+			"overview_b_spring_2025.lease_profitability.window":
+				"2025-03-01/2025-06-30",
 		},
 		series: {
+			"overview_a_window.lease_profitability.leases": [
+				lease(
+					"d4000000-0000-4000-8000-0000000000a8",
+					"South House",
+					true,
+					"S1",
+					"Ed South",
+					5000,
+					0,
+				),
+				lease(L1, "North Court", false, "N1", "Ann North", 2000, 360.5),
+				lease(
+					"d4000000-0000-4000-8000-0000000000a2",
+					"North Court",
+					false,
+					"N2",
+					"Bea North",
+					800,
+					0,
+				),
+			],
+			"overview_a_open_end.lease_profitability.leases": l12RanOnM0
+				? [
+						lease(L1, "North Court", false, "N1", "Ann North", 1000, 0),
+						lease(
+							"d4000000-0000-4000-8000-00000000a012",
+							"North Court",
+							false,
+							"N1",
+							"Bea North",
+							0,
+							30,
+						),
+					]
+				: [lease(L1, "North Court", false, "N1", "Ann North", 1000, 30)],
+			"overview_b_2025.lease_profitability.leases": [
+				lb2(700, 100),
+				lb3(640, 50),
+			],
+			"overview_a_future.lease_profitability.leases": [],
+			"overview_b_spring_2025.lease_profitability.leases": [
+				lb3(0, 50),
+				lb2(0, 100),
+			],
+			occupancy_series_a: seriesRows,
+			position_a_months: helperMonths,
 			"expenses_b_spring_2025.categories": [
 				{ category: "Gate Co", amount: 150, percentage: 100 },
 			],
@@ -1145,7 +1463,8 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			})),
 		},
 		keys: {
-			overview_a_window: ["overview"],
+			overview_a_window: ["lease_profitability", "overview"],
+			"overview_a_window.lease_profitability": ["leases", "window"],
 			"overview_a_window.overview": [
 				"net_income",
 				"total_expenses",
@@ -1155,7 +1474,7 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 	};
 }
 
-/** The six functions' EXECUTE grants: the helper is no client role's. */
+/** The seven functions' EXECUTE grants: the helper is no client role's. */
 export const EXPECTED_OWNER_FIGURES_EXECUTE: Readonly<
 	Record<
 		string,
@@ -1192,6 +1511,11 @@ export const EXPECTED_OWNER_FIGURES_EXECUTE: Readonly<
 		authenticated: true,
 		service_role: true,
 	},
+	"public.get_occupancy_trends_optimized(uuid,integer)": {
+		anon: false,
+		authenticated: true,
+		service_role: true,
+	},
 };
 
 /** The functions whose guard the fixture tries, owner A asking for owner B. */
@@ -1201,6 +1525,7 @@ const OWNER_FIGURES_GUARDED = [
 	"get_expense_summary",
 	"get_maintenance_analytics",
 	"get_financial_overview",
+	"get_occupancy_trends_optimized",
 ] as const;
 
 /** The value at a dotted path, or undefined when any step is not an object. */
@@ -1221,7 +1546,8 @@ function hasKey(object: unknown, key: string): boolean {
 }
 
 /**
- * The bodies before 20261102184501..20261102184504, named by what only they
+ * The bodies before 20261102184501..20261102184504 and 20261102200501 (and
+ * the bodies this PR had before part N extended them), named by what only they
  * return. One line per function, so a body left behind is named, never read
  * as an arithmetic slip.
  */
@@ -1245,6 +1571,33 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 			"get_dashboard_data_v2 returned no occupancyChangeWindow: that is the body before 20261102184501, which compares today's leases with only the leases still active today.",
 		);
 	}
+	const trendOccupancy = atPath(printed, "dashboard_v2_a.trend_occupancy");
+	// Production's body is named above; this is the body this PR had before.
+	if (
+		hasKey(atPath(printed, "dashboard_v2_a.units"), "occupancyChangeWindow") &&
+		asJsonObject(trendOccupancy) !== null &&
+		!hasKey(trendOccupancy, "window")
+	) {
+		found.push(
+			"get_dashboard_data_v2's trends state no window: that is a body before 20261102184501 as this PR leaves it, whose percentChange is 0 with no earlier figure and whose active_tenants compares only the leases still active today.",
+		);
+	}
+	const series = atPath(printed, "occupancy_series_a");
+	if (
+		Array.isArray(series) &&
+		series.some((entry) => {
+			const month = asJsonObject(entry);
+			return (
+				typeof month?.["occupied_units"] === "number" &&
+				typeof month["total_units"] === "number" &&
+				month["occupied_units"] > month["total_units"]
+			);
+		})
+	) {
+		found.push(
+			"get_occupancy_trends_optimized counted more occupied units than units in a month: a lease on a soft-deleted unit counted outside the denominator. That is the body before 20261102200501.",
+		);
+	}
 	const ytd = atPath(printed, "expenses_c_year_to_date");
 	// A missing call is no old body: its change reads undefined, not null.
 	if (
@@ -1264,6 +1617,19 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 			"get_maintenance_analytics returned total_cost as the literal 0 with no costed_requests, for an owner with 790.50 of maintenance expenses: that is the body before 20261102184503.",
 		);
 	}
+	const overview = atPath(printed, "overview_a_window");
+	if (
+		asJsonObject(overview) !== null &&
+		!hasKey(
+			atPath(printed, "overview_a_window.overview"),
+			"accounts_receivable",
+		) &&
+		!hasKey(overview, "lease_profitability")
+	) {
+		found.push(
+			"get_financial_overview returned no lease_profitability: that is a body before 20261102184504 as this PR leaves it, which reports no lease's rent received or expenses.",
+		);
+	}
 	if (
 		hasKey(atPath(printed, "overview_a_window.overview"), "accounts_receivable")
 	) {
@@ -1275,7 +1641,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 }
 
 /**
- * The five functions must compute the figures they returned as literals, from
+ * The owner-figure functions must compute the figures they returned as literals, from
  * one definition, and say over which days.
  *
  * Before 20261102184501..20261102184504, get_dashboard_stats returned
@@ -1283,8 +1649,10 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
  * against only the leases still active today; get_expense_summary returned
  * year_over_year_change as null; get_maintenance_analytics returned every
  * cost as 0 or []; get_financial_overview returned accounts receivable and
- * payable as 0 and trends as null. No job ran any of them against data. This
- * checks every computed figure, the windows and markers the app keys its
+ * payable as 0 and trends as null, and reported no lease's profitability;
+ * get_occupancy_trends_optimized, until 20261102200501, counted a lease on a
+ * soft-deleted unit outside its denominator. No job ran any of them against
+ * data. This checks every computed figure, the windows and markers the app keys its
  * "unavailable" states on, that the two dashboard functions agree with each
  * other and with their helper, the period ends, the soft-deleted rows, the
  * owner scoping, the guards and the grants, against the fixture's portfolio.
@@ -1384,6 +1752,30 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 		}
 	}
 
+	// The tile and the chart: on every past month in which no counted lease
+	// starts or ends, the helper on the month's first day must equal the
+	// series' month. One rule in two functions.
+	const printedSeries = atPath(parsedFigures, "occupancy_series_a");
+	const printedHelper = atPath(parsedFigures, "position_a_months");
+	for (const [at, helperRow] of expected.series[
+		"position_a_months"
+	]?.entries() ?? []) {
+		const monthsAgo = at + 1;
+		const seriesRow = expected.series["occupancy_series_a"]?.[monthsAgo];
+		if (seriesRow?.["occupancy_rate"] !== helperRow["occupancy_rate"]) continue;
+		const helperRate = Array.isArray(printedHelper)
+			? asJsonObject(printedHelper[at])?.["occupancy_rate"]
+			: undefined;
+		const seriesRate = Array.isArray(printedSeries)
+			? asJsonObject(printedSeries[monthsAgo])?.["occupancy_rate"]
+			: undefined;
+		if (helperRate === undefined || helperRate !== seriesRate) {
+			failures.push(
+				`occupancy ${monthsAgo} months ago: the helper reads ${JSON.stringify(helperRate)} and the series ${JSON.stringify(seriesRate)}; no counted lease starts or ends in that month, so the tile's rule and the chart's must agree.`,
+			);
+		}
+	}
+
 	for (const [signature, grants] of Object.entries(
 		EXPECTED_OWNER_FIGURES_EXECUTE,
 	)) {
@@ -1406,12 +1798,12 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 	if (failures.length > 0) {
 		return {
 			ok: false,
-			message: `the five owner-figure functions do not return what the seeded portfolio implies. expectedOwnerFigures in scripts/migration-replay-assertions.ts shows the arithmetic for each; fix the function (or, if the fixture changed, both files together), not this check.\n${failures.join("\n")}`,
+			message: `the owner-figure functions do not return what the seeded portfolio implies. expectedOwnerFigures in scripts/migration-replay-assertions.ts shows the arithmetic for each; fix the function (or, if the fixture changed, both files together), not this check.\n${failures.join("\n")}`,
 		};
 	}
 	return {
 		ok: true,
-		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +33.33%; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures alone), every guard refuses another owner, and the helper is no client role's`,
+		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's four trends with no earlier figure, percentChange null; owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +33.33%; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
 	};
 }
 
