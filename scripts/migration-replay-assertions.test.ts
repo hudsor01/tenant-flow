@@ -369,16 +369,18 @@ describe("assertBillingInsightsFromLedger", () => {
 	});
 
 	it("compares the partition in cents, not in floating point", () => {
-		// 0.1 + 0.2 is 0.30000000000000004 in floating point.
+		// In floating point 1.1 * 100 + 2.2 * 100 is 330.00000000000006 and
+		// 3.3 * 100 is 330, so only a whole-cent comparison sees 1.10 + 2.20 =
+		// 3.30.
 		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
 		const line = JSON.stringify({
 			...parsed,
 			owner_b: {
 				...parsed.owner_b,
-				collectedTotal: 0.1,
-				unpaidTotal: 0.2,
+				collectedTotal: 1.1,
+				unpaidTotal: 2.2,
 				creditBalanceTotal: 0,
-				chargedTotal: 0.3,
+				chargedTotal: 3.3,
 			},
 		});
 		const result = assertBillingInsightsFromLedger(line);
