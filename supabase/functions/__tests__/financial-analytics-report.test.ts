@@ -541,10 +541,14 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 	});
 });
 
-describe("the page sections the export leaves out are empty on the page", () => {
+describe("the page sections the export leaves out are not on the page", () => {
+	// The page's Revenue Breakdown card was always empty and went in 66.2-39
+	// part P; neither the page data nor the file carries a revenue breakdown.
 	it("has no revenue breakdown", async () => {
 		const { page } = await screen(richAnswers());
-		expect(page.breakdown.revenue).toEqual([]);
+		expect(Object.keys(page.breakdown)).not.toContain("revenue");
+		const { rows } = await exported(richAnswers());
+		expect(rows.map((row) => row[0])).not.toContain("Revenue Breakdown");
 	});
 });
 

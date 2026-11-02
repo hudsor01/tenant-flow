@@ -188,7 +188,6 @@ export interface FinancialBreakdownRow {
 }
 
 export interface RevenueExpenseBreakdown {
-	revenue: FinancialBreakdownRow[];
 	expenses: FinancialBreakdownRow[];
 	totals: {
 		revenue: number;

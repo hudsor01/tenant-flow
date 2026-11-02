@@ -149,6 +149,16 @@ describe("the financial page's expense breakdown", () => {
 		expect(card).toHaveTextContent("Vendors");
 		expect(card?.textContent).not.toMatch(/categor/i);
 	});
+
+	// get_financial_overview and get_revenue_trends_optimized split no rent by
+	// type, so the Revenue Breakdown card beside it was always empty (part P).
+	it("stands alone: there is no always-empty Revenue Breakdown card", async () => {
+		const { default: Page } = await import("../financial/page");
+		renderPage(createElement(Page));
+		await screen.findByText("Expense Breakdown");
+		expect(screen.queryByText("Revenue Breakdown")).not.toBeInTheDocument();
+		expect(screen.queryByText("Revenue Sources")).not.toBeInTheDocument();
+	});
 });
 
 describe("analytics overview", () => {

@@ -67,7 +67,7 @@ export default function FinancialAnalyticsPage() {
 			totalExpenses: 0,
 			netIncome: 0,
 		},
-		breakdown = { revenue: [], expenses: [] },
+		breakdown = { expenses: [] },
 		netOperatingIncome = [],
 		monthlyMetrics = [],
 		leaseProfitability = { status: "unavailable" } as const,
@@ -105,7 +105,9 @@ export default function FinancialAnalyticsPage() {
 					</div>
 				</BlurFade>
 
-				{/* Charts Row 1: Scheduled Rent & Expenses + Breakdowns */}
+				{/* Charts Row 1: Scheduled Rent & Expenses + the expense breakdown. No
+				    revenue breakdown: received rent is not split by type anywhere,
+				    and the charged split is the income statement's own page. */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 					<BlurFade delay={0.6} className="lg:col-span-2">
 						<div className="bg-card border border-border rounded-lg p-6">
@@ -126,25 +128,6 @@ export default function FinancialAnalyticsPage() {
 
 					<div className="space-y-6">
 						<BlurFade delay={0.7}>
-							<div className="bg-card border border-border rounded-lg p-6">
-								<div className="flex items-center justify-between mb-4">
-									<div>
-										<h3 className="font-medium text-foreground">
-											Revenue Breakdown
-										</h3>
-										<p className="text-sm text-muted-foreground">By category</p>
-									</div>
-									<PieChart className="w-5 h-5 text-muted-foreground" />
-								</div>
-								<BreakdownList
-									title="Revenue Sources"
-									rows={breakdown.revenue}
-									detailsHref="/reports/income-statement"
-								/>
-							</div>
-						</BlurFade>
-
-						<BlurFade delay={0.8}>
 							<div className="bg-card border border-border rounded-lg p-6">
 								<div className="flex items-center justify-between mb-4">
 									<div>

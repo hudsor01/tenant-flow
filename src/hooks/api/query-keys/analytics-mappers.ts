@@ -121,9 +121,10 @@ export function mapOccupancyAnalytics(
 // This never-throw mapper derives `metrics` from `overview`; the four chart
 // sub-shapes (`monthlyMetrics`, `breakdown.expenses`, `netOperatingIncome`) are
 // built from the caller-supplied `get_revenue_trends_optimized` +
-// `get_expense_summary` join. `breakdown.revenue` stays empty — no source
-// exists post rent-payment demolish (do NOT invent one; matches the DATA-01
-// discipline). The lease profitability is get_financial_overview's own
+// `get_expense_summary` join. There is no revenue breakdown: received rent is
+// not split by type anywhere, and the charged split is the income statement's
+// (do NOT invent one; matches the DATA-01 discipline). Its card, always empty,
+// went in 66.2-39 part P. The lease profitability is get_financial_overview's own
 // `lease_profitability` (20261102184504), through mapLeaseProfitability. The billing timeline and invoice summary,
 // which had no source either, were deleted with their cards (66.2-39).
 
@@ -257,7 +258,6 @@ export function mapFinancialOverview(
 	);
 
 	const breakdown: RevenueExpenseBreakdown = {
-		revenue: [],
 		expenses: expenseBreakdownRows(options?.expenseSummary),
 		totals: { revenue: totalRevenue, expenses: totalExpenses, netIncome },
 	};
