@@ -3,8 +3,9 @@
 // Reads only the query string; a request body is ignored. `format` defaults to
 // csv and `type` to financial; any other format, or a year that is not four
 // digits, is a 400.
-// Formats: csv (`_shared/report-csv.ts`), xlsx (CSV-compatible), pdf (HTML
-// delegated to the generate-pdf Edge Function, StirlingPDF).
+// Formats: csv (`_shared/report-csv.ts`), xlsx (a real workbook,
+// `_shared/report-xlsx.ts`), pdf (HTML delegated to the generate-pdf Edge
+// Function, StirlingPDF).
 // Authenticates via JWT bearer token, no anon access. Premium report types
 // return 402 with `upgrade_url` below Growth (`_shared/tier-gate.ts`).
 // Every RPC error is a 500 (`errorResponse`), never an empty export.
@@ -19,7 +20,12 @@ import {
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
-import { reportColumns, rowsToCsv } from "../_shared/report-csv.ts";
+import {
+	reportColumns,
+	rowsToCsv,
+	rowsToTable,
+} from "../_shared/report-csv.ts";
+import { reportTableToXlsx, XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	checkTierEntitlement,
@@ -43,10 +49,22 @@ function isExportFormat(value: string): value is ExportFormat {
 	return value === "csv" || value === "xlsx" || value === "pdf";
 }
 
+const CSV_MIME_TYPE = "text/csv; charset=utf-8";
+
 /** Injectable dependencies for `deno test` (mirrors lease-signature). */
 export interface ExportReportDeps {
 	createClient?: (url: string, key: string) => SupabaseClient;
 	now?: () => Date;
+}
+
+/** One report, ready to write in any format. */
+interface ReportContent {
+	readonly title: string;
+	readonly filename: string;
+	readonly header: readonly string[];
+	readonly rows: readonly (readonly unknown[])[];
+	readonly csv: string;
+	readonly html: string;
 }
 
 type RowsResult =
@@ -117,6 +135,20 @@ function rowsReportFilename(reportType: string, year: number): string {
 	if (reportType === "1099") return `1099-vendors-${year}`;
 	if (reportType === "maintenance") return `maintenance-report-${year}`;
 	return `revenue-report-${year}`;
+}
+
+function fileHeaders(
+	req: Request,
+	contentType: string,
+	filename: string,
+): Record<string, string> {
+	return {
+		...getCorsHeaders(req),
+		"Content-Type": contentType,
+		// For a direct (non-browser) client: a cross-origin browser fetch cannot
+		// read this header (it is not CORS-safelisted and is not exposed).
+		"Content-Disposition": `attachment; filename="${filename}"`,
+	};
 }
 
 function rpcErrorResponse(req: Request, rpc: string, error: unknown): Response {
@@ -196,12 +228,18 @@ export async function handleRequest(
 
 		const result = await fetchReportRows(supabase, user.id, reportType, year);
 		if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
-		const rows = result.rows;
-		const filename = rowsReportFilename(reportType, year);
+		const table = rowsToTable(result.rows);
+		const content: ReportContent = {
+			title: `${reportType.replace(/-/g, " ").toUpperCase()} REPORT ${year}`,
+			filename: rowsReportFilename(reportType, year),
+			header: table.header.length > 0 ? table.header : ["No data available"],
+			rows: table.rows,
+			csv: rowsToCsv(result.rows),
+			html: buildReportHtml(result.rows, reportType, year),
+		};
 
 		// PDF format: delegate to generate-pdf Edge Function (StirlingPDF on k3s)
 		if (format === "pdf") {
-			const htmlContent = buildReportHtml(rows, reportType, year);
 			const generatePdfUrl = `${supabaseUrl}/functions/v1/generate-pdf`;
 
 			const pdfResponse = await fetch(generatePdfUrl, {
@@ -211,8 +249,8 @@ export async function handleRequest(
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					html: htmlContent,
-					filename: `${filename}.pdf`,
+					html: content.html,
+					filename: `${content.filename}.pdf`,
 				}),
 			});
 
@@ -233,36 +271,25 @@ export async function handleRequest(
 			const pdfBlob = await pdfResponse.arrayBuffer();
 			return new Response(pdfBlob, {
 				status: 200,
-				headers: {
-					...getCorsHeaders(req),
-					"Content-Type": "application/pdf",
-					"Content-Disposition": `attachment; filename="${filename}.pdf"`,
-				},
+				headers: fileHeaders(req, "application/pdf", `${content.filename}.pdf`),
 			});
 		}
-
-		const csv = rowsToCsv(rows);
 
 		if (format === "xlsx") {
-			// Full XLSX binary requires a library — ship CSV-compatible content with .xlsx extension
-			// Excel opens CSV files natively
-			return new Response(csv, {
-				headers: {
-					...getCorsHeaders(req),
-					"Content-Type":
-						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-					"Content-Disposition": `attachment; filename="${filename}.xlsx"`,
-				},
+			const workbook = reportTableToXlsx(
+				content.title,
+				content.header,
+				content.rows,
+			);
+			return new Response(workbook, {
+				status: 200,
+				headers: fileHeaders(req, XLSX_MIME_TYPE, `${content.filename}.xlsx`),
 			});
 		}
 
-		// Default: CSV
-		return new Response(csv, {
-			headers: {
-				...getCorsHeaders(req),
-				"Content-Type": "text/csv",
-				"Content-Disposition": `attachment; filename="${filename}.csv"`,
-			},
+		return new Response(content.csv, {
+			status: 200,
+			headers: fileHeaders(req, CSV_MIME_TYPE, `${content.filename}.csv`),
 		});
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "export_report" });

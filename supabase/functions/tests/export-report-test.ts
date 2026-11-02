@@ -3,6 +3,8 @@
 // `functions serve`, no deploy (mirrors lease-signature-metering-test.ts).
 //
 // What it pins:
+//   - a row report's xlsx is a real .xlsx (parsed back here with the same
+//     SheetJS build);
 //   - every RPC error is a 500 and never a file;
 //   - format and year are validated, and a year-end export reads that year.
 //
@@ -12,6 +14,9 @@
 
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
+// @deno-types="https://cdn.sheetjs.com/xlsx-0.20.3/package/types/index.d.ts"
+import * as XLSX from "xlsx";
+import { XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 
 Deno.env.set("DENO_TEST_NO_SERVE", "1");
 Deno.env.set("SUPABASE_URL", "http://supabase.test");
@@ -211,5 +216,40 @@ Deno.test("a year-end export reads the requested year", async () => {
 				p_end_date: "2024-12-31",
 			},
 		},
+	]);
+});
+
+Deno.test("a row report's xlsx is a real workbook of its rows", async () => {
+	const s = scenario();
+	const { res } = await run(get("?type=maintenance&format=xlsx&year=2026"), s);
+	assertEquals(res.status, 200);
+	const bytes = new Uint8Array(await res.arrayBuffer());
+	// A zip, not CSV text under the spreadsheet MIME type (SheetJS would parse
+	// CSV text into a workbook too, so the magic is what tells them apart).
+	assertEquals([...bytes.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
+	assertEquals(res.headers.get("Content-Type"), XLSX_MIME_TYPE);
+	const workbook = XLSX.read(bytes, { type: "array" });
+	const sheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
+	assert(sheet);
+	assertEquals(XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 }), [
+		["metric", "value"],
+		["open_requests", 2],
+		["avg_resolution_hours", 5.5],
+	]);
+	assertEquals(sheet.B2?.t, "n");
+
+	const empty = scenario();
+	empty.rpc.get_maintenance_analytics = { data: null, error: null };
+	const { res: none } = await run(
+		get("?type=maintenance&format=xlsx&year=2026"),
+		empty,
+	);
+	const blank = XLSX.read(new Uint8Array(await none.arrayBuffer()), {
+		type: "array",
+	});
+	const blankSheet = blank.Sheets[blank.SheetNames[0] ?? ""];
+	assert(blankSheet);
+	assertEquals(XLSX.utils.sheet_to_json<unknown[]>(blankSheet, { header: 1 }), [
+		["No data available"],
 	]);
 });

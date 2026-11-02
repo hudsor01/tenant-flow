@@ -29,6 +29,8 @@ import {
 	neutralizeCsvFormula,
 	reportColumns,
 	rowsToCsv,
+	rowsToTable,
+	tableToCsv,
 } from "../_shared/report-csv";
 
 describe("report CSV writer (export-report)", () => {
@@ -60,7 +62,7 @@ describe("report CSV writer (export-report)", () => {
 		expect(csvCell('the "big" unit')).toBe('"the ""big"" unit"');
 		expect(csvCell("line one\nline two")).toBe('"line one\nline two"');
 		expect(csvCell("a\rb")).toBe('"a\rb"');
-		expect(csvCell("\r=1+1")).toBe("\"'\r=1+1\"");
+		expect(csvCell("\r=1+1")).toBe('"\'\r=1+1"');
 	});
 
 	it("takes the union of every row's keys, in first-seen order", () => {
@@ -93,6 +95,47 @@ describe("report CSV writer (export-report)", () => {
 		expect(rowsToCsv([])).toBe(EMPTY_REPORT_CSV);
 		expect(reportColumns([])).toEqual([]);
 	});
+
+	it("turns rows into a table of every column, with empty cells for gaps", () => {
+		const rows = [
+			{ month: "2026-01", revenue: 1200 },
+			{ month: "2026-02", expenses: 400 },
+		];
+		expect(rowsToTable(rows)).toEqual({
+			header: ["month", "revenue", "expenses"],
+			rows: [
+				["2026-01", 1200, undefined],
+				["2026-02", undefined, 400],
+			],
+		});
+	});
+
+	it("writes a fixed-header table with the same cell rules", () => {
+		expect(
+			tableToCsv(
+				["Section", "Item", "Value"],
+				[
+					["Overview", "Scheduled", 61200],
+					["Expense Breakdown", "=HYPERLINK(1)", -120.5],
+					["Expense Breakdown", "Roof, Gutter & Co", null],
+				],
+			),
+		).toBe(
+			[
+				"Section,Item,Value",
+				"Overview,Scheduled,61200",
+				"Expense Breakdown,'=HYPERLINK(1),-120.5",
+				'Expense Breakdown,"Roof, Gutter & Co",',
+			].join("\n"),
+		);
+		expect(tableToCsv(["Section"], [])).toBe("Section");
+	});
+
+	it("writes a row report through the table writer, byte for byte", () => {
+		const rows = [{ metric: "open_requests", value: 2 }, { metric: "=x" }];
+		const table = rowsToTable(rows);
+		expect(rowsToCsv(rows)).toBe(tableToCsv(table.header, table.rows));
+	});
 });
 
 const read = (rel: string) =>
@@ -103,11 +146,11 @@ describe("the report Edge Functions use the leaf", () => {
 	const generatePdf = read("../generate-pdf/index.ts");
 
 	it("export-report imports its CSV writer and columns from the leaf", () => {
-		expect(exportReport).toContain(
-			'import { reportColumns, rowsToCsv } from "../_shared/report-csv.ts";',
+		expect(exportReport).toMatch(
+			/import \{\s*reportColumns,\s*rowsToCsv,\s*rowsToTable,\s*\} from "\.\.\/_shared\/report-csv\.ts";/,
 		);
-		expect(exportReport).not.toMatch(/function rowsToCsv\b/);
-		expect(exportReport).toMatch(/const csv = rowsToCsv\(rows\);/);
+		expect(exportReport).not.toMatch(/function (rowsToCsv|tableToCsv)\b/);
+		expect(exportReport).toMatch(/csv: rowsToCsv\(result\.rows\),/);
 		expect(exportReport).toMatch(/const headers = reportColumns\(rows\);/);
 	});
 
