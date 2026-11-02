@@ -41,7 +41,7 @@ export function LogoCloud({
 									{/* Uniform 40px height, width auto — logos render at their
 									    natural aspect ratio (no per-logo fixed width letterboxing
 									    them to sub-32px optical heights). */}
-									<div className="h-10 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300">
+									<div className="h-10 flex items-center justify-center opacity-90">
 										<item.logo className="h-full w-auto" />
 									</div>
 									<span className="text-xs text-muted-foreground">

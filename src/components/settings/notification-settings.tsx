@@ -127,7 +127,7 @@ export function NotificationSettings() {
 					</h3>
 
 					<div className="space-y-4">
-						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">Maintenance Requests</p>
 								<p className="text-xs text-muted-foreground">
@@ -144,7 +144,7 @@ export function NotificationSettings() {
 							/>
 						</div>
 
-						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">Lease Updates</p>
 								<p className="text-xs text-muted-foreground">
@@ -161,7 +161,7 @@ export function NotificationSettings() {
 							/>
 						</div>
 
-						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">General Notifications</p>
 								<p className="text-xs text-muted-foreground">

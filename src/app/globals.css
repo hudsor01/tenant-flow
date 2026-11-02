@@ -863,11 +863,11 @@
 }
 
 @utility testimonial-card {
-	@apply relative bg-card border border-border rounded-2xl p-8 h-full hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5;
+	@apply relative bg-card border border-border rounded-2xl p-8 h-full;
 }
 
 @utility showcase-card {
-	@apply relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm hover:bg-card/90 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden hover:-translate-y-1 hover:scale-[1.02];
+	@apply relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm overflow-hidden;
 }
 
 @utility accordion-item {

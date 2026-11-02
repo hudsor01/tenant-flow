@@ -99,10 +99,8 @@ export function ActiveSessionsSection() {
 								<BlurFade key={session.id} delay={0.4 + idx * 0.05}>
 									<div
 										className={`flex items-center justify-between p-3 rounded-lg border ${
-											session.is_current
-												? "bg-primary/5 border-primary/20"
-												: "hover:bg-muted/30"
-										} transition-colors`}
+											session.is_current ? "bg-primary/5 border-primary/20" : ""
+										}`}
 									>
 										<div className="flex items-center gap-3">
 											<User className="h-5 w-5 text-muted-foreground" />

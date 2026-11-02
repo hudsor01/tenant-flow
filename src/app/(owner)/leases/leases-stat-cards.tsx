@@ -25,14 +25,14 @@ export function LeasesStatCards({
 			{cards.map((card) => (
 				<div
 					key={card.label}
-					className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group"
+					className="bg-card border border-border rounded-sm p-4"
 				>
 					<div className="flex items-center justify-between mb-2">
 						<p className="text-sm text-muted-foreground">{card.label}</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<p className="text-2xl font-bold text-foreground">{card.value}</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
 							<card.icon className="w-4 h-4 text-primary" />
 						</div>
 					</div>

@@ -127,24 +127,19 @@ function StepCard({ step, index }: StepCardProps) {
 	return (
 		<div className="relative group h-full">
 			{/* Card */}
-			<div className="card-standard p-8 h-full hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+			<div className="card-standard p-8 h-full">
 				{/* Step number & icon */}
 				<div className="flex items-start justify-between mb-6">
 					<div
 						className={cn(
-							"size-16 rounded-2xl flex-center shadow-lg group-hover:scale-105 transition-transform duration-300",
+							"size-16 rounded-2xl flex-center shadow-lg",
 							colors.bg,
 							colors.text,
 						)}
 					>
 						<step.icon className="size-8" />
 					</div>
-					<span
-						className={cn(
-							"typography-h1 opacity-20 group-hover:opacity-40 transition-opacity",
-							colors.text,
-						)}
-					>
+					<span className={cn("typography-h1 opacity-20", colors.text)}>
 						{step.number}
 					</span>
 				</div>

@@ -10,10 +10,7 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 	return (
 		<div className="p-4 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{data.map((row) => (
-				<div
-					key={row.id}
-					className="border border-border rounded-lg p-4 hover:bg-muted/30 transition-colors"
-				>
+				<div key={row.id} className="border border-border rounded-lg p-4">
 					<div className="flex items-start justify-between mb-3">
 						<div>
 							<div className="font-medium">{row.property}</div>

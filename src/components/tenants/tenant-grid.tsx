@@ -42,7 +42,7 @@ function TenantCard({
 	return (
 		<BlurFade delay={0.05 + index * 0.03}>
 			<div
-				className={`bg-card border rounded-lg p-4 transition-all hover:shadow-md relative overflow-hidden ${
+				className={`bg-card border rounded-lg p-4 transition-all relative overflow-hidden ${
 					isSelected ? "border-primary ring-2 ring-primary/20" : "border-border"
 				}`}
 			>

@@ -49,7 +49,7 @@ export function BillingHistorySection() {
 									invoice.invoice_pdf ?? invoice.hosted_invoice_url;
 								return (
 									<BlurFade key={invoice.id} delay={0.4 + idx * 0.05}>
-										<div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
+										<div className="flex items-center justify-between p-3 rounded-lg border">
 											<div className="flex items-center gap-4">
 												<span className="text-sm font-medium">
 													{invoice.id.slice(0, 12)}

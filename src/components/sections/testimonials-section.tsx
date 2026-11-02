@@ -207,7 +207,7 @@ export function TestimonialsSection({
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 	return (
 		<div className="relative group h-full">
-			<div className="card-standard p-8 h-full flex flex-col hover:border-primary/20 hover:shadow-lg transition-all duration-300">
+			<div className="card-standard p-8 h-full flex flex-col">
 				<Quote className="size-8 text-primary/20 mb-4" />
 
 				<blockquote className="text-foreground/90 leading-relaxed mb-6 flex-1">

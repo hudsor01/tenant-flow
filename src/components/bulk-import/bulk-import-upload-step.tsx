@@ -88,7 +88,7 @@ export function BulkImportUploadStep<T>({
 				</FileUploadDropzone>
 			</FileUpload>
 
-			<div className="card-standard p-4 bg-linear-to-r from-muted/40 to-muted/20 hover:border-primary/30 transition-colors">
+			<div className="card-standard p-4 bg-linear-to-r from-muted/40 to-muted/20">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-3">
 						<div className="icon-container-sm bg-info/10 text-info">

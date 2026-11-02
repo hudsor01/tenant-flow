@@ -28,7 +28,7 @@ export function FeatureCallouts() {
 					{callouts.map((callout) => (
 						<div
 							key={callout.title}
-							className="flex items-center gap-3 card-standard px-4 py-3 hover:border-primary/30 hover:shadow-sm transition-all duration-200"
+							className="flex items-center gap-3 card-standard px-4 py-3"
 						>
 							<div className="icon-container-md icon-container-primary">
 								{callout.icon}

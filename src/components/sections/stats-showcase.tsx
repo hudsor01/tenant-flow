@@ -1,5 +1,4 @@
 import { BlurFade } from "#components/ui/blur-fade";
-import { BorderBeam } from "#components/ui/border-beam";
 import { NumberTicker } from "#components/ui/number-ticker";
 import { cn } from "#lib/utils";
 
@@ -67,24 +66,10 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
 					{stats.map((stat, index) => (
 						<BlurFade key={stat.label} delay={0.2 + index * 0.1}>
-							<div className="relative group">
+							<div className="relative">
 								<div className="showcase-card">
-									{/* Animated border beam */}
-									<BorderBeam
-										size={120}
-										duration={15 + index * 2}
-										delay={index * 2}
-										colorFrom="var(--color-primary)"
-										colorTo="var(--color-accent)"
-										className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-									/>
-
-									{/* Background glow effect */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/8 via-transparent to-accent/8 rounded pointer-events-none transition-all duration-500 blur-sm" />
-
 									<div className="relative z-10">
-										{/* Animated number with enhanced styling */}
-										<div className="text-3xl lg:typography-h1 text-primary-text mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
+										<div className="text-3xl lg:typography-h1 text-primary-text mb-2 tracking-tight">
 											{stat.prefix}
 											<NumberTicker
 												value={stat.value}
@@ -94,29 +79,14 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 											{stat.suffix}
 										</div>
 
-										{/* Enhanced label with hover effect */}
-										<div className="typography-large text-foreground mb-1 group-hover:text-primary-text transition-colors duration-300">
+										<div className="typography-large text-foreground mb-1">
 											{stat.label}
 										</div>
 
-										{/* Enhanced description */}
-										<div className="text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+										<div className="text-muted-foreground">
 											{stat.description}
 										</div>
 									</div>
-
-									{/* Enhanced hover gradient with animation */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/4 to-accent/4 rounded pointer-events-none transition-all duration-500" />
-
-									{/* Floating accent particles */}
-									<div
-										className="absolute top-3 right-3 size-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-125 animate-pulse"
-										aria-hidden="true"
-									/>
-									<div
-										className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-primary/60 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150"
-										aria-hidden="true"
-									/>
 								</div>
 							</div>
 						</BlurFade>

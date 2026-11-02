@@ -90,7 +90,7 @@ export function UpdatePasswordForm({
 			<Card
 				className={cn(
 					cardVariants({ variant: "default" }),
-					"shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out",
+					"shadow-xl border-2",
 				)}
 			>
 				<CardHeader className="text-center space-y-4">

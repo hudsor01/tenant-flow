@@ -17,10 +17,7 @@ export function EquitySection({
 			</div>
 			<div className="divide-y divide-border">
 				{items.map((item, idx) => (
-					<div
-						key={idx}
-						className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
-					>
+					<div key={idx} className="flex items-center justify-between p-4">
 						<span className="text-sm">{item.name}</span>
 						<span className="text-sm font-medium tabular-nums">
 							{formatCurrency(item.amount)}

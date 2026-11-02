@@ -35,8 +35,6 @@ export function PropertyCard({
 			data-testid="property-card"
 			className={cn(
 				"bg-card border rounded-sm overflow-hidden",
-				"hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1",
-				"transition-all duration-300 group",
 				isSelected && "border-primary ring-2 ring-primary/20",
 			)}
 		>
@@ -47,7 +45,7 @@ export function PropertyCard({
 						src={property.imageUrl}
 						alt={property.name}
 						fill
-						className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+						className="object-cover"
 						sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 					/>
 				) : (

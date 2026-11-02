@@ -209,12 +209,7 @@ export function BulkImportValidateStep<T>({
 								{parsedData.map((row) => (
 									<tr
 										key={row.row}
-										className={cn(
-											"transition-colors",
-											row.errors.length > 0
-												? "bg-destructive/5 hover:bg-destructive/10"
-												: "hover:bg-muted/30",
-										)}
+										className={cn(row.errors.length > 0 && "bg-destructive/5")}
 									>
 										<td className="px-4 py-3 text-muted-foreground font-mono text-xs">
 											#{row.row}

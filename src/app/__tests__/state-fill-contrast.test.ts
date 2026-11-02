@@ -71,11 +71,6 @@ const ICON_ONLY: Reviewed[] = [
 		token: "group-hover:bg-primary/15",
 		reason: "the Upload icon tile above the dropzone's own text",
 	},
-	{
-		file: "src/components/sections/features-section.tsx",
-		token: "group-hover/feature:bg-primary/20",
-		reason: "a feature card's icon tile; the card's heading is the label",
-	},
 ];
 
 const LABEL_ELSEWHERE: (Reviewed & { label: Paint })[] = [

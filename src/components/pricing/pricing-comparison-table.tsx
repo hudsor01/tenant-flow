@@ -194,7 +194,7 @@ function CategorySection({
 					<div
 						key={feature.name}
 						className={cn(
-							"grid grid-cols-4 items-center py-3 px-6 transition-colors hover:bg-muted/40",
+							"grid grid-cols-4 items-center py-3 px-6",
 							idx % 2 === 0 ? "bg-muted/20" : "bg-transparent",
 						)}
 					>

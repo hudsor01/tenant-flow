@@ -236,7 +236,7 @@ export default function AboutPage() {
 						<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
 							{stats.map((stat, index) => (
 								<BlurFade key={stat.label} delay={0.6 + index * 0.1}>
-									<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
+									<div className="text-center bg-card rounded-2xl p-8 border border-border/50">
 										<div className="mb-4 flex justify-center">
 											<stat.Icon className="size-8 text-primary" aria-hidden />
 										</div>

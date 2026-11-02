@@ -65,9 +65,8 @@ export function UnitStatusBadge({ status, className }: UnitStatusBadgeProps) {
 		<Badge
 			variant={config.variant}
 			className={cn(
-				"flex items-center gap-1.5 px-3 py-1 font-medium text-xs rounded-full border transition-all",
+				"flex items-center gap-1.5 px-3 py-1 font-medium text-xs rounded-full border",
 				config.className,
-				"hover:shadow-sm hover:scale-105",
 				className,
 			)}
 		>

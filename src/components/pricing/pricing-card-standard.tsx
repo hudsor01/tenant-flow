@@ -129,7 +129,6 @@ export function PricingCardStandard({
 			<div
 				className={cn(
 					"h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col",
-					"hover:border-primary/30 hover:shadow-lg transition-all duration-300",
 					className,
 				)}
 			>

@@ -205,7 +205,7 @@ function StatCard({
 	icon: ReactNode;
 }) {
 	return (
-		<div className="card-standard p-2.5 hover:border-primary/20 transition-colors">
+		<div className="card-standard p-2.5">
 			<div className="flex-between mb-1.5">
 				<div className="icon-container-sm bg-primary/10 text-primary">
 					{icon}
@@ -293,7 +293,7 @@ function ActivityItem({
 	};
 
 	return (
-		<div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+		<div className="flex items-center gap-3 p-2 rounded-lg">
 			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 				{avatar}
 			</div>

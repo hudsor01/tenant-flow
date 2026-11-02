@@ -152,10 +152,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 								{comparisonData.map((feature, index) => (
 									<tr
 										key={feature.name}
-										className={cn(
-											"hover:bg-muted/50 transition-colors",
-											index % 2 === 0 ? "bg-card/50" : "",
-										)}
+										className={cn(index % 2 === 0 ? "bg-card/50" : "")}
 									>
 										<td className="py-4 px-4">
 											<div className="font-medium text-foreground">
