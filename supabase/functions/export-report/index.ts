@@ -1,7 +1,8 @@
 // Supabase Edge Function: export-report
 // GET /functions/v1/export-report?type=<report type>&format=<csv|xlsx|pdf>[&year=YYYY]
 // Reads only the query string; a request body is ignored. `format` defaults to
-// csv and `type` to financial.
+// csv and `type` to financial; any other format, or a year that is not four
+// digits, is a 400.
 // Formats: csv (`_shared/report-csv.ts`), xlsx (CSV-compatible), pdf (HTML
 // delegated to the generate-pdf Edge Function, StirlingPDF).
 // Authenticates via JWT bearer token, no anon access. Premium report types
@@ -36,9 +37,16 @@ const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"cash-flow",
 ]);
 
+type ExportFormat = "csv" | "xlsx" | "pdf";
+
+function isExportFormat(value: string): value is ExportFormat {
+	return value === "csv" || value === "xlsx" || value === "pdf";
+}
+
 /** Injectable dependencies for `deno test` (mirrors lease-signature). */
 export interface ExportReportDeps {
 	createClient?: (url: string, key: string) => SupabaseClient;
+	now?: () => Date;
 }
 
 type RowsResult =
@@ -68,17 +76,25 @@ function flattenToRows(data: unknown): Record<string, unknown>[] {
 	}));
 }
 
-// Branch by report type to the RPC that backs it.
+// Branch by report type to the SAME RPCs, with the same arguments, as
+// generate-pdf's Mode 1 `fetchReportRows`, so a report's CSV, XLSX and PDF
+// hold the same figures. The year-end/financial overview is scoped to the
+// requested year.
 async function fetchReportRows(
 	supabase: SupabaseClient,
 	userId: string,
 	reportType: string,
+	year: number,
 ): Promise<RowsResult> {
 	let rpc: string;
 	let args: Record<string, string | number>;
 	if (reportType === "year-end" || reportType === "financial") {
 		rpc = "get_financial_overview";
-		args = { p_user_id: userId };
+		args = {
+			p_user_id: userId,
+			p_start_date: `${year}-01-01`,
+			p_end_date: `${year}-12-31`,
+		};
 	} else if (reportType === "1099") {
 		rpc = "get_billing_insights";
 		args = { owner_id_param: userId };
@@ -141,13 +157,25 @@ export async function handleRequest(
 			});
 		}
 		const { user, token } = auth;
+		const now = (deps.now ?? (() => new Date()))();
 
 		const url = new URL(req.url);
 		const reportType = url.searchParams.get("type") ?? "financial";
 		const format = url.searchParams.get("format") ?? "csv";
-		const year = parseInt(
-			url.searchParams.get("year") ?? String(new Date().getFullYear()),
-		);
+		const yearParam = url.searchParams.get("year");
+		if (!isExportFormat(format)) {
+			return new Response(
+				JSON.stringify({ error: "format must be csv, xlsx or pdf" }),
+				{ status: 400, headers: getJsonHeaders(req) },
+			);
+		}
+		if (yearParam !== null && !/^\d{4}$/.test(yearParam)) {
+			return new Response(
+				JSON.stringify({ error: "year must be a four-digit year" }),
+				{ status: 400, headers: getJsonHeaders(req) },
+			);
+		}
+		const year = yearParam === null ? now.getUTCFullYear() : Number(yearParam);
 
 		// REQ-46-01: gate premium report types behind Growth/Max tier.
 		// Returns 402 with upgrade_url on the free tier; records a row in
@@ -166,7 +194,7 @@ export async function handleRequest(
 			if (entitlementBlock) return entitlementBlock;
 		}
 
-		const result = await fetchReportRows(supabase, user.id, reportType);
+		const result = await fetchReportRows(supabase, user.id, reportType, year);
 		if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
 		const rows = result.rows;
 		const filename = rowsReportFilename(reportType, year);

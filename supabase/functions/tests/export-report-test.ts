@@ -3,7 +3,8 @@
 // `functions serve`, no deploy (mirrors lease-signature-metering-test.ts).
 //
 // What it pins:
-//   - every RPC error is a 500 and never a file.
+//   - every RPC error is a 500 and never a file;
+//   - format and year are validated, and a year-end export reads that year.
 //
 // Run: deno test --allow-all --no-check \
 //   --import-map=supabase/functions/deno.json \
@@ -20,6 +21,7 @@ Deno.env.set("NEXT_PUBLIC_APP_URL", "https://app.tenantflow.app");
 const { handleRequest } = await import("../export-report/index.ts");
 
 const OWNER_ID = "owner-1";
+const NOW = new Date("2026-11-01T18:30:00Z");
 
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
 
@@ -144,9 +146,14 @@ function get(query: string, init: RequestInit = {}): Request {
 
 async function run(req: Request, s: Scenario) {
 	const { client, calls } = makeClient(s);
-	const res = await handleRequest(req, { createClient: () => client });
+	const res = await handleRequest(req, {
+		createClient: () => client,
+		now: () => NOW,
+	});
 	return { res, calls };
 }
+
+const FA = "?type=financial-analytics";
 
 Deno.test("every RPC error is a 500 and never a file", async () => {
 	for (const type of ["year-end", "1099", "maintenance", "revenue"]) {
@@ -156,6 +163,19 @@ Deno.test("every RPC error is a 500 and never a file", async () => {
 		}
 		const { res } = await run(get(`?type=${type}&format=csv&year=2026`), s);
 		assertEquals(res.status, 500, type);
+	}
+});
+
+Deno.test("format and year are validated", async () => {
+	for (const query of [
+		`${FA}&format=excel`,
+		`${FA}&format=xls`,
+		"?format=csv&year=20x6",
+		"?year=26",
+	]) {
+		const { res, calls } = await run(get(query), scenario());
+		assertEquals(res.status, 400, query);
+		assertEquals(calls.rpcs.length, 0, query);
 	}
 });
 
@@ -170,4 +190,26 @@ Deno.test("a missing token is a 401", async () => {
 		scenario({ authenticated: false }),
 	);
 	assertEquals(bad.status, 401);
+});
+
+Deno.test("a year-end export reads the requested year", async () => {
+	const { res, calls } = await run(
+		get("?type=year-end&format=csv&year=2024"),
+		scenario(),
+	);
+	assertEquals(res.status, 200);
+	assertEquals(
+		res.headers.get("Content-Disposition"),
+		'attachment; filename="year-end-2024.csv"',
+	);
+	assertEquals(calls.rpcs, [
+		{
+			name: "get_financial_overview",
+			args: {
+				p_user_id: OWNER_ID,
+				p_start_date: "2024-01-01",
+				p_end_date: "2024-12-31",
+			},
+		},
+	]);
 });
