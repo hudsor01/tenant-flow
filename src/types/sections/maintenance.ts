@@ -66,7 +66,6 @@ export interface MaintenanceSectionRequestDetail
 	tenantId?: string;
 	requestedBy: string;
 	estimatedCost?: number;
-	actualCost?: number;
 	completedAt?: string;
 	inspectorId?: string;
 	inspectionDate?: string;

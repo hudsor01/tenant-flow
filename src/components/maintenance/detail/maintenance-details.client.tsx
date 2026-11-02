@@ -17,12 +17,13 @@ import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { formatLocalYmd } from "#lib/formatters/date";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
 import { ExpensesCard } from "./expenses-card";
 import { MaintenanceHeaderCard } from "./maintenance-header-card";
-import { generateTimeline } from "./maintenance-utils";
+import { generateTimeline, spendToDate } from "./maintenance-utils";
 import { PhotosCard } from "./photos-card";
 import { TimelineCard } from "./timeline-card";
 import { buildWorkOrderHtml } from "./work-order-template";
@@ -72,7 +73,6 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			scheduled_date: request.scheduled_date,
 			completed_at: request.completed_at,
 			estimated_cost: request.estimated_cost,
-			actual_cost: request.actual_cost,
 			expenses: expenses.map((e) => ({
 				vendor: e.vendor_name,
 				amount: e.amount,
@@ -89,6 +89,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 
 	const timeline = generateTimeline(request);
 	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
+	// The work order lists every expense, so its total is totalExpenses; the
+	// header shows the spend to date, as the analytics count it.
+	const spentToDate = spendToDate(expenses, formatLocalYmd(new Date()));
 
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 	const handleDownloadWorkOrder = async () => {
@@ -128,7 +131,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 					request={request}
 					property={property}
 					unit={unit}
-					totalExpenses={totalExpenses}
+					spentToDate={spentToDate}
 					onRefresh={handleRefresh}
 					onExport={handleExport}
 				/>

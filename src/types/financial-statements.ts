@@ -402,7 +402,6 @@ export interface DetailedQueryMaintenanceRequest {
 	status: string;
 	created_at: string | null;
 	estimated_cost: number | null;
-	actual_cost: number | null;
 	completed_at: string | null;
 	expenses?: {
 		amount: number;

@@ -40,14 +40,18 @@ type MaintenanceHeaderRequest = Pick<
 	| "priority"
 	| "scheduled_date"
 	| "estimated_cost"
-	| "actual_cost"
 >;
 
 interface MaintenanceHeaderCardProps {
 	request: MaintenanceHeaderRequest;
 	property?: PropertyInfo | null | undefined;
 	unit?: UnitInfo | null | undefined;
-	totalExpenses: number;
+	/**
+	 * The request's spend to date: its expenses (not soft-deleted) dated
+	 * through today, as get_maintenance_analytics counts total_cost
+	 * (20261102184503). `actual_cost` is shown nowhere: nothing writes it.
+	 */
+	spentToDate: number;
 	onRefresh: () => void;
 	onExport: () => void;
 }
@@ -56,7 +60,7 @@ export function MaintenanceHeaderCard({
 	request,
 	property,
 	unit,
-	totalExpenses,
+	spentToDate,
 	onRefresh,
 	onExport,
 }: MaintenanceHeaderCardProps) {
@@ -163,7 +167,7 @@ export function MaintenanceHeaderCard({
 				</section>
 
 				{/* Cost Summary */}
-				<section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<DollarSign className="size-4" />
@@ -178,19 +182,10 @@ export function MaintenanceHeaderCard({
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<DollarSign className="size-4" />
-							Actual Cost
+							Spent to Date
 						</div>
 						<p className="mt-1 font-medium text-lg">
-							{request.actual_cost ? formatCurrency(request.actual_cost) : "-"}
-						</p>
-					</div>
-					<div className="rounded-lg border bg-muted/30 p-4">
-						<div className="flex items-center gap-2 text-muted-foreground text-sm">
-							<DollarSign className="size-4" />
-							Total Expenses
-						</div>
-						<p className="mt-1 font-medium text-lg">
-							{totalExpenses > 0 ? formatCurrency(totalExpenses) : "-"}
+							{spentToDate > 0 ? formatCurrency(spentToDate) : "-"}
 						</p>
 					</div>
 				</section>

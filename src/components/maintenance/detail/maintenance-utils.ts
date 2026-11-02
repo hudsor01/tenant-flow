@@ -143,3 +143,18 @@ export function maintenancePriorityLabel(priority: string): string {
 	const parsed = maintenancePrioritySchema.safeParse(priority);
 	return parsed.success ? PRIORITY_CONFIG[parsed.data].label : priority;
 }
+
+/**
+ * A request's spend to date, as get_maintenance_analytics counts total_cost
+ * (20261102184503): its expenses (the query already leaves out soft-deleted
+ * ones) dated through `today` (YYYY-MM-DD); one dated ahead is not spent yet.
+ * Dollars. `actual_cost` is not in it: nothing writes that column.
+ */
+export function spendToDate(
+	expenses: readonly { amount: number | null; expense_date: string | null }[],
+	today: string,
+): number {
+	return expenses
+		.filter((e) => e.expense_date !== null && e.expense_date <= today)
+		.reduce((sum, e) => sum + (e.amount ?? 0), 0);
+}
