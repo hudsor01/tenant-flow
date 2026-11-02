@@ -39,7 +39,8 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 vi.mock("sonner", () => ({
 	toast: { error: mockToastError, success: mockToastSuccess },
 }));
-vi.mock("#lib/mutation-error-handler", () => ({
+vi.mock("#lib/mutation-error-handler", async (importOriginal) => ({
+	...(await importOriginal<typeof import("#lib/mutation-error-handler")>()),
 	handleMutationError: mockHandleMutationError,
 }));
 vi.mock("#lib/reports/download-blob", () => ({

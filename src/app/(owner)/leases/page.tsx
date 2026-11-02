@@ -211,9 +211,7 @@ export default function LeasesPage() {
 					<h2 className="text-lg font-semibold text-destructive-text mb-2">
 						Error Loading Leases
 					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load leases"}
-					</p>
+					<p className="text-muted-foreground">Failed to load leases</p>
 				</div>
 			</div>
 		);

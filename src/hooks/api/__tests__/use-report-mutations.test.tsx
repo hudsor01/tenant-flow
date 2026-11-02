@@ -10,6 +10,8 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
+import { ApiError, ApiErrorCode } from "#lib/utils/api-error";
 
 // Real PaywallError class shared between the mocked module and the assertions,
 // so `instanceof PaywallError` inside the hook resolves to the same constructor.
@@ -53,7 +55,8 @@ vi.mock("sonner", () => ({
 	toast: { error: mockToastError, success: mockToastSuccess },
 }));
 
-vi.mock("#lib/mutation-error-handler", () => ({
+vi.mock("#lib/mutation-error-handler", async (importOriginal) => ({
+	...(await importOriginal<typeof import("#lib/mutation-error-handler")>()),
 	handleMutationError: mockHandleMutationError,
 	handleMutationSuccess: vi.fn(),
 }));
@@ -160,7 +163,7 @@ describe("callGeneratePdfFromHtml", () => {
 		clickSpy.mockRestore();
 	});
 
-	it("rejects with 'PDF generation failed: <errText>' when fetch is not ok", async () => {
+	it("rejects with the PDF ApiError, never the response text, when fetch is not ok", async () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
@@ -171,14 +174,23 @@ describe("callGeneratePdfFromHtml", () => {
 			}),
 		);
 
-		await expect(
-			callGeneratePdfFromHtml("<html></html>", "report.pdf"),
-		).rejects.toMatchObject({
-			message: expect.stringContaining("PDF generation failed: edge boom"),
+		const error = await callGeneratePdfFromHtml(
+			"<html></html>",
+			"report.pdf",
+		).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(ApiError);
+		expect(error).toMatchObject({
+			code: ApiErrorCode.API_SERVER_ERROR,
+			statusCode: 500,
 		});
+		// What a toast would show: the product copy, not the body.
+		expect(userFacingErrorMessage(error)).toBe(
+			"Server error. Please try again later.",
+		);
+		expect(userFacingErrorMessage(error)).not.toContain("edge boom");
 	});
 
-	it("falls back to statusText when reading the error body throws", async () => {
+	it("never reads the status line into the error (a 502)", async () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
@@ -186,14 +198,19 @@ describe("callGeneratePdfFromHtml", () => {
 			status: 502,
 			statusText: "Bad Gateway",
 		});
-		vi.spyOn(response, "text").mockRejectedValue(new Error("stream consumed"));
 		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(response);
 
-		await expect(
-			callGeneratePdfFromHtml("<html></html>", "report.pdf"),
-		).rejects.toMatchObject({
-			message: expect.stringContaining("PDF generation failed: Bad Gateway"),
+		const error = await callGeneratePdfFromHtml(
+			"<html></html>",
+			"report.pdf",
+		).catch((e: unknown) => e);
+		expect(error).toMatchObject({
+			code: ApiErrorCode.PDF_GENERATION_FAILED,
+			statusCode: 502,
 		});
+		expect(userFacingErrorMessage(error)).toBe(
+			"Failed to generate the PDF. Please try again.",
+		);
 	});
 
 	it("saves through downloadBlob: an <a download=filename> click, revoked after 1s", async () => {

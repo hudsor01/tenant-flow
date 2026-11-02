@@ -97,7 +97,7 @@ export function tenantBulkImportConfig(): BulkImportConfig<TenantImportInput> {
 			const { error } = await supabase
 				.from("tenants")
 				.insert(omitUndefined({ ...row, owner_user_id: ownerId }));
-			return { error: error ? new Error(error.message) : null };
+			return { error };
 		},
 		invalidateKeys: [tenantQueries.all(), ownerDashboardKeys.all],
 	};

@@ -17,6 +17,7 @@ import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
 import { Textarea } from "#components/ui/textarea";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { formatCurrency } from "#lib/utils/currency";
 import type { Lease } from "#types/core";
 
@@ -196,8 +197,7 @@ export function RentIncreaseNoticeDialog({
 			setReason("");
 		} catch (error) {
 			toast.error("Failed to generate notice", {
-				description:
-					error instanceof Error ? error.message : "Please try again.",
+				description: userFacingErrorMessage(error, "Please try again."),
 			});
 		} finally {
 			setIsSubmitting(false);

@@ -266,8 +266,10 @@ async function callGeneratePdfEdgeFunction(
 		throw await parsePaywallResponse(response, "reports");
 	}
 	if (!response.ok) {
-		const errText = await response.text().catch(() => response.statusText);
-		throw new Error(`PDF generation failed: ${errText}`);
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.PDF_GENERATION_FAILED,
+		);
 	}
 
 	downloadBlob(await response.blob(), filename);

@@ -133,7 +133,7 @@ export function unitBulkImportConfig(
 			const { error } = await supabase
 				.from("units")
 				.insert(omitUndefined({ ...row, owner_user_id: ownerId }));
-			return { error: error ? new Error(error.message) : null };
+			return { error };
 		},
 		invalidateKeys: [unitQueries.all(), ownerDashboardKeys.all],
 	};

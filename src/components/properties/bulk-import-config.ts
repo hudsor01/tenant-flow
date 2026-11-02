@@ -85,7 +85,7 @@ export function propertyBulkImportConfig(): BulkImportConfig<PropertyCreate> {
 			const { error } = await supabase
 				.from("properties")
 				.insert(omitUndefined({ ...row, owner_user_id: ownerId }));
-			return { error: error ? new Error(error.message) : null };
+			return { error };
 		},
 		// `propertyQueries.lists()` is a prefix of `propertyQueries.all()`, so
 		// invalidating `all` already invalidates `lists`. Same applies to

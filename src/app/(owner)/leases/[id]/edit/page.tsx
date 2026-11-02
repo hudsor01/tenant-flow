@@ -48,9 +48,7 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 					<h2 className="text-lg font-semibold text-destructive-text mb-2">
 						Error Loading Lease
 					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load lease"}
-					</p>
+					<p className="text-muted-foreground">Failed to load lease</p>
 				</div>
 			</div>
 		);

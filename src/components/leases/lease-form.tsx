@@ -42,7 +42,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 
 	const {
 		data: propertiesResponse,
-		error: propertiesError,
 		isError: propertiesIsError,
 		isLoading: propertiesIsLoading,
 	} = useQuery(propertyQueries.list());
@@ -119,11 +118,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const [selectedPropertyId, setSelectedPropertyId] = useState(
 		lease?.unit?.property_id ?? "",
 	);
-	const {
-		data: unitsData,
-		error: unitsError,
-		isError: unitsIsError,
-	} = useQuery({
+	const { data: unitsData, isError: unitsIsError } = useQuery({
 		...unitQueries.listByProperty(selectedPropertyId),
 		enabled: !!selectedPropertyId,
 	});
@@ -148,10 +143,8 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						properties={properties}
 						propertiesIsLoading={propertiesIsLoading}
 						propertiesIsError={propertiesIsError}
-						propertiesError={propertiesError}
 						units={unitsData ?? []}
 						unitsIsError={unitsIsError}
-						unitsError={unitsError}
 						selectedPropertyId={selectedPropertyId}
 						onPropertyChange={setSelectedPropertyId}
 					/>

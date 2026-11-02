@@ -80,12 +80,7 @@ export default function CashFlowPage() {
 	}
 
 	if (error) {
-		return (
-			<CashFlowError
-				error={error instanceof Error ? error : null}
-				onRetry={() => void refetch()}
-			/>
-		);
+		return <CashFlowError onRetry={() => void refetch()} />;
 	}
 
 	return (

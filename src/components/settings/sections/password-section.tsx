@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import {
@@ -56,9 +57,7 @@ export function PasswordSection() {
 			setConfirmPassword("");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update password",
-			);
+			handleMutationError(error, "Update password");
 		},
 	});
 

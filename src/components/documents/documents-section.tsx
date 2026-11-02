@@ -35,6 +35,7 @@ import { useDocumentCategories } from "#hooks/api/use-document-categories";
 import {
 	handleMutationError,
 	showStorageQuotaUpgradeToast,
+	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import {
 	isStoragePlanLimitError,
@@ -216,7 +217,7 @@ export function DocumentsSection({
 					handleMutationError(err, "Upload document");
 				} else {
 					failures.push(
-						`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
+						`${file.name}: ${userFacingErrorMessage(err, "Upload failed")}`,
 					);
 				}
 			}
@@ -251,7 +252,7 @@ export function DocumentsSection({
 			toast.success("Document removed");
 		} catch (err) {
 			toast.error("Failed to remove document", {
-				description: err instanceof Error ? err.message : "Please try again.",
+				description: userFacingErrorMessage(err, "Please try again."),
 			});
 		} finally {
 			// Always close the preview dialog and clear the in-flight flag,

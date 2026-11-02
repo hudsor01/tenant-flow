@@ -126,9 +126,7 @@ export default function ExpensesPage() {
 					<h2 className="text-xl font-semibold text-foreground mb-3">
 						Failed to Load Expenses
 					</h2>
-					<p className="text-muted-foreground mb-6">
-						{error instanceof Error ? error.message : "An error occurred"}
-					</p>
+					<p className="text-muted-foreground mb-6">An error occurred</p>
 					<button
 						onClick={() => void refetch()}
 						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"

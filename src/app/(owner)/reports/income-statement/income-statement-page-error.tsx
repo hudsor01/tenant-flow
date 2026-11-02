@@ -2,12 +2,10 @@ import { TrendingDown } from "lucide-react";
 import { Button } from "#components/ui/button";
 
 interface IncomeStatementPageErrorProps {
-	error: Error | null;
 	onRetry: () => void;
 }
 
 export function IncomeStatementPageError({
-	error,
 	onRetry,
 }: IncomeStatementPageErrorProps) {
 	return (
@@ -19,9 +17,7 @@ export function IncomeStatementPageError({
 				<h2 className="text-xl font-semibold text-foreground mb-3">
 					Failed to Load Income Statement
 				</h2>
-				<p className="text-muted-foreground mb-6">
-					{error instanceof Error ? error.message : "An error occurred"}
-				</p>
+				<p className="text-muted-foreground mb-6">An error occurred</p>
 				<Button onClick={onRetry}>Try Again</Button>
 			</div>
 		</div>

@@ -23,6 +23,7 @@ import {
 	maintenanceMutations,
 	maintenanceQueries,
 } from "#hooks/api/query-keys/maintenance-keys";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 
 interface PhotosCardProps {
 	requestId: string;
@@ -100,7 +101,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 				uploaded++;
 			} catch (err) {
 				failures.push(
-					`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
+					`${file.name}: ${userFacingErrorMessage(err, "Upload failed")}`,
 				);
 			}
 		}
@@ -125,7 +126,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 			setSelectedIndex(null);
 		} catch (err) {
 			toast.error("Failed to remove photo", {
-				description: err instanceof Error ? err.message : "Please try again.",
+				description: userFacingErrorMessage(err, "Please try again."),
 			});
 		}
 	};

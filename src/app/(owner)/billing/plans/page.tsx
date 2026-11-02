@@ -15,6 +15,7 @@ import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import {
 	createCheckoutSession,
 	createCustomerPortalSession,
@@ -149,9 +150,7 @@ export default function BillingPlansPage() {
 				}
 			}
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "An error occurred";
-			toast.error(message);
+			handleMutationError(error, "Start checkout");
 			setDialogOpen(false);
 		} finally {
 			setIsLoading(false);
@@ -167,11 +166,7 @@ export default function BillingPlansPage() {
 			const { url } = await createCustomerPortalSession(returnUrl);
 			window.location.href = url;
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Failed to open billing portal";
-			toast.error(message);
+			handleMutationError(error, "Open billing portal");
 		} finally {
 			setIsLoading(false);
 		}

@@ -125,11 +125,7 @@ export default function PropertiesPage() {
 					<h2 className="text-lg font-semibold text-destructive-text mb-2">
 						Error Loading Properties
 					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error
-							? error.message
-							: "Failed to load properties"}
-					</p>
+					<p className="text-muted-foreground">Failed to load properties</p>
 				</div>
 			</div>
 		);

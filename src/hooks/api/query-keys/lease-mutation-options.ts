@@ -45,9 +45,7 @@ async function callLeaseSignatureEdgeFunction(
 	});
 
 	if (!response.ok) {
-		const error = (await response
-			.json()
-			.catch(() => ({ error: response.statusText }))) as {
+		const error = (await response.json().catch(() => ({}))) as {
 			error?: string;
 			upgrade_url?: string;
 		};

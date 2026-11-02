@@ -19,10 +19,8 @@ export const LeaseFormPropertyUnitFields = withForm({
 		properties: [] as Property[],
 		propertiesIsLoading: false,
 		propertiesIsError: false,
-		propertiesError: null as Error | null,
 		units: [] as Unit[],
 		unitsIsError: false,
-		unitsError: null as Error | null,
 		selectedPropertyId: "",
 		onPropertyChange: (() => {}) as (propertyId: string) => void,
 	},
@@ -31,10 +29,8 @@ export const LeaseFormPropertyUnitFields = withForm({
 		properties,
 		propertiesIsLoading,
 		propertiesIsError,
-		propertiesError,
 		units,
 		unitsIsError,
-		unitsError,
 		selectedPropertyId,
 		onPropertyChange,
 	}) {
@@ -81,17 +77,14 @@ export const LeaseFormPropertyUnitFields = withForm({
 
 					{propertiesIsError && (
 						<p className="text-sm text-destructive-text mt-2">
-							Failed to load properties
-							{propertiesError ? `: ${propertiesError.message}` : ""}. Please
-							refresh to retry.
+							Failed to load properties. Please refresh to retry.
 						</p>
 					)}
 				</div>
 
 				{unitsIsError && (
 					<p className="text-sm text-destructive-text mt-2">
-						Failed to load units for the selected property.
-						{unitsError ? ` ${unitsError.message}` : ""} Please retry.
+						Failed to load units for the selected property. Please retry.
 					</p>
 				)}
 

@@ -32,7 +32,10 @@ import {
 	InputGroupInput,
 } from "#components/ui/input-group";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import {
@@ -181,9 +184,10 @@ export function UpdatePasswordForm({
 							<Alert variant="destructive">
 								<AlertTriangle className="size-4" />
 								<AlertDescription>
-									{updatePasswordMutation.error instanceof Error
-										? updatePasswordMutation.error.message
-										: "An error occurred while updating your password"}
+									{userFacingErrorMessage(
+										updatePasswordMutation.error,
+										"An error occurred while updating your password",
+									)}
 								</AlertDescription>
 							</Alert>
 						)}

@@ -10,9 +10,13 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 import {
 	PaywallError,
 	type ReportExportFormat,
@@ -29,7 +33,7 @@ import {
 function handleReportMutationError(err: unknown, action: string): void {
 	if (err instanceof PaywallError) {
 		toast.error("Upgrade required", {
-			description: err.message,
+			description: userFacingErrorMessage(err),
 			action: {
 				label: "See plans",
 				onClick: () => {
@@ -68,8 +72,10 @@ export async function callGeneratePdfFromHtml(
 	});
 
 	if (!response.ok) {
-		const errText = await response.text().catch(() => response.statusText);
-		throw new Error(`PDF generation failed: ${errText}`);
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.PDF_GENERATION_FAILED,
+		);
 	}
 
 	downloadBlob(await response.blob(), filename);

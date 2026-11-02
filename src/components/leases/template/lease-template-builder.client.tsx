@@ -25,6 +25,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#components/ui/select";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import {
 	createDefaultContext,
@@ -35,6 +36,7 @@ import {
 	renderLeaseHtmlBody,
 	stateNames,
 } from "#lib/templates/lease-template";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 import type { USState } from "#types/lease-generator.types";
 import { ClauseSelector } from "./clause-selector";
 import {
@@ -204,8 +206,10 @@ export function LeaseTemplateBuilder() {
 			});
 
 			if (!response.ok) {
-				const errText = await response.text().catch(() => response.statusText);
-				throw new Error(`Failed to generate PDF preview: ${errText}`);
+				throw createApiErrorFromResponse(
+					response,
+					ApiErrorCode.PDF_GENERATION_FAILED,
+				);
 			}
 
 			const blob = await response.blob();
@@ -213,11 +217,7 @@ export function LeaseTemplateBuilder() {
 			setPdfPreview(blobUrl);
 			toast.success("PDF preview generated");
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Unable to generate PDF preview";
-			toast.error(message);
+			handleMutationError(error, "Generate PDF preview");
 		} finally {
 			setIsGeneratingPdf(false);
 		}

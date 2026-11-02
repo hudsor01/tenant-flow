@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import type { BulkImportResult, ImportProgress } from "#types/api-contracts";
 import type { BulkImportConfig } from "./types";
 
@@ -12,6 +13,9 @@ const logger = createLogger({ component: "useBulkImportMutation" });
 // the 100-re-render storm when a user imports 100 rows back-to-back.
 const PROGRESS_BATCH_EVERY_ROWS = 5;
 const PROGRESS_BATCH_EVERY_MS = 120;
+
+/** A failed row's message when the error carries none of its own. */
+const ROW_FAILED = "This row could not be imported.";
 
 export interface BulkImportMutationInput<T> {
 	csvLine: number;
@@ -53,7 +57,10 @@ export function useBulkImportMutation<T>({
 					if (error) {
 						// Record the real CSV line number so Retry / Download-
 						// failed-rows can match on a stable identifier.
-						errors.push({ row: entry.csvLine, error: error.message });
+						errors.push({
+							row: entry.csvLine,
+							error: userFacingErrorMessage(error, ROW_FAILED),
+						});
 					} else {
 						succeeded++;
 					}
@@ -63,7 +70,7 @@ export function useBulkImportMutation<T>({
 					// otherwise take the whole batch down invisibly.
 					errors.push({
 						row: entry.csvLine,
-						error: err instanceof Error ? err.message : String(err),
+						error: userFacingErrorMessage(err, ROW_FAILED),
 					});
 				}
 
@@ -109,10 +116,10 @@ export function useBulkImportMutation<T>({
 				errors: [
 					{
 						row: 0,
-						error:
-							err instanceof Error
-								? err.message
-								: "Unexpected error during import.",
+						error: userFacingErrorMessage(
+							err,
+							"Unexpected error during import.",
+						),
 					},
 				],
 			});

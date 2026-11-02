@@ -9,6 +9,7 @@ import { usageQueries } from "#hooks/api/query-keys/usage-keys";
 import {
 	handleMutationError,
 	showStorageQuotaUpgradeToast,
+	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import {
 	isStoragePlanLimitError,
@@ -138,7 +139,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 					if (isStoragePlanLimitError(error)) {
 						handleMutationError(error, "Upload file");
 					}
-					return { name: file.name, message: error.message };
+					return {
+						name: file.name,
+						message: userFacingErrorMessage(error, "Upload failed"),
+					};
 				} else {
 					return { name: file.name, message: undefined };
 				}

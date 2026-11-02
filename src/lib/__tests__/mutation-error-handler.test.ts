@@ -26,7 +26,11 @@ vi.mock("@sentry/nextjs", () => ({
 }));
 
 import { toast } from "sonner";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 
 type ToastCall = [string, Record<string, unknown> | undefined];
 
@@ -343,5 +347,68 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 		handleMutationError({ message: "Network request failed" }, "Save record");
 		const [title] = lastToastErrorCall();
 		expect(title).toBe("Network request failed");
+	});
+});
+
+describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => {
+	beforeEach(() => {
+		vi.mocked(toast.error).mockClear();
+	});
+
+	it("shows an ApiError's product copy, never the HTTP status line", () => {
+		const error = createApiErrorFromResponse(
+			new Response("raw body", { status: 502, statusText: "Bad Gateway" }),
+			ApiErrorCode.PDF_GENERATION_FAILED,
+		);
+		expect(error.message).toContain("Bad Gateway");
+		expect(userFacingErrorMessage(error)).toBe(
+			"Failed to generate the PDF. Please try again.",
+		);
+		handleMutationError(error, "Download PDF");
+		expect(lastToastErrorCall()[0]).toBe(
+			"Failed to generate the PDF. Please try again.",
+		);
+	});
+
+	it("shows the network copy for the browser's own fetch failure", () => {
+		for (const text of [
+			"Failed to fetch",
+			"NetworkError when attempting to fetch resource.",
+			"Load failed",
+		]) {
+			expect(userFacingErrorMessage(new TypeError(text))).toBe(
+				"Network error. Please check your connection and try again.",
+			);
+		}
+	});
+
+	it("genericizes a raw permission or missing-relation message", () => {
+		for (const [message, code] of [
+			["permission denied for table leases", "42501"],
+			['relation "public.x" does not exist', "42P01"],
+			['column "y" of relation "leases" does not exist', "42703"],
+			["function public.f(uuid) does not exist", "42883"],
+		] as const) {
+			const shown = userFacingErrorMessage({ message, code });
+			expect(shown, message).not.toContain(message);
+		}
+		expect(
+			userFacingErrorMessage({
+				message: "permission denied for table leases",
+				code: "42501",
+			}),
+		).toBe("You don't have permission to perform this action.");
+	});
+
+	it("keeps author copy verbatim and falls back when there is no message", () => {
+		expect(
+			userFacingErrorMessage(new Error("Default categories cannot be deleted")),
+		).toBe("Default categories cannot be deleted");
+		expect(userFacingErrorMessage(new Error(""), "Upload failed")).toBe(
+			"Upload failed",
+		);
+		expect(userFacingErrorMessage(undefined, "Upload failed")).toBe(
+			"Upload failed",
+		);
 	});
 });

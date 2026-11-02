@@ -49,8 +49,10 @@ import {
 } from "#hooks/api/query-keys/document-search-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
 import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 import { type DocumentCategory } from "#lib/validation/documents";
 import { DocumentRow } from "./document-row";
 
@@ -309,11 +311,18 @@ export function DocumentsVaultClient() {
 				},
 			);
 			if (!res.ok) {
-				const body = (await res
-					.json()
-					.catch(() => ({ error: res.statusText }))) as { error?: string };
-				toast.error(body.error ?? "Download failed");
-				return;
+				// The function's own copy (a 4xx explains itself; anything
+				// unexpected is "An error occurred"), else the download copy --
+				// never the status line.
+				const body = (await res.json().catch(() => ({}))) as {
+					error?: unknown;
+				};
+				throw typeof body.error === "string" && body.error !== ""
+					? new Error(body.error)
+					: createApiErrorFromResponse(
+							res,
+							ApiErrorCode.DOCUMENTS_DOWNLOAD_FAILED,
+						);
 			}
 			// NOTE: res.blob() buffers the entire zip in memory before
 			// triggering the download. The Edge Function streams server-
@@ -329,9 +338,7 @@ export function DocumentsVaultClient() {
 			const today = new Date().toISOString().slice(0, 10);
 			downloadBlob(await res.blob(), `tenantflow-documents-${today}.zip`);
 		} catch (err) {
-			toast.error(
-				err instanceof Error ? err.message : "Download failed unexpectedly.",
-			);
+			handleMutationError(err, "Download documents");
 		} finally {
 			downloadInFlightRef.current = false;
 			setIsDownloading(false);

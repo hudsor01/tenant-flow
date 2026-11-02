@@ -17,6 +17,7 @@ import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
 import { ExpensesCard } from "./expenses-card";
@@ -112,7 +113,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			toast.success("Work order PDF downloaded");
 		} catch (err) {
 			toast.error("Failed to generate work order", {
-				description: err instanceof Error ? err.message : "Please try again.",
+				description: userFacingErrorMessage(err, "Please try again."),
 			});
 		} finally {
 			setIsGeneratingPdf(false);

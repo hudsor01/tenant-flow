@@ -14,6 +14,7 @@ import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations";
 import { formatDate } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { MoveOutDialog } from "./move-out-dialog";
 import { validateMoveOutDate } from "./move-out-validation";
 
@@ -39,9 +40,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		try {
 			validateMoveOutDate(moveOutDate);
 		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Invalid move-out date",
-			);
+			toast.error(userFacingErrorMessage(error, "Invalid move-out date"));
 			return;
 		}
 

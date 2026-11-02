@@ -35,6 +35,7 @@ import {
 } from "#hooks/api/query-keys/document-category-keys";
 import { documentQueries } from "#hooks/api/query-keys/document-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { CategoryCreateDialog } from "./category-create-dialog";
 import { CategoryDeleteDialog } from "./category-delete-dialog";
 import { CategoryRenameDialog } from "./category-rename-dialog";
@@ -77,7 +78,7 @@ export function CategoriesSettings() {
 			toast.success("Category created.");
 		},
 		onError: (err) => {
-			toast.error(err instanceof Error ? err.message : "Create failed.");
+			handleMutationError(err, "Create category");
 		},
 	});
 
@@ -89,7 +90,7 @@ export function CategoriesSettings() {
 			toast.success("Category renamed.");
 		},
 		onError: (err) => {
-			toast.error(err instanceof Error ? err.message : "Rename failed.");
+			handleMutationError(err, "Rename category");
 		},
 	});
 
@@ -101,7 +102,7 @@ export function CategoriesSettings() {
 			toast.success("Category deleted; documents reassigned.");
 		},
 		onError: (err) => {
-			toast.error(err instanceof Error ? err.message : "Delete failed.");
+			handleMutationError(err, "Delete category");
 		},
 	});
 
@@ -133,7 +134,7 @@ export function CategoriesSettings() {
 			if (ctx?.previous) {
 				queryClient.setQueryData(listKey, ctx.previous);
 			}
-			toast.error(err instanceof Error ? err.message : "Reorder failed.");
+			handleMutationError(err, "Reorder categories");
 		},
 	});
 

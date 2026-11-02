@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
 import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
@@ -93,9 +94,7 @@ export function PricingCardStandard({
 			logger.error("Checkout failed", {
 				metadata: { error: error.message },
 			});
-			toast.error(
-				error.message || "Failed to start checkout. Please try again.",
-			);
+			handleMutationError(error, "Start checkout");
 		},
 		onSettled: () => {
 			toast.dismiss("checkout");

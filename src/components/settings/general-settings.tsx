@@ -12,6 +12,7 @@ import {
 	userPreferencesQueries,
 } from "#hooks/api/query-keys/user-preferences-keys";
 import { profileKeys, useProfile } from "#hooks/api/use-profile";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import {
@@ -101,9 +102,7 @@ export function GeneralSettings() {
 			toast.success("Profile updated successfully");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update profile",
-			);
+			handleMutationError(error, "Update profile");
 		},
 	});
 
@@ -123,9 +122,7 @@ export function GeneralSettings() {
 			);
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update email",
-			);
+			handleMutationError(error, "Update email");
 		},
 	});
 
@@ -154,9 +151,7 @@ export function GeneralSettings() {
 			toast.success("Preferences updated successfully");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update preferences",
-			);
+			handleMutationError(error, "Update preferences");
 		},
 	});
 

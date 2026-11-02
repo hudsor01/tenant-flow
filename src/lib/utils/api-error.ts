@@ -36,6 +36,10 @@ export const ApiErrorCode = {
 	FINANCIAL_DATA_FETCH_FAILED: "FIN-001",
 	FINANCIAL_EXPORT_FAILED: "FIN-002",
 
+	// Document and PDF errors (DOC-xxx, PDF-xxx)
+	DOCUMENTS_DOWNLOAD_FAILED: "DOC-001",
+	PDF_GENERATION_FAILED: "PDF-001",
+
 	// Generic errors
 	UNKNOWN_ERROR: "ERR-000",
 } as const;
@@ -101,6 +105,12 @@ export class ApiError extends Error {
 
 			case ApiErrorCode.FINANCIAL_EXPORT_FAILED:
 				return "Failed to export data. Please try again.";
+
+			case ApiErrorCode.DOCUMENTS_DOWNLOAD_FAILED:
+				return "Failed to download the documents. Please try again.";
+
+			case ApiErrorCode.PDF_GENERATION_FAILED:
+				return "Failed to generate the PDF. Please try again.";
 
 			default:
 				return "An unexpected error occurred. Please try again.";

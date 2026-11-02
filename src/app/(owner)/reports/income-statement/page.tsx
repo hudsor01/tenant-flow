@@ -70,12 +70,7 @@ export default function IncomeStatementPage() {
 	}
 
 	if (error) {
-		return (
-			<IncomeStatementPageError
-				error={error instanceof Error ? error : null}
-				onRetry={() => void refetch()}
-			/>
-		);
+		return <IncomeStatementPageError onRetry={() => void refetch()} />;
 	}
 
 	return (

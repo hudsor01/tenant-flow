@@ -15,7 +15,10 @@ import { toast } from "sonner";
 import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 
 function formatDeletionDate(deletionRequestedAt: string): string {
@@ -99,7 +102,7 @@ export function GdprDataActions({
 					"Cannot delete account with pending payments. Please resolve outstanding payments first.",
 				);
 			} else {
-				toast.error(message);
+				toast.error(userFacingErrorMessage(err, "Failed to request deletion"));
 			}
 		},
 	});

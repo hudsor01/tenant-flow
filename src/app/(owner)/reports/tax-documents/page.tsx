@@ -76,9 +76,7 @@ export default function TaxDocumentsPage() {
 							Failed to load tax documents
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
-							{error instanceof Error
-								? error.message
-								: "An unexpected error occurred"}
+							An unexpected error occurred
 						</p>
 					</div>
 					<Button variant="outline" onClick={() => refetch()}>

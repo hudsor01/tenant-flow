@@ -10,6 +10,7 @@ import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
 import { authKeys } from "#hooks/api/use-auth";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { LoginForm } from "./login-form";
@@ -191,9 +192,7 @@ function LoginPageContent() {
 				router.push(destination);
 			}
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "Please try again";
-			setAuthError(message);
+			setAuthError(userFacingErrorMessage(error, "Please try again"));
 		} finally {
 			setIsSubmitting(false);
 		}
