@@ -35,18 +35,19 @@ function balanceData(
 		liabilities: {
 			currentLiabilities: {
 				accountsPayable: 0,
+				tenantCreditBalances: 750,
 				security_depositLiability: 0,
 				accruedExpenses: 0,
-				total: 0,
+				total: 750,
 			},
 			longTermLiabilities: { mortgagesPayable: 0, total: 0 },
-			totalLiabilities: 0,
+			totalLiabilities: 750,
 		},
 		equity: {
-			ownerCapital: 0,
-			retainedEarnings: 52500,
-			currentPeriodIncome: 0,
-			totalEquity: 55250.5,
+			ownerCapital: 3300,
+			retainedEarnings: 40000,
+			currentPeriodIncome: 11200.5,
+			totalEquity: 54500.5,
 		},
 		balanceCheck: true,
 		...overrides,
@@ -106,10 +107,17 @@ describe("buildBalanceSheetView", () => {
 			"Current Liabilities",
 			"Long-Term Liabilities",
 		]);
+		expect(view.liabilityGroups[0]?.items.map((i) => i.name)).toEqual([
+			"Accounts Payable",
+			"Tenant Credit Balances",
+			"Security Deposit Liability",
+			"Accrued Expenses",
+		]);
+		expect(view.liabilityGroups[0]?.subtotal).toBe(750);
 		expect(view.equityItems.map((i) => i.name)).toEqual([
 			"Owner Capital",
 			"Retained Earnings",
-			"Current Period Income",
+			"Year-to-Date Income",
 		]);
 	});
 
@@ -145,8 +153,8 @@ describe("buildBalanceSheetCsv", () => {
 		expect(rows[0]).toEqual([...BALANCE_SHEET_CSV_HEADER]);
 		expect(rows.slice(1)).toEqual([
 			[...CONTEXT, "Totals", "", "Total Assets", "55250.50"],
-			[...CONTEXT, "Totals", "", "Total Liabilities", "0.00"],
-			[...CONTEXT, "Totals", "", "Total Equity", "55250.50"],
+			[...CONTEXT, "Totals", "", "Total Liabilities", "750.00"],
+			[...CONTEXT, "Totals", "", "Total Equity", "54500.50"],
 			[...CONTEXT, "Balance Check", "", "Balanced", ""],
 			[...CONTEXT, "Assets", "Current Assets", "Cash", "54000.00"],
 			[
@@ -180,6 +188,13 @@ describe("buildBalanceSheetCsv", () => {
 				...CONTEXT,
 				"Liabilities",
 				"Current Liabilities",
+				"Tenant Credit Balances",
+				"750.00",
+			],
+			[
+				...CONTEXT,
+				"Liabilities",
+				"Current Liabilities",
 				"Security Deposit Liability",
 				"0.00",
 			],
@@ -190,7 +205,7 @@ describe("buildBalanceSheetCsv", () => {
 				"Accrued Expenses",
 				"0.00",
 			],
-			[...CONTEXT, "Liabilities", "Current Liabilities", "Subtotal", "0.00"],
+			[...CONTEXT, "Liabilities", "Current Liabilities", "Subtotal", "750.00"],
 			[
 				...CONTEXT,
 				"Liabilities",
@@ -199,11 +214,11 @@ describe("buildBalanceSheetCsv", () => {
 				"0.00",
 			],
 			[...CONTEXT, "Liabilities", "Long-Term Liabilities", "Subtotal", "0.00"],
-			[...CONTEXT, "Liabilities", "", "Total Liabilities", "0.00"],
-			[...CONTEXT, "Equity", "", "Owner Capital", "0.00"],
-			[...CONTEXT, "Equity", "", "Retained Earnings", "52500.00"],
-			[...CONTEXT, "Equity", "", "Current Period Income", "0.00"],
-			[...CONTEXT, "Equity", "", "Total Equity", "55250.50"],
+			[...CONTEXT, "Liabilities", "", "Total Liabilities", "750.00"],
+			[...CONTEXT, "Equity", "", "Owner Capital", "3300.00"],
+			[...CONTEXT, "Equity", "", "Retained Earnings", "40000.00"],
+			[...CONTEXT, "Equity", "", "Year-to-Date Income", "11200.50"],
+			[...CONTEXT, "Equity", "", "Total Equity", "54500.50"],
 		]);
 	});
 

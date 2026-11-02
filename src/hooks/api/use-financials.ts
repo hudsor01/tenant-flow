@@ -1,16 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-	financialQueries,
-	financialKeys as importedFinancialKeys,
-} from "./query-keys/financial-keys";
-
-export type {
-	ExpenseSummaryData,
-	FinancialOverviewData,
-	MonthlyMetric,
-} from "./query-keys/financial-keys";
-
-export const financialKeys = importedFinancialKeys;
+import { financialQueries } from "./query-keys/financial-keys";
 
 export function useExpenseSummary() {
 	return useQuery(financialQueries.expenseSummary());

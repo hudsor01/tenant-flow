@@ -15,6 +15,7 @@ import {
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
 	assertSeededCast,
+	EXPECTED_BILLING_INSIGHTS,
 	EXPECTED_SEEDED_CAST,
 } from "./migration-replay-assertions";
 
@@ -187,18 +188,19 @@ describe("assertSeededCast", () => {
 
 /**
  * The line `scripts/migration-replay-billing-insights.sql` printed against the
- * replayed stack with 20261102055449 applied (2026-11-02), verbatim: jsonb's
- * own key order and its `0.00`-style scale, which JSON.parse reads as numbers.
+ * replayed stack with 20261102055449 applied (2026-11-02, with the balance
+ * sheet's figures and as-of date), verbatim: jsonb's own key order and its
+ * `0.00`-style scale, which JSON.parse reads as numbers.
  */
 const REPLAYED_BILLING_LINE =
-	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 4, "unpaidTotal": 1185.50, "lateFeeTotal": 115.00, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 2, "unpaidTotal": 720.00, "lateFeeTotal": 20.00, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 3, "unpaidTotal": 925.50, "lateFeeTotal": 75.00, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
+	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 4, "unpaidTotal": 1185.50, "chargedTotal": 4205.50, "lateFeeTotal": 115.00, "openingTotal": 300.00, "totalRevenue": 30000, "collectedTotal": 3440.00, "creditBalanceTotal": 420.00}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 2, "unpaidTotal": 720.00, "chargedTotal": 720.00, "lateFeeTotal": 20.00, "openingTotal": 0, "totalRevenue": 8400, "collectedTotal": 0, "creditBalanceTotal": 0}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 4, "unpaidTotal": 960.50, "chargedTotal": 1360.50, "lateFeeTotal": 110.00, "openingTotal": 0, "totalRevenue": 30000, "collectedTotal": 400.00, "creditBalanceTotal": 0}, "owner_a_as_of_march": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 4, "unpaidTotal": 145.50, "chargedTotal": 4240.50, "lateFeeTotal": 150.00, "openingTotal": 300.00, "totalRevenue": 30000, "collectedTotal": 4515.00, "creditBalanceTotal": 420.00}, "guard_refuses_another_owner": true}';
 
 /**
  * The same fixture against PRODUCTION's body as of 2026-11-02 (the literal
  * zeros), applied to the same stack: the defect this assertion exists for.
  */
 const HARD_CODED_BODY_LINE =
-	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
+	'{"execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_a_as_of_march": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
 
 /** The replayed line with one key of one call's figures replaced. */
 function withFigure(label: string, key: string, value: unknown): string {
@@ -217,7 +219,7 @@ describe("assertBillingInsightsFromLedger", () => {
 			`${REPLAYED_BILLING_LINE}\n`,
 		);
 		expect(result.ok).toBe(true);
-		expect(result.message).toContain("from the ledger");
+		expect(result.message).toContain("computes the ledger figures");
 	});
 
 	it("names the hard-coded body when production's zeros come back", () => {
@@ -249,13 +251,13 @@ describe("assertBillingInsightsFromLedger", () => {
 	);
 
 	it("fails when a prepaid lease's negative balance is summed in", () => {
-		// No per-lease floor: lease A2's -500 hides 500 of lease A1's debt.
+		// No per-lease floor: lease A2's -420 hides 420 of lease A1's debt.
 		const result = assertBillingInsightsFromLedger(
-			withFigure("owner_a", "unpaidTotal", 685.5),
+			withFigure("owner_a", "unpaidTotal", 765.5),
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			"owner_a.unpaidTotal: expected 1185.5, got 685.5",
+			"owner_a.unpaidTotal: expected 1185.5, got 765.5",
 		);
 	});
 
@@ -267,6 +269,7 @@ describe("assertBillingInsightsFromLedger", () => {
 				unpaidTotal: 2115.5,
 				unpaidCount: 6,
 				lateFeeTotal: 145,
+				chargedTotal: 5135.5,
 			},
 		});
 		const result = assertBillingInsightsFromLedger(line);
@@ -290,7 +293,7 @@ describe("assertBillingInsightsFromLedger", () => {
 		);
 	});
 
-	it("fails when the date window is ignored", () => {
+	it("fails when the period is ignored", () => {
 		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
 		const line = JSON.stringify({
 			...parsed,
@@ -299,11 +302,143 @@ describe("assertBillingInsightsFromLedger", () => {
 		const result = assertBillingInsightsFromLedger(line);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			"owner_a_february.unpaidTotal: expected 925.5, got 1185.5",
+			"owner_a_february.unpaidTotal: expected 960.5, got 1185.5",
 		);
 		expect(result.message).toContain(
-			"owner_a_february.unpaidCount: expected 3, got 4",
+			"owner_a_february.collectedTotal: expected 400, got 3440",
 		);
+	});
+
+	it("fails when the period reads today's reversals instead of its end date's", () => {
+		// The 35.00 late fee dated February 15 is reversed after February 28.
+		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
+		const line = JSON.stringify({
+			...parsed,
+			owner_a_february: {
+				...parsed.owner_a_february,
+				unpaidTotal: 925.5,
+				unpaidCount: 3,
+				lateFeeTotal: 75,
+				chargedTotal: 1325.5,
+			},
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_february.unpaidCount: expected 4, got 3",
+		);
+		expect(result.message).toContain(
+			"owner_a_february.lateFeeTotal: expected 110, got 75",
+		);
+	});
+
+	it("fails when the as-of date is ignored", () => {
+		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
+		const line = JSON.stringify({
+			...parsed,
+			owner_a_as_of_march: parsed.owner_a,
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_as_of_march.unpaidTotal: expected 145.5, got 1185.5",
+		);
+		expect(result.message).toContain(
+			"owner_a_as_of_march.collectedTotal: expected 4515, got 3440",
+		);
+	});
+
+	it("fails when a prepaid lease's credit balance is dropped", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_a", "creditBalanceTotal", 0),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a.creditBalanceTotal: expected 420, got 0",
+		);
+	});
+
+	it("names a call whose four figures do not partition the ledger", () => {
+		const result = assertBillingInsightsFromLedger(
+			withFigure("owner_a", "chargedTotal", 4000),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a: collectedTotal + unpaidTotal - creditBalanceTotal is 4205.5 but chargedTotal is 4000. The four figures must partition the ledger",
+		);
+	});
+
+	it("compares the partition in cents, not in floating point", () => {
+		// 0.1 + 0.2 is 0.30000000000000004 in floating point.
+		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
+		const line = JSON.stringify({
+			...parsed,
+			owner_b: {
+				...parsed.owner_b,
+				collectedTotal: 0.1,
+				unpaidTotal: 0.2,
+				creditBalanceTotal: 0,
+				chargedTotal: 0.3,
+			},
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_b.collectedTotal: expected 0");
+		expect(result.message).not.toContain("must partition the ledger");
+	});
+
+	it("leaves a missing figure to its mismatch line, not a partition break", () => {
+		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
+		const { collectedTotal: _omitted, ...ownerA } = parsed.owner_a;
+		const result = assertBillingInsightsFromLedger(
+			JSON.stringify({ ...parsed, owner_a: ownerA }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a.collectedTotal: expected 3440, got undefined",
+		);
+		expect(result.message).not.toContain("must partition the ledger");
+	});
+
+	it("fails on a body that returns none of the balance sheet's figures", () => {
+		// The body before the balance-sheet keys: right Payment Summary figures,
+		// no collectedTotal, creditBalanceTotal, chargedTotal or openingTotal.
+		const parsed = JSON.parse(REPLAYED_BILLING_LINE);
+		const strip = (call: Record<string, unknown>) => {
+			const {
+				collectedTotal: _c,
+				creditBalanceTotal: _cr,
+				chargedTotal: _ch,
+				openingTotal: _o,
+				...rest
+			} = call;
+			return rest;
+		};
+		const line = JSON.stringify({
+			...parsed,
+			owner_a: strip(parsed.owner_a),
+			owner_b: strip(parsed.owner_b),
+			owner_a_february: strip(parsed.owner_a_february),
+			owner_a_as_of_march: strip(parsed.owner_a_as_of_march),
+		});
+		const result = assertBillingInsightsFromLedger(line);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_as_of_march.chargedTotal: expected 4240.5, got undefined",
+		);
+	});
+
+	it("expects figures that partition the ledger, call by call", () => {
+		for (const figures of Object.values(EXPECTED_BILLING_INSIGHTS)) {
+			expect(
+				Math.round(
+					(figures.collectedTotal +
+						figures.unpaidTotal -
+						figures.creditBalanceTotal) *
+						100,
+				),
+			).toBe(Math.round(figures.chargedTotal * 100));
+		}
 	});
 
 	it("fails when another owner's rows reach owner B's figures", () => {

@@ -89,6 +89,10 @@ export function buildBalanceSheetView(
 						amount: currentLiabilities.accountsPayable,
 					},
 					{
+						name: "Tenant Credit Balances",
+						amount: currentLiabilities.tenantCreditBalances,
+					},
+					{
 						name: "Security Deposit Liability",
 						amount: currentLiabilities.security_depositLiability,
 					},
@@ -99,6 +103,7 @@ export function buildBalanceSheetView(
 				],
 				subtotal:
 					currentLiabilities.accountsPayable +
+					currentLiabilities.tenantCreditBalances +
 					currentLiabilities.security_depositLiability +
 					currentLiabilities.accruedExpenses,
 			},
@@ -117,7 +122,7 @@ export function buildBalanceSheetView(
 			{ name: "Owner Capital", amount: data.equity.ownerCapital },
 			{ name: "Retained Earnings", amount: data.equity.retainedEarnings },
 			{
-				name: "Current Period Income",
+				name: "Year-to-Date Income",
 				amount: data.equity.currentPeriodIncome,
 			},
 		],

@@ -1,14 +1,22 @@
 /**
  * @vitest-environment jsdom
  * The balance sheet Export button downloads the sheet as CSV (66.2-39 fix
- * round 1, part F). It had no handler: clicking it did nothing.
+ * round 1, part F). It had no handler: clicking it did nothing. The file holds
+ * the figures on screen (part K, when the sheet moved to the rent ledger), and
+ * when the server returns no ledger totals the page says so instead of
+ * presenting $0 as the owner's cash.
  */
 
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
+import Papa from "papaparse";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { formatCurrency } from "#lib/utils/currency";
 import { expectLabelInName } from "#test/utils/label-in-name";
 import { render } from "#test/utils/test-render";
-import type { BalanceSheetData } from "#types/financial-statements";
+import type {
+	BalanceSheetData,
+	BalanceSheetResult,
+} from "#types/financial-statements";
 
 const { useBalanceSheetMock, handleMutationErrorMock } = vi.hoisted(() => ({
 	useBalanceSheetMock: vi.fn(),
@@ -24,9 +32,17 @@ vi.mock("#lib/mutation-error-handler", () => ({
 
 import BalanceSheetPage from "#app/(owner)/reports/balance-sheet/page";
 
+/**
+ * A ledger-basis sheet whose every figure is distinct and non-zero where the
+ * ledger supplies one, so a figure swapped between lines, or dropped, shows.
+ */
 function sheet(asOf: string): BalanceSheetData {
 	return {
-		period: { start_date: asOf, end_date: asOf, label: `As of ${asOf}` },
+		period: {
+			start_date: `${asOf.slice(0, 4)}-01-01`,
+			end_date: asOf,
+			label: `As of ${asOf}`,
+		},
 		assets: {
 			currentAssets: {
 				cash: 54000,
@@ -45,26 +61,31 @@ function sheet(asOf: string): BalanceSheetData {
 		liabilities: {
 			currentLiabilities: {
 				accountsPayable: 0,
+				tenantCreditBalances: 750,
 				security_depositLiability: 0,
 				accruedExpenses: 0,
-				total: 0,
+				total: 750,
 			},
 			longTermLiabilities: { mortgagesPayable: 0, total: 0 },
-			totalLiabilities: 0,
+			totalLiabilities: 750,
 		},
 		equity: {
-			ownerCapital: 0,
-			retainedEarnings: 52500,
-			currentPeriodIncome: 0,
-			totalEquity: 55250.5,
+			ownerCapital: 3300,
+			retainedEarnings: 40000,
+			currentPeriodIncome: 11200.5,
+			totalEquity: 54500.5,
 		},
 		balanceCheck: true,
 	};
 }
 
+function ready(asOfDate: string): BalanceSheetResult {
+	return { status: "ready", sheet: sheet(asOfDate) };
+}
+
 function queryState(overrides: Record<string, unknown> = {}) {
 	return (asOfDate: string) => ({
-		data: { success: true, data: sheet(asOfDate) },
+		data: ready(asOfDate),
 		isLoading: false,
 		isPlaceholderData: false,
 		error: null,
@@ -128,7 +149,7 @@ describe("balance sheet Export", () => {
 		const [header, firstRow] = text.split("\r\n");
 		expect(header).toBe("As Of Date,Currency,Section,Group,Line Item,Amount");
 		expect(firstRow).toBe("2026-02-28,USD,Totals,,Total Assets,55250.50");
-		expect(text).toContain("2026-02-28,USD,Equity,,Total Equity,55250.50");
+		expect(text).toContain("2026-02-28,USD,Equity,,Total Equity,54500.50");
 		expect(handleMutationErrorMock).not.toHaveBeenCalled();
 	});
 
@@ -170,5 +191,126 @@ describe("balance sheet Export", () => {
 			"Couldn't export the balance sheet. Please try again.",
 		);
 		expect(clickedDownloads).toHaveLength(0);
+	});
+});
+
+/** The downloaded CSV's data rows, parsed. */
+async function exportedRows(): Promise<string[][]> {
+	fireEvent.click(screen.getByRole("button", { name: "Export" }));
+	const text = (await createdBlobs.at(-1)?.text()) ?? "";
+	const parsed = Papa.parse<string[]>(text, { newline: "\r\n" });
+	expect(parsed.errors).toEqual([]);
+	return parsed.data.slice(1);
+}
+
+/** The text of the card headed `title` (Assets, Liabilities, Equity). */
+function cardText(title: string): string {
+	const heading = screen.getByRole("heading", { name: title, level: 3 });
+	const card = heading.closest("div.bg-card");
+	if (!(card instanceof HTMLElement)) throw new Error(`no ${title} card`);
+	return card.textContent ?? "";
+}
+
+describe("the balance sheet file holds the figures on screen", () => {
+	it("writes every line the page shows, with the amount the page shows", async () => {
+		render(<BalanceSheetPage />);
+		// The groups render collapsed; open each so its lines are on screen.
+		for (const title of ["Assets", "Liabilities"]) {
+			const card = screen
+				.getByRole("heading", { name: title, level: 3 })
+				.closest("div.bg-card");
+			if (!(card instanceof HTMLElement)) throw new Error(`no ${title} card`);
+			for (const group of within(card).getAllByRole("button")) {
+				fireEvent.click(group);
+			}
+		}
+
+		const rows = await exportedRows();
+		// The 3 totals and the balance check; 6 asset lines, 2 subtotals and the
+		// total; 5 liability lines, 2 subtotals and the total; 3 equity lines and
+		// the total.
+		expect(rows).toHaveLength(25);
+		const page = document.body.textContent ?? "";
+		for (const [, , section, group, item, amount] of rows) {
+			if (section === "Balance Check") {
+				expect(item).toBe("Balanced");
+				expect(page).toContain("Balanced");
+				continue;
+			}
+			const shown = formatCurrency(Number(amount));
+			// A subtotal sits on its group's row, labelled by the group.
+			const label = item === "Subtotal" ? group : item;
+			const where = section === "Totals" ? page : cardText(section ?? "");
+			expect(where).toContain(`${label}${shown}`);
+		}
+		// The ledger figures reached the file, not only the screen.
+		expect(rows).toEqual(
+			expect.arrayContaining([
+				["2026-02-28", "USD", "Assets", "Current Assets", "Cash", "54000.00"],
+				[
+					"2026-02-28",
+					"USD",
+					"Assets",
+					"Current Assets",
+					"Accounts Receivable",
+					"1250.50",
+				],
+				[
+					"2026-02-28",
+					"USD",
+					"Liabilities",
+					"Current Liabilities",
+					"Tenant Credit Balances",
+					"750.00",
+				],
+				["2026-02-28", "USD", "Equity", "", "Year-to-Date Income", "11200.50"],
+			]),
+		);
+	});
+});
+
+describe("when the server returns no rent-ledger totals", () => {
+	function unavailable(asOfDate: string): BalanceSheetResult {
+		return { status: "ledger-unavailable", asOfDate };
+	}
+
+	it("says the ledger totals are unavailable instead of showing $0 figures", () => {
+		useBalanceSheetMock.mockImplementation((asOfDate: string) => ({
+			...queryState()(asOfDate),
+			data: unavailable(asOfDate),
+		}));
+		render(<BalanceSheetPage />);
+		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
+		expect(screen.queryByText("Total Assets")).not.toBeInTheDocument();
+		expect(screen.queryByText("Cash")).not.toBeInTheDocument();
+		expect(document.body.textContent).not.toContain("$0.00");
+		// The as-of date and the selectors stay, so another month can be picked.
+		expect(screen.getByText("As of February 28, 2026")).toBeInTheDocument();
+	});
+
+	it("keeps Export unavailable and says why", () => {
+		useBalanceSheetMock.mockImplementation((asOfDate: string) => ({
+			...queryState()(asOfDate),
+			data: unavailable(asOfDate),
+		}));
+		render(<BalanceSheetPage />);
+		const button = screen.getByRole("button", { name: "Export" });
+		expect(button).toHaveAttribute("aria-disabled", "true");
+		expect(button).toHaveAccessibleDescription(
+			"The rent ledger totals this sheet is built on aren't available yet.",
+		);
+		fireEvent.click(button);
+		expect(createdBlobs).toHaveLength(0);
+	});
+
+	it("asks again when the owner retries", () => {
+		const refetch = vi.fn();
+		useBalanceSheetMock.mockImplementation((asOfDate: string) => ({
+			...queryState({ refetch })(asOfDate),
+			data: unavailable(asOfDate),
+		}));
+		render(<BalanceSheetPage />);
+		fireEvent.click(screen.getByRole("button", { name: "Try Again" }));
+		expect(refetch).toHaveBeenCalledTimes(1);
 	});
 });

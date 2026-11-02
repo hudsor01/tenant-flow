@@ -12,8 +12,10 @@
 -- (assertBillingInsightsFromLedger) holds the expected figures and the
 -- arithmetic behind each one; keep the two in step.
 --
--- Every amount is dollars. Every date is fixed, and no figure depends on
--- current_date, so the expectation never drifts with the calendar.
+-- Every amount is dollars. Every date is fixed except the reversals that
+-- reverse_receipt, and reverse_charge for a receipt or for a charge with no
+-- period_start, date the day the gate runs. That day is after every fixed date
+-- here (the last is 2026-03-31), so no figure drifts with the calendar.
 --
 -- THE LEDGER (owner A unless noted):
 --   lease A1, active   opening 300.00 (Jan 1), rent Jan 1000 paid in full,
@@ -25,17 +27,27 @@
 --                      (Mar 15), and a 35.00 late fee posted with no
 --                      period_start on Feb 15 (so dated by created_at) then
 --                      REVERSED: its reversal is dated the day the gate runs,
---                      outside the February window the gate also asks for.
+--                      after both dates the gate asks as of (Feb 28, Mar 31).
+--                      Also a 75.00 receipt against the February 6 late fee,
+--                      received Mar 31, then REVERSED with reverse_receipt
+--                      (the reversal is dated the day the gate runs).
 --   lease A2, active   rent Jan 1500 paid 2000 (prepaid by 500), late fee 40.00
---                      (Jan 6) paid in full.
+--                      (Jan 6) paid in full, opening 200.00 (Jan 1) then
+--                      REVERSED (its reversal dated Jan 1 too), and a manual
+--                      charge 80.00 (Jan 25) reversed whose REVERSAL WAS
+--                      REVERSED by a direct insert: reverse_charge refuses a
+--                      reversal as its target (20260726020701, F4), but the
+--                      insert policy still admits the row, and the ledger
+--                      balance counts the 80 as owed again.
 --   lease A3, INACTIVE rent Jan 900 unpaid, late fee 30.00 unpaid.
 --   lease B1 (owner B) rent Jan 700 unpaid, late fee 20.00 unpaid.
 --   On lease A1, two rows stamped with owner B's id: a 999.00 manual charge and
 --   a 600.00 receipt against February's rent. They are the rows the pre-F2
 --   insert policy let another owner append (20260726020701); the function must
 --   count them for neither owner.
--- The reversals go through public.reverse_charge as owner A, the app's own
--- path, which also reverses the receipt allocated to the March rent.
+-- The reversals go through public.reverse_charge and public.reverse_receipt as
+-- owner A, the app's own path; reverse_charge also reverses the receipt
+-- allocated to the March rent.
 
 \set ON_ERROR_STOP on
 \set QUIET on
@@ -93,13 +105,21 @@ values
   ('b5000000-0000-4000-8000-0000000a1006', 'b4000000-0000-4000-8000-00000000a001', :'owner_a', 'rent',          1000.00, '2026-03-01', '2026-03-01', 'Monthly rent'),
   ('b5000000-0000-4000-8000-0000000a1007', 'b4000000-0000-4000-8000-00000000a001', :'owner_a', 'late_fee',        50.00, '2026-03-06', '2026-03-06', 'Late fee'),
   ('b5000000-0000-4000-8000-0000000a1008', 'b4000000-0000-4000-8000-00000000a001', :'owner_a', 'credit',        -100.00, '2026-03-15', '2026-03-15', 'Repair credit'),
+  ('b5000000-0000-4000-8000-0000000a2000', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'opening',        200.00, '2026-01-01', '2026-01-01', 'Opening balance'),
   ('b5000000-0000-4000-8000-0000000a2001', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'rent',          1500.00, '2026-01-01', '2026-01-01', 'Monthly rent'),
   ('b5000000-0000-4000-8000-0000000a2002', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'late_fee',        40.00, '2026-01-06', '2026-01-06', 'Late fee'),
+  ('b5000000-0000-4000-8000-0000000a2003', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'manual_charge',   80.00, '2026-01-25', '2026-01-25', 'Gutter cleaning'),
   ('b5000000-0000-4000-8000-0000000a3001', 'b4000000-0000-4000-8000-00000000a003', :'owner_a', 'rent',           900.00, '2026-01-01', '2026-01-01', 'Monthly rent'),
   ('b5000000-0000-4000-8000-0000000a3002', 'b4000000-0000-4000-8000-00000000a003', :'owner_a', 'late_fee',        30.00, '2026-01-06', '2026-01-06', 'Late fee'),
   ('b5000000-0000-4000-8000-0000000b1001', 'b4000000-0000-4000-8000-00000000b001', :'owner_b', 'rent',           700.00, '2026-01-01', '2026-01-01', 'Monthly rent'),
   ('b5000000-0000-4000-8000-0000000b1002', 'b4000000-0000-4000-8000-00000000b001', :'owner_b', 'late_fee',        20.00, '2026-01-06', '2026-01-06', 'Late fee'),
   ('b5000000-0000-4000-8000-0000000b9001', 'b4000000-0000-4000-8000-00000000a001', :'owner_b', 'manual_charge',  999.00, '2026-02-10', '2026-02-10', 'Foreign row');
+
+-- The double reversal on A2, as direct inserts would write it.
+insert into public.rent_charges (id, lease_id, owner_user_id, type, amount, period_start, due_date, description, reverses_id)
+values
+  ('b5000000-0000-4000-8000-0000000a2004', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'manual_charge',  -80.00, '2026-01-25', '2026-01-25', 'Reversal of Gutter cleaning', 'b5000000-0000-4000-8000-0000000a2003'),
+  ('b5000000-0000-4000-8000-0000000a2005', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'manual_charge',   80.00, '2026-01-25', '2026-01-25', 'Reversal of Reversal of Gutter cleaning', 'b5000000-0000-4000-8000-0000000a2004');
 
 -- No period_start, as a direct API insert may leave it: its ledger date is its
 -- created_at, set here because the column defaults to now().
@@ -116,6 +136,10 @@ values
   ('b5000000-0000-4000-8000-0000000a2002', 'b4000000-0000-4000-8000-00000000a002', :'owner_a',   40.00, 'zelle', '2026-01-10'),
   ('b5000000-0000-4000-8000-0000000a1003', 'b4000000-0000-4000-8000-00000000a001', :'owner_b',  600.00, 'cash',  '2026-02-07');
 
+insert into public.rent_receipts (id, charge_id, lease_id, owner_user_id, amount, method, received_date)
+values
+  ('b6000000-0000-4000-8000-0000000a1004', 'b5000000-0000-4000-8000-0000000a1004', 'b4000000-0000-4000-8000-00000000a001', :'owner_a', 75.00, 'check', '2026-03-31');
+
 -- From here on, act as the owner, exactly as PostgREST would for the app.
 select set_config('replay.owner_a', :'owner_a', true) as ignored \gset
 select set_config('replay.owner_b', :'owner_b', true) as ignored \gset
@@ -127,13 +151,18 @@ begin
   perform public.reverse_charge('b5000000-0000-4000-8000-0000000a1006');
   perform public.reverse_charge('b5000000-0000-4000-8000-0000000a1007');
   perform public.reverse_charge('b5000000-0000-4000-8000-0000000a1009');
+  perform public.reverse_charge('b5000000-0000-4000-8000-0000000a2000');
+  perform public.reverse_receipt('b6000000-0000-4000-8000-0000000a1004');
 end
 $$;
 
 insert into replay_billing values
   ('owner_a', public.get_billing_insights(current_setting('replay.owner_a')::uuid)),
   ('owner_a_february', public.get_billing_insights(current_setting('replay.owner_a')::uuid,
-                                                   '2026-02-01', '2026-02-28'));
+                                                   '2026-02-01', '2026-02-28')),
+  -- As the balance sheet asks: the end date alone, an as-of date.
+  ('owner_a_as_of_march', public.get_billing_insights(current_setting('replay.owner_a')::uuid,
+                                                      end_date_param => '2026-03-31'));
 
 -- The guard, kept as written: owner A asking for owner B's figures is refused.
 do $$

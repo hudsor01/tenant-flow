@@ -181,14 +181,15 @@ jobs:
           printf '%s\n' "$rows"
           printf '%s\n' "$rows" | bun scripts/assert-migration-replay.ts test-cast
 
-      - name: Assert get_billing_insights computes the Payment Summary from the ledger
+      - name: Assert get_billing_insights computes its figures from the ledger
         run: |
           set -euo pipefail
           # From 20260528231201 until 20261102055449 the function returned
           # unpaidTotal, unpaidCount and lateFeeTotal as the literal 0, so every
           # owner's Payment Summary read 0 while the rent ledger held the real
           # figures -- and no job could see it, because none ran the function
-          # against a ledger (rls-security only asserts who may call it).
+          # against a ledger (rls-security only asserts who may call it). The
+          # same fixture asserts the balance sheet's figures, as of a date.
           # The fixture seeds a ledger for the two seeded owners (so it runs
           # after the cast step), calls the function as each owner, prints ONE
           # JSON line and rolls back. The expected figures, and the arithmetic

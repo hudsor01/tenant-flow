@@ -150,6 +150,21 @@ mutate "$REPLAY" 'if (parsed["guard_refuses_another_owner"] !== true) {' \
                  'an unreported billing-insights guard result passes'
 mutate "$REPLAY" 'if (mismatches.length > 0) {' 'if (false) {' \
                  'billing-insights mismatches are not reported'
+mutate "$REPLAY" 'if (collected + unpaid - credit !== charged) {' 'if (false) {' \
+                 'the balance-sheet partition check always passes'
+mutate "$REPLAY" 'collectPartitionBreaks(label, actual, mismatches);' '' \
+                 'no call is checked for the balance-sheet partition'
+mutate "$REPLAY" '		collected === null ||
+		unpaid === null ||
+		credit === null ||
+		charged === null' '		false' \
+                 'a missing figure is also reported as a broken partition'
+mutate "$REPLAY" 'return typeof value === "number" ? Math.round(value * 100) : null;' \
+                 'return typeof value === "number" ? value * 100 : null;' \
+                 'the partition compares floating-point dollars, not cents'
+mutate "$REPLAY" '	if (actual === null) return;
+	const collected' '	const collected' \
+                 'the partition check reads a call that is missing'
 
 echo
 echo "=== platform-config assertions ==="

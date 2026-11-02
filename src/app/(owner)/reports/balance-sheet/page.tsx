@@ -1,9 +1,18 @@
 "use client";
 
-import { Building2, CreditCard, Wallet } from "lucide-react";
+import { Building2, CreditCard, ReceiptText, Wallet } from "lucide-react";
 import { useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
+import { Button } from "#components/ui/button";
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import {
 	Select,
 	SelectContent,
@@ -33,8 +42,14 @@ import {
 } from "./balance-sheet-csv";
 import { BalanceSheetError } from "./balance-sheet-error";
 import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
-import { buildBalanceSheetView } from "./balance-sheet-view";
+import {
+	type BalanceSheetView,
+	buildBalanceSheetView,
+} from "./balance-sheet-view";
 import { EquitySection } from "./equity-section";
+
+const LEDGER_UNAVAILABLE_EXPORT_REASON =
+	"The rent ledger totals this sheet is built on aren't available yet.";
 
 export default function BalanceSheetPage() {
 	const now = new Date();
@@ -57,17 +72,22 @@ export default function BalanceSheetPage() {
 	);
 	const { data, isLoading, isPlaceholderData, error, refetch } =
 		useBalanceSheet(asOfDate);
-	const balanceData = data?.data;
+	// When get_billing_insights returns none of the ledger figures the sheet is
+	// built on (its body before 20261102055449), the query says so rather than
+	// handing the page zeros to present as the owner's cash.
+	const ledgerUnavailable = data?.status === "ledger-unavailable";
+	const balanceData = data?.status === "ready" ? data.sheet : undefined;
 	const view = buildBalanceSheetView(balanceData);
-	const { totalAssets, totalLiabilities, totalEquity, isBalanced } = view;
 
 	// The global keepPreviousData shows the last month while the selected one
 	// loads, so the export waits for the data that matches the selectors.
-	const exportUnavailableReason = !balanceData
-		? "No balance sheet data to export yet."
-		: isPlaceholderData
-			? "Loading the selected month. Export is available when it finishes."
-			: null;
+	const exportUnavailableReason = ledgerUnavailable
+		? LEDGER_UNAVAILABLE_EXPORT_REASON
+		: !balanceData
+			? "No balance sheet data to export yet."
+			: isPlaceholderData
+				? "Loading the selected month. Export is available when it finishes."
+				: null;
 
 	const handleExport = () => {
 		if (!balanceData || isPlaceholderData) return;
@@ -153,6 +173,48 @@ export default function BalanceSheetPage() {
 				</div>
 			</BlurFade>
 
+			{ledgerUnavailable ? (
+				<LedgerUnavailable onRetryAction={() => void refetch()} />
+			) : (
+				<BalanceSheetFigures view={view} />
+			)}
+		</div>
+	);
+}
+
+/**
+ * In place of the figures when the server returns no rent-ledger totals. The
+ * selectors and the Export button stay, so the owner can still pick another
+ * month; every month is unavailable in that state, and Export says why.
+ */
+function LedgerUnavailable({ onRetryAction }: { onRetryAction: () => void }) {
+	return (
+		<BlurFade delay={0.15}>
+			<Empty className="border border-border bg-card">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<ReceiptText aria-hidden="true" />
+					</EmptyMedia>
+					<EmptyTitle>Ledger totals unavailable</EmptyTitle>
+					<EmptyDescription>
+						Cash and accounts receivable on this sheet come from your rent
+						ledger, and its totals aren&apos;t available yet. Try again later.
+					</EmptyDescription>
+				</EmptyHeader>
+				<EmptyContent>
+					<Button variant="outline" onClick={onRetryAction}>
+						Try Again
+					</Button>
+				</EmptyContent>
+			</Empty>
+		</BlurFade>
+	);
+}
+
+function BalanceSheetFigures({ view }: { view: BalanceSheetView }) {
+	const { totalAssets, totalLiabilities, totalEquity, isBalanced } = view;
+	return (
+		<>
 			{/* Summary Stats */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 				<BlurFade delay={0.15}>
@@ -244,6 +306,6 @@ export default function BalanceSheetPage() {
 					</div>
 				</div>
 			</BlurFade>
-		</div>
+		</>
 	);
 }

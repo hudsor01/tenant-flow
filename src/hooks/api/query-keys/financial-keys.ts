@@ -1,51 +1,29 @@
 /**
  * Financial Query Keys & Options
- * Query factories for financial domain: overview, monthly metrics, statements.
+ * Query factories for the financial statements and the expense summary.
  *
  * Financial data uses existing RPCs:
- * - get_dashboard_stats for overview
- * - revenueTrendsQuery (shared from analytics-keys) for monthly metrics
+ * - get_dashboard_stats for the income statement and cash flow revenue
  * - get_expense_summary for expense data
- * - get_billing_insights for billing/balance data
+ * - get_billing_insights for the balance sheet's rent-ledger figures
  *
- * Expense CRUD, tax documents, and expense mutations are in expense-keys.ts.
+ * The expense list and tax documents are in expense-keys.ts.
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { parseLocalYmd } from "#lib/formatters/date";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { ExpenseCategorySummary } from "#types/analytics";
 import type { ApiResponse } from "#types/api-contracts";
 import type {
 	BalanceSheetData,
+	BalanceSheetResult,
 	CashFlowData,
 	IncomeStatementData,
 } from "#types/financial-statements";
-
-export interface FinancialOverviewData {
-	overview: {
-		total_revenue: number;
-		total_expenses: number;
-		net_income: number;
-		/**
-		 * DEFERRED, recorded not forgotten (Phase 56 CONTEXT, "Added to
-		 * Deferred"): this is a hardcoded 0 with no source behind it — the same
-		 * class of defect as the fabricated receivable field D-35 removed from
-		 * this interface, but explicitly out of Phase 56's scope.
-		 */
-		accounts_payable: number;
-	};
-	highlights: Array<{ label: string; value: number; trend: number | null }>;
-}
-
-export interface MonthlyMetric {
-	month: string;
-	revenue: number;
-	expenses: number;
-	net_income: number;
-	cash_flow: number;
-}
 
 export interface ExpenseSummaryData {
 	categories: ExpenseCategorySummary[];
@@ -97,6 +75,181 @@ function parseDashStats(data: unknown) {
 		// Occupancy lives under `properties.occupancyRate` (camelCase) in the RPC —
 		// NOT `units.occupancy_rate`.
 		properties: stats?.properties as Record<string, unknown> | undefined,
+	};
+}
+
+/**
+ * The rent ledger as of a date, as get_billing_insights reports it when given
+ * only `end_date_param` (20261102055449). Dollars.
+ */
+interface LedgerPosition {
+	/** collectedTotal: every receipt, net of reversals. */
+	readonly collected: number;
+	/** unpaidTotal: per-lease balances owed, floored at 0. */
+	readonly receivable: number;
+	/** creditBalanceTotal: per-lease receipts in excess of charges. */
+	readonly creditBalances: number;
+	/** chargedTotal: every charge, net of reversals and credits. */
+	readonly charged: number;
+	/** openingTotal: the opening balances among those charges. */
+	readonly opening: number;
+}
+
+/**
+ * Narrow a get_billing_insights payload to the balance sheet's figures. null
+ * when any is missing: production's body before 20261102055449 returns none of
+ * collectedTotal, creditBalanceTotal, chargedTotal or openingTotal (and a
+ * literal 0 for unpaidTotal), and those must not reach the sheet as $0.
+ */
+function mapLedgerPosition(data: unknown): LedgerPosition | null {
+	const raw = jsonObjectOrEmpty<Record<string, unknown>>(data, {});
+	const {
+		collectedTotal,
+		unpaidTotal,
+		creditBalanceTotal,
+		chargedTotal,
+		openingTotal,
+	} = raw;
+	if (
+		typeof collectedTotal !== "number" ||
+		typeof unpaidTotal !== "number" ||
+		typeof creditBalanceTotal !== "number" ||
+		typeof chargedTotal !== "number" ||
+		typeof openingTotal !== "number"
+	) {
+		return null;
+	}
+	return {
+		collected: collectedTotal,
+		receivable: unpaidTotal,
+		creditBalances: creditBalanceTotal,
+		charged: chargedTotal,
+		opening: openingTotal,
+	};
+}
+
+/** get_expense_summary's `total_amount` (dollars); any other shape throws. */
+function mapExpenseTotal(data: unknown): number {
+	const { total_amount: total } = jsonObjectOrEmpty<Record<string, unknown>>(
+		data,
+		{},
+	);
+	if (typeof total !== "number") {
+		throw new Error("get_expense_summary returned no total_amount");
+	}
+	return total;
+}
+
+/**
+ * get_expense_summary's `p_start_date` defaults to January 1 of the current
+ * year and has no "from the beginning" value of its own, so the sheet passes
+ * Postgres's own unbounded date to count every expense before a date.
+ */
+const NO_LOWER_DATE_BOUND = "-infinity";
+
+/** Dollars rounded to the cent, with -0 folded into 0 (it formats "-$0.00"). */
+function toCents(amount: number): number {
+	return Math.round(amount * 100) / 100 + 0;
+}
+
+/**
+ * The balance sheet on a rent-ledger basis, as of `asOfDate`.
+ *
+ * Scheduled rent (get_dashboard_stats' revenue) appears nowhere: it is not
+ * money, and CLAUDE.md forbids summing it with the ledger's. Every figure is
+ * the ledger as of the end of `asOfDate`, or expenses dated on or before it:
+ *
+ *   Assets
+ *     Cash = collectedTotal: money recorded as received (no expense is drawn
+ *       from it: the data model records no account an expense was paid from).
+ *     Accounts Receivable = unpaidTotal: what tenants still owe, the Payment
+ *       Summary's figure as of the date.
+ *     Security Deposits, Property Values, Accumulated Depreciation: 0. Nothing
+ *       records a deposit received or a property's value.
+ *   Liabilities
+ *     Tenant Credit Balances = creditBalanceTotal: money received that no charge
+ *       has used yet (a lease paid ahead or overpaid), which the owner holds for
+ *       the tenant.
+ *     Accounts Payable, Security Deposit Liability, Accrued Expenses, Mortgages
+ *       Payable: 0. Nothing records a bill owed, a deposit held or a loan.
+ *   Equity
+ *     Owner Capital = openingTotal + every expense dated on or before the date.
+ *       Opening balances are money owed before the ledger began: brought in,
+ *       not earned in it. Expenses are paid from outside Cash, which holds only
+ *       rent received, so each is carried as the owner's own money put in.
+ *     Retained Earnings = what was charged before the date's year (net of
+ *       credits, reversals and opening balances) less the expenses dated then.
+ *     Year-to-Date Income = the same for January 1 of the date's year through
+ *       the date.
+ *
+ * The sheet balances by the ledger's own partition, not by a plug:
+ * collectedTotal + unpaidTotal - creditBalanceTotal = chargedTotal, so assets
+ * less liabilities is chargedTotal, and the three equity lines sum to
+ * chargedTotal because each expense enters Owner Capital and leaves an
+ * earnings line. `balanceCheck` compares the two sides to the cent.
+ */
+function buildLedgerBalanceSheet(input: {
+	asOfDate: string;
+	yearStart: string;
+	asOf: LedgerPosition;
+	atYearStart: LedgerPosition;
+	expensesThisYear: number;
+	expensesBefore: number;
+}): BalanceSheetData {
+	const { asOf, atYearStart, expensesThisYear, expensesBefore } = input;
+	const earnedBefore = atYearStart.charged - atYearStart.opening;
+	const earnedThisYear = asOf.charged - asOf.opening - earnedBefore;
+	const cash = toCents(asOf.collected);
+	const accountsReceivable = toCents(asOf.receivable);
+	const tenantCreditBalances = toCents(asOf.creditBalances);
+	const totalAssets = toCents(cash + accountsReceivable);
+	const ownerCapital = toCents(
+		asOf.opening + expensesBefore + expensesThisYear,
+	);
+	const retainedEarnings = toCents(earnedBefore - expensesBefore);
+	const currentPeriodIncome = toCents(earnedThisYear - expensesThisYear);
+	const totalEquity = toCents(
+		ownerCapital + retainedEarnings + currentPeriodIncome,
+	);
+	return {
+		period: {
+			start_date: input.yearStart,
+			end_date: input.asOfDate,
+			label: `As of ${input.asOfDate}`,
+		},
+		assets: {
+			currentAssets: {
+				cash,
+				accountsReceivable,
+				security_deposits: 0,
+				total: totalAssets,
+			},
+			fixedAssets: {
+				propertyValues: 0,
+				accumulatedDepreciation: 0,
+				netPropertyValue: 0,
+				total: 0,
+			},
+			totalAssets,
+		},
+		liabilities: {
+			currentLiabilities: {
+				accountsPayable: 0,
+				tenantCreditBalances,
+				security_depositLiability: 0,
+				accruedExpenses: 0,
+				total: tenantCreditBalances,
+			},
+			longTermLiabilities: { mortgagesPayable: 0, total: 0 },
+			totalLiabilities: tenantCreditBalances,
+		},
+		equity: {
+			ownerCapital,
+			retainedEarnings,
+			currentPeriodIncome,
+			totalEquity,
+		},
+		balanceCheck: toCents(totalAssets - tenantCreditBalances) === totalEquity,
 	};
 }
 
@@ -339,117 +492,60 @@ export const financialQueries = {
 	balanceSheet: (asOfDate: string) =>
 		queryOptions({
 			queryKey: financialKeys.balanceSheet(asOfDate),
-			queryFn: async (): Promise<ApiResponse<BalanceSheetData>> => {
-				const supabase = createClient();
+			queryFn: async (): Promise<BalanceSheetResult> => {
 				const user = await getCachedUser();
-				if (!user?.id) {
-					return {
-						success: true,
-						data: {
-							period: {
-								start_date: asOfDate,
-								end_date: asOfDate,
-								label: `As of ${asOfDate}`,
-							},
-							assets: {
-								currentAssets: {
-									cash: 0,
-									accountsReceivable: 0,
-									security_deposits: 0,
-									total: 0,
-								},
-								fixedAssets: {
-									propertyValues: 0,
-									accumulatedDepreciation: 0,
-									netPropertyValue: 0,
-									total: 0,
-								},
-								totalAssets: 0,
-							},
-							liabilities: {
-								currentLiabilities: {
-									accountsPayable: 0,
-									security_depositLiability: 0,
-									accruedExpenses: 0,
-									total: 0,
-								},
-								longTermLiabilities: { mortgagesPayable: 0, total: 0 },
-								totalLiabilities: 0,
-							},
-							equity: {
-								ownerCapital: 0,
-								retainedEarnings: 0,
-								currentPeriodIncome: 0,
-								totalEquity: 0,
-							},
-							balanceCheck: true,
-						},
-					};
+				if (!user?.id) throw new Error("Not authenticated");
+				const year = parseLocalYmd(asOfDate)?.getFullYear();
+				if (year === undefined) {
+					throw new Error(`Invalid balance sheet date: ${asOfDate}`);
 				}
-				const [{ dashResult, expenseResult }, billingResult] =
+				const yearStart = `${year}-01-01`;
+				const priorYearEnd = `${year - 1}-12-31`;
+				const supabase = createClient();
+				const [asOfResult, priorYearResult, thisYearResult, beforeResult] =
 					await Promise.all([
-						fetchDashAndExpense(user.id),
-						supabase.rpc("get_billing_insights", { owner_id_param: user.id }),
+						supabase.rpc("get_billing_insights", {
+							owner_id_param: user.id,
+							end_date_param: asOfDate,
+						}),
+						supabase.rpc("get_billing_insights", {
+							owner_id_param: user.id,
+							end_date_param: priorYearEnd,
+						}),
+						supabase.rpc("get_expense_summary", {
+							p_user_id: user.id,
+							p_start_date: yearStart,
+							p_end_date: asOfDate,
+						}),
+						supabase.rpc("get_expense_summary", {
+							p_user_id: user.id,
+							p_start_date: NO_LOWER_DATE_BOUND,
+							p_end_date: priorYearEnd,
+						}),
 					]);
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "balance sheet");
-				if (expenseResult.error)
-					handlePostgrestError(expenseResult.error, "balance sheet expenses");
-				if (billingResult.error)
-					handlePostgrestError(billingResult.error, "balance sheet billing");
-				const { revenue } = parseDashStats(dashResult.data);
-				const totalRevenue = Number(revenue?.yearly ?? 0);
-				const totalExpenses = Number(
-					(expenseResult.data as Record<string, unknown> | null)
-						?.total_amount ?? 0,
-				);
-				const ar = Number(
-					(billingResult.data as Record<string, unknown> | null)
-						?.accounts_receivable ?? 0,
-				);
-				const net = totalRevenue - totalExpenses;
-				const totalAssets = totalRevenue + ar;
+				if (asOfResult.error)
+					handlePostgrestError(asOfResult.error, "balance sheet ledger");
+				if (priorYearResult.error)
+					handlePostgrestError(priorYearResult.error, "balance sheet ledger");
+				if (thisYearResult.error)
+					handlePostgrestError(thisYearResult.error, "balance sheet expenses");
+				if (beforeResult.error)
+					handlePostgrestError(beforeResult.error, "balance sheet expenses");
+				const asOf = mapLedgerPosition(asOfResult.data);
+				const atYearStart = mapLedgerPosition(priorYearResult.data);
+				if (asOf === null || atYearStart === null) {
+					return { status: "ledger-unavailable", asOfDate };
+				}
 				return {
-					success: true,
-					data: {
-						period: {
-							start_date: asOfDate,
-							end_date: asOfDate,
-							label: `As of ${asOfDate}`,
-						},
-						assets: {
-							currentAssets: {
-								cash: totalRevenue,
-								accountsReceivable: ar,
-								security_deposits: 0,
-								total: totalAssets,
-							},
-							fixedAssets: {
-								propertyValues: 0,
-								accumulatedDepreciation: 0,
-								netPropertyValue: 0,
-								total: 0,
-							},
-							totalAssets,
-						},
-						liabilities: {
-							currentLiabilities: {
-								accountsPayable: 0,
-								security_depositLiability: 0,
-								accruedExpenses: 0,
-								total: 0,
-							},
-							longTermLiabilities: { mortgagesPayable: 0, total: 0 },
-							totalLiabilities: 0,
-						},
-						equity: {
-							ownerCapital: totalAssets - net,
-							retainedEarnings: 0,
-							currentPeriodIncome: net,
-							totalEquity: totalAssets,
-						},
-						balanceCheck: true,
-					},
+					status: "ready",
+					sheet: buildLedgerBalanceSheet({
+						asOfDate,
+						yearStart,
+						asOf,
+						atYearStart,
+						expensesThisYear: mapExpenseTotal(thisYearResult.data),
+						expensesBefore: mapExpenseTotal(beforeResult.data),
+					}),
 				};
 			},
 			...CACHE,

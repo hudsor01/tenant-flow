@@ -147,6 +147,11 @@ export interface TaxReportGenerationResponse {
 	reportId?: string;
 }
 
+/**
+ * The balance sheet as of `period.end_date`, on a rent-ledger basis
+ * (financialQueries.balanceSheet). `period.start_date` is January 1 of that
+ * date's year, the start of `equity.currentPeriodIncome`.
+ */
 export interface BalanceSheetData {
 	period: { start_date: string; end_date: string; label: string };
 	assets: {
@@ -167,6 +172,8 @@ export interface BalanceSheetData {
 	liabilities: {
 		currentLiabilities: {
 			accountsPayable: number;
+			/** Money received that no charge has used yet, held for tenants. */
+			tenantCreditBalances: number;
 			security_depositLiability: number;
 			accruedExpenses: number;
 			total: number;
@@ -185,6 +192,16 @@ export interface BalanceSheetData {
 	};
 	balanceCheck: boolean;
 }
+
+/**
+ * financialQueries.balanceSheet's result. `ledger-unavailable` when the server
+ * returns none of the rent-ledger figures the sheet is built on
+ * (get_billing_insights before 20261102055449): the page says so instead of
+ * presenting $0 as the owner's cash and receivables.
+ */
+export type BalanceSheetResult =
+	| { readonly status: "ready"; readonly sheet: BalanceSheetData }
+	| { readonly status: "ledger-unavailable"; readonly asOfDate: string };
 
 export interface CashFlowData {
 	period: { start_date: string; end_date: string; label: string };
