@@ -212,3 +212,33 @@ describe("the tax preparation report", () => {
 		},
 	);
 });
+
+describe("the executive monthly report", () => {
+	beforeEach(() => mockRpc.mockReset());
+
+	it("labels its monthly series scheduled rent, which is what it sums", async () => {
+		mockRpc.mockImplementation((name: string) =>
+			Promise.resolve({
+				data:
+					name === "get_revenue_trends_optimized"
+						? [{ month: "2025-12", revenue: 2500 }]
+						: name === "get_occupancy_trends_optimized"
+							? []
+							: { total_amount: 0, categories: [], monthly_totals: [] },
+				error: null,
+			}),
+		);
+		const report = await buildReportData(
+			"executive-monthly",
+			new QueryClient(),
+			"2025-12-01",
+			"2025-12-31",
+		);
+		const series = section(report.sections, "Scheduled Rent (last 12 months)");
+		expect(series.table?.headers).toEqual(["Month", "Scheduled Rent"]);
+		expect(series.table?.rows).toEqual([["2025-12", "$2,500"]]);
+		expect(
+			report.sections.some((s) => s.heading.startsWith("Monthly Revenue")),
+		).toBe(false);
+	});
+});

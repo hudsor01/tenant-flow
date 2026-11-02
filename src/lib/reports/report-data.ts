@@ -400,8 +400,10 @@ async function buildExecutiveMonthly(
 				rows: executiveKeyMetricsRows(financial.data, occupancy.data),
 			},
 			{
-				heading: "Monthly Revenue (last 12 months)",
-				table: { headers: ["Month", "Revenue"], rows: monthlyRows },
+				// get_revenue_trends_optimized sums the month's lease rent_amount:
+				// scheduled rent, not money received, so it is labelled as such.
+				heading: "Scheduled Rent (last 12 months)",
+				table: { headers: ["Month", "Scheduled Rent"], rows: monthlyRows },
 				...noteIf(allAvailable),
 			},
 		],
