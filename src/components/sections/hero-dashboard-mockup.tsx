@@ -47,7 +47,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								<Bell className="size-4 text-muted-foreground" />
 								<div className="absolute -top-1 -right-1 size-2 bg-primary rounded-full animate-pulse" />
 							</div>
-							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 								SC
 							</div>
 						</div>
@@ -153,7 +153,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							</span>
 							<button
 								type="button"
-								className="text-xs text-primary hover:underline flex items-center"
+								className="text-xs text-primary-text hover:underline flex items-center"
 							>
 								View all <ChevronRight className="size-3" />
 							</button>
@@ -300,7 +300,7 @@ function ActivityItem({
 
 	return (
 		<div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 				{avatar}
 			</div>
 			<div className="flex-1 min-w-0">

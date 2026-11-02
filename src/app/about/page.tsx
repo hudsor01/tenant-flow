@@ -240,7 +240,7 @@ export default function AboutPage() {
 										<div className="mb-4 flex justify-center">
 											<stat.Icon className="size-8 text-primary" aria-hidden />
 										</div>
-										<div className="typography-h2 text-primary mb-2">
+										<div className="typography-h2 text-primary-text mb-2">
 											{stat.number}
 										</div>
 										<div className="text-muted-foreground">{stat.label}</div>

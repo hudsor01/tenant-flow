@@ -67,7 +67,7 @@ export default function FeaturesSectionDemo({
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
 						Everything you need for
-						<span className="text-primary block">
+						<span className="text-primary-text block">
 							professional property management
 						</span>
 					</h2>
@@ -127,7 +127,7 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 			</div>
 
 			{/* Title with enhanced hover */}
-			<h3 className="typography-large tracking-tight text-foreground mb-3 leading-tight group-hover/feature:text-primary transition-colors duration-300">
+			<h3 className="typography-large tracking-tight text-foreground mb-3 leading-tight group-hover/feature:text-primary-text transition-colors duration-300">
 				{title}
 			</h3>
 

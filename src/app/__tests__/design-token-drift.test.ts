@@ -27,6 +27,7 @@ import {
 	type Theme,
 	tokenColor,
 } from "#test/utils/oklch-contrast";
+import { vividTextUses } from "#test/utils/vivid-text-elements";
 
 type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs" | "modernColor";
 
@@ -628,6 +629,133 @@ describe("no row hover or addon reads text on the emerald accent fill (66.2-39 V
 			"x.tsx: focus:bg-accent",
 			"x.tsx: data-[state=open]:bg-accent",
 			"x.tsx: bg-accent",
+		]);
+	});
+});
+
+/**
+ * 66.2-39 fix round 1, part F (status-colors.md section 8): a vivid status
+ * color (`text-success`, `-warning`, `-destructive`, `-info`, `-accent`,
+ * `-primary`) never colors an element that shows text. The vivid tokens fail
+ * 4.5:1 as text on the light surfaces (success 2.27, warning 1.88, info 2.87,
+ * accent 2.95, destructive 3.99, primary 4.33), so text takes the AA `-text`
+ * companion. An icon, or an element whose only content is icons, may keep the
+ * vivid token (CLAUDE.md), and so may a color map outside JSX that the
+ * reviewed list below names with what it colors. `vividTextUses` parses the
+ * source, so the element and its children decide, not the class string.
+ */
+const VIVID_TEXT_REVIEWED: Record<string, { kinds: string[]; reason: string }> =
+	{
+		"src/components/settings/sections/active-sessions-section.tsx": {
+			kinds: ["text"],
+			reason:
+				"the sign-out button shows only a LogOut or Loader2 icon (an icon ternary); its name is its aria-label",
+		},
+		"src/components/tenants/tenant-table-row.tsx": {
+			kinds: ["text"],
+			reason: "the delete button shows only a Trash2 icon; its text is sr-only",
+		},
+		"src/components/sections/how-it-works.tsx": {
+			kinds: ["config"],
+			reason:
+				"colors.text tints each step's icon tile and its decorative step number, drawn at opacity-20 beside the step's own heading",
+		},
+		"src/lib/utils/currency.ts": {
+			kinds: ["config"],
+			reason:
+				"getCollectionRateStatus colors the collection-rate KPI icon, beside the status text it names",
+		},
+		"src/app/resources/page.tsx": {
+			kinds: ["config"],
+			reason: "iconColor tints each resource card's icon, beside its title",
+		},
+		"src/components/leases/table/leases-table-columns.tsx": {
+			kinds: ["leaf"],
+			reason:
+				"a native checkbox: with no forms plugin its text color paints nothing",
+		},
+		"src/components/leases/table/leases-table.tsx": {
+			kinds: ["leaf"],
+			reason:
+				"a native checkbox: with no forms plugin its text color paints nothing",
+		},
+		"src/components/tenants/tenant-grid.tsx": {
+			kinds: ["leaf"],
+			reason:
+				"a native checkbox: with no forms plugin its text color paints nothing",
+		},
+		"src/app/(owner)/leases/leases-stat-cards.tsx": {
+			kinds: ["leaf"],
+			reason: "<card.icon>, a lucide component held in the card data",
+		},
+	};
+
+function vividTextViolations(rel: string, content: string): string[] {
+	const reviewed = VIVID_TEXT_REVIEWED[rel];
+	return vividTextUses(rel, content)
+		.filter(
+			(use) =>
+				use.kind === "text" || use.kind === "leaf" || use.kind === "config",
+		)
+		.filter((use) => !reviewed?.kinds.includes(use.kind))
+		.map(
+			(use) => `${rel}:${use.line}: ${use.token} on ${use.kind} ${use.host}`,
+		);
+}
+
+describe("no vivid status color on an element that shows text (66.2-39 part F)", () => {
+	it("colors text with the AA -text companions in every shipped source", () => {
+		const violations: string[] = [];
+		const seen = new Set<string>();
+		for (const root of ["src"]) {
+			for (const file of walkSourceFiles(join(cwd, root))) {
+				const rel = relative(cwd, file).replace(/\\/g, "/");
+				if (rel.startsWith("src/test/")) continue;
+				const content = readFileSync(file, "utf8");
+				if (vividTextUses(rel, content).length > 0) seen.add(rel);
+				violations.push(...vividTextViolations(rel, content));
+			}
+		}
+		expect(violations).toEqual([]);
+		const stale = Object.keys(VIVID_TEXT_REVIEWED).filter(
+			(rel) => !seen.has(rel),
+		);
+		expect(stale).toEqual([]);
+	});
+
+	it("tells text from icons by the element and its children (fixture)", () => {
+		const fixture = [
+			'import { Check } from "lucide-react";',
+			"export function X() {",
+			"  return (",
+			"    <div>",
+			'      <span className="text-success">Saved</span>',
+			'      <Check className="size-4 text-success" />',
+			'      <div className="text-warning"><Check /></div>',
+			'      <p className={cn("text-sm", ok ? "text-destructive" : "")}>{label}</p>',
+			'      <span className="text-success-text">Saved</span>',
+			'      <div className="[&_svg]:text-info">x</div>',
+			"    </div>",
+			"  );",
+			"}",
+			'const map = { ok: "text-primary" };',
+		].join("\n");
+		expect(
+			vividTextUses("x.tsx", fixture).map(
+				(u) => `${u.line} ${u.token} ${u.kind}`,
+			),
+		).toEqual([
+			"5 text-success text",
+			"6 text-success icon",
+			"7 text-warning icon-container",
+			"8 text-destructive text",
+			"10 [&_svg]:text-info icon",
+			"14 text-primary config",
+		]);
+		expect(vividTextViolations("x.tsx", fixture)).toEqual([
+			"x.tsx:5: text-success on text span",
+			"x.tsx:8: text-destructive on text p",
+			"x.tsx:14: text-primary on config ok",
 		]);
 	});
 });

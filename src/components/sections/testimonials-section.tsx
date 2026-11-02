@@ -121,7 +121,7 @@ export function TestimonialsSection({
 
 							<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 								<div className="flex items-center gap-4">
-									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary text-xl font-bold">
+									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary-text text-xl font-bold">
 										{currentTestimonial?.author
 											.split(" ")
 											.map((n) => n[0])
@@ -142,7 +142,7 @@ export function TestimonialsSection({
 
 								{currentTestimonial?.metric && (
 									<div className="text-center md:text-right p-4 rounded-xl bg-primary/5 border border-primary/10">
-										<div className="typography-h2 text-primary">
+										<div className="typography-h2 text-primary-text">
 											{currentTestimonial.metric}
 										</div>
 										<div className="text-sm text-muted-foreground">
@@ -216,7 +216,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
 				<div className="flex items-center justify-between pt-4 border-t border-border/50">
 					<div className="flex items-center gap-3">
-						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary text-sm font-bold">
+						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary-text text-sm font-bold">
 							{testimonial.author
 								.split(" ")
 								.map((n) => n[0])
@@ -234,7 +234,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
 					{testimonial.metric && (
 						<div className="text-right">
-							<div className="text-lg font-bold text-primary">
+							<div className="text-lg font-bold text-primary-text">
 								{testimonial.metric}
 							</div>
 							<div className="text-xs text-muted-foreground">

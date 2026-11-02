@@ -119,7 +119,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 										<div className="inline-flex flex-col items-center">
 											<div className="relative">
 												<Crown className="absolute -top-4 left-1/2 -translate-x-1/2 size-5 text-accent fill-accent" />
-												<span className="text-lg font-bold text-primary">
+												<span className="text-lg font-bold text-primary-text">
 													TenantFlow
 												</span>
 											</div>
@@ -237,7 +237,10 @@ function FeatureCell({
 			>
 				<Check
 					aria-hidden="true"
-					className={cn("size-5", highlight ? "text-primary" : "text-success")}
+					className={cn(
+						"size-5",
+						highlight ? "text-primary" : "text-success-text",
+					)}
 				/>
 			</div>
 		);
@@ -262,7 +265,7 @@ function FeatureCell({
 			aria-label="Partial"
 			className="size-8 rounded-full bg-warning/10 flex-center"
 		>
-			<Minus aria-hidden="true" className="size-5 text-warning" />
+			<Minus aria-hidden="true" className="size-5 text-warning-text" />
 		</div>
 	);
 }

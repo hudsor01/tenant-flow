@@ -317,7 +317,7 @@ export function BillingSettings() {
 							</div>
 							{isActive && currentPlan && (
 								<>
-									<p className="text-2xl font-bold text-primary">
+									<p className="text-2xl font-bold text-primary-text">
 										$
 										{currentPeriod === "annual"
 											? currentPlan.price.annual

@@ -76,7 +76,7 @@ export function ProfileCard({
 									src={profile.avatar_url || undefined}
 									alt={profile.full_name}
 								/>
-								<AvatarFallback className="text-2xl bg-primary/10 text-primary">
+								<AvatarFallback className="text-2xl bg-primary/10 text-primary-text">
 									{initials}
 								</AvatarFallback>
 							</Avatar>

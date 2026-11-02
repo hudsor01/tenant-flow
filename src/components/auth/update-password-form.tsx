@@ -146,7 +146,7 @@ export function UpdatePasswordForm({
 											onClick={() =>
 												setShowConfirmPassword(!showConfirmPassword)
 											}
-											className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+											className="text-muted-foreground hover:text-foreground focus:text-primary-text transition-colors"
 											tabIndex={-1}
 										>
 											{showConfirmPassword ? <EyeOff /> : <Eye />}

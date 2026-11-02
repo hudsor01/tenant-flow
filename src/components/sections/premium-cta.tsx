@@ -24,7 +24,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 						<div className="mb-8">
 							<h2 className="text-responsive-display-xl font-bold tracking-tight text-foreground mb-6 leading-[1.05]">
 								Stop juggling{" "}
-								<span className="text-primary">spreadsheets and Dropbox</span>{" "}
+								<span className="text-primary-text">
+									spreadsheets and Dropbox
+								</span>{" "}
 								for your portfolio
 							</h2>
 						</div>

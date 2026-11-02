@@ -262,9 +262,9 @@ export const getDashboardPercentage = (
 
 	let color: string;
 	if (trend === "positive") {
-		color = "text-success";
+		color = "text-success-text";
 	} else if (trend === "negative") {
-		color = "text-destructive";
+		color = "text-destructive-text";
 	} else {
 		color = "text-muted-foreground";
 	}

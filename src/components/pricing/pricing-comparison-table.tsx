@@ -147,7 +147,7 @@ function FeatureCell({
 			<Check
 				className={cn(
 					"size-5 mx-auto",
-					highlight ? "text-primary" : "text-success",
+					highlight ? "text-primary" : "text-success-text",
 				)}
 			/>
 		) : (

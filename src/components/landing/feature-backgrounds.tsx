@@ -73,7 +73,7 @@ export function VaultPreview() {
 						{categories.map((category) => (
 							<span
 								key={category.label}
-								className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+								className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary-text"
 							>
 								<category.icon className="size-2.5" />
 								{category.label}
@@ -145,7 +145,7 @@ export function TenantListBackground() {
 				].map((tenant) => (
 					<div key={tenant.name} className="card-standard p-3 flex-between">
 						<div className="flex items-center gap-3">
-							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 								{tenant.name
 									.split(" ")
 									.map((n) => n[0])

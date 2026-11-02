@@ -74,7 +74,7 @@ export function CashFlowStats({
 					)}
 					<StatLabel>Net Cash Flow</StatLabel>
 					<StatValue
-						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive"}`}
+						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive-text"}`}
 					>
 						{netCashFlow >= 0 ? "+" : "-"}$
 						{Math.abs(netCashFlow).toLocaleString("en-US", {

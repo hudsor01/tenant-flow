@@ -6,16 +6,23 @@ import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
 function FeatureIcon({ support }: { support: FeatureSupport }) {
 	switch (support) {
 		case "yes":
-			return <Check className="size-5 text-success" aria-label="Included" />;
+			return (
+				<Check className="size-5 text-success-text" aria-label="Included" />
+			);
 		case "no":
 			return (
 				<X className="size-5 text-destructive" aria-label="Not included" />
 			);
 		case "partial":
-			return <Minus className="size-5 text-warning" aria-label="Partial" />;
+			return (
+				<Minus className="size-5 text-warning-text" aria-label="Partial" />
+			);
 		case "addon":
 			return (
-				<Plus className="size-5 text-info" aria-label="Available as add-on" />
+				<Plus
+					className="size-5 text-info-text"
+					aria-label="Available as add-on"
+				/>
 			);
 		case "na":
 			// CONS-07: neutral framing for "by design" feature absences

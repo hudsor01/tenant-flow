@@ -55,7 +55,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 					<BlurFade delay={0.1}>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
 							Made for real
-							<span className="text-primary block">owner workflows</span>
+							<span className="text-primary-text block">owner workflows</span>
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
 							Every feature ships against a real owner workflow — from upload to
@@ -84,7 +84,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 
 									<div className="relative z-10">
 										{/* Animated number with enhanced styling */}
-										<div className="text-3xl lg:typography-h1 text-primary mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
+										<div className="text-3xl lg:typography-h1 text-primary-text mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
 											{stat.prefix}
 											<NumberTicker
 												value={stat.value}

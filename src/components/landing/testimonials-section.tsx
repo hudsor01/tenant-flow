@@ -48,7 +48,7 @@ export function TestimonialsSection() {
 									&quot;{t.quote}&quot;
 								</blockquote>
 								<div className="flex-center space-x-4">
-									<div className="size-12 rounded-full bg-primary/10 flex-center text-primary font-bold">
+									<div className="size-12 rounded-full bg-primary/10 flex-center text-primary-text font-bold">
 										{t.author
 											.split(" ")
 											.map((n) => n[0])

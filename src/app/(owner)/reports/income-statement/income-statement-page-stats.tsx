@@ -74,7 +74,7 @@ export function IncomeStatementPageStats({
 					)}
 					<StatLabel>Net Income</StatLabel>
 					<StatValue
-						className={`flex items-baseline ${netIncome >= 0 ? "" : "text-destructive"}`}
+						className={`flex items-baseline ${netIncome >= 0 ? "" : "text-destructive-text"}`}
 					>
 						{`${netIncome >= 0 ? "" : "-"}$${Math.abs(netIncome).toLocaleString(
 							"en-US",
