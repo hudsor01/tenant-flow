@@ -48,6 +48,7 @@ on:
       - scripts/migration-replay-assertions.ts
       - scripts/assert-migration-replay.ts
       - scripts/migration-replay-billing-insights.sql
+      - scripts/migration-replay-property-performance.sql
       # The negative controls, and the shared result module: a change that
       # weakens a control has to run the gate it guards. (The result module's
       # own controls are in scripts/assertion-result.test.ts, because a green
@@ -88,7 +89,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       # A GATE THAT PASSES PROVES NOTHING UNTIL SOMETHING HAS WATCHED IT FAIL.
-      # These are the negative controls for the four assertions below: each is
+      # These are the negative controls for the assertions below: each is
       # fed the input it should accept and every wrong input that matters, the
       # `t`/`f` regression described in the header included. They are part of
       # the unit suite, so the `checks` job runs them on every PR as well --
@@ -200,6 +201,24 @@ jobs:
             -v ON_ERROR_STOP=1 < scripts/migration-replay-billing-insights.sql)
           printf '%s\n' "$result"
           bun scripts/assert-migration-replay.ts billing-insights <<<"$result"
+
+      - name: Assert get_property_performance_analytics reports rent received
+        run: |
+          set -euo pipefail
+          # From 20260528231201 until 20261102163709 the function returned
+          # 0::numeric as every property's total_revenue, so its net income was
+          # its expenses negated on the analytics page, the property page, the
+          # property export and the year-end report and its tax exports -- and
+          # it could not be asked for a tax year at all. The fixture seeds
+          # properties, leases, receipts and expenses for the two seeded owners
+          # (so it runs after the cast step), calls the function as each owner
+          # for a tax year and a trailing window, prints ONE JSON line and rolls
+          # back. The expected rows, and the arithmetic behind each, live in
+          # scripts/migration-replay-assertions.ts. A herestring, as above.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-property-performance.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts property-performance <<<"$result"
 
       - name: Stop the stack
         if: always()

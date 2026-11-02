@@ -14,9 +14,11 @@ import {
 	assertBillingInsightsFromLedger,
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
+	assertPropertyPerformanceRentReceived,
 	assertSeededCast,
 	EXPECTED_BILLING_INSIGHTS,
 	EXPECTED_SEEDED_CAST,
+	expectedPropertyPerformance,
 } from "./migration-replay-assertions";
 
 const CORRECT_ROWS = EXPECTED_SEEDED_CAST.join("\n");
@@ -645,6 +647,309 @@ describe("assertBillingInsightsFromLedger", () => {
 		["a JSON scalar", "0"],
 	])("fails on output that is %s", (_what, raw) => {
 		const result = assertBillingInsightsFromLedger(raw);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("did not print a JSON object");
+	});
+});
+
+/**
+ * The line `scripts/migration-replay-property-performance.sql` printed against
+ * the replayed stack with 20261102163709 applied, on 2026-11-02, verbatim. The
+ * trailing window in it is 2026-10-03/2026-11-02: the assertion computes it
+ * from `today`, so the line stays valid on any later day.
+ */
+const REPLAYED_PERFORMANCE_LINE =
+	'{"today": "2026-11-02", "execute": {"anon": false, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_default": [{"timeframe": "2026-10-03/2026-11-02", "net_income": -119.75, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": -79.75, "occupancy_rate": 50.00, "total_expenses": 40.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 175.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 200.00, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2026-10-03/2026-11-02", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}], "owner_a_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 2550.25, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 2750.50, "occupancy_rate": 50.00, "total_expenses": 200.25}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}, {"timeframe": "2025-01-01/2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 690.00, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 700.00, "occupancy_rate": 100.00, "total_expenses": 10.00}], "owner_a_beta_2025": [{"timeframe": "2025-01-01/2025-12-31", "net_income": 650.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 750.00, "occupancy_rate": 100.00, "total_expenses": 100.00}], "backwards_range_sqlstate": "22023", "guard_refuses_another_owner": true}';
+
+/**
+ * The same fixture against PRODUCTION's body as of 2026-11-02, on the same
+ * stack: 0 as every revenue, the request echoed as the timeframe, the tax
+ * year read as the last 30 days (with the expense dated in the future), the
+ * backwards range accepted. `execute.anon` is true for the reason given above.
+ */
+const PRODUCTION_PERFORMANCE_LINE =
+	'{"today": "2026-11-02", "execute": {"anon": true, "service_role": true, "authenticated": true}, "owner_a_30d": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_default": [{"timeframe": "30d", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "30d", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "30d", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_a_limit_1": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}], "owner_a_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -106.00, "property_id": "c1000000-0000-4000-8000-00000000a001", "property_name": "Alpha Court", "total_revenue": 0, "occupancy_rate": 50.00, "total_expenses": 106.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}, {"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000a003", "property_name": "Delta Lot", "total_revenue": 0, "occupancy_rate": 0.00, "total_expenses": 0}], "owner_b_tax_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": 0, "property_id": "c1000000-0000-4000-8000-00000000b001", "property_name": "Bravo Place", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 0}], "owner_a_beta_2025": [{"timeframe": "2025-01-01..2025-12-31", "net_income": -25.00, "property_id": "c1000000-0000-4000-8000-00000000a002", "property_name": "Beta House", "total_revenue": 0, "occupancy_rate": 100.00, "total_expenses": 25.00}], "backwards_range_sqlstate": null, "guard_refuses_another_owner": true}';
+
+type PerformanceLine = Record<string, unknown> & {
+	owner_a_tax_2025: Record<string, unknown>[];
+	owner_a_30d: Record<string, unknown>[];
+};
+
+/** The replayed performance line, parsed, for a test to edit. */
+function performanceLine(): PerformanceLine {
+	return JSON.parse(REPLAYED_PERFORMANCE_LINE);
+}
+
+/** The replayed line with one column of one row of one call replaced. */
+function withRowValue(
+	label: "owner_a_tax_2025" | "owner_a_30d",
+	index: number,
+	key: string,
+	value: unknown,
+): string {
+	const parsed = performanceLine();
+	const rows = parsed[label].map((row, at) =>
+		at === index ? { ...row, [key]: value } : row,
+	);
+	return JSON.stringify({ ...parsed, [label]: rows });
+}
+
+describe("assertPropertyPerformanceRentReceived", () => {
+	it("passes on the line the replayed stack printed", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			`${REPLAYED_PERFORMANCE_LINE}\n`,
+		);
+		expect(result.ok).toBe(true);
+		expect(result.message).toContain("reports rent received");
+		expect(result.message).toContain("2026-10-03/2026-11-02");
+	});
+
+	it("names the hard-coded body when production's rows come back", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			PRODUCTION_PERFORMANCE_LINE,
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("hard-coded body before 20261102163709");
+		expect(result.message).not.toContain("expected 2750.5");
+	});
+
+	it("does not call it the hard-coded body when the window is stated", () => {
+		const parsed = JSON.parse(PRODUCTION_PERFORMANCE_LINE);
+		const rows = parsed.owner_a_tax_2025.map(
+			(row: Record<string, unknown>) => ({
+				...row,
+				timeframe: "2025-01-01/2025-12-31",
+			}),
+		);
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...parsed, owner_a_tax_2025: rows }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("hard-coded body");
+		expect(result.message).toContain(
+			"owner_a_tax_2025[0].total_revenue: expected 2750.5, got 0",
+		);
+	});
+
+	it("does not call it the hard-coded body when one row's revenue is right", () => {
+		const parsed = JSON.parse(PRODUCTION_PERFORMANCE_LINE);
+		const rows = parsed.owner_a_tax_2025.map(
+			(row: Record<string, unknown>, at: number) =>
+				at === 1 ? { ...row, total_revenue: 750 } : row,
+		);
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...parsed, owner_a_tax_2025: rows }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("hard-coded body");
+		expect(result.message).toContain(
+			'owner_a_tax_2025[0].timeframe: expected "2025-01-01/2025-12-31", got "2025-01-01..2025-12-31"',
+		);
+	});
+
+	it("reports an empty tax-year call as missing rows, not as the old body", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...performanceLine(), owner_a_tax_2025: [] }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("hard-coded body");
+		expect(result.message).toContain(
+			"owner_a_tax_2025: expected 3 rows, got 0",
+		);
+	});
+
+	it("fails when the tax year is read as the last 30 days", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			withRowValue("owner_a_tax_2025", 0, "total_expenses", 106),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tax_2025[0].total_expenses: expected 200.25, got 106",
+		);
+	});
+
+	it("fails when an expense dated in the future counts in the trailing window", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			withRowValue("owner_a_30d", 0, "total_expenses", 106),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_30d[0].total_expenses: expected 40, got 106",
+		);
+	});
+
+	it("fails when a reversal is not netted", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			withRowValue("owner_a_30d", 0, "total_revenue", 420.25),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_30d[0].total_revenue: expected -79.75, got 420.25",
+		);
+	});
+
+	it("fails when another owner's lease reaches a property", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			withRowValue("owner_a_tax_2025", 1, "total_revenue", 972),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tax_2025[1].total_revenue: expected 750, got 972",
+		);
+	});
+
+	it("fails when net income is not revenue less expenses", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			withRowValue("owner_a_tax_2025", 0, "net_income", -200.25),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_tax_2025[0].net_income: expected 2550.25, got -200.25",
+		);
+	});
+
+	it("computes the trailing window from the day the fixture ran", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...performanceLine(), today: "2026-11-03" }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'owner_a_30d[0].timeframe: expected "2026-10-04/2026-11-03", got "2026-10-03/2026-11-02"',
+		);
+	});
+
+	it("crosses a month and a year boundary when it computes the window", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...performanceLine(), today: "2027-01-15" }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain('expected "2026-12-16/2027-01-15"');
+	});
+
+	it("states the trailing window it is given on every trailing row", () => {
+		const expected = expectedPropertyPerformance("2026-10-03/2026-11-02");
+		for (const row of [...expected.owner_a_30d, ...expected.owner_a_default]) {
+			expect(row.timeframe).toBe("2026-10-03/2026-11-02");
+		}
+	});
+
+	it.each([
+		["absent", undefined],
+		["not a string", 20261102],
+		["no calendar day", "2026-02-30"],
+		["not a date", "today"],
+	])(
+		"fails on a today that is %s, calling it a broken fixture",
+		(_what, today) => {
+			const result = assertPropertyPerformanceRentReceived(
+				JSON.stringify({ ...performanceLine(), today }),
+			);
+			expect(result.ok).toBe(false);
+			expect(result.message).toContain("printed no usable `today`");
+		},
+	);
+
+	it("fails when a call returns a row too few, naming the count", () => {
+		const parsed = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...parsed,
+				owner_a_30d: parsed.owner_a_30d.slice(0, 2),
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("owner_a_30d: expected 3 rows, got 2");
+	});
+
+	it("fails when a call is missing, naming it", () => {
+		const { owner_a_limit_1: _omitted, ...rest } = performanceLine();
+		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"owner_a_limit_1: absent or not an array of rows",
+		);
+	});
+
+	it("fails on a figure that arrives as a string", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			withRowValue("owner_a_tax_2025", 0, "total_revenue", "2750.50"),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'owner_a_tax_2025[0].total_revenue: expected 2750.5, got "2750.50"',
+		);
+	});
+
+	it("fails when a backwards range is accepted", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({ ...performanceLine(), backwards_range_sqlstate: null }),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'backwards_range_sqlstate: expected "22023", got null',
+		);
+	});
+
+	it("fails when a backwards range raises something else", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...performanceLine(),
+				backwards_range_sqlstate: "22008",
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			'backwards_range_sqlstate: expected "22023", got "22008"',
+		);
+	});
+
+	it("fails when the guard lets owner A read owner B's rows", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...performanceLine(),
+				guard_refuses_another_owner: false,
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"guard_refuses_another_owner: expected true, got false",
+		);
+	});
+
+	it("fails when the fixture did not report the guard at all", () => {
+		const { guard_refuses_another_owner: _omitted, ...rest } =
+			performanceLine();
+		const result = assertPropertyPerformanceRentReceived(JSON.stringify(rest));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"guard_refuses_another_owner: expected true, got undefined",
+		);
+	});
+
+	it("fails when anon can execute the function", () => {
+		const result = assertPropertyPerformanceRentReceived(
+			JSON.stringify({
+				...performanceLine(),
+				execute: { anon: true, authenticated: true, service_role: true },
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("execute.anon: expected false, got true");
+	});
+
+	it("fails on no output, calling it a broken fixture rather than a wrong row", () => {
+		const result = assertPropertyPerformanceRentReceived("\n  \n");
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("printed nothing");
+		expect(result.message).not.toContain("does not return the rows");
+	});
+
+	it.each([
+		["not JSON", "INSERT 0 1"],
+		["a JSON array", "[1, 2]"],
+		["a JSON scalar", "0"],
+	])("fails on output that is %s", (_what, raw) => {
+		const result = assertPropertyPerformanceRentReceived(raw);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("did not print a JSON object");
 	});

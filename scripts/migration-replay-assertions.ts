@@ -1,5 +1,5 @@
 /**
- * The migration-replay gate's four assertions, as pure functions.
+ * The migration-replay gate's assertions, as pure functions.
  *
  * They started as inline bash in `.github/workflows/migration-replay.yml`,
  * where nothing could exercise them -- and that cost a real defect on the day
@@ -404,7 +404,7 @@ function parseJsonObject(raw: string): Record<string, unknown> | null {
 function collectMismatches(
 	label: string,
 	actual: Record<string, unknown> | null,
-	expected: Readonly<Record<string, number | boolean>>,
+	expected: Readonly<Record<string, number | boolean | string>>,
 	mismatches: string[],
 ): void {
 	if (actual === null) {
@@ -568,6 +568,264 @@ export function assertBillingInsightsFromLedger(raw: string): AssertionResult {
 		ok: true,
 		message:
 			"get_billing_insights computes the ledger figures (owner A 1185.50 unpaid, 4 outstanding, 115.00 late fees, 3440.00 collected, 400.00 in credit, 4225.50 charged, of it 3500.00 rent, 135.00 late fees, 390.50 manual, -100.00 credit; the February period 960.50, 4, 110.00; as of March 31 145.50 unpaid and 4515.00 collected; as of January 31 360.00 unpaid and 3040.00 collected; owner B 720.00, 2, 20.00), each call's figures partition the ledger and chargedTotal by type, it refuses another owner, and is executable by authenticated and service_role only",
+	};
+}
+
+/** One row of `get_property_performance_analytics`, as the fixture prints it. */
+interface PropertyPerformanceRow {
+	readonly property_id: string;
+	readonly property_name: string;
+	readonly occupancy_rate: number;
+	readonly total_revenue: number;
+	readonly total_expenses: number;
+	readonly net_income: number;
+	readonly timeframe: string;
+}
+
+/** The calls the property-performance fixture makes, one key each. */
+type PropertyPerformanceCall =
+	| "owner_a_tax_2025"
+	| "owner_a_30d"
+	| "owner_a_default"
+	| "owner_a_beta_2025"
+	| "owner_a_limit_1"
+	| "owner_b_tax_2025";
+
+/** The tax-year window the fixture asks for, and the one the body must state. */
+const TAX_2025_REQUEST = "2025-01-01..2025-12-31";
+const TAX_2025_WINDOW = "2025-01-01/2025-12-31";
+
+/** `ymd` moved by `days` calendar days, or null when `ymd` is no calendar day. */
+function shiftYmd(ymd: string, days: number): string | null {
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+	if (!match) return null;
+	const [year, month, day] = [match[1], match[2], match[3]].map(Number);
+	if (year === undefined || month === undefined || day === undefined) {
+		return null;
+	}
+	const at = (offset: number) =>
+		new Date(Date.UTC(year, month - 1, day + offset))
+			.toISOString()
+			.slice(0, 10);
+	// 2026-02-30 would roll over to March: it is no calendar day.
+	return at(0) === ymd ? at(days) : null;
+}
+
+/**
+ * What `scripts/migration-replay-property-performance.sql` must print for each
+ * call, given the trailing window the day the gate runs implies. The fixture's
+ * header lists the portfolio; the arithmetic is here.
+ *
+ * owner_a_tax_2025, 2025-01-01..2025-12-31, by name:
+ *   Alpha Court: rent received 2750.50 = 1000 (Jan 1, the first day) + 1250.50
+ *     (Dec 31, the last) + 500 (Jun 15; its reversal is dated the day the gate
+ *     runs, after the year). Not the 1000 of Dec 31, 2024 or the 800 of Jan 1,
+ *     2026 (an exclusive edge or no window adds or drops one), not the 600
+ *     stamped with owner B's id, not the 444 on the soft-deleted lease.
+ *     Expenses 200.25 (Mar 10), not the soft-deleted 15 or 2026's 50. Net
+ *     2550.25. Occupancy 50.00: A1 occupied of A1 and A2 (A3 is inactive and
+ *     out of the denominator).
+ *   Beta House: 750.00 received, not the 222 stamped with owner A's id on
+ *     owner B's lease (reading the receipt's owner alone would count it).
+ *     Expenses 100.00 (Dec 31). Net 650.00. Occupancy 100.00.
+ *   Delta Lot: no units, so 0 everywhere.
+ *   Gamma Flats is inactive: no row, for all its receipts.
+ *   Every row's timeframe is 2025-01-01/2025-12-31: the body before this one
+ *     echoes the request, 2025-01-01..2025-12-31.
+ * owner_a_30d and owner_a_default, the trailing 30 days [T-30, T]:
+ *   Alpha Court: 300.00 (T-30) + 120.25 (T) - 500.00 (the reversal, posted T)
+ *     = -79.75: the money handed back in the window. Not 999 (T-31), not 77
+ *     (T+1, a receipt dated in the future), not the soft-deleted lease's 55.
+ *     Expenses 40.00 (T-3), not the 66 dated T+10 (the body before this one
+ *     had no upper bound and counted it). Net -119.75.
+ *   Beta House: 200.00 (T-5), expenses 25.00 (T-30, the first day). Net
+ *     175.00.
+ *   Delta Lot: 0.
+ * owner_a_beta_2025: p_property_id = Beta House: that one row.
+ * owner_a_limit_1: p_limit 1: Alpha Court's row alone.
+ * owner_b_tax_2025: Bravo Place, 700.00 received (not the 111 stamped with
+ *   owner A's id), 10.00 of expenses, 690.00 net, 100.00 occupied; none of
+ *   owner A's properties.
+ */
+export function expectedPropertyPerformance(
+	trailingWindow: string,
+): Readonly<
+	Record<PropertyPerformanceCall, readonly PropertyPerformanceRow[]>
+> {
+	const row = (
+		id: string,
+		name: string,
+		occupancy: number,
+		revenue: number,
+		expenses: number,
+		net: number,
+		timeframe: string,
+	): PropertyPerformanceRow => ({
+		property_id: id,
+		property_name: name,
+		occupancy_rate: occupancy,
+		total_revenue: revenue,
+		total_expenses: expenses,
+		net_income: net,
+		timeframe,
+	});
+	const ALPHA = "c1000000-0000-4000-8000-00000000a001";
+	const BETA = "c1000000-0000-4000-8000-00000000a002";
+	const DELTA = "c1000000-0000-4000-8000-00000000a003";
+	const BRAVO = "c1000000-0000-4000-8000-00000000b001";
+	const alpha2025 = row(
+		ALPHA,
+		"Alpha Court",
+		50,
+		2750.5,
+		200.25,
+		2550.25,
+		TAX_2025_WINDOW,
+	);
+	const beta2025 = row(BETA, "Beta House", 100, 750, 100, 650, TAX_2025_WINDOW);
+	const trailing = [
+		row(ALPHA, "Alpha Court", 50, -79.75, 40, -119.75, trailingWindow),
+		row(BETA, "Beta House", 100, 200, 25, 175, trailingWindow),
+		row(DELTA, "Delta Lot", 0, 0, 0, 0, trailingWindow),
+	];
+	return {
+		owner_a_tax_2025: [
+			alpha2025,
+			beta2025,
+			row(DELTA, "Delta Lot", 0, 0, 0, 0, TAX_2025_WINDOW),
+		],
+		owner_a_30d: trailing,
+		owner_a_default: trailing,
+		owner_a_beta_2025: [beta2025],
+		owner_a_limit_1: [alpha2025],
+		owner_b_tax_2025: [
+			row(BRAVO, "Bravo Place", 100, 700, 10, 690, TAX_2025_WINDOW),
+		],
+	};
+}
+
+/** The grants the migration keeps: the owner's session and the service role. */
+export const EXPECTED_PROPERTY_PERFORMANCE_EXECUTE: Readonly<
+	Record<"anon" | "authenticated" | "service_role", boolean>
+> = { anon: false, authenticated: true, service_role: true };
+
+/** What a backwards range must raise: invalid_parameter_value. */
+const BACKWARDS_RANGE_SQLSTATE = "22023";
+
+/**
+ * `get_property_performance_analytics` must report each property's rent
+ * received from the rent ledger, over the window asked for, and say which.
+ *
+ * From 20260528231201_repair_analytics_rpcs.sql until
+ * 20261102163709_property_performance_rent_received.sql it returned
+ * `0::numeric AS total_revenue`, so every property's revenue read $0 and its
+ * net income was its expenses negated, on the analytics page, the property
+ * page, the property export, the year-end report and its tax exports, while
+ * the ledger held what each property received; and it could not be asked for a
+ * tax year. No job could see it: none ran the function against a ledger. This
+ * checks every column of every row for the tax year, the trailing window and
+ * the default, the window's edges, reversals, the owner scoping, soft-deleted
+ * leases and properties, p_property_id, p_limit, a refused range, the guard
+ * and the grants, against the fixture's seeded portfolio.
+ */
+export function assertPropertyPerformanceRentReceived(
+	raw: string,
+): AssertionResult {
+	const line = raw.trim();
+	if (line === "") {
+		return {
+			ok: false,
+			message:
+				"the property-performance fixture printed nothing. psql ran scripts/migration-replay-property-performance.sql without producing its one JSON line, so this is a broken fixture or query (an owner it looks up was not seeded?), NOT a wrong figure.",
+		};
+	}
+	const printed = parseJsonObject(line);
+	if (printed === null) {
+		return {
+			ok: false,
+			message: `the property-performance fixture did not print a JSON object, read ${JSON.stringify(line)}. The fixture's final select or the psql flags (-t -A -q) changed, so nothing here can compare a figure.`,
+		};
+	}
+	const today = printed["today"];
+	const trailingStart = typeof today === "string" ? shiftYmd(today, -30) : null;
+	if (typeof today !== "string" || trailingStart === null) {
+		return {
+			ok: false,
+			message: `the property-performance fixture printed no usable \`today\` (read ${JSON.stringify(today)}), so the trailing window it implies cannot be computed. The fixture's first insert changed; fix it, not this check.`,
+		};
+	}
+
+	// THE DEFECT THIS CHECK EXISTS FOR. The body before this migration echoes
+	// p_timeframe and returns 0 as every property's revenue.
+	const taxRows = printed["owner_a_tax_2025"];
+	if (
+		Array.isArray(taxRows) &&
+		taxRows.length > 0 &&
+		taxRows.every((entry) => {
+			const rowObject = asJsonObject(entry);
+			return (
+				rowObject !== null &&
+				rowObject["total_revenue"] === 0 &&
+				rowObject["timeframe"] === TAX_2025_REQUEST
+			);
+		})
+	) {
+		return {
+			ok: false,
+			message: `get_property_performance_analytics returned 0 as every property's revenue and echoed the window it was asked for (${TAX_2025_REQUEST}) for an owner whose seeded ledger received 3500.50 in 2025: that is the hard-coded body before 20261102163709, not a ledger computation. The migration that computes rent received did not apply, or a later one replaced it with a copy of an older body.`,
+		};
+	}
+
+	const problems: string[] = [];
+	const expected = expectedPropertyPerformance(`${trailingStart}/${today}`);
+	for (const [label, rows] of Object.entries(expected)) {
+		const actual = printed[label];
+		if (!Array.isArray(actual)) {
+			problems.push(`${label}: absent or not an array of rows`);
+			continue;
+		}
+		if (actual.length !== rows.length) {
+			problems.push(
+				`${label}: expected ${rows.length} rows, got ${actual.length}: ${JSON.stringify(actual)}`,
+			);
+			continue;
+		}
+		for (const [index, row] of rows.entries()) {
+			collectMismatches(
+				`${label}[${index}]`,
+				asJsonObject(actual[index]),
+				{ ...row },
+				problems,
+			);
+		}
+	}
+	collectMismatches(
+		"execute",
+		asJsonObject(printed["execute"]),
+		EXPECTED_PROPERTY_PERFORMANCE_EXECUTE,
+		problems,
+	);
+	if (printed["backwards_range_sqlstate"] !== BACKWARDS_RANGE_SQLSTATE) {
+		problems.push(
+			`backwards_range_sqlstate: expected ${JSON.stringify(BACKWARDS_RANGE_SQLSTATE)}, got ${JSON.stringify(printed["backwards_range_sqlstate"])}. A range that starts after it ends (2025-12-31..2025-01-01) must be refused, not read as some other window.`,
+		);
+	}
+	const guard = printed["guard_refuses_another_owner"];
+	if (guard !== true) {
+		problems.push(
+			`guard_refuses_another_owner: expected true, got ${JSON.stringify(guard)}. Owner A asked for owner B's rows and was not refused with 'Access denied'.`,
+		);
+	}
+
+	if (problems.length > 0) {
+		return {
+			ok: false,
+			message: `get_property_performance_analytics does not return the rows the seeded portfolio implies. expectedPropertyPerformance in scripts/migration-replay-assertions.ts shows the arithmetic for each; fix the function (or, if the fixture changed, both files together), not this check.\n${problems.join("\n")}`,
+		};
+	}
+	return {
+		ok: true,
+		message: `get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; over ${trailingStart}/${today}: Alpha Court -79.75, Beta House 200.00; owner B 700.00), states each window, refuses a backwards range and another owner, and is executable by authenticated and service_role only`,
 	};
 }
 

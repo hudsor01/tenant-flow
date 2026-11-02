@@ -178,6 +178,43 @@ mutate "$REPLAY" '	if (actual === null) return;
 mutate "$REPLAY" '		cents(actual["creditTotal"]),
 ' '' \
                  'the by-type partition leaves out the credits'
+mutate "$REPLAY" 'if (line === "") {' 'if (false) {' \
+                 'empty property-performance output is not reported as a broken fixture'
+mutate "$REPLAY" 'if (printed === null) {' 'if (false) {' \
+                 'unparseable property-performance output is compared anyway'
+mutate "$REPLAY" 'if (typeof today !== "string" || trailingStart === null) {' 'if (false) {' \
+                 'an unusable today is compared anyway'
+mutate "$REPLAY" 'return at(0) === ymd ? at(days) : null;' 'return at(days);' \
+                 'a today that is no calendar day rolls over into a window'
+mutate "$REPLAY" 'shiftYmd(today, -30)' 'shiftYmd(today, -31)' \
+                 'the trailing window is expected to start a day early'
+mutate "$REPLAY" 'taxRows.length > 0 &&' '' \
+                 'an empty tax-year call is called the hard-coded body'
+mutate "$REPLAY" 'taxRows.every((entry) => {' 'taxRows.some((entry) => {' \
+                 'one zero row is called the hard-coded body'
+mutate "$REPLAY" 'rowObject["total_revenue"] === 0 &&' '' \
+                 'the old-body diagnosis ignores the revenue'
+mutate "$REPLAY" ' &&
+				rowObject["timeframe"] === TAX_2025_REQUEST' '' \
+                 'the old-body diagnosis ignores the echoed window'
+mutate "$REPLAY" 'if (!Array.isArray(actual)) {' 'if (false) {' \
+                 'a missing property-performance call is not reported'
+mutate "$REPLAY" 'if (actual.length !== rows.length) {' 'if (false) {' \
+                 'a call with the wrong number of rows is not reported'
+mutate "$REPLAY" '{ ...row },' '{},' \
+                 'no property-performance row is compared'
+mutate "$REPLAY" 'EXPECTED_PROPERTY_PERFORMANCE_EXECUTE,
+		problems,' '{},
+		problems,' \
+                 'the property-performance grants are not compared'
+mutate "$REPLAY" 'if (printed["backwards_range_sqlstate"] !== BACKWARDS_RANGE_SQLSTATE) {' 'if (false) {' \
+                 'an accepted backwards range is ignored'
+mutate "$REPLAY" 'if (guard !== true) {' 'if (false) {' \
+                 'the property-performance guard result is ignored'
+mutate "$REPLAY" 'if (guard !== true) {' 'if (guard === false) {' \
+                 'an unreported property-performance guard result passes'
+mutate "$REPLAY" 'if (problems.length > 0) {' 'if (false) {' \
+                 'property-performance mismatches are not reported'
 
 echo
 echo "=== platform-config assertions ==="
@@ -307,6 +344,9 @@ mutate "$REPLAY_CLI" 'process.exit(2);' 'process.exit(0);' \
 mutate "$REPLAY_CLI" 'finish(assertBillingInsightsFromLedger(readFileSync(0, "utf8")));' \
                      'finish({ ok: true, message: "billing-insights" });' \
                      'the replay CLI ignores the billing-insights input'
+mutate "$REPLAY_CLI" 'finish(assertPropertyPerformanceRentReceived(readFileSync(0, "utf8")));' \
+                     'finish({ ok: true, message: "property-performance" });' \
+                     'the replay CLI ignores the property-performance input'
 
 echo
 echo "=== restore check ==="
