@@ -267,7 +267,15 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // v2: financialQueries.balanceSheet returns BalanceSheetResult
 // ({ status, sheet }), not ApiResponse<BalanceSheetData>; a v1 entry read back
 // from IndexedDB is neither shape the page knows and rendered as a $0 sheet.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v2";
+// v3: the rent-ledger statements and rent received. financialQueries.
+// incomeStatement and .cashFlow return IncomeStatementResult / CashFlowResult
+// ({ status, statement | report }), not ApiResponse; reportAnalyticsQueries.
+// yearEnd YearEndResult and financialTaxQueries.taxDocuments
+// TaxDocumentsResult; propertyQueries.performance a PropertyPerformanceResult;
+// and analyticsQueries.propertyPerformancePageData and reportAnalyticsQueries.
+// properties name rent received where they held `monthlyRevenue`/`revenue`. A
+// v2 entry of any of them would render as an empty or $0 report.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v3";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {

@@ -2,10 +2,12 @@
  * The persisted query cache is discarded when a cached return shape changes
  * (CLAUDE.md, Data layer: "bump QUERY_CACHE_BUSTER when a cached return shape
  * changes"). financialQueries.balanceSheet moved from ApiResponse<BalanceSheet
- * Data> to BalanceSheetResult (66.2-39, part K); an entry persisted under v1
- * would be read back by the new page as neither shape and drawn as a $0 sheet
- * until the refetch landed. The buster is module-private, so this reads the
- * source.
+ * Data> to BalanceSheetResult (66.2-39, part K, v2); the income statement, the
+ * cash flow, the year-end report, the tax documents and the property
+ * performance queries moved to result unions and rent received (part L, v3).
+ * An entry persisted under an older buster would be read back by the new
+ * pages as neither shape and drawn as an empty or $0 report until the refetch
+ * landed. The buster is module-private, so this reads the source.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -17,10 +19,11 @@ const SOURCE = readFileSync(
 );
 
 describe("QUERY_CACHE_BUSTER", () => {
-	it("is past v1, whose balance-sheet entries have the old shape", () => {
+	it("is past v1 and v2, whose statement entries have the old shapes", () => {
 		const buster = /const QUERY_CACHE_BUSTER = "([^"]+)";/.exec(SOURCE)?.[1];
 		expect(buster).toBeDefined();
 		expect(buster).not.toBe("tenantflow-cache-v1");
-		expect(buster).toBe("tenantflow-cache-v2");
+		expect(buster).not.toBe("tenantflow-cache-v2");
+		expect(buster).toBe("tenantflow-cache-v3");
 	});
 });
