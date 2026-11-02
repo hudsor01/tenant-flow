@@ -8,7 +8,8 @@
 -- $12.50. After the merge the main session applies this file with MCP
 -- `apply_migration`, reads `list_migrations`, and renames the file to the
 -- version production assigned, in a follow-up PR. Until it is applied, the
--- balance sheet finds none of the four keys this adds and says its ledger
+-- balance sheet, the income statement, the cash flow, the year-end report and
+-- the tax documents find none of the keys this adds and say their ledger
 -- figures are unavailable rather than showing them as $0.
 --
 -- THE DEFECT. Since 20260528231201_repair_analytics_rpcs.sql dropped the
@@ -24,7 +25,13 @@
 -- `accounts_receivable` key this function never returned, so its receivables
 -- were always 0. This adds the figures it needs (collectedTotal,
 -- creditBalanceTotal, chargedTotal, openingTotal) and the as-of date it asks
--- for them by.
+-- for them by. The income statement and the cash flow presented scheduled
+-- rent (get_dashboard_stats' active rent times twelve, or once) as revenue
+-- and as rent received, whatever period was picked; the year-end report and
+-- the tax documents presented it as a past tax year's gross income. This adds
+-- what they need too: chargedTotal split by ledger type, the income
+-- statement's revenue lines, and they read collectedTotal as of two dates for
+-- the rent received between them.
 --
 -- STARTED FROM THE LIVE PRODUCTION BODY (pg_get_functiondef, 2026-11-02), not a
 -- repo copy. Unchanged: the signature and defaults, LANGUAGE plpgsql, SECURITY
@@ -37,9 +44,9 @@
 -- from the Bearer token, so for them the function is the authorization boundary.
 --
 -- WHAT EACH FIGURE MEANS. The Payment Summary's match its cards in
--- src/components/analytics/owner-payment-summary.tsx and the balance sheet's its
--- lines in financialQueries.balanceSheet (src/hooks/api/query-keys/
--- financial-keys.ts). All use the ledger's own definitions, from
+-- src/components/analytics/owner-payment-summary.tsx, and the statements' their
+-- lines in financialQueries.balanceSheet, .incomeStatement and .cashFlow
+-- (src/hooks/api/query-keys/financial-keys.ts). All use the ledger's own definitions, from
 -- get_lease_ledger_summary (20260726020701) and the ledger table
 -- (src/components/ledger/ledger-tab.tsx). Below, "the ledger" is the ledger as
 -- of the end date (THE DATES): with no dates, all of it.
@@ -92,6 +99,22 @@
 --     opening, net of their reversals): money owed before the ledger began,
 --     which the balance sheet carries in owner capital, not in income.
 --
+--   rentChargedTotal, lateFeeChargedTotal, manualChargedTotal and creditTotal:
+--     the rest of chargedTotal, split by ledger type (rent, late_fee,
+--     manual_charge, credit), each at its signed amount and net of its
+--     reversals (reverse_charge copies the type, so a reversal nets inside its
+--     own type). With openingTotal they partition chargedTotal exactly:
+--         rentChargedTotal + lateFeeChargedTotal + manualChargedTotal
+--           + creditTotal + openingTotal = chargedTotal
+--     creditTotal is zero or negative: a credit lowers what was charged. These
+--     are the income statement's revenue lines. As of two dates, the difference
+--     is what was charged between them, by ledger entry date: the same rows the
+--     balance sheet's Year-to-Date Income and Retained Earnings difference over
+--     the same dates, so the statements tie. lateFeeChargedTotal is not
+--     lateFeeTotal: lateFeeTotal counts the late fees that stand, this sums the
+--     rows, so the two part when a reversal is itself reversed (the ledger
+--     balance, and so chargedTotal, counts the fee as owed again).
+--
 -- Every figure reads only the owner's own rows, scoped by owner_user_id on the
 -- lease, the charge and the receipt as get_lease_ledger_summary scopes its CTEs,
 -- and skips soft-deleted leases (lease_status = 'inactive').
@@ -100,7 +123,13 @@
 -- the calendar day, inclusive. The two Payment Summary callers,
 -- analyticsQueries.ownerPaymentSummary() and the export leaf, pass neither, so
 -- the cards and the file cover the whole ledger as it stands. The balance sheet
--- passes end_date_param alone.
+-- passes end_date_param alone, as of its date and of the end of the year
+-- before. The income statement and the cash flow pass it alone too, as of the
+-- period's end and of the day before its start, and take the difference: the
+-- rows dated in the period. The year-end report and the tax documents (their
+-- pages, and supabase/functions/_shared/tax-year-reports.ts) do the same for
+-- December 31 of the tax year and of the year before. No caller passes
+-- start_date_param.
 --
 --   end_date_param is an as-of date: every figure reads the ledger as it stood
 --   at the end of that day. A charge is on it when its ledger entry date,
@@ -120,7 +149,8 @@
 --   allocated to those charges by the end date. Per lease, unpaidTotal is what
 --   was still owed on them, floored at 0, and creditBalanceTotal what was
 --   overpaid on them; collectedTotal is what was received against them,
---   chargedTotal and openingTotal what they amount to, and unpaidCount and
+--   chargedTotal, openingTotal and the four by-type figures what they amount
+--   to, and unpaidCount and
 --   lateFeeTotal the outstanding invoices and the late fees among them. No
 --   reversal row counts in a period, and no reversed charge, because the two
 --   halves of a pair can fall on different sides of the start date: a charge
@@ -132,8 +162,9 @@
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
 -- to an empty database, seeds a ledger (scripts/migration-replay-billing-insights.sql)
--- and asserts the exact figures, the as-of date, the period, the partition, the
--- owner scoping and the guard (assertBillingInsightsFromLedger in
+-- and asserts the exact figures, the as-of date, the period, both partitions
+-- (the balance sheet's, and chargedTotal by type), the owner scoping and the
+-- guard (assertBillingInsightsFromLedger in
 -- scripts/migration-replay-assertions.ts).
 -- =============================================================================
 
@@ -149,6 +180,8 @@ DECLARE
   v_unpaid_total numeric; v_unpaid_count integer; v_late_fee_total numeric;
   v_collected_total numeric; v_credit_balance_total numeric;
   v_charged_total numeric; v_opening_total numeric;
+  v_rent_charged numeric; v_late_fee_charged numeric;
+  v_manual_charged numeric; v_credit_total numeric;
   v_start date := start_date_param::date;
   v_end date := end_date_param::date;
 BEGIN
@@ -224,9 +257,14 @@ BEGIN
     (SELECT coalesce(sum(p.received), 0) FROM positions p),
     (SELECT coalesce(sum(greatest(p.received - p.charged, 0)), 0) FROM positions p),
     (SELECT coalesce(sum(p.charged), 0) FROM positions p),
-    (SELECT coalesce(sum(k.amount), 0) FROM charged_rows k WHERE k.type = 'opening')
+    (SELECT coalesce(sum(k.amount), 0) FROM charged_rows k WHERE k.type = 'opening'),
+    (SELECT coalesce(sum(k.amount), 0) FROM charged_rows k WHERE k.type = 'rent'),
+    (SELECT coalesce(sum(k.amount), 0) FROM charged_rows k WHERE k.type = 'late_fee'),
+    (SELECT coalesce(sum(k.amount), 0) FROM charged_rows k WHERE k.type = 'manual_charge'),
+    (SELECT coalesce(sum(k.amount), 0) FROM charged_rows k WHERE k.type = 'credit')
   INTO v_unpaid_total, v_unpaid_count, v_late_fee_total,
-       v_collected_total, v_credit_balance_total, v_charged_total, v_opening_total;
+       v_collected_total, v_credit_balance_total, v_charged_total, v_opening_total,
+       v_rent_charged, v_late_fee_charged, v_manual_charged, v_credit_total;
 
   v_result := jsonb_build_object(
     'totalRevenue', v_total_revenue, 'mrr', v_mrr,
@@ -236,14 +274,16 @@ BEGIN
     'unpaidTotal', v_unpaid_total, 'unpaidCount', v_unpaid_count,
     'lateFeeTotal', v_late_fee_total, 'tenantCount', v_tenant_count,
     'collectedTotal', v_collected_total, 'creditBalanceTotal', v_credit_balance_total,
-    'chargedTotal', v_charged_total, 'openingTotal', v_opening_total
+    'chargedTotal', v_charged_total, 'openingTotal', v_opening_total,
+    'rentChargedTotal', v_rent_charged, 'lateFeeChargedTotal', v_late_fee_charged,
+    'manualChargedTotal', v_manual_charged, 'creditTotal', v_credit_total
   );
   RETURN v_result;
 END;
 $function$;
 
 comment on function public.get_billing_insights(uuid, timestamp without time zone, timestamp without time zone) is
-  'Owner billing insights for the analytics Payment Summary, its export and the balance sheet. totalRevenue/mrr (scheduled rent of active leases), churnRate and tenantCount are point-in-time. From the rent ledger, in dollars, skipping inactive leases: unpaidTotal (sum of per-lease balances floored at 0), unpaidCount (rent/late_fee/manual_charge charges not reversed and not paid in full), lateFeeTotal (late_fee charges not reversed), collectedTotal (receipts, net of reversals), creditBalanceTotal (per-lease receipts in excess of charges), chargedTotal (charges net of reversals and credits; collectedTotal + unpaidTotal - creditBalanceTotal = chargedTotal) and openingTotal (opening balances). end_date_param is an as-of date (rows dated on or before it); start_date_param restricts the figures to the standing charges dated from it. Guards owner_id_param against auth.uid(); service_role (auth.uid() NULL) passes the guard.';
+  'Owner billing insights for the analytics Payment Summary, its export, the balance sheet, the income statement, the cash flow, the year-end report and the tax documents. totalRevenue/mrr (scheduled rent of active leases), churnRate and tenantCount are point-in-time. From the rent ledger, in dollars, skipping inactive leases: unpaidTotal (sum of per-lease balances floored at 0), unpaidCount (rent/late_fee/manual_charge charges not reversed and not paid in full), lateFeeTotal (late_fee charges not reversed), collectedTotal (receipts, net of reversals), creditBalanceTotal (per-lease receipts in excess of charges), chargedTotal (charges net of reversals and credits; collectedTotal + unpaidTotal - creditBalanceTotal = chargedTotal), openingTotal (opening balances) and rentChargedTotal/lateFeeChargedTotal/manualChargedTotal/creditTotal (the rest of chargedTotal by ledger type, signed, net of reversals; with openingTotal they sum to chargedTotal). end_date_param is an as-of date (rows dated on or before it); start_date_param restricts the figures to the standing charges dated from it. Guards owner_id_param against auth.uid(); service_role (auth.uid() NULL) passes the guard.';
 
 revoke all on function public.get_billing_insights(uuid, timestamp without time zone, timestamp without time zone) from public, anon, authenticated;
 grant execute on function public.get_billing_insights(uuid, timestamp without time zone, timestamp without time zone) to authenticated, service_role;

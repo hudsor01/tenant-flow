@@ -165,6 +165,19 @@ mutate "$REPLAY" 'return typeof value === "number" ? Math.round(value * 100) : n
 mutate "$REPLAY" '	if (actual === null) return;
 	const collected' '	const collected' \
                  'the partition check reads a call that is missing'
+mutate "$REPLAY" 'if (sum !== charged) {' 'if (false) {' \
+                 'the by-type partition check always passes'
+mutate "$REPLAY" '		collectTypeSplitBreaks(label, actual, mismatches);' '' \
+                 'no call is checked for the by-type partition'
+mutate "$REPLAY" 'if (charged === null || parts.some((part) => part === null)) return;' \
+                 'if (charged === null) return;' \
+                 'a missing by-type figure is also reported as a broken partition'
+mutate "$REPLAY" '	if (actual === null) return;
+	const parts = [' '	const parts = [' \
+                 'the by-type partition check reads a call that is missing'
+mutate "$REPLAY" '		cents(actual["creditTotal"]),
+' '' \
+                 'the by-type partition leaves out the credits'
 
 echo
 echo "=== platform-config assertions ==="

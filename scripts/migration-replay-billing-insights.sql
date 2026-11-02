@@ -7,7 +7,9 @@
 --     -v ON_ERROR_STOP=1 < scripts/migration-replay-billing-insights.sql
 --
 -- It seeds a rent ledger for e2e-owner-a and e2e-owner-b, calls the function
--- the way the app does (as the authenticated owner), prints ONE line of JSON,
+-- the way the app does (as the authenticated owner: the Payment Summary with no
+-- dates, the balance sheet as of a date, the income statement and the cash
+-- flow as of a period's end and of the day before it), prints ONE line of JSON,
 -- and rolls everything back. scripts/migration-replay-assertions.ts
 -- (assertBillingInsightsFromLedger) holds the expected figures and the
 -- arithmetic behind each one; keep the two in step.
@@ -27,7 +29,7 @@
 --                      (Mar 15), and a 35.00 late fee posted with no
 --                      period_start on Feb 15 (so dated by created_at) then
 --                      REVERSED: its reversal is dated the day the gate runs,
---                      after both dates the gate asks as of (Feb 28, Mar 31).
+--                      after every date the gate asks as of (Jan 31, Feb 28, Mar 31).
 --                      Also a 75.00 receipt against the February 6 late fee,
 --                      received Mar 31, then REVERSED with reverse_receipt
 --                      (the reversal is dated the day the gate runs).
@@ -38,7 +40,12 @@
 --                      REVERSED by a direct insert: reverse_charge refuses a
 --                      reversal as its target (20260726020701, F4), but the
 --                      insert policy still admits the row, and the ledger
---                      balance counts the 80 as owed again.
+--                      balance counts the 80 as owed again. The same again for
+--                      a 20.00 late fee (Jan 8): its reversal, and the
+--                      reversal of that, by direct insert. It is the case that
+--                      parts lateFeeChargedTotal (the rows, +20 - 20 + 20)
+--                      from lateFeeTotal (the late fees that stand: this one
+--                      was reversed).
 --   lease A3, INACTIVE rent Jan 900 unpaid, late fee 30.00 unpaid.
 --   lease B1 (owner B) rent Jan 700 unpaid, late fee 20.00 unpaid.
 --   On lease A1, two rows stamped with owner B's id: a 999.00 manual charge and
@@ -115,11 +122,14 @@ values
   ('b5000000-0000-4000-8000-0000000b1002', 'b4000000-0000-4000-8000-00000000b001', :'owner_b', 'late_fee',        20.00, '2026-01-06', '2026-01-06', 'Late fee'),
   ('b5000000-0000-4000-8000-0000000b9001', 'b4000000-0000-4000-8000-00000000a001', :'owner_b', 'manual_charge',  999.00, '2026-02-10', '2026-02-10', 'Foreign row');
 
--- The double reversal on A2, as direct inserts would write it.
+-- The double reversals on A2, as direct inserts would write them.
 insert into public.rent_charges (id, lease_id, owner_user_id, type, amount, period_start, due_date, description, reverses_id)
 values
   ('b5000000-0000-4000-8000-0000000a2004', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'manual_charge',  -80.00, '2026-01-25', '2026-01-25', 'Reversal of Gutter cleaning', 'b5000000-0000-4000-8000-0000000a2003'),
-  ('b5000000-0000-4000-8000-0000000a2005', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'manual_charge',   80.00, '2026-01-25', '2026-01-25', 'Reversal of Reversal of Gutter cleaning', 'b5000000-0000-4000-8000-0000000a2004');
+  ('b5000000-0000-4000-8000-0000000a2005', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'manual_charge',   80.00, '2026-01-25', '2026-01-25', 'Reversal of Reversal of Gutter cleaning', 'b5000000-0000-4000-8000-0000000a2004'),
+  ('b5000000-0000-4000-8000-0000000a2006', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'late_fee',        20.00, '2026-01-08', '2026-01-08', 'Late fee', null),
+  ('b5000000-0000-4000-8000-0000000a2007', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'late_fee',       -20.00, '2026-01-08', '2026-01-08', 'Reversal of Late fee', 'b5000000-0000-4000-8000-0000000a2006'),
+  ('b5000000-0000-4000-8000-0000000a2008', 'b4000000-0000-4000-8000-00000000a002', :'owner_a', 'late_fee',        20.00, '2026-01-08', '2026-01-08', 'Reversal of Reversal of Late fee', 'b5000000-0000-4000-8000-0000000a2007');
 
 -- No period_start, as a direct API insert may leave it: its ledger date is its
 -- created_at, set here because the column defaults to now().
@@ -162,7 +172,11 @@ insert into replay_billing values
                                                    '2026-02-01', '2026-02-28')),
   -- As the balance sheet asks: the end date alone, an as-of date.
   ('owner_a_as_of_march', public.get_billing_insights(current_setting('replay.owner_a')::uuid,
-                                                      end_date_param => '2026-03-31'));
+                                                      end_date_param => '2026-03-31')),
+  -- As the income statement and the cash flow ask for February 1 to March 31:
+  -- as of its end (above) and as of the day before its start.
+  ('owner_a_as_of_january', public.get_billing_insights(current_setting('replay.owner_a')::uuid,
+                                                        end_date_param => '2026-01-31'));
 
 -- The guard, kept as written: owner A asking for owner B's figures is refused.
 do $$

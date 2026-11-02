@@ -176,6 +176,10 @@ interface BillingInsightsFigures {
 	readonly creditBalanceTotal: number;
 	readonly chargedTotal: number;
 	readonly openingTotal: number;
+	readonly rentChargedTotal: number;
+	readonly lateFeeChargedTotal: number;
+	readonly manualChargedTotal: number;
+	readonly creditTotal: number;
 }
 
 /** The calls the fixture makes, one key each in its JSON line. */
@@ -183,6 +187,7 @@ type BillingInsightsCall =
 	| "owner_a"
 	| "owner_a_february"
 	| "owner_a_as_of_march"
+	| "owner_a_as_of_january"
 	| "owner_b";
 
 /**
@@ -196,29 +201,38 @@ type BillingInsightsCall =
  *     + 1000 + 60 + 1000 + 75 + 250.50 + 1000 + 50 + 35 - 100 credit, then the
  *     three reversals, -1000, -50 and -35) less 1400.00 received (1000 + 400 +
  *     1000 + 75, then the reversals of the March receipt, -1000, and of the
- *     late-fee receipt, -75). Lease A2's is 1620 (1500 + 40, the 200 opening
- *     and its reversal, and the 80 manual charge, its reversal and the reversal
- *     of that reversal, +80 - 80 + 80) - 2040 = -420, floored to 0: summing it
- *     would give 765.50. The two rows on A1 that carry owner B's id count for
- *     nobody (they would add 999 and take off 600).
+ *     late-fee receipt, -75). Lease A2's is 1640 (1500 + 40, the 200 opening
+ *     and its reversal, the 80 manual charge, its reversal and the reversal
+ *     of that reversal, +80 - 80 + 80, and the 20 late fee the same way,
+ *     +20 - 20 + 20) - 2040 = -400, floored to 0: summing it would give
+ *     785.50. The two rows on A1 that carry owner B's id count for nobody
+ *     (they would add 999 and take off 600).
  *   unpaidCount 4: on A1 the January manual charge, February's rent (400 of
  *     1000 paid), the February 6 late fee (its 75 receipt was reversed) and the
  *     February 28 manual charge. Not January's rent (paid), not the three
  *     reversed charges, not the opening balances or the credit (no paid state),
- *     nothing on A2 (paid, overpaid; its 80 manual charge has been reversed,
- *     so it is no invoice, though its balance counts the 80 the double reversal
- *     restored) and nothing on A3 (which would add 2).
+ *     nothing on A2 (paid, overpaid; its 80 manual charge and its 20 late fee
+ *     have been reversed, so they are no invoices, though its balance counts
+ *     the 100 the double reversals restored) and nothing on A3 (which would
+ *     add 2).
  *   lateFeeTotal 115.00: 75 on A1 plus A2's 40, which was paid and still counts.
  *     Not the reversed 50 and 35, nor their reversal rows (counting the
- *     reversal rows instead gives 30), and not A3's 30.
+ *     reversal rows instead gives 30), not A2's reversed 20, and not A3's 30.
  *   collectedTotal 3440.00: A1's 1400 and A2's 2040, every receipt and every
  *     reversal at its sign.
- *   creditBalanceTotal 420.00: A2's 2040 received less 1620 charged. A1 owes,
+ *   creditBalanceTotal 400.00: A2's 2040 received less 1640 charged. A1 owes,
  *     so it adds nothing here. Summing only the charges that stand (no
- *     reversal, not reversed) would drop the restored 80 and give 500.
- *   chargedTotal 4205.50: A1's 2585.50 and A2's 1620.
+ *     reversal, not reversed) would drop the restored 80 and 20 and give 500.
+ *   chargedTotal 4225.50: A1's 2585.50 and A2's 1640.
  *   openingTotal 300.00: A1's 300, and A2's 200 with its reversal, -200.
- *   The partition: 3440 + 1185.50 - 420 = 4205.50.
+ *   The partition: 3440 + 1185.50 - 400 = 4225.50.
+ *   By type, the rest of chargedTotal: rentChargedTotal 3500.00 (A1's three
+ *     1000s less the reversed March one, and A2's 1500), lateFeeChargedTotal
+ *     135.00 (A1's 75 + 50 - 50 + 35 - 35, and A2's 40 + 20 - 20 + 20: here it
+ *     parts from lateFeeTotal, which is 20 less, the reversed 20 not standing),
+ *     manualChargedTotal 390.50 (A1's 60 + 250.50, A2's 80 - 80 + 80),
+ *     creditTotal -100.00. With openingTotal they sum to chargedTotal:
+ *     3500 + 135 + 390.50 - 100 + 300 = 4225.50.
  * owner_a_february, the period 2026-02-01 to 2026-02-28, as of February 28:
  *   the period's charges that stand that day are February's rent (on the start
  *   date), the February 6 late fee, the manual charge (on the end date) and the
@@ -229,19 +243,38 @@ type BillingInsightsCall =
  *   collected, no credit balance and no opening balance. A2 has no charge in
  *   the period, so its January overpayment is not netted in. Reading today's
  *   reversals instead of the ones on the ledger by February 28 would drop the
- *   35 (925.50, 3, 75.00).
+ *   35 (925.50, 3, 75.00). By type: 1000 rent, 110 of late fees, 250.50 of
+ *   manual charges, no credit.
  * owner_a_as_of_march, the end date 2026-03-31 alone, an as-of date:
  *   the ledger as it stood at the end of March 31. A1 has every charge except
  *   the 35.00 late fee's reversal (dated the day the gate runs): 2620.50
  *   charged. It has every receipt up to and including March 31's 75 against
  *   the late fee, but neither reversal (both dated the day the gate runs):
  *   1000 + 400 + 1000 + 75 = 2475.00 received. So A1 owed 145.50; A2 is
- *   unchanged (-420). 145.50 unpaid, 4515.00 collected, 420.00 in credit,
- *   4240.50 charged, 300.00 opening; 4515 + 145.50 - 420 = 4240.50.
+ *   unchanged (-400). 145.50 unpaid, 4515.00 collected, 400.00 in credit,
+ *   4260.50 charged, 300.00 opening; 4515 + 145.50 - 400 = 4260.50.
  *   Outstanding that day: the January manual charge, February's rent, the
  *   February 28 manual charge and the 35.00 late fee, 4 (the February 6 late
  *   fee was paid; the March rent and late fee were already reversed, their
- *   reversals dated March 1 and 6). Late fees 75 + 35 + 40 = 150.00.
+ *   reversals dated March 1 and 6). Late fees 75 + 35 + 40 = 150.00. By type:
+ *   3500 rent, 170 of late fees (A1's 75 + 50 - 50 + 35, the 35 still
+ *   standing, and A2's 60), 390.50 manual, -100 credit:
+ *   3500 + 170 + 390.50 - 100 + 300 = 4260.50.
+ * owner_a_as_of_january, the end date 2026-01-31 alone, as the income
+ *   statement and the cash flow ask for the day before February 1:
+ *   A1 has its opening 300, January's rent and the 60 manual charge (1360
+ *   charged) and January's 1000 received: it owes 360. A2 has all of its
+ *   charges (every one is dated in January: 1640) and all of its receipts
+ *   (2040): 400 in credit. 360.00 unpaid, 1 outstanding (the manual charge),
+ *   40.00 of late fees (A2's), 3040.00 collected, 400.00 in credit, 3000.00
+ *   charged, 300.00 opening; 3040 + 360 - 400 = 3000. By type: 2500 rent, 60
+ *   of late fees (A2's 40, and its 20 restored), 140 manual (60, and A2's
+ *   80), no credit: 2500 + 60 + 140 + 300 = 3000.
+ *   So February 1 to March 31, the difference of the two as-of calls, is
+ *   1000 rent, 110 of late fees, 250.50 manual and -100 of credit charged
+ *   (1260.50 of revenue, every line the income statement shows), and
+ *   4515 - 3040 = 1475.00 received (400 on February 5, 1000 on March 2 and 75
+ *   on March 31: the cash flow's inflow).
  * owner_b: B1's 700 rent and 20 late fee, both unpaid, nothing received; none
  *   of owner A's rows, and not the two rows owner B's id was stamped on in
  *   owner A's lease.
@@ -263,9 +296,13 @@ export const EXPECTED_BILLING_INSIGHTS: Readonly<
 		unpaidCount: 4,
 		lateFeeTotal: 115,
 		collectedTotal: 3440,
-		creditBalanceTotal: 420,
-		chargedTotal: 4205.5,
+		creditBalanceTotal: 400,
+		chargedTotal: 4225.5,
 		openingTotal: 300,
+		rentChargedTotal: 3500,
+		lateFeeChargedTotal: 135,
+		manualChargedTotal: 390.5,
+		creditTotal: -100,
 	},
 	owner_a_february: {
 		totalRevenue: 30000,
@@ -279,6 +316,10 @@ export const EXPECTED_BILLING_INSIGHTS: Readonly<
 		creditBalanceTotal: 0,
 		chargedTotal: 1360.5,
 		openingTotal: 0,
+		rentChargedTotal: 1000,
+		lateFeeChargedTotal: 110,
+		manualChargedTotal: 250.5,
+		creditTotal: 0,
 	},
 	owner_a_as_of_march: {
 		totalRevenue: 30000,
@@ -289,9 +330,30 @@ export const EXPECTED_BILLING_INSIGHTS: Readonly<
 		unpaidCount: 4,
 		lateFeeTotal: 150,
 		collectedTotal: 4515,
-		creditBalanceTotal: 420,
-		chargedTotal: 4240.5,
+		creditBalanceTotal: 400,
+		chargedTotal: 4260.5,
 		openingTotal: 300,
+		rentChargedTotal: 3500,
+		lateFeeChargedTotal: 170,
+		manualChargedTotal: 390.5,
+		creditTotal: -100,
+	},
+	owner_a_as_of_january: {
+		totalRevenue: 30000,
+		mrr: 2500,
+		churnRate: 0,
+		tenantCount: 2,
+		unpaidTotal: 360,
+		unpaidCount: 1,
+		lateFeeTotal: 40,
+		collectedTotal: 3040,
+		creditBalanceTotal: 400,
+		chargedTotal: 3000,
+		openingTotal: 300,
+		rentChargedTotal: 2500,
+		lateFeeChargedTotal: 60,
+		manualChargedTotal: 140,
+		creditTotal: 0,
 	},
 	owner_b: {
 		totalRevenue: 8400,
@@ -305,6 +367,10 @@ export const EXPECTED_BILLING_INSIGHTS: Readonly<
 		creditBalanceTotal: 0,
 		chargedTotal: 720,
 		openingTotal: 0,
+		rentChargedTotal: 700,
+		lateFeeChargedTotal: 20,
+		manualChargedTotal: 0,
+		creditTotal: 0,
 	},
 };
 
@@ -393,8 +459,41 @@ function collectPartitionBreaks(
 }
 
 /**
- * `get_billing_insights` must compute the Payment Summary and the balance
- * sheet's ledger figures from the rent ledger.
+ * Push a line when a call's by-type figures do not partition chargedTotal:
+ * rentChargedTotal + lateFeeChargedTotal + manualChargedTotal + creditTotal +
+ * openingTotal must equal chargedTotal. The income statement's revenue lines
+ * are those four figures as of two dates, differenced, and the balance sheet's
+ * Year-to-Date Income and Retained Earnings are chargedTotal less openingTotal
+ * differenced over the same dates, so a break here is an income statement that
+ * does not tie to the balance sheet. In whole cents, as above; an absent figure
+ * is left to collectMismatches.
+ */
+function collectTypeSplitBreaks(
+	label: string,
+	actual: Record<string, unknown> | null,
+	mismatches: string[],
+): void {
+	if (actual === null) return;
+	const parts = [
+		cents(actual["rentChargedTotal"]),
+		cents(actual["lateFeeChargedTotal"]),
+		cents(actual["manualChargedTotal"]),
+		cents(actual["creditTotal"]),
+		cents(actual["openingTotal"]),
+	];
+	const charged = cents(actual["chargedTotal"]);
+	if (charged === null || parts.some((part) => part === null)) return;
+	const sum = parts.reduce<number>((total, part) => total + (part ?? 0), 0);
+	if (sum !== charged) {
+		mismatches.push(
+			`${label}: rentChargedTotal + lateFeeChargedTotal + manualChargedTotal + creditTotal + openingTotal is ${sum / 100} but chargedTotal is ${charged / 100}. The by-type figures must partition chargedTotal, or the income statement built on them does not tie to the balance sheet.`,
+		);
+	}
+}
+
+/**
+ * `get_billing_insights` must compute the Payment Summary and the statements'
+ * ledger figures from the rent ledger.
  *
  * From 20260528231201_repair_analytics_rpcs.sql until
  * 20261102055449_billing_insights_from_rent_ledger.sql it returned
@@ -403,8 +502,9 @@ function collectPartitionBreaks(
  * real figures, and nothing in CI could see it: no job ran the function against
  * a ledger. `rls-security` runs against production and asserts only who may
  * call it. This checks the figures, the as-of date, the period, the partition
- * the balance sheet balances on, the owner scoping, the guard and the grants,
- * against the fixture's seeded ledger, in the stack this workflow replayed.
+ * the balance sheet balances on, the by-type split the income statement ties
+ * to it with, the owner scoping, the guard and the grants, against the
+ * fixture's seeded ledger, in the stack this workflow replayed.
  */
 export function assertBillingInsightsFromLedger(raw: string): AssertionResult {
 	const trimmed = raw.trim();
@@ -444,6 +544,7 @@ export function assertBillingInsightsFromLedger(raw: string): AssertionResult {
 		const actual = asJsonObject(parsed[label]);
 		collectMismatches(label, actual, { ...expected }, mismatches);
 		collectPartitionBreaks(label, actual, mismatches);
+		collectTypeSplitBreaks(label, actual, mismatches);
 	}
 	collectMismatches(
 		"execute",
@@ -466,7 +567,7 @@ export function assertBillingInsightsFromLedger(raw: string): AssertionResult {
 	return {
 		ok: true,
 		message:
-			"get_billing_insights computes the ledger figures (owner A 1185.50 unpaid, 4 outstanding, 115.00 late fees, 3440.00 collected, 420.00 in credit, 4205.50 charged; the February period 960.50, 4, 110.00; as of March 31 145.50 unpaid and 4515.00 collected; owner B 720.00, 2, 20.00), each call's figures partition the ledger, it refuses another owner, and is executable by authenticated and service_role only",
+			"get_billing_insights computes the ledger figures (owner A 1185.50 unpaid, 4 outstanding, 115.00 late fees, 3440.00 collected, 400.00 in credit, 4225.50 charged, of it 3500.00 rent, 135.00 late fees, 390.50 manual, -100.00 credit; the February period 960.50, 4, 110.00; as of March 31 145.50 unpaid and 4515.00 collected; as of January 31 360.00 unpaid and 3040.00 collected; owner B 720.00, 2, 20.00), each call's figures partition the ledger and chargedTotal by type, it refuses another owner, and is executable by authenticated and service_role only",
 	};
 }
 
