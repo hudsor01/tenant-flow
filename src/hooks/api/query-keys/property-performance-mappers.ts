@@ -8,6 +8,13 @@
  * '..'), so a row whose timeframe is not a stated window, or not the window
  * asked for, is the old body's: its revenue is no figure, and these mappers say
  * so instead of passing its 0 on as money.
+ *
+ * For an explicit range the function also lists a property the owner has
+ * deleted since, when it received rent or spent in the range, so a tax year's
+ * table ties to its summary; its row does not say so (the RETURNS TABLE is
+ * unchanged), so a caller that lists a range's rows reads the owner's deleted
+ * property ids (fetchDeletedPropertyIds) and the mapper names each such
+ * property through the report label map (propertyReportName).
  */
 
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -15,6 +22,7 @@ import { parseStatedWindow } from "#lib/stated-window";
 import { createClient } from "#lib/supabase/client";
 import type { DateWindow } from "#types/analytics";
 import type { Database } from "#types/supabase";
+import { propertyReportName } from "../../../../supabase/functions/_shared/tax-year-reports";
 
 type PerformanceRow =
 	Database["public"]["Functions"]["get_property_performance_analytics"]["Returns"][number];
@@ -52,6 +60,34 @@ export async function fetchEveryPropertyPerformanceRow(args: {
 	}
 }
 
+/**
+ * The owner's deleted (status 'inactive') property ids, page by page, under
+ * RLS and owner-scoped: the properties a range's rows may hold that the page
+ * must name as deleted. Its first error ends the read.
+ */
+export async function fetchDeletedPropertyIds(
+	ownerId: string,
+): Promise<
+	| { data: ReadonlySet<string>; error: null }
+	| { data: null; error: PostgrestError }
+> {
+	const supabase = createClient();
+	const ids = new Set<string>();
+	for (let from = 0; ; from += PAGE_SIZE) {
+		const { data, error } = await supabase
+			.from("properties")
+			.select("id")
+			.eq("owner_user_id", ownerId)
+			.eq("status", "inactive")
+			.order("id")
+			.range(from, from + PAGE_SIZE - 1);
+		if (error) return { data: null, error };
+		const page = data ?? [];
+		for (const row of page) ids.add(row.id);
+		if (page.length < PAGE_SIZE) return { data: ids, error: null };
+	}
+}
+
 /** p_timeframe for an inclusive calendar range, both days included. */
 export function propertyPerformanceRange(
 	start_date: string,
@@ -68,7 +104,10 @@ export function taxYearRange(year: number): string {
 /** One property's figures over the window, in dollars. */
 export interface PropertyRentReceived {
 	readonly propertyId: string;
+	/** As a report prints it: a deleted property's says so. */
 	readonly propertyName: string;
+	/** The owner has deleted the property since (status 'inactive'). */
+	readonly deleted: boolean;
 	readonly occupancyRate: number;
 	readonly rentReceived: number;
 	readonly expenses: number;
@@ -96,9 +135,14 @@ export type PropertyPerformanceResult =
 			>[];
 	  };
 
+/**
+ * `deleted` names the owner's deleted property ids, for a range's rows
+ * (fetchDeletedPropertyIds); a trailing window lists none of them.
+ */
 export function mapPropertyPerformance(
 	data: readonly PerformanceRow[] | null,
 	requested?: DateWindow,
+	deleted: ReadonlySet<string> = new Set(),
 ): PropertyPerformanceResult {
 	const rows = data ?? [];
 	if (rows.length === 0) {
@@ -133,7 +177,11 @@ export function mapPropertyPerformance(
 		window: first,
 		properties: rows.map((row) => ({
 			propertyId: row.property_id,
-			propertyName: row.property_name,
+			propertyName: propertyReportName(
+				row.property_name,
+				deleted.has(row.property_id) ? "inactive" : "active",
+			),
+			deleted: deleted.has(row.property_id),
 			occupancyRate: Number(row.occupancy_rate),
 			rentReceived: Number(row.total_revenue),
 			expenses: Number(row.total_expenses),

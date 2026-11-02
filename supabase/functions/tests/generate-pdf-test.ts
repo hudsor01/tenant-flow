@@ -71,9 +71,21 @@ function makeClient(
 	const rpcs: string[] = [];
 	const calls: Array<{ name: string; args: unknown }> = [];
 	const builder = (table: string) => {
+		const filters: Array<[string, unknown]> = [];
 		const b: Record<string, unknown> = {
 			select: () => b,
-			eq: () => b,
+			eq: (column: string, value: unknown) => {
+				filters.push([column, value]);
+				return b;
+			},
+			order: () => b,
+			// The year-end report's read of the owner's deleted property ids:
+			// none deleted, and recorded like an RPC with its filters.
+			range: async () => {
+				if (table !== "properties") return { data: null, error: null };
+				calls.push({ name: "properties", args: filters });
+				return { data: [], error: null };
+			},
 			single: async () =>
 				table === "users"
 					? {
@@ -281,7 +293,22 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 				now: () => NOW,
 			});
 			assertEquals(res.status, 200, reportType);
-			assertEquals(calls, [...taxYearReportCalls(reportType, "owner-1", 2024)]);
+			assertEquals(calls, [
+				...taxYearReportCalls(reportType, "owner-1", 2024),
+				// The year-end report also reads the owner's deleted property ids,
+				// scoped by the validated owner id (the admin client bypasses RLS).
+				...(reportType === YEAR_END_REPORT_TYPE
+					? [
+							{
+								name: "properties",
+								args: [
+									["owner_user_id", "owner-1"],
+									["status", "inactive"],
+								],
+							},
+						]
+					: []),
+			]);
 			const report = buildTaxYearReport(
 				reportType,
 				{
@@ -292,6 +319,7 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 					expenseSummary: TAX_YEAR_ANSWERS.get_expense_summary?.data ?? null,
 					propertyPerformance:
 						TAX_YEAR_ANSWERS.get_property_performance_analytics?.data ?? null,
+					deletedProperties: [],
 				},
 				2024,
 			);

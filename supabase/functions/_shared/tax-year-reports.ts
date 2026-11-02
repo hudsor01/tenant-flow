@@ -31,7 +31,12 @@
  *     Rows: the three summary cards and the Schedule E deductible expenses.
  * Income is rent received, from the rent ledger: collectedTotal as of December
  * 31 of the year less as of December 31 of the year before (cash basis), and
- * each property's receipts in the calendar year (20261102163709). When the
+ * each property's receipts in the calendar year (20261102163709). For a year
+ * the function lists every property with a receipt or an expense in it, one
+ * the owner has deleted since included, so the summary and the table tie to
+ * the cent; the row does not say which is deleted, so the year-end report
+ * also reads the owner's deleted property ids (`properties.status`) and names
+ * each such row through `propertyReportName`, the page's label. When the
  * server cannot report them yet (get_billing_insights before 20261102055449,
  * or a property row whose `timeframe` is not the year), the page says so and
  * the report throws, so no file ever presents $0 as a tax year's income.
@@ -58,6 +63,58 @@ import type {
 
 /** PostgREST's max-rows: one request reads at most this many rows. */
 const PROPERTY_PAGE_SIZE = 1000;
+
+/**
+ * The label map for a property's status in a report: a property the owner
+ * has soft-deleted (status 'inactive') keeps its rows for a period it was in,
+ * and its name says it is deleted. Every surface that lists a period's
+ * property rows names a property through `propertyReportName`: the year-end
+ * page, its CSV, the tax-preparation and property portfolio exports, and this
+ * module's year-end table.
+ */
+export const PROPERTY_STATUS_REPORT_LABELS: Readonly<Record<string, string>> = {
+	inactive: "deleted",
+};
+
+/** A property's name as a report prints it: "Gamma Flats (deleted)". */
+export function propertyReportName(name: string, status: string): string {
+	const label = PROPERTY_STATUS_REPORT_LABELS[status];
+	return label === undefined ? name : `${name} (${label})`;
+}
+
+/**
+ * One page of the owner's deleted property ids, as
+ * `supabase.from("properties").select("id").eq("owner_user_id", <the
+ * validated owner>).eq("status", "inactive").order("id").range(from, to)`
+ * reads it.
+ */
+export type DeletedPropertyReader = (page: {
+	readonly from: number;
+	readonly to: number;
+}) => PromiseLike<{ data: unknown; error: unknown }>;
+
+/**
+ * Every deleted property id of the owner's, page by page, until a page comes
+ * back short: the year-end page reads them the same way
+ * (fetchDeletedPropertyIds). A payload that is not an array ends the read as
+ * it is, so the table's own check refuses it.
+ */
+async function loadDeletedPropertyIds(
+	read: DeletedPropertyReader,
+): Promise<{ data: unknown; error: unknown }> {
+	const rows: unknown[] = [];
+	for (let from = 0; ; from += PROPERTY_PAGE_SIZE) {
+		const result = await read({ from, to: from + PROPERTY_PAGE_SIZE - 1 });
+		if (!result || result.error) return { data: null, error: result?.error };
+		if (!Array.isArray(result.data)) {
+			return { data: from === 0 ? result.data : rows, error: null };
+		}
+		rows.push(...result.data);
+		if (result.data.length < PROPERTY_PAGE_SIZE) {
+			return { data: rows, error: null };
+		}
+	}
+}
 
 /**
  * Every row of get_property_performance_analytics, page by page, as the
@@ -143,9 +200,11 @@ export interface TaxYearSources {
 	readonly ledgerAtPriorYearEnd: unknown;
 	readonly expenseSummary: unknown;
 	readonly propertyPerformance: unknown;
+	/** The owner's deleted property ids, `[{ id }]`, beside the year's rows. */
+	readonly deletedProperties: unknown;
 }
 
-type SourceKey = keyof TaxYearSources;
+type SourceKey = Exclude<keyof TaxYearSources, "deletedProperties">;
 
 const SOURCES_BY_REPORT: Readonly<Record<string, readonly SourceKey[]>> = {
 	[YEAR_END_REPORT_TYPE]: [
@@ -215,15 +274,21 @@ export type TaxYearLoad =
 	| { readonly ok: true; readonly sources: TaxYearSources }
 	| { readonly ok: false; readonly rpc: string; readonly error: unknown };
 
+/** The read a failed deleted-property load names, beside the RPCs'. */
+export const DELETED_PROPERTIES_READ = "properties";
+
 /**
- * Call the report's RPCs. Any `error` fails the whole load, naming the RPC, so
- * a failed read can never be written out as an empty or zeroed report.
+ * Call the report's RPCs, and for the year-end report read the owner's
+ * deleted property ids with `readDeletedProperties`. Any `error` fails the
+ * whole load, naming the read, so a failed read can never be written out as
+ * an empty or zeroed report.
  */
 export async function loadTaxYearSources(
 	rpc: RpcCaller,
 	reportType: string,
 	userId: string,
 	year: number,
+	readDeletedProperties: DeletedPropertyReader,
 ): Promise<TaxYearLoad> {
 	const keys = SOURCES_BY_REPORT[reportType];
 	if (!keys) {
@@ -241,11 +306,12 @@ export async function loadTaxYearSources(
 				: rpc(calls[key].name, calls[key].args),
 		),
 	);
-	const data: Record<SourceKey, unknown> = {
+	const data: Record<keyof TaxYearSources, unknown> = {
 		ledgerAtYearEnd: null,
 		ledgerAtPriorYearEnd: null,
 		expenseSummary: null,
 		propertyPerformance: null,
+		deletedProperties: null,
 	};
 	for (const [index, key] of keys.entries()) {
 		const result = results[index];
@@ -253,6 +319,13 @@ export async function loadTaxYearSources(
 			return { ok: false, rpc: calls[key].name, error: result?.error };
 		}
 		data[key] = result.data;
+	}
+	if (keys.includes("propertyPerformance")) {
+		const deleted = await loadDeletedPropertyIds(readDeletedProperties);
+		if (deleted.error) {
+			return { ok: false, rpc: DELETED_PROPERTIES_READ, error: deleted.error };
+		}
+		data.deletedProperties = deleted.data;
 	}
 	return { ok: true, sources: data };
 }
@@ -381,6 +454,11 @@ function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 	// Each row must state the calendar year (20261102163709); the body before
 	// it echoes p_timeframe and returns 0 as every property's revenue.
 	const taxYearWindow = `${year}-01-01/${year}-12-31`;
+	const deleted = new Set(
+		arrayOrEmpty(sources.deletedProperties, "deleted properties").map(
+			(entry) => String(asRecord(entry)?.["id"] ?? ""),
+		),
+	);
 	const byProperty = arrayOrEmpty(
 		sources.propertyPerformance,
 		"property performance",
@@ -390,7 +468,10 @@ function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 			throw new Error("property rent received unavailable");
 		}
 		return {
-			name: String(row["property_name"] ?? ""),
+			name: propertyReportName(
+				String(row["property_name"] ?? ""),
+				deleted.has(String(row["property_id"] ?? "")) ? "inactive" : "active",
+			),
 			received: Number(row["total_revenue"] ?? 0),
 			expenses: Number(row["total_expenses"] ?? 0),
 			net: Number(row["net_income"] ?? 0),

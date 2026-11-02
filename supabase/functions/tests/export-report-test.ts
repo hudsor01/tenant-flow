@@ -132,6 +132,8 @@ interface Scenario {
 	status: string;
 	rpc: RpcAnswers;
 	authenticated: boolean;
+	/** The owner's deleted property ids the year-end report reads. */
+	deleted: { id: string }[];
 }
 
 function scenario(overrides: Partial<Scenario> = {}): Scenario {
@@ -140,6 +142,7 @@ function scenario(overrides: Partial<Scenario> = {}): Scenario {
 		status: "active",
 		rpc: answers(),
 		authenticated: true,
+		deleted: [],
 		...overrides,
 	};
 }
@@ -147,14 +150,27 @@ function scenario(overrides: Partial<Scenario> = {}): Scenario {
 interface Calls {
 	rpcs: Array<{ name: string; args: Record<string, unknown> }>;
 	gateEvents: number;
+	/** Each read of `properties`: its .eq() filters, in order. */
+	propertyReads: Array<Array<[string, unknown]>>;
 }
 
 function makeClient(s: Scenario): { client: SupabaseClient; calls: Calls } {
-	const calls: Calls = { rpcs: [], gateEvents: 0 };
+	const calls: Calls = { rpcs: [], gateEvents: 0, propertyReads: [] };
 	const builder = (table: string) => {
+		const filters: Array<[string, unknown]> = [];
 		const b: Record<string, unknown> = {
 			select: () => b,
-			eq: () => b,
+			eq: (column: string, value: unknown) => {
+				filters.push([column, value]);
+				return b;
+			},
+			order: () => b,
+			// The year-end report's read of the owner's deleted property ids.
+			range: async () => {
+				if (table !== "properties") return { data: null, error: null };
+				calls.propertyReads.push(filters);
+				return { data: s.deleted, error: null };
+			},
 			single: async () =>
 				table === "users"
 					? {
@@ -575,10 +591,33 @@ function expectedTaxYearReport(s: Scenario, reportType: string, year: number) {
 			expenseSummary: s.rpc.get_expense_summary?.data ?? null,
 			propertyPerformance:
 				s.rpc.get_property_performance_analytics?.data ?? null,
+			deletedProperties: s.deleted,
 		},
 		year,
 	);
 }
+
+Deno.test("year-end names a property deleted since, read for the validated owner only", async () => {
+	const s = scenario({ deleted: [{ id: "p1" }] });
+	const { res, calls } = await run(get("?type=year-end&format=csv&year=2024"), s);
+	assertEquals(res.status, 200);
+	const lines = (await res.text()).split("\n");
+	assert(
+		lines.includes("By Property,Maple Court (deleted),,,61200,2120.5,59079.5,"),
+	);
+	assertEquals(calls.propertyReads, [
+		[
+			["owner_user_id", OWNER_ID],
+			["status", "inactive"],
+		],
+	]);
+	// The 1099 and tax documents reports list no property: they read none.
+	for (const type of [REPORT_1099_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
+		const other = await run(get(`?type=${type}&format=csv&year=2024`), s);
+		assertEquals(other.res.status, 200, type);
+		assertEquals(other.calls.propertyReads, [], type);
+	}
+});
 
 const TAX_YEAR_FILES: ReadonlyArray<readonly [string, string]> = [
 	[YEAR_END_REPORT_TYPE, "year-end-2024"],

@@ -205,6 +205,16 @@ export async function handleRequest(
 				reportType,
 				user.id,
 				year,
+				// The owner's deleted property ids, scoped by the validated id: the
+				// admin client bypasses RLS, so this filter is the boundary.
+				(page) =>
+					supabase
+						.from("properties")
+						.select("id")
+						.eq("owner_user_id", user.id)
+						.eq("status", "inactive")
+						.order("id")
+						.range(page.from, page.to),
 			);
 			if (!load.ok) return rpcErrorResponse(req, load.rpc, load.error);
 			const report = buildTaxYearReport(reportType, load.sources, year);

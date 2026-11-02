@@ -25,37 +25,43 @@ const { state } = vi.hoisted(() => ({
  * after .order()/.range() it returns that page. Other RPCs answer from
  * `state.other`.
  */
-vi.mock("#lib/supabase/client", () => ({
-	createClient: () => ({
-		rpc: (name: string) => {
-			if (name !== "get_property_performance_analytics") {
-				return Promise.resolve({
-					data: state.other[name] ?? null,
-					error: null,
-				});
-			}
-			const order: string[] = [];
-			const first = Promise.resolve({
-				data: state.rows.slice(0, 100),
-				error: null,
-			});
-			const query = Object.assign(first, {
-				order: (column: string) => {
-					order.push(column);
-					return query;
-				},
-				range: (from: number, to: number) => {
-					state.pages.push({ from, to, order: [...order] });
+vi.mock("#lib/supabase/client", async () => {
+	const { deletedPropertiesFrom } = await import(
+		"#test/mocks/deleted-properties"
+	);
+	return {
+		createClient: () => ({
+			from: deletedPropertiesFrom(),
+			rpc: (name: string) => {
+				if (name !== "get_property_performance_analytics") {
 					return Promise.resolve({
-						data: state.rows.slice(from, Math.min(to + 1, from + 1000)),
+						data: state.other[name] ?? null,
 						error: null,
 					});
-				},
-			});
-			return query;
-		},
-	}),
-}));
+				}
+				const order: string[] = [];
+				const first = Promise.resolve({
+					data: state.rows.slice(0, 100),
+					error: null,
+				});
+				const query = Object.assign(first, {
+					order: (column: string) => {
+						order.push(column);
+						return query;
+					},
+					range: (from: number, to: number) => {
+						state.pages.push({ from, to, order: [...order] });
+						return Promise.resolve({
+							data: state.rows.slice(from, Math.min(to + 1, from + 1000)),
+							error: null,
+						});
+					},
+				});
+				return query;
+			},
+		}),
+	};
+});
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: "owner-1" }),
 }));

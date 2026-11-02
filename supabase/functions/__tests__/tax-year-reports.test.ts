@@ -58,14 +58,33 @@ import {
 	YEAR_END_REPORT_TYPE,
 } from "../_shared/tax-year-reports";
 
-const { mockRpc, USER_ID } = vi.hoisted(() => ({
+const { mockRpc, mockDeletedProperties, USER_ID } = vi.hoisted(() => ({
 	mockRpc: vi.fn(),
+	/** The page's read of the owner's deleted property ids: (filters) => rows. */
+	mockDeletedProperties: vi.fn(),
 	USER_ID: "owner-1",
 }));
 
 vi.mock("#lib/supabase/client", async () => {
 	const { pagedRpc } = await import("#test/mocks/paged-rpc");
-	return { createClient: () => ({ rpc: pagedRpc(mockRpc) }) };
+	/** `.from("properties").select().eq().eq().order().range()`, recorded. */
+	const from = (table: string) => {
+		const filters: Record<string, unknown> = { table };
+		const chain = {
+			select: (columns: string) => {
+				filters["select"] = columns;
+				return chain;
+			},
+			eq: (column: string, value: unknown) => {
+				filters[column] = value;
+				return chain;
+			},
+			order: () => chain,
+			range: () => Promise.resolve(mockDeletedProperties(filters)),
+		};
+		return chain;
+	};
+	return { createClient: () => ({ rpc: pagedRpc(mockRpc), from }) };
 });
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: USER_ID }),
@@ -78,8 +97,12 @@ const YEAR = 2024;
 
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
 
+/** The owner's deleted property ids both sides read (key `properties`). */
+const DELETED_READ = "properties";
+
 function richAnswers(): RpcAnswers {
 	return {
+		[DELETED_READ]: { data: [], error: null },
 		// The rent ledger as of December 31 of the year and of the year before
 		// (keyed name@end_date_param): 61,200.25 received in 2024.
 		"get_billing_insights@2024-12-31": {
@@ -178,6 +201,14 @@ async function screen(answers: RpcAnswers): Promise<Screen> {
 			return answer(answers)(name, args);
 		},
 	);
+	mockDeletedProperties.mockImplementation((filters: Record<string, unknown>) => {
+		const { table: _table, select: _select, ...args } = filters;
+		sink.push({
+			name: DELETED_READ,
+			args: args as Readonly<Record<string, string | number>>,
+		});
+		return answers[DELETED_READ];
+	});
 	sink = calls.yearEnd;
 	const yearEndResult = await queryClient().query(
 		reportAnalyticsQueries.yearEnd(YEAR),
@@ -221,6 +252,16 @@ async function exported(
 		reportType,
 		USER_ID,
 		YEAR,
+		// As export-report and generate-pdf read it: scoped by the owner id.
+		() => {
+			calls.push({
+				name: DELETED_READ,
+				args: { owner_user_id: USER_ID, status: "inactive" },
+			});
+			const result = answers[DELETED_READ];
+			if (!result) throw new Error("no deleted-property answer");
+			return Promise.resolve(result);
+		},
 	);
 	if (!load.ok) throw new Error(`load failed on ${load.rpc}`);
 	const report = buildTaxYearReport(reportType, load.sources, YEAR);
@@ -577,9 +618,122 @@ describe("tax-year reports hold their pages' figures", () => {
 				YEAR_END_REPORT_TYPE,
 				USER_ID,
 				YEAR,
+				() => Promise.resolve({ data: [], error: null }),
 			);
 			expect(load).toMatchObject({ ok: false, rpc });
 		}
+	});
+
+	it("a failed deleted-property read fails the year-end load, naming it", async () => {
+		const load = await loadTaxYearSources(
+			(name, args) => answer(richAnswers())(name, args),
+			YEAR_END_REPORT_TYPE,
+			USER_ID,
+			YEAR,
+			() => Promise.resolve({ data: null, error: { message: "denied" } }),
+		);
+		expect(load).toMatchObject({ ok: false, rpc: DELETED_READ });
+	});
+
+	it("the 1099 and tax documents reports read no deleted property", async () => {
+		for (const type of [REPORT_1099_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
+			const read = vi.fn();
+			const load = await loadTaxYearSources(
+				(name, args) => answer(richAnswers())(name, args),
+				type,
+				USER_ID,
+				YEAR,
+				read,
+			);
+			expect(load.ok).toBe(true);
+			expect(read).not.toHaveBeenCalled();
+		}
+	});
+});
+
+describe("a property the owner deleted after the year", () => {
+	/**
+	 * Gamma Flats received 333.00 in the year and was deleted since: the
+	 * function lists it for the year (20261102163709), so the summary's rent
+	 * received (61,533.25) and expenses equal the table's to the cent.
+	 */
+	function withDeleted(): RpcAnswers {
+		const answers = richAnswers();
+		answers["get_billing_insights@2024-12-31"] = {
+			data: { collectedTotal: 74783.25, unpaidTotal: 300, chargedTotal: 75083.25 },
+			error: null,
+		};
+		answers.get_expense_summary = {
+			data: {
+				categories: [{ category: "Acme Plumbing", amount: 11132.5, percentage: 100 }],
+				monthly_totals: [],
+				total_amount: 11132.5,
+			},
+			error: null,
+		};
+		const rows = answers.get_property_performance_analytics?.data;
+		answers.get_property_performance_analytics = {
+			data: [
+				...(Array.isArray(rows) ? rows : []),
+				{
+					property_id: "p3",
+					property_name: "Gamma Flats",
+					total_revenue: 333,
+					total_expenses: 12,
+					net_income: 321,
+					timeframe: "2024-01-01/2024-12-31",
+				},
+			],
+			error: null,
+		};
+		answers[DELETED_READ] = { data: [{ id: "p3" }], error: null };
+		return answers;
+	}
+
+	it("is named as deleted on the page and in the file, which tie to the cent", async () => {
+		const page = await screen(withDeleted());
+		const file = await exported(YEAR_END_REPORT_TYPE, withDeleted());
+		expect(distinct(file.calls)).toEqual(
+			distinct([...page.calls.yearEnd, ...page.calls.report1099]),
+		);
+		expect(file.rows).toEqual(expectedYearEndRows(page));
+		const names = page.yearEnd.byProperty.map((p) => [p.propertyName, p.deleted]);
+		expect(names).toEqual([
+			["Maple Court", false],
+			["Elm & Oak", false],
+			["Gamma Flats (deleted)", true],
+		]);
+		const sum = (pick: (p: YearEndSummary["byProperty"][number]) => number) =>
+			Math.round(
+				page.yearEnd.byProperty.reduce((total, p) => total + pick(p), 0) * 100,
+			);
+		expect(Math.round(page.yearEnd.rentReceived * 100)).toBe(6_153_325);
+		expect(sum((p) => p.rentReceived)).toBe(6_153_325);
+		expect(sum((p) => p.expenses)).toBe(
+			Math.round(page.yearEnd.operatingExpenses * 100),
+		);
+		const fileSum = (column: number) =>
+			Math.round(
+				file.rows
+					.filter((r) => r[0] === "By Property")
+					.reduce((total, r) => total + Number(r[column]), 0) * 100,
+			);
+		const summary = (item: string) =>
+			Math.round(
+				Number(file.rows.find((r) => r[0] === "Summary" && r[1] === item)?.[3]) *
+					100,
+			);
+		expect(fileSum(4)).toBe(summary("Rent Received"));
+		expect(fileSum(5)).toBe(summary("Operating Expenses"));
+		expect(file.rows.map((r) => r[1])).toContain("Gamma Flats (deleted)");
+	});
+
+	it("is not named as deleted when the owner still has it", async () => {
+		const answers = withDeleted();
+		answers[DELETED_READ] = { data: [], error: null };
+		const file = await exported(YEAR_END_REPORT_TYPE, answers);
+		expect(file.rows.map((r) => r[1])).toContain("Gamma Flats");
+		expect(file.rows.map((r) => r[1])).not.toContain("Gamma Flats (deleted)");
 	});
 });
 
@@ -613,6 +767,7 @@ describe("the year-end export's By Property table", () => {
 			YEAR_END_REPORT_TYPE,
 			USER_ID,
 			YEAR,
+			() => Promise.resolve({ data: [], error: null }),
 		);
 		if (!load.ok) throw new Error(`load failed on ${load.rpc}`);
 		const report = buildTaxYearReport(YEAR_END_REPORT_TYPE, load.sources, YEAR);

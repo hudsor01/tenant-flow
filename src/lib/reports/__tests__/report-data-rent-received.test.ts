@@ -12,10 +12,22 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockRpc } = vi.hoisted(() => ({ mockRpc: vi.fn() }));
+const { mockRpc, mockDeleted } = vi.hoisted(() => ({
+	mockRpc: vi.fn(),
+	/** The owner's deleted property ids the code reads: none by default. */
+	mockDeleted: vi.fn((): { id: string }[] => []),
+}));
 vi.mock("#lib/supabase/client", async () => {
 	const { pagedRpc } = await import("#test/mocks/paged-rpc");
-	return { createClient: () => ({ rpc: pagedRpc(mockRpc) }) };
+	const { deletedPropertiesFrom } = await import(
+		"#test/mocks/deleted-properties"
+	);
+	return {
+		createClient: () => ({
+			rpc: pagedRpc(mockRpc),
+			from: deletedPropertiesFrom(mockDeleted()),
+		}),
+	};
 });
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: "owner-1" }),
@@ -79,6 +91,42 @@ describe("the property portfolio report", () => {
 			["Alpha Court", "50.0%", "0", "$2,751", "$200", "$2,550"],
 		]);
 		expect(table.note).toBeUndefined();
+	});
+
+	it("names a property deleted since and leaves it out of the portfolio's count", async () => {
+		answer({
+			get_property_performance_analytics: [
+				{ ...PROPERTY, timeframe: "2025-01-01/2025-12-31" },
+				{
+					...PROPERTY,
+					property_id: "p3",
+					property_name: "Gamma Flats",
+					occupancy_rate: 100,
+					timeframe: "2025-01-01/2025-12-31",
+				},
+			],
+			get_occupancy_trends_optimized: [],
+		});
+		mockDeleted.mockReturnValue([{ id: "p3" }]);
+		try {
+			const report = await buildReportData(
+				"property-portfolio",
+				new QueryClient(),
+				"2025-01-01",
+				"2025-12-31",
+			);
+			const rows = section(report.sections, "Property Performance").table?.rows;
+			expect(rows?.map((r) => r[0])).toEqual([
+				"Alpha Court",
+				"Gamma Flats (deleted)",
+			]);
+			expect(section(report.sections, "Portfolio Summary").rows?.[0]).toEqual({
+				label: "Total Properties",
+				value: "1",
+			});
+		} finally {
+			mockDeleted.mockReturnValue([]);
+		}
 	});
 
 	it("writes Unavailable, and says why, from the body before 20261102163709", async () => {
@@ -157,11 +205,13 @@ describe("the tax preparation report", () => {
 			"2025-01-01",
 			"2025-12-31",
 		);
+		// To the cent, as the year-end page prints them: whole dollars rounded
+		// each row apart and could not tie the summary to the table.
 		expect(section(report.sections, "Annual Summary").rows).toEqual([
 			{ label: "Tax Year", value: "2025" },
-			{ label: "Rent Received", value: "$2,751" },
-			{ label: "Operating Expenses", value: "$200" },
-			{ label: "Net Income", value: "$2,550" },
+			{ label: "Rent Received", value: "$2,750.50" },
+			{ label: "Operating Expenses", value: "$200.25" },
+			{ label: "Net Income", value: "$2,550.25" },
 		]);
 		const byProperty = section(
 			report.sections,
@@ -174,12 +224,75 @@ describe("the tax preparation report", () => {
 			"Net Income",
 		]);
 		expect(byProperty.table?.rows).toEqual([
-			["Alpha Court", "$2,751", "$200", "$2,550"],
+			["Alpha Court", "$2,750.50", "$200.25", "$2,550.25"],
 		]);
 		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
 			p_user_id: "owner-1",
 			p_timeframe: "2025-01-01..2025-12-31",
 		});
+	});
+
+	it("lists a property deleted after the year, named so, and ties to the cent", async () => {
+		// Gamma Flats received 333.00 in 2025 and was deleted since: the
+		// summary (3083.50 received) counts it, so the table must list it.
+		mockRpc.mockImplementation(
+			(name: string, args: Record<string, unknown>) => {
+				if (name === "get_billing_insights") {
+					return Promise.resolve({
+						data: {
+							collectedTotal:
+								args.end_date_param === "2025-12-31" ? 4083.5 : 1000,
+						},
+						error: null,
+					});
+				}
+				if (name === "get_expense_summary") {
+					return Promise.resolve({
+						data: { total_amount: 212.25, categories: [] },
+						error: null,
+					});
+				}
+				return Promise.resolve({
+					data: [
+						{ ...PROPERTY, timeframe: "2025-01-01/2025-12-31" },
+						{
+							property_id: "p3",
+							property_name: "Gamma Flats",
+							occupancy_rate: 100,
+							total_revenue: 333,
+							total_expenses: 12,
+							net_income: 321,
+							timeframe: "2025-01-01/2025-12-31",
+						},
+					],
+					error: null,
+				});
+			},
+		);
+		mockDeleted.mockReturnValue([{ id: "p3" }]);
+		try {
+			const report = await buildReportData(
+				"tax-preparation",
+				new QueryClient(),
+				"2025-01-01",
+				"2025-12-31",
+			);
+			expect(section(report.sections, "Annual Summary").rows).toEqual([
+				{ label: "Tax Year", value: "2025" },
+				{ label: "Rent Received", value: "$3,083.50" },
+				{ label: "Operating Expenses", value: "$212.25" },
+				{ label: "Net Income", value: "$2,871.25" },
+			]);
+			expect(
+				section(report.sections, "Income by Property (Schedule E support)")
+					.table?.rows,
+			).toEqual([
+				["Alpha Court", "$2,750.50", "$200.25", "$2,550.25"],
+				["Gamma Flats (deleted)", "$333.00", "$12.00", "$321.00"],
+			]);
+		} finally {
+			mockDeleted.mockReturnValue([]);
+		}
 	});
 
 	it.each([

@@ -80,6 +80,7 @@ describe("mapPropertyPerformance", () => {
 				{
 					propertyId: "p1",
 					propertyName: "Alpha Court",
+					deleted: false,
 					occupancyRate: 50,
 					rentReceived: 2750.5,
 					expenses: 200.25,

@@ -23,6 +23,7 @@ const yearEnd: YearEndSummary = {
 		{
 			propertyId: "p1",
 			propertyName: "=Maple Court",
+			deleted: false,
 			rentReceived: 30000,
 			expenses: 8000,
 			netIncome: 22000,
@@ -30,6 +31,7 @@ const yearEnd: YearEndSummary = {
 		{
 			propertyId: "p2",
 			propertyName: "Oak, Unit 2",
+			deleted: false,
 			rentReceived: 24000,
 			expenses: 24500.5,
 			netIncome: -500.5,

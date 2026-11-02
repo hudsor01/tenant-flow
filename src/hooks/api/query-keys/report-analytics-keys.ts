@@ -23,6 +23,7 @@ import { fetchOccupancyTrends } from "./analytics-keys";
 import { mapMaintenanceCosts } from "./analytics-mappers";
 import { fetchRentReceivedInYear } from "./financial-keys";
 import {
+	fetchDeletedPropertyIds,
 	fetchEveryPropertyPerformanceRow,
 	mapPropertyPerformance,
 	propertyPerformanceRange,
@@ -168,38 +169,54 @@ export const reportAnalyticsQueries = {
 				// call named no window and got the last 30 days whatever the period.
 				const requested =
 					start_date && end_date ? { start_date, end_date } : undefined;
-				// Every property: the report lists them all.
-				const { data, error } = await fetchEveryPropertyPerformanceRow({
-					p_user_id: user.id,
-					p_timeframe: requested
-						? propertyPerformanceRange(start_date ?? "", end_date ?? "")
-						: "30d",
-				});
+				// Every property: the report lists them all. A range also lists
+				// a property deleted since, when it received rent or spent in it,
+				// which the report names as deleted and leaves out of the
+				// portfolio's counts.
+				const [{ data, error }, deleted] = await Promise.all([
+					fetchEveryPropertyPerformanceRow({
+						p_user_id: user.id,
+						p_timeframe: requested
+							? propertyPerformanceRange(start_date ?? "", end_date ?? "")
+							: "30d",
+					}),
+					fetchDeletedPropertyIds(user.id),
+				]);
 				if (error) handlePostgrestError(error, "property report");
-				const result = mapPropertyPerformance(data, requested);
+				if (deleted.error)
+					handlePostgrestError(deleted.error, "property report");
+				const result = mapPropertyPerformance(
+					data,
+					requested,
+					deleted.data ?? undefined,
+				);
 				const rows =
 					result.status === "ready"
 						? result.properties
 						: result.occupancy.map((r) => ({
 								...r,
+								deleted: false,
 								rentReceived: null,
 								expenses: null,
 								netIncome: null,
 							}));
+				// The portfolio is the properties the owner still has.
+				const current = rows.filter((r) => !r.deleted);
 				return {
 					summary: {
-						totalProperties: rows.length,
+						totalProperties: current.length,
 						totalUnits: 0,
 						occupiedUnits: 0,
 						occupancyRate:
-							rows.length > 0
-								? rows.reduce((sum, r) => sum + r.occupancyRate, 0) /
-									rows.length
+							current.length > 0
+								? current.reduce((sum, r) => sum + r.occupancyRate, 0) /
+									current.length
 								: 0,
 					},
 					byProperty: rows.map((r) => ({
 						propertyId: r.propertyId,
 						propertyName: r.propertyName,
+						deleted: r.deleted,
 						occupancyRate: r.occupancyRate,
 						vacantUnits: 0,
 						rentReceived: r.rentReceived,
@@ -324,27 +341,36 @@ export const reportAnalyticsQueries = {
 					start_date: `${year}-01-01`,
 					end_date: `${year}-12-31`,
 				};
-				const [rentReceived, expenseResult, propResult] = await Promise.all([
-					fetchRentReceivedInYear(user.id, year, "year-end summary"),
-					// BILL-02: scope the year-end expenses to the selected year.
-					supabase.rpc("get_expense_summary", {
-						p_user_id: user.id,
-						p_start_date: taxYear.start_date,
-						p_end_date: taxYear.end_date,
-					}),
-					// Every property: the By Property table must hold the whole year.
-					fetchEveryPropertyPerformanceRow({
-						p_user_id: user.id,
-						p_timeframe: taxYearRange(year),
-					}),
-				]);
+				const [rentReceived, expenseResult, propResult, deleted] =
+					await Promise.all([
+						fetchRentReceivedInYear(user.id, year, "year-end summary"),
+						// BILL-02: scope the year-end expenses to the selected year.
+						supabase.rpc("get_expense_summary", {
+							p_user_id: user.id,
+							p_start_date: taxYear.start_date,
+							p_end_date: taxYear.end_date,
+						}),
+						// Every property: the By Property table must hold the whole year,
+						// a property deleted since included (named as deleted).
+						fetchEveryPropertyPerformanceRow({
+							p_user_id: user.id,
+							p_timeframe: taxYearRange(year),
+						}),
+						fetchDeletedPropertyIds(user.id),
+					]);
 				// BILL-04: surface expense / property-analytics RPC failures instead of
 				// silently zeroing expenses (overstated net income) or the by-property table.
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "year-end summary");
 				if (propResult.error)
 					handlePostgrestError(propResult.error, "year-end summary");
-				const properties = mapPropertyPerformance(propResult.data, taxYear);
+				if (deleted.error)
+					handlePostgrestError(deleted.error, "year-end summary");
+				const properties = mapPropertyPerformance(
+					propResult.data,
+					taxYear,
+					deleted.data ?? undefined,
+				);
 				if (rentReceived === null || properties.status !== "ready") {
 					return { status: "ledger-unavailable", year };
 				}
@@ -364,6 +390,7 @@ export const reportAnalyticsQueries = {
 						byProperty: properties.properties.map((p) => ({
 							propertyId: p.propertyId,
 							propertyName: p.propertyName,
+							deleted: p.deleted,
 							rentReceived: p.rentReceived,
 							expenses: p.expenses,
 							netIncome: p.netIncome,

@@ -63,7 +63,10 @@ export interface PropertyReport {
 	 */
 	byProperty: Array<{
 		propertyId: string;
+		/** As the report prints it: a property deleted since says so. */
 		propertyName: string;
+		/** Deleted since the period (listed for its rent or spend in it). */
+		deleted: boolean;
 		occupancyRate: number;
 		vacantUnits: number;
 		rentReceived: number | null;
@@ -140,10 +143,15 @@ export interface YearEndSummary {
 	operatingExpenses: number;
 	/** rentReceived - operatingExpenses. */
 	netIncome: number;
-	/** Each property's rent received and expenses in the year. */
+	/**
+	 * Each property's rent received and expenses in the year, a property the
+	 * owner has deleted since included, so they sum to the summary's figures.
+	 */
 	byProperty: Array<{
 		propertyId: string;
+		/** As the report prints it: a property deleted since says so. */
 		propertyName: string;
+		deleted: boolean;
 		rentReceived: number;
 		expenses: number;
 		netIncome: number;

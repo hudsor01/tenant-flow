@@ -363,18 +363,23 @@ function maintenanceCostRows(
 	];
 }
 
+/**
+ * To the cent, as the year-end page and its CSV print them, so the summary
+ * equals the sum of the By Property table (whole dollars rounded each row
+ * apart and could not).
+ */
 function taxSummaryRows(yearEnd: YearEndSummary): ReportRow[] {
 	return [
 		{ label: "Tax Year", value: String(yearEnd.year) },
 		{
 			label: "Rent Received",
-			value: fmtMoney(yearEnd.rentReceived),
+			value: fmtCents(yearEnd.rentReceived),
 		},
 		{
 			label: "Operating Expenses",
-			value: fmtMoney(yearEnd.operatingExpenses),
+			value: fmtCents(yearEnd.operatingExpenses),
 		},
-		{ label: "Net Income", value: fmtMoney(yearEnd.netIncome) },
+		{ label: "Net Income", value: fmtCents(yearEnd.netIncome) },
 	];
 }
 
@@ -847,16 +852,18 @@ function taxPreparationSections(
 	yearEnd: YearEndSummary,
 	available: boolean,
 ): ReportSection[] {
+	// Every property with rent or spend in the year, one deleted since named
+	// as deleted (the label map), to the cent: they sum to the summary.
 	const byPropertyRows = yearEnd.byProperty.map(
 		(p): Array<string | number> => [
 			p.propertyName,
-			fmtMoney(p.rentReceived),
-			fmtMoney(p.expenses),
-			fmtMoney(p.netIncome),
+			fmtCents(p.rentReceived),
+			fmtCents(p.expenses),
+			fmtCents(p.netIncome),
 		],
 	);
 	const expenseRows = yearEnd.expenseByCategory.map(
-		(e): Array<string | number> => [e.category, fmtMoney(e.amount)],
+		(e): Array<string | number> => [e.category, fmtCents(e.amount)],
 	);
 	return [
 		{ heading: "Annual Summary", rows: taxSummaryRows(yearEnd) },

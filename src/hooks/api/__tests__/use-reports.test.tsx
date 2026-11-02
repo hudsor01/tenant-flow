@@ -26,9 +26,13 @@ const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({
 
 vi.mock("#lib/supabase/client", async () => {
 	const { pagedRpc } = await import("#test/mocks/paged-rpc");
+	const { deletedPropertiesFrom } = await import(
+		"#test/mocks/deleted-properties"
+	);
 	return {
 		createClient: () => ({
 			rpc: pagedRpc(mockRpc),
+			from: deletedPropertiesFrom(),
 			auth: {
 				getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
 				getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
@@ -645,6 +649,7 @@ describe("reportAnalyticsQueries.properties", () => {
 			{
 				propertyId: "p1",
 				propertyName: "Maple Court",
+				deleted: false,
 				occupancyRate: 90,
 				vacantUnits: 0,
 				rentReceived: null,
