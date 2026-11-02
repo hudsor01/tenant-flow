@@ -45,11 +45,6 @@ interface PieProps {
 	children?: ReactNode;
 }
 
-interface CellProps {
-	fill?: string;
-	key?: string | number;
-}
-
 interface LegendProps {
 	verticalAlign?: string;
 }
@@ -126,10 +121,6 @@ export const Pie = ({
 	>
 		{children}
 	</g>
-);
-
-export const Cell = ({ fill }: CellProps) => (
-	<g data-testid="cell" data-fill={fill} />
 );
 
 interface LabelProps {
