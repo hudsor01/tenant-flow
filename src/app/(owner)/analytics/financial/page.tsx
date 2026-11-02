@@ -151,12 +151,16 @@ export default function FinancialAnalyticsPage() {
 										<h3 className="font-medium text-foreground">
 											Expense Breakdown
 										</h3>
-										<p className="text-sm text-muted-foreground">By category</p>
+										{/* get_expense_summary's categories are vendor names, over
+										    its default period: January 1 through today. */}
+										<p className="text-sm text-muted-foreground">
+											By vendor, year to date
+										</p>
 									</div>
 									<PieChart className="w-5 h-5 text-muted-foreground" />
 								</div>
 								<BreakdownList
-									title="Expense Categories"
+									title="Vendors"
 									rows={breakdown.expenses}
 									detailsHref="/reports/expenses"
 								/>

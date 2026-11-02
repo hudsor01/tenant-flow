@@ -455,7 +455,7 @@ export function buildFinancialAnalyticsTable(
 			}),
 		),
 		...expenseCategories.map(
-			(c): Row => valueRow("Expense Breakdown", c.label, money(c.amount)),
+			(c): Row => valueRow("Expenses by Vendor", c.label, money(c.amount)),
 		),
 		...months.map(
 			(m): Row => valueRow("Scheduled Net", m.month, money(m.net)),

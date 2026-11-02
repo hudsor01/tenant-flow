@@ -344,7 +344,7 @@ function expectedYearEndRows(page: Screen): ReportCell[][] {
 			null,
 		]),
 		...sortExpenseCategoriesDesc(s.expenseByCategory).map((c): ReportCell[] => [
-			"Expense Breakdown",
+			"Expenses by Vendor",
 			c.category,
 			null,
 			cents(c.amount),
@@ -372,7 +372,7 @@ function expectedTaxRows(data: TaxDocumentsData): ReportCell[][] {
 			.filter((c) => c.deductible)
 			.map((c): ReportCell[] => [
 				"Deductible Expenses (Schedule E)",
-				c.category.replace(/_/g, " "),
+				c.category,
 				cents(c.amount),
 				Number(c.percentage.toFixed(1)),
 			]),

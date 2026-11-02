@@ -53,7 +53,7 @@ export function buildYearEndCsv(summary: YearEndSummary): string {
 			money(p.netIncome),
 		]),
 		...summary.expenseByCategory.map((c): CsvCell[] => [
-			"Expense Categories",
+			"Expenses by Vendor",
 			c.category,
 			money(c.amount),
 			"",

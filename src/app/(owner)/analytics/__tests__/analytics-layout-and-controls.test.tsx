@@ -135,6 +135,22 @@ describe("analytics chart rows span two of three tracks", () => {
 	});
 });
 
+describe("the financial page's expense breakdown", () => {
+	// get_expense_summary's categories are vendor names over its default
+	// period, January 1 through today (66.2-39 part P): the card said "By
+	// category" and listed "Expense Categories".
+	it("is by vendor, year to date", async () => {
+		const { default: Page } = await import("../financial/page");
+		renderPage(createElement(Page));
+		const heading = await screen.findByText("Expense Breakdown");
+		const card = heading.closest(".bg-card");
+		expect(card).not.toBeNull();
+		expect(card).toHaveTextContent("By vendor, year to date");
+		expect(card).toHaveTextContent("Vendors");
+		expect(card?.textContent).not.toMatch(/categor/i);
+	});
+});
+
 describe("analytics overview", () => {
 	it("has no dead period button in Top Performing Properties", async () => {
 		const { default: Page } = await import("../overview/page");

@@ -223,6 +223,15 @@ describe("the tax preparation report", () => {
 		expect(byProperty.table?.rows).toEqual([
 			["Alpha Court", "$2,750.50", "$200.25", "$2,550.25"],
 		]);
+		// get_expense_summary's categories are vendor names (part P): the
+		// section read "Expense by Category" over a "Category" column.
+		expect(
+			report.sections.find((s) => s.heading === "Expenses by Vendor")?.table
+				?.headers,
+		).toEqual(["Vendor", "Amount"]);
+		expect(report.sections.map((s) => s.heading)).not.toContain(
+			"Expense by Category",
+		);
 		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
 			p_user_id: "owner-1",
 			p_timeframe: "2025-01-01..2025-12-31",

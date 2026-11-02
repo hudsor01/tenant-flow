@@ -215,15 +215,16 @@ describe("the financial performance export", () => {
 		expect(section(report.sections, "Revenue (charged)").table?.rows).toEqual(
 			statement.revenueItems.map((i) => [i.label, formatCurrency(i.amount)]),
 		);
-		expect(section(report.sections, "Expense Categories").table?.rows).toEqual([
-			["Plumber", "$260.50", "100.0%"],
-		]);
+		expect(section(report.sections, "Expenses by Vendor").table).toEqual({
+			headers: ["Vendor", "Amount", "% of Expenses"],
+			rows: [["Plumber", "$260.50", "100.0%"]],
+		});
 		// No literal or empty section: the monthly breakdown and the rent roll
 		// had no source.
 		expect(report.sections.map((s) => s.heading)).toEqual([
 			"Summary",
 			"Revenue (charged)",
-			"Expense Categories",
+			"Expenses by Vendor",
 		]);
 		expect(JSON.stringify(report)).not.toMatch(
 			/Total Income|"Cash Flow"|Rent Roll/,

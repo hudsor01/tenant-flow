@@ -494,7 +494,7 @@ function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 			}),
 		),
 		...categories.map((c) =>
-			yearEndRow("Expense Breakdown", c.category, { Amount: money(c.amount) }),
+			yearEndRow("Expenses by Vendor", c.category, { Amount: money(c.amount) }),
 		),
 		...rows1099(sources.expenseSummary),
 	];
@@ -515,7 +515,9 @@ function taxDocumentRows(sources: TaxYearSources): Row[] {
 		...expenseCategories(sources.expenseSummary).map(
 			(c): Row => [
 				"Deductible Expenses (Schedule E)",
-				c.category.replace(/_/g, " "),
+				// The vendor's name as entered: a "category" is a vendor name, never
+				// a slug to reformat ("acme_plumbing" is the owner's text).
+				c.category,
 				money(c.amount),
 				percentOneDecimal(c.percentage),
 			],

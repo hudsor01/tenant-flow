@@ -394,8 +394,8 @@ Deno.test("financial-analytics csv is the leaf's table, from the four page RPCs"
 		lines.includes("Overview,Collected,0.3,,,"),
 		"collected rounds to cents",
 	);
-	assert(lines.includes("Expense Breakdown,'=HYPERLINK(1),120,,,"));
-	assert(lines.includes('Expense Breakdown,"Roof, Gutter & Co",2000.5,,,'));
+	assert(lines.includes("Expenses by Vendor,'=HYPERLINK(1),120,,,"));
+	assert(lines.includes('Expenses by Vendor,"Roof, Gutter & Co",2000.5,,,'));
 	assert(lines.includes("Lease Profitability,Period,2026-01-01 to 2026-11-01,,,"));
 	assert(
 		lines.includes("Lease Profitability,South House (deleted) \u00b7 S1 (Ed South),,5000,0,5000"),
@@ -468,7 +468,7 @@ Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", as
 			"Overview",
 			"Payment Summary",
 			"Scheduled Rent &amp; Expenses",
-			"Expense Breakdown",
+			"Expenses by Vendor",
 			"Scheduled Net",
 			"Lease Profitability",
 		]) {
@@ -671,7 +671,7 @@ Deno.test("year-end, 1099 and tax documents csv are their page's figures for the
 	const lines = (await res.text()).split("\n");
 	assert(lines.includes("Summary,Rent Received,,61200,,,,"));
 	assert(lines.includes("By Property,Maple Court,,,61200,2120.5,59079.5,"));
-	assert(lines.includes("Expense Breakdown,'=HYPERLINK(1),,120,,,,"));
+	assert(lines.includes("Expenses by Vendor,'=HYPERLINK(1),,120,,,,"));
 });
 
 Deno.test("year-end, 1099 and tax documents pdf post the sectioned HTML", async () => {

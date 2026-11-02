@@ -534,9 +534,9 @@ async function buildFinancialPerformance(
 				...ledgerNote(income, cash),
 			},
 			{
-				heading: "Expense Categories",
+				heading: "Expenses by Vendor",
 				table: {
-					headers: ["Category", "Amount", "% of Expenses"],
+					headers: ["Vendor", "Amount", "% of Expenses"],
 					rows: financialExpenseRows(financialResult.data, totalExpenses),
 				},
 				...noteIf(financialResult.available && occupancy.available),
@@ -787,8 +787,8 @@ function taxPreparationSections(
 			note: "Consult a CPA before filing — line-item mappings are advisory.",
 		},
 		{
-			heading: "Expense by Category",
-			table: { headers: ["Category", "Amount"], rows: expenseRows },
+			heading: "Expenses by Vendor",
+			table: { headers: ["Vendor", "Amount"], rows: expenseRows },
 			...noteIf(available),
 		},
 	];

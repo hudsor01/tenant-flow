@@ -66,6 +66,26 @@ function section(props: {
 }
 
 describe("the year-end summary", () => {
+	// get_expense_summary's categories are vendor names (66.2-39 part P): the
+	// card said "Operating expenses by category" over a "Category" column.
+	it("names its expense breakdown by vendor, each vendor as entered", () => {
+		render(
+			section({
+				yearEndData: {
+					...SUMMARY,
+					expenseByCategory: [{ category: "acme_plumbing", amount: 11120.5 }],
+				},
+				ledgerUnavailable: false,
+			}),
+		);
+		expect(screen.getByText("Expenses by vendor for 2025")).toBeInTheDocument();
+		expect(
+			screen.getByRole("columnheader", { name: "Vendor" }),
+		).toBeInTheDocument();
+		expect(screen.getByText("acme_plumbing")).toBeInTheDocument();
+		expect(screen.queryByText(/by category/i)).not.toBeInTheDocument();
+	});
+
 	it("shows the year's rent received and each property's", () => {
 		render(section({ yearEndData: SUMMARY, ledgerUnavailable: false }));
 		// The card's label and the By Property column.

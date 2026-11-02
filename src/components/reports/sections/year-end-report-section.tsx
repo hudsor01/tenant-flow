@@ -217,9 +217,7 @@ export function YearEndReportSection({
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">Expense Breakdown</CardTitle>
-							<CardDescription>
-								Operating expenses by category for {year}
-							</CardDescription>
+							<CardDescription>Expenses by vendor for {year}</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{isLoadingYearEnd ? (
@@ -232,7 +230,7 @@ export function YearEndReportSection({
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Category</TableHead>
+											<TableHead>Vendor</TableHead>
 											<TableHead className="text-right">Amount</TableHead>
 										</TableRow>
 									</TableHeader>

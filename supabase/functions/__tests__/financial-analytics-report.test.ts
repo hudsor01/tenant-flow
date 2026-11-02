@@ -317,7 +317,7 @@ function rowsFromScreen(
 			cents(m.netIncome),
 		]),
 		...page.breakdown.expenses.map((e) =>
-			value("Expense Breakdown", e.label, cents(e.value)),
+			value("Expenses by Vendor", e.label, cents(e.value)),
 		),
 		...page.netOperatingIncome.map((n) =>
 			value("Scheduled Net", n.propertyName, cents(n.noi)),
@@ -387,7 +387,7 @@ describe("every figure the page renders is a row of the file", () => {
 			payments.tenantCount,
 		]);
 		expect(section(rows, "Scheduled Rent & Expenses")).toHaveLength(12);
-		expect(section(rows, "Expense Breakdown")).toHaveLength(6);
+		expect(section(rows, "Expenses by Vendor")).toHaveLength(6);
 		expect(section(rows, "Scheduled Net")).toHaveLength(12);
 	});
 
@@ -396,7 +396,7 @@ describe("every figure the page renders is a row of the file", () => {
 		const { page } = await screen(answers);
 		const { rows } = await exported(answers);
 		expect(page.breakdown.expenses.length).toBeGreaterThan(5);
-		expect(section(rows, "Expense Breakdown").map((r) => r[1])).toEqual(
+		expect(section(rows, "Expenses by Vendor").map((r) => r[1])).toEqual(
 			page.breakdown.expenses.map((e) => e.label),
 		);
 	});
@@ -532,7 +532,7 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 			if (row[0] === "Scheduled Rent & Expenses") {
 				expect(f.slice(2)).toEqual(["plain", "money", "money", "money"]);
 			} else if (
-				row[0] === "Expense Breakdown" ||
+				row[0] === "Expenses by Vendor" ||
 				row[0] === "Scheduled Net"
 			) {
 				expect(f.slice(2)).toEqual(["money", "plain", "plain", "plain"]);

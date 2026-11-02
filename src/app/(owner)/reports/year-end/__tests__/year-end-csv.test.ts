@@ -61,7 +61,7 @@ describe("buildYearEndCsv", () => {
 			["Overview", "Net Income", "41499.50", "", "", ""],
 			["By Property", "'=Maple Court", "", "30000.00", "8000.00", "22000.00"],
 			["By Property", "Oak, Unit 2", "", "24000.00", "24500.50", "-500.50"],
-			["Expense Categories", "'-Repairs", "12500.50", "", "", ""],
+			["Expenses by Vendor", "'-Repairs", "12500.50", "", "", ""],
 		]);
 	});
 });
