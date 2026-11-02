@@ -2,7 +2,10 @@
 // Accepts three request modes:
 //   1. { reportType, year }   — server-side report data fetch + HTML build
 //      (`financial-analytics` prints the /analytics/financial export, the same
-//      document export-report's pdf format prints; `year` is not used for it)
+//      document export-report's pdf format prints; `year` is not used for it.
+//      `year-end`, `1099` and `financial` print the /reports/year-end page, its
+//      1099-NEC section and the /reports/tax-documents page for that year,
+//      `_shared/tax-year-reports.ts`)
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
 //   3. { leaseId }            — fetch lease+property data, build HTML summary
 // Calls the self-hosted StirlingPDF k3s instance and streams the resulting PDF blob.
@@ -27,6 +30,11 @@ import {
 import { reportColumns } from "../_shared/report-csv.ts";
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
+import {
+	buildTaxYearReport,
+	isTaxYearReportType,
+	loadTaxYearSources,
+} from "../_shared/tax-year-reports.ts";
 import {
 	checkTierEntitlement,
 	GROWTH_AND_MAX_PLANS,
@@ -130,34 +138,14 @@ function flattenToReportRows(data: unknown): ReportRow[] {
 	}));
 }
 
-// Branch by reportType to the SAME RPCs export-report's CSV path uses so the
-// PDF content matches its CSV counterpart and the report title's year. The
-// date-aware get_financial_overview (BILL-02) receives the requested year's
-// boundaries so the numbers are period-correct.
+// The remaining row reports (no page prints them; the page-backed types are
+// handled before this is reached), branched to the SAME RPCs export-report's
+// row path uses so a report's PDF matches its CSV.
 async function fetchReportRows(
 	supabase: SupabaseClient,
 	userId: string,
 	reportType: string,
-	year: number,
 ): Promise<ReportRow[]> {
-	if (reportType === "year-end" || reportType === "financial") {
-		const { data, error } = await supabase.rpc("get_financial_overview", {
-			p_user_id: userId,
-			p_start_date: `${year}-01-01`,
-			p_end_date: `${year}-12-31`,
-		});
-		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-		return flattenToReportRows(data);
-	}
-
-	if (reportType === "1099") {
-		const { data, error } = await supabase.rpc("get_billing_insights", {
-			owner_id_param: userId,
-		});
-		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-		return flattenToReportRows(data);
-	}
-
 	if (reportType === "maintenance") {
 		const { data, error } = await supabase.rpc("get_maintenance_analytics", {
 			user_id: userId,
@@ -337,10 +325,17 @@ export async function handleRequest(
 			html = await buildLeasePreviewHtml(supabase, body.leaseId);
 		} else {
 			// Mode 1: structured report data — fetch DB data and build HTML
-			if (!body.reportType || typeof body.year !== "number") {
+			if (
+				!body.reportType ||
+				typeof body.reportType !== "string" ||
+				!Number.isInteger(body.year) ||
+				body.year < 1000 ||
+				body.year > 9999
+			) {
 				return new Response(
 					JSON.stringify({
-						error: "reportType (string) and year (number) are required",
+						error:
+							"reportType (string) and year (a four-digit integer) are required",
 					}),
 					{ status: 400, headers: getJsonHeaders(req) },
 				);
@@ -361,6 +356,9 @@ export async function handleRequest(
 				if (entitlementBlock) return entitlementBlock;
 			}
 
+			const today = (deps.now ?? (() => new Date()))()
+				.toISOString()
+				.slice(0, 10);
 			if (body.reportType === FINANCIAL_ANALYTICS_REPORT_TYPE) {
 				const load = await loadFinancialAnalyticsSources(
 					(name, args) => supabase.rpc(name, args),
@@ -375,16 +373,39 @@ export async function handleRequest(
 				const table = buildFinancialAnalyticsTable(load.sources);
 				html = sectionedReportHtml(
 					"Financial Analytics",
-					(deps.now ?? (() => new Date()))().toISOString().slice(0, 10),
+					today,
 					table.header,
 					table.rows,
+				);
+			} else if (isTaxYearReportType(body.reportType)) {
+				const load = await loadTaxYearSources(
+					(name, args) => supabase.rpc(name, args),
+					body.reportType,
+					user.id,
+					body.year,
+				);
+				if (!load.ok) {
+					return errorResponse(req, 500, load.error, {
+						action: "generate_pdf_rpc",
+						rpc: load.rpc,
+					});
+				}
+				const report = buildTaxYearReport(
+					body.reportType,
+					load.sources,
+					body.year,
+				);
+				html = sectionedReportHtml(
+					report.title,
+					today,
+					report.table.header,
+					report.table.rows,
 				);
 			} else {
 				const rows = await fetchReportRows(
 					supabase,
 					user.id,
 					body.reportType,
-					body.year,
 				);
 				html = buildReportHtml(body.reportType, body.year, rows);
 			}

@@ -3,6 +3,10 @@
 // Reads only the query string; a request body is ignored. `format` defaults to
 // csv and `type` to financial; any other format, or a year that is not four
 // digits, is a 400.
+// Page-backed types hold their page's figures: `financial-analytics` is
+// /analytics/financial (`_shared/financial-analytics-report.ts`); `year-end`,
+// `1099` and `financial` are /reports/year-end, its 1099-NEC section and
+// /reports/tax-documents for the year asked for (`_shared/tax-year-reports.ts`).
 // Formats: csv (`_shared/report-csv.ts`), xlsx (a real workbook,
 // `_shared/report-xlsx.ts`), pdf (HTML delegated to the generate-pdf Edge
 // Function, StirlingPDF).
@@ -34,6 +38,12 @@ import {
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { reportTableToXlsx, XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
+import {
+	buildTaxYearReport,
+	isTaxYearReportType,
+	loadTaxYearSources,
+	taxYearReportFilename,
+} from "../_shared/tax-year-reports.ts";
 import {
 	checkTierEntitlement,
 	GROWTH_AND_MAX_PLANS,
@@ -103,29 +113,18 @@ function flattenToRows(data: unknown): Record<string, unknown>[] {
 	}));
 }
 
-// Branch by report type to the SAME RPCs, with the same arguments, as
-// generate-pdf's Mode 1 `fetchReportRows`, so a report's CSV, XLSX and PDF
-// hold the same figures. The year-end/financial overview is scoped to the
-// requested year.
+// The remaining row reports (no page prints them; the page-backed types are
+// built from their page's figures before this is reached), branched to the
+// SAME RPCs, with the same arguments, as generate-pdf's Mode 1
+// `fetchReportRows`, so a report's CSV, XLSX and PDF hold the same figures.
 async function fetchReportRows(
 	supabase: SupabaseClient,
 	userId: string,
 	reportType: string,
-	year: number,
 ): Promise<RowsResult> {
 	let rpc: string;
 	let args: Record<string, string | number>;
-	if (reportType === "year-end" || reportType === "financial") {
-		rpc = "get_financial_overview";
-		args = {
-			p_user_id: userId,
-			p_start_date: `${year}-01-01`,
-			p_end_date: `${year}-12-31`,
-		};
-	} else if (reportType === "1099") {
-		rpc = "get_billing_insights";
-		args = { owner_id_param: userId };
-	} else if (reportType === "maintenance") {
+	if (reportType === "maintenance") {
 		rpc = "get_maintenance_analytics";
 		args = { user_id: userId };
 	} else {
@@ -138,10 +137,6 @@ async function fetchReportRows(
 }
 
 function rowsReportFilename(reportType: string, year: number): string {
-	if (reportType === "year-end" || reportType === "financial") {
-		return `year-end-${year}`;
-	}
-	if (reportType === "1099") return `1099-vendors-${year}`;
 	if (reportType === "maintenance") return `maintenance-report-${year}`;
 	return `revenue-report-${year}`;
 }
@@ -253,8 +248,30 @@ export async function handleRequest(
 				csv: tableToCsv(table.header, table.rows),
 				html: sectionedReportHtml(title, today, table.header, table.rows),
 			};
+		} else if (isTaxYearReportType(reportType)) {
+			const load = await loadTaxYearSources(
+				(name, args) => supabase.rpc(name, args),
+				reportType,
+				user.id,
+				year,
+			);
+			if (!load.ok) return rpcErrorResponse(req, load.rpc, load.error);
+			const report = buildTaxYearReport(reportType, load.sources, year);
+			content = {
+				title: report.title,
+				filename: taxYearReportFilename(reportType, year),
+				header: report.table.header,
+				rows: report.table.rows,
+				csv: tableToCsv(report.table.header, report.table.rows),
+				html: sectionedReportHtml(
+					report.title,
+					today,
+					report.table.header,
+					report.table.rows,
+				),
+			};
 		} else {
-			const result = await fetchReportRows(supabase, user.id, reportType, year);
+			const result = await fetchReportRows(supabase, user.id, reportType);
 			if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
 			const table = rowsToTable(result.rows);
 			content = {

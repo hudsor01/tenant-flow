@@ -10,6 +10,11 @@ import type {
 	RevenueData,
 } from "#types/reports";
 import { FINANCIAL_ANALYTICS_REPORT_TYPE } from "../../../../supabase/functions/_shared/financial-analytics-report";
+import {
+	TAX_DOCUMENTS_REPORT_TYPE,
+	taxYearReportFilename,
+	YEAR_END_REPORT_TYPE,
+} from "../../../../supabase/functions/_shared/tax-year-reports";
 import { mutationKeys } from "../mutation-keys";
 import { fetchRevenueWithExpenses } from "./analytics-keys";
 
@@ -246,7 +251,7 @@ async function callGeneratePdfEdgeFunction(
 	} = await supabase.auth.getSession();
 	if (!session?.access_token) throw new Error("Not authenticated");
 
-	const filename = `${reportType}-${year}.pdf`;
+	const filename = `${taxYearReportFilename(reportType, year)}.pdf`;
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
 		method: "POST",
@@ -282,7 +287,7 @@ export const reportMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.reports.downloadYearEndPdf,
 			mutationFn: async (year: number): Promise<void> => {
-				await callGeneratePdfEdgeFunction("year-end", year);
+				await callGeneratePdfEdgeFunction(YEAR_END_REPORT_TYPE, year);
 			},
 		}),
 
@@ -290,7 +295,7 @@ export const reportMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.reports.downloadTaxDocumentPdf,
 			mutationFn: async (year: number): Promise<void> => {
-				await callGeneratePdfEdgeFunction("financial", year);
+				await callGeneratePdfEdgeFunction(TAX_DOCUMENTS_REPORT_TYPE, year);
 			},
 		}),
 };

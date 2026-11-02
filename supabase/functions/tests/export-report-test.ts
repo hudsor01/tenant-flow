@@ -11,7 +11,11 @@
 //   - the paywall: a free-tier owner gets the 402 with upgrade_url and no RPC
 //     runs;
 //   - every RPC error is a 500 and never a file;
-//   - format and year are validated, and a year-end export reads that year.
+//   - format and year are validated;
+//   - year-end, 1099 and financial (the tax-documents page) write the leaf's
+//     table of their page's figures for the year asked for, in every format
+//     (`_shared/tax-year-reports.ts`; the Vitest `__tests__/tax-year-reports
+//     .test.ts` proves those rows equal the pages').
 //
 // Run: deno test --allow-all --no-check \
 //   --import-map=supabase/functions/deno.json \
@@ -26,7 +30,15 @@ import {
 	FINANCIAL_ANALYTICS_HEADER,
 } from "../_shared/financial-analytics-report.ts";
 import { tableToCsv } from "../_shared/report-csv.ts";
+import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
+import {
+	buildTaxYearReport,
+	REPORT_1099_TYPE,
+	TAX_DOCUMENTS_REPORT_TYPE,
+	taxYearReportCalls,
+	YEAR_END_REPORT_TYPE,
+} from "../_shared/tax-year-reports.ts";
 
 Deno.env.set("DENO_TEST_NO_SERVE", "1");
 Deno.env.set("SUPABASE_URL", "http://supabase.test");
@@ -77,6 +89,22 @@ function answers(): RpcAnswers {
 		},
 		get_maintenance_analytics: {
 			data: { open_requests: 2, avg_resolution_hours: 5.5 },
+			error: null,
+		},
+		get_dashboard_stats: {
+			data: { revenue: { monthly: 5100, yearly: 61200 } },
+			error: null,
+		},
+		get_property_performance_analytics: {
+			data: [
+				{
+					property_id: "p1",
+					property_name: "Maple Court",
+					total_revenue: 61200,
+					total_expenses: 2120.5,
+					net_income: 59079.5,
+				},
+			],
 			error: null,
 		},
 	};
@@ -434,26 +462,83 @@ Deno.test("a missing token is a 401", async () => {
 	assertEquals(bad.status, 401);
 });
 
-Deno.test("a year-end export reads the requested year", async () => {
-	const { res, calls } = await run(
-		get("?type=year-end&format=csv&year=2024"),
-		scenario(),
-	);
-	assertEquals(res.status, 200);
-	assertEquals(
-		res.headers.get("Content-Disposition"),
-		'attachment; filename="year-end-2024.csv"',
-	);
-	assertEquals(calls.rpcs, [
+/** The tax-year report the leaf builds from the scenario's answers. */
+function expectedTaxYearReport(s: Scenario, reportType: string, year: number) {
+	return buildTaxYearReport(
+		reportType,
 		{
-			name: "get_financial_overview",
-			args: {
-				p_user_id: OWNER_ID,
-				p_start_date: "2024-01-01",
-				p_end_date: "2024-12-31",
-			},
+			dashboardStats: s.rpc.get_dashboard_stats?.data ?? null,
+			expenseSummary: s.rpc.get_expense_summary?.data ?? null,
+			propertyPerformance:
+				s.rpc.get_property_performance_analytics?.data ?? null,
 		},
-	]);
+		year,
+	);
+}
+
+const TAX_YEAR_FILES: ReadonlyArray<readonly [string, string]> = [
+	[YEAR_END_REPORT_TYPE, "year-end-2024"],
+	[REPORT_1099_TYPE, "1099-vendors-2024"],
+	[TAX_DOCUMENTS_REPORT_TYPE, "tax-documents-2024"],
+];
+
+Deno.test("year-end, 1099 and tax documents csv are their page's figures for the year", async () => {
+	for (const [type, filename] of TAX_YEAR_FILES) {
+		const s = scenario();
+		const { res, calls } = await run(
+			get(`?type=${type}&format=csv&year=2024`),
+			s,
+		);
+		assertEquals(res.status, 200, type);
+		assertEquals(
+			res.headers.get("Content-Disposition"),
+			`attachment; filename="${filename}.csv"`,
+		);
+		assertEquals(calls.rpcs, [...taxYearReportCalls(type, OWNER_ID, 2024)]);
+		const report = expectedTaxYearReport(s, type, 2024);
+		const body = await res.text();
+		assertEquals(body, tableToCsv(report.table.header, report.table.rows));
+		assert(!body.includes("overview"), type);
+	}
+	const s = scenario();
+	const { res } = await run(get("?type=year-end&format=csv&year=2024"), s);
+	const lines = (await res.text()).split("\n");
+	assert(lines.includes("Summary,Gross Rental Income,,61200,,,,"));
+	assert(lines.includes("By Property,Maple Court,,,61200,2120.5,59079.5,"));
+	assert(lines.includes("Expense Breakdown,'=HYPERLINK(1),,120,,,,"));
+});
+
+Deno.test("year-end, 1099 and tax documents pdf post the sectioned HTML", async () => {
+	for (const [type, filename] of TAX_YEAR_FILES) {
+		await withPdfStub(true, async (posts) => {
+			const s = scenario();
+			const { res } = await run(get(`?type=${type}&format=pdf&year=2024`), s);
+			assertEquals(res.status, 200, type);
+			const report = expectedTaxYearReport(s, type, 2024);
+			assertEquals(posts.length, 1);
+			assertEquals(posts[0]?.body, {
+				html: sectionedReportHtml(
+					report.title,
+					TODAY,
+					report.table.header,
+					report.table.rows,
+				),
+				filename: `${filename}.pdf`,
+			});
+			assertStringIncludes(posts[0]?.body.html ?? "", "2024");
+		});
+	}
+});
+
+Deno.test("year-end, 1099 and tax documents are gated: 402, no RPC", async () => {
+	for (const [type] of TAX_YEAR_FILES) {
+		const { res, calls } = await run(
+			get(`?type=${type}&format=csv&year=2024`),
+			scenario({ plan: "free" }),
+		);
+		assertEquals(res.status, 402, type);
+		assertEquals(calls.rpcs, []);
+	}
 });
 
 Deno.test("a row report's xlsx is a real workbook of its rows", async () => {
