@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
 import { createClient } from "#lib/supabase/client";
@@ -54,46 +55,7 @@ export function AccountDataSection() {
 	});
 
 	const exportData = useMutation({
-		mutationFn: async () => {
-			const supabase = createClient();
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session?.access_token) throw new Error("Not authenticated");
-
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-			const response = await fetch(
-				`${supabaseUrl}/functions/v1/export-user-data`,
-				{
-					method: "GET",
-					headers: { Authorization: `Bearer ${session.access_token}` },
-				},
-			);
-
-			if (!response.ok) {
-				const body = await response.json().catch(() => ({}));
-				throw new Error(
-					((body as Record<string, unknown>).error as string) ||
-						"Export failed",
-				);
-			}
-
-			const blob = await response.blob();
-			const url = URL.createObjectURL(blob);
-			const disposition = response.headers.get("Content-Disposition");
-			const filenameMatch = disposition?.match(/filename="(.+)"/);
-			const filename =
-				filenameMatch?.[1] ??
-				`tenantflow-data-export-${new Date().toISOString().split("T")[0]}.json`;
-
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-		},
+		mutationFn: downloadAccountData,
 		onSuccess: () => toast.success("Data export downloaded successfully"),
 		onError: () => toast.error("Failed to export data. Please try again."),
 	});

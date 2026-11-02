@@ -49,6 +49,7 @@ import {
 } from "#hooks/api/query-keys/document-search-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
 import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
 import { type DocumentCategory } from "#lib/validation/documents";
 import { DocumentRow } from "./document-row";
@@ -325,16 +326,8 @@ export function DocumentsVaultClient() {
 					`bulk download buffering ${totalCount} documents in memory; large archives may strain low-spec browsers`,
 				);
 			}
-			const blob = await res.blob();
-			const url = URL.createObjectURL(blob);
 			const today = new Date().toISOString().slice(0, 10);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `tenantflow-documents-${today}.zip`;
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
+			downloadBlob(await res.blob(), `tenantflow-documents-${today}.zip`);
 		} catch (err) {
 			toast.error(
 				err instanceof Error ? err.message : "Download failed unexpectedly.",

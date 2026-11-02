@@ -9,6 +9,8 @@
 
 import Papa from "papaparse";
 import type { z } from "zod";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
 import type { BulkImportParseResult } from "./types";
 
 export const CSV_MAX_ROWS = 100;
@@ -34,22 +36,7 @@ export function buildCsvTemplate(
 }
 
 export function triggerCsvDownload(content: string, filename: string): void {
-	const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
-	const url = URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.setAttribute("href", url);
-	link.setAttribute("download", filename);
-	// Firefox + Safari require the anchor to be in the DOM for the click to
-	// dispatch a download. `sr-only` hides it without an inline style (the
-	// prior `link.style.visibility = 'hidden'` tripped the CLAUDE.md rule).
-	link.className = "sr-only";
-	document.body.appendChild(link);
-	try {
-		link.click();
-	} finally {
-		document.body.removeChild(link);
-		URL.revokeObjectURL(url);
-	}
+	downloadBlob(new Blob([content], { type: CSV_MIME_TYPE }), filename);
 }
 
 export function getFileValidationError(file: File): string | null {

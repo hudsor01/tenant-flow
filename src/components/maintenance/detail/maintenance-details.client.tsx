@@ -17,6 +17,7 @@ import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
 import { ExpensesCard } from "./expenses-card";
 import { MaintenanceHeaderCard } from "./maintenance-header-card";
@@ -81,12 +82,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		const blob = new Blob([JSON.stringify(exportData, null, 2)], {
 			type: "application/json",
 		});
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `maintenance-${id}.json`;
-		a.click();
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, `maintenance-${id}.json`);
 		toast.success("Export downloaded");
 	};
 
