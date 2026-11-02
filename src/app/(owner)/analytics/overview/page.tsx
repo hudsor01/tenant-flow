@@ -13,15 +13,38 @@ const ChartAreaInteractive = dynamic(
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
 
-import { BarChart3, Building2, TrendingDown, TrendingUp } from "lucide-react";
+import { BarChart3, Building2 } from "lucide-react";
 import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
 import { Badge } from "#components/ui/badge";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
-import { useDashboardStats } from "#hooks/api/use-dashboard-hooks";
+import {
+	useDashboardStats,
+	usePropertyPerformance,
+} from "#hooks/api/use-dashboard-hooks";
+import { formatCurrency } from "#lib/utils/currency";
 import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
 import type { PropertyPerformance } from "#types/core";
 import { AnalyticsStatCards } from "./analytics-stat-cards";
+
+/** How many properties the Top Performing Properties card lists. */
+const TOP_PROPERTY_COUNT = 5;
+
+/**
+ * The card's properties: highest monthly revenue first (the scheduled rent of
+ * each property's active leases), ties by name, the first five.
+ */
+function topPropertiesByRevenue(
+	properties: readonly PropertyPerformance[],
+): PropertyPerformance[] {
+	return [...properties]
+		.sort(
+			(a, b) =>
+				b.monthlyRevenue - a.monthlyRevenue ||
+				a.property.localeCompare(b.property),
+		)
+		.slice(0, TOP_PROPERTY_COUNT);
+}
 
 function AnalyticsSkeleton() {
 	return (
@@ -73,6 +96,11 @@ export default function AnalyticsPage() {
 		analyticsQueries.ownerPaymentSummary(),
 	);
 	const { data: dashboardStats } = useDashboardStats();
+	const {
+		data: propertyPerformance,
+		isLoading: propertiesLoading,
+		isError: propertiesError,
+	} = usePropertyPerformance();
 
 	if (overviewLoading) {
 		return <AnalyticsSkeleton />;
@@ -80,7 +108,7 @@ export default function AnalyticsPage() {
 
 	const { financial } = overviewData || {};
 	const financialMetrics = financial?.metrics;
-	const properties = [] as PropertyPerformance[];
+	const topProperties = topPropertiesByRevenue(propertyPerformance ?? []);
 
 	const occupancyRate = dashboardStats?.stats?.units?.occupancyRate ?? 0;
 	const occupancyChange = dashboardStats?.stats?.units?.occupancyChange ?? 0;
@@ -168,43 +196,45 @@ export default function AnalyticsPage() {
 							</div>
 						</div>
 						<div className="space-y-3">
-							{properties.length > 0 ? (
-								properties.slice(0, 5).map((property, index: number) => (
+							{propertiesLoading ? (
+								Array.from({ length: TOP_PROPERTY_COUNT }).map((_, i) => (
+									<Skeleton key={i} className="h-14 w-full" />
+								))
+							) : propertiesError ? (
+								<div className="text-center text-muted-foreground py-8">
+									Property data could not be loaded.
+								</div>
+							) : topProperties.length > 0 ? (
+								topProperties.map((property, index) => (
 									<BlurFade
-										key={property.property ?? `property-${index}`}
+										key={property.property_id}
 										delay={0.8 + index * 0.05}
 									>
-										<div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors">
-											<div className="flex items-center gap-3">
-												<div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
+										<div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/20">
+											<div className="flex min-w-0 items-center gap-3">
+												<div className="size-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
 													<Building2 className="w-5 h-5 text-primary" />
 												</div>
-												<div>
-													<p className="font-medium text-foreground">
-														{property.property || "Unknown Property"}
+												<div className="min-w-0">
+													<p className="truncate font-medium text-foreground">
+														{property.property}
 													</p>
 													<p className="text-sm text-muted-foreground">
-														{property.occupiedUnits || 0}/
-														{property.totalUnits || 0} units occupied
+														{formatCurrency(property.monthlyRevenue)}/mo ·{" "}
+														{property.occupiedUnits}/{property.totalUnits} units
+														occupied
 													</p>
 												</div>
 											</div>
 											<Badge
 												variant={
-													(property.occupancyRate || 0) >= 90
+													property.occupancyRate >= 90
 														? "default"
 														: "destructive"
 												}
-												className="text-xs"
+												className="shrink-0 text-xs"
 											>
-												{(property.occupancyRate || 0) >= 90 ? (
-													<TrendingUp className="size-3 mr-1" />
-												) : (
-													<TrendingDown className="size-3 mr-1" />
-												)}
-												{property.occupancyRate
-													? `${property.occupancyRate.toFixed(1)}%`
-													: "0.0%"}
+												{property.occupancyRate.toFixed(1)}%
 											</Badge>
 										</div>
 									</BlurFade>

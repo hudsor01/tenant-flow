@@ -83,6 +83,11 @@ vi.mock("#hooks/api/use-analytics", () => ({
 }));
 vi.mock("#hooks/api/use-dashboard-hooks", () => ({
 	useDashboardStats: () => ({ data: undefined }),
+	usePropertyPerformance: () => ({
+		data: [],
+		isLoading: false,
+		isError: false,
+	}),
 }));
 
 function renderPage(ui: ReactElement) {
