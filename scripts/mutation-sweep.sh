@@ -437,6 +437,50 @@ mutate "$CONTRACT" 'if (typeof on === "string") return { [on]: null };' \
                    'the scalar form of on: is not understood'
 mutate "$CONTRACT" 'if (workflows.length === 0) {' 'if (false) {' \
                    'an empty workflow directory passes'
+mutate "$REPLAY" 'if (blogText === "") {' 'if (false) {' \
+                 'empty blog-banlist output is not reported as a broken fixture'
+mutate "$REPLAY" 'if (blogParsed === null) {' 'if (false) {' \
+                 'unparseable blog-banlist output is compared anyway'
+mutate "$REPLAY" 'contentCase?.["state"] === "23514" &&' 'false &&' \
+                 'the content-only blog body is not named'
+mutate "$REPLAY" 'titleCase?.["state"] === "00000" &&' '' \
+                 'the content-only diagnosis ignores the title'
+mutate "$REPLAY" 'excerptCase?.["state"] === "00000"
+	) {' 'true
+	) {' \
+                 'the content-only diagnosis ignores the excerpt'
+mutate "$REPLAY" 'contentCase?.["state"] === "23514" &&' 'true &&' \
+                 'the content-only diagnosis ignores the content'
+mutate "$REPLAY" 'for (const [label, expected] of Object.entries(EXPECTED_BLOG_BANLIST)) {' \
+                 'for (const [label, expected] of Object.entries({ "clean-published": EXPECTED_BLOG_BANLIST["clean-published"] })) {' \
+                 'only one blog-banlist case is compared'
+mutate "$REPLAY" '{ state: expected.state, message: expected.message ?? null },' \
+                 '{ state: expected.state },' \
+                 'a blog rejection'"'"'s message (phrase and field) is not compared'
+mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_PRIVILEGES,' '		{},' \
+                 'the blog trigger function'"'"'s privileges are not compared'
+mutate "$REPLAY" ': { ...privileges, config: JSON.stringify(privileges["config"]) },' \
+                 ': { ...privileges, config: '"'"'["search_path=public"]'"'"' },' \
+                 'the blog trigger function'"'"'s search_path is not compared'
+mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_TRIGGER,' '		{},' \
+                 'the blog trigger itself is not compared'
+mutate "$REPLAY" '	"update-published-to-published": ACCEPTED,' \
+                 '	"update-published-to-published": personaHit("title"),' \
+                 'the blog expectation regates an UPDATE of a published post'
+mutate "$REPLAY" '		message: `banlist hit: property owner (persona word found in ${field})`,' \
+                 '		message: `banlist hit: property owner (persona word found in content)`,' \
+                 'the blog expectation names no field for a persona hit'
+mutate "$REPLAY" 'acl: "{postgres=X/postgres}",' \
+                 'acl: "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",' \
+                 'the blog expectation keeps the replayed chain'"'"'s EXECUTE grants'
+mutate "$REPLAY" '	if (mismatches.length > 0) {
+		return {
+			ok: false,
+			message: `validate_blog_post does not decide' '	if (false) {
+		return {
+			ok: false,
+			message: `validate_blog_post does not decide' \
+                 'a blog-banlist mismatch passes'
 mutate "$CONTRACT" 'if (sortedReal.join("\n") !== sortedCompanion.join("\n")) {' 'if (false) {' \
                    'the companion job-name equality is dropped'
 
@@ -476,6 +520,9 @@ mutate "$REPLAY_CLI" 'finish(assertBillingInsightsFromLedger(readFileSync(0, "ut
 mutate "$REPLAY_CLI" 'finish(assertPropertyPerformanceRentReceived(readFileSync(0, "utf8")));' \
                      'finish({ ok: true, message: "property-performance" });' \
                      'the replay CLI ignores the property-performance input'
+mutate "$REPLAY_CLI" 'finish(assertBlogBanlistGate(readFileSync(0, "utf8")));' \
+                     'finish({ ok: true, message: "blog-banlist" });' \
+                     'the replay CLI ignores the blog-banlist input'
 
 echo
 echo "=== restore check ==="

@@ -12,12 +12,14 @@
 import { describe, expect, it } from "vitest";
 import {
 	assertBillingInsightsFromLedger,
+	assertBlogBanlistGate,
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
 	assertOwnerFiguresComputed,
 	assertPropertyPerformanceRentReceived,
 	assertSeededCast,
 	EXPECTED_BILLING_INSIGHTS,
+	EXPECTED_BLOG_BANLIST,
 	EXPECTED_SEEDED_CAST,
 	expectedOwnerFigures,
 	expectedPropertyPerformance,
@@ -1977,5 +1979,367 @@ describe("expectedOwnerFigures", () => {
 		expect(trends?.[10]?.["avg_resolution_hours"]).toBe(1358);
 		expect(trends?.[11]?.["avg_resolution_hours"]).toBe(734);
 		expect(trends?.[8]?.["avg_resolution_hours"]).toBeNull();
+	});
+});
+
+/**
+ * What scripts/migration-replay-blog-banlist.sql printed on the replayed stack
+ * with 20261102230101 applied, and with production's body of
+ * validate_blog_post (md5 33667bfe24d7566b1e7effaa292c8bcd) put back in its
+ * place under production's ACL.
+ */
+const REPLAYED_BLOG_BANLIST = {
+	"clean-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"clean-published": {
+		state: "00000",
+		message: null,
+	},
+	"ownership-every-field": {
+		state: "00000",
+		message: null,
+	},
+	"persona-content-in-review": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in content)",
+	},
+	"persona-content-published": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in content)",
+	},
+	"persona-draft": {
+		state: "00000",
+		message: null,
+	},
+	"persona-excerpt-in-review": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in excerpt)",
+	},
+	"persona-excerpt-published": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in excerpt)",
+	},
+	"persona-title-in-review": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"persona-title-published": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"phrase-content-in-review": {
+		state: "23514",
+		message:
+			"banlist hit: tenant portal (Phase 4 banlist phrase found in content)",
+	},
+	"phrase-content-published": {
+		state: "23514",
+		message:
+			"banlist hit: tenant portal (Phase 4 banlist phrase found in content)",
+	},
+	"phrase-excerpt-in-review": {
+		state: "23514",
+		message: "banlist hit: autopay (Phase 4 banlist phrase found in excerpt)",
+	},
+	"phrase-excerpt-published": {
+		state: "23514",
+		message: "banlist hit: autopay (Phase 4 banlist phrase found in excerpt)",
+	},
+	"phrase-title-in-review": {
+		state: "23514",
+		message:
+			"banlist hit: rent collection (Phase 4 banlist phrase found in title)",
+	},
+	"phrase-title-published": {
+		state: "23514",
+		message:
+			"banlist hit: rent collection (Phase 4 banlist phrase found in title)",
+	},
+	privileges: {
+		acl: "{postgres=X/postgres}",
+		config: ["search_path=public"],
+		volatility: "v",
+		security_definer: true,
+	},
+	trigger: {
+		type: 23,
+		enabled: "O",
+		function: "validate_blog_post()",
+	},
+	"update-draft-to-published": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in excerpt)",
+	},
+	"update-published-to-published": {
+		state: "00000",
+		message: null,
+	},
+	"word-character-after": {
+		state: "00000",
+		message: null,
+	},
+};
+const PRODUCTION_BODY_BLOG_BANLIST = {
+	"clean-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"clean-published": {
+		state: "00000",
+		message: null,
+	},
+	"ownership-every-field": {
+		state: "00000",
+		message: null,
+	},
+	"persona-content-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"persona-content-published": {
+		state: "00000",
+		message: null,
+	},
+	"persona-draft": {
+		state: "00000",
+		message: null,
+	},
+	"persona-excerpt-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"persona-excerpt-published": {
+		state: "00000",
+		message: null,
+	},
+	"persona-title-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"persona-title-published": {
+		state: "00000",
+		message: null,
+	},
+	"phrase-content-in-review": {
+		state: "23514",
+		message:
+			"banlist hit: tenant portal (Phase 4 banlist phrase found in content)",
+	},
+	"phrase-content-published": {
+		state: "23514",
+		message:
+			"banlist hit: tenant portal (Phase 4 banlist phrase found in content)",
+	},
+	"phrase-excerpt-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"phrase-excerpt-published": {
+		state: "00000",
+		message: null,
+	},
+	"phrase-title-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"phrase-title-published": {
+		state: "00000",
+		message: null,
+	},
+	privileges: {
+		acl: "{postgres=X/postgres}",
+		config: ["search_path=public"],
+		volatility: "v",
+		security_definer: true,
+	},
+	trigger: {
+		type: 23,
+		enabled: "O",
+		function: "validate_blog_post()",
+	},
+	"update-draft-to-published": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-to-published": {
+		state: "00000",
+		message: null,
+	},
+	"word-character-after": {
+		state: "00000",
+		message: null,
+	},
+};
+
+function blogLine(
+	patch: Record<string, unknown> = {},
+	base: Record<string, unknown> = REPLAYED_BLOG_BANLIST,
+): string {
+	return JSON.stringify({ ...base, ...patch });
+}
+
+describe("assertBlogBanlistGate", () => {
+	it("passes on the line the replayed stack printed", () => {
+		const result = assertBlogBanlistGate(`${blogLine()}\n`);
+		expect(result.ok).toBe(true);
+		expect(result.message).toContain("rejects a banlist phrase");
+	});
+
+	it("names the content-only body when production's body comes back", () => {
+		const result = assertBlogBanlistGate(
+			blogLine({}, PRODUCTION_BODY_BLOG_BANLIST),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("read NEW.content only");
+	});
+
+	it("lists production's body's other gaps once the phrases are fixed in every field", () => {
+		const result = assertBlogBanlistGate(
+			blogLine(
+				{
+					"phrase-title-published":
+						REPLAYED_BLOG_BANLIST["phrase-title-published"],
+					"phrase-excerpt-published":
+						REPLAYED_BLOG_BANLIST["phrase-excerpt-published"],
+				},
+				PRODUCTION_BODY_BLOG_BANLIST,
+			),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("read NEW.content only");
+		expect(result.message).toContain(
+			'persona-content-published.state: expected "23514", got "00000"',
+		);
+		expect(result.message).toContain(
+			'phrase-title-in-review.state: expected "23514", got "00000"',
+		);
+		expect(result.message).toContain(
+			'update-draft-to-published.state: expected "23514", got "00000"',
+		);
+	});
+
+	it.each(["phrase-title-published", "phrase-excerpt-published"] as const)(
+		"does not call it the content-only body when %s is rejected",
+		(label) => {
+			const result = assertBlogBanlistGate(
+				blogLine(
+					{ [label]: REPLAYED_BLOG_BANLIST[label] },
+					PRODUCTION_BODY_BLOG_BANLIST,
+				),
+			);
+			expect(result.ok).toBe(false);
+			expect(result.message).not.toContain("read NEW.content only");
+			expect(result.message).toContain("does not decide the fixture's posts");
+		},
+	);
+
+	it("does not call it the content-only body when the content phrase also passes", () => {
+		const result = assertBlogBanlistGate(
+			blogLine(
+				{
+					"phrase-content-published": { state: "00000", message: null },
+				},
+				PRODUCTION_BODY_BLOG_BANLIST,
+			),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("read NEW.content only");
+	});
+
+	it.each(Object.keys(EXPECTED_BLOG_BANLIST))(
+		"fails when case %s is decided the other way",
+		(label) => {
+			const flipped =
+				EXPECTED_BLOG_BANLIST[label]?.state === "00000"
+					? {
+							state: "23514",
+							message:
+								"banlist hit: property owner (persona word found in title)",
+						}
+					: { state: "00000", message: null };
+			const result = assertBlogBanlistGate(blogLine({ [label]: flipped }));
+			expect(result.ok).toBe(false);
+			expect(result.message).toContain(`${label}.state: expected`);
+		},
+	);
+
+	it.each(Object.keys(EXPECTED_BLOG_BANLIST))(
+		"fails when case %s is missing",
+		(label) => {
+			const line = JSON.parse(blogLine());
+			delete line[label];
+			const result = assertBlogBanlistGate(JSON.stringify(line));
+			expect(result.ok).toBe(false);
+			expect(result.message).toContain(`${label}: absent or not an object`);
+		},
+	);
+
+	it("fails when a rejection names another field", () => {
+		const result = assertBlogBanlistGate(
+			blogLine({
+				"persona-excerpt-published": {
+					state: "23514",
+					message:
+						"banlist hit: property owner (persona word found in content)",
+				},
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("persona-excerpt-published.message");
+	});
+
+	it.each([
+		["acl", "{=X/postgres,postgres=X/postgres,service_role=X/postgres}"],
+		["acl", "{postgres=X/postgres,service_role=X/postgres}"],
+		["volatility", "s"],
+		["security_definer", false],
+		["config", ["search_path=public, extensions"]],
+		["config", null],
+	])("fails when the function's %s is %j", (key, value) => {
+		const result = assertBlogBanlistGate(
+			blogLine({
+				privileges: { ...REPLAYED_BLOG_BANLIST["privileges"], [key]: value },
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(`privileges.${key}: expected`);
+	});
+
+	it.each([
+		["type", 7],
+		["enabled", "D"],
+		["function", "validate_blog_post_old()"],
+	])("fails when the trigger's %s is %j", (key, value) => {
+		const result = assertBlogBanlistGate(
+			blogLine({
+				trigger: { ...REPLAYED_BLOG_BANLIST["trigger"], [key]: value },
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(`trigger.${key}: expected`);
+	});
+
+	it.each([
+		["", "printed nothing"],
+		["   \n", "printed nothing"],
+		["not json", "did not print a JSON object"],
+		["[]", "did not print a JSON object"],
+		["null", "did not print a JSON object"],
+	])("refuses %j as a broken fixture", (raw, phrase) => {
+		const result = assertBlogBanlistGate(raw);
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(phrase);
+	});
+
+	it("fails when privileges or the trigger are absent", () => {
+		const line = JSON.parse(blogLine());
+		delete line.privileges;
+		delete line.trigger;
+		const result = assertBlogBanlistGate(JSON.stringify(line));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain("privileges: absent or not an object");
+		expect(result.message).toContain("trigger: absent or not an object");
 	});
 });

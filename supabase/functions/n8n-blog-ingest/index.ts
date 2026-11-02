@@ -3,10 +3,10 @@
 // Receives draft blog posts from the n8n content factory (Plan 06-03 / BLOG-03).
 // Verifies an HMAC-SHA256 signature shipped in the `x-n8n-signature` header against
 // the EXACT request body bytes, then runs 9 validation gates as defense-in-depth
-// (the DB BEFORE-INSERT trigger `validate_blog_post` in migration
-// 20260510214935_phase_6_validation_triggers.sql is the source of truth — these
-// preflight gates only exist to fail fast with structured error responses and to
-// keep load off the DB on obviously-broken payloads).
+// (the DB BEFORE-INSERT trigger `validate_blog_post`, whose live body is in
+// migration 20261102230101_blog_banlist_persona_and_fields.sql, is the source of
+// truth — these preflight gates only exist to fail fast with structured error
+// responses and to keep load off the DB on obviously-broken payloads).
 //
 // On success: INSERT into `public.blogs` with `status='published'` + a
 // `published_at` stamp (service-role client; this endpoint bypasses RLS — HMAC is
@@ -24,6 +24,7 @@
 //   500 — { error: 'An error occurred' }   (generic; full detail in Sentry)
 
 import { createClient } from "@supabase/supabase-js";
+import { findBlogBanlistHit } from "../_shared/blog-banlist.ts";
 import { getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import {
@@ -59,11 +60,14 @@ interface GateFailure {
 
 // ---------------------------------------------------------------------------
 // Constants — kept in lockstep with:
-//   - migration 20260510214935_phase_6_validation_triggers.sql (DB trigger)
+//   - migration 20261102230101_blog_banlist_persona_and_fields.sql (the DB
+//     trigger's live body; first written in 20260510214935)
 //   - 06-CONTEXT.md § "9 Validation Gates (LOCKED)"
 //   - 06-CONTEXT.md § "Slug Naming Pattern (LOCKED)"
 //   - src/app/__tests__/marketing-copy-landlord-only.test.ts (banlist source)
 //   - src/lib/seo/__tests__/banlist-parity.test.ts (banlist drift guard: EF==script==trigger)
+// The banlist itself (gate 8) is ../_shared/blog-banlist.ts, so the unit suite
+// tests the gate this function runs.
 // The numeric gate thresholds below (word 1200-3000, H2 4-10, meta 50-160,
 // excerpt 80-200, slug 3-120, DocuSeal <=1) are ALSO hand-duplicated in
 // scripts/generate-blog-draft.ts and the trigger — change all three together.
@@ -80,31 +84,6 @@ const VALID_CATEGORIES = [
 // Plan 06-01 Blocker-#4: slug MUST start with a lowercase letter (closes the
 // numeric-only-slug class). Matches the DB CHECK constraint exactly.
 const SLUG_REGEX = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
-
-// Banlist mirrors the Phase 4 marketing-copy-landlord-only test BANNED_PHRASES
-// (lowercase). When this list drifts, update the DB trigger in lockstep.
-const BANLIST = [
-	"rent collection",
-	"online rent",
-	"autopay",
-	"auto-pay",
-	"tenant portal",
-	"automated rent",
-	"collect rent",
-	"rent processing",
-	"pay rent online",
-	"online payments",
-	"online rent payment",
-	"rent collection software",
-	"tenants can pay",
-	"pay rent through",
-	"automated workflow",
-	"rent tracking",
-	"mobile app access",
-	"record rent",
-	"paid rent",
-	"pay rent",
-] as const;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -252,17 +231,16 @@ function runGates(p: IngestPayload): GateFailure[] {
 		});
 	}
 
-	// Gate 8: banlist (case-insensitive). First hit terminates the loop —
-	// the n8n flow surfaces a single phrase to fix and resubmits.
-	const lowerContent = p.content.toLowerCase();
-	for (const phrase of BANLIST) {
-		if (lowerContent.includes(phrase)) {
-			failures.push({
-				gate: "banlist",
-				message: `phrase found: ${phrase}`,
-			});
-			break;
-		}
+	// Gate 8: banlist, in the title, the excerpt and the content: the phrases
+	// as substrings with case ignored, then the persona words as
+	// persona-consistency.spec.ts bans them (_shared/blog-banlist.ts). The first
+	// hit only — the n8n flow surfaces one phrase to fix and resubmits.
+	const banned = findBlogBanlistHit(p);
+	if (banned !== null) {
+		failures.push({
+			gate: "banlist",
+			message: `${banned.kind === "persona" ? "persona word" : "phrase"} found in ${banned.field}: ${banned.phrase}`,
+		});
 	}
 
 	// Gate 9: DocuSeal mention count ≤ 1 (Phase 4 COPY-04 de-amp)
@@ -449,7 +427,7 @@ Deno.serve(async (req: Request) => {
 					{
 						prefix: "banlist hit",
 						gate: "banlist",
-						hint: "content contains a Phase 4 banned phrase (rent collection, autopay, etc.)",
+						hint: "the title, excerpt or content contains a Phase 4 banned phrase (rent collection, autopay, etc.) or the persona word property owner",
 					},
 					{
 						prefix: "DocuSeal mention count too high",

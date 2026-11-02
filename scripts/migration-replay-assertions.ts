@@ -1855,3 +1855,170 @@ export function assertSeededCast(rowsRaw: string): AssertionResult {
 		message: `seeded users are not in the state the suites require. Owner A must be subscription_status=active or the proxy gate sends e2e to /pricing, the admin must have is_admin=true, and each must have exactly 1 auth.identities row.${missing.length > 0 ? `\nmissing:\n${missing.join("\n")}` : ""}${unexpected.length > 0 ? `\nunexpected:\n${unexpected.join("\n")}` : ""}${duplicated.length > 0 ? `\nreturned more than once (the join matched extra rows):\n${duplicated.join("\n")}` : ""}`,
 	};
 }
+
+/** What one fixture statement of the blog-banlist fixture must end in. */
+interface BlogBanlistOutcome {
+	/** The SQLSTATE: `00000` for an accepted statement, `23514` for a gate's. */
+	readonly state: "00000" | "23514";
+	/** The gate's message, exactly, when it is rejected. */
+	readonly message?: string;
+}
+
+function personaHit(field: string): BlogBanlistOutcome {
+	return {
+		state: "23514",
+		message: `banlist hit: property owner (persona word found in ${field})`,
+	};
+}
+
+function phraseHit(phrase: string, field: string): BlogBanlistOutcome {
+	return {
+		state: "23514",
+		message: `banlist hit: ${phrase} (Phase 4 banlist phrase found in ${field})`,
+	};
+}
+
+const ACCEPTED: BlogBanlistOutcome = { state: "00000" };
+
+/**
+ * Each case of scripts/migration-replay-blog-banlist.sql (its header lists
+ * them), as validate_blog_post must decide it. Every post passes the other
+ * gates, so a rejection is the banlist's, and its message names the phrase and
+ * the field: the title, the excerpt and the content are each checked, at
+ * in-review and at published, for the phrases (a substring, case ignored) and
+ * the persona word with persona-consistency.spec.ts's semantics
+ * (/property owners?\b/i: "single-property owner", "multiproperty owners",
+ * "Property Owners" and a content ending "PROPERTY OWNER" match; "property
+ * ownership", "property owner_id" and "property owners2" do not).
+ */
+export const EXPECTED_BLOG_BANLIST: Readonly<
+	Record<string, BlogBanlistOutcome>
+> = {
+	"persona-title-in-review": personaHit("title"),
+	"persona-excerpt-in-review": personaHit("excerpt"),
+	"persona-content-in-review": personaHit("content"),
+	"persona-title-published": personaHit("title"),
+	"persona-excerpt-published": personaHit("excerpt"),
+	"persona-content-published": personaHit("content"),
+	"phrase-title-in-review": phraseHit("rent collection", "title"),
+	"phrase-excerpt-in-review": phraseHit("autopay", "excerpt"),
+	"phrase-content-in-review": phraseHit("tenant portal", "content"),
+	"phrase-title-published": phraseHit("rent collection", "title"),
+	"phrase-excerpt-published": phraseHit("autopay", "excerpt"),
+	"phrase-content-published": phraseHit("tenant portal", "content"),
+	"ownership-every-field": ACCEPTED,
+	"word-character-after": ACCEPTED,
+	"clean-in-review": ACCEPTED,
+	"clean-published": ACCEPTED,
+	// Drafts are not gated.
+	"persona-draft": ACCEPTED,
+	// An UPDATE of a row already in-review or published is not gated, as
+	// before 20261102230101: no existing post is rechecked.
+	"update-published-to-published": ACCEPTED,
+	"update-draft-to-published": personaHit("excerpt"),
+};
+
+/**
+ * The function's privileges as production has them: EXECUTE for its owner
+ * only. The replayed chain leaves PUBLIC and service_role with EXECUTE, which
+ * 20261102230101 revokes; the fixture's inserts run as service_role, so a
+ * rejection above also proves the trigger fires without it.
+ */
+export const EXPECTED_BLOG_BANLIST_PRIVILEGES: Readonly<
+	Record<string, string | boolean>
+> = {
+	acl: "{postgres=X/postgres}",
+	volatility: "v",
+	security_definer: true,
+	config: '["search_path=public"]',
+};
+
+/** The trigger: BEFORE INSERT OR UPDATE, FOR EACH ROW (1 + 2 + 4 + 16), enabled. */
+export const EXPECTED_BLOG_BANLIST_TRIGGER: Readonly<
+	Record<string, string | number>
+> = { function: "validate_blog_post()", type: 23, enabled: "O" };
+
+/**
+ * `validate_blog_post` must reject a banned phrase or persona word in a post's
+ * title, excerpt or content.
+ *
+ * Until 20261102230101_blog_banlist_persona_and_fields.sql gate 8 read
+ * NEW.content only and carried no persona word, so a post whose excerpt said
+ * "single-property owner" published to /blog, where
+ * persona-consistency.spec.ts bans it, and nothing in CI ran the trigger. This
+ * checks every case's outcome and message, the function's privileges and the
+ * trigger, in the stack this workflow replayed.
+ */
+export function assertBlogBanlistGate(raw: string): AssertionResult {
+	const blogText = raw.trim();
+	if (blogText === "") {
+		return {
+			ok: false,
+			message:
+				"the blog-banlist fixture printed nothing. psql ran scripts/migration-replay-blog-banlist.sql without producing its one JSON line, so this is a broken fixture or query, NOT a gate decision.",
+		};
+	}
+	const blogParsed = parseJsonObject(blogText);
+	if (blogParsed === null) {
+		return {
+			ok: false,
+			message: `the blog-banlist fixture did not print a JSON object, read ${JSON.stringify(blogText)}. The fixture's final select or the psql flags (-t -A -q) changed, so nothing here can compare an outcome.`,
+		};
+	}
+
+	// THE DEFECT THIS CHECK EXISTS FOR. A phrase in the content rejected while
+	// the same gate passes it in the title and the excerpt is the body that read
+	// NEW.content only.
+	const contentCase = asJsonObject(blogParsed["phrase-content-published"]);
+	const titleCase = asJsonObject(blogParsed["phrase-title-published"]);
+	const excerptCase = asJsonObject(blogParsed["phrase-excerpt-published"]);
+	if (
+		contentCase?.["state"] === "23514" &&
+		titleCase?.["state"] === "00000" &&
+		excerptCase?.["state"] === "00000"
+	) {
+		return {
+			ok: false,
+			message:
+				"validate_blog_post rejected a banlist phrase in a post's content but published the same kind of phrase in its title and its excerpt: that is the gate that read NEW.content only. 20261102230101_blog_banlist_persona_and_fields.sql did not apply, or a later migration replaced it with an older body.",
+		};
+	}
+
+	const mismatches: string[] = [];
+	for (const [label, expected] of Object.entries(EXPECTED_BLOG_BANLIST)) {
+		const actual = asJsonObject(blogParsed[label]);
+		collectMismatches(
+			label,
+			actual,
+			{ state: expected.state, message: expected.message ?? null },
+			mismatches,
+		);
+	}
+	const privileges = asJsonObject(blogParsed["privileges"]);
+	collectMismatches(
+		"privileges",
+		privileges === null
+			? null
+			: { ...privileges, config: JSON.stringify(privileges["config"]) },
+		EXPECTED_BLOG_BANLIST_PRIVILEGES,
+		mismatches,
+	);
+	collectMismatches(
+		"trigger",
+		asJsonObject(blogParsed["trigger"]),
+		EXPECTED_BLOG_BANLIST_TRIGGER,
+		mismatches,
+	);
+
+	if (mismatches.length > 0) {
+		return {
+			ok: false,
+			message: `validate_blog_post does not decide the fixture's posts as the banlist requires. EXPECTED_BLOG_BANLIST in scripts/migration-replay-assertions.ts gives each case's outcome; fix the function (or, if the fixture changed, both files together), not this check.\n${mismatches.join("\n")}`,
+		};
+	}
+	return {
+		ok: true,
+		message:
+			"validate_blog_post rejects a banlist phrase and the persona word in the title, the excerpt and the content at in-review and at published (as service_role, which holds no EXECUTE), with the spec's semantics (no word start, case ignored, an optional plural, a word end), accepts \"property ownership\", a word character after the word, a clean post and a draft, does not regate an UPDATE of a published post, gates a draft's UPDATE to published, and its privileges are production's",
+	};
+}

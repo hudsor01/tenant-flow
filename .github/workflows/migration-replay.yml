@@ -50,6 +50,7 @@ on:
       - scripts/migration-replay-billing-insights.sql
       - scripts/migration-replay-property-performance.sql
       - scripts/migration-replay-owner-figures.sql
+      - scripts/migration-replay-blog-banlist.sql
       # The negative controls, and the shared result module: a change that
       # weakens a control has to run the gate it guards. (The result module's
       # own controls are in scripts/assertion-result.test.ts, because a green
@@ -242,6 +243,23 @@ jobs:
             -v ON_ERROR_STOP=1 < scripts/migration-replay-owner-figures.sql)
           printf '%s\n' "$result"
           bun scripts/assert-migration-replay.ts owner-figures <<<"$result"
+
+      - name: Assert validate_blog_post bans the persona word and checks every field
+        run: |
+          set -euo pipefail
+          # Until 20261102230101 the blog trigger's banlist read NEW.content only
+          # and carried no persona word, so a post whose excerpt said
+          # "single-property owner" published to /blog, where
+          # persona-consistency.spec.ts bans /property owners?\b/i -- and no
+          # job ran the trigger. The fixture inserts posts as service_role (the
+          # ingest function's role, with no EXECUTE on the trigger function),
+          # prints ONE JSON line and rolls back; it needs no seeded user. The
+          # expected outcome of every case lives in
+          # scripts/migration-replay-assertions.ts. A herestring, as above.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-blog-banlist.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts blog-banlist <<<"$result"
 
       - name: Stop the stack
         if: always()

@@ -55,7 +55,11 @@ const VALID_CATEGORIES = [
 ] as const;
 type Category = (typeof VALID_CATEGORIES)[number];
 
-// banlist mirrors supabase/functions/n8n-blog-ingest/index.ts exactly
+// The banlist (gate 8), in step with supabase/functions/_shared/blog-banlist.ts
+// (the n8n-blog-ingest gate) and the validate_blog_post trigger (live body:
+// supabase/migrations/20261102230101_blog_banlist_persona_and_fields.sql);
+// src/lib/seo/__tests__/banlist-parity.test.ts fails when they drift.
+// Phrases: a substring, case ignored.
 const BANLIST = [
 	"rent collection",
 	"online rent",
@@ -78,6 +82,34 @@ const BANLIST = [
 	"paid rent",
 	"pay rent",
 ] as const;
+// Persona words, as persona-consistency.spec.ts bans them on every public page
+// (/property owners?\b/i): case ignored, an optional plural "s", then a word end,
+// no word start required ("single-property owner" matches, "property ownership"
+// does not).
+const PERSONA_BANLIST = ["property owner"] as const;
+const personaWordPattern = (word: string): RegExp =>
+	new RegExp(`${word}s?\\b`, "i");
+// The fields the banlist checks, in order: /blog renders the title and the
+// excerpt of every post.
+const BANLIST_FIELDS = ["title", "excerpt", "content"] as const;
+
+/**
+ * The first banned phrase or persona word in a draft's title, excerpt or
+ * content (in that order; phrases, then persona words), or null.
+ */
+function findBanlistHit(
+	p: Pick<Draft, (typeof BANLIST_FIELDS)[number]>,
+): { phrase: string; field: (typeof BANLIST_FIELDS)[number] } | null {
+	for (const field of BANLIST_FIELDS) {
+		const text = p[field];
+		const lower = text.toLowerCase();
+		const phrase =
+			BANLIST.find((b) => lower.includes(b)) ??
+			PERSONA_BANLIST.find((w) => personaWordPattern(w).test(text));
+		if (phrase !== undefined) return { phrase, field };
+	}
+	return null;
+}
 const SLUG_REGEX = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 // Pick the LM Studio model id to request: prefer a LOADED instance whose id
@@ -537,13 +569,12 @@ export function runGates(
 			message: p.category,
 			fix: `category must be exactly one of ${VALID_CATEGORIES.join(", ")}.`,
 		});
-	const lc = p.content.toLowerCase();
-	const banHit = BANLIST.find((b) => lc.includes(b));
+	const banHit = findBanlistHit(p);
 	if (banHit)
 		out.push({
 			gate: "banlist",
-			message: banHit,
-			fix: `Remove the literal phrase "${banHit}" and rephrase it (e.g. "pay rent on time" -> "stay current on their lease" / "meet their rent obligations"; "tenant portal" -> drop it entirely). TenantFlow does not facilitate rent payments or offer a tenant portal.`,
+			message: `${banHit.phrase} (${banHit.field})`,
+			fix: `Remove the literal phrase "${banHit.phrase}" from the ${banHit.field} and rephrase it (e.g. "pay rent on time" -> "stay current on their lease" / "meet their rent obligations"; "tenant portal" -> drop it entirely). TenantFlow does not facilitate rent payments or offer a tenant portal.`,
 		});
 	const docuseal = (p.content.match(/DocuSeal/gi) ?? []).length;
 	if (docuseal > 1)
@@ -681,8 +712,13 @@ export function runGates(
 const BANLIST_REPLACEMENTS: [RegExp, string][] = [
 	// Persona purity (persona-consistency e2e bans these on every public page):
 	// the audience is "landlords" — never "property owners" / "real estate investors".
-	[/\bproperty owners\b/gi, "landlords"],
-	[/\bproperty owner\b/gi, "landlord"],
+	// The gate needs no word start (PERSONA_BANLIST), so neither do these: a word
+	// glued to "property" keeps it ("single-property owner" -> "single-property
+	// landlord", "multiproperty owners" -> "multiproperty landlords").
+	[/([\w-])property owners\b/gi, "$1property landlords"],
+	[/([\w-])property owner\b/gi, "$1property landlord"],
+	[/property owners\b/gi, "landlords"],
+	[/property owner\b/gi, "landlord"],
 	[/\breal estate investors\b/gi, "landlords"],
 	[/\breal estate investor\b/gi, "landlord"],
 	[/\bunpaid rent\b/gi, "overdue rent"],
