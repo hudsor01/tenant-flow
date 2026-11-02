@@ -21,15 +21,9 @@ const NetOperatingIncomeChart = dynamic(
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
 
-const BillingTimelineChart = dynamic(
-	() => import("./financial-charts").then((mod) => mod.BillingTimelineChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
 import { BreakdownList } from "./_components/breakdown-list";
 import { FinancialAnalyticsSkeleton } from "./_components/financial-analytics-skeleton";
 import { FinancialOverviewStats } from "./_components/financial-overview-stats";
-import { InvoiceSummaryList } from "./_components/invoice-summary-list";
 import { LeaseTable } from "./_components/lease-table";
 
 export default function FinancialAnalyticsPage() {
@@ -76,11 +70,6 @@ export default function FinancialAnalyticsPage() {
 		},
 		breakdown = { revenue: [], expenses: [] },
 		netOperatingIncome = [],
-		billingInsights = {
-			points: [],
-			totals: { invoiced: 0, paid: 0, overdue: 0 },
-		},
-		invoiceSummary = [],
 		monthlyMetrics = [],
 		leaseAnalytics = [],
 	} = data || {};
@@ -209,42 +198,6 @@ export default function FinancialAnalyticsPage() {
 								</div>
 							</div>
 							<LeaseTable leases={leaseAnalytics} />
-						</div>
-					</BlurFade>
-				</div>
-
-				{/* Charts Row 3: Billing & Invoice Summary */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<BlurFade delay={1.1}>
-						<div className="bg-card border border-border rounded-lg p-6">
-							<div className="flex items-center justify-between mb-6">
-								<div>
-									<h3 className="font-medium text-foreground">
-										Billing Timeline
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										Invoice status and payment patterns
-									</p>
-								</div>
-								<BarChart3 className="w-5 h-5 text-muted-foreground" />
-							</div>
-							<BillingTimelineChart data={billingInsights} />
-						</div>
-					</BlurFade>
-
-					<BlurFade delay={1.2}>
-						<div className="bg-card border border-border rounded-lg p-6">
-							<div className="flex items-center justify-between mb-6">
-								<div>
-									<h3 className="font-medium text-foreground">
-										Invoice Summary
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										Status breakdown
-									</p>
-								</div>
-							</div>
-							<InvoiceSummaryList invoiceSummary={invoiceSummary} />
 						</div>
 					</BlurFade>
 				</div>

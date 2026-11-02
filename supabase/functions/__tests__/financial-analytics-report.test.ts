@@ -478,17 +478,10 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 });
 
 describe("the page sections the export leaves out are empty on the page", () => {
-	it("has no revenue breakdown, lease, billing timeline or invoice data", async () => {
+	it("has no revenue breakdown or lease data", async () => {
 		const { page } = await screen(richAnswers());
 		expect(page.breakdown.revenue).toEqual([]);
 		expect(page.leaseAnalytics).toEqual([]);
-		expect(page.invoiceSummary).toEqual([]);
-		expect(page.billingInsights.points).toEqual([]);
-		expect(page.billingInsights.totals).toEqual({
-			invoiced: 0,
-			paid: 0,
-			overdue: 0,
-		});
 	});
 });
 

@@ -110,10 +110,8 @@ export default function AnalyticsPage() {
 	const topProperties = topPropertiesByRevenue(propertyPerformance ?? []);
 
 	const occupancyRate = dashboardStats?.stats?.units?.occupancyRate ?? 0;
-	const occupancyChange = dashboardStats?.stats?.units?.occupancyChange ?? 0;
 	const activeTenants = dashboardStats?.stats?.units?.occupied ?? 0;
 	const monthlyRevenue = dashboardStats?.stats?.revenue?.monthly ?? 0;
-	const revenueGrowth = dashboardStats?.stats?.revenue?.growth ?? 0;
 	const openMaintenance = dashboardStats?.stats?.maintenance?.open ?? 0;
 	const maintenanceChange =
 		dashboardStats?.metricTrends?.openMaintenance?.change ?? 0;
@@ -121,7 +119,6 @@ export default function AnalyticsPage() {
 		financialMetrics?.netIncome && financialMetrics?.totalRevenue
 			? (financialMetrics.netIncome / financialMetrics.totalRevenue) * 100
 			: 0;
-	const tenantsChange = Math.max(0, Math.round(occupancyChange * 10));
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -138,11 +135,8 @@ export default function AnalyticsPage() {
 
 			<AnalyticsStatCards
 				occupancyRate={occupancyRate}
-				occupancyChange={occupancyChange}
 				activeTenants={activeTenants}
-				tenantsChange={tenantsChange}
 				monthlyRevenue={monthlyRevenue}
-				revenueGrowth={revenueGrowth}
 				avgRoi={avgRoi}
 				openMaintenance={openMaintenance}
 				maintenanceChange={maintenanceChange}

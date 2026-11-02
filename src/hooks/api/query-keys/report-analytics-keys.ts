@@ -257,13 +257,9 @@ export const reportAnalyticsQueries = {
 							totalRequests: 0,
 							openRequests: 0,
 							avgResolutionHours: 0,
-							totalCost: 0,
-							averageCost: 0,
 						},
 						byStatus: [],
 						byPriority: [],
-						monthlyCost: [],
-						vendorPerformance: [],
 					};
 				}
 				const { data, error } = await supabase.rpc(
@@ -277,8 +273,6 @@ export const reportAnalyticsQueries = {
 						totalRequests: Number(a?.total_requests ?? 0),
 						openRequests: Number(a?.open_requests ?? 0),
 						avgResolutionHours: Number(a?.avg_resolution_hours ?? 0),
-						totalCost: Number(a?.total_cost ?? 0),
-						averageCost: Number(a?.average_cost ?? 0),
 					},
 					byStatus: (
 						(a?.by_status ?? []) as Array<Record<string, unknown>>
@@ -291,19 +285,6 @@ export const reportAnalyticsQueries = {
 					).map((p) => ({
 						priority: String(p.priority ?? ""),
 						count: Number(p.count ?? 0),
-					})),
-					monthlyCost: (
-						(a?.monthly_cost ?? []) as Array<Record<string, unknown>>
-					).map((m) => ({
-						month: String(m.month ?? ""),
-						cost: Number(m.cost ?? 0),
-					})),
-					vendorPerformance: (
-						(a?.vendor_performance ?? []) as Array<Record<string, unknown>>
-					).map((v) => ({
-						vendorName: String(v.vendor_name ?? ""),
-						totalSpend: Number(v.total_spend ?? 0),
-						jobs: Number(v.jobs ?? 0),
 					})),
 				};
 			},

@@ -99,13 +99,17 @@ export interface TenantReport {
 	}>;
 }
 
+/**
+ * The maintenance report's figures. No costs: get_maintenance_analytics returns
+ * total_cost and average_cost as the literal 0 and monthly_cost and
+ * vendor_performance as empty arrays, so the report printed $0.00 and empty
+ * cost tables for every owner.
+ */
 export interface MaintenanceReport {
 	summary: {
 		totalRequests: number;
 		openRequests: number;
 		avgResolutionHours: number;
-		totalCost: number;
-		averageCost: number;
 	};
 	byStatus: Array<{
 		status: string;
@@ -114,15 +118,6 @@ export interface MaintenanceReport {
 	byPriority: Array<{
 		priority: string;
 		count: number;
-	}>;
-	monthlyCost: Array<{
-		month: string;
-		cost: number;
-	}>;
-	vendorPerformance: Array<{
-		vendorName: string;
-		totalSpend: number;
-		jobs: number;
 	}>;
 }
 

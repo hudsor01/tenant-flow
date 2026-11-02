@@ -85,6 +85,8 @@ describe("useExpenseSummary", () => {
 
 		expect(result.current.data?.categories?.length).toBe(4);
 		expect(result.current.data?.total_amount).toBe(125000);
-		expect(result.current.data?.year_over_year_change).toBe(-5.2);
+		// get_expense_summary returns year_over_year_change as the literal null;
+		// the summary carries no figure it cannot have.
+		expect(result.current.data).not.toHaveProperty("year_over_year_change");
 	});
 });

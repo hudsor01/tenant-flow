@@ -70,7 +70,6 @@ const mockStats: DashboardStats = {
 		available: 10,
 		averageRent: 1500,
 		occupancyRate: 87,
-		occupancyChange: 0,
 		totalPotentialRent: 150000,
 		totalActualRent: 130500,
 	},
@@ -89,7 +88,7 @@ const mockStats: DashboardStats = {
 		avgResolutionTime: 2.4,
 		byPriority: { low: 4, medium: 12, high: 4, emergency: 2 },
 	},
-	revenue: { monthly: 14250, yearly: 171000, growth: 3 },
+	revenue: { monthly: 14250, yearly: 171000 },
 };
 
 const mockTrends: KpiBentoRowProps["metricTrends"] = {

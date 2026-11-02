@@ -1,5 +1,4 @@
 import { Building2, DollarSign, Users, Wrench } from "lucide-react";
-import { AnimatedTrendIndicator } from "#components/ui/animated-trend-indicator";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import { NumberTicker } from "#components/ui/number-ticker";
@@ -8,17 +7,21 @@ import {
 	StatDescription,
 	StatIndicator,
 	StatLabel,
-	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
 
+/**
+ * The overview's four headline figures. There is no period-over-period trend
+ * on occupancy, tenants or revenue: get_dashboard_stats returns occupancyChange
+ * and revenue.growth as the literal 0, so the trends these cards showed ("0% vs
+ * last period", "+0 this month", "0% growth") were never figures. Open
+ * maintenance keeps its week-over-week change, which get_dashboard_data_v2
+ * computes.
+ */
 interface AnalyticsStatCardsProps {
 	occupancyRate: number;
-	occupancyChange: number;
 	activeTenants: number;
-	tenantsChange: number;
 	monthlyRevenue: number;
-	revenueGrowth: number;
 	avgRoi: number;
 	openMaintenance: number;
 	maintenanceChange: number;
@@ -26,11 +29,8 @@ interface AnalyticsStatCardsProps {
 
 export function AnalyticsStatCards({
 	occupancyRate,
-	occupancyChange,
 	activeTenants,
-	tenantsChange,
 	monthlyRevenue,
-	revenueGrowth,
 	avgRoi,
 	openMaintenance,
 	maintenanceChange,
@@ -57,14 +57,6 @@ export function AnalyticsStatCards({
 					<StatIndicator variant="icon" color="primary">
 						<Building2 />
 					</StatIndicator>
-					<StatTrend trend={occupancyChange >= 0 ? "up" : "down"}>
-						<AnimatedTrendIndicator
-							value={occupancyChange}
-							size="sm"
-							delay={500}
-						/>
-						<span className="text-muted-foreground">vs last period</span>
-					</StatTrend>
 				</Stat>
 			</BlurFade>
 
@@ -77,12 +69,6 @@ export function AnalyticsStatCards({
 					<StatIndicator variant="icon" color="success">
 						<Users />
 					</StatIndicator>
-					<StatTrend trend="up">
-						<span className="text-success-text font-medium">
-							+{tenantsChange}
-						</span>
-						<span className="text-muted-foreground">this month</span>
-					</StatTrend>
 				</Stat>
 			</BlurFade>
 
@@ -106,14 +92,6 @@ export function AnalyticsStatCards({
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
 					</StatIndicator>
-					<StatTrend trend="up">
-						<AnimatedTrendIndicator
-							value={revenueGrowth}
-							size="sm"
-							delay={600}
-						/>
-						<span className="text-muted-foreground">growth</span>
-					</StatTrend>
 					{avgRoi > 0 && (
 						<StatDescription>{avgRoi.toFixed(1)}% ROI</StatDescription>
 					)}

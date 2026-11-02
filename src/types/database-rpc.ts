@@ -45,13 +45,3 @@ export interface OccupancyTrendResponse {
 	total_units: number;
 	occupied_units: number;
 }
-
-/**
- * Response for revenue trends (calculated in-app)
- */
-export interface RevenueTrendResponse {
-	month: string;
-	revenue: number;
-	growth: number;
-	previous_period_revenue: number;
-}

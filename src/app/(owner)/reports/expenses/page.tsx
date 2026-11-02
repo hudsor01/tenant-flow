@@ -76,7 +76,6 @@ export default function ExpensesPage() {
 
 	const totalExpenses = summary?.total_amount ?? 0;
 	const monthlyAvg = summary?.monthly_average ?? 0;
-	const yoyChange = summary?.year_over_year_change ?? null;
 
 	const maintenanceTotal = (() => {
 		if (!summary?.categories) return 0;
@@ -160,7 +159,6 @@ export default function ExpensesPage() {
 				monthlyAvg={monthlyAvg}
 				maintenanceTotal={maintenanceTotal}
 				maintenancePercent={maintenancePercent}
-				yoyChange={yoyChange}
 			/>
 
 			{summary?.categories && (

@@ -200,37 +200,6 @@ export interface NetOperatingIncomeByProperty {
 	margin: number;
 }
 
-export interface FinancialOverviewSnapshot {
-	overview: {
-		totalRevenue: number;
-		totalExpenses: number;
-		netIncome: number;
-		accountsReceivable: number;
-		accountsPayable: number;
-	};
-	highlights: Array<{
-		label: string;
-		value: number;
-		trend?: number | null;
-	}>;
-}
-
-export interface BillingInsightsTimelinePoint {
-	period: string;
-	invoiced: number;
-	paid: number;
-	overdue: number;
-}
-
-export interface BillingInsightsTimeline {
-	points: BillingInsightsTimelinePoint[];
-	totals: {
-		invoiced: number;
-		paid: number;
-		overdue: number;
-	};
-}
-
 export interface ExpenseCategorySummary {
 	category: string;
 	amount: number;
@@ -248,12 +217,6 @@ export interface ExpenseSummaryResponse {
 		monthlyAverage: number;
 		yearOverYearChange?: number | null;
 	};
-}
-
-export interface InvoiceStatusSummary {
-	status: string;
-	count: number;
-	amount: number;
 }
 
 export interface MonthlyFinancialMetric {
@@ -285,10 +248,7 @@ export interface FinancialAnalyticsPageResponse {
 	metrics: FinancialMetricSummary;
 	breakdown: RevenueExpenseBreakdown;
 	netOperatingIncome: NetOperatingIncomeByProperty[];
-	financialOverview: FinancialOverviewSnapshot;
-	billingInsights: BillingInsightsTimeline;
 	expenseSummary: ExpenseSummaryResponse;
-	invoiceSummary: InvoiceStatusSummary[];
 	monthlyMetrics: MonthlyFinancialMetric[];
 	leaseSummary: LeaseFinancialSummary;
 	leaseAnalytics: LeaseFinancialInsight[];
@@ -319,7 +279,6 @@ export interface MaintenanceMetricSummary {
 	inProgressRequests: number;
 	completedRequests: number;
 	averageResponseTimeHours: number;
-	totalCost: number;
 }
 
 export interface MaintenanceCostBreakdownEntry {

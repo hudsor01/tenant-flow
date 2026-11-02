@@ -279,19 +279,19 @@ describe("reportAnalyticsQueries.maintenance", () => {
 	});
 
 	it("fetches maintenance analytics", async () => {
+		// get_maintenance_analytics as its body returns them: the cost keys are
+		// the literal 0 and empty arrays (20260304120000).
 		mockRpc.mockResolvedValueOnce({
 			data: {
 				total_requests: 25,
 				open_requests: 3,
 				avg_resolution_hours: 48,
-				total_cost: 15000,
-				average_cost: 600,
+				total_cost: 0,
+				average_cost: 0,
 				by_status: [{ status: "open", count: 3 }],
 				by_priority: [{ priority: "high", count: 5 }],
-				monthly_cost: [{ month: "2024-01", cost: 2000 }],
-				vendor_performance: [
-					{ vendor_name: "Test Vendor", total_spend: 5000, jobs: 10 },
-				],
+				monthly_cost: [],
+				vendor_performance: [],
 			},
 			error: null,
 		});
@@ -309,7 +309,11 @@ describe("reportAnalyticsQueries.maintenance", () => {
 
 		expect(result.current.data?.summary?.totalRequests).toBe(25);
 		expect(result.current.data?.summary?.openRequests).toBe(3);
-		expect(result.current.data?.vendorPerformance?.length).toBe(1);
+		// No cost figure reaches the report: each would be a hard-coded 0.
+		expect(result.current.data?.summary).not.toHaveProperty("totalCost");
+		expect(result.current.data?.summary).not.toHaveProperty("averageCost");
+		expect(result.current.data).not.toHaveProperty("monthlyCost");
+		expect(result.current.data).not.toHaveProperty("vendorPerformance");
 		expect(mockRpc).toHaveBeenCalledWith("get_maintenance_analytics", {
 			user_id: "user-1",
 		});

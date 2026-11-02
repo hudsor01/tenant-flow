@@ -1,4 +1,4 @@
-import { Calendar, TrendingDown, TrendingUp, Wrench } from "lucide-react";
+import { Calendar, TrendingDown, Wrench } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import {
@@ -16,7 +16,6 @@ interface ExpenseStatsProps {
 	monthlyAvg: number;
 	maintenanceTotal: number;
 	maintenancePercent: string;
-	yoyChange: number | null;
 }
 
 export function ExpenseStats({
@@ -24,10 +23,11 @@ export function ExpenseStats({
 	monthlyAvg,
 	maintenanceTotal,
 	maintenancePercent,
-	yoyChange,
 }: ExpenseStatsProps) {
+	// No year-over-year tile: get_expense_summary returns year_over_year_change
+	// as the literal null, so it only ever read "--" beside a green down-trend.
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+		<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 			<BlurFade delay={0.15}>
 				<Stat className="relative overflow-hidden">
 					{totalExpenses > 0 && (
@@ -72,37 +72,6 @@ export function ExpenseStats({
 						<Wrench />
 					</StatIndicator>
 					<StatDescription>{maintenancePercent}% of total</StatDescription>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.3}>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>YoY Change</StatLabel>
-					<StatValue
-						className={`flex items-baseline gap-0.5 ${yoyChange !== null && yoyChange > 0 ? "text-destructive-text" : "text-success-text"}`}
-					>
-						{yoyChange !== null ? (
-							<>
-								{yoyChange > 0 ? "+" : ""}
-								{yoyChange.toFixed(1)}%
-							</>
-						) : (
-							"--"
-						)}
-					</StatValue>
-					<StatIndicator
-						variant="icon"
-						color={
-							yoyChange !== null && yoyChange > 0 ? "destructive" : "success"
-						}
-					>
-						{yoyChange !== null && yoyChange > 0 ? (
-							<TrendingUp />
-						) : (
-							<TrendingDown />
-						)}
-					</StatIndicator>
-					<StatDescription>vs last year</StatDescription>
 				</Stat>
 			</BlurFade>
 		</div>

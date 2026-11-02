@@ -244,3 +244,26 @@ describe("D-37: the permanently-zero payment counts stay excised", () => {
 		expect(() => functionBody(REPORT_DATA_CODE, "noSuchFunction")).toThrow();
 	});
 });
+
+describe("the maintenance report prints no cost figure", () => {
+	// get_maintenance_analytics returns total_cost and average_cost as the
+	// literal 0 and monthly_cost and vendor_performance as empty arrays, so the
+	// report printed $0.00 and empty cost tables for every owner (66.2-39).
+	const summary = functionBody(REPORT_DATA_CODE, "maintenanceSummaryRows");
+	const sections = functionBody(
+		REPORT_DATA_CODE,
+		"maintenanceOperationsSections",
+	);
+
+	it("has no cost rows in its summary", () => {
+		expect(summary).not.toContain("Total Cost");
+		expect(summary).not.toContain("Average Cost");
+		expect(summary).toContain("Avg Resolution Time");
+	});
+
+	it("has no cost tables", () => {
+		expect(sections).not.toContain("Monthly Cost");
+		expect(sections).not.toContain("Vendor Performance");
+		expect(sections).toContain("By Priority");
+	});
+});

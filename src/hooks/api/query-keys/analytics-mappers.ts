@@ -114,9 +114,10 @@ export function mapOccupancyAnalytics(
 // This never-throw mapper derives `metrics` from `overview`; the four chart
 // sub-shapes (`monthlyMetrics`, `breakdown.expenses`, `netOperatingIncome`) are
 // built from the caller-supplied `get_revenue_trends_optimized` +
-// `get_expense_summary` join. `breakdown.revenue`, `billingInsights`,
-// `invoiceSummary`, `leaseAnalytics` stay empty — no source exists post
-// rent-payment demolish (do NOT invent one; matches the DATA-01 discipline).
+// `get_expense_summary` join. `breakdown.revenue` and `leaseAnalytics` stay
+// empty — no source exists post rent-payment demolish (do NOT invent one;
+// matches the DATA-01 discipline). The billing timeline and invoice summary,
+// which had no source either, were deleted with their cards (66.2-39).
 
 /** Read `get_expense_summary.categories` as FinancialBreakdownRow[]. */
 function expenseBreakdownRows(summary: unknown): FinancialBreakdownRow[] {
@@ -214,11 +215,6 @@ export function mapFinancialOverview(
 		metrics,
 		breakdown,
 		netOperatingIncome,
-		billingInsights: {
-			points: [],
-			totals: { invoiced: 0, paid: 0, overdue: 0 },
-		},
-		invoiceSummary: [],
 		monthlyMetrics,
 		leaseAnalytics: [],
 	};
@@ -261,7 +257,6 @@ export function mapMaintenanceAnalytics(
 		inProgressRequests: statusCount(byStatus, "in_progress"),
 		completedRequests: statusCount(byStatus, "completed"),
 		averageResponseTimeHours: Number(root.avg_resolution_hours ?? 0),
-		totalCost: 0,
 	};
 
 	const categoryBreakdown: MaintenanceCategoryBreakdown[] = Array.isArray(

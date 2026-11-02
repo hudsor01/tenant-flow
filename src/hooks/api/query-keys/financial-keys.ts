@@ -30,7 +30,6 @@ export interface ExpenseSummaryData {
 	monthly_totals: Array<{ month: string; amount: number }>;
 	total_amount: number;
 	monthly_average: number;
-	year_over_year_change: number | null;
 }
 
 const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
@@ -277,7 +276,6 @@ export const financialQueries = {
 						monthly_totals: [],
 						total_amount: 0,
 						monthly_average: 0,
-						year_over_year_change: null,
 					};
 				const { data, error } = await supabase.rpc("get_expense_summary", {
 					p_user_id: user.id,
@@ -300,11 +298,6 @@ export const financialQueries = {
 					})),
 					total_amount: Number(s?.total_amount ?? 0),
 					monthly_average: Number(s?.monthly_average ?? 0),
-					year_over_year_change:
-						s?.year_over_year_change !== null &&
-						s?.year_over_year_change !== undefined
-							? Number(s.year_over_year_change)
-							: null,
 				};
 			},
 			...CACHE,

@@ -3,7 +3,6 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { DashboardActivity } from "./activity";
 import type { Database, Tables, TablesInsert, TablesUpdate } from "./supabase";
 
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
@@ -344,28 +343,6 @@ export interface DashboardMetricsResponse {
 	occupancyRate: number;
 	monthlyRevenue: number;
 	maintenanceRequests: number;
-	timestamp: string;
-}
-
-export interface DashboardSummaryResponse {
-	overview: {
-		properties: number;
-		units: number;
-		tenants: number;
-		occupancyRate: number;
-	};
-	revenue: {
-		monthly: number;
-		yearly: number;
-		growth: number;
-	};
-	maintenance: {
-		open: number;
-		inProgress: number;
-		avgResolutionTime: number;
-	};
-	recentActivity: DashboardActivity[];
-	topPerformingProperties: PropertyPerformance[];
 	timestamp: string;
 }
 

@@ -172,13 +172,9 @@ const MAINTENANCE_FALLBACK: MaintenanceReport = {
 		totalRequests: 0,
 		openRequests: 0,
 		avgResolutionHours: 0,
-		totalCost: 0,
-		averageCost: 0,
 	},
 	byStatus: [],
 	byPriority: [],
-	monthlyCost: [],
-	vendorPerformance: [],
 };
 
 const YEAREND_FALLBACK: YearEndSummary = {
@@ -331,11 +327,6 @@ function maintenanceSummaryRows(maintenance: MaintenanceReport): ReportRow[] {
 		{
 			label: "Avg Resolution Time",
 			value: `${maintenance.summary.avgResolutionHours.toFixed(1)} hours`,
-		},
-		{ label: "Total Cost", value: fmtMoney(maintenance.summary.totalCost) },
-		{
-			label: "Average Cost / Request",
-			value: fmtMoney(maintenance.summary.averageCost),
 		},
 	];
 }
@@ -714,16 +705,6 @@ function maintenanceOperationsSections(
 	const byPriorityRows = maintenance.byPriority.map(
 		(p): Array<string | number> => [p.priority, fmtNumber(p.count)],
 	);
-	const monthlyCostRows = maintenance.monthlyCost.map(
-		(m): Array<string | number> => [m.month, fmtMoney(m.cost)],
-	);
-	const vendorRows = maintenance.vendorPerformance.map(
-		(v): Array<string | number> => [
-			v.vendorName,
-			fmtNumber(v.jobs),
-			fmtMoney(v.totalSpend),
-		],
-	);
 	return [
 		{
 			heading: "Operations Summary",
@@ -736,17 +717,6 @@ function maintenanceOperationsSections(
 		{
 			heading: "By Priority",
 			table: { headers: ["Priority", "Count"], rows: byPriorityRows },
-		},
-		{
-			heading: "Monthly Cost",
-			table: { headers: ["Month", "Cost"], rows: monthlyCostRows },
-		},
-		{
-			heading: "Vendor Performance",
-			table: {
-				headers: ["Vendor", "Jobs", "Total Spend"],
-				rows: vendorRows,
-			},
 			...noteIf(available),
 		},
 	];
@@ -765,7 +735,7 @@ async function buildMaintenanceOperations(
 	return {
 		...baseHeader(
 			"Maintenance Operations Report",
-			"Response times · costs · urgency",
+			"Response times · status · urgency",
 			start,
 			end,
 		),

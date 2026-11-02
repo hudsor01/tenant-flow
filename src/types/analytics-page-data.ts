@@ -53,8 +53,6 @@ export interface FinancialAnalyticsPageData {
 	metrics: FinancialAnalyticsPageResponse["metrics"];
 	breakdown: FinancialAnalyticsPageResponse["breakdown"];
 	netOperatingIncome: FinancialAnalyticsPageResponse["netOperatingIncome"];
-	billingInsights: FinancialAnalyticsPageResponse["billingInsights"];
-	invoiceSummary: FinancialAnalyticsPageResponse["invoiceSummary"];
 	monthlyMetrics: FinancialAnalyticsPageResponse["monthlyMetrics"];
 	leaseAnalytics: FinancialAnalyticsPageResponse["leaseAnalytics"];
 }
