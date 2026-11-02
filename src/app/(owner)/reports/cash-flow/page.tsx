@@ -6,6 +6,7 @@ import { formatLocalYmd } from "#lib/formatters/date";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 import { CashFlowActivity } from "./cash-flow-activity";
 import { CashFlowBalanceSummary } from "./cash-flow-balance-summary";
 import { CashFlowBreakdown } from "./cash-flow-breakdown";
@@ -15,6 +16,9 @@ import { CashFlowHeader } from "./cash-flow-header";
 import { CashFlowLoading } from "./cash-flow-loading";
 import { CashFlowStats } from "./cash-flow-stats";
 import { buildCashFlowView } from "./cash-flow-view";
+
+const LEDGER_UNAVAILABLE_EXPORT_REASON =
+	"The rent ledger totals this report is built on aren't available yet.";
 
 export default function CashFlowPage() {
 	const [period, setPeriod] = useState("monthly");
@@ -41,16 +45,22 @@ export default function CashFlowPage() {
 
 	const { data, isLoading, isPlaceholderData, error, refetch } =
 		useCashFlow(dateRange);
-	const cashFlowData = data?.data;
+	// When get_billing_insights returns none of the ledger figures the report
+	// is built on (its body before 20261102055449), the query says so rather
+	// than handing the page zeros to present as rent received and balances.
+	const ledgerUnavailable = data?.status === "ledger-unavailable";
+	const cashFlowData = data?.status === "ready" ? data.report : undefined;
 	const view = buildCashFlowView(cashFlowData);
 
 	// The global keepPreviousData shows the last period while the selected one
 	// loads, so the export waits for the data that matches the selectors.
-	const exportUnavailableReason = !cashFlowData
-		? "No cash flow data to export yet."
-		: isPlaceholderData
-			? "Loading the selected period. Export is available when it finishes."
-			: null;
+	const exportUnavailableReason = ledgerUnavailable
+		? LEDGER_UNAVAILABLE_EXPORT_REASON
+		: !cashFlowData
+			? "No cash flow data to export yet."
+			: isPlaceholderData
+				? "Loading the selected period. Export is available when it finishes."
+				: null;
 
 	const handleExport = () => {
 		if (!cashFlowData || isPlaceholderData) return;
@@ -94,30 +104,39 @@ export default function CashFlowPage() {
 				exportUnavailableReason={exportUnavailableReason}
 			/>
 
-			<CashFlowBalanceSummary
-				openingBalance={view.openingBalance}
-				netCashFlow={view.netCashFlow}
-				closingBalance={view.closingBalance}
-			/>
+			{ledgerUnavailable ? (
+				<LedgerTotalsUnavailable
+					description="Rent received and the opening and closing balances on this report come from your rent ledger."
+					onRetryAction={() => void refetch()}
+				/>
+			) : (
+				<>
+					<CashFlowBalanceSummary
+						openingBalance={view.openingBalance}
+						netCashFlow={view.netCashFlow}
+						closingBalance={view.closingBalance}
+					/>
 
-			<CashFlowStats
-				totalInflows={view.totalInflows}
-				totalOutflows={view.totalOutflows}
-				netCashFlow={view.netCashFlow}
-			/>
+					<CashFlowStats
+						totalInflows={view.totalInflows}
+						totalOutflows={view.totalOutflows}
+						netCashFlow={view.netCashFlow}
+					/>
 
-			<CashFlowBreakdown
-				inflowItems={view.inflowItems}
-				outflowItems={view.outflowItems}
-				totalInflows={view.totalInflows}
-				totalOutflows={view.totalOutflows}
-			/>
+					<CashFlowBreakdown
+						inflowItems={view.inflowItems}
+						outflowItems={view.outflowItems}
+						totalInflows={view.totalInflows}
+						totalOutflows={view.totalOutflows}
+					/>
 
-			<CashFlowActivity
-				netOperatingCash={view.netOperatingCash}
-				netInvestingCash={view.netInvestingCash}
-				netFinancingCash={view.netFinancingCash}
-			/>
+					<CashFlowActivity
+						netOperatingCash={view.netOperatingCash}
+						netInvestingCash={view.netInvestingCash}
+						netFinancingCash={view.netFinancingCash}
+					/>
+				</>
+			)}
 		</div>
 	);
 }

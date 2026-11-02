@@ -83,8 +83,9 @@ export const REPORTS_HUB_ENTRIES: readonly ReportsHubEntry[] = [
 		href: "/reports/cash-flow",
 		icon: TrendingUp,
 		// Not "month over month, with running balances": the page renders ONE
-		// period, and `beginningCash` is a hardcoded 0 in both branches of
-		// `financialQueries.cashFlow`, so no balance is ever carried forward.
+		// period. Its opening and closing balances are the rent ledger's cash
+		// the day before and on the last day of that period, not a running
+		// month-by-month series.
 		description: "Where cash came from and where it went, for a period.",
 		gatedReportType: null,
 	},

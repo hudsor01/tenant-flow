@@ -34,6 +34,7 @@ const data: IncomeStatementData = {
 		rentalIncome: 54000,
 		lateFeesIncome: 0,
 		otherIncome: 0,
+		creditsIssued: 0,
 		totalRevenue: 54000,
 	},
 	expenses: {
@@ -54,7 +55,7 @@ const data: IncomeStatementData = {
 
 function queryState(overrides: Record<string, unknown> = {}) {
 	return {
-		data: { success: true, data },
+		data: { status: "ready", statement: data },
 		isLoading: false,
 		isPlaceholderData: false,
 		error: null,
@@ -120,6 +121,52 @@ describe("income statement Export", () => {
 		expect(handleMutationErrorMock).not.toHaveBeenCalled();
 	});
 
+	it("writes every revenue line the page shows from the ledger, with its amount", async () => {
+		const ledger: IncomeStatementData = {
+			...data,
+			revenue: {
+				rentalIncome: 1000,
+				lateFeesIncome: 110,
+				otherIncome: 250.5,
+				creditsIssued: -100,
+				totalRevenue: 1260.5,
+			},
+			netIncome: -239.5,
+			grossProfit: -239.5,
+			operatingIncome: -239.5,
+			profitMargin: -19,
+		};
+		useIncomeStatementMock.mockReturnValue(
+			queryState({ data: { status: "ready", statement: ledger } }),
+		);
+		render(<IncomeStatementPage />);
+		fireEvent.click(screen.getByRole("button", { name: "Export" }));
+		const text = (await createdBlobs[0]?.text()) ?? "";
+		const revenueRows = text
+			.split("\r\n")
+			.map((line) => line.split(","))
+			.filter((cells) => cells[4] === "Revenue Breakdown");
+		expect(revenueRows.map((cells) => [cells[5], cells[7]])).toEqual([
+			["Rent Charged", "1000.00"],
+			["Late Fees Charged", "110.00"],
+			["Other Charges", "250.50"],
+			["Credits Issued", "-100.00"],
+			["Total Revenue", "1260.50"],
+		]);
+		// Each line, and its amount, is on the page.
+		for (const [label, amount] of [
+			["Rent Charged", "$1,000.00"],
+			["Late Fees Charged", "$110.00"],
+			["Other Charges", "$250.50"],
+			["Credits Issued", "-$100.00"],
+		]) {
+			const row = screen
+				.getByText(label ?? "")
+				.closest("div.flex.items-center.justify-between");
+			expect(row?.textContent, label).toContain(amount);
+		}
+	});
+
 	it("waits for the selected period while the previous one is on screen", () => {
 		useIncomeStatementMock.mockReturnValue(
 			queryState({ isPlaceholderData: true }),
@@ -142,6 +189,38 @@ describe("income statement Export", () => {
 		expect(button).toHaveAttribute("aria-disabled", "true");
 		expect(button).toHaveAccessibleDescription(
 			"No income statement data to export yet.",
+		);
+		fireEvent.click(button);
+		expect(clickedDownloads).toHaveLength(0);
+	});
+
+	it("says the ledger totals are unavailable, with no $0, and disables Export", () => {
+		// get_billing_insights' body before 20261102055449: no ledger keys.
+		useIncomeStatementMock.mockReturnValue(
+			queryState({
+				data: {
+					status: "ledger-unavailable",
+					period: {
+						start_date: "2026-11-01",
+						end_date: "2026-11-30",
+						label: "2026-11-01 to 2026-11-30",
+					},
+				},
+			}),
+		);
+		render(<IncomeStatementPage />);
+		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Revenue on this statement is what your rent ledger charged. Its totals aren't available yet. Try again later.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Total Revenue")).not.toBeInTheDocument();
+		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+		const button = screen.getByRole("button", { name: "Export" });
+		expect(button).toHaveAttribute("aria-disabled", "true");
+		expect(button).toHaveAccessibleDescription(
+			"The rent ledger totals this statement is built on aren't available yet.",
 		);
 		fireEvent.click(button);
 		expect(clickedDownloads).toHaveLength(0);

@@ -264,6 +264,11 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 	test("downloads the figures on screen as tenantflow-cash-flow-<start>-to-<end>.csv", async ({
 		page,
 	}) => {
+		// The report reads the rent ledger as of its period's end and the day
+		// before it (get_billing_insights, 20261102055449). Answer those calls
+		// and the period's expenses with fixed figures, so the comparison holds
+		// whether or not production has the migration applied yet.
+		await answerStatementRpcs(page);
 		await gotoReport(page, ROUTES.REPORTS_CASH_FLOW, "Cash Flow");
 		const exportButton = await settledExportButton(page);
 
@@ -272,6 +277,13 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 			"Total Outflows": await statAmount(page, "Total Outflows"),
 			"Net Cash Flow": await statAmount(page, "Net Cash Flow"),
 		};
+		// Rent received 4515 - 3040, plus the expenses as owner funds; out, the
+		// expenses; net, the rent received.
+		expect(onScreen).toEqual({
+			"Total Inflows": "1735.50",
+			"Total Outflows": "260.50",
+			"Net Cash Flow": "1475.00",
+		});
 
 		const { name, header, body } = await downloadCsv(page, exportButton);
 		const dates = CASH_FLOW_FILENAME.exec(name);
@@ -291,6 +303,22 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 		for (const [item, shown] of Object.entries(onScreen)) {
 			expect(total(item), `${item} in the CSV`).toBe(shown);
 		}
+		const line = (section: string, item: string) =>
+			body.find((row) => row[4] === section && row[5] === item)?.[7];
+		expect(line("Balance Summary", "Opening Balance")).toBe("3040.00");
+		expect(line("Balance Summary", "Closing Balance")).toBe("4515.00");
+		expect(line("Cash Inflows", "Rent Received")).toBe("1475.00");
+	});
+
+	test("says the ledger totals are unavailable when the server returns none", async ({
+		page,
+	}) => {
+		await answerStatementRpcs(page, BEFORE_LEDGER_KEYS);
+		await gotoReport(page, ROUTES.REPORTS_CASH_FLOW, "Cash Flow");
+		await expectLedgerUnavailable(
+			page,
+			"The rent ledger totals this report is built on aren't available yet.",
+		);
 	});
 });
 
@@ -307,6 +335,9 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 	test("income statement: downloads the figures on screen as tenantflow-income-statement-<start>-to-<end>.csv", async ({
 		page,
 	}) => {
+		// What the ledger charged in the period: as of its end less as of the
+		// day before it (get_billing_insights, 20261102055449), answered here.
+		await answerStatementRpcs(page);
 		await gotoReport(page, ROUTES.REPORTS_INCOME_STATEMENT, "Income Statement");
 		const exportButton = await settledExportButton(page);
 
@@ -315,6 +346,12 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 			"Total Expenses": await statAmount(page, "Total Expenses"),
 			"Net Income": await statAmount(page, "Net Income"),
 		};
+		// 1000 rent + 110 late fees + 250.50 other - 100 credits charged.
+		expect(onScreen).toEqual({
+			"Total Revenue": "1260.50",
+			"Total Expenses": "260.50",
+			"Net Income": "1000.00",
+		});
 
 		const { name, header, body } = await downloadCsv(page, exportButton);
 		const dates = INCOME_STATEMENT_FILENAME.exec(name);
@@ -334,6 +371,27 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 		for (const [item, shown] of Object.entries(onScreen)) {
 			expect(total(item), `${item} in the CSV`).toBe(shown);
 		}
+		const revenue = body
+			.filter((row) => row[4] === "Revenue Breakdown")
+			.map((row) => [row[5], row[7]]);
+		expect(revenue).toEqual([
+			["Rent Charged", "1000.00"],
+			["Late Fees Charged", "110.00"],
+			["Other Charges", "250.50"],
+			["Credits Issued", "-100.00"],
+			["Total Revenue", "1260.50"],
+		]);
+	});
+
+	test("income statement: says the ledger totals are unavailable when the server returns none", async ({
+		page,
+	}) => {
+		await answerStatementRpcs(page, BEFORE_LEDGER_KEYS);
+		await gotoReport(page, ROUTES.REPORTS_INCOME_STATEMENT, "Income Statement");
+		await expectLedgerUnavailable(
+			page,
+			"The rent ledger totals this statement is built on aren't available yet.",
+		);
 	});
 
 	test("balance sheet: downloads the figures on screen as tenantflow-balance-sheet-<as-of>.csv", async ({
@@ -418,6 +476,105 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 		);
 	});
 });
+
+/** get_billing_insights' body before 20261102055449: no ledger keys. */
+const BEFORE_LEDGER_KEYS = {
+	totalRevenue: 30000,
+	mrr: 2500,
+	churnRate: 0,
+	unpaidTotal: 0,
+	unpaidCount: 0,
+	lateFeeTotal: 0,
+	tenantCount: 2,
+} as const;
+
+/**
+ * The ledger as of a statement period's end and as of the day before it
+ * starts (the replay fixture's March 31 and January 31), and the period's
+ * expenses. Whichever period the page selects, the call with the later date
+ * gets the end.
+ */
+const STATEMENT_LEDGER = {
+	end: {
+		...BEFORE_LEDGER_KEYS,
+		collectedTotal: 4515,
+		unpaidTotal: 145.5,
+		creditBalanceTotal: 400,
+		chargedTotal: 4260.5,
+		openingTotal: 300,
+		rentChargedTotal: 3500,
+		lateFeeChargedTotal: 170,
+		manualChargedTotal: 390.5,
+		creditTotal: -100,
+	},
+	before: {
+		...BEFORE_LEDGER_KEYS,
+		collectedTotal: 3040,
+		unpaidTotal: 360,
+		creditBalanceTotal: 400,
+		chargedTotal: 3000,
+		openingTotal: 300,
+		rentChargedTotal: 2500,
+		lateFeeChargedTotal: 60,
+		manualChargedTotal: 140,
+		creditTotal: 0,
+	},
+} as const;
+
+/**
+ * Answer a statement's RPCs in the browser: the two get_billing_insights
+ * calls, and get_expense_summary with 260.50 of expenses. Both statements open
+ * on the current month, so the call as of a date in it (the month's last day)
+ * gets `ledger.end` and the one before it (the previous month's last day)
+ * `ledger.before`. With one `ledger` object, both calls get it.
+ */
+async function answerStatementRpcs(
+	page: Page,
+	ledger:
+		| Readonly<Record<string, number>>
+		| typeof STATEMENT_LEDGER = STATEMENT_LEDGER,
+): Promise<void> {
+	const json = (body: unknown) => ({
+		status: 200,
+		contentType: "application/json",
+		headers: { "access-control-allow-origin": "*" },
+		body: JSON.stringify(body),
+	});
+	const now = new Date();
+	const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	await page.route("**/rest/v1/rpc/get_billing_insights", (route) => {
+		if (!("end" in ledger)) return route.fulfill(json(ledger));
+		const asOf = String(route.request().postDataJSON()?.end_date_param ?? "");
+		return route.fulfill(json(asOf >= monthStart ? ledger.end : ledger.before));
+	});
+	await page.route("**/rest/v1/rpc/get_expense_summary", (route) =>
+		route.fulfill(
+			json({
+				total_amount: 260.5,
+				categories: [],
+				monthly_totals: [],
+				monthly_average: 9999,
+			}),
+		),
+	);
+}
+
+/** The statement shows the unavailable state, no figures, and Export says why. */
+async function expectLedgerUnavailable(
+	page: Page,
+	exportReason: string,
+): Promise<void> {
+	await expect(page.getByText("Ledger totals unavailable")).toBeVisible({
+		timeout: 15000,
+	});
+	await expect(page.locator('[data-slot="stat"]')).toHaveCount(0);
+	const exportButton = page
+		.locator("main#main-content")
+		.getByRole("button", { name: "Export", exact: true });
+	await waitForHydrated(exportButton);
+	await expect(exportButton).toHaveAttribute("aria-disabled", "true");
+	await expect(exportButton).toHaveAccessibleDescription(exportReason);
+}
 
 /** The ledger as of a date, as get_billing_insights returns it with an end date. */
 const LEDGER_FIGURES = {

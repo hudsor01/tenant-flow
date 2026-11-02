@@ -203,6 +203,13 @@ export type BalanceSheetResult =
 	| { readonly status: "ready"; readonly sheet: BalanceSheetData }
 	| { readonly status: "ledger-unavailable"; readonly asOfDate: string };
 
+/**
+ * The cash flow on a rent-ledger basis (financialQueries.cashFlow): rent
+ * received in the period in, the period's expenses out, and the expenses paid
+ * as owner funds in, as the balance sheet carries them, so `beginningCash` and
+ * `endingCash` are the balance sheet's Cash the day before the period and on
+ * its last day.
+ */
 export interface CashFlowData {
 	period: { start_date: string; end_date: string; label: string };
 	operatingActivities: {
@@ -228,12 +235,35 @@ export interface CashFlowData {
 	endingCash: number;
 }
 
+/**
+ * financialQueries.cashFlow's result. `ledger-unavailable` when the server
+ * returns none of the rent-ledger figures the report is built on
+ * (get_billing_insights before 20261102055449).
+ */
+export type CashFlowResult =
+	| { readonly status: "ready"; readonly report: CashFlowData }
+	| {
+			readonly status: "ledger-unavailable";
+			readonly period: CashFlowData["period"];
+	  };
+
+/**
+ * The income statement on a rent-ledger basis (financialQueries.
+ * incomeStatement): revenue is what the ledger charged in the period, by
+ * entry date and net of reversals, split by ledger type; opening balances are
+ * not revenue (the balance sheet carries them in owner capital).
+ */
 export interface IncomeStatementData {
 	period: { start_date: string; end_date: string; label: string };
 	revenue: {
+		/** Rent charged. */
 		rentalIncome: number;
+		/** Late fees charged. */
 		lateFeesIncome: number;
+		/** Manual charges. */
 		otherIncome: number;
+		/** Credits issued: zero or negative. */
+		creditsIssued: number;
 		totalRevenue: number;
 	};
 	expenses: {
@@ -256,6 +286,19 @@ export interface IncomeStatementData {
 		changePercent: number;
 	};
 }
+
+/**
+ * financialQueries.incomeStatement's result. `ledger-unavailable` when the
+ * server returns none of the rent-ledger figures the statement is built on
+ * (get_billing_insights before 20261102055449): the page says so instead of
+ * presenting $0 as the period's revenue.
+ */
+export type IncomeStatementResult =
+	| { readonly status: "ready"; readonly statement: IncomeStatementData }
+	| {
+			readonly status: "ledger-unavailable";
+			readonly period: IncomeStatementData["period"];
+	  };
 
 export interface FinancialPropertyPerformance {
 	property_id: string;

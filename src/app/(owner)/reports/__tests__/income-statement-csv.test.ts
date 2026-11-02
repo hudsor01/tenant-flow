@@ -21,6 +21,7 @@ function incomeData(
 			rentalIncome: 54000,
 			lateFeesIncome: 0,
 			otherIncome: 0,
+			creditsIssued: 0,
 			totalRevenue: 54000,
 		},
 		expenses: {
@@ -64,9 +65,10 @@ describe("buildIncomeStatementView", () => {
 	it("keeps every revenue line, drops the empty expense lines, and shares each", () => {
 		const view = buildIncomeStatementView(incomeData());
 		expect(view.revenueItems.map((i) => [i.label, i.amount, i.share])).toEqual([
-			["Rental Income", 54000, 100],
-			["Late Fees", 0, 0],
-			["Other Income", 0, 0],
+			["Rent Charged", 54000, 100],
+			["Late Fees Charged", 0, 0],
+			["Other Charges", 0, 0],
+			["Credits Issued", 0, 0],
 		]);
 		expect(view.expenseItems.map((i) => [i.label, i.amount, i.share])).toEqual([
 			["Maintenance", 1200, 80],
@@ -102,9 +104,10 @@ describe("buildIncomeStatementCsv", () => {
 			[...CONTEXT, "Totals", "Total Expenses", "", "1500.00"],
 			[...CONTEXT, "Totals", "Net Income", "", "52500.00"],
 			[...CONTEXT, "Totals", "Profit Margin", "97.2", ""],
-			[...CONTEXT, "Revenue Breakdown", "Rental Income", "100.0", "54000.00"],
-			[...CONTEXT, "Revenue Breakdown", "Late Fees", "0.0", "0.00"],
-			[...CONTEXT, "Revenue Breakdown", "Other Income", "0.0", "0.00"],
+			[...CONTEXT, "Revenue Breakdown", "Rent Charged", "100.0", "54000.00"],
+			[...CONTEXT, "Revenue Breakdown", "Late Fees Charged", "0.0", "0.00"],
+			[...CONTEXT, "Revenue Breakdown", "Other Charges", "0.0", "0.00"],
+			[...CONTEXT, "Revenue Breakdown", "Credits Issued", "0.0", "0.00"],
 			[...CONTEXT, "Revenue Breakdown", "Total Revenue", "", "54000.00"],
 			[...CONTEXT, "Expense Breakdown", "Maintenance", "80.0", "1200.00"],
 			[...CONTEXT, "Expense Breakdown", "Other", "20.0", "300.00"],
@@ -130,6 +133,7 @@ describe("buildIncomeStatementCsv", () => {
 					rentalIncome: 1000,
 					lateFeesIncome: 0,
 					otherIncome: 0,
+					creditsIssued: 0,
 					totalRevenue: 1000,
 				},
 				netIncome: -500,
@@ -153,6 +157,30 @@ describe("buildIncomeStatementCsv", () => {
 			"Previous Period",
 			"-300.0",
 			"250.00",
+		]);
+	});
+
+	it("writes each ledger revenue line, a credit negative, as the page lists them", () => {
+		const rows = csvFor(
+			incomeData({
+				revenue: {
+					rentalIncome: 1000,
+					lateFeesIncome: 110,
+					otherIncome: 250.5,
+					creditsIssued: -100,
+					totalRevenue: 1260.5,
+				},
+			}),
+		);
+		const revenue = rows
+			.filter((r) => r[4] === "Revenue Breakdown")
+			.map((r) => [r[5], r[7]]);
+		expect(revenue).toEqual([
+			["Rent Charged", "1000.00"],
+			["Late Fees Charged", "110.00"],
+			["Other Charges", "250.50"],
+			["Credits Issued", "-100.00"],
+			["Total Revenue", "1260.50"],
 		]);
 	});
 

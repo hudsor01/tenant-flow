@@ -40,7 +40,7 @@ export function IncomeStatementPageStats({
 					<StatIndicator variant="icon" color="success">
 						<TrendingUp />
 					</StatIndicator>
-					<StatDescription>all income sources</StatDescription>
+					<StatDescription>charged on your rent ledger</StatDescription>
 				</Stat>
 			</BlurFade>
 

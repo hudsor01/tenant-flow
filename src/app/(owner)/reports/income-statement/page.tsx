@@ -5,6 +5,7 @@ import { useIncomeStatement } from "#hooks/api/use-financials";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 import {
 	buildIncomeStatementCsv,
 	incomeStatementCsvFilename,
@@ -17,6 +18,9 @@ import { IncomeStatementPageLoading } from "./income-statement-page-loading";
 import { IncomeStatementPageNetSummary } from "./income-statement-page-net-summary";
 import { IncomeStatementPageStats } from "./income-statement-page-stats";
 import { buildIncomeStatementView } from "./income-statement-view";
+
+const LEDGER_UNAVAILABLE_EXPORT_REASON =
+	"The rent ledger totals this statement is built on aren't available yet.";
 
 export default function IncomeStatementPage() {
 	const [period, setPeriod] = useState("monthly");
@@ -31,16 +35,22 @@ export default function IncomeStatementPage() {
 		error,
 		refetch,
 	} = useIncomeStatement(dateRange);
-	const data = response?.data;
+	// When get_billing_insights returns none of the ledger figures the
+	// statement is built on (its body before 20261102055449), the query says so
+	// rather than handing the page zeros to present as the period's revenue.
+	const ledgerUnavailable = response?.status === "ledger-unavailable";
+	const data = response?.status === "ready" ? response.statement : undefined;
 	const view = buildIncomeStatementView(data);
 
 	// The global keepPreviousData shows the last period while the selected one
 	// loads, so the export waits for the data that matches the selectors.
-	const exportUnavailableReason = !data
-		? "No income statement data to export yet."
-		: isPlaceholderData
-			? "Loading the selected period. Export is available when it finishes."
-			: null;
+	const exportUnavailableReason = ledgerUnavailable
+		? LEDGER_UNAVAILABLE_EXPORT_REASON
+		: !data
+			? "No income statement data to export yet."
+			: isPlaceholderData
+				? "Loading the selected period. Export is available when it finishes."
+				: null;
 
 	const handleExport = () => {
 		if (!data || isPlaceholderData) return;
@@ -84,28 +94,37 @@ export default function IncomeStatementPage() {
 				exportUnavailableReason={exportUnavailableReason}
 			/>
 
-			<IncomeStatementPageStats
-				totalRevenue={view.totalRevenue}
-				totalExpenses={view.totalExpenses}
-				netIncome={view.netIncome}
-				profitMargin={view.profitMargin.toFixed(1)}
-			/>
+			{ledgerUnavailable ? (
+				<LedgerTotalsUnavailable
+					description="Revenue on this statement is what your rent ledger charged."
+					onRetryAction={() => void refetch()}
+				/>
+			) : (
+				<>
+					<IncomeStatementPageStats
+						totalRevenue={view.totalRevenue}
+						totalExpenses={view.totalExpenses}
+						netIncome={view.netIncome}
+						profitMargin={view.profitMargin.toFixed(1)}
+					/>
 
-			<IncomeStatementPageBreakdowns
-				revenueItems={view.revenueItems}
-				expenseItems={view.expenseItems}
-				totalRevenue={view.totalRevenue}
-				totalExpenses={view.totalExpenses}
-			/>
+					<IncomeStatementPageBreakdowns
+						revenueItems={view.revenueItems}
+						expenseItems={view.expenseItems}
+						totalRevenue={view.totalRevenue}
+						totalExpenses={view.totalExpenses}
+					/>
 
-			<IncomeStatementPageNetSummary
-				totalRevenue={view.totalRevenue}
-				totalExpenses={view.totalExpenses}
-				netIncome={view.netIncome}
-				grossProfit={view.grossProfit}
-				operatingIncome={view.operatingIncome}
-				previousPeriod={view.previousPeriod}
-			/>
+					<IncomeStatementPageNetSummary
+						totalRevenue={view.totalRevenue}
+						totalExpenses={view.totalExpenses}
+						netIncome={view.netIncome}
+						grossProfit={view.grossProfit}
+						operatingIncome={view.operatingIncome}
+						previousPeriod={view.previousPeriod}
+					/>
+				</>
+			)}
 		</div>
 	);
 }

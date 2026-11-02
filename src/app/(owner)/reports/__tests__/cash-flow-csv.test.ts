@@ -69,13 +69,7 @@ describe("buildCashFlowCsv", () => {
 			[...CONTEXT, "Totals", "Total Inflows", "", "4500.00"],
 			[...CONTEXT, "Totals", "Total Outflows", "", "1500.00"],
 			[...CONTEXT, "Totals", "Net Cash Flow", "", "3000.00"],
-			[
-				...CONTEXT,
-				"Cash Inflows",
-				"Rental Payments Received",
-				"100.0",
-				"4500.00",
-			],
+			[...CONTEXT, "Cash Inflows", "Rent Received", "100.0", "4500.00"],
 			[...CONTEXT, "Cash Inflows", "Total Inflows", "", "4500.00"],
 			[
 				...CONTEXT,
@@ -120,7 +114,7 @@ describe("buildCashFlowCsv", () => {
 		const section = (name: string) =>
 			rows.filter((r) => r[4] === name).map((r) => [r[5], r[6], r[7]]);
 		expect(section("Cash Inflows")).toEqual([
-			["Rental Payments Received", "75.0", "4500.00"],
+			["Rent Received", "75.0", "4500.00"],
 			["Loan Proceeds", "25.0", "1500.00"],
 			["Total Inflows", "", "6000.00"],
 		]);

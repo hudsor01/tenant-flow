@@ -3,7 +3,8 @@
  *
  * Tests useIncomeStatement, useCashFlow, useBalanceSheet, useTaxDocuments
  * using Supabase RPC mocks. These hooks delegate to financial-keys.ts, which
- * calls get_dashboard_stats, get_expense_summary and get_billing_insights.
+ * calls get_billing_insights (the rent ledger as of a date) and
+ * get_expense_summary; the tax documents also read get_dashboard_stats.
  *
  * Note: useExpenseSummary is tested in use-financial-overview.test.ts.
  */
@@ -98,6 +99,36 @@ describe("expenseKeys", () => {
 	});
 });
 
+/**
+ * get_billing_insights as of a date (20261102055449): the by-type charges and
+ * the receipts. The scheduled-rent keys ride along and must reach no line.
+ */
+function ledgerAsOf(figures: Record<string, number>) {
+	return { totalRevenue: 999999, mrr: 83333.25, tenantCount: 3, ...figures };
+}
+
+/** Answer each RPC by name and arguments: the ledger as of each date, and expenses. */
+function answerPeriod(answers: {
+	ledger: Record<string, unknown>;
+	expenses: unknown;
+}) {
+	mockRpc.mockImplementation(
+		async (fn: string, args: Record<string, unknown>) => {
+			if (fn === "get_billing_insights") {
+				const date = String(args.end_date_param);
+				return { data: answers.ledger[date] ?? null, error: null };
+			}
+			if (fn === "get_expense_summary") {
+				return { data: answers.expenses, error: null };
+			}
+			return {
+				data: { revenue: { yearly: 999999, monthly: 83333 } },
+				error: null,
+			};
+		},
+	);
+}
+
 describe("useIncomeStatement", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -108,26 +139,34 @@ describe("useIncomeStatement", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches income statement from parallel RPCs", async () => {
-		// incomeStatement() calls get_dashboard_stats + get_expense_summary in parallel
-		mockRpc
-			.mockResolvedValueOnce({
-				data: {
-					revenue: { yearly: 500000, monthly: 41667 },
-					properties: { occupancyRate: 94 },
-				},
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: { total_amount: 120000 },
-				error: null,
-			});
+	it("reads revenue as what the ledger charged in the period, by type", async () => {
+		answerPeriod({
+			ledger: {
+				"2026-03-31": ledgerAsOf({
+					rentChargedTotal: 3500,
+					lateFeeChargedTotal: 170,
+					manualChargedTotal: 390.5,
+					creditTotal: -100,
+					openingTotal: 300,
+					chargedTotal: 4260.5,
+				}),
+				"2026-01-31": ledgerAsOf({
+					rentChargedTotal: 2500,
+					lateFeeChargedTotal: 60,
+					manualChargedTotal: 140,
+					creditTotal: 0,
+					openingTotal: 300,
+					chargedTotal: 3000,
+				}),
+			},
+			expenses: { total_amount: 260.5 },
+		});
 
 		const { result } = renderHook(
 			() =>
 				useIncomeStatement({
-					start_date: "2024-01-01",
-					end_date: "2024-12-31",
+					start_date: "2026-02-01",
+					end_date: "2026-03-31",
 				}),
 			{ wrapper: createWrapper() },
 		);
@@ -137,24 +176,109 @@ describe("useIncomeStatement", () => {
 		});
 
 		const data = result.current.data;
-		expect(data?.success).toBe(true);
-		expect(data?.data?.revenue?.totalRevenue).toBe(500000);
-		expect(data?.data?.expenses?.totalExpenses).toBe(120000);
-		expect(data?.data?.netIncome).toBe(380000);
-		expect(data?.data?.profitMargin).toBeCloseTo(76);
-		expect(mockRpc).toHaveBeenCalledWith("get_dashboard_stats", {
-			p_user_id: "user-1",
+		if (data?.status !== "ready") throw new Error("expected a statement");
+		expect(data.statement.revenue).toEqual({
+			rentalIncome: 1000,
+			lateFeesIncome: 110,
+			otherIncome: 250.5,
+			creditsIssued: -100,
+			totalRevenue: 1260.5,
 		});
-		// BILL-02: incomeStatement forwards the selected range to the now
-		// date-aware get_expense_summary (revenue side stays annualized MRR).
+		expect(data.statement.expenses.totalExpenses).toBe(260.5);
+		expect(data.statement.netIncome).toBe(1000);
+		expect(data.statement.profitMargin).toBeCloseTo((1000 / 1260.5) * 100);
+		// As of the period's end and of the day before it starts.
+		expect(mockRpc).toHaveBeenCalledWith("get_billing_insights", {
+			owner_id_param: "user-1",
+			end_date_param: "2026-03-31",
+		});
+		expect(mockRpc).toHaveBeenCalledWith("get_billing_insights", {
+			owner_id_param: "user-1",
+			end_date_param: "2026-01-31",
+		});
 		expect(mockRpc).toHaveBeenCalledWith("get_expense_summary", {
 			p_user_id: "user-1",
-			p_start_date: "2024-01-01",
-			p_end_date: "2024-12-31",
+			p_start_date: "2026-02-01",
+			p_end_date: "2026-03-31",
+		});
+		expect(mockRpc).not.toHaveBeenCalledWith(
+			"get_dashboard_stats",
+			expect.anything(),
+		);
+	});
+
+	it("differences against the day before a period that starts on January 1", async () => {
+		answerPeriod({
+			ledger: {
+				"2026-01-31": ledgerAsOf({
+					rentChargedTotal: 1000,
+					lateFeeChargedTotal: 0,
+					manualChargedTotal: 0,
+					creditTotal: 0,
+				}),
+				"2025-12-31": ledgerAsOf({
+					rentChargedTotal: 600,
+					lateFeeChargedTotal: 0,
+					manualChargedTotal: 0,
+					creditTotal: 0,
+				}),
+			},
+			expenses: { total_amount: 0 },
+		});
+		const { result } = renderHook(
+			() =>
+				useIncomeStatement({
+					start_date: "2026-01-01",
+					end_date: "2026-01-31",
+				}),
+			{ wrapper: createWrapper() },
+		);
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		const data = result.current.data;
+		if (data?.status !== "ready") throw new Error("expected a statement");
+		expect(data.statement.revenue.rentalIncome).toBe(400);
+	});
+
+	it("reports the ledger unavailable when the server returns no by-type figures", async () => {
+		// Part K's body: every balance-sheet key, none of the income statement's.
+		const balanceSheetOnly = ledgerAsOf({
+			collectedTotal: 4515,
+			unpaidTotal: 145.5,
+			creditBalanceTotal: 400,
+			chargedTotal: 4260.5,
+			openingTotal: 300,
+		});
+		answerPeriod({
+			ledger: {
+				"2026-03-31": balanceSheetOnly,
+				"2026-01-31": balanceSheetOnly,
+			},
+			expenses: { total_amount: 0 },
+		});
+		const { result } = renderHook(
+			() =>
+				useIncomeStatement({
+					start_date: "2026-02-01",
+					end_date: "2026-03-31",
+				}),
+			{ wrapper: createWrapper() },
+		);
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		expect(result.current.data).toEqual({
+			status: "ledger-unavailable",
+			period: {
+				start_date: "2026-02-01",
+				end_date: "2026-03-31",
+				label: "2026-02-01 to 2026-03-31",
+			},
 		});
 	});
 
-	it("handles no user gracefully", async () => {
+	it("fails when no one is signed in, rather than drawing a $0 statement", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
 		const { result } = renderHook(
@@ -167,11 +291,9 @@ describe("useIncomeStatement", () => {
 		);
 
 		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
+			expect(result.current.isError).toBe(true);
 		});
-
-		expect(result.current.data?.data?.revenue?.totalRevenue).toBe(0);
-		expect(result.current.data?.data?.netIncome).toBe(0);
+		expect(mockRpc).not.toHaveBeenCalled();
 	});
 });
 
@@ -185,19 +307,24 @@ describe("useCashFlow", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches cash flow from parallel RPCs", async () => {
-		mockRpc
-			.mockResolvedValueOnce({
-				data: { revenue: { yearly: 500000, monthly: 41667 }, units: {} },
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: { monthly_average: 10000 },
-				error: null,
-			});
+	function position(collectedTotal: number) {
+		return ledgerAsOf({
+			collectedTotal,
+			unpaidTotal: 0,
+			creditBalanceTotal: 0,
+			chargedTotal: collectedTotal,
+			openingTotal: 0,
+		});
+	}
+
+	it("reads rent received in the period, and the balance sheet's cash either side", async () => {
+		answerPeriod({
+			ledger: { "2026-03-31": position(4515), "2026-01-31": position(3040) },
+			expenses: { total_amount: 260.5, monthly_average: 9999 },
+		});
 
 		const { result } = renderHook(
-			() => useCashFlow({ start_date: "2024-01-01", end_date: "2024-12-31" }),
+			() => useCashFlow({ start_date: "2026-02-01", end_date: "2026-03-31" }),
 			{ wrapper: createWrapper() },
 		);
 
@@ -206,10 +333,41 @@ describe("useCashFlow", () => {
 		});
 
 		const data = result.current.data;
-		expect(data?.success).toBe(true);
-		expect(data?.data?.operatingActivities?.rentalPaymentsReceived).toBe(41667);
-		expect(data?.data?.operatingActivities?.operatingExpensesPaid).toBe(10000);
-		expect(data?.data?.netCashFlow).toBe(31667);
+		if (data?.status !== "ready") throw new Error("expected a report");
+		const { report } = data;
+		expect(report.operatingActivities).toEqual({
+			rentalPaymentsReceived: 1475,
+			operatingExpensesPaid: 260.5,
+			maintenancePaid: 0,
+			netOperatingCash: 1214.5,
+		});
+		// The period's expenses, not the trailing twelve months' average.
+		expect(report.financingActivities.ownerContributions).toBe(260.5);
+		expect(report.financingActivities.netFinancingCash).toBe(260.5);
+		expect(report.netCashFlow).toBe(1475);
+		expect(report.beginningCash).toBe(3040);
+		expect(report.endingCash).toBe(4515);
+		expect(report.endingCash - report.beginningCash).toBe(report.netCashFlow);
+		expect(mockRpc).not.toHaveBeenCalledWith(
+			"get_dashboard_stats",
+			expect.anything(),
+		);
+	});
+
+	it("reports the ledger unavailable when the server returns no ledger totals", async () => {
+		const before = { totalRevenue: 30000, mrr: 2500, unpaidTotal: 0 };
+		answerPeriod({
+			ledger: { "2026-03-31": before, "2026-01-31": before },
+			expenses: { total_amount: 0 },
+		});
+		const { result } = renderHook(
+			() => useCashFlow({ start_date: "2026-02-01", end_date: "2026-03-31" }),
+			{ wrapper: createWrapper() },
+		);
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		expect(result.current.data?.status).toBe("ledger-unavailable");
 	});
 });
 

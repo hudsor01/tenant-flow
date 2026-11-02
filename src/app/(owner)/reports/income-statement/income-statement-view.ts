@@ -44,11 +44,14 @@ export function buildIncomeStatementView(
 	const totalExpenses = data?.expenses.totalExpenses || 0;
 	const netIncome = data?.netIncome || 0;
 
+	// What the rent ledger charged in the period, by type (financialQueries.
+	// incomeStatement); credits issued lower it and are shown negative.
 	const revenueItems = withShares(
 		[
-			{ label: "Rental Income", amount: data?.revenue.rentalIncome || 0 },
-			{ label: "Late Fees", amount: data?.revenue.lateFeesIncome || 0 },
-			{ label: "Other Income", amount: data?.revenue.otherIncome || 0 },
+			{ label: "Rent Charged", amount: data?.revenue.rentalIncome || 0 },
+			{ label: "Late Fees Charged", amount: data?.revenue.lateFeesIncome || 0 },
+			{ label: "Other Charges", amount: data?.revenue.otherIncome || 0 },
+			{ label: "Credits Issued", amount: data?.revenue.creditsIssued || 0 },
 		],
 		totalRevenue,
 	);

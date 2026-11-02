@@ -1,18 +1,9 @@
 "use client";
 
-import { Building2, CreditCard, ReceiptText, Wallet } from "lucide-react";
+import { Building2, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
-import { Button } from "#components/ui/button";
-import {
-	Empty,
-	EmptyContent,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from "#components/ui/empty";
 import {
 	Select,
 	SelectContent,
@@ -33,6 +24,7 @@ import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 import { ReportExportButton } from "../report-export-button";
 import { BalanceEquationCheck } from "./balance-equation-check";
 import { BalanceSection } from "./balance-section";
@@ -174,40 +166,14 @@ export default function BalanceSheetPage() {
 			</BlurFade>
 
 			{ledgerUnavailable ? (
-				<LedgerUnavailable onRetryAction={() => void refetch()} />
+				<LedgerTotalsUnavailable
+					description="Cash and accounts receivable on this sheet come from your rent ledger."
+					onRetryAction={() => void refetch()}
+				/>
 			) : (
 				<BalanceSheetFigures view={view} />
 			)}
 		</div>
-	);
-}
-
-/**
- * In place of the figures when the server returns no rent-ledger totals. The
- * selectors and the Export button stay, so the owner can still pick another
- * month; every month is unavailable in that state, and Export says why.
- */
-function LedgerUnavailable({ onRetryAction }: { onRetryAction: () => void }) {
-	return (
-		<BlurFade delay={0.15}>
-			<Empty className="border border-border bg-card">
-				<EmptyHeader>
-					<EmptyMedia variant="icon">
-						<ReceiptText aria-hidden="true" />
-					</EmptyMedia>
-					<EmptyTitle>Ledger totals unavailable</EmptyTitle>
-					<EmptyDescription>
-						Cash and accounts receivable on this sheet come from your rent
-						ledger, and its totals aren&apos;t available yet. Try again later.
-					</EmptyDescription>
-				</EmptyHeader>
-				<EmptyContent>
-					<Button variant="outline" onClick={onRetryAction}>
-						Try Again
-					</Button>
-				</EmptyContent>
-			</Empty>
-		</BlurFade>
 	);
 }
 

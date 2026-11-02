@@ -55,7 +55,7 @@ const data: CashFlowData = {
 
 function queryState(overrides: Record<string, unknown> = {}) {
 	return {
-		data: { success: true, data },
+		data: { status: "ready", report: data },
 		isLoading: false,
 		isPlaceholderData: false,
 		error: null,
@@ -121,6 +121,44 @@ describe("cash flow Export", () => {
 		expect(handleMutationErrorMock).not.toHaveBeenCalled();
 	});
 
+	it("writes the ledger's balances and rent received the page shows", async () => {
+		const ledger: CashFlowData = {
+			...data,
+			operatingActivities: {
+				rentalPaymentsReceived: 1475,
+				operatingExpensesPaid: 260.5,
+				maintenancePaid: 0,
+				netOperatingCash: 1214.5,
+			},
+			financingActivities: {
+				...data.financingActivities,
+				ownerContributions: 260.5,
+				netFinancingCash: 260.5,
+			},
+			netCashFlow: 1475,
+			beginningCash: 3040,
+			endingCash: 4515,
+		};
+		useCashFlowMock.mockReturnValue(
+			queryState({ data: { status: "ready", report: ledger } }),
+		);
+		render(<CashFlowPage />);
+		fireEvent.click(screen.getByRole("button", { name: "Export" }));
+		const text = (await createdBlobs[0]?.text()) ?? "";
+		const cells = text.split("\r\n").map((line) => line.split(","));
+		const amount = (section: string, item: string) =>
+			cells.find((c) => c[4] === section && c[5] === item)?.[7];
+		expect(amount("Balance Summary", "Opening Balance")).toBe("3040.00");
+		expect(amount("Balance Summary", "Closing Balance")).toBe("4515.00");
+		expect(amount("Cash Inflows", "Rent Received")).toBe("1475.00");
+		expect(amount("Cash Inflows", "Owner Funds for Expenses")).toBe("260.50");
+		expect(amount("Cash Outflows", "Operating Expenses Paid")).toBe("260.50");
+		expect(screen.getByText("$3,040.00")).toBeInTheDocument();
+		expect(screen.getByText("$4,515.00")).toBeInTheDocument();
+		expect(screen.getByText("Rent Received")).toBeInTheDocument();
+		expect(screen.getByText("Owner Funds for Expenses")).toBeInTheDocument();
+	});
+
 	it("waits for the selected period while the previous one is on screen", () => {
 		useCashFlowMock.mockReturnValue(queryState({ isPlaceholderData: true }));
 		render(<CashFlowPage />);
@@ -131,6 +169,38 @@ describe("cash flow Export", () => {
 		);
 		fireEvent.click(button);
 		expect(createdBlobs).toHaveLength(0);
+		expect(clickedDownloads).toHaveLength(0);
+	});
+
+	it("says the ledger totals are unavailable, with no $0, and disables Export", () => {
+		// get_billing_insights' body before 20261102055449: no ledger keys.
+		useCashFlowMock.mockReturnValue(
+			queryState({
+				data: {
+					status: "ledger-unavailable",
+					period: {
+						start_date: "2026-11-01",
+						end_date: "2026-11-30",
+						label: "2026-11-01 to 2026-11-30",
+					},
+				},
+			}),
+		);
+		render(<CashFlowPage />);
+		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Rent received and the opening and closing balances on this report come from your rent ledger. Its totals aren't available yet. Try again later.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Total Inflows")).not.toBeInTheDocument();
+		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+		const button = screen.getByRole("button", { name: "Export" });
+		expect(button).toHaveAttribute("aria-disabled", "true");
+		expect(button).toHaveAccessibleDescription(
+			"The rent ledger totals this report is built on aren't available yet.",
+		);
+		fireEvent.click(button);
 		expect(clickedDownloads).toHaveLength(0);
 	});
 

@@ -35,10 +35,12 @@ function withShares(
 export function buildCashFlowView(
 	data: CashFlowData | undefined,
 ): CashFlowView {
+	// Rent received from the rent ledger, and the expenses paid, which the
+	// balance sheet carries as the owner's own funds (financialQueries.cashFlow).
 	const inflowItems = data
 		? withShares([
 				{
-					category: "Rental Payments Received",
+					category: "Rent Received",
 					amount: data.operatingActivities.rentalPaymentsReceived,
 				},
 				{
@@ -46,7 +48,7 @@ export function buildCashFlowView(
 					amount: data.financingActivities.loanProceeds,
 				},
 				{
-					category: "Owner Contributions",
+					category: "Owner Funds for Expenses",
 					amount: data.financingActivities.ownerContributions,
 				},
 			])

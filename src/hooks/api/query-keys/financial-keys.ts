@@ -2,27 +2,32 @@
  * Financial Query Keys & Options
  * Query factories for the financial statements and the expense summary.
  *
- * Financial data uses existing RPCs:
- * - get_dashboard_stats for the income statement and cash flow revenue
+ * The three statements are on one basis, the rent ledger, so they tie:
+ * - get_billing_insights as of a date (end_date_param alone, 20261102055449)
+ *   for every ledger figure: the balance sheet's as of its date, the income
+ *   statement's and the cash flow's as of a period's end less as of the day
+ *   before it (the rows dated in the period)
  * - get_expense_summary for expense data
- * - get_billing_insights for the balance sheet's rent-ledger figures
+ * Scheduled rent (get_dashboard_stats' revenue) is in none of them: it is not
+ * money, and CLAUDE.md forbids summing it with the ledger's.
  *
  * The expense list and tax documents are in expense-keys.ts.
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import { parseLocalYmd } from "#lib/formatters/date";
+import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { ExpenseCategorySummary } from "#types/analytics";
-import type { ApiResponse } from "#types/api-contracts";
 import type {
 	BalanceSheetData,
 	BalanceSheetResult,
 	CashFlowData,
+	CashFlowResult,
 	IncomeStatementData,
+	IncomeStatementResult,
 } from "#types/financial-statements";
 
 export interface ExpenseSummaryData {
@@ -33,49 +38,6 @@ export interface ExpenseSummaryData {
 }
 
 const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
-
-/**
- * Fetch dashboard + expense RPCs in parallel for authenticated user.
- *
- * When `range` is provided, only the expense side (get_expense_summary) is
- * period-scoped; revenue stays annualized MRR because get_dashboard_stats is
- * point-in-time and the data model has no payment history (see 29-CONTEXT.md).
- */
-async function fetchDashAndExpense(
-	userId: string,
-	range?: { start_date: string; end_date: string },
-) {
-	const supabase = createClient();
-	const [dashResult, expenseResult] = await Promise.all([
-		supabase.rpc("get_dashboard_stats", { p_user_id: userId }),
-		supabase.rpc(
-			"get_expense_summary",
-			range
-				? {
-						p_user_id: userId,
-						p_start_date: range.start_date,
-						p_end_date: range.end_date,
-					}
-				: { p_user_id: userId },
-		),
-	]);
-	return { dashResult, expenseResult };
-}
-
-/** Extract first dashboard stats row */
-function parseDashStats(data: unknown) {
-	// get_dashboard_stats RETURNS json (a bare object, supabase.ts `Returns: Json`) —
-	// NOT a SETOF/array. supabase-js returns the object directly, so read it as-is
-	// (the old `data[0]` was always undefined → every derived value collapsed to 0).
-	const stats = data as Record<string, unknown> | null;
-	return {
-		revenue: stats?.revenue as Record<string, unknown> | undefined,
-		units: stats?.units as Record<string, unknown> | undefined,
-		// Occupancy lives under `properties.occupancyRate` (camelCase) in the RPC —
-		// NOT `units.occupancy_rate`.
-		properties: stats?.properties as Record<string, unknown> | undefined,
-	};
-}
 
 /**
  * The rent ledger as of a date, as get_billing_insights reports it when given
@@ -124,6 +86,110 @@ function mapLedgerPosition(data: unknown): LedgerPosition | null {
 		creditBalances: creditBalanceTotal,
 		charged: chargedTotal,
 		opening: openingTotal,
+	};
+}
+
+/**
+ * What the rent ledger had charged as of a date, by type, for the income
+ * statement: the four by-type keys get_billing_insights returns with
+ * end_date_param alone (20261102055449), and openingTotal. With it they sum to
+ * chargedTotal, the balance sheet's figure. Dollars.
+ */
+interface LedgerCharges {
+	/** rentChargedTotal. */
+	readonly rent: number;
+	/** lateFeeChargedTotal. */
+	readonly lateFees: number;
+	/** manualChargedTotal. */
+	readonly manual: number;
+	/** creditTotal: zero or negative. */
+	readonly credits: number;
+}
+
+/**
+ * Narrow a get_billing_insights payload to the income statement's figures;
+ * null when any is missing (the body before 20261102055449), so none of them
+ * reaches the statement as $0.
+ */
+function mapLedgerCharges(data: unknown): LedgerCharges | null {
+	const raw = jsonObjectOrEmpty<Record<string, unknown>>(data, {});
+	const {
+		rentChargedTotal,
+		lateFeeChargedTotal,
+		manualChargedTotal,
+		creditTotal,
+	} = raw;
+	if (
+		typeof rentChargedTotal !== "number" ||
+		typeof lateFeeChargedTotal !== "number" ||
+		typeof manualChargedTotal !== "number" ||
+		typeof creditTotal !== "number"
+	) {
+		return null;
+	}
+	return {
+		rent: rentChargedTotal,
+		lateFees: lateFeeChargedTotal,
+		manual: manualChargedTotal,
+		credits: creditTotal,
+	};
+}
+
+/**
+ * The calendar day before a local YYYY-MM-DD date: the as-of date a period's
+ * figures are differenced against, so the period counts its first day.
+ */
+function dayBefore(ymd: string): string {
+	const date = parseLocalYmd(ymd);
+	if (!date) throw new Error(`Invalid statement date: ${ymd}`);
+	date.setDate(date.getDate() - 1);
+	return formatLocalYmd(date);
+}
+
+/** A statement period's `period` block. */
+function statementPeriod(params: { start_date: string; end_date: string }) {
+	return {
+		start_date: params.start_date,
+		end_date: params.end_date,
+		label: `${params.start_date} to ${params.end_date}`,
+	};
+}
+
+/**
+ * Read the ledger as of a period's end and as of the day before it starts,
+ * and the period's expenses: the three calls the income statement and the
+ * cash flow make, the balance sheet's, over the period. Errors surface.
+ */
+async function fetchLedgerPeriod(
+	userId: string,
+	params: { start_date: string; end_date: string },
+	what: string,
+) {
+	const supabase = createClient();
+	const [endResult, beforeResult, expenseResult] = await Promise.all([
+		supabase.rpc("get_billing_insights", {
+			owner_id_param: userId,
+			end_date_param: params.end_date,
+		}),
+		supabase.rpc("get_billing_insights", {
+			owner_id_param: userId,
+			end_date_param: dayBefore(params.start_date),
+		}),
+		supabase.rpc("get_expense_summary", {
+			p_user_id: userId,
+			p_start_date: params.start_date,
+			p_end_date: params.end_date,
+		}),
+	]);
+	if (endResult.error) handlePostgrestError(endResult.error, `${what} ledger`);
+	if (beforeResult.error)
+		handlePostgrestError(beforeResult.error, `${what} ledger`);
+	if (expenseResult.error)
+		handlePostgrestError(expenseResult.error, `${what} expenses`);
+	return {
+		end: endResult.data,
+		before: beforeResult.data,
+		expenses: expenseResult.data,
 	};
 }
 
@@ -252,6 +318,115 @@ function buildLedgerBalanceSheet(input: {
 	};
 }
 
+/**
+ * The income statement on a rent-ledger basis, for a period.
+ *
+ * Revenue is what the ledger charged in the period: each by-type figure as of
+ * the period's end less the same as of the day before it starts, so every
+ * charge counts in the period of its ledger entry date, a reversal (a row like
+ * any other, net of the charge it reverses within its type) in its own, and a
+ * credit lowers revenue. Opening balances are not revenue: money owed before
+ * the ledger began, which the balance sheet carries in owner capital.
+ * Expenses are the period's (get_expense_summary), as before.
+ *
+ * It ties to the balance sheet by construction: the by-type figures and
+ * openingTotal partition chargedTotal, so this net income for January 1 to a
+ * date is the balance sheet's Year-to-Date Income as of it, and for any start
+ * before the ledger to December 31 its Retained Earnings the year after.
+ */
+function buildLedgerIncomeStatement(input: {
+	period: IncomeStatementData["period"];
+	end: LedgerCharges;
+	before: LedgerCharges;
+	expenses: number;
+}): IncomeStatementData {
+	const { end, before } = input;
+	const rentalIncome = toCents(end.rent - before.rent);
+	const lateFeesIncome = toCents(end.lateFees - before.lateFees);
+	const otherIncome = toCents(end.manual - before.manual);
+	const creditsIssued = toCents(end.credits - before.credits);
+	const totalRevenue = toCents(
+		rentalIncome + lateFeesIncome + otherIncome + creditsIssued,
+	);
+	const totalExpenses = toCents(input.expenses);
+	const net = toCents(totalRevenue - totalExpenses);
+	return {
+		period: input.period,
+		revenue: {
+			rentalIncome,
+			lateFeesIncome,
+			otherIncome,
+			creditsIssued,
+			totalRevenue,
+		},
+		expenses: {
+			propertyManagement: 0,
+			maintenance: 0,
+			utilities: 0,
+			insurance: 0,
+			propertyTax: 0,
+			mortgage: 0,
+			other: totalExpenses,
+			totalExpenses,
+		},
+		grossProfit: net,
+		operatingIncome: net,
+		netIncome: net,
+		profitMargin: totalRevenue > 0 ? (net / totalRevenue) * 100 : 0,
+	};
+}
+
+/**
+ * The cash flow on a rent-ledger basis, for a period.
+ *
+ * Cash is the balance sheet's: money recorded as received on the ledger, which
+ * no expense is drawn from (the data model records no account an expense was
+ * paid from), so the balance sheet carries every expense as the owner's own
+ * money put in. On that basis:
+ *   Operating: rent received in the period (collectedTotal as of its end less
+ *     as of the day before it: every receipt by received date, a reversal on
+ *     the day it was posted) in, the period's expenses out.
+ *   Financing: the same expenses in, as owner funds.
+ *   Net cash flow is the rent received, and the opening and closing balances
+ *   are the balance sheet's Cash the day before the period and on its last
+ *   day.
+ */
+function buildLedgerCashFlow(input: {
+	period: CashFlowData["period"];
+	end: LedgerPosition;
+	before: LedgerPosition;
+	expenses: number;
+}): CashFlowData {
+	const beginningCash = toCents(input.before.collected);
+	const endingCash = toCents(input.end.collected);
+	const rentReceived = toCents(endingCash - beginningCash);
+	const expensesPaid = toCents(input.expenses);
+	return {
+		period: input.period,
+		operatingActivities: {
+			rentalPaymentsReceived: rentReceived,
+			operatingExpensesPaid: expensesPaid,
+			maintenancePaid: 0,
+			netOperatingCash: toCents(rentReceived - expensesPaid),
+		},
+		investingActivities: {
+			propertyAcquisitions: 0,
+			propertyImprovements: 0,
+			netInvestingCash: 0,
+		},
+		financingActivities: {
+			mortgagePayments: 0,
+			loanProceeds: 0,
+			ownerContributions: expensesPaid,
+			ownerDistributions: 0,
+			netFinancingCash: expensesPaid,
+		},
+		netCashFlow: rentReceived,
+		beginningCash,
+		endingCash,
+	};
+}
+
 export const financialKeys = {
 	all: ["financials"] as const,
 	expenseSummary: () => [...financialKeys.all, "expense-summary"] as const,
@@ -306,87 +481,28 @@ export const financialQueries = {
 	incomeStatement: (params: { start_date: string; end_date: string }) =>
 		queryOptions({
 			queryKey: financialKeys.incomeStatement(params),
-			queryFn: async (): Promise<ApiResponse<IncomeStatementData>> => {
+			queryFn: async (): Promise<IncomeStatementResult> => {
 				const user = await getCachedUser();
-				if (!user?.id) {
-					const empty: IncomeStatementData = {
-						period: {
-							start_date: params.start_date,
-							end_date: params.end_date,
-							label: `${params.start_date} to ${params.end_date}`,
-						},
-						revenue: {
-							rentalIncome: 0,
-							lateFeesIncome: 0,
-							otherIncome: 0,
-							totalRevenue: 0,
-						},
-						expenses: {
-							propertyManagement: 0,
-							maintenance: 0,
-							utilities: 0,
-							insurance: 0,
-							propertyTax: 0,
-							mortgage: 0,
-							other: 0,
-							totalExpenses: 0,
-						},
-						grossProfit: 0,
-						operatingIncome: 0,
-						netIncome: 0,
-						profitMargin: 0,
-					};
-					return { success: true, data: empty };
-				}
-				// Only the expense side is period-scoped; revenue remains annualized
-				// MRR (get_dashboard_stats is point-in-time — no payment history).
-				const { dashResult, expenseResult } = await fetchDashAndExpense(
+				if (!user?.id) throw new Error("Not authenticated");
+				const period = statementPeriod(params);
+				const { end, before, expenses } = await fetchLedgerPeriod(
 					user.id,
-					{ start_date: params.start_date, end_date: params.end_date },
+					params,
+					"income statement",
 				);
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "income statement");
-				if (expenseResult.error)
-					handlePostgrestError(
-						expenseResult.error,
-						"income statement expenses",
-					);
-				const { revenue } = parseDashStats(dashResult.data);
-				const totalRevenue = Number(revenue?.yearly ?? 0);
-				const totalExpenses = Number(
-					(expenseResult.data as Record<string, unknown> | null)
-						?.total_amount ?? 0,
-				);
-				const net = totalRevenue - totalExpenses;
+				const atEnd = mapLedgerCharges(end);
+				const atStart = mapLedgerCharges(before);
+				if (atEnd === null || atStart === null) {
+					return { status: "ledger-unavailable", period };
+				}
 				return {
-					success: true,
-					data: {
-						period: {
-							start_date: params.start_date,
-							end_date: params.end_date,
-							label: `${params.start_date} to ${params.end_date}`,
-						},
-						revenue: {
-							rentalIncome: totalRevenue,
-							lateFeesIncome: 0,
-							otherIncome: 0,
-							totalRevenue,
-						},
-						expenses: {
-							propertyManagement: 0,
-							maintenance: 0,
-							utilities: 0,
-							insurance: 0,
-							propertyTax: 0,
-							mortgage: 0,
-							other: totalExpenses,
-							totalExpenses,
-						},
-						grossProfit: net,
-						operatingIncome: net,
-						netIncome: net,
-						profitMargin: totalRevenue > 0 ? (net / totalRevenue) * 100 : 0,
-					},
+					status: "ready",
+					statement: buildLedgerIncomeStatement({
+						period,
+						end: atEnd,
+						before: atStart,
+						expenses: mapExpenseTotal(expenses),
+					}),
 				};
 			},
 			...CACHE,
@@ -395,88 +511,28 @@ export const financialQueries = {
 	cashFlow: (params: { start_date: string; end_date: string }) =>
 		queryOptions({
 			queryKey: financialKeys.cashFlow(params),
-			queryFn: async (): Promise<ApiResponse<CashFlowData>> => {
+			queryFn: async (): Promise<CashFlowResult> => {
 				const user = await getCachedUser();
-				if (!user?.id) {
-					return {
-						success: true,
-						data: {
-							period: {
-								start_date: params.start_date,
-								end_date: params.end_date,
-								label: `${params.start_date} to ${params.end_date}`,
-							},
-							operatingActivities: {
-								rentalPaymentsReceived: 0,
-								operatingExpensesPaid: 0,
-								maintenancePaid: 0,
-								netOperatingCash: 0,
-							},
-							investingActivities: {
-								propertyAcquisitions: 0,
-								propertyImprovements: 0,
-								netInvestingCash: 0,
-							},
-							financingActivities: {
-								mortgagePayments: 0,
-								loanProceeds: 0,
-								ownerContributions: 0,
-								ownerDistributions: 0,
-								netFinancingCash: 0,
-							},
-							netCashFlow: 0,
-							beginningCash: 0,
-							endingCash: 0,
-						},
-					};
-				}
-				// Only the expense side is period-scoped; revenue remains annualized
-				// MRR (get_dashboard_stats is point-in-time — no payment history).
-				const { dashResult, expenseResult } = await fetchDashAndExpense(
+				if (!user?.id) throw new Error("Not authenticated");
+				const period = statementPeriod(params);
+				const { end, before, expenses } = await fetchLedgerPeriod(
 					user.id,
-					{ start_date: params.start_date, end_date: params.end_date },
+					params,
+					"cash flow",
 				);
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "cash flow");
-				if (expenseResult.error)
-					handlePostgrestError(expenseResult.error, "cash flow expenses");
-				const { revenue } = parseDashStats(dashResult.data);
-				const monthlyRevenue = Number(revenue?.monthly ?? 0);
-				const monthlyExpenses = Number(
-					(expenseResult.data as Record<string, unknown> | null)
-						?.monthly_average ?? 0,
-				);
-				const net = monthlyRevenue - monthlyExpenses;
+				const atEnd = mapLedgerPosition(end);
+				const atStart = mapLedgerPosition(before);
+				if (atEnd === null || atStart === null) {
+					return { status: "ledger-unavailable", period };
+				}
 				return {
-					success: true,
-					data: {
-						period: {
-							start_date: params.start_date,
-							end_date: params.end_date,
-							label: `${params.start_date} to ${params.end_date}`,
-						},
-						operatingActivities: {
-							rentalPaymentsReceived: monthlyRevenue,
-							operatingExpensesPaid: monthlyExpenses,
-							maintenancePaid: 0,
-							netOperatingCash: net,
-						},
-						investingActivities: {
-							propertyAcquisitions: 0,
-							propertyImprovements: 0,
-							netInvestingCash: 0,
-						},
-						financingActivities: {
-							mortgagePayments: 0,
-							loanProceeds: 0,
-							ownerContributions: 0,
-							ownerDistributions: 0,
-							netFinancingCash: 0,
-						},
-						netCashFlow: net,
-						beginningCash: 0,
-						endingCash: net,
-					},
+					status: "ready",
+					report: buildLedgerCashFlow({
+						period,
+						end: atEnd,
+						before: atStart,
+						expenses: mapExpenseTotal(expenses),
+					}),
 				};
 			},
 			...CACHE,
