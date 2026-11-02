@@ -12,8 +12,8 @@
  *   - money is `formatCurrency`'s text, the formatter of every amount on the
  *     year-end, 1099-NEC and tax-documents pages and on the financial
  *     analytics page's payment summary and expense breakdown;
- *   - a share is the tax-documents page's `${toFixed(1)}%`, and Portfolio ROI
- *     is the ROI card's `NumberTicker` text (rendered here) and `%`;
+ *   - a share is the tax-documents page's `${toFixed(1)}%`, and Scheduled Margin
+ *     is the margin card's `NumberTicker` text (rendered here) and `%`;
  *   - Excel renders the money format (SheetJS, the build the app and the
  *     edge function pin) as `formatCurrency` does, negatives included.
  * The specifier carries no `.ts` extension (TS5097, see report-csv.test.ts).
@@ -32,7 +32,7 @@ const AMOUNTS = [
 	61200, 42849.25, 0, -250, -250.5, 0.3, 9000.5, 1234567.89, 18350.75, -0.01,
 ];
 
-/** The ROI card's text for `value`: its NumberTicker, under reduced motion. */
+/** The margin card's text for `value`: its NumberTicker, under reduced motion. */
 function roiCardText(value: number): string {
 	vi.stubGlobal("matchMedia", (query: string) => ({
 		matches: query.includes("prefers-reduced-motion"),
@@ -73,7 +73,7 @@ describe("PDF cell text", () => {
 		}
 	});
 
-	it("prints Portfolio ROI as the ROI card does", () => {
+	it("prints Scheduled Margin as its card does", () => {
 		// As the export writes it: rounded to one decimal (the rounding itself is
 		// pinned against the card in financial-analytics-report.test.ts).
 		for (const roi of [70, 0.2, -124.8, 12.3, 1234.6, -24.9, 100]) {

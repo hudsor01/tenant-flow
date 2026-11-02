@@ -160,7 +160,7 @@ export function mapFinancialOverview(
 	// D-07: Collected is a SEPARATE figure sourced from ledger receipts, summed
 	// across the same trailing-12-month revenue-trend window the charts use. It
 	// is deliberately NOT folded into totalRevenue and NOT used to re-base
-	// netIncome / cashFlow / profitMargin — those stay scheduled-based. With no
+	// netIncome / profitMargin — those stay scheduled-based. With no
 	// ledger data `collections` is an honest 0 rather than a placeholder.
 	const totalCollected = (options?.revenueRows ?? []).reduce(
 		(sum, row) => sum + Number(row.collections ?? 0),
@@ -172,7 +172,6 @@ export function mapFinancialOverview(
 		totalCollected,
 		totalExpenses,
 		netIncome,
-		cashFlow: netIncome,
 		profitMargin,
 	};
 

@@ -66,7 +66,6 @@ export default function FinancialAnalyticsPage() {
 			totalCollected: 0,
 			totalExpenses: 0,
 			netIncome: 0,
-			cashFlow: 0,
 		},
 		breakdown = { revenue: [], expenses: [] },
 		netOperatingIncome = [],

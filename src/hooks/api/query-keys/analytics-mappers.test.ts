@@ -110,8 +110,9 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 		expect(mapped.metrics.totalRevenue).toBe(120000);
 		expect(mapped.metrics.totalExpenses).toBe(30000);
 		expect(mapped.metrics.netIncome).toBe(90000);
-		expect(mapped.metrics.cashFlow).toBe(90000);
 		expect(mapped.metrics.profitMargin).toBeCloseTo(75);
+		// No cash figure: the overview has no cash source (it showed netIncome).
+		expect(mapped.metrics).not.toHaveProperty("cashFlow");
 	});
 
 	it("builds monthlyMetrics from the revenue rows joined with expense totals", () => {
@@ -166,7 +167,6 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 		// Scheduled is untouched, and nothing anywhere equals scheduled+collected.
 		expect(mapped.metrics.totalRevenue).toBe(120000);
 		expect(mapped.metrics.netIncome).toBe(90000);
-		expect(mapped.metrics.cashFlow).toBe(90000);
 		for (const value of Object.values(mapped.metrics)) {
 			expect(value).not.toBe(137500);
 		}

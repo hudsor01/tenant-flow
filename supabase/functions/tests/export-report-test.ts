@@ -70,7 +70,6 @@ function answers(): RpcAnswers {
 					total_expenses: 18350.75,
 					net_income: 42849.25,
 				},
-				highlights: [],
 			},
 			error: null,
 		},
@@ -392,12 +391,12 @@ Deno.test("financial-analytics xlsx is a real workbook with typed cells", async 
 	assertEquals(sheet.C2?.t, "n");
 	assertEquals(sheet.C2?.v, 61200);
 	assertEquals(sheet.C2?.w, "$61,200.00");
-	// Portfolio ROI (row 5) is a percentage and Tenants monitored (row 10) a
+	// Scheduled Margin (row 5) is a percentage and Tenants monitored (row 9) a
 	// count: numbers in General.
-	assertEquals(sheet.B5?.v, "Portfolio ROI (%)");
+	assertEquals(sheet.B5?.v, "Scheduled Margin (%)");
 	assertEquals(sheet.C5?.z, "General");
-	assertEquals(sheet.B10?.v, "Tenants monitored");
-	assertEquals(sheet.C10?.w, "3");
+	assertEquals(sheet.B9?.v, "Tenants monitored");
+	assertEquals(sheet.C9?.w, "3");
 	const formulaText = Object.entries(sheet).find(
 		([address, cell]) =>
 			!address.startsWith("!") &&

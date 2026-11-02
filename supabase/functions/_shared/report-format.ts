@@ -14,7 +14,7 @@
  * (`src/lib/utils/currency.ts`: en-US, USD, two decimals, `-$250.00` for a
  * negative amount), the formatter the year-end, 1099-NEC and tax-documents
  * pages and the financial analytics page's payment summary and expense
- * breakdown print with. A percentage is one decimal and a `%` (the ROI card's
+ * breakdown print with. A percentage is one decimal and a `%` (the margin card's
  * `NumberTicker` with `decimalPlaces={1}`, the tax-documents page's
  * `toFixed(1)`; the two agree below 1,000). Text and counts print as they are.
  */

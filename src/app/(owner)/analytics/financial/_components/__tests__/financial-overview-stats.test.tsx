@@ -4,7 +4,10 @@
  * The lease-derived figure is labeled "Scheduled" and the ledger-derived figure
  * is labeled "Collected". Each carries its own tooltip, the word "Revenue" is
  * gone from the card labels, the two are never rendered as one summed number,
- * and Net Income / Cash Flow still come from Scheduled minus expenses.
+ * and the two figures derived from Scheduled minus expenses say so (66.2-39,
+ * part M): get_financial_overview's revenue is the active leases' rent times
+ * twelve, so "Net Income", "Portfolio ROI" and "Cash Flow" (Net Income again)
+ * named scheduled rent as income and cash.
  */
 
 import { render, screen, waitFor } from "@testing-library/react";
@@ -18,7 +21,6 @@ const metrics: FinancialMetricSummary = {
 	totalCollected: 97500,
 	totalExpenses: 30000,
 	netIncome: 90000,
-	cashFlow: 90000,
 	profitMargin: 75,
 };
 
@@ -45,9 +47,7 @@ describe("FinancialOverviewStats", () => {
 
 		expect(labels(container)).toContain("Collected");
 		// Two distinct cards, not one merged figure.
-		expect(
-			container.querySelectorAll("[data-slot=stat-label]").length,
-		).toBeGreaterThanOrEqual(5);
+		expect(container.querySelectorAll("[data-slot=stat-label]").length).toBe(4);
 	});
 
 	it("gives each of the two figures its own tooltip trigger", () => {
@@ -73,17 +73,38 @@ describe("FinancialOverviewStats", () => {
 		expect(container.textContent).not.toContain("217,500");
 	});
 
-	it("keeps Net Income and Cash Flow on the scheduled basis", () => {
+	it("names the figures derived from scheduled rent as scheduled, not income or cash", () => {
 		const { container } = render(<FinancialOverviewStats metrics={metrics} />, {
 			wrapper: TooltipProvider,
 		});
 
-		expect(labels(container)).toContain("Net Income");
-		expect(labels(container)).toContain("Cash Flow");
+		expect(labels(container)).toEqual([
+			"Scheduled",
+			"Collected",
+			"Scheduled Net",
+			"Scheduled Margin",
+		]);
+		expect(labels(container).join(" ")).not.toMatch(/Income|Cash|ROI/);
 		expect(screen.getByText("Scheduled minus expenses")).toBeInTheDocument();
+		expect(
+			screen.getByText("Scheduled net over scheduled"),
+		).toBeInTheDocument();
 	});
 
-	it("puts a loss's sign before the dollar sign on Net Income and Cash Flow", async () => {
+	it("shows no trend chip: no prior-period figure exists for one", () => {
+		const { container } = render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
+
+		expect(container.querySelectorAll("[data-slot=stat-trend]")).toHaveLength(
+			0,
+		);
+		expect(container.textContent).not.toMatch(
+			/vs last period|expense trend|operating cash|profit margin/,
+		);
+	});
+
+	it("puts a loss's sign before the dollar sign on Scheduled Net", async () => {
 		// The cards rendered -250 as "$-250": a "$" span sat before the ticker.
 		// Reduced motion, so each ticker shows its final value without a timer.
 		vi.stubGlobal("matchMedia", (query: string) => ({
@@ -97,9 +118,7 @@ describe("FinancialOverviewStats", () => {
 			dispatchEvent: vi.fn(),
 		}));
 		const { container } = render(
-			<FinancialOverviewStats
-				metrics={{ ...metrics, netIncome: -250, cashFlow: -250 }}
-			/>,
+			<FinancialOverviewStats metrics={{ ...metrics, netIncome: -250 }} />,
 			{ wrapper: TooltipProvider },
 		);
 		const value = (label: string) => {
@@ -112,8 +131,7 @@ describe("FinancialOverviewStats", () => {
 			);
 			return stat?.querySelector("[data-slot=stat-value]")?.textContent;
 		};
-		await waitFor(() => expect(value("Net Income")).toBe("-$250"));
-		expect(value("Cash Flow")).toBe("-$250");
+		await waitFor(() => expect(value("Scheduled Net")).toBe("-$250"));
 		expect(container.textContent).not.toContain("$-");
 		vi.unstubAllGlobals();
 	});

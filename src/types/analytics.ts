@@ -156,7 +156,7 @@ export interface FinancialMetricSummary {
 	/**
 	 * SCHEDULED rent: lease-derived expected revenue, surfaced under the
 	 * explicit "Scheduled" label (D-07). Unchanged calculation — every downstream
-	 * derivation (netIncome, cashFlow, profitMargin) still uses THIS figure, not
+	 * derivation (netIncome, profitMargin) still uses THIS figure, not
 	 * `totalCollected`.
 	 */
 	totalRevenue: number;
@@ -167,10 +167,9 @@ export interface FinancialMetricSummary {
 	 */
 	totalCollected: number;
 	totalExpenses: number;
+	/** Scheduled rent less expenses: not income on a received basis. */
 	netIncome: number;
-	cashFlow: number;
-	revenueTrend?: number | null;
-	expenseTrend?: number | null;
+	/** netIncome over totalRevenue, in percent: a margin on scheduled rent. */
 	profitMargin?: number | null;
 }
 

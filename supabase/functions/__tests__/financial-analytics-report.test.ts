@@ -14,7 +14,7 @@
  *   4. an RPC shape that makes the page fail makes the export fail;
  *   5. an RPC error fails the export load, naming the RPC;
  *   6. each figure is rounded as the page prints it (`formatCurrency` for an
- *      amount, the ROI card's `NumberTicker` for Portfolio ROI, rendered
+ *      amount, the margin card's `NumberTicker` for Scheduled Margin, rendered
  *      here) and carries the format the PDF and XLSX print it in.
  * The specifier carries no `.ts` extension (TS5097, see report-csv.test.ts).
  *
@@ -104,10 +104,7 @@ function richAnswers(): RpcAnswers {
 					total_revenue: 61200,
 					total_expenses: 18350.75,
 					net_income: 42849.25,
-					accounts_receivable: 0,
-					accounts_payable: 0,
 				},
-				highlights: [],
 			},
 			error: null,
 		},
@@ -131,7 +128,8 @@ function richAnswers(): RpcAnswers {
 				],
 				total_amount: 18350.75,
 				monthly_average: 1529.23,
-				year_over_year_change: null,
+				year_over_year_change: 4.8,
+				year_over_year_prior_period: "2025-01-01/2025-11-02",
 			},
 			error: null,
 		},
@@ -204,7 +202,7 @@ async function exported(answers: RpcAnswers): Promise<{
 const cents = (value: number) =>
 	Number(formatCurrency(value).replace(/[$,]/g, ""));
 
-/** Portfolio ROI as the ROI card prints it (its NumberTicker), as a number. */
+/** Scheduled Margin as its card prints it (its NumberTicker), as a number. */
 function oneDecimal(value: number): number {
 	vi.stubGlobal("matchMedia", (query: string) => ({
 		matches: query.includes("prefers-reduced-motion"),
@@ -249,13 +247,12 @@ function rowsFromScreen(
 	return [
 		value("Overview", "Scheduled", cents(metrics.totalRevenue)),
 		value("Overview", "Collected", cents(metrics.totalCollected)),
-		value("Overview", "Net Income", cents(metrics.netIncome)),
+		value("Overview", "Scheduled Net", cents(metrics.netIncome)),
 		value(
 			"Overview",
-			"Portfolio ROI (%)",
+			"Scheduled Margin (%)",
 			oneDecimal(metrics.profitMargin ?? 0),
 		),
-		value("Overview", "Cash Flow", cents(metrics.cashFlow)),
 		value(
 			"Payment Summary",
 			"Late fees cumulative",
@@ -375,7 +372,8 @@ describe("every figure the page renders is a row of the file", () => {
 		const { page, payments } = await screen(answers);
 		const { rows } = await exported(answers);
 		expect(rows).toEqual(rowsFromScreen(page, payments));
-		expect(rows).toHaveLength(9);
+		// The four overview cards and the four payment cards (no Cash Flow).
+		expect(rows).toHaveLength(8);
 	});
 
 	it("writes the fixed header", async () => {
@@ -397,7 +395,7 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 		[2000, 3],
 		[2000, -499],
 	])(
-		"rounds Portfolio ROI as the card shows it (revenue %d, net %d)",
+		"rounds Scheduled Margin as the card shows it (revenue %d, net %d)",
 		async (revenue, net) => {
 			const answers = richAnswers();
 			answers.get_financial_overview = {
@@ -413,7 +411,7 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 			const { page, payments } = await screen(answers);
 			const { rows } = await exported(answers);
 			const roi = section(rows, "Overview").find(
-				(r) => r[1] === "Portfolio ROI (%)",
+				(r) => r[1] === "Scheduled Margin (%)",
 			);
 			expect(roi?.[2]).toBe(oneDecimal(page.metrics.profitMargin ?? 0));
 			expect(rows).toEqual(rowsFromScreen(page, payments));
@@ -435,27 +433,26 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 		};
 		const { page, payments } = await screen(answers);
 		const { rows } = await exported(answers);
-		const net = section(rows, "Overview").find((r) => r[1] === "Net Income");
+		const net = section(rows, "Overview").find((r) => r[1] === "Scheduled Net");
 		expect(net?.[2]).toBe(-200);
 		expect(formatCurrency(page.metrics.netIncome)).toBe("-$200.00");
 		expect(rows).toEqual(rowsFromScreen(page, payments));
 	});
 
-	it("gives every cell a format: money, Portfolio ROI a percentage, counts plain", async () => {
+	it("gives every cell a format: money, Scheduled Margin a percentage, counts plain", async () => {
 		const { rows, formats } = await exported(richAnswers());
 		expect(formats.map((f) => f.length)).toEqual(rows.map((r) => r.length));
 		const valueFormat = (item: string) => {
 			const index = rows.findIndex((r) => r[1] === item);
 			return formats[index]?.[2];
 		};
-		expect(valueFormat("Portfolio ROI (%)")).toBe("percent");
+		expect(valueFormat("Scheduled Margin (%)")).toBe("percent");
 		expect(valueFormat("Outstanding invoices")).toBe("plain");
 		expect(valueFormat("Tenants monitored")).toBe("plain");
 		for (const item of [
 			"Scheduled",
 			"Collected",
-			"Net Income",
-			"Cash Flow",
+			"Scheduled Net",
 			"Late fees cumulative",
 			"Unpaid invoice total",
 			"Acme Plumbing",

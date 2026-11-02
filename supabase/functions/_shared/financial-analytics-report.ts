@@ -22,8 +22,9 @@
  * and asserts the calls are identical and every figure matches.
  *
  * ROWS, top to bottom as the page lays them out (`FINANCIAL_ANALYTICS_HEADER`):
- *   - Overview: the five stat cards (Scheduled, Collected, Net Income,
- *     Portfolio ROI, Cash Flow).
+ *   - Overview: the four stat cards (Scheduled, Collected, Scheduled Net,
+ *     Scheduled Margin): get_financial_overview's revenue is the active
+ *     leases' rent times twelve, so both derived figures say scheduled.
  *   - Payment Summary: the four payment cards.
  *   - Revenue & Expenses: one row per month of the chart, oldest first, with
  *     its revenue, expenses and net income.
@@ -37,7 +38,7 @@
  *
  * NUMBERS. Every amount is dollars, rounded to cents (the ledger's collected
  * receipts are summed in floating point, so the raw sum can carry noise such
- * as 0.30000000000000004). Portfolio ROI is a percentage rounded to one
+ * as 0.30000000000000004). Scheduled Margin is a percentage rounded to one
  * decimal, as the card shows it. Counts are written as they come. Rounding is
  * `Intl.NumberFormat`'s, the formatter behind the page's `formatCurrency` and
  * `NumberTicker`, so a figure in the file is the figure on the screen:
@@ -296,14 +297,13 @@ export function buildFinancialAnalyticsTable(
 	const rows: Row[] = [
 		valueRow("Overview", "Scheduled", money(totalRevenue)),
 		valueRow("Overview", "Collected", money(totalCollected)),
-		valueRow("Overview", "Net Income", money(netIncome)),
+		valueRow("Overview", "Scheduled Net", money(netIncome)),
 		valueRow(
 			"Overview",
-			"Portfolio ROI (%)",
+			"Scheduled Margin (%)",
 			percentOneDecimal(profitMargin),
 			"percent",
 		),
-		valueRow("Overview", "Cash Flow", money(netIncome)),
 		valueRow(
 			"Payment Summary",
 			"Late fees cumulative",
