@@ -97,7 +97,8 @@ export function UnitActions({ unit }: UnitActionsProps) {
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-56">
 						<DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-							Unit {unit.unit_number} Actions
+							Unit <span className="normal-case">{unit.unit_number}</span>{" "}
+							Actions
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem

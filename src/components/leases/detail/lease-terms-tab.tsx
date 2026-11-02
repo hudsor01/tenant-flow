@@ -1,3 +1,4 @@
+import { utilityLabel } from "#components/leases/wizard/utility-options";
 import { Badge } from "#components/ui/badge";
 import {
 	Card,
@@ -92,12 +93,8 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 										</p>
 										<div className="flex flex-wrap gap-1">
 											{lease.utilities_included.map((util) => (
-												<Badge
-													key={util}
-													variant="secondary"
-													className="capitalize"
-												>
-													{util}
+												<Badge key={util} variant="secondary">
+													{utilityLabel(util)}
 												</Badge>
 											))}
 										</div>
@@ -111,12 +108,8 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 										</p>
 										<div className="flex flex-wrap gap-1">
 											{lease.tenant_responsible_utilities.map((util) => (
-												<Badge
-													key={util}
-													variant="outline"
-													className="capitalize"
-												>
-													{util}
+												<Badge key={util} variant="outline">
+													{utilityLabel(util)}
 												</Badge>
 											))}
 										</div>
