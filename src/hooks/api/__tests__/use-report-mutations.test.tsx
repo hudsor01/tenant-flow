@@ -2,7 +2,7 @@
  * Report Mutation Hooks Tests
  *
  * Covers the paywall-aware error handler, the exported PDF-from-HTML helper,
- * and the four download mutation hooks that delegate to reportMutations.*.
+ * and the two PDF download mutation hooks that delegate to reportMutations.*.
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -195,7 +195,7 @@ describe("callGeneratePdfFromHtml", () => {
 		});
 	});
 
-	it("creates an object URL, clicks an <a download=filename>, and revokes after 100ms", async () => {
+	it("saves through downloadBlob: an <a download=filename> click, revoked after 1s", async () => {
 		vi.useFakeTimers();
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
@@ -223,9 +223,11 @@ describe("callGeneratePdfFromHtml", () => {
 		expect(clickSpy).toHaveBeenCalledTimes(1);
 		expect(removeSpy).toHaveBeenCalledWith(appendedNode);
 
-		// Revoke is deferred behind a 100ms timer.
+		// downloadBlob (#lib/reports/download-blob) defers the revoke 1000ms so
+		// the browser has started the download.
+		vi.advanceTimersByTime(999);
 		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalled();
-		vi.advanceTimersByTime(100);
+		vi.advanceTimersByTime(1);
 		expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith(
 			"blob:fake-url",
 		);

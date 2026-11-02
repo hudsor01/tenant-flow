@@ -265,15 +265,7 @@ async function callGeneratePdfEdgeFunction(
 		throw new Error(`PDF generation failed: ${errText}`);
 	}
 
-	const blob = await response.blob();
-	const blobUrl = window.URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = blobUrl;
-	link.download = filename;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+	downloadBlob(await response.blob(), filename);
 }
 
 export const reportMutations = {
