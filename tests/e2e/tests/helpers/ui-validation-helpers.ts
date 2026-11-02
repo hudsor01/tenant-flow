@@ -9,9 +9,9 @@ import { expect, type Page } from "@playwright/test";
  */
 export async function verifyTableRenders(
 	page: Page,
-	tableRole: string = "table",
+	tableRole: Parameters<Page["getByRole"]>[0] = "table",
 ): Promise<void> {
-	await expect(page.getByRole(tableRole as any)).toBeVisible({
+	await expect(page.getByRole(tableRole)).toBeVisible({
 		timeout: 10000,
 	});
 }

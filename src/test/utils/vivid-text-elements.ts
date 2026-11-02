@@ -121,7 +121,9 @@ export function vividTextUses(path: string, source: string): VividUse[] {
 		});
 	const lineOf = (index: number) => source.slice(0, index).split("\n").length;
 	const uses: VividUse[] = [];
-	const visit = (node: Node, parents: Node[]) => {
+	const visit = (value: unknown, parents: Node[]): void => {
+		if (!isNode(value)) return;
+		const node = value;
 		let text: string | null = null;
 		if (node.type === "Literal" && typeof node.value === "string")
 			text = node.value;
@@ -169,6 +171,6 @@ export function vividTextUses(path: string, source: string): VividUse[] {
 		const next = [...parents, node];
 		for (const child of children(node)) visit(child, next);
 	};
-	visit(program as unknown as Node, []);
+	visit(program, []);
 	return uses;
 }
