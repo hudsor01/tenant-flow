@@ -35,6 +35,7 @@ import {
 // `PropertyPerformance[]` shape existing consumers depend on.
 const selectStats = (data: OwnerDashboardData): DashboardStatsData => ({
 	stats: data.stats,
+	portfolioTrends: data.portfolioTrends,
 	metricTrends: data.metricTrends,
 });
 

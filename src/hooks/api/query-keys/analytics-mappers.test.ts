@@ -10,6 +10,7 @@ import {
 	mapFinancialOverview,
 	mapMaintenanceAnalytics,
 	mapOccupancyAnalytics,
+	mapPortfolioTrends,
 } from "./analytics-mappers";
 
 /**
@@ -185,6 +186,64 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 			{ revenueRows: [{ month: "2024-01", revenue: 10000 }] },
 		);
 		expect(mapped.metrics.totalCollected).toBe(0);
+	});
+});
+
+describe("mapPortfolioTrends (20261102184501)", () => {
+	const WINDOW = "2026-10-03/2026-11-02";
+	const days = { start_date: "2026-10-03", end_date: "2026-11-02" };
+
+	it("reads each change beside its stated window", () => {
+		expect(
+			mapPortfolioTrends({
+				units: { occupancyChange: -25, occupancyChangeWindow: WINDOW },
+				revenue: { growth: -10.18, growthWindow: WINDOW },
+			}),
+		).toEqual({
+			occupancy: { status: "ready", points: -25, window: days },
+			revenue: { status: "ready", percent: -10.18, window: days },
+		});
+	});
+
+	it("keeps a null growth as no prior figure, not 0", () => {
+		expect(
+			mapPortfolioTrends({
+				units: { occupancyChange: 100, occupancyChangeWindow: WINDOW },
+				revenue: { growth: null, growthWindow: WINDOW },
+			}).revenue,
+		).toEqual({ status: "ready", percent: null, window: days });
+	});
+
+	it("reads a figure with no window as unavailable (the bodies before)", () => {
+		// get_dashboard_stats' literals, and get_dashboard_data_v2's comparison
+		// against only the leases still active today.
+		for (const stats of [
+			{ units: { occupancyChange: 0 }, revenue: { growth: 0 } },
+			{ units: { occupancyChange: 25 }, revenue: { growth: 100 } },
+			{
+				units: { occupancyChange: 25, occupancyChangeWindow: "30d" },
+				revenue: { growth: 1, growthWindow: null },
+			},
+			null,
+			[],
+		]) {
+			expect(mapPortfolioTrends(stats), JSON.stringify(stats)).toEqual({
+				occupancy: { status: "unavailable" },
+				revenue: { status: "unavailable" },
+			});
+		}
+	});
+
+	it("reads a window with no figure as unavailable", () => {
+		expect(
+			mapPortfolioTrends({
+				units: { occupancyChange: "-25", occupancyChangeWindow: WINDOW },
+				revenue: { growthWindow: WINDOW },
+			}),
+		).toEqual({
+			occupancy: { status: "unavailable" },
+			revenue: { status: "unavailable" },
+		});
 	});
 });
 

@@ -159,6 +159,7 @@ export default function ExpensesPage() {
 				monthlyAvg={monthlyAvg}
 				maintenanceTotal={maintenanceTotal}
 				maintenancePercent={maintenancePercent}
+				yearOverYear={summary?.yearOverYear ?? { status: "unavailable" }}
 			/>
 
 			{summary?.categories && (

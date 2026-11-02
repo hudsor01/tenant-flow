@@ -335,14 +335,43 @@ export interface OccupancyAnalyticsPageResponse {
 }
 
 /**
- * The days a rent-received figure covers, both included: the window
+ * The days a figure covers, both included, as an RPC states them
+ * ('YYYY-MM-DD/YYYY-MM-DD', read by `#lib/stated-window`): the window
  * get_property_performance_analytics states in its `timeframe` column
- * (20261102163709).
+ * (20261102163709), the two days the dashboard trends compare
+ * (20261102184501), the prior period an expense year over year compares with
+ * (20261102184502).
  */
-export interface RentReceivedWindow {
+export interface DateWindow {
 	start_date: string;
 	end_date: string;
 }
+
+/**
+ * The analytics overview's two trends, from get_dashboard_data_v2
+ * (20261102184501). `unavailable`: the server's body states no window, so its
+ * figure (a literal 0, or a comparison against only the leases still active
+ * today) is no figure. `percent` is null when nothing was scheduled on the
+ * window's first day: there is no prior figure.
+ */
+export interface PortfolioTrends {
+	occupancy:
+		| { status: "ready"; points: number; window: DateWindow }
+		| { status: "unavailable" };
+	revenue:
+		| { status: "ready"; percent: number | null; window: DateWindow }
+		| { status: "unavailable" };
+}
+
+/**
+ * get_expense_summary's year over year (20261102184502): the change against
+ * `priorPeriod`, the same dates a year earlier, or null when nothing was spent
+ * then. `unavailable`: the server states no prior period (its null is no
+ * figure).
+ */
+export type ExpenseYearOverYear =
+	| { status: "ready"; change: number | null; priorPeriod: DateWindow }
+	| { status: "unavailable" };
 
 export interface PropertyPerformanceEntry {
 	property_id: string;
@@ -375,7 +404,7 @@ export interface PropertyPerformanceSummary {
 	/** Rent received across the properties over the window; null as above. */
 	rentReceived: number | null;
 	/** The window rent received covers; null when it is unavailable. */
-	rentReceivedWindow: RentReceivedWindow | null;
+	rentReceivedWindow: DateWindow | null;
 	bestPerformer?: string;
 	worstPerformer?: string;
 }

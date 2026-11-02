@@ -18,9 +18,13 @@ import { queryOptions } from "@tanstack/react-query";
 import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonObjectOrEmpty } from "#lib/rpc-shape";
+import { parseStatedWindow } from "#lib/stated-window";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type { ExpenseCategorySummary } from "#types/analytics";
+import type {
+	ExpenseCategorySummary,
+	ExpenseYearOverYear,
+} from "#types/analytics";
 import type {
 	BalanceSheetData,
 	BalanceSheetResult,
@@ -35,6 +39,25 @@ export interface ExpenseSummaryData {
 	monthly_totals: Array<{ month: string; amount: number }>;
 	total_amount: number;
 	monthly_average: number;
+	yearOverYear: ExpenseYearOverYear;
+}
+
+/**
+ * get_expense_summary's year over year (20261102184502): ready only beside
+ * the prior period it states. The body before returns the change as the
+ * literal null with no period, which is no figure.
+ */
+export function mapExpenseYearOverYear(summary: unknown): ExpenseYearOverYear {
+	const s = jsonObjectOrEmpty<Record<string, unknown>>(summary, {});
+	const priorPeriod = parseStatedWindow(s["year_over_year_prior_period"]);
+	const change = s["year_over_year_change"];
+	if (priorPeriod === null) return { status: "unavailable" };
+	return {
+		status: "ready",
+		change:
+			typeof change === "number" && Number.isFinite(change) ? change : null,
+		priorPeriod,
+	};
 }
 
 const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
@@ -492,6 +515,7 @@ export const financialQueries = {
 						monthly_totals: [],
 						total_amount: 0,
 						monthly_average: 0,
+						yearOverYear: { status: "unavailable" },
 					};
 				const { data, error } = await supabase.rpc("get_expense_summary", {
 					p_user_id: user.id,
@@ -514,6 +538,7 @@ export const financialQueries = {
 					})),
 					total_amount: Number(s?.total_amount ?? 0),
 					monthly_average: Number(s?.monthly_average ?? 0),
+					yearOverYear: mapExpenseYearOverYear(data),
 				};
 			},
 			...CACHE,

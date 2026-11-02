@@ -9,7 +9,8 @@
  * asked for, is the old body's: its revenue is no figure, and these mappers say
  * so instead of passing its 0 on as money.
  */
-import type { RentReceivedWindow } from "#types/analytics";
+import { parseStatedWindow } from "#lib/stated-window";
+import type { DateWindow } from "#types/analytics";
 import type { Database } from "#types/supabase";
 
 type PerformanceRow =
@@ -26,19 +27,6 @@ export function propertyPerformanceRange(
 /** p_timeframe for a calendar tax year. */
 export function taxYearRange(year: number): string {
 	return propertyPerformanceRange(`${year}-01-01`, `${year}-12-31`);
-}
-
-const STATED_WINDOW = /^(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})$/;
-
-/** The window a row states, or null for any other value. */
-export function parseStatedWindow(
-	timeframe: unknown,
-): RentReceivedWindow | null {
-	if (typeof timeframe !== "string") return null;
-	const match = STATED_WINDOW.exec(timeframe);
-	const start_date = match?.[1];
-	const end_date = match?.[2];
-	return start_date && end_date ? { start_date, end_date } : null;
 }
 
 /** One property's figures over the window, in dollars. */
@@ -61,7 +49,7 @@ export interface PropertyRentReceived {
 export type PropertyPerformanceResult =
 	| {
 			readonly status: "ready";
-			readonly window: RentReceivedWindow | null;
+			readonly window: DateWindow | null;
 			readonly properties: readonly PropertyRentReceived[];
 	  }
 	| {
@@ -74,7 +62,7 @@ export type PropertyPerformanceResult =
 
 export function mapPropertyPerformance(
 	data: readonly PerformanceRow[] | null,
-	requested?: RentReceivedWindow,
+	requested?: DateWindow,
 ): PropertyPerformanceResult {
 	const rows = data ?? [];
 	if (rows.length === 0) {

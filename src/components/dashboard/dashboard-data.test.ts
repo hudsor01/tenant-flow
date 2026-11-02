@@ -40,6 +40,10 @@ describe("transformDashboardData", () => {
 
 	const basePayload: OwnerDashboardData = {
 		stats: {} as OwnerDashboardData["stats"],
+		portfolioTrends: {
+			occupancy: { status: "unavailable" },
+			revenue: { status: "unavailable" },
+		},
 		activity: [],
 		metricTrends: {
 			occupancyRate: null,

@@ -85,8 +85,62 @@ describe("useExpenseSummary", () => {
 
 		expect(result.current.data?.categories?.length).toBe(4);
 		expect(result.current.data?.total_amount).toBe(125000);
-		// get_expense_summary returns year_over_year_change as the literal null;
-		// the summary carries no figure it cannot have.
+		// No prior period: the body before 20261102184502, whose change is no
+		// figure (production's is the literal null). The snake_case key is not
+		// passed through either.
+		expect(result.current.data?.yearOverYear).toEqual({
+			status: "unavailable",
+		});
 		expect(result.current.data).not.toHaveProperty("year_over_year_change");
+	});
+
+	it("reads the year over year beside the prior period it compares with", async () => {
+		mockRpc.mockResolvedValueOnce({
+			data: {
+				categories: [],
+				monthly_totals: [],
+				total_amount: 320,
+				monthly_average: 26.67,
+				year_over_year_change: 33.33,
+				year_over_year_prior_period: "2025-01-01/2025-11-02",
+			},
+			error: null,
+		});
+		const { result } = renderHook(() => useExpenseSummary(), {
+			wrapper: createWrapper(),
+		});
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		expect(result.current.data?.yearOverYear).toEqual({
+			status: "ready",
+			change: 33.33,
+			priorPeriod: { start_date: "2025-01-01", end_date: "2025-11-02" },
+		});
+	});
+
+	it("keeps no prior-year expenses as no figure, not 0%", async () => {
+		mockRpc.mockResolvedValueOnce({
+			data: {
+				categories: [],
+				monthly_totals: [],
+				total_amount: 7,
+				monthly_average: 0,
+				year_over_year_change: null,
+				year_over_year_prior_period: "2023-02-28/2023-02-28",
+			},
+			error: null,
+		});
+		const { result } = renderHook(() => useExpenseSummary(), {
+			wrapper: createWrapper(),
+		});
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		expect(result.current.data?.yearOverYear).toEqual({
+			status: "ready",
+			change: null,
+			priorPeriod: { start_date: "2023-02-28", end_date: "2023-02-28" },
+		});
 	});
 });

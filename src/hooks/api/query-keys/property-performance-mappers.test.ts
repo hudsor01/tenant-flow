@@ -20,11 +20,11 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: "owner-1" }),
 }));
 
+import { parseStatedWindow } from "#lib/stated-window";
 import { analyticsQueries } from "../use-analytics";
 import { propertyQueries } from "./property-keys";
 import {
 	mapPropertyPerformance,
-	parseStatedWindow,
 	propertyPerformanceRange,
 	taxYearRange,
 } from "./property-performance-mappers";

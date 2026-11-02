@@ -13,17 +13,21 @@ import type { ActivityItem } from "#types/activity";
 import type {
 	MetricTrend,
 	MonthlyRevenuePoint,
+	PortfolioTrends,
 	TimeSeriesDataPoint,
 } from "#types/analytics";
 import type { PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
 import type { Database } from "#types/supabase";
+import { mapPortfolioTrends } from "./query-keys/analytics-mappers";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 // Types exported for use-dashboard-hooks.ts
 export interface DashboardStatsData {
 	stats: DashboardStats;
+	/** The analytics overview's occupancy and revenue trends, with windows. */
+	portfolioTrends: PortfolioTrends;
 	metricTrends: {
 		occupancyRate: MetricTrend | null;
 		activeTenants: MetricTrend | null;
@@ -51,6 +55,7 @@ export interface DashboardActivityData {
 
 export type OwnerDashboardData = {
 	stats: DashboardStats;
+	portfolioTrends: PortfolioTrends;
 	activity: ActivityItem[];
 	metricTrends: {
 		occupancyRate: MetricTrend | null;
@@ -196,6 +201,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	return {
 		stats: result.stats,
+		portfolioTrends: mapPortfolioTrends(result.stats),
 		activity: (result.activities ?? []).map(mapDashboardActivityRow),
 		metricTrends: {
 			occupancyRate: result.trends?.occupancy_rate ?? null,

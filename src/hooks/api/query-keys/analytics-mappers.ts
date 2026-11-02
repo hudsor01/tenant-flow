@@ -8,6 +8,7 @@
  * order. It NEVER throws — a non-array/empty input degrades to a safe empty shape.
  */
 
+import { parseStatedWindow } from "#lib/stated-window";
 import type {
 	FinancialBreakdownRow,
 	FinancialMetricSummary,
@@ -17,6 +18,7 @@ import type {
 	NetOperatingIncomeByProperty,
 	OccupancyMetricSummary,
 	OccupancyTrendPoint,
+	PortfolioTrends,
 	RevenueExpenseBreakdown,
 } from "#types/analytics";
 import type {
@@ -217,6 +219,37 @@ export function mapFinancialOverview(
 		netOperatingIncome,
 		monthlyMetrics,
 		leaseAnalytics: [],
+	};
+}
+
+// --- Dashboard trends (20261102184501) --------------------------------------
+// get_dashboard_data_v2 returns `units.occupancyChange` and `revenue.growth`;
+// the bodies before 20261102184501 return them with no window (get_dashboard_
+// stats as the literal 0, get_dashboard_data_v2 against only the leases still
+// active today). A figure without its stated window is no figure.
+
+/**
+ * The trends in a dashboard `stats` payload, each `ready` only beside its
+ * window. Never throws. `percent` stays null when the RPC says there was no
+ * prior figure (nothing scheduled on the window's first day).
+ */
+export function mapPortfolioTrends(stats: unknown): PortfolioTrends {
+	const root = asObject(stats);
+	const units = asObject(root?.units);
+	const revenue = asObject(root?.revenue);
+	const occupancyWindow = parseStatedWindow(units?.occupancyChangeWindow);
+	const growthWindow = parseStatedWindow(revenue?.growthWindow);
+	const change = units?.occupancyChange;
+	const growth = revenue?.growth;
+	return {
+		occupancy:
+			occupancyWindow !== null && typeof change === "number"
+				? { status: "ready", points: change, window: occupancyWindow }
+				: { status: "unavailable" },
+		revenue:
+			growthWindow !== null && (typeof growth === "number" || growth === null)
+				? { status: "ready", percent: growth, window: growthWindow }
+				: { status: "unavailable" },
 	};
 }
 
