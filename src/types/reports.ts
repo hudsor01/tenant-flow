@@ -1,3 +1,5 @@
+import type { MaintenanceCostSummary } from "./analytics";
+
 export interface RevenueData {
 	month: string;
 	revenue: number;
@@ -105,10 +107,10 @@ export interface TenantReport {
 }
 
 /**
- * The maintenance report's figures. No costs: get_maintenance_analytics returns
- * total_cost and average_cost as the literal 0 and monthly_cost and
- * vendor_performance as empty arrays, so the report printed $0.00 and empty
- * cost tables for every owner.
+ * The maintenance report's figures. `costs` is the spend to date that
+ * get_maintenance_analytics computes from the expenses (20261102184503), read
+ * by the same mapper as the insights tab; null when the server cannot report
+ * it yet (the body before returns its costs as the literal 0 and []).
  */
 export interface MaintenanceReport {
 	summary: {
@@ -116,6 +118,7 @@ export interface MaintenanceReport {
 		openRequests: number;
 		avgResolutionHours: number;
 	};
+	costs: MaintenanceCostSummary | null;
 	byStatus: Array<{
 		status: string;
 		count: number;

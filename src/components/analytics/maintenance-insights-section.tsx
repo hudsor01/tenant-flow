@@ -12,7 +12,11 @@ import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
 import { useClientDataTable } from "#hooks/use-client-data-table";
-import type { MaintenanceCategoryBreakdown } from "#types/analytics";
+import { formatCurrency } from "#lib/utils/currency";
+import type {
+	MaintenanceCategoryBreakdown,
+	MaintenanceCostSummary,
+} from "#types/analytics";
 
 const MaintenanceTrendChart = dynamic(
 	() => import("./maintenance-charts").then((mod) => mod.MaintenanceTrendChart),
@@ -122,10 +126,26 @@ function CategoryBreakdownTable({
 	);
 }
 
+/**
+ * The cost card's line: the spend to date, and the average per request with
+ * costs, naming its denominator (get_maintenance_analytics, 20261102184503).
+ */
+export function costSummaryLine(costs: MaintenanceCostSummary | null): string {
+	if (costs === null) return "Spend on your requests, to date";
+	if (costs.costedRequests === 0 || costs.averageCost === null) {
+		return "No expenses recorded on your requests yet";
+	}
+	const requests =
+		costs.costedRequests === 1
+			? "1 request with costs"
+			: `${costs.costedRequests} requests with costs`;
+	return `${formatCurrency(costs.totalCost)} to date · ${formatCurrency(costs.averageCost)} average across ${requests}`;
+}
+
 export function MaintenanceInsightsSection() {
 	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData());
 
-	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data;
+	const { trends, costs, costBreakdown, categoryBreakdown } = data;
 
 	return (
 		<div className="space-y-6">
@@ -137,7 +157,7 @@ export function MaintenanceInsightsSection() {
 							<div>
 								<h3 className="font-medium text-foreground">Request trends</h3>
 								<p className="text-sm text-muted-foreground">
-									Completed vs pending requests over time
+									Completed each month, and open at month end
 								</p>
 							</div>
 							<TrendingUp className="w-5 h-5 text-muted-foreground" />
@@ -150,14 +170,17 @@ export function MaintenanceInsightsSection() {
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Cost breakdown</h3>
+								<h3 className="font-medium text-foreground">Spend by vendor</h3>
 								<p className="text-sm text-muted-foreground">
-									Maintenance costs by category
+									{costSummaryLine(costs)}
 								</p>
 							</div>
 							<DollarSign className="w-5 h-5 text-muted-foreground" />
 						</div>
-						<MaintenanceCostChart entries={costBreakdown} />
+						<MaintenanceCostChart
+							entries={costBreakdown}
+							available={costs !== null}
+						/>
 					</div>
 				</BlurFade>
 			</div>

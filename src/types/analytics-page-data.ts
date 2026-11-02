@@ -9,6 +9,7 @@ import type {
 	LeaseAnalyticsPageResponse,
 	LeaseLifecyclePoint,
 	MaintenanceAnalyticsPageResponse,
+	MaintenanceCostSummary,
 	OccupancyAnalyticsPageResponse,
 	PropertyPerformancePageResponse,
 } from "./analytics";
@@ -92,9 +93,13 @@ export interface MaintenanceCostEntry {
 export interface MaintenanceInsightsPageData {
 	metrics: MaintenanceAnalyticsPageResponse["metrics"];
 	categoryBreakdown: MaintenanceAnalyticsPageResponse["categoryBreakdown"];
+	/** The spend to date; null when the server cannot report it yet. */
+	costs: MaintenanceCostSummary | null;
 	costTrends: MaintenanceAnalyticsPageResponse["trends"];
+	/** `costs.vendors` as the cost chart's bars; empty when costs are null. */
 	costBreakdown: MaintenanceCostEntry[];
-	trends: MaintenanceAnalyticsPageResponse["trends"];
+	/** Requests by month; null when the server cannot report them yet. */
+	trends: MaintenanceAnalyticsPageResponse["trends"] | null;
 	responseTimes: ResponseTimeEntry[];
 	preventiveMaintenance: PreventiveMaintenanceEntry[];
 }

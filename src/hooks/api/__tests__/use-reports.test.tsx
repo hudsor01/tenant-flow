@@ -278,20 +278,21 @@ describe("reportAnalyticsQueries.maintenance", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches maintenance analytics", async () => {
-		// get_maintenance_analytics as its body returns them: the cost keys are
-		// the literal 0 and empty arrays (20260304120000).
+	it("reads the costs 20261102184503 computes into the report", async () => {
 		mockRpc.mockResolvedValueOnce({
 			data: {
 				total_requests: 25,
 				open_requests: 3,
 				avg_resolution_hours: 48,
-				total_cost: 0,
-				average_cost: 0,
+				total_cost: 790.5,
+				costed_requests: 4,
+				average_cost: 197.63,
 				by_status: [{ status: "open", count: 3 }],
 				by_priority: [{ priority: "high", count: 5 }],
-				monthly_cost: [],
-				vendor_performance: [],
+				monthly_cost: [{ month: "2026-10", cost: 110 }],
+				vendor_performance: [
+					{ vendor_name: "Plumber", total_spend: 260.5, jobs: 2 },
+				],
 			},
 			error: null,
 		});
@@ -309,14 +310,48 @@ describe("reportAnalyticsQueries.maintenance", () => {
 
 		expect(result.current.data?.summary?.totalRequests).toBe(25);
 		expect(result.current.data?.summary?.openRequests).toBe(3);
-		// No cost figure reaches the report: each would be a hard-coded 0.
-		expect(result.current.data?.summary).not.toHaveProperty("totalCost");
-		expect(result.current.data?.summary).not.toHaveProperty("averageCost");
-		expect(result.current.data).not.toHaveProperty("monthlyCost");
-		expect(result.current.data).not.toHaveProperty("vendorPerformance");
+		expect(result.current.data?.costs).toEqual({
+			totalCost: 790.5,
+			costedRequests: 4,
+			averageCost: 197.63,
+			monthlyCost: [{ month: "2026-10", cost: 110 }],
+			vendors: [{ vendorName: "Plumber", totalSpend: 260.5, jobs: 2 }],
+		});
 		expect(mockRpc).toHaveBeenCalledWith("get_maintenance_analytics", {
 			user_id: "user-1",
 		});
+	});
+
+	it("reports no costs from the body that returns them as literals", async () => {
+		// get_maintenance_analytics before 20261102184503: the cost keys are the
+		// literal 0 and empty arrays, and there is no costed_requests.
+		mockRpc.mockResolvedValueOnce({
+			data: {
+				total_requests: 25,
+				open_requests: 3,
+				avg_resolution_hours: 48,
+				total_cost: 0,
+				average_cost: 0,
+				by_status: [],
+				by_priority: [],
+				monthly_cost: [],
+				vendor_performance: [],
+			},
+			error: null,
+		});
+
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.maintenance()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
+
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+
+		expect(result.current.data?.costs).toBeNull();
 	});
 });
 

@@ -13,7 +13,9 @@ import type {
 	FinancialBreakdownRow,
 	FinancialMetricSummary,
 	MaintenanceCategoryBreakdown,
+	MaintenanceCostSummary,
 	MaintenanceMetricSummary,
+	MaintenanceTrendPoint,
 	MonthlyFinancialMetric,
 	NetOperatingIncomeByProperty,
 	OccupancyMetricSummary,
@@ -253,16 +255,75 @@ export function mapPortfolioTrends(stats: unknown): PortfolioTrends {
 	};
 }
 
-// --- Maintenance analytics (TYPE-03) ---------------------------------------
+// --- Maintenance analytics (TYPE-03, 20261102184503) ------------------------
 // `get_maintenance_analytics` emits snake_case/legacy keys (`open_requests`,
-// `avg_resolution_hours`, `by_status:[{status,count}]`, `total_cost:0`, ...) —
-// NONE of the page-data keys the old `jsonObject<MaintenanceInsightsPageData>`
-// blind-cast asserted, so the insights section always rendered empty. This
-// never-throw mapper derives `metrics` + `categoryBreakdown` (from `by_status`,
-// the closest real dimension — the schema has no maintenance-category taxonomy).
-// The cost/time-series shapes stay empty because the RPC hardcodes them to
-// `[]`/`0`: that data legitimately does not exist (expenses aren't joined to
-// maintenance categories) — honest empty, not fabricated.
+// `avg_resolution_hours`, `by_status:[{status,count}]`, ...) — NONE of the
+// page-data keys the old `jsonObject<MaintenanceInsightsPageData>` blind-cast
+// asserted. This never-throw mapper derives `metrics` + `categoryBreakdown`
+// (from `by_status`, the closest real dimension — the schema has no
+// maintenance-category taxonomy), and the spend and request trends that
+// 20261102184503 computes. The body before it returns them as `0` and `[]`
+// with no `costed_requests`: then they are null (unavailable), never $0 or an
+// empty chart.
+
+/** A finite number, or null. */
+function finiteOrNull(value: unknown): number | null {
+	return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/**
+ * get_maintenance_analytics' spend, or null when the body returns no
+ * `costed_requests` (the body before 20261102184503, whose 0 is no figure).
+ * Shared by the insights tab and the maintenance report, so the export holds
+ * the figures the screen shows.
+ */
+export function mapMaintenanceCosts(
+	raw: unknown,
+): MaintenanceCostSummary | null {
+	const root = asObject(raw);
+	const costedRequests = finiteOrNull(root?.costed_requests);
+	const totalCost = finiteOrNull(root?.total_cost);
+	if (costedRequests === null || totalCost === null) return null;
+	const rows = (value: unknown) =>
+		(Array.isArray(value) ? value : []).map((entry) => asObject(entry) ?? {});
+	return {
+		totalCost,
+		costedRequests,
+		averageCost: finiteOrNull(root?.average_cost),
+		monthlyCost: rows(root?.monthly_cost).map((m) => ({
+			month: String(m.month ?? ""),
+			cost: Number(m.cost ?? 0),
+		})),
+		vendors: rows(root?.vendor_performance).map((v) => ({
+			vendorName: String(v.vendor_name ?? ""),
+			totalSpend: Number(v.total_spend ?? 0),
+			jobs: Number(v.jobs ?? 0),
+		})),
+	};
+}
+
+/**
+ * The request trends (requests completed in each month, open at its end),
+ * oldest first, or null with no `costed_requests` (the body before
+ * 20261102184503 returns `[]`, which is no series).
+ */
+export function mapMaintenanceTrends(
+	raw: unknown,
+): MaintenanceTrendPoint[] | null {
+	const root = asObject(raw);
+	if (finiteOrNull(root?.costed_requests) === null) return null;
+	return (Array.isArray(root?.trendsOverTime) ? root.trendsOverTime : []).map(
+		(entry) => {
+			const point = asObject(entry) ?? {};
+			return {
+				period: String(point.month ?? ""),
+				completed: Number(point.completed ?? 0),
+				pending: Number(point.pending ?? 0),
+				avgResolutionTime: finiteOrNull(point.avg_resolution_hours),
+			};
+		},
+	);
+}
 
 /** Sum the `count` of a `by_status` row matching `status`. Never throws. */
 function statusCount(byStatus: unknown, status: string): number {
@@ -275,9 +336,10 @@ function statusCount(byStatus: unknown, status: string): number {
 
 /**
  * Shape `get_maintenance_analytics` into `MaintenanceInsightsPageData`.
- * `metrics` + `categoryBreakdown` are derived from the keys the RPC legitimately
- * carries; the cost/trend series stay empty (the RPC returns none). Never
- * throws — non-object input yields zeroed metrics + empty sections.
+ * `metrics` + `categoryBreakdown` from the request counts; `costs`, its
+ * vendor `costBreakdown` and `trends` from 20261102184503's keys, null (empty
+ * for the breakdown) when the body returns none. Never throws — non-object
+ * input yields zeroed metrics and no costs or trends.
  */
 export function mapMaintenanceAnalytics(
 	raw: unknown,
@@ -301,12 +363,21 @@ export function mapMaintenanceAnalytics(
 			}))
 		: [];
 
+	const costs = mapMaintenanceCosts(raw);
 	return {
 		metrics,
 		categoryBreakdown,
+		costs,
 		costTrends: [],
-		costBreakdown: [],
-		trends: [],
+		costBreakdown: (costs?.vendors ?? []).map((v) => ({
+			category: v.vendorName,
+			amount: v.totalSpend,
+			percentage:
+				costs && costs.totalCost > 0
+					? (v.totalSpend / costs.totalCost) * 100
+					: 0,
+		})),
+		trends: mapMaintenanceTrends(raw),
 		responseTimes: [],
 		preventiveMaintenance: [],
 	};

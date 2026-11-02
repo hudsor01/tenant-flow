@@ -289,9 +289,28 @@ export interface MaintenanceCostBreakdownEntry {
 
 export interface MaintenanceTrendPoint {
 	period: string;
+	/** Requests completed in the month. */
 	completed: number;
+	/** Requests open at the month's end. */
 	pending: number;
-	avgResolutionTime: number;
+	/** Mean hours to resolve the month's completed requests; null with none. */
+	avgResolutionTime: number | null;
+}
+
+/**
+ * get_maintenance_analytics' spend (20261102184503), to date, in dollars: the
+ * expenses on the owner's maintenance requests, never actual_cost.
+ */
+export interface MaintenanceCostSummary {
+	totalCost: number;
+	/** The requests with at least one expense: averageCost's denominator. */
+	costedRequests: number;
+	/** totalCost / costedRequests; null when no request has a cost. */
+	averageCost: number | null;
+	/** The trailing 12 calendar months, oldest first. */
+	monthlyCost: Array<{ month: string; cost: number }>;
+	/** By vendor, largest spend first; jobs are the requests it was on. */
+	vendors: Array<{ vendorName: string; totalSpend: number; jobs: number }>;
 }
 
 export interface MaintenanceCategoryBreakdown {

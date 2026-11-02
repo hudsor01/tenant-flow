@@ -22,6 +22,7 @@ import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-k
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
 import { parseLocalYmd } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
+import type { MaintenanceCostSummary } from "#types/analytics";
 import type {
 	FinancialReport,
 	MaintenanceReport,
@@ -178,6 +179,7 @@ const MAINTENANCE_FALLBACK: MaintenanceReport = {
 		openRequests: 0,
 		avgResolutionHours: 0,
 	},
+	costs: null,
 	byStatus: [],
 	byPriority: [],
 };
@@ -189,6 +191,10 @@ const fmtMoney = (n: number): string =>
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
 	});
+
+/** Dollars to the cent, as the maintenance insights print a cost. */
+const fmtCents = (n: number): string =>
+	formatCurrency(Number.isFinite(n) ? n : 0);
 
 const fmtPct = (n: number): string =>
 	`${(Number.isFinite(n) ? n : 0).toFixed(1)}%`;
@@ -323,6 +329,36 @@ function maintenanceSummaryRows(maintenance: MaintenanceReport): ReportRow[] {
 		{
 			label: "Avg Resolution Time",
 			value: `${maintenance.summary.avgResolutionHours.toFixed(1)} hours`,
+		},
+		...maintenanceCostRows(maintenance.costs),
+	];
+}
+
+/**
+ * The spend to date the insights tab shows (get_maintenance_analytics,
+ * 20261102184503, through the same mapper), to the cent as the tab prints it:
+ * the expenses on the owner's requests, all time to date. When the server
+ * cannot report it yet, each row says so instead of printing $0.00.
+ */
+function maintenanceCostRows(
+	costs: MaintenanceCostSummary | null,
+): ReportRow[] {
+	return [
+		{
+			label: "Total Cost to Date",
+			value: costs ? fmtCents(costs.totalCost) : UNAVAILABLE,
+		},
+		{
+			label: "Requests with Costs",
+			value: costs ? fmtNumber(costs.costedRequests) : UNAVAILABLE,
+		},
+		{
+			label: "Average Cost per Request with Costs",
+			value: costs
+				? costs.averageCost === null
+					? "None recorded"
+					: fmtCents(costs.averageCost)
+				: UNAVAILABLE,
 		},
 	];
 }
@@ -719,6 +755,8 @@ function maintenanceOperationsSections(
 			fmtNumber(p.count),
 		],
 	);
+	const costs = maintenance.costs;
+	const costNote = costs ? {} : { note: MAINTENANCE_COSTS_UNAVAILABLE_NOTE };
 	return [
 		{
 			heading: "Operations Summary",
@@ -733,8 +771,35 @@ function maintenanceOperationsSections(
 			table: { headers: ["Priority", "Count"], rows: byPriorityRows },
 			...noteIf(available),
 		},
+		{
+			heading: "Monthly Cost (last 12 months)",
+			table: {
+				headers: ["Month", "Cost"],
+				rows: (costs?.monthlyCost ?? []).map(
+					(m): Array<string | number> => [m.month, fmtCents(m.cost)],
+				),
+			},
+			...costNote,
+		},
+		{
+			heading: "Vendor Spend to Date",
+			table: {
+				headers: ["Vendor", "Jobs", "Total Spend"],
+				rows: (costs?.vendors ?? []).map(
+					(v): Array<string | number> => [
+						v.vendorName,
+						fmtNumber(v.jobs),
+						fmtCents(v.totalSpend),
+					],
+				),
+			},
+			...costNote,
+		},
 	];
 }
+
+const MAINTENANCE_COSTS_UNAVAILABLE_NOTE =
+	"Maintenance costs aren't available yet: the server does not report them, so none is shown.";
 
 async function buildMaintenanceOperations(
 	queryClient: QueryClient,
@@ -749,7 +814,7 @@ async function buildMaintenanceOperations(
 	return {
 		...baseHeader(
 			"Maintenance Operations Report",
-			"Response times · status · urgency",
+			"Response times · status · urgency · costs",
 			start,
 			end,
 		),

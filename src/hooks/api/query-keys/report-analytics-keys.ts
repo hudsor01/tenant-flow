@@ -20,6 +20,7 @@ import type {
 	YearEndResult,
 } from "#types/reports";
 import { fetchOccupancyTrends } from "./analytics-keys";
+import { mapMaintenanceCosts } from "./analytics-mappers";
 import { fetchRentReceivedInYear } from "./financial-keys";
 import {
 	mapPropertyPerformance,
@@ -274,6 +275,7 @@ export const reportAnalyticsQueries = {
 							openRequests: 0,
 							avgResolutionHours: 0,
 						},
+						costs: null,
 						byStatus: [],
 						byPriority: [],
 					};
@@ -290,6 +292,7 @@ export const reportAnalyticsQueries = {
 						openRequests: Number(a?.open_requests ?? 0),
 						avgResolutionHours: Number(a?.avg_resolution_hours ?? 0),
 					},
+					costs: mapMaintenanceCosts(data),
 					byStatus: (
 						(a?.by_status ?? []) as Array<Record<string, unknown>>
 					).map((s) => ({

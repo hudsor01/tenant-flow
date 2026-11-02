@@ -189,6 +189,28 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 	});
 });
 
+/** get_maintenance_analytics as 20261102184503 returns it, cut to two months. */
+const COMPUTED_MAINTENANCE = {
+	open_requests: 2,
+	avg_resolution_hours: 30,
+	by_status: [{ status: "open", count: 2 }],
+	total_cost: 790.5,
+	costed_requests: 4,
+	average_cost: 197.63,
+	monthly_cost: [
+		{ month: "2026-09", cost: 250.5 },
+		{ month: "2026-10", cost: 110 },
+	],
+	vendor_performance: [
+		{ vendor_name: "Roof Co", total_spend: 400, jobs: 1 },
+		{ vendor_name: "Plumber", total_spend: 260.5, jobs: 2 },
+	],
+	trendsOverTime: [
+		{ month: "2026-09", completed: 1, pending: 4, avg_resolution_hours: 48.33 },
+		{ month: "2026-10", completed: 1, pending: 4, avg_resolution_hours: null },
+	],
+};
+
 describe("mapPortfolioTrends (20261102184501)", () => {
 	const WINDOW = "2026-10-03/2026-11-02";
 	const days = { start_date: "2026-10-03", end_date: "2026-11-02" };
@@ -266,9 +288,63 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 			category: "open",
 			count: 4,
 		});
-		// The RPC carries no cost/trend series — those stay honestly empty.
+		// No costed_requests: the body before 20261102184503, whose costs are
+		// literals. No cost, no trend series, never $0 or an empty chart.
+		expect(mapped.costs).toBeNull();
+		expect(mapped.trends).toBeNull();
+		expect(mapped.costBreakdown).toEqual([]);
 		expect(mapped.costTrends).toEqual([]);
-		expect(mapped.trends).toEqual([]);
+	});
+
+	it("does not read the old body's literal costs as figures", () => {
+		const mapped = mapMaintenanceAnalytics({
+			open_requests: 1,
+			total_cost: 0,
+			average_cost: 0,
+			monthly_cost: [],
+			vendor_performance: [],
+			trendsOverTime: [],
+		});
+		expect(mapped.costs).toBeNull();
+		expect(mapped.trends).toBeNull();
+	});
+
+	it("reads the spend and the trends 20261102184503 computes", () => {
+		const mapped = mapMaintenanceAnalytics(COMPUTED_MAINTENANCE);
+		expect(mapped.costs).toEqual({
+			totalCost: 790.5,
+			costedRequests: 4,
+			averageCost: 197.63,
+			monthlyCost: [
+				{ month: "2026-09", cost: 250.5 },
+				{ month: "2026-10", cost: 110 },
+			],
+			vendors: [
+				{ vendorName: "Roof Co", totalSpend: 400, jobs: 1 },
+				{ vendorName: "Plumber", totalSpend: 260.5, jobs: 2 },
+			],
+		});
+		expect(mapped.costBreakdown).toEqual([
+			{ category: "Roof Co", amount: 400, percentage: (400 / 790.5) * 100 },
+			{ category: "Plumber", amount: 260.5, percentage: (260.5 / 790.5) * 100 },
+		]);
+		expect(mapped.trends).toEqual([
+			{ period: "2026-09", completed: 1, pending: 4, avgResolutionTime: 48.33 },
+			{ period: "2026-10", completed: 1, pending: 4, avgResolutionTime: null },
+		]);
+	});
+
+	it("keeps a null average and empty series when no request has a cost", () => {
+		const mapped = mapMaintenanceAnalytics({
+			...COMPUTED_MAINTENANCE,
+			total_cost: 0,
+			costed_requests: 0,
+			average_cost: null,
+			vendor_performance: [],
+		});
+		expect(mapped.costs?.averageCost).toBeNull();
+		expect(mapped.costs?.costedRequests).toBe(0);
+		expect(mapped.costBreakdown).toEqual([]);
 	});
 
 	it("degrades to safe empty on non-object input (never throws)", () => {
