@@ -13,24 +13,17 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { useCreatePropertyMutation } from "#hooks/api/use-property-mutations";
+import {
+	PROPERTY_TYPE_OPTIONS,
+	type PropertyType,
+	toPropertyType,
+} from "#lib/constants/status-types";
 import type { PropertyCreate } from "#lib/validation/properties";
 
 interface OnboardingStepPropertyProps {
 	onNext: () => void;
 	onSkip: () => void;
 }
-
-const PROPERTY_TYPES = [
-	{ value: "SINGLE_FAMILY", label: "Single Family" },
-	{ value: "MULTI_UNIT", label: "Multi Unit" },
-	{ value: "APARTMENT", label: "Apartment" },
-	{ value: "CONDO", label: "Condo" },
-	{ value: "TOWNHOUSE", label: "Townhouse" },
-	{ value: "COMMERCIAL", label: "Commercial" },
-	{ value: "OTHER", label: "Other" },
-] as const;
-
-type PropertyTypeValue = (typeof PROPERTY_TYPES)[number]["value"];
 
 /**
  * Property step - simplified property creation form in the onboarding wizard
@@ -47,7 +40,7 @@ export function OnboardingStepProperty({
 	const [state, setState] = useState("");
 	const [postalCode, setPostalCode] = useState("");
 	const [propertyType, setPropertyType] =
-		useState<PropertyTypeValue>("SINGLE_FAMILY");
+		useState<PropertyType>("SINGLE_FAMILY");
 
 	const handleSubmit = async (e: React.SubmitEvent) => {
 		e.preventDefault();
@@ -111,13 +104,16 @@ export function OnboardingStepProperty({
 					<Label htmlFor="onboarding-property-type">Property Type</Label>
 					<Select
 						value={propertyType}
-						onValueChange={(val) => setPropertyType(val as PropertyTypeValue)}
+						onValueChange={(val) => {
+							const type = toPropertyType(val);
+							if (type !== null) setPropertyType(type);
+						}}
 					>
 						<SelectTrigger id="onboarding-property-type" className="h-11">
 							<SelectValue placeholder="Select type" />
 						</SelectTrigger>
 						<SelectContent>
-							{PROPERTY_TYPES.map((type) => (
+							{PROPERTY_TYPE_OPTIONS.map((type) => (
 								<SelectItem key={type.value} value={type.value}>
 									{type.label}
 								</SelectItem>

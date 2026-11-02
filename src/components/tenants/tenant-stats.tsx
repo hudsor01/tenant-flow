@@ -9,6 +9,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 
 interface TenantStatsProps {
 	totalTenants: number;
@@ -46,7 +47,7 @@ export function TenantStats({
 
 			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
-					<StatLabel>Active</StatLabel>
+					<StatLabel>{LEASE_STATUS_LABELS.active}</StatLabel>
 					<StatValue className="flex items-baseline text-success-text">
 						<NumberTicker value={activeTenants} duration={1000} />
 					</StatValue>
@@ -67,7 +68,7 @@ export function TenantStats({
 							colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 						/>
 					)}
-					<StatLabel>Pending</StatLabel>
+					<StatLabel>{LEASE_STATUS_LABELS.pending_signature}</StatLabel>
 					<StatValue className="flex items-baseline text-warning-text">
 						<NumberTicker value={pendingTenants} duration={1000} />
 					</StatValue>

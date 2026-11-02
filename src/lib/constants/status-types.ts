@@ -6,8 +6,11 @@
  * PostgreSQL and exported from core.ts via supabase.ts.
  *
  * This file only contains app-level constants for business logic that don't
- * correspond to database enum columns.
+ * correspond to database enum columns, and the labels the owner sees for them
+ * and for those columns.
  */
+
+import type { LeaseStatus, PropertyStatus } from "#types/core";
 
 /**
  * USER ROLES - App-level user type classification
@@ -79,6 +82,57 @@ export const PROPERTY_TYPE_OPTIONS: readonly {
 	value,
 	label: PROPERTY_TYPE_LABELS[value],
 }));
+
+/**
+ * The name the owner sees for each lease status, on every screen and export
+ * (the leases and tenants pages, their CSVs, the lease form and detail). One
+ * label per value: the tenant pages printed "Pending" where the leases pages
+ * printed "Pending Signature" for the same lease.
+ */
+export const LEASE_STATUS_LABELS: Readonly<Record<LeaseStatus, string>> = {
+	draft: "Draft",
+	pending_signature: "Pending Signature",
+	active: "Active",
+	ended: "Ended",
+	terminated: "Terminated",
+	expired: "Expired",
+};
+
+/**
+ * The leases page's pseudo-status: an active lease within 30 days of its end
+ * date (transformLease, table/lease-utils.ts), never a stored lease_status.
+ */
+export const EXPIRING_LEASE_LABEL = "Expiring Soon";
+
+function isLeaseStatus(value: string): value is LeaseStatus {
+	return Object.hasOwn(LEASE_STATUS_LABELS, value);
+}
+
+/** A lease status as its label; a value outside the set as written. */
+export function leaseStatusLabel(value: string): string {
+	return isLeaseStatus(value) ? LEASE_STATUS_LABELS[value] : value;
+}
+
+/**
+ * The name the owner sees for each property status (properties.status). The
+ * property page printed it as stored ("active"); the bulk edit dialog offers
+ * the same three under these names.
+ */
+export const PROPERTY_STATUS_LABELS: Readonly<Record<PropertyStatus, string>> =
+	{
+		active: "Active",
+		inactive: "Inactive",
+		sold: "Sold",
+	};
+
+function isPropertyStatus(value: string): value is PropertyStatus {
+	return Object.hasOwn(PROPERTY_STATUS_LABELS, value);
+}
+
+/** A property status as its label; a value outside the set as written. */
+export function propertyStatusLabel(value: string): string {
+	return isPropertyStatus(value) ? PROPERTY_STATUS_LABELS[value] : value;
+}
 
 /**
  * SINGLE-UNIT PROPERTY TYPES - Property types that have exactly one unit

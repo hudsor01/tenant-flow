@@ -8,6 +8,10 @@ import {
 	Send,
 	XCircle,
 } from "lucide-react";
+import {
+	EXPIRING_LEASE_LABEL,
+	LEASE_STATUS_LABELS,
+} from "#lib/constants/status-types";
 import { parseLocalYmd } from "#lib/formatters/date";
 import type { Lease } from "#types/core";
 
@@ -185,33 +189,33 @@ export function getStatusConfig(status: string): StatusConfig {
 	const config: Record<string, StatusConfig> = {
 		draft: {
 			className: "bg-muted text-muted-foreground",
-			label: "Draft",
+			label: LEASE_STATUS_LABELS.draft,
 		},
 		pending_signature: {
 			className: "bg-warning/10 text-warning-text",
-			label: "Pending Signature",
+			label: LEASE_STATUS_LABELS.pending_signature,
 		},
 		active: {
 			className: "bg-success/10 text-success-text",
-			label: "Active",
+			label: LEASE_STATUS_LABELS.active,
 		},
 		ended: {
 			className: "bg-muted text-muted-foreground",
-			label: "Ended",
+			label: LEASE_STATUS_LABELS.ended,
 		},
 		expired: {
 			className: "bg-muted text-muted-foreground",
-			label: "Expired",
+			label: LEASE_STATUS_LABELS.expired,
 		},
 		terminated: {
 			className: "bg-destructive/10 text-destructive-text",
-			label: "Terminated",
+			label: LEASE_STATUS_LABELS.terminated,
 		},
 		// Pseudo-status produced by transformLease (table/lease-utils.ts) for an
 		// active lease within 30 days of its end date. Not a stored lease_status.
 		expiring: {
 			className: "bg-warning/10 text-warning-text",
-			label: "Expiring",
+			label: EXPIRING_LEASE_LABEL,
 		},
 	};
 

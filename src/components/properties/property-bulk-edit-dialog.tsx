@@ -12,6 +12,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import {
+	PROPERTY_STATUS_LABELS,
 	PROPERTY_TYPE_OPTIONS,
 	type PropertyType,
 	toPropertyType,
@@ -86,9 +87,13 @@ export function PropertyBulkEditDialog({
 									}
 									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									<option value="active">Active</option>
-									<option value="inactive">Inactive</option>
-									<option value="sold">Sold</option>
+									{Object.entries(PROPERTY_STATUS_LABELS).map(
+										([value, label]) => (
+											<option key={value} value={value}>
+												{label}
+											</option>
+										),
+									)}
 								</select>
 							</div>
 						</div>

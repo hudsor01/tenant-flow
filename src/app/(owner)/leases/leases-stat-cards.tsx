@@ -1,4 +1,8 @@
 import { AlertTriangle, Check, Clock, FileText } from "lucide-react";
+import {
+	EXPIRING_LEASE_LABEL,
+	LEASE_STATUS_LABELS,
+} from "#lib/constants/status-types";
 
 interface LeasesStatCardsProps {
 	totalLeases: number;
@@ -15,9 +19,17 @@ export function LeasesStatCards({
 }: LeasesStatCardsProps) {
 	const cards = [
 		{ label: "Total Leases", value: totalLeases, icon: FileText },
-		{ label: "Active", value: activeLeases, icon: Check },
-		{ label: "Expiring Soon", value: expiringLeases, icon: AlertTriangle },
-		{ label: "Pending", value: pendingLeases, icon: Clock },
+		{ label: LEASE_STATUS_LABELS.active, value: activeLeases, icon: Check },
+		{
+			label: EXPIRING_LEASE_LABEL,
+			value: expiringLeases,
+			icon: AlertTriangle,
+		},
+		{
+			label: LEASE_STATUS_LABELS.pending_signature,
+			value: pendingLeases,
+			icon: Clock,
+		},
 	];
 
 	return (

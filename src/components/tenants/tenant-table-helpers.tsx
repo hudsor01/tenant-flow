@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import { cn } from "#lib/utils";
 import type { LeaseStatus } from "#types/core";
 
@@ -28,24 +29,6 @@ export const TENANT_COLUMN_CLASS = {
 	lease: "flex w-24 shrink-0 items-center",
 	actions: "flex w-28 shrink-0 items-center justify-end",
 } as const;
-
-export const TENANT_LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
-	draft: "Draft",
-	pending_signature: "Pending",
-	active: "Active",
-	ended: "Ended",
-	terminated: "Terminated",
-	expired: "Expired",
-};
-
-function isLeaseStatus(value: string): value is LeaseStatus {
-	return Object.hasOwn(TENANT_LEASE_STATUS_LABELS, value);
-}
-
-/** A lease status as its label on tenant surfaces; an unknown value as written. */
-export function tenantLeaseStatusLabel(status: string): string {
-	return isLeaseStatus(status) ? TENANT_LEASE_STATUS_LABELS[status] : status;
-}
 
 const STATUS_CHIP: Record<LeaseStatus, string> = {
 	draft: "status-pending",
@@ -88,7 +71,7 @@ export function TenantLeaseStatusBadge({
 			)}
 		>
 			{ariaLabel ? <span className="sr-only">{`${ariaLabel}: `}</span> : null}
-			{TENANT_LEASE_STATUS_LABELS[status]}
+			{LEASE_STATUS_LABELS[status]}
 		</span>
 	);
 }

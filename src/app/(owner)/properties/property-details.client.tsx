@@ -23,7 +23,10 @@ import { Button } from "#components/ui/button";
 import { ButtonGroup } from "#components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { useDeletePropertyMutation } from "#hooks/api/use-property-mutations";
-import { propertyTypeLabel } from "#lib/constants/status-types";
+import {
+	propertyStatusLabel,
+	propertyTypeLabel,
+} from "#lib/constants/status-types";
 import { createLogger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
 
@@ -102,7 +105,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 							variant="outline"
 							className={`border-0 text-xs px-2 py-0 ${getStatusBadgeClass(property.status)}`}
 						>
-							{property.status || "Active"}
+							{propertyStatusLabel(property.status)}
 						</Badge>
 						{property.created_at && (
 							<>

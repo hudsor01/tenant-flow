@@ -1,7 +1,7 @@
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import { formatLocalYmd } from "#lib/formatters/date";
 import { type CsvCell, toCsv } from "#lib/reports/csv";
 import type { TenantItem } from "#types/sections/tenants";
-import { TENANT_LEASE_STATUS_LABELS } from "./tenant-table-helpers";
 
 /**
  * Tenant records as CSV: one row per tenant, in list order, with the fields
@@ -25,7 +25,7 @@ export function buildTenantsCsv(tenants: readonly TenantItem[]): string {
 		t.phone ?? "",
 		t.currentProperty ?? "",
 		t.currentUnit ?? "",
-		t.leaseStatus ? TENANT_LEASE_STATUS_LABELS[t.leaseStatus] : "",
+		t.leaseStatus ? LEASE_STATUS_LABELS[t.leaseStatus] : "",
 		t.moveInDate ?? "",
 	]);
 	return toCsv(TENANTS_CSV_HEADER, rows);

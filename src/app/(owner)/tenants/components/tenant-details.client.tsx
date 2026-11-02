@@ -7,12 +7,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
-import { tenantLeaseStatusLabel } from "#components/tenants/tenant-table-helpers";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations";
+import { leaseStatusLabel } from "#lib/constants/status-types";
 import { formatDate } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
@@ -216,7 +216,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 											lease.status === "active" ? "default" : "secondary"
 										}
 									>
-										{tenantLeaseStatusLabel(lease.status)}
+										{leaseStatusLabel(lease.status)}
 									</Badge>
 								</div>
 							))}

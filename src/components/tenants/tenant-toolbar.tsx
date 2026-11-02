@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutGrid, List } from "lucide-react";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import type { TenantStatusFilter } from "#stores/tenants-store";
 
 interface TenantToolbarProps {
@@ -45,11 +46,13 @@ export function TenantToolbar({
 				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 			>
 				<option value="all">All Statuses</option>
-				<option value="active">Active</option>
-				<option value="pending_signature">Pending</option>
-				<option value="ended">Ended</option>
-				<option value="expired">Expired</option>
-				<option value="terminated">Terminated</option>
+				<option value="active">{LEASE_STATUS_LABELS.active}</option>
+				<option value="pending_signature">
+					{LEASE_STATUS_LABELS.pending_signature}
+				</option>
+				<option value="ended">{LEASE_STATUS_LABELS.ended}</option>
+				<option value="expired">{LEASE_STATUS_LABELS.expired}</option>
+				<option value="terminated">{LEASE_STATUS_LABELS.terminated}</option>
 			</select>
 
 			{/* RIGHT: Count + View Toggle */}

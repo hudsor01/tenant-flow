@@ -76,8 +76,9 @@ function hits(files: readonly string[], pattern: RegExp): string[] {
 }
 
 const RAW_RENDER = new RegExp(
-	// a JSX child: `{` not opening an attribute value (`=`) or `${`
-	String.raw`(?:^\s*|[^=$\s]\s*)\{\s*[A-Za-z_$][\w$]*(?:\??\.[A-Za-z_$][\w$]*)*\??\.(?:${ENUM_FIELDS})\s*\}|\{\s*row\.original\.(?:category|type)\s*\}`,
+	// a JSX child: `{` not opening an attribute value (`=`) or `${`; the value
+	// alone or behind a fallback (`{property.status || "Active"}`, part P)
+	String.raw`(?:^\s*|[^=$\s]\s*)\{\s*[A-Za-z_$][\w$]*(?:\??\.[A-Za-z_$][\w$]*)*\??\.(?:${ENUM_FIELDS})\s*(?:\}|\|\||\?\?)|\{\s*row\.original\.(?:category|type)\s*\}`,
 );
 const AD_HOC_LABEL = new RegExp(
 	String.raw`\.(?:${ENUM_FIELDS}|category|type)\??(?:\.toLowerCase\(\))?\.replace\(|\.replace\(\s*["']_["']\s*,\s*["'] ["']\s*\)`,
@@ -132,7 +133,12 @@ describe("status, type and priority values are rendered through their labels", (
 			RAW_RENDER.test('<Badge variant="outline">{row.original.status}</Badge>'),
 		).toBe(true);
 		expect(RAW_RENDER.test("<span>{row.original.category}</span>")).toBe(true);
+		expect(RAW_RENDER.test('{property.status || "Active"}')).toBe(true);
+		expect(RAW_RENDER.test('{lease.lease_status ?? "draft"}')).toBe(true);
 		expect(RAW_RENDER.test("value={lease.status}")).toBe(false);
+		expect(RAW_RENDER.test('propertyType={property.property_type ?? ""}')).toBe(
+			false,
+		);
 		expect(RAW_RENDER.test("`${draft.status}`")).toBe(false);
 		expect(
 			AD_HOC_LABEL.test(

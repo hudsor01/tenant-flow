@@ -121,7 +121,7 @@ describe("buildLeasesCsv", () => {
 				"Tenant l2",
 				"Maple Apartments",
 				"4B",
-				"Expiring",
+				"Expiring Soon",
 				"2026-01-01",
 				"2026-12-31",
 				"2100.00",
