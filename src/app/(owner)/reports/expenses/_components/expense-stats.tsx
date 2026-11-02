@@ -127,7 +127,9 @@ export function ExpenseStats({
 					<StatIndicator variant="icon" color="primary">
 						<Calendar />
 					</StatIndicator>
-					<StatDescription>avg per month</StatDescription>
+					{/* monthly_average: the trailing 12 months, this month included,
+					    zero-filled (get_expense_summary), not the year to date. */}
+					<StatDescription>per month, last 12 months</StatDescription>
 				</Stat>
 			</BlurFade>
 

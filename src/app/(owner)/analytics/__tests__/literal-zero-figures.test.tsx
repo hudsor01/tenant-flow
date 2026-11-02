@@ -24,11 +24,14 @@ import { describe, expect, it } from "vitest";
 import { AnalyticsStatCards } from "#app/(owner)/analytics/overview/analytics-stat-cards";
 import { ExpenseStats } from "#app/(owner)/reports/expenses/_components/expense-stats";
 import { render } from "#test/utils/test-render";
-import type { PortfolioTrends } from "#types/analytics";
+import type { MetricTrend, PortfolioTrends } from "#types/analytics";
 
 const WINDOW = { start_date: "2026-10-03", end_date: "2026-11-02" };
 
-function renderCards(trends: PortfolioTrends | undefined) {
+function renderCards(
+	trends: PortfolioTrends | undefined,
+	maintenanceTrend?: MetricTrend | null,
+) {
 	return render(
 		<AnalyticsStatCards
 			occupancyRate={75}
@@ -36,10 +39,32 @@ function renderCards(trends: PortfolioTrends | undefined) {
 			monthlyRevenue={14250}
 			scheduledMargin={12.3}
 			openMaintenance={2}
-			maintenanceChange={-1}
+			maintenanceTrend={maintenanceTrend}
 			trends={trends}
 		/>,
 	);
+}
+
+function openTrend(change: number, window: MetricTrend["window"]): MetricTrend {
+	return {
+		current: 2,
+		previous: 2 - change,
+		change,
+		percentChange: null,
+		trend: change > 0 ? "up" : change < 0 ? "down" : "stable",
+		window,
+	};
+}
+
+/** The Open Maintenance tile's change line. */
+function maintenanceLine(): HTMLElement | null {
+	const tile = [...document.querySelectorAll("[data-slot=stat]")].find(
+		(t) =>
+			t.querySelector("[data-slot=stat-label]")?.textContent ===
+			"Open Maintenance",
+	);
+	return (tile?.querySelector("[data-slot=stat-description] span") ??
+		null) as HTMLElement | null;
 }
 
 /** The text of each tile's trend line, by label. */
@@ -59,12 +84,10 @@ describe("analytics overview stat cards", () => {
 			revenue: { status: "ready", percent: -10.18, window: WINDOW },
 		});
 		expect(trendLines()).toMatchObject({
-			"Occupancy Rate": "−25.0 ptsvs 30 days ago",
-			"Monthly Revenue": "−10.2%vs 30 days ago",
+			"Occupancy Rate": "−25.0 ptsvs. 30 days ago",
+			"Monthly Revenue": "−10.2%vs. 30 days ago",
 		});
 		expect(screen.getByText("12.3% scheduled margin")).toBeInTheDocument();
-		// Open maintenance keeps its change from the dashboard payload.
-		expect(screen.getByText("-1 from last week")).toBeInTheDocument();
 	});
 
 	it("color a rise and a fall by direction", () => {
@@ -77,7 +100,7 @@ describe("analytics overview stat cards", () => {
 			"up",
 			"down",
 		]);
-		expect(trends[0]?.textContent).toBe("+2.5 ptsvs 30 days ago");
+		expect(trends[0]?.textContent).toBe("+2.5 ptsvs. 30 days ago");
 	});
 
 	it("say there is no prior figure when nothing was scheduled then", () => {
@@ -101,12 +124,37 @@ describe("analytics overview stat cards", () => {
 			"Occupancy Rate": "Change unavailable",
 			"Monthly Revenue": "Change unavailable",
 		});
-		expect(screen.queryByText(/vs 30 days ago/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/vs\.? 30 days ago/)).not.toBeInTheDocument();
 	});
 
 	it("show no trend line while the dashboard payload loads", () => {
 		renderCards(undefined);
 		expect(document.querySelectorAll("[data-slot=stat-trend]")).toHaveLength(0);
+	});
+
+	// The open-maintenance line said "from last week" over get_dashboard_data_v2's
+	// 30-day comparison (66.2-39 part P); it states the trend's own window.
+	it.each([
+		[2, "+2 vs. 30 days ago", "text-warning-text"],
+		[-1, "−1 vs. 30 days ago", "text-success-text"],
+		[0, "Unchanged vs. 30 days ago", "text-muted-foreground"],
+	])(
+		"state open maintenance's change of %s over its window",
+		(change, text, tone) => {
+			renderCards(undefined, openTrend(change, WINDOW));
+			const line = maintenanceLine();
+			expect(line?.textContent).toBe(text);
+			expect(line?.className).toBe(tone);
+			expect(document.body.textContent).not.toMatch(/last week/);
+		},
+	);
+
+	it("say open maintenance's change is unavailable with no window, and show none without a trend", () => {
+		renderCards(undefined, openTrend(-1, null));
+		expect(maintenanceLine()?.textContent).toBe("Change unavailable");
+		renderCards(undefined, null);
+		renderCards(undefined, undefined);
+		expect(screen.getAllByText("Change unavailable")).toHaveLength(1);
 	});
 });
 
@@ -123,6 +171,15 @@ describe("expenses stats", () => {
 		);
 	}
 	const PRIOR = { start_date: "2025-01-01", end_date: "2025-11-02" };
+
+	// monthly_average is the trailing 12 months, zero-filled (get_expense_summary),
+	// beside a year-to-date total: the tile said only "avg per month" (part P).
+	it("state the monthly average's window", () => {
+		renderStats({ status: "ready", change: 12.5, priorPeriod: PRIOR });
+		expect(screen.getByText("per month, last 12 months")).toBeInTheDocument();
+		expect(screen.getByText("year to date")).toBeInTheDocument();
+		expect(screen.queryByText("avg per month")).not.toBeInTheDocument();
+	});
 
 	it("show no Maintenance tile, which could only restate Total Expenses", () => {
 		// Every expense is on a maintenance request and the categories are

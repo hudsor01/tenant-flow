@@ -85,10 +85,34 @@ describe("FinancialOverviewStats", () => {
 			"Scheduled Margin",
 		]);
 		expect(labels(container).join(" ")).not.toMatch(/Income|Cash|ROI/);
-		expect(screen.getByText("Scheduled minus expenses")).toBeInTheDocument();
+		// Its expenses are get_financial_overview's default period, January 1
+		// through today; the description said only "Scheduled minus expenses".
+		expect(
+			screen.getByText("Scheduled less expenses, year to date"),
+		).toBeInTheDocument();
 		expect(
 			screen.getByText("Scheduled net over scheduled"),
 		).toBeInTheDocument();
+	});
+
+	// The tooltip said "this period" where the card's description and its
+	// figure are the last 12 months (get_revenue_trends_optimized, 12 months
+	// to this one), 66.2-39 part P.
+	it("states Collected's window in its tooltip as its description does", async () => {
+		const { userEvent } = await import("@testing-library/user-event");
+		const user = userEvent.setup();
+		render(<FinancialOverviewStats metrics={metrics} />, {
+			wrapper: TooltipProvider,
+		});
+		expect(
+			screen.getByText("Receipts recorded in your rent ledger, last 12 months"),
+		).toBeInTheDocument();
+		await user.hover(screen.getByRole("button", { name: /Collected/ }));
+		const tooltip = await screen.findByRole("tooltip");
+		expect(tooltip).toHaveTextContent(
+			"Payments recorded in your rent ledger over the last 12 months, this month included.",
+		);
+		expect(tooltip.textContent).not.toMatch(/this period/);
 	});
 
 	it("shows no trend chip: no prior-period figure exists for one", () => {

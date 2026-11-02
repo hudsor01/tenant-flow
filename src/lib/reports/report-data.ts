@@ -131,8 +131,10 @@ function noteIf(available: boolean): { note?: string } {
 	return available ? {} : { note: UNAVAILABLE_NOTE };
 }
 
+// No period in it: the lease portfolio and maintenance reports, which use it,
+// have none (they are to date).
 const UNAVAILABLE_NOTE =
-	"Some data could not be loaded for this period and is shown as 0 — usually because the report depends on an RPC that's pending a backend cleanup.";
+	"Some figures couldn't be loaded and show as 0 here, which may not be their value. Try generating the report again.";
 
 const FINANCIAL_FALLBACK: FinancialReport = { expenseBreakdown: [] };
 

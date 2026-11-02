@@ -96,7 +96,7 @@ export function FinancialOverviewStats({
 				<Stat className="relative h-full content-start overflow-hidden">
 					<LabelWithTooltip
 						label="Collected"
-						help="Payments you've recorded against charges this period."
+						help="Payments recorded in your rent ledger over the last 12 months, this month included."
 					/>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
@@ -129,7 +129,11 @@ export function FinancialOverviewStats({
 					<StatIndicator variant="icon" color="primary">
 						<TrendingUp />
 					</StatIndicator>
-					<StatDescription>Scheduled minus expenses</StatDescription>
+					{/* get_financial_overview's expenses run January 1 through today
+					    (its default period); its scheduled figure is a year's rent. */}
+					<StatDescription>
+						Scheduled less expenses, year to date
+					</StatDescription>
 				</Stat>
 			</BlurFade>
 

@@ -7,6 +7,7 @@ import {
 	Users,
 	Wrench,
 } from "lucide-react";
+import { trendWindowLabel } from "#components/dashboard/components/kpi-helpers";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import { NumberTicker } from "#components/ui/number-ticker";
@@ -18,9 +19,16 @@ import {
 	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
-import { formatSignedOneDecimal } from "#lib/formatters/signed";
+import {
+	formatSignedOneDecimal,
+	TYPOGRAPHIC_MINUS,
+} from "#lib/formatters/signed";
 import { windowDays } from "#lib/stated-window";
-import type { DateWindow, PortfolioTrends } from "#types/analytics";
+import type {
+	DateWindow,
+	MetricTrend,
+	PortfolioTrends,
+} from "#types/analytics";
 
 /**
  * The overview's four headline figures. Occupancy and revenue carry the change
@@ -37,14 +45,19 @@ interface AnalyticsStatCardsProps {
 	/** Scheduled rent less expenses over scheduled rent (get_financial_overview). */
 	scheduledMargin: number;
 	openMaintenance: number;
-	maintenanceChange: number;
+	/**
+	 * get_dashboard_data_v2's open-maintenance trend: the requests open now
+	 * against those open on its window's first day (30 days ago). Undefined
+	 * while the payload loads, null when the payload carries none.
+	 */
+	maintenanceTrend: MetricTrend | null | undefined;
 	/** Undefined while the dashboard payload loads. */
 	trends: PortfolioTrends | undefined;
 }
 
-/** "vs 30 days ago": the window's first day, counted back from its last. */
+/** "vs. 30 days ago", as the dashboard's chips say it: the window's first day. */
 function since(window: DateWindow): string {
-	return `vs ${windowDays(window)} days ago`;
+	return trendWindowLabel(windowDays(window));
 }
 
 /** A change's line: its direction, its figure and the day it compares with. */
@@ -113,13 +126,51 @@ function RevenueChange({ trends }: { trends: PortfolioTrends | undefined }) {
 	);
 }
 
+/**
+ * The open-maintenance line: the change in open requests over the trend's own
+ * window ("+2 vs. 30 days ago"). It said "from last week" over a 30-day
+ * comparison. A count, so a whole number; more open is the warning colour.
+ */
+function MaintenanceChange({
+	trend,
+}: {
+	trend: MetricTrend | null | undefined;
+}) {
+	if (!trend) return null;
+	if (trend.window === null) {
+		return (
+			<StatDescription>
+				<span className="text-muted-foreground">Change unavailable</span>
+			</StatDescription>
+		);
+	}
+	const change = Math.round(trend.change);
+	const window = since(trend.window);
+	if (change === 0) {
+		return (
+			<StatDescription>
+				<span className="text-muted-foreground">{`Unchanged ${window}`}</span>
+			</StatDescription>
+		);
+	}
+	const figure =
+		change > 0 ? `+${change}` : `${TYPOGRAPHIC_MINUS}${Math.abs(change)}`;
+	return (
+		<StatDescription>
+			<span className={change < 0 ? "text-success-text" : "text-warning-text"}>
+				{`${figure} ${window}`}
+			</span>
+		</StatDescription>
+	);
+}
+
 export function AnalyticsStatCards({
 	occupancyRate,
 	activeTenants,
 	monthlyRevenue,
 	scheduledMargin,
 	openMaintenance,
-	maintenanceChange,
+	maintenanceTrend,
 	trends,
 }: AnalyticsStatCardsProps) {
 	return (
@@ -206,17 +257,7 @@ export function AnalyticsStatCards({
 					<StatIndicator variant="icon" color="warning">
 						<Wrench />
 					</StatIndicator>
-					<StatDescription>
-						{maintenanceChange < 0 ? (
-							<span className="text-success-text">
-								{maintenanceChange} from last week
-							</span>
-						) : (
-							<span className="text-warning-text">
-								+{maintenanceChange} from last week
-							</span>
-						)}
-					</StatDescription>
+					<MaintenanceChange trend={maintenanceTrend} />
 				</Stat>
 			</BlurFade>
 		</div>

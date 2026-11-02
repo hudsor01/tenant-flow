@@ -113,8 +113,6 @@ export default function AnalyticsPage() {
 	const activeTenants = dashboardStats?.stats?.units?.occupied ?? 0;
 	const monthlyRevenue = dashboardStats?.stats?.revenue?.monthly ?? 0;
 	const openMaintenance = dashboardStats?.stats?.maintenance?.open ?? 0;
-	const maintenanceChange =
-		dashboardStats?.metricTrends?.openMaintenance?.change ?? 0;
 	// Scheduled rent less expenses over scheduled rent: get_financial_overview's
 	// revenue is the active leases' rent times twelve, not income.
 	const scheduledMargin =
@@ -141,7 +139,7 @@ export default function AnalyticsPage() {
 				monthlyRevenue={monthlyRevenue}
 				scheduledMargin={scheduledMargin}
 				openMaintenance={openMaintenance}
-				maintenanceChange={maintenanceChange}
+				maintenanceTrend={dashboardStats?.metricTrends?.openMaintenance}
 				trends={dashboardStats?.portfolioTrends}
 			/>
 

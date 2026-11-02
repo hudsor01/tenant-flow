@@ -108,7 +108,7 @@ export function ReportsSummaryStrip() {
 				data-testid="reports-summary-strip"
 			>
 				<p className="text-sm text-muted-foreground">
-					Couldn&apos;t load this period&apos;s collection figures.
+					Couldn&apos;t load this month&apos;s collection figures.
 				</p>
 			</div>
 		);

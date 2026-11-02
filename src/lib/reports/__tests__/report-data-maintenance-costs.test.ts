@@ -135,6 +135,29 @@ describe("the maintenance operations report", () => {
 		expect(JSON.stringify(sections)).not.toContain("$0.00");
 	});
 
+	// The report is to date, with no period; the note said "for this period"
+	// and blamed "an RPC that's pending a backend cleanup" (66.2-39 part P).
+	it("says a failed read shows 0, with no period and no jargon", async () => {
+		// The one failure safeFetch falls back on: a relation the RPC reads is gone.
+		mockRpc.mockResolvedValue({
+			data: null,
+			error: { code: "42P01", message: 'relation "x" does not exist' },
+		});
+		const { sections } = await buildReportData(
+			"maintenance-operations",
+			new QueryClient(),
+			"2026-01-01",
+			"2026-11-02",
+		);
+		const notes = sections.flatMap((s) => (s.note ? [s.note] : []));
+		expect(notes).toContain(
+			"Some figures couldn't be loaded and show as 0 here, which may not be their value. Try generating the report again.",
+		);
+		expect(JSON.stringify(sections)).not.toMatch(
+			/this period|backend cleanup|RPC/,
+		);
+	});
+
 	it("carries the figures the insights tab shows for the same answer", async () => {
 		const screen = mapMaintenanceAnalytics(COMPUTED);
 		const { sections } = await report(COMPUTED);

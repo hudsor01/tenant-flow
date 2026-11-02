@@ -37,7 +37,7 @@ describe("stat rows", () => {
 				monthlyRevenue={2470}
 				scheduledMargin={12}
 				openMaintenance={2}
-				maintenanceChange={-1}
+				maintenanceTrend={undefined}
 				trends={{
 					occupancy: { status: "unavailable" },
 					revenue: { status: "unavailable" },
