@@ -1,29 +1,10 @@
 import {
 	keepPreviousData,
-	usePrefetchQuery,
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { useEntityDetail } from "#hooks/use-entity-detail";
-import type { TenantWithLeaseInfo } from "#types/core";
 
 import { tenantQueries } from "./query-keys/tenant-keys";
-
-// Uses placeholderData from list cache for instant detail view
-export function useTenant(id: string) {
-	return useEntityDetail<TenantWithLeaseInfo>({
-		queryOptions: tenantQueries.detail(id),
-		listQueryKey: tenantQueries.lists(),
-		id,
-	});
-}
-
-export function useTenantWithLease(id: string) {
-	return useEntityDetail<TenantWithLeaseInfo>({
-		queryOptions: tenantQueries.withLease(id),
-		id,
-	});
-}
 
 export function useTenantList(page: number = 1, limit: number = 50) {
 	const queryClient = useQueryClient();
@@ -89,13 +70,4 @@ export function useAllTenants() {
 			return response;
 		},
 	});
-}
-
-export function useTenantStats() {
-	return useQuery(tenantQueries.stats());
-}
-
-// Declarative prefetch on mount. For hover/imperative prefetch, call queryClient.prefetchQuery directly.
-export function usePrefetchTenantDetail(id: string) {
-	usePrefetchQuery(tenantQueries.detail(id));
 }

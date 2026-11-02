@@ -7,9 +7,7 @@ import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
 	CreateInspectionInput,
 	CreateInspectionRoomInput,
-	TenantReviewInput,
 	UpdateInspectionInput,
-	UpdateInspectionRoomInput,
 } from "#lib/validation/inspections";
 import {
 	type Inspection,
@@ -111,41 +109,6 @@ export const inspectionMutations = {
 			},
 		}),
 
-	tenantReview: (id: string) =>
-		mutationOptions({
-			mutationFn: async (dto: TenantReviewInput): Promise<Inspection> => {
-				const supabase = createClient();
-				const { data: updated, error } = await supabase
-					.from("inspections")
-					.update(
-						omitUndefined({
-							...dto,
-							status: "finalized",
-							tenant_reviewed_at: new Date().toISOString(),
-						}),
-					)
-					.eq("id", id)
-					.select()
-					.single();
-
-				if (error) handlePostgrestError(error, "inspections");
-				return narrowInspectionEnums(updated);
-			},
-		}),
-
-	delete: () =>
-		mutationOptions({
-			mutationFn: async (id: string): Promise<void> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("inspections")
-					.delete()
-					.eq("id", id);
-
-				if (error) handlePostgrestError(error, "inspections");
-			},
-		}),
-
 	createRoom: () =>
 		mutationOptions({
 			mutationFn: async (dto: CreateInspectionRoomInput) => {
@@ -158,19 +121,6 @@ export const inspectionMutations = {
 
 				if (error) handlePostgrestError(error, "inspection_rooms");
 				return created;
-			},
-		}),
-
-	updateRoom: (roomId: string) =>
-		mutationOptions({
-			mutationFn: async (dto: UpdateInspectionRoomInput): Promise<void> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("inspection_rooms")
-					.update(omitUndefined(dto))
-					.eq("id", roomId);
-
-				if (error) handlePostgrestError(error, "inspection_rooms");
 			},
 		}),
 
@@ -226,36 +176,6 @@ export const inspectionMutations = {
 				}
 
 				return photo;
-			},
-		}),
-
-	deletePhoto: () =>
-		mutationOptions({
-			mutationFn: async (photoId: string): Promise<void> => {
-				const supabase = createClient();
-
-				const { data: photo } = await supabase
-					.from("inspection_photos")
-					.select("storage_path")
-					.eq("id", photoId)
-					.single();
-
-				const { error: dbError } = await supabase
-					.from("inspection_photos")
-					.delete()
-					.eq("id", photoId);
-
-				if (dbError) handlePostgrestError(dbError, "inspection_photos");
-
-				if (photo?.storage_path) {
-					try {
-						await supabase.storage
-							.from("inspection-photos")
-							.remove([photo.storage_path]);
-					} catch {
-						// Non-blocking storage cleanup
-					}
-				}
 			},
 		}),
 };

@@ -12,14 +12,6 @@ export type {
 
 export const financialKeys = importedFinancialKeys;
 
-export function useFinancialOverview() {
-	return useQuery(financialQueries.overview());
-}
-
-export function useMonthlyMetrics() {
-	return useQuery(financialQueries.monthly());
-}
-
 export function useExpenseSummary() {
 	return useQuery(financialQueries.expenseSummary());
 }

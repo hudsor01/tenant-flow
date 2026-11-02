@@ -178,29 +178,6 @@ export const maintenanceQueries = {
 			...QUERY_CACHE_TIMES.STATS,
 		}),
 
-	urgent: () =>
-		queryOptions({
-			queryKey: [...maintenanceQueries.all(), "urgent"],
-			queryFn: async (): Promise<MaintenanceRequest[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("maintenance_requests")
-					.select(MAINTENANCE_SELECT_COLUMNS)
-					.in("priority", ["high", "urgent"])
-					.not("status", "in", '("completed","cancelled")')
-					.order("created_at", { ascending: false })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
-
-				return ((data ?? []) as Record<string, unknown>[]).map(
-					mapMaintenanceRow,
-				);
-			},
-			staleTime: 30 * 1000,
-			gcTime: 5 * 60 * 1000,
-		}),
-
 	photos: (requestId: string) =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.all(), "photos", requestId],
@@ -253,28 +230,6 @@ export const maintenanceQueries = {
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!requestId,
-		}),
-
-	overdue: () =>
-		queryOptions({
-			queryKey: [...maintenanceQueries.all(), "overdue"],
-			queryFn: async (): Promise<MaintenanceRequest[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("maintenance_requests")
-					.select(MAINTENANCE_SELECT_COLUMNS)
-					.lt("scheduled_date", new Date().toISOString())
-					.not("status", "in", '("completed","cancelled")')
-					.order("scheduled_date", { ascending: true })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
-
-				return ((data ?? []) as Record<string, unknown>[]).map(
-					mapMaintenanceRow,
-				);
-			},
-			...QUERY_CACHE_TIMES.STATS,
 		}),
 
 	/**
@@ -494,40 +449,6 @@ export const vendorMutations = {
 				const { error } = await supabase.from("vendors").delete().eq("id", id);
 
 				if (error) handlePostgrestError(error, "vendors");
-			},
-		}),
-
-	assign: () =>
-		mutationOptions({
-			mutationKey: ["mutations", "vendors", "assign"] as const,
-			mutationFn: async ({
-				vendorId,
-				maintenanceId,
-			}: {
-				vendorId: string;
-				maintenanceId: string;
-			}): Promise<void> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("maintenance_requests")
-					.update({ vendor_id: vendorId, status: "assigned" })
-					.eq("id", maintenanceId);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
-			},
-		}),
-
-	unassign: () =>
-		mutationOptions({
-			mutationKey: ["mutations", "vendors", "unassign"] as const,
-			mutationFn: async (maintenanceId: string): Promise<void> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("maintenance_requests")
-					.update({ vendor_id: null, status: "needs_reassignment" })
-					.eq("id", maintenanceId);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
 			},
 		}),
 };

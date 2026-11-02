@@ -1,11 +1,9 @@
-import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { omitUndefined } from "#lib/db-insert";
+import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { ExpenseRecord } from "#types/core";
 import type { TaxDocumentsData } from "#types/financial-statements";
-import { mutationKeys } from "../mutation-keys";
 
 export const financialTaxQueries = {
 	taxDocuments: (year: number) =>
@@ -122,13 +120,6 @@ export const financialTaxQueries = {
 export const expenseKeys = {
 	all: ["expenses"] as const,
 	list: () => [...expenseKeys.all, "list"] as const,
-	detail: (id: string) => [...expenseKeys.all, "detail", id] as const,
-	byProperty: (propertyId: string) =>
-		[...expenseKeys.all, "property", propertyId] as const,
-	byCategory: (category: string) =>
-		[...expenseKeys.all, "category", category] as const,
-	byDateRange: (start: string, end: string) =>
-		[...expenseKeys.all, "dateRange", start, end] as const,
 };
 
 // Real columns only (`description` was missing → the table showed "Expense" on
@@ -265,128 +256,5 @@ export const expenseQueries = {
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
 			enabled: options?.enabled ?? true,
-		}),
-
-	byProperty: (propertyId: string, options?: { enabled?: boolean }) =>
-		queryOptions({
-			queryKey: expenseKeys.byProperty(propertyId),
-			queryFn: async (): Promise<ExpenseRow[]> => {
-				const supabase = createClient();
-				// expenses → maintenance_requests → units → properties. There's no
-				// property_id on maintenance_requests; the join goes through units.
-				// Both queries are bounded by EXPENSES_LIST_DEFAULT_LIMIT so neither
-				// side can produce an unbounded select.
-				const { data: unitIds, error: uError } = await supabase
-					.from("units")
-					.select("id")
-					.eq("property_id", propertyId)
-					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
-				if (uError) handlePostgrestError(uError, "units");
-				const unitIdList = (unitIds ?? []).map((u) => u.id);
-				if (unitIdList.length === 0) return [];
-
-				const { data: mrIds, error: mrError } = await supabase
-					.from("maintenance_requests")
-					.select("id")
-					.in("unit_id", unitIdList)
-					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
-				if (mrError) handlePostgrestError(mrError, "maintenance_requests");
-				const ids = (mrIds ?? []).map((r) => r.id);
-				if (ids.length === 0) return [];
-
-				const { data, error } = await supabase
-					.from("expenses")
-					.select(EXPENSE_SELECT)
-					.in("maintenance_request_id", ids)
-					.neq("status", "inactive")
-					.order("expense_date", { ascending: false })
-					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
-				if (error) handlePostgrestError(error, "expenses by property");
-				const rawRows: unknown[] = data ?? [];
-				return rawRows.map((row) =>
-					mapExpenseRow(row as Record<string, unknown>),
-				);
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			enabled: (options?.enabled ?? true) && Boolean(propertyId),
-		}),
-
-	byDateRange: (
-		startDate: string,
-		endDate: string,
-		options?: { enabled?: boolean },
-	) =>
-		queryOptions({
-			queryKey: expenseKeys.byDateRange(startDate, endDate),
-			queryFn: async (): Promise<ExpenseRow[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("expenses")
-					.select(EXPENSE_SELECT)
-					.neq("status", "inactive")
-					.gte("expense_date", startDate)
-					.lte("expense_date", endDate)
-					.order("expense_date", { ascending: false })
-					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
-				if (error) handlePostgrestError(error, "expenses by date range");
-				const rawRows: unknown[] = data ?? [];
-				return rawRows.map((row) =>
-					mapExpenseRow(row as Record<string, unknown>),
-				);
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			enabled:
-				(options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate),
-		}),
-};
-
-export interface CreateExpenseInput {
-	amount: number;
-	expense_date: string;
-	maintenance_request_id: string;
-	vendor_name?: string;
-}
-
-export const financialMutations = {
-	createExpense: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.expenses.create,
-			mutationFn: async (input: CreateExpenseInput): Promise<ExpenseRow> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("expenses")
-					.insert(
-						omitUndefined({
-							amount: input.amount,
-							expense_date: input.expense_date,
-							maintenance_request_id: input.maintenance_request_id,
-							vendor_name: input.vendor_name,
-						}),
-					)
-					.select(EXPENSE_SELECT)
-					.single();
-				if (error) handlePostgrestError(error, "create expense");
-				const rawRow: unknown = data ?? {};
-				return mapExpenseRow(rawRow as Record<string, unknown>);
-			},
-		}),
-
-	deleteExpense: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.expenses.delete,
-			mutationFn: async (expenseId: string): Promise<void> => {
-				// Soft-delete via status='inactive' to match the
-				// properties/units/leases/tenants pattern. List queries filter
-				// `.neq('status', 'inactive')` so the row disappears from views
-				// without losing the audit/financial trail.
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("expenses")
-					.update({ status: "inactive" })
-					.eq("id", expenseId);
-				if (error) handlePostgrestError(error, "delete expense");
-			},
 		}),
 };

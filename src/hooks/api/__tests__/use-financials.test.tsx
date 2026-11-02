@@ -5,8 +5,7 @@
  * using Supabase RPC mocks. These hooks delegate to financial-keys.ts which
  * calls real RPCs (get_dashboard_stats, get_expense_summary, get_billing_insights).
  *
- * Note: useFinancialOverview, useMonthlyMetrics, useExpenseSummary are tested
- * in use-financial-overview.test.ts.
+ * Note: useExpenseSummary is tested in use-financial-overview.test.ts.
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -60,8 +59,6 @@ function createWrapper() {
 describe("financialKeys", () => {
 	it("generates correct query keys", () => {
 		expect(financialKeys.all).toEqual(["financials"]);
-		expect(financialKeys.overview()).toEqual(["financials", "overview"]);
-		expect(financialKeys.monthly()).toEqual(["financials", "monthly"]);
 		expect(financialKeys.expenseSummary()).toEqual([
 			"financials",
 			"expense-summary",
@@ -98,22 +95,6 @@ describe("expenseKeys", () => {
 	it("generates correct query keys", () => {
 		expect(expenseKeys.all).toEqual(["expenses"]);
 		expect(expenseKeys.list()).toEqual(["expenses", "list"]);
-		expect(expenseKeys.detail("exp-1")).toEqual([
-			"expenses",
-			"detail",
-			"exp-1",
-		]);
-		expect(expenseKeys.byProperty("prop-1")).toEqual([
-			"expenses",
-			"property",
-			"prop-1",
-		]);
-		expect(expenseKeys.byDateRange("2024-01-01", "2024-12-31")).toEqual([
-			"expenses",
-			"dateRange",
-			"2024-01-01",
-			"2024-12-31",
-		]);
 	});
 });
 

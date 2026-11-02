@@ -10,21 +10,17 @@
  * @vitest-environment jsdom
  */
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery,
+} from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
-import {
-	useProperty,
-	usePropertyImages,
-	usePropertyList,
-	usePropertyStats,
-} from "../use-properties";
-import {
-	useMarkPropertySoldMutation,
-	usePrefetchPropertyDetail,
-} from "../use-property-mutations";
+import { propertyQueries } from "../query-keys/property-keys";
+import { usePropertyImages, usePropertyList } from "../use-properties";
 
 // Mock logger
 vi.mock("#lib/frontend-logger", () => ({
@@ -64,8 +60,6 @@ const {
 	mockEq,
 	mockOrder,
 	mockLimit,
-	mockSingle,
-	mockUpdate,
 	mockGetUser,
 	mockRpc,
 	mockStorageFrom,
@@ -76,8 +70,6 @@ const {
 	mockEq: vi.fn(),
 	mockOrder: vi.fn(),
 	mockLimit: vi.fn(),
-	mockSingle: vi.fn(),
-	mockUpdate: vi.fn(),
 	mockGetUser: vi.fn(),
 	mockRpc: vi.fn(),
 	mockStorageFrom: vi.fn(),
@@ -140,15 +132,18 @@ describe("Query Hooks", () => {
 		mockRpc.mockResolvedValue({ data: null, error: null });
 	});
 
-	describe("useProperty", () => {
+	describe("propertyQueries.detail", () => {
 		it("should fetch property by ID using supabase.from", async () => {
 			mockFrom.mockReturnValue(
 				createQueryChain({ data: mockProperty, error: null }),
 			);
 
-			const { result } = renderHook(() => useProperty("prop-123"), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(propertyQueries.detail("prop-123")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true);
@@ -158,9 +153,12 @@ describe("Query Hooks", () => {
 		});
 
 		it("should not fetch when ID is empty", () => {
-			const { result } = renderHook(() => useProperty(""), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(propertyQueries.detail("")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			expect(result.current.isFetching).toBe(false);
 		});
@@ -169,9 +167,12 @@ describe("Query Hooks", () => {
 			const chain = createQueryChain({ data: mockProperty, error: null });
 			mockFrom.mockReturnValue(chain);
 
-			const { result } = renderHook(() => useProperty("prop-123"), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(propertyQueries.detail("prop-123")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true);
@@ -229,105 +230,12 @@ describe("Query Hooks", () => {
 			expect(result.current.data).toEqual([mockProperty]);
 		});
 	});
-
-	describe("usePropertyStats", () => {
-		it("should aggregate stats from two property-denominated PostgREST queries", async () => {
-			// Stats now runs TWO parallel property-denominated HEAD counts, both on
-			// `properties`:
-			//   total    = .neq('status','inactive')
-			//   occupied = .neq('status','inactive').eq('units.status','occupied')
-			//              via the units!inner join (parent-row count)
-			const chain = createQueryChain({ data: null, error: null, count: 5 });
-			mockFrom.mockReturnValue(chain);
-
-			const { result } = renderHook(() => usePropertyStats(), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(mockFrom).toHaveBeenCalledWith("properties");
-			expect(chain.neq).toHaveBeenCalledWith("status", "inactive");
-			expect(chain.eq).toHaveBeenCalledWith("units.status", "occupied");
-		});
-	});
-});
-
-describe("Mutation Hooks", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-		mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-	});
-
-	describe("useMarkPropertySoldMutation", () => {
-		it("should update property status to sold via PostgREST", async () => {
-			const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-			chain.update = mockUpdate;
-			chain.eq = mockEq;
-			chain.select = mockSelect;
-			chain.single = mockSingle;
-
-			mockUpdate.mockReturnValue(chain);
-			mockEq.mockReturnValue(chain);
-			mockSelect.mockReturnValue(chain);
-			mockSingle.mockResolvedValue({
-				data: {
-					...mockProperty,
-					status: "sold",
-					date_sold: "2024-06-15T00:00:00.000Z",
-					sale_price: 500000,
-				},
-				error: null,
-			});
-
-			mockFrom.mockReturnValue({ update: mockUpdate });
-
-			const { result } = renderHook(() => useMarkPropertySoldMutation(), {
-				wrapper: createWrapper(),
-			});
-
-			const saleDate = new Date("2024-06-15");
-			const mutationResult = await result.current.mutateAsync({
-				id: "prop-123",
-				dateSold: saleDate,
-				salePrice: 500000,
-			});
-
-			expect(mockFrom).toHaveBeenCalledWith("properties");
-			expect(mockUpdate).toHaveBeenCalledWith(
-				expect.objectContaining({
-					status: "sold",
-					date_sold: saleDate.toISOString(),
-					sale_price: 500000,
-				}),
-			);
-			expect(mutationResult).toEqual({
-				success: true,
-				message: "Property marked as sold",
-			});
-		});
-	});
 });
 
 describe("Utility Hooks", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-	});
-
-	describe("usePrefetchPropertyDetail", () => {
-		it("should be a declarative prefetch hook", () => {
-			const { result } = renderHook(
-				() => usePrefetchPropertyDetail("prop-123"),
-				{
-					wrapper: createWrapper(),
-				},
-			);
-
-			expect(result.current).toBeUndefined();
-		});
 	});
 
 	describe("usePropertyImages", () => {

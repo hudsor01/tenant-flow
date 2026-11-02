@@ -18,7 +18,7 @@ import { cn } from "#lib/utils";
 import { headingId } from "./heading-id";
 
 /**
- * Subset of `BlogDetail` actually rendered by this page. Defining the prop
+ * Subset of the `blogs` row actually rendered by this page. Defining the prop
  * shape locally lets the server pass the post directly without forcing the
  * caller to materialize every column on `blogs`.
  */

@@ -10,7 +10,6 @@ import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Lease, LeaseStatsResponse } from "#types/core";
-import { revenueTrendsQuery } from "./analytics-keys";
 import {
 	type ExpiringLeaseRow,
 	mapExpiringLeaseRow,
@@ -114,29 +113,6 @@ export const leaseQueries = {
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
-		}),
-
-	expiring: (days: number = 30) =>
-		queryOptions({
-			queryKey: [...leaseQueries.all(), "expiring", days],
-			queryFn: async (): Promise<LeaseListItem[]> => {
-				const supabase = createClient();
-				const now = new Date();
-				const future = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-				const { data, error } = await supabase
-					.from("leases")
-					.select(
-						"id, unit_id, primary_tenant_id, owner_user_id, rent_amount, lease_status, start_date, end_date, created_at, updated_at",
-					)
-					.eq("lease_status", "active")
-					.lte("end_date", future.toISOString())
-					.gte("end_date", now.toISOString())
-					.order("end_date", { ascending: true })
-					.limit(50);
-				if (error) handlePostgrestError(error, "leases");
-				return data ?? [];
-			},
-			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -284,31 +260,4 @@ export const leaseQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
-
-	analytics: {
-		performance: () =>
-			queryOptions({
-				// get_property_performance_analytics returns SETOF (property_id,
-				// property_name, occupancy_rate, total_revenue, total_expenses,
-				// net_income, timeframe). Surface the actual array shape instead
-				// of pretending it's an object.
-				queryKey: [...leaseQueries.all(), "analytics", "performance"],
-				queryFn: async () => {
-					const supabase = createClient();
-					const user = await getCachedUser();
-					if (!user) throw new Error("Not authenticated");
-					const { data, error } = await supabase.rpc(
-						"get_property_performance_analytics",
-						{ p_user_id: user.id },
-					);
-					if (error) handlePostgrestError(error, "leases");
-					return data ?? [];
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-			}),
-		duration: () => revenueTrendsQuery({ months: 12 }),
-		turnover: () => revenueTrendsQuery({ months: 12 }),
-		revenue: () => revenueTrendsQuery({ months: 12 }),
-	},
 };

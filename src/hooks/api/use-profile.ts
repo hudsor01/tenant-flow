@@ -6,7 +6,6 @@ import type { UserProfile } from "#types/api-contracts";
 export const profileKeys = {
 	all: ["profile"] as const,
 	detail: () => [...profileKeys.all, "detail"] as const,
-	company: () => [...profileKeys.all, "company"] as const,
 };
 
 export const PROFILE_SELECT =

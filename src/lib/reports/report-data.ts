@@ -238,8 +238,9 @@ const baseHeader = (
 
 /**
  * D-37: this used to emit two more rows — payment counts read from a mapper
- * that parses snake_case keys off a `get_billing_insights` payload returning
- * only camelCase ones. Zero key overlap, so every lookup was `undefined`, every
+ * (`reportAnalyticsQueries.paymentAnalytics`, since deleted with its hook) that
+ * parsed snake_case keys off a `get_billing_insights` payload returning only
+ * camelCase ones. Zero key overlap, so every lookup was `undefined`, every
  * `?? 0` fired, and both counts were permanently 0 in a customer-facing
  * generated file. `executive-monthly` is NOT in `PREMIUM_REPORT_TYPES`, so that
  * reached every owner who exported, not only paying ones.

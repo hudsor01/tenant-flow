@@ -1,9 +1,8 @@
 /**
  * Blog Query Key Factory Tests
  *
- * Tests for blogQueries factory covering query key structure,
- * pagination math, filter application, PGRST116 handling,
- * related posts, and comparisons filtering.
+ * Tests for blogQueries factory covering query key structure and the
+ * related-posts query.
  */
 
 import { QueryClient } from "@tanstack/react-query";
@@ -48,7 +47,6 @@ vi.mock("#lib/postgrest-error-handler", () => ({
 }));
 
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
-import type { BlogFilters } from "./blog-keys";
 import { blogQueries } from "./blog-keys";
 
 const queryClient = new QueryClient();
@@ -123,223 +121,10 @@ describe("blogQueries", () => {
 			expect(blogQueries.all()).toEqual(["blogs"]);
 		});
 
-		it('lists() returns ["blogs", "list"]', () => {
-			expect(blogQueries.lists()).toEqual(["blogs", "list"]);
-		});
-
-		it("list() queryKey includes filters", () => {
-			const filters: BlogFilters = { category: "Tips", limit: 9, offset: 0 };
-			const opts = blogQueries.list(filters);
-			expect(opts.queryKey).toEqual(["blogs", "list", filters]);
-		});
-
-		it("list() queryKey uses empty object when no filters", () => {
-			const opts = blogQueries.list();
-			expect(opts.queryKey).toEqual(["blogs", "list", {}]);
-		});
-
-		it('details() returns ["blogs", "detail"]', () => {
-			expect(blogQueries.details()).toEqual(["blogs", "detail"]);
-		});
-
-		it("detail(slug) queryKey includes slug", () => {
-			const opts = blogQueries.detail("my-blog-post");
-			expect(opts.queryKey).toEqual(["blogs", "detail", "my-blog-post"]);
-		});
-
-		it('categories() queryKey is ["blogs", "categories"]', () => {
-			const opts = blogQueries.categories();
-			expect(opts.queryKey).toEqual(["blogs", "categories"]);
-		});
-
 		it("related() queryKey includes params", () => {
 			const params = { category: "Tips", excludeSlug: "my-post", limit: 3 };
 			const opts = blogQueries.related(params);
 			expect(opts.queryKey).toEqual(["blogs", "related", params]);
-		});
-
-		it("comparisons() queryKey includes params", () => {
-			const params = { tag: "comparison", limit: 6 };
-			const opts = blogQueries.comparisons(params);
-			expect(opts.queryKey).toEqual(["blogs", "comparisons", params]);
-		});
-	});
-
-	describe("pagination math", () => {
-		it("list with offset=0, limit=9 returns page 1", async () => {
-			setupChainedMock({
-				data: Array(9).fill({ id: "1", title: "Test" }),
-				error: null,
-				count: 27,
-			});
-
-			const opts = blogQueries.list({ limit: 9, offset: 0 });
-			const result = await callQueryFn(opts);
-
-			expect(result.pagination.page).toBe(1);
-			expect(result.pagination.limit).toBe(9);
-			expect(result.pagination.total).toBe(27);
-			expect(result.pagination.totalPages).toBe(3);
-		});
-
-		it("list with offset=9, limit=9 returns page 2", async () => {
-			setupChainedMock({
-				data: Array(9).fill({ id: "1", title: "Test" }),
-				error: null,
-				count: 27,
-			});
-
-			const opts = blogQueries.list({ limit: 9, offset: 9 });
-			const result = await callQueryFn(opts);
-
-			expect(result.pagination.page).toBe(2);
-		});
-
-		it("totalPages is ceil(total / limit)", async () => {
-			setupChainedMock({
-				data: Array(5).fill({ id: "1", title: "Test" }),
-				error: null,
-				count: 14,
-			});
-
-			const opts = blogQueries.list({ limit: 9, offset: 0 });
-			const result = await callQueryFn(opts);
-
-			expect(result.pagination.totalPages).toBe(2); // ceil(14/9) = 2
-		});
-
-		it("defaults to limit=9 and offset=0 when no filters", async () => {
-			setupChainedMock({
-				data: [],
-				error: null,
-				count: 0,
-			});
-
-			const opts = blogQueries.list();
-			await callQueryFn(opts);
-
-			expect(mockRange).toHaveBeenCalledWith(0, 8); // range(0, 0+9-1)
-		});
-	});
-
-	describe("filter application", () => {
-		it('list with category applies .eq("category", value)', async () => {
-			setupChainedMock({ data: [], error: null, count: 0 });
-
-			const opts = blogQueries.list({ category: "Property Management" });
-			await callQueryFn(opts);
-
-			expect(mockEq).toHaveBeenCalledWith("category", "Property Management");
-		});
-
-		it('list with tag applies .contains("tags", [tag])', async () => {
-			setupChainedMock({ data: [], error: null, count: 0 });
-
-			const opts = blogQueries.list({ tag: "comparison" });
-			await callQueryFn(opts);
-
-			expect(mockContains).toHaveBeenCalledWith("tags", ["comparison"]);
-		});
-
-		it("list without category or tag does not apply extra filters", async () => {
-			setupChainedMock({ data: [], error: null, count: 0 });
-
-			const opts = blogQueries.list({ limit: 9, offset: 0 });
-			await callQueryFn(opts);
-
-			// eq is called for status=published but not for category
-			const eqCalls = mockEq.mock.calls;
-			const categoryCall = eqCalls.find(
-				(call: unknown[]) => call[0] === "category",
-			);
-			expect(categoryCall).toBeUndefined();
-			expect(mockContains).not.toHaveBeenCalled();
-		});
-	});
-
-	describe("detail PGRST116 handling", () => {
-		it("returns blog data on success", async () => {
-			const blogData = {
-				id: "1",
-				title: "Test Blog",
-				slug: "test-blog",
-				content: "Content here",
-			};
-			setupChainedMock({ data: blogData, error: null });
-
-			const opts = blogQueries.detail("test-blog");
-			const result = await callQueryFn(opts);
-
-			expect(result).toEqual(blogData);
-		});
-
-		it("returns null on PGRST116 error (not found)", async () => {
-			setupChainedMock({
-				data: null,
-				error: {
-					code: "PGRST116",
-					message: "No rows found",
-					details: "",
-					hint: "",
-				},
-			});
-
-			const opts = blogQueries.detail("nonexistent-slug");
-			const result = await callQueryFn(opts);
-
-			expect(result).toBeNull();
-		});
-
-		it("throws for non-PGRST116 errors", async () => {
-			setupChainedMock({
-				data: null,
-				error: {
-					code: "42P01",
-					message: "Table not found",
-					details: "",
-					hint: "",
-				},
-			});
-
-			const opts = blogQueries.detail("test-blog");
-			await expect(callQueryFn(opts)).rejects.toMatchObject({
-				message: expect.stringContaining("PostgREST error"),
-			});
-		});
-
-		it("has enabled: false when slug is empty", () => {
-			const opts = blogQueries.detail("");
-			expect(opts.enabled).toBe(false);
-		});
-
-		it("has enabled: true when slug is provided", () => {
-			const opts = blogQueries.detail("my-post");
-			expect(opts.enabled).toBe(true);
-		});
-	});
-
-	describe("categories", () => {
-		it('calls supabase.rpc("get_blog_categories")', async () => {
-			const categories = [
-				{ name: "Tips", slug: "tips", post_count: 5 },
-				{ name: "News", slug: "news", post_count: 3 },
-			];
-			mockRpc.mockResolvedValue({ data: categories, error: null });
-
-			const opts = blogQueries.categories();
-			const result = await callQueryFn(opts);
-
-			expect(mockRpc).toHaveBeenCalledWith("get_blog_categories");
-			expect(result).toEqual(categories);
-		});
-
-		it("returns empty array when data is null", async () => {
-			mockRpc.mockResolvedValue({ data: null, error: null });
-
-			const opts = blogQueries.categories();
-			const result = await callQueryFn(opts);
-
-			expect(result).toEqual([]);
 		});
 	});
 
@@ -397,54 +182,14 @@ describe("blogQueries", () => {
 		});
 	});
 
-	describe("comparisons", () => {
-		it('applies .contains("tags", [tag]) filter', async () => {
-			setupChainedMock({ data: [], error: null });
-
-			const opts = blogQueries.comparisons({ tag: "comparison" });
-			await callQueryFn(opts);
-
-			expect(mockContains).toHaveBeenCalledWith("tags", ["comparison"]);
-			expect(mockEq).toHaveBeenCalledWith("status", "published");
-		});
-
-		it('defaults tag to "comparison" when not provided', async () => {
-			setupChainedMock({ data: [], error: null });
-
-			const opts = blogQueries.comparisons({});
-			await callQueryFn(opts);
-
-			expect(mockContains).toHaveBeenCalledWith("tags", ["comparison"]);
-		});
-
-		it("defaults limit to 6", async () => {
-			setupChainedMock({ data: [], error: null });
-
-			const opts = blogQueries.comparisons({});
-			await callQueryFn(opts);
-
-			expect(mockLimit).toHaveBeenCalledWith(6);
-		});
-
-		it("uses custom tag and limit", async () => {
-			setupChainedMock({ data: [], error: null });
-
-			const opts = blogQueries.comparisons({
-				tag: "software-review",
-				limit: 10,
-			});
-			await callQueryFn(opts);
-
-			expect(mockContains).toHaveBeenCalledWith("tags", ["software-review"]);
-			expect(mockLimit).toHaveBeenCalledWith(10);
-		});
-	});
-
 	describe("no auth dependency", () => {
-		it("list queryFn does not call getCachedUser", async () => {
-			setupChainedMock({ data: [], error: null, count: 0 });
+		it("related queryFn does not call getCachedUser", async () => {
+			setupChainedMock({ data: [], error: null });
 
-			const opts = blogQueries.list();
+			const opts = blogQueries.related({
+				category: "Tips",
+				excludeSlug: "current",
+			});
 			await callQueryFn(opts);
 
 			// getCachedUser is not even imported in blog-keys.ts

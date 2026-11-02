@@ -9,9 +9,9 @@
  * The critical pins here: persisted `status` is validated against the FULL
  * 7-value DB CHECK set (migration 20260221120000), NOT the stale 5-value input
  * `maintenanceStatusSchema`. So `status: "assigned"` and `status:
- * "needs_reassignment"` (written by vendorMutations.assign / unassign) MUST map
- * cleanly — validating against the 5-value input enum would throw on those rows
- * and break the maintenance list/detail/urgent/kanban surfaces in prod. The
+ * "needs_reassignment"` (set from the kanban and the detail StatusSelect) MUST
+ * map cleanly — validating against the 5-value input enum would throw on those
+ * rows and break the maintenance list/detail/kanban surfaces in prod. The
  * `status` safeParse is unconditional, so an absent/null status throws too.
  */
 
@@ -78,7 +78,7 @@ describe("mapMaintenanceRow", () => {
 		).toThrow(/priority/);
 	});
 
-	it("accepts status='assigned' (written by vendorMutations.assign)", () => {
+	it("accepts status='assigned' (set from the kanban or StatusSelect)", () => {
 		const mapped = mapMaintenanceRow({ ...validRow, status: "assigned" });
 		expect(mapped.status).toBe("assigned");
 	});

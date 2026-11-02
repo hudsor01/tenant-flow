@@ -28,12 +28,12 @@ import type { MaintenanceRequest } from "#types/core";
 // This is a module-local schema kept separate from the shared
 // `maintenanceStatusSchema` in #lib/validation/maintenance so the two boundaries
 // stay independent: this one validates PERSISTED rows read back from the DB
-// (list()/detail()/urgent()/overdue()), while the shared schema validates
+// (list()/detail()), while the shared schema validates
 // form/mutation INPUT. Both now enumerate the same 7 values — Phase 27 (MAINT-06)
 // widened the shared schema to include "assigned" and "needs_reassignment"
-// because the kanban drag + detail StatusSelect now let an owner set those
-// vendor-workflow statuses through the general update mutation (in addition to
-// vendorMutations.assign / unassign). Keep this local copy anyway: it decouples
+// because the kanban drag + detail StatusSelect let an owner set those
+// vendor-workflow statuses through the general update mutation. Keep this
+// local copy anyway: it decouples
 // the read-side defensive validation from any future narrowing of the input
 // schema, mirroring plan 02-02's tenant `moved_out` persisted-status precedent.
 const maintenancePersistedStatusSchema = z.enum([

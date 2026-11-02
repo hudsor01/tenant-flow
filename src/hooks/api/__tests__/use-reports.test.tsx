@@ -1,27 +1,22 @@
 /**
  * Reports Hooks Tests
  *
- * Tests report hooks that query real Supabase tables (reports, report_runs)
- * and RPCs (get_revenue_trends_optimized, get_billing_insights, etc.).
+ * Tests the report hooks and the report query leaves the generated exports read
+ * (src/lib/reports/report-data.ts) against mocked RPCs.
  */
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery,
+} from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-	reportsKeys,
-	useFinancialReport,
-	useMaintenanceReport,
-	useMonthlyRevenue,
-	useOccupancyMetrics,
-	usePaymentAnalytics,
-	usePropertyReport,
-	useReport1099Summary,
-	useTenantReport,
-	useYearEndSummary,
-} from "../use-reports";
+import { reportAnalyticsQueries } from "../query-keys/report-analytics-keys";
+import { reportKeys, reportQueries } from "../query-keys/report-keys";
+import { useReport1099Summary, useYearEndSummary } from "../use-reports";
 
 // Mock Supabase client using vi.hoisted() to avoid initialization errors
 const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({
@@ -59,41 +54,32 @@ function createWrapper() {
 	};
 }
 
-describe("reportsKeys", () => {
+describe("reportKeys", () => {
 	it("generates correct query keys", () => {
-		expect(reportsKeys.all).toEqual(["reports"]);
-		expect(reportsKeys.lists()).toEqual(["reports", "list"]);
-		expect(reportsKeys.list(0, 20)).toEqual(["reports", "list", 0, 20]);
-		expect(reportsKeys.revenue(12)).toEqual([
+		expect(reportKeys.all).toEqual(["reports"]);
+		expect(reportKeys.revenue(12)).toEqual([
 			"reports",
 			"revenue",
 			"monthly",
 			12,
 		]);
-		expect(reportsKeys.paymentAnalytics("2024-01-01", "2024-12-31")).toEqual([
-			"reports",
-			"analytics",
-			"payments",
-			"2024-01-01",
-			"2024-12-31",
-		]);
-		expect(reportsKeys.occupancyMetrics()).toEqual([
+		expect(reportKeys.occupancyMetrics()).toEqual([
 			"reports",
 			"analytics",
 			"occupancy",
 		]);
-		expect(reportsKeys.financial("2024-01-01", "2024-12-31")).toEqual([
+		expect(reportKeys.financial("2024-01-01", "2024-12-31")).toEqual([
 			"reports",
 			"financial",
 			"2024-01-01",
 			"2024-12-31",
 		]);
-		expect(reportsKeys.yearEnd(2024)).toEqual(["reports", "year-end", 2024]);
-		expect(reportsKeys.report1099(2024)).toEqual(["reports", "1099", 2024]);
+		expect(reportKeys.yearEnd(2024)).toEqual(["reports", "year-end", 2024]);
+		expect(reportKeys.report1099(2024)).toEqual(["reports", "1099", 2024]);
 	});
 });
 
-describe("useMonthlyRevenue", () => {
+describe("reportQueries.monthlyRevenue", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -104,7 +90,7 @@ describe("useMonthlyRevenue", () => {
 	});
 
 	it("fetches monthly revenue data from get_revenue_trends_optimized", async () => {
-		// useMonthlyRevenue now joins revenue with real per-month expenses via
+		// reportQueries.monthlyRevenue joins revenue with real per-month expenses via
 		// fetchRevenueWithExpenses: get_revenue_trends_optimized (revenue-only)
 		// then get_expense_summary (monthly_totals). profit = revenue - joined
 		// expenses; the phantom expenses/profit/count keys are gone (TYPE-06).
@@ -126,9 +112,12 @@ describe("useMonthlyRevenue", () => {
 				error: null,
 			});
 
-		const { result } = renderHook(() => useMonthlyRevenue(12), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportQueries.monthlyRevenue(12)),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -148,9 +137,12 @@ describe("useMonthlyRevenue", () => {
 	it("returns empty array when no user", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
-		const { result } = renderHook(() => useMonthlyRevenue(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportQueries.monthlyRevenue()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -160,65 +152,7 @@ describe("useMonthlyRevenue", () => {
 	});
 });
 
-describe("usePaymentAnalytics", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
-	});
-
-	afterEach(() => {
-		vi.resetAllMocks();
-	});
-
-	it("fetches payment analytics from get_billing_insights", async () => {
-		mockRpc.mockResolvedValueOnce({
-			data: {
-				total_payments: 50,
-				successful_payments: 48,
-				failed_payments: 2,
-				total_revenue: 250000,
-				average_payment: 5000,
-				by_method: { card: 30, ach: 20 },
-				by_status: { completed: 48, pending: 0, failed: 2 },
-			},
-			error: null,
-		});
-
-		const { result } = renderHook(
-			() => usePaymentAnalytics("2024-01-01", "2024-12-31"),
-			{ wrapper: createWrapper() },
-		);
-
-		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
-		});
-
-		expect(result.current.data?.totalRevenue).toBeDefined();
-		expect(mockRpc).toHaveBeenCalledWith(
-			"get_billing_insights",
-			expect.objectContaining({
-				owner_id_param: "user-1",
-			}),
-		);
-	});
-
-	it("returns defaults when no user", async () => {
-		mockGetCachedUser.mockResolvedValue(null);
-
-		const { result } = renderHook(() => usePaymentAnalytics(), {
-			wrapper: createWrapper(),
-		});
-
-		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
-		});
-
-		expect(result.current.data?.totalPayments).toBe(0);
-		expect(result.current.data?.totalRevenue).toBe(0);
-	});
-});
-
-describe("useOccupancyMetrics", () => {
+describe("reportAnalyticsQueries.occupancyMetrics", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -243,9 +177,12 @@ describe("useOccupancyMetrics", () => {
 			error: null,
 		});
 
-		const { result } = renderHook(() => useOccupancyMetrics(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.occupancyMetrics()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -269,9 +206,12 @@ describe("useOccupancyMetrics", () => {
 	it("returns defaults when no user", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
-		const { result } = renderHook(() => useOccupancyMetrics(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.occupancyMetrics()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -282,7 +222,7 @@ describe("useOccupancyMetrics", () => {
 	});
 });
 
-describe("useFinancialReport", () => {
+describe("reportAnalyticsQueries.financial", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -313,7 +253,8 @@ describe("useFinancialReport", () => {
 			});
 
 		const { result } = renderHook(
-			() => useFinancialReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.financial("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 
@@ -327,7 +268,7 @@ describe("useFinancialReport", () => {
 	});
 });
 
-describe("useMaintenanceReport", () => {
+describe("reportAnalyticsQueries.maintenance", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -355,9 +296,12 @@ describe("useMaintenanceReport", () => {
 			error: null,
 		});
 
-		const { result } = renderHook(() => useMaintenanceReport(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.maintenance()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -480,7 +424,7 @@ describe("useReport1099Summary", () => {
 	});
 });
 
-describe("usePropertyReport", () => {
+describe("reportAnalyticsQueries.properties", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -516,7 +460,8 @@ describe("usePropertyReport", () => {
 		});
 
 		const { result } = renderHook(
-			() => usePropertyReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.properties("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 
@@ -539,9 +484,12 @@ describe("usePropertyReport", () => {
 	it("returns defaults when no user", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
-		const { result } = renderHook(() => usePropertyReport(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.properties()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -553,7 +501,7 @@ describe("usePropertyReport", () => {
 	});
 });
 
-describe("useTenantReport", () => {
+describe("reportAnalyticsQueries.tenants", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -575,7 +523,8 @@ describe("useTenantReport", () => {
 		});
 
 		const { result } = renderHook(
-			() => useTenantReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.tenants("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 
@@ -596,9 +545,12 @@ describe("useTenantReport", () => {
 	it("returns defaults when no user", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
-		const { result } = renderHook(() => useTenantReport(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.tenants()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -625,7 +577,7 @@ const postgrestError = {
 	hint: "",
 } as const;
 
-describe("useMonthlyRevenue (error paths)", () => {
+describe("reportQueries.monthlyRevenue (error paths)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -638,9 +590,12 @@ describe("useMonthlyRevenue (error paths)", () => {
 	it("surfaces isError when get_revenue_trends_optimized RPC errors", async () => {
 		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
-		const { result } = renderHook(() => useMonthlyRevenue(12), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportQueries.monthlyRevenue(12)),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -654,9 +609,12 @@ describe("useMonthlyRevenue (error paths)", () => {
 	it("surfaces isError when getCachedUser rejects", async () => {
 		mockGetCachedUser.mockRejectedValueOnce(new Error("session lookup failed"));
 
-		const { result } = renderHook(() => useMonthlyRevenue(12), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportQueries.monthlyRevenue(12)),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -669,35 +627,7 @@ describe("useMonthlyRevenue (error paths)", () => {
 	});
 });
 
-describe("usePaymentAnalytics (error path)", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
-	});
-
-	afterEach(() => {
-		vi.resetAllMocks();
-	});
-
-	it("surfaces isError when get_billing_insights RPC errors", async () => {
-		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
-
-		const { result } = renderHook(
-			() => usePaymentAnalytics("2024-01-01", "2024-12-31"),
-			{ wrapper: createWrapper() },
-		);
-
-		await waitFor(() => {
-			expect(result.current.isError).toBe(true);
-		});
-
-		expect(result.current.error).toMatchObject({
-			message: expect.stringContaining("permission denied"),
-		});
-	});
-});
-
-describe("useOccupancyMetrics (error path)", () => {
+describe("reportAnalyticsQueries.occupancyMetrics (error path)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -710,9 +640,12 @@ describe("useOccupancyMetrics (error path)", () => {
 	it("surfaces isError when get_occupancy_trends_optimized RPC errors", async () => {
 		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
-		const { result } = renderHook(() => useOccupancyMetrics(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.occupancyMetrics()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -724,7 +657,7 @@ describe("useOccupancyMetrics (error path)", () => {
 	});
 });
 
-describe("useFinancialReport (error path)", () => {
+describe("reportAnalyticsQueries.financial (error path)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -745,7 +678,8 @@ describe("useFinancialReport (error path)", () => {
 			});
 
 		const { result } = renderHook(
-			() => useFinancialReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.financial("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 
@@ -759,7 +693,7 @@ describe("useFinancialReport (error path)", () => {
 	});
 });
 
-describe("useMaintenanceReport (error path)", () => {
+describe("reportAnalyticsQueries.maintenance (error path)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -772,9 +706,12 @@ describe("useMaintenanceReport (error path)", () => {
 	it("surfaces isError when get_maintenance_analytics RPC errors", async () => {
 		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
-		const { result } = renderHook(() => useMaintenanceReport(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.maintenance()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -847,7 +784,7 @@ describe("useReport1099Summary (error path)", () => {
 	});
 });
 
-describe("usePropertyReport (error path)", () => {
+describe("reportAnalyticsQueries.properties (error path)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -861,7 +798,8 @@ describe("usePropertyReport (error path)", () => {
 		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
 		const { result } = renderHook(
-			() => usePropertyReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.properties("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 
@@ -875,7 +813,7 @@ describe("usePropertyReport (error path)", () => {
 	});
 });
 
-describe("useTenantReport (error path)", () => {
+describe("reportAnalyticsQueries.tenants (error path)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -890,9 +828,12 @@ describe("useTenantReport (error path)", () => {
 		// propagate through handlePostgrestError.
 		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
-		const { result } = renderHook(() => useTenantReport(), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportAnalyticsQueries.tenants()),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -922,7 +863,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		vi.resetAllMocks();
 	});
 
-	it("useMonthlyRevenue forwards revenue/expenses/profit as dollars (no cents math)", async () => {
+	it("reportQueries.monthlyRevenue forwards revenue/expenses/profit as dollars (no cents math)", async () => {
 		// 12345.67 dollars: *100 would yield 1234567, /100 would yield 123.4567.
 		// expenses now join in from get_expense_summary.monthly_totals; profit =
 		// revenue - joined expenses = 12345.67 - 2345.89 = 9999.78 (TYPE-06).
@@ -936,9 +877,12 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 				error: null,
 			});
 
-		const { result } = renderHook(() => useMonthlyRevenue(12), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(reportQueries.monthlyRevenue(12)),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
@@ -950,34 +894,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(row?.profit).toBe(9999.78);
 	});
 
-	it("usePaymentAnalytics forwards totalRevenue/averagePayment as dollars", async () => {
-		mockRpc.mockResolvedValueOnce({
-			data: {
-				total_payments: 7,
-				successful_payments: 7,
-				failed_payments: 0,
-				total_revenue: 87654.32,
-				average_payment: 12522.04,
-				payments_by_method: { card: 5, ach: 2 },
-				payments_by_status: { completed: 7, pending: 0, failed: 0 },
-			},
-			error: null,
-		});
-
-		const { result } = renderHook(
-			() => usePaymentAnalytics("2024-01-01", "2024-12-31"),
-			{ wrapper: createWrapper() },
-		);
-
-		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
-		});
-
-		expect(result.current.data?.totalRevenue).toBe(87654.32);
-		expect(result.current.data?.averagePayment).toBe(12522.04);
-	});
-
-	it("useFinancialReport keeps dollar income/expense/netIncome arithmetic in dollars", async () => {
+	it("reportAnalyticsQueries.financial keeps dollar income/expense/netIncome arithmetic in dollars", async () => {
 		const yearlyIncome = 600000.5;
 		const totalExpenses = 200000.25;
 		mockRpc
@@ -999,7 +916,8 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 			});
 
 		const { result } = renderHook(
-			() => useFinancialReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.financial("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 
@@ -1085,7 +1003,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(result.current.data?.totalReported).toBe(23001);
 	});
 
-	it("usePropertyReport keeps per-property revenue/expenses/net in dollars", async () => {
+	it("reportAnalyticsQueries.properties keeps per-property revenue/expenses/net in dollars", async () => {
 		mockRpc.mockResolvedValueOnce({
 			data: [
 				{
@@ -1102,7 +1020,8 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		});
 
 		const { result } = renderHook(
-			() => usePropertyReport("2024-01-01", "2024-12-31"),
+			() =>
+				useQuery(reportAnalyticsQueries.properties("2024-01-01", "2024-12-31")),
 			{ wrapper: createWrapper() },
 		);
 

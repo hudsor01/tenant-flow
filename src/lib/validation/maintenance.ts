@@ -33,8 +33,8 @@ export const maintenancePrioritySchema = z.enum([
 
 // Maintenance status enum validation — mirrors the DB
 // maintenance_requests_status_check CHECK constraint and the MaintenanceStatus
-// union in #types/core (all 7 valid statuses). vendorMutations.assign/unassign
-// set "assigned"/"needs_reassignment", so both must validate.
+// union in #types/core (all 7 valid statuses). The kanban drag and the detail
+// StatusSelect set "assigned"/"needs_reassignment", so both must validate.
 export const maintenanceStatusSchema = z.enum([
 	"open",
 	"assigned",

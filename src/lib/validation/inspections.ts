@@ -65,11 +65,6 @@ const createInspectionPhotoSchema = z.object({
 	caption: z.string().max(500).optional().nullable(),
 });
 
-const tenantReviewSchema = z.object({
-	tenant_notes: z.string().max(5000).optional().nullable(),
-	tenant_signature_data: z.string().min(1, "Signature is required"),
-});
-
 // Scalar enum types (InspectionType/InspectionStatus/RoomType/ConditionRating)
 // are the single source-of-truth exports in #types/sections/inspections — do
 // not re-declare them here.
@@ -84,4 +79,3 @@ export type UpdateInspectionRoomInput = z.infer<
 export type CreateInspectionPhotoInput = z.infer<
 	typeof createInspectionPhotoSchema
 >;
-export type TenantReviewInput = z.infer<typeof tenantReviewSchema>;

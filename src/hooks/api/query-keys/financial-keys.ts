@@ -22,7 +22,6 @@ import type {
 	CashFlowData,
 	IncomeStatementData,
 } from "#types/financial-statements";
-import { fetchRevenueWithExpenses } from "./analytics-keys";
 
 export interface FinancialOverviewData {
 	overview: {
@@ -103,8 +102,6 @@ function parseDashStats(data: unknown) {
 
 export const financialKeys = {
 	all: ["financials"] as const,
-	overview: () => [...financialKeys.all, "overview"] as const,
-	monthly: () => [...financialKeys.all, "monthly"] as const,
 	expenseSummary: () => [...financialKeys.all, "expense-summary"] as const,
 	incomeStatement: (params: { start_date: string; end_date: string }) =>
 		[...financialKeys.all, "income-statement", params] as const,
@@ -115,94 +112,6 @@ export const financialKeys = {
 };
 
 export const financialQueries = {
-	all: () => financialKeys.all,
-
-	overview: () =>
-		queryOptions({
-			queryKey: financialKeys.overview(),
-			queryFn: async (): Promise<FinancialOverviewData> => {
-				const user = await getCachedUser();
-				if (!user?.id)
-					return {
-						overview: {
-							total_revenue: 0,
-							total_expenses: 0,
-							net_income: 0,
-							accounts_payable: 0,
-						},
-						highlights: [],
-					};
-				const { dashResult, expenseResult } = await fetchDashAndExpense(
-					user.id,
-				);
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "financial overview");
-				if (expenseResult.error)
-					handlePostgrestError(
-						expenseResult.error,
-						"financial overview expenses",
-					);
-				const { revenue, properties } = parseDashStats(dashResult.data);
-				const totalRevenue = Number(revenue?.yearly ?? 0);
-				const monthlyRevenue = Number(revenue?.monthly ?? 0);
-				const totalExpenses = Number(
-					(expenseResult.data as Record<string, unknown> | null)
-						?.total_amount ?? 0,
-				);
-				return {
-					overview: {
-						total_revenue: totalRevenue,
-						total_expenses: totalExpenses,
-						net_income: totalRevenue - totalExpenses,
-						// D-35: a receivable field assigned `monthlyRevenue` used to sit
-						// here. It published money EARNED under a name meaning money
-						// OWED, and the deleted `financials-summary-stats.tsx` rendered
-						// it as "Outstanding" — the same word D-30 assigns to the hub
-						// strip's `scheduled - collected`. Two derivations wearing one
-						// label is the D-18 failure, so the figure was removed rather
-						// than relocated. A real receivable belongs to a later phase,
-						// derived from the Phase 55 ledger's unpaid charge balances.
-						accounts_payable: 0,
-					},
-					highlights: [
-						{ label: "Monthly Revenue", value: monthlyRevenue, trend: null },
-						{ label: "Annual Revenue", value: totalRevenue, trend: null },
-						{
-							label: "Occupancy Rate",
-							value: Number(properties?.occupancyRate ?? 0),
-							trend: null,
-						},
-					],
-				};
-			},
-			...CACHE,
-		}),
-
-	monthly: () =>
-		queryOptions({
-			queryKey: financialKeys.monthly(),
-			queryFn: async (): Promise<MonthlyMetric[]> => {
-				const user = await getCachedUser();
-				if (!user) return [];
-				// get_revenue_trends_optimized is revenue-only; expenses/net_income
-				// come from the shared join with get_expense_summary.monthly_totals
-				// (TYPE-05). Previously mapped phantom `row.expenses`/`row.net_income`
-				// keys the RPC never emits, so the expense trend was always 0%.
-				const rows = await fetchRevenueWithExpenses(12);
-				return rows.map((row): MonthlyMetric => {
-					const netIncome = row.revenue - row.expenses;
-					return {
-						month: row.month,
-						revenue: row.revenue,
-						expenses: row.expenses,
-						net_income: netIncome,
-						cash_flow: netIncome,
-					};
-				});
-			},
-			...CACHE,
-		}),
-
 	expenseSummary: () =>
 		queryOptions({
 			queryKey: financialKeys.expenseSummary(),

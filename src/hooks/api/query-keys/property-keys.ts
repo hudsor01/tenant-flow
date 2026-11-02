@@ -1,7 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { omitUndefined } from "#lib/db-insert";
-import { createLogger, logger } from "#lib/frontend-logger";
+import { createLogger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { escapeOrValue } from "#lib/sanitize-search";
@@ -397,37 +397,6 @@ export const propertyMutations = {
 					.eq("id", id);
 
 				if (error) handlePostgrestError(error, "properties");
-			},
-		}),
-
-	markSold: () =>
-		mutationOptions<
-			{ success: boolean; message: string },
-			unknown,
-			{ id: string; dateSold: Date; salePrice: number }
-		>({
-			mutationKey: mutationKeys.properties.markSold,
-			mutationFn: async ({
-				id,
-				dateSold,
-				salePrice,
-			}): Promise<{ success: boolean; message: string }> => {
-				const supabase = createClient();
-				const { data: updated, error } = await supabase
-					.from("properties")
-					.update({
-						status: "sold",
-						date_sold: dateSold.toISOString(),
-						sale_price: salePrice,
-					})
-					.eq("id", id)
-					.select()
-					.single();
-
-				if (error) handlePostgrestError(error, "properties");
-
-				logger.info("Property marked as sold", { property_id: id, updated });
-				return { success: true, message: "Property marked as sold" };
 			},
 		}),
 

@@ -114,21 +114,6 @@ export const leaseMutations = {
 			},
 		}),
 
-	delete: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.leases.delete,
-			mutationFn: async (id: string): Promise<void> => {
-				const supabase = createClient();
-				// Soft-delete: set lease_status to inactive (financial record retention)
-				const { error } = await supabase
-					.from("leases")
-					.update({ lease_status: "inactive" })
-					.eq("id", id);
-
-				if (error) handlePostgrestError(error, "leases");
-			},
-		}),
-
 	/** Optimistic delete returns the ID for rollback */
 	deleteOptimistic: () =>
 		mutationOptions({

@@ -141,12 +141,6 @@ export const mutationKeys = {
 		revoke: ["mutations", "sessions", "revoke"] as const,
 	},
 
-	// Expenses
-	expenses: {
-		create: ["mutations", "expenses", "create"] as const,
-		delete: ["mutations", "expenses", "delete"] as const,
-	},
-
 	// Rent ledger (v10.0 Phase 55) — append-only bookkeeping. `reverseEntry`
 	// covers both reversal RPCs (reverse_charge / reverse_receipt) because they
 	// are one user-facing action: post an offsetting entry.
@@ -206,13 +200,6 @@ export const mutationKeys = {
 	// Owner Notification Settings
 	ownerNotificationSettings: {
 		update: ["mutations", "ownerNotificationSettings", "update"] as const,
-	},
-
-	// Emergency Contact (tenant-side)
-	emergencyContact: {
-		create: ["mutations", "emergencyContact", "create"] as const,
-		update: ["mutations", "emergencyContact", "update"] as const,
-		delete: ["mutations", "emergencyContact", "delete"] as const,
 	},
 
 	// Emergency Contact (owner-side, public.users)

@@ -2,12 +2,11 @@
  * Report Analytics Query Options
  * Split from report-keys.ts: analytics/report-type/aggregate queries.
  *
- * Queries: paymentAnalytics, occupancyMetrics, financial, properties,
- * tenants, maintenance, yearEnd, report1099.
+ * Queries: occupancyMetrics, financial, properties, tenants, maintenance,
+ * yearEnd, report1099.
  */
 
 import { queryOptions } from "@tanstack/react-query";
-import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -16,7 +15,6 @@ import type {
 	MaintenanceReport,
 	OccupancyMetrics,
 	PropertyReport,
-	ReportPaymentAnalytics,
 	TenantReport,
 	Year1099Summary,
 	YearEndSummary,
@@ -44,68 +42,6 @@ function extractDashStats(data: unknown) {
 }
 
 export const reportAnalyticsQueries = {
-	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		queryOptions({
-			queryKey: reportKeys.paymentAnalytics(start_date, end_date),
-			queryFn: async (): Promise<ReportPaymentAnalytics> => {
-				const supabase = createClient();
-				const user = await getCachedUser();
-				if (!user) {
-					return {
-						totalPayments: 0,
-						successfulPayments: 0,
-						failedPayments: 0,
-						totalRevenue: 0,
-						averagePayment: 0,
-						paymentsByMethod: { card: 0, ach: 0 },
-						paymentsByStatus: { completed: 0, pending: 0, failed: 0 },
-					};
-				}
-				const { data, error } = await supabase.rpc(
-					"get_billing_insights",
-					omitUndefined({
-						owner_id_param: user.id,
-						start_date_param: start_date,
-						end_date_param: end_date,
-					}),
-				);
-				if (error) handlePostgrestError(error, "payment analytics");
-				const insights = data as Record<string, unknown> | null;
-				return {
-					totalPayments: Number(insights?.total_payments ?? 0),
-					successfulPayments: Number(insights?.successful_payments ?? 0),
-					failedPayments: Number(insights?.failed_payments ?? 0),
-					totalRevenue: Number(insights?.total_revenue ?? 0),
-					averagePayment: Number(insights?.average_payment ?? 0),
-					paymentsByMethod: {
-						card: Number(
-							(insights?.payments_by_method as Record<string, unknown>)?.card ??
-								0,
-						),
-						ach: Number(
-							(insights?.payments_by_method as Record<string, unknown>)?.ach ??
-								0,
-						),
-					},
-					paymentsByStatus: {
-						completed: Number(
-							(insights?.payments_by_status as Record<string, unknown>)
-								?.completed ?? 0,
-						),
-						pending: Number(
-							(insights?.payments_by_status as Record<string, unknown>)
-								?.pending ?? 0,
-						),
-						failed: Number(
-							(insights?.payments_by_status as Record<string, unknown>)
-								?.failed ?? 0,
-						),
-					},
-				};
-			},
-			...CACHE,
-		}),
-
 	occupancyMetrics: () =>
 		queryOptions({
 			queryKey: reportKeys.occupancyMetrics(),

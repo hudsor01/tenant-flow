@@ -169,28 +169,3 @@ export function useUpdateLeaseMutation() {
 		),
 	});
 }
-
-/**
- * Delete lease mutation (simplified version)
- * Use useDeleteLeaseOptimisticMutation for optimistic updates
- */
-export function useDeleteLeaseMutation() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...leaseMutations.delete(),
-		...createMutationCallbacks<unknown, string>(queryClient, {
-			invalidate: [
-				leaseQueries.lists(),
-				tenantQueries.lists(),
-				unitQueries.all(),
-				ownerDashboardKeys.all,
-			],
-			removeDetail: (_data, deletedId) => [
-				leaseQueries.detail(deletedId).queryKey,
-			],
-			successMessage: "Lease deleted successfully",
-			errorContext: "Delete lease",
-		}),
-	});
-}

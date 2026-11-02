@@ -1,14 +1,9 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
-import type {
-	ListReportsResponse,
-	Report as ReportType,
-	RevenueData,
-} from "#types/reports";
+import type { RevenueData } from "#types/reports";
 import { FINANCIAL_ANALYTICS_REPORT_TYPE } from "../../../../supabase/functions/_shared/financial-analytics-report";
 import {
 	TAX_DOCUMENTS_REPORT_TYPE,
@@ -20,14 +15,8 @@ import { fetchRevenueWithExpenses } from "./analytics-keys";
 
 export const reportKeys = {
 	all: ["reports"] as const,
-	lists: () => [...reportKeys.all, "list"] as const,
-	list: (offset: number, limit: number) =>
-		[...reportKeys.lists(), offset, limit] as const,
-	runs: (reportId: string) => [...reportKeys.all, "runs", reportId] as const,
 	revenue: (months: number) =>
 		[...reportKeys.all, "revenue", "monthly", months] as const,
-	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		[...reportKeys.all, "analytics", "payments", start_date, end_date] as const,
 	occupancyMetrics: () =>
 		[...reportKeys.all, "analytics", "occupancy"] as const,
 	financial: (start_date?: string, end_date?: string) =>
@@ -43,86 +32,6 @@ export const reportKeys = {
 };
 
 export const reportQueries = {
-	all: () => reportKeys.all,
-
-	list: (offset: number, limit: number = 20) =>
-		queryOptions({
-			queryKey: reportKeys.list(offset, limit),
-			queryFn: async (): Promise<ListReportsResponse> => {
-				const supabase = createClient();
-				const user = await getCachedUser();
-				if (!user) {
-					return {
-						success: true,
-						data: [],
-						pagination: { total: 0, limit, offset, hasMore: false },
-					};
-				}
-
-				const { data, error, count } = await supabase
-					.from("reports")
-					.select("*", { count: "exact" })
-					.eq("owner_user_id", user.id)
-					.order("created_at", { ascending: false })
-					.range(offset, offset + limit - 1);
-
-				if (error) handlePostgrestError(error, "reports list");
-
-				const total = count ?? 0;
-				const reports: ReportType[] = (data ?? []).map((r) => ({
-					id: r.id,
-					user_id: r.owner_user_id,
-					reportType: r.report_type,
-					reportName: r.title,
-					format: "pdf",
-					status: r.is_active ? "active" : "inactive",
-					fileUrl: null,
-					filePath: null,
-					fileSize: null,
-					start_date: r.created_at ?? "",
-					end_date: r.updated_at ?? r.created_at ?? "",
-					metadata: {
-						description: r.description,
-						schedule_cron: r.schedule_cron,
-						next_run_at: r.next_run_at,
-					},
-					errorMessage: null,
-					created_at: r.created_at ?? "",
-					updated_at: r.updated_at ?? r.created_at ?? "",
-				}));
-
-				return {
-					success: true,
-					data: reports,
-					pagination: { total, limit, offset, hasMore: offset + limit < total },
-				};
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-		}),
-
-	runs: (reportId: string) =>
-		queryOptions({
-			queryKey: reportKeys.runs(reportId),
-			queryFn: async () => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("report_runs")
-					.select(
-						"id, report_id, execution_status, file_path, file_size, execution_time_ms, error_message, started_at, completed_at, created_at",
-					)
-					.eq("report_id", reportId)
-					.order("created_at", { ascending: false })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "report runs");
-				return data ?? [];
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			enabled: Boolean(reportId),
-		}),
-
 	monthlyRevenue: (months: number = 12) =>
 		queryOptions({
 			queryKey: reportKeys.revenue(months),
