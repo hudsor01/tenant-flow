@@ -9,7 +9,18 @@ import { useClientDataTable } from "#hooks/use-client-data-table";
 import { formatCurrency, formatNumber } from "#lib/utils/currency";
 import type { PropertyUnitDetail } from "#types/analytics";
 
-export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
+/**
+ * The units with their property named: `propertyNames` maps a property id to
+ * the name the page's performance rows carry. The subtitle printed the unit's
+ * property_id, a UUID; a unit whose property is not in the map gets none.
+ */
+export function ActiveUnitsTable({
+	units,
+	propertyNames,
+}: {
+	units: PropertyUnitDetail[];
+	propertyNames: ReadonlyMap<string, string>;
+}) {
 	const columns: ColumnDef<PropertyUnitDetail>[] = [
 		{
 			id: "unit_number",
@@ -24,9 +35,11 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			cell: ({ row }) => (
 				<div className="flex flex-col">
 					<span className="font-medium">{row.original.unit_number}</span>
-					<span className="text-caption text-muted-foreground">
-						{row.original.property_id}
-					</span>
+					{propertyNames.has(row.original.property_id) && (
+						<span className="text-caption text-muted-foreground">
+							{propertyNames.get(row.original.property_id)}
+						</span>
+					)}
 				</div>
 			),
 		},

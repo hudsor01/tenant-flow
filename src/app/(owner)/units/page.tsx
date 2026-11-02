@@ -35,6 +35,7 @@ import {
 	EmptyTitle,
 } from "#components/ui/empty";
 import { Skeleton } from "#components/ui/skeleton";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { useClientDataTable } from "#hooks/use-client-data-table";
@@ -53,6 +54,12 @@ export default function UnitsPage() {
 	} = useQuery(unitQueries.list({ limit: 100 }));
 
 	const units = unitsResponse?.data ?? [];
+	// Each unit's property by name: the column printed the first eight
+	// characters of its id ("Property ID: 3f2a9c1e...").
+	const { data: propertyOptions } = useQuery(propertyQueries.selectOptions());
+	const propertyNames = new Map(
+		(propertyOptions ?? []).map((property) => [property.id, property.name]),
+	);
 
 	const handleDeleteClick = (unit_id: string) => {
 		setDeleteunit_id(unit_id);
@@ -109,7 +116,7 @@ export default function UnitsPage() {
 			header: "Property",
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
-					Property ID: {row.original.property_id.substring(0, 8)}...
+					{propertyNames.get(row.original.property_id) ?? "—"}
 				</span>
 			),
 		},

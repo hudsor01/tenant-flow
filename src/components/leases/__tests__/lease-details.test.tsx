@@ -10,7 +10,7 @@
  * - Loading and error states
  */
 
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { render } from "#test/utils/test-render";
@@ -174,12 +174,17 @@ describe("LeaseDetails", () => {
 	});
 
 	describe("Rendering", () => {
-		test("renders lease ID in header", async () => {
+		// The heading names the lease by its unit (the mock embeds no property),
+		// never by its id ("Lease #lease-te", 66.2-39 part P).
+		test("names the lease by its unit in the header, not its id", async () => {
 			render(<LeaseDetails id="lease-test-123" />);
 
 			await waitFor(() => {
-				expect(screen.getByText(/Lease #lease-te/i)).toBeInTheDocument();
+				expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
+					"Unit 101",
+				);
 			});
+			expect(screen.queryByText(/Lease #/)).not.toBeInTheDocument();
 		});
 
 		test("renders status badge for active lease", async () => {
@@ -388,7 +393,9 @@ describe("LeaseDetails", () => {
 			render(<LeaseDetails id="lease-test-123" />);
 
 			await waitFor(() => {
-				expect(screen.getByText("Unit 101")).toBeInTheDocument();
+				expect(
+					within(screen.getByRole("tabpanel")).getByText("Unit 101"),
+				).toBeInTheDocument();
 			});
 		});
 	});

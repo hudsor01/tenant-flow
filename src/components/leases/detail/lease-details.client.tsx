@@ -42,6 +42,7 @@ const logger = createLogger({ component: "LeaseDetails" });
 interface LeaseWithPropertyEmbed {
 	units?: {
 		properties?: {
+			name?: string | null;
 			address_line1?: string | null;
 			city?: string | null;
 			state?: string | null;
@@ -119,6 +120,10 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				lease={lease}
 				tenant={tenant}
 				unitName={unit?.unit_number ?? null}
+				propertyName={
+					(lease as Lease & LeaseWithPropertyEmbed).units?.properties?.name ??
+					null
+				}
 				propertyAddress={getPropertyAddress(lease)}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}

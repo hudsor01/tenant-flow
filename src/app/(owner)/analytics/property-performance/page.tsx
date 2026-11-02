@@ -207,7 +207,12 @@ export default function PropertyPerformancePage() {
 						</div>
 						<Home className="w-5 h-5 text-muted-foreground" />
 					</div>
-					<ActiveUnitsTable units={units} />
+					<ActiveUnitsTable
+						units={units}
+						propertyNames={
+							new Map(performance.map((p) => [p.property_id, p.propertyName]))
+						}
+					/>
 				</div>
 			</BlurFade>
 		</div>

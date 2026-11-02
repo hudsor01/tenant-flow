@@ -39,15 +39,36 @@ interface LeaseHeaderProps {
 	lease: Lease;
 	tenant: TenantInfo | null | undefined;
 	unitName?: string | null;
+	/** The unit's property by name, for the heading. */
+	propertyName?: string | null;
 	/** The unit's property street address, for the rent-increase notice. */
 	propertyAddress?: string | null;
 	onCancelSignature: () => Promise<void>;
 	isCancelling: boolean;
 }
 
+/**
+ * The lease's heading: its property and unit, as the leases table names a
+ * lease ("Maple Apartments · Unit 4B"); "Lease" with neither. It printed
+ * "Lease #" and the first eight characters of the lease's id.
+ */
+export function leaseHeading(
+	propertyName: string | null | undefined,
+	unitName: string | null | undefined,
+): string {
+	const property = propertyName?.trim();
+	const unit = unitName?.trim();
+	if (property && unit) return `${property} · Unit ${unit}`;
+	if (property) return property;
+	if (unit) return `Unit ${unit}`;
+	return "Lease";
+}
+
 export function LeaseHeader({
 	lease,
 	tenant,
+	unitName,
+	propertyName,
 	propertyAddress,
 	onCancelSignature,
 	isCancelling,
@@ -105,7 +126,9 @@ export function LeaseHeader({
 	return (
 		<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 			<div className="flex items-center gap-3">
-				<h2 className="text-lg font-semibold">Lease #{lease.id.slice(0, 8)}</h2>
+				<h2 className="text-lg font-semibold">
+					{leaseHeading(propertyName, unitName)}
+				</h2>
 				<span
 					className={cn(
 						"inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium",

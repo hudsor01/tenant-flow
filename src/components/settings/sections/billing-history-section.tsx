@@ -59,14 +59,11 @@ export function BillingHistorySection() {
 								return (
 									<BlurFade key={invoice.id} delay={0.4 + idx * 0.05}>
 										<div className="flex items-center justify-between p-3 rounded-lg border">
-											<div className="flex items-center gap-4">
-												<span className="text-sm font-medium">
-													{invoice.id.slice(0, 12)}
-												</span>
-												<span className="text-sm text-muted-foreground">
-													{invoice.formattedDate}
-												</span>
-											</div>
+											{/* The invoice by its date: the row led with the first 12
+											    characters of its Stripe id, a reference no owner can use. */}
+											<span className="text-sm font-medium">
+												{invoice.formattedDate}
+											</span>
 											<div className="flex items-center gap-4">
 												<span className="text-sm font-medium">
 													{invoice.formattedAmount}
