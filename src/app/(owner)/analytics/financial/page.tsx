@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BarChart3, PieChart } from "lucide-react";
 import dynamic from "next/dynamic";
 import { RefreshableAnalytics } from "#app/(owner)/analytics/refreshable-analytics";
+import { LeaseProfitabilityTable } from "#components/analytics/lease-profitability-table";
 import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import { ExportButtons } from "#components/shared/export-buttons";
@@ -24,7 +25,6 @@ const NetOperatingIncomeChart = dynamic(
 import { BreakdownList } from "./_components/breakdown-list";
 import { FinancialAnalyticsSkeleton } from "./_components/financial-analytics-skeleton";
 import { FinancialOverviewStats } from "./_components/financial-overview-stats";
-import { LeaseTable } from "./_components/lease-table";
 
 export default function FinancialAnalyticsPage() {
 	const { data, isLoading, isError } = useQuery(
@@ -70,7 +70,7 @@ export default function FinancialAnalyticsPage() {
 		breakdown = { revenue: [], expenses: [] },
 		netOperatingIncome = [],
 		monthlyMetrics = [],
-		leaseAnalytics = [],
+		leaseProfitability = { status: "unavailable" } as const,
 	} = data || {};
 
 	return (
@@ -192,11 +192,14 @@ export default function FinancialAnalyticsPage() {
 										Lease Profitability
 									</h3>
 									<p className="text-sm text-muted-foreground">
-										Top performing leases by profitability score
+										Each lease&apos;s rent received less its expenses
 									</p>
 								</div>
 							</div>
-							<LeaseTable leases={leaseAnalytics} />
+							<LeaseProfitabilityTable
+								profitability={leaseProfitability}
+								pageSize={6}
+							/>
 						</div>
 					</BlurFade>
 				</div>

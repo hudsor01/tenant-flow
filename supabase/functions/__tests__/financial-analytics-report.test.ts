@@ -38,8 +38,10 @@ import {
 	loadFinancialAnalyticsSources,
 	type ReportCell,
 	type ReportCellFormat,
+	leaseProfitabilityLabel,
 	type RpcCall,
 } from "../_shared/financial-analytics-report";
+import { propertyReportName } from "../_shared/tax-year-reports";
 
 const { mockRpc, USER_ID } = vi.hoisted(() => ({
 	mockRpc: vi.fn(),
@@ -70,6 +72,46 @@ function fetchPaymentSummary(): Promise<OwnerPaymentSummaryResponse> {
 }
 
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
+
+/**
+ * get_financial_overview's lease profitability (20261102184504): a lease on a
+ * property the owner deleted since, then two more, largest net first.
+ */
+const LEASE_PROFITABILITY = {
+	window: "2026-01-01/2026-11-02",
+	leases: [
+		{
+			lease_id: "l8",
+			property_name: "South House",
+			property_deleted: true,
+			unit_number: "S1",
+			tenant_name: "Ed South",
+			rent_received: 5000,
+			expenses: 0,
+			net: 5000,
+		},
+		{
+			lease_id: "l1",
+			property_name: "North Court",
+			property_deleted: false,
+			unit_number: "N1",
+			tenant_name: "Ann North",
+			rent_received: 2000.005,
+			expenses: 360.5,
+			net: 1639.505,
+		},
+		{
+			lease_id: "l2",
+			property_name: "Lot 9",
+			property_deleted: false,
+			unit_number: null,
+			tenant_name: null,
+			rent_received: 0,
+			expenses: 30,
+			net: -30,
+		},
+	],
+};
 
 /** Twelve months, newest first, as get_revenue_trends_optimized returns them. */
 function revenueTrends(): unknown[] {
@@ -105,6 +147,7 @@ function richAnswers(): RpcAnswers {
 					total_expenses: 18350.75,
 					net_income: 42849.25,
 				},
+				lease_profitability: LEASE_PROFITABILITY,
 			},
 			error: null,
 		},
@@ -189,7 +232,7 @@ async function exported(answers: RpcAnswers): Promise<{
 		return answer(answers)(name);
 	}, USER_ID);
 	if (!load.ok) throw new Error(`load failed on ${load.rpc}`);
-	const table = buildFinancialAnalyticsTable(load.sources);
+	const table = buildFinancialAnalyticsTable(load.sources, propertyReportName);
 	return {
 		rows: table.rows,
 		formats: table.formats,
@@ -279,6 +322,26 @@ function rowsFromScreen(
 		...page.netOperatingIncome.map((n) =>
 			value("Net Operating Income", n.propertyName, cents(n.noi)),
 		),
+		...(page.leaseProfitability.status === "ready"
+			? [
+					[
+						"Lease Profitability",
+						"Period",
+						`${page.leaseProfitability.window.start_date} to ${page.leaseProfitability.window.end_date}`,
+						null,
+						null,
+						null,
+					],
+					...page.leaseProfitability.leases.map((l): ReportCell[] => [
+						"Lease Profitability",
+						leaseProfitabilityLabel(l),
+						null,
+						cents(l.rentReceived),
+						cents(l.expenses),
+						cents(l.net),
+					]),
+				]
+			: [["Lease Profitability", "Unavailable", null, null, null, null]]),
 	];
 }
 
@@ -372,14 +435,18 @@ describe("every figure the page renders is a row of the file", () => {
 		const { page, payments } = await screen(answers);
 		const { rows } = await exported(answers);
 		expect(rows).toEqual(rowsFromScreen(page, payments));
-		// The four overview cards and the four payment cards (no Cash Flow).
-		expect(rows).toHaveLength(8);
+		// The four overview cards and the four payment cards (no Cash Flow),
+		// and the lease table's one row: unavailable, never empty.
+		expect(rows).toHaveLength(9);
+		expect(section(rows, "Lease Profitability")).toEqual([
+			["Lease Profitability", "Unavailable", null, null, null, null],
+		]);
 	});
 
 	it("writes the fixed header", async () => {
 		const answers = richAnswers();
 		const file = await exported(answers);
-		const table = buildFinancialAnalyticsTable(file.sources);
+		const table = buildFinancialAnalyticsTable(file.sources, propertyReportName);
 		expect(table.header).toEqual(FINANCIAL_ANALYTICS_HEADER);
 		for (const row of table.rows) {
 			expect(row).toHaveLength(FINANCIAL_ANALYTICS_HEADER.length);
@@ -475,10 +542,61 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 });
 
 describe("the page sections the export leaves out are empty on the page", () => {
-	it("has no revenue breakdown or lease data", async () => {
+	it("has no revenue breakdown", async () => {
 		const { page } = await screen(richAnswers());
 		expect(page.breakdown.revenue).toEqual([]);
-		expect(page.leaseAnalytics).toEqual([]);
+	});
+});
+
+describe("the lease profitability table is in the file as on the page", () => {
+	it("writes each lease the page lists, labelled as the page labels it", async () => {
+		const { page } = await screen(richAnswers());
+		const { rows } = await exported(richAnswers());
+		expect(section(rows, "Lease Profitability")).toEqual([
+			["Lease Profitability", "Period", "2026-01-01 to 2026-11-02", null, null, null],
+			[
+				"Lease Profitability",
+				"South House (deleted) \u00b7 S1 (Ed South)",
+				null,
+				5000,
+				0,
+				5000,
+			],
+			[
+				"Lease Profitability",
+				"North Court \u00b7 N1 (Ann North)",
+				null,
+				2000.01,
+				360.5,
+				1639.51,
+			],
+			["Lease Profitability", "Lot 9", null, 0, 30, -30],
+		]);
+		expect(page.leaseProfitability).toMatchObject({
+			status: "ready",
+			window: { start_date: "2026-01-01", end_date: "2026-11-02" },
+		});
+	});
+
+	it("says the table is unavailable from the body before 20261102184504", async () => {
+		const answers = richAnswers();
+		answers.get_financial_overview = {
+			data: {
+				overview: {
+					total_revenue: 61200,
+					total_expenses: 18350.75,
+					net_income: 42849.25,
+				},
+			},
+			error: null,
+		};
+		const { page, payments } = await screen(answers);
+		const { rows } = await exported(answers);
+		expect(page.leaseProfitability).toEqual({ status: "unavailable" });
+		expect(rows).toEqual(rowsFromScreen(page, payments));
+		expect(section(rows, "Lease Profitability")).toEqual([
+			["Lease Profitability", "Unavailable", null, null, null, null],
+		]);
 	});
 });
 

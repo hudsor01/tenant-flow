@@ -12,6 +12,7 @@ import { parseStatedWindow } from "#lib/stated-window";
 import type {
 	FinancialBreakdownRow,
 	FinancialMetricSummary,
+	LeaseProfitability,
 	MaintenanceCategoryBreakdown,
 	MaintenanceCostSummary,
 	MaintenanceMetricSummary,
@@ -29,6 +30,7 @@ import type {
 	MaintenanceInsightsPageData,
 	OccupancyAnalyticsPageData,
 } from "#types/analytics-page-data";
+import { propertyReportName } from "../../../../supabase/functions/_shared/tax-year-reports";
 import { expenseTotalsByMonth } from "./analytics-keys";
 
 /** Narrow an unknown RPC return to a plain object, or null. Never throws. */
@@ -119,10 +121,55 @@ export function mapOccupancyAnalytics(
 // This never-throw mapper derives `metrics` from `overview`; the four chart
 // sub-shapes (`monthlyMetrics`, `breakdown.expenses`, `netOperatingIncome`) are
 // built from the caller-supplied `get_revenue_trends_optimized` +
-// `get_expense_summary` join. `breakdown.revenue` and `leaseAnalytics` stay
-// empty — no source exists post rent-payment demolish (do NOT invent one;
-// matches the DATA-01 discipline). The billing timeline and invoice summary,
+// `get_expense_summary` join. `breakdown.revenue` stays empty — no source
+// exists post rent-payment demolish (do NOT invent one; matches the DATA-01
+// discipline). The lease profitability is get_financial_overview's own
+// `lease_profitability` (20261102184504), through mapLeaseProfitability. The billing timeline and invoice summary,
 // which had no source either, were deleted with their cards (66.2-39).
+
+/**
+ * get_financial_overview's `lease_profitability` (20261102184504): each lease
+ * with rent received or an expense in the period, beside the period. The key
+ * is the marker: the bodies before return none, and then the table is
+ * unavailable, never empty. A property the owner has deleted since is named
+ * through the report label map. Never throws.
+ */
+export function mapLeaseProfitability(
+	overviewRaw: unknown,
+): LeaseProfitability {
+	const section = asObject(asObject(overviewRaw)?.lease_profitability);
+	const window = parseStatedWindow(section?.window);
+	if (section === null || window === null || !Array.isArray(section.leases)) {
+		return { status: "unavailable" };
+	}
+	const text = (value: unknown) =>
+		typeof value === "string" && value !== "" ? value : null;
+	const money = (value: unknown) =>
+		typeof value === "number" && Number.isFinite(value) ? value : 0;
+	return {
+		status: "ready",
+		window,
+		leases: section.leases.flatMap((entry) => {
+			const row = asObject(entry);
+			const leaseId = text(row?.lease_id);
+			if (row === null || leaseId === null) return [];
+			return [
+				{
+					leaseId,
+					propertyName: propertyReportName(
+						text(row.property_name) ?? "",
+						row.property_deleted === true ? "inactive" : "active",
+					),
+					unitNumber: text(row.unit_number),
+					tenantName: text(row.tenant_name),
+					rentReceived: money(row.rent_received),
+					expenses: money(row.expenses),
+					net: money(row.net),
+				},
+			];
+		}),
+	};
+}
 
 /** Read `get_expense_summary.categories` as FinancialBreakdownRow[]. */
 function expenseBreakdownRows(summary: unknown): FinancialBreakdownRow[] {
@@ -220,7 +267,7 @@ export function mapFinancialOverview(
 		breakdown,
 		netOperatingIncome,
 		monthlyMetrics,
-		leaseAnalytics: [],
+		leaseProfitability: mapLeaseProfitability(overviewRaw),
 	};
 }
 

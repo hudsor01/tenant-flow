@@ -8,6 +8,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	mapFinancialOverview,
+	mapLeaseProfitability,
 	mapMaintenanceAnalytics,
 	mapMetricTrend,
 	mapOccupancyAnalytics,
@@ -211,6 +212,75 @@ const COMPUTED_MAINTENANCE = {
 		{ month: "2026-10", completed: 1, pending: 4, avg_resolution_hours: null },
 	],
 };
+
+describe("mapLeaseProfitability (20261102184504)", () => {
+	const raw = {
+		overview: { total_revenue: 1, total_expenses: 0, net_income: 1 },
+		lease_profitability: {
+			window: "2026-01-01/2026-11-02",
+			leases: [
+				{
+					lease_id: "l8",
+					property_name: "South House",
+					property_deleted: true,
+					unit_number: "S1",
+					tenant_name: "Ed South",
+					rent_received: 5000,
+					expenses: 0,
+					net: 5000,
+				},
+				{
+					lease_id: "l2",
+					property_name: "Lot 9",
+					property_deleted: false,
+					unit_number: null,
+					tenant_name: null,
+					rent_received: 0,
+					expenses: 30,
+					net: -30,
+				},
+			],
+		},
+	};
+
+	it("reads each lease and the period, a deleted property named so", () => {
+		expect(mapLeaseProfitability(raw)).toEqual({
+			status: "ready",
+			window: { start_date: "2026-01-01", end_date: "2026-11-02" },
+			leases: [
+				{
+					leaseId: "l8",
+					propertyName: "South House (deleted)",
+					unitNumber: "S1",
+					tenantName: "Ed South",
+					rentReceived: 5000,
+					expenses: 0,
+					net: 5000,
+				},
+				{
+					leaseId: "l2",
+					propertyName: "Lot 9",
+					unitNumber: null,
+					tenantName: null,
+					rentReceived: 0,
+					expenses: 30,
+					net: -30,
+				},
+			],
+		});
+	});
+
+	it.each([
+		["the body before 20261102184504 (no key)", { overview: raw.overview }],
+		[
+			"a period that is not stated",
+			{ lease_profitability: { ...raw.lease_profitability, window: "ytd" } },
+		],
+		["no payload", null],
+	])("says the table is unavailable from %s, never empty", (_what, value) => {
+		expect(mapLeaseProfitability(value)).toEqual({ status: "unavailable" });
+	});
+});
 
 describe("mapMetricTrend (20261102184501)", () => {
 	const WINDOW = "2026-10-03/2026-11-02";

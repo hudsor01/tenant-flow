@@ -31,10 +31,16 @@
  *   - Expense Breakdown: every category of the breakdown list (the page lists
  *     the first five), in the RPC's order, with its amount.
  *   - Net Operating Income: one row per month of the NOI chart, oldest first.
- * The page's Revenue Breakdown, Lease Profitability, Billing Timeline and
- * Invoice Summary have no data source (`mapFinancialOverview` always returns
- * them empty), so they contribute no rows; the test fails if the mapper ever
- * fills one, so the export cannot silently fall behind the page.
+ *   - Lease Profitability: the table's period ("Period", its first and last
+ *     day), then one row per lease (get_financial_overview's
+ *     `lease_profitability`, 20261102184504), largest net first: its label
+ *     (`leaseProfitabilityLabel`, the page's), rent received, expenses and
+ *     net. With no `lease_profitability` (the body before) the page says the
+ *     table is unavailable, and so does the file's one row ("Unavailable"),
+ *     never an empty table.
+ * The page's Revenue Breakdown has no data source (`mapFinancialOverview`
+ * always returns it empty), so it contributes no rows; the test fails if the
+ * mapper ever fills it, so the export cannot silently fall behind the page.
  *
  * NUMBERS. Every amount is dollars, rounded to cents (the ledger's collected
  * receipts are summed in floating point, so the raw sum can carry noise such
@@ -62,6 +68,29 @@ export const FINANCIAL_ANALYTICS_HEADER = [
 	"Expenses",
 	"Net Income",
 ] as const;
+
+/**
+ * A lease as the Lease Profitability table names it: its property and unit,
+ * and its tenant when it has one ("North Court · N1 (Ann North)"). The
+ * property name is the report label map's (a deleted property says so).
+ */
+export function leaseProfitabilityLabel(lease: {
+	readonly propertyName: string;
+	readonly unitNumber: string | null;
+	readonly tenantName: string | null;
+}): string {
+	const place =
+		lease.unitNumber === null
+			? lease.propertyName
+			: `${lease.propertyName} \u00b7 ${lease.unitNumber}`;
+	return lease.tenantName === null ? place : `${place} (${lease.tenantName})`;
+}
+
+/**
+ * How the export names a property by its status: tax-year-reports'
+ * `propertyReportName`, passed in by the caller (this leaf imports nothing).
+ */
+export type PropertyNamer = (name: string, status: string) => string;
 
 /** One cell: text, a number, or empty. */
 export type ReportCell = string | number | null;
@@ -251,11 +280,80 @@ function valueRow(
 }
 
 /**
+ * The lease profitability rows, as `mapLeaseProfitability` reads them. When
+ * the overview carries none (the body before 20261102184504) one row says so,
+ * as the page does: the file never shows the table empty.
+ */
+function leaseProfitabilityRows(
+	overview: unknown,
+	propertyName: PropertyNamer,
+): Row[] {
+	const section = asRecord(asRecord(overview)?.["lease_profitability"]);
+	const window = section?.["window"];
+	const leases = section?.["leases"];
+	if (
+		typeof window !== "string" ||
+		!/^\d{4}-\d{2}-\d{2}\/\d{4}-\d{2}-\d{2}$/.test(window) ||
+		!Array.isArray(leases)
+	) {
+		return [
+			{
+				cells: ["Lease Profitability", "Unavailable", null, null, null, null],
+				formats: ["plain", "plain", "plain", "plain", "plain", "plain"],
+			},
+		];
+	}
+	const [start, end] = window.split("/");
+	const text = (value: unknown) =>
+		typeof value === "string" && value !== "" ? value : null;
+	const amount = (value: unknown) =>
+		typeof value === "number" && Number.isFinite(value) ? value : 0;
+	const period: Row = {
+		cells: [
+			"Lease Profitability",
+			"Period",
+			`${start} to ${end}`,
+			null,
+			null,
+			null,
+		],
+		formats: ["plain", "plain", "plain", "plain", "plain", "plain"],
+	};
+	return [period, ...leases.flatMap((entry): Row[] => {
+		const lease = asRecord(entry);
+		if (lease === null || text(lease["lease_id"]) === null) return [];
+		const label = leaseProfitabilityLabel({
+			propertyName: propertyName(
+				text(lease["property_name"]) ?? "",
+				lease["property_deleted"] === true ? "inactive" : "active",
+			),
+			unitNumber: text(lease["unit_number"]),
+			tenantName: text(lease["tenant_name"]),
+		});
+		return [
+			{
+				cells: [
+					"Lease Profitability",
+					label,
+					null,
+					money(amount(lease["rent_received"])),
+					money(amount(lease["expenses"])),
+					money(amount(lease["net"])),
+				],
+				formats: ["plain", "plain", "plain", "money", "money", "money"],
+			},
+		];
+	})];
+}
+
+/**
  * The page's figures as table rows. Each figure is derived as
- * `mapFinancialOverview` and `ownerPaymentSummary` derive it.
+ * `mapFinancialOverview` and `ownerPaymentSummary` derive it. `propertyName`
+ * is the report label map's namer (tax-year-reports' `propertyReportName`).
  */
 export function buildFinancialAnalyticsTable(
 	sources: FinancialAnalyticsSources,
+	propertyName: PropertyNamer,
 ): FinancialAnalyticsTable {
 	const overview = asRecord(asRecord(sources.overview)?.["overview"]) ?? {};
 	const totalRevenue = Number(overview["total_revenue"] ?? 0);
@@ -356,6 +454,7 @@ export function buildFinancialAnalyticsTable(
 		...months.map(
 			(m): Row => valueRow("Net Operating Income", m.month, money(m.net)),
 		),
+		...leaseProfitabilityRows(sources.overview, propertyName),
 	];
 
 	return {

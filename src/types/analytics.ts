@@ -241,14 +241,35 @@ export interface LeaseFinancialSummary {
 	averageLeaseValue: number;
 }
 
-export interface LeaseFinancialInsight {
-	lease_id: string;
+/**
+ * One lease's profitability over a period (get_financial_overview's
+ * `lease_profitability`, 20261102184504): the rent received on it (the rent
+ * ledger) less the expenses on its unit's maintenance requests dated in the
+ * period on a day it ran. Dollars.
+ */
+export interface LeaseProfitabilityRow {
+	leaseId: string;
+	/** As the report label map prints it: a property deleted since says so. */
 	propertyName: string;
-	tenantName: string;
-	rent_amount: number;
-	outstandingBalance: number;
-	profitabilityScore?: number | null;
+	unitNumber: string | null;
+	tenantName: string | null;
+	rentReceived: number;
+	expenses: number;
+	net: number;
 }
+
+/**
+ * The lease profitability table's data: `ready` beside the period it covers,
+ * `unavailable` from a body that reports none (the bodies before
+ * 20261102184504 return no `lease_profitability`), never an empty table.
+ */
+export type LeaseProfitability =
+	| {
+			readonly status: "ready";
+			readonly window: DateWindow;
+			readonly leases: LeaseProfitabilityRow[];
+	  }
+	| { readonly status: "unavailable" };
 
 export interface FinancialAnalyticsPageResponse {
 	metrics: FinancialMetricSummary;
@@ -257,7 +278,7 @@ export interface FinancialAnalyticsPageResponse {
 	expenseSummary: ExpenseSummaryResponse;
 	monthlyMetrics: MonthlyFinancialMetric[];
 	leaseSummary: LeaseFinancialSummary;
-	leaseAnalytics: LeaseFinancialInsight[];
+	leaseProfitability: LeaseProfitability;
 }
 
 export interface LeaseLifecyclePoint {
@@ -275,7 +296,6 @@ export interface LeaseStatusBreakdown {
 
 export interface LeaseAnalyticsPageResponse {
 	metrics: LeaseFinancialSummary;
-	profitability: LeaseFinancialInsight[];
 	lifecycle: LeaseLifecyclePoint[];
 	statusBreakdown: LeaseStatusBreakdown[];
 }

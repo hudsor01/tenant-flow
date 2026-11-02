@@ -25,6 +25,7 @@ import { buildFinancialAnalyticsTable } from "../_shared/financial-analytics-rep
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import {
 	buildTaxYearReport,
+	propertyReportName,
 	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_REPORT_TYPE,
 	taxYearReportCalls,
@@ -183,7 +184,7 @@ Deno.test("Mode 1 financial-analytics prints export-report's document", async ()
 			revenueTrends: ANSWERS.get_revenue_trends_optimized?.data,
 			expenseSummary: ANSWERS.get_expense_summary?.data,
 			billingInsights: ANSWERS.get_billing_insights?.data,
-		});
+		}, propertyReportName);
 		const html = htmlPosts[0] ?? "";
 		assert(html.includes('<td class="td num">$1,200.00</td>'), "Scheduled");
 		assert(html.includes('<td class="td num">$200.00</td>'), "an expense");

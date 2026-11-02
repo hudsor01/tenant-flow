@@ -42,6 +42,7 @@ import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import {
 	buildTaxYearReport,
+	propertyReportName,
 	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_REPORT_TYPE,
 	taxYearReportCalls,
@@ -69,6 +70,22 @@ function answers(): RpcAnswers {
 					total_revenue: 61200,
 					total_expenses: 18350.75,
 					net_income: 42849.25,
+				},
+				// 20261102184504: each lease's rent received less its expenses.
+				lease_profitability: {
+					window: "2026-01-01/2026-11-01",
+					leases: [
+						{
+							lease_id: "l8",
+							property_name: "South House",
+							property_deleted: true,
+							unit_number: "S1",
+							tenant_name: "Ed South",
+							rent_received: 5000,
+							expenses: 0,
+							net: 5000,
+						},
+					],
 				},
 			},
 			error: null,
@@ -286,7 +303,7 @@ function expectedTable(s: Scenario) {
 		revenueTrends: s.rpc.get_revenue_trends_optimized?.data,
 		expenseSummary: s.rpc.get_expense_summary?.data,
 		billingInsights: s.rpc.get_billing_insights?.data,
-	});
+	}, propertyReportName);
 }
 
 const FA = "?type=financial-analytics";
@@ -379,6 +396,11 @@ Deno.test("financial-analytics csv is the leaf's table, from the four page RPCs"
 	);
 	assert(lines.includes("Expense Breakdown,'=HYPERLINK(1),120,,,"));
 	assert(lines.includes('Expense Breakdown,"Roof, Gutter & Co",2000.5,,,'));
+	assert(lines.includes("Lease Profitability,Period,2026-01-01 to 2026-11-01,,,"));
+	assert(
+		lines.includes("Lease Profitability,South House (deleted) \u00b7 S1 (Ed South),,5000,0,5000"),
+		"a lease on a deleted property, named so",
+	);
 	assertEquals(calls.rpcs.map((c) => c.name).sort(), [
 		"get_billing_insights",
 		"get_expense_summary",

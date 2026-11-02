@@ -55,7 +55,7 @@ export interface FinancialAnalyticsPageData {
 	breakdown: FinancialAnalyticsPageResponse["breakdown"];
 	netOperatingIncome: FinancialAnalyticsPageResponse["netOperatingIncome"];
 	monthlyMetrics: FinancialAnalyticsPageResponse["monthlyMetrics"];
-	leaseAnalytics: FinancialAnalyticsPageResponse["leaseAnalytics"];
+	leaseProfitability: FinancialAnalyticsPageResponse["leaseProfitability"];
 }
 
 export interface VacancyTrendPoint {
@@ -71,7 +71,6 @@ export interface VacancyTrendPoint {
  */
 export interface LeaseAnalyticsPageData {
 	metrics: LeaseAnalyticsPageResponse["metrics"];
-	profitability: LeaseAnalyticsPageResponse["profitability"];
 	renewalRates: LeaseLifecyclePoint[];
 	vacancyTrends: VacancyTrendPoint[];
 	leaseDistribution: LeaseAnalyticsPageResponse["statusBreakdown"];

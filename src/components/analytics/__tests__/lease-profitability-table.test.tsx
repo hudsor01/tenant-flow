@@ -5,10 +5,10 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "#test/utils/test-render";
-import type { LeaseFinancialInsight } from "#types/analytics";
-import { LeaseTable } from "../lease-table";
+import type { LeaseProfitability } from "#types/analytics";
+import { LeaseProfitabilityTable } from "../lease-profitability-table";
 
-// The global unit-setup mocks nuqs (reads -> null, writes swallowed). LeaseTable
+// The global unit-setup mocks nuqs (reads -> null, writes swallowed). The table
 // now drives a REAL client-side TanStack table through `useClientDataTable`, whose
 // filter/sort/page state IS the nuqs round-trip, so restore the real nuqs
 // implementation (Wave-1 precedent) and host it under nuqs's own testing adapter.
@@ -20,15 +20,22 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 // Distinguishable rows so a single tenantName filter narrows to exactly one and
 // page-2 tenants are identifiable. pageSize is 6, so 9 rows -> 2 pages.
-function makeLeases(count: number): LeaseFinancialInsight[] {
-	return Array.from({ length: count }, (_, index) => ({
-		lease_id: `L${index}`,
-		propertyName: `Property ${index}`,
-		tenantName: `Tenant ${index}`,
-		rent_amount: 1000 + index * 100,
-		outstandingBalance: index * 50,
-		profitabilityScore: index,
-	}));
+const WINDOW = { start_date: "2026-01-01", end_date: "2026-11-02" };
+
+function makeLeases(count: number): LeaseProfitability {
+	return {
+		status: "ready",
+		window: WINDOW,
+		leases: Array.from({ length: count }, (_, index) => ({
+			leaseId: `L${index}`,
+			propertyName: `Property ${index}`,
+			unitNumber: `U${index}`,
+			tenantName: `Tenant ${index}`,
+			rentReceived: 1000 + index * 100,
+			expenses: index * 50,
+			net: 1000 + index * 50,
+		})),
+	};
 }
 
 // `getAllByRole("row")` includes the single (flat) header row; subtract it to get
@@ -53,10 +60,13 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 
-describe("LeaseTable (useClientDataTable migration)", () => {
+describe("LeaseProfitabilityTable", () => {
 	it("paginates to pageSize (6) on page 1 instead of rendering all rows, and nextPage advances the window", async () => {
 		await act(async () => {
-			render(<LeaseTable leases={makeLeases(9)} />, { wrapper: Wrapper });
+			render(
+				<LeaseProfitabilityTable profitability={makeLeases(9)} pageSize={6} />,
+				{ wrapper: Wrapper },
+			);
 		});
 
 		// Only pageSize (6) data rows land on page 1 — NOT all 9. This is the
@@ -86,7 +96,10 @@ describe("LeaseTable (useClientDataTable migration)", () => {
 
 	it("narrows the visible rows when the tenantName column filter is set", async () => {
 		await act(async () => {
-			render(<LeaseTable leases={makeLeases(9)} />, { wrapper: Wrapper });
+			render(
+				<LeaseProfitabilityTable profitability={makeLeases(9)} pageSize={6} />,
+				{ wrapper: Wrapper },
+			);
 		});
 
 		// Baseline: full first page.
@@ -105,5 +118,90 @@ describe("LeaseTable (useClientDataTable migration)", () => {
 
 		// Drain the debounced nuqs write so it does not fire post-teardown.
 		await flushUrlWrites();
+	});
+
+	it("shows each lease's rent received less its expenses over the stated period", async () => {
+		await act(async () => {
+			render(
+				<LeaseProfitabilityTable
+					profitability={{
+						status: "ready",
+						window: WINDOW,
+						leases: [
+							{
+								leaseId: "L8",
+								propertyName: "South House (deleted)",
+								unitNumber: "S1",
+								tenantName: "Ed South",
+								rentReceived: 5000,
+								expenses: 0,
+								net: 5000,
+							},
+							{
+								leaseId: "L1",
+								propertyName: "North Court",
+								unitNumber: "N1",
+								tenantName: "Ann North",
+								rentReceived: 2000,
+								expenses: 360.5,
+								net: 1639.5,
+							},
+						],
+					}}
+					pageSize={6}
+				/>,
+				{ wrapper: Wrapper },
+			);
+		});
+		expect(
+			screen.getByText("Rent received less expenses, Jan 1 to Nov 2, 2026"),
+		).toBeInTheDocument();
+		const rows = screen.getAllByRole("row").slice(1);
+		expect(rows.map((row) => row.textContent)).toEqual([
+			"South House (deleted) \u00b7 S1Ed South$5,000.00$0.00$5,000.00",
+			"North Court \u00b7 N1Ann North$2,000.00$360.50$1,639.50",
+		]);
+		for (const header of [
+			"Lease",
+			"Tenant",
+			"Rent Received",
+			"Expenses",
+			"Net",
+		]) {
+			expect(
+				screen.getByRole("columnheader", { name: header }),
+			).toBeInTheDocument();
+		}
+		expect(screen.queryByText(/profitability score/i)).toBeNull();
+		expect(screen.queryByText(/outstanding/i)).toBeNull();
+	});
+
+	it("says the table is unavailable when the server reports no lease profitability", () => {
+		render(
+			<LeaseProfitabilityTable
+				profitability={{ status: "unavailable" }}
+				pageSize={6}
+			/>,
+			{ wrapper: Wrapper },
+		);
+		expect(
+			screen.getByText("Lease profitability unavailable"),
+		).toBeInTheDocument();
+		expect(screen.queryByRole("table")).toBeNull();
+	});
+
+	it("says no lease had rent or expenses in the period, with the period", () => {
+		render(
+			<LeaseProfitabilityTable
+				profitability={{ status: "ready", window: WINDOW, leases: [] }}
+				pageSize={6}
+			/>,
+			{ wrapper: Wrapper },
+		);
+		expect(
+			screen.getByText(
+				"No rent received or expenses on a lease from Jan 1 to Nov 2, 2026.",
+			),
+		).toBeInTheDocument();
 	});
 });

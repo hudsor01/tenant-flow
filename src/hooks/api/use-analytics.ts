@@ -10,7 +10,10 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonArrayOrEmpty, jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type { PropertyPerformanceEntry } from "#types/analytics";
+import type {
+	LeaseProfitability,
+	PropertyPerformanceEntry,
+} from "#types/analytics";
 import type {
 	FinancialAnalyticsPageData,
 	LeaseAnalyticsPageData,
@@ -22,6 +25,7 @@ import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 import { fetchOccupancyTrends } from "./query-keys/analytics-keys";
 import {
 	mapFinancialOverview,
+	mapLeaseProfitability,
 	mapMaintenanceAnalytics,
 	mapOccupancyAnalytics,
 } from "./query-keys/analytics-mappers";
@@ -38,8 +42,9 @@ import {
  * real lease-analytics source exists (candidate requirement DATA-04), derive
  * the one occupancy-shaped field the lease page can legitimately carry
  * (`vacancyTrends` = the complement of the occupancy rate) and leave every
- * lease-financial sub-shape (metrics/profitability/lifecycle/statusBreakdown/
- * renewalRates) at its empty default. Do NOT invent a lease-analytics source.
+ * lease-financial sub-shape (metrics/lifecycle/statusBreakdown/renewalRates)
+ * at its empty default. The lease profitability table reads
+ * leaseProfitability() (get_financial_overview, 20261102184504). Do NOT invent a lease-analytics source.
  */
 function occupancyAsLeaseAnalytics(raw: unknown): LeaseAnalyticsPageData {
 	const { trends } = mapOccupancyAnalytics(raw);
@@ -51,7 +56,6 @@ function occupancyAsLeaseAnalytics(raw: unknown): LeaseAnalyticsPageData {
 			totalrent_amount: 0,
 			averageLeaseValue: 0,
 		},
-		profitability: [],
 		renewalRates: [],
 		vacancyTrends: trends.map((t) => ({
 			period: t.period,
@@ -114,6 +118,28 @@ export const analyticsQueries = {
 					),
 					expenseSummary: expenseResult.data,
 				});
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000,
+		}),
+
+	/**
+	 * Each lease's rent received less its expenses, the year to date
+	 * (get_financial_overview's default period): the leases page's table,
+	 * through the mapper the financial analytics page's reads.
+	 */
+	leaseProfitability: () =>
+		queryOptions({
+			queryKey: [...analyticsQueries.lease(), "profitability"] as const,
+			queryFn: async (): Promise<LeaseProfitability> => {
+				const supabase = createClient();
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
+				const { data, error } = await supabase.rpc("get_financial_overview", {
+					p_user_id: user.id,
+				});
+				if (error) handlePostgrestError(error, "analytics");
+				return mapLeaseProfitability(data);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,

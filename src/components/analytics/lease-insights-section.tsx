@@ -1,18 +1,13 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
 import { BarChart3, Calendar, DollarSign } from "lucide-react";
 import dynamic from "next/dynamic";
-import { DataTable } from "#components/data-table/data-table";
-import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { LeaseProfitabilityTable } from "#components/analytics/lease-profitability-table";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
-import { useClientDataTable } from "#hooks/use-client-data-table";
-import { formatCurrency, formatNumber } from "#lib/utils/currency";
-import type { LeaseFinancialInsight } from "#types/analytics";
 
 const LeaseLifecycleChart = dynamic(
 	() => import("./lease-charts").then((mod) => mod.LeaseLifecycleChart),
@@ -48,126 +43,13 @@ export function LeaseInsightsSkeleton() {
 	);
 }
 
-function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
-	const columns: ColumnDef<LeaseFinancialInsight>[] = [
-		{
-			id: "lease_id",
-			accessorKey: "lease_id",
-			header: "Lease",
-			meta: {
-				label: "Lease ID",
-				variant: "text",
-				placeholder: "Search lease...",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<span className="font-medium">{row.original.lease_id}</span>
-			),
-		},
-		{
-			id: "tenantName",
-			accessorKey: "tenantName",
-			header: "Tenant",
-			meta: {
-				label: "Tenant",
-				variant: "text",
-				placeholder: "Search tenant...",
-			},
-			enableColumnFilter: true,
-		},
-		{
-			id: "propertyName",
-			accessorKey: "propertyName",
-			header: "Property",
-			meta: {
-				label: "Property",
-				variant: "text",
-				placeholder: "Search property...",
-			},
-			enableColumnFilter: true,
-		},
-		{
-			id: "rent_amount",
-			accessorKey: "rent_amount",
-			header: "Monthly rent",
-			meta: {
-				label: "Monthly Rent",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{formatCurrency(row.original.rent_amount)}
-				</div>
-			),
-		},
-		{
-			id: "outstandingBalance",
-			accessorKey: "outstandingBalance",
-			header: "Outstanding",
-			meta: {
-				label: "Outstanding Balance",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{formatCurrency(row.original.outstandingBalance)}
-				</div>
-			),
-		},
-		{
-			id: "profitabilityScore",
-			accessorKey: "profitabilityScore",
-			header: "Score",
-			meta: {
-				label: "Profitability Score",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{row.original.profitabilityScore !== null &&
-					row.original.profitabilityScore !== undefined
-						? formatNumber(row.original.profitabilityScore, {
-								maximumFractionDigits: 1,
-							})
-						: "-"}
-				</div>
-			),
-		},
-	];
-
-	const { table } = useClientDataTable({
-		data: leases,
-		columns,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 8,
-			},
-		},
-	});
-
-	if (!leases.length) {
-		return (
-			<div className="text-center text-muted-foreground py-8">
-				No lease profitability data available
-			</div>
-		);
-	}
-
-	return (
-		<DataTable table={table}>
-			<DataTableToolbar table={table} />
-		</DataTable>
-	);
-}
-
 export function LeaseInsightsSection() {
 	const { data } = useSuspenseQuery(analyticsQueries.leasePageData());
+	const { data: profitability } = useSuspenseQuery(
+		analyticsQueries.leaseProfitability(),
+	);
 
-	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data;
+	const { lifecycle = [], statusBreakdown = [] } = data;
 
 	return (
 		<div className="space-y-6">
@@ -215,12 +97,12 @@ export function LeaseInsightsSection() {
 								Lease profitability
 							</h3>
 							<p className="text-sm text-muted-foreground">
-								Revenue contribution and outstanding balances
+								Each lease&apos;s rent received less its expenses
 							</p>
 						</div>
 						<DollarSign className="w-5 h-5 text-muted-foreground" />
 					</div>
-					<ProfitabilityTable leases={profitability} />
+					<LeaseProfitabilityTable profitability={profitability} pageSize={8} />
 				</div>
 			</BlurFade>
 		</div>
