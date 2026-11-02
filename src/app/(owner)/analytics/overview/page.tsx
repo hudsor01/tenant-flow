@@ -216,26 +216,29 @@ export default function AnalyticsPage() {
 													<Building2 className="w-5 h-5 text-primary" />
 												</div>
 												<div className="min-w-0">
-													<p className="truncate font-medium text-foreground">
+													<p className="mb-0 truncate font-medium text-foreground">
 														{property.property}
 													</p>
-													<p className="text-sm text-muted-foreground">
+													<p className="mb-0 text-sm text-muted-foreground">
 														{formatCurrency(property.monthlyRevenue)}/mo ·{" "}
-														{property.occupiedUnits}/{property.totalUnits} units
-														occupied
+														{property.totalUnits > 0
+															? `${property.occupiedUnits}/${property.totalUnits} units occupied`
+															: "No units"}
 													</p>
 												</div>
 											</div>
-											<Badge
-												variant={
-													property.occupancyRate >= 90
-														? "default"
-														: "destructive"
-												}
-												className="shrink-0 text-xs"
-											>
-												{property.occupancyRate.toFixed(1)}%
-											</Badge>
+											{property.totalUnits > 0 && (
+												<Badge
+													variant={
+														property.occupancyRate >= 90
+															? "default"
+															: "destructive"
+													}
+													className="shrink-0 text-xs"
+												>
+													{property.occupancyRate.toFixed(1)}%
+												</Badge>
+											)}
 										</div>
 									</BlurFade>
 								))

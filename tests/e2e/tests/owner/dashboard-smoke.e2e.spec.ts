@@ -341,7 +341,9 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 
 		// Re-open Presets and apply the saved preset — the filter must restore.
 		await page.getByRole("button", { name: "Presets" }).click();
-		await page.getByRole("menuitem", { name: presetName }).click();
+		// `exact`: each preset row is two menu items, apply (the preset's name)
+		// and "Delete preset <name>".
+		await page.getByRole("menuitem", { name: presetName, exact: true }).click();
 		await expect(page).toHaveURL(/[?&]property=a(?:[&]|$)/);
 		await expect(search).toHaveValue("a");
 
@@ -359,7 +361,7 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		).toBeVisible({ timeout: 10000 });
 		await page.getByRole("button", { name: "Presets" }).click();
 		await expect(
-			page.getByRole("menuitem", { name: presetName }),
+			page.getByRole("menuitem", { name: presetName, exact: true }),
 		).toBeVisible();
 	});
 

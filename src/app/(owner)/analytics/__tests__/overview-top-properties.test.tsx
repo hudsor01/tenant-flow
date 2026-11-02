@@ -144,6 +144,34 @@ describe("Top Performing Properties", () => {
 		expect(within(card).getByText("75.0%")).toBeInTheDocument();
 	});
 
+	it("says a property has no units instead of a 0.0% occupancy badge", async () => {
+		propertyPerformance.mockReturnValue({
+			data: [property("Empty Lot", 0, 0, 0)],
+			isLoading: false,
+			isError: false,
+		});
+		const card = await renderCard();
+		expect(
+			within(card).getByText(`${formatCurrency(0)}/mo · No units`),
+		).toBeInTheDocument();
+		expect(within(card).queryByText("0.0%")).toBeNull();
+	});
+
+	it("sets the row's lines without the base paragraph margin", async () => {
+		propertyPerformance.mockReturnValue({
+			data: [property("Maple Flats", 4200, 3, 4)],
+			isLoading: false,
+			isError: false,
+		});
+		const card = await renderCard();
+		for (const text of [
+			"Maple Flats",
+			`${formatCurrency(4200)}/mo · 3/4 units occupied`,
+		]) {
+			expect(within(card).getByText(text).className).toMatch(/\bmb-0\b/);
+		}
+	});
+
 	it("says so when the owner has no properties", async () => {
 		propertyPerformance.mockReturnValue({
 			data: [],
