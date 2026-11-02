@@ -105,17 +105,17 @@ export default function FinancialAnalyticsPage() {
 					</div>
 				</BlurFade>
 
-				{/* Charts Row 1: Revenue & Expenses + Breakdowns */}
+				{/* Charts Row 1: Scheduled Rent & Expenses + Breakdowns */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 					<BlurFade delay={0.6} className="lg:col-span-2">
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
 									<h3 className="font-medium text-foreground">
-										Revenue & Expenses
+										Scheduled Rent & Expenses
 									</h3>
 									<p className="text-sm text-muted-foreground">
-										Monthly breakdown of income and costs
+										Each month&apos;s scheduled rent (not received) and expenses
 									</p>
 								</div>
 								<BarChart3 className="w-5 h-5 text-muted-foreground" />
@@ -171,11 +171,9 @@ export default function FinancialAnalyticsPage() {
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
-									<h3 className="font-medium text-foreground">
-										Net Operating Income
-									</h3>
+									<h3 className="font-medium text-foreground">Scheduled Net</h3>
 									<p className="text-sm text-muted-foreground">
-										Revenue minus operating expenses over time
+										Scheduled rent less expenses, by month
 									</p>
 								</div>
 								<BarChart3 className="w-5 h-5 text-muted-foreground" />

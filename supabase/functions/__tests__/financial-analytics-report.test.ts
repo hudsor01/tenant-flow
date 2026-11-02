@@ -309,7 +309,7 @@ function rowsFromScreen(
 		value("Payment Summary", "Outstanding invoices", payments.unpaidCount),
 		value("Payment Summary", "Tenants monitored", payments.tenantCount),
 		...page.monthlyMetrics.map((m): ReportCell[] => [
-			"Revenue & Expenses",
+			"Scheduled Rent & Expenses",
 			m.month,
 			null,
 			cents(m.revenue),
@@ -320,7 +320,7 @@ function rowsFromScreen(
 			value("Expense Breakdown", e.label, cents(e.value)),
 		),
 		...page.netOperatingIncome.map((n) =>
-			value("Net Operating Income", n.propertyName, cents(n.noi)),
+			value("Scheduled Net", n.propertyName, cents(n.noi)),
 		),
 		...(page.leaseProfitability.status === "ready"
 			? [
@@ -386,9 +386,9 @@ describe("every figure the page renders is a row of the file", () => {
 			payments.unpaidCount,
 			payments.tenantCount,
 		]);
-		expect(section(rows, "Revenue & Expenses")).toHaveLength(12);
+		expect(section(rows, "Scheduled Rent & Expenses")).toHaveLength(12);
 		expect(section(rows, "Expense Breakdown")).toHaveLength(6);
-		expect(section(rows, "Net Operating Income")).toHaveLength(12);
+		expect(section(rows, "Scheduled Net")).toHaveLength(12);
 	});
 
 	it("keeps every expense category, though the page lists the first five", async () => {
@@ -529,11 +529,11 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 		for (const [index, row] of rows.entries()) {
 			const f = formats[index] ?? [];
 			expect([f[0], f[1]]).toEqual(["plain", "plain"]);
-			if (row[0] === "Revenue & Expenses") {
+			if (row[0] === "Scheduled Rent & Expenses") {
 				expect(f.slice(2)).toEqual(["plain", "money", "money", "money"]);
 			} else if (
 				row[0] === "Expense Breakdown" ||
-				row[0] === "Net Operating Income"
+				row[0] === "Scheduled Net"
 			) {
 				expect(f.slice(2)).toEqual(["money", "plain", "plain", "plain"]);
 			}

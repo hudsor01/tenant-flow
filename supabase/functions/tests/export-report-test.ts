@@ -467,9 +467,10 @@ Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", as
 		for (const heading of [
 			"Overview",
 			"Payment Summary",
-			"Revenue &amp; Expenses",
+			"Scheduled Rent &amp; Expenses",
 			"Expense Breakdown",
-			"Net Operating Income",
+			"Scheduled Net",
+			"Lease Profitability",
 		]) {
 			assertStringIncludes(post.body.html, `<h2>${heading}</h2>`);
 		}

@@ -123,7 +123,7 @@ describe("analytics chart rows span two of three tracks", () => {
 			"../property-performance/page",
 			"Occupancy & rent received by property",
 		],
-		["financial", "../financial/page", "Revenue & Expenses"],
+		["financial", "../financial/page", "Scheduled Rent & Expenses"],
 	])("%s: the span sits on the grid item", async (_name, modulePath, title) => {
 		const { default: Page } = await import(modulePath);
 		renderPage(createElement(Page));

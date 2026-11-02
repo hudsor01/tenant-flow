@@ -26,11 +26,12 @@
  *     Scheduled Margin): get_financial_overview's revenue is the active
  *     leases' rent times twelve, so both derived figures say scheduled.
  *   - Payment Summary: the four payment cards.
- *   - Revenue & Expenses: one row per month of the chart, oldest first, with
- *     its revenue, expenses and net income.
+ *   - Scheduled Rent & Expenses: one row per month of the chart, oldest first,
+ *     with its scheduled rent (get_revenue_trends_optimized's revenue, the
+ *     month's lease rent: not money received), expenses and scheduled net.
  *   - Expense Breakdown: every category of the breakdown list (the page lists
  *     the first five), in the RPC's order, with its amount.
- *   - Net Operating Income: one row per month of the NOI chart, oldest first.
+ *   - Scheduled Net: one row per month of that chart, oldest first.
  *   - Lease Profitability: the table's period ("Period", its first and last
  *     day), then one row per lease (get_financial_overview's
  *     `lease_profitability`, 20261102184504), largest net first: its label
@@ -60,13 +61,18 @@
 
 export const FINANCIAL_ANALYTICS_REPORT_TYPE = "financial-analytics";
 
+/**
+ * "Rent" holds the month's scheduled rent in the Scheduled Rent & Expenses
+ * rows and a lease's rent received in the Lease Profitability rows: each
+ * section names which. Neither is labelled revenue or income.
+ */
 export const FINANCIAL_ANALYTICS_HEADER = [
 	"Section",
 	"Item",
 	"Value",
-	"Revenue",
+	"Rent",
 	"Expenses",
-	"Net Income",
+	"Net",
 ] as const;
 
 /**
@@ -438,7 +444,7 @@ export function buildFinancialAnalyticsTable(
 		...months.map(
 			(m): Row => ({
 				cells: [
-					"Revenue & Expenses",
+					"Scheduled Rent & Expenses",
 					m.month,
 					null,
 					money(m.revenue),
@@ -452,7 +458,7 @@ export function buildFinancialAnalyticsTable(
 			(c): Row => valueRow("Expense Breakdown", c.label, money(c.amount)),
 		),
 		...months.map(
-			(m): Row => valueRow("Net Operating Income", m.month, money(m.net)),
+			(m): Row => valueRow("Scheduled Net", m.month, money(m.net)),
 		),
 		...leaseProfitabilityRows(sources.overview, propertyName),
 	];

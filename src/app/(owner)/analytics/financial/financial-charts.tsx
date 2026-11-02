@@ -18,7 +18,8 @@ import {
 import type { NetOperatingIncomeByProperty } from "#types/analytics";
 
 const noiConfig = {
-	noi: { label: "NOI", color: "var(--color-chart-1)" },
+	// Scheduled rent less expenses: not net operating income on money received.
+	noi: { label: "Scheduled Net", color: "var(--color-chart-1)" },
 } satisfies ChartConfig;
 
 type NetOperatingIncomeChartProps = { data: NetOperatingIncomeByProperty[] };

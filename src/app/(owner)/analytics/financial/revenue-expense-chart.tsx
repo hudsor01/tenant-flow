@@ -25,9 +25,11 @@ import {
 import type { MonthlyFinancialMetric } from "#types/analytics";
 
 const revenueExpenseConfig = {
-	revenue: { label: "Revenue", color: "var(--color-success-text)" },
+	// get_revenue_trends_optimized's revenue is the month's lease rent_amount:
+	// scheduled rent, not money received, so its net is scheduled too.
+	revenue: { label: "Scheduled Rent", color: "var(--color-success-text)" },
 	expenses: { label: "Expenses", color: "var(--color-destructive-text)" },
-	netIncome: { label: "Net Income", color: "var(--color-chart-1)" },
+	netIncome: { label: "Scheduled Net", color: "var(--color-chart-1)" },
 } satisfies ChartConfig;
 
 type RevenueExpenseChartProps = { data: MonthlyFinancialMetric[] };
@@ -59,9 +61,10 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 					<EmptyMedia variant="icon">
 						<DollarSign />
 					</EmptyMedia>
-					<EmptyTitle>No revenue data</EmptyTitle>
+					<EmptyTitle>No scheduled rent or expenses</EmptyTitle>
 					<EmptyDescription>
-						Revenue and expense data will appear once transactions are recorded
+						Each month&apos;s scheduled rent and expenses will appear once
+						leases and expenses are recorded
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
