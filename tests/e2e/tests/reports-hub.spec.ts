@@ -339,6 +339,11 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 	test("balance sheet: downloads the figures on screen as tenantflow-balance-sheet-<as-of>.csv", async ({
 		page,
 	}) => {
+		// The sheet reads the rent ledger as of its date (get_billing_insights,
+		// 20261102055449). Answer that RPC and the two expense totals with fixed
+		// ledger figures, so the comparison holds whether or not production has
+		// the migration applied yet, and the page shows the ledger state.
+		await answerBalanceSheetRpcs(page, LEDGER_FIGURES);
 		await gotoReport(page, ROUTES.REPORTS_BALANCE_SHEET, "Balance Sheet");
 		const exportButton = await settledExportButton(page);
 
@@ -347,6 +352,12 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 			"Total Liabilities": await statAmount(page, "Total Liabilities"),
 			"Total Equity": await statAmount(page, "Total Equity"),
 		};
+		// Cash + A/R, the credit balances, and the ledger's charged total.
+		expect(onScreen).toEqual({
+			"Total Assets": "4660.50",
+			"Total Liabilities": "420.00",
+			"Total Equity": "4240.50",
+		});
 		// The default selection is the current month, so the sheet is as of its
 		// last day, read in the browser's own time zone.
 		const expectedAsOf = await page.evaluate(() => {
@@ -373,8 +384,86 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 		for (const [item, shown] of Object.entries(onScreen)) {
 			expect(total(item), `${item} in the CSV`).toBe(shown);
 		}
+		const line = (group: string, item: string) =>
+			body.find((row) => row[3] === group && row[4] === item)?.[5];
+		expect(line("Current Assets", "Cash")).toBe("4515.00");
+		expect(line("Current Assets", "Accounts Receivable")).toBe("145.50");
+	});
+
+	test("balance sheet: says the ledger totals are unavailable when the server returns none", async ({
+		page,
+	}) => {
+		// get_billing_insights' body before 20261102055449: no ledger keys.
+		await answerBalanceSheetRpcs(page, {
+			totalRevenue: 30000,
+			mrr: 2500,
+			churnRate: 0,
+			unpaidTotal: 0,
+			unpaidCount: 0,
+			lateFeeTotal: 0,
+			tenantCount: 2,
+		});
+		await gotoReport(page, ROUTES.REPORTS_BALANCE_SHEET, "Balance Sheet");
+		await expect(page.getByText("Ledger totals unavailable")).toBeVisible({
+			timeout: 15000,
+		});
+		await expect(page.locator('[data-slot="stat"]')).toHaveCount(0);
+		const exportButton = page
+			.locator("main#main-content")
+			.getByRole("button", { name: "Export", exact: true });
+		await waitForHydrated(exportButton);
+		await expect(exportButton).toHaveAttribute("aria-disabled", "true");
+		await expect(exportButton).toHaveAccessibleDescription(
+			"The rent ledger totals this sheet is built on aren't available yet.",
+		);
 	});
 });
+
+/** The ledger as of a date, as get_billing_insights returns it with an end date. */
+const LEDGER_FIGURES = {
+	totalRevenue: 30000,
+	mrr: 2500,
+	churnRate: 0,
+	unpaidTotal: 145.5,
+	unpaidCount: 4,
+	lateFeeTotal: 150,
+	tenantCount: 2,
+	collectedTotal: 4515,
+	creditBalanceTotal: 420,
+	chargedTotal: 4240.5,
+	openingTotal: 300,
+} as const;
+
+/**
+ * Answer the balance sheet's RPCs in the browser: both get_billing_insights
+ * calls (the as-of date and the prior year's end) with `ledger`, and both
+ * get_expense_summary calls with no expenses. The header is the one
+ * `app-shell-sidebar.spec.ts` sends for the same cross-origin fulfil.
+ */
+async function answerBalanceSheetRpcs(
+	page: Page,
+	ledger: Readonly<Record<string, number>>,
+): Promise<void> {
+	const json = (body: unknown) => ({
+		status: 200,
+		contentType: "application/json",
+		headers: { "access-control-allow-origin": "*" },
+		body: JSON.stringify(body),
+	});
+	await page.route("**/rest/v1/rpc/get_billing_insights", (route) =>
+		route.fulfill(json(ledger)),
+	);
+	await page.route("**/rest/v1/rpc/get_expense_summary", (route) =>
+		route.fulfill(
+			json({
+				total_amount: 0,
+				categories: [],
+				monthly_totals: [],
+				monthly_average: 0,
+			}),
+		),
+	);
+}
 
 /**
  * The report headers' control rows below `sm` (66.2-39 VD-57). Below 640px the
