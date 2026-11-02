@@ -18,6 +18,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 
 // The handler registers Deno.serve() as a module side-effect (like every edge fn
 // in this repo). Setting DENO_TEST_NO_SERVE=1 before importing suppresses that
@@ -217,7 +218,7 @@ function makeClient(scenario: Scenario): {
 		return b;
 	};
 
-	const client = {
+	const client = fakeSupabaseClient({
 		auth: {
 			getUser: async (_token: string) => ({
 				data: { user: { id: OWNER_ID } },
@@ -235,7 +236,7 @@ function makeClient(scenario: Scenario): {
 			}
 			return { data: null, error: null };
 		},
-	} as unknown as SupabaseClient;
+	});
 
 	return { client, calls };
 }

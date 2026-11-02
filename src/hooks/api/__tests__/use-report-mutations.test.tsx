@@ -128,11 +128,12 @@ describe("callGeneratePdfFromHtml", () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			blob: async () => new Blob(["pdf-bytes"], { type: "application/pdf" }),
-		});
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+			new Response(new Blob(["pdf-bytes"], { type: "application/pdf" }), {
+				status: 200,
+			}),
+		);
+		globalThis.fetch = fetchMock;
 		// Mock the real anchor click so the success path's link.click() does not
 		// trigger jsdom's "Not implemented: navigation" on the blob: href.
 		const clickSpy = vi
@@ -163,11 +164,12 @@ describe("callGeneratePdfFromHtml", () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
-			statusText: "Internal Server Error",
-			text: async () => "edge boom",
-		}) as unknown as typeof fetch;
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(
+			new Response("edge boom", {
+				status: 500,
+				statusText: "Internal Server Error",
+			}),
+		);
 
 		await expect(
 			callGeneratePdfFromHtml("<html></html>", "report.pdf"),
@@ -180,13 +182,12 @@ describe("callGeneratePdfFromHtml", () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
+		const response = new Response(null, {
+			status: 502,
 			statusText: "Bad Gateway",
-			text: async () => {
-				throw new Error("stream consumed");
-			},
-		}) as unknown as typeof fetch;
+		});
+		vi.spyOn(response, "text").mockRejectedValue(new Error("stream consumed"));
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(response);
 
 		await expect(
 			callGeneratePdfFromHtml("<html></html>", "report.pdf"),
@@ -201,10 +202,10 @@ describe("callGeneratePdfFromHtml", () => {
 			data: { session: { access_token: "test-token" } },
 		});
 		const blob = new Blob(["pdf-bytes"], { type: "application/pdf" });
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: true,
-			blob: async () => blob,
-		}) as unknown as typeof fetch;
+		// The same Blob object back, so the assertion below is about identity.
+		const response = new Response(blob, { status: 200 });
+		vi.spyOn(response, "blob").mockResolvedValue(blob);
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(response);
 
 		const appendSpy = vi.spyOn(document.body, "appendChild");
 		const removeSpy = vi.spyOn(document.body, "removeChild");

@@ -23,6 +23,7 @@
 
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 // @deno-types="https://cdn.sheetjs.com/xlsx-0.20.3/package/types/index.d.ts"
 import * as XLSX from "xlsx";
 import {
@@ -157,7 +158,7 @@ function makeClient(s: Scenario): { client: SupabaseClient; calls: Calls } {
 		};
 		return b;
 	};
-	const client = {
+	const client = fakeSupabaseClient({
 		auth: {
 			getUser: async (_token: string) =>
 				s.authenticated
@@ -169,7 +170,7 @@ function makeClient(s: Scenario): { client: SupabaseClient; calls: Calls } {
 			calls.rpcs.push({ name, args });
 			return s.rpc[name] ?? { data: null, error: { message: `no ${name}` } };
 		},
-	} as unknown as SupabaseClient;
+	});
 	return { client, calls };
 }
 

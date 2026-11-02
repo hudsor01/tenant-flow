@@ -54,16 +54,21 @@ vi.mock("./unit-form-fields", () => ({
 
 import { UnitForm } from "./unit-form.client";
 
-const validUnit = {
+const validUnit: Unit = {
 	id: "u1",
+	owner_user_id: "owner-1",
 	property_id: "prop-1",
 	unit_number: "101",
 	bedrooms: 2,
 	bathrooms: 1,
 	square_feet: 800,
 	rent_amount: 1500,
+	rent_currency: "USD",
+	rent_period: "monthly",
 	status: "available",
-} as unknown as Unit;
+	created_at: "2024-01-01T00:00:00Z",
+	updated_at: "2024-01-01T00:00:00Z",
+};
 
 describe("UnitForm create-push guard", () => {
 	beforeEach(() => {

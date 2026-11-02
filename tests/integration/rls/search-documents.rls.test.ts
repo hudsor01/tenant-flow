@@ -538,7 +538,7 @@ describe("search_documents RPC", () => {
 			p_query: null,
 			p_entity_type: null,
 			p_categories: null,
-			p_limit: null as unknown as number,
+			p_limit: null,
 			p_offset: 0,
 		});
 		expect(e4).not.toBeNull();

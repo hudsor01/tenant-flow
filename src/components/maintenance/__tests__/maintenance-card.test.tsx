@@ -30,13 +30,10 @@ describe("MaintenanceCard", () => {
 		});
 
 		test("renders description when title is not present", () => {
-			// Arrange
-			// Use null since component uses ?? (nullish coalescing)
-			// Cast to unknown first since title is normally required
-			const requestWithoutTitle = {
-				...defaultRequest,
-				title: null as unknown as string,
-			};
+			// Arrange: a row whose select omitted `title` (the type says it is
+			// always there; the card still falls back, via `??`, at runtime).
+			const requestWithoutTitle = { ...defaultRequest };
+			Reflect.deleteProperty(requestWithoutTitle, "title");
 
 			// Act
 			render(<MaintenanceCard request={requestWithoutTitle} />);
@@ -75,8 +72,9 @@ describe("MaintenanceCard", () => {
 				...defaultRequest,
 				property: null,
 				unit: null,
-				unit_id: null as unknown as string,
 			};
+			// A row whose select omitted `unit_id`, so no unit suffix renders.
+			Reflect.deleteProperty(requestWithoutProperty, "unit_id");
 
 			// Act
 			render(<MaintenanceCard request={requestWithoutProperty} />);

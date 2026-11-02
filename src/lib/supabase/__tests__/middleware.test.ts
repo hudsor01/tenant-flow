@@ -52,29 +52,26 @@ vi.mock("next/server", () => {
 
 import { updateSession } from "#lib/supabase/middleware";
 
-// Helper: build a minimal NextRequest-like object
-function buildRequest(pathname: string): NextRequest {
-	const url = new URL(pathname, "http://localhost:3050");
-	const cookieStore = new Map<string, { name: string; value: string }>();
-	const headerStore = new Map<string, string>();
+// A real NextRequest: next/server is mocked above for NextResponse only.
+const { NextRequest: RealNextRequest } =
+	await vi.importActual<typeof import("next/server")>("next/server");
 
-	return {
-		nextUrl: url,
-		url: url.toString(),
-		headers: {
-			get: (name: string) => headerStore.get(name.toLowerCase()) ?? null,
-			set: (name: string, value: string) =>
-				headerStore.set(name.toLowerCase(), value),
-		},
-		cookies: {
-			getAll: () => [...cookieStore.values()],
-			set: (name: string, value: string) => {
-				cookieStore.set(name, { name, value });
-			},
-			get: (name: string) => cookieStore.get(name),
-		},
-	} as unknown as NextRequest;
+function buildRequest(pathname: string): NextRequest {
+	return new RealNextRequest(new URL(pathname, "http://localhost:3050"));
 }
+
+/** The cookie handlers updateSession passed to the last createServerClient call. */
+interface CookieHandlers {
+	getAll: () => unknown[];
+	setAll: (
+		cookies: {
+			name: string;
+			value: string;
+			options?: Record<string, unknown>;
+		}[],
+	) => void;
+}
+let lastCookieHandlers: CookieHandlers | null = null;
 
 // ── updateSession tests ────────────────────────────────────
 
@@ -83,20 +80,9 @@ describe("updateSession", () => {
 		vi.clearAllMocks();
 
 		mockCreateServerClient.mockImplementation(
-			(
-				_url: string,
-				_key: string,
-				options: {
-					cookies: {
-						getAll: () => unknown[];
-						setAll: (cookies: unknown[]) => void;
-					};
-				},
-			) => {
+			(_url: string, _key: string, options: { cookies: CookieHandlers }) => {
 				// Capture the cookie handlers for assertion
-				(
-					mockCreateServerClient as unknown as Record<string, unknown>
-				)._lastCookieHandlers = options.cookies;
+				lastCookieHandlers = options.cookies;
 				return {
 					auth: {
 						getUser: mockGetUser,
@@ -158,17 +144,8 @@ describe("updateSession", () => {
 		await updateSession(request);
 
 		// Invoke setAll to simulate Supabase refreshing tokens
-		const handlers = (
-			mockCreateServerClient as unknown as Record<string, unknown>
-		)._lastCookieHandlers as {
-			setAll: (
-				cookies: {
-					name: string;
-					value: string;
-					options?: Record<string, unknown>;
-				}[],
-			) => void;
-		};
+		const handlers = lastCookieHandlers;
+		if (!handlers) throw new Error("createServerClient was not called");
 		const testCookies = [
 			{ name: "sb-token", value: "refreshed-value", options: { path: "/" } },
 		];

@@ -56,7 +56,7 @@ describe("Activity RLS — cross-tenant isolation", () => {
 		const { data, error } = await clientA
 			.from("activity")
 			.insert({
-				user_id: null as unknown as string,
+				user_id: null,
 				activity_type: "test",
 				entity_type: "test",
 				entity_id: crypto.randomUUID(),

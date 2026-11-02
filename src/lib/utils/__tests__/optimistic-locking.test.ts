@@ -1,3 +1,4 @@
+import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 
 // Mock the frontend-logger (transitive dependency via api-error)
@@ -68,10 +69,10 @@ describe("handleConflictError (message overload)", () => {
 
 describe("handleConflictError (cache invalidation overload)", () => {
 	it("invalidates queries for each query key", () => {
-		const mockInvalidateQueries = vi.fn();
-		const queryClient = {
-			invalidateQueries: mockInvalidateQueries,
-		} as unknown as import("@tanstack/react-query").QueryClient;
+		const queryClient = new QueryClient();
+		const mockInvalidateQueries = vi
+			.spyOn(queryClient, "invalidateQueries")
+			.mockResolvedValue(undefined);
 		const queryKeys = [["properties"], ["dashboard"]];
 
 		handleConflictError("Property", "123", queryClient, queryKeys);

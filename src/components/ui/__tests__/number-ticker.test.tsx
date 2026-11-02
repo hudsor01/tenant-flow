@@ -157,8 +157,7 @@ describe("NumberTicker", () => {
 		}
 
 		// Direct assignment works because the property is writable (unit-setup.ts sets writable: true)
-		window.IntersectionObserver =
-			CapturingObserver as unknown as typeof IntersectionObserver;
+		window.IntersectionObserver = CapturingObserver;
 
 		render(<NumberTicker value={5} duration={2000} />);
 

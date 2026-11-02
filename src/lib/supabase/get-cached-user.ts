@@ -17,9 +17,10 @@ let queryClientRef: QueryClient | null = null;
 
 /**
  * Register the QueryClient reference so getCachedUser can read the auth cache.
- * Called once from AuthStoreProvider on mount.
+ * Called once from AuthStoreProvider on mount; `null` clears it (the state
+ * before any provider mounts).
  */
-export function setQueryClientRef(qc: QueryClient) {
+export function setQueryClientRef(qc: QueryClient | null) {
 	queryClientRef = qc;
 }
 

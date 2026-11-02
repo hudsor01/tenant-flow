@@ -43,13 +43,21 @@ function property(id: string): PropertyItem {
 	return {
 		id,
 		name: `Property ${id}`,
-		addressLine: "1 Main St",
+		addressLine1: "1 Main St",
+		addressLine2: null,
 		city: "Townsville",
-		availableUnits: 1,
-		maintenanceUnits: 0,
+		state: "TX",
+		postalCode: "78701",
 		propertyType: "single_family",
 		status: "active",
-	} as unknown as PropertyItem;
+		imageUrl: undefined,
+		totalUnits: 1,
+		occupiedUnits: 0,
+		availableUnits: 1,
+		maintenanceUnits: 0,
+		occupancyRate: 0,
+		monthlyRevenue: 0,
+	};
 }
 
 async function renderProperties(properties: PropertyItem[]) {

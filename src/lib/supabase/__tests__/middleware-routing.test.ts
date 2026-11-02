@@ -88,24 +88,12 @@ vi.mock("next/server", () => {
 import { NextResponse } from "next/server";
 import { proxy } from "#proxy";
 
-function buildRequest(pathname: string): NextRequest {
-	const url = new URL(pathname, "http://localhost:3050");
-	const nextUrl = Object.assign(url, {
-		clone: () => new URL(url.toString()),
-	});
-	const cookieStore = new Map<string, { name: string; value: string }>();
+// A real NextRequest: next/server is mocked above for NextResponse only.
+const { NextRequest: RealNextRequest } =
+	await vi.importActual<typeof import("next/server")>("next/server");
 
-	return {
-		nextUrl,
-		url: url.toString(),
-		cookies: {
-			getAll: () => [...cookieStore.values()],
-			set: (name: string, value: string) => {
-				cookieStore.set(name, { name, value });
-			},
-			get: (name: string) => cookieStore.get(name),
-		},
-	} as unknown as NextRequest;
+function buildRequest(pathname: string): NextRequest {
+	return new RealNextRequest(new URL(pathname, "http://localhost:3050"));
 }
 
 function makeUser(): User {

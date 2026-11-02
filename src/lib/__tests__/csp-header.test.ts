@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { User } from "@supabase/supabase-js";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -80,24 +80,7 @@ vi.mock("#env", () => ({
 import { proxy } from "#proxy";
 
 function buildRequest(pathname: string): NextRequest {
-	const url = new URL(pathname, "http://localhost:3050");
-	const nextUrl = Object.assign(url, {
-		clone: () => new URL(url.toString()),
-	});
-	const cookieStore = new Map<string, { name: string; value: string }>();
-
-	return {
-		nextUrl,
-		url: url.toString(),
-		headers: new Headers(),
-		cookies: {
-			getAll: () => [...cookieStore.values()],
-			set: (name: string, value: string) => {
-				cookieStore.set(name, { name, value });
-			},
-			get: (name: string) => cookieStore.get(name),
-		},
-	} as unknown as NextRequest;
+	return new NextRequest(new URL(pathname, "http://localhost:3050"));
 }
 
 function makeUser(): User {

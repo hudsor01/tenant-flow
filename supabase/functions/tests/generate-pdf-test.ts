@@ -16,6 +16,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 import { buildFinancialAnalyticsTable } from "../_shared/financial-analytics-report.ts";
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import {
@@ -82,7 +83,7 @@ function makeClient(
 		};
 		return b;
 	};
-	const client = {
+	const client = fakeSupabaseClient({
 		auth: {
 			getUser: async () => ({ data: { user: { id: "owner-1" } }, error: null }),
 		},
@@ -92,7 +93,7 @@ function makeClient(
 			calls.push({ name, args });
 			return rpc[name] ?? { data: null, error: { message: `no ${name}` } };
 		},
-	} as unknown as SupabaseClient;
+	});
 	return { client, rpcs, calls };
 }
 
@@ -254,7 +255,7 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 				now: () => NOW,
 			});
 			assertEquals(res.status, 200, reportType);
-			assertEquals(calls, taxYearReportCalls(reportType, "owner-1", 2024));
+			assertEquals(calls, [...taxYearReportCalls(reportType, "owner-1", 2024)]);
 			const report = buildTaxYearReport(
 				reportType,
 				{

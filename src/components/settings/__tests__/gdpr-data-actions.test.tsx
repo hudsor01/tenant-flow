@@ -118,7 +118,7 @@ describe("GdprDataActions", () => {
 			screen.getByRole("button", { name: /^download my data$/i }),
 		);
 		// The component calls fetch() against /functions/v1/export-user-data
-		const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
+		const fetchMock = vi.mocked(globalThis.fetch);
 		expect(fetchMock).toHaveBeenCalled();
 		const firstCallUrl = String(fetchMock.mock.calls[0]?.[0] ?? "");
 		expect(firstCallUrl).toContain("export-user-data");

@@ -15,7 +15,9 @@
  * annotation types without an assertion). Scope is now every first-party code
  * root -- `src/`, `supabase/functions/`, `scripts/` and `tests/`.
  *
- *  - `PRODUCTION` excludes test files; `EVERYTHING` includes them.
+ *  - `PRODUCTION` excludes test files; the second check covers the rest. The
+ *    test files carried 43 (fetch and QueryClient fakes, partial fixtures,
+ *    hand-built NextRequests, Deno fake clients), each replaced in 66.2-39.
  *  - Wholly-comment lines (`//`, `/*`, ` * `) and string literals are skipped,
  *    so prose about the rule and assertions that a source does not contain the
  *    phrase (apply-token-contract.test.ts) do not trip the guard.
@@ -138,6 +140,19 @@ describe("TYPE-03 — zero double assertions in first-party code", () => {
 		expect(
 			violations,
 			`Reintroduced double assertion(s) -- use a typed mapper, a type guard or a sound annotation (see mapDocumentRow in document-keys.ts):\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("no double assertion in test code (unit, Deno, integration, e2e)", () => {
+		// Test fakes use a real value (Response, NextRequest, QueryClient), a
+		// typed vi.fn, a complete fixture or a type guard
+		// (supabase/functions/tests/fake-supabase-client.ts) instead.
+		const violations = findViolations(
+			EVERYTHING.filter((f) => !PRODUCTION.includes(f)),
+		);
+		expect(
+			violations,
+			`Double assertion(s) in test code:\n${violations.join("\n")}`,
 		).toEqual([]);
 	});
 });

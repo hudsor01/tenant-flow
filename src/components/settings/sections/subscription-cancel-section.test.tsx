@@ -32,9 +32,8 @@ vi.mock("sonner", () => ({
 
 import { SubscriptionCancelSection } from "./subscription-cancel-section";
 
-type CancelReturn = ReturnType<typeof hooks.useCancelSubscriptionMutation>;
-
-function mutationMock(overrides: Partial<CancelReturn> = {}): CancelReturn {
+/** An idle useMutation result: the fields the section reads, as the hook returns them. */
+function idleMutation() {
 	return {
 		mutate: vi.fn(),
 		mutateAsync: vi.fn(),
@@ -51,8 +50,13 @@ function mutationMock(overrides: Partial<CancelReturn> = {}): CancelReturn {
 		failureCount: 0,
 		failureReason: null,
 		context: undefined,
-		...overrides,
-	} as unknown as CancelReturn;
+	};
+}
+
+type MutationStub = ReturnType<typeof idleMutation>;
+
+function mutationMock(overrides: Partial<MutationStub> = {}): MutationStub {
+	return { ...idleMutation(), ...overrides };
 }
 
 function mockActive(overrides: { cancelAtPeriodEnd?: boolean } = {}) {
