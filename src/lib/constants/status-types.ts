@@ -51,9 +51,18 @@ function isPropertyType(value: string): value is PropertyType {
 	return Object.hasOwn(PROPERTY_TYPE_LABELS, value);
 }
 
-/** A stored property_type as its label; a value outside the set as written. */
+/**
+ * A stored property_type as its label; a value outside the set as written.
+ * properties.property_type is free text with no CHECK: the form writes the
+ * upper-case values above, but rows written by other paths hold lower-case ones
+ * ("single_family") and the older "multi_family" for MULTI_UNIT, which
+ * property-transforms.ts already reads as the same type. So the match ignores
+ * case and takes that alias.
+ */
 export function propertyTypeLabel(value: string): string {
-	return isPropertyType(value) ? PROPERTY_TYPE_LABELS[value] : value;
+	const key = value.toUpperCase();
+	const type = key === "MULTI_FAMILY" ? "MULTI_UNIT" : key;
+	return isPropertyType(type) ? PROPERTY_TYPE_LABELS[type] : value;
 }
 
 /**
