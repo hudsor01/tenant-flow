@@ -16,21 +16,21 @@ function parse(csv: string): string[][] {
 
 const yearEnd: YearEndSummary = {
 	year: 2025,
-	grossRentalIncome: 54000,
+	rentReceived: 54000,
 	operatingExpenses: 12500.5,
 	netIncome: 41499.5,
 	byProperty: [
 		{
 			propertyId: "p1",
 			propertyName: "=Maple Court",
-			income: 30000,
+			rentReceived: 30000,
 			expenses: 8000,
 			netIncome: 22000,
 		},
 		{
 			propertyId: "p2",
 			propertyName: "Oak, Unit 2",
-			income: 24000,
+			rentReceived: 24000,
 			expenses: 24500.5,
 			netIncome: -500.5,
 		},
@@ -39,11 +39,22 @@ const yearEnd: YearEndSummary = {
 };
 
 describe("buildYearEndCsv", () => {
+	it("heads each property's receipts Rent Received, not Income", () => {
+		expect([...YEAR_END_CSV_HEADER]).toEqual([
+			"Section",
+			"Item",
+			"Value",
+			"Rent Received",
+			"Expenses",
+			"Net",
+		]);
+	});
+
 	it("keeps every section's figures under one fixed header", () => {
 		expect(parse(buildYearEndCsv(yearEnd))).toEqual([
 			[...YEAR_END_CSV_HEADER],
 			["Overview", "Tax Year", "2025", "", "", ""],
-			["Overview", "Gross Rental Income", "54000.00", "", "", ""],
+			["Overview", "Rent Received", "54000.00", "", "", ""],
 			["Overview", "Operating Expenses", "12500.50", "", "", ""],
 			["Overview", "Net Income", "41499.50", "", "", ""],
 			["By Property", "'=Maple Court", "", "30000.00", "8000.00", "22000.00"],

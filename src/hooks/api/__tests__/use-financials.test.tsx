@@ -4,7 +4,7 @@
  * Tests useIncomeStatement, useCashFlow, useBalanceSheet, useTaxDocuments
  * using Supabase RPC mocks. These hooks delegate to financial-keys.ts, which
  * calls get_billing_insights (the rent ledger as of a date) and
- * get_expense_summary; the tax documents also read get_dashboard_stats.
+ * get_expense_summary; none of them reads get_dashboard_stats.
  *
  * Note: useExpenseSummary is tested in use-financial-overview.test.ts.
  */
@@ -661,22 +661,20 @@ describe("useTaxDocuments", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches tax documents from parallel RPCs", async () => {
-		mockRpc
-			.mockResolvedValueOnce({
-				data: { revenue: { yearly: 500000 }, units: {} },
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: {
-					total_amount: 120000,
-					categories: [
-						{ category: "maintenance", amount: 60000, percentage: 50 },
-						{ category: "insurance", amount: 60000, percentage: 50 },
-					],
-				},
-				error: null,
-			});
+	it("reads the tax year's income as rent received on the ledger", async () => {
+		answerPeriod({
+			ledger: {
+				"2024-12-31": ledgerAsOf({ collectedTotal: 512345.67 }),
+				"2023-12-31": ledgerAsOf({ collectedTotal: 12345.67 }),
+			},
+			expenses: {
+				total_amount: 120000,
+				categories: [
+					{ category: "maintenance", amount: 60000, percentage: 50 },
+					{ category: "insurance", amount: 60000, percentage: 50 },
+				],
+			},
+		});
 
 		const { result } = renderHook(() => useTaxDocuments(2024), {
 			wrapper: createWrapper(),
@@ -686,16 +684,44 @@ describe("useTaxDocuments", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		const data = result.current.data;
-		expect(data?.taxYear).toBe(2024);
-		expect(data?.totals?.totalIncome).toBe(500000);
-		expect(data?.totals?.totalDeductions).toBe(120000);
-		expect(data?.totals?.netTaxableIncome).toBe(380000);
-		expect(data?.expenseCategories?.length).toBe(2);
-		expect(data?.schedule?.scheduleE?.grossRentalIncome).toBe(500000);
+		const result_ = result.current.data;
+		if (result_?.status !== "ready") throw new Error("expected documents");
+		const data = result_.documents;
+		expect(data.taxYear).toBe(2024);
+		// 512,345.67 received by the end of 2024 less 12,345.67 by the end of
+		// 2023; the scheduled 999,999 rides along and is in no figure.
+		expect(data.totals.totalIncome).toBe(500000);
+		expect(data.totals.totalDeductions).toBe(120000);
+		expect(data.totals.netTaxableIncome).toBe(380000);
+		expect(data.expenseCategories.length).toBe(2);
+		expect(data.schedule.scheduleE.grossRentalIncome).toBe(500000);
+		expect(mockRpc).not.toHaveBeenCalledWith(
+			"get_dashboard_stats",
+			expect.anything(),
+		);
 	});
 
-	it("returns defaults when no user", async () => {
+	it("reports the ledger unavailable rather than a $0 gross income", async () => {
+		answerPeriod({
+			ledger: {
+				"2024-12-31": { totalRevenue: 30000, unpaidTotal: 0 },
+				"2023-12-31": { totalRevenue: 30000, unpaidTotal: 0 },
+			},
+			expenses: { total_amount: 0, categories: [] },
+		});
+		const { result } = renderHook(() => useTaxDocuments(2024), {
+			wrapper: createWrapper(),
+		});
+		await waitFor(() => {
+			expect(result.current.isSuccess).toBe(true);
+		});
+		expect(result.current.data).toEqual({
+			status: "ledger-unavailable",
+			taxYear: 2024,
+		});
+	});
+
+	it("fails when no one is signed in, rather than drawing $0 documents", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
 		const { result } = renderHook(() => useTaxDocuments(2024), {
@@ -703,12 +729,9 @@ describe("useTaxDocuments", () => {
 		});
 
 		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
+			expect(result.current.isError).toBe(true);
 		});
-
-		expect(result.current.data?.taxYear).toBe(2024);
-		expect(result.current.data?.totals?.totalIncome).toBe(0);
-		expect(result.current.data?.expenseCategories).toEqual([]);
+		expect(mockRpc).not.toHaveBeenCalled();
 	});
 
 	it("handles RPC error gracefully", async () => {

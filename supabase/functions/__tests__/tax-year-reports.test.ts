@@ -79,8 +79,14 @@ type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
 
 function richAnswers(): RpcAnswers {
 	return {
-		get_dashboard_stats: {
-			data: { revenue: { monthly: 5100, yearly: 61200 }, units: {} },
+		// The rent ledger as of December 31 of the year and of the year before
+		// (keyed name@end_date_param): 61,200.25 received in 2024.
+		"get_billing_insights@2024-12-31": {
+			data: { collectedTotal: 74450.25, unpaidTotal: 300, chargedTotal: 74750.25 },
+			error: null,
+		},
+		"get_billing_insights@2023-12-31": {
+			data: { collectedTotal: 13250, unpaidTotal: 0, chargedTotal: 13250 },
 			error: null,
 		},
 		get_expense_summary: {
@@ -107,13 +113,15 @@ function richAnswers(): RpcAnswers {
 					total_revenue: 36000,
 					total_expenses: 9000.5,
 					net_income: 26999.5,
+					timeframe: "2024-01-01/2024-12-31",
 				},
 				{
 					property_id: "p2",
 					property_name: "Elm & Oak",
-					total_revenue: 25200,
+					total_revenue: 25200.25,
 					total_expenses: 2120,
-					net_income: 23080,
+					net_income: 23080.25,
+					timeframe: "2024-01-01/2024-12-31",
 				},
 			],
 			error: null,
@@ -132,9 +140,13 @@ function plainAnswers(): RpcAnswers {
 	return answers;
 }
 
+/** Answer by name and as-of date first (name@end_date_param), then by name. */
 function answer(answers: RpcAnswers) {
-	return (name: string) => {
-		const result = answers[name];
+	return (name: string, args?: Readonly<Record<string, unknown>>) => {
+		const result =
+			(args?.["end_date_param"] !== undefined
+				? answers[`${name}@${String(args["end_date_param"])}`]
+				: undefined) ?? answers[name];
 		if (!result) throw new Error(`unexpected rpc ${name}`);
 		return Promise.resolve(result);
 	};
@@ -162,21 +174,29 @@ async function screen(answers: RpcAnswers): Promise<Screen> {
 	mockRpc.mockImplementation(
 		(name: string, args: Readonly<Record<string, string | number>>) => {
 			sink.push({ name, args });
-			return answer(answers)(name);
+			return answer(answers)(name, args);
 		},
 	);
 	sink = calls.yearEnd;
-	const yearEnd = await queryClient().query(
+	const yearEndResult = await queryClient().query(
 		reportAnalyticsQueries.yearEnd(YEAR),
 	);
+	if (yearEndResult.status !== "ready") {
+		throw new Error("the year-end page shows its unavailable state");
+	}
+	const yearEnd = yearEndResult.summary;
 	sink = calls.report1099;
 	const report1099 = await queryClient().query(
 		reportAnalyticsQueries.report1099(YEAR),
 	);
 	sink = calls.taxDocuments;
-	const taxDocuments = await queryClient().query(
+	const taxResult = await queryClient().query(
 		financialTaxQueries.taxDocuments(YEAR),
 	);
+	if (taxResult.status !== "ready") {
+		throw new Error("the tax documents page shows its unavailable state");
+	}
+	const taxDocuments = taxResult.documents;
 	return { yearEnd, report1099, taxDocuments, calls };
 }
 
@@ -195,7 +215,7 @@ async function exported(
 	const load = await loadTaxYearSources(
 		(name, args) => {
 			calls.push({ name, args });
-			return answer(answers)(name);
+			return answer(answers)(name, args);
 		},
 		reportType,
 		USER_ID,
@@ -252,9 +272,9 @@ function expectedYearEndRows(page: Screen): ReportCell[][] {
 	return [
 		[
 			"Summary",
-			"Gross Rental Income",
+			"Rent Received",
 			null,
-			cents(s.grossRentalIncome),
+			cents(s.rentReceived),
 			null,
 			null,
 			null,
@@ -276,7 +296,7 @@ function expectedYearEndRows(page: Screen): ReportCell[][] {
 			p.propertyName,
 			null,
 			null,
-			cents(p.income),
+			cents(p.rentReceived),
 			cents(p.expenses),
 			cents(p.netIncome),
 			null,
@@ -298,7 +318,7 @@ function expectedYearEndRows(page: Screen): ReportCell[][] {
 /** The tax-documents page's figures as rows, top to bottom. */
 function expectedTaxRows(data: TaxDocumentsData): ReportCell[][] {
 	return [
-		["Summary", "Gross Income", cents(data.totals.totalIncome), null],
+		["Summary", "Rent Received", cents(data.totals.totalIncome), null],
 		["Summary", "Total Deductions", cents(data.totals.totalDeductions), null],
 		[
 			"Summary",
@@ -370,6 +390,7 @@ describe("tax-year reports hold their pages' figures", () => {
 					total_revenue: 9000.505,
 					total_expenses: 9200.5,
 					net_income: -199.995,
+					timeframe: "2024-01-01/2024-12-31",
 				},
 			],
 			error: null,
@@ -391,7 +412,7 @@ describe("tax-year reports hold their pages' figures", () => {
 			Item: "plain",
 			Jobs: "plain",
 			Amount: "money",
-			Income: "money",
+			"Rent Received": "money",
 			Expenses: "money",
 			"Net Income": "money",
 			Status: "plain",
@@ -427,6 +448,98 @@ describe("tax-year reports hold their pages' figures", () => {
 				p_end_date: "2019-12-31",
 			});
 		}
+		// The calendar year, not the function's trailing 30 days, and the
+		// ledger as of the year's end and the year before's.
+		expect(taxYearReportCalls(YEAR_END_REPORT_TYPE, USER_ID, 2019)).toEqual([
+			{
+				name: "get_billing_insights",
+				args: { owner_id_param: USER_ID, end_date_param: "2019-12-31" },
+			},
+			{
+				name: "get_billing_insights",
+				args: { owner_id_param: USER_ID, end_date_param: "2018-12-31" },
+			},
+			{
+				name: "get_expense_summary",
+				args: {
+					p_user_id: USER_ID,
+					p_start_date: "2019-01-01",
+					p_end_date: "2019-12-31",
+				},
+			},
+			{
+				name: "get_property_performance_analytics",
+				args: { p_user_id: USER_ID, p_timeframe: "2019-01-01..2019-12-31" },
+			},
+		]);
+		for (const type of TAX_YEAR_REPORT_TYPES) {
+			expect(
+				taxYearReportCalls(type, USER_ID, 2019).map((c) => c.name),
+				type,
+			).not.toContain("get_dashboard_stats");
+		}
+	});
+
+	it("presents rent received, never scheduled rent, as the year's income", async () => {
+		const page = await screen(richAnswers());
+		// 74,450.25 - 13,250 received in 2024.
+		expect(page.yearEnd.rentReceived).toBe(61200.25);
+		expect(page.taxDocuments.totals.totalIncome).toBe(61200.25);
+		const file = await exported(YEAR_END_REPORT_TYPE, richAnswers());
+		expect(file.rows[0]).toEqual([
+			"Summary",
+			"Rent Received",
+			null,
+			61200.25,
+			null,
+			null,
+			null,
+			null,
+		]);
+		expect(file.header).toContain("Rent Received");
+	});
+
+	it("shows unavailable, and writes no file, without the ledger's totals", async () => {
+		// get_billing_insights' body before 20261102055449.
+		const answers = richAnswers();
+		const before = { data: { unpaidTotal: 0, mrr: 5100 }, error: null };
+		answers["get_billing_insights@2024-12-31"] = before;
+		answers["get_billing_insights@2023-12-31"] = before;
+		await expect(screen(answers)).rejects.toMatchObject({
+			message: expect.stringContaining("unavailable state"),
+		});
+		for (const type of [YEAR_END_REPORT_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
+			await expect(exported(type, answers), type).rejects.toMatchObject({
+				message: expect.stringContaining("rent ledger totals unavailable"),
+			});
+		}
+		// The 1099 section reads no ledger figure and is unaffected.
+		expect((await exported(REPORT_1099_TYPE, answers)).rows.length).toBe(2);
+	});
+
+	it("shows unavailable, and writes no file, from the property body before 20261102163709", async () => {
+		const answers = richAnswers();
+		answers.get_property_performance_analytics = {
+			data: [
+				{
+					property_id: "p1",
+					property_name: "Maple Court",
+					total_revenue: 0,
+					total_expenses: 106,
+					net_income: -106,
+					timeframe: "2024-01-01..2024-12-31",
+				},
+			],
+			error: null,
+		};
+		await expect(screen(answers)).rejects.toMatchObject({
+			message: expect.stringContaining("year-end page shows its unavailable"),
+		});
+		await expect(
+			exported(YEAR_END_REPORT_TYPE, answers),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("property rent received unavailable"),
+		});
 	});
 
 	it("fails where the page fails: a non-array categories payload", async () => {
@@ -447,15 +560,19 @@ describe("tax-year reports hold their pages' figures", () => {
 	});
 
 	it("an RPC error fails the load, naming the RPC", async () => {
-		for (const rpc of [
-			"get_dashboard_stats",
-			"get_expense_summary",
-			"get_property_performance_analytics",
-		]) {
+		for (const [rpc, key] of [
+			["get_billing_insights", "get_billing_insights@2024-12-31"],
+			["get_billing_insights", "get_billing_insights@2023-12-31"],
+			["get_expense_summary", "get_expense_summary"],
+			[
+				"get_property_performance_analytics",
+				"get_property_performance_analytics",
+			],
+		] as const) {
 			const answers = richAnswers();
-			answers[rpc] = { data: null, error: { message: "denied" } };
+			answers[key] = { data: null, error: { message: "denied" } };
 			const load = await loadTaxYearSources(
-				(name) => answer(answers)(name),
+				(name, args) => answer(answers)(name, args),
 				YEAR_END_REPORT_TYPE,
 				USER_ID,
 				YEAR,

@@ -16,16 +16,25 @@
  * THE SCREEN IS THE SPEC. Each report makes the calls its page makes, with the
  * same arguments, and derives each figure the same way:
  *   - `year-end` is `/reports/year-end`: `reportAnalyticsQueries.yearEnd(year)`
- *     (get_dashboard_stats, get_expense_summary for the year,
- *     get_property_performance_analytics) and `report1099(year)` (the same
+ *     (get_billing_insights as of December 31 of the year and of the year
+ *     before, get_expense_summary for the year, get_property_performance_
+ *     analytics for the calendar year) and `report1099(year)` (the same
  *     get_expense_summary call), `src/hooks/api/query-keys/report-analytics-keys.ts`.
- *     Rows: the three summary cards, the By Property table, the Expense
- *     Breakdown (largest first, as the page sorts it), the 1099-NEC table.
+ *     Rows: the three summary cards, the By Property table (Schedule E
+ *     support), the Expense Breakdown (largest first, as the page sorts it),
+ *     the 1099-NEC table.
  *   - `1099` is that page's 1099-NEC section alone.
  *   - `financial` is `/reports/tax-documents` (the wire name predates the
- *     page): `financialTaxQueries.taxDocuments(year)` (get_dashboard_stats,
- *     get_expense_summary for the year), `src/hooks/api/query-keys/expense-keys.ts`.
+ *     page): `financialTaxQueries.taxDocuments(year)` (the two
+ *     get_billing_insights calls, get_expense_summary for the year),
+ *     `src/hooks/api/query-keys/expense-keys.ts`.
  *     Rows: the three summary cards and the Schedule E deductible expenses.
+ * Income is rent received, from the rent ledger: collectedTotal as of December
+ * 31 of the year less as of December 31 of the year before (cash basis), and
+ * each property's receipts in the calendar year (20261102163709). When the
+ * server cannot report them yet (get_billing_insights before 20261102055449,
+ * or a property row whose `timeframe` is not the year), the page says so and
+ * the report throws, so no file ever presents $0 as a tax year's income.
  *     Property Depreciation has no data source (the query returns it empty),
  *     so it contributes no rows; the test fails if it ever fills.
  * The test runs each page query and this module against the same RPC answers
@@ -60,7 +69,7 @@ export const YEAR_END_HEADER = [
 	"Item",
 	"Jobs",
 	"Amount",
-	"Income",
+	"Rent Received",
 	"Expenses",
 	"Net Income",
 	"Status",
@@ -78,7 +87,7 @@ export const YEAR_END_FORMATS: readonly ReportCellFormat[] =
 	YEAR_END_HEADER.map(
 		(column): ReportCellFormat =>
 			column === "Amount" ||
-			column === "Income" ||
+			column === "Rent Received" ||
 			column === "Expenses" ||
 			column === "Net Income"
 				? "money"
@@ -95,7 +104,10 @@ export const TAX_DOCUMENTS_FORMATS: readonly ReportCellFormat[] = [
 
 /** The raw `data` of each RPC a tax-year report reads (null when not read). */
 export interface TaxYearSources {
-	readonly dashboardStats: unknown;
+	/** get_billing_insights as of December 31 of the year. */
+	readonly ledgerAtYearEnd: unknown;
+	/** get_billing_insights as of December 31 of the year before. */
+	readonly ledgerAtPriorYearEnd: unknown;
 	readonly expenseSummary: unknown;
 	readonly propertyPerformance: unknown;
 }
@@ -104,12 +116,17 @@ type SourceKey = keyof TaxYearSources;
 
 const SOURCES_BY_REPORT: Readonly<Record<string, readonly SourceKey[]>> = {
 	[YEAR_END_REPORT_TYPE]: [
-		"dashboardStats",
+		"ledgerAtYearEnd",
+		"ledgerAtPriorYearEnd",
 		"expenseSummary",
 		"propertyPerformance",
 	],
 	[REPORT_1099_TYPE]: ["expenseSummary"],
-	[TAX_DOCUMENTS_REPORT_TYPE]: ["dashboardStats", "expenseSummary"],
+	[TAX_DOCUMENTS_REPORT_TYPE]: [
+		"ledgerAtYearEnd",
+		"ledgerAtPriorYearEnd",
+		"expenseSummary",
+	],
 };
 
 /** The report types this module builds, in the order the pages list them. */
@@ -125,9 +142,13 @@ export function taxYearRpcCalls(
 	year: number,
 ): Readonly<Record<SourceKey, RpcCall>> {
 	return {
-		dashboardStats: {
-			name: "get_dashboard_stats",
-			args: { p_user_id: userId },
+		ledgerAtYearEnd: {
+			name: "get_billing_insights",
+			args: { owner_id_param: userId, end_date_param: `${year}-12-31` },
+		},
+		ledgerAtPriorYearEnd: {
+			name: "get_billing_insights",
+			args: { owner_id_param: userId, end_date_param: `${year - 1}-12-31` },
 		},
 		expenseSummary: {
 			name: "get_expense_summary",
@@ -139,7 +160,10 @@ export function taxYearRpcCalls(
 		},
 		propertyPerformance: {
 			name: "get_property_performance_analytics",
-			args: { p_user_id: userId },
+			args: {
+				p_user_id: userId,
+				p_timeframe: `${year}-01-01..${year}-12-31`,
+			},
 		},
 	};
 }
@@ -181,7 +205,8 @@ export async function loadTaxYearSources(
 		keys.map((key) => rpc(calls[key].name, calls[key].args)),
 	);
 	const data: Record<SourceKey, unknown> = {
-		dashboardStats: null,
+		ledgerAtYearEnd: null,
+		ledgerAtPriorYearEnd: null,
 		expenseSummary: null,
 		propertyPerformance: null,
 	};
@@ -231,10 +256,19 @@ function percentOneDecimal(value: number): number {
 	return Number(value.toFixed(1));
 }
 
-/** `revenue.yearly` of get_dashboard_stats, as both pages read it. */
-function yearlyScheduledRevenue(dashboardStats: unknown): number {
-	const revenue = asRecord(asRecord(dashboardStats)?.["revenue"]);
-	return Number(revenue?.["yearly"] ?? 0);
+/**
+ * Rent received in the year, as both pages compute it: collectedTotal as of
+ * December 31 less as of December 31 of the year before, to the cent. Throws
+ * when either is missing (the body before 20261102055449): the pages show
+ * their unavailable state there, and the file must not hold a $0 instead.
+ */
+function rentReceivedInYear(sources: TaxYearSources): number {
+	const end = asRecord(sources.ledgerAtYearEnd)?.["collectedTotal"];
+	const before = asRecord(sources.ledgerAtPriorYearEnd)?.["collectedTotal"];
+	if (typeof end !== "number" || typeof before !== "number") {
+		throw new Error("rent ledger totals unavailable");
+	}
+	return Math.round((end - before) * 100) / 100;
 }
 
 function expenseTotal(expenseSummary: unknown): number {
@@ -304,17 +338,23 @@ function rows1099(expenseSummary: unknown): Row[] {
 	);
 }
 
-function yearEndRows(sources: TaxYearSources): Row[] {
-	const gross = yearlyScheduledRevenue(sources.dashboardStats);
+function yearEndRows(sources: TaxYearSources, year: number): Row[] {
+	const received = rentReceivedInYear(sources);
 	const operating = expenseTotal(sources.expenseSummary);
+	// Each row must state the calendar year (20261102163709); the body before
+	// it echoes p_timeframe and returns 0 as every property's revenue.
+	const taxYearWindow = `${year}-01-01/${year}-12-31`;
 	const byProperty = arrayOrEmpty(
 		sources.propertyPerformance,
 		"property performance",
 	).map((entry) => {
 		const row = asRecord(entry) ?? {};
+		if (row["timeframe"] !== taxYearWindow) {
+			throw new Error("property rent received unavailable");
+		}
 		return {
 			name: String(row["property_name"] ?? ""),
-			income: Number(row["total_revenue"] ?? 0),
+			received: Number(row["total_revenue"] ?? 0),
 			expenses: Number(row["total_expenses"] ?? 0),
 			net: Number(row["net_income"] ?? 0),
 		};
@@ -323,12 +363,14 @@ function yearEndRows(sources: TaxYearSources): Row[] {
 		.map(({ category, amount }) => ({ category, amount }))
 		.sort((a, b) => b.amount - a.amount);
 	return [
-		yearEndRow("Summary", "Gross Rental Income", { Amount: money(gross) }),
+		yearEndRow("Summary", "Rent Received", { Amount: money(received) }),
 		yearEndRow("Summary", "Operating Expenses", { Amount: money(operating) }),
-		yearEndRow("Summary", "Net Income", { Amount: money(gross - operating) }),
+		yearEndRow("Summary", "Net Income", {
+			Amount: money(Math.round((received - operating) * 100) / 100),
+		}),
 		...byProperty.map((p) =>
 			yearEndRow("By Property", p.name, {
-				Income: money(p.income),
+				"Rent Received": money(p.received),
 				Expenses: money(p.expenses),
 				"Net Income": money(p.net),
 			}),
@@ -341,12 +383,17 @@ function yearEndRows(sources: TaxYearSources): Row[] {
 }
 
 function taxDocumentRows(sources: TaxYearSources): Row[] {
-	const income = yearlyScheduledRevenue(sources.dashboardStats);
+	const income = rentReceivedInYear(sources);
 	const deductions = expenseTotal(sources.expenseSummary);
 	return [
-		["Summary", "Gross Income", money(income), null],
+		["Summary", "Rent Received", money(income), null],
 		["Summary", "Total Deductions", money(deductions), null],
-		["Summary", "Net Taxable Income", money(income - deductions), null],
+		[
+			"Summary",
+			"Net Taxable Income",
+			money(Math.round((income - deductions) * 100) / 100),
+			null,
+		],
 		...expenseCategories(sources.expenseSummary).map(
 			(c): Row => [
 				"Deductible Expenses (Schedule E)",
@@ -384,7 +431,7 @@ export function buildTaxYearReport(
 			table: columnTable(
 				YEAR_END_HEADER,
 				YEAR_END_FORMATS,
-				yearEndRows(sources),
+				yearEndRows(sources, year),
 			),
 		};
 	}

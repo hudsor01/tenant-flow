@@ -43,8 +43,14 @@ export default function YearEndReportsPage() {
 	const [isExportingYearEnd, setIsExportingYearEnd] = useState(false);
 	const [isExporting1099, setIsExporting1099] = useState(false);
 
-	const { data: yearEndResponse, isLoading: isLoadingYearEnd } =
+	const { data: yearEndResult, isLoading: isLoadingYearEnd } =
 		useYearEndSummary(selectedYear);
+	// null-free: when the server cannot report the year's rent received yet
+	// (get_billing_insights before 20261102055449, or
+	// get_property_performance_analytics before 20261102163709), the section
+	// says so and both downloads stay off.
+	const yearEndResponse =
+		yearEndResult?.status === "ready" ? yearEndResult.summary : undefined;
 	const { data: data1099Response, isLoading: isLoading1099 } =
 		useReport1099Summary(selectedYear);
 
@@ -52,7 +58,7 @@ export default function YearEndReportsPage() {
 
 	const hasData =
 		yearEndResponse &&
-		(yearEndResponse.grossRentalIncome > 0 ||
+		(yearEndResponse.rentReceived !== 0 ||
 			yearEndResponse.operatingExpenses > 0 ||
 			yearEndResponse.byProperty.length > 0);
 
@@ -168,6 +174,7 @@ export default function YearEndReportsPage() {
 				<YearEndReportSection
 					year={selectedYear}
 					yearEndData={yearEndResponse}
+					ledgerUnavailable={yearEndResult?.status === "ledger-unavailable"}
 					data1099={data1099Response}
 					isLoadingYearEnd={isLoadingYearEnd}
 					isLoading1099={isLoading1099}

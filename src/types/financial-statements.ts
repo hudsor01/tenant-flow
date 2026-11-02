@@ -109,6 +109,15 @@ export interface TaxDocumentsData {
 	propertyDepreciation: TaxPropertyDepreciation[];
 }
 
+/**
+ * financialTaxQueries.taxDocuments' result. `ledger-unavailable` when the
+ * server returns no rent-ledger totals (get_billing_insights before
+ * 20261102055449), so no $0 is presented as a tax year's gross income.
+ */
+export type TaxDocumentsResult =
+	| { readonly status: "ready"; readonly documents: TaxDocumentsData }
+	| { readonly status: "ledger-unavailable"; readonly taxYear: number };
+
 export interface TaxExpenseCategory {
 	category: string;
 	amount: number;

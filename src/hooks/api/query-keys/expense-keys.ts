@@ -3,50 +3,24 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { ExpenseRecord } from "#types/core";
-import type { TaxDocumentsData } from "#types/financial-statements";
+import type { TaxDocumentsResult } from "#types/financial-statements";
+import { fetchRentReceivedInYear } from "./financial-keys";
 
 export const financialTaxQueries = {
 	taxDocuments: (year: number) =>
 		queryOptions({
 			queryKey: ["financials", "tax-documents", year] as const,
-			queryFn: async (): Promise<TaxDocumentsData> => {
+			queryFn: async (): Promise<TaxDocumentsResult> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
 				const userId = user?.id;
-				if (!userId) {
-					return {
-						period: {
-							start_date: `${year}-01-01`,
-							end_date: `${year}-12-31`,
-							label: `Tax Year ${year}`,
-						},
-						taxYear: year,
-						totals: { totalIncome: 0, totalDeductions: 0, netTaxableIncome: 0 },
-						incomeBreakdown: {
-							grossRentalIncome: 0,
-							totalExpenses: 0,
-							netOperatingIncome: 0,
-							depreciation: 0,
-							mortgageInterest: 0,
-							taxableIncome: 0,
-						},
-						schedule: {
-							scheduleE: {
-								grossRentalIncome: 0,
-								totalExpenses: 0,
-								depreciation: 0,
-								netIncome: 0,
-							},
-						},
-						expenseCategories: [],
-						propertyDepreciation: [],
-					};
-				}
+				if (!userId) throw new Error("Not authenticated");
 
-				const [dashResult, expenseResult] = await Promise.all([
-					supabase.rpc("get_dashboard_stats", { p_user_id: userId }),
-					// Only the expense side is period-scoped; revenue remains annualized
-					// MRR (get_dashboard_stats is point-in-time — no payment history).
+				// A cash-basis tax year: rent received from the rent ledger, less
+				// the year's expenses. Before part L the income was today's
+				// scheduled rent times twelve (get_dashboard_stats), for any year.
+				const [rentReceived, expenseResult] = await Promise.all([
+					fetchRentReceivedInYear(userId, year, "tax documents"),
 					supabase.rpc("get_expense_summary", {
 						p_user_id: userId,
 						p_start_date: `${year}-01-01`,
@@ -54,61 +28,62 @@ export const financialTaxQueries = {
 					}),
 				]);
 
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "tax documents");
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "tax documents expenses");
+				if (rentReceived === null) {
+					return { status: "ledger-unavailable", taxYear: year };
+				}
 
-				// get_dashboard_stats RETURNS json (a bare object, supabase.ts
-				// `Returns: Json`) — NOT a SETOF/array. Read it directly (the old
-				// `data[0]` was always undefined → totalIncome collapsed to 0).
-				const stats = dashResult.data as Record<string, unknown> | null;
-				const revenue = stats?.revenue as Record<string, unknown> | undefined;
-				const totalIncome = Number(revenue?.yearly ?? 0);
+				const totalIncome = rentReceived;
 				const expenseSummary = expenseResult.data as Record<
 					string,
 					unknown
 				> | null;
 				const totalExpenses = Number(expenseSummary?.total_amount ?? 0);
-				const netIncome = totalIncome - totalExpenses;
+				const netIncome = Math.round((totalIncome - totalExpenses) * 100) / 100;
 
 				return {
-					period: {
-						start_date: `${year}-01-01`,
-						end_date: `${year}-12-31`,
-						label: `Tax Year ${year}`,
-					},
-					taxYear: year,
-					totals: {
-						totalIncome,
-						totalDeductions: totalExpenses,
-						netTaxableIncome: netIncome,
-					},
-					incomeBreakdown: {
-						grossRentalIncome: totalIncome,
-						totalExpenses,
-						netOperatingIncome: netIncome,
-						depreciation: 0,
-						mortgageInterest: 0,
-						taxableIncome: netIncome,
-					},
-					schedule: {
-						scheduleE: {
+					status: "ready",
+					documents: {
+						period: {
+							start_date: `${year}-01-01`,
+							end_date: `${year}-12-31`,
+							label: `Tax Year ${year}`,
+						},
+						taxYear: year,
+						totals: {
+							totalIncome,
+							totalDeductions: totalExpenses,
+							netTaxableIncome: netIncome,
+						},
+						incomeBreakdown: {
 							grossRentalIncome: totalIncome,
 							totalExpenses,
+							netOperatingIncome: netIncome,
 							depreciation: 0,
-							netIncome,
+							mortgageInterest: 0,
+							taxableIncome: netIncome,
 						},
+						schedule: {
+							scheduleE: {
+								grossRentalIncome: totalIncome,
+								totalExpenses,
+								depreciation: 0,
+								netIncome,
+							},
+						},
+						expenseCategories: (
+							(expenseSummary?.categories ?? []) as Array<
+								Record<string, unknown>
+							>
+						).map((c) => ({
+							category: String(c.category ?? ""),
+							amount: Number(c.amount ?? 0),
+							percentage: Number(c.percentage ?? 0),
+							deductible: true,
+						})),
+						propertyDepreciation: [],
 					},
-					expenseCategories: (
-						(expenseSummary?.categories ?? []) as Array<Record<string, unknown>>
-					).map((c) => ({
-						category: String(c.category ?? ""),
-						amount: Number(c.amount ?? 0),
-						percentage: Number(c.percentage ?? 0),
-						deductible: true,
-					})),
-					propertyDepreciation: [],
 				};
 			},
 			staleTime: 2 * 60 * 1000,

@@ -26,6 +26,8 @@ import { sortExpenseCategoriesDesc } from "./year-end-report-section-utils";
 interface YearEndReportSectionProps {
 	year: number;
 	yearEndData: YearEndSummary | undefined;
+	/** The server cannot report the year's rent received yet. */
+	ledgerUnavailable: boolean;
 	data1099: Year1099Summary | undefined;
 	isLoadingYearEnd: boolean;
 	isLoading1099: boolean;
@@ -33,6 +35,27 @@ interface YearEndReportSectionProps {
 	onDownload1099Csv: () => void;
 	isExportingYearEnd: boolean;
 	isExporting1099: boolean;
+}
+
+/** A figure the page has no data for: never shown as $0.00. */
+const UNAVAILABLE = "Unavailable";
+
+/**
+ * In place of the summary when the server cannot report the year's rent
+ * received yet; the expense breakdown and the 1099-NEC section are below.
+ */
+function LedgerTotalsUnavailableCard({ year }: { year: number }) {
+	return (
+		<Card>
+			<CardContent className="pt-6">
+				<p className="font-medium">Ledger totals unavailable</p>
+				<p className="text-sm text-muted-foreground mt-1">
+					Rent received in {year} comes from your rent ledger, and its totals
+					aren&apos;t available yet. Try again later.
+				</p>
+			</CardContent>
+		</Card>
+	);
 }
 
 function SummaryCard({
@@ -61,6 +84,7 @@ function SummaryCard({
 export function YearEndReportSection({
 	year,
 	yearEndData,
+	ledgerUnavailable,
 	data1099,
 	isLoadingYearEnd,
 	isLoading1099,
@@ -95,33 +119,39 @@ export function YearEndReportSection({
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-					<SummaryCard
-						label="Gross Rental Income"
-						value={
-							yearEndData
-								? formatCurrency(yearEndData.grossRentalIncome)
-								: "$0.00"
-						}
-						isLoading={isLoadingYearEnd}
-					/>
-					<SummaryCard
-						label="Operating Expenses"
-						value={
-							yearEndData
-								? formatCurrency(yearEndData.operatingExpenses)
-								: "$0.00"
-						}
-						isLoading={isLoadingYearEnd}
-					/>
-					<SummaryCard
-						label="Net Income"
-						value={
-							yearEndData ? formatCurrency(yearEndData.netIncome) : "$0.00"
-						}
-						isLoading={isLoadingYearEnd}
-					/>
-				</div>
+				{ledgerUnavailable ? (
+					<LedgerTotalsUnavailableCard year={year} />
+				) : (
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<SummaryCard
+							label="Rent Received"
+							value={
+								yearEndData
+									? formatCurrency(yearEndData.rentReceived)
+									: UNAVAILABLE
+							}
+							isLoading={isLoadingYearEnd}
+						/>
+						<SummaryCard
+							label="Operating Expenses"
+							value={
+								yearEndData
+									? formatCurrency(yearEndData.operatingExpenses)
+									: UNAVAILABLE
+							}
+							isLoading={isLoadingYearEnd}
+						/>
+						<SummaryCard
+							label="Net Income"
+							value={
+								yearEndData
+									? formatCurrency(yearEndData.netIncome)
+									: UNAVAILABLE
+							}
+							isLoading={isLoadingYearEnd}
+						/>
+					</div>
+				)}
 
 				{/* By Property Table */}
 				{(isLoadingYearEnd || (yearEndData?.byProperty.length ?? 0) > 0) && (
@@ -129,7 +159,7 @@ export function YearEndReportSection({
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">By Property</CardTitle>
 							<CardDescription>
-								Income and expenses for each property in {year}
+								Rent received and expenses for each property in {year}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -144,7 +174,9 @@ export function YearEndReportSection({
 									<TableHeader>
 										<TableRow>
 											<TableHead>Property</TableHead>
-											<TableHead className="text-right">Income</TableHead>
+											<TableHead className="text-right">
+												Rent Received
+											</TableHead>
 											<TableHead className="text-right">Expenses</TableHead>
 											<TableHead className="text-right">Net Income</TableHead>
 										</TableRow>
@@ -156,7 +188,7 @@ export function YearEndReportSection({
 													{p.propertyName}
 												</TableCell>
 												<TableCell className="text-right text-success-text">
-													{formatCurrency(p.income)}
+													{formatCurrency(p.rentReceived)}
 												</TableCell>
 												<TableCell className="text-right text-destructive-text">
 													{formatCurrency(p.expenses)}

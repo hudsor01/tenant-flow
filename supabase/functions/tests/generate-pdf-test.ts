@@ -95,7 +95,16 @@ function makeClient(
 		rpc: async (name: string, args?: unknown) => {
 			rpcs.push(name);
 			calls.push({ name, args });
-			return rpc[name] ?? { data: null, error: { message: `no ${name}` } };
+			// An answer keyed by the as-of date first (the tax-year reports read
+			// the ledger as of two), then by name.
+			const asOf =
+				args && typeof args === "object" && "end_date_param" in args
+					? String(args.end_date_param)
+					: "";
+			return (
+				rpc[`${name}@${asOf}`] ??
+				rpc[name] ?? { data: null, error: { message: `no ${name}` } }
+			);
 		},
 	});
 	return { client, rpcs, calls };
@@ -204,8 +213,14 @@ const TAX_YEAR_ANSWERS: Record<string, { data: unknown; error: unknown }> = {
 		data: null,
 		error: null,
 	},
-	get_dashboard_stats: {
-		data: { revenue: { monthly: 5100, yearly: 61200 } },
+	// The rent ledger as of December 31, 2024 and 2023 (get_billing_insights
+	// with end_date_param, 20261102055449): 61,200 received in 2024.
+	"get_billing_insights@2024-12-31": {
+		data: { collectedTotal: 73400, unpaidTotal: 0, chargedTotal: 73400 },
+		error: null,
+	},
+	"get_billing_insights@2023-12-31": {
+		data: { collectedTotal: 12200, unpaidTotal: 0, chargedTotal: 12200 },
 		error: null,
 	},
 	get_expense_summary: {
@@ -226,6 +241,7 @@ const TAX_YEAR_ANSWERS: Record<string, { data: unknown; error: unknown }> = {
 				total_revenue: 61200,
 				total_expenses: 11000.5,
 				net_income: 50199.5,
+				timeframe: "2024-01-01/2024-12-31",
 			},
 		],
 		error: null,
@@ -262,7 +278,10 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 			const report = buildTaxYearReport(
 				reportType,
 				{
-					dashboardStats: TAX_YEAR_ANSWERS.get_dashboard_stats?.data ?? null,
+					ledgerAtYearEnd:
+						TAX_YEAR_ANSWERS["get_billing_insights@2024-12-31"]?.data ?? null,
+					ledgerAtPriorYearEnd:
+						TAX_YEAR_ANSWERS["get_billing_insights@2023-12-31"]?.data ?? null,
 					expenseSummary: TAX_YEAR_ANSWERS.get_expense_summary?.data ?? null,
 					propertyPerformance:
 						TAX_YEAR_ANSWERS.get_property_performance_analytics?.data ?? null,
@@ -273,7 +292,7 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 			assert(
 				html.includes('<td class="td num">$61,200.00</td>') ||
 					reportType === REPORT_1099_TYPE,
-				`${reportType}: Gross income in dollars`,
+				`${reportType}: rent received in dollars`,
 			);
 			assert(!html.includes(">61200<"), `${reportType}: no bare amount`);
 			assert(!html.includes(">9000.5<"), `${reportType}: no bare amount`);
@@ -305,17 +324,24 @@ Deno.test("Mode 1 tax-year reports are gated: 402 with upgrade_url, no RPC", asy
 
 Deno.test("Mode 1 tax-year RPC errors are a 500 and no PDF", async () => {
 	for (const reportType of TAX_YEAR_TYPES) {
-		for (const { name } of taxYearReportCalls(reportType, "owner-1", 2024)) {
+		for (const { name, args } of taxYearReportCalls(
+			reportType,
+			"owner-1",
+			2024,
+		)) {
+			// The answer the call reads: by as-of date first, as makeClient looks.
+			const key =
+				"end_date_param" in args ? `${name}@${String(args.end_date_param)}` : name;
 			await withStirling(async (htmlPosts) => {
 				const answers = {
 					...TAX_YEAR_ANSWERS,
-					[name]: { data: null, error: { message: "x" } },
+					[key]: { data: null, error: { message: "x" } },
 				};
 				const { client } = makeClient("growth", answers);
 				const res = await handleRequest(modeOneFor(reportType, 2024), {
 					createClient: () => client,
 				});
-				assertEquals(res.status, 500, `${reportType} ${name}`);
+				assertEquals(res.status, 500, `${reportType} ${key}`);
 				assertEquals(await res.json(), { error: "An error occurred" });
 				assertEquals(htmlPosts, []);
 			});

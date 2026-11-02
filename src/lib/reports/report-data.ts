@@ -29,6 +29,7 @@ import type {
 	PropertyReport,
 	RevenueData,
 	TenantReport,
+	YearEndResult,
 	YearEndSummary,
 } from "#types/reports";
 
@@ -181,15 +182,6 @@ const MAINTENANCE_FALLBACK: MaintenanceReport = {
 	byPriority: [],
 };
 
-const YEAREND_FALLBACK: YearEndSummary = {
-	year: new Date().getFullYear(),
-	grossRentalIncome: 0,
-	operatingExpenses: 0,
-	netIncome: 0,
-	byProperty: [],
-	expenseByCategory: [],
-};
-
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 const fmtMoney = (n: number): string =>
@@ -339,8 +331,8 @@ function taxSummaryRows(yearEnd: YearEndSummary): ReportRow[] {
 	return [
 		{ label: "Tax Year", value: String(yearEnd.year) },
 		{
-			label: "Gross Rental Income",
-			value: fmtMoney(yearEnd.grossRentalIncome),
+			label: "Rent Received",
+			value: fmtMoney(yearEnd.rentReceived),
 		},
 		{
 			label: "Operating Expenses",
@@ -766,6 +758,24 @@ async function buildMaintenanceOperations(
 	};
 }
 
+/**
+ * The tax-preparation export when the server cannot report the year's rent
+ * received yet: one section that says so, and no figure written as $0.
+ */
+function taxPreparationUnavailableSections(year: number): ReportSection[] {
+	return [
+		{
+			heading: "Annual Summary",
+			rows: [
+				{ label: "Tax Year", value: String(year) },
+				{ label: "Rent Received", value: UNAVAILABLE },
+				{ label: "Net Income", value: UNAVAILABLE },
+			],
+			note: "Rent received comes from your rent ledger, and its totals aren't available yet.",
+		},
+	];
+}
+
 function taxPreparationSections(
 	yearEnd: YearEndSummary,
 	available: boolean,
@@ -773,7 +783,7 @@ function taxPreparationSections(
 	const byPropertyRows = yearEnd.byProperty.map(
 		(p): Array<string | number> => [
 			p.propertyName,
-			fmtMoney(p.income),
+			fmtMoney(p.rentReceived),
 			fmtMoney(p.expenses),
 			fmtMoney(p.netIncome),
 		],
@@ -786,7 +796,7 @@ function taxPreparationSections(
 		{
 			heading: "Income by Property (Schedule E support)",
 			table: {
-				headers: ["Property", "Income", "Expenses", "Net Income"],
+				headers: ["Property", "Rent Received", "Expenses", "Net Income"],
 				rows: byPropertyRows,
 			},
 			note: "Consult a CPA before filing — line-item mappings are advisory.",
@@ -806,22 +816,24 @@ async function buildTaxPreparation(
 ): Promise<ReportData> {
 	const year =
 		parseLocalYmd(end)?.getFullYear() ?? new Date(end).getUTCFullYear();
+	const fallback: YearEndResult = { status: "ledger-unavailable", year };
 	const yearEndResult = await safeFetch(
 		queryClient,
 		reportAnalyticsQueries.yearEnd(year),
-		{ ...YEAREND_FALLBACK, year },
+		fallback,
 	);
+	const result = yearEndResult.data;
 	return {
 		...baseHeader(
 			`Tax Preparation — ${year}`,
-			"Annual income · expenses · property breakdown",
+			"Rent received · expenses · property breakdown",
 			start,
 			end,
 		),
-		sections: taxPreparationSections(
-			yearEndResult.data,
-			yearEndResult.available,
-		),
+		sections:
+			result.status === "ready"
+				? taxPreparationSections(result.summary, yearEndResult.available)
+				: taxPreparationUnavailableSections(year),
 	};
 }
 

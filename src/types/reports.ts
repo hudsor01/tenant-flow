@@ -126,15 +126,22 @@ export interface MaintenanceReport {
 	}>;
 }
 
+/**
+ * The year-end report on a cash basis: rent received in the tax year, from
+ * the rent ledger, less the year's expenses.
+ */
 export interface YearEndSummary {
 	year: number;
-	grossRentalIncome: number;
+	/** Rent received in the year (fetchRentReceivedInYear). */
+	rentReceived: number;
 	operatingExpenses: number;
+	/** rentReceived - operatingExpenses. */
 	netIncome: number;
+	/** Each property's rent received and expenses in the year. */
 	byProperty: Array<{
 		propertyId: string;
 		propertyName: string;
-		income: number;
+		rentReceived: number;
 		expenses: number;
 		netIncome: number;
 	}>;
@@ -143,6 +150,17 @@ export interface YearEndSummary {
 		amount: number;
 	}>;
 }
+
+/**
+ * reportAnalyticsQueries.yearEnd's result. `ledger-unavailable` when the
+ * server cannot report rent received for the year yet (get_billing_insights
+ * before 20261102055449, or get_property_performance_analytics before
+ * 20261102163709): the page says so instead of presenting $0 as a tax year's
+ * income.
+ */
+export type YearEndResult =
+	| { readonly status: "ready"; readonly summary: YearEndSummary }
+	| { readonly status: "ledger-unavailable"; readonly year: number };
 
 export interface Year1099Recipient {
 	vendorName: string;

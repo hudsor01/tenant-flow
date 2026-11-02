@@ -25,6 +25,7 @@ import { useTaxDocuments } from "#hooks/api/use-expense-mutations";
 import { useDownloadTaxDocumentPdf } from "#hooks/api/use-report-mutations";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 
 const logger = createLogger({ component: "TaxDocumentsPage" });
 
@@ -35,7 +36,12 @@ const TAX_YEARS = Array.from(
 
 export default function TaxDocumentsPage() {
 	const [taxYear, setTaxYear] = useState(new Date().getFullYear());
-	const { data, isLoading, error, refetch } = useTaxDocuments(taxYear);
+	const { data: result, isLoading, error, refetch } = useTaxDocuments(taxYear);
+	// When get_billing_insights returns none of the ledger figures the tax
+	// year's income comes from (its body before 20261102055449), the query
+	// says so rather than handing the page a $0 gross income.
+	const ledgerUnavailable = result?.status === "ledger-unavailable";
+	const data = result?.status === "ready" ? result.documents : undefined;
 	const downloadPdfMutation = useDownloadTaxDocumentPdf();
 
 	if (isLoading) {
@@ -148,7 +154,12 @@ export default function TaxDocumentsPage() {
 				</div>
 			</BlurFade>
 
-			{!hasData ? (
+			{ledgerUnavailable ? (
+				<LedgerTotalsUnavailable
+					description="Rent received for the tax year comes from your rent ledger."
+					onRetryAction={() => void refetch()}
+				/>
+			) : !hasData ? (
 				<BlurFade delay={0.15}>
 					<div className="flex flex-col items-center justify-center py-16 text-center">
 						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -175,7 +186,7 @@ export default function TaxDocumentsPage() {
 											{formatCurrency(data.totals.totalIncome)}
 										</p>
 										<p className="text-sm text-muted-foreground">
-											Gross Income
+											Rent Received
 										</p>
 									</div>
 								</div>

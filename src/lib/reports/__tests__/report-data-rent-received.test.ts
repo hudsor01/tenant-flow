@@ -112,3 +112,103 @@ describe("the property portfolio report", () => {
 		expect(table.note).toContain("Rent received isn't available yet");
 	});
 });
+
+describe("the tax preparation report", () => {
+	beforeEach(() => mockRpc.mockReset());
+
+	function answerTaxYear(collected: number | undefined, timeframe: string) {
+		mockRpc.mockImplementation(
+			(name: string, args: Record<string, unknown>) => {
+				if (name === "get_billing_insights") {
+					const total =
+						collected === undefined
+							? undefined
+							: args.end_date_param === "2025-12-31"
+								? collected
+								: 1000;
+					return Promise.resolve({
+						data: total === undefined ? {} : { collectedTotal: total },
+						error: null,
+					});
+				}
+				if (name === "get_expense_summary") {
+					return Promise.resolve({
+						data: {
+							total_amount: 200.25,
+							categories: [{ category: "Plumber", amount: 200.25 }],
+						},
+						error: null,
+					});
+				}
+				return Promise.resolve({
+					data: [{ ...PROPERTY, timeframe }],
+					error: null,
+				});
+			},
+		);
+	}
+
+	it("writes the tax year's rent received, and each property's (Schedule E support)", async () => {
+		answerTaxYear(3750.5, "2025-01-01/2025-12-31");
+		const report = await buildReportData(
+			"tax-preparation",
+			new QueryClient(),
+			"2025-01-01",
+			"2025-12-31",
+		);
+		expect(section(report.sections, "Annual Summary").rows).toEqual([
+			{ label: "Tax Year", value: "2025" },
+			{ label: "Rent Received", value: "$2,751" },
+			{ label: "Operating Expenses", value: "$200" },
+			{ label: "Net Income", value: "$2,550" },
+		]);
+		const byProperty = section(
+			report.sections,
+			"Income by Property (Schedule E support)",
+		);
+		expect(byProperty.table?.headers).toEqual([
+			"Property",
+			"Rent Received",
+			"Expenses",
+			"Net Income",
+		]);
+		expect(byProperty.table?.rows).toEqual([
+			["Alpha Court", "$2,751", "$200", "$2,550"],
+		]);
+		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
+			p_user_id: "owner-1",
+			p_timeframe: "2025-01-01..2025-12-31",
+		});
+	});
+
+	it.each([
+		["no ledger totals", undefined, "2025-01-01/2025-12-31"],
+		[
+			"the property body before 20261102163709",
+			3750.5,
+			"2025-01-01..2025-12-31",
+		],
+	])(
+		"writes Unavailable, never a zero, from %s",
+		async (_what, collected, timeframe) => {
+			answerTaxYear(collected, timeframe);
+			const report = await buildReportData(
+				"tax-preparation",
+				new QueryClient(),
+				"2025-01-01",
+				"2025-12-31",
+			);
+			expect(report.sections).toEqual([
+				{
+					heading: "Annual Summary",
+					rows: [
+						{ label: "Tax Year", value: "2025" },
+						{ label: "Rent Received", value: "Unavailable" },
+						{ label: "Net Income", value: "Unavailable" },
+					],
+					note: "Rent received comes from your rent ledger, and its totals aren't available yet.",
+				},
+			]);
+		},
+	);
+});

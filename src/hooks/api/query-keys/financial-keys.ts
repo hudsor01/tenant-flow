@@ -427,6 +427,47 @@ function buildLedgerCashFlow(input: {
 	};
 }
 
+/**
+ * Rent received in a calendar year, from the rent ledger: collectedTotal as of
+ * December 31 of the year less as of December 31 of the year before, so every
+ * receipt counts in the year it was received and a reversal in the year it
+ * was posted (cash basis, the year-end report's and the tax documents'). null
+ * when the server returns no ledger totals (get_billing_insights before
+ * 20261102055449), so no $0 reaches a tax figure. Dollars.
+ */
+export async function fetchRentReceivedInYear(
+	userId: string,
+	year: number,
+	what: string,
+): Promise<number | null> {
+	const supabase = createClient();
+	const [atYearEnd, atPriorYearEnd] = await Promise.all([
+		supabase.rpc("get_billing_insights", {
+			owner_id_param: userId,
+			end_date_param: `${year}-12-31`,
+		}),
+		supabase.rpc("get_billing_insights", {
+			owner_id_param: userId,
+			end_date_param: `${year - 1}-12-31`,
+		}),
+	]);
+	if (atYearEnd.error) handlePostgrestError(atYearEnd.error, `${what} ledger`);
+	if (atPriorYearEnd.error)
+		handlePostgrestError(atPriorYearEnd.error, `${what} ledger`);
+	const end = jsonObjectOrEmpty<Record<string, unknown>>(atYearEnd.data, {});
+	const before = jsonObjectOrEmpty<Record<string, unknown>>(
+		atPriorYearEnd.data,
+		{},
+	);
+	if (
+		typeof end.collectedTotal !== "number" ||
+		typeof before.collectedTotal !== "number"
+	) {
+		return null;
+	}
+	return toCents(end.collectedTotal - before.collectedTotal);
+}
+
 export const financialKeys = {
 	all: ["financials"] as const,
 	expenseSummary: () => [...financialKeys.all, "expense-summary"] as const,

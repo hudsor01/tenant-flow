@@ -102,8 +102,14 @@ function answers(): RpcAnswers {
 			data: { unpaidTotal: 1185.5, unpaidCount: 4, lateFeeTotal: 115, tenantCount: 3 },
 			error: null,
 		},
-		get_dashboard_stats: {
-			data: { revenue: { monthly: 5100, yearly: 61200 } },
+		// The rent ledger as of December 31, 2024 and 2023 (get_billing_insights
+		// with end_date_param, 20261102055449): 61,200 received in 2024.
+		"get_billing_insights@2024-12-31": {
+			data: { collectedTotal: 73400, unpaidTotal: 0, chargedTotal: 73400 },
+			error: null,
+		},
+		"get_billing_insights@2023-12-31": {
+			data: { collectedTotal: 12200, unpaidTotal: 0, chargedTotal: 12200 },
 			error: null,
 		},
 		get_property_performance_analytics: {
@@ -114,6 +120,7 @@ function answers(): RpcAnswers {
 					total_revenue: 61200,
 					total_expenses: 2120.5,
 					net_income: 59079.5,
+					timeframe: "2024-01-01/2024-12-31",
 				},
 			],
 			error: null,
@@ -178,7 +185,12 @@ function makeClient(s: Scenario): { client: SupabaseClient; calls: Calls } {
 		from: (table: string) => builder(table),
 		rpc: async (name: string, args: Record<string, unknown>) => {
 			calls.rpcs.push({ name, args });
-			return s.rpc[name] ?? { data: null, error: { message: `no ${name}` } };
+			// An answer keyed by the as-of date first (the tax-year reports read
+			// the ledger as of two), then by name.
+			return (
+				s.rpc[`${name}@${String(args?.end_date_param)}`] ??
+				s.rpc[name] ?? { data: null, error: { message: `no ${name}` } }
+			);
 		},
 	});
 	return { client, calls };
@@ -551,7 +563,9 @@ function expectedTaxYearReport(s: Scenario, reportType: string, year: number) {
 	return buildTaxYearReport(
 		reportType,
 		{
-			dashboardStats: s.rpc.get_dashboard_stats?.data ?? null,
+			ledgerAtYearEnd: s.rpc["get_billing_insights@2024-12-31"]?.data ?? null,
+			ledgerAtPriorYearEnd:
+				s.rpc["get_billing_insights@2023-12-31"]?.data ?? null,
 			expenseSummary: s.rpc.get_expense_summary?.data ?? null,
 			propertyPerformance:
 				s.rpc.get_property_performance_analytics?.data ?? null,
@@ -587,7 +601,7 @@ Deno.test("year-end, 1099 and tax documents csv are their page's figures for the
 	const s = scenario();
 	const { res } = await run(get("?type=year-end&format=csv&year=2024"), s);
 	const lines = (await res.text()).split("\n");
-	assert(lines.includes("Summary,Gross Rental Income,,61200,,,,"));
+	assert(lines.includes("Summary,Rent Received,,61200,,,,"));
 	assert(lines.includes("By Property,Maple Court,,,61200,2120.5,59079.5,"));
 	assert(lines.includes("Expense Breakdown,'=HYPERLINK(1),,120,,,,"));
 });
@@ -635,7 +649,7 @@ Deno.test("year-end, 1099 and tax documents xlsx keep numbers, money in dollars"
 			report.title
 		];
 		assert(sheet, `${type}: the sheet exists`);
-		// Row 2 is Gross Rental Income / Gross Income, or the 1099 vendor.
+		// Row 2 is Rent Received, or the 1099 vendor.
 		const amount = type === TAX_DOCUMENTS_REPORT_TYPE ? sheet.C2 : sheet.D2;
 		assertEquals(amount?.t, "n", type);
 		assertEquals(

@@ -320,6 +320,40 @@ describe("reportAnalyticsQueries.maintenance", () => {
 	});
 });
 
+/**
+ * Answer the year-end page's RPCs by name and arguments: the rent ledger as of
+ * December 31 of 2024 and 2023 (get_billing_insights, 20261102055449), the
+ * year's expenses, and each property over the calendar year.
+ */
+function answerYearEnd(answers: {
+	collectedAt2024End: unknown;
+	collectedAt2023End: unknown;
+	expenses: unknown;
+	properties: unknown;
+}) {
+	mockRpc.mockImplementation(
+		async (fn: string, args: Record<string, unknown>) => {
+			if (fn === "get_billing_insights") {
+				const collected =
+					args.end_date_param === "2024-12-31"
+						? answers.collectedAt2024End
+						: answers.collectedAt2023End;
+				return {
+					data: collected === undefined ? {} : { collectedTotal: collected },
+					error: null,
+				};
+			}
+			if (fn === "get_expense_summary") {
+				return { data: answers.expenses, error: null };
+			}
+			if (fn === "get_property_performance_analytics") {
+				return { data: answers.properties, error: null };
+			}
+			throw new Error(`the year-end page reads no ${fn}`);
+		},
+	);
+}
+
 describe("useYearEndSummary", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -330,31 +364,23 @@ describe("useYearEndSummary", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches year-end summary from parallel RPCs", async () => {
-		// yearEnd() calls get_dashboard_stats + get_expense_summary + get_property_performance_analytics
-		mockRpc
-			.mockResolvedValueOnce({
-				data: { revenue: { yearly: 500000, monthly: 41667 }, units: {} },
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: { total_amount: 120000, categories: [] },
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: "p1",
-						property_name: "Test",
-						total_revenue: 500000,
-						total_expenses: 120000,
-						net_income: 380000,
-						occupancy_rate: 95,
-						timeframe: "2024",
-					},
-				],
-				error: null,
-			});
+	it("reads the tax year's rent received from the ledger, each property's over the year", async () => {
+		answerYearEnd({
+			collectedAt2024End: 612000,
+			collectedAt2023End: 112000,
+			expenses: { total_amount: 120000, categories: [] },
+			properties: [
+				{
+					property_id: "p1",
+					property_name: "Test",
+					total_revenue: 500000,
+					total_expenses: 120000,
+					net_income: 380000,
+					occupancy_rate: 95,
+					timeframe: "2024-01-01/2024-12-31",
+				},
+			],
+		});
 
 		const { result } = renderHook(() => useYearEndSummary(2024), {
 			wrapper: createWrapper(),
@@ -364,11 +390,67 @@ describe("useYearEndSummary", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.year).toBe(2024);
-		expect(result.current.data?.grossRentalIncome).toBe(500000);
-		expect(result.current.data?.operatingExpenses).toBe(120000);
-		expect(result.current.data?.netIncome).toBe(380000);
+		const data = result.current.data;
+		if (data?.status !== "ready") throw new Error("expected a summary");
+		expect(data.summary.year).toBe(2024);
+		expect(data.summary.rentReceived).toBe(500000);
+		expect(data.summary.operatingExpenses).toBe(120000);
+		expect(data.summary.netIncome).toBe(380000);
+		expect(data.summary.byProperty[0]?.rentReceived).toBe(500000);
+		// The calendar year, not the function's trailing 30-day default.
+		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
+			p_user_id: "user-1",
+			p_timeframe: "2024-01-01..2024-12-31",
+		});
+		expect(mockRpc).toHaveBeenCalledWith("get_billing_insights", {
+			owner_id_param: "user-1",
+			end_date_param: "2023-12-31",
+		});
 	});
+
+	it.each([
+		[
+			"no ledger totals (get_billing_insights before 20261102055449)",
+			undefined,
+			"2024-01-01/2024-12-31",
+		],
+		[
+			"the property body before 20261102163709, which echoes the request",
+			612000,
+			"2024-01-01..2024-12-31",
+		],
+		["a property window that is not the year", 612000, "2024-12-02/2024-12-31"],
+	])(
+		"reports the year unavailable from %s",
+		async (_what, collected, timeframe) => {
+			answerYearEnd({
+				collectedAt2024End: collected,
+				collectedAt2023End: collected === undefined ? undefined : 112000,
+				expenses: { total_amount: 120000, categories: [] },
+				properties: [
+					{
+						property_id: "p1",
+						property_name: "Test",
+						total_revenue: 0,
+						total_expenses: 120000,
+						net_income: -120000,
+						occupancy_rate: 95,
+						timeframe,
+					},
+				],
+			});
+			const { result } = renderHook(() => useYearEndSummary(2024), {
+				wrapper: createWrapper(),
+			});
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true);
+			});
+			expect(result.current.data).toEqual({
+				status: "ledger-unavailable",
+				year: 2024,
+			});
+		},
+	);
 });
 
 describe("useReport1099Summary", () => {
@@ -1002,32 +1084,25 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(result.current.data?.expenseBreakdown?.[0]?.amount).toBe(100000.13);
 	});
 
-	it("useYearEndSummary keeps gross/expense/net and per-property amounts in dollars", async () => {
-		const gross = 500000.75;
+	it("useYearEndSummary keeps rent received/expense/net and per-property amounts in dollars", async () => {
+		const received = 500000.75;
 		const expenses = 120000.5;
-		mockRpc
-			.mockResolvedValueOnce({
-				data: { revenue: { yearly: gross, monthly: 41666.73 }, units: {} },
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: { total_amount: expenses, categories: [] },
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: "p1",
-						property_name: "Test",
-						total_revenue: 250000.25,
-						total_expenses: 60000.1,
-						net_income: 190000.15,
-						occupancy_rate: 95,
-						timeframe: "2024",
-					},
-				],
-				error: null,
-			});
+		answerYearEnd({
+			collectedAt2024End: received + 1000.25,
+			collectedAt2023End: 1000.25,
+			expenses: { total_amount: expenses, categories: [] },
+			properties: [
+				{
+					property_id: "p1",
+					property_name: "Test",
+					total_revenue: 250000.25,
+					total_expenses: 60000.1,
+					net_income: 190000.15,
+					occupancy_rate: 95,
+					timeframe: "2024-01-01/2024-12-31",
+				},
+			],
+		});
 
 		const { result } = renderHook(() => useYearEndSummary(2024), {
 			wrapper: createWrapper(),
@@ -1037,11 +1112,13 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.grossRentalIncome).toBe(gross);
-		expect(result.current.data?.operatingExpenses).toBe(expenses);
-		expect(result.current.data?.netIncome).toBe(gross - expenses);
-		const prop = result.current.data?.byProperty?.[0];
-		expect(prop?.income).toBe(250000.25);
+		const data = result.current.data;
+		if (data?.status !== "ready") throw new Error("expected a summary");
+		expect(data.summary.rentReceived).toBe(received);
+		expect(data.summary.operatingExpenses).toBe(expenses);
+		expect(data.summary.netIncome).toBe(380000.25);
+		const prop = data.summary.byProperty[0];
+		expect(prop?.rentReceived).toBe(250000.25);
 		expect(prop?.expenses).toBe(60000.1);
 		expect(prop?.netIncome).toBe(190000.15);
 	});

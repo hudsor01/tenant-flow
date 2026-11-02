@@ -14,7 +14,7 @@ export const YEAR_END_CSV_HEADER = [
 	"Section",
 	"Item",
 	"Value",
-	"Income",
+	"Rent Received",
 	"Expenses",
 	"Net",
 ] as const;
@@ -34,14 +34,7 @@ const whole = (value: number) => csvNumber(value, 0);
 export function buildYearEndCsv(summary: YearEndSummary): string {
 	const rows: CsvCell[][] = [
 		["Overview", "Tax Year", whole(summary.year), "", "", ""],
-		[
-			"Overview",
-			"Gross Rental Income",
-			money(summary.grossRentalIncome),
-			"",
-			"",
-			"",
-		],
+		["Overview", "Rent Received", money(summary.rentReceived), "", "", ""],
 		[
 			"Overview",
 			"Operating Expenses",
@@ -55,7 +48,7 @@ export function buildYearEndCsv(summary: YearEndSummary): string {
 			"By Property",
 			p.propertyName,
 			"",
-			money(p.income),
+			money(p.rentReceived),
 			money(p.expenses),
 			money(p.netIncome),
 		]),

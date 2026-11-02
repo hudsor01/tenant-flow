@@ -115,10 +115,15 @@ describe("useExpenses select unwrap", () => {
 describe("useTaxDocuments default year", () => {
 	it("defaults to the current calendar year when no taxYear is given", async () => {
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
-		mockRpc.mockImplementation((fn: string) => {
-			if (fn === "get_dashboard_stats") {
+		const currentYear = new Date().getFullYear();
+		mockRpc.mockImplementation((fn: string, args: Record<string, unknown>) => {
+			if (fn === "get_billing_insights") {
+				// The ledger as of December 31 of the year, and of the year before.
 				return Promise.resolve({
-					data: { revenue: { yearly: 600000 } },
+					data: {
+						collectedTotal:
+							args.end_date_param === `${currentYear}-12-31` ? 650000 : 50000,
+					},
 					error: null,
 				});
 			}
@@ -129,28 +134,36 @@ describe("useTaxDocuments default year", () => {
 			});
 		});
 
-		const currentYear = new Date().getFullYear();
 		const { result } = renderWithClient(() => useTaxDocuments());
 
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-		expect(result.current.data?.taxYear).toBe(currentYear);
-		expect(result.current.data?.period.label).toBe(`Tax Year ${currentYear}`);
-		expect(result.current.data?.period.start_date).toBe(`${currentYear}-01-01`);
-		// Dollar magnitude preserved: yearly income / expenses pass through as-is.
-		expect(result.current.data?.totals.totalIncome).toBe(600000);
-		expect(result.current.data?.totals.totalDeductions).toBe(200000);
-		expect(result.current.data?.totals.netTaxableIncome).toBe(400000);
+		const data = result.current.data;
+		if (data?.status !== "ready") throw new Error("expected documents");
+		expect(data.documents.taxYear).toBe(currentYear);
+		expect(data.documents.period.label).toBe(`Tax Year ${currentYear}`);
+		expect(data.documents.period.start_date).toBe(`${currentYear}-01-01`);
+		// Dollar magnitude preserved: rent received / expenses pass through as-is.
+		expect(data.documents.totals.totalIncome).toBe(600000);
+		expect(data.documents.totals.totalDeductions).toBe(200000);
+		expect(data.documents.totals.netTaxableIncome).toBe(400000);
 	});
 
 	it("honors an explicit taxYear over the current-year default", async () => {
-		mockGetCachedUser.mockResolvedValue(null);
+		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
+		mockRpc.mockResolvedValue({ data: { unpaidTotal: 0 }, error: null });
 
 		const { result } = renderWithClient(() => useTaxDocuments(2021));
 
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-		expect(result.current.data?.taxYear).toBe(2021);
-		expect(result.current.data?.period.label).toBe("Tax Year 2021");
+		expect(result.current.data).toEqual({
+			status: "ledger-unavailable",
+			taxYear: 2021,
+		});
+		expect(mockRpc).toHaveBeenCalledWith("get_billing_insights", {
+			owner_id_param: "user-1",
+			end_date_param: "2021-12-31",
+		});
 	});
 });

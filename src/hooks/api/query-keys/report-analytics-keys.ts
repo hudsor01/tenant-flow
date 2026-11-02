@@ -17,12 +17,14 @@ import type {
 	PropertyReport,
 	TenantReport,
 	Year1099Summary,
-	YearEndSummary,
+	YearEndResult,
 } from "#types/reports";
 import { fetchOccupancyTrends } from "./analytics-keys";
+import { fetchRentReceivedInYear } from "./financial-keys";
 import {
 	mapPropertyPerformance,
 	propertyPerformanceRange,
+	taxYearRange,
 } from "./property-performance-mappers";
 import { reportKeys } from "./report-keys";
 
@@ -308,71 +310,71 @@ export const reportAnalyticsQueries = {
 	yearEnd: (year: number) =>
 		queryOptions({
 			queryKey: reportKeys.yearEnd(year),
-			queryFn: async (): Promise<YearEndSummary> => {
+			queryFn: async (): Promise<YearEndResult> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
-				if (!user)
-					return {
-						year,
-						grossRentalIncome: 0,
-						operatingExpenses: 0,
-						netIncome: 0,
-						byProperty: [],
-						expenseByCategory: [],
-					};
-				const [dashResult, expenseResult, propResult] = await Promise.all([
-					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
+				if (!user) throw new Error("Not authenticated");
+				// A cash-basis tax year: rent received from the rent ledger, and
+				// each property's over the same calendar year, with the year's
+				// expenses. Scheduled rent (get_dashboard_stats) is no year's
+				// income: before part L this page printed today's active rent
+				// times twelve as any year's, and each property's 30-day $0.
+				const taxYear = {
+					start_date: `${year}-01-01`,
+					end_date: `${year}-12-31`,
+				};
+				const [rentReceived, expenseResult, propResult] = await Promise.all([
+					fetchRentReceivedInYear(user.id, year, "year-end summary"),
 					// BILL-02: scope the year-end expenses to the selected year.
 					supabase.rpc("get_expense_summary", {
 						p_user_id: user.id,
-						p_start_date: `${year}-01-01`,
-						p_end_date: `${year}-12-31`,
+						p_start_date: taxYear.start_date,
+						p_end_date: taxYear.end_date,
 					}),
 					supabase.rpc("get_property_performance_analytics", {
 						p_user_id: user.id,
+						p_timeframe: taxYearRange(year),
 					}),
 				]);
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "year-end summary");
 				// BILL-04: surface expense / property-analytics RPC failures instead of
 				// silently zeroing expenses (overstated net income) or the by-property table.
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "year-end summary");
 				if (propResult.error)
 					handlePostgrestError(propResult.error, "year-end summary");
-				const { revenue } = extractDashStats(dashResult.data);
-				const grossRentalIncome = Number(revenue?.yearly ?? 0);
+				const properties = mapPropertyPerformance(propResult.data, taxYear);
+				if (rentReceived === null || properties.status !== "ready") {
+					return { status: "ledger-unavailable", year };
+				}
 				const expenseSummary = expenseResult.data as Record<
 					string,
 					unknown
 				> | null;
 				const operatingExpenses = Number(expenseSummary?.total_amount ?? 0);
-				type PropRow = {
-					property_id: string;
-					property_name: string;
-					total_revenue: number;
-					total_expenses: number;
-					net_income: number;
-				};
-				const propRows: PropRow[] = propResult.data ?? [];
 				return {
-					year,
-					grossRentalIncome,
-					operatingExpenses,
-					netIncome: grossRentalIncome - operatingExpenses,
-					byProperty: propRows.map((r) => ({
-						propertyId: r.property_id,
-						propertyName: r.property_name,
-						income: r.total_revenue ?? 0,
-						expenses: r.total_expenses ?? 0,
-						netIncome: r.net_income ?? 0,
-					})),
-					expenseByCategory: (
-						(expenseSummary?.categories ?? []) as Array<Record<string, unknown>>
-					).map((c) => ({
-						category: String(c.category ?? ""),
-						amount: Number(c.amount ?? 0),
-					})),
+					status: "ready",
+					summary: {
+						year,
+						rentReceived,
+						operatingExpenses,
+						netIncome:
+							Math.round((rentReceived - operatingExpenses) * 100) / 100,
+						byProperty: properties.properties.map((p) => ({
+							propertyId: p.propertyId,
+							propertyName: p.propertyName,
+							rentReceived: p.rentReceived,
+							expenses: p.expenses,
+							netIncome: p.netIncome,
+						})),
+						expenseByCategory: (
+							(expenseSummary?.categories ?? []) as Array<
+								Record<string, unknown>
+							>
+						).map((c) => ({
+							category: String(c.category ?? ""),
+							amount: Number(c.amount ?? 0),
+						})),
+					},
 				};
 			},
 			...CACHE,
