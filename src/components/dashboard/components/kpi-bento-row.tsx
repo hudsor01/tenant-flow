@@ -174,7 +174,7 @@ function buildKpiTileConfigs(
 	// WR-04 cycle-1 fix: keep `spokenValue` symmetric with the other tiles —
 	// just the formatted currency, no period qualifier. The "This month"
 	// qualifier moves to `spokenDescription` (matching the visible
-	// `description`) so the aria-label narrates "Revenue: $14,250. This
+	// `description`) so the aria-label narrates "Scheduled Rent: $14,250. This
 	// month. Up 12 percent vs. 30 days ago." instead of duplicating the
 	// period if a future maintainer adds the spokenDescription field. Each
 	// chip states the window its trend computes (the trend's own `window`,
@@ -187,8 +187,11 @@ function buildKpiTileConfigs(
 
 	const tiles: KpiTileConfig[] = [
 		{
+			// stats.revenue.monthly and its sparkline are the active leases' rent:
+			// scheduled rent, not money received (66.2-39 part P names every
+			// scheduled-rent chart so, as part N named the financial page's).
 			id: "revenue",
-			label: "Revenue",
+			label: "Scheduled Rent",
 			spokenValue: revenueSpoken,
 			description: "This month",
 			spokenDescription: "This month",
@@ -201,7 +204,7 @@ function buildKpiTileConfigs(
 			sparkline: buildSparkline(
 				timeSeries.monthlyRevenue,
 				revenueTrend,
-				"Revenue",
+				"Scheduled rent",
 				`${revenueSpoken} this month`,
 			),
 			waveDelay: 0,

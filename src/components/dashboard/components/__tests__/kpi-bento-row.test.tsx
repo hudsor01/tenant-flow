@@ -184,8 +184,9 @@ describe("KpiBentoRow", () => {
 		const labels = items.map(
 			(item) => item.querySelector("[data-slot=stat-label]")?.textContent,
 		);
+		// The first tile is the active leases' rent: scheduled (66.2-39 part P).
 		expect(labels).toEqual([
-			"Revenue",
+			"Scheduled Rent",
 			"Occupancy",
 			"Active leases",
 			"Open maintenance",
@@ -284,7 +285,7 @@ describe("KpiBentoRow", () => {
 		expect(screen.queryByTestId("kpi-bento-row")).not.toBeNull();
 	});
 
-	it("Revenue aria-label matches buildTileAriaLabel template", () => {
+	it("Scheduled Rent aria-label matches buildTileAriaLabel template", () => {
 		render(
 			<KpiBentoRow
 				isLoading={false}
@@ -298,7 +299,7 @@ describe("KpiBentoRow", () => {
 		expect(stat?.getAttribute("aria-label")).toBe(
 			// WR-04 cycle-1 fix: "this month" now lives in spokenDescription
 			// (symmetric with the other tiles), not baked into spokenValue.
-			"Revenue: $14,250. This month. Up 12 percent vs. 30 days ago.",
+			"Scheduled Rent: $14,250. This month. Up 12 percent vs. 30 days ago.",
 		);
 	});
 
@@ -315,7 +316,7 @@ describe("KpiBentoRow", () => {
 		);
 		expect(
 			screen.getByRole("group", {
-				name: "Revenue: $14,250. This month. Up 12 percent vs. 30 days ago.",
+				name: "Scheduled Rent: $14,250. This month. Up 12 percent vs. 30 days ago.",
 			}),
 		).toBeInTheDocument();
 	});

@@ -72,7 +72,9 @@ type RevenuePoint = TimeSeriesDataPoint | MonthlyRevenuePoint;
 // `var(--color-chart-1)` directly so the design-token-drift scanner reads
 // the explicit token.
 const revenueConfig = {
-	revenue: { label: "Revenue", color: "var(--color-chart-1)" },
+	// get_dashboard_data_v2's series: each day's (or month's) lease rent, which
+	// is scheduled rent, not money received.
+	revenue: { label: "Scheduled Rent", color: "var(--color-chart-1)" },
 } as const satisfies ChartConfig;
 
 // Typed boundary helper — picks the active series at the union type so the
@@ -165,7 +167,7 @@ export function RevenueAreaChart({
 		<Card className="@4xl/dashboard:col-span-2" data-tour="charts-section">
 			<CardHeader className="flex flex-row items-center justify-between space-y-0">
 				<div>
-					<CardTitle>Revenue</CardTitle>
+					<CardTitle>Scheduled Rent</CardTitle>
 					<CardDescription>{description}</CardDescription>
 				</div>
 				{/* Window toggle is a single-select control with shared content (the
@@ -178,7 +180,7 @@ export function RevenueAreaChart({
 					onValueChange={(v) => v && setActiveWindow(v as RevenueWindow)}
 					variant="outline"
 					size="sm"
-					aria-label="Revenue window"
+					aria-label="Scheduled rent window"
 				>
 					<ToggleGroupItem value="30d">30d</ToggleGroupItem>
 					<ToggleGroupItem value="6mo">6mo</ToggleGroupItem>
@@ -188,10 +190,10 @@ export function RevenueAreaChart({
 				{isEmpty ? (
 					<div className="flex h-75 flex-col items-center justify-center gap-2 text-center">
 						<p className="text-base font-semibold text-foreground">
-							No revenue data yet
+							No scheduled rent yet
 						</p>
 						<p className="text-sm text-muted-foreground">
-							Add a lease to start tracking revenue
+							Add a lease to see its rent scheduled here
 						</p>
 					</div>
 				) : (

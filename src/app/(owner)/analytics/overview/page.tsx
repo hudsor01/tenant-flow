@@ -13,7 +13,7 @@ const ChartAreaInteractive = dynamic(
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
 
-import { BarChart3, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
 import { Badge } from "#components/ui/badge";
 import { BlurFade } from "#components/ui/blur-fade";
@@ -153,31 +153,12 @@ export default function AnalyticsPage() {
 			</BlurFade>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+				{/* The chart carries its own card, title and range: it was wrapped in a
+				    second card titled "Revenue & Expenses Trend" (its series is
+				    scheduled rent) and "6-month performance overview" (its range
+				    toggles 3, 6 or 12 months), as on no other page. */}
 				<BlurFade delay={0.6}>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<div className="flex items-center justify-between mb-6">
-							<div>
-								<h3 className="font-medium text-foreground">
-									Revenue & Expenses Trend
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									6-month performance overview
-								</p>
-							</div>
-							<BarChart3 className="w-5 h-5 text-muted-foreground" />
-						</div>
-						<div className="flex items-center gap-4 mb-4">
-							<div className="flex items-center gap-2">
-								<div className="size-3 rounded-sm bg-chart-1" />
-								<span className="text-sm text-muted-foreground">Revenue</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<div className="size-3 rounded-sm bg-chart-4" />
-								<span className="text-sm text-muted-foreground">Expenses</span>
-							</div>
-						</div>
-						<ChartAreaInteractive />
-					</div>
+					<ChartAreaInteractive />
 				</BlurFade>
 
 				<BlurFade delay={0.7}>

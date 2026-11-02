@@ -66,14 +66,17 @@ beforeEach(() => {
 });
 
 describe("RevenueAreaChart", () => {
-	it("renders Revenue title + 'Last 30 days' description on initial mount", () => {
+	// Its series is each day's lease rent: scheduled rent, as the financial
+	// analytics page's month charts name it (66.2-39 part P).
+	it("renders the Scheduled Rent title + 'Last 30 days' description on initial mount", () => {
 		render(
 			<RevenueAreaChart
 				monthlyRevenue={daily30d}
 				monthlyRevenue6mo={monthly6mo}
 			/>,
 		);
-		expect(screen.getByText("Revenue")).toBeInTheDocument();
+		expect(screen.getByText("Scheduled Rent")).toBeInTheDocument();
+		expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
 		expect(screen.getByText("Last 30 days")).toBeInTheDocument();
 	});
 
@@ -146,13 +149,13 @@ describe("RevenueAreaChart", () => {
 				monthlyRevenue6mo={empty6mo}
 			/>,
 		);
-		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
+		expect(screen.getByText("No scheduled rent yet")).toBeInTheDocument();
 		expect(
-			screen.getByText("Add a lease to start tracking revenue"),
+			screen.getByText("Add a lease to see its rent scheduled here"),
 		).toBeInTheDocument();
 		// Toggle still mounted and clickable; flips to 6mo and stays empty.
 		await user.click(screen.getByRole("radio", { name: "6mo" }));
-		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
+		expect(screen.getByText("No scheduled rent yet")).toBeInTheDocument();
 	});
 
 	it("renders empty-state in 6mo window when 30d has data but 6mo is empty (D-08 edge)", async () => {
@@ -167,11 +170,11 @@ describe("RevenueAreaChart", () => {
 		expect(await screen.findByTestId("area-chart")).toBeInTheDocument();
 		// Flip to 6mo: empty-state shown, chart gone.
 		await user.click(screen.getByRole("radio", { name: "6mo" }));
-		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
+		expect(screen.getByText("No scheduled rent yet")).toBeInTheDocument();
 		expect(screen.queryByTestId("area-chart")).toBeNull();
 		// Flip back to 30d: chart re-mounts, empty-state gone.
 		await user.click(screen.getByRole("radio", { name: "30d" }));
-		expect(screen.queryByText("No revenue data yet")).toBeNull();
+		expect(screen.queryByText("No scheduled rent yet")).toBeNull();
 		expect(await screen.findByTestId("area-chart")).toBeInTheDocument();
 	});
 

@@ -36,11 +36,14 @@ import { formatCurrency } from "#lib/utils/currency";
 /** The chart's figures are whole dollars, as its axis and tooltip read. */
 const WHOLE_DOLLARS = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
-export const description = "Revenue vs Expenses Chart - Dashboard Focal Point";
-
+/**
+ * get_revenue_trends_optimized's revenue is each month's lease rent: scheduled
+ * rent, not money received (as the financial analytics page's month charts
+ * name it), so its totals are scheduled too.
+ */
 const chartConfig = {
 	revenue: {
-		label: "Revenue",
+		label: "Scheduled Rent",
 		color: "var(--color-chart-1)",
 	},
 	expenses: {
@@ -82,10 +85,10 @@ export function ChartAreaInteractive({
 				<div className="grid flex-1 gap-1 text-center sm:text-left">
 					<CardTitle className="flex items-center gap-2">
 						<DollarSign className="size-5" />
-						Revenue vs Expenses
+						Scheduled Rent & Expenses
 					</CardTitle>
 					<CardDescription>
-						Financial performance over the selected period
+						Each month&apos;s scheduled rent (not received) and expenses
 					</CardDescription>
 				</div>
 				<div className="flex">
@@ -154,7 +157,7 @@ export function ChartAreaInteractive({
 			    narrow column, where four overflowed). */}
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:@xl/chart-card:grid-cols-4">
 				<div className="space-y-1">
-					<p className="text-muted-foreground">Total Revenue</p>
+					<p className="text-muted-foreground">Scheduled Rent</p>
 					<p className="typography-large text-success-text">
 						{formatCurrency(totalRevenue, WHOLE_DOLLARS)}
 					</p>
@@ -166,7 +169,7 @@ export function ChartAreaInteractive({
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-muted-foreground">Net Profit</p>
+					<p className="text-muted-foreground">Scheduled Net</p>
 					<p
 						className={cn(
 							"flex items-center gap-1 typography-large",
@@ -182,7 +185,7 @@ export function ChartAreaInteractive({
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-muted-foreground">Profit Margin</p>
+					<p className="text-muted-foreground">Scheduled Margin</p>
 					<p
 						className={cn(
 							"typography-large",
@@ -272,7 +275,9 @@ export function ChartAreaInteractive({
 										labelFormatter={(value) => value}
 										formatter={(value, name) => [
 											formatCurrency(Number(value), WHOLE_DOLLARS),
-											name === "revenue" ? "Revenue" : "Expenses",
+											name === "revenue"
+												? chartConfig.revenue.label
+												: chartConfig.expenses.label,
 										]}
 										indicator="dot"
 									/>
