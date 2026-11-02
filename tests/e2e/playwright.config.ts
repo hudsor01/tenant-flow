@@ -27,12 +27,21 @@ dotenv.config({ path: path.join(__dirname, ".env.test"), override: true });
 const TEST_FRONTEND_PORT = 3050;
 const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`;
 
-// Local Supabase configuration (from .env.test)
+// Supabase configuration: CI sets both from repository variables; locally
+// they come from .env.test (loaded above). The publishable key has NO literal
+// fallback -- a key belongs in the environment, never in a tracked file, and
+// the old fallback (the local stack's legacy demo JWT) could not authenticate
+// against the hosted project anyway, where legacy JWT keys are disabled.
 const LOCAL_SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
 const LOCAL_SUPABASE_PUBLISHABLE_KEY =
-	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+
+// A missing key must not break IMPORTING this file (typecheck, `--list`, and a
+// run that reuses a server already on :3050 need no key). It fails only when
+// Playwright has to START the app server, with a message that names the fix.
+const MISSING_PUBLISHABLE_KEY_MESSAGE =
+	"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set. Set it in the environment or in tests/e2e/.env.test before starting the e2e web server.";
 
 const OWNER_AUTH_FILE = path.join(__dirname, "playwright/.auth/owner.json");
 
@@ -399,9 +408,11 @@ export default defineConfig({
 			// needs, and Next's env loader
 			// never overrides a variable that is already set in process.env, so
 			// the deletion protected nothing and destroyed real configuration.
-			const command = process.env.CI
-				? `rm -rf .next && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
-				: `rm -rf .next && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
+			const command = !LOCAL_SUPABASE_PUBLISHABLE_KEY
+				? `echo '${MISSING_PUBLISHABLE_KEY_MESSAGE}' >&2 && exit 1`
+				: process.env.CI
+					? `rm -rf .next && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
+					: `rm -rf .next && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
 			return {
 				command,
 				url: TEST_FRONTEND_URL,
