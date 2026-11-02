@@ -114,7 +114,7 @@ async function verifySvixSignature(
 	}
 
 	const secretBase64 = secret.replace(/^whsec_/, "");
-	let secretBytes: Uint8Array;
+	let secretBytes: Uint8Array<ArrayBuffer>;
 	try {
 		secretBytes = Uint8Array.from(atob(secretBase64), (c) => c.charCodeAt(0));
 	} catch {

@@ -9,7 +9,7 @@
 // -> 401 { error: 'Authorization required' | 'Invalid token' }
 // -> 405 Method Not Allowed (non-GET requests)
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { validateBearerAuth } from "../_shared/auth.ts";
 import {
 	getCorsHeaders,
@@ -117,7 +117,7 @@ Deno.serve(async (req: Request) => {
 });
 
 async function collectOwnerData(
-	supabase: ReturnType<typeof createClient>,
+	supabase: SupabaseClient,
 	userId: string,
 	profile: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
@@ -196,7 +196,7 @@ async function collectOwnerData(
 
 // Helper: get all maintenance request IDs for an owner
 async function getOwnerMaintenanceIds(
-	supabase: ReturnType<typeof createClient>,
+	supabase: SupabaseClient,
 	userId: string,
 ): Promise<string[]> {
 	const { data } = await supabase
