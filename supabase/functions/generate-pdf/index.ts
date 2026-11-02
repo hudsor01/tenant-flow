@@ -7,7 +7,8 @@
 //      1099-NEC section and the /reports/tax-documents page for that year,
 //      `_shared/tax-year-reports.ts`. Any other reportType is a 400.)
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
-//   3. { leaseId }            — fetch lease+property data, build HTML summary
+// (A third mode, { leaseId }, printed a lease summary that no caller requests;
+// such a body is now a Mode 1 request without a reportType, a 400.)
 // Calls the self-hosted StirlingPDF k3s instance and streams the resulting PDF blob.
 // JWT-authenticated — requires a valid Bearer token.
 // Fail-fast: no retry on StirlingPDF errors (matches stripe-webhooks pattern).
@@ -21,7 +22,6 @@ import {
 } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
-import { escapeHtml } from "../_shared/escape-html.ts";
 import {
 	buildFinancialAnalyticsTable,
 	FINANCIAL_ANALYTICS_REPORT_TYPE,
@@ -41,9 +41,8 @@ import {
 
 // Mirror of export-report PREMIUM_REPORT_TYPES. generate-pdf's Mode 1
 // (structured report data via {reportType, year}) bypasses export-report
-// entirely, so the same gate has to live here. Modes 2 (raw HTML) and 3
-// (lease preview) are not gated — those are per-entity operations already
-// bounded by ownership checks.
+// entirely, so the same gate has to live here. Mode 2 (raw HTML the caller
+// built from data it already holds) is not gated.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
 	"1099",
@@ -59,89 +58,7 @@ const REPORT_TYPES: readonly string[] = [
 
 type RequestBody =
 	| { reportType: string; year: number; filename?: string }
-	| { html: string; filename?: string }
-	| { leaseId: string; filename?: string };
-
-async function buildLeasePreviewHtml(
-	supabase: SupabaseClient,
-	leaseId: string,
-): Promise<string> {
-	const { data: lease, error } = await supabase
-		.from("leases")
-		.select(`
-      id,
-      lease_status,
-      start_date,
-      end_date,
-      rent_amount,
-      security_deposit,
-      owner_user_id,
-      primary_tenant_id,
-      units ( unit_number, properties ( name, address_line1, city, state, postal_code ) )
-    `)
-		.eq("id", leaseId)
-		.single();
-
-	if (error || !lease) {
-		throw new Error(`Lease not found: ${leaseId}`);
-	}
-
-	// Safely access joined data (PostgREST returns arrays for joined tables)
-	const unit = Array.isArray(lease.units) ? lease.units[0] : lease.units;
-	const property =
-		unit &&
-		(Array.isArray(unit.properties) ? unit.properties[0] : unit.properties);
-	const propertyName = property?.name ?? "Unknown Property";
-	const propertyAddress = property
-		? `${property.address_line1 ?? ""}, ${property.city ?? ""}, ${property.state ?? ""} ${property.postal_code ?? ""}`.trim()
-		: "Address not available";
-	const unitNumber = unit?.unit_number ?? "";
-	const rentAmount =
-		lease.rent_amount != null
-			? `$${Number(lease.rent_amount).toLocaleString()}/month`
-			: "N/A";
-	const deposit =
-		lease.security_deposit != null
-			? `$${Number(lease.security_deposit).toLocaleString()}`
-			: "N/A";
-	const startDate = lease.start_date ?? "N/A";
-	const endDate = lease.end_date ?? "N/A";
-	const status = lease.lease_status ?? "N/A";
-
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Lease Preview</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
-    h1 { font-size: 20px; margin-bottom: 4px; }
-    .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; margin-bottom: 16px; }
-    .label { border: 1px solid #ccc; padding: 6px 10px; font-weight: 500; background: #f8f8f8; width: 40%; }
-    .value { border: 1px solid #ccc; padding: 6px 10px; }
-    .note { color: #888; font-size: 11px; }
-  </style>
-</head>
-<body>
-  <h1>Lease Agreement Preview</h1>
-  <p class="meta">Generated: ${escapeHtml(new Date().toLocaleDateString())}</p>
-  <table>
-    <tbody>
-      <tr><td class="label">Property</td><td class="value">${escapeHtml(propertyName)}</td></tr>
-      <tr><td class="label">Address</td><td class="value">${escapeHtml(propertyAddress)}</td></tr>
-      ${unitNumber ? `<tr><td class="label">Unit</td><td class="value">${escapeHtml(unitNumber)}</td></tr>` : ""}
-      <tr><td class="label">Start Date</td><td class="value">${escapeHtml(startDate)}</td></tr>
-      <tr><td class="label">End Date</td><td class="value">${escapeHtml(endDate)}</td></tr>
-      <tr><td class="label">Monthly Rent</td><td class="value">${escapeHtml(rentAmount)}</td></tr>
-      <tr><td class="label">Security Deposit</td><td class="value">${escapeHtml(deposit)}</td></tr>
-      <tr><td class="label">Status</td><td class="value">${escapeHtml(status)}</td></tr>
-    </tbody>
-  </table>
-  <p class="note">This is a preview document. The final signed lease agreement may differ.</p>
-</body>
-</html>`;
-}
+	| { html: string; filename?: string };
 
 /** Injectable dependencies for `deno test` (mirrors lease-signature). */
 export interface GeneratePdfDeps {
@@ -195,34 +112,6 @@ export async function handleRequest(
 				);
 			}
 			html = body.html;
-		} else if ("leaseId" in body) {
-			// Mode 3: lease PDF preview — fetch lease data and build HTML summary
-			if (!body.leaseId || typeof body.leaseId !== "string") {
-				return new Response(
-					JSON.stringify({ error: "leaseId must be a non-empty string" }),
-					{ status: 400, headers: getJsonHeaders(req) },
-				);
-			}
-
-			// Verify ownership before generating PDF
-			const { data: leaseOwnership, error: ownershipError } = await supabase
-				.from("leases")
-				.select("owner_user_id")
-				.eq("id", body.leaseId)
-				.maybeSingle();
-
-			if (
-				ownershipError ||
-				!leaseOwnership ||
-				leaseOwnership.owner_user_id !== user.id
-			) {
-				return new Response(JSON.stringify({ error: "Forbidden" }), {
-					status: 403,
-					headers: getJsonHeaders(req),
-				});
-			}
-
-			html = await buildLeasePreviewHtml(supabase, body.leaseId);
 		} else {
 			// Mode 1: structured report data — fetch DB data and build HTML
 			if (

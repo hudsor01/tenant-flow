@@ -4,7 +4,8 @@
 //
 // What it pins: a reportType the function does not build (the deleted
 // maintenance and revenue row dumps, income-statement, cash-flow) is a 400
-// before the gate and any RPC; each page-backed report type is gated like
+// before the gate and any RPC, and so is a `{ leaseId }` body (the deleted
+// lease-preview mode no caller sent); each page-backed report type is gated like
 // export-report's (the 402 with upgrade_url, no RPC), its RPC errors are a
 // 500, and a paid owner's PDF is printed from the same document
 // export-report's pdf format posts here (`sectionedReportHtml` over the
@@ -360,4 +361,37 @@ Deno.test("Mode 1 rejects a reportType it does not build, before the gate and an
 			});
 		}
 	}
+});
+
+Deno.test("a { leaseId } body (the deleted lease-preview mode) is a 400, with no read", async () => {
+	await withStirling(async (htmlPosts) => {
+		const { client, rpcs } = makeClient("growth", TAX_YEAR_ANSWERS);
+		let tableReads = 0;
+		const counting = new Proxy(client, {
+			get(target, prop, receiver) {
+				if (prop === "from") {
+					return (table: string) => {
+						tableReads++;
+						return target.from(table);
+					};
+				}
+				return Reflect.get(target, prop, receiver);
+			},
+		});
+		const res = await handleRequest(
+			new Request("https://supabase.test/functions/v1/generate-pdf", {
+				method: "POST",
+				headers: {
+					Authorization: "Bearer user-jwt",
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ leaseId: "lease-1", filename: "lease.pdf" }),
+			}),
+			{ createClient: () => counting },
+		);
+		assertEquals(res.status, 400);
+		assertEquals(rpcs, []);
+		assertEquals(tableReads, 0);
+		assertEquals(htmlPosts, []);
+	});
 });
