@@ -5,12 +5,12 @@ import type { ElementType } from "react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { formatCents } from "#lib/utils/currency";
-import type { FinancialLineItem } from "#types/financial-statements";
+import type { BalanceSheetGroup } from "./balance-sheet-view";
 
 export interface BalanceSectionProps {
 	title: string;
 	icon: ElementType;
-	items: { label: string; items: FinancialLineItem[]; subtotal: number }[];
+	items: BalanceSheetGroup[];
 	total: number;
 	totalLabel: string;
 	colorClass: string;
