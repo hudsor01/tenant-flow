@@ -2,10 +2,13 @@
 // stubbed StirlingPDF fetch; no network, no `functions serve`, no deploy
 // (mirrors lease-signature-metering-test.ts).
 //
-// What it pins: each page-backed report type is gated like export-report's
-// (the 402 with upgrade_url, no RPC), its RPC errors are a 500, and a paid
-// owner's PDF is printed from the same document export-report's pdf format
-// posts here (`sectionedReportHtml` over the leaf's table): the
+// What it pins: a reportType the function does not build (the deleted
+// maintenance and revenue row dumps, income-statement, cash-flow) is a 400
+// before the gate and any RPC; each page-backed report type is gated like
+// export-report's (the 402 with upgrade_url, no RPC), its RPC errors are a
+// 500, and a paid owner's PDF is printed from the same document
+// export-report's pdf format posts here (`sectionedReportHtml` over the
+// leaf's table): the
 // /analytics/financial export, and the year-end, 1099-NEC and tax-documents
 // pages for the year asked for (`_shared/tax-year-reports.ts`, whose rows the
 // Vitest `__tests__/tax-year-reports.test.ts` proves equal to the pages').
@@ -322,13 +325,38 @@ Deno.test("Mode 1 rejects a year that is not a four-digit integer", async () => 
 	for (const year of [2026.5, "2026", 99999, 26, null]) {
 		await withStirling(async (htmlPosts) => {
 			const { client, rpcs } = makeClient("growth", TAX_YEAR_ANSWERS);
-			const res = await handleRequest(
-				modeOneFor(YEAR_END_REPORT_TYPE, year),
-				{ createClient: () => client },
-			);
+			const res = await handleRequest(modeOneFor(YEAR_END_REPORT_TYPE, year), {
+				createClient: () => client,
+			});
 			assertEquals(res.status, 400, String(year));
 			assertEquals(rpcs, []);
 			assertEquals(htmlPosts, []);
 		});
+	}
+});
+
+Deno.test("Mode 1 rejects a reportType it does not build, before the gate and any RPC", async () => {
+	for (const reportType of [
+		"maintenance",
+		"revenue",
+		"income-statement",
+		"cash-flow",
+		"Year-End",
+	]) {
+		for (const plan of ["growth", "free"]) {
+			await withStirling(async (htmlPosts) => {
+				const { client, rpcs } = makeClient(plan, TAX_YEAR_ANSWERS);
+				const res = await handleRequest(modeOneFor(reportType, 2026), {
+					createClient: () => client,
+				});
+				assertEquals(res.status, 400, `${reportType} ${plan}`);
+				assertEquals(await res.json(), {
+					error:
+						"reportType must be one of: financial-analytics, year-end, 1099, financial",
+				});
+				assertEquals(rpcs, []);
+				assertEquals(htmlPosts, []);
+			});
+		}
 	}
 });

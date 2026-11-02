@@ -47,6 +47,8 @@ import {
 	REPORTS_HUB_ENTRIES,
 } from "#app/(owner)/reports/reports-hub-entries";
 import { PREMIUM_REPORT_SLUGS } from "#lib/reports/premium-report-slugs";
+import { FINANCIAL_ANALYTICS_REPORT_TYPE } from "../_shared/financial-analytics-report";
+import { TAX_YEAR_REPORT_TYPES } from "../_shared/tax-year-reports";
 
 function readRepoSource(relativePath: string): string {
 	return readFileSync(
@@ -173,6 +175,37 @@ describe("D-12 cross-source set equality", () => {
 		// claims-integrity failure in its own right. Equality against export-report
 		// plus the assertion above makes all three sets mutually equal.
 		expect(sorted(PREMIUM_REPORT_SLUGS)).toEqual(sorted(EXPORT_REPORT_TYPES));
+	});
+});
+
+describe("the gated set names only reports the functions build", () => {
+	// Both functions build the financial-analytics export and the tax-year
+	// reports, and answer any other type with a 400 (before the gate), so a
+	// gated type neither function builds would gate nothing. income-statement
+	// and cash-flow were such types: they fell through to a flattened revenue
+	// dump no caller requested, and left the set with the dead branch.
+	const BUILT_TYPES = [
+		FINANCIAL_ANALYTICS_REPORT_TYPE,
+		...TAX_YEAR_REPORT_TYPES,
+	];
+
+	it("every gated type is a type both functions build", () => {
+		const unbuilt = EXPORT_REPORT_TYPES.filter(
+			(type) => !BUILT_TYPES.includes(type),
+		);
+		expect(unbuilt).toEqual([]);
+	});
+
+	it("both functions accept exactly the built types and 400 the rest", () => {
+		for (const [label, source] of [
+			["export-report", EXPORT_REPORT_SOURCE],
+			["generate-pdf", GENERATE_PDF_SOURCE],
+		] as const) {
+			expect(source, label).toMatch(
+				/const REPORT_TYPES: readonly string\[\] = \[\s*FINANCIAL_ANALYTICS_REPORT_TYPE,\s*\.\.\.TAX_YEAR_REPORT_TYPES,\s*\];/,
+			);
+			expect(source, label).toMatch(/!REPORT_TYPES\.includes\(/);
+		}
 	});
 });
 

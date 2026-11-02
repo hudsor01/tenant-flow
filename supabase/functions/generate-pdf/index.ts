@@ -5,7 +5,7 @@
 //      document export-report's pdf format prints; `year` is not used for it.
 //      `year-end`, `1099` and `financial` print the /reports/year-end page, its
 //      1099-NEC section and the /reports/tax-documents page for that year,
-//      `_shared/tax-year-reports.ts`)
+//      `_shared/tax-year-reports.ts`. Any other reportType is a 400.)
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
 //   3. { leaseId }            — fetch lease+property data, build HTML summary
 // Calls the self-hosted StirlingPDF k3s instance and streams the resulting PDF blob.
@@ -27,13 +27,12 @@ import {
 	FINANCIAL_ANALYTICS_REPORT_TYPE,
 	loadFinancialAnalyticsSources,
 } from "../_shared/financial-analytics-report.ts";
-import { reportColumns } from "../_shared/report-csv.ts";
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	buildTaxYearReport,
-	isTaxYearReportType,
 	loadTaxYearSources,
+	TAX_YEAR_REPORT_TYPES,
 } from "../_shared/tax-year-reports.ts";
 import {
 	checkTierEntitlement,
@@ -50,117 +49,18 @@ const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"1099",
 	"financial",
 	"financial-analytics",
-	"income-statement",
-	"cash-flow",
 ]);
 
-type ReportRow = Record<string, string | number | null | undefined>;
+/** The Mode 1 report types this function builds; any other is a 400. */
+const REPORT_TYPES: readonly string[] = [
+	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	...TAX_YEAR_REPORT_TYPES,
+];
 
 type RequestBody =
 	| { reportType: string; year: number; filename?: string }
 	| { html: string; filename?: string }
 	| { leaseId: string; filename?: string };
-
-function buildReportHtml(
-	reportType: string,
-	year: number,
-	rows: ReportRow[],
-): string {
-	const title = `${reportType.replace(/-/g, " ").toUpperCase()} REPORT — ${year}`;
-	const headers = reportColumns(rows);
-
-	const headerCells = headers
-		.map((h) => `<th class="th">${escapeHtml(h)}</th>`)
-		.join("");
-	const tableRows = rows
-		.map(
-			(row) =>
-				`<tr>${headers.map((h) => `<td class="td">${escapeHtml(String(row[h] ?? ""))}</td>`).join("")}</tr>`,
-		)
-		.join("");
-
-	const tableMarkup =
-		rows.length === 0
-			? '<p class="empty">No data available for this report.</p>'
-			: `<table class="table"><thead><tr>${headerCells}</tr></thead><tbody>${tableRows}</tbody></table>`;
-
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>${escapeHtml(title)}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
-    h1 { font-size: 20px; margin-bottom: 4px; }
-    .meta { color: #666; margin-bottom: 16px; font-size: 13px; }
-    .table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    .th { border: 1px solid #ccc; padding: 6px 10px; background: #f0f0f0; text-align: left; }
-    .td { border: 1px solid #ccc; padding: 6px 10px; }
-    .empty { color: #666; font-size: 13px; }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(title)}</h1>
-  <p class="meta">Generated: ${escapeHtml(new Date().toLocaleDateString())}</p>
-  ${tableMarkup}
-</body>
-</html>`;
-}
-
-function coerceCell(value: unknown): string | number | null {
-	if (value === null || value === undefined) return null;
-	if (typeof value === "number" || typeof value === "string") return value;
-	return JSON.stringify(value);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-// Mirror of export-report's flattenToRows, coerced to the ReportRow cell shape:
-// array results -> one row per element (a non-object element as { value });
-// object-shaped RPC results -> [{ metric, value }] rows.
-function flattenToReportRows(data: unknown): ReportRow[] {
-	if (Array.isArray(data)) {
-		return data.map((row: unknown) => {
-			if (!isRecord(row)) return { value: coerceCell(row) };
-			const out: ReportRow = {};
-			for (const [key, value] of Object.entries(row)) {
-				out[key] = coerceCell(value);
-			}
-			return out;
-		});
-	}
-	if (!isRecord(data)) return [];
-	return Object.entries(data).map(([key, value]) => ({
-		metric: key,
-		value: coerceCell(value),
-	}));
-}
-
-// The remaining row reports (no page prints them; the page-backed types are
-// handled before this is reached), branched to the SAME RPCs export-report's
-// row path uses so a report's PDF matches its CSV.
-async function fetchReportRows(
-	supabase: SupabaseClient,
-	userId: string,
-	reportType: string,
-): Promise<ReportRow[]> {
-	if (reportType === "maintenance") {
-		const { data, error } = await supabase.rpc("get_maintenance_analytics", {
-			user_id: userId,
-		});
-		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-		return flattenToReportRows(data);
-	}
-
-	const { data, error } = await supabase.rpc("get_revenue_trends_optimized", {
-		p_user_id: userId,
-		p_months: 12,
-	});
-	if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-	return flattenToReportRows(data);
-}
 
 async function buildLeasePreviewHtml(
 	supabase: SupabaseClient,
@@ -340,6 +240,14 @@ export async function handleRequest(
 					{ status: 400, headers: getJsonHeaders(req) },
 				);
 			}
+			if (!REPORT_TYPES.includes(body.reportType)) {
+				return new Response(
+					JSON.stringify({
+						error: `reportType must be one of: ${REPORT_TYPES.join(", ")}`,
+					}),
+					{ status: 400, headers: getJsonHeaders(req) },
+				);
+			}
 
 			// REQ-46-01: premium report types require Growth/Max tier.
 			if (PREMIUM_REPORT_TYPES.has(body.reportType)) {
@@ -377,7 +285,7 @@ export async function handleRequest(
 					table.header,
 					table.rows,
 				);
-			} else if (isTaxYearReportType(body.reportType)) {
+			} else {
 				const load = await loadTaxYearSources(
 					(name, args) => supabase.rpc(name, args),
 					body.reportType,
@@ -401,13 +309,6 @@ export async function handleRequest(
 					report.table.header,
 					report.table.rows,
 				);
-			} else {
-				const rows = await fetchReportRows(
-					supabase,
-					user.id,
-					body.reportType,
-				);
-				html = buildReportHtml(body.reportType, body.year, rows);
 			}
 		}
 

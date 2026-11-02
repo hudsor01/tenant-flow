@@ -11,7 +11,9 @@
 //   - the paywall: a free-tier owner gets the 402 with upgrade_url and no RPC
 //     runs;
 //   - every RPC error is a 500 and never a file;
-//   - format and year are validated;
+//   - type, format and year are validated: a type the function does not build
+//     (the deleted maintenance and revenue row dumps, income-statement,
+//     cash-flow, none) is a 400 before the gate and any RPC;
 //   - year-end, 1099 and financial (the tax-documents page) write the leaf's
 //     table of their page's figures for the year asked for, in every format
 //     (`_shared/tax-year-reports.ts`; the Vitest `__tests__/tax-year-reports
@@ -86,10 +88,6 @@ function answers(): RpcAnswers {
 		},
 		get_billing_insights: {
 			data: { unpaidTotal: 0, unpaidCount: 0, lateFeeTotal: 0, tenantCount: 3 },
-			error: null,
-		},
-		get_maintenance_analytics: {
-			data: { open_requests: 2, avg_resolution_hours: 5.5 },
 			error: null,
 		},
 		get_dashboard_stats: {
@@ -404,7 +402,7 @@ Deno.test("every RPC error is a 500 and never a file", async () => {
 			});
 		}
 	}
-	for (const type of ["year-end", "1099", "maintenance", "revenue"]) {
+	for (const type of ["year-end", "1099", "financial"]) {
 		const s = scenario();
 		for (const name of Object.keys(s.rpc)) {
 			s.rpc[name] = { data: null, error: { message: "boom" } };
@@ -441,8 +439,8 @@ Deno.test("format and year are validated", async () => {
 	for (const query of [
 		`${FA}&format=excel`,
 		`${FA}&format=xls`,
-		"?format=csv&year=20x6",
-		"?year=26",
+		"?type=year-end&format=csv&year=20x6",
+		"?type=year-end&year=26",
 	]) {
 		const { res, calls } = await run(get(query), scenario());
 		assertEquals(res.status, 400, query);
@@ -452,12 +450,14 @@ Deno.test("format and year are validated", async () => {
 
 Deno.test("a missing token is a 401", async () => {
 	const { res } = await run(
-		new Request("https://supabase.test/functions/v1/export-report?format=csv"),
+		new Request(
+			`https://supabase.test/functions/v1/export-report${FA}&format=csv`,
+		),
 		scenario(),
 	);
 	assertEquals(res.status, 401);
 	const { res: bad } = await run(
-		get("?format=csv"),
+		get(`${FA}&format=csv`),
 		scenario({ authenticated: false }),
 	);
 	assertEquals(bad.status, 401);
@@ -542,37 +542,28 @@ Deno.test("year-end, 1099 and tax documents are gated: 402, no RPC", async () =>
 	}
 });
 
-Deno.test("a row report's xlsx is a real workbook of its rows", async () => {
-	const s = scenario();
-	const { res } = await run(get("?type=maintenance&format=xlsx&year=2026"), s);
-	assertEquals(res.status, 200);
-	const bytes = new Uint8Array(await res.arrayBuffer());
-	// A zip, not CSV text under the spreadsheet MIME type (SheetJS would parse
-	// CSV text into a workbook too, so the magic is what tells them apart).
-	assertEquals([...bytes.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
-	assertEquals(res.headers.get("Content-Type"), XLSX_MIME_TYPE);
-	const workbook = XLSX.read(bytes, { type: "array" });
-	const sheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
-	assert(sheet);
-	assertEquals(XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 }), [
-		["metric", "value"],
-		["open_requests", 2],
-		["avg_resolution_hours", 5.5],
-	]);
-	assertEquals(sheet.B2?.t, "n");
-
-	const empty = scenario();
-	empty.rpc.get_maintenance_analytics = { data: null, error: null };
-	const { res: none } = await run(
-		get("?type=maintenance&format=xlsx&year=2026"),
-		empty,
-	);
-	const blank = XLSX.read(new Uint8Array(await none.arrayBuffer()), {
-		type: "array",
-	});
-	const blankSheet = blank.Sheets[blank.SheetNames[0] ?? ""];
-	assert(blankSheet);
-	assertEquals(XLSX.utils.sheet_to_json<unknown[]>(blankSheet, { header: 1 }), [
-		["No data available"],
-	]);
+Deno.test("a type the function does not build is a 400, before the gate and any RPC", async () => {
+	for (const query of [
+		"?type=maintenance&format=csv&year=2026",
+		"?type=revenue&format=xlsx",
+		"?type=income-statement&format=pdf",
+		"?type=cash-flow&format=csv",
+		"?type=&format=csv",
+		"?format=csv",
+		"",
+	]) {
+		for (const plan of ["growth", "free"]) {
+			await withPdfStub(true, async (posts) => {
+				const { res, calls } = await run(get(query), scenario({ plan }));
+				assertEquals(res.status, 400, `${query} ${plan}`);
+				assertEquals(await res.json(), {
+					error:
+						"type must be one of: financial-analytics, year-end, 1099, financial",
+				});
+				assertEquals(calls.rpcs, [], query);
+				assertEquals(calls.gateEvents, 0, query);
+				assertEquals(posts, [], query);
+			});
+		}
+	}
 });

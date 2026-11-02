@@ -88,10 +88,12 @@ const SOURCES_BY_REPORT: Readonly<Record<string, readonly SourceKey[]>> = {
 	[TAX_DOCUMENTS_REPORT_TYPE]: ["dashboardStats", "expenseSummary"],
 };
 
-/** Whether this module builds the report type. */
-export function isTaxYearReportType(reportType: string): boolean {
-	return Object.hasOwn(SOURCES_BY_REPORT, reportType);
-}
+/** The report types this module builds, in the order the pages list them. */
+export const TAX_YEAR_REPORT_TYPES: readonly string[] = [
+	YEAR_END_REPORT_TYPE,
+	REPORT_1099_TYPE,
+	TAX_DOCUMENTS_REPORT_TYPE,
+];
 
 /** Every RPC a tax-year report may read, with the arguments its page passes. */
 export function taxYearRpcCalls(
@@ -144,7 +146,11 @@ export async function loadTaxYearSources(
 ): Promise<TaxYearLoad> {
 	const keys = SOURCES_BY_REPORT[reportType];
 	if (!keys) {
-		return { ok: false, rpc: "", error: new Error(`unknown report ${reportType}`) };
+		return {
+			ok: false,
+			rpc: "",
+			error: new Error(`unknown report ${reportType}`),
+		};
 	}
 	const calls = taxYearRpcCalls(userId, year);
 	const results = await Promise.all(
@@ -342,7 +348,10 @@ export function buildTaxYearReport(
 	if (reportType === REPORT_1099_TYPE) {
 		return {
 			title: `1099-NEC Summary ${year}`,
-			table: { header: YEAR_END_HEADER, rows: rows1099(sources.expenseSummary) },
+			table: {
+				header: YEAR_END_HEADER,
+				rows: rows1099(sources.expenseSummary),
+			},
 		};
 	}
 	if (reportType === TAX_DOCUMENTS_REPORT_TYPE) {
@@ -355,7 +364,10 @@ export function buildTaxYearReport(
 }
 
 /** The download name both functions give the report (no extension). */
-export function taxYearReportFilename(reportType: string, year: number): string {
+export function taxYearReportFilename(
+	reportType: string,
+	year: number,
+): string {
 	if (reportType === REPORT_1099_TYPE) return `1099-vendors-${year}`;
 	if (reportType === TAX_DOCUMENTS_REPORT_TYPE) return `tax-documents-${year}`;
 	return `year-end-${year}`;

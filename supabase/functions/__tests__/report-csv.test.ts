@@ -3,8 +3,7 @@
  *
  * WHAT THIS FILE PROVES BY EXECUTION. Section 1 imports
  * `../_shared/report-csv` and runs the real writer: formula neutralization of
- * text cells (never numbers), RFC 4180 quoting, and a column list that is the
- * union of every row's keys, not the first row's. The specifier carries no
+ * text cells (never numbers) and RFC 4180 quoting. The specifier carries no
  * `.ts` extension: `tsconfig.json` includes `supabase/functions/__tests__/**`,
  * where an explicit `.ts` specifier is TS5097 (the trap
  * `application-guards.test.ts` documents). The Deno callers import
@@ -13,8 +12,9 @@
  * WHAT IT PROVES ONLY STRUCTURALLY. The two Edge Functions cannot be imported
  * here (they import `../_shared/*.ts` with extensions, read the Deno env and
  * call `Deno.serve`), so section 2 reads them off disk, as
- * `premium-report-gate.test.ts` does, and pins that both take their columns
- * and CSV from the leaf and no longer derive a header from `rows[0]`.
+ * `premium-report-gate.test.ts` does, and pins that export-report writes every
+ * CSV through the leaf and that neither function keeps the deleted row-report
+ * path (an RPC's JSON flattened into rows with a header taken from its keys).
  *
  * WHAT NOTHING HERE PROVES. That the deployed functions run this code: Edge
  * Functions deploy by hand from `main` (export-report, generate-pdf).
@@ -25,11 +25,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
 	csvCell,
-	EMPTY_REPORT_CSV,
 	neutralizeCsvFormula,
-	reportColumns,
-	rowsToCsv,
-	rowsToTable,
 	tableToCsv,
 } from "../_shared/report-csv";
 
@@ -65,51 +61,6 @@ describe("report CSV writer (export-report)", () => {
 		expect(csvCell("\r=1+1")).toBe('"\'\r=1+1"');
 	});
 
-	it("takes the union of every row's keys, in first-seen order", () => {
-		const rows = [
-			{ month: "2026-01", revenue: 1200 },
-			{ month: "2026-02", revenue: 1300, expenses: 400 },
-			{ notes: "=HYPERLINK(1)", month: "2026-03" },
-		];
-		expect(reportColumns(rows)).toEqual([
-			"month",
-			"revenue",
-			"expenses",
-			"notes",
-		]);
-		expect(rowsToCsv(rows)).toBe(
-			[
-				"month,revenue,expenses,notes",
-				"2026-01,1200,,",
-				"2026-02,1300,400,",
-				"2026-03,,,'=HYPERLINK(1)",
-			].join("\n"),
-		);
-	});
-
-	it("neutralizes a header that starts with a formula trigger", () => {
-		expect(rowsToCsv([{ "=cmd": "x" }])).toBe("'=cmd\nx");
-	});
-
-	it("writes an empty report as the no-data line", () => {
-		expect(rowsToCsv([])).toBe(EMPTY_REPORT_CSV);
-		expect(reportColumns([])).toEqual([]);
-	});
-
-	it("turns rows into a table of every column, with empty cells for gaps", () => {
-		const rows = [
-			{ month: "2026-01", revenue: 1200 },
-			{ month: "2026-02", expenses: 400 },
-		];
-		expect(rowsToTable(rows)).toEqual({
-			header: ["month", "revenue", "expenses"],
-			rows: [
-				["2026-01", 1200, undefined],
-				["2026-02", undefined, 400],
-			],
-		});
-	});
-
 	it("writes a fixed-header table with the same cell rules", () => {
 		expect(
 			tableToCsv(
@@ -130,12 +81,6 @@ describe("report CSV writer (export-report)", () => {
 		);
 		expect(tableToCsv(["Section"], [])).toBe("Section");
 	});
-
-	it("writes a row report through the table writer, byte for byte", () => {
-		const rows = [{ metric: "open_requests", value: 2 }, { metric: "=x" }];
-		const table = rowsToTable(rows);
-		expect(rowsToCsv(rows)).toBe(tableToCsv(table.header, table.rows));
-	});
 });
 
 const read = (rel: string) =>
@@ -145,28 +90,21 @@ describe("the report Edge Functions use the leaf", () => {
 	const exportReport = read("../export-report/index.ts");
 	const generatePdf = read("../generate-pdf/index.ts");
 
-	it("export-report imports its CSV writer and columns from the leaf", () => {
-		expect(exportReport).toMatch(
-			/import \{\s*reportColumns,\s*rowsToCsv,\s*rowsToTable,\s*tableToCsv,\s*\} from "\.\.\/_shared\/report-csv\.ts";/,
+	it("export-report writes every CSV through the leaf's table writer", () => {
+		expect(exportReport).toContain(
+			'import { tableToCsv } from "../_shared/report-csv.ts";',
 		);
 		expect(exportReport).not.toMatch(/function (rowsToCsv|tableToCsv)\b/);
-		expect(exportReport).toMatch(/csv: rowsToCsv\(result\.rows\),/);
-		expect(exportReport).toMatch(
-			/csv: tableToCsv\(table\.header, table\.rows\),/,
-		);
-		expect(exportReport).toMatch(/const headers = reportColumns\(rows\);/);
+		expect(exportReport.match(/csv: tableToCsv\(/g)).toHaveLength(2);
 	});
 
-	it("generate-pdf takes its report columns from the leaf", () => {
-		expect(generatePdf).toContain(
-			'import { reportColumns } from "../_shared/report-csv.ts";',
-		);
-		expect(generatePdf).toMatch(/const headers = reportColumns\(rows\);/);
-	});
-
-	it("neither function derives a header from the first row", () => {
+	it("neither function keeps the row-report path", () => {
 		for (const source of [exportReport, generatePdf]) {
+			expect(source).not.toMatch(
+				/flattenTo\w*Rows|fetchReportRows|buildReportHtml|reportColumns|get_maintenance_analytics/,
+			);
 			expect(source).not.toMatch(/Object\.keys\(\s*rows\[0\]\s*\)/);
 		}
+		expect(generatePdf).not.toContain("report-csv.ts");
 	});
 });

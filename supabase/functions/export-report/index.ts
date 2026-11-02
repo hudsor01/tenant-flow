@@ -1,9 +1,9 @@
 // Supabase Edge Function: export-report
 // GET /functions/v1/export-report?type=<report type>&format=<csv|xlsx|pdf>[&year=YYYY]
-// Reads only the query string; a request body is ignored. `format` defaults to
-// csv and `type` to financial; any other format, or a year that is not four
-// digits, is a 400.
-// Page-backed types hold their page's figures: `financial-analytics` is
+// Reads only the query string; a request body is ignored. `type` is required
+// and names one of the reports below; `format` defaults to csv. Any other
+// type, any other format, or a year that is not four digits, is a 400.
+// Every type holds its page's figures: `financial-analytics` is
 // /analytics/financial (`_shared/financial-analytics-report.ts`); `year-end`,
 // `1099` and `financial` are /reports/year-end, its 1099-NEC section and
 // /reports/tax-documents for the year asked for (`_shared/tax-year-reports.ts`).
@@ -23,25 +23,19 @@ import {
 } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
-import { escapeHtml } from "../_shared/escape-html.ts";
 import {
 	buildFinancialAnalyticsTable,
 	FINANCIAL_ANALYTICS_REPORT_TYPE,
 	loadFinancialAnalyticsSources,
 } from "../_shared/financial-analytics-report.ts";
-import {
-	reportColumns,
-	rowsToCsv,
-	rowsToTable,
-	tableToCsv,
-} from "../_shared/report-csv.ts";
+import { tableToCsv } from "../_shared/report-csv.ts";
 import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { reportTableToXlsx, XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	buildTaxYearReport,
-	isTaxYearReportType,
 	loadTaxYearSources,
+	TAX_YEAR_REPORT_TYPES,
 	taxYearReportFilename,
 } from "../_shared/tax-year-reports.ts";
 import {
@@ -49,18 +43,22 @@ import {
 	GROWTH_AND_MAX_PLANS,
 } from "../_shared/tier-gate.ts";
 
-// Report types gated behind Growth/Max (REQ-46-02).
-// Free-tier keeps basic reports (maintenance, default revenue trends) so the
-// product is usable without upgrading; tax-prep, year-end and the financial
-// analytics export require paid.
+// Report types gated behind Growth/Max (REQ-46-02): tax prep, year-end and
+// the financial analytics export. Every type this function builds is one of
+// them; the set stays separate from REPORT_TYPES so a free type added later
+// is ungated only by choice.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
 	"1099",
 	"financial",
 	"financial-analytics",
-	"income-statement",
-	"cash-flow",
 ]);
+
+/** The report types this function builds; any other is a 400. */
+const REPORT_TYPES: readonly string[] = [
+	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	...TAX_YEAR_REPORT_TYPES,
+];
 
 type ExportFormat = "csv" | "xlsx" | "pdf";
 
@@ -84,61 +82,6 @@ interface ReportContent {
 	readonly rows: readonly (readonly unknown[])[];
 	readonly csv: string;
 	readonly html: string;
-}
-
-type RowsResult =
-	| { readonly ok: true; readonly rows: Record<string, unknown>[] }
-	| { readonly ok: false; readonly rpc: string; readonly error: unknown };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-/**
- * An RPC's JSON as report rows: an array's objects as they are (any other
- * element as `{ value }`), an object as one `{ metric, value }` row per key
- * (a nested value as its JSON text), and nothing for anything else.
- */
-function flattenToRows(data: unknown): Record<string, unknown>[] {
-	if (Array.isArray(data)) {
-		return data.map((row: unknown) => (isRecord(row) ? row : { value: row }));
-	}
-	if (!isRecord(data)) return [];
-	return Object.entries(data).map(([key, value]) => ({
-		metric: key,
-		value:
-			value !== null && typeof value === "object"
-				? JSON.stringify(value)
-				: value,
-	}));
-}
-
-// The remaining row reports (no page prints them; the page-backed types are
-// built from their page's figures before this is reached), branched to the
-// SAME RPCs, with the same arguments, as generate-pdf's Mode 1
-// `fetchReportRows`, so a report's CSV, XLSX and PDF hold the same figures.
-async function fetchReportRows(
-	supabase: SupabaseClient,
-	userId: string,
-	reportType: string,
-): Promise<RowsResult> {
-	let rpc: string;
-	let args: Record<string, string | number>;
-	if (reportType === "maintenance") {
-		rpc = "get_maintenance_analytics";
-		args = { user_id: userId };
-	} else {
-		rpc = "get_revenue_trends_optimized";
-		args = { p_user_id: userId, p_months: 12 };
-	}
-	const { data, error } = await supabase.rpc(rpc, args);
-	if (error) return { ok: false, rpc, error };
-	return { ok: true, rows: flattenToRows(data) };
-}
-
-function rowsReportFilename(reportType: string, year: number): string {
-	if (reportType === "maintenance") return `maintenance-report-${year}`;
-	return `revenue-report-${year}`;
 }
 
 function fileHeaders(
@@ -196,9 +139,17 @@ export async function handleRequest(
 		const now = (deps.now ?? (() => new Date()))();
 
 		const url = new URL(req.url);
-		const reportType = url.searchParams.get("type") ?? "financial";
+		const reportType = url.searchParams.get("type");
 		const format = url.searchParams.get("format") ?? "csv";
 		const yearParam = url.searchParams.get("year");
+		if (reportType === null || !REPORT_TYPES.includes(reportType)) {
+			return new Response(
+				JSON.stringify({
+					error: `type must be one of: ${REPORT_TYPES.join(", ")}`,
+				}),
+				{ status: 400, headers: getJsonHeaders(req) },
+			);
+		}
 		if (!isExportFormat(format)) {
 			return new Response(
 				JSON.stringify({ error: "format must be csv, xlsx or pdf" }),
@@ -248,7 +199,7 @@ export async function handleRequest(
 				csv: tableToCsv(table.header, table.rows),
 				html: sectionedReportHtml(title, today, table.header, table.rows),
 			};
-		} else if (isTaxYearReportType(reportType)) {
+		} else {
 			const load = await loadTaxYearSources(
 				(name, args) => supabase.rpc(name, args),
 				reportType,
@@ -269,18 +220,6 @@ export async function handleRequest(
 					report.table.header,
 					report.table.rows,
 				),
-			};
-		} else {
-			const result = await fetchReportRows(supabase, user.id, reportType);
-			if (!result.ok) return rpcErrorResponse(req, result.rpc, result.error);
-			const table = rowsToTable(result.rows);
-			content = {
-				title: `${reportType.replace(/-/g, " ").toUpperCase()} REPORT ${year}`,
-				filename: rowsReportFilename(reportType, year),
-				header: table.header.length > 0 ? table.header : ["No data available"],
-				rows: table.rows,
-				csv: rowsToCsv(result.rows),
-				html: buildReportHtml(result.rows, reportType, year),
 			};
 		}
 
@@ -340,53 +279,6 @@ export async function handleRequest(
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "export_report" });
 	}
-}
-
-function buildReportHtml(
-	rows: Record<string, unknown>[],
-	reportType: string,
-	year: number,
-): string {
-	const title = escapeHtml(
-		`${reportType.replace(/-/g, " ").toUpperCase()} REPORT — ${year}`,
-	);
-	const headers = reportColumns(rows);
-
-	const tableRows = rows
-		.map(
-			(row) =>
-				`<tr>${headers
-					.map((h) => {
-						const val = row[h];
-						return `<td style="border:1px solid #ccc;padding:6px 10px;">${val === null || val === undefined ? "" : escapeHtml(String(val))}</td>`;
-					})
-					.join("")}</tr>`,
-		)
-		.join("");
-
-	const headerCells = headers
-		.map(
-			(h) =>
-				`<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left;">${escapeHtml(h)}</th>`,
-		)
-		.join("");
-
-	return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>${title}</title></head>
-<body style="font-family:Arial,sans-serif;margin:32px;color:#222;">
-  <h1 style="font-size:20px;margin-bottom:4px;">${title}</h1>
-  <p style="color:#666;margin-bottom:16px;">Generated: ${new Date().toLocaleDateString()}</p>
-  ${
-		rows.length === 0
-			? "<p>No data available for this report.</p>"
-			: `<table style="border-collapse:collapse;width:100%;font-size:13px;">
-        <thead><tr>${headerCells}</tr></thead>
-        <tbody>${tableRows}</tbody>
-      </table>`
-	}
-</body>
-</html>`;
 }
 
 // The handler registers Deno.serve() as a module side-effect (like every edge fn
