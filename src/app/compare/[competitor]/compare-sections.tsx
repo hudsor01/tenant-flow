@@ -19,10 +19,7 @@ function FeatureIcon({ support }: { support: FeatureSupport }) {
 			);
 		case "addon":
 			return (
-				<Plus
-					className="size-5 text-info-text"
-					aria-label="Available as add-on"
-				/>
+				<Plus className="size-5 text-info" aria-label="Available as add-on" />
 			);
 		case "na":
 			// CONS-07: neutral framing for "by design" feature absences
