@@ -115,7 +115,6 @@ export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 		requested_by: (row.requested_by as string | null) ?? null,
 		assigned_to: (row.assigned_to as string | null) ?? null,
 		estimated_cost: (row.estimated_cost as number | null) ?? null,
-		actual_cost: (row.actual_cost as number | null) ?? null,
 		scheduled_date: (row.scheduled_date as string | null) ?? null,
 		completed_at: (row.completed_at as string | null) ?? null,
 		inspection_date: (row.inspection_date as string | null) ?? null,

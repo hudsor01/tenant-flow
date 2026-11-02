@@ -51,6 +51,19 @@ describe("maintenanceRequestInputSchema", () => {
 	it("accepts valid input", () => {
 		expect(maintenanceRequestInputSchema.safeParse(v).success).toBe(true);
 	});
+	// No input, update or create schema carries actual_cost to a write: no form
+	// submits it and nothing reads it (66.2-39 part P).
+	it("drops actual_cost on input, update and create", () => {
+		for (const schema of [
+			maintenanceRequestInputSchema,
+			maintenanceRequestUpdateSchema,
+			maintenanceRequestCreateSchema,
+		]) {
+			const r = schema.safeParse({ ...v, actual_cost: 275 });
+			expect(r.success).toBe(true);
+			if (r.success) expect(r.data).not.toHaveProperty("actual_cost");
+		}
+	});
 	it("defaults title", () => {
 		const r = maintenanceRequestInputSchema.safeParse(v);
 		expect(r.success).toBe(true);
@@ -211,18 +224,15 @@ describe("maintenanceCostUpdateSchema", () => {
 			maintenanceCostUpdateSchema.safeParse({ estimated_cost: 300 }).success,
 		).toBe(true);
 	});
-	it("accepts actual_cost only", () => {
-		expect(
-			maintenanceCostUpdateSchema.safeParse({ actual_cost: 275 }).success,
-		).toBe(true);
-	});
-	it("accepts both costs", () => {
-		expect(
-			maintenanceCostUpdateSchema.safeParse({
-				estimated_cost: 300,
-				actual_cost: 275,
-			}).success,
-		).toBe(true);
+	// actual_cost is written by nothing (spend is the request's expenses), so
+	// no schema carries it to a write (66.2-39 part P).
+	it("drops actual_cost, which nothing writes", () => {
+		const r = maintenanceCostUpdateSchema.safeParse({
+			estimated_cost: 300,
+			actual_cost: 275,
+		});
+		expect(r.success).toBe(true);
+		if (r.success) expect(r.data).toEqual({ estimated_cost: 300 });
 	});
 	it("rejects non-positive cost", () => {
 		expect(
@@ -265,13 +275,13 @@ describe("maintenanceCompletionSchema", () => {
 			maintenanceCompletionSchema.safeParse({ completed_at: "" }).success,
 		).toBe(false);
 	});
-	it("accepts optional actual_cost", () => {
-		expect(
-			maintenanceCompletionSchema.safeParse({
-				completed_at: "2026-03-10",
-				actual_cost: 250,
-			}).success,
-		).toBe(true);
+	it("drops actual_cost, which nothing writes", () => {
+		const r = maintenanceCompletionSchema.safeParse({
+			completed_at: "2026-03-10",
+			actual_cost: 250,
+		});
+		expect(r.success).toBe(true);
+		if (r.success) expect(r.data).not.toHaveProperty("actual_cost");
 	});
 });
 describe("maintenanceInspectionSchema", () => {

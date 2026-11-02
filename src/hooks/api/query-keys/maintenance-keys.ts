@@ -42,9 +42,10 @@ export interface MaintenanceFilters {
 	offset?: number;
 }
 
-// All columns on maintenance_requests (no category column in DB schema)
+// Every column on maintenance_requests the app reads: all but actual_cost,
+// which nothing writes (MaintenanceRequest, #types/core). No category column.
 const MAINTENANCE_SELECT_COLUMNS =
-	"id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, actual_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at";
+	"id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at";
 
 /**
  * Maintenance query factory

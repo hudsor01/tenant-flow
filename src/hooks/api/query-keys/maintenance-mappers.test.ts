@@ -31,7 +31,6 @@ const validRow = {
 	requested_by: null,
 	assigned_to: null,
 	estimated_cost: null,
-	actual_cost: null,
 	scheduled_date: null,
 	completed_at: null,
 	inspection_date: null,
@@ -50,7 +49,6 @@ describe("mapMaintenanceRow", () => {
 		expect(mapped.priority).toBe("high");
 		expect(mapped.status).toBe("open");
 		// Nullable-in-DB fields stay nullable, not over-validated into throws.
-		expect(mapped.actual_cost).toBeNull();
 		expect(mapped.scheduled_date).toBeNull();
 		expect(mapped.completed_at).toBeNull();
 		expect(mapped.vendor_id).toBeNull();
@@ -117,6 +115,13 @@ describe("mapMaintenanceRow", () => {
 		expect("units" in mapped).toBe(false);
 	});
 
+	// actual_cost is written by nothing, so the select list does not ask for it
+	// and the row copies none, even from a row that carries one (66.2-39 part P).
+	it("carries no actual_cost", () => {
+		const mapped = mapMaintenanceRow({ ...validRow, actual_cost: 125.5 });
+		expect(mapped).not.toHaveProperty("actual_cost");
+	});
+
 	it("ignores an extra `vendors` embed key from the detail join branch", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
@@ -129,13 +134,11 @@ describe("mapMaintenanceRow", () => {
 	it("passes populated nullable fields through unchanged", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
-			actual_cost: 125.5,
 			estimated_cost: 100,
 			scheduled_date: "2026-02-01",
 			completed_at: "2026-02-03T12:00:00.000Z",
 			vendor_id: "00000000-0000-0000-0000-0000000000bb",
 		});
-		expect(mapped.actual_cost).toBe(125.5);
 		expect(mapped.estimated_cost).toBe(100);
 		expect(mapped.scheduled_date).toBe("2026-02-01");
 		expect(mapped.completed_at).toBe("2026-02-03T12:00:00.000Z");

@@ -216,7 +216,6 @@ export const DEFAULT_MAINTENANCE_REQUEST = {
 	requested_by: "user-1",
 	assigned_to: null,
 	estimated_cost: 150,
-	actual_cost: null,
 	scheduled_date: null,
 	completed_at: null,
 	inspector_id: null,

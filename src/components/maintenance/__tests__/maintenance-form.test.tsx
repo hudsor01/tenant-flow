@@ -130,7 +130,6 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	priority: "medium",
 	status: "open",
 	estimated_cost: 150,
-	actual_cost: null,
 	assigned_to: null,
 	completed_at: null,
 	inspection_date: null,

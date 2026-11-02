@@ -107,7 +107,16 @@ export type Property = Tables<"properties">;
 export type Unit = Tables<"units">;
 export type Tenant = Tables<"tenants">;
 export type Lease = Tables<"leases">;
-export type MaintenanceRequest = Tables<"maintenance_requests">;
+/**
+ * A maintenance request as the app reads it: every column but actual_cost,
+ * which no form, mutation or function writes (spend is the request's expenses,
+ * 66.2-39 part N), so no query selects it and no schema accepts it (part P).
+ * The column stays in the database and in the generated types.
+ */
+export type MaintenanceRequest = Omit<
+	Tables<"maintenance_requests">,
+	"actual_cost"
+>;
 export type ExpenseRecord = Tables<"expenses">;
 
 export type TenantInput = TablesInsert<"tenants">;
