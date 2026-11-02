@@ -1,12 +1,15 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 import type {
 	ListReportsResponse,
 	Report as ReportType,
 	RevenueData,
 } from "#types/reports";
+import { FINANCIAL_ANALYTICS_REPORT_TYPE } from "../../../../supabase/functions/_shared/financial-analytics-report";
 import { mutationKeys } from "../mutation-keys";
 import { fetchRevenueWithExpenses } from "./analytics-keys";
 
@@ -184,44 +187,53 @@ async function parsePaywallResponse(
 	}
 }
 
+/** The file formats `export-report` writes. */
+export type ReportExportFormat = "csv" | "xlsx" | "pdf";
+
+/**
+ * Download one export from the `export-report` Edge Function, a GET whose
+ * query string (`type`, `format`) is all the function reads; it builds the
+ * file on the server. A 402 is its tier gate and becomes a PaywallError.
+ *
+ * `getUser()` (via `getCachedUser`) decides whether anyone is signed in; the
+ * session is read only for its Bearer token. The browser cannot read the
+ * response's Content-Disposition (it is not a CORS-safelisted header and the
+ * function does not expose it), so the download is named here
+ * `<type>-<UTC date>.<format>`, the name the function gives a
+ * financial-analytics export.
+ */
 async function callExportEdgeFunction(
 	reportType: string,
-	format: "csv" | "xlsx" | "pdf",
-	year: number,
-): Promise<boolean> {
+	format: ReportExportFormat,
+): Promise<void> {
+	const user = await getCachedUser();
+	if (!user) throw new Error("You need to be signed in to export a report.");
 	const supabase = createClient();
-	const { data: sessionData } = await supabase.auth.getSession();
-	const token = sessionData.session?.access_token;
-	if (!token) throw new Error("Not authenticated");
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
+	const token = session?.access_token;
+	if (!token) throw new Error("You need to be signed in to export a report.");
 
+	const params = new URLSearchParams({ type: reportType, format });
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	const url = `${baseUrl}/functions/v1/export-report?type=${reportType}&format=${format}&year=${year}`;
-
-	const response = await fetch(url, {
-		headers: { Authorization: `Bearer ${token}` },
-	});
+	const response = await fetch(
+		`${baseUrl}/functions/v1/export-report?${params.toString()}`,
+		{ headers: { Authorization: `Bearer ${token}` } },
+	);
 
 	if (response.status === 402) {
 		throw await parsePaywallResponse(response, "reports");
 	}
 	if (!response.ok) {
-		throw new Error(`Export failed: ${response.statusText}`);
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.FINANCIAL_EXPORT_FAILED,
+		);
 	}
 
-	const blob = await response.blob();
-	const blobUrl = window.URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = blobUrl;
-
-	const disposition = response.headers.get("Content-Disposition") ?? "";
-	const filenameMatch = disposition.match(/filename="([^"]+)"/);
-	link.download = filenameMatch?.[1] ?? `${reportType}-${year}.${format}`;
-
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-	return true;
+	const today = new Date().toISOString().slice(0, 10);
+	downloadBlob(await response.blob(), `${reportType}-${today}.${format}`);
 }
 
 async function callGeneratePdfEdgeFunction(
@@ -265,19 +277,12 @@ async function callGeneratePdfEdgeFunction(
 }
 
 export const reportMutations = {
-	downloadYearEndCsv: () =>
+	/** The /analytics/financial export: the page's figures, built server-side. */
+	exportFinancialAnalytics: () =>
 		mutationOptions({
-			mutationKey: mutationKeys.reports.downloadYearEndCsv,
-			mutationFn: async (year: number): Promise<void> => {
-				await callExportEdgeFunction("year-end", "csv", year);
-			},
-		}),
-
-	download1099Csv: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.reports.download1099Csv,
-			mutationFn: async (year: number): Promise<void> => {
-				await callExportEdgeFunction("1099", "csv", year);
+			mutationKey: mutationKeys.reports.exportFinancialAnalytics,
+			mutationFn: async (format: ReportExportFormat): Promise<void> => {
+				await callExportEdgeFunction(FINANCIAL_ANALYTICS_REPORT_TYPE, format);
 			},
 		}),
 

@@ -100,7 +100,7 @@ export default function FinancialAnalyticsPage() {
 							</p>
 						</div>
 						<div className="flex flex-wrap items-center gap-3">
-							<ExportButtons filename="financial-analytics" payload={data} />
+							<ExportButtons />
 						</div>
 					</div>
 				</BlurFade>

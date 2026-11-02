@@ -1,141 +1,54 @@
 "use client";
 
+/**
+ * The /analytics/financial export controls: one button per file format. Each
+ * click asks the export-report Edge Function for that format; the function
+ * builds the file from the same RPCs the page renders, so the file holds the
+ * page's figures. While one export runs, every button is disabled and the
+ * clicked one reads "Exporting…".
+ */
+
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import type { ComponentType } from "react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "#components/ui/button";
-import { safeDom } from "#lib/dom-utils";
-import { handleMutationError } from "#lib/mutation-error-handler";
-import { createClient } from "#lib/supabase/client";
-import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { ReportExportFormat } from "#hooks/api/query-keys/report-keys";
+import {
+	EXPORT_FORMAT_LABELS,
+	useExportFinancialAnalytics,
+} from "#hooks/api/use-report-mutations";
 
-type ExportFormat = "excel" | "pdf" | "csv";
+const EXPORT_BUTTONS: readonly {
+	format: ReportExportFormat;
+	icon: ComponentType<{ className?: string }>;
+}[] = [
+	{ format: "xlsx", icon: FileSpreadsheet },
+	{ format: "pdf", icon: FileText },
+	{ format: "csv", icon: Download },
+];
 
-type ExportButtonsProps = {
-	filename: string;
-	payload: unknown;
-};
-
-const formatConfig: Record<
-	ExportFormat,
-	{ label: string; icon: ComponentType<{ className?: string }> }
-> = {
-	excel: { label: "Excel", icon: FileSpreadsheet },
-	pdf: { label: "PDF", icon: FileText },
-	csv: { label: "CSV", icon: Download },
-};
-
-async function fetchAccessToken(): Promise<string | null> {
-	const supabase = createClient();
-
-	// SECURITY FIX: Validate user with getUser() before extracting token
-	const user = await getCachedUser();
-
-	if (!user) {
-		return null;
-	}
-
-	// Get session for access token (only after user validation)
-	const {
-		data: { session },
-	} = await supabase.auth.getSession();
-	return session?.access_token ?? null;
-}
-
-async function requestExport(
-	format: ExportFormat,
-	filename: string,
-	payload: unknown,
-) {
-	const token = await fetchAccessToken();
-
-	if (!token) {
-		throw new Error("You need to be signed in to export analytics data.");
-	}
-
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	const response = await fetch(`${supabaseUrl}/functions/v1/export-report`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
-		},
-		body: JSON.stringify({
-			format,
-			filename,
-			payload,
-			sheetName: "Financial Analytics",
-			title: "Financial Analytics Export",
-		}),
-	});
-
-	if (!response.ok) {
-		const { ApiErrorCode, createApiErrorFromResponse } = await import(
-			"#lib/utils/api-error"
-		);
-		throw createApiErrorFromResponse(
-			response,
-			ApiErrorCode.FINANCIAL_EXPORT_FAILED,
-		);
-	}
-
-	const blob = await response.blob();
-	const disposition = response.headers.get("Content-Disposition");
-	const downloadName =
-		disposition?.split("filename=")[1]?.replace(/"/g, "") ||
-		`${filename}.${format === "excel" ? "xlsx" : format}`;
-
-	const url = URL.createObjectURL(blob);
-	const anchor = safeDom.createElement("a", {
-		attributes: {
-			href: url,
-			download: downloadName,
-		},
-	});
-	if (anchor) {
-		safeDom.appendToBody(anchor);
-		anchor.click();
-		safeDom.removeFromBody(anchor);
-		setTimeout(() => URL.revokeObjectURL(url), 100);
-	} else {
-		URL.revokeObjectURL(url);
-	}
-}
-
-export function ExportButtons({ filename, payload }: ExportButtonsProps) {
-	const [loadingFormat, setLoadingFormat] = useState<ExportFormat | null>(null);
-
-	const handleExport = async (format: ExportFormat) => {
-		setLoadingFormat(format);
-		try {
-			await requestExport(format, filename, payload);
-			toast.success(`Exported ${formatConfig[format].label}`);
-		} catch (error) {
-			handleMutationError(error, `Export ${formatConfig[format].label}`);
-		} finally {
-			setLoadingFormat(null);
-		}
-	};
+export function ExportButtons() {
+	const exportMutation = useExportFinancialAnalytics();
+	const pendingFormat = exportMutation.isPending
+		? exportMutation.variables
+		: undefined;
 
 	return (
 		<div className="flex flex-wrap gap-2">
-			{(Object.keys(formatConfig) as ExportFormat[]).map((format) => {
-				const { label, icon: Icon } = formatConfig[format];
-				return (
-					<Button
-						key={format}
-						variant="outline"
-						size="sm"
-						onClick={() => handleExport(format)}
-						disabled={loadingFormat !== null}
-					>
-						<Icon className="mr-2 size-4" />
-						{loadingFormat === format ? "Exporting…" : `Export ${label}`}
-					</Button>
-				);
-			})}
+			{EXPORT_BUTTONS.map(({ format, icon: Icon }) => (
+				<Button
+					key={format}
+					variant="outline"
+					size="sm"
+					onClick={() => exportMutation.mutate(format)}
+					disabled={exportMutation.isPending}
+				>
+					<Icon className="mr-2 size-4" />
+					{pendingFormat === format
+						? "Exporting…"
+						: `Export ${EXPORT_FORMAT_LABELS[format]}`}
+				</Button>
+			))}
 		</div>
 	);
 }
