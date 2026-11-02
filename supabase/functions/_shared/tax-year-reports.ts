@@ -56,6 +56,39 @@ import type {
 	RpcCaller,
 } from "./financial-analytics-report.ts";
 
+/** PostgREST's max-rows: one request reads at most this many rows. */
+const PROPERTY_PAGE_SIZE = 1000;
+
+/**
+ * Every row of get_property_performance_analytics, page by page, as the
+ * year-end page reads it (fetchEveryPropertyPerformanceRow): ordered by name
+ * and id, until a page comes back short. The By Property table must hold the
+ * whole year: the function lists every property (20261102163709), but one
+ * request returns at most max-rows of them. A payload that is not an array
+ * ends the read as it is, so the table's own check refuses it.
+ */
+async function loadEveryPropertyRow(
+	rpc: RpcCaller,
+	call: RpcCall,
+): Promise<{ data: unknown; error: unknown }> {
+	const rows: unknown[] = [];
+	for (let from = 0; ; from += PROPERTY_PAGE_SIZE) {
+		const result = await rpc(call.name, call.args, {
+			from,
+			to: from + PROPERTY_PAGE_SIZE - 1,
+			order: ["property_name", "property_id"],
+		});
+		if (!result || result.error) return { data: null, error: result?.error };
+		if (!Array.isArray(result.data)) {
+			return { data: from === 0 ? result.data : rows, error: null };
+		}
+		rows.push(...result.data);
+		if (result.data.length < PROPERTY_PAGE_SIZE) {
+			return { data: rows, error: null };
+		}
+	}
+}
+
 export const YEAR_END_REPORT_TYPE = "year-end";
 export const REPORT_1099_TYPE = "1099";
 /** `/reports/tax-documents`. Its PDF request has always sent `financial`. */
@@ -202,7 +235,11 @@ export async function loadTaxYearSources(
 	}
 	const calls = taxYearRpcCalls(userId, year);
 	const results = await Promise.all(
-		keys.map((key) => rpc(calls[key].name, calls[key].args)),
+		keys.map((key) =>
+			key === "propertyPerformance"
+				? loadEveryPropertyRow(rpc, calls[key])
+				: rpc(calls[key].name, calls[key].args),
+		),
 	);
 	const data: Record<SourceKey, unknown> = {
 		ledgerAtYearEnd: null,

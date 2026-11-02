@@ -24,15 +24,18 @@ const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({
 	mockGetCachedUser: vi.fn(),
 }));
 
-vi.mock("#lib/supabase/client", () => ({
-	createClient: () => ({
-		rpc: mockRpc,
-		auth: {
-			getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
-			getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-		},
-	}),
-}));
+vi.mock("#lib/supabase/client", async () => {
+	const { pagedRpc } = await import("#test/mocks/paged-rpc");
+	return {
+		createClient: () => ({
+			rpc: pagedRpc(mockRpc),
+			auth: {
+				getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+				getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+			},
+		}),
+	};
+});
 
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: mockGetCachedUser,
@@ -919,9 +922,11 @@ describe("useYearEndSummary (error path)", () => {
 	});
 
 	it("surfaces isError when get_dashboard_stats RPC errors", async () => {
-		// yearEnd() runs 3 RPCs in parallel; dashResult.error must propagate.
+		// yearEnd() reads the ledger as of two dates, the year's expenses and
+		// every property page; the first ledger call's error must propagate.
 		mockRpc
 			.mockResolvedValueOnce({ data: null, error: postgrestError })
+			.mockResolvedValueOnce({ data: {}, error: null })
 			.mockResolvedValueOnce({
 				data: { total_amount: 0, categories: [] },
 				error: null,

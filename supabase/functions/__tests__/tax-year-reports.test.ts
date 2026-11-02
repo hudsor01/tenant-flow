@@ -63,9 +63,10 @@ const { mockRpc, USER_ID } = vi.hoisted(() => ({
 	USER_ID: "owner-1",
 }));
 
-vi.mock("#lib/supabase/client", () => ({
-	createClient: () => ({ rpc: mockRpc }),
-}));
+vi.mock("#lib/supabase/client", async () => {
+	const { pagedRpc } = await import("#test/mocks/paged-rpc");
+	return { createClient: () => ({ rpc: pagedRpc(mockRpc) }) };
+});
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: USER_ID }),
 }));
@@ -579,5 +580,48 @@ describe("tax-year reports hold their pages' figures", () => {
 			);
 			expect(load).toMatchObject({ ok: false, rpc });
 		}
+	});
+});
+
+describe("the year-end export's By Property table", () => {
+	it("holds every property past one page, as the page reads them", async () => {
+		const answers = richAnswers();
+		const rows = Array.from({ length: 1005 }, (_, at) => ({
+			property_id: `p${String(at).padStart(4, "0")}`,
+			property_name: `Lot ${String(at).padStart(4, "0")}`,
+			occupancy_rate: 0,
+			total_revenue: 0,
+			total_expenses: 0,
+			net_income: 0,
+			timeframe: `${YEAR}-01-01/${YEAR}-12-31`,
+		}));
+		const pages: Array<{ from: number; to: number; order: readonly string[] }> =
+			[];
+		const load = await loadTaxYearSources(
+			(name, args, page) => {
+				if (name !== "get_property_performance_analytics") {
+					return answer(answers)(name, args);
+				}
+				if (!page) return Promise.resolve({ data: rows.slice(0, 100), error: null });
+				pages.push(page);
+				// A server that caps a request at 1000 rows.
+				return Promise.resolve({
+					data: rows.slice(page.from, Math.min(page.to + 1, page.from + 1000)),
+					error: null,
+				});
+			},
+			YEAR_END_REPORT_TYPE,
+			USER_ID,
+			YEAR,
+		);
+		if (!load.ok) throw new Error(`load failed on ${load.rpc}`);
+		const report = buildTaxYearReport(YEAR_END_REPORT_TYPE, load.sources, YEAR);
+		const byProperty = report.table.rows.filter((r) => r[0] === "By Property");
+		expect(byProperty).toHaveLength(1005);
+		expect(byProperty.at(-1)?.[1]).toBe("Lot 1004");
+		expect(pages).toEqual([
+			{ from: 0, to: 999, order: ["property_name", "property_id"] },
+			{ from: 1000, to: 1999, order: ["property_name", "property_id"] },
+		]);
 	});
 });

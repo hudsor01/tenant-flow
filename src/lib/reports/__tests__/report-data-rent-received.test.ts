@@ -13,9 +13,10 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockRpc } = vi.hoisted(() => ({ mockRpc: vi.fn() }));
-vi.mock("#lib/supabase/client", () => ({
-	createClient: () => ({ rpc: mockRpc }),
-}));
+vi.mock("#lib/supabase/client", async () => {
+	const { pagedRpc } = await import("#test/mocks/paged-rpc");
+	return { createClient: () => ({ rpc: pagedRpc(mockRpc) }) };
+});
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: "owner-1" }),
 }));

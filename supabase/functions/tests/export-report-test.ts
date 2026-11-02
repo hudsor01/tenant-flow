@@ -182,14 +182,21 @@ function makeClient(s: Scenario): { client: SupabaseClient; calls: Calls } {
 					: { data: { user: null }, error: { message: "bad jwt" } },
 		},
 		from: (table: string) => builder(table),
-		rpc: async (name: string, args: Record<string, unknown>) => {
+		rpc: (name: string, args: Record<string, unknown>) => {
 			calls.rpcs.push({ name, args });
 			// An answer keyed by the as-of date first (the tax-year reports read
-			// the ledger as of two), then by name.
-			return (
+			// the ledger as of two), then by name. Awaitable, and after
+			// .order()/.range() as well: the year-end reports page through the
+			// property rows, and a fixture of fewer than a page is read in one.
+			const answer = Promise.resolve(
 				s.rpc[`${name}@${String(args?.end_date_param)}`] ??
-				s.rpc[name] ?? { data: null, error: { message: `no ${name}` } }
+					s.rpc[name] ?? { data: null, error: { message: `no ${name}` } },
 			);
+			const query = Object.assign(answer, {
+				order: () => query,
+				range: () => answer,
+			});
+			return query;
 		},
 	});
 	return { client, calls };

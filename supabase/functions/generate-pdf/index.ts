@@ -174,7 +174,14 @@ export async function handleRequest(
 				);
 			} else {
 				const load = await loadTaxYearSources(
-					(name, args) => supabase.rpc(name, args),
+					// A page when the loader asks for one: every property row.
+					(name, args, page) => {
+						const query = supabase.rpc(name, args);
+						if (!page) return query;
+						let ordered = query;
+						for (const column of page.order) ordered = ordered.order(column);
+						return ordered.range(page.from, page.to);
+					},
 					body.reportType,
 					user.id,
 					body.year,

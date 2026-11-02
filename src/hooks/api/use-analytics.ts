@@ -25,7 +25,10 @@ import {
 	mapMaintenanceAnalytics,
 	mapOccupancyAnalytics,
 } from "./query-keys/analytics-mappers";
-import { mapPropertyPerformance } from "./query-keys/property-performance-mappers";
+import {
+	fetchEveryPropertyPerformanceRow,
+	mapPropertyPerformance,
+} from "./query-keys/property-performance-mappers";
 
 /**
  * MIS-WIRE (captured follow-up, DATA-01): the "lease analytics" page and the
@@ -209,15 +212,15 @@ export const analyticsQueries = {
 		queryOptions({
 			queryKey: analyticsQueries.propertyPerformance(),
 			queryFn: async (): Promise<PropertyPerformancePageData> => {
-				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
 				// The trailing 30 days, named rather than left to the default, so
-				// the window the page states is the one it asked for.
-				const { data, error } = await supabase.rpc(
-					"get_property_performance_analytics",
-					{ p_user_id: user.id, p_timeframe: "30d" },
-				);
+				// the window the page states is the one it asked for; every
+				// property, as the page totals and lists them all.
+				const { data, error } = await fetchEveryPropertyPerformanceRow({
+					p_user_id: user.id,
+					p_timeframe: "30d",
+				});
 				if (error) handlePostgrestError(error, "analytics");
 				// `get_property_performance_analytics` returns flat per-property
 				// rows; the page contract expects a structured

@@ -92,19 +92,26 @@ function makeClient(
 			getUser: async () => ({ data: { user: { id: "owner-1" } }, error: null }),
 		},
 		from: (table: string) => builder(table),
-		rpc: async (name: string, args?: unknown) => {
+		rpc: (name: string, args?: unknown) => {
 			rpcs.push(name);
 			calls.push({ name, args });
 			// An answer keyed by the as-of date first (the tax-year reports read
-			// the ledger as of two), then by name.
+			// the ledger as of two), then by name. Awaitable, and after
+			// .order()/.range() as well: the year-end reports page through the
+			// property rows, and a fixture of fewer than a page is read in one.
 			const asOf =
 				args && typeof args === "object" && "end_date_param" in args
 					? String(args.end_date_param)
 					: "";
-			return (
+			const answer = Promise.resolve(
 				rpc[`${name}@${asOf}`] ??
-				rpc[name] ?? { data: null, error: { message: `no ${name}` } }
+					rpc[name] ?? { data: null, error: { message: `no ${name}` } },
 			);
+			const query = Object.assign(answer, {
+				order: () => query,
+				range: () => answer,
+			});
+			return query;
 		},
 	});
 	return { client, rpcs, calls };

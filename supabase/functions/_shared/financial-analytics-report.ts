@@ -126,10 +126,21 @@ export function financialAnalyticsRpcCalls(
 	};
 }
 
-/** `supabase.rpc`, as the loader needs it. */
+/**
+ * One page of a set-returning RPC, as `supabase.rpc(...).order(...).range()`
+ * reads it: rows `from`..`to` (both included) in the order of `order`.
+ */
+export interface RpcPage {
+	readonly from: number;
+	readonly to: number;
+	readonly order: readonly string[];
+}
+
+/** `supabase.rpc`, as the loaders need it; `page` reads one page of a set. */
 export type RpcCaller = (
 	name: string,
 	args: Readonly<Record<string, string | number>>,
+	page?: RpcPage,
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 export type FinancialAnalyticsLoad =

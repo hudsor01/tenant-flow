@@ -9,12 +9,48 @@
  * asked for, is the old body's: its revenue is no figure, and these mappers say
  * so instead of passing its 0 on as money.
  */
+
+import type { PostgrestError } from "@supabase/supabase-js";
 import { parseStatedWindow } from "#lib/stated-window";
+import { createClient } from "#lib/supabase/client";
 import type { DateWindow } from "#types/analytics";
 import type { Database } from "#types/supabase";
 
 type PerformanceRow =
 	Database["public"]["Functions"]["get_property_performance_analytics"]["Returns"][number];
+
+/** PostgREST's max-rows (CLAUDE.md, Data access): one request reads at most this. */
+const PAGE_SIZE = 1000;
+
+/**
+ * Every row get_property_performance_analytics returns for `args`, page by
+ * page: the function lists every property (p_limit NULL, 20261102163709), but
+ * PostgREST returns at most max-rows of it a request, so a caller that shows a
+ * total or a whole list (the year-end table, the property export, the
+ * analytics page) reads until a page comes back short, ordered by name and id
+ * so no row is read twice or skipped. Its first error ends the read.
+ */
+export async function fetchEveryPropertyPerformanceRow(args: {
+	p_user_id: string;
+	p_timeframe: string;
+}): Promise<
+	| { data: PerformanceRow[]; error: null }
+	| { data: null; error: PostgrestError }
+> {
+	const supabase = createClient();
+	const rows: PerformanceRow[] = [];
+	for (let from = 0; ; from += PAGE_SIZE) {
+		const { data, error } = await supabase
+			.rpc("get_property_performance_analytics", args)
+			.order("property_name")
+			.order("property_id")
+			.range(from, from + PAGE_SIZE - 1);
+		if (error) return { data: null, error };
+		const page = data ?? [];
+		rows.push(...page);
+		if (page.length < PAGE_SIZE) return { data: rows, error: null };
+	}
+}
 
 /** p_timeframe for an inclusive calendar range, both days included. */
 export function propertyPerformanceRange(

@@ -23,6 +23,7 @@ import { fetchOccupancyTrends } from "./analytics-keys";
 import { mapMaintenanceCosts } from "./analytics-mappers";
 import { fetchRentReceivedInYear } from "./financial-keys";
 import {
+	fetchEveryPropertyPerformanceRow,
 	mapPropertyPerformance,
 	propertyPerformanceRange,
 	taxYearRange,
@@ -148,7 +149,6 @@ export const reportAnalyticsQueries = {
 		queryOptions({
 			queryKey: reportKeys.properties(start_date, end_date),
 			queryFn: async (): Promise<PropertyReport> => {
-				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) {
 					return {
@@ -168,15 +168,13 @@ export const reportAnalyticsQueries = {
 				// call named no window and got the last 30 days whatever the period.
 				const requested =
 					start_date && end_date ? { start_date, end_date } : undefined;
-				const { data, error } = await supabase.rpc(
-					"get_property_performance_analytics",
-					{
-						p_user_id: user.id,
-						p_timeframe: requested
-							? propertyPerformanceRange(start_date ?? "", end_date ?? "")
-							: "30d",
-					},
-				);
+				// Every property: the report lists them all.
+				const { data, error } = await fetchEveryPropertyPerformanceRow({
+					p_user_id: user.id,
+					p_timeframe: requested
+						? propertyPerformanceRange(start_date ?? "", end_date ?? "")
+						: "30d",
+				});
 				if (error) handlePostgrestError(error, "property report");
 				const result = mapPropertyPerformance(data, requested);
 				const rows =
@@ -334,7 +332,8 @@ export const reportAnalyticsQueries = {
 						p_start_date: taxYear.start_date,
 						p_end_date: taxYear.end_date,
 					}),
-					supabase.rpc("get_property_performance_analytics", {
+					// Every property: the By Property table must hold the whole year.
+					fetchEveryPropertyPerformanceRow({
 						p_user_id: user.id,
 						p_timeframe: taxYearRange(year),
 					}),
