@@ -180,9 +180,9 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 			return;
 		}
 
-		// The scheduled rent tile ("Scheduled") formats with 0 fraction digits;
-		// compare the rounded dollars.
-		expect(await readKpiTileNumber(page, "Scheduled")).toBe(
+		// The scheduled rent tile formats with 0 fraction digits; compare the
+		// rounded dollars.
+		expect(await readKpiTileNumber(page, "Scheduled Rent")).toBe(
 			Math.round(stats.revenue.monthly),
 		);
 		// Occupancy tile renders stats.units.occupancyRate (rounded by safeOccupancy).
