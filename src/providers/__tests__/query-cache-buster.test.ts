@@ -4,7 +4,9 @@
  * changes"). financialQueries.balanceSheet moved from ApiResponse<BalanceSheet
  * Data> to BalanceSheetResult (66.2-39, part K, v2); the income statement, the
  * cash flow, the year-end report, the tax documents and the property
- * performance queries moved to result unions and rent received (part L, v3).
+ * performance queries moved to result unions and rent received (part L, v3);
+ * the dashboard, expense and maintenance queries gained the trends, the year
+ * over year and the costs the RPCs now compute (part M, v4).
  * An entry persisted under an older buster would be read back by the new
  * pages as neither shape and drawn as an empty or $0 report until the refetch
  * landed. The buster is module-private, so this reads the source.
@@ -19,11 +21,12 @@ const SOURCE = readFileSync(
 );
 
 describe("QUERY_CACHE_BUSTER", () => {
-	it("is past v1 and v2, whose statement entries have the old shapes", () => {
+	it("is past v1 to v3, whose entries have the old shapes", () => {
 		const buster = /const QUERY_CACHE_BUSTER = "([^"]+)";/.exec(SOURCE)?.[1];
 		expect(buster).toBeDefined();
 		expect(buster).not.toBe("tenantflow-cache-v1");
 		expect(buster).not.toBe("tenantflow-cache-v2");
-		expect(buster).toBe("tenantflow-cache-v3");
+		expect(buster).not.toBe("tenantflow-cache-v3");
+		expect(buster).toBe("tenantflow-cache-v4");
 	});
 });

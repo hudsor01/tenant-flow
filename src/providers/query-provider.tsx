@@ -275,7 +275,14 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // and analyticsQueries.propertyPerformancePageData and reportAnalyticsQueries.
 // properties name rent received where they held `monthlyRevenue`/`revenue`. A
 // v2 entry of any of them would render as an empty or $0 report.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v3";
+// v4: the computed dashboard, expense and maintenance figures (part M). The
+// owner dashboard payload carries portfolioTrends, financialQueries.
+// expenseSummary yearOverYear, analyticsQueries.maintenancePageData costs and
+// nullable trends, reportAnalyticsQueries.maintenance costs, and the
+// financial metrics no cashFlow. A v3 entry would draw the overview's and the
+// expenses page's trends as unavailable and crash the insights tab on its
+// missing costs until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v4";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {
