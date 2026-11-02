@@ -239,25 +239,16 @@ describe("reportAnalyticsQueries.financial", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches financial report from parallel RPCs", async () => {
-		// financial() calls get_dashboard_stats + get_expense_summary
-		mockRpc
-			.mockResolvedValueOnce({
-				data: {
-					revenue: { yearly: 600000, monthly: 50000 },
-					properties: { occupancyRate: 95 },
-				},
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: {
-					total_amount: 200000,
-					categories: [
-						{ category: "maintenance", amount: 100000, percentage: 50 },
-					],
-				},
-				error: null,
-			});
+	it("reads the period's expenses by vendor, and no scheduled rent", async () => {
+		// financial() calls get_expense_summary alone: the exports' revenue and
+		// cash come from the income statement and the cash flow.
+		mockRpc.mockResolvedValueOnce({
+			data: {
+				total_amount: 200000,
+				categories: [{ category: "Plumber", amount: 100000, percentage: 50 }],
+			},
+			error: null,
+		});
 
 		const { result } = renderHook(
 			() =>
@@ -269,9 +260,18 @@ describe("reportAnalyticsQueries.financial", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.summary?.totalIncome).toBe(600000);
-		expect(result.current.data?.summary?.totalExpenses).toBe(200000);
-		expect(result.current.data?.summary?.netIncome).toBe(400000);
+		expect(result.current.data).toEqual({
+			expenseBreakdown: [{ category: "Plumber", amount: 100000 }],
+		});
+		expect(mockRpc).toHaveBeenCalledWith("get_expense_summary", {
+			p_user_id: "user-1",
+			p_start_date: "2024-01-01",
+			p_end_date: "2024-12-31",
+		});
+		expect(mockRpc).not.toHaveBeenCalledWith(
+			"get_dashboard_stats",
+			expect.anything(),
+		);
 	});
 });
 
@@ -597,9 +597,7 @@ describe("reportAnalyticsQueries.properties", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.summary?.totalProperties).toBe(2);
-		// average occupancy across the two rows: (90 + 100) / 2 = 95
-		expect(result.current.data?.summary?.occupancyRate).toBe(95);
+		expect(result.current.data?.summary).toEqual({ totalProperties: 2 });
 		expect(result.current.data?.byProperty?.length).toBe(2);
 		expect(result.current.data?.byProperty?.[0]?.propertyName).toBe(
 			"Maple Court",
@@ -651,7 +649,6 @@ describe("reportAnalyticsQueries.properties", () => {
 				propertyName: "Maple Court",
 				deleted: false,
 				occupancyRate: 90,
-				vacantUnits: 0,
 				rentReceived: null,
 				expenses: null,
 				netIncome: null,
@@ -725,11 +722,10 @@ describe("reportAnalyticsQueries.tenants", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.summary?.totalTenants).toBe(12);
-		expect(result.current.data?.summary?.activeLeases).toBe(9);
-		expect(result.current.data?.summary?.leasesExpiringNext90).toBe(2);
-		expect(result.current.data?.summary?.turnoverRate).toBe(0);
-		expect(result.current.data?.summary?.onTimePaymentRate).toBe(0);
+		// No turnover or on-time rate: no source computes either (they read 0).
+		expect(result.current.data).toEqual({
+			summary: { totalTenants: 12, activeLeases: 9, leasesEndingSoon: 2 },
+		});
 		expect(mockRpc).toHaveBeenCalledWith("get_dashboard_stats", {
 			p_user_id: "user-1",
 		});
@@ -1089,26 +1085,16 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(row?.profit).toBe(9999.78);
 	});
 
-	it("reportAnalyticsQueries.financial keeps dollar income/expense/netIncome arithmetic in dollars", async () => {
-		const yearlyIncome = 600000.5;
-		const totalExpenses = 200000.25;
-		mockRpc
-			.mockResolvedValueOnce({
-				data: {
-					revenue: { yearly: yearlyIncome, monthly: 50000.04 },
-					properties: { occupancyRate: 95 },
-				},
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: {
-					total_amount: totalExpenses,
-					categories: [
-						{ category: "maintenance", amount: 100000.13, percentage: 50 },
-					],
-				},
-				error: null,
-			});
+	it("reportAnalyticsQueries.financial keeps the expense amounts in dollars", async () => {
+		mockRpc.mockResolvedValueOnce({
+			data: {
+				total_amount: 200000.25,
+				categories: [
+					{ category: "Plumber", amount: 100000.13, percentage: 50 },
+				],
+			},
+			error: null,
+		});
 
 		const { result } = renderHook(
 			() =>
@@ -1120,12 +1106,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		// magnitude preserved end-to-end: no /100 (would give 6000.005) or *100.
-		expect(result.current.data?.summary?.totalIncome).toBe(yearlyIncome);
-		expect(result.current.data?.summary?.totalExpenses).toBe(totalExpenses);
-		expect(result.current.data?.summary?.netIncome).toBe(
-			yearlyIncome - totalExpenses,
-		);
+		// magnitude preserved end-to-end: no /100 or *100.
 		expect(result.current.data?.expenseBreakdown?.[0]?.amount).toBe(100000.13);
 	});
 

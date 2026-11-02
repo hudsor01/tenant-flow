@@ -34,13 +34,12 @@ const REPORT_DATA_CODE = REPORT_DATA_SRC.replace(
 /**
  * Isolate one top-level function body.
  *
- * The must-survive assertions below MUST scan only `executiveKeyMetricsRows`,
- * never the whole file. Every one of the six labels it emits also appears in a
- * sibling helper — Total Income / Total Expenses / Net Income / Cash Flow in
- * `financialSummaryRows`, Occupied Units in `propertyPortfolioSummaryRows`,
- * Occupancy Rate as a table header. A whole-file `toContain` therefore passes
- * with the function gutted to `return []`, which is exactly the outcome those
- * assertions were added to catch. The absence assertions can stay whole-file:
+ * The must-survive assertions below MUST scan only the helpers the executive
+ * key metrics come from (`ledgerPeriodRows`, `occupancyTodayRows`), never the
+ * whole file: their labels also appear in sibling helpers (the property
+ * portfolio's Occupied Units (today), a table header). A whole-file
+ * `toContain` therefore passes with a function gutted to `return []`, which is
+ * exactly the outcome those assertions were added to catch. The absence assertions can stay whole-file:
  * the tokens they ban must not appear anywhere in this module.
  */
 function functionBody(source: string, name: string): string {
@@ -60,10 +59,10 @@ function functionBody(source: string, name: string): string {
 	throw new Error(`unbalanced braces reading ${name}`);
 }
 
-const EXECUTIVE_KEY_METRICS_BODY = functionBody(
-	REPORT_DATA_CODE,
-	"executiveKeyMetricsRows",
-);
+const EXECUTIVE_KEY_METRICS_BODY = [
+	functionBody(REPORT_DATA_CODE, "ledgerPeriodRows"),
+	functionBody(REPORT_DATA_CODE, "occupancyTodayRows"),
+].join("\n");
 
 describe("isMissingRelationError", () => {
 	it("returns true for Postgres 42P01 by error code", () => {
@@ -217,27 +216,37 @@ describe("D-37: the permanently-zero payment counts stay excised", () => {
 	});
 
 	it("still emits the six honest executive key metrics", () => {
-		// Scanned against the FUNCTION BODY, not the file. See functionBody().
-		// The whole-file form of this assertion was vacuous: all six labels also
-		// live in sibling helpers, so it passed with the function gutted to
+		// Scanned against the FUNCTION BODIES, not the file. See functionBody().
+		// The whole-file form of this assertion was vacuous: the labels also
+		// live in sibling helpers, so it passed with a function gutted to
 		// `return []` — the precise outcome it was written to catch.
 		for (const label of [
-			"Total Income",
+			"Total Revenue",
 			"Total Expenses",
 			"Net Income",
-			"Cash Flow",
-			"Occupancy Rate",
-			"Occupied Units",
+			"Net Cash Flow",
+			"Occupancy Rate (today)",
+			"Occupied Units (today)",
 		]) {
 			expect(EXECUTIVE_KEY_METRICS_BODY).toContain(label);
 		}
+	});
+
+	it.each([
+		"Total Income",
+		'"Cash Flow"',
+		"Rent-Roll Occupancy",
+		"revenue.yearly",
+		"totalIncome",
+	])("does not label scheduled rent as income or cash again: %s", (token) => {
+		expect(REPORT_DATA_CODE).not.toContain(token);
 	});
 
 	it("the must-survive scan is scoped to the function, not the file", () => {
 		// A body that no longer emits the rows must fail the assertion above.
 		// Proven here rather than asserted, because the vacuous version of this
 		// guard looked identical from the outside.
-		for (const label of ["Total Income", "Occupancy Rate"]) {
+		for (const label of ["Total Revenue", "Occupancy Rate (today)"]) {
 			expect("{\n\treturn [];\n}").not.toContain(label);
 		}
 		// And the extractor must fail loudly if the function is renamed away.

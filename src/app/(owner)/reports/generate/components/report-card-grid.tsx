@@ -45,6 +45,11 @@ export function ReportCardGrid({
 								<CardDescription>{report.description}</CardDescription>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col gap-3">
+								{report.toDateReason ? (
+									<p className="text-sm text-muted-foreground">
+										{report.toDateReason}
+									</p>
+								) : null}
 								<div className="flex-1" />
 								<div className="flex gap-2">
 									{report.formats.map((format) => {

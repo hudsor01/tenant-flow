@@ -89,58 +89,29 @@ export const reportAnalyticsQueries = {
 			queryFn: async (): Promise<FinancialReport> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
-				if (!user) {
-					return {
-						summary: {
-							totalIncome: 0,
-							totalExpenses: 0,
-							netIncome: 0,
-							cashFlow: 0,
-							rentRollOccupancyRate: 0,
-						},
-						monthly: [],
-						expenseBreakdown: [],
-						rentRoll: [],
-					};
-				}
-				const [dashResult, expenseResult] = await Promise.all([
-					supabase.rpc("get_dashboard_stats", { p_user_id: user.id }),
-					// BILL-02: scope expenses to the selected period (defaults to YTD).
-					supabase.rpc("get_expense_summary", {
-						p_user_id: user.id,
-						...(start_date ? { p_start_date: start_date } : {}),
-						...(end_date ? { p_end_date: end_date } : {}),
-					}),
-				]);
-				if (dashResult.error)
-					handlePostgrestError(dashResult.error, "financial report");
-				// BILL-04: surface an expense-RPC failure instead of silently reading
-				// 0 expenses and overstating net income.
+				if (!user) return { expenseBreakdown: [] };
+				// The period's expenses by vendor. The exports' revenue, net income
+				// and cash flow come from the income statement and the cash flow
+				// (financialQueries), never get_dashboard_stats' scheduled rent.
+				const expenseResult = await supabase.rpc("get_expense_summary", {
+					p_user_id: user.id,
+					...(start_date ? { p_start_date: start_date } : {}),
+					...(end_date ? { p_end_date: end_date } : {}),
+				});
+				// BILL-04: surface an expense-RPC failure instead of reading none.
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "financial report");
-				const { revenue, properties } = extractDashStats(dashResult.data);
-				const totalIncome = Number(revenue?.yearly ?? 0);
 				const expenseSummary = expenseResult.data as Record<
 					string,
 					unknown
 				> | null;
-				const totalExpenses = Number(expenseSummary?.total_amount ?? 0);
 				return {
-					summary: {
-						totalIncome,
-						totalExpenses,
-						netIncome: totalIncome - totalExpenses,
-						cashFlow: Number(revenue?.monthly ?? 0) - totalExpenses / 12,
-						rentRollOccupancyRate: Number(properties?.occupancyRate ?? 0),
-					},
-					monthly: [],
 					expenseBreakdown: (
 						(expenseSummary?.categories ?? []) as Array<Record<string, unknown>>
 					).map((c) => ({
 						category: String(c.category ?? ""),
 						amount: Number(c.amount ?? 0),
 					})),
-					rentRoll: [],
 				};
 			},
 			...CACHE,
@@ -152,17 +123,7 @@ export const reportAnalyticsQueries = {
 			queryFn: async (): Promise<PropertyReport> => {
 				const user = await getCachedUser();
 				if (!user) {
-					return {
-						summary: {
-							totalProperties: 0,
-							totalUnits: 0,
-							occupiedUnits: 0,
-							occupancyRate: 0,
-						},
-						byProperty: [],
-						occupancyTrend: [],
-						vacancyTrend: [],
-					};
+					return { summary: { totalProperties: 0 }, byProperty: [] };
 				}
 				// The report's own period when it has one (the export always passes
 				// both dates), else the trailing 30 days. Before 20261102163709 the
@@ -201,30 +162,19 @@ export const reportAnalyticsQueries = {
 								netIncome: null,
 							}));
 				// The portfolio is the properties the owner still has.
-				const current = rows.filter((r) => !r.deleted);
 				return {
 					summary: {
-						totalProperties: current.length,
-						totalUnits: 0,
-						occupiedUnits: 0,
-						occupancyRate:
-							current.length > 0
-								? current.reduce((sum, r) => sum + r.occupancyRate, 0) /
-									current.length
-								: 0,
+						totalProperties: rows.filter((r) => !r.deleted).length,
 					},
 					byProperty: rows.map((r) => ({
 						propertyId: r.propertyId,
 						propertyName: r.propertyName,
 						deleted: r.deleted,
 						occupancyRate: r.occupancyRate,
-						vacantUnits: 0,
 						rentReceived: r.rentReceived,
 						expenses: r.expenses,
 						netIncome: r.netIncome,
 					})),
-					occupancyTrend: [],
-					vacancyTrend: [],
 				};
 			},
 			...CACHE,
@@ -238,23 +188,13 @@ export const reportAnalyticsQueries = {
 				const user = await getCachedUser();
 				if (!user) {
 					return {
-						summary: {
-							totalTenants: 0,
-							activeLeases: 0,
-							leasesExpiringNext90: 0,
-							turnoverRate: 0,
-							onTimePaymentRate: 0,
-						},
-						paymentHistory: [],
-						leaseExpirations: [],
-						turnover: [],
+						summary: { totalTenants: 0, activeLeases: 0, leasesEndingSoon: 0 },
 					};
 				}
-				// MIS-WIRE follow-up (DATA-01): the tenant report has no real source
-				// for turnover / on-time-payment — those fields used to be read off
-				// get_occupancy_trends_optimized, which never emits them. The occupancy
-				// fetch was discarded anyway and coupled the report's success to an
-				// unrelated RPC, so it is dropped; both metrics stay 0 below.
+				// As of today: get_dashboard_stats takes no dates. The report has
+				// no source for turnover, on-time payments, payment history or
+				// lease expirations by property, so it shows none of them (they
+				// were 0 and empty tables).
 				const dashResult = await supabase.rpc("get_dashboard_stats", {
 					p_user_id: user.id,
 				});
@@ -265,13 +205,8 @@ export const reportAnalyticsQueries = {
 					summary: {
 						totalTenants: Number(tenants?.total ?? 0),
 						activeLeases: Number(leases?.active ?? 0),
-						leasesExpiringNext90: Number(leases?.expiringSoon ?? 0),
-						turnoverRate: 0,
-						onTimePaymentRate: 0,
+						leasesEndingSoon: Number(leases?.expiringSoon ?? 0),
 					},
-					paymentHistory: [],
-					leaseExpirations: [],
-					turnover: [],
 				};
 			},
 			...CACHE,

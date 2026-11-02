@@ -79,16 +79,20 @@ describe("the property portfolio report", () => {
 			p_timeframe: "2025-01-01..2025-12-31",
 		});
 		const table = section(report.sections, "Property Performance");
+		// No Vacant column: no source fills it (it read 0). Occupancy is today's.
 		expect(table.table?.headers).toEqual([
 			"Property",
-			"Occupancy",
-			"Vacant",
+			"Occupancy (today)",
 			"Rent Received",
 			"Expenses",
 			"Net Income",
 		]);
 		expect(table.table?.rows).toEqual([
-			["Alpha Court", "50.0%", "0", "$2,751", "$200", "$2,550"],
+			["Alpha Court", "50.0%", "$2,751", "$200", "$2,550"],
+		]);
+		expect(report.sections.map((s) => s.heading)).toEqual([
+			"Portfolio Summary",
+			"Property Performance",
 		]);
 		expect(table.note).toBeUndefined();
 	});
@@ -149,14 +153,7 @@ describe("the property portfolio report", () => {
 		);
 		const table = section(report.sections, "Property Performance");
 		expect(table.table?.rows).toEqual([
-			[
-				"Alpha Court",
-				"50.0%",
-				"0",
-				"Unavailable",
-				"Unavailable",
-				"Unavailable",
-			],
+			["Alpha Court", "50.0%", "Unavailable", "Unavailable", "Unavailable"],
 		]);
 		expect(table.note).toContain("Rent received isn't available yet");
 	});

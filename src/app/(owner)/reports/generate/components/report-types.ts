@@ -28,6 +28,12 @@ export interface ReportCard {
 	icon: LucideIcon;
 	formats: ReportFormat[];
 	category: "executive" | "financial" | "operations";
+	/**
+	 * Set when the report's RPCs take no dates: it is to date, the page's
+	 * Report Period does not apply to it, and the card says why. The file is
+	 * named and headed to date, never with the period.
+	 */
+	toDateReason?: string;
 }
 
 export const reportCards: ReportCard[] = [
@@ -44,7 +50,7 @@ export const reportCards: ReportCard[] = [
 		id: "financial-performance",
 		title: "Financial Performance",
 		description:
-			"Detailed P&L, NOI by property, and expense breakdown with monthly trends",
+			"Rent and fees charged, expenses, net income and cash flow for the period, with the charges by type and the expense categories",
 		icon: TrendingUp,
 		formats: ["pdf", "excel"],
 		category: "financial",
@@ -53,7 +59,7 @@ export const reportCards: ReportCard[] = [
 		id: "property-portfolio",
 		title: "Property Portfolio",
 		description:
-			"Portfolio analysis with property rankings, occupancy metrics, and vacancy analysis",
+			"Each property's rent received, expenses and net income for the period, with occupancy today",
 		icon: Building2,
 		formats: ["pdf", "excel"],
 		category: "operations",
@@ -61,26 +67,29 @@ export const reportCards: ReportCard[] = [
 	{
 		id: "lease-portfolio",
 		title: "Lease Portfolio",
-		description:
-			"Lease analytics including profitability scores, lifecycle trends, and status breakdown",
+		description: "Tenants, active leases and leases ending within 30 days",
 		icon: FileText,
 		formats: ["pdf", "excel"],
 		category: "financial",
+		toDateReason:
+			"Covers your leases as of today; the report period doesn't apply.",
 	},
 	{
 		id: "maintenance-operations",
 		title: "Maintenance Operations",
 		description:
-			"Operations metrics with response times, cost breakdown, and urgency analysis",
+			"Requests by status and priority, resolution time, and spend by month and vendor",
 		icon: Wrench,
 		formats: ["pdf", "excel"],
 		category: "operations",
+		toDateReason:
+			"Covers every request to date; the report period doesn't apply.",
 	},
 	{
 		id: "tax-preparation",
 		title: "Tax Preparation",
 		description:
-			"Tax-ready report with Schedule E codes and depreciation calculations (Excel only)",
+			"Rent received, expenses and net income for the tax year, by property (Excel only)",
 		icon: FileSpreadsheet,
 		formats: ["excel"],
 		category: "financial",
@@ -114,7 +123,13 @@ export const reportsClient = {
 		);
 
 		const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
-		const baseFilename = `${reportType}_${params.start_date}_${params.end_date}_${stamp}`;
+		// A report with no period is named to date, never with the period.
+		const toDate = reportCards.some(
+			(card) => card.id === reportType && card.toDateReason !== undefined,
+		);
+		const baseFilename = toDate
+			? `${reportType}_to_${params.end_date}_${stamp}`
+			: `${reportType}_${params.start_date}_${params.end_date}_${stamp}`;
 
 		if (params.format === "pdf") {
 			const blob = generatePdfBlob(data);
