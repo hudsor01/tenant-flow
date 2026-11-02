@@ -233,9 +233,7 @@ export default function TaxDocumentsPage() {
 												className="flex items-center justify-between p-4"
 											>
 												<div>
-													<p className="text-sm font-medium capitalize">
-														{cat.category.replace(/_/g, " ")}
-													</p>
+													<p className="text-sm font-medium">{cat.category}</p>
 													{cat.notes && (
 														<p className="text-xs text-muted-foreground">
 															{cat.notes}

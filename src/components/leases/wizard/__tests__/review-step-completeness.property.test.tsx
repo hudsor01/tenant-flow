@@ -12,6 +12,7 @@ import * as fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
 import { ReviewStep } from "../review-step";
+import { utilityLabel } from "../utility-options";
 
 // Note: Global afterEach cleanup is handled by unit-setup.ts.
 // Manual cleanup() calls in loops are required for property-based iterations.
@@ -245,6 +246,8 @@ describe("Property 9: ReviewStep Data Completeness", () => {
 			["water", "electricity"],
 			["gas", "trash", "internet"],
 			["water"],
+			// Labels a reformatted value cannot produce ("hoa fees", "lawn care").
+			["hoa_fees", "lawn_care", "pest_control"],
 		] as const;
 
 		for (const utilities_included of includedCases) {
@@ -258,7 +261,7 @@ describe("Property 9: ReviewStep Data Completeness", () => {
 
 			// PROPERTY ASSERTION: All included utilities should be displayed
 			for (const utility of utilities_included) {
-				const displayName = utility.replace("_", " ");
+				const displayName = utilityLabel(utility);
 				expect(screen.getByText(displayName)).toBeInTheDocument();
 			}
 
@@ -282,7 +285,7 @@ describe("Property 9: ReviewStep Data Completeness", () => {
 
 			// PROPERTY ASSERTION: All tenant-responsible utilities should be displayed
 			for (const utility of tenant_responsible_utilities) {
-				const displayName = utility.replace("_", " ");
+				const displayName = utilityLabel(utility);
 				expect(screen.getByText(displayName)).toBeInTheDocument();
 			}
 

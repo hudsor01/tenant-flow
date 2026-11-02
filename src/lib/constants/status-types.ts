@@ -36,6 +36,26 @@ const PROPERTY_TYPES = {
 
 export type PropertyType = (typeof PROPERTY_TYPES)[keyof typeof PROPERTY_TYPES];
 
+/** The name the owner sees for each property type, in the form's order. */
+export const PROPERTY_TYPE_LABELS: Readonly<Record<PropertyType, string>> = {
+	SINGLE_FAMILY: "Single Family",
+	MULTI_UNIT: "Multi Family",
+	APARTMENT: "Apartment",
+	COMMERCIAL: "Commercial",
+	CONDO: "Condo",
+	TOWNHOUSE: "Townhouse",
+	OTHER: "Other",
+};
+
+function isPropertyType(value: string): value is PropertyType {
+	return Object.hasOwn(PROPERTY_TYPE_LABELS, value);
+}
+
+/** A stored property_type as its label; a value outside the set as written. */
+export function propertyTypeLabel(value: string): string {
+	return isPropertyType(value) ? PROPERTY_TYPE_LABELS[value] : value;
+}
+
 /**
  * SINGLE-UNIT PROPERTY TYPES - Property types that have exactly one unit
  * Used to auto-create a default unit on property creation and

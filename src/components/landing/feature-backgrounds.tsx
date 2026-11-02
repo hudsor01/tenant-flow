@@ -290,22 +290,22 @@ export function LeaseDocuments() {
 				{[
 					{
 						name: "Lease Agreement - Unit 2A",
-						status: "Signed",
+						statusLabel: "Signed",
 						date: "Dec 1, 2024",
 					},
 					{
 						name: "Renewal Notice - Unit 3B",
-						status: "Pending",
+						statusLabel: "Pending",
 						date: "Dec 15, 2024",
 					},
 					{
 						name: "Move-in Inspection",
-						status: "Signed",
+						statusLabel: "Signed",
 						date: "Nov 28, 2024",
 					},
 					{
 						name: "Pet Addendum - Unit 1C",
-						status: "Signed",
+						statusLabel: "Signed",
 						date: "Nov 20, 2024",
 					},
 				].map((doc) => (
@@ -324,12 +324,12 @@ export function LeaseDocuments() {
 						<span
 							className={cn(
 								"text-xs px-2 py-0.5 rounded-full",
-								doc.status === "Signed"
+								doc.statusLabel === "Signed"
 									? "bg-success/10 text-success-text"
 									: "bg-warning/10 text-warning-text",
 							)}
 						>
-							{doc.status}
+							{doc.statusLabel}
 						</span>
 					</div>
 				))}

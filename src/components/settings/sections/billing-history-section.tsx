@@ -24,9 +24,18 @@ function getStatusVisual(invoice: BillingHistoryItem) {
 	return {
 		Icon: Clock,
 		color: "text-muted-foreground",
-		label: invoice.status,
+		label: INVOICE_STATUS_LABELS.get(invoice.status) ?? invoice.status,
 	};
 }
+
+/** The rest of Stripe's invoice statuses, as the owner reads them. */
+const INVOICE_STATUS_LABELS: ReadonlyMap<string, string> = new Map([
+	["draft", "Draft"],
+	["open", "Open"],
+	["uncollectible", "Uncollectible"],
+	["void", "Void"],
+	["pending", "Pending"],
+]);
 
 export function BillingHistorySection() {
 	const { data: paymentHistory } = useBillingHistory();

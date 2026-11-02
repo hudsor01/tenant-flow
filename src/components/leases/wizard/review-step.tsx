@@ -18,6 +18,7 @@ import { Separator } from "#components/ui/separator";
 import { formatDate, getOrdinalSuffix } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
+import { utilityLabel } from "./utility-options";
 
 // Format a dollar amount to currency, returning '-' for null/undefined
 const formatAmountOrDash = (amount?: number | null) =>
@@ -199,8 +200,8 @@ export function ReviewStep({
 						<div className="flex flex-wrap gap-1">
 							{data.utilities_included?.length ? (
 								data.utilities_included.map((u) => (
-									<Badge key={u} variant="outline" className="capitalize">
-										{u.replace("_", " ")}
+									<Badge key={u} variant="outline">
+										{utilityLabel(u)}
 									</Badge>
 								))
 							) : (
@@ -215,8 +216,8 @@ export function ReviewStep({
 						<div className="flex flex-wrap gap-1">
 							{data.tenant_responsible_utilities?.length ? (
 								data.tenant_responsible_utilities.map((u) => (
-									<Badge key={u} variant="secondary" className="capitalize">
-										{u.replace("_", " ")}
+									<Badge key={u} variant="secondary">
+										{utilityLabel(u)}
 									</Badge>
 								))
 							) : (

@@ -1,17 +1,12 @@
 "use client";
 
+import { PROPERTY_TYPE_LABELS } from "#lib/constants/status-types";
 import { withForm } from "#lib/forms/form-hook";
 import { propertyFormOptions } from "../property-form-options";
 
-const PROPERTY_TYPE_OPTIONS = [
-	{ value: "SINGLE_FAMILY", label: "Single Family" },
-	{ value: "MULTI_UNIT", label: "Multi Family" },
-	{ value: "APARTMENT", label: "Apartment" },
-	{ value: "COMMERCIAL", label: "Commercial" },
-	{ value: "CONDO", label: "Condo" },
-	{ value: "TOWNHOUSE", label: "Townhouse" },
-	{ value: "OTHER", label: "Other" },
-];
+const PROPERTY_TYPE_OPTIONS = Object.entries(PROPERTY_TYPE_LABELS).map(
+	([value, label]) => ({ value, label }),
+);
 
 export const PropertyInfoSection = withForm({
 	...propertyFormOptions,

@@ -226,7 +226,11 @@ export function MaintenanceRequestTemplate() {
 					<p className="text-sm">
 						Requester: {form.state.values.requesterName}
 					</p>
-					<p className="text-sm">Priority: {form.state.values.priority}</p>
+					<p className="text-sm">
+						Priority:{" "}
+						{priorities.find((p) => p.value === form.state.values.priority)
+							?.label ?? form.state.values.priority}
+					</p>
 					<p className="text-sm">
 						Preferred date: {form.state.values.preferredDate}
 					</p>

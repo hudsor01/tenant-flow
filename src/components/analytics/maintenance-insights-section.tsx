@@ -6,6 +6,7 @@ import { DollarSign, TrendingUp, Wrench } from "lucide-react";
 import dynamic from "next/dynamic";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { maintenanceStatusLabel } from "#components/maintenance/detail/maintenance-utils";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
@@ -54,17 +55,21 @@ function CategoryBreakdownTable({
 }) {
 	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
 		{
+			// get_maintenance_analytics has no category taxonomy: each row is a
+			// request status (by_status), so the column says so and names it.
 			id: "category",
 			accessorKey: "category",
-			header: "Category",
+			header: "Status",
 			meta: {
-				label: "Category",
+				label: "Status",
 				variant: "text",
-				placeholder: "Search category...",
+				placeholder: "Search status...",
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => (
-				<span className="font-medium">{row.original.category}</span>
+				<span className="font-medium">
+					{maintenanceStatusLabel(row.original.category)}
+				</span>
 			),
 		},
 		{

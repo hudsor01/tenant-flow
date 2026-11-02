@@ -23,6 +23,7 @@ import { Button } from "#components/ui/button";
 import { ButtonGroup } from "#components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { useDeletePropertyMutation } from "#hooks/api/use-property-mutations";
+import { propertyTypeLabel } from "#lib/constants/status-types";
 import { createLogger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
 
@@ -90,9 +91,10 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-muted-foreground">
 						<span className="flex items-center gap-1.5">
 							<Building className="size-3.5" />
-							<span className="capitalize">
-								{property.property_type?.toLowerCase().replace(/_/g, " ") ||
-									"Not specified"}
+							<span>
+								{property.property_type
+									? propertyTypeLabel(property.property_type)
+									: "Not specified"}
 							</span>
 						</span>
 						<span className="text-border">·</span>

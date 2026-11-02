@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { unitStatusLabel } from "#app/(owner)/properties/units/components/unit-status-badge";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Badge } from "#components/ui/badge";
@@ -39,7 +40,9 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 				placeholder: "Search status...",
 			},
 			enableColumnFilter: true,
-			cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
+			cell: ({ row }) => (
+				<Badge variant="outline">{unitStatusLabel(row.original.status)}</Badge>
+			),
 		},
 		{
 			id: "bedrooms",

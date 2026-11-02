@@ -15,6 +15,19 @@ import {
 } from "#components/ui/select";
 import type { DynamicField } from "./dynamic-form";
 
+/** The name the owner sees for each field type in the builder's picker. */
+const FIELD_TYPE_LABELS: Record<DynamicField["type"], string> = {
+	text: "Text",
+	email: "Email",
+	tel: "Phone",
+	number: "Number",
+	date: "Date",
+	textarea: "Long Text",
+	select: "Dropdown",
+	checkbox: "Checkbox",
+	list: "List",
+};
+
 const fieldTypes: Array<DynamicField["type"]> = [
 	"text",
 	"email",
@@ -198,7 +211,7 @@ export function FormBuilderPanel({
 									<SelectContent>
 										{fieldTypes.map((type) => (
 											<SelectItem key={type} value={type}>
-												{type}
+												{FIELD_TYPE_LABELS[type]}
 											</SelectItem>
 										))}
 									</SelectContent>

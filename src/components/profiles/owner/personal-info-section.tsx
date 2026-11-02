@@ -19,6 +19,13 @@ interface FormData {
 	phone: string;
 }
 
+/** users.status (users_status_check) as the owner reads it. */
+const ACCOUNT_STATUS_LABELS: ReadonlyMap<string, string> = new Map([
+	["active", "Active"],
+	["inactive", "Inactive"],
+	["suspended", "Suspended"],
+]);
+
 interface PersonalInfoSectionProps {
 	profile: ProfileData;
 	isEditing: boolean;
@@ -179,8 +186,9 @@ export function PersonalInfoSection({
 								</label>
 								<div className="flex items-center gap-2">
 									<CheckCircle className="h-4 w-4 text-success-text" />
-									<p className="text-sm font-medium capitalize">
-										{profile.status}
+									<p className="text-sm font-medium">
+										{ACCOUNT_STATUS_LABELS.get(profile.status) ??
+											profile.status}
 									</p>
 								</div>
 							</div>

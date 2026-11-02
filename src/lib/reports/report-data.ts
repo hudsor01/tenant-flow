@@ -14,6 +14,10 @@
 
 import type { QueryClient, QueryExecuteOptions } from "@tanstack/react-query";
 import type { ReportType } from "#app/(owner)/reports/generate/components/report-types";
+import {
+	maintenancePriorityLabel,
+	maintenanceStatusLabel,
+} from "#components/maintenance/detail/maintenance-utils";
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
 import { parseLocalYmd } from "#lib/formatters/date";
@@ -700,10 +704,16 @@ function maintenanceOperationsSections(
 	available: boolean,
 ): ReportSection[] {
 	const byStatusRows = maintenance.byStatus.map(
-		(s): Array<string | number> => [s.status, fmtNumber(s.count)],
+		(s): Array<string | number> => [
+			maintenanceStatusLabel(s.status),
+			fmtNumber(s.count),
+		],
 	);
 	const byPriorityRows = maintenance.byPriority.map(
-		(p): Array<string | number> => [p.priority, fmtNumber(p.count)],
+		(p): Array<string | number> => [
+			maintenancePriorityLabel(p.priority),
+			fmtNumber(p.count),
+		],
 	);
 	return [
 		{

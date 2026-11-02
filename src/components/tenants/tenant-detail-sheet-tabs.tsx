@@ -2,6 +2,7 @@ import { Check, ChevronRight, Mail, MapPin, Phone } from "lucide-react";
 import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { TenantSectionDetail } from "#types/sections/tenants";
+import { TENANT_LEASE_STATUS_LABELS } from "./tenant-table-helpers";
 
 export function ContactSection({
 	tenant,
@@ -124,8 +125,8 @@ export function LeaseHistorySection({
 								{formatDate(lease.startDate)} — {formatDate(lease.endDate)}
 							</p>
 						</div>
-						<span className="text-xs text-muted-foreground capitalize px-2 py-1 bg-muted rounded">
-							{lease.status}
+						<span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded">
+							{TENANT_LEASE_STATUS_LABELS[lease.status]}
 						</span>
 					</button>
 				))}

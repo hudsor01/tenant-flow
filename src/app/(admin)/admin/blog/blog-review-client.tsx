@@ -28,6 +28,7 @@ import {
 	useApproveBlogMutation,
 	useRejectBlogMutation,
 } from "#hooks/api/use-blog-admin-mutations";
+import { categoryLabel } from "#lib/seo/blog-categories";
 
 interface BlogReviewClientProps {
 	initialDrafts: BlogReviewItem[];
@@ -98,7 +99,7 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 						{wordCount} words
 						{" · "}
 						{formatCreatedAt(draft.created_at)}
-						{draft.category ? ` · ${draft.category}` : ""}
+						{draft.category ? ` · ${categoryLabel(draft.category)}` : ""}
 					</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-2">

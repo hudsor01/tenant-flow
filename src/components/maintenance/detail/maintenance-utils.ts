@@ -9,6 +9,10 @@ import {
 import type { ReactNode } from "react";
 import { createElement } from "react";
 import { formatDate } from "#lib/formatters/date";
+import {
+	maintenancePrioritySchema,
+	maintenanceStatusSchema,
+} from "#lib/validation/maintenance";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 import type { TimelineEvent } from "#types/sections/maintenance";
 
@@ -53,6 +57,12 @@ export const STATUS_CONFIG: Record<
 		icon: createElement(XCircle, { className: "size-3.5" }),
 	},
 };
+
+/** A maintenance status as its label; a value outside the set as written. */
+export function maintenanceStatusLabel(status: string): string {
+	const parsed = maintenanceStatusSchema.safeParse(status);
+	return parsed.success ? STATUS_CONFIG[parsed.data].label : status;
+}
 
 // Priority configuration
 export const PRIORITY_CONFIG: Record<
@@ -126,4 +136,10 @@ export function generateTimeline(request: {
 	return events.sort(
 		(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
 	);
+}
+
+/** A maintenance priority as its label; a value outside the set as written. */
+export function maintenancePriorityLabel(priority: string): string {
+	const parsed = maintenancePrioritySchema.safeParse(priority);
+	return parsed.success ? PRIORITY_CONFIG[parsed.data].label : priority;
 }

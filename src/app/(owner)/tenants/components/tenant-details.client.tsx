@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
+import { tenantLeaseStatusLabel } from "#components/tenants/tenant-table-helpers";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
@@ -215,7 +216,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 											lease.status === "active" ? "default" : "secondary"
 										}
 									>
-										{lease.status}
+										{tenantLeaseStatusLabel(lease.status)}
 									</Badge>
 								</div>
 							))}

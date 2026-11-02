@@ -38,6 +38,15 @@ export const TENANT_LEASE_STATUS_LABELS: Record<LeaseStatus, string> = {
 	expired: "Expired",
 };
 
+function isLeaseStatus(value: string): value is LeaseStatus {
+	return Object.hasOwn(TENANT_LEASE_STATUS_LABELS, value);
+}
+
+/** A lease status as its label on tenant surfaces; an unknown value as written. */
+export function tenantLeaseStatusLabel(status: string): string {
+	return isLeaseStatus(status) ? TENANT_LEASE_STATUS_LABELS[status] : status;
+}
+
 const STATUS_CHIP: Record<LeaseStatus, string> = {
 	draft: "status-pending",
 	pending_signature: "status-pending",
