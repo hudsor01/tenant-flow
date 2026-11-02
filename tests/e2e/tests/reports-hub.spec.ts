@@ -45,8 +45,8 @@ import { ROUTES } from "./constants/routes";
  * things — navigate, prove it did not land on `/login`, prove the page's `<h1>`
  * rendered. No fixed-value assertions: an owner fixture with no ledger data
  * legitimately renders `$0.00`, and asserting on figures would be flaky. The
- * cash-flow export tests below compare the downloaded file with what the page
- * itself shows, which holds for any data, and seed nothing.
+ * export tests below compare each downloaded file with what the page itself
+ * shows, which holds for any data, and seed nothing.
  */
 
 /**
@@ -82,14 +82,6 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
 		await loginAsOwner(page);
 	});
 
-	// NOTE: the "Export" controls in the income-statement and balance-sheet
-	// headers (`income-statement-page-header.tsx`, `balance-sheet/page.tsx`) are
-	// rendered with NO click handler attached, a recorded pre-existing defect
-	// carried over verbatim from the legacy financials route tree. They must
-	// never be clicked here, nor asserted as functional: that would turn a
-	// known-dead control into a passing claim that it works (the header layout
-	// test below measures them, it does not click them). The cash-flow Export is
-	// wired (66.2-39 VD-54) and is exercised by the export test below.
 	for (const { path, heading } of hubRoutes) {
 		test(`renders ${heading} at ${path}`, async ({ page }) => {
 			await page.goto(path);
@@ -130,12 +122,14 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
 });
 
 /**
- * Cash-flow CSV export (66.2-39 UI-SPEC VD-54).
+ * The statements' CSV exports (66.2-39 UI-SPEC VD-54 cash flow, VD-58 income
+ * statement and balance sheet).
  *
- * The Export button downloads the cached `financialQueries.cashFlow` data
- * through the view the page renders (`cash-flow-csv.ts`), so the file's totals
- * must equal the stat tiles on screen, whatever the owner's data is. Nothing is
- * seeded: the comparison is page against file.
+ * Each Export button downloads its cached `financialQueries` data through the
+ * view the page renders (`cash-flow-csv.ts`, `income-statement-csv.ts`,
+ * `balance-sheet-csv.ts`), so the file's totals must equal the stat tiles on
+ * screen, whatever the owner's data is. Nothing is seeded: the comparison is
+ * page against file.
  *
  * Settling: the button is `aria-disabled` until the selected period's data is
  * on screen (it stays so while `isPlaceholderData` shows the previous period),
@@ -249,6 +243,23 @@ function parseCsv(text: string): string[][] {
 	return rows;
 }
 
+/** Clicks the settled Export button and reads the file it downloads. */
+async function downloadCsv(
+	page: Page,
+	exportButton: Locator,
+): Promise<{ name: string; header: string; body: string[][] }> {
+	const downloadEvent = page.waitForEvent("download");
+	await exportButton.click();
+	const download = await downloadEvent;
+	const rows = parseCsv(await readFile(await download.path(), "utf8"));
+	const [header, ...body] = rows;
+	return {
+		name: download.suggestedFilename(),
+		header: header?.join(",") ?? "",
+		body,
+	};
+}
+
 test.describe("Cash flow export (66.2-39 VD-54)", () => {
 	test("downloads the figures on screen as tenantflow-cash-flow-<start>-to-<end>.csv", async ({
 		page,
@@ -262,19 +273,13 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 			"Net Cash Flow": await statAmount(page, "Net Cash Flow"),
 		};
 
-		const downloadEvent = page.waitForEvent("download");
-		await exportButton.click();
-		const download = await downloadEvent;
-
-		const name = download.suggestedFilename();
+		const { name, header, body } = await downloadCsv(page, exportButton);
 		const dates = CASH_FLOW_FILENAME.exec(name);
 		expect(dates, `filename ${name}`).not.toBeNull();
 		const [, startDate, endDate] = dates ?? [];
 		expect(startDate && endDate && startDate <= endDate).toBe(true);
 
-		const rows = parseCsv(await readFile(await download.path(), "utf8"));
-		const [header, ...body] = rows;
-		expect(header?.join(",")).toBe(CASH_FLOW_CSV_HEADER);
+		expect(header).toBe(CASH_FLOW_CSV_HEADER);
 		expect(body.length).toBeGreaterThan(0);
 		for (const row of body) {
 			expect(row).toHaveLength(8);
@@ -283,6 +288,88 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 
 		const total = (item: string) =>
 			body.find((row) => row[4] === "Totals" && row[5] === item)?.[7];
+		for (const [item, shown] of Object.entries(onScreen)) {
+			expect(total(item), `${item} in the CSV`).toBe(shown);
+		}
+	});
+});
+
+const INCOME_STATEMENT_CSV_HEADER =
+	"Period,Start Date,End Date,Currency,Section,Line Item,Percent (%),Amount";
+const INCOME_STATEMENT_FILENAME =
+	/^tenantflow-income-statement-(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2})\.csv$/;
+const BALANCE_SHEET_CSV_HEADER =
+	"As Of Date,Currency,Section,Group,Line Item,Amount";
+const BALANCE_SHEET_FILENAME =
+	/^tenantflow-balance-sheet-(\d{4}-\d{2}-\d{2})\.csv$/;
+
+test.describe("Statement exports (66.2-39 VD-58)", () => {
+	test("income statement: downloads the figures on screen as tenantflow-income-statement-<start>-to-<end>.csv", async ({
+		page,
+	}) => {
+		await gotoReport(page, ROUTES.REPORTS_INCOME_STATEMENT, "Income Statement");
+		const exportButton = await settledExportButton(page);
+
+		const onScreen = {
+			"Total Revenue": await statAmount(page, "Total Revenue"),
+			"Total Expenses": await statAmount(page, "Total Expenses"),
+			"Net Income": await statAmount(page, "Net Income"),
+		};
+
+		const { name, header, body } = await downloadCsv(page, exportButton);
+		const dates = INCOME_STATEMENT_FILENAME.exec(name);
+		expect(dates, `filename ${name}`).not.toBeNull();
+		const [, startDate, endDate] = dates ?? [];
+		expect(startDate && endDate && startDate <= endDate).toBe(true);
+
+		expect(header).toBe(INCOME_STATEMENT_CSV_HEADER);
+		expect(body.length).toBeGreaterThan(0);
+		for (const row of body) {
+			expect(row).toHaveLength(8);
+			expect(row.slice(1, 4)).toEqual([startDate, endDate, "USD"]);
+		}
+
+		const total = (item: string) =>
+			body.find((row) => row[4] === "Totals" && row[5] === item)?.[7];
+		for (const [item, shown] of Object.entries(onScreen)) {
+			expect(total(item), `${item} in the CSV`).toBe(shown);
+		}
+	});
+
+	test("balance sheet: downloads the figures on screen as tenantflow-balance-sheet-<as-of>.csv", async ({
+		page,
+	}) => {
+		await gotoReport(page, ROUTES.REPORTS_BALANCE_SHEET, "Balance Sheet");
+		const exportButton = await settledExportButton(page);
+
+		const onScreen = {
+			"Total Assets": await statAmount(page, "Total Assets"),
+			"Total Liabilities": await statAmount(page, "Total Liabilities"),
+			"Total Equity": await statAmount(page, "Total Equity"),
+		};
+		// The default selection is the current month, so the sheet is as of its
+		// last day, read in the browser's own time zone.
+		const expectedAsOf = await page.evaluate(() => {
+			const now = new Date();
+			const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+			const pad = (n: number) => String(n).padStart(2, "0");
+			return `${last.getFullYear()}-${pad(last.getMonth() + 1)}-${pad(last.getDate())}`;
+		});
+
+		const { name, header, body } = await downloadCsv(page, exportButton);
+		expect(BALANCE_SHEET_FILENAME.exec(name)?.[1], `filename ${name}`).toBe(
+			expectedAsOf,
+		);
+
+		expect(header).toBe(BALANCE_SHEET_CSV_HEADER);
+		expect(body.length).toBeGreaterThan(0);
+		for (const row of body) {
+			expect(row).toHaveLength(6);
+			expect(row.slice(0, 2)).toEqual([expectedAsOf, "USD"]);
+		}
+
+		const total = (item: string) =>
+			body.find((row) => row[2] === "Totals" && row[4] === item)?.[5];
 		for (const [item, shown] of Object.entries(onScreen)) {
 			expect(total(item), `${item} in the CSV`).toBe(shown);
 		}

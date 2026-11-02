@@ -1,5 +1,4 @@
-import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
-import { type CsvCell, csvNumber, toCsv } from "#lib/reports/csv";
+import { type CsvCell, csvIsoDate, csvNumber, toCsv } from "#lib/reports/csv";
 import type { CashFlowView } from "./cash-flow-view";
 
 /**
@@ -31,14 +30,6 @@ const PERIOD_LABELS: Record<string, string> = {
 	yearly: "Yearly",
 };
 
-function isoDate(value: string): string {
-	const parsed = parseLocalYmd(value);
-	if (!parsed) {
-		throw new RangeError("Cash flow export needs YYYY-MM-DD dates");
-	}
-	return formatLocalYmd(parsed);
-}
-
 export interface CashFlowCsvInput {
 	period: string;
 	startDate: string;
@@ -50,7 +41,7 @@ export function cashFlowCsvFilename(
 	startDate: string,
 	endDate: string,
 ): string {
-	return `tenantflow-cash-flow-${isoDate(startDate)}-to-${isoDate(endDate)}.csv`;
+	return `tenantflow-cash-flow-${csvIsoDate(startDate)}-to-${csvIsoDate(endDate)}.csv`;
 }
 
 export function buildCashFlowCsv({
@@ -61,8 +52,8 @@ export function buildCashFlowCsv({
 }: CashFlowCsvInput): string {
 	const context = [
 		PERIOD_LABELS[period] ?? period,
-		isoDate(startDate),
-		isoDate(endDate),
+		csvIsoDate(startDate),
+		csvIsoDate(endDate),
 		CURRENCY,
 	];
 	const money = (value: number) => csvNumber(value, 2);

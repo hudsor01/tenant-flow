@@ -79,6 +79,8 @@ describe("report Select triggers", () => {
 				year="2025"
 				onPeriodChange={() => undefined}
 				onYearChange={() => undefined}
+				onExport={() => undefined}
+				exportUnavailableReason={null}
 			/>,
 		);
 		expectNamedTriggers([/^Monthly \(period\)$/, /^2025 \(year\)$/]);

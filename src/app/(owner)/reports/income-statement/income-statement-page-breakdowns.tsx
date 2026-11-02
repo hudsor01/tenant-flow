@@ -1,15 +1,11 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { formatCents } from "#lib/utils/currency";
-
-interface BreakdownItem {
-	label: string;
-	amount: number;
-}
+import type { IncomeStatementLine } from "./income-statement-view";
 
 interface IncomeStatementPageBreakdownsProps {
-	revenueItems: BreakdownItem[];
-	expenseItems: BreakdownItem[];
+	revenueItems: IncomeStatementLine[];
+	expenseItems: IncomeStatementLine[];
 	totalRevenue: number;
 	totalExpenses: number;
 }
@@ -31,10 +27,6 @@ export function IncomeStatementPageBreakdowns({
 					</h3>
 					<div className="space-y-3">
 						{revenueItems.map((item) => {
-							const percentage =
-								totalRevenue > 0
-									? ((item.amount / totalRevenue) * 100).toFixed(1)
-									: "0.0";
 							return (
 								<div
 									key={item.label}
@@ -48,7 +40,7 @@ export function IncomeStatementPageBreakdowns({
 									</div>
 									<div className="flex items-center gap-4">
 										<span className="text-sm text-muted-foreground">
-											{percentage}%
+											{item.share.toFixed(1)}%
 										</span>
 										<span className="text-sm font-medium text-foreground tabular-nums">
 											{formatCents(item.amount * 100)}
@@ -77,35 +69,29 @@ export function IncomeStatementPageBreakdowns({
 						Expense Breakdown
 					</h3>
 					<div className="space-y-3">
-						{expenseItems
-							.filter((item) => item.amount > 0)
-							.map((item) => {
-								const percentage =
-									totalExpenses > 0
-										? ((item.amount / totalExpenses) * 100).toFixed(1)
-										: "0.0";
-								return (
-									<div
-										key={item.label}
-										className="flex items-center justify-between py-2 border-b border-border last:border-0"
-									>
-										<div className="flex items-center gap-3">
-											<div className="w-2 h-2 rounded-full bg-destructive-text" />
-											<span className="text-sm text-foreground">
-												{item.label}
-											</span>
-										</div>
-										<div className="flex items-center gap-4">
-											<span className="text-sm text-muted-foreground">
-												{percentage}%
-											</span>
-											<span className="text-sm font-medium text-foreground tabular-nums">
-												{formatCents(item.amount * 100)}
-											</span>
-										</div>
+						{expenseItems.map((item) => {
+							return (
+								<div
+									key={item.label}
+									className="flex items-center justify-between py-2 border-b border-border last:border-0"
+								>
+									<div className="flex items-center gap-3">
+										<div className="w-2 h-2 rounded-full bg-destructive-text" />
+										<span className="text-sm text-foreground">
+											{item.label}
+										</span>
 									</div>
-								);
-							})}
+									<div className="flex items-center gap-4">
+										<span className="text-sm text-muted-foreground">
+											{item.share.toFixed(1)}%
+										</span>
+										<span className="text-sm font-medium text-foreground tabular-nums">
+											{formatCents(item.amount * 100)}
+										</span>
+									</div>
+								</div>
+							);
+						})}
 						<div className="flex items-center justify-between pt-3 border-t border-border">
 							<span className="text-sm font-medium text-foreground">
 								Total Expenses

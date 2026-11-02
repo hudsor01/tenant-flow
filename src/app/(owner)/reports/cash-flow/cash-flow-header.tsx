@@ -1,7 +1,4 @@
-import { Download } from "lucide-react";
-import { useId } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -9,6 +6,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#components/ui/select";
+import { ReportExportButton } from "../report-export-button";
 
 interface CashFlowHeaderProps {
 	period: string;
@@ -28,8 +26,6 @@ export function CashFlowHeader({
 	onExport,
 	exportUnavailableReason,
 }: CashFlowHeaderProps) {
-	const exportReasonId = useId();
-	const exportUnavailable = exportUnavailableReason !== null;
 	return (
 		<BlurFade delay={0.1}>
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
@@ -71,23 +67,10 @@ export function CashFlowHeader({
 							))}
 						</SelectContent>
 					</Select>
-					{/* aria-disabled, not disabled, keeps the tab stop so the reason
-					    stays reachable; the click is ignored while it is set. */}
-					<Button
-						variant="outline"
-						onClick={exportUnavailable ? undefined : onExport}
-						aria-disabled={exportUnavailable || undefined}
-						aria-describedby={exportUnavailable ? exportReasonId : undefined}
-						className="aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
-					>
-						<Download aria-hidden="true" />
-						Export
-					</Button>
-					{exportUnavailable ? (
-						<span id={exportReasonId} className="sr-only">
-							{exportUnavailableReason}
-						</span>
-					) : null}
+					<ReportExportButton
+						onExport={onExport}
+						unavailableReason={exportUnavailableReason}
+					/>
 				</div>
 			</div>
 		</BlurFade>

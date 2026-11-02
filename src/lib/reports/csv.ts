@@ -10,6 +10,8 @@
  * a negative amount stays a number a spreadsheet can sum.
  */
 
+import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
+
 export const CSV_MIME_TYPE = "text/csv;charset=utf-8";
 
 export interface CsvNumberCell {
@@ -65,4 +67,17 @@ export function toCsv(
 	return [header, ...rows]
 		.map((row) => row.map(serializeCell).join(","))
 		.join("\r\n");
+}
+
+/**
+ * A report's date as the YYYY-MM-DD text a CSV row and filename carry. Throws
+ * on anything that is not a real calendar day in that form, rather than
+ * writing an unparseable period into a statement.
+ */
+export function csvIsoDate(value: string): string {
+	const parsed = parseLocalYmd(value);
+	if (!parsed) {
+		throw new RangeError("Report export needs YYYY-MM-DD dates");
+	}
+	return formatLocalYmd(parsed);
 }

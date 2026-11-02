@@ -1,10 +1,9 @@
 "use client";
 
-import { Building2, CreditCard, Download, Wallet } from "lucide-react";
+import { Building2, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
-import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -20,11 +19,20 @@ import {
 	StatValue,
 } from "#components/ui/stat";
 import { useBalanceSheet } from "#hooks/api/use-financials";
-import { formatDate } from "#lib/formatters/date";
+import { formatDate, formatLocalYmd } from "#lib/formatters/date";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { ReportExportButton } from "../report-export-button";
 import { BalanceEquationCheck } from "./balance-equation-check";
 import { BalanceSection } from "./balance-section";
+import {
+	balanceSheetCsvFilename,
+	buildBalanceSheetCsv,
+} from "./balance-sheet-csv";
 import { BalanceSheetError } from "./balance-sheet-error";
 import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
+import { buildBalanceSheetView } from "./balance-sheet-view";
 import { EquitySection } from "./equity-section";
 
 export default function BalanceSheetPage() {
@@ -41,111 +49,42 @@ export default function BalanceSheetPage() {
 		{ month: "long" },
 	);
 
-	const asOfDate = `${year}-${month}-${new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate()}`;
-	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate);
+	// The last day of the selected month, as local YYYY-MM-DD (day 0 of the
+	// following month).
+	const asOfDate = formatLocalYmd(
+		new Date(parseInt(year, 10), parseInt(month, 10), 0),
+	);
+	const { data, isLoading, isPlaceholderData, error, refetch } =
+		useBalanceSheet(asOfDate);
 	const balanceData = data?.data;
+	const view = buildBalanceSheetView(balanceData);
+	const { totalAssets, totalLiabilities, totalEquity, isBalanced } = view;
 
-	const assetsItems = (() => {
-		if (!balanceData) return [];
-		return [
-			{
-				label: "Current Assets",
-				items: [
-					{ name: "Cash", amount: balanceData.assets.currentAssets.cash },
-					{
-						name: "Accounts Receivable",
-						amount: balanceData.assets.currentAssets.accountsReceivable,
-					},
-					{
-						name: "Security Deposits",
-						amount: balanceData.assets.currentAssets.security_deposits,
-					},
-				],
-				subtotal:
-					balanceData.assets.currentAssets.cash +
-					balanceData.assets.currentAssets.accountsReceivable +
-					balanceData.assets.currentAssets.security_deposits,
-			},
-			{
-				label: "Fixed Assets",
-				items: [
-					{
-						name: "Property Values",
-						amount: balanceData.assets.fixedAssets.propertyValues,
-					},
-					{
-						name: "Accumulated Depreciation",
-						amount: -balanceData.assets.fixedAssets.accumulatedDepreciation,
-					},
-					{
-						name: "Net Property Value",
-						amount: balanceData.assets.fixedAssets.netPropertyValue,
-					},
-				],
-				subtotal: balanceData.assets.fixedAssets.netPropertyValue,
-			},
-		];
-	})();
+	// The global keepPreviousData shows the last month while the selected one
+	// loads, so the export waits for the data that matches the selectors.
+	const exportUnavailableReason = !balanceData
+		? "No balance sheet data to export yet."
+		: isPlaceholderData
+			? "Loading the selected month. Export is available when it finishes."
+			: null;
 
-	const liabilitiesItems = (() => {
-		if (!balanceData) return [];
-		return [
-			{
-				label: "Current Liabilities",
-				items: [
-					{
-						name: "Accounts Payable",
-						amount: balanceData.liabilities.currentLiabilities.accountsPayable,
-					},
-					{
-						name: "Security Deposit Liability",
-						amount:
-							balanceData.liabilities.currentLiabilities
-								.security_depositLiability,
-					},
-					{
-						name: "Accrued Expenses",
-						amount: balanceData.liabilities.currentLiabilities.accruedExpenses,
-					},
-				],
-				subtotal:
-					balanceData.liabilities.currentLiabilities.accountsPayable +
-					balanceData.liabilities.currentLiabilities.security_depositLiability +
-					balanceData.liabilities.currentLiabilities.accruedExpenses,
-			},
-			{
-				label: "Long-Term Liabilities",
-				items: [
-					{
-						name: "Mortgages Payable",
-						amount:
-							balanceData.liabilities.longTermLiabilities.mortgagesPayable,
-					},
-				],
-				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable,
-			},
-		];
-	})();
-
-	const equityItems = (() => {
-		if (!balanceData) return [];
-		return [
-			{ name: "Owner Capital", amount: balanceData.equity.ownerCapital },
-			{
-				name: "Retained Earnings",
-				amount: balanceData.equity.retainedEarnings,
-			},
-			{
-				name: "Current Period Income",
-				amount: balanceData.equity.currentPeriodIncome,
-			},
-		];
-	})();
-
-	const totalAssets = balanceData?.assets.totalAssets || 0;
-	const totalLiabilities = balanceData?.liabilities.totalLiabilities || 0;
-	const totalEquity = balanceData?.equity.totalEquity || 0;
-	const isBalanced = balanceData?.balanceCheck !== false;
+	const handleExport = () => {
+		if (!balanceData || isPlaceholderData) return;
+		try {
+			const asOf = balanceData.period.end_date;
+			const csv = buildBalanceSheetCsv({ asOfDate: asOf, view });
+			downloadBlob(
+				new Blob([csv], { type: CSV_MIME_TYPE }),
+				balanceSheetCsvFilename(asOf),
+			);
+		} catch (exportError) {
+			handleMutationError(
+				exportError,
+				"Export balance sheet",
+				"Couldn't export the balance sheet. Please try again.",
+			);
+		}
+	};
 
 	if (isLoading) {
 		return <BalanceSheetSkeleton />;
@@ -207,10 +146,10 @@ export default function BalanceSheetPage() {
 								<SelectItem value="12">December</SelectItem>
 							</SelectContent>
 						</Select>
-						<Button variant="outline">
-							<Download className="w-4 h-4" />
-							Export
-						</Button>
+						<ReportExportButton
+							onExport={handleExport}
+							unavailableReason={exportUnavailableReason}
+						/>
 					</div>
 				</div>
 			</BlurFade>
@@ -299,7 +238,7 @@ export default function BalanceSheetPage() {
 					<BalanceSection
 						title="Assets"
 						icon={Building2}
-						items={assetsItems}
+						items={view.assetGroups}
 						total={totalAssets}
 						totalLabel="Total Assets"
 						colorClass="text-success-text"
@@ -309,12 +248,12 @@ export default function BalanceSheetPage() {
 						<BalanceSection
 							title="Liabilities"
 							icon={CreditCard}
-							items={liabilitiesItems}
+							items={view.liabilityGroups}
 							total={totalLiabilities}
 							totalLabel="Total Liabilities"
 							colorClass="text-destructive-text"
 						/>
-						<EquitySection items={equityItems} totalEquity={totalEquity} />
+						<EquitySection items={view.equityItems} totalEquity={totalEquity} />
 					</div>
 				</div>
 			</BlurFade>

@@ -2,6 +2,7 @@ import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
 import {
 	CSV_MIME_TYPE,
+	csvIsoDate,
 	csvNumber,
 	neutralizeCsvFormula,
 	toCsv,
@@ -84,5 +85,24 @@ describe("toCsv", () => {
 
 	it("names a UTF-8 CSV type", () => {
 		expect(CSV_MIME_TYPE).toBe("text/csv;charset=utf-8");
+	});
+});
+
+describe("csvIsoDate", () => {
+	it("passes a real YYYY-MM-DD day through", () => {
+		expect(csvIsoDate("2026-02-28")).toBe("2026-02-28");
+		expect(csvIsoDate("2028-02-29")).toBe("2028-02-29");
+	});
+
+	it("refuses another form or a day the calendar does not have", () => {
+		for (const bad of [
+			"2026-2-28",
+			"2026-02-30",
+			"02/28/2026",
+			"",
+			"2026-13-01",
+		]) {
+			expect(() => csvIsoDate(bad)).toThrow(RangeError);
+		}
 	});
 });
