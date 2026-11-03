@@ -11,8 +11,8 @@ export const AcquisitionDetailsSection = withForm({
 				<div>
 					<h3 className="text-sm font-medium">Acquisition Details</h3>
 					<p className="text-xs text-muted-foreground mt-1">
-						Optional. Used for accurate depreciation calculations in your tax
-						documents.
+						Optional. Kept with the property for your records; TenantFlow
+						doesn&apos;t calculate depreciation.
 					</p>
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
