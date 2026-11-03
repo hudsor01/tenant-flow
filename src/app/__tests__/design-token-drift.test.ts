@@ -27,6 +27,7 @@ import {
 	type Theme,
 	tokenColor,
 } from "#test/utils/oklch-contrast";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { vividTextUses } from "#test/utils/vivid-text-elements";
 
 type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs" | "modernColor";
@@ -365,7 +366,7 @@ const SINGLE_FILL_CLASS = /^bg-([a-z0-9-]+?)(?:\/(\d+))?$/;
 
 function cvaVariantMap(source: string, name: string): Record<string, string> {
 	const block = new RegExp(
-		`const ${name} = cva\\([\\s\\S]*?variant:\\s*\\{([\\s\\S]*?)\\}`,
+		`const ${escapeRegExp(name)} = cva\\([\\s\\S]*?variant:\\s*\\{([\\s\\S]*?)\\}`,
 	).exec(source);
 	if (!block?.[1])
 		throw new Error(`${PROGRESS_SOURCE}: no ${name} variant map`);

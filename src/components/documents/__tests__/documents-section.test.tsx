@@ -10,6 +10,7 @@ import {
 	documentQueries,
 } from "#hooks/api/query-keys/document-keys";
 import { documentSearchQueries } from "#hooks/api/query-keys/document-search-keys";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { DocumentsSection } from "../documents-section";
 
 const mockUseQuery = vi.fn();
@@ -438,7 +439,7 @@ describe("DocumentsSection", () => {
 		]) {
 			expect(
 				await screen.findByRole("option", {
-					name: new RegExp(`^${label}$`, "i"),
+					name: new RegExp(`^${escapeRegExp(label)}$`, "i"),
 				}),
 			).toBeInTheDocument();
 		}

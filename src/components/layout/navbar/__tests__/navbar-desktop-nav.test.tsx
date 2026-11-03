@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 
 import { NavbarDesktopNav } from "#components/layout/navbar/navbar-desktop-nav";
 import { DEFAULT_NAV_ITEMS } from "#components/layout/navbar/types";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 describe("NavbarDesktopNav", () => {
 	it('emits no aria-current="page" on the homepage (CONS-03)', () => {
@@ -21,7 +22,7 @@ describe("NavbarDesktopNav", () => {
 		// No top-level nav link — Compare included — may be marked current on `/`.
 		for (const item of DEFAULT_NAV_ITEMS) {
 			const link = screen.getByRole("link", {
-				name: new RegExp(`^${item.name}`),
+				name: new RegExp(`^${escapeRegExp(item.name)}`),
 			});
 			expect(link).not.toHaveAttribute("aria-current", "page");
 		}

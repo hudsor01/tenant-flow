@@ -17,6 +17,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { identifierSource } from "#test/utils/regexp-source";
 import { mutationKeys } from "../mutation-keys";
 import { reportMutations } from "../query-keys/report-keys";
 
@@ -47,7 +48,7 @@ function uncalledMembers(
 ): string[] {
 	const used = new Set<string>();
 	const access = new RegExp(
-		`\\b${objectPath.replace(/\./g, "\\.")}\\.([A-Za-z_$][\\w$]*)`,
+		`${identifierSource(objectPath)}\\.([A-Za-z_$][\\w$]*)`,
 		"g",
 	);
 	for (const [path, source] of sources) {
@@ -112,5 +113,22 @@ describe("report mutations and their keys have callers", () => {
 				declaring,
 			),
 		).toEqual(["unused"]);
+	});
+
+	it("reads the object path as literal text and as a whole identifier", () => {
+		// `$` is an identifier character and a regex anchor: escaping only `.`
+		// left `$reports` matching nothing, so every member read as uncalled.
+		const fixture = new Map<string, string>([
+			[resolve(ROOT, "src/a.ts"), "$reports.called();"],
+			[resolve(ROOT, "src/b.ts"), "x$reports.lookalike();"],
+		]);
+		expect(
+			uncalledMembers(
+				"$reports",
+				["called", "lookalike"],
+				fixture,
+				"src/decl.ts",
+			),
+		).toEqual(["lookalike"]);
 	});
 });

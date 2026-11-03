@@ -36,6 +36,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp, identifierSource } from "#test/utils/regexp-source";
 
 // A JSDoc block holding `@deprecated`, then the declaration it documents.
 const DEPRECATED_DOC =
@@ -139,7 +140,9 @@ function libEs5(): string {
 
 /** The body of `interface ${name} {...}` in `declarations`. */
 function interfaceBody(declarations: string, name: string): string {
-	const start = declarations.search(new RegExp(`interface ${name} \\{`));
+	const start = declarations.search(
+		new RegExp(`interface ${escapeRegExp(name)} \\{`),
+	);
 	if (start < 0) throw new Error(`no interface ${name}`);
 	const open = declarations.indexOf("{", start);
 	let depth = 0;
@@ -213,7 +216,7 @@ function readOrNull(path: string): string | null {
 }
 
 function alternation(names: Iterable<string>): string {
-	return [...names].map((name) => name.replace(/\$/g, "\\$")).join("|");
+	return [...names].map(escapeRegExp).join("|");
 }
 
 /**
@@ -473,13 +476,16 @@ describe("deprecated library APIs (read from the installed declarations)", () =>
 			["a.ts", "const d = await client.ensureQueryData(opts);"],
 			["b.tsx", "function f(e: React.FormEvent) {}"],
 			["c.ts", "import type { FetchQueryOptions } from 'x';"],
+			// Other identifiers: `$` is an identifier character, so `\b` found the
+			// deprecated name inside `$FormEvent`.
+			["d.ts", "type T = $FormEvent | FormEventLike;"],
 		]);
 		const read = (path: string) => planted.get(path) ?? null;
 		const methods = new RegExp(
 			`\\.(${alternation(DEPRECATED_QUERY_CLIENT_METHODS)})\\s*\\(`,
 		);
 		const types = new RegExp(
-			`\\b(${alternation([...DEPRECATED_QUERY_TYPES, ...DEPRECATED_REACT_TYPES])})\\b`,
+			identifierSource([...DEPRECATED_QUERY_TYPES, ...DEPRECATED_REACT_TYPES]),
 		);
 		expect(findUses([...planted.keys()], read, methods)).toHaveLength(1);
 		expect(findUses([...planted.keys()], read, types)).toHaveLength(2);
@@ -498,7 +504,7 @@ describe("deprecated library APIs (read from the installed declarations)", () =>
 
 	it("names no deprecated TanStack Query or React type", () => {
 		const pattern = new RegExp(
-			`\\b(${alternation([...DEPRECATED_QUERY_TYPES, ...DEPRECATED_REACT_TYPES])})\\b`,
+			identifierSource([...DEPRECATED_QUERY_TYPES, ...DEPRECATED_REACT_TYPES]),
 		);
 		const hits = findUses(FILES, readOrNull, pattern);
 		expect(

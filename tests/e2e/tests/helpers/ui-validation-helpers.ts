@@ -50,9 +50,7 @@ export async function verifySVGChartRenders(
 ): Promise<void> {
 	if (chartLabel) {
 		await expect(
-			page
-				.locator("svg")
-				.filter({ has: page.getByText(new RegExp(chartLabel, "i")) }),
+			page.locator("svg").filter({ has: page.getByText(chartLabel) }),
 		).toBeVisible({ timeout: 10000 });
 	} else {
 		// Look for chart container SVGs (recharts, visx) or any svg with chart-like attributes
@@ -77,10 +75,8 @@ export async function verifyButtonExists(
 	page: Page,
 	buttonName: string,
 ): Promise<void> {
-	const button = page.getByRole("button", {
-		name: new RegExp(buttonName, "i"),
-	});
-	const link = page.getByRole("link", { name: new RegExp(buttonName, "i") });
+	const button = page.getByRole("button", { name: buttonName });
+	const link = page.getByRole("link", { name: buttonName });
 
 	// Check if either button or link is visible
 	const buttonVisible = (await button.count()) > 0;

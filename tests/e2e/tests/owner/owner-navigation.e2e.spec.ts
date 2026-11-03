@@ -42,8 +42,11 @@ test.describe("Owner Core Navigation", () => {
 
 			// Heading visible
 			await expect(page.locator("h1, h2").first()).toContainText(
-				new RegExp(route.heading, "i"),
-				{ timeout: 10000 },
+				route.heading,
+				{
+					ignoreCase: true,
+					timeout: 10000,
+				},
 			);
 		});
 	}

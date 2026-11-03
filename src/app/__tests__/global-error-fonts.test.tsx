@@ -12,6 +12,7 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 import GlobalError from "../global-error";
 
@@ -33,7 +34,7 @@ function renderMarkup(): string {
 }
 
 function classTokens(markup: string, tag: "html" | "body"): string[] | null {
-	const open = new RegExp(`<${tag}\\b([^>]*)>`).exec(markup);
+	const open = new RegExp(`<${escapeRegExp(tag)}\\b([^>]*)>`).exec(markup);
 	if (!open) return null;
 	const cls = /\bclass="([^"]*)"/.exec(open[1] ?? "");
 	return cls ? (cls[1] ?? "").split(/\s+/).filter(Boolean) : [];

@@ -82,7 +82,7 @@ export async function verifyPageLoaded(
 
 	// Verify heading
 	await expect(
-		page.getByRole("heading", { name: new RegExp(expectedHeading, "i") }),
+		page.getByRole("heading", { name: expectedHeading }),
 	).toBeVisible({ timeout: 10000 });
 
 	// Verify no loading spinners

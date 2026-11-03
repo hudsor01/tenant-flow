@@ -18,6 +18,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { JSX_CHILD_GAP } from "#test/utils/regexp-source";
 
 const SRC = join(process.cwd(), "src");
 
@@ -37,10 +38,22 @@ function tsxFiles(dir: string): string[] {
 	return out;
 }
 
-// `<BlurFade …>` then, after whitespace or a JSX comment, the first child's
-// opening tag and its className string.
-const WRAPPED_PLACEMENT =
-	/<BlurFade\b[^>]*>\s*(?:\{\/\*[\s\S]*?\*\/\}\s*)*<([A-Za-z][\w.]*)\b[^>]*?className=(["'`{])[^>]*?\b(?:[\w@/:-]*:)?-?(?:col-span|row-span|col-start|col-end|row-start|row-end|order)-[\w[\]/.-]+/g;
+// `<BlurFade …>` then, after whitespace or JSX comments, the first child's
+// opening tag, its className, and a placement utility in it. The utility's
+// name starts at a word boundary with or without variants (`lg:col-span-2`,
+// `-order-1`), so the variant prefix needs no quantifier of its own: one there
+// overlapped the lazy scan before it.
+const WRAPPED_PLACEMENT = new RegExp(
+	String.raw`<BlurFade\b[^>]*>${JSX_CHILD_GAP}<([A-Za-z][\w.]*)\b[^>]*?className=["'\x60{][^>]*?\b(?:col-span|row-span|col-start|col-end|row-start|row-end|order)-[\w[\]/.-]+`,
+	"g",
+);
+
+/** How long `pattern` takes to scan `input` to the end, in milliseconds. */
+function scanMs(pattern: RegExp, input: string): number {
+	const start = performance.now();
+	[...input.matchAll(pattern)];
+	return performance.now() - start;
+}
 
 describe("BlurFade grid placement", () => {
 	const files = tsxFiles(SRC);
@@ -74,5 +87,35 @@ describe("BlurFade grid placement", () => {
 		const fixed =
 			'<BlurFade delay={0.6} className="lg:col-span-2">\n\t<div className="bg-card">';
 		expect([...fixed.matchAll(WRAPPED_PLACEMENT)]).toHaveLength(0);
+	});
+
+	it("looks past JSX comments to the first child, and no further", () => {
+		const afterComment =
+			'<BlurFade>\n\t{/* the chart */}\n\t<div className="lg:col-span-2 bg-card">';
+		expect([...afterComment.matchAll(WRAPPED_PLACEMENT)]).toHaveLength(1);
+		const noPlacement =
+			'<BlurFade>\n\t{/* the chart */}\n\t<div className="bg-card">';
+		expect([...noPlacement.matchAll(WRAPPED_PLACEMENT)]).toHaveLength(0);
+		// The first child has no placement. A comment body that could run on past
+		// `*/}` swallowed `<div>` and reported the grandchild instead.
+		const grandchild =
+			'<BlurFade>{/* a */}<div>{/* b */}<span className="col-span-2">';
+		expect([...grandchild.matchAll(WRAPPED_PLACEMENT)]).toHaveLength(0);
+	});
+
+	it("scans adversarial comment runs in linear time", () => {
+		// A run of comments with no child after it split 2^n ways under the old
+		// comment body: these 34 took 19 s on a laptop, compiled. Each input here
+		// takes about a millisecond at most now; the bound only separates the two.
+		// The short run comes first, so the old pattern fails before the long ones.
+		const inputs = [
+			`<BlurFade>${"{/* x */}".repeat(34)}`,
+			`<BlurFade>${"{/* x */}".repeat(20_000)}`,
+			`<BlurFade>{/*${"*/}}{{/*".repeat(20_000)}`,
+			`<BlurFade>{/*${" x".repeat(100_000)}`,
+		];
+		for (const input of inputs) {
+			expect(scanMs(WRAPPED_PLACEMENT, input)).toBeLessThan(1000);
+		}
 	});
 });

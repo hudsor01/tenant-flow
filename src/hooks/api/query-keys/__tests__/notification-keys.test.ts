@@ -14,6 +14,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const { mockFrom, mockSelect, mockEq, mockOrder, mockLimit, mockRange } =
 	vi.hoisted(() => ({
@@ -91,7 +92,7 @@ describe("mapNotificationRow", () => {
 			expect(
 				() => mapNotificationRow(broken),
 				`expected throw when ${field} is missing`,
-			).toThrow(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${escapeRegExp(field)}'`));
 		}
 	});
 

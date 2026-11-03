@@ -34,6 +34,7 @@ import {
 	PROPERTY_TYPE_LABELS,
 	propertyStatusLabel,
 } from "#lib/constants/status-types";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import {
 	expenseVendorLabel,
 	NO_VENDOR_LABEL,
@@ -86,14 +87,15 @@ function hits(files: readonly string[], pattern: RegExp): string[] {
 
 /** A value paired with a written, capitalized label. */
 function pairedWithWrittenLabel(value: string): RegExp {
+	const v = escapeRegExp(value);
 	return new RegExp(
 		[
 			// a map entry: pending_signature: "Pending"
-			String.raw`["']?\b${value}\b["']?\s*:\s*["'][A-Z][^"']*["']`,
+			String.raw`["']?\b${v}\b["']?\s*:\s*["'][A-Z][^"']*["']`,
 			// an option object: { value: "pending_signature", label: "Pending" }
-			String.raw`value:\s*["']${value}["']\s*,\s*label:\s*["']`,
+			String.raw`value:\s*["']${v}["']\s*,\s*label:\s*["']`,
 			// an option element with text: <option value="pending_signature">Pending
-			String.raw`value=["']${value}["']\s*>\s*[A-Za-z]`,
+			String.raw`value=["']${v}["']\s*>\s*[A-Za-z]`,
 		].join("|"),
 	);
 }

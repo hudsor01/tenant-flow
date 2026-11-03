@@ -12,5 +12,5 @@ export async function fillTextInput(
 	label: string,
 	value: string,
 ): Promise<void> {
-	await page.getByLabel(new RegExp(label, "i")).fill(value);
+	await page.getByLabel(label).fill(value);
 }

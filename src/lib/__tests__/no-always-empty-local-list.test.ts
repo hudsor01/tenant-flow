@@ -21,6 +21,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { identifierSource } from "#test/utils/regexp-source";
 
 const SRC = join(process.cwd(), "src");
 
@@ -46,10 +47,6 @@ function sourceFiles(dir: string): string[] {
 const LOCAL_EMPTY_LIST =
 	/^[ \t]+(?:const|let)\s+([A-Za-z_$][\w$]*)(?:\s*:\s*[^=\n]+)?\s*=\s*\[\](?:\s+as\s+[^;\n]+)?;/gm;
 
-function escapeName(name: string): string {
-	return name.replace(/\$/g, "\\$");
-}
-
 /**
  * Whether `source` fills or replaces the list named `name` anywhere outside
  * its declaration (`declaredAt`, the declaration's start and end offsets).
@@ -59,12 +56,12 @@ function isFilled(
 	name: string,
 	declaredAt: readonly [number, number],
 ): boolean {
-	const n = escapeName(name);
+	const n = identifierSource(name);
 	const writes = [
-		`\\b${n}\\s*\\.\\s*(?:push|unshift|splice|fill|copyWithin)\\s*\\(`,
-		`\\b${n}\\s*\\[[^\\]]*\\]\\s*=(?!=)`,
-		`(?<![.\\w$])${n}\\s*=(?![=>])`,
-		`\\b${n}\\.length\\s*=(?!=)`,
+		`${n}\\s*\\.\\s*(?:push|unshift|splice|fill|copyWithin)\\s*\\(`,
+		`${n}\\s*\\[[^\\]]*\\]\\s*=(?!=)`,
+		`(?<!\\.)${n}\\s*=(?![=>])`,
+		`${n}\\.length\\s*=(?!=)`,
 	];
 	return writes.some((write) =>
 		[...source.matchAll(new RegExp(write, "g"))].some(
@@ -121,6 +118,23 @@ describe("no local list stays the empty literal it was declared as", () => {
 			],
 		]);
 		expect(unfilledLists(planted)).toEqual(["a.tsx:2 rows"]);
+	});
+
+	it("reads a list's name as literal text and as a whole identifier", () => {
+		// `$` is an identifier character and a regex anchor. Escaped but behind
+		// `\b`, `$rows.push(` could not match after a tab, so the filled `$rows`
+		// read as a placeholder, and `$rows.push(` filled an unrelated `rows`.
+		const planted = new Map([
+			[
+				"d.ts",
+				"function d() {\n\tconst $rows: Row[] = [];\n\t$rows.push(x);\n\treturn $rows;\n}",
+			],
+			[
+				"e.ts",
+				"function e() {\n\tconst rows: Row[] = [];\n\t$rows.push(x);\n\treturn rows;\n}",
+			],
+		]);
+		expect(unfilledLists(planted)).toEqual(["e.ts:2 rows"]);
 	});
 
 	it("finds none in src/", () => {

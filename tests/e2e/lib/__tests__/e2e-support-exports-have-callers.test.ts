@@ -111,6 +111,30 @@ function resolveRelative(
 }
 
 /**
+ * The member read in every `namespace.member` access in `source`, found by
+ * scanning rather than by a pattern built from the name: the name is an
+ * identifier, so it may hold `$`, which a pattern reads as an anchor, and `\b`
+ * would find `ns.x` inside `$ns.x`. An access counts when no identifier
+ * character precedes the namespace.
+ */
+function namespaceMembers(source: string, namespace: string): string[] {
+	const members: string[] = [];
+	const prefix = `${namespace}.`;
+	for (
+		let at = source.indexOf(prefix);
+		at >= 0;
+		at = source.indexOf(prefix, at + 1)
+	) {
+		if (/[\w$]/.test(source[at - 1] ?? "")) continue;
+		const member = /^[A-Za-z_$][\w$]*/.exec(
+			source.slice(at + prefix.length),
+		)?.[0];
+		if (member) members.push(member);
+	}
+	return members;
+}
+
+/**
  * The names each module is imported under, keyed by module path. A dynamic
  * import or a `vi.mock` of a module counts every identifier in the importing
  * file, since the names it reads cannot be told apart statically.
@@ -138,11 +162,8 @@ function importedNamesByModule(
 			const clause = m[1] ?? "";
 			const namespace = clause.match(/\*\s+as\s+([A-Za-z_$][\w$]*)/)?.[1];
 			if (namespace) {
-				for (const use of source.matchAll(
-					new RegExp(`\\b${namespace}\\.([A-Za-z_$][\\w$]*)`, "g"),
-				)) {
-					if (use[1]) add(module, use[1]);
-				}
+				for (const member of namespaceMembers(source, namespace))
+					add(module, member);
 			}
 			const braces = clause.match(/\{([\s\S]*)\}/)?.[1];
 			for (const part of braces?.split(",") ?? []) {
@@ -224,6 +245,24 @@ describe("Playwright support modules export only what is imported (66.2-39 fix r
 		expect(uncalledExports(files, new Set([helper, ns]))).toEqual([
 			"tests/e2e/lib/fixture-helper.ts: uncalled",
 			"tests/e2e/lib/fixture-ns.ts: namespaceUnused",
+		]);
+	});
+
+	it("reads a namespace name holding `$` literally and as a whole identifier", () => {
+		const ns = resolve(E2E_ROOT, "lib/fixture-dollar.ts");
+		const spec = resolve(E2E_ROOT, "tests/fixture-dollar.spec.ts");
+		const other = resolve(E2E_ROOT, "tests/fixture-other.spec.ts");
+		const files = new Map<string, string>([
+			[ns, "export function read() {}\nexport function lookalike() {}"],
+			[spec, 'import * as $ns from "../lib/fixture-dollar";\n$ns.read();'],
+			// `x$ns` is another identifier: it reads nothing from the module.
+			[
+				other,
+				'import * as $ns from "../lib/fixture-dollar";\nx$ns.lookalike();',
+			],
+		]);
+		expect(uncalledExports(files, new Set([ns]))).toEqual([
+			"tests/e2e/lib/fixture-dollar.ts: lookalike",
 		]);
 	});
 });

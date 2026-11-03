@@ -20,6 +20,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { AppShell } from "../app-shell";
 import { UserProfileMenu } from "../user-profile-menu";
 
@@ -85,10 +86,6 @@ function visibleText(el: HTMLElement): string {
 	const clone = el.cloneNode(true) as HTMLElement;
 	for (const hidden of clone.querySelectorAll(".sr-only")) hidden.remove();
 	return (clone.textContent ?? "").replace(/\s+/g, " ").trim();
-}
-
-function escapeRegExp(s: string): string {
-	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /**

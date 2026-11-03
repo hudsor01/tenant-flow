@@ -16,6 +16,8 @@
  * their custom property, never in a utility form.
  */
 
+import { escapeRegExp } from "./regexp-source";
+
 export type LinearRgb = [number, number, number];
 
 export type Theme = "light" | "dark";
@@ -37,7 +39,7 @@ export function oklchToken(
 	name: string,
 ): [number, number, number] {
 	const match = new RegExp(
-		`--${name}:\\s*oklch\\(([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)\\)`,
+		`${escapeRegExp(`--${name}:`)}\\s*oklch\\(([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)\\)`,
 	).exec(body);
 	if (!match) {
 		throw new Error(`--${name} is not a plain oklch() value`);

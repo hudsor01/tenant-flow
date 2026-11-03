@@ -8,6 +8,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { generateBreadcrumbs } from "../breadcrumbs";
 
 describe("generateBreadcrumbs", () => {
@@ -318,9 +319,9 @@ describe("generateBreadcrumbs", () => {
 				"maintenance-request",
 				"tenant-notice",
 			]) {
-				expect(new RegExp(`^\\s*"?${key}"?:\\s*"`, "m").test(source)).toBe(
-					true,
-				);
+				expect(
+					new RegExp(`^\\s*"?${escapeRegExp(key)}"?:\\s*"`, "m").test(source),
+				).toBe(true);
 			}
 		});
 

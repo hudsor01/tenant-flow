@@ -30,6 +30,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PortfolioPresetMenu } from "#components/dashboard/components/portfolio-preset-menu";
 import { MultiSelectChips } from "#components/shared/multi-select-chips";
 import { useDashboardPresetsStore } from "#stores/dashboard-presets-store";
+import { JSX_CHILD_GAP } from "#test/utils/regexp-source";
 
 const SRC = join(process.cwd(), "src");
 
@@ -50,24 +51,26 @@ function tsxFiles(dir: string): string[] {
 }
 
 // An opening tag (attributes may hold `>` inside `{...}` only as `=>`, which
-// none of these do), then whitespace or a JSX comment, then the child's tag.
-const GAP = String.raw`\s*(?:\{\/\*[\s\S]*?\*\/\}\s*)*`;
+// none of these do), then whitespace or JSX comments, then the child's tag.
 const NESTS: ReadonlyArray<readonly [string, RegExp]> = [
 	[
 		"a link holding a button",
-		new RegExp(String.raw`<(?:Link|a)\b[^>]*>${GAP}<(?:Button|button)\b`, "g"),
+		new RegExp(
+			String.raw`<(?:Link|a)\b[^>]*>${JSX_CHILD_GAP}<(?:Button|button)\b`,
+			"g",
+		),
 	],
 	[
 		"a button holding a link",
 		new RegExp(
-			String.raw`<(?:Button|button|\w+Trigger)\b(?![^>]*\basChild\b)[^>]*>${GAP}<(?:Link|a)\b`,
+			String.raw`<(?:Button|button|\w+Trigger)\b(?![^>]*\basChild\b)[^>]*>${JSX_CHILD_GAP}<(?:Link|a)\b`,
 			"g",
 		),
 	],
 	[
 		"a trigger holding a button",
 		new RegExp(
-			String.raw`<\w+(?:Trigger|Close)\b(?![^>]*\basChild\b)[^>]*>${GAP}<(?:Button|button)\b`,
+			String.raw`<\w+(?:Trigger|Close)\b(?![^>]*\basChild\b)[^>]*>${JSX_CHILD_GAP}<(?:Button|button)\b`,
 			"g",
 		),
 	],
@@ -113,6 +116,42 @@ describe("no control nests another (static)", () => {
 			"b.tsx:1 a button holding a link",
 			"c.tsx:1 a trigger holding a button",
 		]);
+	});
+
+	it("looks past JSX comments to the first child, and no further", () => {
+		const planted = new Map([
+			[
+				"a.tsx",
+				'<Link href="/x">\n\t{/* go */}\n\t<Button>Go</Button>\n</Link>',
+			],
+			["b.tsx", '<Link href="/x">\n\t{/* go */}\n\t<span>Go</span>\n</Link>'],
+			// The first child is a span. A comment body that could run on past
+			// `*/}` swallowed it and reported the button inside it instead.
+			[
+				"c.tsx",
+				'<Link href="/x">{/* a */}<span>{/* b */}<Button>Go</Button></span></Link>',
+			],
+		]);
+		expect(nestedInSource(planted)).toEqual([
+			"a.tsx:1 a link holding a button",
+		]);
+	});
+
+	it("scans adversarial comment runs in linear time", () => {
+		// A run of comments with no child after it split 2^n ways under the old
+		// comment body: 34 of them took seconds. Each input here takes about a
+		// millisecond at most now; the bound only separates the two. The short
+		// run comes first, so the old gap fails before the long ones.
+		for (const input of [
+			`<Link href="/x">${"{/* x */}".repeat(34)}`,
+			`<Link href="/x">${"{/* x */}".repeat(20_000)}`,
+			`<Link href="/x">{/*${"*/}}{{/*".repeat(20_000)}`,
+			`<Link href="/x">{/*${" x".repeat(100_000)}`,
+		]) {
+			const start = performance.now();
+			nestedInSource(new Map([["a.tsx", input]]));
+			expect(performance.now() - start).toBeLessThan(1000);
+		}
 	});
 
 	it("finds none in src/", () => {

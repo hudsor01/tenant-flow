@@ -122,12 +122,12 @@ test.describe("Documents landing (Phase 65, DOCS-01)", () => {
 		await expect(cta).toHaveAttribute("href", "/documents/vault");
 
 		await expect(
-			band(page, BUILD).getByRole("link", { name: new RegExp(BUILD_TILE) }),
+			band(page, BUILD).getByRole("link", { name: BUILD_TILE }),
 		).toBeVisible();
 
 		for (const title of PRINTABLE_TILES) {
 			await expect(
-				band(page, PRINTABLES).getByRole("link", { name: new RegExp(title) }),
+				band(page, PRINTABLES).getByRole("link", { name: title }),
 			).toBeVisible();
 		}
 

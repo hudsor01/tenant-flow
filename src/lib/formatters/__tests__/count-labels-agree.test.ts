@@ -21,6 +21,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { formatCount, pluralNoun } from "#lib/formatters/count";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const ROOT = process.cwd();
 
@@ -62,7 +63,7 @@ const NOUNS = [
 	"records",
 ];
 /** A plural count noun, not a JSX prop name (`units={units}`). */
-const NOUN = `(${NOUNS.join("|")})\\b(?!\\s*=)`;
+const NOUN = `(${NOUNS.map(escapeRegExp).join("|")})\\b(?!\\s*=)`;
 /**
  * `${expr} nouns` in a template, `{expr} nouns` in JSX (a `={expr}` prop
  * value is no text).

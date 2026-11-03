@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import {
 	CONDITION_RATINGS,
 	INSPECTION_STATUSES,
@@ -28,7 +29,10 @@ function thrownMessage(fn: () => unknown): string {
  */
 function checkConstraintMembers(sql: string, column: string): string[] {
 	const clause = sql.match(
-		new RegExp(`check\\s*\\(\\s*${column}\\s+in\\s*\\(([^)]*)\\)`, "i"),
+		new RegExp(
+			`check\\s*\\(\\s*${escapeRegExp(column)}\\s+in\\s*\\(([^)]*)\\)`,
+			"i",
+		),
 	);
 	const inner = clause?.[1];
 	if (inner === undefined) {

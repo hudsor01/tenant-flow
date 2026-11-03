@@ -10,10 +10,8 @@ import { expect, type Page } from "@playwright/test";
  */
 export async function openModal(page: Page, buttonText: string): Promise<void> {
 	// Try button first, then link (for Button asChild pattern)
-	const button = page.getByRole("button", {
-		name: new RegExp(buttonText, "i"),
-	});
-	const link = page.getByRole("link", { name: new RegExp(buttonText, "i") });
+	const button = page.getByRole("button", { name: buttonText });
+	const link = page.getByRole("link", { name: buttonText });
 
 	if ((await button.count()) > 0) {
 		await button.click();
@@ -99,7 +97,7 @@ export async function submitModalForm(
 ): Promise<void> {
 	await page
 		.locator('[role="dialog"]')
-		.getByRole("button", { name: new RegExp(buttonText, "i") })
+		.getByRole("button", { name: buttonText })
 		.click();
 }
 

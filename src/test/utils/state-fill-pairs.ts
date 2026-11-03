@@ -27,6 +27,7 @@ import {
 	over,
 	themeBlock,
 } from "./oklch-contrast";
+import { escapeRegExp } from "./regexp-source";
 
 export type ThemeName = "light" | "dark";
 
@@ -319,8 +320,9 @@ export function themeColor(
 	if (token === "white") return [1, 1, 1];
 	if (token === "black") return [0, 0, 0];
 	const body = themeBlock(css, theme);
-	const alias = new RegExp(`--${token}:\\s*var\\(--([a-z0-9-]+)\\)`).exec(css);
-	const name = new RegExp(`--${token}:\\s*oklch`).test(body)
+	const property = escapeRegExp(`--${token}:`);
+	const alias = new RegExp(`${property}\\s*var\\(--([a-z0-9-]+)\\)`).exec(css);
+	const name = new RegExp(`${property}\\s*oklch`).test(body)
 		? token
 		: alias?.[1];
 	if (!name) throw new Error(`--${token} has no ${theme} value`);

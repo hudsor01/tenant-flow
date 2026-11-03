@@ -30,6 +30,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const ROOT = process.cwd();
 const HOOKS_API = "src/hooks/api/";
@@ -80,10 +81,6 @@ const CODE_LINES = new Map<string, Array<readonly [number, string]>>(
 		return [f, code];
 	}),
 );
-
-function escapeRegExp(s: string): string {
-	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 /** `export const alias = name;` and `name as alias` re-exports, by name. */
 function aliasesOf(name: string): string[] {
