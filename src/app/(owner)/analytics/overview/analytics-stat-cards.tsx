@@ -174,6 +174,9 @@ export function AnalyticsStatCards({
 	trends,
 }: AnalyticsStatCardsProps) {
 	return (
+		// Below lg every label keeps two lines' height: at 390 "Open
+		// Maintenance" wraps beside "Scheduled Rent", and the two figures share a
+		// line (66.2-39 part Q, VD-117).
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 			<BlurFade delay={0.2} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
@@ -183,7 +186,7 @@ export function AnalyticsStatCards({
 						colorFrom="var(--color-primary)"
 						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
-					<StatLabel>Occupancy Rate</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">Occupancy Rate</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
 							value={occupancyRate}
@@ -201,7 +204,7 @@ export function AnalyticsStatCards({
 
 			<BlurFade delay={0.3} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel>Active Tenants</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">Active Tenants</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={activeTenants} duration={1500} />
 					</StatValue>
@@ -219,7 +222,7 @@ export function AnalyticsStatCards({
 						colorFrom="var(--color-success)"
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
-					<StatLabel>Scheduled Rent</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">Scheduled Rent</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<NumberTicker
 							value={monthlyRevenue}
@@ -250,7 +253,9 @@ export function AnalyticsStatCards({
 							colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 						/>
 					)}
-					<StatLabel>Open Maintenance</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Open Maintenance
+					</StatLabel>
 					<StatValue className="flex items-baseline text-warning-text">
 						<NumberTicker value={openMaintenance} duration={1000} />
 					</StatValue>

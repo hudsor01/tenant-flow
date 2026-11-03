@@ -89,7 +89,9 @@ describe("stat rows", () => {
 		}
 	});
 
-	it("hold the overview's tiles to one height", () => {
+	// "Open Maintenance" wraps at 390 beside "Scheduled Rent" (measured: its
+	// figure 20 px lower, part Q).
+	it("keep the overview's figures on one line when a label wraps", () => {
 		render(
 			<AnalyticsStatCards
 				occupancyRate={75}
@@ -104,7 +106,7 @@ describe("stat rows", () => {
 				}}
 			/>,
 		);
-		expectRowsOneHeight();
+		expectTwoLineLabels();
 	});
 
 	it("hold the expenses page's tiles to one height", () => {

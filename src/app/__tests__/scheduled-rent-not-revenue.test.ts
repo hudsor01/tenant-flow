@@ -194,7 +194,7 @@ describe("scheduled rent is never labelled revenue", () => {
 			join(ROOT, "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx"),
 			"utf8",
 		);
-		expect(text).toContain("<StatLabel>Scheduled Rent</StatLabel>");
+		expect(text).toMatch(/<StatLabel[^>]*>Scheduled Rent<\/StatLabel>/);
 	});
 
 	it("reads JSX text on its own line", () => {
