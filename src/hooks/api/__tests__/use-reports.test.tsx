@@ -200,7 +200,13 @@ describe("reportAnalyticsQueries.occupancyMetrics", () => {
 		expect(result.current.data?.totalUnits).toBe(20);
 		expect(result.current.data?.occupiedUnits).toBe(18);
 		expect(result.current.data?.vacantUnits).toBe(2);
-		expect(result.current.data?.byProperty).toEqual([]);
+		// No per-property breakdown: no source fills one and no report read it.
+		expect(Object.keys(result.current.data ?? {}).sort()).toEqual([
+			"occupancyRate",
+			"occupiedUnits",
+			"totalUnits",
+			"vacantUnits",
+		]);
 		expect(mockRpc).toHaveBeenCalledWith(
 			"get_occupancy_trends_optimized",
 			expect.objectContaining({

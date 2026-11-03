@@ -7,18 +7,16 @@ export interface RevenueData {
 	profit: number;
 }
 
+/**
+ * The portfolio's occupancy today (the latest month of
+ * get_occupancy_trends_optimized), for the generated reports. A per-property
+ * breakdown no source filled and no report read went in 66.2-39.
+ */
 export interface OccupancyMetrics {
 	totalUnits: number;
 	occupiedUnits: number;
 	vacantUnits: number;
 	occupancyRate: number;
-	byProperty: Array<{
-		property_id: string;
-		propertyName: string;
-		totalUnits: number;
-		occupiedUnits: number;
-		occupancyRate: number;
-	}>;
 }
 
 /**

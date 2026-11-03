@@ -1,50 +1,20 @@
 /**
- * Analytics Page Data Types
- * Types for aggregated analytics page data functions
- * Used by analytics-page.ts to provide unified page data loading
+ * Analytics Page Data
+ * The shapes the analytics page queries return (src/hooks/api/use-analytics.ts),
+ * each holding only what a screen renders. The occupancy, lease and maintenance
+ * shapes carried fields no source filled, written as [] or 0 and read nowhere,
+ * and page types no query returned; they went in 66.2-39 (part R).
  */
 
 import type {
 	FinancialAnalyticsPageResponse,
-	LeaseAnalyticsPageResponse,
-	LeaseLifecyclePoint,
-	MaintenanceAnalyticsPageResponse,
+	MaintenanceCategoryBreakdown,
+	MaintenanceCostBreakdownEntry,
 	MaintenanceCostSummary,
-	OccupancyAnalyticsPageResponse,
+	MaintenanceTrendPoint,
+	OccupancyTrendPoint,
 	PropertyPerformancePageResponse,
 } from "./analytics";
-
-export interface ResponseTimeEntry {
-	category: string;
-	averageHours: number;
-	minHours: number;
-	maxHours: number;
-	count: number;
-}
-
-export interface PreventiveMaintenanceEntry {
-	type: string;
-	scheduledCount: number;
-	completedCount: number;
-	complianceRate: number;
-}
-
-export interface OccupancyPropertyPerformance {
-	property_id: string;
-	propertyName: string;
-	occupancyRate: number;
-	revenue: number;
-	expenses: number;
-	netIncome: number;
-	maintenanceScore: number;
-}
-
-export interface SeasonalPatternEntry {
-	month: string;
-	occupancyRate: number;
-	turnoverRate: number;
-	avgRentChange: number;
-}
 
 /**
  * Financial Analytics Page Data
@@ -58,156 +28,26 @@ export interface FinancialAnalyticsPageData {
 	leaseProfitability: FinancialAnalyticsPageResponse["leaseProfitability"];
 }
 
-export interface VacancyTrendPoint {
-	period: string;
-	vacancyRate: number;
-	turnovers: number;
-	avgVacancyDays: number;
-}
-
 /**
- * Lease Analytics Page Data
- * Aggregates all lease analytics data for the lease analytics page
- */
-export interface LeaseAnalyticsPageData {
-	metrics: LeaseAnalyticsPageResponse["metrics"];
-	renewalRates: LeaseLifecyclePoint[];
-	vacancyTrends: VacancyTrendPoint[];
-	leaseDistribution: LeaseAnalyticsPageResponse["statusBreakdown"];
-	// Aliases for page compatibility
-	lifecycle: LeaseLifecyclePoint[];
-	statusBreakdown: LeaseAnalyticsPageResponse["statusBreakdown"];
-}
-
-export interface MaintenanceCostEntry {
-	category: string;
-	amount: number;
-	percentage: number;
-}
-
-/**
- * Maintenance Insights Page Data
- * Aggregates all maintenance analytics data for the maintenance insights page
+ * The maintenance insights section's data (get_maintenance_analytics): the
+ * requests by status, the spend and its vendors, and the requests by month.
  */
 export interface MaintenanceInsightsPageData {
-	metrics: MaintenanceAnalyticsPageResponse["metrics"];
-	categoryBreakdown: MaintenanceAnalyticsPageResponse["categoryBreakdown"];
+	categoryBreakdown: MaintenanceCategoryBreakdown[];
 	/** The spend to date; null when the server cannot report it yet. */
 	costs: MaintenanceCostSummary | null;
-	costTrends: MaintenanceAnalyticsPageResponse["trends"];
 	/** `costs.vendors` as the cost chart's bars; empty when costs are null. */
-	costBreakdown: MaintenanceCostEntry[];
+	costBreakdown: MaintenanceCostBreakdownEntry[];
 	/** Requests by month; null when the server cannot report them yet. */
-	trends: MaintenanceAnalyticsPageResponse["trends"] | null;
-	responseTimes: ResponseTimeEntry[];
-	preventiveMaintenance: PreventiveMaintenanceEntry[];
+	trends: MaintenanceTrendPoint[] | null;
 }
 
 /**
- * Occupancy Analytics Page Data
- * Aggregates all occupancy analytics data for the occupancy analytics page
+ * The properties insights' occupancy chart (get_occupancy_trends_optimized),
+ * oldest month first.
  */
 export interface OccupancyAnalyticsPageData {
-	metrics: OccupancyAnalyticsPageResponse["metrics"];
-	trends: OccupancyAnalyticsPageResponse["trends"];
-	propertyPerformance: OccupancyPropertyPerformance[];
-	seasonalPatterns: SeasonalPatternEntry[];
-	vacancyAnalysis: OccupancyAnalyticsPageResponse["vacancyAnalysis"];
-}
-
-export interface FinancialOverviewSummary {
-	totalRevenue: number;
-	totalExpenses: number;
-	netIncome: number;
-	revenueChange: number;
-	expenseChange: number;
-	avgRoi: number;
-}
-
-export interface MaintenanceOverviewSummary {
-	openRequests: number;
-	avgResponseTime: number;
-	completedThisMonth: number;
-	costThisMonth: number;
-}
-
-export interface OccupancyOverviewSummary {
-	currentRate: number;
-	vacantUnits: number;
-	upcomingLeaseEnds: number;
-	rateChange: number;
-}
-
-export interface LeaseOverviewSummary {
-	activeLeases: number;
-	expiringIn30Days: number;
-	renewalRate: number;
-	avgLeaseLength: number;
-}
-
-export interface VisitorOverviewSummary {
-	totalVisitors: number;
-	pageViews: number;
-	avgSessionDuration: number;
-	bounceRate: number;
-}
-
-/**
- * Analytics Overview Page Data
- * Aggregates summary data for the analytics overview page
- */
-export interface AnalyticsPageData {
-	financial: FinancialOverviewSummary;
-	maintenance: MaintenanceOverviewSummary;
-	occupancy: OccupancyOverviewSummary;
-	lease: LeaseOverviewSummary;
-	visitor: VisitorOverviewSummary;
-}
-
-export interface PropertyMetricsSummary {
-	totalProperties: number;
-	totalUnits: number;
-	occupiedUnits: number;
-	avgOccupancyRate: number;
-	averageOccupancy: number;
-	totalMonthlyRevenue: number;
-	totalRevenue: number;
-	bestPerformer: string | null;
-}
-
-export interface UnitStatsSummary {
-	totalUnits: number;
-	occupiedUnits: number;
-	vacantUnits: number;
-	avgRent: number;
-}
-
-export interface PropertyPerformanceDetail {
-	property_id: string;
-	propertyName: string;
-	units: number;
-	totalUnits: number;
-	occupiedUnits: number;
-	vacantUnits: number;
-	occupancyRate: number;
-	monthlyRevenue: number;
-	annualRevenue: number;
-	maintenanceScore: number;
-}
-
-export interface LeasesPageUnitDetail {
-	unit_id: string;
-	unit_number: string;
-	unitNumber: string;
-	property_id: string;
-	propertyName: string;
-	status: string;
-	monthlyRent: number;
-	rent: number | null;
-	bedrooms: number | null;
-	bathrooms: number | null;
-	tenant_id: string | null;
-	tenantName: string | null;
+	trends: OccupancyTrendPoint[];
 }
 
 /**
@@ -216,49 +56,3 @@ export interface LeasesPageUnitDetail {
  * tracking exists) and revenue trends, written as zeros and [] and never read.
  */
 export type PropertyPerformancePageData = PropertyPerformancePageResponse;
-
-export interface LeasesPageLeaseItem {
-	id: string;
-	tenant_id: string;
-	primary_tenant_id: string | null;
-	tenantName: string;
-	property_id: string;
-	propertyName: string;
-	unit_id: string;
-	unitNumber: string;
-	startDate: string;
-	endDate: string;
-	monthlyRent: number;
-	status: string;
-}
-
-export interface LeasesPageTenantItem {
-	id: string;
-	fullName: string;
-	email: string;
-	phone: string | null;
-}
-
-export interface LeasesPagePropertyItem {
-	id: string;
-	name: string;
-	address: string;
-}
-
-export interface LeaseMetricsSummary {
-	totalLeases: number;
-	activeLeases: number;
-	expiringLeases: number;
-	avgMonthlyRent: number;
-}
-
-/**
- * Leases Page Data
- * Aggregates all lease data for the leases page
- */
-export interface LeasesPageData {
-	leases: LeasesPageLeaseItem[];
-	tenants: LeasesPageTenantItem[];
-	properties: LeasesPagePropertyItem[];
-	metrics: LeaseMetricsSummary;
-}

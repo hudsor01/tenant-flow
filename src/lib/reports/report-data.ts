@@ -153,7 +153,6 @@ const OCCUPANCY_FALLBACK: OccupancyMetrics = {
 	occupiedUnits: 0,
 	vacantUnits: 0,
 	occupancyRate: 0,
-	byProperty: [],
 };
 
 const PROPERTY_FALLBACK: PropertyReport = {

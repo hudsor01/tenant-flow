@@ -42,15 +42,6 @@ const PROPERTY_PERFORMANCE = {
 	performance: [],
 	units: [],
 	unitStats: [],
-	visitorAnalytics: {
-		summary: {
-			totalVisits: 0,
-			totalInquiries: 0,
-			totalConversions: 0,
-			conversionRate: 0,
-		},
-		timeline: [],
-	},
 };
 
 vi.mock("#hooks/api/use-analytics", () => ({

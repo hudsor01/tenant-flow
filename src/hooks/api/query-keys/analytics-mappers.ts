@@ -15,12 +15,10 @@ import type {
 	LeaseProfitability,
 	MaintenanceCategoryBreakdown,
 	MaintenanceCostSummary,
-	MaintenanceMetricSummary,
 	MaintenanceTrendPoint,
 	MetricTrend,
 	MonthlyFinancialMetric,
 	NetOperatingIncomeByProperty,
-	OccupancyMetricSummary,
 	OccupancyTrendPoint,
 	PortfolioTrends,
 	RevenueExpenseBreakdown,
@@ -47,51 +45,25 @@ function asObject(raw: unknown): Record<string, unknown> | null {
 // --- Occupancy analytics (DATA-01) -----------------------------------------
 // `get_occupancy_trends_optimized` returns a jsonb ARRAY ordered month DESC:
 //   [{ month, occupancy_rate, total_units, occupied_units }, ...]
-// element[0] is the latest month. The RPC provides NO metrics/trends envelope,
-// no per-property breakdown, and no vacancy/seasonal/trend data — those page
-// sub-shapes stay empty. It NEVER throws — a non-array/empty input yields
-// zeroed metrics + empty trends. Types are REUSED from
-// `#types/analytics(-page-data)`.
-
-function emptyOccupancyMetrics(): OccupancyMetricSummary {
-	return {
-		currentOccupancy: 0,
-		averageVacancyDays: 0,
-		seasonalPeakOccupancy: 0,
-		trend: 0,
-	};
-}
-
-function emptyOccupancyAnalytics(): OccupancyAnalyticsPageData {
-	return {
-		metrics: emptyOccupancyMetrics(),
-		trends: [],
-		propertyPerformance: [],
-		seasonalPatterns: [],
-		vacancyAnalysis: [],
-	};
-}
+// The properties insights' chart plots each month; the page shape carries
+// only that series (its metrics, per-property, seasonal and vacancy fields no
+// source filled went in 66.2-39). It NEVER throws: a non-array or empty input
+// yields no months.
 
 /**
  * Shape the untyped occupancy-trends RPC array into an
- * `OccupancyAnalyticsPageData`. Trends are mapped from every row (Number()-
- * coerced); metrics are derived from element[0] (the latest month, RPC orders
- * DESC) — `currentOccupancy` from that row's `occupancy_rate`, the remaining
- * metric fields default to 0 since the RPC emits no vacancy/seasonal/trend
- * data. Never throws — non-array/empty input degrades to the safe empty shape.
+ * `OccupancyAnalyticsPageData`: every row a trend point (Number()-coerced),
+ * oldest month first. Never throws — non-array/empty input degrades to an
+ * empty series.
  */
 export function mapOccupancyAnalytics(
 	raw: unknown,
 ): OccupancyAnalyticsPageData {
-	if (!Array.isArray(raw) || raw.length === 0) {
-		return emptyOccupancyAnalytics();
-	}
-
+	if (!Array.isArray(raw)) return { trends: [] };
 	const rows = raw as Array<Record<string, unknown>>;
-	// The RPC returns rows newest-first (month_date DESC). Metrics read element[0]
-	// (the latest month). The trend chart plots the x-axis in array order, so it
-	// needs oldest->newest — reverse the mapped series so time runs left-to-right.
-	const latest = rows[0] ?? {};
+	// The RPC returns rows newest-first (month_date DESC). The trend chart plots
+	// the x-axis in array order, so it needs oldest->newest — reverse the mapped
+	// series so time runs left-to-right.
 	const trends: OccupancyTrendPoint[] = rows
 		.map((row) => ({
 			period: String(row.month ?? ""),
@@ -100,20 +72,7 @@ export function mapOccupancyAnalytics(
 			totalUnits: Number(row.total_units ?? 0),
 		}))
 		.reverse();
-	const metrics: OccupancyMetricSummary = {
-		currentOccupancy: Number(latest.occupancy_rate ?? 0),
-		averageVacancyDays: 0,
-		seasonalPeakOccupancy: 0,
-		trend: 0,
-	};
-
-	return {
-		metrics,
-		trends,
-		propertyPerformance: [],
-		seasonalPatterns: [],
-		vacancyAnalysis: [],
-	};
+	return { trends };
 }
 
 // --- Financial analytics (TYPE-02) -----------------------------------------
@@ -341,7 +300,7 @@ export function mapPortfolioTrends(stats: unknown): PortfolioTrends {
 // `get_maintenance_analytics` emits snake_case/legacy keys (`open_requests`,
 // `avg_resolution_hours`, `by_status:[{status,count}]`, ...) — NONE of the
 // page-data keys the old `jsonObject<MaintenanceInsightsPageData>` blind-cast
-// asserted. This never-throw mapper derives `metrics` + `categoryBreakdown`
+// asserted. This never-throw mapper derives `categoryBreakdown`
 // (from `by_status`, the closest real dimension — the schema has no
 // maintenance-category taxonomy), and the spend and request trends that
 // 20261102184503 computes. The body before it returns them as `0` and `[]`
@@ -407,34 +366,19 @@ export function mapMaintenanceTrends(
 	);
 }
 
-/** Sum the `count` of a `by_status` row matching `status`. Never throws. */
-function statusCount(byStatus: unknown, status: string): number {
-	if (!Array.isArray(byStatus)) return 0;
-	const row = (byStatus as Array<Record<string, unknown>>).find(
-		(r) => String(r.status ?? "") === status,
-	);
-	return row ? Number(row.count ?? 0) : 0;
-}
-
 /**
  * Shape `get_maintenance_analytics` into `MaintenanceInsightsPageData`.
- * `metrics` + `categoryBreakdown` from the request counts; `costs`, its
- * vendor `costBreakdown` and `trends` from 20261102184503's keys, null (empty
- * for the breakdown) when the body returns none. Never throws — non-object
- * input yields zeroed metrics and no costs or trends.
+ * `categoryBreakdown` from the requests by status; `costs`, its vendor
+ * `costBreakdown` and `trends` from 20261102184503's keys, null (empty for
+ * the breakdown) when the body returns none. Never throws — non-object input
+ * yields no categories, costs or trends. (Its metrics, cost trends, response
+ * times and preventive maintenance, read by no screen and written as 0 or [],
+ * went in 66.2-39.)
  */
 export function mapMaintenanceAnalytics(
 	raw: unknown,
 ): MaintenanceInsightsPageData {
-	const root = asObject(raw) ?? {};
-	const byStatus = root.by_status;
-
-	const metrics: MaintenanceMetricSummary = {
-		openRequests: Number(root.open_requests ?? 0),
-		inProgressRequests: statusCount(byStatus, "in_progress"),
-		completedRequests: statusCount(byStatus, "completed"),
-		averageResponseTimeHours: Number(root.avg_resolution_hours ?? 0),
-	};
+	const byStatus = asObject(raw)?.by_status;
 
 	const categoryBreakdown: MaintenanceCategoryBreakdown[] = Array.isArray(
 		byStatus,
@@ -447,10 +391,8 @@ export function mapMaintenanceAnalytics(
 
 	const costs = mapMaintenanceCosts(raw);
 	return {
-		metrics,
 		categoryBreakdown,
 		costs,
-		costTrends: [],
 		costBreakdown: (costs?.vendors ?? []).map((v) => ({
 			category: v.vendorName,
 			amount: v.totalSpend,
@@ -460,7 +402,5 @@ export function mapMaintenanceAnalytics(
 					: 0,
 		})),
 		trends: mapMaintenanceTrends(raw),
-		responseTimes: [],
-		preventiveMaintenance: [],
 	};
 }

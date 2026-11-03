@@ -62,12 +62,11 @@ export const reportAnalyticsQueries = {
 						occupiedUnits: 0,
 						vacantUnits: 0,
 						occupancyRate: 0,
-						byProperty: [],
 					};
 				// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
 				// ordered month DESC — element[0] is the latest month. Derive the
 				// current occupancy metrics from that row (the RPC has NO top-level
-				// totals and NO per-property breakdown, so byProperty stays []).
+				// totals).
 				const rows = await fetchOccupancyTrends(12);
 				const latest = rows[0];
 				const totalUnits = Number(latest?.total_units ?? 0);
@@ -77,7 +76,6 @@ export const reportAnalyticsQueries = {
 					occupiedUnits,
 					vacantUnits: totalUnits - occupiedUnits,
 					occupancyRate: Number(latest?.occupancy_rate ?? 0),
-					byProperty: [],
 				};
 			},
 			...CACHE,

@@ -17,7 +17,6 @@ import type {
 } from "#types/analytics";
 import type {
 	FinancialAnalyticsPageData,
-	LeaseAnalyticsPageData,
 	MaintenanceInsightsPageData,
 	OccupancyAnalyticsPageData,
 	PropertyPerformancePageData,
@@ -36,41 +35,6 @@ import {
 	mapPropertyPerformance,
 	unitCountsByProperty,
 } from "./query-keys/property-performance-mappers";
-
-/**
- * MIS-WIRE (captured follow-up, DATA-01): the "lease analytics" page and the
- * overview page are both fed `get_occupancy_trends_optimized`, which carries
- * NO lease-financial data — so this path returned an empty lease shape via the
- * accidental "array fails the lease object parse -> empty" behavior. Until a
- * real lease-analytics source exists (candidate requirement DATA-04), derive
- * the one occupancy-shaped field the lease page can legitimately carry
- * (`vacancyTrends` = the complement of the occupancy rate) and leave every
- * lease-financial sub-shape (metrics/lifecycle/statusBreakdown/renewalRates)
- * at its empty default. The lease profitability table reads
- * leaseProfitability() (get_financial_overview, 20261102184504). Do NOT invent a lease-analytics source.
- */
-function occupancyAsLeaseAnalytics(raw: unknown): LeaseAnalyticsPageData {
-	const { trends } = mapOccupancyAnalytics(raw);
-	return {
-		metrics: {
-			totalLeases: 0,
-			activeLeases: 0,
-			expiringSoon: 0,
-			totalrent_amount: 0,
-			averageLeaseValue: 0,
-		},
-		renewalRates: [],
-		vacancyTrends: trends.map((t) => ({
-			period: t.period,
-			vacancyRate: Math.max(0, 100 - t.occupancyRate),
-			turnovers: 0,
-			avgVacancyDays: 0,
-		})),
-		leaseDistribution: [],
-		lifecycle: [],
-		statusBreakdown: [],
-	};
-}
 
 /**
  * Analytics query factory
@@ -173,53 +137,38 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.occupancy(),
 			queryFn: async (): Promise<OccupancyAnalyticsPageData> => {
 				// DATA-01: get_occupancy_trends_optimized returns a jsonb ARRAY
-				// (month DESC). Map trends from every row + derive metrics from
-				// element[0] via the array-aware mapper. propertyPerformance/
-				// seasonalPatterns/vacancyAnalysis stay [] (RPC has no such data).
+				// (month DESC); the properties insights' chart plots each month.
 				return mapOccupancyAnalytics(await fetchOccupancyTrends(12));
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
 		}),
 
+	/**
+	 * The analytics overview's headline figures: it reads only
+	 * `financial.metrics` (get_financial_overview). It also fetched
+	 * get_maintenance_analytics and the occupancy series for a maintenance and
+	 * a lease slice no screen read (the lease slice's fields all [] or 0);
+	 * both went in 66.2-39.
+	 */
 	overviewPageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.overview(),
 			queryFn: async (): Promise<{
 				financial: FinancialAnalyticsPageData;
-				maintenance: MaintenanceInsightsPageData;
-				lease: LeaseAnalyticsPageData;
 			}> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
-				const userId = user.id;
-
-				const [financialResult, maintenanceResult, occupancyData] =
-					await Promise.all([
-						supabase.rpc("get_financial_overview", { p_user_id: userId }),
-						supabase.rpc("get_maintenance_analytics", { user_id: userId }),
-						fetchOccupancyTrends(12),
-					]);
-
-				if (financialResult.error)
-					handlePostgrestError(financialResult.error, "analytics");
-				if (maintenanceResult.error)
-					handlePostgrestError(maintenanceResult.error, "analytics");
-
-				return {
-					// The overview page reads only `financial.metrics`; the never-throw
-					// mapper derives it from get_financial_overview's `overview` (TYPE-02
-					// sibling). Charts stay empty here (no chart RPCs fetched) — the
-					// dedicated financial page wires them.
-					financial: mapFinancialOverview(financialResult.data),
-					maintenance: mapMaintenanceAnalytics(maintenanceResult.data),
-					// MIS-WIRE follow-up (DATA-01): the overview's `lease` slice is
-					// fed the occupancy RPC, not a lease-analytics source — occupancy
-					// data is derived into vacancyTrends; lease-financial sub-shapes
-					// stay empty (see occupancyAsLeaseAnalytics above).
-					lease: occupancyAsLeaseAnalytics(occupancyData),
-				};
+				const { data, error } = await supabase.rpc("get_financial_overview", {
+					p_user_id: user.id,
+				});
+				if (error) handlePostgrestError(error, "analytics");
+				// The never-throw mapper derives `metrics` from
+				// get_financial_overview's `overview` (TYPE-02 sibling). Charts stay
+				// empty here (no chart RPCs fetched) — the dedicated financial page
+				// wires them.
+				return { financial: mapFinancialOverview(data) };
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,

@@ -23,7 +23,10 @@ import {
 import { render, screen } from "@testing-library/react";
 import { createElement, type ReactElement, Suspense } from "react";
 import { describe, expect, it, vi } from "vitest";
-import type { PropertyPerformancePageData } from "#types/analytics-page-data";
+import type {
+	OccupancyAnalyticsPageData,
+	PropertyPerformancePageData,
+} from "#types/analytics-page-data";
 
 const { pageData } = vi.hoisted(() => ({
 	pageData: {
@@ -80,17 +83,8 @@ vi.mock("#hooks/api/use-analytics", () => ({
 		occupancyPageData: () =>
 			queryOptions({
 				queryKey: ["test", "occupancy"],
-				queryFn: async () => ({
-					metrics: {
-						currentOccupancy: 50,
-						averageVacancyDays: 0,
-						seasonalPeakOccupancy: 0,
-						trend: 0,
-					},
+				queryFn: async (): Promise<OccupancyAnalyticsPageData> => ({
 					trends: [],
-					propertyPerformance: [],
-					seasonalPatterns: [],
-					vacancyAnalysis: [],
 				}),
 			}),
 	},

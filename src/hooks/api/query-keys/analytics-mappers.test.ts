@@ -38,7 +38,7 @@ describe("mapOccupancyAnalytics", () => {
 		},
 	];
 
-	it("maps every row to a trend point (oldest-first for the chart) and derives metrics from element[0]", () => {
+	it("maps every row to a trend point (oldest-first for the chart), and carries only them", () => {
 		const mapped = mapOccupancyAnalytics(rows);
 		// trends are reversed to oldest->newest so the chart x-axis runs forward in
 		// time; input rows are newest-first (RPC DESC).
@@ -56,15 +56,10 @@ describe("mapOccupancyAnalytics", () => {
 				totalUnits: 20,
 			},
 		]);
-		// metrics still derive from element[0] of the ORIGINAL (DESC) input = latest.
-		expect(mapped.metrics.currentOccupancy).toBe(90);
-		expect(mapped.metrics.averageVacancyDays).toBe(0);
-		expect(mapped.metrics.seasonalPeakOccupancy).toBe(0);
-		expect(mapped.metrics.trend).toBe(0);
-		// RPC provides none of these
-		expect(mapped.propertyPerformance).toEqual([]);
-		expect(mapped.seasonalPatterns).toEqual([]);
-		expect(mapped.vacancyAnalysis).toEqual([]);
+		// The chart's series alone: the metrics (zeros but one), per-property,
+		// seasonal and vacancy fields no source filled and no screen read went
+		// in 66.2-39.
+		expect(Object.keys(mapped)).toEqual(["trends"]);
 	});
 
 	it("coerces string-typed numeric fields via Number()", () => {
@@ -82,20 +77,15 @@ describe("mapOccupancyAnalytics", () => {
 			occupiedUnits: 15,
 			totalUnits: 20,
 		});
-		expect(mapped.metrics.currentOccupancy).toBe(75);
 	});
 
-	it("degrades to zeroed metrics + empty trends on an empty array", () => {
-		const mapped = mapOccupancyAnalytics([]);
-		expect(mapped.trends).toEqual([]);
-		expect(mapped.metrics.currentOccupancy).toBe(0);
+	it("degrades to empty trends on an empty array", () => {
+		expect(mapOccupancyAnalytics([])).toEqual({ trends: [] });
 	});
 
 	it("degrades to the safe empty shape on non-array input", () => {
 		for (const bad of [null, undefined, {}, "nope", 42]) {
-			const mapped = mapOccupancyAnalytics(bad);
-			expect(mapped.trends).toEqual([]);
-			expect(mapped.metrics.currentOccupancy).toBe(0);
+			expect(mapOccupancyAnalytics(bad)).toEqual({ trends: [] });
 		}
 	});
 });
@@ -385,7 +375,7 @@ describe("mapPortfolioTrends (20261102184501)", () => {
 });
 
 describe("mapMaintenanceAnalytics (TYPE-03)", () => {
-	it("derives metrics and categoryBreakdown from the RPC's real keys", () => {
+	it("derives categoryBreakdown from the RPC's real keys, and carries only what a screen renders", () => {
 		const mapped = mapMaintenanceAnalytics({
 			open_requests: 4,
 			avg_resolution_hours: 12,
@@ -395,10 +385,6 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 				{ status: "completed", count: 9 },
 			],
 		});
-		expect(mapped.metrics.openRequests).toBe(4);
-		expect(mapped.metrics.inProgressRequests).toBe(2);
-		expect(mapped.metrics.completedRequests).toBe(9);
-		expect(mapped.metrics.averageResponseTimeHours).toBe(12);
 		expect(mapped.categoryBreakdown).toContainEqual({
 			category: "open",
 			count: 4,
@@ -408,7 +394,14 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 		expect(mapped.costs).toBeNull();
 		expect(mapped.trends).toBeNull();
 		expect(mapped.costBreakdown).toEqual([]);
-		expect(mapped.costTrends).toEqual([]);
+		// No metrics, cost trends, response times or preventive maintenance:
+		// written as 0 or [] and read by no screen, they went in 66.2-39.
+		expect(Object.keys(mapped).sort()).toEqual([
+			"categoryBreakdown",
+			"costBreakdown",
+			"costs",
+			"trends",
+		]);
 	});
 
 	it("does not read the old body's literal costs as figures", () => {
@@ -465,8 +458,8 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 	it("degrades to safe empty on non-object input (never throws)", () => {
 		for (const input of [null, undefined, "x", 5]) {
 			const mapped = mapMaintenanceAnalytics(input);
-			expect(mapped.metrics.openRequests).toBe(0);
 			expect(mapped.categoryBreakdown).toEqual([]);
+			expect(mapped.costs).toBeNull();
 		}
 	});
 });
