@@ -1,0 +1,32 @@
+{
+ "deadTheme": [
+  {
+   "name": "--color-success-foreground",
+   "value": "var(--success-foreground)",
+   "line": 515,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-chart-2",
+   "value": "var(--chart-2)",
+   "line": 526,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-chart-3",
+   "value": "var(--chart-3)",
+   "line": 527,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-chart-5",
+   "value": "var(--chart-5)",
+   "line": 529,
+   "mode": "inline"
+  }
+ ],
+ "deadOther": [],
+ "deadUtil": [],
+ "deadKf": [],
+ "deadClass": []
+}

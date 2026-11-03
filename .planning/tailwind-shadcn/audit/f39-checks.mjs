@@ -7,9 +7,19 @@
 //     [--tokens <json>] --out <file> [--probe-only] [--expect-fail <CP-n,...>]
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --self-test
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --lint-body <md> --decisions <json>
+//   node .planning/tailwind-shadcn/audit/f39-checks.mjs --fix-round-1 <f39-dir> --out <file>
 //
 // Output: { mode, checks: [{ cp, choice, name, pass, expected, measured }], failedCps, failed }.
 // Exit 1 when failed > 0; under --expect-fail, exit 0 only when exactly the listed CPs fail.
+//
+// --fix-round-1 (the re-freeze after perfect-PR cycle 1) checks what fix round 1 must keep, so a
+// regression of any of it fails this checker: the four T-1 contract tokens that are allowed to be
+// dead and nothing else (M8), the light-only tokens in use (M6), the two light token deltas, the
+// two changed utilities, every guard test the fix round added (present and passing in the f39 unit
+// summary), every UI-SPEC VD row VD-01..VD-129 and VD-19b mapped to passing evidence, the
+// migration replay (357 files, every gate exit 0), the mutation sweep (179 rows, 0 vacuous, 0 not
+// applied), the Edge deploy list (exactly the functions whose bundle differs), the screenshot
+// classification and the component-probe differences against the 4476e6450 same-session run. Inputs: the f39 JSON files named in readFixRoundContext, the UI-SPEC, git ls-files.
 //
 // Each CP is checked for its recorded decision (`choice` default or fallback; `options` holds the
 // owner's option ids). Source checks read files at HEAD; the CP-3 fallback also compares the
@@ -24,7 +34,7 @@
 // Source checks that look for a forbidden token read non-comment lines only (lines whose trimmed
 // text does not start with //, /* or *), because header comments name what a change removed.
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = process.cwd();
@@ -591,6 +601,7 @@ function selfTest() {
 	if (r.failedCps.length === 1 && r.failedCps[0] === "CP-3") passed++;
 	else failures.push(`missing decision flipped ${JSON.stringify(r.failedCps)}`);
 	passed += lintSelfTest(failures);
+	passed += fixRoundSelfTest(failures);
 	if (failures.length > 0) {
 		for (const x of failures) console.error(`self-test FAIL: ${x}`);
 		process.exit(1);
@@ -713,6 +724,367 @@ function lintSelfTest(failures) {
 	return passed;
 }
 
+// ---------- --fix-round-1 ----------
+
+// M8 (main-session decision, option B, 2026-11-02). These four UI-SPEC T-1 contract tokens have no
+// utility consumer after fix round 1 and are kept: chart-1..chart-5 is shadcn's chart palette (the
+// satori/OG renderers mirror it as the brand palette) and success/success-foreground is a T-1
+// fill/foreground pair. chart-2, chart-3 and chart-5 lost their last use in 2d36cb146 (VD-53),
+// success-foreground in 8446d6bbf (VD-55). The audit's dead list must EQUAL this list: a fifth dead
+// var fails, and so does one of these four regaining a use (then remove it from this list).
+const FR_ALLOWED_DEAD_THEME_VARS = ["--color-chart-2", "--color-chart-3", "--color-chart-5", "--color-success-foreground"];
+// M6 after VD-53: the mode-independent (light-only) color tokens still in use (FINAL: chart-1..5).
+const FR_LIGHT_ONLY_IN_USE = ["--color-chart-1", "--color-chart-4"];
+// The token values that differ from FINAL: VD-59 (261e7d893) and VD-38 (fa9e89502), light only.
+const FR_TOKEN_DELTAS = { "light accent-foreground": [27, 33, 30, 1], "light destructive-foreground": [253, 252, 247, 1] };
+// The utilities present in FINAL and here whose CSS changed: VD-69 (ed7db2d48, hover parts removed).
+const FR_UTILITY_CHANGED = ["showcase-card", "testimonial-card"];
+const FR_EXPECTED_MIGRATIONS = 357;
+const FR_EXPECTED_SWEEP_ROWS = 179;
+const FR_REPLAY_GATES = ["applied", "no-network", "seed", "test-cast", "billing-insights", "property-performance", "owner-figures", "blog-banlist"];
+const FR_VD_IDS = [...Array.from({ length: 129 }, (_, i) => `VD-${String(i + 1).padStart(2, "0")}`), "VD-19b"];
+// VD rows that change nothing themselves and record measurements only, so their Proof cell cites a
+// session measurement and no test or committed record: VD-115 (part P's surfaces measured
+// unchanged), VD-124 and VD-129 (before-measurements parts P and Q could not take). The set of
+// rows with no committed evidence must EQUAL this list.
+const FR_MEASUREMENT_ONLY_ROWS = ["VD-115", "VD-124", "VD-129"];
+const FR_SCREEN_CLASSES = ["identical", "noise", "data-drift", "intended"];
+// Every guard test fix round 1 added or widened (the parts' reports), with the test titles a
+// shared file must still carry. Each must be in the f39 unit summary, passed, with no failing test.
+const FR_GUARD_TESTS = [
+	{ path: "src/app/__tests__/tailwind-theme-integrity.test.ts", titles: ["G9 every first-party class string token emits CSS", "G10 no shipped source reaches the default color palette", "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) finds no arbitrary percentage"] },
+	{ path: "src/app/__tests__/design-token-drift.test.ts" },
+	{ path: "src/app/__tests__/destructive-pair-contrast.test.ts" },
+	{ path: "src/app/__tests__/state-fill-contrast.test.ts" },
+	{ path: "src/app/__tests__/select-trigger-names.test.ts" },
+	{ path: "src/app/__tests__/scheduled-rent-not-revenue.test.ts" },
+	{ path: "src/components/__tests__/label-in-name-sweep.test.tsx" },
+	{ path: "src/components/__tests__/generic-name-sweep.test.tsx" },
+	{ path: "src/components/__tests__/no-nested-interactive.test.tsx" },
+	{ path: "src/components/__tests__/no-hover-on-static-elements.test.ts" },
+	{ path: "src/components/__tests__/ids-not-shown-as-text.test.tsx" },
+	{ path: "src/components/__tests__/owner-text-as-entered.test.tsx" },
+	{ path: "src/components/ui/__tests__/blur-fade-grid-placement.test.ts" },
+	{ path: "src/components/ui/__tests__/chart-legend-labels.test.ts" },
+	{ path: "src/components/properties/__tests__/no-depreciation-claim.test.ts" },
+	{ path: "src/lib/__tests__/one-label-per-value.test.ts" },
+	{ path: "src/lib/__tests__/enum-values-rendered-with-labels.test.ts" },
+	{ path: "src/lib/__tests__/no-always-empty-local-list.test.ts" },
+	{ path: "src/lib/__tests__/no-raw-error-text.test.ts" },
+	{ path: "src/lib/__tests__/no-deprecated-library-api.test.ts" },
+	{ path: "src/lib/__tests__/no-hand-placed-currency-symbol.test.ts" },
+	{ path: "src/lib/__tests__/no-jwt-literals.test.ts" },
+	{ path: "src/lib/__tests__/rpc-boundary-cast-pins.test.ts" },
+	{ path: "src/lib/formatters/__tests__/count-labels-agree.test.ts" },
+	{ path: "src/lib/reports/__tests__/download-blob-is-the-only-download.test.ts" },
+	{ path: "src/lib/utils/__tests__/format-cents-callers.test.ts" },
+	{ path: "src/lib/seo/__tests__/banlist-parity.test.ts" },
+	{ path: "src/hooks/api/__tests__/data-layer-callers.test.ts" },
+	{ path: "src/hooks/api/__tests__/report-mutations-have-callers.test.ts" },
+	{ path: "src/hooks/api/query-keys/financial-statements-tie.test.ts" },
+	{ path: "src/hooks/api/query-keys/__tests__/property-performance-every-row.test.ts" },
+	{ path: "src/providers/__tests__/query-cache-buster.test.ts" },
+	{ path: "src/app/(owner)/analytics/__tests__/literal-zero-figures.test.tsx" },
+	{ path: "src/app/(owner)/analytics/__tests__/always-empty-sections.test.tsx" },
+	{ path: "src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx" },
+	{ path: "src/app/(owner)/reports/__tests__/no-1099-section.test.tsx" },
+	{ path: "src/app/(owner)/reports/__tests__/statement-basis-note.test.tsx" },
+	{ path: "scripts/import-reads-no-env.test.ts" },
+	{ path: "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts" },
+	{ path: "tests/e2e/lib/__tests__/playwright-config-publishable-key.test.ts" },
+	{ path: "supabase/functions/__tests__/report-csv.test.ts" },
+	{ path: "supabase/functions/__tests__/premium-report-gate.test.ts" },
+	{ path: "supabase/functions/__tests__/financial-analytics-report.test.ts" },
+	{ path: "supabase/functions/__tests__/tax-year-reports.test.ts" },
+	{ path: "supabase/functions/__tests__/blog-banlist.test.ts" },
+];
+
+const sortedJson = (xs) => JSON.stringify([...xs].sort());
+
+function frVdRows(spec) {
+	const rows = [];
+	for (const line of (spec ?? "").split("\n")) {
+		const m = /^\| (VD-\d+[a-z]?) \|/.exec(line);
+		if (!m) continue;
+		const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split(" | ").map((c) => c.trim());
+		rows.push({ id: m[1], proof: cells[5] ?? "" });
+	}
+	return rows;
+}
+
+function frTestEvidence(ctx, tok) {
+	const b = tok.split("/").pop();
+	const unit = (ctx.unit?.files ?? []).filter((f) => f.name === tok || f.name.endsWith(`/${b}`));
+	if (unit.length) return { kind: "unit", ref: unit.map((f) => f.name).join(", "), pass: unit.every((f) => f.status === "passed" && f.numPassed > 0 && f.numPassed === f.numTests) };
+	const e2e = Object.entries(ctx.e2e?.specs ?? {}).filter(([k]) => k === tok || k.endsWith(`/${b}`));
+	if (e2e.length) return { kind: "e2e", ref: e2e.map(([k]) => k).join(", "), pass: e2e.every(([, s]) => s.failed === 0 && s.passed > 0) };
+	const deno = ctx.deno?.tests?.[b];
+	if (deno) return { kind: "deno", ref: `supabase/functions/tests/${b}`, pass: deno.failed === 0 && deno.passed > 0 };
+	// A path-qualified name outside the repo is a session measurement script (e.g. q/probe/*.spec.ts),
+	// not a suite: informational. A bare test name no suite ran fails.
+	if (tok.includes("/") && !(ctx.repoFiles ?? []).some((f) => f === tok || f.endsWith(`/${tok}`))) return { kind: "not-in-repo", ref: tok, pass: null };
+	return { kind: "test", ref: tok, pass: false, note: "named test not found in the unit, e2e or deno results" };
+}
+
+function frDocEvidence(ctx, tok) {
+	const hit = (ctx.repoFiles ?? []).find((f) => f === tok || f.endsWith(`/${tok}`));
+	return hit ? { kind: "record", ref: hit, pass: true } : { kind: "not-in-repo", ref: tok, pass: null };
+}
+
+// Each UI-SPEC VD row -> its evidence: the tests and committed records its Proof cell names
+// (backticked or bare), the rows whose proof it shares ("as VD-n"), FINAL's vd-register row (VD-01..VD-37)
+// and the f39 captures classified intended under it.
+function frVdEvidence(ctx) {
+	const rows = frVdRows(ctx.spec);
+	const direct = new Map();
+	const inherits = new Map();
+	for (const { id, proof } of rows) {
+		const ev = [];
+		const seen = new Set();
+		for (const m of proof.matchAll(/[\w./()@-]+?(?:\.(?:test|spec)\.tsx?|-test\.ts)\b/g)) {
+			const tok = m[0].replace(/^[(]+/, "");
+			if (seen.has(tok)) continue;
+			seen.add(tok);
+			ev.push(frTestEvidence(ctx, tok));
+		}
+		for (const m of proof.matchAll(/[\w./-]+\.(?:md|json|txt)\b/g)) {
+			if (seen.has(m[0])) continue;
+			seen.add(m[0]);
+			ev.push(frDocEvidence(ctx, m[0]));
+		}
+		for (const m of proof.matchAll(/screenshot class ([\w-]+)/g)) {
+			const hits = (ctx.finalScreens ?? []).filter((x) => Array.isArray(x.vd) && x.vd.includes(m[1]));
+			ev.push(hits.length ? { kind: "final-screenshot", ref: `final/screens-cumulative.json class ${m[1]} (${hits.length} captures)`, pass: true } : { kind: "final-screenshot", ref: `final/screens-cumulative.json class ${m[1]}`, pass: false });
+		}
+		const fin = ctx.finalVd?.rows?.find((r) => r.id === id);
+		if (fin) ev.push({ kind: "final-register", ref: `final/vd-register.json#${id}`, pass: fin.pass === true });
+		for (const s of ctx.screens ?? []) {
+			if (s.class === "intended" && Array.isArray(s.vd) && s.vd.includes(id)) ev.push({ kind: "screenshot", ref: `${s.set}/${s.capture}`, pass: true });
+		}
+		direct.set(id, ev);
+		// "as VD-n" at the start of the cell or of a clause shares that row's proof; "Chrome as VD-n"
+		// only names the measurement method, so it shares nothing.
+		inherits.set(id, [...proof.matchAll(/(?:^|;\s*)as (VD-\d+[a-z]?)\b/g)].map((m) => m[1]));
+	}
+	const resolve = (id, stack = []) => {
+		if (stack.includes(id)) return [];
+		const own = direct.get(id) ?? [];
+		const inh = (inherits.get(id) ?? []).flatMap((t) => resolve(t, [...stack, id]).map((e) => ({ ...e, via: t })));
+		return [...own, ...inh];
+	};
+	return rows.map(({ id }) => {
+		const evidence = resolve(id);
+		const failing = evidence.filter((e) => e.pass === false);
+		const passing = evidence.filter((e) => e.pass === true);
+		return { id, evidence, committed: evidence.some((e) => e.pass !== null), pass: failing.length === 0 && (passing.length > 0 || FR_MEASUREMENT_ONLY_ROWS.includes(id)) };
+	});
+}
+
+function frTokenDeltas(tokens, finalTokens) {
+	const out = {};
+	for (const theme of THEMES) {
+		const a = finalTokens?.[theme] ?? {};
+		const b = tokens?.[theme] ?? {};
+		for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+			if (!colorWithin(b[k], a[k]) && JSON.stringify(a[k]) !== JSON.stringify(b[k])) out[`${theme} ${k}`] = b[k] ?? MISSING;
+		}
+	}
+	return out;
+}
+
+function fixRoundChecks(ctx) {
+	const c = createCollector("FR-1", "fix-round-1");
+	const add = (group, name, pass, expected, measured) => {
+		c.add(name, pass, expected, measured);
+		c.checks[c.checks.length - 1].group = group;
+	};
+	const dead = (ctx.dead?.deadTheme ?? []).map((v) => v.name);
+	add("M8", "M8 dead theme vars equal the allowed T-1 contract list (0 outside the T-1 token contract)", sortedJson(dead) === sortedJson(FR_ALLOWED_DEAD_THEME_VARS) && ctx.report?.dead?.themeVars === FR_ALLOWED_DEAD_THEME_VARS.length, [...FR_ALLOWED_DEAD_THEME_VARS].sort(), { names: [...dead].sort(), count: ctx.report?.dead?.themeVars ?? MISSING });
+	const d = ctx.report?.dead ?? {};
+	add("M8-other", "M8 dead custom properties, keyframes, class selectors and utilities are 0", d.customProperties === 0 && d.keyframes === 0 && d.plainClassSelectors === 0 && typeof d.utilities === "string" && d.utilities.startsWith("0/"), "0 / 0 / 0 / 0 of n", d);
+	const lightOnly = (ctx.report?.lightOnlyColorTokensInUse ?? []).map((s) => String(s).split(":")[0].trim());
+	add("M6", "M6 light-only tokens in use equal chart-1 and chart-4 (VD-53)", sortedJson(lightOnly) === sortedJson(FR_LIGHT_ONLY_IN_USE), [...FR_LIGHT_ONLY_IN_USE].sort(), [...lightOnly].sort());
+	add("M10", "M10 first-party non-canonical classes 0", ctx.report?.noncanonical?.firstPartyFiles === 0, 0, ctx.report?.noncanonical?.firstPartyFiles ?? MISSING);
+	const deltas = frTokenDeltas(ctx.tokens, ctx.finalTokens);
+	const want = Object.keys(FR_TOKEN_DELTAS);
+	add("tokens", "tokens differ from FINAL in exactly the two light fix-round deltas (VD-38, VD-59)", sortedJson(Object.keys(deltas)) === sortedJson(want) && want.every((k) => colorWithin(deltas[k], FR_TOKEN_DELTAS[k])), FR_TOKEN_DELTAS, deltas);
+	const changed = ctx.parity?.lists?.["intended:fix-round-1-utility-changed"] ?? [];
+	add("parity", "css-parity FINAL -> f39: 0 unclassified, and the changed utilities equal the two VD-69 ones", ctx.parity?.counts?.unclassified === 0 && sortedJson(changed) === sortedJson(FR_UTILITY_CHANGED), { unclassified: 0, changed: FR_UTILITY_CHANGED }, { unclassified: ctx.parity?.counts?.unclassified ?? MISSING, changed });
+	add("unit", "unit suite: 0 failed tests", ctx.unit?.numFailedTests === 0 && (ctx.unit?.numTotalTests ?? 0) > 0, 0, ctx.unit?.numFailedTests ?? MISSING);
+	for (const g of FR_GUARD_TESTS) {
+		const f = (ctx.unit?.files ?? []).find((x) => x.name === g.path);
+		const titlesOk = (g.titles ?? []).every((t) => f && (f.tests.length === 0 ? f.numPassed === f.numTests : f.tests.some((x) => x.title.startsWith(t) && x.status === "passed")));
+		const ok = Boolean(f) && ctx.exists(g.path) && f.status === "passed" && f.numTests > 0 && f.numPassed === f.numTests && titlesOk;
+		add(`guard:${g.path}`, `guard test ${g.path} present and passing`, ok, "passed", f ? { status: f.status, numTests: f.numTests, numPassed: f.numPassed, titlesOk } : MISSING);
+	}
+	const vd = frVdEvidence(ctx);
+	const ids = vd.map((r) => r.id);
+	add("vd-ids", "UI-SPEC VD rows are exactly VD-01..VD-129 and VD-19b, once each", sortedJson(ids) === sortedJson(FR_VD_IDS), FR_VD_IDS.length, { count: ids.length, missing: FR_VD_IDS.filter((x) => !ids.includes(x)), extra: ids.filter((x, i) => !FR_VD_IDS.includes(x) || ids.indexOf(x) !== i) });
+	for (const r of vd) add(`vd:${r.id}`, `${r.id} mapped to passing evidence`, r.pass, "no failing and at least one passing evidence", r.evidence.map((e) => `${e.kind}${e.via ? ` (via ${e.via})` : ""}: ${e.ref} ${e.pass === true ? "pass" : e.pass === false ? "FAIL" : "informational"}`));
+	const uncommitted = vd.filter((r) => !r.committed).map((r) => r.id);
+	add("vd-measurement-only", "rows with no committed evidence equal the measurement-only list", sortedJson(uncommitted) === sortedJson(FR_MEASUREMENT_ONLY_ROWS), [...FR_MEASUREMENT_ONLY_ROWS].sort(), [...uncommitted].sort());
+	const rp = ctx.replay ?? {};
+	const gatesOk = FR_REPLAY_GATES.every((g) => rp.gates?.[g] === 0);
+	add("replay", `migration replay: ${FR_EXPECTED_MIGRATIONS} files in the tree, all applied from empty, every gate exit 0`, rp.files === FR_EXPECTED_MIGRATIONS && ctx.migrationsCount === FR_EXPECTED_MIGRATIONS && rp.applied === rp.files && gatesOk, { files: FR_EXPECTED_MIGRATIONS, gates: FR_REPLAY_GATES }, { files: rp.files ?? MISSING, tree: ctx.migrationsCount ?? MISSING, applied: rp.applied ?? MISSING, gates: rp.gates ?? MISSING });
+	const sw = ctx.sweep ?? {};
+	add("sweep", `mutation sweep: ${FR_EXPECTED_SWEEP_ROWS} rows, all caught, 0 vacuous, 0 not applied, tree restored`, ctx.sweepRows === FR_EXPECTED_SWEEP_ROWS && sw.caught === FR_EXPECTED_SWEEP_ROWS && sw.vacuous === 0 && sw.notApplied === 0 && sw.restored === true, { rows: FR_EXPECTED_SWEEP_ROWS, caught: FR_EXPECTED_SWEEP_ROWS, vacuous: 0, notApplied: 0 }, { rows: ctx.sweepRows ?? MISSING, ...sw });
+	const fns = ctx.edge?.functions ?? [];
+	const differing = fns.filter((f) => f.bundle === "different").map((f) => f.fn);
+	add("edge", "Edge deploy list equals the functions whose bundle differs from main; every bundle built", fns.length > 0 && fns.every((f) => f.baseExit === 0 && f.headExit === 0 && (f.bundle === "different" || f.bundle === "identical")) && sortedJson(ctx.edge?.deploy ?? []) === sortedJson(differing), [...differing].sort(), { deploy: ctx.edge?.deploy ?? MISSING, functions: fns.length });
+	const sc = ctx.screens ?? [];
+	const badScreens = sc.filter((s) => !FR_SCREEN_CLASSES.includes(s.class) || (s.class === "intended" && (!Array.isArray(s.vd) || s.vd.length === 0 || !s.vd.every((x) => FR_VD_IDS.includes(x)))) || (s.class !== "identical" && !(typeof s.evidence === "string" && s.evidence.length > 0)));
+	add("screens", "every f39 capture is identical, noise, data-drift or intended under a VD row, with evidence", sc.length > 0 && badScreens.length === 0, "0 unclassified", { captures: sc.length, bad: badScreens.map((s) => `${s.set}/${s.capture}`) });
+	const pd = ctx.probesDiff?.diffs ?? [];
+	const badProbes = pd.filter((x) => x.kind !== "measured" || x.class !== "intended" || !(typeof x.ref === "string" && x.ref.length > 0) || !(x.vd ?? []).every((v) => FR_VD_IDS.includes(v)));
+	add("probes", "every measured component-probe difference from the 4476e6450 same-session run is intended, with its commit and VD row or finding", Array.isArray(ctx.probesDiff?.diffs) && badProbes.length === 0, "0 unattributed", { diffs: pd.length, bad: badProbes.map((x) => `${x.id} ${x.field}`) });
+	const failedGroups = [...new Set(c.checks.filter((k) => !k.pass).map((k) => k.group))];
+	return { mode: "fix-round-1", checks: c.checks, vd, failedGroups, failed: c.checks.filter((k) => !k.pass).length };
+}
+
+function readFixRoundContext(dir) {
+	const j = (name) => {
+		const p = join(dir, name);
+		return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null;
+	};
+	const git = (args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+	const sweepText = readFileSync(join(ROOT, "scripts/mutation-sweep.sh"), "utf8");
+	return {
+		report: j("report.json"),
+		dead: j("dead.json"),
+		tokens: j("tokens-f39.json"),
+		finalTokens: JSON.parse(readFileSync(join(ROOT, ".planning/tailwind-shadcn/audit/final/tokens-final.json"), "utf8")),
+		finalVd: JSON.parse(readFileSync(join(ROOT, ".planning/tailwind-shadcn/audit/final/vd-register.json"), "utf8")),
+		finalScreens: JSON.parse(readFileSync(join(ROOT, ".planning/tailwind-shadcn/audit/final/screens-cumulative.json"), "utf8")),
+		parity: j("css-parity-candidate-css-final-vs-candidate-css-f39.json"),
+		unit: j("unit-f39-summary.json"),
+		e2e: j("e2e-f39-summary.json"),
+		deno: j("deno-f39.json"),
+		replay: j("replay-f39.json"),
+		sweep: j("sweep-f39.json"),
+		edge: j("edge-bundles-f39.json"),
+		screens: j("screens-diff-f39.json"),
+		probesDiff: j("probes-diff-f39.json"),
+		spec: readFileSync(join(ROOT, ".planning/phases/66.2-tailwind-v4-and-shadcn-ui-canonical-remediation/66.2-UI-SPEC.md"), "utf8"),
+		repoFiles: git(["ls-files"]).split("\n").filter(Boolean),
+		migrationsCount: readdirSync(join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql")).length,
+		sweepRows: sweepText.split("\n").filter((l) => /^\s*mutate\s/.test(l)).length,
+		exists: (rel) => existsSync(join(ROOT, rel)),
+	};
+}
+
+function fixRoundFixture() {
+	const unitFiles = FR_GUARD_TESTS.map((g) => ({ name: g.path, status: "passed", numTests: 2, numPassed: 2, tests: [...(g.titles ?? []).map((t) => ({ title: `${t} x`, status: "passed" })), { title: "y", status: "passed" }] }));
+	unitFiles.push({ name: "src/a/__tests__/vd-proof.test.ts", status: "passed", numTests: 1, numPassed: 1, tests: [{ title: "z", status: "passed" }] });
+	const spec = FR_VD_IDS.map((id) => {
+		const proof = FR_MEASUREMENT_ONLY_ROWS.includes(id) ? "Chrome `q/probe/measure.json`" : id === "VD-02" ? "as VD-01" : "`vd-proof.test.ts`";
+		return `| ${id} | 39 | s | b | src | ${proof} | — |`;
+	}).join("\n");
+	return {
+		report: { dead: { themeVars: 4, customProperties: 0, keyframes: 0, plainClassSelectors: 0, utilities: "0/42" }, lightOnlyColorTokensInUse: ["--color-chart-1: x", "--color-chart-4: y"], noncanonical: { firstPartyFiles: 0 } },
+		dead: { deadTheme: FR_ALLOWED_DEAD_THEME_VARS.map((name) => ({ name })) },
+		finalTokens: { light: { "accent-foreground": [243, 251, 246, 1], "destructive-foreground": [251, 248, 241, 1], border: [210, 216, 222, 1] }, dark: { border: [40, 44, 50, 1] } },
+		tokens: { light: { "accent-foreground": [27, 33, 30, 1], "destructive-foreground": [253, 252, 247, 1], border: [210, 216, 222, 1] }, dark: { border: [40, 44, 50, 1] } },
+		finalVd: { rows: [] },
+		parity: { counts: { unclassified: 0 }, lists: { "intended:fix-round-1-utility-changed": [...FR_UTILITY_CHANGED] } },
+		unit: { numFailedTests: 0, numTotalTests: unitFiles.length * 2, files: unitFiles },
+		e2e: { specs: {} },
+		deno: { tests: {} },
+		replay: { files: FR_EXPECTED_MIGRATIONS, applied: FR_EXPECTED_MIGRATIONS, gates: Object.fromEntries(FR_REPLAY_GATES.map((g) => [g, 0])) },
+		sweep: { caught: FR_EXPECTED_SWEEP_ROWS, vacuous: 0, notApplied: 0, restored: true },
+		edge: { deploy: ["a"], functions: [{ fn: "a", bundle: "different", baseExit: 0, headExit: 0 }, { fn: "b", bundle: "identical", baseExit: 0, headExit: 0 }] },
+		screens: [{ set: "public", capture: "root-light-1280.png", class: "intended", vd: ["VD-01"], evidence: "e" }, { set: "owner", capture: "x.png", class: "identical", vd: [], evidence: "" }],
+		probesDiff: { diffs: [{ id: "button", field: "light.variants.default.hoverBg", kind: "measured", class: "intended", vd: ["VD-59"], ref: "c" }] },
+		spec,
+		repoFiles: [],
+		migrationsCount: FR_EXPECTED_MIGRATIONS,
+		sweepRows: FR_EXPECTED_SWEEP_ROWS,
+		exists: () => true,
+	};
+}
+
+// One mutation per group; each must fail exactly that group. The first two are the M8 negative
+// controls the decision requires: a fifth dead var, and one of the four regaining a use.
+const FR_MUTATIONS = [
+	["fifth dead theme var", "M8", (f) => {
+		f.dead.deadTheme.push({ name: "--color-warning-foreground" });
+		f.report.dead.themeVars = 5;
+	}],
+	["an allowed var regains a use", "M8", (f) => {
+		f.dead.deadTheme = f.dead.deadTheme.filter((v) => v.name !== "--color-chart-5");
+		f.report.dead.themeVars = 3;
+	}],
+	["a dead custom property", "M8-other", (f) => {
+		f.report.dead.customProperties = 1;
+	}],
+	["M6 regains chart-5", "M6", (f) => {
+		f.report.lightOnlyColorTokensInUse.push("--color-chart-5: z");
+	}],
+	["a first-party non-canonical class", "M10", (f) => {
+		f.report.noncanonical.firstPartyFiles = 1;
+	}],
+	["a third token delta", "tokens", (f) => {
+		f.tokens.dark.border = [90, 90, 90, 1];
+	}],
+	["a third changed utility", "parity", (f) => {
+		f.parity.lists["intended:fix-round-1-utility-changed"].push("card-standard");
+	}],
+	["a guard test fails", `guard:${FR_GUARD_TESTS[5].path}`, (f) => {
+		Object.assign(f.unit.files.find((x) => x.name === FR_GUARD_TESTS[5].path), { status: "failed", numPassed: 1 });
+	}],
+	["G9 tests removed", `guard:${FR_GUARD_TESTS[0].path}`, (f) => {
+		const t = f.unit.files.find((x) => x.name === FR_GUARD_TESTS[0].path);
+		t.tests = t.tests.filter((x) => !x.title.startsWith("G9 "));
+	}],
+	["a VD row's named test is missing", "vd:VD-77", (f) => {
+		f.spec = f.spec.replace("| VD-77 | 39 | s | b | src | `vd-proof.test.ts` |", "| VD-77 | 39 | s | b | src | `gone.test.ts` |");
+	}],
+	["a VD row dropped from the spec and another added", "vd-ids", (f) => {
+		f.spec = f.spec.split("\n").filter((l) => !l.startsWith("| VD-50 |")).join("\n");
+		f.spec = `${f.spec}\n| VD-130 | 39 | s | b | src | \`vd-proof.test.ts\` | — |`;
+	}],
+	["a row loses its only committed evidence", ["vd:VD-80", "vd-measurement-only"], (f) => {
+		f.spec = f.spec.replace("| VD-80 | 39 | s | b | src | `vd-proof.test.ts` |", "| VD-80 | 39 | s | b | src | Chrome `q/probe/m.json` |");
+	}],
+	["the replay misses a file", "replay", (f) => {
+		f.replay.applied = FR_EXPECTED_MIGRATIONS - 1;
+	}],
+	["a replay gate fails", "replay", (f) => {
+		f.replay.gates["blog-banlist"] = 1;
+	}],
+	["a vacuous sweep row", "sweep", (f) => {
+		f.sweep.vacuous = 1;
+		f.sweep.caught = FR_EXPECTED_SWEEP_ROWS - 1;
+	}],
+	["a sweep row added without its count", "sweep", (f) => {
+		f.sweepRows = FR_EXPECTED_SWEEP_ROWS + 1;
+	}],
+	["an identical bundle listed for deploy", "edge", (f) => {
+		f.edge.deploy.push("b");
+	}],
+	["an intended capture without a VD row", "screens", (f) => {
+		f.screens[0].vd = [];
+	}],
+	["an unattributed probe difference", "probes", (f) => {
+		f.probesDiff.diffs.push({ id: "chart", field: "light.gridStroke", kind: "measured", class: "unclassified", vd: [], ref: "" });
+	}],
+];
+
+function fixRoundSelfTest(failures) {
+	let passed = 0;
+	const clean = fixRoundChecks(fixRoundFixture());
+	if (clean.failed === 0) passed++;
+	else failures.push(`fix-round-1 clean fixture failed ${JSON.stringify(clean.checks.filter((k) => !k.pass).map((k) => k.name))}`);
+	for (const [name, group, mutate] of FR_MUTATIONS) {
+		const f = fixRoundFixture();
+		mutate(f);
+		const r = fixRoundChecks(f);
+		const want = Array.isArray(group) ? group : [group];
+		if (sortedJson(r.failedGroups) === sortedJson(want)) passed++;
+		else failures.push(`fix-round-1 "${name}": failed groups ${JSON.stringify(r.failedGroups)}, expected ${JSON.stringify(want)}`);
+	}
+	return passed;
+}
+
 // ---------- CLI ----------
 
 function arg(name) {
@@ -727,6 +1099,20 @@ function readJson(p) {
 if (process.argv.includes("--self-test")) {
 	selfTest();
 	process.exit(0);
+}
+
+const fixRoundDir = arg("--fix-round-1");
+if (fixRoundDir) {
+	const out = arg("--out");
+	if (!out) {
+		console.error("usage: f39-checks.mjs --fix-round-1 <f39-dir> --out <file>");
+		process.exit(2);
+	}
+	const result = fixRoundChecks(readFixRoundContext(fixRoundDir));
+	writeFileSync(out, `${JSON.stringify(result, null, "\t")}\n`);
+	for (const k of result.checks.filter((x) => !x.pass)) console.error(`fix-round-1 FAIL: ${k.name}: ${JSON.stringify(k.measured).slice(0, 400)}`);
+	console.log(`f39-checks (fix-round-1): ${result.checks.length} checks, ${result.failed} failed`);
+	process.exit(result.failed === 0 ? 0 : 1);
 }
 
 const decisionsPath = arg("--decisions");
@@ -747,7 +1133,7 @@ const probesPath = arg("--probes");
 const tokensPath = arg("--tokens");
 const probeOnly = process.argv.includes("--probe-only");
 if (!decisionsPath || !outPath || (probeOnly && !probesPath)) {
-	console.error("usage: f39-checks.mjs --decisions <json> [--probes <json>] [--tokens <json>] --out <file> [--probe-only] [--expect-fail CP-n,...] | --self-test | --lint-body <md> --decisions <json>");
+	console.error("usage: f39-checks.mjs --decisions <json> [--probes <json>] [--tokens <json>] --out <file> [--probe-only] [--expect-fail CP-n,...] | --self-test | --lint-body <md> --decisions <json> | --fix-round-1 <f39-dir> --out <file>");
 	process.exit(2);
 }
 const result = run({

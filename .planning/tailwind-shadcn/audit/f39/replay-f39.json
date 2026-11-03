@@ -1,0 +1,24 @@
+{
+	"command": "scratch replay.sh: git archive HEAD supabase/ -> project tf-replay-j (ports 546xx), supabase start -x studio,imgproxy,vector,logflare,supavisor,edge-runtime, then the migration-replay.yml steps (applied, no-network, seed-test-users + test-cast, the four fixtures), supabase stop --no-backup",
+	"cli": "supabase 2.122.0 local (CI pins 2.121.0); edge-runtime excluded locally",
+	"files": 357,
+	"applied": 357,
+	"gates": {
+		"applied": 0,
+		"no-network": 0,
+		"seed": 0,
+		"test-cast": 0,
+		"billing-insights": 0,
+		"property-performance": 0,
+		"owner-figures": 0,
+		"blog-banlist": 0
+	},
+	"reconcileApplied": "20261102055400 is in supabase_migrations.schema_migrations (1 row)",
+	"fixtureOutput": {
+		"billing-insights": "get_billing_insights computes the ledger figures (owner A 1185.50 unpaid, 4 outstanding, 115.00 late fees, 3440.00 collected, 400.00 in credit, 4225.50 charged, of it 3500.00 rent, 135.00 late fees, 390.50 manual, -100.00 credit; the February period 960.50, 4, 110.00; as of March 31 145.50 unpaid and 4515.00 collected; as of January 31 360.00 unpaid and 3040.00 collected; owner B 720.00, 2, 20.00), each call's figures partition the ledger and chargedTotal by type, it refuses another owner, and is executable by authenticated and service_role only",
+		"property-performance": "get_property_performance_analytics reports rent received (owner A in 2025: Alpha Court 2750.50 received, 200.25 spent, 2550.25 net; Beta House 750.00, 100.00, 650.00; Gamma Flats, deleted, 333.00; Echo Barn, deleted, 12.00 spent; tying to the year-end summary's 3833.50 and 312.25; over 2026-10-04/2026-11-03: Alpha Court -79.75, Beta House 200.00, no deleted property; owner B 700.00 and 650.00, tying to the year-end summary's 1350.00 and 10.00), lists all 101 of owner C's properties, states each window, refuses a backwards range and another owner, and is executable by authenticated and service_",
+		"owner-figures": "the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over 2026-10-04/2026-11-03, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend, each property and get_dashboard_stats (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% aga",
+		"blog-banlist": "validate_blog_post rejects a banlist phrase and the persona word in the title, the excerpt and the content at in-review and at published (as service_role, which holds no EXECUTE), with the spec's semantics (no word start, case ignored, an optional plural, a word end), accepts \"property ownership\", a word character after the word, a clean post and a draft, does not regate an UPDATE of a published post, gates a draft's UPDATE to published, and its privileges are production's"
+	},
+	"cleanup": "stack stopped with --no-backup: 0 tf-replay-j containers, 0 volumes; colima stopped again (it was stopped at the start)"
+}

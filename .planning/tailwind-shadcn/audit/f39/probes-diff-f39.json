@@ -1,0 +1,184 @@
+{
+	"method": "component-probes.mjs on HEAD (f39) and on the 4476e6450 scratch worktree (same session), every leaf compared; source-echo fields would be inputs (none differ)",
+	"baseline": "4476e6450",
+	"diffs": [
+		{
+			"id": "button",
+			"field": "light.variants.default.hoverBg",
+			"old": [
+				0,
+				100,
+				239,
+				0.902
+			],
+			"head": [
+				0,
+				79,
+				196,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-59"
+			],
+			"ref": "261e7d893: light primary hovers fill with bg-primary-text (primary-foreground 6.84:1) instead of primary/90 (4.16:1)"
+		},
+		{
+			"id": "button",
+			"field": "light.variants.destructive.color",
+			"old": [
+				251,
+				248,
+				241,
+				1
+			],
+			"head": [
+				253,
+				252,
+				247,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-38"
+			],
+			"ref": "fa9e89502: light --destructive-foreground oklch(0.98 0.01 90) -> oklch(0.99 0.006 90)"
+		},
+		{
+			"id": "button",
+			"field": "light.variants.destructive.contrast",
+			"old": 4.48,
+			"head": 4.63,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-38"
+			],
+			"ref": "fa9e89502: the light destructive pair 4.48:1 -> 4.63:1"
+		},
+		{
+			"id": "button",
+			"field": "light.variants.destructive.hoverBg",
+			"old": [
+				231,
+				0,
+				30,
+				0.902
+			],
+			"head": [
+				190,
+				0,
+				13,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-59"
+			],
+			"ref": "261e7d893: light destructive hovers fill with bg-destructive-text (6.38:1) instead of destructive/90 (4.39:1)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "dark.closeAriaLabel",
+			"old": null,
+			"head": "Close",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "dark.closeButtonCount",
+			"old": 0,
+			"head": 1,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "dark.closeHeight",
+			"old": null,
+			"head": 44,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "dark.closeSrOnlyTextCount",
+			"old": null,
+			"head": 0,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "dark.closeWidth",
+			"old": null,
+			"head": 44,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "light.closeAriaLabel",
+			"old": null,
+			"head": "Close",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "light.closeButtonCount",
+			"old": 0,
+			"head": 1,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "light.closeHeight",
+			"old": null,
+			"head": 44,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "light.closeSrOnlyTextCount",
+			"old": null,
+			"head": 0,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		},
+		{
+			"id": "sheet-no-close",
+			"field": "light.closeWidth",
+			"old": null,
+			"head": 44,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [],
+			"ref": "cycle-1 finding 20, 41d510078: SheetContent no longer takes showCloseButton (no production caller passed it; the divergence register records it as not adopted), so the probe scenario that passes showCloseButton={false} now renders the always-on 44px corner close; the owner sidebar sheet still hides it with the canonical [&>button]:hidden (D-46)"
+		}
+	]
+}

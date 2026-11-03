@@ -1,0 +1,157 @@
+{
+	"command": "bun rf/e2e/run-ci.ts <log> (cwd = worktree; wrapper = the saved pw-3062 config with the smoke, public and owner-axe projects; retries 0; traces off; list reporter) against next start -p 3062 of the HEAD capture build",
+	"build": "capture-3062 (NEXT_PUBLIC_APP_URL=http://localhost:3062)",
+	"exit": 0,
+	"total": {
+		"passed": 248,
+		"failed": 0,
+		"skipped": 5
+	},
+	"projects": {
+		"owner-axe": {
+			"passed": 124,
+			"failed": 0,
+			"skipped": 2
+		},
+		"smoke": {
+			"passed": 7,
+			"failed": 0,
+			"skipped": 0
+		},
+		"public": {
+			"passed": 117,
+			"failed": 0,
+			"skipped": 3
+		}
+	},
+	"specs": {
+		"tests/e2e/tests/documents-hub.spec.ts": {
+			"passed": 9,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/notifications.spec.ts": {
+			"passed": 3,
+			"failed": 0,
+			"skipped": 1,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/owner-reflow-320.spec.ts": {
+			"passed": 49,
+			"failed": 0,
+			"skipped": 1,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/owner/app-shell-sidebar.spec.ts": {
+			"passed": 29,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/owner/applications.spec.ts": {
+			"passed": 6,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts": {
+			"passed": 3,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts": {
+			"passed": 7,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/public/apply-token.spec.ts": {
+			"passed": 16,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/mobile-nav-375px.spec.ts": {
+			"passed": 8,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/persona-consistency.spec.ts": {
+			"passed": 22,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/reflow-320.spec.ts": {
+			"passed": 27,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/reporting-redirects.spec.ts": {
+			"passed": 17,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/routing-aliases.spec.ts": {
+			"passed": 7,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/seo-smoke.spec.ts": {
+			"passed": 20,
+			"failed": 0,
+			"skipped": 3,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/reports-hub.spec.ts": {
+			"passed": 18,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/smoke/critical-paths.smoke.spec.ts": {
+			"passed": 7,
+			"failed": 0,
+			"skipped": 0,
+			"projects": [
+				"smoke"
+			]
+		}
+	}
+}

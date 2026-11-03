@@ -1,15 +1,164 @@
 {
-	"rule": "66.2-29 M1-delta rule, anchored on FINAL (66.2-37) and attributed per the 2026-11-01 amendment: f39 changed src, then the CP-4 follow-up, then MAIN_MERGE",
+	"rule": "66.2-29 M1-delta rule, anchored on FINAL (66.2-37): FINAL scannedFiles + added - deleted non-test src files, each attributed to PRE_39..HEAD (fix round 1), then to MAIN_MERGE",
 	"final": 917,
-	"added": 0,
-	"deleted": 1,
-	"expected": 916,
-	"actual": 916,
-	"addedPaths": [],
+	"added": 29,
+	"deleted": 9,
+	"expected": 937,
+	"actual": 937,
+	"addedPaths": [
+		{
+			"path": "src/app/(owner)/reports/balance-sheet/balance-sheet-csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/balance-sheet/balance-sheet-view.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-view.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/income-statement/income-statement-csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/income-statement/income-statement-view.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/ledger-totals-unavailable.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/report-export-button.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/statement-basis-note.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/year-end/year-end-csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/analytics/lease-profitability-table.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/dashboard/components/occupancy-badge.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/leases/table/leases-csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/leases/wizard/utility-options.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/settings/download-account-data.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/tenants/tenants-csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/hooks/api/query-keys/property-performance-mappers.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/lib/formatters/count.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/lib/formatters/signed.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/lib/reports/csv.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/lib/reports/statement-basis.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/lib/reports/statement-labels.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/lib/stated-window.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/test/mocks/deleted-properties.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/test/mocks/paged-rpc.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/test/utils/label-in-name.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/test/utils/oklch-contrast.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/test/utils/state-fill-pairs.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/test/utils/vivid-text-elements.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		}
+	],
 	"deletedPaths": [
 		{
+			"path": "src/app/(owner)/analytics/financial/_components/invoice-summary-list.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/analytics/financial/_components/lease-table.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/analytics/lease-charts.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/components/dashboard/components/lease-status-badge.tsx",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/hooks/api/query-keys/property-stats-keys.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/hooks/api/query-keys/tenant-stats-mapper.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
+			"path": "src/hooks/use-entity-detail.ts",
+			"source": "fix round 1 (PRE_39..HEAD)"
+		},
+		{
 			"path": "src/types/jest-dom.d.ts",
-			"source": "main-merge (MAIN_MERGE^1..MAIN_MERGE)"
+			"source": "main-merge (MAIN_MERGE^1..MAIN_MERGE), deleted on main by #1043"
 		}
 	]
 }

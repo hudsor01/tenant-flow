@@ -1,0 +1,208 @@
+{
+	"base": "d9c7329f0 (main)",
+	"head": "HEAD",
+	"method": "deno bundle --no-lock --node-modules-dir=none --packages=external --platform=deno --allow-import=<the deno check hosts> --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts -o <out>, run from a git-archive export of supabase/functions at each side (parts F and H swapped files in place; same flags), then cmp",
+	"derivation": "the 13 functions whose index.ts or a module it imports through a relative from \"...\" (transitively), or a changed deno.json import-map entry, changed between d9c7329f0 and HEAD (edge-slugs.mjs); download-documents-zip and stripe-billing-portal/-cancel-subscription/-checkout changed in neither",
+	"deploy": [
+		"export-report",
+		"generate-pdf",
+		"lease-signature",
+		"n8n-blog-ingest"
+	],
+	"functions": [
+		{
+			"fn": "apply-token",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 1068242,
+			"md5": "f6772849cb53396a45852e302822d817",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/_shared/timing-safe.ts",
+				"supabase/functions/_shared/lease-signing.ts",
+				"supabase/functions/_shared/lease-pdf.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "auth-email-send",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 192266,
+			"md5": "ee60e310151b90dcd43355c973efa2ad",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/_shared/timing-safe.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "export-report",
+			"bundle": "different",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": "423895->1095130",
+			"changedLines": 35537,
+			"record": "runtime change: deploy after merge",
+			"changedSources": [
+				"supabase/functions/export-report/index.ts",
+				"supabase/functions/_shared/tier-gate.ts",
+				"supabase/functions/_shared/tax-year-reports.ts",
+				"supabase/functions/_shared/financial-analytics-report.ts",
+				"supabase/functions/_shared/report-xlsx.ts",
+				"supabase/functions/_shared/report-format.ts",
+				"supabase/functions/_shared/report-html.ts",
+				"supabase/functions/_shared/report-csv.ts"
+			],
+			"importMapHits": [
+				"xlsx"
+			]
+		},
+		{
+			"fn": "export-user-data",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 419081,
+			"md5": "1bbab7783e3eb674b52850b7743b1eeb",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/export-user-data/index.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "generate-pdf",
+			"bundle": "different",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": "428031->444642",
+			"changedLines": 954,
+			"record": "runtime change: deploy after merge",
+			"changedSources": [
+				"supabase/functions/generate-pdf/index.ts",
+				"supabase/functions/_shared/tier-gate.ts",
+				"supabase/functions/_shared/tax-year-reports.ts",
+				"supabase/functions/_shared/financial-analytics-report.ts",
+				"supabase/functions/_shared/report-html.ts",
+				"supabase/functions/_shared/report-format.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "lease-signature",
+			"bundle": "different",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": "1097381->1097452",
+			"changedLines": 16,
+			"record": "runtime change: deploy after merge",
+			"changedSources": [
+				"supabase/functions/_shared/tier-gate.ts",
+				"supabase/functions/_shared/timing-safe.ts",
+				"supabase/functions/_shared/lease-pdf.ts",
+				"supabase/functions/_shared/lease-signing.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "n8n-blog-ingest",
+			"bundle": "different",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": "423796->424628",
+			"changedLines": 97,
+			"record": "runtime change: deploy after merge",
+			"changedSources": [
+				"supabase/functions/n8n-blog-ingest/index.ts",
+				"supabase/functions/_shared/blog-banlist.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "newsletter-subscribe",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 428234,
+			"md5": "eb400185c82973297f3e6d51595ad455",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/_shared/timing-safe.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "resend-webhook",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 419824,
+			"md5": "4b99d1eab644d8b192b729fdb72ba38c",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/resend-webhook/index.ts",
+				"supabase/functions/_shared/timing-safe.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "send-contact-email",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 430166,
+			"md5": "5da891f78c052373a6460bdcccbc2640",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/_shared/timing-safe.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "send-lease-reminders",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 428768,
+			"md5": "a8a890c00c7ede84d841cdfd8793ad4d",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/_shared/timing-safe.ts",
+				"supabase/functions/_shared/tier-gate.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "sign-lease-token",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 1085583,
+			"md5": "752a9001e059366ca1c886403f62352a",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/_shared/timing-safe.ts",
+				"supabase/functions/_shared/lease-signing.ts",
+				"supabase/functions/_shared/lease-pdf.ts"
+			],
+			"importMapHits": []
+		},
+		{
+			"fn": "stripe-webhooks",
+			"bundle": "identical",
+			"baseExit": 0,
+			"headExit": 0,
+			"bytes": 620210,
+			"md5": "dd4010e1191536ebe8e6e5a778474ce0",
+			"record": "no runtime change (bundle identical)",
+			"changedSources": [
+				"supabase/functions/stripe-webhooks/index.ts",
+				"supabase/functions/stripe-webhooks/handlers/types.ts"
+			],
+			"importMapHits": []
+		}
+	]
+}

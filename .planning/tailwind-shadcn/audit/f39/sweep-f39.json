@@ -1,0 +1,8 @@
+{
+	"command": "bash scripts/mutation-sweep.sh",
+	"exit": 0,
+	"caught": 179,
+	"vacuous": 0,
+	"notApplied": 0,
+	"restored": true
+}
