@@ -316,7 +316,8 @@ set local role authenticated;
 
 -- The dashboard payloads, cut to the keys the assertion reads.
 insert into replay_figures
-select 'dashboard_stats_a', jsonb_build_object('units', s->'units', 'revenue', s->'revenue')
+select 'dashboard_stats_a', jsonb_build_object('units', s->'units', 'revenue', s->'revenue',
+  'maintenance_open', s->'maintenance'->'open')
 from (select public.get_dashboard_stats(current_setting('replay.owner_a')::uuid)::jsonb as s) x;
 insert into replay_figures
 select 'dashboard_v2_a', jsonb_build_object('units', d->'stats'->'units', 'revenue', d->'stats'->'revenue',
@@ -367,7 +368,8 @@ $$;
 
 select set_config('request.jwt.claims', json_build_object('sub', :'owner_b', 'role', 'authenticated')::text, true) as ignored \gset
 insert into replay_figures
-select 'dashboard_stats_b', jsonb_build_object('units', s->'units', 'revenue', s->'revenue')
+select 'dashboard_stats_b', jsonb_build_object('units', s->'units', 'revenue', s->'revenue',
+  'maintenance_open', s->'maintenance'->'open')
 from (select public.get_dashboard_stats(current_setting('replay.owner_b')::uuid)::jsonb as s) x;
 insert into replay_figures
 select 'dashboard_v2_b', jsonb_build_object('units', d->'stats'->'units', 'revenue', d->'stats'->'revenue',

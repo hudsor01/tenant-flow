@@ -88,21 +88,23 @@
 --     For occupancy_rate it is relative; the change in points is `change`.
 --   trends.active_tenants: tenant_count today and 30 days ago.
 --
--- OPEN MAINTENANCE, ONE COUNT (get_dashboard_data_v2). The dashboard's and the
--- analytics overview's "Open maintenance" tile shows `stats.maintenance.open`
--- beside the `trends.open_maintenance` chip, and the production body counted
--- three different sets under that one name: `stats.maintenance.open` the
--- requests whose status is 'open', the trend's current figure every request
--- not completed or cancelled, and each property's `open_maintenance` (the
--- portfolio table) 'open' and 'in_progress' only. So a chip read "+3 vs. 30
--- days ago" beside a figure of 2. All three now count the requests that are
--- not completed or cancelled ('open', 'assigned', 'in_progress',
--- 'needs_reassignment', 'on_hold'): the only set the trend can compare with 30
--- days ago, because no status history exists ('open' 30 days ago cannot be
--- known; "not yet completed or cancelled" can, from created_at and
--- completed_at). `stats.maintenance.inProgress` keeps its own count (no caller
--- reads it). get_dashboard_stats, whose `maintenance.open` no caller reads and
--- which has no maintenance trend, is unchanged here.
+-- OPEN MAINTENANCE, ONE COUNT (both functions). The dashboard's and the
+-- analytics overview's "Open maintenance" tile shows get_dashboard_data_v2's
+-- `stats.maintenance.open` beside the `trends.open_maintenance` chip, and the
+-- production body counted three different sets under that one name:
+-- `stats.maintenance.open` the requests whose status is 'open', the trend's
+-- current figure every request not completed or cancelled, and each
+-- property's `open_maintenance` (the portfolio table) 'open' and 'in_progress'
+-- only. So a chip read "+3 vs. 30 days ago" beside a figure of 2. All three
+-- now count the requests that are not completed or cancelled ('open',
+-- 'assigned', 'in_progress', 'needs_reassignment', 'on_hold'): the only set the
+-- trend can compare with 30 days ago, because no status history exists ('open'
+-- 30 days ago cannot be known; "not yet completed or cancelled" can, from
+-- created_at and completed_at). get_dashboard_stats' `maintenance.open` counts
+-- the same set, so the two functions give one figure under one name (no
+-- caller reads that key today; a figure under that name must not differ).
+-- `stats.maintenance.inProgress` keeps its own count in both (no caller reads
+-- it).
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
 -- to an empty database, seeds a portfolio (scripts/migration-replay-owner-figures.sql)
@@ -258,7 +260,7 @@ BEGIN
   maintenance_agg AS (
     SELECT
       COUNT(*)::int                                                               AS total,
-      COUNT(*) FILTER (WHERE status = 'open')::int                               AS open_count,
+      COUNT(*) FILTER (WHERE status NOT IN ('completed', 'cancelled'))::int      AS open_count,
       COUNT(*) FILTER (WHERE status = 'in_progress')::int                        AS in_progress,
       COUNT(*) FILTER (WHERE status = 'completed')::int                          AS completed,
       COUNT(*) FILTER (WHERE status = 'completed' AND DATE(completed_at) = CURRENT_DATE)::int AS completed_today,

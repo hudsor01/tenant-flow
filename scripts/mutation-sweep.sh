@@ -441,8 +441,7 @@ mutate "$REPLAY" '			tileOpen !== trendOpen ||' '' \
                  'the open-maintenance tile is not compared with its trend'
 mutate "$REPLAY" '			tileOpen !== propertyOpen' '			false' \
                  'the open-maintenance tile is not compared with the property rows'
-mutate "$REPLAY" 'for (const owner of ["dashboard_v2_a", "dashboard_v2_b"]) {' \
-                 'for (const owner of ["dashboard_v2_b"]) {' \
+mutate "$REPLAY" '		["dashboard_v2_a", "dashboard_stats_a"],' '' \
                  'owner A'"'"'s open-maintenance count is not checked'
 mutate "$REPLAY" '				amount > 20' '				amount > 1000' \
                  'the folded-vendor expense body is not named'
@@ -450,6 +449,14 @@ mutate "$REPLAY" '				category?.["category"] === "Other" &&' '				true &&' \
                  'the folded-vendor diagnosis names any vendor over 20.00'
 mutate "$REPLAY" 'atPath(printed, "dashboard_v2_a.maintenance_open") === 2 &&' 'false &&' \
                  'the status-open maintenance body is not named'
+mutate "$REPLAY" 'if (typeof tileOpen === "number" && statsOpen !== tileOpen) {' 'if (false) {' \
+                 'get_dashboard_stats'"'"' open maintenance is not compared with the tile'
+mutate "$REPLAY" '			"dashboard_stats_a.maintenance_open": 3,' '' \
+                 'owner A'"'"'s get_dashboard_stats open maintenance is not pinned'
+mutate "$REPLAY" '			"dashboard_stats_b.maintenance_open": 2,' '' \
+                 'owner B'"'"'s get_dashboard_stats open maintenance is not pinned'
+mutate "$REPLAY" 'atPath(printed, "dashboard_stats_a.maintenance_open") === 2 &&' 'false &&' \
+                 'the status-open get_dashboard_stats body is not named'
 mutate "$REPLAY" 'if (blogText === "") {' 'if (false) {' \
                  'empty blog-banlist output is not reported as a broken fixture'
 mutate "$REPLAY" 'if (blogParsed === null) {' 'if (false) {' \

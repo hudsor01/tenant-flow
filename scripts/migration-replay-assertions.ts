@@ -1360,8 +1360,10 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			"position_a_then.scheduled_rent": 2750,
 			"position_a_then.tenant_count": 3,
 			"dashboard_v2_a.maintenance_open": 3,
+			"dashboard_stats_a.maintenance_open": 3,
 			"dashboard_v2_a.property_open_maintenance.North Court": 3,
 			"dashboard_v2_b.maintenance_open": 2,
+			"dashboard_stats_b.maintenance_open": 2,
 			"dashboard_v2_b.property_open_maintenance.West Place": 2,
 			"position_nobody.occupancy_rate": 0,
 			"position_nobody.scheduled_rent": 0,
@@ -1668,6 +1670,14 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 			"get_dashboard_data_v2 counted only status 'open' in stats.maintenance.open beside a trend of every request not completed or cancelled: that is the body before 20261102184501 as part Q extends it.",
 		);
 	}
+	if (
+		atPath(printed, "dashboard_stats_a.maintenance_open") === 2 &&
+		atPath(printed, "dashboard_v2_a.trend_maintenance.current") === 3
+	) {
+		found.push(
+			"get_dashboard_stats counted only status 'open' in maintenance.open where get_dashboard_data_v2 counts every request not completed or cancelled: that is the body before 20261102184501 as part R extends it.",
+		);
+	}
 	const overview = atPath(printed, "overview_a_window");
 	if (
 		asJsonObject(overview) !== null &&
@@ -1829,9 +1839,15 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 
 	// One count of open maintenance: the tile shows stats.maintenance.open
 	// beside the open_maintenance trend's change, and the portfolio table each
-	// property's open_maintenance, so the three must be the same requests.
-	for (const owner of ["dashboard_v2_a", "dashboard_v2_b"]) {
+	// property's open_maintenance, so the three must be the same requests; and
+	// get_dashboard_stats' maintenance.open, the same name in the other
+	// function, the same figure.
+	for (const [owner, statsOwner] of [
+		["dashboard_v2_a", "dashboard_stats_a"],
+		["dashboard_v2_b", "dashboard_stats_b"],
+	] as const) {
 		const tileOpen = atPath(parsedFigures, `${owner}.maintenance_open`);
+		const statsOpen = atPath(parsedFigures, `${statsOwner}.maintenance_open`);
 		const trendOpen = atPath(
 			parsedFigures,
 			`${owner}.trend_maintenance.current`,
@@ -1854,6 +1870,11 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 		) {
 			failures.push(
 				`${owner}: stats.maintenance.open is ${JSON.stringify(tileOpen)}, the open_maintenance trend's current figure ${JSON.stringify(trendOpen)} and the properties' open_maintenance ${JSON.stringify(propertyOpen)}. They must be one count: the tile shows the first beside the trend's change.`,
+			);
+		}
+		if (typeof tileOpen === "number" && statsOpen !== tileOpen) {
+			failures.push(
+				`${statsOwner}: get_dashboard_stats' maintenance.open is ${JSON.stringify(statsOpen)} where get_dashboard_data_v2's is ${tileOpen}. One name, one definition: the requests not completed or cancelled.`,
 			);
 		}
 	}
@@ -1885,7 +1906,7 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 	}
 	return {
 		ok: true,
-		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend and each property (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
+		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend, each property and get_dashboard_stats (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
 	};
 }
 
