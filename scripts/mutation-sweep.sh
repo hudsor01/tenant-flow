@@ -9,7 +9,21 @@
 # whole suite green. Adding a row is the fix for a gap like that; the rows are
 # the record of which gaps have been closed.
 #
-#   bash scripts/mutation-sweep.sh
+#   bash scripts/mutation-sweep.sh                            # every row
+#   SWEEP_SHARD=3 SWEEP_SHARDS=8 bash scripts/mutation-sweep.sh  # one shard
+#   SWEEP_LIST=1 [SWEEP_SHARD=.. SWEEP_SHARDS=..] bash scripts/mutation-sweep.sh
+#
+# SHARDS. Each row re-runs the `scripts` and `src/lib/__tests__` suites, about
+# 2 s locally and 17 s on a GitHub runner, almost all of it Vitest start-up, so
+# one job's runtime grows with the row count: 179 rows ran past the old 45-minute
+# limit. With SWEEP_SHARD=i and SWEEP_SHARDS=n set, row r runs only in shard
+# ((r - 1) mod n) + 1, so every row runs in exactly one shard and the shards
+# differ in size by at most one. Each shard runs its own baseline and restore
+# check and fails on its own VACUOUS, NOT APPLIED or empty result; a row means
+# exactly what it means unsharded. With neither variable set, every row runs.
+# SWEEP_LIST=1 prints the rows a run would execute (`ROW<tab>r<tab>label`) and
+# touches nothing; scripts/mutation-sweep.test.ts uses it to prove that the
+# workflow's shards partition the rows.
 #
 # WHY THIS EXISTS, AND WHY IT IS COMMITTED. Two review passes over the gates in
 # scripts/ each returned the same CLASS of defect: an assertion or a control
@@ -38,7 +52,19 @@
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 9
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
+LIST=${SWEEP_LIST:-}
+SHARD=${SWEEP_SHARD:-}
+SHARDS=${SWEEP_SHARDS:-}
+if [ -z "$SHARD" ] && [ -z "$SHARDS" ]; then
+  SHARD=1
+  SHARDS=1
+elif ! [[ $SHARD =~ ^[1-9][0-9]*$ && $SHARDS =~ ^[1-9][0-9]*$ ]] || [ "$SHARD" -gt "$SHARDS" ]; then
+  echo "refusing to run: SWEEP_SHARD and SWEEP_SHARDS must both be set, as whole"
+  echo "numbers with 1 <= SWEEP_SHARD <= SWEEP_SHARDS (got '$SHARD' and '$SHARDS')."
+  exit 2
+fi
+
+if [ "$LIST" != 1 ] && { ! git diff --quiet || ! git diff --cached --quiet; }; then
   echo "refusing to run: the working tree has uncommitted changes, and this"
   echo "script edits tracked files. Commit or stash first."
   exit 2
@@ -50,18 +76,33 @@ CONTRACT=scripts/workflow-contract.ts
 RESULT=scripts/assertion-result.ts
 REPLAY_CLI=scripts/assert-migration-replay.ts
 
-BACKUP=$(mktemp -d)
-LOG=$(mktemp)
 FILES=("$REPLAY" "$PLATFORM" "$CONTRACT" "$RESULT" "$REPLAY_CLI")
-for f in "${FILES[@]}"; do cp "$f" "$BACKUP/$(basename "$f")"; done
-restore() { for f in "${FILES[@]}"; do cp "$BACKUP/$(basename "$f")" "$f"; done; }
-trap 'restore; rm -rf "$BACKUP" "$LOG"' EXIT
+if [ "$LIST" != 1 ]; then
+  BACKUP=$(mktemp -d)
+  LOG=$(mktemp)
+  for f in "${FILES[@]}"; do cp "$f" "$BACKUP/$(basename "$f")"; done
+  restore() { for f in "${FILES[@]}"; do cp "$BACKUP/$(basename "$f")" "$f"; done; }
+  trap 'restore; rm -rf "$BACKUP" "$LOG"' EXIT
+fi
 
 caught=0; vacuous=0; unapplied=0
+row=0; ran=0
+
+# A heading between groups of rows; a listing prints only rows.
+section() {
+  if [ "$LIST" != 1 ]; then echo; echo "=== $1 ==="; fi
+}
 
 # $1 file, $2 needle, $3 replacement, $4 label
 mutate() {
   local file=$1 needle=$2 replacement=$3 label=$4
+  row=$((row + 1))
+  if [ $(((row - 1) % SHARDS + 1)) -ne "$SHARD" ]; then return; fi
+  ran=$((ran + 1))
+  if [ "$LIST" = 1 ]; then
+    printf 'ROW\t%d\t%s\n' "$row" "$label"
+    return
+  fi
   if ! NEEDLE="$needle" REPLACEMENT="$replacement" FILE="$file" python3 - <<'PY'
 import os, pathlib, sys
 p = pathlib.Path(os.environ["FILE"])
@@ -88,13 +129,14 @@ PY
   restore
 }
 
-echo "=== baseline ==="
-CI=true bun run test:unit -- scripts src/lib/__tests__ > "$LOG" 2>&1
-if [ $? -ne 0 ]; then echo "baseline is RED; fix that before sweeping"; exit 1; fi
-grep -oE 'Tests  [0-9]+ passed' "$LOG"
-echo
+if [ "$LIST" != 1 ]; then
+  echo "=== baseline (shard $SHARD/$SHARDS) ==="
+  CI=true bun run test:unit -- scripts src/lib/__tests__ > "$LOG" 2>&1
+  if [ $? -ne 0 ]; then echo "baseline is RED; fix that before sweeping"; exit 1; fi
+  grep -oE 'Tests  [0-9]+ passed' "$LOG"
+fi
 
-echo "=== migration-replay assertions ==="
+section "migration-replay assertions"
 mutate "$REPLAY" 'return /^\d+$/.test(trimmed) ? Number(trimmed) : null;' \
                  'return /^\d*$/.test(trimmed) ? Number(trimmed) : null;' \
                  'parseCount accepts an empty string'
@@ -345,8 +387,7 @@ mutate "$REPLAY" 'daysBetween(monthStartYmd(today, -3), monthStartYmd(today, -1)
 mutate "$REPLAY" 'pending: PENDING_AT_MONTH_END[at] ?? 0,' 'pending: 1,' \
                  'a request open across month ends is not expected'
 
-echo
-echo "=== platform-config assertions ==="
+section "platform-config assertions"
 mutate "$PLATFORM" 'if (missing.length === 0 && unexpected.length === 0) {' 'if (true) {' \
                    'required-check drift always passes'
 mutate "$PLATFORM" 'const unexpected = contexts.filter((name) => !expected.includes(name));' \
@@ -417,8 +458,7 @@ mutate "$PLATFORM" 'if (pending.length === inWindow.length) {' 'if (false) {' \
 mutate "$PLATFORM" 'if (typeof enabled === "boolean") {' 'if (false) {' \
                    'the blanket boolean deploymentEnabled form is accepted'
 
-echo
-echo "=== workflow contract ==="
+section "workflow contract"
 mutate "$CONTRACT" 'if (left === null || right === null) return false;' \
                    'if (left === null || right === null) return true;' \
                    'two absent path lists compare equal'
@@ -504,8 +544,7 @@ mutate "$REPLAY" '	if (mismatches.length > 0) {
 mutate "$CONTRACT" 'if (sortedReal.join("\n") !== sortedCompanion.join("\n")) {' 'if (false) {' \
                    'the companion job-name equality is dropped'
 
-echo
-echo "=== the verdict layer: annotations, reporting, tallying, exit codes ==="
+section "the verdict layer: annotations, reporting, tallying, exit codes"
 # NOT COVERED BY THE ROWS ABOVE, and review proved what that cost: deleting the
 # %0A escaping passed lint, typecheck, the whole suite, a clean sweep and both
 # gates, because a GREEN gate never calls an annotation helper. Changing
@@ -544,10 +583,16 @@ mutate "$REPLAY_CLI" 'finish(assertBlogBanlistGate(readFileSync(0, "utf8")));' \
                      'finish({ ok: true, message: "blog-banlist" });' \
                      'the replay CLI ignores the blog-banlist input'
 
-echo
-echo "=== restore check ==="
+if [ "$LIST" = 1 ]; then
+  if [ "$ran" -eq 0 ]; then echo "shard $SHARD/$SHARDS holds none of the $row rows"; exit 1; fi
+  exit 0
+fi
+
+section "restore check"
 restore
-if git diff --quiet; then echo "tree restored byte-exact"; else echo "TREE NOT RESTORED"; git diff --stat; fi
+restored=1
+if git diff --quiet; then echo "tree restored byte-exact"; else restored=0; echo "TREE NOT RESTORED"; git diff --stat; fi
 echo
+echo "shard $SHARD/$SHARDS, rows $ran of $row"
 echo "caught=$caught vacuous=$vacuous not-applied=$unapplied"
-[ "$vacuous" -eq 0 ] && [ "$unapplied" -eq 0 ]
+[ "$ran" -gt 0 ] && [ "$vacuous" -eq 0 ] && [ "$unapplied" -eq 0 ] && [ "$restored" -eq 1 ]
