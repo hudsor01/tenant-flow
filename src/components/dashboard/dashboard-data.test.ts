@@ -34,8 +34,6 @@ describe("transformDashboardData", () => {
 		address_line1: "1 Test St",
 		property_type: "APARTMENT",
 		status: "PARTIAL" as const,
-		trend: "stable" as const,
-		trendPercentage: 0,
 	};
 
 	const basePayload: OwnerDashboardData = {

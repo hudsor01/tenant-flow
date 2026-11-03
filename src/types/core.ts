@@ -318,8 +318,6 @@ export interface PropertyPerformance {
 	address_line1: string;
 	property_type: string;
 	status: "NO_UNITS" | "vacant" | "FULL" | "PARTIAL";
-	trend: "up" | "down" | "stable";
-	trendPercentage: number;
 	// Optional: only `get_dashboard_data_v2` (via the Phase 2
 	// `perf_open_maintenance` CTE) emits this field. Other RPCs that
 	// construct `PropertyPerformance` (e.g., `get_property_performance_with_trends`)

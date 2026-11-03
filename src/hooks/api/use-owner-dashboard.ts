@@ -192,8 +192,9 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		address_line1: row.address,
 		property_type: row.property_type,
 		status: mapPropertyPerformanceStatus(row.status),
-		trend: "stable",
-		trendPercentage: 0,
+		// No `trend` or `trendPercentage`: get_dashboard_data_v2 reports no
+		// property's change over time, and they were written "stable" and 0
+		// for every row and read by no screen (66.2-39).
 		// Defensive: until the `perf_open_maintenance` migration is applied in
 		// prod (see 20260523223626_phase2_open_maintenance_per_property.sql),
 		// the RPC may return undefined for this field. `?? 0` keeps the
