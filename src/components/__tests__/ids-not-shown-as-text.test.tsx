@@ -3,10 +3,11 @@
  * part P). The analytics page's active units printed each unit's property_id
  * (a UUID) as its subtitle, and the sweep that found it found the class in
  * three more places: the units page's Property column ("Property ID:
- * 3f2a9c1e..."), the lease page's heading ("Lease #3f2a9c1e") and the billing
- * history's rows (the first 12 characters of a Stripe invoice id, a reference
- * no owner can look up). Each now names the record (the property, the
- * property and unit) or, for the invoice, leads with its date.
+ * 3f2a9c1e..."), the lease page's heading ("Lease #" and the id's first eight
+ * characters) and the billing history's rows (the first 12 characters of a
+ * Stripe invoice id, a reference no owner can look up). Each now names the
+ * record (the property, the property and unit) or, for the invoice, leads
+ * with its date.
  *
  * A guard reads every non-test .tsx under src/app and src/components and fails
  * on an id rendered as text: a JSX child `{x.id}` / `{x.property_id}` /

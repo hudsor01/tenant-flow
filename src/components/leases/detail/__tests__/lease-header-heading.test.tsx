@@ -1,7 +1,7 @@
 /**
  * The lease page's heading names the lease by its property and unit, as the
  * leases table does (66.2-39 fix round 1, part P). It printed the first eight
- * characters of the lease's id ("Lease #3f2a9c1e").
+ * characters of the lease's id after "Lease #".
  */
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
