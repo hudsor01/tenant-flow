@@ -53,8 +53,8 @@ test.describe("v2.0 Phase 46 — Reports paywall wire-up", () => {
 		const accessToken = decoded.access_token;
 		test.skip(!accessToken, "Could not extract access_token from storageState");
 
-		// Hit export-report with `type=year-end` — one of the four gated types
-		// (year-end | 1099 | financial | financial-analytics). The tier
+		// Hit export-report with `type=year-end` — one of the three gated types
+		// (year-end | financial | financial-analytics). The tier
 		// gate runs BEFORE the RPC is called, so we get either:
 		//   402 → Free tier (what this test proves)
 		//   200 → Growth/Max tier (skip: paywall not reachable)

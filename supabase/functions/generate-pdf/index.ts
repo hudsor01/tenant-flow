@@ -3,9 +3,9 @@
 //   1. { reportType, year }   — server-side report data fetch + HTML build
 //      (`financial-analytics` prints the /analytics/financial export, the same
 //      document export-report's pdf format prints; `year` is not used for it.
-//      `year-end`, `1099` and `financial` print the /reports/year-end page, its
-//      1099-NEC section and the /reports/tax-documents page for that year,
-//      `_shared/tax-year-reports.ts`. Any other reportType is a 400.)
+//      `year-end` and `financial` print the /reports/year-end page and the
+//      /reports/tax-documents page for that year, `_shared/tax-year-reports.ts`.
+//      Any other reportType is a 400.)
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
 // (A third mode, { leaseId }, printed a lease summary that no caller requests;
 // such a body is now a Mode 1 request without a reportType, a 400.)
@@ -47,7 +47,6 @@ import {
 // built from data it already holds) is not gated.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
-	"1099",
 	"financial",
 	"financial-analytics",
 ]);

@@ -30,11 +30,6 @@ vi.mock("#hooks/api/use-report-mutations", () => ({
 }));
 vi.mock("#hooks/api/use-reports", () => ({
 	useYearEndSummary: () => ({ data: undefined, isLoading: false, error: null }),
-	useReport1099Summary: () => ({
-		data: undefined,
-		isLoading: false,
-		error: null,
-	}),
 }));
 vi.mock("#components/reports/sections/year-end-report-section", () => ({
 	YearEndReportSection: () => null,

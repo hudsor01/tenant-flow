@@ -16,7 +16,7 @@ import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { reportAnalyticsQueries } from "../query-keys/report-analytics-keys";
 import { reportKeys, reportQueries } from "../query-keys/report-keys";
-import { useReport1099Summary, useYearEndSummary } from "../use-reports";
+import { useYearEndSummary } from "../use-reports";
 
 // Mock Supabase client using vi.hoisted() to avoid initialization errors
 const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({
@@ -82,7 +82,6 @@ describe("reportKeys", () => {
 			"2024-12-31",
 		]);
 		expect(reportKeys.yearEnd(2024)).toEqual(["reports", "year-end", 2024]);
-		expect(reportKeys.report1099(2024)).toEqual(["reports", "1099", 2024]);
 	});
 });
 
@@ -495,63 +494,6 @@ describe("useYearEndSummary", () => {
 	);
 });
 
-describe("useReport1099Summary", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
-	});
-
-	afterEach(() => {
-		vi.resetAllMocks();
-	});
-
-	it("fetches 1099 vendor data from get_expense_summary", async () => {
-		mockRpc.mockResolvedValueOnce({
-			data: {
-				vendor_payments: [
-					{ vendor_name: "Plumber Inc", total_paid: 15000, job_count: 5 },
-					{ vendor_name: "Electrician LLC", total_paid: 8000, job_count: 3 },
-				],
-			},
-			error: null,
-		});
-
-		const { result } = renderHook(() => useReport1099Summary(2024), {
-			wrapper: createWrapper(),
-		});
-
-		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
-		});
-
-		expect(result.current.data?.year).toBe(2024);
-		expect(result.current.data?.threshold).toBe(600);
-		expect(result.current.data?.recipients?.length).toBe(2);
-		expect(result.current.data?.totalReported).toBe(23000);
-		expect(mockRpc).toHaveBeenCalledWith("get_expense_summary", {
-			p_user_id: "user-1",
-			p_start_date: "2024-01-01",
-			p_end_date: "2024-12-31",
-		});
-	});
-
-	it("returns defaults when no user", async () => {
-		mockGetCachedUser.mockResolvedValue(null);
-
-		const { result } = renderHook(() => useReport1099Summary(2024), {
-			wrapper: createWrapper(),
-		});
-
-		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
-		});
-
-		expect(result.current.data?.year).toBe(2024);
-		expect(result.current.data?.recipients).toEqual([]);
-		expect(result.current.data?.totalReported).toBe(0);
-	});
-});
-
 describe("reportAnalyticsQueries.properties", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -948,33 +890,6 @@ describe("useYearEndSummary (error path)", () => {
 	});
 });
 
-describe("useReport1099Summary (error path)", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
-	});
-
-	afterEach(() => {
-		vi.resetAllMocks();
-	});
-
-	it("surfaces isError when get_expense_summary RPC errors", async () => {
-		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
-
-		const { result } = renderHook(() => useReport1099Summary(2024), {
-			wrapper: createWrapper(),
-		});
-
-		await waitFor(() => {
-			expect(result.current.isError).toBe(true);
-		});
-
-		expect(result.current.error).toMatchObject({
-			message: expect.stringContaining("permission denied"),
-		});
-	});
-});
-
 describe("reportAnalyticsQueries.properties (error path)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1147,31 +1062,6 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(prop?.rentReceived).toBe(250000.25);
 		expect(prop?.expenses).toBe(60000.1);
 		expect(prop?.netIncome).toBe(190000.15);
-	});
-
-	it("useReport1099Summary keeps vendor totalPaid and totalReported in dollars", async () => {
-		mockRpc.mockResolvedValueOnce({
-			data: {
-				vendor_payments: [
-					{ vendor_name: "Plumber Inc", total_paid: 15000.45, job_count: 5 },
-					{ vendor_name: "Electrician LLC", total_paid: 8000.55, job_count: 3 },
-				],
-			},
-			error: null,
-		});
-
-		const { result } = renderHook(() => useReport1099Summary(2024), {
-			wrapper: createWrapper(),
-		});
-
-		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true);
-		});
-
-		expect(result.current.data?.recipients?.[0]?.totalPaid).toBe(15000.45);
-		expect(result.current.data?.recipients?.[1]?.totalPaid).toBe(8000.55);
-		// sum stays in dollars: 15000.45 + 8000.55 = 23001.00 (no cents drift).
-		expect(result.current.data?.totalReported).toBe(23001);
 	});
 
 	it("reportAnalyticsQueries.properties keeps per-property rent received/expenses/net in dollars", async () => {

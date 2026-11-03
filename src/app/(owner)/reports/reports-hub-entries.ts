@@ -104,8 +104,7 @@ export const REPORTS_HUB_ENTRIES: readonly ReportsHubEntry[] = [
 		title: "Expenses",
 		href: "/reports/expenses",
 		icon: Receipt,
-		description:
-			"Every operating and maintenance cost, by category and property.",
+		description: "Every maintenance expense, by vendor and property.",
 		gatedReportType: null,
 	},
 	{
@@ -114,7 +113,7 @@ export const REPORTS_HUB_ENTRIES: readonly ReportsHubEntry[] = [
 		title: "Tax Documents",
 		href: "/reports/tax-documents",
 		icon: FileSpreadsheet,
-		description: "Year-end forms and schedules ready for your accountant.",
+		description: "Rent received and expenses by vendor for a tax year.",
 		gatedReportType: "financial",
 	},
 	{
@@ -132,7 +131,7 @@ export const REPORTS_HUB_ENTRIES: readonly ReportsHubEntry[] = [
 		title: "Year-End",
 		href: "/reports/year-end",
 		icon: CalendarRange,
-		description: "Annual income, expenses, and 1099-NEC vendor data.",
+		description: "Rent received, expenses and net income for a tax year.",
 		gatedReportType: "year-end",
 	},
 ];

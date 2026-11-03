@@ -4,9 +4,9 @@
 // and names one of the reports below; `format` defaults to csv. Any other
 // type, any other format, or a year that is not four digits, is a 400.
 // Every type holds its page's figures: `financial-analytics` is
-// /analytics/financial (`_shared/financial-analytics-report.ts`); `year-end`,
-// `1099` and `financial` are /reports/year-end, its 1099-NEC section and
-// /reports/tax-documents for the year asked for (`_shared/tax-year-reports.ts`).
+// /analytics/financial (`_shared/financial-analytics-report.ts`); `year-end`
+// and `financial` are /reports/year-end and /reports/tax-documents for the
+// year asked for (`_shared/tax-year-reports.ts`).
 // Formats: csv (`_shared/report-csv.ts`), xlsx (a real workbook,
 // `_shared/report-xlsx.ts`), pdf (HTML delegated to the generate-pdf Edge
 // Function, StirlingPDF).
@@ -52,7 +52,6 @@ import {
 // is ungated only by choice.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
-	"1099",
 	"financial",
 	"financial-analytics",
 ]);

@@ -53,13 +53,9 @@ function section(props: {
 	return (
 		<YearEndReportSection
 			year={2025}
-			data1099={undefined}
 			isLoadingYearEnd={false}
-			isLoading1099={false}
 			onDownloadYearEndCsv={vi.fn()}
-			onDownload1099Csv={vi.fn()}
 			isExportingYearEnd={false}
-			isExporting1099={false}
 			{...props}
 		/>
 	);

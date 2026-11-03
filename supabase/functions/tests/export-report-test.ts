@@ -14,7 +14,7 @@
 //   - type, format and year are validated: a type the function does not build
 //     (the deleted maintenance and revenue row dumps, income-statement,
 //     cash-flow, none) is a 400 before the gate and any RPC;
-//   - year-end, 1099 and financial (the tax-documents page) write the leaf's
+//   - year-end and financial (the tax-documents page) write the leaf's
 //     table of their page's figures for the year asked for, in every format
 //     (`_shared/tax-year-reports.ts`; the Vitest `__tests__/tax-year-reports
 //     .test.ts` proves those rows equal the pages');
@@ -44,7 +44,6 @@ import {
 	buildTaxYearReport,
 	expenseVendorLabel,
 	propertyReportName,
-	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_REPORT_TYPE,
 	taxYearReportCalls,
 	YEAR_END_REPORT_TYPE,
@@ -105,13 +104,6 @@ function answers(): RpcAnswers {
 					{ category: "Roof, Gutter & Co", amount: 2000.5, percentage: 99 },
 				],
 				monthly_totals: [{ month: "2026-10", amount: 2120.5 }],
-				vendor_payments: [
-					{
-						vendor_name: "Roof, Gutter & Co",
-						total_paid: 2000.5,
-						job_count: 2,
-					},
-				],
 			},
 			error: null,
 		},
@@ -543,7 +535,7 @@ Deno.test("every RPC error is a 500 and never a file", async () => {
 			});
 		}
 	}
-	for (const type of ["year-end", "1099", "financial"]) {
+	for (const type of ["year-end", "financial"]) {
 		const s = scenario();
 		for (const name of Object.keys(s.rpc)) {
 			s.rpc[name] = { data: null, error: { message: "boom" } };
@@ -627,7 +619,7 @@ Deno.test("year-end names a property deleted since, read for the validated owner
 	assertEquals(res.status, 200);
 	const lines = (await res.text()).split("\n");
 	assert(
-		lines.includes("By Property,Maple Court (deleted),,,61200,2120.5,59079.5,"),
+		lines.includes("By Property,Maple Court (deleted),,61200,2120.5,59079.5"),
 	);
 	assertEquals(calls.propertyReads, [
 		[
@@ -635,21 +627,21 @@ Deno.test("year-end names a property deleted since, read for the validated owner
 			["status", "inactive"],
 		],
 	]);
-	// The 1099 and tax documents reports list no property: they read none.
-	for (const type of [REPORT_1099_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
-		const other = await run(get(`?type=${type}&format=csv&year=2024`), s);
-		assertEquals(other.res.status, 200, type);
-		assertEquals(other.calls.propertyReads, [], type);
-	}
+	// The tax documents report lists no property: it reads none.
+	const other = await run(
+		get(`?type=${TAX_DOCUMENTS_REPORT_TYPE}&format=csv&year=2024`),
+		s,
+	);
+	assertEquals(other.res.status, 200);
+	assertEquals(other.calls.propertyReads, []);
 });
 
 const TAX_YEAR_FILES: ReadonlyArray<readonly [string, string]> = [
 	[YEAR_END_REPORT_TYPE, "year-end-2024"],
-	[REPORT_1099_TYPE, "1099-vendors-2024"],
 	[TAX_DOCUMENTS_REPORT_TYPE, "tax-documents-2024"],
 ];
 
-Deno.test("year-end, 1099 and tax documents csv are their page's figures for the year", async () => {
+Deno.test("year-end and tax documents csv are their page's figures for the year", async () => {
 	for (const [type, filename] of TAX_YEAR_FILES) {
 		const s = scenario();
 		const { res, calls } = await run(
@@ -670,12 +662,14 @@ Deno.test("year-end, 1099 and tax documents csv are their page's figures for the
 	const s = scenario();
 	const { res } = await run(get("?type=year-end&format=csv&year=2024"), s);
 	const lines = (await res.text()).split("\n");
-	assert(lines.includes("Summary,Rent Received,,61200,,,,"));
-	assert(lines.includes("By Property,Maple Court,,,61200,2120.5,59079.5,"));
-	assert(lines.includes("Expenses by Vendor,'=HYPERLINK(1),,120,,,,"));
+	assertEquals(lines[0], "Section,Item,Amount,Rent Received,Expenses,Net Income");
+	assert(lines.includes("Summary,Rent Received,61200,,,"));
+	assert(lines.includes("By Property,Maple Court,,61200,2120.5,59079.5"));
+	assert(lines.includes("Expenses by Vendor,'=HYPERLINK(1),120,,,"));
+	assert(!lines.some((line) => /1099|threshold/i.test(line)));
 });
 
-Deno.test("year-end, 1099 and tax documents pdf post the sectioned HTML", async () => {
+Deno.test("year-end and tax documents pdf post the sectioned HTML", async () => {
 	for (const [type, filename] of TAX_YEAR_FILES) {
 		await withPdfStub(true, async (posts) => {
 			const s = scenario();
@@ -685,12 +679,7 @@ Deno.test("year-end, 1099 and tax documents pdf post the sectioned HTML", async 
 			assertEquals(posts.length, 1);
 			const html = posts[0]?.body.html ?? "";
 			assertStringIncludes(html, "2024");
-			assertStringIncludes(
-				html,
-				type === REPORT_1099_TYPE
-					? '<td class="td num">$2,000.50</td>'
-					: '<td class="td num">$61,200.00</td>',
-			);
+			assertStringIncludes(html, '<td class="td num">$61,200.00</td>');
 			assert(!html.includes(">61200<"), `${type}: no bare amount`);
 			assert(!html.includes(">2120.5<"), `${type}: no bare amount`);
 			assert(!html.includes(">2000.5<"), `${type}: no bare amount`);
@@ -703,7 +692,7 @@ Deno.test("year-end, 1099 and tax documents pdf post the sectioned HTML", async 
 	}
 });
 
-Deno.test("year-end, 1099 and tax documents xlsx keep numbers, money in dollars", async () => {
+Deno.test("year-end and tax documents xlsx keep numbers, money in dollars", async () => {
 	for (const [type, filename] of TAX_YEAR_FILES) {
 		const s = scenario();
 		const { res } = await run(get(`?type=${type}&format=xlsx&year=2024`), s);
@@ -718,19 +707,15 @@ Deno.test("year-end, 1099 and tax documents xlsx keep numbers, money in dollars"
 			report.title
 		];
 		assert(sheet, `${type}: the sheet exists`);
-		// Row 2 is Rent Received, or the 1099 vendor.
-		const amount = type === TAX_DOCUMENTS_REPORT_TYPE ? sheet.C2 : sheet.D2;
+		// Row 2 is Rent Received; both tables carry the amount in column C.
+		const amount = sheet.C2;
 		assertEquals(amount?.t, "n", type);
-		assertEquals(
-			amount?.w,
-			type === REPORT_1099_TYPE ? "$2,000.50" : "$61,200.00",
-			type,
-		);
+		assertEquals(amount?.w, "$61,200.00", type);
 		assertXlsxIsTable(bytes, report.title, report.table);
 	}
 });
 
-Deno.test("year-end, 1099 and tax documents are gated: 402, no RPC", async () => {
+Deno.test("year-end and tax documents are gated: 402, no RPC", async () => {
 	for (const [type] of TAX_YEAR_FILES) {
 		const { res, calls } = await run(
 			get(`?type=${type}&format=csv&year=2024`),
@@ -744,6 +729,8 @@ Deno.test("year-end, 1099 and tax documents are gated: 402, no RPC", async () =>
 Deno.test("a type the function does not build is a 400, before the gate and any RPC", async () => {
 	for (const query of [
 		"?type=maintenance&format=csv&year=2026",
+		// The year-end page's 1099-NEC section, removed in 66.2-39.
+		"?type=1099&format=csv&year=2026",
 		"?type=revenue&format=xlsx",
 		"?type=income-statement&format=pdf",
 		"?type=cash-flow&format=csv",
@@ -757,7 +744,7 @@ Deno.test("a type the function does not build is a 400, before the gate and any 
 				assertEquals(res.status, 400, `${query} ${plan}`);
 				assertEquals(await res.json(), {
 					error:
-						"type must be one of: financial-analytics, year-end, 1099, financial",
+						"type must be one of: financial-analytics, year-end, financial",
 				});
 				assertEquals(calls.rpcs, [], query);
 				assertEquals(calls.gateEvents, 0, query);

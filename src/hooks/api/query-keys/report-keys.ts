@@ -28,7 +28,6 @@ export const reportKeys = {
 	maintenance: (start_date?: string, end_date?: string) =>
 		[...reportKeys.all, "maintenance", start_date, end_date] as const,
 	yearEnd: (year: number) => [...reportKeys.all, "year-end", year] as const,
-	report1099: (year: number) => [...reportKeys.all, "1099", year] as const,
 };
 
 export const reportQueries = {

@@ -1,12 +1,7 @@
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
-import type { Year1099Summary, YearEndSummary } from "#types/reports";
-import {
-	build1099Csv,
-	buildYearEndCsv,
-	REPORT_1099_CSV_HEADER,
-	YEAR_END_CSV_HEADER,
-} from "../year-end-csv";
+import type { YearEndSummary } from "#types/reports";
+import { buildYearEndCsv, YEAR_END_CSV_HEADER } from "../year-end-csv";
 
 function parse(csv: string): string[][] {
 	const result = Papa.parse<string[]>(csv, { newline: "\r\n", delimiter: "," });
@@ -62,33 +57,6 @@ describe("buildYearEndCsv", () => {
 			["By Property", "'=Maple Court", "", "30000.00", "8000.00", "22000.00"],
 			["By Property", "Oak, Unit 2", "", "24000.00", "24500.50", "-500.50"],
 			["Expenses by Vendor", "'-Repairs", "12500.50", "", "", ""],
-		]);
-	});
-});
-
-describe("build1099Csv", () => {
-	const summary: Year1099Summary = {
-		year: 2025,
-		threshold: 600,
-		totalReported: 2100,
-		recipients: [
-			{ vendorName: "@Acme Plumbing", totalPaid: 1500, jobCount: 3 },
-			{ vendorName: "Bob's HVAC", totalPaid: 600, jobCount: 1 },
-		],
-	};
-
-	it("writes one line per recipient with plain numbers", () => {
-		expect(parse(build1099Csv(summary, 2025))).toEqual([
-			[...REPORT_1099_CSV_HEADER],
-			["'@Acme Plumbing", "1500.00", "3", "2025", "600.00", "Yes"],
-			["Bob's HVAC", "600.00", "1", "2025", "600.00", "Yes"],
-		]);
-	});
-
-	it("writes the threshold message when no vendor qualifies", () => {
-		expect(parse(build1099Csv({ ...summary, recipients: [] }, 2024))).toEqual([
-			["message"],
-			["No vendors met the $600 1099-NEC threshold for 2024"],
 		]);
 	});
 });

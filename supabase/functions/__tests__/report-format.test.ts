@@ -1,16 +1,16 @@
 /**
  * The report PDFs and XLSX files print each figure as the pages print it.
  *
- * WHAT WENT WRONG. The year-end, 1099-NEC, tax-documents and financial
- * analytics PDFs printed every amount as a bare number (`61200`, `-250.5`)
- * where the pages show `$61,200.00` and `-$250.50`, and the XLSX money cells
+ * WHAT WENT WRONG. The year-end, tax-documents and financial analytics PDFs
+ * printed every amount as a bare number (`61200`, `-250.5`) where the pages
+ * show `$61,200.00` and `-$250.50`, and the XLSX money cells
  * had Excel's General format.
  *
  * WHAT THIS FILE PROVES BY EXECUTION. `_shared/report-format` (the PDF cell
  * text and the XLSX money format) against the app's own formatters, never a
  * hand-copied literal:
  *   - money is `formatCurrency`'s text, the formatter of every amount on the
- *     year-end, 1099-NEC and tax-documents pages and on the financial
+ *     year-end and tax-documents pages and on the financial
  *     analytics page's payment summary and expense breakdown;
  *   - a share is the tax-documents page's `${toFixed(1)}%`, and Scheduled Margin
  *     is the margin card's `NumberTicker` text (rendered here) and `%`;
@@ -86,7 +86,9 @@ describe("PDF cell text", () => {
 	it("prints text and counts as they are, and an empty cell as nothing", () => {
 		expect(formatReportCell(7, "plain")).toBe("7");
 		expect(formatReportCell("Maple Court", "plain")).toBe("Maple Court");
-		expect(formatReportCell("1099 Required", "money")).toBe("1099 Required");
+		expect(formatReportCell("No vendor recorded", "money")).toBe(
+			"No vendor recorded",
+		);
 		expect(formatReportCell(null, "money")).toBe("");
 	});
 });

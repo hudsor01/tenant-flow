@@ -3,7 +3,7 @@
  * Split from report-keys.ts: analytics/report-type/aggregate queries.
  *
  * Queries: occupancyMetrics, financial, properties, tenants, maintenance,
- * yearEnd, report1099.
+ * yearEnd.
  */
 
 import { queryOptions } from "@tanstack/react-query";
@@ -16,7 +16,6 @@ import type {
 	OccupancyMetrics,
 	PropertyReport,
 	TenantReport,
-	Year1099Summary,
 	YearEndResult,
 } from "#types/reports";
 import { expenseVendorLabel } from "../../../../supabase/functions/_shared/tax-year-reports";
@@ -340,42 +339,6 @@ export const reportAnalyticsQueries = {
 							amount: Number(c.amount ?? 0),
 						})),
 					},
-				};
-			},
-			...CACHE,
-		}),
-
-	report1099: (year: number) =>
-		queryOptions({
-			queryKey: reportKeys.report1099(year),
-			queryFn: async (): Promise<Year1099Summary> => {
-				const supabase = createClient();
-				const user = await getCachedUser();
-				if (!user)
-					return { year, threshold: 600, recipients: [], totalReported: 0 };
-				// BILL-02: scope to the selected tax year. (NOTE: get_expense_summary
-				// does not emit a `vendor_payments` key, so this report renders empty
-				// regardless — a separate pre-existing gap, out of BILL-02 scope.)
-				const { data, error } = await supabase.rpc("get_expense_summary", {
-					p_user_id: user.id,
-					p_start_date: `${year}-01-01`,
-					p_end_date: `${year}-12-31`,
-				});
-				if (error) handlePostgrestError(error, "1099 summary");
-				const summary = data as Record<string, unknown> | null;
-				const vendorPayments = (summary?.vendor_payments ?? []) as Array<
-					Record<string, unknown>
-				>;
-				const recipients = vendorPayments.map((v) => ({
-					vendorName: expenseVendorLabel(v.vendor_name),
-					totalPaid: Number(v.total_paid ?? 0),
-					jobCount: Number(v.job_count ?? 0),
-				}));
-				return {
-					year,
-					threshold: 600,
-					recipients,
-					totalReported: recipients.reduce((acc, r) => acc + r.totalPaid, 0),
 				};
 			},
 			...CACHE,

@@ -1,5 +1,5 @@
 /**
- * The year-end, 1099-NEC and tax-documents pages as export tables, as pure
+ * The year-end and tax-documents pages as export tables, as pure
  * functions: the RPCs each page reads, how to load them, and the figures the
  * page renders from them, one table row per figure.
  *
@@ -18,12 +18,10 @@
  *   - `year-end` is `/reports/year-end`: `reportAnalyticsQueries.yearEnd(year)`
  *     (get_billing_insights as of December 31 of the year and of the year
  *     before, get_expense_summary for the year, get_property_performance_
- *     analytics for the calendar year) and `report1099(year)` (the same
- *     get_expense_summary call), `src/hooks/api/query-keys/report-analytics-keys.ts`.
- *     Rows: the three summary cards, the By Property table (Schedule E
- *     support), the Expense Breakdown (largest first, as the page sorts it),
- *     the 1099-NEC table.
- *   - `1099` is that page's 1099-NEC section alone.
+ *     analytics for the calendar year),
+ *     `src/hooks/api/query-keys/report-analytics-keys.ts`.
+ *     Rows: the three summary cards, the By Property table and the Expenses
+ *     by Vendor (largest first, as the page sorts it).
  *   - `financial` is `/reports/tax-documents` (the wire name predates the
  *     page): `financialTaxQueries.taxDocuments(year)` (the two
  *     get_billing_insights calls, get_expense_summary for the year),
@@ -42,15 +40,12 @@
  * server cannot report them yet (get_billing_insights before 20261102055449,
  * or a property row whose `timeframe` is not the year), the page says so and
  * the report throws, so no file ever presents $0 as a tax year's income.
- *     Property Depreciation has no data source (the query returns it empty),
- *     so it contributes no rows; the test fails if it ever fills.
  * The test runs each page query and this module against the same RPC answers
  * and asserts the calls are identical and every figure matches.
  *
  * NUMBERS. Every amount is dollars, rounded to cents as the pages'
  * `formatCurrency` (`Intl.NumberFormat`) rounds them; a share is a percentage
- * rounded to one decimal with the page's own `toFixed(1)`; counts are written
- * as they come. Each column has one format (`YEAR_END_FORMATS`, `TAX_DOCUMENTS_FORMATS`):
+ * rounded to one decimal with the page's own `toFixed(1)`. Each column has one format (`YEAR_END_FORMATS`, `TAX_DOCUMENTS_FORMATS`):
  * the PDF prints money and shares as the pages do, the CSV writes the raw
  * number, the XLSX gives money a currency number format.
  */
@@ -181,22 +176,22 @@ async function loadEveryPropertyRow(
 }
 
 export const YEAR_END_REPORT_TYPE = "year-end";
-export const REPORT_1099_TYPE = "1099";
 /** `/reports/tax-documents`. Its PDF request has always sent `financial`. */
 export const TAX_DOCUMENTS_REPORT_TYPE = "financial";
 
-/** The 1099-NEC reporting threshold the year-end page states, in dollars. */
-export const REPORT_1099_THRESHOLD = 600;
-
+/**
+ * The year-end table's columns. No file names a vendor as needing a 1099:
+ * that turns on the vendor and on a threshold tax law sets for each year, and
+ * TenantFlow records neither. The 1099-NEC section, its Jobs and Status
+ * columns and its report type went in 66.2-39.
+ */
 export const YEAR_END_HEADER = [
 	"Section",
 	"Item",
-	"Jobs",
 	"Amount",
 	"Rent Received",
 	"Expenses",
 	"Net Income",
-	"Status",
 ] as const;
 
 export const TAX_DOCUMENTS_HEADER = [
@@ -247,7 +242,6 @@ const SOURCES_BY_REPORT: Readonly<Record<string, readonly SourceKey[]>> = {
 		"expenseSummary",
 		"propertyPerformance",
 	],
-	[REPORT_1099_TYPE]: ["expenseSummary"],
 	[TAX_DOCUMENTS_REPORT_TYPE]: [
 		"ledgerAtYearEnd",
 		"ledgerAtPriorYearEnd",
@@ -258,7 +252,6 @@ const SOURCES_BY_REPORT: Readonly<Record<string, readonly SourceKey[]>> = {
 /** The report types this module builds, in the order the pages list them. */
 export const TAX_YEAR_REPORT_TYPES: readonly string[] = [
 	YEAR_END_REPORT_TYPE,
-	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_REPORT_TYPE,
 ];
 
@@ -450,38 +443,6 @@ function yearEndRow(
 	});
 }
 
-export const REPORT_1099_SECTION = `Vendors paid $${REPORT_1099_THRESHOLD}+ (may require 1099-NEC)`;
-
-function rows1099(expenseSummary: unknown): Row[] {
-	const recipients = arrayOrEmpty(
-		asRecord(expenseSummary)?.["vendor_payments"],
-		"vendor payments",
-	).map((entry) => {
-		const row = asRecord(entry) ?? {};
-		return {
-			vendorName: expenseVendorLabel(row["vendor_name"]),
-			totalPaid: Number(row["total_paid"] ?? 0),
-			jobCount: Number(row["job_count"] ?? 0),
-		};
-	});
-	if (recipients.length === 0) {
-		return [
-			yearEndRow(
-				REPORT_1099_SECTION,
-				`No vendors exceeded the $${REPORT_1099_THRESHOLD} threshold`,
-				{},
-			),
-		];
-	}
-	return recipients.map((r) =>
-		yearEndRow(REPORT_1099_SECTION, r.vendorName, {
-			Jobs: r.jobCount,
-			Amount: money(r.totalPaid),
-			Status: "1099 Required",
-		}),
-	);
-}
-
 function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 	const received = rentReceivedInYear(sources);
 	const operating = expenseTotal(sources.expenseSummary);
@@ -532,7 +493,6 @@ function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 				Amount: money(c.amount),
 			}),
 		),
-		...rows1099(sources.expenseSummary),
 	];
 }
 
@@ -592,16 +552,6 @@ export function buildTaxYearReport(
 			),
 		};
 	}
-	if (reportType === REPORT_1099_TYPE) {
-		return {
-			title: `1099-NEC Summary ${year}`,
-			table: columnTable(
-				YEAR_END_HEADER,
-				YEAR_END_FORMATS,
-				rows1099(sources.expenseSummary),
-			),
-		};
-	}
 	if (reportType === TAX_DOCUMENTS_REPORT_TYPE) {
 		return {
 			title: `Tax Documents ${year}`,
@@ -620,7 +570,6 @@ export function taxYearReportFilename(
 	reportType: string,
 	year: number,
 ): string {
-	if (reportType === REPORT_1099_TYPE) return `1099-vendors-${year}`;
 	if (reportType === TAX_DOCUMENTS_REPORT_TYPE) return `tax-documents-${year}`;
 	return `year-end-${year}`;
 }

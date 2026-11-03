@@ -134,16 +134,3 @@ export interface YearEndSummary {
 export type YearEndResult =
 	| { readonly status: "ready"; readonly summary: YearEndSummary }
 	| { readonly status: "ledger-unavailable"; readonly year: number };
-
-export interface Year1099Recipient {
-	vendorName: string;
-	totalPaid: number;
-	jobCount: number;
-}
-
-export interface Year1099Summary {
-	year: number;
-	threshold: number;
-	recipients: Year1099Recipient[];
-	totalReported: number;
-}

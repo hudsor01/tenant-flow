@@ -1,28 +1,27 @@
 /**
- * The year-end, 1099-NEC and tax-documents PDFs hold what their pages show.
+ * The year-end and tax-documents PDFs hold what their pages show.
  *
  * WHAT WENT WRONG. "Download PDF" on `/reports/year-end` and
  * `/reports/tax-documents` asked generate-pdf (Mode 1) for `year-end` and
  * `financial`, which printed `get_financial_overview` flattened into two
  * `metric | value` rows (`overview` and `highlights` as JSON text): none of the
- * figures either page shows. export-report's `year-end` and `1099` types had
- * the same defect (`1099` printed `get_billing_insights`, a lease-revenue
- * payload, as a "1099" report).
+ * figures either page shows. export-report's `year-end` type had the same
+ * defect. (A `1099` type, the year-end page's 1099-NEC section, went in
+ * 66.2-39 with the section: TenantFlow does not determine which vendors need
+ * a 1099.)
  *
  * WHAT THIS FILE PROVES BY EXECUTION. Each page's figures come from query
  * functions in `src/hooks/api/query-keys/`: `reportAnalyticsQueries.yearEnd`
- * and `report1099` (the year-end page) and `financialTaxQueries.taxDocuments`
+ * (the year-end page) and `financialTaxQueries.taxDocuments`
  * (the tax-documents page). The exports build their tables with
  * `_shared/tax-year-reports`. Both run here against the SAME recorded RPC
  * answers, and every assertion compares one side to the other, never to a
  * hand-copied literal:
  *   1. the RPC calls (name and arguments, so the year) are identical;
  *   2. every figure the page renders is a table row, in the page's order;
- *   3. the section the export leaves out (Property Depreciation) is empty on
- *      the page too;
- *   4. an RPC shape that makes the page fail makes the export fail;
- *   5. an RPC error fails the export load, naming the RPC;
- *   6. every amount is rounded as the pages print it (`formatCurrency`), and
+ *   3. an RPC shape that makes the page fail makes the export fail;
+ *   4. an RPC error fails the export load, naming the RPC;
+ *   5. every amount is rounded as the pages print it (`formatCurrency`), and
  *      each column carries the format the PDF and XLSX print it in.
  * The specifier carries no `.ts` extension (TS5097, see report-csv.test.ts).
  *
@@ -37,7 +36,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { sortExpenseCategoriesDesc } from "#components/reports/sections/year-end-report-section-utils";
 import { formatCurrency } from "#lib/utils/currency";
 import type { TaxDocumentsData } from "#types/financial-statements";
-import type { Year1099Summary, YearEndSummary } from "#types/reports";
+import type { YearEndSummary } from "#types/reports";
 import type {
 	ReportCell,
 	RpcCall,
@@ -45,9 +44,6 @@ import type {
 import {
 	buildTaxYearReport,
 	loadTaxYearSources,
-	REPORT_1099_SECTION,
-	REPORT_1099_THRESHOLD,
-	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_FORMATS,
 	TAX_DOCUMENTS_HEADER,
 	TAX_DOCUMENTS_REPORT_TYPE,
@@ -122,10 +118,6 @@ function richAnswers(): RpcAnswers {
 				],
 				monthly_totals: [],
 				total_amount: 11120.5,
-				vendor_payments: [
-					{ vendor_name: "Acme Plumbing", total_paid: 9000.5, job_count: 4 },
-					{ vendor_name: "<b>Sparky</b>", total_paid: 750, job_count: 1 },
-				],
 			},
 			error: null,
 		},
@@ -153,17 +145,6 @@ function richAnswers(): RpcAnswers {
 	};
 }
 
-/** No vendor payments: what the RPC really returns today (no such key). */
-function plainAnswers(): RpcAnswers {
-	const answers = richAnswers();
-	const summary = answers.get_expense_summary?.data;
-	if (summary && typeof summary === "object" && "vendor_payments" in summary) {
-		const { vendor_payments: _omit, ...rest } = summary;
-		answers.get_expense_summary = { data: rest, error: null };
-	}
-	return answers;
-}
-
 /** Answer by name and as-of date first (name@end_date_param), then by name. */
 function answer(answers: RpcAnswers) {
 	return (name: string, args?: Readonly<Record<string, unknown>>) => {
@@ -182,16 +163,14 @@ function queryClient(): QueryClient {
 
 interface Screen {
 	yearEnd: YearEndSummary;
-	report1099: Year1099Summary;
 	taxDocuments: TaxDocumentsData;
-	calls: Record<"yearEnd" | "report1099" | "taxDocuments", RpcCall[]>;
+	calls: Record<"yearEnd" | "taxDocuments", RpcCall[]>;
 }
 
 /** What the pages render: their query functions, run against `answers`. */
 async function screen(answers: RpcAnswers): Promise<Screen> {
 	const calls: Screen["calls"] = {
 		yearEnd: [],
-		report1099: [],
 		taxDocuments: [],
 	};
 	let sink: RpcCall[] = [];
@@ -217,10 +196,6 @@ async function screen(answers: RpcAnswers): Promise<Screen> {
 		throw new Error("the year-end page shows its unavailable state");
 	}
 	const yearEnd = yearEndResult.summary;
-	sink = calls.report1099;
-	const report1099 = await queryClient().query(
-		reportAnalyticsQueries.report1099(YEAR),
-	);
 	sink = calls.taxDocuments;
 	const taxResult = await queryClient().query(
 		financialTaxQueries.taxDocuments(YEAR),
@@ -229,7 +204,7 @@ async function screen(answers: RpcAnswers): Promise<Screen> {
 		throw new Error("the tax documents page shows its unavailable state");
 	}
 	const taxDocuments = taxResult.documents;
-	return { yearEnd, report1099, taxDocuments, calls };
+	return { yearEnd, taxDocuments, calls };
 }
 
 /** What an export loads and writes for one report type, against `answers`. */
@@ -280,80 +255,36 @@ const cents = (value: number) =>
 const distinct = (calls: readonly RpcCall[]) =>
 	[...new Set(calls.map((c) => JSON.stringify(c)))].sort();
 
-/** The 1099-NEC section as the year-end page renders it. */
-function expected1099Rows(summary: Year1099Summary): ReportCell[][] {
-	if (summary.recipients.length === 0) {
-		return [
-			[
-				REPORT_1099_SECTION,
-				`No vendors exceeded the $${summary.threshold} threshold`,
-				null,
-				null,
-				null,
-				null,
-				null,
-				null,
-			],
-		];
-	}
-	return summary.recipients.map((r) => [
-		REPORT_1099_SECTION,
-		r.vendorName,
-		r.jobCount,
-		cents(r.totalPaid),
-		null,
-		null,
-		null,
-		"1099 Required",
-	]);
-}
-
 /** The year-end page's figures as rows, top to bottom. */
 function expectedYearEndRows(page: Screen): ReportCell[][] {
 	const s = page.yearEnd;
 	return [
-		[
-			"Summary",
-			"Rent Received",
-			null,
-			cents(s.rentReceived),
-			null,
-			null,
-			null,
-			null,
-		],
+		["Summary", "Rent Received", cents(s.rentReceived), null, null, null],
 		[
 			"Summary",
 			"Operating Expenses",
-			null,
 			cents(s.operatingExpenses),
 			null,
 			null,
 			null,
-			null,
 		],
-		["Summary", "Net Income", null, cents(s.netIncome), null, null, null, null],
+		["Summary", "Net Income", cents(s.netIncome), null, null, null],
 		...s.byProperty.map((p): ReportCell[] => [
 			"By Property",
 			p.propertyName,
 			null,
-			null,
 			cents(p.rentReceived),
 			cents(p.expenses),
 			cents(p.netIncome),
-			null,
 		]),
 		...sortExpenseCategoriesDesc(s.expenseByCategory).map((c): ReportCell[] => [
 			"Expenses by Vendor",
 			c.category,
-			null,
 			cents(c.amount),
 			null,
 			null,
 			null,
-			null,
 		]),
-		...expected1099Rows(page.report1099),
 	];
 }
 
@@ -383,28 +314,30 @@ describe("tax-year reports hold their pages' figures", () => {
 		mockRpc.mockReset();
 	});
 
-	it.each([
-		["with 1099 recipients", richAnswers],
-		["with none (the RPC emits no vendor_payments today)", plainAnswers],
-	])("year-end, %s", async (_name, answers) => {
-		const page = await screen(answers());
-		const file = await exported(YEAR_END_REPORT_TYPE, answers());
-		expect(distinct(file.calls)).toEqual(
-			distinct([...page.calls.yearEnd, ...page.calls.report1099]),
-		);
+	it("year-end", async () => {
+		const page = await screen(richAnswers());
+		const file = await exported(YEAR_END_REPORT_TYPE, richAnswers());
+		expect(distinct(file.calls)).toEqual(distinct(page.calls.yearEnd));
 		expect(file.rows).toEqual(expectedYearEndRows(page));
 		expect(file.title).toContain(String(YEAR));
-		expect(page.report1099.threshold).toBe(REPORT_1099_THRESHOLD);
+		// No row names a vendor as needing a 1099, and no column carries jobs
+		// or a filing status.
+		expect(file.header).toEqual([
+			"Section",
+			"Item",
+			"Amount",
+			"Rent Received",
+			"Expenses",
+			"Net Income",
+		]);
+		expect(JSON.stringify(file.rows)).not.toMatch(/1099|threshold/i);
 	});
 
-	it.each([
-		["with 1099 recipients", richAnswers],
-		["with none", plainAnswers],
-	])("1099, %s", async (_name, answers) => {
-		const page = await screen(answers());
-		const file = await exported(REPORT_1099_TYPE, answers());
-		expect(distinct(file.calls)).toEqual(distinct(page.calls.report1099));
-		expect(file.rows).toEqual(expected1099Rows(page.report1099));
+	it("builds no 1099 report", async () => {
+		expect(TAX_YEAR_REPORT_TYPES).not.toContain("1099");
+		await expect(exported("1099", richAnswers())).rejects.toMatchObject({
+			message: expect.stringContaining("load failed on"),
+		});
 	});
 
 	it("tax documents", async () => {
@@ -441,7 +374,7 @@ describe("tax-year reports hold their pages' figures", () => {
 		const file = await exported(YEAR_END_REPORT_TYPE, answers);
 		expect(file.rows).toEqual(expectedYearEndRows(page));
 		const maple = file.rows.find((r) => r[1] === "Maple Court");
-		expect([maple?.[4], maple?.[6]]).toEqual([9000.51, -200]);
+		expect([maple?.[3], maple?.[5]]).toEqual([9000.51, -200]);
 	});
 
 	it("gives each column one format: amounts money, shares a percentage", async () => {
@@ -452,12 +385,10 @@ describe("tax-year reports hold their pages' figures", () => {
 		expect(byColumn(YEAR_END_HEADER, YEAR_END_FORMATS)).toEqual({
 			Section: "plain",
 			Item: "plain",
-			Jobs: "plain",
 			Amount: "money",
 			"Rent Received": "money",
 			Expenses: "money",
 			"Net Income": "money",
-			Status: "plain",
 		});
 		expect(byColumn(TAX_DOCUMENTS_HEADER, TAX_DOCUMENTS_FORMATS)).toEqual({
 			Section: "plain",
@@ -476,11 +407,7 @@ describe("tax-year reports hold their pages' figures", () => {
 	});
 
 	it("reads the year asked for", () => {
-		for (const type of [
-			YEAR_END_REPORT_TYPE,
-			REPORT_1099_TYPE,
-			TAX_DOCUMENTS_REPORT_TYPE,
-		]) {
+		for (const type of [YEAR_END_REPORT_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
 			const expense = taxYearReportCalls(type, USER_ID, 2019).find(
 				(c) => c.name === "get_expense_summary",
 			);
@@ -531,9 +458,7 @@ describe("tax-year reports hold their pages' figures", () => {
 		expect(file.rows[0]).toEqual([
 			"Summary",
 			"Rent Received",
-			null,
 			61200.25,
-			null,
 			null,
 			null,
 			null,
@@ -555,8 +480,6 @@ describe("tax-year reports hold their pages' figures", () => {
 				message: expect.stringContaining("rent ledger totals unavailable"),
 			});
 		}
-		// The 1099 section reads no ledger figure and is unaffected.
-		expect((await exported(REPORT_1099_TYPE, answers)).rows.length).toBe(2);
 	});
 
 	it("shows unavailable, and writes no file, from the property body before 20261102163709", async () => {
@@ -667,19 +590,17 @@ describe("tax-year reports hold their pages' figures", () => {
 		expect(load).toMatchObject({ ok: false, rpc: DELETED_READ });
 	});
 
-	it("the 1099 and tax documents reports read no deleted property", async () => {
-		for (const type of [REPORT_1099_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
-			const read = vi.fn();
-			const load = await loadTaxYearSources(
-				(name, args) => answer(richAnswers())(name, args),
-				type,
-				USER_ID,
-				YEAR,
-				read,
-			);
-			expect(load.ok).toBe(true);
-			expect(read).not.toHaveBeenCalled();
-		}
+	it("the tax documents report reads no deleted property", async () => {
+		const read = vi.fn();
+		const load = await loadTaxYearSources(
+			(name, args) => answer(richAnswers())(name, args),
+			TAX_DOCUMENTS_REPORT_TYPE,
+			USER_ID,
+			YEAR,
+			read,
+		);
+		expect(load.ok).toBe(true);
+		expect(read).not.toHaveBeenCalled();
 	});
 });
 
@@ -725,9 +646,7 @@ describe("a property the owner deleted after the year", () => {
 	it("is named as deleted on the page and in the file, which tie to the cent", async () => {
 		const page = await screen(withDeleted());
 		const file = await exported(YEAR_END_REPORT_TYPE, withDeleted());
-		expect(distinct(file.calls)).toEqual(
-			distinct([...page.calls.yearEnd, ...page.calls.report1099]),
-		);
+		expect(distinct(file.calls)).toEqual(distinct(page.calls.yearEnd));
 		expect(file.rows).toEqual(expectedYearEndRows(page));
 		const names = page.yearEnd.byProperty.map((p) => [p.propertyName, p.deleted]);
 		expect(names).toEqual([
@@ -752,11 +671,11 @@ describe("a property the owner deleted after the year", () => {
 			);
 		const summary = (item: string) =>
 			Math.round(
-				Number(file.rows.find((r) => r[0] === "Summary" && r[1] === item)?.[3]) *
+				Number(file.rows.find((r) => r[0] === "Summary" && r[1] === item)?.[2]) *
 					100,
 			);
-		expect(fileSum(4)).toBe(summary("Rent Received"));
-		expect(fileSum(5)).toBe(summary("Operating Expenses"));
+		expect(fileSum(3)).toBe(summary("Rent Received"));
+		expect(fileSum(4)).toBe(summary("Operating Expenses"));
 		expect(file.rows.map((r) => r[1])).toContain("Gamma Flats (deleted)");
 	});
 

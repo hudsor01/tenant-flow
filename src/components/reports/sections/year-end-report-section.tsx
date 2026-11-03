@@ -1,7 +1,6 @@
 "use client";
 
-import { AlertCircle, Download, FileText } from "lucide-react";
-import { Badge } from "#components/ui/badge";
+import { Download, FileText } from "lucide-react";
 import { Button } from "#components/ui/button";
 import {
 	Card,
@@ -20,7 +19,7 @@ import {
 	TableRow,
 } from "#components/ui/table";
 import { formatCurrency } from "#lib/utils/currency";
-import type { Year1099Summary, YearEndSummary } from "#types/reports";
+import type { YearEndSummary } from "#types/reports";
 import { sortExpenseCategoriesDesc } from "./year-end-report-section-utils";
 
 interface YearEndReportSectionProps {
@@ -28,13 +27,9 @@ interface YearEndReportSectionProps {
 	yearEndData: YearEndSummary | undefined;
 	/** The server cannot report the year's rent received yet. */
 	ledgerUnavailable: boolean;
-	data1099: Year1099Summary | undefined;
 	isLoadingYearEnd: boolean;
-	isLoading1099: boolean;
 	onDownloadYearEndCsv: () => void;
-	onDownload1099Csv: () => void;
 	isExportingYearEnd: boolean;
-	isExporting1099: boolean;
 }
 
 /** A figure the page has no data for: never shown as $0.00. */
@@ -42,7 +37,7 @@ const UNAVAILABLE = "Unavailable";
 
 /**
  * In place of the summary when the server cannot report the year's rent
- * received yet; the expense breakdown and the 1099-NEC section are below.
+ * received yet; the expense breakdown is below.
  */
 function LedgerTotalsUnavailableCard({ year }: { year: number }) {
 	return (
@@ -85,13 +80,9 @@ export function YearEndReportSection({
 	year,
 	yearEndData,
 	ledgerUnavailable,
-	data1099,
 	isLoadingYearEnd,
-	isLoading1099,
 	onDownloadYearEndCsv,
-	onDownload1099Csv,
 	isExportingYearEnd,
-	isExporting1099,
 }: YearEndReportSectionProps) {
 	return (
 		<section className="flex flex-col gap-6">
@@ -252,84 +243,6 @@ export function YearEndReportSection({
 						</CardContent>
 					</Card>
 				)}
-			</div>
-
-			{/* 1099-NEC Section */}
-			<div className="flex flex-col gap-4">
-				<div className="flex items-center justify-between">
-					<div>
-						<h2 className="text-lg font-semibold flex items-center gap-2">
-							<AlertCircle className="size-5 text-warning-text" />
-							1099-NEC Vendors ({year})
-						</h2>
-						<p className="text-sm text-muted-foreground">
-							Vendors paid{" "}
-							{formatCurrency(data1099?.threshold ?? 600, {
-								minimumFractionDigits: 0,
-								maximumFractionDigits: 0,
-							})}
-							+ — may require 1099-NEC filing
-						</p>
-					</div>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={onDownload1099Csv}
-						disabled={isExporting1099 || !data1099}
-						className="gap-1.5 min-h-11"
-					>
-						<Download className="size-4" />
-						{isExporting1099 ? "Exporting..." : "Download CSV"}
-					</Button>
-				</div>
-
-				<Card>
-					<CardContent className="pt-6">
-						{isLoading1099 ? (
-							<div className="space-y-2">
-								{Array.from({ length: 3 }).map((_, i) => (
-									<Skeleton key={i} className="h-10 w-full" />
-								))}
-							</div>
-						) : (data1099?.recipients.length ?? 0) === 0 ? (
-							<p className="text-sm text-muted-foreground text-center py-4">
-								No vendors exceeded the{" "}
-								{formatCurrency(data1099?.threshold ?? 600, {
-									minimumFractionDigits: 0,
-									maximumFractionDigits: 0,
-								})}{" "}
-								threshold in {year}.
-							</p>
-						) : (
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Vendor</TableHead>
-										<TableHead className="text-right">Jobs</TableHead>
-										<TableHead className="text-right">Total Paid</TableHead>
-										<TableHead className="text-right">Status</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{data1099?.recipients.map((r, i) => (
-										<TableRow key={i}>
-											<TableCell className="font-medium">
-												{r.vendorName}
-											</TableCell>
-											<TableCell className="text-right">{r.jobCount}</TableCell>
-											<TableCell className="text-right font-medium">
-												{formatCurrency(r.totalPaid)}
-											</TableCell>
-											<TableCell className="text-right">
-												<Badge variant="warning">1099 Required</Badge>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						)}
-					</CardContent>
-				</Card>
 			</div>
 		</section>
 	);

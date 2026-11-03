@@ -10,8 +10,8 @@
 // 500, and a paid owner's PDF is printed from the same document
 // export-report's pdf format posts here (`sectionedReportHtml` over the
 // leaf's table, money in dollars as the pages print it): the
-// /analytics/financial export, and the year-end, 1099-NEC and tax-documents
-// pages for the year asked for (`_shared/tax-year-reports.ts`, whose rows the
+// /analytics/financial export, and the year-end and tax-documents pages for
+// the year asked for (`_shared/tax-year-reports.ts`, whose rows the
 // Vitest `__tests__/tax-year-reports.test.ts` proves equal to the pages').
 //
 // Run: deno test --allow-all --no-check \
@@ -27,7 +27,6 @@ import {
 	buildTaxYearReport,
 	expenseVendorLabel,
 	propertyReportName,
-	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_REPORT_TYPE,
 	taxYearReportCalls,
 	YEAR_END_REPORT_TYPE,
@@ -280,13 +279,9 @@ function modeOneFor(reportType: string, year: unknown): Request {
 	});
 }
 
-const TAX_YEAR_TYPES = [
-	YEAR_END_REPORT_TYPE,
-	REPORT_1099_TYPE,
-	TAX_DOCUMENTS_REPORT_TYPE,
-];
+const TAX_YEAR_TYPES = [YEAR_END_REPORT_TYPE, TAX_DOCUMENTS_REPORT_TYPE];
 
-Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year asked for", async () => {
+Deno.test("Mode 1 year-end and tax documents print their page for the year asked for", async () => {
 	for (const reportType of TAX_YEAR_TYPES) {
 		await withStirling(async (htmlPosts) => {
 			const { client, calls } = makeClient("growth", TAX_YEAR_ANSWERS);
@@ -327,10 +322,10 @@ Deno.test("Mode 1 year-end, 1099 and tax documents print their page for the year
 			);
 			const html = htmlPosts[0] ?? "";
 			assert(
-				html.includes('<td class="td num">$61,200.00</td>') ||
-					reportType === REPORT_1099_TYPE,
+				html.includes('<td class="td num">$61,200.00</td>'),
 				`${reportType}: rent received in dollars`,
 			);
+			assert(!/1099|threshold/i.test(html), `${reportType}: no 1099 section`);
 			assert(!html.includes(">61200<"), `${reportType}: no bare amount`);
 			assert(!html.includes(">9000.5<"), `${reportType}: no bare amount`);
 			assertEquals(htmlPosts, [
@@ -403,6 +398,8 @@ Deno.test("Mode 1 rejects a year that is not a four-digit integer", async () => 
 Deno.test("Mode 1 rejects a reportType it does not build, before the gate and any RPC", async () => {
 	for (const reportType of [
 		"maintenance",
+		// The year-end page's 1099-NEC section, removed in 66.2-39.
+		"1099",
 		"revenue",
 		"income-statement",
 		"cash-flow",
@@ -417,7 +414,7 @@ Deno.test("Mode 1 rejects a reportType it does not build, before the gate and an
 				assertEquals(res.status, 400, `${reportType} ${plan}`);
 				assertEquals(await res.json(), {
 					error:
-						"reportType must be one of: financial-analytics, year-end, 1099, financial",
+						"reportType must be one of: financial-analytics, year-end, financial",
 				});
 				assertEquals(rpcs, []);
 				assertEquals(htmlPosts, []);
