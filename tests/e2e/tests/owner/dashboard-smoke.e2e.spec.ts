@@ -274,7 +274,8 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 			.getByRole("button", { name: "Occupancy", exact: true })
 			.and(page.locator('[aria-haspopup="dialog"]'))
 			.click();
-		await page.getByRole("option", { name: "Vacant" }).click();
+		// `exact`: "Partly vacant" is an option too.
+		await page.getByRole("option", { name: "Vacant", exact: true }).click();
 		// Close the popover so the URL settles and the toolbar Reset surfaces.
 		await page.keyboard.press("Escape");
 
