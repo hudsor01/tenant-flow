@@ -51,3 +51,22 @@ Out-of-scope discoveries logged by executors. Each entry names the plan that fou
 - **Observed:** a MutationObserver init script recorded, on every /dashboard load during sign-in navigation (real-time timeline), a `role="dialog"` titled "Getting Started" ("Let's get you set up", `src/components/onboarding/onboarding-step-welcome.tsx`) that mounts and is removed 214-234 ms later (final run: light 622->856, 276->492; dark 329->543, 278->503 ms after navigation start; earlier runs up to 255 ms). With the animation timeline frozen, the dialog's exit animation holds it on screen fully opaque at its start.
 - **Not measured:** what opens and then closes the dialog, and whether a reduced-motion user sees it.
 - **Why out of scope:** `git diff 754c91802 HEAD -- src/components/onboarding` is empty; this phase did not change the onboarding flow. Not a CP-1..CP-5 surface.
+
+## 66.2-39 (part O stage 2): this PR's revoke-then-grant reorders eight functions' ACL text
+
+- **Found during:** part O stage 2, comparing the full 357-file replay's public functions with production's 2026-11-02 listing.
+- **Observed:** 20261102055449, 20261102163709, 20261102184501, 20261102184502, 20261102184503, 20261102184504 and 20261102200501 end each replaced function with `revoke all ... from public, anon, authenticated;` and then `grant execute ... to authenticated, service_role;`. The REVOKE removes authenticated's entry and the GRANT appends it after service_role's, so the ACL text of get_billing_insights, get_property_performance_analytics, get_dashboard_stats, get_dashboard_data_v2, get_expense_summary, get_financial_overview, get_maintenance_analytics and get_occupancy_trends_optimized ends as `{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}`. Production's text is `{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}`. The grantees and privileges are the same, and the replay ends with the same text production will have after the apply.
+- **Why out of scope:** these files are earlier parts' work, and no privilege changes. Each header calls the ACL unchanged ("EXECUTE for authenticated and service_role only"), which holds for the privileges and not for the text. Revoking only `public, anon` would keep the text.
+- **Not changed.**
+
+## 66.2-39 (part O stage 2): the replayed chain schedules a cron job whose function it drops
+
+- **Found during:** part O stage 2, listing `cron.job` on the replayed chain through 20261005215446.
+- **Observed:** `process-autopay-charges` (`0 7 * * *`, `select public.process_autopay_charges()`) is scheduled. 20260418140000_demolish_rent_and_tenant_portal.sql drops the function, and its comment says the job "was unscheduled earlier as part of the safety PR", but no file in the chain unschedules it, so on a replayed stack the job fails every day. Production's `cron.job` was not read.
+- **Why out of scope:** 20261102055400 reconciles public functions only, not cron jobs.
+
+## 66.2-39 (part O stage 2): calculate_monthly_metrics(uuid) reports revenue as 0
+
+- **Found during:** part O stage 2, reading the 34 production bodies that 20261102055400 now writes to the chain.
+- **Observed:** production's body returns `'revenue', 0` for each of the 12 months, with net income and cash flow equal to the expenses negated. Authenticated holds EXECUTE. Nothing in `src/` or `supabase/functions/` calls it.
+- **Why out of scope:** the task is to reproduce production's body. The function has no reader.
