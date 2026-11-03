@@ -93,20 +93,20 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 916 (66.2-39 f39: final 917 − `src/types/jest-dom.d.ts`, deleted on `main` and brought in by the merge `54fc50829`, `f39/m1-delta.json`; final 66.2-37: W5 914 + 5 added − 2 deleted non-test `src/` files) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 937 (66.2-39 re-freeze after fix round 1: final 917 + 29 added − 9 deleted non-test `src/` files, 8 of the deletions and every addition fix round 1, `src/types/jest-dom.d.ts` from the merge `54fc50829`, `f39/m1-delta.json`; final 66.2-37: W5 914 + 5 added − 2 deleted) |
 | M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (final) |
 | M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (final) |
 | M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (final) |
 | M5 | `@utility` names shadowing core utilities | 2 (`text-muted`, `text-caption`) | 0 | 0 (final) |
-| M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | chart-1..5 only, all mode-independent (final; the 8 W6 sidebar aliases resolve through `var(--card)`… and are not light-only) |
+| M6 | Light-only color tokens in use | 14 | 0, except explicitly mode-independent ones (white, black, charts) | chart-1 and chart-4 only, both mode-independent (f39 re-freeze: VD-53 moved every mark off chart-2/3/5; final had chart-1..5; the 8 W6 sidebar aliases resolve through `var(--card)`… and are not light-only) |
 | M7 | `cn()` drops a custom font size next to a color | 12 sizes | 0 | 0, measured through `src/lib/utils.ts` `cn` (final) |
-| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 0 / 0 / 0 of 42 / 0 / 0 (final; the W6 remnants are gone) |
+| M8 | Dead theme vars / custom props / `@utility` / keyframes / class selectors (`globals.css`) | 55 / 47 / 90 of 133 / 1 / 20 | 0 / 0 / 0 / 0 / 0 | 4 / 0 / 0 of 42 / 0 / 0 (f39 re-freeze): 0 outside the T-1 token contract. `--color-chart-2/3/5` (last use removed in `2d36cb146`, VD-53) and `--color-success-foreground` (`8446d6bbf`, VD-55) are kept by main-session decision (option B); `f39-checks.mjs --fix-round-1` allows exactly these four. Final 66.2-37: 0 / 0 / 0 of 42 / 0 / 0 |
 | M9 | `dashboard.css` dead classes / vars nothing defines | 33 of 39 / 4 | file removed | file removed (final) |
 | M10 | Non-canonical classes (Tailwind `canonicalizeCandidates`) | 146 classes in 68 files (53 first-party, 15 `ui/`) | 0 first-party; `ui/` tracks upstream | 0 first-party; 17 ui/ (tracks upstream) (final and f39: 48 classes, all in the 17 vendored `ui/` files, `sidebar.tsx` included) |
 | R1 | Light `bg-secondary` pixel (render-check) | **rgb(255, 0, 255)**, magenta | brand pale blue | `[222,243,255]` (final) |
 | R2 | `.font-mono` resolves to (render-check; live site) | **Roboto** | Geist Mono | Geist Mono stub (`.font-mono` and `<code>`, both themes) (final) |
 | R3 | `<html>` font-family / `global-error` page font | **Times** / **Times** | Roboto stack | Roboto stack; global-error `<html>` carries the font variables (final) |
-| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | worst 5.44 (renew-lease body/icon, light); dark ≥ 7.53, prose ≥ 13.5 (final) |
+| R4 | Worst dark-mode text contrast (render-check) | **1.01:1** (Renew Lease), **1.12:1** (prose) | ≥ 4.5:1 text, ≥ 3:1 icons | worst 4.50 light (the renew-lease "Change:" increase, `text-success-text` on `bg-muted`, fix round 1 F1); body/icon 5.44 light; dark ≥ 7.53, prose ≥ 13.5 (f39 re-freeze; render-check pairs equal to final) |
 | R5 | Switch on a 390px viewport (live `/pricing`, `/signup`) | 44×44 grey donut | 32×18.4 toggle (same as desktop) | 32×18.4, padding 0 (final) |
 
 ---
@@ -328,6 +328,7 @@ The B2 rule as validated:
 - [x] Migration (66.2-31..36): canonical `sidebar.tsx`, shell host, MainNav, dock and tour, owner-axe spec; proved by the final gate (66.2-37: `final/vd-register.json` 37/37, `app-shell-sidebar.spec.ts` 21/21).
 - [x] Owner checkpoints CP-1..CP-5 (66.2-38: all five owner defaults, `66.2-38-CP-DECISIONS.json`) and the owner-approved CP-4 layout follow-up (`audit/cp4-followup/`).
 - [x] Final (66.2-39): no fallback applied, re-measured and frozen (`audit/f39/freeze.json`), one PR opened for the merge gates (PR pending).
+- [x] Fix round 1 after perfect-PR cycle 1 (24 findings; 195 commits, parts A to R plus O) and the re-freeze: every Task 2 step re-run on the new state, code state `b628eb9f1` (`audit/f39/freeze.json`); the merge gates run again on the new head.
 
 ---
 
@@ -461,6 +462,10 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
 - **2026-11-01.** Final (66.2-39): CP decisions applied (none: all five owner defaults), state frozen, PR opened for the merge gates.
   - Merge of `main` (`54fc50829`, 55 commits of dependency bumps and #1041/#1044) re-measured: audit M2-M10 equal to final, M1 916 (`jest-dom.d.ts` deleted on main); css-parity FINAL -> f39 9 added + 3 removed keys, all CP-4 follow-up, 0 unclassified; tokens and render equal; G1-G8 + inline-structure 0; unit 363 files / 110,597 tests, coverage 66.7/58.58/65.3/68.75; validate:quick and build exit 0; CSP equal to the 754c91802 control.
   - Code state `d2b7b5124` (`audit/f39/freeze.json`); D-04 measured against `MAIN_MERGE^2` (amendment `a8bb75744`); `.planning/` stays tracked in this PR by owner decision although main's `381c85d5f` ignores it.
+- **2026-11-02.** Final (66.2-39) re-freeze after perfect-PR cycle 1: CP decisions applied (none: all five owner defaults), fix round 1 measured, state frozen, PR head refreshed for the merge gates.
+  - Cycle 1 on `4476e6450`: 24 findings, all fixed in parts A and B; parts C to R and O fixed the pre-existing and data defects the owner chose to fix here (the PR body's "Fix round 1" section). 195 commits, `4476e6450..83929ceb6`.
+  - Re-run on code state `4433ca833`, then `b628eb9f1` (two test comments reworded for the no-hex check): audit M1 937, M6 chart-1/chart-4 and M8 4 (the T-1 contract tokens, option B), M10 first-party 0; css-parity 0 unclassified; tokens only VD-38/VD-59; G1-G8 + inline-structure 0; unit 454 files / 113,810 tests, coverage 71.83/63.56/70.8/73.68; validate:quick 0; E2E smoke + public + owner-axe 248 passed, 5 skipped, 0 failed; screenshots against a same-session `4476e6450` build: 28 identical, 124 intended, 0 unclassified; CSP zod probe only; replay 357/357; mutation sweep 179/0/0; deno check 17/17; Edge deploy list export-report, generate-pdf, lease-signature, n8n-blog-ingest.
+  - `f39-checks.mjs --fix-round-1` (189 checks) pins it; self-test 45. Ancestry by `git rev-list` (`git merge-base` is permission-blocked).
 
 ---
 
