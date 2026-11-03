@@ -135,6 +135,38 @@ export function propertyStatusLabel(value: string): string {
 }
 
 /**
+ * A property's occupancy on the dashboard's portfolio, from its own occupied
+ * and total units. The column read "Lease Status" and invented one from the
+ * occupancy rate: 100% "Active", 80% or more "Expiring", less "Vacant", so a
+ * property with every lease running for years read "Expiring" at 4 of 5
+ * units. No lease date is in the row, so it states occupancy only.
+ */
+export type PortfolioOccupancy =
+	| "occupied"
+	| "partly-vacant"
+	| "vacant"
+	| "no-units";
+
+export const PORTFOLIO_OCCUPANCY_LABELS: Readonly<
+	Record<PortfolioOccupancy, string>
+> = {
+	occupied: "Occupied",
+	"partly-vacant": "Partly vacant",
+	vacant: "Vacant",
+	"no-units": "No units",
+};
+
+/** Every unit occupied, some, none, or no unit at all. */
+export function portfolioOccupancy(
+	occupied: number,
+	total: number,
+): PortfolioOccupancy {
+	if (total <= 0) return "no-units";
+	if (occupied <= 0) return "vacant";
+	return occupied >= total ? "occupied" : "partly-vacant";
+}
+
+/**
  * SINGLE-UNIT PROPERTY TYPES - Property types that have exactly one unit
  * Used to auto-create a default unit on property creation and
  * to show simplified unit UI (card instead of table).

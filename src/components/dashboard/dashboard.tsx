@@ -18,6 +18,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { portfolioOccupancy } from "#lib/constants/status-types";
 import { useDashboardPresetsStore } from "#stores/dashboard-presets-store";
 import { useDashboardViewMode } from "#stores/dashboard-store";
 import type { DashboardProps } from "#types/sections/dashboard";
@@ -106,13 +107,7 @@ export function Dashboard({
 		address: prop.address,
 		units: { occupied: prop.occupiedUnits, total: prop.totalUnits },
 		tenant: prop.occupiedUnits > 0 ? `${prop.occupiedUnits} tenants` : null,
-		leaseStatus:
-			prop.occupancyRate === 100
-				? "active"
-				: prop.occupancyRate >= 80
-					? "expiring"
-					: "vacant",
-		leaseEnd: null,
+		occupancy: portfolioOccupancy(prop.occupiedUnits, prop.totalUnits),
 		rent: prop.monthlyRevenue,
 		maintenanceOpen: prop.openMaintenance,
 	}));

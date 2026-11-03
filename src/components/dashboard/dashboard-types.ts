@@ -1,4 +1,5 @@
 import { Building2, FileText, UserPlus, Wrench } from "lucide-react";
+import type { PortfolioOccupancy } from "#lib/constants/status-types";
 
 export type PortfolioRow = {
 	id: string;
@@ -6,8 +7,8 @@ export type PortfolioRow = {
 	address: string;
 	units: { occupied: number; total: number };
 	tenant: string | null;
-	leaseStatus: "active" | "expiring" | "vacant";
-	leaseEnd: string | null;
+	/** From the row's own units (portfolioOccupancy), never a lease status. */
+	occupancy: PortfolioOccupancy;
 	rent: number;
 	maintenanceOpen: number;
 };

@@ -25,7 +25,7 @@ import {
  *   1. KPI numbers match get_dashboard_data_v2 (RPC-vs-DOM, not hardcoded)
  *   2. Occupancy donut matches stats.units
  *   3. DataTable sort (mouse + keyboard) flips aria-sort
- *   4. Faceted status filter writes the `status` nuqs param + Reset clears it
+ *   4. Faceted occupancy filter writes the `occupancy` nuqs param + Reset clears it
  *   5. Column-visibility toggle hides/restores a hideable column
  *   6. Preset save + restore (incl. survival across reload — DT-08)
  *   7. Grid/Table view toggle (aria-checked + the rendered surface)
@@ -258,7 +258,7 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		await expect(propertyHeader).toHaveAttribute("aria-sort", "descending");
 	});
 
-	test("faceted status filter writes the status param and Reset clears it", async ({
+	test("faceted occupancy filter writes the occupancy param and Reset clears it", async ({
 		page,
 	}) => {
 		if (await isEmptyState(page)) {
@@ -267,20 +267,23 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		}
 		await ensureTableView(page);
 
-		// Open the Status faceted filter and select "Vacant". `exact: true` is
-		// required: the portfolio table also renders a "Lease Status" column-header
-		// button, so a substring "Status" match is a strict-mode violation.
-		await page.getByRole("button", { name: "Status", exact: true }).click();
+		// Open the Occupancy faceted filter and select "Vacant". The column
+		// header is an "Occupancy" button too (a sort menu, aria-haspopup="menu");
+		// the filter is the popover trigger (aria-haspopup="dialog").
+		await page
+			.getByRole("button", { name: "Occupancy", exact: true })
+			.and(page.locator('[aria-haspopup="dialog"]'))
+			.click();
 		await page.getByRole("option", { name: "Vacant" }).click();
 		// Close the popover so the URL settles and the toolbar Reset surfaces.
 		await page.keyboard.press("Escape");
 
-		await expect(page).toHaveURL(/[?&]status=/);
+		await expect(page).toHaveURL(/[?&]occupancy=/);
 		const reset = page.getByRole("button", { name: "Reset filters" });
 		await expect(reset).toBeVisible();
 
 		await reset.click();
-		await expect(page).not.toHaveURL(/[?&]status=/);
+		await expect(page).not.toHaveURL(/[?&]occupancy=/);
 	});
 
 	test("column-visibility toggle hides and restores a column", async ({

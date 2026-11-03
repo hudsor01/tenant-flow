@@ -59,8 +59,7 @@ function makeRow(
 		address: "1 Default St",
 		units: { occupied: 1, total: 1 },
 		tenant: null,
-		leaseStatus: "vacant",
-		leaseEnd: null,
+		occupancy: "vacant",
 		rent: 1000,
 		maintenanceOpen: 0,
 		...overrides,
@@ -72,7 +71,7 @@ const ADDRESS_ONLY_ROW = makeRow({
 	id: "addr-only",
 	property: "Sunset Towers",
 	address: "42 Elm Street",
-	leaseStatus: "active",
+	occupancy: "occupied",
 });
 
 function makeRows(count: number): PortfolioRow[] {
@@ -83,8 +82,12 @@ function makeRows(count: number): PortfolioRow[] {
 			address: `${index} Main St`,
 			units: { occupied: index % 4, total: 4 },
 			tenant: index % 2 === 0 ? `Tenant ${index}` : null,
-			leaseStatus:
-				index % 3 === 0 ? "active" : index % 3 === 1 ? "expiring" : "vacant",
+			occupancy:
+				index % 3 === 0
+					? "occupied"
+					: index % 3 === 1
+						? "partly-vacant"
+						: "vacant",
 			rent: 1000 + index * 10,
 			maintenanceOpen: index % 5,
 		}),
@@ -193,23 +196,24 @@ describe("PortfolioDataTableToolbar", () => {
 		expect(input.value).toBe("elm street");
 	});
 
-	it("faceted status filter lists meta.options and selecting one narrows rows (DT-04)", async () => {
+	it("faceted occupancy filter lists meta.options and selecting one narrows rows (DT-04)", async () => {
 		const user = userEvent.setup();
 		const data = [
-			makeRow({ id: "a", leaseStatus: "active" }),
-			makeRow({ id: "b", leaseStatus: "expiring" }),
-			makeRow({ id: "c", leaseStatus: "vacant" }),
+			makeRow({ id: "a", occupancy: "occupied" }),
+			makeRow({ id: "b", occupancy: "partly-vacant" }),
+			makeRow({ id: "c", occupancy: "vacant" }),
 		];
 		await act(async () => {
 			render(<ToolbarHarness data={data} />, { wrapper: Wrapper });
 		});
 
-		await user.click(screen.getByRole("button", { name: /status/i }));
-		expect(await screen.findByText("Active")).toBeInTheDocument();
-		expect(screen.getByText("Expiring Soon")).toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: /occupancy/i }));
+		expect(await screen.findByText("Occupied")).toBeInTheDocument();
+		expect(screen.getByText("Partly vacant")).toBeInTheDocument();
 		expect(screen.getByText("Vacant")).toBeInTheDocument();
+		expect(screen.getByText("No units")).toBeInTheDocument();
 
-		await user.click(screen.getByText("Active"));
+		await user.click(screen.getByText("Occupied"));
 		// Faceted writes also debounce through nuqs -> await the filtered count.
 		await waitFor(() => {
 			expect(screen.getByTestId("filtered-count").textContent).toBe("1");
@@ -524,8 +528,8 @@ describe("PortfolioDataTable", () => {
 	it("shows the no-match state with Clear filters when properties exist but the filter set is empty", async () => {
 		const user = userEvent.setup();
 		const data = [
-			makeRow({ id: "a", property: "Aspen Court", leaseStatus: "active" }),
-			makeRow({ id: "b", property: "Birch Flats", leaseStatus: "vacant" }),
+			makeRow({ id: "a", property: "Aspen Court", occupancy: "occupied" }),
+			makeRow({ id: "b", property: "Birch Flats", occupancy: "vacant" }),
 		];
 		await act(async () => {
 			render(<ControlledHarness data={data} />, { wrapper: Wrapper });
@@ -553,8 +557,8 @@ describe("PortfolioDataTable", () => {
 	it("Clear filters resets the column filters and restores the full row set (round-trip)", async () => {
 		const user = userEvent.setup();
 		const data = [
-			makeRow({ id: "a", property: "Aspen Court", leaseStatus: "active" }),
-			makeRow({ id: "b", property: "Birch Flats", leaseStatus: "vacant" }),
+			makeRow({ id: "a", property: "Aspen Court", occupancy: "occupied" }),
+			makeRow({ id: "b", property: "Birch Flats", occupancy: "vacant" }),
 		];
 		// Grid mode renders the row text directly (jsdom's 0px virtualizer renders 0
 		// table rows), so we can observe rows leave then return.
@@ -647,9 +651,9 @@ describe("PortfolioDataTable", () => {
 	it("grid view reads the SAME filtered rows as the table (D-5)", async () => {
 		const user = userEvent.setup();
 		const data = [
-			makeRow({ id: "a", property: "Active One", leaseStatus: "active" }),
-			makeRow({ id: "b", property: "Vacant One", leaseStatus: "vacant" }),
-			makeRow({ id: "c", property: "Vacant Two", leaseStatus: "vacant" }),
+			makeRow({ id: "a", property: "Active One", occupancy: "occupied" }),
+			makeRow({ id: "b", property: "Vacant One", occupancy: "vacant" }),
+			makeRow({ id: "c", property: "Vacant Two", occupancy: "vacant" }),
 		];
 		await act(async () => {
 			render(<ControlledHarness data={data} initialView="grid" />, {
@@ -661,10 +665,10 @@ describe("PortfolioDataTable", () => {
 		expect(screen.getByText("Active One")).toBeInTheDocument();
 		expect(screen.getByText("Vacant One")).toBeInTheDocument();
 
-		// Apply the status=active filter via the toolbar's faceted filter. "Active"
-		// also appears as a grid status badge, so target the popover option role.
-		await user.click(screen.getByRole("button", { name: /status/i }));
-		await user.click(await screen.findByRole("option", { name: /active/i }));
+		// Apply the occupancy=occupied filter via the toolbar's faceted filter.
+		// "Occupied" also appears as a grid badge, so target the popover option.
+		await user.click(screen.getByRole("button", { name: /occupancy/i }));
+		await user.click(await screen.findByRole("option", { name: /^occupied/i }));
 
 		// Grid now reflects the table's filtered set: only the active row. The filter
 		// debounces through nuqs, so await the vacant rows dropping out.

@@ -33,7 +33,7 @@ import {
 
 // The SAME nuqs keys `useClientDataTable` writes (D-4). The search filter lives
 // under the pinned `property` column key (W-3) — there is NO separate search/q
-// key. `status` is the faceted multi-select (string[]); `property` is the search
+// key. `occupancy` is the faceted multi-select (string[]); `property` is the search
 // string. `,` is the array separator `useClientDataTable` uses for faceted keys.
 const ARRAY_SEPARATOR = ",";
 const PORTFOLIO_COLUMN_IDS = portfolioColumns
@@ -55,7 +55,7 @@ const urlStateParsers = {
 	sort: getSortingStateParser<PortfolioRow>(PORTFOLIO_COLUMN_IDS).withDefault(
 		[],
 	),
-	status: parseAsArrayOf(parseAsString, ARRAY_SEPARATOR),
+	occupancy: parseAsArrayOf(parseAsString, ARRAY_SEPARATOR),
 	property: parseAsString,
 };
 
@@ -92,8 +92,8 @@ export function PortfolioPresetMenu() {
 
 	function collectSnapshot(): DashboardViewSnapshot {
 		const filters: Record<string, string | string[]> = {};
-		if (urlState.status && urlState.status.length > 0) {
-			filters.status = urlState.status;
+		if (urlState.occupancy && urlState.occupancy.length > 0) {
+			filters.occupancy = urlState.occupancy;
 		}
 		if (urlState.property) {
 			filters.property = urlState.property;
@@ -116,12 +116,18 @@ export function PortfolioPresetMenu() {
 	function handleApply(presetName: string) {
 		const preset = applyPreset(presetName);
 		if (!preset) return;
-		const status = preset.filters.status;
+		// A preset saved before the column was Occupancy carries `status`
+		// (the invented lease status, whose values no row has): not applied.
+		const occupancy = preset.filters.occupancy;
 		const property = preset.filters.property;
 		void setUrlState({
 			page: preset.page,
 			sort: toPortfolioSort(preset.sort),
-			status: Array.isArray(status) ? status : status ? [status] : null,
+			occupancy: Array.isArray(occupancy)
+				? occupancy
+				: occupancy
+					? [occupancy]
+					: null,
 			property: typeof property === "string" ? property : null,
 		});
 		setColumnVisibility(preset.columnVisibility);

@@ -45,7 +45,7 @@ export function PortfolioDataTableToolbar<TData>({
 	statusOptions,
 }: PortfolioDataTableToolbarProps<TData>) {
 	const propertyColumn = table.getColumn("property");
-	const statusColumn = table.getColumn("status");
+	const statusColumn = table.getColumn("occupancy");
 	// getFilterValue() is `unknown` and can hydrate as a string[] from the URL,
 	// so normalize rather than asserting `as string` (which would render
 	// "[object Object]"-style garbage for an array value).
@@ -81,7 +81,7 @@ export function PortfolioDataTableToolbar<TData>({
 			{statusColumn && (
 				<DataTableFacetedFilter
 					column={statusColumn}
-					title="Status"
+					title="Occupancy"
 					options={resolvedStatusOptions}
 					multiple
 				/>

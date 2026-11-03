@@ -2,20 +2,22 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { LeaseStatusBadge } from "#components/dashboard/components/lease-status-badge";
+import { OccupancyBadge } from "#components/dashboard/components/occupancy-badge";
 import { DataTableColumnHeader } from "#components/data-table/data-table-column-header";
+import {
+	PORTFOLIO_OCCUPANCY_LABELS,
+	type PortfolioOccupancy,
+} from "#lib/constants/status-types";
 import { formatCurrency } from "#lib/utils/currency";
 import type { PortfolioRow } from "../dashboard-types";
 
 /**
- * Faceted-filter options for the Lease Status column (DT-04 source).
- * `DataTableFacetedFilter` reads these off `columnMeta.options` in Plan 05-02.
+ * Faceted-filter options for the Occupancy column (DT-04 source), from the one
+ * label map. `DataTableFacetedFilter` reads these off `columnMeta.options`.
  */
-const STATUS_OPTIONS = [
-	{ label: "Active", value: "active" },
-	{ label: "Expiring Soon", value: "expiring" },
-	{ label: "Vacant", value: "vacant" },
-] as const;
+const OCCUPANCY_OPTIONS = (
+	Object.keys(PORTFOLIO_OCCUPANCY_LABELS) as PortfolioOccupancy[]
+).map((value) => ({ label: PORTFOLIO_OCCUPANCY_LABELS[value], value }));
 
 /** Open-maintenance cell: red count when > 0, muted "--" otherwise. */
 function MaintenanceCell({ openCount }: { openCount: number }) {
@@ -37,11 +39,11 @@ function MaintenanceCell({ openCount }: { openCount: number }) {
 /**
  * The 7-column portfolio table model (DT-03).
  *
- * - Property/Units/Lease Status/Monthly Rent are sortable; Tenants/Maintenance/
+ * - Property/Units/Occupancy/Monthly Rent are sortable; Tenants/Maintenance/
  *   Actions are not.
  * - Property carries a custom name||address filterFn (W-3 search parity). Search
  *   filters this column, so its id "property" is the pinned nuqs search key.
- * - Lease Status carries faceted metadata (DT-04) + an array-membership filterFn.
+ * - Occupancy carries faceted metadata (DT-04) + an array-membership filterFn.
  * - Every column has meta.label for DataTableViewOptions (DT-05).
  */
 export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
@@ -121,33 +123,33 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 			),
 	},
 	{
-		id: "status",
-		accessorKey: "leaseStatus",
+		id: "occupancy",
+		accessorKey: "occupancy",
 		size: 120,
 		header: ({ column }) => (
-			<DataTableColumnHeader column={column} label="Lease Status" />
+			<DataTableColumnHeader column={column} label="Occupancy" />
 		),
 		meta: {
-			label: "Lease Status",
+			label: "Occupancy",
 			variant: "multiSelect",
-			options: [...STATUS_OPTIONS],
+			options: OCCUPANCY_OPTIONS,
 		},
 		enableSorting: true,
 		// Explicit localeCompare for the same reason as the Property column: the
 		// default `auto` sortingFn falls back to case-sensitive `basic` for <=10
-		// filtered rows. Status values are lowercase today so the order matches,
-		// but pinning it keeps parity with the deleted table and hardens against
-		// any future status-label casing change (symmetric with `property`).
+		// filtered rows. The values are lowercase so the order matches, but
+		// pinning it keeps parity with the deleted table (symmetric with
+		// `property`).
 		sortingFn: (rowA, rowB) =>
-			rowA.original.leaseStatus.localeCompare(rowB.original.leaseStatus),
+			rowA.original.occupancy.localeCompare(rowB.original.occupancy),
 		enableColumnFilter: true,
-		// Faceted filter writes a string[] of selected statuses; include the row
-		// when its lease status is among them.
+		// Faceted filter writes a string[] of selected occupancies; include the
+		// row when its occupancy is among them.
 		filterFn: (row, _columnId, value) => {
 			if (!Array.isArray(value) || value.length === 0) return true;
-			return (value as string[]).includes(row.original.leaseStatus);
+			return (value as string[]).includes(row.original.occupancy);
 		},
-		cell: ({ row }) => <LeaseStatusBadge status={row.original.leaseStatus} />,
+		cell: ({ row }) => <OccupancyBadge occupancy={row.original.occupancy} />,
 	},
 	{
 		id: "rent",

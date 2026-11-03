@@ -36,8 +36,7 @@ function makeRow(overrides: Partial<PortfolioRow> = {}): PortfolioRow {
 		address: "123 Elm Street",
 		units: { occupied: 3, total: 4 },
 		tenant: "Jane Doe",
-		leaseStatus: "active",
-		leaseEnd: null,
+		occupancy: "occupied",
 		rent: 1850,
 		maintenanceOpen: 0,
 		...overrides,
@@ -99,7 +98,7 @@ describe("portfolioColumns", () => {
 			"property",
 			"units",
 			"tenant",
-			"status",
+			"occupancy",
 			"rent",
 			"maintenance",
 			"actions",
@@ -109,7 +108,7 @@ describe("portfolioColumns", () => {
 	it("sets sortable flags correctly", () => {
 		expect(findColumn("property").enableSorting).toBe(true);
 		expect(findColumn("units").enableSorting).toBe(true);
-		expect(findColumn("status").enableSorting).toBe(true);
+		expect(findColumn("occupancy").enableSorting).toBe(true);
 		expect(findColumn("rent").enableSorting).toBe(true);
 		expect(findColumn("tenant").enableSorting).toBe(false);
 		expect(findColumn("maintenance").enableSorting).toBe(false);
@@ -197,29 +196,33 @@ describe("portfolioColumns", () => {
 		expect(filterFn(noMatch, "property", "zzz")).toBe(false);
 	});
 
-	it("status column is faceted-filterable (DT-04)", () => {
-		const status = findColumn("status");
+	it("occupancy column is faceted-filterable from the one label map (DT-04)", () => {
+		const status = findColumn("occupancy");
 		expect(status.enableColumnFilter).toBe(true);
 		const variant = status.meta?.variant;
 		expect(variant === "select" || variant === "multiSelect").toBe(true);
-		const optionValues = (status.meta?.options ?? []).map((o) => o.value);
-		expect(optionValues).toContain("active");
-		expect(optionValues).toContain("expiring");
-		expect(optionValues).toContain("vacant");
+		expect(status.meta?.options).toEqual([
+			{ label: "Occupied", value: "occupied" },
+			{ label: "Partly vacant", value: "partly-vacant" },
+			{ label: "Vacant", value: "vacant" },
+			{ label: "No units", value: "no-units" },
+		]);
 	});
 
-	it("status filterFn includes rows whose status is in the selected values", () => {
-		const status = findColumn("status");
+	it("occupancy filterFn includes rows whose occupancy is in the selected values", () => {
+		const status = findColumn("occupancy");
 		const filterFn = status.filterFn as (
 			row: Row<PortfolioRow>,
 			columnId: string,
 			value: unknown,
 		) => boolean;
 		const expiringRow = {
-			original: makeRow({ leaseStatus: "expiring" }),
+			original: makeRow({ occupancy: "partly-vacant" }),
 		} as Row<PortfolioRow>;
-		expect(filterFn(expiringRow, "status", ["expiring", "vacant"])).toBe(true);
-		expect(filterFn(expiringRow, "status", ["active"])).toBe(false);
+		expect(
+			filterFn(expiringRow, "occupancy", ["partly-vacant", "vacant"]),
+		).toBe(true);
+		expect(filterFn(expiringRow, "occupancy", ["occupied"])).toBe(false);
 	});
 
 	it("every column has meta.label and actions is not hideable (DT-05)", () => {

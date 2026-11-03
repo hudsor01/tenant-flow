@@ -1,4 +1,4 @@
-import { LeaseStatusBadge } from "#components/dashboard/components/lease-status-badge";
+import { OccupancyBadge } from "#components/dashboard/components/occupancy-badge";
 import { formatCurrency } from "#lib/utils/currency";
 import type { PortfolioRow } from "../dashboard-types";
 
@@ -16,7 +16,7 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 							<div className="font-medium">{row.property}</div>
 							<div className="text-xs text-muted-foreground">{row.address}</div>
 						</div>
-						<LeaseStatusBadge status={row.leaseStatus} />
+						<OccupancyBadge occupancy={row.occupancy} />
 					</div>
 					<div className="grid grid-cols-2 gap-3 text-sm">
 						<div>
