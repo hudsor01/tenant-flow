@@ -88,7 +88,12 @@ export function PropertyTableRow({
 							)}
 						</div>
 						<div className="min-w-0">
-							<p className="font-medium text-foreground truncate">
+							{/* Truncated in its column, the whole name stays in the text
+							    (assistive technology reads it) and shows on hover. */}
+							<p
+								className="font-medium text-foreground truncate"
+								title={property.name}
+							>
 								{property.name}
 							</p>
 							<p className="text-xs text-muted-foreground truncate">

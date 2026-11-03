@@ -156,7 +156,7 @@ export function PropertyTable({
 				    role attributes are restored on every structural element
 				    (mirrors portfolio-data-table.tsx). */}
 				<table
-					className="grid w-full"
+					className="grid w-full min-w-min"
 					role="table"
 					aria-rowcount={sortedProperties.length + 1}
 				>
