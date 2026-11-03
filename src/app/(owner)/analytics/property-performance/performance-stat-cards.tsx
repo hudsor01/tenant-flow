@@ -19,17 +19,23 @@ interface PerformanceStatCardsProps {
 }
 
 export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
+	// Each wrapper fills its grid cell and each tile its wrapper, rows held to
+	// the top; below lg every label keeps two lines' height, so at 390, where
+	// "Best performer" wraps beside "Rent received", the two figures share a
+	// line (66.2-39 part Q).
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={100}
 						duration={10}
 						colorFrom="var(--color-primary)"
 						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
-					<StatLabel>Total properties</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Total properties
+					</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={metrics.totalProperties} duration={1500} />
 					</StatValue>
@@ -40,15 +46,17 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3}>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.3} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={100}
 						duration={12}
 						colorFrom="var(--color-success)"
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
-					<StatLabel>Average occupancy</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Average occupancy
+					</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<NumberTicker
 							value={metrics.averageOccupancy}
@@ -69,9 +77,9 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4}>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Best performer</StatLabel>
+			<BlurFade delay={0.4} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">Best performer</StatLabel>
 					<StatValue className="flex items-baseline text-base font-semibold truncate">
 						{metrics.bestPerformer ?? "-"}
 					</StatValue>
@@ -82,9 +90,9 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5}>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Rent received</StatLabel>
+			<BlurFade delay={0.5} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">Rent received</StatLabel>
 					{metrics.rentReceived === null ? (
 						<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
 							Unavailable

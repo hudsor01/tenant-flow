@@ -45,7 +45,7 @@ interface FinancialOverviewStatsProps {
 /** A stat label whose meaning is spelled out in a keyboard-reachable tooltip. */
 function LabelWithTooltip({ label, help }: { label: string; help: string }) {
 	return (
-		<StatLabel>
+		<StatLabel className="min-h-10 lg:min-h-0">
 			<Tooltip>
 				<TooltipTrigger
 					type="button"
@@ -117,7 +117,7 @@ export function FinancialOverviewStats({
 
 			<BlurFade delay={0.3} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel>Scheduled Net</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">Scheduled Net</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
 							value={metrics.netIncome}
@@ -139,7 +139,9 @@ export function FinancialOverviewStats({
 
 			<BlurFade delay={0.4} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel>Scheduled Margin</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Scheduled Margin
+					</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
 							value={metrics.profitMargin ?? 0}

@@ -14,11 +14,26 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FinancialOverviewStats } from "#app/(owner)/analytics/financial/_components/financial-overview-stats";
 import { AnalyticsStatCards } from "#app/(owner)/analytics/overview/analytics-stat-cards";
+import { PerformanceStatCards } from "#app/(owner)/analytics/property-performance/performance-stat-cards";
 import { LeasesStatCards } from "#app/(owner)/leases/leases-stat-cards";
 import { ExpenseStats } from "#app/(owner)/reports/expenses/_components/expense-stats";
+import { PropertyStatsSection } from "#components/properties/property-stats-section";
 import { TenantStats } from "#components/tenants/tenant-stats";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { render } from "#test/utils/test-render";
+
+/**
+ * Below lg every label keeps two lines' height (min-h-10, none from lg), the
+ * rows held to the top, so a label that wraps at 390 leaves the figures in a
+ * row on one line (part Q, measured on the production build).
+ */
+function expectTwoLineLabels() {
+	expectRowsOneHeight();
+	for (const label of document.querySelectorAll("[data-slot=stat-label]")) {
+		expect(label.className).toContain("min-h-10");
+		expect(label.className).toContain("lg:min-h-0");
+	}
+}
 
 function expectRowsOneHeight() {
 	const tiles = [...document.querySelectorAll("[data-slot=stat]")];
@@ -37,9 +52,9 @@ describe("stat rows", () => {
 	// height; each tile is a column with its figure row at the foot, so the two
 	// figures in the row stay on one line.
 	// "Total Tenants" and "Pending Signature" wrap at 390 (measured on the
-	// production build: 40 high beside 20-high "Active" and "Ended"), so the
-	// tenants page's tiles take the same one-height rows as the analytics tiles.
-	it("hold the tenants page's tiles to one height", () => {
+	// production build: 40 high beside 20-high "Active" and "Ended"). Held to
+	// the top, their figures sat 20 px below their neighbours' (part Q).
+	it("keep the tenants tiles' figures on one line when a label wraps", () => {
 		render(
 			<TenantStats
 				totalTenants={3}
@@ -48,8 +63,8 @@ describe("stat rows", () => {
 				endedTenants={1}
 			/>,
 		);
-		expectRowsOneHeight();
 		expect(document.querySelectorAll("[data-slot=stat]")).toHaveLength(4);
+		expectTwoLineLabels();
 	});
 
 	it("keep the leases tiles' figures on one line when a label wraps", () => {
@@ -103,7 +118,9 @@ describe("stat rows", () => {
 		expectRowsOneHeight();
 	});
 
-	it("hold the financial overview's tiles to one height", () => {
+	// "Scheduled Margin" wraps at 390 beside "Scheduled Net" (measured: its
+	// figure 20 px lower, part Q).
+	it("keep the financial overview's figures on one line when a label wraps", () => {
 		render(
 			<TooltipProvider>
 				<FinancialOverviewStats
@@ -117,7 +134,57 @@ describe("stat rows", () => {
 				/>
 			</TooltipProvider>,
 		);
-		expectRowsOneHeight();
+		expectTwoLineLabels();
+	});
+
+	// "Best performer" wraps at 390 beside "Rent received" (measured: its
+	// figure 20 px lower, part Q).
+	it("keep the property performance figures on one line when a label wraps", () => {
+		render(
+			<PerformanceStatCards
+				metrics={{
+					totalProperties: 2,
+					totalUnits: 3,
+					occupiedUnits: 2,
+					averageOccupancy: 66.7,
+					rentReceived: 1200,
+					rentReceivedWindow: null,
+					bestPerformer: "Oak House",
+				}}
+			/>,
+		);
+		expect(document.querySelectorAll("[data-slot=stat]")).toHaveLength(4);
+		expectTwoLineLabels();
+	});
+
+	// "Occupied Rent" wraps at 390 beside "Available" (measured: its figure
+	// 20 px lower, part Q).
+	it("keep the properties page's figures on one line when a label wraps", () => {
+		render(
+			<PropertyStatsSection
+				summary={{
+					totalProperties: 2,
+					totalUnits: 3,
+					occupiedUnits: 2,
+					availableUnits: 1,
+					maintenanceUnits: 0,
+					overallOccupancyRate: 67,
+					totalMonthlyRevenue: 1800,
+				}}
+			/>,
+		);
+		const label = [...document.querySelectorAll("p")].find(
+			(p) => p.textContent === "Occupied Rent",
+		);
+		const tiles = [
+			...(label?.closest(".grid")?.querySelectorAll(":scope > div") ?? []),
+		];
+		expect(tiles).toHaveLength(4);
+		for (const tile of tiles) {
+			const tileLabel = tile.querySelector("p");
+			expect(tileLabel?.className ?? "").toContain("min-h-10");
+			expect(tileLabel?.className ?? "").toContain("lg:min-h-0");
+		}
 	});
 
 	it("hold the maintenance insights' two chart cards to one height", () => {
