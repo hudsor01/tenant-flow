@@ -1,6 +1,6 @@
 {
 	"codeStateSha": "b628eb9f1b0c68e8d2d48cfd6660921b0660fef5",
-	"codeStateRule": "the last commit that touches anything outside .planning/ (git log -1 -- . ':(exclude).planning'); every commit after it (the second evidence commit and FROZEN) touches .planning/ only",
+	"codeStateRule": "the last commit that touches anything outside .planning/ (git log -1 -- . ':(exclude).planning'); every commit after it (the second evidence commit, 6c33f58aa and FROZEN, the two docs(66.2-39): refresh the pr body and final record commits) touches .planning/ only",
 	"branch": "gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation",
 	"mergeBase": "d9c7329f0fa500a597e87e7ac02d5a4fb0cf2f2d",
 	"mergeBaseRule": "origin/main after git fetch origin main is d9c7329f0, and git rev-list HEAD contains it (git merge-base is permission-blocked in this environment)",
