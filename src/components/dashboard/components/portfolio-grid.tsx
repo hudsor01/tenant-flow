@@ -35,17 +35,6 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 							</div>
 						</div>
 						<div>
-							<div className="text-muted-foreground text-xs">Tenants</div>
-							<div>
-								{row.tenant ?? (
-									<span className="text-muted-foreground">
-										<span aria-hidden="true">--</span>
-										<span className="sr-only">No tenants</span>
-									</span>
-								)}
-							</div>
-						</div>
-						<div>
 							<div className="text-muted-foreground text-xs">Maintenance</div>
 							<div
 								className={

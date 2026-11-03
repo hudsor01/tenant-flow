@@ -217,7 +217,7 @@ describe("dashboard portfolio swap", () => {
 		useDashboardPresetsStore.getState().savePreset("Vacant view", {
 			filters: { occupancy: ["vacant"], property: "birch" },
 			sort: [{ id: "units", desc: false }],
-			columnVisibility: { tenant: false },
+			columnVisibility: { rent: false },
 			page: 3,
 		});
 
@@ -241,7 +241,7 @@ describe("dashboard portfolio swap", () => {
 		expect(screen.getByTestId("url-sort").textContent).toContain("units");
 		expect(screen.getByTestId("url-page").textContent).toBe("3");
 		expect(useDashboardPresetsStore.getState().columnVisibility).toEqual({
-			tenant: false,
+			rent: false,
 		});
 	});
 
@@ -382,16 +382,41 @@ describe("dashboard portfolio swap", () => {
 			screen.queryByRole("columnheader", { name: /maintenance/i }),
 		).toBeNull();
 	});
+
+	it("hides no column for a stored visibility of the removed tenants column", async () => {
+		// A view saved while the table had its "Tenants" column (66.2-39 removed
+		// it) keeps `tenant: false`: it names no column, so every column shows.
+		useDashboardPresetsStore.getState().setColumnVisibility({ tenant: false });
+		renderDashboard();
+		await screen.findByRole("columnheader", { name: /property/i });
+		const headers = screen
+			.getAllByRole("columnheader")
+			.map((th) => th.textContent?.trim());
+		for (const name of [
+			"Property",
+			"Units",
+			"Occupancy",
+			"Monthly Rent",
+			"Maintenance",
+		]) {
+			expect(
+				headers.some((h) => h?.includes(name)),
+				name,
+			).toBe(true);
+		}
+		expect(headers.some((h) => /tenants/i.test(h ?? ""))).toBe(false);
+	});
 });
 
 // D-10: the inline PropertyPerformance -> PortfolioRow transform in dashboard.tsx
-// (occupied/total units -> occupancy, occupiedUnits -> tenant cell). Grid mode
-// renders the FULL derived row (occupancy chip + tenant cell). The chip read a
-// "Lease Status" invented from the occupancy rate (100% Active, 80% or more
-// Expiring, else Vacant); it states the row's own occupancy.
+// (occupied/total units -> the units cell and the occupancy chip). Grid mode
+// renders the FULL derived row. The chip read a "Lease Status" invented from
+// the occupancy rate (100% Active, 80% or more Expiring, else Vacant); it
+// states the row's own occupancy. A "Tenants" cell repeated the occupied units
+// as "N tenants" ("1 tenants"), no tenant record behind it; it went (66.2-39).
 const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 	{
-		// 4 of 4 units -> "Occupied"; tenant "4 tenants".
+		// 4 of 4 units -> "Occupied"; units "4/4".
 		id: "active-full",
 		name: "Active Full",
 		address: "100 Full Ave",
@@ -403,7 +428,7 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 	},
 	{
 		// 5 of 6 units (85%: the old "Expiring" band) -> "Partly vacant";
-		// tenant "5 tenants".
+		// units "5/6".
 		id: "expiring-partial",
 		name: "Expiring Partial",
 		address: "85 Boundary Rd",
@@ -414,7 +439,7 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 		openMaintenance: 0,
 	},
 	{
-		// 0 of 4 units -> "Vacant"; tenant null -> "--".
+		// 0 of 4 units -> "Vacant"; units "0/4".
 		id: "vacant-empty",
 		name: "Vacant Empty",
 		address: "0 Empty St",
@@ -426,7 +451,7 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 	},
 ];
 
-describe("dashboard portfolio D-10 transform (units -> occupancy, occupancy -> tenant)", () => {
+describe("dashboard portfolio D-10 transform (units -> the units cell and occupancy)", () => {
 	function renderTransformDashboard(wrapper = withUrl()) {
 		return render(
 			<Dashboard
@@ -440,8 +465,8 @@ describe("dashboard portfolio D-10 transform (units -> occupancy, occupancy -> t
 		);
 	}
 
-	it("derives occupancy from the units and tenant from occupancy (grid exposes full row)", async () => {
-		// Grid mode renders the full derived row (occupancy chip + tenant cell).
+	it("derives occupancy from the units, and counts no tenants (grid exposes full row)", async () => {
+		// Grid mode renders the full derived row (occupancy chip + units cell).
 		useDashboardStore.setState({ viewMode: "grid" }, false);
 		renderTransformDashboard();
 
@@ -458,10 +483,10 @@ describe("dashboard portfolio D-10 transform (units -> occupancy, occupancy -> t
 		expect(expiringCard).not.toBeNull();
 		expect(vacantCard).not.toBeNull();
 
-		// 4 of 4 -> chip "Occupied"; tenant "4 tenants".
+		// 4 of 4 -> chip "Occupied"; units "4/4".
 		const { getByText: getInActive } = within(activeCard);
 		expect(getInActive("Occupied")).toBeInTheDocument();
-		expect(getInActive("4 tenants")).toBeInTheDocument();
+		expect(getInActive("4/4")).toBeInTheDocument();
 
 		// 5 of 6 -> chip "Partly vacant", never a lease state ("Expiring") the
 		// row has no lease date for.
@@ -469,16 +494,17 @@ describe("dashboard portfolio D-10 transform (units -> occupancy, occupancy -> t
 			within(expiringCard);
 		expect(getInExpiring("Partly vacant")).toBeInTheDocument();
 		expect(queryExpiringTenant("Expiring")).toBeNull();
-		// Partial occupancy (5 > 0) -> tenant "5 tenants" (NOT the "--" no-tenant
-		// placeholder).
-		expect(getInExpiring("5 tenants")).toBeInTheDocument();
-		expect(queryExpiringTenant("No tenants")).toBeNull();
+		expect(getInExpiring("5/6")).toBeInTheDocument();
 
-		// 0 of 4 -> chip "Vacant"; tenant null -> "--" (sr-only "No tenants").
-		const { getByText: getInVacant, getByText: getVacantTenant } =
-			within(vacantCard);
+		// 0 of 4 -> chip "Vacant"; units "0/4".
+		const { getByText: getInVacant } = within(vacantCard);
 		expect(getInVacant("Vacant")).toBeInTheDocument();
-		expect(getVacantTenant("No tenants")).toBeInTheDocument();
+		expect(getInVacant("0/4")).toBeInTheDocument();
+
+		// No card counts tenants: the units cell is the row's count.
+		for (const card of [activeCard, expiringCard, vacantCard]) {
+			expect(card.textContent ?? "").not.toMatch(/tenants?/i);
+		}
 	});
 });
 

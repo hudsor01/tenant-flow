@@ -41,7 +41,6 @@ describe("named roles for labelled elements", () => {
 						property: "12 Oak St",
 						address: "12 Oak St",
 						units: { occupied: 0, total: 1 },
-						tenant: null,
 						occupancy: "vacant",
 						rent: 0,
 						maintenanceOpen: 0,
@@ -49,7 +48,7 @@ describe("named roles for labelled elements", () => {
 				]}
 			/>,
 		);
-		for (const text of ["No tenants", "No open requests"]) {
+		for (const text of ["No open requests"]) {
 			const sr = screen.getByText(text);
 			expect(sr).toHaveClass("sr-only");
 			expect(sr.parentElement).not.toHaveAttribute("aria-label");

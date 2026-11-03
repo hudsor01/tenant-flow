@@ -37,10 +37,13 @@ function MaintenanceCell({ openCount }: { openCount: number }) {
 }
 
 /**
- * The 7-column portfolio table model (DT-03).
+ * The 6-column portfolio table model (DT-03).
  *
- * - Property/Units/Occupancy/Monthly Rent are sortable; Tenants/Maintenance/
- *   Actions are not.
+ * - Property/Units/Occupancy/Monthly Rent are sortable; Maintenance/Actions
+ *   are not.
+ * - Units shows each property's occupied and total units. There is no tenants
+ *   column: it repeated the occupied units as "N tenants" ("1 tenants") under
+ *   a name no tenant record backed.
  * - Property carries a custom name||address filterFn (W-3 search parity). Search
  *   filters this column, so its id "property" is the pinned nuqs search key.
  * - Occupancy carries faceted metadata (DT-04) + an array-membership filterFn.
@@ -102,25 +105,6 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 				<span className="ml-1 text-xs text-muted-foreground">occupied</span>
 			</span>
 		),
-	},
-	{
-		id: "tenant",
-		accessorKey: "tenant",
-		size: 140,
-		header: ({ column }) => (
-			<DataTableColumnHeader column={column} label="Tenants" />
-		),
-		meta: { label: "Tenants" },
-		enableSorting: false,
-		cell: ({ row }) =>
-			row.original.tenant ? (
-				<span className="text-sm">{row.original.tenant}</span>
-			) : (
-				<span className="text-sm text-muted-foreground">
-					<span aria-hidden="true">--</span>
-					<span className="sr-only">No tenants</span>
-				</span>
-			),
 	},
 	{
 		id: "occupancy",

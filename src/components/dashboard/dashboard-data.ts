@@ -74,7 +74,6 @@ export function transformDashboardData(
 			property: prop.property,
 			address: prop.address_line1,
 			units: { occupied: prop.occupiedUnits, total: prop.totalUnits },
-			tenant: prop.occupiedUnits > 0 ? `${prop.occupiedUnits} tenants` : null,
 			occupancy: portfolioOccupancy(prop.occupiedUnits, prop.totalUnits),
 			rent: prop.monthlyRevenue,
 			// `open_maintenance` is optional on PropertyPerformance — only the v2

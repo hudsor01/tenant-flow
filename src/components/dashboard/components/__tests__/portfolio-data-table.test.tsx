@@ -58,7 +58,6 @@ function makeRow(
 		property: "Default Property",
 		address: "1 Default St",
 		units: { occupied: 1, total: 1 },
-		tenant: null,
 		occupancy: "vacant",
 		rent: 1000,
 		maintenanceOpen: 0,
@@ -81,7 +80,6 @@ function makeRows(count: number): PortfolioRow[] {
 			property: `Property ${index}`,
 			address: `${index} Main St`,
 			units: { occupied: index % 4, total: 4 },
-			tenant: index % 2 === 0 ? `Tenant ${index}` : null,
 			occupancy:
 				index % 3 === 0
 					? "occupied"
@@ -363,17 +361,16 @@ describe("PortfolioDataTable", () => {
 			expect(bodyFlex).toEqual([
 				"1 1 240px",
 				"1 1 90px",
-				"1 1 140px",
 				"1 1 120px",
 				"1 1 120px",
 				"1 1 110px",
 				"1 1 80px",
 			]);
 
-			// Numeric columns (rent idx 4, maintenance idx 5) right-align via
+			// Numeric columns (rent idx 3, maintenance idx 4) right-align via
 			// justify-content (text-align is inert inside a flex cell); others left.
+			expect((cells[3] as HTMLElement).style.justifyContent).toBe("flex-end");
 			expect((cells[4] as HTMLElement).style.justifyContent).toBe("flex-end");
-			expect((cells[5] as HTMLElement).style.justifyContent).toBe("flex-end");
 			expect((cells[0] as HTMLElement).style.justifyContent).toBe("flex-start");
 
 			// Header column count equals body column count, and each header <th

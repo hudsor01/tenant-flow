@@ -6,7 +6,6 @@ export type PortfolioRow = {
 	property: string;
 	address: string;
 	units: { occupied: number; total: number };
-	tenant: string | null;
 	/** From the row's own units (portfolioOccupancy), never a lease status. */
 	occupancy: PortfolioOccupancy;
 	rent: number;

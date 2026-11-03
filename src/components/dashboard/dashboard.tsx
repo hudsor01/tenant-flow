@@ -106,7 +106,6 @@ export function Dashboard({
 		property: prop.name,
 		address: prop.address,
 		units: { occupied: prop.occupiedUnits, total: prop.totalUnits },
-		tenant: prop.occupiedUnits > 0 ? `${prop.occupiedUnits} tenants` : null,
 		occupancy: portfolioOccupancy(prop.occupiedUnits, prop.totalUnits),
 		rent: prop.monthlyRevenue,
 		maintenanceOpen: prop.openMaintenance,
