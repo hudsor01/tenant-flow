@@ -42,6 +42,7 @@ import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import {
 	buildTaxYearReport,
+	expenseVendorLabel,
 	propertyReportName,
 	REPORT_1099_TYPE,
 	TAX_DOCUMENTS_REPORT_TYPE,
@@ -303,7 +304,7 @@ function expectedTable(s: Scenario) {
 		revenueTrends: s.rpc.get_revenue_trends_optimized?.data,
 		expenseSummary: s.rpc.get_expense_summary?.data,
 		billingInsights: s.rpc.get_billing_insights?.data,
-	}, propertyReportName);
+	}, propertyReportName, expenseVendorLabel);
 }
 
 const FA = "?type=financial-analytics";

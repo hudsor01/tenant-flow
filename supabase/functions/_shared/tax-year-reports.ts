@@ -83,6 +83,27 @@ export function propertyReportName(name: string, status: string): string {
 }
 
 /**
+ * The name of the expenses with no vendor recorded. get_expense_summary's
+ * categories and get_maintenance_analytics' vendor_performance put an expense
+ * whose vendor is NULL, empty or only spaces under a NULL vendor
+ * (20261102184502, 20261102184503), a key no vendor's name can take; the body
+ * before folded them into "Other", merging them with a vendor the owner named
+ * "Other". Every surface that lists vendors names them through
+ * `expenseVendorLabel`: the expenses, financial analytics, maintenance
+ * analytics, year-end and tax-documents pages, their files, and the Edge
+ * exports (financial-analytics-report.ts takes it from its caller, as it does
+ * `propertyReportName`).
+ */
+export const NO_VENDOR_LABEL = "No vendor recorded";
+
+/** A vendor's name as the owner entered it, or NO_VENDOR_LABEL for none. */
+export function expenseVendorLabel(vendor: unknown): string {
+	return typeof vendor === "string" && vendor.trim() !== ""
+		? vendor
+		: NO_VENDOR_LABEL;
+}
+
+/**
  * One page of the owner's deleted property ids, as
  * `supabase.from("properties").select("id").eq("owner_user_id", <the
  * validated owner>).eq("status", "inactive").order("id").range(from, to)`
@@ -394,7 +415,7 @@ function expenseCategories(
 	).map((entry) => {
 		const row = asRecord(entry) ?? {};
 		return {
-			category: String(row["category"] ?? ""),
+			category: expenseVendorLabel(row["category"]),
 			amount: Number(row["amount"] ?? 0),
 			percentage: Number(row["percentage"] ?? 0),
 		};
@@ -425,7 +446,7 @@ function rows1099(expenseSummary: unknown): Row[] {
 	).map((entry) => {
 		const row = asRecord(entry) ?? {};
 		return {
-			vendorName: String(row["vendor_name"] ?? ""),
+			vendorName: expenseVendorLabel(row["vendor_name"]),
 			totalPaid: Number(row["total_paid"] ?? 0),
 			jobCount: Number(row["job_count"] ?? 0),
 		};

@@ -41,7 +41,10 @@ import {
 	leaseProfitabilityLabel,
 	type RpcCall,
 } from "../_shared/financial-analytics-report";
-import { propertyReportName } from "../_shared/tax-year-reports";
+import {
+	expenseVendorLabel,
+	propertyReportName,
+} from "../_shared/tax-year-reports";
 
 const { mockRpc, USER_ID } = vi.hoisted(() => ({
 	mockRpc: vi.fn(),
@@ -232,7 +235,11 @@ async function exported(answers: RpcAnswers): Promise<{
 		return answer(answers)(name);
 	}, USER_ID);
 	if (!load.ok) throw new Error(`load failed on ${load.rpc}`);
-	const table = buildFinancialAnalyticsTable(load.sources, propertyReportName);
+	const table = buildFinancialAnalyticsTable(
+		load.sources,
+		propertyReportName,
+		expenseVendorLabel,
+	);
 	return {
 		rows: table.rows,
 		formats: table.formats,
@@ -391,6 +398,33 @@ describe("every figure the page renders is a row of the file", () => {
 		expect(section(rows, "Scheduled Net")).toHaveLength(12);
 	});
 
+	it('names the expenses with no vendor once, never as the vendor "Other"', async () => {
+		// get_expense_summary puts an expense with no vendor under a NULL
+		// category (20261102184502); "Other" is a vendor the owner named so.
+		const answers = richAnswers();
+		answers.get_expense_summary = {
+			data: {
+				categories: [
+					{ category: "Other", amount: 4000.25, percentage: 80 },
+					{ category: null, amount: 1000, percentage: 20 },
+				],
+				monthly_totals: [],
+				total_amount: 5000.25,
+			},
+			error: null,
+		};
+		const { page } = await screen(answers);
+		const { rows } = await exported(answers);
+		expect(page.breakdown.expenses.map((e) => e.label)).toEqual([
+			"Other",
+			"No vendor recorded",
+		]);
+		expect(section(rows, "Expenses by Vendor").map((r) => r[1])).toEqual([
+			"Other",
+			"No vendor recorded",
+		]);
+	});
+
 	it("keeps every expense category, though the page lists the first five", async () => {
 		const answers = richAnswers();
 		const { page } = await screen(answers);
@@ -446,7 +480,11 @@ describe("every figure the page renders is a row of the file", () => {
 	it("writes the fixed header", async () => {
 		const answers = richAnswers();
 		const file = await exported(answers);
-		const table = buildFinancialAnalyticsTable(file.sources, propertyReportName);
+		const table = buildFinancialAnalyticsTable(
+			file.sources,
+			propertyReportName,
+			expenseVendorLabel,
+		);
 		expect(table.header).toEqual(FINANCIAL_ANALYTICS_HEADER);
 		for (const row of table.rows) {
 			expect(row).toHaveLength(FINANCIAL_ANALYTICS_HEADER.length);

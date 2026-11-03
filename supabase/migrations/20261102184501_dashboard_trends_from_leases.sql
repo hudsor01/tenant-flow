@@ -88,6 +88,22 @@
 --     For occupancy_rate it is relative; the change in points is `change`.
 --   trends.active_tenants: tenant_count today and 30 days ago.
 --
+-- OPEN MAINTENANCE, ONE COUNT (get_dashboard_data_v2). The dashboard's and the
+-- analytics overview's "Open maintenance" tile shows `stats.maintenance.open`
+-- beside the `trends.open_maintenance` chip, and the production body counted
+-- three different sets under that one name: `stats.maintenance.open` the
+-- requests whose status is 'open', the trend's current figure every request
+-- not completed or cancelled, and each property's `open_maintenance` (the
+-- portfolio table) 'open' and 'in_progress' only. So a chip read "+3 vs. 30
+-- days ago" beside a figure of 2. All three now count the requests that are
+-- not completed or cancelled ('open', 'assigned', 'in_progress',
+-- 'needs_reassignment', 'on_hold'): the only set the trend can compare with 30
+-- days ago, because no status history exists ('open' 30 days ago cannot be
+-- known; "not yet completed or cancelled" can, from created_at and
+-- completed_at). `stats.maintenance.inProgress` keeps its own count (no caller
+-- reads it). get_dashboard_stats, whose `maintenance.open` no caller reads and
+-- which has no maintenance trend, is unchanged here.
+--
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
 -- to an empty database, seeds a portfolio (scripts/migration-replay-owner-figures.sql)
 -- and asserts both functions' figures, every trend's (its percentChange NULL
@@ -453,7 +469,8 @@ begin
   maintenance_agg as (
     select
       count(*)::int                                                                as total,
-      count(*) filter (where status = 'open')::int                                as open_count,
+      -- Open: not completed or cancelled, the trend's set (see the header).
+      count(*) filter (where status not in ('completed', 'cancelled'))::int       as open_count,
       count(*) filter (where status = 'in_progress')::int                         as in_progress,
       count(*) filter (where status = 'completed')::int                           as completed,
       count(*) filter (where status = 'completed' and date(completed_at) = current_date)::int as completed_today,
@@ -613,7 +630,7 @@ begin
   perf_open_maintenance as (
     select
       u.property_id,
-      count(*) filter (where am.status in ('open', 'in_progress'))::int as open_maintenance
+      count(*) filter (where am.status not in ('completed', 'cancelled'))::int as open_maintenance
     from all_maintenance am
     join maintenance_requests mr on mr.id = am.id
     join all_units u on u.id = mr.unit_id

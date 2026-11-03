@@ -25,6 +25,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { mapMaintenanceCosts } from "#hooks/api/query-keys/analytics-mappers";
 import {
 	EXPIRING_LEASE_LABEL,
 	LEASE_STATUS_LABELS,
@@ -33,6 +34,10 @@ import {
 	PROPERTY_TYPE_LABELS,
 	propertyStatusLabel,
 } from "#lib/constants/status-types";
+import {
+	expenseVendorLabel,
+	NO_VENDOR_LABEL,
+} from "../../../supabase/functions/_shared/tax-year-reports";
 
 const ROOT = process.cwd();
 const LABELS_FILE = "src/lib/constants/status-types.ts";
@@ -170,5 +175,49 @@ describe("one label per lease status and property type", () => {
 			MULTI_UNIT_LABEL.test('{ value: "MULTI_UNIT", label: "Multi Unit" }'),
 		).toBe(true);
 		expect(MULTI_UNIT_LABEL.test("MULTI_UNIT")).toBe(false);
+	});
+});
+
+/**
+ * An expense with no vendor recorded (get_expense_summary's NULL category and
+ * get_maintenance_analytics' NULL vendor_name, 20261102184502 and
+ * 20261102184503) has one name, NO_VENDOR_LABEL, written once (in
+ * supabase/functions/_shared/tax-year-reports.ts, which the client mappers and
+ * the Edge exports read), and is never shown as "Other", a vendor's name.
+ */
+const VENDOR_LABEL_FILE = "supabase/functions/_shared/tax-year-reports.ts";
+
+describe("one name for the expenses with no vendor", () => {
+	it("names no vendor once, and every vendor as entered", () => {
+		expect(NO_VENDOR_LABEL).toBe("No vendor recorded");
+		for (const none of [null, undefined, "", "   ", 0]) {
+			expect(expenseVendorLabel(none)).toBe(NO_VENDOR_LABEL);
+		}
+		expect(expenseVendorLabel("Other")).toBe("Other");
+		expect(expenseVendorLabel("acme plumbing")).toBe("acme plumbing");
+	});
+
+	it("names the maintenance analytics' vendor with none so", () => {
+		const costs = mapMaintenanceCosts({
+			costed_requests: 2,
+			total_cost: 130,
+			vendor_performance: [
+				{ vendor_name: "Other", total_spend: 100, jobs: 1 },
+				{ vendor_name: null, total_spend: 30, jobs: 1 },
+			],
+		});
+		expect(costs?.vendors.map((v) => v.vendorName)).toEqual([
+			"Other",
+			"No vendor recorded",
+		]);
+	});
+
+	it("writes the label nowhere else", () => {
+		const written = hits(
+			SOURCES.filter((f) => f !== VENDOR_LABEL_FILE),
+			/No vendor recorded/i,
+		);
+		expect(written).toEqual([]);
+		expect(SOURCES).toContain(VENDOR_LABEL_FILE);
 	});
 });

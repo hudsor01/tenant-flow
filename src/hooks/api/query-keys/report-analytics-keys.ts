@@ -19,6 +19,7 @@ import type {
 	Year1099Summary,
 	YearEndResult,
 } from "#types/reports";
+import { expenseVendorLabel } from "../../../../supabase/functions/_shared/tax-year-reports";
 import { fetchOccupancyTrends } from "./analytics-keys";
 import { mapMaintenanceCosts } from "./analytics-mappers";
 import { fetchRentReceivedInYear } from "./financial-keys";
@@ -109,7 +110,7 @@ export const reportAnalyticsQueries = {
 					expenseBreakdown: (
 						(expenseSummary?.categories ?? []) as Array<Record<string, unknown>>
 					).map((c) => ({
-						category: String(c.category ?? ""),
+						category: expenseVendorLabel(c.category),
 						amount: Number(c.amount ?? 0),
 					})),
 				};
@@ -335,7 +336,7 @@ export const reportAnalyticsQueries = {
 								Record<string, unknown>
 							>
 						).map((c) => ({
-							category: String(c.category ?? ""),
+							category: expenseVendorLabel(c.category),
 							amount: Number(c.amount ?? 0),
 						})),
 					},
@@ -366,7 +367,7 @@ export const reportAnalyticsQueries = {
 					Record<string, unknown>
 				>;
 				const recipients = vendorPayments.map((v) => ({
-					vendorName: String(v.vendor_name ?? ""),
+					vendorName: expenseVendorLabel(v.vendor_name),
 					totalPaid: Number(v.total_paid ?? 0),
 					jobCount: Number(v.job_count ?? 0),
 				}));

@@ -584,6 +584,38 @@ describe("tax-year reports hold their pages' figures", () => {
 		});
 	});
 
+	it('names the expenses with no vendor once, never as the vendor "Other"', async () => {
+		// get_expense_summary puts an expense with no vendor under a NULL
+		// category (20261102184502); "Other" is a vendor the owner named so.
+		const answers = richAnswers();
+		answers.get_expense_summary = {
+			data: {
+				categories: [
+					{ category: "Other", amount: 4000.25, percentage: 80 },
+					{ category: null, amount: 1000, percentage: 20 },
+				],
+				monthly_totals: [],
+				total_amount: 5000.25,
+			},
+			error: null,
+		};
+		const page = await screen(answers);
+		expect(page.yearEnd.expenseByCategory.map((c) => c.category)).toEqual([
+			"Other",
+			"No vendor recorded",
+		]);
+		expect(page.taxDocuments.expenseCategories.map((c) => c.category)).toEqual(
+			["Other", "No vendor recorded"],
+		);
+		for (const type of [YEAR_END_REPORT_TYPE, TAX_DOCUMENTS_REPORT_TYPE]) {
+			const file = await exported(type, answers);
+			const items = file.rows.map((r) => r[1]);
+			expect(items, type).toContain("No vendor recorded");
+			expect(items, type).toContain("Other");
+			expect(items, type).not.toContain("");
+		}
+	});
+
 	it("fails where the page fails: a non-array categories payload", async () => {
 		const bad = richAnswers();
 		bad.get_expense_summary = {

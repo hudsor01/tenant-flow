@@ -35,6 +35,7 @@ import { reportTableToXlsx, XLSX_MIME_TYPE } from "../_shared/report-xlsx.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import {
 	buildTaxYearReport,
+	expenseVendorLabel,
 	loadTaxYearSources,
 	propertyReportName,
 	TAX_YEAR_REPORT_TYPES,
@@ -191,7 +192,11 @@ export async function handleRequest(
 			content = {
 				title: "Financial Analytics",
 				filename: `${FINANCIAL_ANALYTICS_REPORT_TYPE}-${today}`,
-				table: buildFinancialAnalyticsTable(load.sources, propertyReportName),
+				table: buildFinancialAnalyticsTable(
+						load.sources,
+						propertyReportName,
+						expenseVendorLabel,
+					),
 			};
 		} else {
 			const load = await loadTaxYearSources(

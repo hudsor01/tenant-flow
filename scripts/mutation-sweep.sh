@@ -437,6 +437,19 @@ mutate "$CONTRACT" 'if (typeof on === "string") return { [on]: null };' \
                    'the scalar form of on: is not understood'
 mutate "$CONTRACT" 'if (workflows.length === 0) {' 'if (false) {' \
                    'an empty workflow directory passes'
+mutate "$REPLAY" '			tileOpen !== trendOpen ||' '' \
+                 'the open-maintenance tile is not compared with its trend'
+mutate "$REPLAY" '			tileOpen !== propertyOpen' '			false' \
+                 'the open-maintenance tile is not compared with the property rows'
+mutate "$REPLAY" 'for (const owner of ["dashboard_v2_a", "dashboard_v2_b"]) {' \
+                 'for (const owner of ["dashboard_v2_b"]) {' \
+                 'owner A'"'"'s open-maintenance count is not checked'
+mutate "$REPLAY" '				amount > 20' '				amount > 1000' \
+                 'the folded-vendor expense body is not named'
+mutate "$REPLAY" '				category?.["category"] === "Other" &&' '				true &&' \
+                 'the folded-vendor diagnosis names any vendor over 20.00'
+mutate "$REPLAY" 'atPath(printed, "dashboard_v2_a.maintenance_open") === 2 &&' 'false &&' \
+                 'the status-open maintenance body is not named'
 mutate "$REPLAY" 'if (blogText === "") {' 'if (false) {' \
                  'empty blog-banlist output is not reported as a broken fixture'
 mutate "$REPLAY" 'if (blogParsed === null) {' 'if (false) {' \

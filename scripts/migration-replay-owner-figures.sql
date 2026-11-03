@@ -89,6 +89,8 @@
 --   soft-deleted: no expense is its. Receipts: LB2 700.00 on 2025-02-01;
 --   LB3 640.00 on 2025-07-05, 100.00 on 2025-08-01 and its reversal,
 --   -100.00, on 2025-08-02. Request
+--   RB2 on hold, created T-40 (not completed or cancelled: open now and 30
+--   days ago), and request
 --   RB1 with expenses 7.00 on 2024-02-29, 80.00 on
 --   2024-03-01, 30.00 on 2024-04-10 SOFT-DELETED, 40.00 on 2024-06-30, 9.00
 --   on 2024-07-01, 100.00 on 2025-03-01, 25.00 on 2025-04-10 SOFT-DELETED,
@@ -97,7 +99,10 @@
 --   T-7 .. T+300, 500 (1 of 3 units today, none 30 days ago); request RC1
 --   with expenses 300.00 on January 1 of T's year, 20.00 on T, 66.00 on T+5
 --   (in the future), 200.00 on January 1 of the year before and 40.00 on T a
---   year earlier.
+--   year earlier, and four more on January 1 of T's year: 12.00 with an empty
+--   vendor, 3.00 with none (NULL), 2.50 with a vendor of spaces, and 20.00
+--   from a vendor the owner named "Other" (the three with no vendor are one
+--   category, never the vendor "Other"'s).
 -- NOBODY: an owner id with no rows at all, as the helper and the service role
 --   see it.
 
@@ -224,6 +229,7 @@ values
    date_trunc('month', current_date) - interval '4 months' + interval '10 hours',
    date_trunc('month', current_date) - interval '2 months' + interval '10 days 10 hours'),
   ('d7000000-0000-4000-8000-0000000000b1', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1', 'd3000000-0000-4000-8000-00000000b001', 'Gate', 'Gate hinge', 'open', now(), null),
+  ('d7000000-0000-4000-8000-0000000000b2', :'owner_b', 'd2000000-0000-4000-8000-0000000000b1', 'd3000000-0000-4000-8000-00000000b001', 'Fence', 'Fence panel', 'on_hold', now() - interval '40 days', null),
   ('d7000000-0000-4000-8000-0000000000c1', :'owner_c', 'd2000000-0000-4000-8000-0000000000c1', 'd3000000-0000-4000-8000-00000000c001', 'Porch', 'Porch step', 'open', now(), null),
   ('d7000000-0000-4000-8000-0000000000c9', :'owner_c', 'd2000000-0000-4000-8000-0000000000a1', 'd3000000-0000-4000-8000-00000000c001', 'Cross', 'Another owner''s request', 'open', now(), null);
 
@@ -251,6 +257,10 @@ values
   ('d7000000-0000-4000-8000-0000000000c1',  66.00, current_date + 5, 'Porch Co', 'active'),
   ('d7000000-0000-4000-8000-0000000000c1', 200.00, (date_trunc('year', current_date) - interval '1 year')::date, 'Porch Co', 'active'),
   ('d7000000-0000-4000-8000-0000000000c1',  40.00, (current_date - interval '1 year')::date, 'Porch Co', 'active'),
+  ('d7000000-0000-4000-8000-0000000000c1',  12.00, date_trunc('year', current_date)::date, '', 'active'),
+  ('d7000000-0000-4000-8000-0000000000c1',   3.00, date_trunc('year', current_date)::date, null, 'active'),
+  ('d7000000-0000-4000-8000-0000000000c1',   2.50, date_trunc('year', current_date)::date, '   ', 'active'),
+  ('d7000000-0000-4000-8000-0000000000c1',  20.00, date_trunc('year', current_date)::date, 'Other', 'active'),
   ('d7000000-0000-4000-8000-0000000000c9',   9.00, current_date + 200, 'Cross Co', 'active');
 
 -- The rent ledger the lease profitability reads: one charge per lease, and
@@ -311,7 +321,10 @@ from (select public.get_dashboard_stats(current_setting('replay.owner_a')::uuid)
 insert into replay_figures
 select 'dashboard_v2_a', jsonb_build_object('units', d->'stats'->'units', 'revenue', d->'stats'->'revenue',
   'trend_occupancy', d->'trends'->'occupancy_rate', 'trend_revenue', d->'trends'->'monthly_revenue',
-  'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance')
+  'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance',
+  'maintenance_open', d->'stats'->'maintenance'->'open',
+  'property_open_maintenance', (select jsonb_object_agg(pp->>'property_name', pp->'open_maintenance')
+                                from jsonb_array_elements(d->'property_performance') pp))
 from (select public.get_dashboard_data_v2(current_setting('replay.owner_a')::uuid) as d) x;
 -- The occupancy chart's series, as the app asks for it.
 insert into replay_figures values
@@ -359,7 +372,10 @@ from (select public.get_dashboard_stats(current_setting('replay.owner_b')::uuid)
 insert into replay_figures
 select 'dashboard_v2_b', jsonb_build_object('units', d->'stats'->'units', 'revenue', d->'stats'->'revenue',
   'trend_occupancy', d->'trends'->'occupancy_rate', 'trend_revenue', d->'trends'->'monthly_revenue',
-  'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance')
+  'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance',
+  'maintenance_open', d->'stats'->'maintenance'->'open',
+  'property_open_maintenance', (select jsonb_object_agg(pp->>'property_name', pp->'open_maintenance')
+                                from jsonb_array_elements(d->'property_performance') pp))
 from (select public.get_dashboard_data_v2(current_setting('replay.owner_b')::uuid) as d) x;
 insert into replay_figures values
   ('expenses_b_spring_2025', public.get_expense_summary(current_setting('replay.owner_b')::uuid, '2025-03-01', '2025-06-30')
@@ -379,8 +395,13 @@ insert into replay_figures values
 select set_config('request.jwt.claims', json_build_object('sub', :'owner_c', 'role', 'authenticated')::text, true) as ignored \gset
 -- As the expenses page asks: no dates, the year to date.
 insert into replay_figures values
-  ('expenses_c_year_to_date', public.get_expense_summary(current_setting('replay.owner_c')::uuid)
-     - array['monthly_totals', 'monthly_average']);
+  -- Its categories largest first (the function aggregates them in no order).
+  ('expenses_c_year_to_date', (
+     select (e - array['monthly_totals', 'monthly_average'])
+       || jsonb_build_object('categories', (
+            select jsonb_agg(c order by (c->>'amount')::numeric desc)
+            from jsonb_array_elements(e->'categories') c))
+     from (select public.get_expense_summary(current_setting('replay.owner_c')::uuid) as e) x));
 insert into replay_figures
 select 'dashboard_stats_c', jsonb_build_object('units', s->'units', 'revenue', s->'revenue')
 from (select public.get_dashboard_stats(current_setting('replay.owner_c')::uuid)::jsonb as s) x;

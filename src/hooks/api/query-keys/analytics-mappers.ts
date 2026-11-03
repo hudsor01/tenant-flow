@@ -30,7 +30,10 @@ import type {
 	MaintenanceInsightsPageData,
 	OccupancyAnalyticsPageData,
 } from "#types/analytics-page-data";
-import { propertyReportName } from "../../../../supabase/functions/_shared/tax-year-reports";
+import {
+	expenseVendorLabel,
+	propertyReportName,
+} from "../../../../supabase/functions/_shared/tax-year-reports";
 import { expenseTotalsByMonth } from "./analytics-keys";
 
 /** Narrow an unknown RPC return to a plain object, or null. Never throws. */
@@ -177,7 +180,7 @@ function expenseBreakdownRows(summary: unknown): FinancialBreakdownRow[] {
 	const obj = asObject(summary);
 	const categories = Array.isArray(obj?.categories) ? obj.categories : [];
 	return (categories as Array<Record<string, unknown>>).map((c) => ({
-		label: String(c.category ?? ""),
+		label: expenseVendorLabel(c.category),
 		value: Number(c.amount ?? 0),
 		percentage: Number(c.percentage ?? 0),
 		change: null,
@@ -374,7 +377,7 @@ export function mapMaintenanceCosts(
 			cost: Number(m.cost ?? 0),
 		})),
 		vendors: rows(root?.vendor_performance).map((v) => ({
-			vendorName: String(v.vendor_name ?? ""),
+			vendorName: expenseVendorLabel(v.vendor_name),
 			totalSpend: Number(v.total_spend ?? 0),
 			jobs: Number(v.jobs ?? 0),
 		})),

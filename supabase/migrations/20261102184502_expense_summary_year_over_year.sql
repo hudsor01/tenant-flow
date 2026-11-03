@@ -50,6 +50,13 @@
 --     the prior period's total is 0 (no prior-year figure to compare: never
 --     0, never a division by zero) or when there is no prior period.
 --
+-- A BLANK VENDOR IS NO VENDOR. categories are by vendor_name, and the body
+-- folded every expense with no vendor (NULL or '') into a category named
+-- 'Other', so its amount merged with a vendor the owner named "Other". An
+-- expense whose vendor_name is NULL, empty or only whitespace is now under
+-- category NULL, a key no vendor name can take; the client names it ("No
+-- vendor recorded"). A vendor name is otherwise grouped as entered.
+--
 -- MONEY. Dollars: expenses.amount is numeric(10,2).
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
@@ -84,10 +91,11 @@ begin
     raise exception 'Access denied: cannot request data for another user';
   end if;
 
-  -- Spend breakdown for the selected period, grouped by vendor.
+  -- Spend breakdown for the selected period, grouped by vendor; NULL for no
+  -- vendor (see the migration header).
   with cat as (
     select
-      coalesce(nullif(e.vendor_name, ''), 'Other') as category,
+      case when nullif(btrim(e.vendor_name), '') is null then null else e.vendor_name end as category,
       sum(e.amount) as total
     from expenses e
     join maintenance_requests mr on mr.id = e.maintenance_request_id
@@ -95,7 +103,7 @@ begin
       and e.status <> 'inactive'
       and e.expense_date >= p_start_date
       and e.expense_date <= v_end
-    group by coalesce(nullif(e.vendor_name, ''), 'Other')
+    group by 1
   ),
   totals as (select coalesce(sum(total), 0) as grand from cat)
   select coalesce(jsonb_agg(

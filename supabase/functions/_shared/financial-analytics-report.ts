@@ -98,6 +98,12 @@ export function leaseProfitabilityLabel(lease: {
  */
 export type PropertyNamer = (name: string, status: string) => string;
 
+/**
+ * How the export names an expense's vendor, NULL (no vendor recorded)
+ * included: tax-year-reports' `expenseVendorLabel`, passed in by the caller.
+ */
+export type VendorNamer = (vendor: unknown) => string;
+
 /** One cell: text, a number, or empty. */
 export type ReportCell = string | number | null;
 
@@ -355,11 +361,13 @@ function leaseProfitabilityRows(
 /**
  * The page's figures as table rows. Each figure is derived as
  * `mapFinancialOverview` and `ownerPaymentSummary` derive it. `propertyName`
- * is the report label map's namer (tax-year-reports' `propertyReportName`).
+ * is the report label map's namer (tax-year-reports' `propertyReportName`),
+ * `vendorName` the vendor namer (tax-year-reports' `expenseVendorLabel`).
  */
 export function buildFinancialAnalyticsTable(
 	sources: FinancialAnalyticsSources,
 	propertyName: PropertyNamer,
+	vendorName: VendorNamer,
 ): FinancialAnalyticsTable {
 	const overview = asRecord(asRecord(sources.overview)?.["overview"]) ?? {};
 	const totalRevenue = Number(overview["total_revenue"] ?? 0);
@@ -401,7 +409,7 @@ export function buildFinancialAnalyticsTable(
 		(entry: unknown) => {
 			const row = asRecord(entry) ?? {};
 			return {
-				label: String(row["category"] ?? ""),
+				label: vendorName(row["category"]),
 				amount: Number(row["amount"] ?? 0),
 			};
 		},

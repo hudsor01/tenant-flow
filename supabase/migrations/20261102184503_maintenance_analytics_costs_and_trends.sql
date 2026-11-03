@@ -52,7 +52,9 @@
 --   monthly_cost: the trailing 12 calendar months, oldest first, zero-filled,
 --     [{ month 'YYYY-MM', cost }], the expenses dated in each month.
 --   vendor_performance: [{ vendor_name, total_spend, jobs }], the expenses by
---     vendor as get_expense_summary names it (an empty vendor is 'Other'),
+--     vendor as get_expense_summary names it (an expense with no vendor, NULL,
+--     empty or only whitespace, is under vendor_name NULL, never merged with a
+--     vendor named "Other"; the client names it "No vendor recorded"),
 --     jobs the requests the vendor's expenses are on, largest spend first,
 --     then by name.
 --   trendsOverTime: the same 12 months, oldest first,
@@ -188,8 +190,8 @@ BEGIN
   INTO v_monthly_cost
   FROM months m LEFT JOIN spend s ON s.month_start = m.month_start;
 
-  -- Spend by vendor, as get_expense_summary names it (an empty vendor is
-  -- 'Other'), largest first: jobs are the requests it was spent on.
+  -- Spend by vendor, as get_expense_summary names it (no vendor is NULL),
+  -- largest first: jobs are the requests it was spent on.
   SELECT coalesce(jsonb_agg(jsonb_build_object(
       'vendor_name', v.vendor_name,
       'total_spend', v.total_spend,
@@ -197,7 +199,7 @@ BEGIN
     ) ORDER BY v.total_spend DESC, v.vendor_name), '[]'::jsonb)
   INTO v_vendor_performance
   FROM (
-    SELECT coalesce(nullif(e.vendor_name, ''), 'Other') AS vendor_name,
+    SELECT CASE WHEN nullif(btrim(e.vendor_name), '') IS NULL THEN NULL ELSE e.vendor_name END AS vendor_name,
       sum(e.amount) AS total_spend,
       count(DISTINCT e.maintenance_request_id)::integer AS jobs
     FROM expenses e
@@ -205,7 +207,7 @@ BEGIN
     WHERE mr.owner_user_id = v_user_id
       AND e.status <> 'inactive'
       AND e.expense_date <= current_date
-    GROUP BY coalesce(nullif(e.vendor_name, ''), 'Other')
+    GROUP BY 1
   ) v;
 
   -- Requests over the same 12 months: completed in each month, and open at

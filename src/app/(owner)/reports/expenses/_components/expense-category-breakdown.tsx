@@ -4,9 +4,9 @@ import { formatCurrency } from "#lib/utils/currency";
 
 /**
  * One of get_expense_summary's `categories`: the year to date's expenses by
- * vendor. A "category" is the vendor's name as the owner entered it
- * (coalesce(nullif(vendor_name, ''), 'Other')); the data model has no expense
- * category of its own.
+ * vendor. A "category" is the vendor's name as the owner entered it, or
+ * NO_VENDOR_LABEL for the expenses with none (the mapper names them,
+ * expenseVendorLabel); the data model has no expense category of its own.
  */
 interface VendorSummary {
 	category: string;

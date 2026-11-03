@@ -1125,9 +1125,18 @@ interface OwnerFiguresExpectation {
  *   on every month in which no counted lease starts or ends. The body before
  *   counted L14 on N5 in every past month: 5 of 4 in the latest.
  * Owner B: LB1 started T-3, so 100.00% today and none 30 days ago: +100.00
- *   points, and growth NULL (nothing was scheduled then), never 0. Every one
- *   of the four trends has no earlier figure (no lease, tenant or open
- *   request 30 days ago): percentChange NULL, never 0. Owner C:
+ *   points, and growth NULL (nothing was scheduled then), never 0. The
+ *   occupancy, revenue and tenant trends have no earlier figure (no lease or
+ *   tenant 30 days ago): percentChange NULL, never 0.
+ * Open maintenance (get_dashboard_data_v2, 20261102184501): one count, the
+ *   requests not completed or cancelled, in `stats.maintenance.open`, the
+ *   open_maintenance trend's current figure and each property's
+ *   open_maintenance. Owner A: R3, R5 (in progress) and R8, 3 (status 'open'
+ *   alone is 2), all on North Court. Owner B: RB1 (open, created today) and
+ *   RB2 (on hold, created T-40), 2 (status 'open' alone is 1, and 'open' or
+ *   'in_progress' 1), on West Place, against 1 thirty days ago (RB2): +1,
+ *   +100.00%. The body before put 2 and 1 in `stats.maintenance.open` and
+ *   3 and 1 in the property rows beside trends of 3 and 2. Owner C:
  *   1 of 3 units, 33.33 points (two decimals), and growth NULL.
  * Expenses, owner B: 2025-03-01..2025-06-30 is 100 + 50 = 150.00 (not the
  *   soft-deleted 25 or 2025-07-01's 999) against 2024-03-01..2024-06-30's
@@ -1138,16 +1147,19 @@ interface OwnerFiguresExpectation {
  *   286.00, has no year before it: NULL change and NULL prior period; nor
  *   has 2025-03-01..'infinity', 100 + 50 + 999 = 1149.00. Each call's one
  *   vendor holds all of its total.
- * Expenses, owner C, the year to date (no dates): January 1 of T's year's 300
- *   and T's 20, 320.00, not T+5's 66 (the body before had no end: 386.00),
- *   against January 1 of the year before .. T a year earlier, 200 + 40 =
- *   240.00: +33.33%.
+ * Expenses, owner C, the year to date (no dates): January 1 of T's year's
+ *   300, 12, 3, 2.50 and 20, and T's 20, 357.50, not T+5's 66 (the body before
+ *   had no end), against January 1 of the year before .. T a year earlier,
+ *   200 + 40 = 240.00: +48.96%. By vendor: Porch Co 320.00 (89.51%), the
+ *   vendor the owner named "Other" 20.00 (5.59%), and the three with no
+ *   vendor (empty, NULL, spaces) 17.50 (4.90%) under category NULL. The body
+ *   before folded those three into "Other": 37.50 under a vendor's name.
  * Maintenance, owner A: total_cost 200 + 50.50 + 100 + 10 + 30 + 400 =
  *   790.50 (not the soft-deleted 15, nor T+40's 77 or T+1's 5, dated in the
  *   future), on
  *   4 requests (R1, R2, R3, R5): average 197.625, 197.63. By vendor, largest
  *   first: Roof Co 400.00 on 1, Plumber 260.50 on 2 (R1, R2), Heat Co 100.00
- *   on 1, Other 30.00 on 1 (R3's had no vendor). Monthly, M0-11..M0: M0-2
+ *   on 1, and no vendor (NULL, R3's empty vendor) 30.00 on 1. Monthly, M0-11..M0: M0-2
  *   250.50, M0-1 110.00, M0 30.00, the rest 0 (R5's 400 is M0-12). Trends:
  *   completed in M0-2 R1, in M0-1 R7 (at its first instant) and in M0 R2 (at
  *   its first instant, so not in M0-1); R6 has no completed_at and R8 was
@@ -1321,7 +1333,9 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 					percentChange: 33.33,
 					window,
 				},
-				trend_maintenance: { window },
+				// Calendar-stable: the requests open today. 30 days ago depends on
+				// where T falls against R2's and R7's month boundaries.
+				trend_maintenance: { current: 3, window },
 			}),
 			...flatten("dashboard_stats_b", ownerB),
 			...flatten("dashboard_v2_b", {
@@ -1329,7 +1343,13 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 				trend_occupancy: fromNothing(100),
 				trend_revenue: fromNothing(700),
 				trend_tenants: fromNothing(1),
-				trend_maintenance: fromNothing(1),
+				trend_maintenance: {
+					current: 2,
+					previous: 1,
+					change: 1,
+					percentChange: 100,
+					window,
+				},
 			}),
 			...flatten("dashboard_stats_c", ownerC),
 			...flatten("dashboard_v2_c", ownerC),
@@ -1339,6 +1359,10 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			"position_a_then.occupancy_rate": 100,
 			"position_a_then.scheduled_rent": 2750,
 			"position_a_then.tenant_count": 3,
+			"dashboard_v2_a.maintenance_open": 3,
+			"dashboard_v2_a.property_open_maintenance.North Court": 3,
+			"dashboard_v2_b.maintenance_open": 2,
+			"dashboard_v2_b.property_open_maintenance.West Place": 2,
 			"position_nobody.occupancy_rate": 0,
 			"position_nobody.scheduled_rent": 0,
 			"position_nobody.tenant_count": 0,
@@ -1356,8 +1380,8 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			"expenses_b_open_ended.total_amount": 1149,
 			"expenses_b_open_ended.year_over_year_change": null,
 			"expenses_b_open_ended.year_over_year_prior_period": null,
-			"expenses_c_year_to_date.total_amount": 320,
-			"expenses_c_year_to_date.year_over_year_change": 33.33,
+			"expenses_c_year_to_date.total_amount": 357.5,
+			"expenses_c_year_to_date.year_over_year_change": 48.96,
 			"expenses_c_year_to_date.year_over_year_prior_period": `${Number(today.slice(0, 4)) - 1}-01-01/${yearBeforeYmd(today)}`,
 			"maintenance_a.total_cost": 790.5,
 			"maintenance_a.costed_requests": 4,
@@ -1432,13 +1456,15 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 				{ category: "Gate Co", amount: 1149, percentage: 100 },
 			],
 			"expenses_c_year_to_date.categories": [
-				{ category: "Porch Co", amount: 320, percentage: 100 },
+				{ category: "Porch Co", amount: 320, percentage: 89.51 },
+				{ category: "Other", amount: 20, percentage: 5.59 },
+				{ category: null, amount: 17.5, percentage: 4.9 },
 			],
 			"maintenance_a.vendor_performance": [
 				{ vendor_name: "Roof Co", total_spend: 400, jobs: 1 },
 				{ vendor_name: "Plumber", total_spend: 260.5, jobs: 2 },
 				{ vendor_name: "Heat Co", total_spend: 100, jobs: 1 },
-				{ vendor_name: "Other", total_spend: 30, jobs: 1 },
+				{ vendor_name: null, total_spend: 30, jobs: 1 },
 			],
 			"maintenance_a.monthly_cost": months.map((month, at) => ({
 				month,
@@ -1617,6 +1643,31 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 			"get_maintenance_analytics returned total_cost as the literal 0 with no costed_requests, for an owner with 790.50 of maintenance expenses: that is the body before 20261102184503.",
 		);
 	}
+	const ytdCategories = atPath(printed, "expenses_c_year_to_date.categories");
+	if (
+		Array.isArray(ytdCategories) &&
+		ytdCategories.some((row) => {
+			const category = asJsonObject(row);
+			const amount = category?.["amount"];
+			return (
+				category?.["category"] === "Other" &&
+				typeof amount === "number" &&
+				amount > 20
+			);
+		})
+	) {
+		found.push(
+			'get_expense_summary put more than the 20.00 of the vendor the owner named "Other" under "Other": it folded expenses with no vendor into a vendor\'s name. That is the body before 20261102184502 as part Q extends it.',
+		);
+	}
+	if (
+		atPath(printed, "dashboard_v2_a.maintenance_open") === 2 &&
+		atPath(printed, "dashboard_v2_a.trend_maintenance.current") === 3
+	) {
+		found.push(
+			"get_dashboard_data_v2 counted only status 'open' in stats.maintenance.open beside a trend of every request not completed or cancelled: that is the body before 20261102184501 as part Q extends it.",
+		);
+	}
 	const overview = atPath(printed, "overview_a_window");
 	if (
 		asJsonObject(overview) !== null &&
@@ -1776,6 +1827,37 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 		}
 	}
 
+	// One count of open maintenance: the tile shows stats.maintenance.open
+	// beside the open_maintenance trend's change, and the portfolio table each
+	// property's open_maintenance, so the three must be the same requests.
+	for (const owner of ["dashboard_v2_a", "dashboard_v2_b"]) {
+		const tileOpen = atPath(parsedFigures, `${owner}.maintenance_open`);
+		const trendOpen = atPath(
+			parsedFigures,
+			`${owner}.trend_maintenance.current`,
+		);
+		const byProperty = asJsonObject(
+			atPath(parsedFigures, `${owner}.property_open_maintenance`),
+		);
+		const propertyOpen =
+			byProperty === null ||
+			Object.values(byProperty).some((count) => typeof count !== "number")
+				? null
+				: Object.values(byProperty).reduce<number>(
+						(total, count) => total + Number(count),
+						0,
+					);
+		if (
+			typeof tileOpen !== "number" ||
+			tileOpen !== trendOpen ||
+			tileOpen !== propertyOpen
+		) {
+			failures.push(
+				`${owner}: stats.maintenance.open is ${JSON.stringify(tileOpen)}, the open_maintenance trend's current figure ${JSON.stringify(trendOpen)} and the properties' open_maintenance ${JSON.stringify(propertyOpen)}. They must be one count: the tile shows the first beside the trend's change.`,
+			);
+		}
+	}
+
 	for (const [signature, grants] of Object.entries(
 		EXPECTED_OWNER_FIGURES_EXECUTE,
 	)) {
@@ -1803,7 +1885,7 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 	}
 	return {
 		ok: true,
-		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's four trends with no earlier figure, percentChange null; owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +33.33%; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
+		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend and each property (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
 	};
 }
 

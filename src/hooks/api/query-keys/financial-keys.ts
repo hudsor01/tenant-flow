@@ -33,6 +33,7 @@ import type {
 	IncomeStatementData,
 	IncomeStatementResult,
 } from "#types/financial-statements";
+import { expenseVendorLabel } from "../../../../supabase/functions/_shared/tax-year-reports";
 
 export interface ExpenseSummaryData {
 	categories: ExpenseCategorySummary[];
@@ -502,7 +503,7 @@ export const financialQueries = {
 					categories: (
 						(s?.categories ?? []) as Array<Record<string, unknown>>
 					).map((c) => ({
-						category: String(c.category ?? ""),
+						category: expenseVendorLabel(c.category),
 						amount: Number(c.amount ?? 0),
 						percentage: Number(c.percentage ?? 0),
 					})) as ExpenseCategorySummary[],
