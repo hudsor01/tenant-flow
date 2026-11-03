@@ -17,27 +17,43 @@ import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { loadDotenv } from "./_shared/load-dotenv";
 
-const ENV_FILES = loadDotenv(process.cwd());
+// Importing this module reads no env file and no environment variable and
+// runs nothing: the CLI guard at the foot loads the env files and runs main()
+// (scripts/import-reads-no-env.test.ts).
 
-const LM_BASE = process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
-const EMBED_MODEL =
-	process.env.LM_EMBED_MODEL ?? "text-embedding-qwen3-embedding-0.6b";
 const EXPECTED_DIM = 1024;
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-// New Supabase API key model: SUPABASE_SECRET_KEY (sb_secret_*) replaces the
-// legacy service_role JWT. Prefer it; fall back to the legacy var. Either has
-// full, RLS-bypassing access (required to write the company-knowledge table).
-const SERVICE_KEY =
-	process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_URL || !SERVICE_KEY) {
-	console.error(
-		`Missing required env.\n  cwd: ${process.cwd()}\n  dotenv files loaded: [${ENV_FILES.join(", ") || "NONE"}]\n  NEXT_PUBLIC_SUPABASE_URL set: ${!!SUPABASE_URL}\n  SUPABASE_SECRET_KEY set: ${!!process.env.SUPABASE_SECRET_KEY}\n  SUPABASE_SERVICE_ROLE_KEY set: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}\nNeed SUPABASE_SECRET_KEY (sb_secret_*) or SUPABASE_SERVICE_ROLE_KEY in .env.local.`,
-	);
-	process.exit(1);
+/** LM Studio's endpoint and embedding model, read when a call needs them. */
+function lmConfig(): { base: string; embedModel: string } {
+	return {
+		base: process.env.LM_BASE_URL ?? "http://localhost:1234/v1",
+		embedModel:
+			process.env.LM_EMBED_MODEL ?? "text-embedding-qwen3-embedding-0.6b",
+	};
 }
 
-const ROOT = process.cwd(); // run from the repo root: `bun scripts/rag-index-blog-corpus.ts`
+/**
+ * The Supabase URL and key main() writes with, after the CLI loads the env
+ * files (their names are reported when either is missing). New Supabase API
+ * key model: SUPABASE_SECRET_KEY (sb_secret_*) replaces the legacy
+ * service_role JWT. Prefer it; fall back to the legacy var. Either has full,
+ * RLS-bypassing access (required to write the company-knowledge table).
+ */
+function supabaseConfig(envFiles: readonly string[]): {
+	url: string;
+	serviceKey: string;
+} {
+	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const serviceKey =
+		process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+	if (!url || !serviceKey) {
+		console.error(
+			`Missing required env.\n  cwd: ${process.cwd()}\n  dotenv files loaded: [${envFiles.join(", ") || "NONE"}]\n  NEXT_PUBLIC_SUPABASE_URL set: ${!!url}\n  SUPABASE_SECRET_KEY set: ${!!process.env.SUPABASE_SECRET_KEY}\n  SUPABASE_SERVICE_ROLE_KEY set: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}\nNeed SUPABASE_SECRET_KEY (sb_secret_*) or SUPABASE_SERVICE_ROLE_KEY in .env.local.`,
+		);
+		process.exit(1);
+	}
+	return { url, serviceKey };
+}
 
 interface Chunk {
 	content: string;
@@ -63,10 +79,11 @@ function chunkMarkdownBySection(text: string, source: string): Chunk[] {
 }
 
 async function embed(input: string): Promise<number[]> {
-	const res = await fetch(`${LM_BASE}/embeddings`, {
+	const { base, embedModel } = lmConfig();
+	const res = await fetch(`${base}/embeddings`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ model: EMBED_MODEL, input }),
+		body: JSON.stringify({ model: embedModel, input }),
 		// parity with generate-blog-draft.ts: don't hang forever on a stuck call
 		signal: AbortSignal.timeout(120_000),
 	});
@@ -77,16 +94,18 @@ async function embed(input: string): Promise<number[]> {
 	const vec = json.data?.[0]?.embedding;
 	if (!Array.isArray(vec) || vec.length !== EXPECTED_DIM) {
 		throw new Error(
-			`Embedding dim ${vec?.length} != expected ${EXPECTED_DIM} (model ${EMBED_MODEL})`,
+			`Embedding dim ${vec?.length} != expected ${EXPECTED_DIM} (model ${embedModel})`,
 		);
 	}
 	return vec;
 }
 
-async function main() {
+async function main(envFiles: readonly string[]) {
+	const { url, serviceKey } = supabaseConfig(envFiles);
+	const ROOT = process.cwd(); // run from the repo root: `bun scripts/rag-index-blog-corpus.ts`
 	const sources = [{ file: "public/llms-full.txt", source: "llms-full.txt" }];
 
-	const supabase = createClient(SUPABASE_URL!, SERVICE_KEY!, {
+	const supabase = createClient(url, serviceKey, {
 		auth: { persistSession: false },
 	});
 
@@ -142,7 +161,10 @@ async function main() {
 	console.log(`Indexed ${total} chunks. Table now has ${count} rows.`);
 }
 
-main().catch((err) => {
-	console.error(err instanceof Error ? err.message : String(err));
-	process.exit(1);
-});
+// run the CLI only when executed directly (never on import)
+if (process.argv[1]?.endsWith("/rag-index-blog-corpus.ts")) {
+	main(loadDotenv(process.cwd())).catch((err) => {
+		console.error(err instanceof Error ? err.message : String(err));
+		process.exit(1);
+	});
+}
