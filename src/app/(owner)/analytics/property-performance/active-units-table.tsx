@@ -34,7 +34,11 @@ export function ActiveUnitsTable({
 			enableColumnFilter: true,
 			cell: ({ row }) => (
 				<div className="flex flex-col">
-					<span className="font-medium">{row.original.unit_number}</span>
+					{row.original.unit_number === null ? (
+						<span className="text-muted-foreground">No unit number</span>
+					) : (
+						<span className="font-medium">{row.original.unit_number}</span>
+					)}
 					{propertyNames.has(row.original.property_id) && (
 						<span className="text-caption text-muted-foreground">
 							{propertyNames.get(row.original.property_id)}

@@ -294,8 +294,10 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // v6: part Q's shapes. financialTaxQueries.taxDocuments' totals are
 // totalIncome, totalExpenses and netIncome, and its expense rows lost
 // `deductible`, with no Schedule E, depreciation or mortgage-interest fields
-// (none had a source). A v5 entry would read as a page with no expenses or net
-// figure until the refetch landed.
+// (none had a source); analyticsQueries.propertyPerformancePageData lost its
+// visitor analytics and revenue trends and its rows their literal trend, and
+// fills its units from the counted units. A v5 entry would read as a page with
+// no expenses or net figure, or as "0 of 0" units, until the refetch landed.
 const QUERY_CACHE_BUSTER = "tenantflow-cache-v6";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 

@@ -6,6 +6,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { unitStatusLabel } from "#app/(owner)/properties/units/components/unit-status-badge";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonArrayOrEmpty, jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
@@ -30,8 +31,10 @@ import {
 	mapOccupancyAnalytics,
 } from "./query-keys/analytics-mappers";
 import {
+	fetchCountedUnits,
 	fetchEveryPropertyPerformanceRow,
 	mapPropertyPerformance,
+	unitCountsByProperty,
 } from "./query-keys/property-performance-mappers";
 
 /**
@@ -145,18 +148,6 @@ export const analyticsQueries = {
 			gcTime: 10 * 60 * 1000,
 		}),
 
-	leasePageData: () =>
-		queryOptions({
-			queryKey: analyticsQueries.lease(),
-			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
-				// MIS-WIRE follow-up (DATA-01): fed the occupancy RPC, not a
-				// lease-analytics source — see occupancyAsLeaseAnalytics above.
-				return occupancyAsLeaseAnalytics(await fetchOccupancyTrends(12));
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-		}),
-
 	maintenancePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.maintenance(),
@@ -242,22 +233,27 @@ export const analyticsQueries = {
 				if (!user) throw new Error("Not authenticated");
 				// The trailing 30 days, named rather than left to the default, so
 				// the window the page states is the one it asked for; every
-				// property, as the page totals and lists them all.
-				const { data, error } = await fetchEveryPropertyPerformanceRow({
-					p_user_id: user.id,
-					p_timeframe: "30d",
-				});
-				if (error) handlePostgrestError(error, "analytics");
-				// `get_property_performance_analytics` returns flat per-property
-				// rows; the page contract expects a structured
-				// PropertyPerformancePageData with metrics/performance/units/
-				// unitStats/visitorAnalytics/revenueTrends. Surface what the RPC
-				// gives (per-property rent received and occupancy) under
-				// `performance` and leave the rest empty, so each section renders
-				// its empty state instead of throwing on undefined access. Rent
-				// received is null, never 0, when the server's body predates
+				// property, as the page totals and lists them all. Beside it the
+				// owner's counted units (not soft-deleted, on a property that is
+				// not), which give each property's units and occupancy count, the
+				// portfolio's, the unit statistics and the active units list: the
+				// RPC carries none of them, and they read 0, "0/0" and empty.
+				const [performanceRows, countedUnits] = await Promise.all([
+					fetchEveryPropertyPerformanceRow({
+						p_user_id: user.id,
+						p_timeframe: "30d",
+					}),
+					fetchCountedUnits(user.id),
+				]);
+				if (performanceRows.error)
+					handlePostgrestError(performanceRows.error, "analytics");
+				if (countedUnits.error)
+					handlePostgrestError(countedUnits.error, "analytics units");
+				const units = countedUnits.data ?? [];
+				const byProperty = unitCountsByProperty(units);
+				// Rent received is null, never 0, when the server's body predates
 				// 20261102163709 (property-performance-mappers.ts).
-				const result = mapPropertyPerformance(data);
+				const result = mapPropertyPerformance(performanceRows.data);
 				const occupancy =
 					result.status === "ready" ? result.properties : result.occupancy;
 				const totalOccupancy = occupancy.reduce(
@@ -270,11 +266,13 @@ export const analyticsQueries = {
 								result.properties.map((p) => [p.propertyId, p.rentReceived]),
 							)
 						: null;
+				const statusCount = (status: string) =>
+					units.filter((u) => u.status === status).length;
 				return {
 					metrics: {
 						totalProperties: occupancy.length,
-						totalUnits: 0,
-						occupiedUnits: 0,
+						totalUnits: units.length,
+						occupiedUnits: statusCount("occupied"),
 						averageOccupancy:
 							occupancy.length > 0 ? totalOccupancy / occupancy.length : 0,
 						rentReceived:
@@ -284,31 +282,38 @@ export const analyticsQueries = {
 						rentReceivedWindow:
 							result.status === "ready" ? result.window : null,
 					},
-					performance: occupancy.map(
-						(r): PropertyPerformanceEntry => ({
+					performance: occupancy.map((r): PropertyPerformanceEntry => {
+						const counts = byProperty.get(r.propertyId);
+						return {
 							property_id: r.propertyId,
 							propertyName: r.propertyName,
 							occupancyRate: r.occupancyRate,
 							rentReceived: received?.get(r.propertyId) ?? null,
-							totalUnits: 0,
-							occupiedUnits: 0,
-							vacantUnits: 0,
-							trend: "stable",
-							trendPercentage: 0,
-						}),
-					),
-					units: [],
-					unitStats: [],
-					visitorAnalytics: {
-						summary: {
-							totalVisits: 0,
-							totalInquiries: 0,
-							totalConversions: 0,
-							conversionRate: 0,
-						},
-						timeline: [],
-					},
-					revenueTrends: [],
+							totalUnits: counts?.total ?? 0,
+							occupiedUnits: counts?.occupied ?? 0,
+							vacantUnits: counts?.available ?? 0,
+						};
+					}),
+					units: units.map((u) => ({
+						property_id: u.property_id,
+						unit_id: u.id,
+						unit_number: u.unit_number,
+						status: u.status,
+						bedrooms: u.bedrooms,
+						bathrooms: u.bathrooms,
+						rent: u.rent_amount,
+						square_feet: u.square_feet,
+					})),
+					// Each status's count, under the units page's labels.
+					unitStats: [
+						{ label: "Units", value: units.length },
+						...(
+							["occupied", "available", "reserved", "maintenance"] as const
+						).map((status) => ({
+							label: unitStatusLabel(status),
+							value: statusCount(status),
+						})),
+					],
 				};
 			},
 			staleTime: 2 * 60 * 1000,

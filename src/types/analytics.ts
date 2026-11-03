@@ -433,8 +433,6 @@ export interface PropertyPerformanceEntry {
 	address?: string;
 	status?: string;
 	property_type?: string;
-	trend: "up" | "down" | "stable";
-	trendPercentage: number;
 }
 
 // Alias for backwards compatibility
@@ -456,7 +454,8 @@ export interface PropertyPerformanceSummary {
 export interface PropertyUnitDetail {
 	property_id: string;
 	unit_id: string;
-	unit_number: string;
+	/** NULL when the owner gave the unit none. */
+	unit_number: string | null;
 	status: string;
 	bedrooms?: number | null;
 	bathrooms?: number | null;
@@ -470,31 +469,11 @@ export interface UnitStatisticEntry {
 	trend?: number | null;
 }
 
-export interface VisitorAnalyticsPoint {
-	period: string;
-	visits: number;
-	inquiries: number;
-	conversions: number;
-}
-
-export interface VisitorAnalyticsSummary {
-	totalVisits: number;
-	totalInquiries: number;
-	totalConversions: number;
-	conversionRate: number;
-}
-
-export interface VisitorAnalyticsResponse {
-	summary: VisitorAnalyticsSummary;
-	timeline: VisitorAnalyticsPoint[];
-}
-
 export interface PropertyPerformancePageResponse {
 	metrics: PropertyPerformanceSummary;
 	performance: PropertyPerformanceEntry[];
 	units: PropertyUnitDetail[];
 	unitStats: UnitStatisticEntry[];
-	visitorAnalytics: VisitorAnalyticsResponse;
 }
 
 /**

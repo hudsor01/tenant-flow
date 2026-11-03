@@ -11,11 +11,50 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockRpc } = vi.hoisted(() => ({ mockRpc: vi.fn() }));
+const { mockRpc, unitsRead } = vi.hoisted(() => ({
+	mockRpc: vi.fn(),
+	unitsRead: {
+		rows: [] as Record<string, unknown>[],
+		calls: [] as Array<[string, ...unknown[]]>,
+	},
+}));
+
+/**
+ * `supabase.from("units")` as fetchCountedUnits reads it: every filter and
+ * order is recorded, and the range resolves the rows (one short page).
+ */
+function unitsFrom(table: string) {
+	if (table !== "units") throw new Error(`the page reads no table ${table}`);
+	const chain = {
+		select: (...args: unknown[]) => {
+			unitsRead.calls.push(["select", ...args]);
+			return chain;
+		},
+		eq: (...args: unknown[]) => {
+			unitsRead.calls.push(["eq", ...args]);
+			return chain;
+		},
+		neq: (...args: unknown[]) => {
+			unitsRead.calls.push(["neq", ...args]);
+			return chain;
+		},
+		order: (...args: unknown[]) => {
+			unitsRead.calls.push(["order", ...args]);
+			return chain;
+		},
+		range: (...args: unknown[]) => {
+			unitsRead.calls.push(["range", ...args]);
+			return Promise.resolve({ data: [...unitsRead.rows], error: null });
+		},
+	};
+	return chain;
+}
 
 vi.mock("#lib/supabase/client", async () => {
 	const { pagedRpc } = await import("#test/mocks/paged-rpc");
-	return { createClient: () => ({ rpc: pagedRpc(mockRpc) }) };
+	return {
+		createClient: () => ({ rpc: pagedRpc(mockRpc), from: unitsFrom }),
+	};
 });
 vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: "owner-1" }),
@@ -136,8 +175,101 @@ describe("mapPropertyPerformance", () => {
 	});
 });
 
+function unit(overrides: Record<string, unknown> = {}) {
+	return {
+		id: "u1",
+		property_id: "p1",
+		unit_number: "1A",
+		status: "occupied",
+		bedrooms: 2,
+		bathrooms: 1,
+		rent_amount: 1200,
+		square_feet: 850,
+		properties: { status: "active" },
+		...overrides,
+	};
+}
+
 describe("the property performance page's query", () => {
-	beforeEach(() => mockRpc.mockReset());
+	beforeEach(() => {
+		mockRpc.mockReset();
+		unitsRead.rows = [];
+		unitsRead.calls = [];
+	});
+
+	// The page read "0 of 0 occupied", a Units column of "0/0", no unit
+	// statistics and no active unit for every owner: the RPC carries no unit,
+	// and the query wrote 0 and [] (part Q).
+	it("fills the units, each property's and the portfolio's, from the counted units", async () => {
+		mockRpc.mockResolvedValue({
+			data: [row(), row({ property_id: "p2", property_name: "Beta House" })],
+			error: null,
+		});
+		unitsRead.rows = [
+			unit(),
+			unit({ id: "u2", unit_number: "1B", status: "available" }),
+			unit({ id: "u3", unit_number: null, status: "maintenance" }),
+			unit({
+				id: "u4",
+				property_id: "p2",
+				unit_number: "7",
+				status: "occupied",
+			}),
+			unit({
+				id: "u5",
+				property_id: "p2",
+				unit_number: "8",
+				status: "reserved",
+			}),
+		];
+		const data = await new QueryClient().query(
+			analyticsQueries.propertyPerformancePageData(),
+		);
+		expect(unitsRead.calls).toEqual([
+			[
+				"select",
+				"id, property_id, unit_number, status, bedrooms, bathrooms, rent_amount, square_feet, properties!inner(status)",
+			],
+			["eq", "owner_user_id", "owner-1"],
+			["neq", "status", "inactive"],
+			["neq", "properties.status", "inactive"],
+			["order", "updated_at", { ascending: false }],
+			["order", "id"],
+			["range", 0, 999],
+		]);
+		expect(data.metrics.totalUnits).toBe(5);
+		expect(data.metrics.occupiedUnits).toBe(2);
+		expect(
+			data.performance.map((p) => [
+				p.totalUnits,
+				p.occupiedUnits,
+				p.vacantUnits,
+			]),
+		).toEqual([
+			[3, 1, 1],
+			[2, 1, 0],
+		]);
+		expect(data.units.map((u) => [u.unit_id, u.unit_number, u.rent])).toEqual([
+			["u1", "1A", 1200],
+			["u2", "1B", 1200],
+			["u3", null, 1200],
+			["u4", "7", 1200],
+			["u5", "8", 1200],
+		]);
+		expect(data.unitStats).toEqual([
+			{ label: "Units", value: 5 },
+			{ label: "Occupied", value: 2 },
+			{ label: "Available", value: 1 },
+			{ label: "Reserved", value: 1 },
+			{ label: "Maintenance", value: 1 },
+		]);
+		expect(Object.keys(data).sort()).toEqual([
+			"metrics",
+			"performance",
+			"unitStats",
+			"units",
+		]);
+	});
 
 	it("asks for the trailing 30 days and totals the rent received", async () => {
 		mockRpc.mockResolvedValue({

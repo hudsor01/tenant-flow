@@ -17,19 +17,14 @@ import type {
 	PropertyPerformanceSummary,
 	PropertyUnitDetail,
 	UnitStatisticEntry,
-	VisitorAnalyticsResponse,
 } from "#types/analytics";
 
 const PropertyOccupancyChart = dynamic(
 	() => import("./property-charts").then((mod) => mod.PropertyOccupancyChart),
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
-const VisitorAnalyticsChart = dynamic(
-	() => import("./property-charts").then((mod) => mod.VisitorAnalyticsChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
 
-import { BarChart3, Building2, Home, TrendingUp, Users } from "lucide-react";
+import { BarChart3, Building2, Home, TrendingUp } from "lucide-react";
 import { ActiveUnitsTable } from "./active-units-table";
 import { PerformanceStatCards } from "./performance-stat-cards";
 import { PortfolioKPIs } from "./portfolio-kpis";
@@ -70,15 +65,6 @@ export default function PropertyPerformancePage() {
 	const performance = (data?.performance ?? []) as PropertyPerformanceEntry[];
 	const units = (data?.units ?? []) as PropertyUnitDetail[];
 	const unitStats = (data?.unitStats ?? []) as UnitStatisticEntry[];
-	const visitorAnalytics = (data?.visitorAnalytics ?? {
-		summary: {
-			totalVisits: 0,
-			totalInquiries: 0,
-			totalConversions: 0,
-			conversionRate: 0,
-		},
-		timeline: [],
-	}) as VisitorAnalyticsResponse;
 
 	const hasData =
 		metrics.totalProperties > 0 ||
@@ -93,8 +79,7 @@ export default function PropertyPerformancePage() {
 					<div className="flex flex-col gap-2 mb-6">
 						<h1 className="typography-h1">Property Performance</h1>
 						<p className="text-muted-foreground">
-							Monitor occupancy, rent received, and demand signals across your
-							portfolio.
+							Monitor occupancy, units and rent received across your portfolio.
 						</p>
 					</div>
 				</BlurFade>
@@ -122,8 +107,7 @@ export default function PropertyPerformancePage() {
 				<div className="flex flex-col gap-2 mb-6">
 					<h1 className="typography-h1">Property Performance</h1>
 					<p className="text-muted-foreground">
-						Monitor occupancy, rent received, and demand signals across your
-						portfolio.
+						Monitor occupancy, units and rent received across your portfolio.
 					</p>
 				</div>
 			</BlurFade>
@@ -163,24 +147,10 @@ export default function PropertyPerformancePage() {
 				</BlurFade>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+			{/* Visitor analytics went: no visitor, inquiry or listing view is
+			    tracked anywhere, so the chart could only ever be empty. */}
+			<div className="mb-6">
 				<BlurFade delay={0.8}>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<div className="flex items-center justify-between mb-6">
-							<div>
-								<h3 className="font-medium text-foreground">
-									Visitor analytics
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									How prospective tenants engage with listings
-								</p>
-							</div>
-							<Users className="w-5 h-5 text-muted-foreground" />
-						</div>
-						<VisitorAnalyticsChart data={visitorAnalytics} />
-					</div>
-				</BlurFade>
-				<BlurFade delay={0.9}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>

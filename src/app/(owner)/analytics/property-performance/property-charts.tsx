@@ -1,16 +1,7 @@
 "use client";
 
 import { Building2 } from "lucide-react";
-import {
-	Bar,
-	BarChart,
-	CartesianGrid,
-	Line,
-	LineChart,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
@@ -25,10 +16,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
-import type {
-	PropertyPerformanceEntry,
-	VisitorAnalyticsResponse,
-} from "#types/analytics";
+import type { PropertyPerformanceEntry } from "#types/analytics";
 
 const occupancyConfig = {
 	occupancy: {
@@ -41,27 +29,8 @@ const occupancyConfig = {
 	},
 } satisfies ChartConfig;
 
-const visitorConfig = {
-	visits: {
-		label: "Visits",
-		color: "var(--color-chart-1)",
-	},
-	inquiries: {
-		label: "Inquiries",
-		color: "var(--color-chart-4)",
-	},
-	conversions: {
-		label: "Applications",
-		color: "var(--color-success-text)",
-	},
-} satisfies ChartConfig;
-
 type PropertyOccupancyChartProps = {
 	data: PropertyPerformanceEntry[];
-};
-
-type VisitorAnalyticsChartProps = {
-	data: VisitorAnalyticsResponse;
 };
 
 export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
@@ -132,64 +101,6 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 					/>
 				)}
 			</BarChart>
-		</ChartContainer>
-	);
-}
-
-export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
-	if (!data.timeline.length) {
-		return (
-			<Empty className="py-12">
-				<EmptyHeader>
-					<EmptyMedia variant="icon">
-						<Building2 />
-					</EmptyMedia>
-					<EmptyTitle>No property data</EmptyTitle>
-					<EmptyDescription>
-						Property performance data will appear once properties are added
-					</EmptyDescription>
-				</EmptyHeader>
-			</Empty>
-		);
-	}
-
-	const chartData = data.timeline.map((point) => ({
-		period: point.period,
-		visits: point.visits,
-		inquiries: point.inquiries,
-		conversions: point.conversions,
-	}));
-
-	return (
-		<ChartContainer className="aspect-auto h-80 w-full" config={visitorConfig}>
-			<LineChart data={chartData}>
-				<CartesianGrid strokeDasharray="3 3" />
-				<XAxis dataKey="period" tickLine={false} axisLine={false} />
-				<YAxis tickLine={false} axisLine={false} />
-				<Tooltip content={<ChartTooltipContent indicator="line" />} />
-				<ChartLegend content={<ChartLegendContent />} />
-				<Line
-					type="monotone"
-					dataKey="visits"
-					stroke="var(--color-visits)"
-					strokeWidth={2}
-					dot={false}
-				/>
-				<Line
-					type="monotone"
-					dataKey="inquiries"
-					stroke="var(--color-inquiries)"
-					strokeWidth={2}
-					dot={false}
-				/>
-				<Line
-					type="monotone"
-					dataKey="conversions"
-					stroke="var(--color-conversions)"
-					strokeWidth={2}
-					dot={false}
-				/>
-			</LineChart>
 		</ChartContainer>
 	);
 }

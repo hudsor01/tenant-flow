@@ -210,23 +210,12 @@ export interface LeasesPageUnitDetail {
 	tenantName: string | null;
 }
 
-export interface PropertyRevenueTrend {
-	period: string;
-	revenue: number;
-	expenses: number;
-	netIncome: number;
-}
-
 /**
- * Property Performance Page Data
- * Aggregates all property performance analytics data
- * Extends PropertyPerformancePageResponse with additional local types
+ * The property performance page's data: the RPC's per-property rows and the
+ * owner's counted units. It carried a visitor analytics summary (no visitor
+ * tracking exists) and revenue trends, written as zeros and [] and never read.
  */
-export interface PropertyPerformancePageData
-	extends PropertyPerformancePageResponse {
-	// Additional fields for analytics-page-data compatibility
-	revenueTrends: PropertyRevenueTrend[];
-}
+export type PropertyPerformancePageData = PropertyPerformancePageResponse;
 
 export interface LeasesPageLeaseItem {
 	id: string;

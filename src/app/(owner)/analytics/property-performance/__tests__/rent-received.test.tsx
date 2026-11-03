@@ -58,8 +58,6 @@ function entry(
 		totalUnits: 0,
 		occupiedUnits: 0,
 		vacantUnits: 0,
-		trend: "stable",
-		trendPercentage: 0,
 		...overrides,
 	};
 }
