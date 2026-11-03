@@ -41,15 +41,26 @@ describe("depreciation", () => {
 				.map((line, at) => ({ line, at }))
 				.filter(
 					({ line }) =>
-						/depreciation calculation|calculates? depreciation(?! *\.?$)|tracks? depreciation/i.test(
+						/depreciation calculation|(calculates?|tracks?) depreciation/i.test(
 							line,
-						) &&
-						!/doesn&apos;t calculate depreciation|doesn't calculate depreciation/i.test(
-							line,
-						),
+						) && !/doesn(&apos;|')t calculate depreciation/i.test(line),
 				)
 				.map(({ at }) => `${file}:${at + 1}`),
 		);
 		expect(claims).toEqual([]);
+	});
+
+	it("catches the shapes it names (positive controls)", () => {
+		const claim = (line: string) =>
+			/depreciation calculation|(calculates?|tracks?) depreciation/i.test(
+				line,
+			) && !/doesn(&apos;|')t calculate depreciation/i.test(line);
+		expect(claim("Used for accurate depreciation calculations")).toBe(true);
+		expect(claim("TenantFlow calculates depreciation.")).toBe(true);
+		expect(claim("We track depreciation for you")).toBe(true);
+		expect(claim("TenantFlow doesn&apos;t calculate depreciation.")).toBe(
+			false,
+		);
+		expect(claim("Property depreciation basis")).toBe(false);
 	});
 });
