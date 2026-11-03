@@ -44,6 +44,10 @@ import {
 	DEDUCTIBILITY_NOTE,
 	EXPENSES_BY_VENDOR_SECTION,
 } from "../../../supabase/functions/_shared/tax-year-reports";
+import {
+	STATEMENT_BASIS_HEADING,
+	STATEMENT_BASIS_NOTE,
+} from "./statement-basis";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -61,6 +65,8 @@ export interface ReportSection {
 	heading: string;
 	rows?: ReportRow[];
 	table?: ReportTable;
+	/** Prose under the heading, one paragraph each (the basis of presentation). */
+	paragraphs?: readonly string[];
 	note?: string;
 }
 
@@ -284,6 +290,18 @@ function ledgerNote(
 		: { note: LEDGER_UNAVAILABLE_NOTE };
 }
 
+/**
+ * The statements' basis of presentation (STATEMENT_BASIS_NOTE), as the last
+ * section of every generated report that carries statement figures: the
+ * executive summary and the financial performance report read the income
+ * statement's revenue, expenses and net income and the cash flow's net cash
+ * flow.
+ */
+const STATEMENT_BASIS_SECTION: ReportSection = {
+	heading: STATEMENT_BASIS_HEADING,
+	paragraphs: STATEMENT_BASIS_NOTE,
+};
+
 const LEDGER_UNAVAILABLE_NOTE =
 	"Revenue, net income and cash flow come from your rent ledger, and its totals aren't available yet, so none is shown.";
 
@@ -461,6 +479,7 @@ async function buildExecutiveMonthly(
 				table: { headers: ["Month", "Scheduled Rent"], rows: monthlyRows },
 				...noteIf(occupancy.available && monthly.available),
 			},
+			STATEMENT_BASIS_SECTION,
 		],
 	};
 }
@@ -547,6 +566,7 @@ async function buildFinancialPerformance(
 				},
 				...noteIf(financialResult.available && occupancy.available),
 			},
+			STATEMENT_BASIS_SECTION,
 		],
 	};
 }

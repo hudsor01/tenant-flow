@@ -3,7 +3,9 @@
  * on, as their screens and exports state it (66.2-39 fix round 1, part P).
  * One copy: each statement page renders it (StatementBasisNote), each CSV
  * writes it under STATEMENT_BASIS_HEADING, and the two generated reports built
- * from the income statement and the cash flow carry it as a section note.
+ * from the income statement and the cash flow (the executive summary and the
+ * financial performance report) close with it as a section of its own, one
+ * paragraph a sentence, in their PDF and XLSX.
  *
  * What it states, from the builders in src/hooks/api/query-keys/financial-keys.ts
  * as part N left them (no investing section, no line without a source):

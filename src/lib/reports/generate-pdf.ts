@@ -134,24 +134,71 @@ function renderSectionTable(
 	return (lastTable?.finalY ?? startY) + 20;
 }
 
+/**
+ * Text wrapped to the width between the margins, one line at a time, onto a
+ * new page when a line would pass the bottom. Each line is split by jsPDF's own
+ * measure of the font (splitTextToSize), so none runs past the right margin.
+ * Returns the y below the last line.
+ */
+export function renderWrappedText(
+	doc: jsPDF,
+	text: string,
+	x: number,
+	startY: number,
+	maxWidth: number,
+	lineHeight: number,
+	margin: number,
+	bottom: number,
+): number {
+	let y = startY;
+	const lines: string[] = doc.splitTextToSize(text, maxWidth);
+	for (const line of lines) {
+		if (y > bottom) {
+			doc.addPage();
+			y = margin + 10;
+		}
+		doc.text(line, x, y);
+		y += lineHeight;
+	}
+	return y;
+}
+
 function renderSectionNote(
 	doc: jsPDF,
 	note: string,
 	x: number,
 	startY: number,
+	maxWidth: number,
 	margin: number,
 	bottom: number,
 ): number {
-	let y = startY;
-	if (y > bottom) {
-		doc.addPage();
-		y = margin + 10;
-	}
 	doc.setFont(FONT, "italic");
 	doc.setFontSize(8);
 	doc.setTextColor(120);
-	doc.text(note, x, y);
-	return y + 14;
+	return (
+		renderWrappedText(doc, note, x, startY, maxWidth, 10, margin, bottom) + 4
+	);
+}
+
+function renderSectionParagraphs(
+	doc: jsPDF,
+	paragraphs: readonly string[],
+	x: number,
+	startY: number,
+	maxWidth: number,
+	margin: number,
+	bottom: number,
+): number {
+	doc.setFont(FONT, "normal");
+	doc.setFontSize(9);
+	doc.setTextColor(60);
+	let y = startY;
+	for (const paragraph of paragraphs) {
+		y =
+			renderWrappedText(doc, paragraph, x, y, maxWidth, 12, margin, bottom) + 6;
+	}
+	doc.setTextColor(0);
+	return y;
 }
 
 function renderSection(
@@ -180,8 +227,29 @@ function renderSection(
 		y = renderSectionTable(doc, section.table, y, margin);
 	}
 
+	const textWidth = pageWidth - margin * 2;
+	if (section.paragraphs && section.paragraphs.length > 0) {
+		y = renderSectionParagraphs(
+			doc,
+			section.paragraphs,
+			margin,
+			y,
+			textWidth,
+			margin,
+			bottom,
+		);
+	}
+
 	if (section.note) {
-		y = renderSectionNote(doc, section.note, margin, y, margin, bottom);
+		y = renderSectionNote(
+			doc,
+			section.note,
+			margin,
+			y,
+			textWidth,
+			margin,
+			bottom,
+		);
 	}
 
 	return y + 8;

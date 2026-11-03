@@ -37,6 +37,7 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 }));
 
 import { buildReportData, type ReportSection } from "../report-data";
+import { STATEMENT_BASIS_NOTE } from "../statement-basis";
 
 const START = "2026-02-01";
 const END = "2026-03-31";
@@ -142,6 +143,21 @@ beforeEach(() => {
 	mockRpc.mockReset();
 });
 
+describe("the statements' basis of presentation in the generated reports", () => {
+	// statement-basis.ts said both reports carry it; neither did (part Q).
+	it.each(["executive-monthly", "financial-performance"] as const)(
+		"%s closes with the basis, one paragraph a sentence",
+		async (type) => {
+			answer("ready");
+			const report = await buildReportData(type, new QueryClient(), START, END);
+			expect(report.sections.at(-1)).toEqual({
+				heading: "Basis of Presentation",
+				paragraphs: STATEMENT_BASIS_NOTE,
+			});
+		},
+	);
+});
+
 describe("the executive monthly export", () => {
 	it("holds the income statement's and the cash flow's figures for its period", async () => {
 		answer("ready");
@@ -225,6 +241,7 @@ describe("the financial performance export", () => {
 			"Summary",
 			"Revenue (charged)",
 			"Expenses by Vendor",
+			"Basis of Presentation",
 		]);
 		expect(JSON.stringify(report)).not.toMatch(
 			/Total Income|"Cash Flow"|Rent Roll/,

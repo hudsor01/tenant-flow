@@ -27,7 +27,7 @@ function buildCoverSheetData(report: ReportData): Array<Array<string>> {
 	];
 }
 
-function buildSectionSheetData(
+export function buildSectionSheetData(
 	section: ReportSection,
 ): Array<Array<string | number>> {
 	const sheetData: Array<Array<string | number>> = [[section.heading], []];
@@ -49,6 +49,11 @@ function buildSectionSheetData(
 				sheetData.push(row);
 			}
 		}
+	}
+
+	if (section.paragraphs && section.paragraphs.length > 0) {
+		if ((section.rows?.length ?? 0) > 0 || section.table) sheetData.push([]);
+		for (const paragraph of section.paragraphs) sheetData.push([paragraph]);
 	}
 
 	if (section.note) {
