@@ -1,15 +1,23 @@
 {
+	"tree": "b628eb9f1 (codeStateSha)",
 	"numTotalTests": 113810,
 	"numPassedTests": 113810,
 	"numFailedTests": 0,
 	"numTotalTestSuites": 8067,
 	"numFiles": 454,
 	"coverage": {
-		"statements": 71.84,
-		"branches": 63.57,
+		"statements": 71.83,
+		"branches": 63.56,
 		"functions": 70.8,
 		"lines": 73.68
 	},
+	"coverageCounts": {
+		"statements": "11329/15771",
+		"branches": "7837/12329",
+		"functions": "3145/4442",
+		"lines": "10673/14485"
+	},
+	"coverageNote": "the run on 4433ca833 read 71.84 / 63.57 (11330, 7838); b628eb9f1 changes two test comments only, and its own lefthook run read 71.84: a one-statement, one-branch run-to-run variation (part O2 saw the same)",
 	"thresholds": {
 		"statements": 64,
 		"branches": 56,
