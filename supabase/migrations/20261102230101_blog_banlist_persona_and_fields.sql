@@ -40,8 +40,9 @@
 --   - scripts/generate-blog-draft.ts (BANLIST, PERSONA_BANLIST, BANLIST_FIELDS)
 --
 -- PRIVILEGES. Production's ACL is {postgres=X/postgres}. CREATE OR REPLACE keeps
--- the existing ACL, and the replayed chain leaves PUBLIC and service_role with
--- EXECUTE, so the REVOKE below makes a replay match production. A trigger
+-- the existing ACL, which 20261102055400 has already made production's on a
+-- replay (the chain through 20261005215446 left PUBLIC and service_role with
+-- EXECUTE); the REVOKE below leaves it so whatever ran before. A trigger
 -- function needs no EXECUTE to fire: scripts/migration-replay-blog-banlist.sql
 -- inserts as service_role (the Edge Function's role) and is rejected by it.
 

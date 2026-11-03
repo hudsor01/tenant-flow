@@ -492,7 +492,7 @@ mutate "$REPLAY" '		message: `banlist hit: property owner (persona word found in
                  'the blog expectation names no field for a persona hit'
 mutate "$REPLAY" 'acl: "{postgres=X/postgres}",' \
                  'acl: "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",' \
-                 'the blog expectation keeps the replayed chain'"'"'s EXECUTE grants'
+                 'the blog expectation keeps the EXECUTE grants the chain had before 20261102055400'
 mutate "$REPLAY" '	if (mismatches.length > 0) {
 		return {
 			ok: false,

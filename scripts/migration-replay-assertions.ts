@@ -2023,9 +2023,10 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
 
 /**
  * The function's privileges as production has them: EXECUTE for its owner
- * only. The replayed chain leaves PUBLIC and service_role with EXECUTE, which
- * 20261102230101 revokes; the fixture's inserts run as service_role, so a
- * rejection above also proves the trigger fires without it.
+ * only. The chain through 20261005215446 left PUBLIC and service_role with
+ * EXECUTE; 20261102055400 revokes both, as 20261102230101's own REVOKE does.
+ * The fixture's inserts run as service_role, so a rejection above also proves
+ * the trigger fires without it.
  */
 export const EXPECTED_BLOG_BANLIST_PRIVILEGES: Readonly<
 	Record<string, string | boolean>

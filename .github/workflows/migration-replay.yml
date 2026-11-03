@@ -25,6 +25,12 @@ name: Migration Replay
 # 20260416193000_security_revoke_idor_fixes which has NO prod ledger row at all
 # while its effects are live). Comparing state rather than rows is a separate
 # drift-check job; this one only answers "does the chain apply from empty".
+# One slice of state is the exception:
+# 20261102055400_reconcile_public_functions_with_production.sql raises, failing
+# the replay step, unless at that point in the chain every public function has
+# the pg_get_functiondef, ACL, volatility and SECURITY DEFINER flag production
+# had on 2026-11-02. That covers public functions only, as of that file: no
+# table, policy, trigger or cron job, and nothing a later file changes.
 #
 # It holds NO production secrets and signs in to nothing, so unlike e2e-smoke and
 # rls-security it must NOT join the `tenantflow-prod-test-account` concurrency
