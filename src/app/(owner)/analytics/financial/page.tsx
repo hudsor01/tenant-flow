@@ -82,8 +82,8 @@ export default function FinancialAnalyticsPage() {
 						<div>
 							<h1 className="typography-h1">Financial Analytics</h1>
 							<p className="text-muted-foreground">
-								Track revenue, profitability, and portfolio cash flow in real
-								time.
+								Scheduled rent, rent collected and expenses across your
+								portfolio.
 							</p>
 						</div>
 						<div className="flex flex-wrap items-center gap-3">

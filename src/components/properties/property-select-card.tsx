@@ -98,7 +98,7 @@ export function PropertyCard({
 					</div>
 					<div className="w-px h-8 bg-border" />
 					<div className="text-center">
-						<p className="text-muted-foreground mb-1">Revenue</p>
+						<p className="text-muted-foreground mb-1">Occupied Rent</p>
 						<div className="flex items-center justify-center gap-1">
 							<DollarSign className="w-3.5 h-3.5 text-success-text" />
 							<span className="font-semibold text-foreground">

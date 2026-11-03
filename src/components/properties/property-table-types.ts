@@ -23,7 +23,7 @@ export const TABLE_COLUMNS: ColumnConfig[] = [
 	{ id: "units", label: "Units", defaultVisible: true },
 	{ id: "occupancy", label: "Occupancy", defaultVisible: true },
 	{ id: "status", label: "Status", defaultVisible: true },
-	{ id: "revenue", label: "Monthly Revenue", defaultVisible: true },
+	{ id: "revenue", label: "Occupied Rent", defaultVisible: true },
 ];
 
 /**

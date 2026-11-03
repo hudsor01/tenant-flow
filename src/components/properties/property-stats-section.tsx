@@ -60,10 +60,11 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 					</div>
 				</div>
 
-				{/* Monthly Revenue */}
+				{/* The occupied units' rent as listed on each unit, monthly: no lease
+				    is read here, so it is neither scheduled nor received rent. */}
 				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Monthly Revenue</p>
+						<p className="text-sm text-muted-foreground">Occupied Rent</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<div>

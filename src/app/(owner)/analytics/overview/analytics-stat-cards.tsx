@@ -219,7 +219,7 @@ export function AnalyticsStatCards({
 						colorFrom="var(--color-success)"
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
-					<StatLabel>Monthly Revenue</StatLabel>
+					<StatLabel>Scheduled Monthly Rent</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<NumberTicker
 							value={monthlyRevenue}

@@ -197,8 +197,8 @@ export function OwnerOnboardingTour({
 						<TourTitle>Welcome to TenantFlow</TourTitle>
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
-								? "View your portfolio overview: revenue, occupancy, and tenant status."
-								: "Your property management dashboard gives you a complete overview of your portfolio. See revenue, occupancy, and tenant status at a glance."}
+								? "View your portfolio overview: scheduled rent, occupancy, and tenant status."
+								: "Your property management dashboard gives you a complete overview of your portfolio. See scheduled rent, occupancy, and tenant status at a glance."}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>
@@ -214,8 +214,8 @@ export function OwnerOnboardingTour({
 						<TourTitle>Track Your Performance</TourTitle>
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
-								? "Monitor occupancy, revenue, and maintenance trends."
-								: "Monitor key metrics like occupancy rate, revenue trends, and maintenance activity. Compare performance against previous periods to spot trends."}
+								? "Monitor occupancy, scheduled rent, and maintenance trends."
+								: "Monitor key metrics like occupancy rate, scheduled rent, and maintenance activity. Compare each against 30 days ago to spot trends."}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>
@@ -248,8 +248,8 @@ export function OwnerOnboardingTour({
 						<TourTitle>Portfolio Analytics</TourTitle>
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
-								? "View revenue, occupancy, and payment trends over time."
-								: "Visualize your revenue, occupancy, and payment collection over time. Use these insights to make data-driven decisions."}
+								? "View your scheduled rent over time."
+								: "See your scheduled rent month by month, from your active leases."}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>

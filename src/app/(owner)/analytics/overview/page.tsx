@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
 									Top Performing Properties
 								</h3>
 								<p className="text-sm text-muted-foreground">
-									Ranked by monthly revenue
+									Ranked by scheduled monthly rent
 								</p>
 							</div>
 						</div>

@@ -141,7 +141,7 @@ function formatTooltipValue(value: unknown): [string, string] {
 			minimumFractionDigits: 0,
 			maximumFractionDigits: 0,
 		}),
-		"Revenue",
+		"Scheduled Rent",
 	];
 }
 

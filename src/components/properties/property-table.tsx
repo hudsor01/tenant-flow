@@ -246,7 +246,7 @@ export function PropertyTable({
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
 									)}
 								>
-									<SortHeader field="revenue">Monthly Revenue</SortHeader>
+									<SortHeader field="revenue">Occupied Rent</SortHeader>
 								</th>
 							)}
 							<th
