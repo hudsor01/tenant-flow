@@ -13,9 +13,10 @@
  * is read), and the financial analytics page's subtitle ("Track revenue,
  * profitability, and portfolio cash flow in real time" over scheduled rent,
  * rent collected and expenses, fetched every two minutes). They read
- * "Scheduled Monthly Rent", "Ranked by scheduled monthly rent", "Scheduled
- * Rent", "Occupied Rent" and "Scheduled rent, rent collected and expenses
- * across your portfolio".
+ * "Scheduled Rent" (the dashboard tile's name for the same figure; "Scheduled
+ * Monthly Rent" wrapped at 1280 and dropped its figure 20 px below the row's),
+ * "Ranked by scheduled monthly rent", "Scheduled Rent", "Occupied Rent" and
+ * "Scheduled rent, rent collected and expenses across your portfolio".
  *
  * What stays, each a statement's own word for a figure on its stated basis:
  * the income statement's revenue (what the rent ledger CHARGED, which its page
@@ -186,6 +187,14 @@ describe("scheduled rent is never labelled revenue", () => {
 		expect(visibleTexts('\t\t"Revenue",')).toEqual(["Revenue"]);
 		expect(visibleTexts('<linearGradient id="fillRevenue">')).toEqual([]);
 		expect(visibleTexts('case "revenue":')).toEqual([]);
+	});
+
+	it("names the overview's scheduled rent tile as the dashboard's", () => {
+		const text = readFileSync(
+			join(ROOT, "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx"),
+			"utf8",
+		);
+		expect(text).toContain("<StatLabel>Scheduled Rent</StatLabel>");
 	});
 
 	it("reads JSX text on its own line", () => {

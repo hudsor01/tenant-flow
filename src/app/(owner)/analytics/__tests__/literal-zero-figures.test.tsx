@@ -85,7 +85,7 @@ describe("analytics overview stat cards", () => {
 		});
 		expect(trendLines()).toMatchObject({
 			"Occupancy Rate": "−25.0 ptsvs. 30 days ago",
-			"Scheduled Monthly Rent": "−10.2%vs. 30 days ago",
+			"Scheduled Rent": "−10.2%vs. 30 days ago",
 		});
 		expect(screen.getByText("12.3% scheduled margin")).toBeInTheDocument();
 	});
@@ -108,13 +108,11 @@ describe("analytics overview stat cards", () => {
 			occupancy: { status: "ready", points: 75, window: WINDOW },
 			revenue: { status: "ready", percent: null, window: WINDOW },
 		});
-		expect(trendLines()["Scheduled Monthly Rent"]).toBe(
+		expect(trendLines()["Scheduled Rent"]).toBe(
 			"No rent scheduled 30 days ago",
 		);
 		// No 0%, Infinity or NaN in its place.
-		expect(trendLines()["Scheduled Monthly Rent"]).not.toMatch(
-			/%|Infinity|NaN/,
-		);
+		expect(trendLines()["Scheduled Rent"]).not.toMatch(/%|Infinity|NaN/);
 	});
 
 	it("say the change is unavailable when the server states no window", () => {
@@ -124,7 +122,7 @@ describe("analytics overview stat cards", () => {
 		});
 		expect(trendLines()).toMatchObject({
 			"Occupancy Rate": "Change unavailable",
-			"Scheduled Monthly Rent": "Change unavailable",
+			"Scheduled Rent": "Change unavailable",
 		});
 		expect(screen.queryByText(/vs\.? 30 days ago/)).not.toBeInTheDocument();
 	});
