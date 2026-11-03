@@ -291,7 +291,12 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // counts and trends, .financial is the expenses by vendor alone and .tenants
 // the three figures with a source. A v4 entry would read as a sheet, statement
 // or table missing the fields the pages now expect until the refetch landed.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v5";
+// v6: part Q's shapes. financialTaxQueries.taxDocuments' totals are
+// totalIncome, totalExpenses and netIncome, and its expense rows lost
+// `deductible`, with no Schedule E, depreciation or mortgage-interest fields
+// (none had a source). A v5 entry would read as a page with no expenses or net
+// figure until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v6";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {

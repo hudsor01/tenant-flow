@@ -28,7 +28,9 @@
  *     page): `financialTaxQueries.taxDocuments(year)` (the two
  *     get_billing_insights calls, get_expense_summary for the year),
  *     `src/hooks/api/query-keys/expense-keys.ts`.
- *     Rows: the three summary cards and the Schedule E deductible expenses.
+ *     Rows: the three summary cards, the Expenses by Vendor, and the note that
+ *     TenantFlow does not decide which expenses are deductible
+ *     (DEDUCTIBILITY_NOTE).
  * Income is rent received, from the rent ledger: collectedTotal as of December
  * 31 of the year less as of December 31 of the year before (cash basis), and
  * each property's receipts in the calendar year (20261102163709). For a year
@@ -95,6 +97,17 @@ export function propertyReportName(name: string, status: string): string {
  * `propertyReportName`).
  */
 export const NO_VENDOR_LABEL = "No vendor recorded";
+
+/**
+ * The tax-documents page and every file of it list each vendor's expenses for
+ * the year, and TenantFlow does not determine which are deductible: they were
+ * listed under "Deductible Expenses — Schedule E" with every expense marked
+ * deductible. They are listed as "Expenses by Vendor" with this one note,
+ * read by the page, its PDF and the export-report files.
+ */
+export const EXPENSES_BY_VENDOR_SECTION = "Expenses by Vendor";
+export const DEDUCTIBILITY_NOTE =
+	"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer.";
 
 /** A vendor's name as the owner entered it, or NO_VENDOR_LABEL for none. */
 export function expenseVendorLabel(vendor: unknown): string {
@@ -515,7 +528,9 @@ function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 			}),
 		),
 		...categories.map((c) =>
-			yearEndRow("Expenses by Vendor", c.category, { Amount: money(c.amount) }),
+			yearEndRow(EXPENSES_BY_VENDOR_SECTION, c.category, {
+				Amount: money(c.amount),
+			}),
 		),
 		...rows1099(sources.expenseSummary),
 	];
@@ -523,19 +538,19 @@ function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 
 function taxDocumentRows(sources: TaxYearSources): Row[] {
 	const income = rentReceivedInYear(sources);
-	const deductions = expenseTotal(sources.expenseSummary);
+	const expenses = expenseTotal(sources.expenseSummary);
 	return [
 		["Summary", "Rent Received", money(income), null],
-		["Summary", "Total Deductions", money(deductions), null],
+		["Summary", "Operating Expenses", money(expenses), null],
 		[
 			"Summary",
-			"Net Taxable Income",
-			money(Math.round((income - deductions) * 100) / 100),
+			"Net Income",
+			money(Math.round((income - expenses) * 100) / 100),
 			null,
 		],
 		...expenseCategories(sources.expenseSummary).map(
 			(c): Row => [
-				"Deductible Expenses (Schedule E)",
+				EXPENSES_BY_VENDOR_SECTION,
 				// The vendor's name as entered: a "category" is a vendor name, never
 				// a slug to reformat ("acme_plumbing" is the owner's text).
 				c.category,
@@ -543,6 +558,7 @@ function taxDocumentRows(sources: TaxYearSources): Row[] {
 				percentOneDecimal(c.percentage),
 			],
 		),
+		["Note", DEDUCTIBILITY_NOTE, null, null],
 	];
 }
 

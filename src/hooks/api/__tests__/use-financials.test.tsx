@@ -707,10 +707,22 @@ describe("useTaxDocuments", () => {
 		// 512,345.67 received by the end of 2024 less 12,345.67 by the end of
 		// 2023; the scheduled 999,999 rides along and is in no figure.
 		expect(data.totals.totalIncome).toBe(500000);
-		expect(data.totals.totalDeductions).toBe(120000);
-		expect(data.totals.netTaxableIncome).toBe(380000);
+		expect(data.totals.totalExpenses).toBe(120000);
+		expect(data.totals.netIncome).toBe(380000);
 		expect(data.expenseCategories.length).toBe(2);
-		expect(data.schedule.scheduleE.grossRentalIncome).toBe(500000);
+		// No deduction, Schedule E or depreciation figure: TenantFlow
+		// determines none, and the literal zeros that stood in are gone.
+		expect(Object.keys(data).sort()).toEqual([
+			"expenseCategories",
+			"period",
+			"taxYear",
+			"totals",
+		]);
+		expect(Object.keys(data.expenseCategories[0] ?? {}).sort()).toEqual([
+			"amount",
+			"category",
+			"percentage",
+		]);
 		expect(mockRpc).not.toHaveBeenCalledWith(
 			"get_dashboard_stats",
 			expect.anything(),

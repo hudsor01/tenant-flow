@@ -25,6 +25,10 @@ import { useTaxDocuments } from "#hooks/api/use-expense-mutations";
 import { useDownloadTaxDocumentPdf } from "#hooks/api/use-report-mutations";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
+import {
+	DEDUCTIBILITY_NOTE,
+	EXPENSES_BY_VENDOR_SECTION,
+} from "../../../../../supabase/functions/_shared/tax-year-reports";
 import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 
 const logger = createLogger({ component: "TaxDocumentsPage" });
@@ -97,7 +101,7 @@ export default function TaxDocumentsPage() {
 	const hasData =
 		data &&
 		(data.totals.totalIncome > 0 ||
-			data.totals.totalDeductions > 0 ||
+			data.totals.totalExpenses > 0 ||
 			data.expenseCategories.length > 0);
 
 	return (
@@ -108,7 +112,7 @@ export default function TaxDocumentsPage() {
 					<div>
 						<h1 className="typography-h1">Tax Documents</h1>
 						<p className="text-muted-foreground">
-							Tax summary and deductions for your rental properties.
+							Rent received and expenses for a tax year, for your tax preparer.
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -199,10 +203,10 @@ export default function TaxDocumentsPage() {
 									</div>
 									<div>
 										<p className="text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.totalDeductions)}
+											{formatCurrency(data.totals.totalExpenses)}
 										</p>
 										<p className="text-sm text-muted-foreground">
-											Total Deductions
+											Operating Expenses
 										</p>
 									</div>
 								</div>
@@ -215,93 +219,54 @@ export default function TaxDocumentsPage() {
 									</div>
 									<div>
 										<p className="text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.netTaxableIncome)}
+											{formatCurrency(data.totals.netIncome)}
 										</p>
-										<p className="text-sm text-muted-foreground">
-											Net Taxable Income
-										</p>
+										<p className="text-sm text-muted-foreground">Net Income</p>
 									</div>
 								</div>
 							</div>
 						</div>
 					</BlurFade>
 
-					{/* Expense Categories */}
+					{/* Expenses by vendor: TenantFlow does not decide deductibility. */}
 					{data.expenseCategories.length > 0 && (
 						<BlurFade delay={0.2}>
-							<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
+							<section
+								aria-labelledby="tax-expenses-by-vendor"
+								className="bg-card border border-border rounded-lg overflow-hidden mb-6"
+							>
 								<div className="p-4 border-b border-border bg-muted/30">
-									<h3 className="font-medium text-foreground">
-										Deductible Expenses — Schedule E
+									<h3
+										id="tax-expenses-by-vendor"
+										className="font-medium text-foreground"
+									>
+										{EXPENSES_BY_VENDOR_SECTION}
 									</h3>
+									<p className="mt-1 text-sm text-muted-foreground">
+										{DEDUCTIBILITY_NOTE}
+									</p>
 								</div>
 								<div className="divide-y divide-border">
-									{data.expenseCategories
-										.filter((cat) => cat.deductible)
-										.map((cat) => (
-											<div
-												key={cat.category}
-												className="flex items-center justify-between p-4"
-											>
-												<div>
-													<p className="text-sm font-medium">{cat.category}</p>
-													{cat.notes && (
-														<p className="text-xs text-muted-foreground">
-															{cat.notes}
-														</p>
-													)}
-												</div>
-												<div className="text-right">
-													<p className="text-sm font-medium tabular-nums">
-														{formatCurrency(cat.amount)}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														{cat.percentage.toFixed(1)}% of expenses
-													</p>
-												</div>
-											</div>
-										))}
-								</div>
-							</div>
-						</BlurFade>
-					)}
-
-					{/* Property Depreciation */}
-					{data.propertyDepreciation.length > 0 && (
-						<BlurFade delay={0.25}>
-							<div className="bg-card border border-border rounded-lg overflow-hidden">
-								<div className="p-4 border-b border-border bg-muted/30">
-									<h3 className="font-medium text-foreground">
-										Property Depreciation
-									</h3>
-								</div>
-								<div className="divide-y divide-border">
-									{data.propertyDepreciation.map((prop) => (
+									{data.expenseCategories.map((cat) => (
 										<div
-											key={prop.property_id}
-											className="flex items-center justify-between p-4"
+											key={cat.category}
+											className="flex items-center justify-between gap-4 p-4"
 										>
-											<div>
-												<p className="text-sm font-medium">
-													{prop.propertyName}
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Basis: {formatCurrency(prop.propertyValue)}
-												</p>
-											</div>
-											<div className="text-right">
+											<p className="min-w-0 wrap-break-word text-sm font-medium">
+												{cat.category}
+											</p>
+											<div className="shrink-0 text-right">
 												<p className="text-sm font-medium tabular-nums">
-													{formatCurrency(prop.annualDepreciation)}/yr
+													{formatCurrency(cat.amount)}
 												</p>
 												<p className="text-xs text-muted-foreground">
-													Accumulated:{" "}
-													{formatCurrency(prop.accumulatedDepreciation)}
+													{cat.percentage.toFixed(1)}% of expenses
 												</p>
 											</div>
 										</div>
 									))}
 								</div>
-							</div>
+							</section>
 						</BlurFade>
 					)}
 				</>

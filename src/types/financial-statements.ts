@@ -81,32 +81,24 @@ export interface MonthlyCashFlow {
 	netCashFlow: number;
 }
 
+/**
+ * The tax-documents page's figures for a tax year, cash basis: rent received
+ * from the rent ledger, the year's expenses and the difference. TenantFlow does
+ * not determine deductions, taxable income or depreciation, so none is here:
+ * the type carried `totalDeductions` and `netTaxableIncome` (every expense
+ * presented as a deduction), a Schedule E breakdown, depreciation and mortgage
+ * interest written as 0 and an empty property depreciation list, none of them
+ * from any source.
+ */
 export interface TaxDocumentsData {
 	period: { start_date: string; end_date: string; label: string };
 	taxYear: number;
 	totals: {
 		totalIncome: number;
-		totalDeductions: number;
-		netTaxableIncome: number;
-	};
-	incomeBreakdown: {
-		grossRentalIncome: number;
 		totalExpenses: number;
-		netOperatingIncome: number;
-		depreciation: number;
-		mortgageInterest: number;
-		taxableIncome: number;
-	};
-	schedule: {
-		scheduleE: {
-			grossRentalIncome: number;
-			totalExpenses: number;
-			depreciation: number;
-			netIncome: number;
-		};
+		netIncome: number;
 	};
 	expenseCategories: TaxExpenseCategory[];
-	propertyDepreciation: TaxPropertyDepreciation[];
 }
 
 /**
@@ -118,21 +110,11 @@ export type TaxDocumentsResult =
 	| { readonly status: "ready"; readonly documents: TaxDocumentsData }
 	| { readonly status: "ledger-unavailable"; readonly taxYear: number };
 
+/** One vendor's expenses for the tax year (get_expense_summary's categories). */
 export interface TaxExpenseCategory {
 	category: string;
 	amount: number;
 	percentage: number;
-	deductible: boolean;
-	notes?: string;
-}
-
-export interface TaxPropertyDepreciation {
-	property_id: string;
-	propertyName: string;
-	propertyValue: number;
-	annualDepreciation: number;
-	accumulatedDepreciation: number;
-	remainingBasis: number;
 }
 
 export interface TaxDocumentsQuery {

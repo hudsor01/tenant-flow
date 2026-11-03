@@ -361,21 +361,20 @@ function expectedYearEndRows(page: Screen): ReportCell[][] {
 function expectedTaxRows(data: TaxDocumentsData): ReportCell[][] {
 	return [
 		["Summary", "Rent Received", cents(data.totals.totalIncome), null],
-		["Summary", "Total Deductions", cents(data.totals.totalDeductions), null],
+		["Summary", "Operating Expenses", cents(data.totals.totalExpenses), null],
+		["Summary", "Net Income", cents(data.totals.netIncome), null],
+		...data.expenseCategories.map((c): ReportCell[] => [
+			"Expenses by Vendor",
+			c.category,
+			cents(c.amount),
+			Number(c.percentage.toFixed(1)),
+		]),
 		[
-			"Summary",
-			"Net Taxable Income",
-			cents(data.totals.netTaxableIncome),
+			"Note",
+			"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer.",
+			null,
 			null,
 		],
-		...data.expenseCategories
-			.filter((c) => c.deductible)
-			.map((c): ReportCell[] => [
-				"Deductible Expenses (Schedule E)",
-				c.category,
-				cents(c.amount),
-				Number(c.percentage.toFixed(1)),
-			]),
 	];
 }
 
@@ -413,9 +412,10 @@ describe("tax-year reports hold their pages' figures", () => {
 		const file = await exported(TAX_DOCUMENTS_REPORT_TYPE, richAnswers());
 		expect(distinct(file.calls)).toEqual(distinct(page.calls.taxDocuments));
 		expect(file.rows).toEqual(expectedTaxRows(page.taxDocuments));
-		// The page's Property Depreciation has no source; were it to fill, this
-		// export would fall behind the page.
-		expect(page.taxDocuments.propertyDepreciation).toEqual([]);
+		// No row claims a deduction, taxable income or Schedule E category.
+		expect(
+			file.rows.flatMap((r) => [r[0], r[1]]).join(" "),
+		).not.toMatch(/deductible expenses|deduction|taxable|schedule e/i);
 		// Shares print as the page's toFixed(1): 0.15 is "0.1", not Math.round's 0.2.
 		expect(file.rows.map((r) => r[3])).toContain(0.1);
 	});

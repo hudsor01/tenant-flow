@@ -52,27 +52,9 @@ export const financialTaxQueries = {
 							label: `Tax Year ${year}`,
 						},
 						taxYear: year,
-						totals: {
-							totalIncome,
-							totalDeductions: totalExpenses,
-							netTaxableIncome: netIncome,
-						},
-						incomeBreakdown: {
-							grossRentalIncome: totalIncome,
-							totalExpenses,
-							netOperatingIncome: netIncome,
-							depreciation: 0,
-							mortgageInterest: 0,
-							taxableIncome: netIncome,
-						},
-						schedule: {
-							scheduleE: {
-								grossRentalIncome: totalIncome,
-								totalExpenses,
-								depreciation: 0,
-								netIncome,
-							},
-						},
+						totals: { totalIncome, totalExpenses, netIncome },
+						// Each vendor's expenses for the year, as entered: TenantFlow
+						// does not decide which are deductible (DEDUCTIBILITY_NOTE).
 						expenseCategories: (
 							(expenseSummary?.categories ?? []) as Array<
 								Record<string, unknown>
@@ -81,9 +63,7 @@ export const financialTaxQueries = {
 							category: expenseVendorLabel(c.category),
 							amount: Number(c.amount ?? 0),
 							percentage: Number(c.percentage ?? 0),
-							deductible: true,
 						})),
-						propertyDepreciation: [],
 					},
 				};
 			},

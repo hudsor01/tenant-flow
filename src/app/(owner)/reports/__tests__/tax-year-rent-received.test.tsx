@@ -135,32 +135,52 @@ describe("the tax documents", () => {
 				taxYear: 2025,
 				totals: {
 					totalIncome: 61200.25,
-					totalDeductions: 11120.5,
-					netTaxableIncome: 50079.75,
-				},
-				incomeBreakdown: {
-					grossRentalIncome: 61200.25,
 					totalExpenses: 11120.5,
-					netOperatingIncome: 50079.75,
-					depreciation: 0,
-					mortgageInterest: 0,
-					taxableIncome: 50079.75,
-				},
-				schedule: {
-					scheduleE: {
-						grossRentalIncome: 61200.25,
-						totalExpenses: 11120.5,
-						depreciation: 0,
-						netIncome: 50079.75,
-					},
+					netIncome: 50079.75,
 				},
 				expenseCategories: [],
-				propertyDepreciation: [],
 			},
 		});
 		expect(screen.getByText("Rent Received")).toBeInTheDocument();
 		expect(screen.getByText("$61,200.25")).toBeInTheDocument();
 		expect(screen.queryByText("Gross Income")).not.toBeInTheDocument();
+	});
+
+	// TenantFlow does not decide which expenses are deductible: the section
+	// read "Deductible Expenses — Schedule E" over every vendor, marked
+	// deductible, beside "Total Deductions" and "Net Taxable Income".
+	it("list each vendor's expenses with the deductibility note, claiming no deduction", () => {
+		taxDocuments({
+			status: "ready",
+			documents: {
+				period: {
+					start_date: "2025-01-01",
+					end_date: "2025-12-31",
+					label: "Tax Year 2025",
+				},
+				taxYear: 2025,
+				totals: {
+					totalIncome: 61200.25,
+					totalExpenses: 11120.5,
+					netIncome: 50079.75,
+				},
+				expenseCategories: [
+					{ category: "Acme Plumbing", amount: 9000.5, percentage: 80.9 },
+					{ category: "No vendor recorded", amount: 2120, percentage: 19.1 },
+				],
+			},
+		});
+		const section = screen.getByRole("region", { name: "Expenses by Vendor" });
+		expect(section).toHaveTextContent(
+			"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer.",
+		);
+		expect(section).toHaveTextContent("Acme Plumbing");
+		expect(section).toHaveTextContent("No vendor recorded");
+		expect(screen.getByText("Operating Expenses")).toBeInTheDocument();
+		expect(screen.getByText("Net Income")).toBeInTheDocument();
+		expect(document.body).not.toHaveTextContent(
+			/deductible expenses|deductions|taxable|schedule e/i,
+		);
 	});
 
 	it("say the ledger totals are unavailable, and offer no PDF", () => {

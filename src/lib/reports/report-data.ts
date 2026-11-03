@@ -40,6 +40,10 @@ import type {
 	YearEndResult,
 	YearEndSummary,
 } from "#types/reports";
+import {
+	DEDUCTIBILITY_NOTE,
+	EXPENSES_BY_VENDOR_SECTION,
+} from "../../../supabase/functions/_shared/tax-year-reports";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -789,9 +793,12 @@ function taxPreparationSections(
 			note: "Consult a CPA before filing — line-item mappings are advisory.",
 		},
 		{
-			heading: "Expenses by Vendor",
+			heading: EXPENSES_BY_VENDOR_SECTION,
 			table: { headers: ["Vendor", "Amount"], rows: expenseRows },
-			...noteIf(available),
+			// TenantFlow does not decide which expenses are deductible.
+			note: available
+				? DEDUCTIBILITY_NOTE
+				: `${UNAVAILABLE_NOTE} ${DEDUCTIBILITY_NOTE}`,
 		},
 	];
 }

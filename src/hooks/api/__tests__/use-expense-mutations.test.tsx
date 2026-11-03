@@ -145,8 +145,8 @@ describe("useTaxDocuments default year", () => {
 		expect(data.documents.period.start_date).toBe(`${currentYear}-01-01`);
 		// Dollar magnitude preserved: rent received / expenses pass through as-is.
 		expect(data.documents.totals.totalIncome).toBe(600000);
-		expect(data.documents.totals.totalDeductions).toBe(200000);
-		expect(data.documents.totals.netTaxableIncome).toBe(400000);
+		expect(data.documents.totals.totalExpenses).toBe(200000);
+		expect(data.documents.totals.netIncome).toBe(400000);
 	});
 
 	it("honors an explicit taxYear over the current-year default", async () => {

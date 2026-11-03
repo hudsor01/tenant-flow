@@ -8,7 +8,8 @@
  * the dashboard, expense and maintenance queries gained the trends, the year
  * over year and the costs the RPCs now compute (part M, v4); the dashboard
  * trends, the lease profitability, the statements' lines and the report
- * queries changed shape again (part N, v5).
+ * queries changed shape again (part N, v5); the tax documents lost their
+ * deduction, Schedule E and depreciation fields (part Q, v6).
  * An entry persisted under an older buster would be read back by the new
  * pages as neither shape and drawn as an empty or $0 report until the refetch
  * landed. The buster is module-private, so this reads the source.
@@ -23,13 +24,14 @@ const SOURCE = readFileSync(
 );
 
 describe("QUERY_CACHE_BUSTER", () => {
-	it("is past v1 to v4, whose entries have the old shapes", () => {
+	it("is past v1 to v5, whose entries have the old shapes", () => {
 		const buster = /const QUERY_CACHE_BUSTER = "([^"]+)";/.exec(SOURCE)?.[1];
 		expect(buster).toBeDefined();
 		expect(buster).not.toBe("tenantflow-cache-v1");
 		expect(buster).not.toBe("tenantflow-cache-v2");
 		expect(buster).not.toBe("tenantflow-cache-v3");
 		expect(buster).not.toBe("tenantflow-cache-v4");
-		expect(buster).toBe("tenantflow-cache-v5");
+		expect(buster).not.toBe("tenantflow-cache-v5");
+		expect(buster).toBe("tenantflow-cache-v6");
 	});
 });

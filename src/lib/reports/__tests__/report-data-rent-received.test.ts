@@ -232,6 +232,13 @@ describe("the tax preparation report", () => {
 		expect(report.sections.map((s) => s.heading)).not.toContain(
 			"Expense by Category",
 		);
+		// TenantFlow does not decide which expenses are deductible: the
+		// section says so, in the tax export's own words.
+		expect(
+			report.sections.find((s) => s.heading === "Expenses by Vendor")?.note,
+		).toBe(
+			"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer.",
+		);
 		expect(mockRpc).toHaveBeenCalledWith("get_property_performance_analytics", {
 			p_user_id: "owner-1",
 			p_timeframe: "2025-01-01..2025-12-31",
