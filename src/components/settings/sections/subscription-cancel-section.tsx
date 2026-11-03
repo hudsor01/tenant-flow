@@ -23,6 +23,7 @@ import {
 	useCancelSubscriptionMutation,
 	useReactivateSubscriptionMutation,
 } from "#hooks/api/use-billing-mutations";
+import { formatCount } from "#lib/formatters/count";
 
 function formatPlanEndDate(iso: string | null): string {
 	if (!iso) return "your next billing date";
@@ -190,8 +191,8 @@ export function SubscriptionCancelSection() {
 							</p>
 							<p className="text-sm text-muted-foreground mt-1">
 								Your plan will end on <strong>{endDate}</strong> (
-								<strong>{daysLeft} days remaining</strong>). You can keep your
-								plan active by reactivating before then.
+								<strong>{formatCount(daysLeft, "day")} remaining</strong>). You
+								can keep your plan active by reactivating before then.
 							</p>
 						</div>
 					</div>

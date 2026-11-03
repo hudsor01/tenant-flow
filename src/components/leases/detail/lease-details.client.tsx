@@ -16,6 +16,7 @@ import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useCancelSignatureRequestMutation } from "#hooks/api/use-lease-signature-mutations";
 import { useUnitList } from "#hooks/api/use-unit";
+import { formatCount } from "#lib/formatters/count";
 import { getOrdinalSuffix } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
@@ -178,7 +179,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 								</div>
 								<p className="text-xl font-semibold">
 									{lease.grace_period_days
-										? `${lease.grace_period_days} days`
+										? formatCount(lease.grace_period_days, "day")
 										: "None"}
 								</p>
 							</CardContent>

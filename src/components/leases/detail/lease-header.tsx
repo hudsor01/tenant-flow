@@ -21,6 +21,7 @@ import {
 } from "#components/ui/alert-dialog";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import { formatCount } from "#lib/formatters/count";
 import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
 import type { Lease } from "#types/core";
@@ -140,7 +141,7 @@ export function LeaseHeader({
 				{isExpiringSoon && (
 					<Badge variant="warning">
 						<AlertTriangle className="w-3 h-3 mr-1" />
-						Expires in {daysUntilExpiry} days
+						Expires in {formatCount(daysUntilExpiry, "day")}
 					</Badge>
 				)}
 			</div>

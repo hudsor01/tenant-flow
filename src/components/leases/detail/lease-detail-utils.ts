@@ -12,6 +12,7 @@ import {
 	EXPIRING_LEASE_LABEL,
 	LEASE_STATUS_LABELS,
 } from "#lib/constants/status-types";
+import { formatCount } from "#lib/formatters/count";
 import { parseLocalYmd } from "#lib/formatters/date";
 import type { Lease } from "#types/core";
 
@@ -237,9 +238,11 @@ export function formatRelativeTime(dateString: string): string {
 	if (diffDays === 0) return "Today";
 	if (diffDays === 1) return "Yesterday";
 	if (diffDays < 7) return `${diffDays} days ago`;
-	if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-	if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-	return `${Math.floor(diffDays / 365)} years ago`;
+	if (diffDays < 30)
+		return `${formatCount(Math.floor(diffDays / 7), "week")} ago`;
+	if (diffDays < 365)
+		return `${formatCount(Math.floor(diffDays / 30), "month")} ago`;
+	return `${formatCount(Math.floor(diffDays / 365), "year")} ago`;
 }
 
 /** Calculate days until expiry */

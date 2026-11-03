@@ -13,6 +13,7 @@ import {
 	StatValue,
 } from "#components/ui/stat";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
+import { formatCount } from "#lib/formatters/count";
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
@@ -216,7 +217,7 @@ function buildKpiTileConfigs(
 			label: "Occupancy",
 			spokenValue: occupancySpoken,
 			description: `${stats.units.occupied} of ${stats.units.total} occupied`,
-			spokenDescription: `${stats.units.occupied} of ${stats.units.total} units occupied`,
+			spokenDescription: `${stats.units.occupied} of ${formatCount(stats.units.total, "unit")} occupied`,
 			value: safeOccupancy,
 			decimalPlaces: 0,
 			suffix: "%",

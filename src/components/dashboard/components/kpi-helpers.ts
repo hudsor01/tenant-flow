@@ -13,6 +13,7 @@
  */
 
 import type { ChartConfig } from "#components/ui/chart";
+import { formatCount } from "#lib/formatters/count";
 import { formatSignedOneDecimal } from "#lib/formatters/signed";
 import { windowDays } from "#lib/stated-window";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
@@ -79,7 +80,7 @@ export type TrendChip =
 
 /** "vs. 30 days ago": the trend's earlier day, counted back from its later. */
 export function trendWindowLabel(days: number): string {
-	return `vs. ${days} days ago`;
+	return `vs. ${formatCount(days, "day")} ago`;
 }
 
 export function describeTrend(
@@ -96,14 +97,17 @@ export function describeTrend(
 		return {
 			kind: "change",
 			figure: `${formatSignedOneDecimal(trend.change)} pts`,
-			spokenFigure: `${points} points`,
+			spokenFigure: formatCount(points, "point"),
 			windowLabel: trendWindowLabel(days),
 		};
 	}
 	// A non-finite percent (NaN from a stale row) is no figure either, never
 	// a fabricated 0% (WR-02).
 	if (trend.percentChange === null || !Number.isFinite(trend.percentChange)) {
-		return { kind: "no-prior", text: `${noPriorText} ${days} days ago` };
+		return {
+			kind: "no-prior",
+			text: `${noPriorText} ${formatCount(days, "day")} ago`,
+		};
 	}
 	const pct = Math.abs(Math.round(trend.percentChange));
 	return {

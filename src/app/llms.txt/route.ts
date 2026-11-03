@@ -1,4 +1,5 @@
 import { blogAnonClient } from "#lib/blog/blog-queries";
+import { formatCount } from "#lib/formatters/count";
 import { createLogger } from "#lib/frontend-logger";
 import { categoryLabel } from "#lib/seo/blog-categories";
 
@@ -101,7 +102,7 @@ async function buildBlogSection(): Promise<string> {
 
 		const categoryLines = categories.map(
 			(cat) =>
-				`- [${categoryLabel(cat.slug)}](${SITE}/blog/category/${cat.slug}) (${cat.post_count} articles)`,
+				`- [${categoryLabel(cat.slug)}](${SITE}/blog/category/${cat.slug}) (${formatCount(cat.post_count, "article")})`,
 		);
 		const postLines = posts.map(
 			(post) => `- [${post.title}](${SITE}/blog/${post.slug})`,

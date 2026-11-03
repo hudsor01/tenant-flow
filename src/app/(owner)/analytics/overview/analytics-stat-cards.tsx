@@ -19,6 +19,7 @@ import {
 	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
+import { formatCount } from "#lib/formatters/count";
 import {
 	formatSignedOneDecimal,
 	TYPOGRAPHIC_MINUS,
@@ -118,7 +119,7 @@ function RevenueChange({ trends }: { trends: PortfolioTrends | undefined }) {
 	}
 	if (revenue.percent === null) {
 		return (
-			<NoChangeLine>{`No rent scheduled ${windowDays(revenue.window)} days ago`}</NoChangeLine>
+			<NoChangeLine>{`No rent scheduled ${formatCount(windowDays(revenue.window), "day")} ago`}</NoChangeLine>
 		);
 	}
 	return (

@@ -35,6 +35,7 @@ import {
 } from "#components/ui/card";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
+import { formatCount } from "#lib/formatters/count";
 
 interface OccupancyDonutChartProps {
 	units: { occupied: number; vacant: number; total: number };
@@ -77,7 +78,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 	}
 
 	const occupancyPercent = Math.round((units.occupied / units.total) * 100);
-	const ariaLabel = `Occupancy donut: ${occupancyPercent} percent occupied (${units.occupied} of ${units.total} units)`;
+	const ariaLabel = `Occupancy donut: ${occupancyPercent} percent occupied (${units.occupied} of ${formatCount(units.total, "unit")})`;
 	const pieData = [
 		{
 			name: "Occupied",

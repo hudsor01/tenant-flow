@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
+import { formatCount } from "#lib/formatters/count";
 import {
 	handleMutationError,
 	userFacingErrorMessage,
@@ -187,8 +188,10 @@ export function GdprDataActions({
 								</strong>
 								. You have{" "}
 								<strong>
-									{daysRemaining(deletionStatus.data!.deletion_requested_at!)}{" "}
-									days
+									{formatCount(
+										daysRemaining(deletionStatus.data!.deletion_requested_at!),
+										"day",
+									)}
 								</strong>{" "}
 								remaining to cancel.
 							</p>

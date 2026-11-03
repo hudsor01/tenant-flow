@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
 import { Separator } from "#components/ui/separator";
+import { formatCount } from "#lib/formatters/count";
 import { formatDate, getOrdinalSuffix } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
@@ -128,7 +129,7 @@ export function ReviewStep({
 						<p className="text-sm text-muted-foreground">Grace Period</p>
 						<p className="font-medium">
 							{data.grace_period_days !== undefined
-								? `${data.grace_period_days} days`
+								? formatCount(data.grace_period_days, "day")
 								: "-"}
 						</p>
 					</div>

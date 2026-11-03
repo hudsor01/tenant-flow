@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
+import { pluralNoun } from "#lib/formatters/count";
 
 const ChartAreaInteractive = dynamic(
 	() =>
@@ -200,7 +201,7 @@ export default function AnalyticsPage() {
 													<p className="mb-0 text-sm text-muted-foreground">
 														{formatCurrency(property.monthlyRevenue)}/mo ·{" "}
 														{property.totalUnits > 0
-															? `${property.occupiedUnits}/${property.totalUnits} units occupied`
+															? `${property.occupiedUnits}/${property.totalUnits} ${pluralNoun(property.totalUnits, "unit")} occupied`
 															: "No units"}
 													</p>
 												</div>

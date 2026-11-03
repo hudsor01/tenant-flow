@@ -9,6 +9,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { Label } from "#components/ui/label";
+import { formatCount } from "#lib/formatters/count";
 import { formatCurrency } from "#lib/utils/currency";
 import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
 import { UnitStatusBadge } from "./unit-status-badge";
@@ -34,11 +35,19 @@ export function UnitViewDialog({
 					<div className="grid grid-cols-2 gap-4">
 						<div className="flex items-center gap-2">
 							<BedDouble className="size-4 text-muted-foreground" />
-							<span>{unit.bedrooms} Bedrooms</span>
+							<span>
+								{unit.bedrooms === null
+									? "Bedrooms not recorded"
+									: formatCount(unit.bedrooms, "Bedroom")}
+							</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<ShowerHead className="size-4 text-muted-foreground" />
-							<span>{unit.bathrooms} Bathrooms</span>
+							<span>
+								{unit.bathrooms === null
+									? "Bathrooms not recorded"
+									: formatCount(unit.bathrooms, "Bathroom")}
+							</span>
 						</div>
 						{unit.square_feet && (
 							<div className="flex items-center gap-2">

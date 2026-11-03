@@ -1,5 +1,6 @@
 import { Building, Calendar, User } from "lucide-react";
 import { Card, CardContent } from "#components/ui/card";
+import { formatCount } from "#lib/formatters/count";
 import { formatDate } from "#lib/formatters/date";
 import { cn } from "#lib/utils";
 import type { Lease } from "#types/core";
@@ -60,7 +61,7 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 									)}
 								>
 									{daysUntilExpiry > 0
-										? `${daysUntilExpiry} days remaining`
+										? `${formatCount(daysUntilExpiry, "day")} remaining`
 										: daysUntilExpiry === 0
 											? "Expires today"
 											: "Expired"}

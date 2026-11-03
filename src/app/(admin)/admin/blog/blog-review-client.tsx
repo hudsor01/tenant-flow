@@ -28,6 +28,7 @@ import {
 	useApproveBlogMutation,
 	useRejectBlogMutation,
 } from "#hooks/api/use-blog-admin-mutations";
+import { formatCount } from "#lib/formatters/count";
 import { categoryLabel } from "#lib/seo/blog-categories";
 
 interface BlogReviewClientProps {
@@ -96,7 +97,7 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 					<p className="text-sm text-muted-foreground">
 						<span className="font-mono">{draft.slug}</span>
 						{" · "}
-						{wordCount} words
+						{formatCount(wordCount, "word")}
 						{" · "}
 						{formatCreatedAt(draft.created_at)}
 						{draft.category ? ` · ${categoryLabel(draft.category)}` : ""}

@@ -7,6 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { formatCount } from "#lib/formatters/count";
 import { formatCurrency } from "#lib/utils/currency";
 import type { Lease } from "#types/core";
 
@@ -32,7 +33,7 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 							<p className="text-sm text-muted-foreground">Late Fee</p>
 							<p className="font-medium">
 								{lease.late_fee_amount
-									? `${formatCurrency(lease.late_fee_amount)} after ${lease.late_fee_days || 0} days`
+									? `${formatCurrency(lease.late_fee_amount)} after ${formatCount(lease.late_fee_days || 0, "day")}`
 									: "None"}
 							</p>
 						</div>
