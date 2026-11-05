@@ -401,7 +401,19 @@ describe("KpiBentoRow", () => {
 		// The ticker formats the dollars itself (66.2-39): a separate "$" box
 		// put a negative value's sign after the symbol ("$-250").
 		expect(revenueValue?.children).toHaveLength(1);
-		expect(revenueValue?.firstElementChild?.textContent).toBe("$14,250");
+		const ticker = revenueValue?.firstElementChild;
+		expect(ticker?.textContent).toBe("$14,250");
+		// Under reduced motion too, the "$" is its own span outside the digits'
+		// tracking-wider, so it keeps the stat's tight tracking (66.2-39 fix
+		// round 3, F51; VD-71).
+		const parts = [...(ticker?.children ?? [])];
+		expect(parts.map((part) => part.textContent)).toEqual(["", "$", "14,250"]);
+		const symbol = parts.find((part) => part.textContent === "$");
+		const digits = parts.find((part) => part.textContent === "14,250");
+		expect(symbol?.className.split(/\s+/) ?? []).not.toContain(
+			"tracking-wider",
+		);
+		expect(digits?.className.split(/\s+/)).toContain("tracking-wider");
 		const occupancyValue = items[1]?.querySelector('[data-slot="stat-value"]');
 		expect(occupancyValue?.textContent).toBe("87%");
 	});

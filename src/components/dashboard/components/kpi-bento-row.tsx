@@ -53,11 +53,11 @@ function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
 	return <Minus aria-hidden="true" className="inline-block size-3" />;
 }
 
-// Belt-and-suspenders reduced-motion wrapper per 03-UI-SPEC § 5.4. NumberTicker
-// gained its own internal reduced-motion guard in Phase 6, so this outer
-// short-circuit is now redundant for the animation, but it is kept to render the
-// statically-formatted value (with thousands separators) when motion is off.
-// Both layers honor the opt-out.
+// Reduced motion (03-UI-SPEC § 5.4): the ticker starts at the value, so the
+// first paint already shows the figure rather than counting up from 0.
+// NumberTicker formats it either way (thousands separators, the currency
+// symbol in its own span outside the digits' tracking-wider), so the "$" keeps
+// the stat's letter-spacing with motion on or off (VD-71).
 function KpiNumberTicker({
 	value,
 	decimalPlaces = 0,
@@ -70,22 +70,10 @@ function KpiNumberTicker({
 	currency?: boolean;
 }) {
 	const reducedMotion = useReducedMotion();
-	if (reducedMotion) {
-		const digits = {
-			minimumFractionDigits: decimalPlaces,
-			maximumFractionDigits: decimalPlaces,
-		};
-		return (
-			<span className="inline-block tabular-nums tracking-wider">
-				{currency
-					? formatCurrency(value, digits)
-					: Intl.NumberFormat("en-US", digits).format(value)}
-			</span>
-		);
-	}
 	return (
 		<NumberTicker
 			value={value}
+			startValue={reducedMotion ? value : 0}
 			decimalPlaces={decimalPlaces}
 			duration={duration}
 			currency={currency}
