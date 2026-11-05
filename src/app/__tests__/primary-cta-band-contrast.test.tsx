@@ -12,6 +12,12 @@
  *   `dark:hover:text-primary-text` the dark hover label was `foreground`.
  * - The 20px regular paragraph read `text-primary-foreground/90`, 4.24:1
  *   light; the full token reads 4.88:1.
+ * - Focus (66.2-39 fix round 3, F30): the Button's 3px focus ring is
+ *   `ring-ring/50`, and `--ring` is the band's own blue (1.09:1 light, 1.00:1
+ *   dark on `bg-primary`), with `focus-visible:border-ring` erasing the outline
+ *   CTA's edge. Each CTA on the band draws its ring in
+ *   `primary-foreground/80` instead, and the outline CTA's border turns
+ *   `primary-foreground` on focus.
  *
  * Ratios: Chrome canvas readback under the compiled project CSS
  * (`.planning/tailwind-shadcn/audit/fix-round-1/status-colors.md` section 6).
@@ -56,6 +62,23 @@ describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
 		]) {
 			expect(classes).not.toContain(cls);
 		}
+	});
+
+	it("draws every CTA's focus ring in primary-foreground on the band", () => {
+		render(page());
+		const section = screen.getByRole("link", { name: cta }).closest("section");
+		const links = [...(section?.querySelectorAll("a") ?? [])];
+		expect(links).toHaveLength(2);
+		for (const link of links) {
+			const classes = link.className.split(/\s+/);
+			expect(classes).toContain("focus-visible:ring-primary-foreground/80");
+			expect(classes).not.toContain("focus-visible:ring-ring/50");
+		}
+		const outline = screen
+			.getByRole("link", { name: cta })
+			.className.split(/\s+/);
+		expect(outline).toContain("focus-visible:border-primary-foreground");
+		expect(outline).not.toContain("focus-visible:border-ring");
 	});
 
 	it("sets the band paragraph in the full primary-foreground token", () => {

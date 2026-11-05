@@ -210,7 +210,12 @@ export default function HelpPage() {
 						platform. Our team is here to help you migrate and get going.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button size="lg" variant="secondary" className="px-8" asChild>
+						<Button
+							size="lg"
+							variant="secondary"
+							className="px-8 focus-visible:ring-primary-foreground/80"
+							asChild
+						>
 							<Link href="/pricing">
 								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
@@ -219,7 +224,7 @@ export default function HelpPage() {
 						<Button
 							size="lg"
 							variant="outline"
-							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground dark:hover:text-primary-text"
+							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground dark:hover:text-primary-text focus-visible:border-primary-foreground focus-visible:ring-primary-foreground/80"
 							asChild
 						>
 							<Link href="/contact">Talk to an Expert</Link>
