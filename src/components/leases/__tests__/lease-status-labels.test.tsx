@@ -57,7 +57,9 @@ describe("one label per lease status", () => {
 				totalPaid: 0,
 			},
 		]);
-		expect(csv.split("\r\n")[1]).toContain(",Pending Signature,");
+		expect(csv.split("\r\n")[1]).toBe(
+			"Ada Tenant,ada@example.com,,,,Pending Signature",
+		);
 	});
 
 	it("offers the same labels in the tenants and leases filters", () => {

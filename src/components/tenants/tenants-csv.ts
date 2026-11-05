@@ -6,7 +6,7 @@ import type { TenantItem } from "#types/sections/tenants";
 /**
  * Tenant records as CSV: one row per tenant, in list order, with the fields
  * the tenant table shows (name, email, phone, property and unit, lease status
- * as its badge reads, move-in date). Empty fields are empty cells.
+ * as its badge reads). Empty fields are empty cells.
  */
 export const TENANTS_CSV_HEADER = [
 	"Name",
@@ -15,7 +15,6 @@ export const TENANTS_CSV_HEADER = [
 	"Property",
 	"Unit",
 	"Lease Status",
-	"Move-In Date",
 ] as const;
 
 export function buildTenantsCsv(tenants: readonly TenantItem[]): string {
@@ -26,7 +25,6 @@ export function buildTenantsCsv(tenants: readonly TenantItem[]): string {
 		t.currentProperty ?? "",
 		t.currentUnit ?? "",
 		t.leaseStatus ? LEASE_STATUS_LABELS[t.leaseStatus] : "",
-		t.moveInDate ?? "",
 	]);
 	return toCsv(TENANTS_CSV_HEADER, rows);
 }

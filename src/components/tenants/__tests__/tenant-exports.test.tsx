@@ -50,7 +50,6 @@ const TENANTS: TenantItem[] = [
 		currentProperty: "Maple Court",
 		currentUnit: "2B",
 		leaseStatus: "active",
-		moveInDate: "2026-03-01",
 		totalPaid: 0,
 	},
 	{
@@ -111,6 +110,17 @@ describe("buildTenantsCsv", () => {
 	it("writes one row per tenant with the table's fields, formulas neutralized", () => {
 		const rows = parse(buildTenantsCsv(TENANTS));
 		expect(rows[0]).toEqual([...TENANTS_CSV_HEADER]);
+		// No Move-In Date: nothing sets one on a tenant row, and neither the
+		// table nor the grid shows one, so every cell was empty (cycle 2, F72,
+		// OD-7).
+		expect(rows[0]).toEqual([
+			"Name",
+			"Email",
+			"Phone",
+			"Property",
+			"Unit",
+			"Lease Status",
+		]);
 		expect(rows.slice(1)).toEqual([
 			[
 				"Ada Lovelace",
@@ -119,9 +129,8 @@ describe("buildTenantsCsv", () => {
 				"Maple Court",
 				"2B",
 				"Active",
-				"2026-03-01",
 			],
-			["'=Grace Hopper", "grace@example.com", "", "", "", "", ""],
+			["'=Grace Hopper", "grace@example.com", "", "", "", ""],
 		]);
 	});
 
