@@ -633,8 +633,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 		expect(listClasses).toContain("gap-2");
 
 		// The `@layer base`
-		// `a:not([role="button"]):not(.button):not([class*="button"])` rule in
-		// globals.css sets `color: var(--color-primary)`
+		// `a:not([role="button"]):not(.button):not([class*="button"])
+		// :not([data-slot="button"])` rule in globals.css, which this plain row
+		// Link satisfies, sets `color: var(--color-primary)`
 		// plus an underline that becomes visible on hover. Either class missing is
 		// a visible defect: an accent-blue row, or a hover underline spanning it.
 		const link = screen.getAllByRole("link")[0];

@@ -176,12 +176,14 @@ describe("documents hub hrefs reach real routes", () => {
 });
 
 // Perfect-PR cycle 1 (fifth frozen state). globals.css @layer base carries
-// `a:not([role="button"]):not(.button):not([class*="button"])` with
-// `text-decoration: underline #0000`, which turns visible on :hover via
-// `text-decoration-color: currentColor` and propagates to in-flow block
-// descendants. Both anchors this phase renders satisfy all three :not() guards —
-// the tile declares no role and no "button" substring, and `buttonVariants`'
-// class string contains none either — so both needed an explicit opt-out.
+// `a:not([role="button"]):not(.button):not([class*="button"])
+// :not([data-slot="button"])` with `text-decoration: underline #0000`, which
+// turns visible on :hover via `text-decoration-color: currentColor` and
+// propagates to in-flow block descendants. The tile, a plain Link with no role
+// and no "button" substring, satisfies all four :not() guards, so it needs an
+// explicit opt-out; the "Open the vault" CTA is a `Button asChild` link, whose
+// `data-slot="button"` the rule skips (66.2-39 fix round 3, OD-3; pinned in
+// button-link-base-rule.test.tsx), so it needs none.
 //
 // Source-scanned rather than rendered because that is this file's established
 // idiom, and because the defect is a missing class rather than a wrong tree.
@@ -196,27 +198,24 @@ const tileSource = stripComments(
 );
 const pageSource = stripComments(readFileSync(join(cwd, HUB_INDEX), "utf8"));
 
-describe("phase anchors opt out of the global underline", () => {
+describe("the phase's anchors and the global underline", () => {
 	it("the whole-card tile link carries no-underline", () => {
 		expect(tileSource).toContain("no-underline");
 	});
 
-	it("the Open the vault CTA carries no-underline", () => {
-		// On the Link, not the Button: `asChild` makes the anchor the rendered
-		// element, so the class has to land there.
+	it("the Open the vault CTA is a Button-styled link, which the rule skips", () => {
 		expect(pageSource).toMatch(
-			/<Link\s+className="no-underline"[\s\S]*?Open the vault/,
+			/<Button asChild>\s*<Link href=\{DOCUMENTS_VAULT_ENTRY\.href\}>Open the vault<\/Link>/,
 		);
 	});
 
-	// Non-vacuity: the base rule's three :not() guards really are unsatisfied, so
-	// the rule really does match these anchors and the opt-out really is
-	// load-bearing rather than belt-and-braces.
-	it("neither anchor evades the base rule some other way", () => {
-		for (const source of [tileSource, pageSource]) {
-			expect(source).not.toContain('role="button"');
-			expect(source).not.toContain("className={buttonVariants");
-		}
+	// Non-vacuity: the tile meets the base rule's :not() guards, so the rule
+	// really does match it and its opt-out is load-bearing rather than
+	// belt-and-braces.
+	it("the tile does not evade the base rule some other way", () => {
+		expect(tileSource).not.toContain('role="button"');
+		expect(tileSource).not.toContain("className={buttonVariants");
+		expect(tileSource).not.toContain("data-slot");
 	});
 });
 

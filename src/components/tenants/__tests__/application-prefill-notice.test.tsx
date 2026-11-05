@@ -1,26 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ApplicationPrefillNotice } from "#components/tenants/application-prefill-notice";
+import { computeAnchorRuleReach } from "#test/utils/base-rule-cascade";
 
 /**
  * The duplicate-tenant notice's `Button asChild` + `<Link>` pair (UI-SPEC §B-6).
  *
- * WHY A CLASS-PRESENCE TEST IS THE RIGHT SHAPE HERE, when the rest of this phase
- * deliberately measures geometry instead. The defect this guards is not a layout
- * outcome, it is a MISSING NEUTRALIZER: the `@layer base`
- * `a:not([role="button"]):not(.button):not([class*="button"])` rule in
- * globals.css styles every such anchor, and an anchor
- * produced by `Button asChild` passes all three guards — `buttonVariants` emits
- * no class containing the substring "button" and `Button` sets no
- * `role="button"`. So the base rule lands, painting `color: var(--color-primary)`
- * and a hover underline onto a control that is supposed to read as an outline
- * button. The two classes below are the entire fix, and their absence is the
- * entire bug; jsdom computes no cascade, so their presence is exactly what is
- * assertable and exactly what regressed. `application-queue.test.tsx` pins the
- * same pair on the queue row for the same reason.
+ * The `@layer base` anchor rules in globals.css (link color, a transparent
+ * underline revealed on hover) skip an anchor carrying Button's
+ * `data-slot="button"` (66.2-39 fix round 3, OD-3), so the link needs no
+ * `no-underline`; `computeAnchorRuleReach` matches the rules' own selectors
+ * against it. Its colour is still the link's to set: the `outline` variant
+ * declares none, so without `text-foreground` it takes the AlertDescription's
+ * muted colour. jsdom computes no cascade, so that class's presence is what is
+ * assertable.
  */
-describe("ApplicationPrefillNotice — base-rule neutralizers", () => {
-	it("keeps no-underline and text-foreground on the anchor Button renders", () => {
+describe("ApplicationPrefillNotice — the Button-styled link", () => {
+	it("is passed by the base anchor rules and keeps text-foreground", () => {
 		render(
 			<ApplicationPrefillNotice
 				matchedTenantId="11111111-1111-4111-8111-111111111111"
@@ -29,15 +25,14 @@ describe("ApplicationPrefillNotice — base-rule neutralizers", () => {
 		);
 
 		const link = screen.getByRole("link", { name: /Dana Rivera/ });
-		const classes = link.getAttribute("class")?.split(/\s+/) ?? [];
-
-		// Without `no-underline` the control carries the underline of the
-		// `@layer base`
-		// `a:not([role="button"]):not(.button):not([class*="button"])` rule in
-		// globals.css, drawn transparent and revealed on hover.
-		expect(classes).toContain("no-underline");
-		// Without `text-foreground` the `outline` variant — which sets no colour of
-		// its own — inherits `color: var(--color-primary)` and renders link-blue.
-		expect(classes).toContain("text-foreground");
+		const reach = computeAnchorRuleReach(link);
+		expect(reach.baseline).toEqual({ rest: true, hover: true });
+		expect({ rest: reach.rest, hover: reach.hover }).toEqual({
+			rest: false,
+			hover: false,
+		});
+		expect(link.getAttribute("class")?.split(/\s+/) ?? []).toContain(
+			"text-foreground",
+		);
 	});
 });

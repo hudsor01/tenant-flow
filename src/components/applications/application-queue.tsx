@@ -290,13 +290,13 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 						{/*
 						 * BOTH classes are required and each fixes a different half of
 						 * the same base rule (the `@layer base`
-						 * `a:not([role="button"]):not(.button):not([class*="button"])`
-						 * rule in globals.css). `no-underline` defeats its
-						 * transparent underline, which turns visible on hover and would
+						 * `a:not([role="button"]):not(.button):not([class*="button"])
+						 * :not([data-slot="button"])` rule in globals.css). `no-underline`
+						 * defeats its transparent underline, which turns visible on hover and would
 						 * draw a line across the entire row; `text-foreground` defeats its
 						 * `color: var(--color-primary)`, which would tint the whole row
 						 * accent-blue. `buttonVariants` is not involved here, but the
-						 * rule's three `:not()` guards are all satisfied by a plain
+						 * rule's four `:not()` guards are all satisfied by a plain
 						 * `<Link>` regardless. Phase 65 shipped exactly this.
 						 */}
 						<Link

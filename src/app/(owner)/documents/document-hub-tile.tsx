@@ -39,13 +39,14 @@ export function DocumentHubTile({
 			href={entry.href}
 			className={cn(
 				// `no-underline` is required, not cosmetic. globals.css @layer base
-				// carries `a:not([role="button"]):not(.button):not([class*="button"])`
-				// which underlines every anchor in a fully transparent colour, then
-				// flips that to `text-decoration-color: currentColor` on `:hover`
-				// — i.e. the underline is always there and only becomes visible when
-				// the pointer lands, which is why it reads as a hover effect. This anchor
-				// satisfies all three :not() guards — no role, no `.button` class, no
-				// "button" substring anywhere in the list — so without this the whole
+				// carries `a:not([role="button"]):not(.button):not([class*="button"])
+				// :not([data-slot="button"])`, which underlines every anchor in a fully
+				// transparent colour, then flips that to `text-decoration-color:
+				// currentColor` on `:hover` — i.e. the underline is always there and
+				// only becomes visible when the pointer lands, which is why it reads as
+				// a hover effect. This anchor satisfies all four :not() guards — no
+				// role, no `.button` class, no "button" substring anywhere in the list,
+				// and it is a plain Link, not a Button — so without this the whole
 				// card's hover paints an underline that propagates to the <h3> title
 				// and <p> description below, on top of the bg/border hover this class
 				// list actually declares. `transition-colors` does not cover it.

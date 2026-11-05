@@ -48,24 +48,19 @@ export function ApplicationPrefillNotice({
 				</p>
 				<div className="flex flex-wrap gap-2">
 					{/*
-					 * `no-underline text-foreground` on the Link, not on the Button.
-					 * `asChild` renders an `<a>`, and `buttonVariants`' class string
-					 * contains no "button" substring while `Button` sets no
-					 * `role="button"` — so this anchor satisfies every `:not()` guard on
-					 * the `@layer base`
-					 * `a:not([role="button"]):not(.button):not([class*="button"])` rule
-					 * in globals.css and picks up both its
-					 * `color: var(--color-primary)` and its transparent underline, which
-					 * turns visible on hover. The `outline` variant declares no colour of
-					 * its own, so without `text-foreground` this control renders link-blue
-					 * while the visually identical outline button on the application
-					 * detail page renders foreground-coloured. Same countermeasure as
-					 * `application-detail.tsx` and `application-queue.tsx`.
+					 * `text-foreground` on the Link, not on the Button. `asChild`
+					 * renders an `<a>` that carries Button's `data-slot="button"`, so
+					 * the `@layer base` anchor rules in globals.css pass it by: no
+					 * link color, no hover underline (66.2-39 fix round 3, OD-3). The
+					 * `outline` variant declares no colour of its own, so without
+					 * `text-foreground` this control takes the AlertDescription's muted
+					 * colour while the visually identical outline button on the
+					 * application detail page renders foreground-coloured.
 					 */}
 					<Button asChild variant="outline" size="sm">
 						<Link
 							href={`/tenants/${matchedTenantId}`}
-							className="no-underline text-foreground"
+							className="text-foreground"
 						>
 							Go to {matchedTenantName}
 						</Link>

@@ -435,15 +435,12 @@ function ActionHelper({ text }: { text: string }) {
 }
 
 /**
- * `no-underline` on the Link, not on the Button. `asChild` renders an `<a>`, and
- * `buttonVariants`' class string contains no "button" substring while `Button`
- * sets no `role="button"` — so the anchor satisfies every `:not()` guard on the
- * base `a` rule and picks up its transparent underline, which turns visible on
- * hover (§D-3). `text-foreground` is added only on the outline variant, which
- * sets no colour of its own and would otherwise inherit that rule's
- * `color: var(--color-primary)`; the filled variant's own `text-primary-
- * foreground` already wins by layer order, and forcing `text-foreground` there
- * would destroy its contrast.
+ * `asChild` renders an `<a>` that carries Button's `data-slot="button"`, so the
+ * base `a` rules pass it by: no link colour, no hover underline (66.2-39 fix
+ * round 3, OD-3). `text-foreground` is added only on the outline variant, which
+ * sets no colour of its own and would otherwise take its parent's; the filled
+ * variant's own `text-primary-foreground` is its colour, and forcing
+ * `text-foreground` there would destroy its contrast.
  */
 function ActionLink({
 	href,
@@ -460,7 +457,7 @@ function ActionLink({
 		<Button asChild variant={outline ? "outline" : "default"}>
 			<Link
 				href={href}
-				className={outline ? "no-underline text-foreground" : "no-underline"}
+				{...(outline ? { className: "text-foreground" } : {})}
 				{...(onClick ? { onClick } : {})}
 			>
 				{label}
