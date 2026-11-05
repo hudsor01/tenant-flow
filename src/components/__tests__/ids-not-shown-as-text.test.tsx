@@ -16,6 +16,21 @@
  * purpose and named here: the error boundary's Error ID, which the owner quotes
  * to support, and nothing else in the UI (the work order's Request ID is in an
  * HTML document template, a .ts file this does not read).
+ *
+ * An id can also reach JSX through a name (fix round 3, part 6c): the
+ * maintenance board's card took `const unitNumber = request.unit?.name ??
+ * request.unit_id ?? ""` and printed "Unit {unitNumber}", so every card showed
+ * the unit's id and the guard, reading one JSX child at a time, saw only a
+ * name. It now also collects, per file, each name a one-line declaration
+ * gives an id (`const x = … ?? r.unit_id`, `const { unit_id } = r`) and fails
+ * where JSX renders that name, alone or inside a template. A declaration
+ * spread over several lines is outside what it reads.
+ *
+ * The same sweep found two more gaps. The field pattern took one word before
+ * `_id` (so `{lease.primary_tenant_id}` passed), and it knew no foreign key
+ * named otherwise: the maintenance detail's contact card printed
+ * `{request.requested_by}` and `{request.assigned_to}`, user ids. Every
+ * foreign-key column of the generated schema now counts as an id.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -62,7 +77,28 @@ const TSX = ["src/app", "src/components"]
 	.flatMap((root) => collect(join(ROOT, root)))
 	.filter((f) => !/\.(test|spec)\.tsx$/.test(f) && !/\/__tests__\//.test(f));
 
-const ID_FIELD = String.raw`(?:id|[A-Za-z]+_id|[A-Za-z]+Id)`;
+/**
+ * The foreign-key columns of the generated schema whose names do not say
+ * "id" (`requested_by`, `assigned_to`, `uploaded_by`, `created_by`): each
+ * holds another row's id, so printing one prints an id.
+ */
+const FOREIGN_KEY_COLUMNS = [
+	...new Set(
+		[
+			...readFileSync(join(ROOT, "src/types/supabase.ts"), "utf8").matchAll(
+				/columns: \[([^\]]*)\];/g,
+			),
+		].flatMap((m) =>
+			[...(m[1] ?? "").matchAll(/"([^"]+)"/g)].map((c) => c[1] ?? ""),
+		),
+	),
+]
+	.filter((column) => !/^(?:id|[A-Za-z]+(?:_[A-Za-z]+)*_id)$/.test(column))
+	.sort();
+
+// `x_id` with any number of words (`primary_tenant_id`, `owner_user_id`),
+// `xId`, and the foreign keys named otherwise.
+const ID_FIELD = String.raw`(?:id|[A-Za-z]+(?:_[A-Za-z]+)*_id|[A-Za-z]+Id|${FOREIGN_KEY_COLUMNS.join("|")})`;
 const ID_RENDER = new RegExp(
 	[
 		// a JSX child `{x.property_id}` (not an attribute value `={...}`)
@@ -77,24 +113,89 @@ const PRINTED_ON_PURPOSE = [
 	"src/components/error-boundary/error-boundary.tsx → Error ID: {errorState.errorId}",
 ];
 
-function idRenders(): string[] {
-	const out: string[] = [];
-	for (const file of TSX) {
-		readFileSync(join(ROOT, file), "utf8")
-			.split("\n")
-			.forEach((text, i) => {
-				const trimmed = text.trim();
-				if (/^(\/\/|\*|\/\*)/.test(trimmed)) return;
-				if (!ID_RENDER.test(text)) return;
-				// A form's error message keyed by its field (`{errors.property_id}`)
-				// is a message, not an id.
-				if (/\{\s*errors\??\.[A-Za-z_]+\s*\}/.test(text)) return;
-				const hit = `${file} → ${trimmed}`;
-				if (!PRINTED_ON_PURPOSE.includes(hit))
-					out.push(`${file}:${i + 1} → ${trimmed}`);
-			});
+/**
+ * An id as a value: the whole initializer, or an operand of `??`, `||` or
+ * `?:`, maybe behind `as`. An id passed to a call (`find(…x.id)`,
+ * `has(x.id)`) is an argument, and the call's result is not an id.
+ */
+const ID_VALUE = new RegExp(
+	String.raw`(?:^|\?\?|\|\||[?:])\s*[A-Za-z_$][\w$]*(?:\??\.[A-Za-z_$][\w$]*)*\??\.${ID_FIELD}\s*(?=$|\?\?|\|\||[;:),]|as\b)`,
+);
+const DECLARATION =
+	/^\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]+)?=\s*(.+?)\s*;?\s*$/;
+const DESTRUCTURING = /^\s*(?:const|let|var)\s*\{([^}]*)\}\s*=/;
+const ID_KEY = new RegExp(String.raw`^${ID_FIELD}$`);
+
+function isComment(trimmed: string): boolean {
+	return /^(\/\/|\*|\/\*)/.test(trimmed);
+}
+
+/** The names a one-line declaration in this file gives an id. */
+function idNames(lines: readonly string[]): Set<string> {
+	const names = new Set<string>();
+	for (const text of lines) {
+		if (isComment(text.trim())) continue;
+		const declared = DECLARATION.exec(text);
+		if (declared?.[1] && declared[2] && ID_VALUE.test(declared[2]))
+			names.add(declared[1]);
+		const destructured = DESTRUCTURING.exec(text);
+		for (const part of destructured?.[1]?.split(",") ?? []) {
+			const [key, alias] = part.split(":").map((p) => p.trim());
+			if (key && ID_KEY.test(key)) names.add(alias || key);
+		}
 	}
+	return names;
+}
+
+function escapeName(name: string): string {
+	return name.replace(/\$/g, "\\$");
+}
+
+/**
+ * JSX renders the name: a child `{name}` (or behind a fallback), or `${name}`
+ * in a child's template. A declaration line is not JSX, and `{ name }`
+ * followed by `=`, `:`, `)` or `,` is a destructuring pattern.
+ */
+function rendersName(text: string, name: string): boolean {
+	if (DECLARATION.test(text) || DESTRUCTURING.test(text)) return false;
+	const n = escapeName(name);
+	return (
+		new RegExp(
+			String.raw`(?:^\s*|[^=$\s]\s*)\{\s*${n}\s*(?:\}(?!\s*[=:),])|\|\||\?\?)`,
+		).test(text) ||
+		new RegExp(
+			String.raw`(?:^\s*|[^=$\s\x60]\s*)\{[^{}]*\$\{\s*${n}\s*\}`,
+		).test(text)
+	);
+}
+
+/** Each line of one file that renders an id, directly or through a name. */
+function idRendersIn(file: string, source: string): string[] {
+	const out: string[] = [];
+	const lines = source.split("\n");
+	const names = idNames(lines);
+	lines.forEach((text, i) => {
+		const trimmed = text.trim();
+		if (isComment(trimmed)) return;
+		// A form's error message keyed by its field (`{errors.property_id}`)
+		// is a message, not an id.
+		if (/\{\s*errors\??\.[A-Za-z_]+\s*\}/.test(text)) return;
+		const direct = ID_RENDER.test(text);
+		const viaName = [...names].find((name) => rendersName(text, name));
+		if (!direct && viaName === undefined) return;
+		const hit = `${file} → ${trimmed}`;
+		if (PRINTED_ON_PURPOSE.includes(hit)) return;
+		out.push(
+			`${file}:${i + 1} → ${trimmed}${direct ? "" : ` (the id in ${viaName})`}`,
+		);
+	});
 	return out;
+}
+
+function idRenders(): string[] {
+	return TSX.flatMap((file) =>
+		idRendersIn(file, readFileSync(join(ROOT, file), "utf8")),
+	);
 }
 
 describe("no id is shown as text", () => {
@@ -104,6 +205,17 @@ describe("no id is shown as text", () => {
 
 	it("renders no id as a JSX child, whole or cut", () => {
 		expect(idRenders()).toEqual([]);
+	});
+
+	it("collects the names the UI gives an id (the name scan is not vacuous)", () => {
+		const named = TSX.filter(
+			(file) =>
+				idNames(readFileSync(join(ROOT, file), "utf8").split("\n")).size > 0,
+		);
+		expect(named.length).toBeGreaterThan(20);
+		expect(named).toContain(
+			"src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+		);
 	});
 
 	it("still finds the reference it allows", () => {
@@ -121,9 +233,17 @@ describe("no id is shown as text", () => {
 			'<h2 className="text-lg">Lease #{lease.id.slice(0, 8)}</h2>',
 			"{invoice.id.slice(0, 12)}",
 			'{unit.unitId ?? "—"}',
+			// Before fix round 3's part 6c the field pattern took one word before
+			// `_id`, and knew no foreign key named otherwise: these passed.
+			"\t\t\t\t\t{lease.primary_tenant_id}",
+			'<p className="font-medium text-sm">{request.requested_by}</p>',
+			'<p className="font-medium text-sm">{request.assigned_to}</p>',
 		]) {
 			expect(ID_RENDER.test(shape), shape).toBe(true);
 		}
+		expect(FOREIGN_KEY_COLUMNS).toEqual(
+			expect.arrayContaining(["assigned_to", "requested_by"]),
+		);
 		for (const shape of [
 			"key={invoice.id}",
 			"onClick={() => onView(row.original.id)}",
@@ -131,6 +251,34 @@ describe("no id is shown as text", () => {
 			"`work-order-${request.id.slice(0, 8)}.pdf`,",
 		]) {
 			expect(ID_RENDER.test(shape), shape).toBe(false);
+		}
+	});
+
+	// The board card's own lines before part 6c, planted in a fixture: the
+	// one-child-at-a-time scan passed them, the name scan does not.
+	it("follows an id through a name into JSX (planted fixture)", () => {
+		const planted = [
+			'\tconst unitNumber = request.unit?.name ?? request.unit_id ?? "";',
+			"\t\t\t\t\t{propertyName}",
+			"\t\t\t\t\t{unitNumber && ` · Unit ${unitNumber}`}",
+		].join("\n");
+		expect(ID_RENDER.test(planted.split("\n")[2] ?? "")).toBe(false);
+		expect(idRendersIn("planted.tsx", planted)).toEqual([
+			"planted.tsx:3 → {unitNumber && ` · Unit ${unitNumber}`} (the id in unitNumber)",
+		]);
+		for (const shape of [
+			"\tconst { unit_id: unit } = request;\n\t\t<span>{unit}</span>",
+			'\tconst label = named ? request.title : request.property_id;\n\t\t{label ?? "-"}',
+		]) {
+			expect(idRendersIn("planted.tsx", shape), shape).toHaveLength(1);
+		}
+		for (const shape of [
+			"\tconst requestId = active.id as string;\n\t\trouter.push(`/maintenance/${requestId}`);",
+			"\tconst requestId = active.id as string;\n\t\t<Card key={requestId} />",
+			"\tconst match = units.find((u) => u.id === unitId);\n\t\t{match}",
+			"\tconst { unitNumber, tenantName } = request;\n\t\t{unitNumber && ` · Unit ${unitNumber}`}",
+		]) {
+			expect(idRendersIn("planted.tsx", shape), shape).toEqual([]);
 		}
 	});
 });
