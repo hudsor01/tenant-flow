@@ -127,8 +127,14 @@ export function RentAdjustment({
 }: RentAdjustmentProps) {
 	const newRent = newRentAmount ? Number(newRentAmount) : currentRent;
 	const rentIncreaseAmount = newRent - currentRent;
+	// The change as it prints, to the cent: a "+" only above zero (and
+	// formatCurrency's "-" only below), so a change under half a cent reads
+	// "$0.00 (0.0%)", never "+$0.00" or "-$0.00" (-0 folded), as the
+	// statements' zero figures do. The percent is the printed change's.
+	const changeCents = Math.round(rentIncreaseAmount * 100);
+	const shownChange = changeCents === 0 ? 0 : changeCents / 100;
 	const rentIncreasePercent =
-		currentRent > 0 ? (rentIncreaseAmount / currentRent) * 100 : 0;
+		currentRent > 0 ? (shownChange / currentRent) * 100 : 0;
 
 	if (disabled) {
 		return (
@@ -214,8 +220,8 @@ export function RentAdjustment({
 									<span
 										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-success-text" : "text-destructive-text"}`}
 									>
-										{rentIncreaseAmount >= 0 ? "+" : ""}
-										{formatCurrency(rentIncreaseAmount)} (
+										{shownChange > 0 ? "+" : ""}
+										{formatCurrency(shownChange)} (
 										{rentIncreasePercent.toFixed(1)}%)
 									</span>
 								</div>
