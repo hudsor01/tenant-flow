@@ -113,6 +113,51 @@ describe("the cost chart", () => {
 });
 
 describe("the trend chart", () => {
+	afterEach(() => {
+		resetRechartsProbe();
+	});
+
+	// Completed (success-text) and open (warning-text) are close in lightness,
+	// so only hue told them apart, with no legend (cycle 2, F39). The open line
+	// is dashed and the legend names each series beside a key drawn like it.
+	it("names both series in a legend and dashes the open one", async () => {
+		setRechartsProbe({
+			legend: [
+				{ value: "completed", dataKey: "completed", type: "line" },
+				{ value: "pending", dataKey: "pending", type: "line" },
+			],
+		});
+		render(
+			<MaintenanceTrendChart
+				points={[
+					{ period: "2026-09", completed: 2, pending: 1 },
+					{ period: "2026-10", completed: 1, pending: 3 },
+				]}
+			/>,
+		);
+		const lines = await screen.findAllByTestId("line");
+		expect(
+			lines.map((line) => [
+				line.getAttribute("data-key"),
+				line.getAttribute("data-stroke-dasharray"),
+			]),
+		).toEqual([
+			["completed", null],
+			["pending", "5 3"],
+		]);
+		const legend = screen.getByTestId("legend");
+		const keys = [...legend.querySelectorAll("svg line")];
+		expect(legend.textContent).toBe("CompletedPending");
+		expect(keys.map((key) => key.getAttribute("stroke-dasharray"))).toEqual([
+			null,
+			"5 3",
+		]);
+		expect(keys.map((key) => key.getAttribute("stroke"))).toEqual([
+			"var(--color-completed)",
+			"var(--color-pending)",
+		]);
+	});
+
 	it("says the trends are unavailable when the server reports none", () => {
 		render(<MaintenanceTrendChart points={null} />);
 		expect(screen.getByText("Unavailable")).toBeInTheDocument();

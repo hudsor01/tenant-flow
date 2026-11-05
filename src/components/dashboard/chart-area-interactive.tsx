@@ -3,7 +3,11 @@
 import { DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { moneyTooltipFormatter } from "#components/shared/chart-series";
+import {
+	chartLineKey,
+	moneyTooltipFormatter,
+	SECOND_SERIES_DASH,
+} from "#components/shared/chart-series";
 import {
 	Card,
 	CardContent,
@@ -14,6 +18,8 @@ import {
 import type { ChartConfig } from "#components/ui/chart";
 import { ChartContainer } from "#components/ui/chart";
 import {
+	ChartLegend,
+	ChartLegendContent,
 	ChartTooltip,
 	ChartTooltipContent,
 } from "#components/ui/chart-tooltip";
@@ -40,16 +46,20 @@ const WHOLE_DOLLARS = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
 /**
  * get_revenue_trends_optimized's revenue is each month's lease rent: scheduled
  * rent, not money received (as the financial analytics page's month charts
- * name it), so its totals are scheduled too.
+ * name it), so its totals are scheduled too. The expenses area is dashed, and
+ * the legend's keys draw each line, so the two differ by more than hue
+ * (WCAG 1.4.1).
  */
 const chartConfig = {
 	revenue: {
 		label: "Scheduled Rent",
 		color: "var(--color-chart-1)",
+		icon: chartLineKey("var(--color-chart-1)"),
 	},
 	expenses: {
 		label: "Expenses",
 		color: "var(--color-chart-4)",
+		icon: chartLineKey("var(--color-chart-4)", SECOND_SERIES_DASH),
 	},
 } satisfies ChartConfig;
 
@@ -288,6 +298,7 @@ export function ChartAreaInteractive({
 								fill="url(#fillExpenses)"
 								stroke="var(--color-chart-4)"
 								strokeWidth={2}
+								strokeDasharray={SECOND_SERIES_DASH}
 							/>
 							<Area
 								dataKey="revenue"
@@ -296,6 +307,7 @@ export function ChartAreaInteractive({
 								stroke="var(--color-chart-1)"
 								strokeWidth={2}
 							/>
+							<ChartLegend content={<ChartLegendContent />} />
 						</AreaChart>
 					</ChartContainer>
 				)}

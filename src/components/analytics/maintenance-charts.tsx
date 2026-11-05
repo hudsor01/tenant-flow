@@ -8,11 +8,19 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import { moneyTooltipFormatter } from "#components/shared/chart-series";
+import {
+	chartLineKey,
+	moneyTooltipFormatter,
+	SECOND_SERIES_DASH,
+} from "#components/shared/chart-series";
 import { Badge } from "#components/ui/badge";
 
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
-import { ChartTooltipContent } from "#components/ui/chart-tooltip";
+import {
+	ChartLegend,
+	ChartLegendContent,
+	ChartTooltipContent,
+} from "#components/ui/chart-tooltip";
 import { Empty, EmptyDescription, EmptyHeader } from "#components/ui/empty";
 import { formatCurrency } from "#lib/utils/currency";
 import type {
@@ -20,14 +28,21 @@ import type {
 	MaintenanceTrendPoint,
 } from "#types/analytics";
 
+/**
+ * The two lines are close in lightness (success-text and warning-text), so
+ * hue alone told them apart: the open series is dashed, and the legend and
+ * tooltip keys draw each line as it is drawn (WCAG 1.4.1).
+ */
 const trendConfig = {
 	completed: {
 		label: "Completed",
 		color: "var(--color-success-text)",
+		icon: chartLineKey("var(--color-completed)"),
 	},
 	pending: {
 		label: "Pending",
 		color: "var(--color-warning-text)",
+		icon: chartLineKey("var(--color-pending)", SECOND_SERIES_DASH),
 	},
 } satisfies ChartConfig;
 
@@ -144,8 +159,10 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 					dataKey="pending"
 					stroke="var(--color-pending)"
 					strokeWidth={2}
+					strokeDasharray={SECOND_SERIES_DASH}
 					dot={false}
 				/>
+				<ChartLegend content={<ChartLegendContent />} />
 			</LineChart>
 		</ChartContainer>
 	);

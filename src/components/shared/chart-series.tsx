@@ -1,17 +1,48 @@
 /**
- * How a chart states a money series' figures as money (66.2-39 fix round 3,
- * cycle 2, F33).
+ * How a chart names its series by more than their hue, and states a money
+ * series' figures as money (66.2-39 fix round 3, cycle 2, F39 and F33).
  *
  * NOT A BARREL FILE. Everything below is declared here and nothing is
  * re-exported (CLAUDE.md zero-tolerance rule 2).
  */
-import type { ComponentProps, CSSProperties } from "react";
+import type { ComponentProps, ComponentType, CSSProperties } from "react";
 import type { ChartConfig } from "#components/ui/chart";
 import type { ChartTooltipContent } from "#components/ui/chart-tooltip";
 import {
 	type CurrencyFormatOptions,
 	formatCurrency,
 } from "#lib/utils/currency";
+
+/**
+ * A second series' stroke: dashed, so two series differ by their line as
+ * well as their hue (WCAG 1.4.1). The legend and tooltip keys draw it too.
+ */
+export const SECOND_SERIES_DASH = "5 3";
+
+/**
+ * A ChartConfig `icon` for a line or area series: a short stroke in the
+ * series' color, solid or dashed as the series draws it. ChartLegendContent
+ * and ChartTooltipContent render a config's icon in place of their color
+ * square, so the key names the series by its line, not its hue alone.
+ */
+export function chartLineKey(color: string, dash?: string): ComponentType {
+	function ChartLineKey() {
+		return (
+			<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+				<line
+					x1="0"
+					y1="6"
+					x2="12"
+					y2="6"
+					stroke={color}
+					strokeWidth={2}
+					strokeDasharray={dash}
+				/>
+			</svg>
+		);
+	}
+	return ChartLineKey;
+}
 
 type TooltipFormatter = NonNullable<
 	ComponentProps<typeof ChartTooltipContent>["formatter"]

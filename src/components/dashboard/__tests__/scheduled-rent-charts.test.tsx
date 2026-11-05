@@ -96,6 +96,35 @@ describe("the scheduled rent and expenses chart", () => {
 		}
 	});
 
+	// Its two areas differed by hue alone, with no legend (the F39 class): the
+	// expenses area is dashed and the legend keys draw each series' line.
+	it("names both series in a legend and dashes the expenses area", async () => {
+		setRechartsProbe({
+			legend: [
+				{ value: "expenses", dataKey: "expenses", type: "line" },
+				{ value: "revenue", dataKey: "revenue", type: "line" },
+			],
+		});
+		render(<ChartAreaInteractive />);
+		const areas = await screen.findAllByTestId("area");
+		expect(
+			areas.map((area) => [
+				area.getAttribute("data-key"),
+				area.getAttribute("data-stroke-dasharray"),
+			]),
+		).toEqual([
+			["expenses", "5 3"],
+			["revenue", null],
+		]);
+		const legend = screen.getByTestId("legend");
+		expect(legend.textContent).toBe("ExpensesScheduled Rent");
+		expect(
+			[...legend.querySelectorAll("svg line")].map((key) =>
+				key.getAttribute("stroke-dasharray"),
+			),
+		).toEqual(["5 3", null]);
+	});
+
 	it("sits on the analytics overview under its own title only", () => {
 		// Its code, comments (which record what the wrapper said) removed.
 		const source = readFileSync(
