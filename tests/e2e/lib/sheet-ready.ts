@@ -14,9 +14,12 @@ import { polledRead } from "./measure";
  *      its start time it sits at its first keyframe: the left sheet reads
  *      x = -288 and the scrim reads opacity 0, reduced motion included (the
  *      global rule shortens the animation, it does not remove it).
- *   2. Radix DismissableLayer (1.1.11, the copy react-dialog bundles) attaches
- *      its outside-pointerdown listener to `document` in a `setTimeout(0)`, so
- *      the pointerdown that opened a layer cannot dismiss it. In every
+ *   2. Radix DismissableLayer (1.2.1, the copy radix-ui 1.8.1's react-dialog
+ *      1.3.1 resolves; the 1.1.11 copy belongs to the react-dialog 1.1.15 that
+ *      cmdk pulls in) attaches its outside-pointerdown listener to `document`
+ *      in a `setTimeout(0)`, so the pointerdown that opened a layer cannot
+ *      dismiss it. (Dialog sets `deferPointerDownOutside`, so an outside
+ *      left-button press dismisses on the click that follows it.) In every
  *      measured open that timer ran only after the first frame, about 1ms after
  *      its `requestAnimationFrame` callbacks, and a scrim click Playwright sent
  *      before then was ignored: the sheet stayed open, the mousedown moved
