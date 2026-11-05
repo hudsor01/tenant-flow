@@ -5,6 +5,7 @@ import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { mutationKeys } from "#hooks/api/mutation-keys";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { CategoriesSettings } from "../categories-settings";
 
 const mockUseDocumentCategories = vi.fn();
@@ -229,6 +230,28 @@ describe("CategoriesSettings", () => {
 		expect(warrantyRow!.textContent).not.toMatch(/Default/);
 	});
 
+	// globals.css' `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` cost
+	// each row 24px of its width (the label and slug got none at 320px) and
+	// put 16px above and below the list (66.2-39 fix round 3, part 7).
+	it("defeats the base list rules, so each row takes the list's width", () => {
+		renderSettings();
+		const list = screen.getByRole("list", { name: "Document categories" });
+		const { neutralized, baseline } = computeListCascade(list);
+		expect(baseline).toMatchObject({
+			paddingLeft: "24px",
+			marginTop: "16px",
+			marginBottom: "16px",
+			firstChildMarginBottom: "4px",
+		});
+		expect(neutralized).toEqual({
+			paddingLeft: "0px",
+			marginTop: "0px",
+			marginBottom: "0px",
+			firstChildTag: "li",
+			firstChildMarginBottom: "0px",
+		});
+	});
+
 	it("renders each default delete as one aria-disabled, named button", () => {
 		mockUseDocumentCategories.mockReturnValue({
 			categories: SEVEN_DEFAULTS,
@@ -245,7 +268,12 @@ describe("CategoriesSettings", () => {
 			});
 			expect(button).toHaveAttribute("aria-disabled", "true");
 			expect(button).not.toBeDisabled();
-			expect(button.parentElement?.tagName).toBe("LI");
+			// Inside the row's actions group, itself a child of the row: no
+			// wrapper element between the group and the button.
+			const group = button.parentElement;
+			expect(group?.tagName).toBe("DIV");
+			expect(group?.parentElement?.tagName).toBe("LI");
+			expect(group?.querySelectorAll("button")).toHaveLength(2);
 		}
 		expect(document.querySelectorAll("li span[tabindex]")).toHaveLength(0);
 	});
