@@ -5,17 +5,19 @@
  * functions in `src/hooks/api/use-analytics.ts`: `financialPageData()` (three
  * RPCs through `mapFinancialOverview`) and `ownerPaymentSummary()` (one RPC).
  * The export builds its table with `_shared/financial-analytics-report`. Both
- * run here against the SAME recorded RPC answers, and every assertion compares
- * one side to the other, never to a hand-copied literal, so a change to either
- * side that the other does not follow fails:
+ * run here against the SAME recorded RPC answers, and every figure is
+ * compared one side to the other, so a change to either side that the other
+ * does not follow fails; a literal pins only what both sides must hold (a
+ * rounding case, a lease's label, the column a figure sits in):
  *   1. the four RPC calls (name and arguments) are identical;
  *   2. every figure the page renders is a table row, in the page's order;
- *   3. the page sections the export leaves out are empty on the page too;
+ *   3. the page sections the export leaves out are not on the page;
  *   4. an RPC shape that makes the page fail makes the export fail;
  *   5. an RPC error fails the export load, naming the RPC;
  *   6. each figure is rounded as the page prints it (`formatCurrency` for an
  *      amount, the margin card's `NumberTicker` for Scheduled Margin, rendered
- *      here) and carries the format the PDF and XLSX print it in.
+ *      here) and carries the format the PDF and XLSX print it in;
+ *   7. scheduled rent and rent received never share a column.
  * The specifier carries no `.ts` extension (TS5097, see report-csv.test.ts).
  *
  * WHAT NOTHING HERE PROVES. That export-report writes this table to the file:
@@ -535,8 +537,9 @@ describe("every figure the page renders is a row of the file", () => {
 
 describe("each figure is rounded and formatted as the page prints it", () => {
 	it.each([
-		// [total_revenue, net_income]: ROI -124.75 (a tie Math.round took toward
-		// +Infinity), 0.15 (toFixed rounds the binary value down), -24.95.
+		// [total_revenue, net_income]: Scheduled Margin -124.75 (a tie Math.round
+		// took toward +Infinity), 0.15 (toFixed rounds the binary value down),
+		// -24.95.
 		[400, -499],
 		[2000, 3],
 		[2000, -499],
@@ -556,10 +559,10 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 			};
 			const { page, payments } = await screen(answers);
 			const { rows } = await exported(answers);
-			const roi = section(rows, "Overview").find(
+			const margin = section(rows, "Overview").find(
 				(r) => r[1] === "Scheduled Margin (%)",
 			);
-			expect(roi?.[2]).toBe(oneDecimal(page.metrics.profitMargin ?? 0));
+			expect(margin?.[2]).toBe(oneDecimal(page.metrics.profitMargin ?? 0));
 			expect(rows).toEqual(rowsFromScreen(page, payments));
 		},
 	);

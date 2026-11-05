@@ -11,6 +11,8 @@
  *
  * Callers: `export-report/index.ts` (report type `financial-analytics`, as CSV,
  * XLSX and PDF) and `generate-pdf/index.ts` (Mode 1, the same report type).
+ * The app imports it too: the page's lease table takes
+ * `leaseProfitabilityLabel` from here, and `report-keys.ts` the report type.
  *
  * THE SCREEN IS THE SPEC. The page renders `analyticsQueries.financialPageData()`
  * (`mapFinancialOverview` over `get_financial_overview`,
@@ -30,8 +32,8 @@
  *     with its scheduled rent (get_revenue_trends_optimized's revenue, the
  *     month's lease rent: not money received), expenses and scheduled net,
  *     under the Scheduled Rent, Expenses and Scheduled Net columns.
- *   - Expense Breakdown: every category of the breakdown list (the page lists
- *     the first five), in the RPC's order, with its amount.
+ *   - Expenses by Vendor: every vendor of the Expense Breakdown card's list
+ *     (the page lists the first five), in the RPC's order, with its amount.
  *   - Scheduled Net: one row per month of that chart, oldest first.
  *   - Lease Profitability: the table's period ("Period", its first and last
  *     day), then one row per lease (get_financial_overview's
@@ -41,9 +43,10 @@
  *     a scheduled one. With no `lease_profitability` (the body before) the
  *     page says the table is unavailable, and so does the file's one row
  *     ("Unavailable"), never an empty table.
- * The page's Revenue Breakdown has no data source (`mapFinancialOverview`
- * always returns it empty), so it contributes no rows; the test fails if the
- * mapper ever fills it, so the export cannot silently fall behind the page.
+ * The page has no revenue breakdown (its always-empty card went in 66.2-39,
+ * VD-113, and `RevenueExpenseBreakdown` carries expenses only), so the file
+ * has none; the test fails if the page data gains one, so the export cannot
+ * silently fall behind the page.
  *
  * NUMBERS. Every amount is dollars, rounded to cents (the ledger's collected
  * receipts are summed in floating point, so the raw sum can carry noise such
@@ -51,9 +54,10 @@
  * decimal, as the card shows it. Counts are written as they come. Rounding is
  * `Intl.NumberFormat`'s, the formatter behind the page's `formatCurrency` and
  * `NumberTicker`, so a figure in the file is the figure on the screen:
- * `Math.round(v * 10) / 10` wrote -124.7 where the ROI card shows -124.8
- * (`Math.round` takes a tie toward +Infinity), and `toFixed(1)` writes 0.1
- * where it shows 0.2 (it rounds the binary value, Intl the shortest decimal).
+ * `Math.round(v * 10) / 10` wrote -124.7 where the Scheduled Margin card
+ * shows -124.8 (`Math.round` takes a tie toward +Infinity), and `toFixed(1)`
+ * writes 0.1 where it shows 0.2 (it rounds the binary value, Intl the
+ * shortest decimal).
  *
  * FORMATS. Each cell carries how it prints (`ReportCellFormat`, parallel to
  * the rows): `money` (dollars), `percent` or `plain`. The CSV writes the raw
@@ -280,7 +284,10 @@ function money(value: number): number {
 	return Number(ROUND_TO_CENTS.format(value));
 }
 
-/** A percentage rounded to one decimal as the ROI card's ticker rounds it. */
+/**
+ * A percentage rounded to one decimal as the Scheduled Margin card's ticker
+ * rounds it.
+ */
 function percentOneDecimal(value: number): number {
 	return Number(ROUND_TO_TENTHS.format(value));
 }

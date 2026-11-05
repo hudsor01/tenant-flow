@@ -33,7 +33,7 @@ const AMOUNTS = [
 ];
 
 /** The margin card's text for `value`: its NumberTicker, under reduced motion. */
-function roiCardText(value: number): string {
+function marginCardText(value: number): string {
 	vi.stubGlobal("matchMedia", (query: string) => ({
 		matches: query.includes("prefers-reduced-motion"),
 		media: query,
@@ -76,9 +76,9 @@ describe("PDF cell text", () => {
 	it("prints Scheduled Margin as its card does", () => {
 		// As the export writes it: rounded to one decimal (the rounding itself is
 		// pinned against the card in financial-analytics-report.test.ts).
-		for (const roi of [70, 0.2, -124.8, 12.3, 1234.6, -24.9, 100]) {
-			expect(formatReportCell(roi, "percent"), String(roi)).toBe(
-				roiCardText(roi),
+		for (const margin of [70, 0.2, -124.8, 12.3, 1234.6, -24.9, 100]) {
+			expect(formatReportCell(margin, "percent"), String(margin)).toBe(
+				marginCardText(margin),
 			);
 		}
 	});
