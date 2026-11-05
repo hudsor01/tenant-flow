@@ -26,9 +26,10 @@
  * the parameter's default; unset means `default`. The caller's class strings
  * are the unconditional strings of its `className` (a string, a template's
  * text, `cn()`/`clsx()` arguments, a `buttonVariants({ … })` call's classes),
- * once alone and once with each conditional string
- * added (a `cond && "…"` operand, a conditional's branch, an object key), so
- * every string a caller can hand Button is measured beside the variant.
+ * once alone and once with each conditional string added (a `cond && "…"`
+ * operand, a conditional's branch, an object key), so every string a caller
+ * can hand Button is measured beside the variant. Under `asChild` the child
+ * element's own classes are recorded apart: Radix Slot appends them unmerged.
  */
 
 import { parseSync } from "rolldown/utils";
@@ -51,12 +52,10 @@ export interface ButtonSite {
 	wrapperClasses: string;
 	/** A literal `disabled` (here or in the wrapper): no pointer state can match. */
 	disabled: boolean;
-	/** `asChild`: the classes land on the child element (a link, a trigger). */
-	asChild: boolean;
 	/**
 	 * Under `asChild`, the child element's name and its own classes (every
 	 * string, conditional ones included), which Radix Slot appends to Button's
-	 * without merging. Null otherwise.
+	 * without merging. Null otherwise, and for a wrapper's caller.
 	 */
 	child: { element: string; className: string } | null;
 }
@@ -301,7 +300,6 @@ interface Wrapper {
 	size: string[] | { name: string };
 	base: string[];
 	disabled: boolean;
-	asChild: boolean;
 	/** Each destructured parameter's string default. */
 	defaults: Map<string, string>;
 }
@@ -452,7 +450,6 @@ export function buttonSites(
 					classNames: alternatives(parts),
 					wrapperClasses: wrapper ? wrapper.base.join(" ") : "",
 					disabled: isSet(opening, "disabled") || (wrapper?.disabled ?? false),
-					asChild: isSet(opening, "asChild") || (wrapper?.asChild ?? false),
 					child,
 				});
 			}
@@ -493,7 +490,6 @@ export function buttonSites(
 				size: propValues(node, "size"),
 				base: parts.always,
 				disabled: isSet(node, "disabled"),
-				asChild: isSet(node, "asChild"),
 				defaults,
 			});
 			wrappers.set(component.name, known);

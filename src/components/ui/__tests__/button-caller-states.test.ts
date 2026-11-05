@@ -20,6 +20,10 @@
  *   warning, info) that the variant's hover label replaces is a violation: the
  *   caller states its hover label, so the status hue survives the pointer.
  * A site with a literal `disabled` skips pointer states, which cannot match.
+ *
+ * Under `asChild`, Radix Slot appends the child's own className to Button's
+ * without merging, so a state or dark color there would race the variant's by
+ * stylesheet order, which neither check can see: the child carries none.
  */
 
 import { readFileSync } from "node:fs";
@@ -96,6 +100,23 @@ function siteViolations(site: ButtonSite): string[] {
 	return [...new Set(out)];
 }
 
+const COLOR_UTILITY = /^!?(?:bg|text|border|ring|outline|fill|stroke)-/;
+
+/** A Slot child's own state or dark color classes, which Slot never merges. */
+function slotChildViolations(site: ButtonSite): string[] {
+	if (!site.child) return [];
+	return site.child.className
+		.split(/\s+/)
+		.filter((token) => {
+			const { variants, utility } = splitClass(token);
+			return variants.length > 0 && COLOR_UTILITY.test(utility);
+		})
+		.map(
+			(token) =>
+				`${site.file}:${site.line} <${site.child?.element}> under Button asChild sets ${token}`,
+		);
+}
+
 function violations(sources: ReadonlyMap<string, string>): string[] {
 	return buttonSites(sources).flatMap(siteViolations).sort();
 }
@@ -145,6 +166,31 @@ describe("a caller's Button colors hold in both themes (66.2-39 F7)", () => {
 			'g.tsx:1 <Button variant="outline"> border-success/20 loses to dark:border-input in dark',
 			'h.tsx:1 <Button variant="ghost"> hover:bg-muted/50 loses to dark:hover:bg-accent/50 in dark',
 		]);
+	});
+
+	it("flags a state color on a Slot child and passes its layout (fixtures)", () => {
+		const planted = new Map([
+			[
+				"a.tsx",
+				'<Button asChild variant="ghost"><Link href="/x" className="flex-1 hover:text-destructive">x</Link></Button>',
+			],
+			[
+				"b.tsx",
+				'<Button asChild variant="outline"><Link href="/x" className="no-underline text-foreground">x</Link></Button>',
+			],
+		]);
+		expect(buttonSites(planted).flatMap(slotChildViolations)).toEqual([
+			"a.tsx:1 <Link> under Button asChild sets hover:text-destructive",
+		]);
+	});
+
+	it("leaves a Slot child's own classes free of state colors in shipped src", () => {
+		const sources = new Map(
+			collectG7SourceTexts(process.cwd()).map((s) => [s.path, s.text]),
+		);
+		const sites = buttonSites(sources).filter((site) => site.child !== null);
+		expect(sites.length).toBeGreaterThan(70);
+		expect(sites.flatMap(slotChildViolations)).toEqual([]);
 	});
 
 	it("leaves no caller class to a variant's dark class in shipped src", () => {
