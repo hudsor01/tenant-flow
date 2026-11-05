@@ -269,13 +269,14 @@ describe("assertBillingInsightsFromLedger", () => {
 	);
 
 	it("fails when a prepaid lease's negative balance is summed in", () => {
-		// No per-lease floor: lease A2's -420 hides 420 of lease A1's debt.
+		// No per-lease floor: lease A2's -400 (1640 charged, 2040 received)
+		// hides 400 of lease A1's debt.
 		const result = assertBillingInsightsFromLedger(
-			withFigure("owner_a", "unpaidTotal", 765.5),
+			withFigure("owner_a", "unpaidTotal", 785.5),
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			"owner_a.unpaidTotal: expected 1185.5, got 765.5",
+			"owner_a.unpaidTotal: expected 1185.5, got 785.5",
 		);
 	});
 
@@ -302,12 +303,14 @@ describe("assertBillingInsightsFromLedger", () => {
 	});
 
 	it("fails when a reversed late fee still counts", () => {
+		// Every late fee charged, reversed or not: A1's 75, 50 and 35, and A2's
+		// 40 and 20.
 		const result = assertBillingInsightsFromLedger(
-			withFigure("owner_a", "lateFeeTotal", 200),
+			withFigure("owner_a", "lateFeeTotal", 220),
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			"owner_a.lateFeeTotal: expected 115, got 200",
+			"owner_a.lateFeeTotal: expected 115, got 220",
 		);
 	});
 
