@@ -49,11 +49,11 @@ interface LeaseHeaderProps {
 }
 
 /**
- * The lease's heading: its property and unit, as the leases table names a
- * lease ("Maple Apartments · Unit 4B"); "Lease" with neither. It printed
+ * The lease's heading: its property and unit ("Maple Apartments · Unit 4B"),
+ * either alone when the other is missing, "Lease" with neither. It printed
  * "Lease #" and the first eight characters of the lease's id.
  */
-export function leaseHeading(
+function leaseHeading(
 	propertyName: string | null | undefined,
 	unitName: string | null | undefined,
 ): string {
