@@ -102,10 +102,12 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							    cancellation clause in the Terms so prospects can
 							    confirm what cancellation actually entails (effects
 							    at end of billing period, no partial refunds, access
-							    retained until end of cycle). */}
+							    retained until end of cycle). As the one tile that is
+							    a link, it alone takes a hover; no-underline stops the
+							    base text-link rule from underlining the whole tile. */}
 							<Link
 								href="/terms#cancellation"
-								className="flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30"
+								className="flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 no-underline hover:border-primary/30 hover:bg-card/40 transition-colors"
 							>
 								<Clock className="size-8 text-accent mb-4" />
 								<div className="text-center">
