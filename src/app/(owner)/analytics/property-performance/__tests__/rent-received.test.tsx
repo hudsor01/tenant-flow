@@ -128,6 +128,10 @@ describe("the Top properties table", () => {
 });
 
 describe("the property page's performance card", () => {
+	// Only rent received and expenses are filtered by the window;
+	// get_property_performance_analytics reads occupancy from each unit's
+	// current status (20261102163709), so the window is not put on it (cycle
+	// 2, F59).
 	it("shows rent received, expenses and net income over the stated window", async () => {
 		mockRpc.mockResolvedValue({
 			data: [
@@ -152,7 +156,19 @@ describe("the property page's performance card", () => {
 		expect(screen.getByText("$2,550.25")).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				"Rent received, expenses, and occupancy, Nov 2, 2025 to Nov 2, 2026",
+				"Rent received and expenses, Nov 2, 2025 to Nov 2, 2026. Occupancy is current.",
+			),
+		).toBeInTheDocument();
+	});
+
+	it("calls occupancy current while it loads, too", () => {
+		mockRpc.mockReturnValue(new Promise(() => undefined));
+		withQueryClient(
+			createElement(PropertyPerformanceSection, { propertyId: "p1" }),
+		);
+		expect(
+			screen.getByText(
+				"Trailing 12-month rent received and expenses; current occupancy",
 			),
 		).toBeInTheDocument();
 	});

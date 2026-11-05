@@ -31,7 +31,7 @@ export function PropertyPerformanceSection({
 				<CardHeader>
 					<CardTitle>Performance (last 12 months)</CardTitle>
 					<CardDescription>
-						Trailing 12-month rent received, expenses, and occupancy
+						Trailing 12-month rent received and expenses; current occupancy
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -51,7 +51,7 @@ export function PropertyPerformanceSection({
 				<CardHeader>
 					<CardTitle>Performance (last 12 months)</CardTitle>
 					<CardDescription>
-						Trailing 12-month rent received, expenses, and occupancy
+						Trailing 12-month rent received and expenses; current occupancy
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -112,7 +112,7 @@ export function PropertyPerformanceSection({
 				<CardTitle>Performance (last 12 months)</CardTitle>
 				<CardDescription>
 					{statedWindow
-						? `Rent received, expenses, and occupancy, ${formatDate(statedWindow.start_date)} to ${formatDate(statedWindow.end_date)}`
+						? `Rent received and expenses, ${formatDate(statedWindow.start_date)} to ${formatDate(statedWindow.end_date)}. Occupancy is current.`
 						: "Rent received isn't available yet. Occupancy is current."}
 				</CardDescription>
 			</CardHeader>
