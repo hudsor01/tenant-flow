@@ -56,6 +56,13 @@ export interface ReportRow {
 export interface ReportTable {
 	headers: string[];
 	rows: Array<Array<string | number>>;
+	/**
+	 * What the table says when it has no rows, in its section's own words
+	 * ("No requests to date."), or null when the section's note says why it is
+	 * empty (its read failed, or the server cannot report it yet). The writers
+	 * print it as is: a to-date or last-12-months table never claims a period.
+	 */
+	emptyText: string | null;
 }
 
 export interface ReportSection {
@@ -521,7 +528,13 @@ async function buildExecutiveMonthly(
 				// get_revenue_trends_optimized sums the month's lease rent_amount:
 				// scheduled rent, not money received, so it is labelled as such.
 				heading: "Scheduled Rent (last 12 months)",
-				table: { headers: ["Month", "Scheduled Rent"], rows: monthlyRows },
+				table: {
+					headers: ["Month", "Scheduled Rent"],
+					rows: monthlyRows,
+					emptyText: monthly.available
+						? "No scheduled rent in the last 12 months."
+						: null,
+				},
 				...tableNoteIf(monthly.available),
 			},
 			STATEMENT_BASIS_SECTION,
@@ -600,6 +613,8 @@ async function buildFinancialPerformance(
 				table: {
 					headers: ["Line", "Amount"],
 					rows: revenueLineRows(income),
+					emptyText:
+						income.status === "ready" ? "Nothing charged in the period." : null,
 				},
 				...ledgerNote(income, cash),
 			},
@@ -608,6 +623,9 @@ async function buildFinancialPerformance(
 				table: {
 					headers: ["Vendor", "Amount", "% of Expenses"],
 					rows: financialExpenseRows(financialResult.data, totalExpenses),
+					emptyText: financialResult.available
+						? "No expenses in the period."
+						: null,
 				},
 				...tableNoteIf(financialResult.available),
 			},
@@ -662,6 +680,7 @@ function propertyPortfolioSections(
 					"Net Income",
 				],
 				rows: propertyPerformanceRows(properties.data),
+				emptyText: properties.available ? "No properties." : null,
 			},
 			...(properties.data.byProperty.some((p) => p.rentReceived === null)
 				? { note: RENT_RECEIVED_UNAVAILABLE_NOTE }
@@ -743,6 +762,8 @@ function maintenanceOperationsSections(
 	const pendingCostNote =
 		available && !costs ? { note: MAINTENANCE_COSTS_UNAVAILABLE_NOTE } : {};
 	const costTableNote = available ? pendingCostNote : tableNoteIf(false);
+	const requestsEmpty = available ? "No requests to date." : null;
+	const reported = available && costs !== null;
 	return [
 		{
 			heading: "Operations Summary",
@@ -751,12 +772,20 @@ function maintenanceOperationsSections(
 		},
 		{
 			heading: "By Status (to date)",
-			table: { headers: ["Status", "Count"], rows: byStatusRows },
+			table: {
+				headers: ["Status", "Count"],
+				rows: byStatusRows,
+				emptyText: requestsEmpty,
+			},
 			...tableNoteIf(available),
 		},
 		{
 			heading: "By Priority (to date)",
-			table: { headers: ["Priority", "Count"], rows: byPriorityRows },
+			table: {
+				headers: ["Priority", "Count"],
+				rows: byPriorityRows,
+				emptyText: requestsEmpty,
+			},
 			...tableNoteIf(available),
 		},
 		{
@@ -766,6 +795,7 @@ function maintenanceOperationsSections(
 				rows: (costs?.monthlyCost ?? []).map(
 					(m): Array<string | number> => [m.month, fmtCents(m.cost)],
 				),
+				emptyText: reported ? "No costs in the last 12 months." : null,
 			},
 			...costTableNote,
 		},
@@ -780,6 +810,7 @@ function maintenanceOperationsSections(
 						fmtCents(v.totalSpend),
 					],
 				),
+				emptyText: reported ? "No vendor spend to date." : null,
 			},
 			...costTableNote,
 		},
@@ -859,12 +890,17 @@ function taxPreparationSections(
 			table: {
 				headers: ["Property", "Rent Received", "Expenses", "Net Income"],
 				rows: byPropertyRows,
+				emptyText: `No property received rent or had expenses in ${yearEnd.year}.`,
 			},
 			note: "Consult a CPA before filing — line-item mappings are advisory.",
 		},
 		{
 			heading: EXPENSES_BY_VENDOR_SECTION,
-			table: { headers: ["Vendor", "Amount"], rows: expenseRows },
+			table: {
+				headers: ["Vendor", "Amount"],
+				rows: expenseRows,
+				emptyText: `No expenses in ${yearEnd.year}.`,
+			},
 			// TenantFlow does not decide which expenses are deductible.
 			note: available
 				? DEDUCTIBILITY_NOTE

@@ -124,6 +124,83 @@ beforeEach(() => {
 	mockRpc.mockReset();
 });
 
+function tables(sections: ReportSection[]) {
+	return Object.fromEntries(
+		sections.flatMap((s) => (s.table ? [[s.heading, s.table.emptyText]] : [])),
+	);
+}
+
+// The writers printed "No data for the selected period." under every empty
+// table: a to-date section, a last-12-months one, and one whose note says it
+// could not be loaded (cycle 2, F122). Each table now carries its own words,
+// or none when its note says why it is empty.
+describe("each table says what it lists when empty", () => {
+	it("maintenance, to date and over the last 12 months", async () => {
+		answer([]);
+		const report = await buildReportData(
+			"maintenance-operations",
+			new QueryClient(),
+			START,
+			END,
+		);
+		expect(tables(report.sections)).toEqual({
+			"By Status (to date)": "No requests to date.",
+			"By Priority (to date)": "No requests to date.",
+			"Monthly Cost (last 12 months)": "No costs in the last 12 months.",
+			"Vendor Spend to Date": "No vendor spend to date.",
+		});
+	});
+
+	it("maintenance, failed: none of its own, the note says why", async () => {
+		answer(["get_maintenance_analytics"]);
+		const report = await buildReportData(
+			"maintenance-operations",
+			new QueryClient(),
+			START,
+			END,
+		);
+		expect(Object.values(tables(report.sections))).toEqual([
+			null,
+			null,
+			null,
+			null,
+		]);
+	});
+
+	it("the period reports", async () => {
+		answer([]);
+		const executive = await buildReportData(
+			"executive-monthly",
+			new QueryClient(),
+			START,
+			END,
+		);
+		expect(tables(executive.sections)).toEqual({
+			"Scheduled Rent (last 12 months)":
+				"No scheduled rent in the last 12 months.",
+		});
+		const financial = await buildReportData(
+			"financial-performance",
+			new QueryClient(),
+			START,
+			END,
+		);
+		expect(tables(financial.sections)).toEqual({
+			"Revenue (charged)": "Nothing charged in the period.",
+			"Expenses by Vendor": "No expenses in the period.",
+		});
+		const portfolio = await buildReportData(
+			"property-portfolio",
+			new QueryClient(),
+			START,
+			END,
+		);
+		expect(tables(portfolio.sections)).toEqual({
+			"Property Performance": "No properties.",
+		});
+	});
+});
+
 describe("each fallback's note is under the section its read feeds", () => {
 	it("executive: a failed occupancy read notes Key Metrics, not the rent table", async () => {
 		answer(["get_occupancy_trends_optimized"]);

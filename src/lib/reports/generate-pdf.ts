@@ -109,10 +109,13 @@ function renderSectionTable(
 	margin: number,
 ): number {
 	if (table.rows.length === 0) {
+		// The builder's words for the section, or nothing when the section's
+		// note says why the table is empty.
+		if (table.emptyText === null) return startY;
 		doc.setFont(FONT, "italic");
 		doc.setFontSize(9);
 		doc.setTextColor(120);
-		doc.text("No data for the selected period.", margin, startY);
+		doc.text(table.emptyText, margin, startY);
 		return startY + 16;
 	}
 	autoTable(doc, {

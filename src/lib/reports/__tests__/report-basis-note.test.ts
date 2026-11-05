@@ -57,7 +57,11 @@ function report(): ReportData {
 		sections: [
 			{
 				heading: "Expenses by Vendor",
-				table: { headers: ["Vendor", "Amount"], rows: [["Acme", "$10.00"]] },
+				table: {
+					headers: ["Vendor", "Amount"],
+					rows: [["Acme", "$10.00"]],
+					emptyText: "No expenses in the period.",
+				},
 				note: LONG_NOTE,
 			},
 			{ heading: STATEMENT_BASIS_HEADING, paragraphs: STATEMENT_BASIS_NOTE },
@@ -104,6 +108,38 @@ describe("the PDF keeps every note and paragraph inside its margins", () => {
 			}
 		}
 		expect(written).toContain("review them with your tax preparer.");
+	});
+});
+
+describe("the PDF writes an empty table's own words (cycle 2, F122)", () => {
+	it("prints the builder's text, and nothing when the section's note says why", () => {
+		textCalls.length = 0;
+		generatePdfBlob({
+			...report(),
+			sections: [
+				{
+					heading: "By Status (to date)",
+					table: {
+						headers: ["Status", "Count"],
+						rows: [],
+						emptyText: "No requests to date.",
+					},
+				},
+				{
+					heading: "Vendor Spend to Date",
+					table: {
+						headers: ["Vendor", "Jobs", "Total Spend"],
+						rows: [],
+						emptyText: null,
+					},
+					note: "This table couldn't be loaded, so it lists nothing here. Try generating the report again.",
+				},
+			],
+		});
+		const written = textCalls.map((c) => c.text);
+		expect(written).toContain("No requests to date.");
+		expect(written.join(" ")).not.toContain("No data for the selected period");
+		expect(written.join(" ")).toContain("This table couldn't be loaded");
 	});
 });
 

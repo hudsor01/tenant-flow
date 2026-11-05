@@ -238,6 +238,7 @@ describe("the financial performance export", () => {
 		expect(section(report.sections, "Expenses by Vendor").table).toEqual({
 			headers: ["Vendor", "Amount", "% of Expenses"],
 			rows: [["Plumber", "$260.50", "100.0%"]],
+			emptyText: "No expenses in the period.",
 		});
 		// No literal or empty section: the monthly breakdown and the rent roll
 		// had no source.
