@@ -342,6 +342,9 @@ mutate "$REPLAY" '			OWNER_A_COUNTED_UNITS.has(lease.unit) &&' '' \
                  'the occupancy model counts a soft-deleted unit'"'"'s lease'
 mutate "$REPLAY" '			RUNNING_STATUSES.has(lease.status) &&' '' \
                  'the occupancy model counts a lease that never ran'
+mutate "$REPLAY" '	"terminated",
+]);' ']);' \
+                 'the occupancy model does not count a terminated lease on the days it ran'
 mutate "$REPLAY" '			start <= to &&' '' \
                  'the occupancy model counts a lease before it starts'
 mutate "$REPLAY" '			end >= from' '			true' \

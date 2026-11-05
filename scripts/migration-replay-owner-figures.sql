@@ -30,9 +30,10 @@
 --           L2 N2 ended              T-400 .. T-10    800
 --           L3 N3 active             T-5   .. T+360  1200
 --           L4 N4 pending_signature  T-60  .. T+300   999  (never running)
---           L5 N3 terminated         T-100 .. T-1     555  (not counted, as
---                                                          the occupancy
---                                                          series counts it)
+--           L5 N3 terminated         T-100 .. T-1     555  (ended early on
+--                                                          T-1 by Terminate:
+--                                                          it counts on the
+--                                                          days it ran)
 --           L6 N4 expired            T-200 .. T-20    600
 --           L8 S1 active             T-400 .. T+300  5000  (inactive property)
 --           L9 N2 inactive           T-400 .. T+300  4444  (soft-deleted)
@@ -48,11 +49,11 @@
 --                                                          only)
 --   so on T the running leases are L1, L3, L12 and L13 (units N1, N2 and N3,
 --   3 of 4; 2470 of rent; tenants Ann, Bea, Cy and Di: two on N1) and on
---   T-30 L1, L2, L6, L10 and L11 (all 4 units; 2750; Ann, Bea and Di: Ann on
---   two units). L10 and L13 are
---   their unit's only lease on their day, so the occupancy moves a day either
---   side of each window's end; L11 and L12 share a unit with another lease,
---   so they move only the rent.
+--   T-30 L1, L2, L5, L6, L10 and L11 (all 4 units; 3305; Ann, Bea and Di: Ann
+--   on two units, Di on two). L13 is its unit's only lease on T, so the
+--   occupancy moves a day either side of it; L10, L11 and L12 share a unit
+--   with another lease on their day (L5, L2 and L1), so they move only the
+--   rent.
 --   maintenance requests on N1:
 --           R1 completed    created M0-2mo+1d, completed M0-2mo+3d (48 h)
 --           R2 completed    created M0-1mo 10:00, completed M0 00:00 (the

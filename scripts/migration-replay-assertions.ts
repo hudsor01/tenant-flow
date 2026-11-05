@@ -1029,11 +1029,15 @@ const OWNER_A_COUNTED_UNITS: ReadonlySet<string> = new Set([
 	"N4",
 ]);
 
-/** The statuses of a lease that ran, whatever it is now. */
+/**
+ * The statuses of a lease that ran, whatever it is now: Terminate ends a lease
+ * early as 'terminated', and it ran until then.
+ */
 const RUNNING_STATUSES: ReadonlySet<string> = new Set([
 	"active",
 	"ended",
 	"expired",
+	"terminated",
 ]);
 
 /**
@@ -1121,25 +1125,25 @@ interface OwnerFiguresExpectation {
  *   running leases are L1, L3, L12 (ends on T) and L13 (starts on T), on N1,
  *   N2 and N3, 3 of the 4 units that are not inactive (N5 is), 75.00%, and
  *   1000 + 1200 + 250 + 20 = 2470 of scheduled rent; on T-30 L1, L2 (ended
- *   T-10), L6 (expired T-20), L10 (starts on T-30) and L11 (ends on T-30),
- *   on all 4, 100.00%, and 1000 + 800 + 600 + 300 + 50 = 2750. Not L4
- *   (pending), L5 (terminated), L8 (its property is inactive), L9
- *   (soft-deleted). So occupancyChange 75 - 100 = -25.00 points and growth
- *   (2470 - 2750) / 2750 = -10.18%. The body before compares only leases
+ *   T-10), L5 (terminated, ended T-1), L6 (expired T-20), L10 (starts on
+ *   T-30) and L11 (ends on T-30), on all 4, 100.00%, and 1000 + 800 + 555 +
+ *   600 + 300 + 50 = 3305. Not L4 (pending), L8 (its property is inactive),
+ *   L9 (soft-deleted). So occupancyChange 75 - 100 = -25.00 points and growth
+ *   (2470 - 3305) / 3305 = -25.26%. The body before compares only leases
  *   active TODAY on T-30 (L1 alone: +25.00 and, in integer division, +100%)
  *   and get_dashboard_stats returns 0 and 0. In get_dashboard_data_v2 the
  *   occupancy trend reads the same 75 and 100 and the revenue trend 2470 and
- *   2750. Both windows are T-30/T. With nothing at all (NOBODY) the helper
+ *   3305. Both windows are T-30/T. With nothing at all (NOBODY) the helper
  *   reads 0 and 0. L14 runs on both days but on N5, soft-deleted: never
  *   counted (the helper before counted it, 4 of 4 today and 5 of 4 then).
  *   Tenants (get_dashboard_data_v2's active_tenants, by the helper's rule):
  *   Ann, Bea, Cy and Di today (L1, L3, L12, L13: two on N1), Ann, Bea and
- *   Di 30 days ago (L1, L2, L6, L10, L11: Ann on N1 and N3): 4 against 3,
- *   +33.33%, never the units (3 and 4). The body before
+ *   Di 30 days ago (L1, L2, L5, L6, L10, L11: Ann on N1 and N3, Di on N3 and
+ *   N4): 4 against 3, +33.33%, never the units (3 and 4). The body before
  *   compared today's active leases (L1, L3: 2) with the leases still active
  *   today that ran then (L1: 1), +100%. Every trend states T-30/T as its
  *   window, and its percentChange is the change over the earlier figure
- *   (occupancy -25.00, revenue -10.18).
+ *   (occupancy -25.00, revenue -25.26).
  * The occupancy series, owner A (get_occupancy_trends_optimized): this month
  *   is the stored occupancy, N1 and N3 of the 4 counted units, 50.00; each
  *   past month the counted units with a lease that overlapped it
@@ -1252,7 +1256,7 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 	};
 	const trend = {
 		units: { occupancyChange: -25, occupancyChangeWindow: window },
-		revenue: { growth: -10.18, growthWindow: window },
+		revenue: { growth: -25.26, growthWindow: window },
 	};
 	const flatten = (
 		prefix: string,
@@ -1366,9 +1370,9 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 				},
 				trend_revenue: {
 					current: 2470,
-					previous: 2750,
-					change: -280,
-					percentChange: -10.18,
+					previous: 3305,
+					change: -835,
+					percentChange: -25.26,
 					window,
 				},
 				trend_tenants: {
@@ -1402,7 +1406,7 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			"position_a_today.scheduled_rent": 2470,
 			"position_a_today.tenant_count": 4,
 			"position_a_then.occupancy_rate": 100,
-			"position_a_then.scheduled_rent": 2750,
+			"position_a_then.scheduled_rent": 3305,
 			"position_a_then.tenant_count": 3,
 			"dashboard_v2_a.maintenance_open": 3,
 			"dashboard_stats_a.maintenance_open": 3,
@@ -1962,7 +1966,7 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 	}
 	return {
 		ok: true,
-		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; the dashboard's 30-day occupancy and scheduled rent series and its 6-month scheduled rent by the same rule, day by day and month by month; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend, each property and get_dashboard_stats (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
+		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -25.26% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; the dashboard's 30-day occupancy and scheduled rent series and its 6-month scheduled rent by the same rule, day by day and month by month; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend, each property and get_dashboard_stats (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
 	};
 }
 

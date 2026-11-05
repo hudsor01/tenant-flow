@@ -1,16 +1,17 @@
 -- =============================================================================
 -- get_occupancy_trends_optimized: count one unit list on both sides of each
--- month's rate, so a soft-deleted unit's lease never counts
+-- month's rate, so a soft-deleted unit's lease never counts, and count a
+-- terminated lease in the months it ran
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, together with
 -- 20261102184501_dashboard_trends_from_leases.sql, whose
 -- dashboard_lease_position applies this rule to one day (the analytics
 -- overview's occupancy change and the dashboard's occupancy chip compare two
 -- of its days; the occupancy chart plots this series). With only one of the
--- two applied the tile and the chart count a soft-deleted unit's lease
--- differently. After the merge the main session applies this file with MCP
--- `apply_migration`, reads `list_migrations`, and renames the file to the
--- version production assigned, in a follow-up PR.
+-- two applied the tile and the chart count a soft-deleted unit's lease and a
+-- terminated lease differently. After the merge the main session applies this
+-- file with MCP `apply_migration`, reads `list_migrations`, and renames the
+-- file to the version production assigned, in a follow-up PR.
 --
 -- THE DEFECT. The series' denominator is the owner's units that are not
 -- soft-deleted (status 'inactive'), on properties that are not soft-deleted,
@@ -18,7 +19,11 @@
 -- filter (latest repo copy: 20260709060533), so a lease on a unit the owner
 -- later soft-deleted counts as an occupied unit that is not in the
 -- denominator: the month reads too high, and over 100% when every counted
--- unit was let as well.
+-- unit was let as well. And a lease counts only in status 'active', 'ended' or
+-- 'expired', so a terminated lease never counts in any month: Terminate, the
+-- app's way to end a lease early, writes 'terminated' and sets end_date to the
+-- day it ended, so every month such a lease ran reads as if its unit stood
+-- empty.
 --
 -- STARTED FROM THE LIVE PRODUCTION BODY (md5 of pg_get_functiondef
 -- cd3d85466231ba7c4b1ec8fef6930e4e, equal to production's, read 2026-11-02,
@@ -28,23 +33,25 @@
 -- pinned search_path, the volatility (VOLATILE, the default), the auth.uid()
 -- guard as written, the months (offset 0 is today's stored occupancy,
 -- units.status; offset n a lease that overlaps the month starting n months
--- ago), the lease statuses that count ('active', 'ended', 'expired'), the
--- output keys and their order (month DESC), the rounding, and the ACL
--- (EXECUTE for authenticated and service_role only).
+-- ago), the output keys and their order (month DESC), the rounding, and the
+-- ACL (EXECUTE for authenticated and service_role only).
 --
 -- ONE RULE. counted_units, the owner's units that are not soft-deleted on
 -- properties that are not soft-deleted, is the denominator and the only units
--- a lease may count on in the numerator. A soft-deleted lease is 'inactive',
--- which the status list already excludes. The current month's stored
--- occupancy reads the same list (a unit is 'occupied' or 'inactive', never
--- both). dashboard_lease_position (20261102184501) is the same rule on a day.
+-- a lease may count on in the numerator. A lease counts in a month it
+-- overlaps when its status is 'active', 'ended', 'expired' or 'terminated' (it
+-- ran then, whatever it is now); a soft-deleted lease is 'inactive', and a
+-- draft or pending_signature lease never ran, so the list leaves them out. The
+-- current month's stored occupancy reads the same unit list (a unit is
+-- 'occupied' or 'inactive', never both). dashboard_lease_position
+-- (20261102184501) is the same rule on a day.
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
--- to an empty database, seeds a portfolio with a soft-deleted unit's lease
--- (scripts/migration-replay-owner-figures.sql) and asserts every month of the
--- series, that it equals the helper on the months whose leases do not change,
--- the guard and the grants (assertOwnerFiguresComputed in
--- scripts/migration-replay-assertions.ts).
+-- to an empty database, seeds a portfolio with a soft-deleted unit's lease and
+-- a terminated lease (scripts/migration-replay-owner-figures.sql) and asserts
+-- every month of the series, that it equals the helper on the months whose
+-- leases do not change, the guard and the grants (assertOwnerFiguresComputed
+-- in scripts/migration-replay-assertions.ts).
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION public.get_occupancy_trends_optimized(p_owner_id uuid, p_months integer DEFAULT 12)
@@ -88,7 +95,7 @@ BEGIN
       COUNT(DISTINCT l.unit_id) AS occupied_units
     FROM months m
     JOIN leases l ON
-      l.lease_status IN ('active', 'ended', 'expired')
+      l.lease_status IN ('active', 'ended', 'expired', 'terminated')
       AND l.start_date <= (m.month_date + interval '1 month' - interval '1 day')
       AND (l.end_date IS NULL OR l.end_date >= m.month_date)
     JOIN counted_units cu ON cu.id = l.unit_id

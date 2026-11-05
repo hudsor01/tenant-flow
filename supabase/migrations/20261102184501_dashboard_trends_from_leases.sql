@@ -8,10 +8,11 @@
 -- the order only keeps the ledger sequential). Apply
 -- 20261102200501_occupancy_trends_exclude_soft_deleted.sql with it: the two
 -- carry one rule (ONE DEFINITION below), and with only one of them applied the
--- tile and the occupancy chart count a soft-deleted unit's lease differently. After the merge the main
--- session applies this file with MCP `apply_migration`, reads
--- `list_migrations`, and renames the file to the version production assigned,
--- in a follow-up PR. Until it is applied, the analytics overview finds no
+-- tile and the occupancy chart count a soft-deleted unit's lease and a
+-- terminated lease differently. After the merge the main session applies this
+-- file with MCP `apply_migration`, reads `list_migrations`, and renames the
+-- file to the version production assigned, in a follow-up PR. Until it is
+-- applied, the analytics overview finds no
 -- `occupancyChangeWindow` / `growthWindow` in the payload and says the change
 -- is unavailable, never the old body's figure.
 --
@@ -22,11 +23,11 @@
 -- analytics overview read, computes both inline (it does not call
 -- get_dashboard_stats), but compares today's leases with only the leases whose
 -- status is 'active' TODAY on the earlier date: a lease that ran 30 days ago
--- and has since ended or expired counts on neither date, so a tenant who left
--- never shows as a drop; growth divides two integer sums of rent_amount, so
--- a rise of 120% read 100%; and growth is 0 (not "no figure") when nothing was
--- rented 30 days ago. scheduled_rent below is numeric, so the division is
--- exact before it is rounded.
+-- and has since ended, expired or been terminated counts on neither date, so
+-- a tenant who left never shows as a drop; growth divides two integer sums of
+-- rent_amount, so a rise of 120% read 100%; and growth is 0 (not "no figure")
+-- when nothing was rented 30 days ago. scheduled_rent below is numeric, so
+-- the division is exact before it is rounded.
 --
 -- STARTED FROM THE LIVE PRODUCTION BODIES (md5 of pg_get_functiondef equal to
 -- production's, read 2026-11-02, on a replay of the chain without this PR's
@@ -70,9 +71,12 @@
 --   - the counted units: the owner's units that are not soft-deleted
 --     (status 'inactive'), on properties that are not soft-deleted;
 --   - a lease counts on a day when it is on a counted unit, its status is
---     'active', 'ended' or 'expired' (it was running then, whatever it is
---     now; a soft-deleted lease is 'inactive') and the day is within
---     start_date .. end_date (an open end runs on);
+--     'active', 'ended', 'expired' or 'terminated' (it was running then,
+--     whatever it is now: Terminate, the app's way to end a lease early,
+--     writes 'terminated' and sets end_date to the day it ended; a
+--     soft-deleted lease is 'inactive', and a draft or pending_signature
+--     lease never ran) and the day is within start_date .. end_date (an
+--     open end runs on);
 --   - occupancy_rate: the counted units with such a lease, over the counted
 --     units, in percent, rounded to 2 decimals (0 with no units). One unit
 --     list for the numerator and the denominator, so a soft-deleted unit's
@@ -153,7 +157,7 @@ as $function$
     select l.unit_id, l.rent_amount, l.primary_tenant_id
     from leases l
     join counted_units cu on cu.id = l.unit_id
-    where l.lease_status in ('active', 'ended', 'expired')
+    where l.lease_status in ('active', 'ended', 'expired', 'terminated')
       and l.start_date <= p_on
       and (l.end_date is null or l.end_date >= p_on)
   )
@@ -166,7 +170,7 @@ as $function$
 $function$;
 
 comment on function public.dashboard_lease_position(uuid, date) is
-  'Private helper of get_dashboard_stats and get_dashboard_data_v2: on p_on, over the counted units (the owner''s units not inactive on properties not inactive), the occupancy rate (counted units with a lease in status active/ended/expired running on p_on, over the counted units, percent, 2 decimals), the scheduled monthly rent (sum of those leases'' rent_amount) and the tenants (distinct primary tenants of those leases). The rule get_occupancy_trends_optimized applies to a month (20261102200501). No client role may execute it.';
+  'Private helper of get_dashboard_stats and get_dashboard_data_v2: on p_on, over the counted units (the owner''s units not inactive on properties not inactive), the occupancy rate (counted units with a lease in status active/ended/expired/terminated running on p_on, over the counted units, percent, 2 decimals), the scheduled monthly rent (sum of those leases'' rent_amount) and the tenants (distinct primary tenants of those leases). The rule get_occupancy_trends_optimized applies to a month (20261102200501). No client role may execute it.';
 
 revoke all on function public.dashboard_lease_position(uuid, date) from public, anon, authenticated, service_role;
 
