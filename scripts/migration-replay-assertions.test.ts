@@ -1873,6 +1873,17 @@ describe("assertOwnerFiguresComputed", () => {
 		);
 	});
 
+	it("says a month, not months, for the month before T's", () => {
+		const parsed = figuresLine();
+		const first = rowsOf(parsed, "position_a_months")[0];
+		if (first) first["occupancy_rate"] = 75;
+		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"occupancy 1 month ago: the helper reads 75 and the series 100",
+		);
+	});
+
 	it("does not compare the helper and the series on a month a lease starts or ends in", () => {
 		// 4 months ago L5 starts inside the month (T-100): the series reads
 		// 100.00, the helper on its first day 75.00.

@@ -1892,7 +1892,7 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 			: undefined;
 		if (helperRate === undefined || helperRate !== seriesRate) {
 			failures.push(
-				`occupancy ${monthsAgo} months ago: the helper reads ${JSON.stringify(helperRate)} and the series ${JSON.stringify(seriesRate)}; no counted lease starts or ends in that month, so the tile's rule and the chart's must agree.`,
+				`occupancy ${monthsAgo === 1 ? "1 month" : `${monthsAgo} months`} ago: the helper reads ${JSON.stringify(helperRate)} and the series ${JSON.stringify(seriesRate)}; no counted lease starts or ends in that month, so the tile's rule and the chart's must agree.`,
 			);
 		}
 	}
