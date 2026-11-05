@@ -55,11 +55,16 @@ function parse(csv: string): string[][] {
 const createdBlobs: Blob[] = [];
 const clickedDownloads: string[] = [];
 
-function renderTable(selected: string[]) {
+function renderTable(
+	selected: string[],
+	shown: LeaseDisplay[] = LEASES,
+	all: LeaseDisplay[] = LEASES,
+) {
 	return render(
 		<LeasesTable
-			leases={LEASES}
-			paginatedLeases={LEASES}
+			leases={shown}
+			allLeases={all}
+			paginatedLeases={shown}
 			searchQuery=""
 			statusFilter="all"
 			sortField="tenant"
@@ -145,6 +150,27 @@ describe("leases selection Export", () => {
 		expect(clickedDownloads[0]).toMatch(
 			/^tenantflow-leases-\d{4}-\d{2}-\d{2}\.csv$/,
 		);
+		const rows = parse((await createdBlobs[0]?.text()) ?? "");
+		expect(rows.slice(1).map((r) => r[0])).toEqual(["Tenant l2"]);
+	});
+
+	// The selection survives a filter (pruneSelection keeps a hidden row) and
+	// the bar counts it, but Export read the filtered rows: select both, filter
+	// one out, and the file held one; filter both out, and no file at all
+	// (cycle 2, F57). Export writes every selected lease.
+	it("downloads a selected lease the filter hides, in table order", async () => {
+		const l3 = lease("l3", { tenantName: "Tenant l3" });
+		renderTable(["l3", "l1"], [LEASES[0] as LeaseDisplay], [...LEASES, l3]);
+		expect(screen.getByText("2 selected")).toBeInTheDocument();
+		fireEvent.click(screen.getByRole("button", { name: "Export" }));
+		const rows = parse((await createdBlobs[0]?.text()) ?? "");
+		expect(rows.slice(1).map((r) => r[0])).toEqual(["Tenant l1", "Tenant l3"]);
+	});
+
+	it("downloads the selection when the filter hides all of it", async () => {
+		renderTable(["l2"], [], LEASES);
+		fireEvent.click(screen.getByRole("button", { name: "Export" }));
+		expect(createdBlobs).toHaveLength(1);
 		const rows = parse((await createdBlobs[0]?.text()) ?? "");
 		expect(rows.slice(1).map((r) => r[0])).toEqual(["Tenant l2"]);
 	});

@@ -120,20 +120,11 @@ export default function LeasesPage() {
 		(l) => l.status === "pending_signature",
 	).length;
 
-	const filteredLeases = leases.filter((l) => {
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			if (
-				!(l.tenantName ?? "").toLowerCase().includes(query) &&
-				!(l.propertyName ?? "").toLowerCase().includes(query)
-			)
-				return false;
-		}
-		if (statusFilter !== "all" && l.status !== statusFilter) return false;
-		return true;
-	});
-
-	const sortedLeases = [...filteredLeases].sort((a, b) => {
+	// Every fetched lease in the table's order. The table shows the ones the
+	// search and status filter keep; the selection bar's Export writes every
+	// selected lease from this list, one a filter hides included (a filter
+	// never clears the selection), in the same order.
+	const orderedLeases = [...leases].sort((a, b) => {
 		const cmp: Record<string, number> = {
 			tenant: a.tenantName.localeCompare(b.tenantName),
 			property: a.propertyName.localeCompare(b.propertyName),
@@ -146,6 +137,19 @@ export default function LeasesPage() {
 		return sortDirection === "asc"
 			? (cmp[sortField] ?? 0)
 			: -(cmp[sortField] ?? 0);
+	});
+
+	const sortedLeases = orderedLeases.filter((l) => {
+		if (searchQuery) {
+			const query = searchQuery.toLowerCase();
+			if (
+				!(l.tenantName ?? "").toLowerCase().includes(query) &&
+				!(l.propertyName ?? "").toLowerCase().includes(query)
+			)
+				return false;
+		}
+		if (statusFilter !== "all" && l.status !== statusFilter) return false;
+		return true;
 	});
 
 	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage);
@@ -292,6 +296,7 @@ export default function LeasesPage() {
 				<TabsContent value="overview">
 					<LeasesTable
 						leases={sortedLeases}
+						allLeases={orderedLeases}
 						paginatedLeases={paginatedLeases}
 						searchQuery={searchQuery}
 						statusFilter={statusFilter}

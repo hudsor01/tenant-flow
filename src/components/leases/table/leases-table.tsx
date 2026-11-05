@@ -19,7 +19,13 @@ import {
 import { LeasesTableToolbar } from "./leases-table-toolbar";
 
 interface LeasesTableProps {
+	/** The leases the search and status filter keep, in table order. */
 	leases: LeaseDisplay[];
+	/**
+	 * Every fetched lease in table order: Export writes each selected one from
+	 * here, one the filter hides included.
+	 */
+	allLeases: LeaseDisplay[];
 	paginatedLeases: LeaseDisplay[];
 	searchQuery: string;
 	statusFilter: StatusFilter;
@@ -44,6 +50,7 @@ interface LeasesTableProps {
 
 export function LeasesTable({
 	leases,
+	allLeases,
 	paginatedLeases,
 	searchQuery,
 	statusFilter,
@@ -65,10 +72,11 @@ export function LeasesTable({
 	onTerminate,
 	onClearSelection,
 }: LeasesTableProps) {
-	// The selected leases, in table order. Exporting writes a file and leaves
+	// Every selected lease, one the search or status filter hides included
+	// (the bar counts it), in table order. Exporting writes a file and leaves
 	// the selection as it is.
 	const handleExportSelected = () => {
-		const selected = leases.filter((l) => selectedRows.has(l.id));
+		const selected = allLeases.filter((l) => selectedRows.has(l.id));
 		if (selected.length === 0) return;
 		try {
 			downloadBlob(

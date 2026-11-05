@@ -30,6 +30,7 @@ describe("LeasesTable a11y (A11Y-02)", () => {
 		render(
 			<LeasesTable
 				leases={[stubLease]}
+				allLeases={[stubLease]}
 				paginatedLeases={[stubLease]}
 				searchQuery=""
 				statusFilter="all"
