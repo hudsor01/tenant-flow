@@ -118,10 +118,13 @@
 -- property's `open_maintenance` (the portfolio table) 'open' and 'in_progress'
 -- only. So a chip read "+3 vs. 30 days ago" beside a figure of 2. All three
 -- now count the requests that are not completed or cancelled ('open',
--- 'assigned', 'in_progress', 'needs_reassignment', 'on_hold'): the only set the
--- trend can compare with 30 days ago, because no status history exists ('open'
--- 30 days ago cannot be known; "not yet completed or cancelled" can, from
--- created_at and completed_at). get_dashboard_stats' `maintenance.open` counts
+-- 'assigned', 'in_progress', 'needs_reassignment', 'on_hold'), the set the
+-- trend compares with 30 days ago as nearly as the data allows: no status
+-- history exists, so 'open' 30 days ago cannot be known while "not yet
+-- completed" can, from created_at and completed_at; and nothing records when a
+-- request was cancelled, so the earlier figure leaves out every request
+-- cancelled since, though it was open then, and reads low by those.
+-- get_dashboard_stats' `maintenance.open` counts
 -- the same set, so the two functions give one figure under one name (no
 -- caller reads that key today; a figure under that name must not differ).
 -- `stats.maintenance.inProgress` keeps its own count in both (no caller reads
