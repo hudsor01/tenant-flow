@@ -38,10 +38,12 @@ const logger = createLogger({ component: "LeaseDetails" });
 /**
  * The detail lease embeds units→properties (leaseQueries.detail select). The
  * base Lease type doesn't model that embed, so narrow it with an optional-field
- * interface (no `any` / `as unknown as`) to read the property street address.
+ * interface (no `any` / `as unknown as`) to read the unit's number and its
+ * property's name and street address.
  */
 interface LeaseWithPropertyEmbed {
 	units?: {
+		unit_number?: string | null;
 		properties?: {
 			name?: string | null;
 			address_line1?: string | null;
@@ -78,6 +80,10 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		(t) => t.id === lease?.primary_tenant_id,
 	);
 	const unit = units?.find((u) => u.id === lease?.unit_id);
+	// The heading's unit from the lease's own embed: the unit list holds only
+	// the 50 newest non-inactive units, so a lease on an older or a deleted
+	// unit found none there and was headed by its property alone.
+	const embed = lease ? (lease as Lease & LeaseWithPropertyEmbed).units : null;
 
 	if (isLoading) {
 		return <LeaseDetailsSkeleton />;
@@ -120,11 +126,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<LeaseHeader
 				lease={lease}
 				tenant={tenant}
-				unitName={unit?.unit_number ?? null}
-				propertyName={
-					(lease as Lease & LeaseWithPropertyEmbed).units?.properties?.name ??
-					null
-				}
+				unitName={embed?.unit_number ?? unit?.unit_number ?? null}
+				propertyName={embed?.properties?.name ?? null}
 				propertyAddress={getPropertyAddress(lease)}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}
