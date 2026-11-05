@@ -1,5 +1,5 @@
 // Supabase Edge Function: generate-pdf
-// Accepts three request modes:
+// Accepts two request modes:
 //   1. { reportType, year }   — server-side report data fetch + HTML build
 //      (`financial-analytics` prints the /analytics/financial export, the same
 //      document export-report's pdf format prints; `year` is not used for it.
