@@ -1188,7 +1188,9 @@ interface OwnerFiguresExpectation {
  *   200 + 40 = 240.00: +48.96%. By vendor: Porch Co 320.00 (89.51%), the
  *   vendor the owner named "Other" 20.00 (5.59%), and the three with no
  *   vendor (empty, NULL, spaces) 17.50 (4.90%) under category NULL. The body
- *   before folded those three into "Other": 37.50 under a vendor's name.
+ *   before folded two of them (NULL and empty) into "Other", 35.00 under a
+ *   vendor's name, and kept the vendor of spaces as a category of its own,
+ *   2.50.
  * Maintenance, owner A: total_cost 200 + 50.50 + 100 + 10 + 30 + 400 =
  *   790.50 (not the soft-deleted 15, nor T+40's 77 or T+1's 5, dated in the
  *   future), on
@@ -1210,9 +1212,12 @@ interface OwnerFiguresExpectation {
  * Financial overview, owner A: total_revenue is the active leases'
  *   scheduled rent times twelve, (1000 + 1200 + 5000) x 12 = 86400 (unchanged:
  *   it counts L8, on the inactive property). M0-2mo .. M0-1mo+5d holds
- *   200 + 50.50 + 100 + 10 = 360.50 of expenses; from M0 with no end, 30.00
- *   (not T+40's 77: 107.00 before). net_income is the difference. Only those
- *   three keys remain in `overview`, beside `lease_profitability`.
+ *   200 + 50.50 + 100 + 10 = 360.50 of expenses; from M0 with no end, 30.00,
+ *   not T+40's 77 or T+1's 5 (dated in the future). The body before had no
+ *   end and counted every expense on owner A's properties, RX's 9.00 of T+200
+ *   included: 30 + 77 + 5 + 9 = 121.00 (116.00 on a month's last day, which
+ *   has no T+1 row). net_income is the difference. Only those three keys
+ *   remain in `overview`, beside `lease_profitability`.
  * Lease profitability (get_financial_overview, 20261102184504), largest net
  *   first. Owner A, M0-2mo .. M0-1mo+5d: L8 on South House (soft-deleted
  *   property: listed, and says so) 5000.00 received; L1 2000.00 received
