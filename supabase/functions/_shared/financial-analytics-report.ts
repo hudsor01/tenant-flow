@@ -28,17 +28,19 @@
  *   - Payment Summary: the four payment cards.
  *   - Scheduled Rent & Expenses: one row per month of the chart, oldest first,
  *     with its scheduled rent (get_revenue_trends_optimized's revenue, the
- *     month's lease rent: not money received), expenses and scheduled net.
+ *     month's lease rent: not money received), expenses and scheduled net,
+ *     under the Scheduled Rent, Expenses and Scheduled Net columns.
  *   - Expense Breakdown: every category of the breakdown list (the page lists
  *     the first five), in the RPC's order, with its amount.
  *   - Scheduled Net: one row per month of that chart, oldest first.
  *   - Lease Profitability: the table's period ("Period", its first and last
  *     day), then one row per lease (get_financial_overview's
  *     `lease_profitability`, 20261102184504), largest net first: its label
- *     (`leaseProfitabilityLabel`, the page's), rent received, expenses and
- *     net. With no `lease_profitability` (the body before) the page says the
- *     table is unavailable, and so does the file's one row ("Unavailable"),
- *     never an empty table.
+ *     (`leaseProfitabilityLabel`, the page's), then its rent received,
+ *     expenses and net under the Rent Received, Expenses and Net columns, never
+ *     a scheduled one. With no `lease_profitability` (the body before) the
+ *     page says the table is unavailable, and so does the file's one row
+ *     ("Unavailable"), never an empty table.
  * The page's Revenue Breakdown has no data source (`mapFinancialOverview`
  * always returns it empty), so it contributes no rows; the test fails if the
  * mapper ever fills it, so the export cannot silently fall behind the page.
@@ -62,18 +64,31 @@
 export const FINANCIAL_ANALYTICS_REPORT_TYPE = "financial-analytics";
 
 /**
- * "Rent" holds the month's scheduled rent in the Scheduled Rent & Expenses
- * rows and a lease's rent received in the Lease Profitability rows: each
- * section names which. Neither is labelled revenue or income.
+ * Scheduled rent and rent received never share a column of figures. A month
+ * of the Scheduled Rent & Expenses chart fills Scheduled Rent, Expenses and
+ * Scheduled Net, the chart's own series; a lease of the Lease Profitability
+ * table fills Rent Received, Expenses and Net, the table's own columns. So
+ * summing one of those columns never adds scheduled rent to cash (CLAUDE.md:
+ * never sum the two). Value holds each other row's one figure, named by its
+ * Item (Scheduled and Collected among them, beside percentages, counts and
+ * text): it is not a column to sum. Nothing is labelled revenue or income.
  */
 export const FINANCIAL_ANALYTICS_HEADER = [
 	"Section",
 	"Item",
 	"Value",
-	"Rent",
+	"Scheduled Rent",
+	"Rent Received",
 	"Expenses",
+	"Scheduled Net",
 	"Net",
 ] as const;
+
+/** A column that holds a figure: every column but Section and Item. */
+type FigureColumn = Exclude<
+	(typeof FINANCIAL_ANALYTICS_HEADER)[number],
+	"Section" | "Item"
+>;
 
 /**
  * A lease as the Lease Profitability table names it: its property and unit,
@@ -279,16 +294,41 @@ interface Row {
 	readonly formats: readonly ReportCellFormat[];
 }
 
+/** A figure and how it prints. */
+type Figure = readonly [ReportCell, ReportCellFormat];
+
+/**
+ * One row in `FINANCIAL_ANALYTICS_HEADER` order: its section and item, and
+ * each figure under its column by name. A column the row has no figure for
+ * is empty, and prints plain.
+ */
+function tableRow(
+	section: string,
+	item: string,
+	figures: Partial<Record<FigureColumn, Figure>> = {},
+): Row {
+	const cells: ReportCell[] = [];
+	const formats: ReportCellFormat[] = [];
+	for (const column of FINANCIAL_ANALYTICS_HEADER) {
+		const [cell, format]: Figure =
+			column === "Section"
+				? [section, "plain"]
+				: column === "Item"
+					? [item, "plain"]
+					: (figures[column] ?? [null, "plain"]);
+		cells.push(cell);
+		formats.push(format);
+	}
+	return { cells, formats };
+}
+
 function valueRow(
 	section: string,
 	item: string,
 	value: number,
 	format: ReportCellFormat = "money",
 ): Row {
-	return {
-		cells: [section, item, value, null, null, null],
-		formats: ["plain", "plain", format, "plain", "plain", "plain"],
-	};
+	return tableRow(section, item, { Value: [value, format] });
 }
 
 /**
@@ -308,29 +348,16 @@ function leaseProfitabilityRows(
 		!/^\d{4}-\d{2}-\d{2}\/\d{4}-\d{2}-\d{2}$/.test(window) ||
 		!Array.isArray(leases)
 	) {
-		return [
-			{
-				cells: ["Lease Profitability", "Unavailable", null, null, null, null],
-				formats: ["plain", "plain", "plain", "plain", "plain", "plain"],
-			},
-		];
+		return [tableRow("Lease Profitability", "Unavailable")];
 	}
 	const [start, end] = window.split("/");
 	const text = (value: unknown) =>
 		typeof value === "string" && value !== "" ? value : null;
 	const amount = (value: unknown) =>
 		typeof value === "number" && Number.isFinite(value) ? value : 0;
-	const period: Row = {
-		cells: [
-			"Lease Profitability",
-			"Period",
-			`${start} to ${end}`,
-			null,
-			null,
-			null,
-		],
-		formats: ["plain", "plain", "plain", "plain", "plain", "plain"],
-	};
+	const period = tableRow("Lease Profitability", "Period", {
+		Value: [`${start} to ${end}`, "plain"],
+	});
 	return [period, ...leases.flatMap((entry): Row[] => {
 		const lease = asRecord(entry);
 		if (lease === null || text(lease["lease_id"]) === null) return [];
@@ -343,17 +370,11 @@ function leaseProfitabilityRows(
 			tenantName: text(lease["tenant_name"]),
 		});
 		return [
-			{
-				cells: [
-					"Lease Profitability",
-					label,
-					null,
-					money(amount(lease["rent_received"])),
-					money(amount(lease["expenses"])),
-					money(amount(lease["net"])),
-				],
-				formats: ["plain", "plain", "plain", "money", "money", "money"],
-			},
+			tableRow("Lease Profitability", label, {
+				"Rent Received": [money(amount(lease["rent_received"])), "money"],
+				Expenses: [money(amount(lease["expenses"])), "money"],
+				Net: [money(amount(lease["net"])), "money"],
+			}),
 		];
 	})];
 }
@@ -450,17 +471,12 @@ export function buildFinancialAnalyticsTable(
 			"plain",
 		),
 		...months.map(
-			(m): Row => ({
-				cells: [
-					"Scheduled Rent & Expenses",
-					m.month,
-					null,
-					money(m.revenue),
-					money(m.expenses),
-					money(m.net),
-				],
-				formats: ["plain", "plain", "plain", "money", "money", "money"],
-			}),
+			(m): Row =>
+				tableRow("Scheduled Rent & Expenses", m.month, {
+					"Scheduled Rent": [money(m.revenue), "money"],
+					Expenses: [money(m.expenses), "money"],
+					"Scheduled Net": [money(m.net), "money"],
+				}),
 		),
 		...expenseCategories.map(
 			(c): Row => valueRow("Expenses by Vendor", c.label, money(c.amount)),

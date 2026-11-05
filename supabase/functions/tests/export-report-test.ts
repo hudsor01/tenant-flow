@@ -7,7 +7,8 @@
 //   - financial-analytics writes the leaf's table (the page's figures) as CSV,
 //     as a real .xlsx (parsed back here with the same SheetJS build: sheet,
 //     cells, cell types, a leading `=` kept as text) and as PDF through the
-//     generate-pdf delegate;
+//     generate-pdf delegate, with a month's scheduled rent and a lease's rent
+//     received in columns of their own in every format;
 //   - the paywall: a free-tier owner gets the 402 with upgrade_url and no RPC
 //     runs;
 //   - every RPC error is a 500 and never a file;
@@ -383,16 +384,26 @@ Deno.test("financial-analytics csv is the leaf's table, from the four page RPCs"
 	);
 	const lines = body.split("\n");
 	assertEquals(lines[0], FINANCIAL_ANALYTICS_HEADER.join(","));
+	// Scheduled rent and rent received in columns of their own, so summing one
+	// never adds scheduled rent to cash.
+	assertEquals(
+		lines[0],
+		"Section,Item,Value,Scheduled Rent,Rent Received,Expenses,Scheduled Net,Net",
+	);
 	assert(
-		lines.includes("Overview,Collected,0.3,,,"),
+		lines.includes("Overview,Collected,0.3,,,,,"),
 		"collected rounds to cents",
 	);
-	assert(lines.includes("Expenses by Vendor,'=HYPERLINK(1),120,,,"));
-	assert(lines.includes('Expenses by Vendor,"Roof, Gutter & Co",2000.5,,,'));
-	assert(lines.includes("Lease Profitability,Period,2026-01-01 to 2026-11-01,,,"));
 	assert(
-		lines.includes("Lease Profitability,South House (deleted) \u00b7 S1 (Ed South),,5000,0,5000"),
-		"a lease on a deleted property, named so",
+		lines.includes("Scheduled Rent & Expenses,2026-10,,5100,,2120.5,2979.5,"),
+		"a month's scheduled rent and scheduled net, in the scheduled columns",
+	);
+	assert(lines.includes("Expenses by Vendor,'=HYPERLINK(1),120,,,,,"));
+	assert(lines.includes('Expenses by Vendor,"Roof, Gutter & Co",2000.5,,,,,'));
+	assert(lines.includes("Lease Profitability,Period,2026-01-01 to 2026-11-01,,,,,"));
+	assert(
+		lines.includes("Lease Profitability,South House (deleted) \u00b7 S1 (Ed South),,,5000,0,,5000"),
+		"a lease on a deleted property, named so, its rent received in Rent Received",
 	);
 	assertEquals(calls.rpcs.map((c) => c.name).sort(), [
 		"get_billing_insights",
@@ -424,6 +435,11 @@ Deno.test("financial-analytics xlsx is a real workbook with typed cells", async 
 	assert(sheet, "the sheet exists");
 	assertEquals(sheet.A1?.t, "s");
 	assertEquals(sheet.A1?.v, "Section");
+	// Scheduled rent and rent received head columns of their own.
+	assertEquals(
+		["D1", "E1", "F1", "G1", "H1"].map((address) => sheet[address]?.v),
+		["Scheduled Rent", "Rent Received", "Expenses", "Scheduled Net", "Net"],
+	);
 	// Scheduled: a number Excel shows in dollars.
 	assertEquals(sheet.B2?.v, "Scheduled");
 	assertEquals(sheet.C2?.t, "n");
@@ -467,6 +483,16 @@ Deno.test("financial-analytics pdf posts the sectioned HTML to generate-pdf", as
 		]) {
 			assertStringIncludes(post.body.html, `<h2>${heading}</h2>`);
 		}
+		// Each section prints the columns it fills: the months under the
+		// scheduled heads, the leases under Rent Received and Net.
+		assertStringIncludes(
+			post.body.html,
+			'<h2>Scheduled Rent &amp; Expenses</h2><table class="table"><thead><tr><th class="th">Item</th><th class="th num">Scheduled Rent</th><th class="th num">Expenses</th><th class="th num">Scheduled Net</th></tr></thead>',
+		);
+		assertStringIncludes(
+			post.body.html,
+			'<h2>Lease Profitability</h2><table class="table"><thead><tr><th class="th">Item</th><th class="th">Value</th><th class="th num">Rent Received</th><th class="th num">Expenses</th><th class="th num">Net</th></tr></thead>',
+		);
 		assertStringIncludes(post.body.html, "Roof, Gutter &amp; Co");
 		assertStringIncludes(post.body.html, '<td class="td">=HYPERLINK(1)</td>');
 		assertStringIncludes(post.body.html, '<td class="td num">$61,200.00</td>');

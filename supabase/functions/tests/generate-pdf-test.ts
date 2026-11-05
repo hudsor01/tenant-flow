@@ -9,7 +9,8 @@
 // export-report's (the 402 with upgrade_url, no RPC), its RPC errors are a
 // 500, and a paid owner's PDF is printed from the same document
 // export-report's pdf format posts here (`sectionedReportHtml` over the
-// leaf's table, money in dollars as the pages print it): the
+// leaf's table, money in dollars as the pages print it, a month's scheduled
+// rent and a lease's rent received under heads of their own): the
 // /analytics/financial export, and the year-end and tax-documents pages for
 // the year asked for (`_shared/tax-year-reports.ts`, whose rows the
 // Vitest `__tests__/tax-year-reports.test.ts` proves equal to the pages').
@@ -44,7 +45,25 @@ const NOW = new Date("2026-11-01T18:30:00Z");
 
 const ANSWERS: Record<string, { data: unknown; error: unknown }> = {
 	get_financial_overview: {
-		data: { overview: { total_revenue: 1200, total_expenses: 200 } },
+		data: {
+			overview: { total_revenue: 1200, total_expenses: 200 },
+			// 20261102184504: each lease's rent received less its expenses.
+			lease_profitability: {
+				window: "2026-01-01/2026-11-01",
+				leases: [
+					{
+						lease_id: "l1",
+						property_name: "Maple Court",
+						property_deleted: false,
+						unit_number: "M1",
+						tenant_name: null,
+						rent_received: 300,
+						expenses: 50,
+						net: 250,
+					},
+				],
+			},
+		},
 		error: null,
 	},
 	get_revenue_trends_optimized: {
@@ -189,6 +208,20 @@ Deno.test("Mode 1 financial-analytics prints export-report's document", async ()
 		assert(html.includes('<td class="td num">$1,200.00</td>'), "Scheduled");
 		assert(html.includes('<td class="td num">$200.00</td>'), "an expense");
 		assert(!html.includes(">1200<"), "no bare amount");
+		// Scheduled rent and rent received never share a column: the month
+		// prints under the scheduled heads, the lease under Rent Received.
+		assert(
+			html.includes(
+				'<h2>Scheduled Rent &amp; Expenses</h2><table class="table"><thead><tr><th class="th">Item</th><th class="th num">Scheduled Rent</th><th class="th num">Expenses</th><th class="th num">Scheduled Net</th></tr></thead><tbody><tr><td class="td">2026-10</td><td class="td num">$100.00</td><td class="td num">$200.00</td><td class="td num">-$100.00</td></tr></tbody>',
+			),
+			"the month's scheduled columns",
+		);
+		assert(
+			html.includes(
+				'<th class="th num">Rent Received</th><th class="th num">Expenses</th><th class="th num">Net</th></tr></thead><tbody><tr><td class="td">Period</td><td class="td">2026-01-01 to 2026-11-01</td><td class="td"></td><td class="td"></td><td class="td"></td></tr><tr><td class="td">Maple Court · M1</td><td class="td"></td><td class="td num">$300.00</td><td class="td num">$50.00</td><td class="td num">$250.00</td></tr></tbody>',
+			),
+			"the lease's rent received columns",
+		);
 		assertEquals(htmlPosts, [
 			sectionedReportHtml("Financial Analytics", "2026-11-01", table),
 		]);

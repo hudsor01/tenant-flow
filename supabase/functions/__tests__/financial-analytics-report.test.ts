@@ -277,7 +277,32 @@ function section(
 	rows: readonly (readonly ReportCell[])[],
 	name: string,
 ): (readonly ReportCell[])[] {
-	return rows.filter((row) => row[0] === name);
+	return rows.filter((cells) => cells[0] === name);
+}
+
+type Column = (typeof FINANCIAL_ANALYTICS_HEADER)[number];
+
+/** A row with each figure under its column by name, every other cell empty. */
+function row(
+	s: string,
+	item: string,
+	figures: Partial<Record<Column, ReportCell>> = {},
+): ReportCell[] {
+	return FINANCIAL_ANALYTICS_HEADER.map((column) =>
+		column === "Section"
+			? s
+			: column === "Item"
+				? item
+				: (figures[column] ?? null),
+	);
+}
+
+/** The columns a row holds a figure in (Section and Item aside). */
+function filledColumns(cells: readonly ReportCell[]): Column[] {
+	return FINANCIAL_ANALYTICS_HEADER.filter(
+		(column, index) =>
+			column !== "Section" && column !== "Item" && cells[index] !== null,
+	);
 }
 
 /** The rows the page's figures imply, in the page's top-to-bottom order. */
@@ -286,14 +311,8 @@ function rowsFromScreen(
 	payments: OwnerPaymentSummaryResponse,
 ): (readonly ReportCell[])[] {
 	const { metrics } = page;
-	const value = (s: string, item: string, v: number): ReportCell[] => [
-		s,
-		item,
-		v,
-		null,
-		null,
-		null,
-	];
+	const value = (s: string, item: string, v: number): ReportCell[] =>
+		row(s, item, { Value: v });
 	return [
 		value("Overview", "Scheduled", cents(metrics.totalRevenue)),
 		value("Overview", "Collected", cents(metrics.totalCollected)),
@@ -315,14 +334,13 @@ function rowsFromScreen(
 		),
 		value("Payment Summary", "Outstanding invoices", payments.unpaidCount),
 		value("Payment Summary", "Tenants monitored", payments.tenantCount),
-		...page.monthlyMetrics.map((m): ReportCell[] => [
-			"Scheduled Rent & Expenses",
-			m.month,
-			null,
-			cents(m.revenue),
-			cents(m.expenses),
-			cents(m.netIncome),
-		]),
+		...page.monthlyMetrics.map((m) =>
+			row("Scheduled Rent & Expenses", m.month, {
+				"Scheduled Rent": cents(m.revenue),
+				Expenses: cents(m.expenses),
+				"Scheduled Net": cents(m.netIncome),
+			}),
+		),
 		...page.breakdown.expenses.map((e) =>
 			value("Expenses by Vendor", e.label, cents(e.value)),
 		),
@@ -331,24 +349,18 @@ function rowsFromScreen(
 		),
 		...(page.leaseProfitability.status === "ready"
 			? [
-					[
-						"Lease Profitability",
-						"Period",
-						`${page.leaseProfitability.window.start_date} to ${page.leaseProfitability.window.end_date}`,
-						null,
-						null,
-						null,
-					],
-					...page.leaseProfitability.leases.map((l): ReportCell[] => [
-						"Lease Profitability",
-						leaseProfitabilityLabel(l),
-						null,
-						cents(l.rentReceived),
-						cents(l.expenses),
-						cents(l.net),
-					]),
+					row("Lease Profitability", "Period", {
+						Value: `${page.leaseProfitability.window.start_date} to ${page.leaseProfitability.window.end_date}`,
+					}),
+					...page.leaseProfitability.leases.map((l) =>
+						row("Lease Profitability", leaseProfitabilityLabel(l), {
+							"Rent Received": cents(l.rentReceived),
+							Expenses: cents(l.expenses),
+							Net: cents(l.net),
+						}),
+					),
 				]
-			: [["Lease Profitability", "Unavailable", null, null, null, null]]),
+			: [row("Lease Profitability", "Unavailable")]),
 	];
 }
 
@@ -473,7 +485,7 @@ describe("every figure the page renders is a row of the file", () => {
 		// and the lease table's one row: unavailable, never empty.
 		expect(rows).toHaveLength(9);
 		expect(section(rows, "Lease Profitability")).toEqual([
-			["Lease Profitability", "Unavailable", null, null, null, null],
+			row("Lease Profitability", "Unavailable"),
 		]);
 	});
 
@@ -486,8 +498,37 @@ describe("every figure the page renders is a row of the file", () => {
 			expenseVendorLabel,
 		);
 		expect(table.header).toEqual(FINANCIAL_ANALYTICS_HEADER);
-		for (const row of table.rows) {
-			expect(row).toHaveLength(FINANCIAL_ANALYTICS_HEADER.length);
+		for (const cells of table.rows) {
+			expect(cells).toHaveLength(FINANCIAL_ANALYTICS_HEADER.length);
+		}
+	});
+
+	it("never puts scheduled rent and rent received in one column", async () => {
+		// A spreadsheet sums a column, and scheduled rent is never summed with the
+		// ledger's cash (CLAUDE.md). The chart's months (scheduled) and the
+		// table's leases (rent received) fill columns of their own, named as the
+		// chart's series and the table's columns are; Expenses is an expense in
+		// both.
+		const { rows } = await exported(richAnswers());
+		const months = section(rows, "Scheduled Rent & Expenses");
+		const leases = section(rows, "Lease Profitability").filter(
+			(cells) => cells[1] !== "Period",
+		);
+		expect(months).toHaveLength(12);
+		expect(leases).toHaveLength(LEASE_PROFITABILITY.leases.length);
+		for (const month of months) {
+			expect(filledColumns(month), String(month[1])).toEqual([
+				"Scheduled Rent",
+				"Expenses",
+				"Scheduled Net",
+			]);
+		}
+		for (const lease of leases) {
+			expect(filledColumns(lease), String(lease[1])).toEqual([
+				"Rent Received",
+				"Expenses",
+				"Net",
+			]);
 		}
 	});
 });
@@ -564,17 +605,32 @@ describe("each figure is rounded and formatted as the page prints it", () => {
 		]) {
 			expect(valueFormat(item), item).toBe("money");
 		}
-		for (const [index, row] of rows.entries()) {
+		// A month's, a vendor's and a lease's figures are money; every other
+		// cell of those rows, and the lease table's period, prints plain.
+		const moneyColumns: Partial<Record<string, readonly Column[]>> = {
+			"Scheduled Rent & Expenses": [
+				"Scheduled Rent",
+				"Expenses",
+				"Scheduled Net",
+			],
+			"Expenses by Vendor": ["Value"],
+			"Scheduled Net": ["Value"],
+			"Lease Profitability": ["Rent Received", "Expenses", "Net"],
+		};
+		for (const [index, cells] of rows.entries()) {
 			const f = formats[index] ?? [];
 			expect([f[0], f[1]]).toEqual(["plain", "plain"]);
-			if (row[0] === "Scheduled Rent & Expenses") {
-				expect(f.slice(2)).toEqual(["plain", "money", "money", "money"]);
-			} else if (
-				row[0] === "Expenses by Vendor" ||
-				row[0] === "Scheduled Net"
-			) {
-				expect(f.slice(2)).toEqual(["money", "plain", "plain", "plain"]);
-			}
+			const name = String(cells[0]);
+			const money =
+				name === "Lease Profitability" && cells[1] === "Period"
+					? []
+					: moneyColumns[name];
+			if (money === undefined) continue;
+			expect(f, `${name} ${String(cells[1])}`).toEqual(
+				FINANCIAL_ANALYTICS_HEADER.map((column) =>
+					money.includes(column) ? "money" : "plain",
+				),
+			);
 		}
 	});
 });
@@ -586,7 +642,7 @@ describe("the page sections the export leaves out are not on the page", () => {
 		const { page } = await screen(richAnswers());
 		expect(Object.keys(page.breakdown)).not.toContain("revenue");
 		const { rows } = await exported(richAnswers());
-		expect(rows.map((row) => row[0])).not.toContain("Revenue Breakdown");
+		expect(rows.map((cells) => cells[0])).not.toContain("Revenue Breakdown");
 	});
 });
 
@@ -595,24 +651,24 @@ describe("the lease profitability table is in the file as on the page", () => {
 		const { page } = await screen(richAnswers());
 		const { rows } = await exported(richAnswers());
 		expect(section(rows, "Lease Profitability")).toEqual([
-			["Lease Profitability", "Period", "2026-01-01 to 2026-11-02", null, null, null],
-			[
-				"Lease Profitability",
-				"South House (deleted) \u00b7 S1 (Ed South)",
-				null,
-				5000,
-				0,
-				5000,
-			],
-			[
-				"Lease Profitability",
-				"North Court \u00b7 N1 (Ann North)",
-				null,
-				2000.01,
-				360.5,
-				1639.51,
-			],
-			["Lease Profitability", "Lot 9", null, 0, 30, -30],
+			row("Lease Profitability", "Period", {
+				Value: "2026-01-01 to 2026-11-02",
+			}),
+			row("Lease Profitability", "South House (deleted) \u00b7 S1 (Ed South)", {
+				"Rent Received": 5000,
+				Expenses: 0,
+				Net: 5000,
+			}),
+			row("Lease Profitability", "North Court \u00b7 N1 (Ann North)", {
+				"Rent Received": 2000.01,
+				Expenses: 360.5,
+				Net: 1639.51,
+			}),
+			row("Lease Profitability", "Lot 9", {
+				"Rent Received": 0,
+				Expenses: 30,
+				Net: -30,
+			}),
 		]);
 		expect(page.leaseProfitability).toMatchObject({
 			status: "ready",
@@ -637,7 +693,7 @@ describe("the lease profitability table is in the file as on the page", () => {
 		expect(page.leaseProfitability).toEqual({ status: "unavailable" });
 		expect(rows).toEqual(rowsFromScreen(page, payments));
 		expect(section(rows, "Lease Profitability")).toEqual([
-			["Lease Profitability", "Unavailable", null, null, null, null],
+			row("Lease Profitability", "Unavailable"),
 		]);
 	});
 });
