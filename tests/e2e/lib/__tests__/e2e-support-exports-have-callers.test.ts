@@ -15,37 +15,46 @@
  * prove a generic name (`createTenant`, `batch`) live, because unrelated files
  * use the same word, so the check follows the import specifier to the module.
  * A name only the module itself uses is not exported.
+ *
+ * TRACKED MEANS TRACKED. The files come from `git ls-files`, as the sibling
+ * guards' do (`no-jwt-literals.test.ts`), not from a walk of the disk: an
+ * untracked or ignored local file (a scratch spec, a `*-page/` or `docs/`
+ * path) neither keeps a helper alive locally that CI's checkout would fail,
+ * nor fails a local helper module that never ships.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const ROOT = process.cwd();
 const E2E_ROOT = resolve(ROOT, "tests/e2e");
 
-/** Directories no caller lives in (build output, artifacts, dependencies). */
-const SKIP_DIRECTORIES = new Set([
-	".cache",
-	".fallow",
-	".git",
-	".next",
-	".planning",
-	"coverage",
-	"node_modules",
-	"playwright-report",
-	"test-results",
-]);
+/** Tracked, but no caller lives there: planning probes and audit snapshots. */
+const SKIP_DIRECTORIES = new Set([".planning"]);
 
 const CODE_FILE = /\.(ts|tsx|mts|mjs|js|cjs)$/;
 
-function walk(dir: string, out: string[]): string[] {
-	for (const name of readdirSync(dir)) {
-		if (SKIP_DIRECTORIES.has(name)) continue;
-		const path = join(dir, name);
-		if (statSync(path).isDirectory()) walk(path, out);
-		else if (CODE_FILE.test(name)) out.push(path);
-	}
-	return out;
+/**
+ * Every tracked code file outside `SKIP_DIRECTORIES`, as an absolute path. A
+ * tracked file deleted from the working tree but not yet from the index has
+ * nothing to read, so it is left out.
+ */
+function trackedCodeFiles(): string[] {
+	const out = execFileSync("git", ["ls-files", "-z"], {
+		cwd: ROOT,
+		encoding: "utf8",
+		maxBuffer: 64 * 1024 * 1024,
+	});
+	return out
+		.split("\0")
+		.filter(
+			(path) =>
+				CODE_FILE.test(path) &&
+				!path.split("/").some((segment) => SKIP_DIRECTORIES.has(segment)),
+		)
+		.map((path) => resolve(ROOT, path))
+		.filter((path) => existsSync(path));
 }
 
 /** A support module: an e2e source file that is not a spec, a guard or a declaration file. */
@@ -205,7 +214,7 @@ function uncalledExports(
 describe("Playwright support modules export only what is imported (66.2-39 fix round 1, part F)", () => {
 	it("leaves no support-module export without an importer", () => {
 		const files = new Map<string, string>();
-		for (const path of walk(ROOT, []))
+		for (const path of trackedCodeFiles())
 			files.set(path, readFileSync(path, "utf8"));
 		const modules = new Set([...files.keys()].filter(isSupportModule));
 		expect(modules.size).toBeGreaterThan(10);
