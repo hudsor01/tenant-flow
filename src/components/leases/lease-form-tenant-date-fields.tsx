@@ -6,7 +6,9 @@ import { leaseFormOptions } from "./lease-form-options";
 
 export const LeaseFormTenantDateFields = withForm({
 	...leaseFormOptions,
-	props: { tenants: [] as TenantWithLeaseInfo[] },
+	props: {
+		tenants: [] as Pick<TenantWithLeaseInfo, "id" | "name" | "email">[],
+	},
 	render: function LeaseFormTenantDateFields({ form, tenants }) {
 		const tenantOptions = tenants.map((tenant) => ({
 			value: tenant.id,

@@ -16,10 +16,10 @@ import { leaseFormOptions } from "./lease-form-options";
 export const LeaseFormPropertyUnitFields = withForm({
 	...leaseFormOptions,
 	props: {
-		properties: [] as Property[],
+		properties: [] as Pick<Property, "id" | "name">[],
 		propertiesIsLoading: false,
 		propertiesIsError: false,
-		units: [] as Unit[],
+		units: [] as Pick<Unit, "id" | "unit_number">[],
 		unitsIsError: false,
 		selectedPropertyId: "",
 		onPropertyChange: (() => {}) as (propertyId: string) => void,
