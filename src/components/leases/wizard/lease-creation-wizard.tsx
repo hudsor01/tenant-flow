@@ -264,8 +264,9 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				onStepChange={advanceTo}
 			/>
 
+			{/* The v4 Card pads itself (py-6): a v3 pt-6 here doubled the top. */}
 			<Card>
-				<CardContent className="pt-6">
+				<CardContent>
 					<div className="min-h-100">
 						{currentStep === "selection" && (
 							<SelectionStep

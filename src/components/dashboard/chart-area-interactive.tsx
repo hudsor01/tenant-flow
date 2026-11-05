@@ -208,7 +208,9 @@ export function ChartAreaInteractive({
 				</div>
 			</div>
 
-			<CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+			{/* The Card's gap-6 spaces the chart from the totals above: a v3
+			    pt-4 / sm:pt-6 here added 16 / 24px more. */}
+			<CardContent className="px-2 sm:px-6">
 				{isLoading ? (
 					<div className="flex-center h-75">
 						<div className="animate-spin rounded-full size-11 border-b-2 border-primary"></div>

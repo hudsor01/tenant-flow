@@ -15,6 +15,7 @@ import { screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ChartAreaInteractive } from "#components/dashboard/chart-area-interactive";
 import { resetRechartsProbe, setRechartsProbe } from "#test/mocks/recharts";
+import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import { render } from "#test/utils/test-render";
 
 vi.mock("#hooks/api/use-owner-dashboard-financial", () => ({
@@ -123,6 +124,22 @@ describe("the scheduled rent and expenses chart", () => {
 				key.getAttribute("stroke-dasharray"),
 			),
 		).toEqual(["5 3", null]);
+	});
+
+	// The v4 Card spaces its children with gap-6; the chart's CardContent
+	// added the v3 pt-4 / sm:pt-6 on top, 40 / 48px under the totals (the G4
+	// sweep).
+	it("adds no top padding of its own under the totals", async () => {
+		render(<ChartAreaInteractive />);
+		const content = document.querySelector("[data-slot=card-content]");
+		if (!content) throw new Error("the chart rendered no card content");
+		const designSystem = await loadProjectDesignSystem();
+		const css = designSystem
+			.candidatesToCss([...content.classList])
+			.filter((rule): rule is string => rule !== null)
+			.join("\n");
+		expect(css).toContain("padding-inline");
+		expect(css).not.toMatch(/padding(-top|-block)?\s*:/);
 	});
 
 	it("sits on the analytics overview under its own title only", () => {
