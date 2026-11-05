@@ -8,6 +8,7 @@
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --self-test
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --lint-body <md> --decisions <json>
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --fix-round-1 <f39-dir> --out <file>
+//   node .planning/tailwind-shadcn/audit/f39-checks.mjs --fix-round-2 <f39-dir> --out <file>
 //
 // Output: { mode, checks: [{ cp, choice, name, pass, expected, measured }], failedCps, failed }.
 // Exit 1 when failed > 0; under --expect-fail, exit 0 only when exactly the listed CPs fail.
@@ -20,6 +21,20 @@
 // migration replay (357 files, every gate exit 0), the mutation sweep (179 rows, 0 vacuous, 0 not
 // applied), the Edge deploy list (exactly the functions whose bundle differs), the screenshot
 // classification and the component-probe differences against the 4476e6450 same-session run. Inputs: the f39 JSON files named in readFixRoundContext, the UI-SPEC, git ls-files.
+//
+// --fix-round-2 (the re-freeze after CI failed on bc54b045a and f8de0175e) checks what fix round 2
+// must keep: the regexp-source helper's test, every module that imports the helper (the set must
+// equal the recorded list) and the guards' new linear-time and literal-name tests, the sweep's
+// partition proof (scripts/mutation-sweep.test.ts) and the workflow-contract test, the sharded
+// workflow (8 shards, fail-fast false, the shard and matrix size handed to each job), the sweep
+// result unsharded and per shard (rows summing to every row, the listing a disjoint cover), the
+// CodeQL-clean state as far as a local scan can decide it (every escape-style `.replace` in a
+// tracked JS/TS file escapes every regex metacharacter, no single-metacharacter escape, escape
+// helpers under the test roots live only in the shared helper and main's reclaim-finalize.ts, and
+// neither old ReDoS form is back), the scope of the code diff since b628eb9f1 (no application
+// path) and the build identity that carries the screenshot, probe and CSP evidence forward.
+// Inputs: the f39 JSON files named in readFixRound2Context, the sweep workflow, git ls-files and
+// every tracked JS/TS file on disk.
 //
 // Each CP is checked for its recorded decision (`choice` default or fallback; `options` holds the
 // owner's option ids). Source checks read files at HEAD; the CP-3 fallback also compares the
@@ -35,6 +50,7 @@
 // text does not start with //, /* or *), because header comments name what a change removed.
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 
 const ROOT = process.cwd();
@@ -105,6 +121,12 @@ function pathGet(obj, path) {
 		cur = cur[k];
 	}
 	return cur;
+}
+
+// `s` as regex source that matches exactly `s`: every metacharacter gains a backslash (a partial
+// escape breaks on the first input holding a character it skips; fix round 2).
+function escapeRe(s) {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function shadowHas(s, px) {
@@ -301,7 +323,7 @@ const SOURCE_CHECKS = {
 			c.add("main-nav.tsx has no focus-visible:ring-4", nav !== null && n === 0, 0, nav === null ? MISSING : n);
 		} else {
 			const tags = [...jsxTags(nav, "SidebarMenuButton"), ...jsxTags(nav, "SidebarMenuSubButton")];
-			const lacking = tags.filter((t) => !CP3_TOKENS.every((tok) => new RegExp(`(^|[\\s"'\`{])${tok.replace(/[/.]/g, "\\$&")}(?![\\w/-])`).test(t)));
+			const lacking = tags.filter((t) => !CP3_TOKENS.every((tok) => new RegExp(`(^|[\\s"'\`{])${escapeRe(tok)}(?![\\w/-])`).test(t)));
 			c.add("every SidebarMenuButton/SidebarMenuSubButton className has the six CP-3 tokens", tags.length > 0 && lacking.length === 0, `${tags.length} of ${tags.length}`, `${tags.length - lacking.length} of ${tags.length}`);
 			const pre = src.pre39(FILES.sidebar);
 			c.add("sidebar.tsx unchanged since PRE_39", sb !== null && pre !== null && sb === pre, "identical", sb === null || pre === null ? MISSING : sb === pre ? "identical" : "differs");
@@ -602,6 +624,7 @@ function selfTest() {
 	else failures.push(`missing decision flipped ${JSON.stringify(r.failedCps)}`);
 	passed += lintSelfTest(failures);
 	passed += fixRoundSelfTest(failures);
+	passed += fixRound2SelfTest(failures);
 	if (failures.length > 0) {
 		for (const x of failures) console.error(`self-test FAIL: ${x}`);
 		process.exit(1);
@@ -1085,6 +1108,420 @@ function fixRoundSelfTest(failures) {
 	return passed;
 }
 
+// ---------- --fix-round-2 ----------
+
+// Fix round 2 answers CI on bc54b045a and f8de0175e. 74f8bd9f1 sends every name a test guard puts
+// into a pattern through one helper (CodeQL js/incomplete-sanitization at three sites) and ends the
+// JSX-comment ReDoS (js/redos); f8de0175e shards the mutation sweep across an 8-job matrix (the one
+// job hit timeout-minutes 45 at row 155 of 179). The code diff since FR2_BASE holds tests, test
+// helpers, E2E specs and helpers, the sweep script and its workflow, and nothing the app builds.
+const FR2_BASE = "b628eb9f1b0c68e8d2d48cfd6660921b0660fef5";
+const FR2_MAIN = "d9c7329f0fa500a597e87e7ac02d5a4fb0cf2f2d";
+const FR2_DIFF_PATHS = 42;
+const FR2_HELPER = "src/test/utils/regexp-source.ts";
+const FR2_HELPER_TEST = {
+	path: "src/lib/__tests__/regexp-source.test.ts",
+	titles: [
+		"escapeRegExp matches every metacharacter as itself, alone and together",
+		"escapeRegExp matches nothing a metacharacter would have stood for",
+		"escapeRegExp stays valid source under the u and v flags",
+		"escapeRegExp leaves every other character as it is",
+		"identifierSource matches a name holding `$` after a space and at a line start",
+		"identifierSource does not match inside a longer identifier",
+		"identifierSource takes a member path and a list of names",
+		"identifierSource refuses an empty list, which would match at every boundary",
+		"JSX_CHILD_GAP skips whitespace and comments to the first child",
+		"JSX_CHILD_GAP ends a comment at its first `*/}`, so it cannot swallow a child",
+		"JSX_CHILD_GAP fails in linear time on adversarial comment runs",
+	],
+};
+// Every module importing the helper at the code state (its own test aside), with the unit test
+// files that run it; a test file runs itself. The importer set must EQUAL this list, so a guard that
+// drops the helper for a local escape fails here as well as in the escape scan.
+const FR2_HELPER_USERS = [
+	...[
+		"scripts/reclaim-finalize.test.ts",
+		"src/app/__tests__/design-token-drift.test.ts",
+		"src/app/__tests__/global-error-fonts.test.tsx",
+		"src/app/__tests__/marketing-home.test.tsx",
+		"src/components/__tests__/no-nested-interactive.test.tsx",
+		"src/components/documents/__tests__/documents-section.test.tsx",
+		"src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx",
+		"src/components/shell/__tests__/label-in-name.test.tsx",
+		"src/components/ui/__tests__/blur-fade-grid-placement.test.ts",
+		"src/hooks/api/__tests__/collection-rate-mapper.test.ts",
+		"src/hooks/api/__tests__/data-layer-callers.test.ts",
+		"src/hooks/api/__tests__/report-mutations-have-callers.test.ts",
+		"src/hooks/api/query-keys/__tests__/application-keys.test.ts",
+		"src/hooks/api/query-keys/__tests__/application-link-keys.test.ts",
+		"src/hooks/api/query-keys/__tests__/notification-keys.test.ts",
+		"src/hooks/api/query-keys/document-category-keys.test.ts",
+		"src/hooks/api/query-keys/document-keys.test.ts",
+		"src/lib/__tests__/breadcrumbs.test.ts",
+		"src/lib/__tests__/no-always-empty-local-list.test.ts",
+		"src/lib/__tests__/no-deprecated-library-api.test.ts",
+		"src/lib/__tests__/one-label-per-value.test.ts",
+		"src/lib/formatters/__tests__/count-labels-agree.test.ts",
+		"src/types/sections/__tests__/inspections.test.ts",
+		"supabase/functions/__tests__/rate-limit.test.ts",
+	].map((path) => ({ path, tests: [path] })),
+	{ path: "src/test/utils/oklch-contrast.ts", tests: ["src/app/__tests__/destructive-pair-contrast.test.ts", "src/app/__tests__/design-token-drift.test.ts"] },
+	{ path: "src/test/utils/state-fill-pairs.ts", tests: ["src/app/__tests__/state-fill-contrast.test.ts"] },
+];
+// The tests fix round 2 added to the guards it touched: each must still exist and pass.
+const FR2_GUARD_TITLES = [
+	{ path: "src/components/__tests__/no-nested-interactive.test.tsx", titles: ["no control nests another (static) looks past JSX comments to the first child, and no further", "no control nests another (static) scans adversarial comment runs in linear time"] },
+	{ path: "src/components/ui/__tests__/blur-fade-grid-placement.test.ts", titles: ["BlurFade grid placement looks past JSX comments to the first child, and no further", "BlurFade grid placement scans adversarial comment runs in linear time"] },
+	{ path: "src/hooks/api/__tests__/report-mutations-have-callers.test.ts", titles: ["report mutations and their keys have callers reads the object path as literal text and as a whole identifier"] },
+	{ path: "src/lib/__tests__/no-always-empty-local-list.test.ts", titles: ["no local list stays the empty literal it was declared as reads a list's name as literal text and as a whole identifier"] },
+	{ path: "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts", titles: ["Playwright support modules export only what is imported (66.2-39 fix round 1, part F) reads a namespace name holding `$` literally and as a whole identifier"] },
+];
+const FR2_SWEEP_TEST = {
+	path: "scripts/mutation-sweep.test.ts",
+	titles: [
+		"the mutation sweep's shards lists every row once, in order, with no shard set",
+		"the mutation sweep's shards hands each matrix job its shard and the matrix size",
+		"the mutation sweep's shards splits the rows into disjoint, non-empty shards whose union is every row",
+		"the mutation sweep's shards refuses a half-set, malformed or out-of-range shard",
+		"the mutation sweep's shards fails a shard that holds no row",
+	],
+};
+// The sharded workflow's own contract is FR2_SWEEP_TEST's second test; workflow-contract.test.ts
+// carries fix round 2's linear-time fix of its push-trigger matcher.
+const FR2_WORKFLOW_CONTRACT_TEST = { path: "scripts/workflow-contract.test.ts", titles: ["the fixture helpers the push-trigger matcher fails in linear time"] };
+const FR2_SWEEP_WORKFLOW = ".github/workflows/mutation-sweep.yml";
+const FR2_SHARDS = 8;
+const FR2_SHARD_TIMEOUT_MINUTES = 15;
+// Every character that is special in a regex outside a character class.
+const FR2_METACHARS = "\\^$.*+?()[]{}|";
+// Escape helpers may live under the test roots only in the shared helper and in main's
+// scripts/reclaim-finalize.ts (not a test, unchanged by this PR: it must equal FR2_MAIN's copy).
+const FR2_TEST_ROOTS = ["src/", "scripts/", "tests/", "supabase/functions/__tests__/"];
+const FR2_ESCAPE_HOMES = [FR2_HELPER, "scripts/reclaim-finalize.ts"];
+const FR2_MAIN_COPIES = ["scripts/reclaim-finalize.ts"];
+// The two backtracking forms fix round 2 removed, assembled from parts so this file never holds
+// them: the JSX-comment run (blur-fade-grid-placement.test.ts:43, CodeQL js/redos, and the same
+// gap in no-nested-interactive) and workflow-contract.test's two-alternative push matcher.
+const FR2_OLD_REDOS = [
+	["nested JSX-comment run", ["[\\s\\S]*?", "\\*\\/\\}\\s*)*"].join("")],
+	["two-alternative push matcher", ["| {6}", ".*\\n)*"].join("")],
+];
+const FR2_SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".mjs", ".cjs", ".jsx"];
+
+// Where each path of the code diff since FR2_BASE belongs; "application" fails the scope check.
+function fr2PathClass(path) {
+	if (path === FR2_SWEEP_WORKFLOW) return "workflow";
+	if (path === "scripts/mutation-sweep.sh") return "sweep-script";
+	if (path.endsWith(".test.ts") || path.endsWith(".test.tsx")) return "unit-test";
+	if (path.startsWith("src/test/utils/") && path.endsWith(".ts")) return "test-helper";
+	if (path.startsWith("tests/e2e/tests/")) return "e2e";
+	return "application";
+}
+
+const FR2_WS = new Set([" ", "\t", "\n", "\r"]);
+
+// The raw text of the string literal opening at text[open] (a quote), or null when unterminated.
+function fr2Literal(text, open) {
+	const quote = text[open];
+	let raw = "";
+	for (let k = open + 1; k < text.length; k++) {
+		const ch = text[k];
+		if (ch === "\\") {
+			raw += ch + (text[k + 1] ?? "");
+			k++;
+		} else if (ch === quote) return raw;
+		else if (ch === "\n" && quote !== "`") return null;
+		else raw += ch;
+	}
+	return null;
+}
+
+// Every escape-style replace call in `text`: a regex literal as the first argument and a string
+// whose text starts with an escaped backslash as the second. A one-class pattern with the
+// whole-match replacement is a class escape, complete when its class holds every metacharacter; a
+// single escaped metacharacter other than the backslash (the `.` and `$` forms CodeQL flagged) is
+// partial. A backslash-only escape is the first step of string-literal escaping, not a regex escape.
+// A linear scan: indexOf and single passes, no backtracking pattern.
+function fr2EscapeSites(text) {
+	const sites = [];
+	const call = [".rep", "lace("].join("");
+	for (let i = text.indexOf(call); i !== -1; i = text.indexOf(call, i + call.length)) {
+		let k = i + call.length;
+		while (FR2_WS.has(text[k])) k++;
+		if (text[k] !== "/") continue;
+		let body = "";
+		let inClass = false;
+		for (k++; k < text.length && text[k] !== "\n"; k++) {
+			const ch = text[k];
+			if (ch === "\\") {
+				body += ch + (text[k + 1] ?? "");
+				k++;
+				continue;
+			}
+			if (!inClass && ch === "/") break;
+			if (ch === "[") inClass = true;
+			else if (ch === "]") inClass = false;
+			body += ch;
+		}
+		if (text[k] !== "/") continue;
+		for (k++; k < text.length && text[k] >= "a" && text[k] <= "z"; k++);
+		while (FR2_WS.has(text[k])) k++;
+		if (text[k] !== ",") continue;
+		for (k++; FR2_WS.has(text[k]); k++);
+		if (text[k] !== '"' && text[k] !== "'" && text[k] !== "`") continue;
+		const replacement = fr2Literal(text, k);
+		if (replacement === null || !replacement.startsWith("\\\\")) continue;
+		const line = text.slice(0, i).split("\n").length;
+		if (body.length > 2 && body.startsWith("[") && body.endsWith("]") && replacement === "\\\\$&") {
+			const chars = new Set();
+			const inner = body.slice(1, -1);
+			for (let c = 0; c < inner.length; c++) {
+				if (inner[c] === "\\") {
+					chars.add(inner[c + 1]);
+					c++;
+				} else chars.add(inner[c]);
+			}
+			const missing = [...FR2_METACHARS].filter((m) => !chars.has(m)).join("");
+			sites.push({ line, kind: "class", body, complete: missing === "", missing });
+		} else if (body.length === 2 && body[0] === "\\" && body[1] !== "\\" && FR2_METACHARS.includes(body[1])) {
+			sites.push({ line, kind: "single", body, complete: false, missing: FR2_METACHARS.replace(body[1], "") });
+		}
+	}
+	return sites;
+}
+
+function fr2UnitFile(ctx, path) {
+	return (ctx.unit?.files ?? []).find((f) => f.name === path) ?? null;
+}
+
+function fr2FilePasses(ctx, path, titles = []) {
+	const f = fr2UnitFile(ctx, path);
+	if (!f) return { ok: false, measured: MISSING };
+	const missing = titles.filter((t) => !f.tests.some((x) => x.title === t && x.status === "passed"));
+	return { ok: f.status === "passed" && f.numTests > 0 && f.numPassed === f.numTests && missing.length === 0, measured: { status: f.status, numTests: f.numTests, numPassed: f.numPassed, missingTitles: missing } };
+}
+
+function fixRound2Checks(ctx) {
+	const c = createCollector("FR-2", "fix-round-2");
+	const add = (group, name, pass, expected, measured) => {
+		c.add(name, pass, expected, measured);
+		c.checks[c.checks.length - 1].group = group;
+	};
+	const h = fr2FilePasses(ctx, FR2_HELPER_TEST.path, FR2_HELPER_TEST.titles);
+	add("fr2-helper-test", `${FR2_HELPER_TEST.path} present and passing, all ${FR2_HELPER_TEST.titles.length} tests`, h.ok && ctx.exists(FR2_HELPER), "passed", h.measured);
+	const importers = [...(ctx.helperImporters ?? [])].filter((p) => p !== FR2_HELPER_TEST.path).sort();
+	const want = FR2_HELPER_USERS.map((u) => u.path).sort();
+	add("fr2-helper-users", "the modules importing the regexp-source helper equal the recorded list", sortedJson(importers) === sortedJson(want), want.length, { count: importers.length, missing: want.filter((p) => !importers.includes(p)), extra: importers.filter((p) => !want.includes(p)) });
+	for (const u of FR2_HELPER_USERS) {
+		const runs = u.tests.map((t) => [t, fr2FilePasses(ctx, t)]);
+		add("fr2-helper-users", `${u.path} runs and passes (${u.tests.length === 1 && u.tests[0] === u.path ? "itself" : u.tests.join(", ")})`, runs.every(([, r]) => r.ok), "passed", Object.fromEntries(runs.map(([t, r]) => [t, r.measured])));
+	}
+	for (const g of FR2_GUARD_TITLES) {
+		const r = fr2FilePasses(ctx, g.path, g.titles);
+		add("fr2-guard-titles", `${g.path} keeps its fix-round-2 tests, passing`, r.ok, g.titles, r.measured);
+	}
+	const sp = fr2FilePasses(ctx, FR2_SWEEP_TEST.path, FR2_SWEEP_TEST.titles);
+	add("fr2-sweep-partition", `${FR2_SWEEP_TEST.path} (the shard partition proof) present and passing`, sp.ok, FR2_SWEEP_TEST.titles, sp.measured);
+	const wc = fr2FilePasses(ctx, FR2_WORKFLOW_CONTRACT_TEST.path, FR2_WORKFLOW_CONTRACT_TEST.titles);
+	add("fr2-workflow-contract", `${FR2_WORKFLOW_CONTRACT_TEST.path} present and passing`, wc.ok, FR2_WORKFLOW_CONTRACT_TEST.titles, wc.measured);
+	const job = ctx.workflow?.jobs?.sweep ?? {};
+	const matrix = job.strategy?.matrix?.shard;
+	const shardList = Array.from({ length: FR2_SHARDS }, (_, i) => i + 1);
+	const steps = Array.isArray(job.steps) ? job.steps : [];
+	const wfOk = sortedJson(matrix ?? []) === sortedJson(shardList) && Array.isArray(matrix) && matrix.length === FR2_SHARDS && job.strategy?.["fail-fast"] === false && job.env?.SWEEP_SHARD === "${{ matrix.shard }}" && job.env?.SWEEP_SHARDS === "${{ strategy.job-total }}" && job["timeout-minutes"] === FR2_SHARD_TIMEOUT_MINUTES && steps.some((s) => s?.run === "bash scripts/mutation-sweep.sh");
+	add("fr2-sweep-workflow", `${FR2_SWEEP_WORKFLOW}: ${FR2_SHARDS} shards, fail-fast false, each job handed its shard and the matrix size, ${FR2_SHARD_TIMEOUT_MINUTES}-minute timeout`, wfOk, { shards: shardList, failFast: false, timeoutMinutes: FR2_SHARD_TIMEOUT_MINUTES }, { shards: matrix ?? MISSING, failFast: job.strategy?.["fail-fast"] ?? MISSING, env: job.env ?? MISSING, timeoutMinutes: job["timeout-minutes"] ?? MISSING });
+	const sw = ctx.sweep ?? {};
+	const shards = Array.isArray(sw.shards) ? sw.shards : [];
+	const shardRows = shards.reduce((n, s) => n + (s.rows ?? 0), 0);
+	const shardsOk = shards.length === FR2_SHARDS && shards.every((s, i) => s.shard === i + 1 && s.of === FR2_SHARDS && s.rows > 0 && s.caught === s.rows && s.vacuous === 0 && s.notApplied === 0 && s.restored === true && s.exit === 0) && shardRows === ctx.sweepRows;
+	const unshardedOk = sw.rows === ctx.sweepRows && sw.caught === ctx.sweepRows && sw.vacuous === 0 && sw.notApplied === 0 && sw.restored === true && sw.exit === 0;
+	const ls = sw.listing ?? {};
+	const listingOk = ls.rows === ctx.sweepRows && ls.union === ctx.sweepRows && ls.disjoint === true && ls.nonEmpty === true && ls.equalsUnsharded === true && Array.isArray(ls.perShard) && ls.perShard.length === FR2_SHARDS && sortedJson(ls.perShard) === sortedJson(shards.map((s) => s.rows));
+	add("fr2-sweep-shards", `mutation sweep unsharded and as ${FR2_SHARDS} shards: every row caught once, 0 vacuous, 0 not applied, the listing a disjoint cover`, unshardedOk && shardsOk && listingOk, { rows: ctx.sweepRows, shards: FR2_SHARDS }, { unsharded: { rows: sw.rows ?? MISSING, caught: sw.caught ?? MISSING }, shardRows, shards: shards.length, listing: ls });
+	const sites = [];
+	for (const [path, text] of Object.entries(ctx.sources ?? {})) for (const s of fr2EscapeSites(text)) sites.push({ path, ...s });
+	const partial = sites.filter((s) => !s.complete);
+	add("fr2-escape-complete", "every escape-style replace in a tracked JS/TS file escapes every regex metacharacter", Object.keys(ctx.sources ?? {}).length > 0 && partial.length === 0, "0 partial", { sites: sites.length, partial: partial.map((s) => `${s.path}:${s.line} ${s.kind} ${s.body} (missing ${s.missing})`) });
+	const outside = sites.filter((s) => FR2_TEST_ROOTS.some((r) => s.path.startsWith(r)) && !FR2_ESCAPE_HOMES.includes(s.path));
+	const mainDrift = FR2_MAIN_COPIES.filter((p) => ctx.sources?.[p] !== ctx.mainSources?.[p]);
+	add("fr2-escape-homes", "escape helpers under src/, scripts/, tests/ and supabase/functions/__tests__/ live only in the shared helper and main's reclaim-finalize.ts", outside.length === 0 && mainDrift.length === 0, FR2_ESCAPE_HOMES, { elsewhere: outside.map((s) => `${s.path}:${s.line}`), differsFromMain: mainDrift });
+	const redos = [];
+	for (const [label, needle] of FR2_OLD_REDOS) for (const [path, text] of Object.entries(ctx.sources ?? {})) if (text.includes(needle)) redos.push(`${label}: ${path}`);
+	add("fr2-old-redos", "neither backtracking form fix round 2 removed is back in a tracked JS/TS file", redos.length === 0, 0, redos);
+	const diff = ctx.diffPaths ?? [];
+	const app = diff.filter((p) => fr2PathClass(p) === "application");
+	const recorded = (ctx.paths?.paths ?? []).map((p) => `${p.path}\t${p.class}`);
+	const derived = diff.map((p) => `${p}\t${fr2PathClass(p)}`);
+	add("fr2-scope", `the code diff since ${FR2_BASE.slice(0, 9)} holds ${FR2_DIFF_PATHS} paths, none of them application code, and matches f39/fix-round-2-paths.json`, diff.length === FR2_DIFF_PATHS && app.length === 0 && sortedJson(recorded) === sortedJson(derived), { paths: FR2_DIFF_PATHS, application: 0 }, { paths: diff.length, application: app, recordedMatches: sortedJson(recorded) === sortedJson(derived) });
+	const bi = ctx.buildIdentity ?? {};
+	const css = Object.values(bi.compiledCss ?? {});
+	const builds = Array.isArray(bi.builds) ? bi.builds : [];
+	const trees = builds.map((b) => b.tree);
+	const cmp = Array.isArray(bi.comparisons) ? bi.comparisons : [];
+	const biOk = css.length >= 3 && css.every((x) => typeof x === "string" && x.length === 64 && x === css[0]) && ["b628eb9f1", "4433ca833", "f8de0175e"].every((t) => trees.includes(t)) && builds.every((b) => b.exit === 0 && b.files > 0 && b.manifestSha256 === builds[0].manifestSha256) && cmp.length >= 2 && cmp.every((x) => x.differingFiles === 0) && (bi.positiveControl?.differingFiles ?? 0) > 0;
+	add("fr2-build-identity", "the app build and compiled CSS of b628eb9f1, 4433ca833 (the screenshot and probe evidence) and f8de0175e are identical, and a one-constant change is detected", biOk, "identical, control > 0", { compiledCss: bi.compiledCss ?? MISSING, builds: builds.map((b) => `${b.tree} ${b.manifestSha256?.slice(0, 12)} ${b.files}`), comparisons: cmp, positiveControl: bi.positiveControl ?? MISSING });
+	const failedGroups = [...new Set(c.checks.filter((k) => !k.pass).map((k) => k.group))];
+	return { mode: "fix-round-2", checks: c.checks, failedGroups, failed: c.checks.filter((k) => !k.pass).length };
+}
+
+function readFixRound2Context(dir) {
+	const j = (name) => {
+		const p = join(dir, name);
+		return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null;
+	};
+	const git = (args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+	const tracked = git(["ls-files"]).split("\n").filter(Boolean);
+	const sources = {};
+	for (const p of tracked) if (FR2_SOURCE_EXTENSIONS.some((e) => p.endsWith(e)) && existsSync(join(ROOT, p))) sources[p] = readFileSync(join(ROOT, p), "utf8");
+	// The import texts are assembled from parts so this file is not counted as an importer.
+	const viaAlias = ["from \"#test/utils/", "regexp-source\""].join("");
+	const viaSibling = ["from \"./", "regexp-source\""].join("");
+	const importsHelper = (path, text) => text.includes(viaAlias) || (path.startsWith("src/test/utils/") && text.includes(viaSibling));
+	const codeState = git(["log", "-1", "--format=%H", "--", ".", ":(exclude).planning"]).trim();
+	const yaml = createRequire(join(ROOT, "package.json"))("yaml");
+	const sweepText = readFileSync(join(ROOT, "scripts/mutation-sweep.sh"), "utf8");
+	return {
+		unit: j("unit-f39-summary.json"),
+		sweep: j("sweep-f39.json"),
+		buildIdentity: j("build-identity-f39.json"),
+		paths: j("fix-round-2-paths.json"),
+		workflow: yaml.parse(readFileSync(join(ROOT, FR2_SWEEP_WORKFLOW), "utf8")),
+		sweepRows: sweepText.split("\n").filter((l) => /^\s*mutate\s/.test(l)).length,
+		sources,
+		mainSources: Object.fromEntries(FR2_MAIN_COPIES.map((p) => [p, gitShow(FR2_MAIN, p)])),
+		helperImporters: Object.entries(sources)
+			.filter(([p, t]) => p !== FR2_HELPER && importsHelper(p, t))
+			.map(([p]) => p),
+		diffPaths: git(["diff", "--name-only", FR2_BASE, codeState, "--", ".", ":(exclude).planning"]).split("\n").filter(Boolean),
+		exists: (rel) => existsSync(join(ROOT, rel)),
+	};
+}
+
+// Builds call text for the fixtures without this file holding a scannable call.
+const FR2_CALL = [".rep", "lace("].join("");
+
+function fixRound2Fixture() {
+	const pass = (path, titles = []) => ({ name: path, status: "passed", numTests: titles.length + 1, numPassed: titles.length + 1, tests: [...titles.map((title) => ({ title, status: "passed" })), { title: `${path} other`, status: "passed" }] });
+	const files = [pass(FR2_HELPER_TEST.path, FR2_HELPER_TEST.titles), pass(FR2_SWEEP_TEST.path, FR2_SWEEP_TEST.titles), pass(FR2_WORKFLOW_CONTRACT_TEST.path, FR2_WORKFLOW_CONTRACT_TEST.titles)];
+	const named = new Set(files.map((f) => f.name));
+	for (const g of FR2_GUARD_TITLES) {
+		files.push(pass(g.path, g.titles));
+		named.add(g.path);
+	}
+	for (const t of FR2_HELPER_USERS.flatMap((u) => u.tests)) {
+		if (named.has(t)) continue;
+		files.push(pass(t));
+		named.add(t);
+	}
+	const complete = `export const e = (s) => s${FR2_CALL}/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&");\n`;
+	const diffPaths = [FR2_SWEEP_WORKFLOW, "scripts/mutation-sweep.sh", FR2_HELPER, ...Array.from({ length: FR2_DIFF_PATHS - 4 }, (_, i) => `src/x/__tests__/t${i}.test.ts`), "tests/e2e/tests/a.spec.ts"];
+	const shardRows = [23, 23, 23, 22, 22, 22, 22, 22];
+	return {
+		unit: { files },
+		sweep: {
+			rows: 179,
+			caught: 179,
+			vacuous: 0,
+			notApplied: 0,
+			restored: true,
+			exit: 0,
+			shards: shardRows.map((rows, i) => ({ shard: i + 1, of: FR2_SHARDS, rows, caught: rows, vacuous: 0, notApplied: 0, restored: true, exit: 0 })),
+			listing: { rows: 179, union: 179, disjoint: true, nonEmpty: true, equalsUnsharded: true, perShard: [...shardRows] },
+		},
+		buildIdentity: {
+			compiledCss: { b628eb9f1: "a".repeat(64), "4433ca833": "a".repeat(64), f8de0175e: "a".repeat(64) },
+			builds: ["b628eb9f1", "4433ca833", "f8de0175e"].map((tree) => ({ tree, exit: 0, files: 10, manifestSha256: "b".repeat(64) })),
+			comparisons: [{ a: "b628eb9f1", b: "f8de0175e", differingFiles: 0 }, { a: "4433ca833", b: "f8de0175e", differingFiles: 0 }],
+			positiveControl: { differingFiles: 3 },
+		},
+		paths: { paths: diffPaths.map((path) => ({ path, class: fr2PathClass(path) })) },
+		workflow: { jobs: { sweep: { "timeout-minutes": FR2_SHARD_TIMEOUT_MINUTES, strategy: { "fail-fast": false, matrix: { shard: [1, 2, 3, 4, 5, 6, 7, 8] } }, env: { SWEEP_SHARD: "${{ matrix.shard }}", SWEEP_SHARDS: "${{ strategy.job-total }}" }, steps: [{ run: "bun install --frozen-lockfile" }, { run: "bash scripts/mutation-sweep.sh" }] } } },
+		sweepRows: 179,
+		sources: { [FR2_HELPER]: complete, "scripts/reclaim-finalize.ts": complete, ".planning/x/tool.mjs": complete, "src/lib/sanitize.ts": `s${FR2_CALL}/\\\\/g, "\\\\\\\\");\n` },
+		mainSources: { "scripts/reclaim-finalize.ts": complete },
+		helperImporters: [FR2_HELPER_TEST.path, ...FR2_HELPER_USERS.map((u) => u.path)],
+		diffPaths,
+		exists: () => true,
+	};
+}
+
+// One mutation per group; each must fail exactly that group.
+const FR2_MUTATIONS = [
+	["the helper test fails", "fr2-helper-test", (f) => {
+		Object.assign(f.unit.files.find((x) => x.name === FR2_HELPER_TEST.path), { status: "failed", numPassed: 1 });
+	}],
+	["a guard drops the helper", "fr2-helper-users", (f) => {
+		f.helperImporters = f.helperImporters.filter((p) => p !== "src/lib/__tests__/no-deprecated-library-api.test.ts");
+	}],
+	["a helper module's test fails", "fr2-helper-users", (f) => {
+		Object.assign(f.unit.files.find((x) => x.name === "src/app/__tests__/state-fill-contrast.test.ts"), { status: "failed", numPassed: 0 });
+	}],
+	["a guard's linear-time test removed", "fr2-guard-titles", (f) => {
+		const t = f.unit.files.find((x) => x.name === FR2_GUARD_TITLES[1].path);
+		t.tests = t.tests.filter((x) => !x.title.includes("linear time"));
+	}],
+	["the partition proof is gone", "fr2-sweep-partition", (f) => {
+		f.unit.files = f.unit.files.filter((x) => x.name !== FR2_SWEEP_TEST.path);
+	}],
+	["the push-trigger test is gone", "fr2-workflow-contract", (f) => {
+		const t = f.unit.files.find((x) => x.name === FR2_WORKFLOW_CONTRACT_TEST.path);
+		t.tests = t.tests.filter((x) => !x.title.startsWith("the fixture helpers"));
+	}],
+	["a shard dropped from the matrix", "fr2-sweep-workflow", (f) => {
+		f.workflow.jobs.sweep.strategy.matrix.shard = [1, 2, 3, 4, 5, 6, 7];
+	}],
+	["fail-fast back on", "fr2-sweep-workflow", (f) => {
+		f.workflow.jobs.sweep.strategy["fail-fast"] = true;
+	}],
+	["a shard loses a row", "fr2-sweep-shards", (f) => {
+		f.sweep.shards[7].rows = 21;
+		f.sweep.shards[7].caught = 21;
+	}],
+	["the listing overlaps", "fr2-sweep-shards", (f) => {
+		f.sweep.listing.disjoint = false;
+	}],
+	["a partial class escape", "fr2-escape-complete", (f) => {
+		f.sources[".planning/x/tool.mjs"] += `t${FR2_CALL}/[/.]/g, "\\\\$&");\n`;
+	}],
+	["a single-character escape", ["fr2-escape-complete", "fr2-escape-homes"], (f) => {
+		f.sources["src/lib/__tests__/g.test.ts"] = `n${FR2_CALL}/\\$/g, "\\\\$");\n`;
+	}],
+	["a third escape helper under the test roots", "fr2-escape-homes", (f) => {
+		f.sources["src/lib/__tests__/h.test.ts"] = f.sources[FR2_HELPER];
+	}],
+	["main's copy edited", "fr2-escape-homes", (f) => {
+		f.sources["scripts/reclaim-finalize.ts"] += "// edited\n";
+	}],
+	["the nested comment run is back", "fr2-old-redos", (f) => {
+		f.sources["src/components/__tests__/n.test.tsx"] = `const GAP = String.raw\`\\s*(?:\\{\\/\\*${FR2_OLD_REDOS[0][1]}\`;\n`;
+	}],
+	["an application path in the diff", "fr2-scope", (f) => {
+		f.diffPaths[f.diffPaths.length - 1] = "src/components/ui/button.tsx";
+	}],
+	["the build differs", "fr2-build-identity", (f) => {
+		f.buildIdentity.builds[2].manifestSha256 = "c".repeat(64);
+	}],
+	["the positive control saw nothing", "fr2-build-identity", (f) => {
+		f.buildIdentity.positiveControl.differingFiles = 0;
+	}],
+];
+
+function fixRound2SelfTest(failures) {
+	let passed = 0;
+	const clean = fixRound2Checks(fixRound2Fixture());
+	if (clean.failed === 0) passed++;
+	else failures.push(`fix-round-2 clean fixture failed ${JSON.stringify(clean.checks.filter((k) => !k.pass).map((k) => k.name))}`);
+	for (const [name, group, mutate] of FR2_MUTATIONS) {
+		const f = fixRound2Fixture();
+		mutate(f);
+		const r = fixRound2Checks(f);
+		const want = Array.isArray(group) ? group : [group];
+		if (sortedJson(r.failedGroups) === sortedJson(want)) passed++;
+		else failures.push(`fix-round-2 "${name}": failed groups ${JSON.stringify(r.failedGroups)}, expected ${JSON.stringify(want)}`);
+	}
+	return passed;
+}
+
 // ---------- CLI ----------
 
 function arg(name) {
@@ -1115,6 +1552,20 @@ if (fixRoundDir) {
 	process.exit(result.failed === 0 ? 0 : 1);
 }
 
+const fixRound2Dir = arg("--fix-round-2");
+if (fixRound2Dir) {
+	const out = arg("--out");
+	if (!out) {
+		console.error("usage: f39-checks.mjs --fix-round-2 <f39-dir> --out <file>");
+		process.exit(2);
+	}
+	const result = fixRound2Checks(readFixRound2Context(fixRound2Dir));
+	writeFileSync(out, `${JSON.stringify(result, null, "\t")}\n`);
+	for (const k of result.checks.filter((x) => !x.pass)) console.error(`fix-round-2 FAIL: ${k.name}: ${JSON.stringify(k.measured).slice(0, 400)}`);
+	console.log(`f39-checks (fix-round-2): ${result.checks.length} checks, ${result.failed} failed`);
+	process.exit(result.failed === 0 ? 0 : 1);
+}
+
 const decisionsPath = arg("--decisions");
 const bodyPath = arg("--lint-body");
 if (bodyPath) {
@@ -1133,7 +1584,7 @@ const probesPath = arg("--probes");
 const tokensPath = arg("--tokens");
 const probeOnly = process.argv.includes("--probe-only");
 if (!decisionsPath || !outPath || (probeOnly && !probesPath)) {
-	console.error("usage: f39-checks.mjs --decisions <json> [--probes <json>] [--tokens <json>] --out <file> [--probe-only] [--expect-fail CP-n,...] | --self-test | --lint-body <md> --decisions <json> | --fix-round-1 <f39-dir> --out <file>");
+	console.error("usage: f39-checks.mjs --decisions <json> [--probes <json>] [--tokens <json>] --out <file> [--probe-only] [--expect-fail CP-n,...] | --self-test | --lint-body <md> --decisions <json> | --fix-round-1 <f39-dir> --out <file> | --fix-round-2 <f39-dir> --out <file>");
 	process.exit(2);
 }
 const result = run({

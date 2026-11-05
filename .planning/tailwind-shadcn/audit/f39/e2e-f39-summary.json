@@ -1,17 +1,17 @@
 {
-	"command": "bun rf/e2e/run-ci.ts <log> (cwd = worktree; wrapper = the saved pw-3062 config with the smoke, public and owner-axe projects; retries 0; traces off; list reporter) against next start -p 3062 of the HEAD capture build",
-	"build": "capture-3062 (NEXT_PUBLIC_APP_URL=http://localhost:3062)",
+	"command": "bun .planning/tailwind-shadcn/audit/with-env.mjs ./node_modules/.bin/playwright test --config <scratch>/rf2/e2e/pw-3062-ci.config.mts (cwd = worktree; wrapper = the base config's smoke, public and owner-axe projects; retries 0; traces off; list reporter; no webServer) against next start -p 3062 of the f8de0175e capture build",
+	"build": "capture-3062 (NEXT_PUBLIC_APP_URL=http://localhost:3062), build id mX1421BwvdbXHGSS8JPAs, hashed equal to the b628eb9f1 and 4433ca833 builds",
 	"exit": 0,
 	"total": {
-		"passed": 248,
+		"passed": 249,
 		"failed": 0,
-		"skipped": 5
+		"skipped": 4
 	},
 	"projects": {
 		"owner-axe": {
-			"passed": 124,
+			"passed": 125,
 			"failed": 0,
-			"skipped": 2
+			"skipped": 1
 		},
 		"smoke": {
 			"passed": 7,
@@ -24,6 +24,17 @@
 			"skipped": 3
 		}
 	},
+	"reporterTotals": [
+		"4 skipped",
+		"249 passed (6.7m)"
+	],
+	"skipped": [
+		"[owner-axe] tests/e2e/tests/owner-reflow-320.spec.ts › detail and edit pages › owner A's newest maintenance request: its pages do not scroll sideways at 320px",
+		"[public] tests/e2e/tests/public/seo-smoke.spec.ts › SEO Smoke Tests › /blog/[slug] renders visible breadcrumb + dynamic /api/og/blog/ OG image (Plan 06-02)",
+		"[public] tests/e2e/tests/public/seo-smoke.spec.ts › SEO Smoke Tests › /blog/this-slug-does-not-exist returns real HTTP 404 (no soft-200)",
+		"[public] tests/e2e/tests/public/seo-smoke.spec.ts › SEO Smoke Tests › canonical tag on tenantflow-vs-buildium points at /compare/buildium (Blocker-#1)"
+	],
+	"failed": [],
 	"specs": {
 		"tests/e2e/tests/documents-hub.spec.ts": {
 			"passed": 9,
@@ -34,9 +45,9 @@
 			]
 		},
 		"tests/e2e/tests/notifications.spec.ts": {
-			"passed": 3,
+			"passed": 4,
 			"failed": 0,
-			"skipped": 1,
+			"skipped": 0,
 			"projects": [
 				"owner-axe"
 			]

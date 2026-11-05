@@ -1,5 +1,5 @@
 {
-	"changedSrc": 663,
+	"changedSrc": 684,
 	"added": [
 		{
 			"key": "2xl:flex",
@@ -2245,22 +2245,37 @@
 		{
 			"side": "added",
 			"key": "bottom-(--dock-offset)",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1), as the previous f39 attribution recorded"
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+				"src/components/shell/__tests__/quick-actions-dock.test.tsx",
+				"src/components/shell/quick-actions-dock.tsx"
+			]
 		},
 		{
 			"side": "added",
 			"key": "h-(--dock-height)",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1), as the previous f39 attribution recorded"
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+				"src/components/shell/quick-actions-dock.tsx"
+			]
 		},
 		{
 			"side": "removed",
 			"key": "@container",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1), as the previous f39 attribution recorded"
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/components/dashboard/components/kpi-bento-row.tsx"
+			]
 		},
 		{
 			"side": "removed",
 			"key": "lg:col-span-3",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1), as the previous f39 attribution recorded"
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+			]
 		}
 	]
 }

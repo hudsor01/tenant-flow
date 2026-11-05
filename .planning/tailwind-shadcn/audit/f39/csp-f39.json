@@ -1,56 +1,102 @@
 {
-  "build": "capture-3062",
-  "tree": "83929ceb6b3a46a7cd942f54e74ef7d5cebb7f2a (code state 4433ca833)",
-  "method": "66.2-29 Task 3: Playwright Chromium, console errors containing Content Security Policy plus securitypolicyviolation events from an init script",
-  "routes": [
-    {
-      "route": "/login",
-      "status": 200,
-      "nonceCsp": true,
-      "consoleCspErrors": [],
-      "violations": [
-        {
-          "directive": "script-src",
-          "blocked": "eval",
-          "source": "1bsv9ytbtv78z.js",
-          "line": 2,
-          "col": 4409,
-          "disposition": "enforce"
-        }
-      ],
-      "count": 1
-    },
-    {
-      "route": "/auth/confirm-email",
-      "status": 200,
-      "nonceCsp": true,
-      "consoleCspErrors": [],
-      "violations": [],
-      "count": 0
-    },
-    {
-      "route": "/auth/update-password",
-      "status": 200,
-      "nonceCsp": true,
-      "consoleCspErrors": [],
-      "violations": [
-        {
-          "directive": "script-src",
-          "blocked": "eval",
-          "source": "1bsv9ytbtv78z.js",
-          "line": 2,
-          "col": 4409,
-          "disposition": "enforce"
-        }
-      ],
-      "count": 1
-    }
-  ],
-  "control": "66.2-37 csp-final.json and the previous f39 csp-f39.json: the same two zod 4 Function(\"\") probe events (script-src eval, chunk line 2 col 4409; the chunk hash differs by build), verified here in .next/static/chunks/1bsv9ytbtv78z.js line 2",
-  "beyondControl": 0,
-  "ownerManifestCspErrors": 0,
-  "sidebarManifestCspErrors": 0,
-  "ownerCapturesNote": "console errors containing Content Security Policy across every capture of the f39 manifest (92) and the f39-sidebar manifest (60): 0 and 0; the 4476e6450 same-session manifests: 0 and 0. The only console errors on both trees are 184 resource 404s per 92-capture set, equal on both",
-  "total": 0,
-  "totalRule": "total = probe events beyond the control (the two zod Function(\"\") events, /login and /auth/update-password) + ownerManifestCspErrors + sidebarManifestCspErrors"
+	"build": "capture-3062",
+	"tree": "83929ceb6b3a46a7cd942f54e74ef7d5cebb7f2a (code state 4433ca833)",
+	"method": "66.2-29 Task 3: Playwright Chromium, console errors containing Content Security Policy plus securitypolicyviolation events from an init script",
+	"routes": [
+		{
+			"route": "/login",
+			"status": 200,
+			"nonceCsp": true,
+			"consoleCspErrors": [],
+			"violations": [
+				{
+					"directive": "script-src",
+					"blocked": "eval",
+					"source": "1bsv9ytbtv78z.js",
+					"line": 2,
+					"col": 4409,
+					"disposition": "enforce"
+				}
+			],
+			"count": 1
+		},
+		{
+			"route": "/auth/confirm-email",
+			"status": 200,
+			"nonceCsp": true,
+			"consoleCspErrors": [],
+			"violations": [],
+			"count": 0
+		},
+		{
+			"route": "/auth/update-password",
+			"status": 200,
+			"nonceCsp": true,
+			"consoleCspErrors": [],
+			"violations": [
+				{
+					"directive": "script-src",
+					"blocked": "eval",
+					"source": "1bsv9ytbtv78z.js",
+					"line": 2,
+					"col": 4409,
+					"disposition": "enforce"
+				}
+			],
+			"count": 1
+		}
+	],
+	"control": "66.2-37 csp-final.json and the previous f39 csp-f39.json: the same two zod 4 Function(\"\") probe events (script-src eval, chunk line 2 col 4409; the chunk hash differs by build), verified here in .next/static/chunks/1bsv9ytbtv78z.js line 2",
+	"beyondControl": 0,
+	"ownerManifestCspErrors": 0,
+	"sidebarManifestCspErrors": 0,
+	"ownerCapturesNote": "console errors containing Content Security Policy across every capture of the f39 manifest (92) and the f39-sidebar manifest (60): 0 and 0; the 4476e6450 same-session manifests: 0 and 0. The only console errors on both trees are 184 resource 404s per 92-capture set, equal on both",
+	"total": 0,
+	"totalRule": "total = probe events beyond the control (the two zod Function(\"\") events, /login and /auth/update-password) + ownerManifestCspErrors + sidebarManifestCspErrors",
+	"fixRound2Reprobe": {
+		"tree": "f8de0175e",
+		"build": "capture-3062, build id mX1421BwvdbXHGSS8JPAs, hashed equal to the 4433ca833 build this file measured (f39/build-identity-f39.json)",
+		"date": "2026-11-04",
+		"routes": [
+			{
+				"route": "/login",
+				"status": 200,
+				"nonceCsp": true,
+				"count": 1,
+				"violations": [
+					{
+						"directive": "script-src",
+						"blocked": "eval",
+						"source": "1bsv9ytbtv78z.js",
+						"line": 2,
+						"col": 4409
+					}
+				]
+			},
+			{
+				"route": "/auth/confirm-email",
+				"status": 200,
+				"nonceCsp": true,
+				"count": 0,
+				"violations": []
+			},
+			{
+				"route": "/auth/update-password",
+				"status": 200,
+				"nonceCsp": true,
+				"count": 1,
+				"violations": [
+					{
+						"directive": "script-src",
+						"blocked": "eval",
+						"source": "1bsv9ytbtv78z.js",
+						"line": 2,
+						"col": 4409
+					}
+				]
+			}
+		],
+		"sameAsRecorded": true,
+		"note": "the recorded routes, counts and events (directive, blocked, chunk, line, column) repeat exactly; the manifest counts carry forward with the build"
+	}
 }

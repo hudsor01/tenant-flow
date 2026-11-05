@@ -1,0 +1,266 @@
+{
+	"range": "b628eb9f1..f8de0175e (git diff --name-status, .planning excluded)",
+	"rule": "unit-test: *.test.ts(x); test-helper: src/test/utils/*.ts; e2e: tests/e2e/tests/**; sweep-script: scripts/mutation-sweep.sh; workflow: .github/workflows/mutation-sweep.yml; anything else is application code (f39-checks.mjs fr2PathClass)",
+	"total": 42,
+	"counts": {
+		"workflow": 1,
+		"sweep-script": 1,
+		"unit-test": 28,
+		"test-helper": 3,
+		"e2e": 9
+	},
+	"paths": [
+		{
+			"path": ".github/workflows/mutation-sweep.yml",
+			"status": "M",
+			"class": "workflow",
+			"readBy": "GitHub Actions (the Mutation Sweep workflow) and scripts/mutation-sweep.test.ts"
+		},
+		{
+			"path": "scripts/mutation-sweep.sh",
+			"status": "M",
+			"class": "sweep-script",
+			"readBy": "the mutation-sweep.yml job (and scripts/mutation-sweep.test.ts, which runs its SWEEP_LIST mode); imported by nothing"
+		},
+		{
+			"path": "scripts/mutation-sweep.test.ts",
+			"status": "A",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 5/5 tests"
+		},
+		{
+			"path": "scripts/reclaim-finalize.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 20/20 tests"
+		},
+		{
+			"path": "scripts/workflow-contract.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 27/27 tests"
+		},
+		{
+			"path": "src/app/__tests__/design-token-drift.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 2679/2679 tests"
+		},
+		{
+			"path": "src/app/__tests__/global-error-fonts.test.tsx",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 2/2 tests"
+		},
+		{
+			"path": "src/app/__tests__/marketing-home.test.tsx",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 4/4 tests"
+		},
+		{
+			"path": "src/components/__tests__/no-nested-interactive.test.tsx",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 6/6 tests"
+		},
+		{
+			"path": "src/components/documents/__tests__/documents-section.test.tsx",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 21/21 tests"
+		},
+		{
+			"path": "src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 5/5 tests"
+		},
+		{
+			"path": "src/components/shell/__tests__/label-in-name.test.tsx",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 3/3 tests"
+		},
+		{
+			"path": "src/components/ui/__tests__/blur-fade-grid-placement.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 5/5 tests"
+		},
+		{
+			"path": "src/hooks/api/__tests__/collection-rate-mapper.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 9/9 tests"
+		},
+		{
+			"path": "src/hooks/api/__tests__/data-layer-callers.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 2/2 tests"
+		},
+		{
+			"path": "src/hooks/api/__tests__/report-mutations-have-callers.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 4/4 tests"
+		},
+		{
+			"path": "src/hooks/api/query-keys/__tests__/application-keys.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 40/40 tests"
+		},
+		{
+			"path": "src/hooks/api/query-keys/__tests__/application-link-keys.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 21/21 tests"
+		},
+		{
+			"path": "src/hooks/api/query-keys/__tests__/notification-keys.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 12/12 tests"
+		},
+		{
+			"path": "src/hooks/api/query-keys/document-category-keys.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 6/6 tests"
+		},
+		{
+			"path": "src/hooks/api/query-keys/document-keys.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 7/7 tests"
+		},
+		{
+			"path": "src/lib/__tests__/breadcrumbs.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 30/30 tests"
+		},
+		{
+			"path": "src/lib/__tests__/no-always-empty-local-list.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 4/4 tests"
+		},
+		{
+			"path": "src/lib/__tests__/no-deprecated-library-api.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 10/10 tests"
+		},
+		{
+			"path": "src/lib/__tests__/one-label-per-value.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 9/9 tests"
+		},
+		{
+			"path": "src/lib/__tests__/regexp-source.test.ts",
+			"status": "A",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 11/11 tests"
+		},
+		{
+			"path": "src/lib/formatters/__tests__/count-labels-agree.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 4/4 tests"
+		},
+		{
+			"path": "src/test/utils/oklch-contrast.ts",
+			"status": "M",
+			"class": "test-helper",
+			"readBy": "imported only by test code (3: src/app/__tests__/design-token-drift.test.ts, src/app/__tests__/destructive-pair-contrast.test.ts, src/test/utils/state-fill-pairs.ts); outside the root tsconfig (src/test/**); read by Tailwind's source scan (not a *.test.* file), adding no valid candidate"
+		},
+		{
+			"path": "src/test/utils/regexp-source.ts",
+			"status": "A",
+			"class": "test-helper",
+			"readBy": "imported only by test code (27: scripts/reclaim-finalize.test.ts, src/app/__tests__/design-token-drift.test.ts, src/app/__tests__/global-error-fonts.test.tsx, src/app/__tests__/marketing-home.test.tsx, src/components/__tests__/no-nested-interactive.test.tsx, src/components/documents/__tests__/documents-section.test.tsx, src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx, src/components/shell/__tests__/label-in-name.test.tsx, src/components/ui/__tests__/blur-fade-grid-placement.test.ts, src/hooks/api/__tests__/collection-rate-mapper.test.ts, src/hooks/api/__tests__/data-layer-callers.test.ts, src/hooks/api/__tests__/report-mutations-have-callers.test.ts, src/hooks/api/query-keys/__tests__/application-keys.test.ts, src/hooks/api/query-keys/__tests__/application-link-keys.test.ts, src/hooks/api/query-keys/__tests__/notification-keys.test.ts, src/hooks/api/query-keys/document-category-keys.test.ts, src/hooks/api/query-keys/document-keys.test.ts, src/lib/__tests__/breadcrumbs.test.ts, src/lib/__tests__/no-always-empty-local-list.test.ts, src/lib/__tests__/no-deprecated-library-api.test.ts, src/lib/__tests__/one-label-per-value.test.ts, src/lib/__tests__/regexp-source.test.ts, src/lib/formatters/__tests__/count-labels-agree.test.ts, src/test/utils/oklch-contrast.ts, src/test/utils/state-fill-pairs.ts, src/types/sections/__tests__/inspections.test.ts, supabase/functions/__tests__/rate-limit.test.ts); outside the root tsconfig (src/test/**); read by Tailwind's source scan (not a *.test.* file), adding no valid candidate"
+		},
+		{
+			"path": "src/test/utils/state-fill-pairs.ts",
+			"status": "M",
+			"class": "test-helper",
+			"readBy": "imported only by test code (1: src/app/__tests__/state-fill-contrast.test.ts); outside the root tsconfig (src/test/**); read by Tailwind's source scan (not a *.test.* file), adding no valid candidate"
+		},
+		{
+			"path": "src/types/sections/__tests__/inspections.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 10/10 tests"
+		},
+		{
+			"path": "supabase/functions/__tests__/rate-limit.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 101/101 tests"
+		},
+		{
+			"path": "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts",
+			"status": "M",
+			"class": "unit-test",
+			"readBy": "Vitest unit project: passed, 3/3 tests"
+		},
+		{
+			"path": "tests/e2e/tests/documents-hub.spec.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright, CI set (owner-axe): 9 passed, 0 failed, 0 skipped in this re-freeze"
+		},
+		{
+			"path": "tests/e2e/tests/helpers/form-helpers.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright helper imported by 2 spec(s), 0 of them in CI's e2e-smoke set; typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/helpers/modal-helpers.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright helper imported by 5 spec(s), 0 of them in CI's e2e-smoke set; typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/helpers/navigation-helpers.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright helper imported by 8 spec(s), 0 of them in CI's e2e-smoke set; typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/helpers/ui-validation-helpers.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright helper imported by 7 spec(s), 0 of them in CI's e2e-smoke set; typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/owner/owner-authentication.e2e.spec.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright `owner` project, outside CI's e2e-smoke set (smoke, public, owner-axe); typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/owner/owner-dashboard.e2e.spec.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright `owner` project, outside CI's e2e-smoke set (smoke, public, owner-axe); typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/owner/owner-navigation.e2e.spec.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright `owner` project, outside CI's e2e-smoke set (smoke, public, owner-axe); typechecked by tsc -p tests/e2e"
+		},
+		{
+			"path": "tests/e2e/tests/owner/owner-reports.e2e.spec.ts",
+			"status": "M",
+			"class": "e2e",
+			"readBy": "Playwright `owner` project, outside CI's e2e-smoke set (smoke, public, owner-axe); typechecked by tsc -p tests/e2e"
+		}
+	]
+}

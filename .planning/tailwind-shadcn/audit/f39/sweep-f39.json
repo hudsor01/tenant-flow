@@ -1,8 +1,150 @@
 {
 	"command": "bash scripts/mutation-sweep.sh",
+	"tree": "f8de0175e (codeStateSha)",
 	"exit": 0,
+	"rows": 179,
 	"caught": 179,
 	"vacuous": 0,
 	"notApplied": 0,
-	"restored": true
+	"restored": true,
+	"seconds": 400,
+	"shardCommand": "SWEEP_SHARD=i SWEEP_SHARDS=8 bash scripts/mutation-sweep.sh, i = 1..8 in turn (the CI matrix runs them as 8 jobs)",
+	"shards": [
+		{
+			"shard": 1,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 53,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 2,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 53,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 3,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 53,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 4,
+			"of": 8,
+			"rows": 22,
+			"caught": 22,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 51,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 5,
+			"of": 8,
+			"rows": 22,
+			"caught": 22,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 51,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 6,
+			"of": 8,
+			"rows": 22,
+			"caught": 22,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 51,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 7,
+			"of": 8,
+			"rows": 22,
+			"caught": 22,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 51,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 8,
+			"of": 8,
+			"rows": 22,
+			"caught": 22,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 51,
+			"treeCleanAfter": true
+		}
+	],
+	"shardTotals": {
+		"rows": 179,
+		"caught": 179,
+		"vacuous": 0,
+		"notApplied": 0
+	},
+	"listing": {
+		"command": "SWEEP_LIST=1 [SWEEP_SHARD=i SWEEP_SHARDS=8] bash scripts/mutation-sweep.sh (touches nothing)",
+		"exits": {
+			"all": 0,
+			"shards": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0
+			]
+		},
+		"rows": 179,
+		"union": 179,
+		"disjoint": true,
+		"nonEmpty": true,
+		"equalsUnsharded": true,
+		"perShard": [
+			23,
+			23,
+			23,
+			22,
+			22,
+			22,
+			22,
+			22
+		],
+		"rowRule": "row r runs in shard ((r - 1) mod 8) + 1",
+		"ruleHolds": true
+	},
+	"ci": "Mutation Sweep run 41636133372 on f8de0175e: sweep (1) to sweep (8) all success, 5 min 46 s to 7 min 31 s; on bc54b045a, run 41583913257 (one job) was cancelled by timeout-minutes 45 after 155 of 179 rows"
 }

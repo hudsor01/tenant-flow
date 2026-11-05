@@ -1,23 +1,23 @@
 {
-	"tree": "b628eb9f1 (codeStateSha)",
-	"numTotalTests": 113810,
-	"numPassedTests": 113810,
+	"tree": "f8de0175e (codeStateSha)",
+	"numTotalTests": 113834,
+	"numPassedTests": 113834,
 	"numFailedTests": 0,
-	"numTotalTestSuites": 8067,
-	"numFiles": 454,
+	"numTotalTestSuites": 8074,
+	"numFiles": 456,
 	"coverage": {
-		"statements": 71.83,
-		"branches": 63.56,
-		"functions": 70.8,
-		"lines": 73.68
+		"statements": 71.85,
+		"branches": 63.58,
+		"functions": 70.81,
+		"lines": 73.69
 	},
 	"coverageCounts": {
-		"statements": "11329/15771",
-		"branches": "7837/12329",
-		"functions": "3145/4442",
-		"lines": "10673/14485"
+		"statements": "11337/15778",
+		"branches": "7842/12333",
+		"functions": "3147/4444",
+		"lines": "10679/14491"
 	},
-	"coverageNote": "the run on 4433ca833 read 71.84 / 63.57 (11330, 7838); b628eb9f1 changes two test comments only, and its own lefthook run read 71.84: a one-statement, one-branch run-to-run variation (part O2 saw the same)",
+	"coverageNote": "b628eb9f1's run read 71.83 / 63.56 / 70.8 / 73.68 (11329/15771, 7837/12329, 3145/4442, 10673/14485); fix round 2 adds src/test/utils/regexp-source.ts and otherwise changes only tests, and this run reads 11337/15778, 7842/12333, 3147/4444, 10679/14491",
 	"thresholds": {
 		"statements": 64,
 		"branches": 56,
@@ -358,7 +358,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "gateOnCritique (fail-closed judge gate) a persistently-rejecting judge THROWS after MAX_CRITIQUE rounds \u2014 never returns a draft to POST",
+					"title": "gateOnCritique (fail-closed judge gate) a persistently-rejecting judge THROWS after MAX_CRITIQUE rounds — never returns a draft to POST",
 					"status": "passed"
 				},
 				{
@@ -438,7 +438,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "blogSlugExists dedup probe (BLOG-09a) rejects on a PostgREST error \u2014 never silently false",
+					"title": "blogSlugExists dedup probe (BLOG-09a) rejects on a PostgREST error — never silently false",
 					"status": "passed"
 				},
 				{
@@ -458,7 +458,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "sanitizeBanlist substring safety (EF gate matches substrings) neutralizes \"unpaid rent\" (contains the \"paid rent\" substring \u2014 exec 282/283 failure)",
+					"title": "sanitizeBanlist substring safety (EF gate matches substrings) neutralizes \"unpaid rent\" (contains the \"paid rent\" substring — exec 282/283 failure)",
 					"status": "passed"
 				},
 				{
@@ -502,19 +502,19 @@
 					"status": "passed"
 				},
 				{
-					"title": "capH2Count (h2_count gate, max 10 \u2014 keep 9, demote the rest) demotes H2s beyond the 9th to H3, preserving every line",
+					"title": "capH2Count (h2_count gate, max 10 — keep 9, demote the rest) demotes H2s beyond the 9th to H3, preserving every line",
 					"status": "passed"
 				},
 				{
-					"title": "capH2Count (h2_count gate, max 10 \u2014 keep 9, demote the rest) leaves compliant content (<=9 H2s) untouched",
+					"title": "capH2Count (h2_count gate, max 10 — keep 9, demote the rest) leaves compliant content (<=9 H2s) untouched",
 					"status": "passed"
 				},
 				{
-					"title": "capH2Count (h2_count gate, max 10 \u2014 keep 9, demote the rest) does not touch existing H3s while counting H2s",
+					"title": "capH2Count (h2_count gate, max 10 — keep 9, demote the rest) does not touch existing H3s while counting H2s",
 					"status": "passed"
 				},
 				{
-					"title": "capH2Count (h2_count gate, max 10 \u2014 keep 9, demote the rest) never demotes the FAQ heading (faq_required needs it as an H2)",
+					"title": "capH2Count (h2_count gate, max 10 — keep 9, demote the rest) never demotes the FAQ heading (faq_required needs it as an H2)",
 					"status": "passed"
 				},
 				{
@@ -1976,6 +1976,34 @@
 			]
 		},
 		{
+			"name": "scripts/mutation-sweep.test.ts",
+			"status": "passed",
+			"numTests": 5,
+			"numPassed": 5,
+			"tests": [
+				{
+					"title": "the mutation sweep's shards lists every row once, in order, with no shard set",
+					"status": "passed"
+				},
+				{
+					"title": "the mutation sweep's shards hands each matrix job its shard and the matrix size",
+					"status": "passed"
+				},
+				{
+					"title": "the mutation sweep's shards splits the rows into disjoint, non-empty shards whose union is every row",
+					"status": "passed"
+				},
+				{
+					"title": "the mutation sweep's shards refuses a half-set, malformed or out-of-range shard",
+					"status": "passed"
+				},
+				{
+					"title": "the mutation sweep's shards fails a shard that holds no row",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "scripts/platform-config-assertions.test.ts",
 			"status": "passed",
 			"numTests": 58,
@@ -2366,7 +2394,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "fetchAllSlugs rejects on a page error \u2014 never a silent partial set",
+					"title": "fetchAllSlugs rejects on a page error — never a silent partial set",
 					"status": "passed"
 				},
 				{
@@ -2430,8 +2458,8 @@
 		{
 			"name": "scripts/workflow-contract.test.ts",
 			"status": "passed",
-			"numTests": 26,
-			"numPassed": 26,
+			"numTests": 27,
+			"numPassed": 27,
 			"tests": [
 				{
 					"title": "the real workflows satisfy the contract collected workflows to check",
@@ -2535,6 +2563,10 @@
 				},
 				{
 					"title": "the three legal spellings of on:, and both extensions collects .yaml as well as .yml, because GitHub accepts both",
+					"status": "passed"
+				},
+				{
+					"title": "the fixture helpers the push-trigger matcher fails in linear time",
 					"status": "passed"
 				}
 			]
@@ -2650,7 +2682,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "AddTenantModal - application prefill (APPLY-04, Pitfall 6) resolves the applicant from the id alone \u2014 the URL carries no PII",
+					"title": "AddTenantModal - application prefill (APPLY-04, Pitfall 6) resolves the applicant from the id alone — the URL carries no PII",
 					"status": "passed"
 				},
 				{
@@ -3050,35 +3082,35 @@
 			"numPassed": 8,
 			"tests": [
 				{
-					"title": "BillingPlansPage \u2014 BILL-01 portal-vs-checkout routing routes a past_due live subscriber to the billing PORTAL, never a second checkout",
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing routes a past_due live subscriber to the billing PORTAL, never a second checkout",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 BILL-01 portal-vs-checkout routing shows the Manage Subscription button for a live subscriber whose plan is unresolved (legacy/comp price id)",
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing shows the Manage Subscription button for a live subscriber whose plan is unresolved (legacy/comp price id)",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 BILL-01 portal-vs-checkout routing keeps an abandoned-checkout trial (trialing, customer set, no synced period) on the checkout path",
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing keeps an abandoned-checkout trial (trialing, customer set, no synced period) on the checkout path",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 BILL-01 portal-vs-checkout routing treats a Stripe-checkout trial (trialing, customer + synced period) as a live subscriber",
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing treats a Stripe-checkout trial (trialing, customer + synced period) as a live subscriber",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 BILL-01 portal-vs-checkout routing keeps a DB-managed trial (trialing, no Stripe customer) on the checkout path \u2014 no portal button",
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing keeps a DB-managed trial (trialing, no Stripe customer) on the checkout path — no portal button",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 BILL-08 trial card excluded does not render the DB-managed Free Trial as a purchasable card",
+					"title": "BillingPlansPage — BILL-08 trial card excluded does not render the DB-managed Free Trial as a purchasable card",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 plan-card confirm routing (BILL-01 anti-double-billing) routes a live subscriber's plan-card selection to the PORTAL via UpgradeDialog, never createCheckoutSession",
+					"title": "BillingPlansPage — plan-card confirm routing (BILL-01 anti-double-billing) routes a live subscriber's plan-card selection to the PORTAL via UpgradeDialog, never createCheckoutSession",
 					"status": "passed"
 				},
 				{
-					"title": "BillingPlansPage \u2014 plan-card confirm routing (BILL-01 anti-double-billing) routes a DB-managed trial's plan-card selection to createCheckoutSession, not the portal",
+					"title": "BillingPlansPage — plan-card confirm routing (BILL-01 anti-double-billing) routes a DB-managed trial's plan-card selection to createCheckoutSession, not the portal",
 					"status": "passed"
 				}
 			]
@@ -3322,91 +3354,91 @@
 			"numPassed": 22,
 			"tests": [
 				{
-					"title": "RecentDocumentsPanel \u2014 the shared-cache guarantee (SC-3, D-02) calls documentSearchQueries.list with exactly { page: 0 } on every render",
+					"title": "RecentDocumentsPanel — the shared-cache guarantee (SC-3, D-02) calls documentSearchQueries.list with exactly { page: 0 } on every render",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the shared-cache guarantee (SC-3, D-02) resolves to the vault's default unfiltered cache key, spelled out",
+					"title": "RecentDocumentsPanel — the shared-cache guarantee (SC-3, D-02) resolves to the vault's default unfiltered cache key, spelled out",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) renders exactly five skeleton rows while loading, never a spinner",
+					"title": "RecentDocumentsPanel — the four states (§I-3) renders exactly five skeleton rows while loading, never a spinner",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) shows skeletons, never the empty copy, while pending but not fetching",
+					"title": "RecentDocumentsPanel — the four states (§I-3) shows skeletons, never the empty copy, while pending but not fetching",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) zeroes the base p margin only where gap, not space-y, does the spacing",
+					"title": "RecentDocumentsPanel — the four states (§I-3) zeroes the base p margin only where gap, not space-y, does the spacing",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) zeroes the base p margin on the empty-state description",
+					"title": "RecentDocumentsPanel — the four states (§I-3) zeroes the base p margin on the empty-state description",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) leaves the error copy's margin to its space-y-2 parent",
+					"title": "RecentDocumentsPanel — the four states (§I-3) leaves the error copy's margin to its space-y-2 parent",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) neutralizes the global ul indent without defeating the spacing rungs",
+					"title": "RecentDocumentsPanel — the four states (§I-3) neutralizes the global ul indent without defeating the spacing rungs",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) long titles can actually truncate (\u00a7I-2) gives the title a block box that can shrink and clip",
+					"title": "RecentDocumentsPanel — the four states (§I-3) long titles can actually truncate (§I-2) gives the title a block box that can shrink and clip",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) long titles can actually truncate (\u00a7I-2) lets the content column shrink below its min-content width",
+					"title": "RecentDocumentsPanel — the four states (§I-3) long titles can actually truncate (§I-2) lets the content column shrink below its min-content width",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) long titles can actually truncate (\u00a7I-2) renders the file_path when title is null",
+					"title": "RecentDocumentsPanel — the four states (§I-3) long titles can actually truncate (§I-2) renders the file_path when title is null",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) category labels come from the owner's table, not the seed map uses a renamed default category's label",
+					"title": "RecentDocumentsPanel — the four states (§I-3) category labels come from the owner's table, not the seed map uses a renamed default category's label",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) category labels come from the owner's table, not the seed map uses a custom slug's label instead of the prettifier",
+					"title": "RecentDocumentsPanel — the four states (§I-3) category labels come from the owner's table, not the seed map uses a custom slug's label instead of the prettifier",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) category labels come from the owner's table, not the seed map still renders rows with a fallback label while categories are pending",
+					"title": "RecentDocumentsPanel — the four states (§I-3) category labels come from the owner's table, not the seed map still renders rows with a fallback label while categories are pending",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) falls back to the prettifier for the prototype-chain slug __proto__",
+					"title": "RecentDocumentsPanel — the four states (§I-3) falls back to the prettifier for the prototype-chain slug __proto__",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) falls back to the prettifier for the prototype-chain slug constructor",
+					"title": "RecentDocumentsPanel — the four states (§I-3) falls back to the prettifier for the prototype-chain slug constructor",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) renders the D-12 empty copy and names no entity type",
+					"title": "RecentDocumentsPanel — the four states (§I-3) renders the D-12 empty copy and names no entity type",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the four states (\u00a7I-3) renders inline error copy plus a working Retry, and leaks no driver string",
+					"title": "RecentDocumentsPanel — the four states (§I-3) renders inline error copy plus a working Retry, and leaks no driver string",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the success state shows the first five rows in server order and drops the rest",
+					"title": "RecentDocumentsPanel — the success state shows the first five rows in server order and drops the rest",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the success state renders rows as non-interactive previews \u2014 no link, no button, no href (D-03)",
+					"title": "RecentDocumentsPanel — the success state renders rows as non-interactive previews — no link, no button, no href (D-03)",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the success state offers exactly one door: View all documents -> /documents/vault",
+					"title": "RecentDocumentsPanel — the success state offers exactly one door: View all documents -> /documents/vault",
 					"status": "passed"
 				},
 				{
-					"title": "RecentDocumentsPanel \u2014 the success state escapes an injection payload in a document title (T-65-05)",
+					"title": "RecentDocumentsPanel — the success state escapes an injection payload in a document title (T-65-05)",
 					"status": "passed"
 				}
 			]
@@ -4178,7 +4210,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "D-18 the accounting exemption stays bounded is EXACTLY this list \u2014 widening it must be a deliberate, visible edit",
+					"title": "D-18 the accounting exemption stays bounded is EXACTLY this list — widening it must be a deliberate, visible edit",
 					"status": "passed"
 				},
 				{
@@ -4190,7 +4222,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "D-18 the accounting exemption stays bounded is not stale \u2014 src/app/(owner)/reports/income-statement/ still carries a label the scan would flag",
+					"title": "D-18 the accounting exemption stays bounded is not stale — src/app/(owner)/reports/income-statement/ still carries a label the scan would flag",
 					"status": "passed"
 				},
 				{
@@ -4670,7 +4702,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "AddTenantPage - application prefill (APPLY-04, Pitfall 6) resolves the applicant from the id alone \u2014 the URL carries no PII",
+					"title": "AddTenantPage - application prefill (APPLY-04, Pitfall 6) resolves the applicant from the id alone — the URL carries no PII",
 					"status": "passed"
 				},
 				{
@@ -4784,19 +4816,19 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "CONS-14 \u2014 comparison-table de-duplication homepage does NOT import ComparisonTable (named, braceless, or aliased)",
+					"title": "CONS-14 — comparison-table de-duplication homepage does NOT import ComparisonTable (named, braceless, or aliased)",
 					"status": "passed"
 				},
 				{
-					"title": "CONS-14 \u2014 comparison-table de-duplication homepage does NOT render ComparisonTable (direct or aliased)",
+					"title": "CONS-14 — comparison-table de-duplication homepage does NOT render ComparisonTable (direct or aliased)",
 					"status": "passed"
 				},
 				{
-					"title": "CONS-14 \u2014 comparison-table de-duplication homepage keeps the CONS-14 removal-marker comment",
+					"title": "CONS-14 — comparison-table de-duplication homepage keeps the CONS-14 removal-marker comment",
 					"status": "passed"
 				},
 				{
-					"title": "CONS-14 \u2014 comparison-table de-duplication /features still renders ComparisonTable (canonical kept instance)",
+					"title": "CONS-14 — comparison-table de-duplication /features still renders ComparisonTable (canonical kept instance)",
 					"status": "passed"
 				}
 			]
@@ -4808,51 +4840,51 @@
 			"numPassed": 12,
 			"tests": [
 				{
-					"title": "Phase 13 PERF-01 \u2014 /blog is server-rendered blog/page.tsx is a server component (no 'use client' directive)",
+					"title": "Phase 13 PERF-01 — /blog is server-rendered blog/page.tsx is a server component (no 'use client' directive)",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-01 \u2014 /blog is server-rendered blog/page.tsx does not opt out of server rendering via dynamic = 'force-dynamic'",
+					"title": "Phase 13 PERF-01 — /blog is server-rendered blog/page.tsx does not opt out of server rendering via dynamic = 'force-dynamic'",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-02 \u2014 marketing pages have explicit cache config homepage (src/app/page.tsx) declares static gen or ISR",
+					"title": "Phase 13 PERF-02 — marketing pages have explicit cache config homepage (src/app/page.tsx) declares static gen or ISR",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-02 \u2014 marketing pages have explicit cache config /pricing (src/app/pricing/page.tsx) declares static gen or ISR",
+					"title": "Phase 13 PERF-02 — marketing pages have explicit cache config /pricing (src/app/pricing/page.tsx) declares static gen or ISR",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-02 \u2014 marketing pages have explicit cache config /features (src/app/features/page.tsx) declares static gen or ISR",
+					"title": "Phase 13 PERF-02 — marketing pages have explicit cache config /features (src/app/features/page.tsx) declares static gen or ISR",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-02 \u2014 marketing pages have explicit cache config /about (src/app/about/page.tsx) declares static gen or ISR",
+					"title": "Phase 13 PERF-02 — marketing pages have explicit cache config /about (src/app/about/page.tsx) declares static gen or ISR",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-02 \u2014 marketing pages have explicit cache config /compare/[competitor] (src/app/compare/[competitor]/page.tsx) declares static gen or ISR",
+					"title": "Phase 13 PERF-02 — marketing pages have explicit cache config /compare/[competitor] (src/app/compare/[competitor]/page.tsx) declares static gen or ISR",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-03 \u2014 StickyConversionCta mounted on conversion-critical pages /pricing mounts <StickyConversionCta />",
+					"title": "Phase 13 PERF-03 — StickyConversionCta mounted on conversion-critical pages /pricing mounts <StickyConversionCta />",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-03 \u2014 StickyConversionCta mounted on conversion-critical pages /faq mounts <StickyConversionCta />",
+					"title": "Phase 13 PERF-03 — StickyConversionCta mounted on conversion-critical pages /faq mounts <StickyConversionCta />",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-03 \u2014 StickyConversionCta mounted on conversion-critical pages /features mounts <StickyConversionCta />",
+					"title": "Phase 13 PERF-03 — StickyConversionCta mounted on conversion-critical pages /features mounts <StickyConversionCta />",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-04 \u2014 LeadCaptureModal is feature-flag gated LeadCaptureModal gates on NEXT_PUBLIC_LEAD_CAPTURE_MODAL === 'on'",
+					"title": "Phase 13 PERF-04 — LeadCaptureModal is feature-flag gated LeadCaptureModal gates on NEXT_PUBLIC_LEAD_CAPTURE_MODAL === 'on'",
 					"status": "passed"
 				},
 				{
-					"title": "Phase 13 PERF-04 \u2014 LeadCaptureModal is feature-flag gated LeadCaptureModal mounts on /pricing and /compare/[competitor]",
+					"title": "Phase 13 PERF-04 — LeadCaptureModal is feature-flag gated LeadCaptureModal mounts on /pricing and /compare/[competitor]",
 					"status": "passed"
 				}
 			]
@@ -4928,39 +4960,39 @@
 			"numPassed": 9,
 			"tests": [
 				{
-					"title": "SEO-07 aria-current audit \u2014 marketing nav at most one nav href is active on /",
+					"title": "SEO-07 aria-current audit — marketing nav at most one nav href is active on /",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 marketing nav at most one nav href is active on /pricing",
+					"title": "SEO-07 aria-current audit — marketing nav at most one nav href is active on /pricing",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 marketing nav at most one nav href is active on /features",
+					"title": "SEO-07 aria-current audit — marketing nav at most one nav href is active on /features",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 marketing nav at most one nav href is active on /compare/buildium",
+					"title": "SEO-07 aria-current audit — marketing nav at most one nav href is active on /compare/buildium",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 marketing nav at most one nav href is active on /resources",
+					"title": "SEO-07 aria-current audit — marketing nav at most one nav href is active on /resources",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 marketing nav at most one nav href is active on /blog",
+					"title": "SEO-07 aria-current audit — marketing nav at most one nav href is active on /blog",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 homepage does not mark /compare active isActiveLink('/compare', '/') is false",
+					"title": "SEO-07 aria-current audit — homepage does not mark /compare active isActiveLink('/compare', '/') is false",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 breadcrumb leaf CompareBreadcrumb marks exactly one segment aria-current=page",
+					"title": "SEO-07 aria-current audit — breadcrumb leaf CompareBreadcrumb marks exactly one segment aria-current=page",
 					"status": "passed"
 				},
 				{
-					"title": "SEO-07 aria-current audit \u2014 footer carries no nav-state footer links carry zero aria-current attributes",
+					"title": "SEO-07 aria-current audit — footer carries no nav-state footer links carry zero aria-current attributes",
 					"status": "passed"
 				}
 			]
@@ -6132,111 +6164,111 @@
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) scans enough oklch() literals that a clean result means something",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) scans enough oklch() literals that a clean result means something",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) finds no oklch() literal outside the lightness and chroma ranges",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) finds no oklch() literal outside the lightness and chroma ranges",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) flags a percent lightness with a dropped-digit chroma (the B1 defect)",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) flags a percent lightness with a dropped-digit chroma (the B1 defect)",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) accepts the corrected decimal literal",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) accepts the corrected decimal literal",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) normalizes a percent lightness before comparing it",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) normalizes a percent lightness before comparing it",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) reads a percent chroma as a fraction of 0.4",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) reads a percent chroma as a fraction of 0.4",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) flags a lightness above 1",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) flags a lightness above 1",
 					"status": "passed"
 				},
 				{
-					"title": "G1 \u2014 every oklch() literal in globals.css is in range (B1 class) does not read the alpha channel",
+					"title": "G1 — every oklch() literal in globals.css is in range (B1 class) does not read the alpha channel",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) checks at least one explicit @source entry",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) checks at least one explicit @source entry",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) finds no explicit @source glob that matches zero files",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) finds no explicit @source glob that matches zero files",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) flags the zero-match glob that globals.css carried (the B9 defect)",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) flags the zero-match glob that globals.css carried (the B9 defect)",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) accepts a glob that matches a file",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) accepts a glob that matches a file",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) checks a negated entry as a positive glob and accepts it when it matches",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) checks a negated entry as a positive glob and accepts it when it matches",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) flags a negated entry that excludes nothing",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) flags a negated entry that excludes nothing",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) the source() root of globals.css is src/ and matches files",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) the source() root of globals.css is src/ and matches files",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) scans only non-test files under src/",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) scans only non-test files under src/",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) flags a root without source(), which falls back to auto-detection",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) flags a root without source(), which falls back to auto-detection",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) flags source(none), which turns class detection off",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) flags source(none), which turns class detection off",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) accepts source(\"..\"), whose effective base is src/",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) accepts source(\"..\"), whose effective base is src/",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) flags a root whose base is not src/",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) flags a root whose base is not src/",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) flags a root that matches no file",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) flags a root that matches no file",
 					"status": "passed"
 				},
 				{
-					"title": "G6 \u2014 every explicit @source glob in globals.css matches at least one file (B9 class) pins that compile() rejects a source() directory that does not exist",
+					"title": "G6 — every explicit @source glob in globals.css matches at least one file (B9 class) pins that compile() rejects a source() directory that does not exist",
 					"status": "passed"
 				},
 				{
-					"title": "G2 \u2014 no non-inline @theme variable references var() checks non-inline @theme declarations and sees an @theme inline block",
+					"title": "G2 — no non-inline @theme variable references var() checks non-inline @theme declarations and sees an @theme inline block",
 					"status": "passed"
 				},
 				{
-					"title": "G2 \u2014 no non-inline @theme variable references var() finds no non-inline @theme variable whose value references var()",
+					"title": "G2 — no non-inline @theme variable references var() finds no non-inline @theme variable whose value references var()",
 					"status": "passed"
 				},
 				{
-					"title": "G2 \u2014 no non-inline @theme variable references var() flags a self-referencing font stack in a non-inline @theme (the B3 defect)",
+					"title": "G2 — no non-inline @theme variable references var() flags a self-referencing font stack in a non-inline @theme (the B3 defect)",
 					"status": "passed"
 				},
 				{
-					"title": "G2 \u2014 no non-inline @theme variable references var() exempts the same reference inside @theme inline",
+					"title": "G2 — no non-inline @theme variable references var() exempts the same reference inside @theme inline",
 					"status": "passed"
 				},
 				{
-					"title": "G2 \u2014 no non-inline @theme variable references var() compiles the font utilities to the next/font variables (engine corroboration)",
+					"title": "G2 — no non-inline @theme variable references var() compiles the font utilities to the next/font variables (engine corroboration)",
 					"status": "passed"
 				},
 				{
@@ -6356,147 +6388,147 @@
 					"status": "passed"
 				},
 				{
-					"title": "G3 \u2014 no @utility name shadows a core or theme utility collects at least one non-functional @utility name from globals.css",
+					"title": "G3 — no @utility name shadows a core or theme utility collects at least one non-functional @utility name from globals.css",
 					"status": "passed"
 				},
 				{
-					"title": "G3 \u2014 no @utility name shadows a core or theme utility finds no @utility name that is also a core or theme utility",
+					"title": "G3 — no @utility name shadows a core or theme utility finds no @utility name that is also a core or theme utility",
 					"status": "passed"
 				},
 				{
-					"title": "G3 \u2014 no @utility name shadows a core or theme utility A: flags an @utility that shadows a static core utility",
+					"title": "G3 — no @utility name shadows a core or theme utility A: flags an @utility that shadows a static core utility",
 					"status": "passed"
 				},
 				{
-					"title": "G3 \u2014 no @utility name shadows a core or theme utility B: flags an @utility that shadows a theme font-size key (the B8 defect)",
+					"title": "G3 — no @utility name shadows a core or theme utility B: flags an @utility that shadows a theme font-size key (the B8 defect)",
 					"status": "passed"
 				},
 				{
-					"title": "G3 \u2014 no @utility name shadows a core or theme utility accepts unique static and functional @utility names",
+					"title": "G3 — no @utility name shadows a core or theme utility accepts unique static and functional @utility names",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) derives a non-empty key set",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) derives a non-empty key set",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) every derived class is a real utility",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) every derived class is a real utility",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) config == derived keys (bidirectional)",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) config == derived keys (bidirectional)",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) project cn merges every custom key",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) project cn merges every custom key",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) baseline cn fails (negative control: vanilla twMerge, no extension)",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) baseline cn fails (negative control: vanilla twMerge, no extension)",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) missing key: a fixture @theme key absent from the config is reported",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) missing key: a fixture @theme key absent from the config is reported",
 					"status": "passed"
 				},
 				{
-					"title": "G5 \u2014 tailwind-merge knows every custom theme key (B7, D-14) stale key: a config key absent from globals.css is reported",
+					"title": "G5 — tailwind-merge knows every custom theme key (B7, D-14) stale key: a config key absent from globals.css is reported",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme reads the shipped sources, compiled references and every runtime source",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme reads the shipped sources, compiled references and every runtime source",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme finds no dangling theme-namespace variable on the real tree",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme finds no dangling theme-namespace variable on the real tree",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme flags a compiled reference to an undeclared spacing variable",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme flags a compiled reference to an undeclared spacing variable",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme flags an arbitrary-value class over an undeclared color variable",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme flags an arbitrary-value class over an undeclared color variable",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme flags the variable shorthand class C12d removed",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme flags the variable shorthand class C12d removed",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme accepts a reference to a token the fixture theme declares",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme accepts a reference to a token the fixture theme declares",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme does not read a bare --duration reference as a theme key",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme does not read a bare --duration reference as a theme key",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme still flags an undeclared --duration-* reference",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme still flags an undeclared --duration-* reference",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme exempts a variable an inline style sets at run time",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme exempts a variable an inline style sets at run time",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme exempts a chart config color",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme exempts a chart config color",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme ignores variables outside the theme namespaces",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme ignores variables outside the theme namespaces",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme skips an interpolated name instead of reading a shorter one",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme skips an interpolated name instead of reading a shorter one",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme derives a geist font variable from the installed geist package",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme derives a geist font variable from the installed geist package",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme keeps a theme token an inline style overrides locally under guard",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme keeps a theme token an inline style overrides locally under guard",
 					"status": "passed"
 				},
 				{
-					"title": "G7 \u2014 every theme-namespace var() reference resolves in the compiled theme keeps a theme token a chart config key shares under guard",
+					"title": "G7 — every theme-namespace var() reference resolves in the compiled theme keeps a theme token a chart config key shares under guard",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) scans first-party source only, and enough of it that a clean result means something",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) scans first-party source only, and enough of it that a clean result means something",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) finds no non-canonical class in first-party code",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) finds no non-canonical class in first-party code",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) flags each deprecated form with its canonical replacement",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) flags each deprecated form with its canonical replacement",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) maps a px value that equals a spacing step at the 16px root",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) maps a px value that equals a spacing step at the 16px root",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) does not collapse two classes into a shorthand",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) does not collapse two classes into a shorthand",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) accepts the canonical forms",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) accepts the canonical forms",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) skips a token the design system does not compile",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) skips a token the design system does not compile",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) finds no arbitrary percentage a fraction utility spells",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) finds no arbitrary percentage a fraction utility spells",
 					"status": "passed"
 				},
 				{
-					"title": "G8 every first-party class is canonical (D-25, PLAN.md \u00a74.4 class) reports a percentage that is a fraction and keeps one that is not",
+					"title": "G8 every first-party class is canonical (D-25, PLAN.md §4.4 class) reports a percentage that is a fraction and keeps one that is not",
 					"status": "passed"
 				},
 				{
@@ -6856,7 +6888,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "generateStaticParams (retry + fail-safe) throws after the query fails every attempt \u2014 fails the build, not []",
+					"title": "generateStaticParams (retry + fail-safe) throws after the query fails every attempt — fails the build, not []",
 					"status": "passed"
 				},
 				{
@@ -6900,7 +6932,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "BlogCategoryPage (server component) does NOT render BlogPagination when total \u2264 PAGE_LIMIT",
+					"title": "BlogCategoryPage (server component) does NOT render BlogPagination when total ≤ PAGE_LIMIT",
 					"status": "passed"
 				},
 				{
@@ -6960,7 +6992,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "BlogLoading (route-scoped streaming UI for /blog) renders breadcrumb landmark with Home \u2192 Blog navigation chrome",
+					"title": "BlogLoading (route-scoped streaming UI for /blog) renders breadcrumb landmark with Home → Blog navigation chrome",
 					"status": "passed"
 				}
 			]
@@ -6988,7 +7020,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "BlogPage (server component) returns a 404 (notFound) for an out-of-range ?page \u2014 PostgREST 416 \u2014 without logging a Sentry error",
+					"title": "BlogPage (server component) returns a 404 (notFound) for an out-of-range ?page — PostgREST 416 — without logging a Sentry error",
 					"status": "passed"
 				},
 				{
@@ -7076,19 +7108,19 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "features/page.tsx \u2014 SEO-02 OG image wiring passes ogImage: \"/api/og/features\" to createPageMetadata",
+					"title": "features/page.tsx — SEO-02 OG image wiring passes ogImage: \"/api/og/features\" to createPageMetadata",
 					"status": "passed"
 				},
 				{
-					"title": "/api/og/features/route.tsx \u2014 SEO-02 OG route contract pins no runtime and exports revalidate = 3600",
+					"title": "/api/og/features/route.tsx — SEO-02 OG route contract pins no runtime and exports revalidate = 3600",
 					"status": "passed"
 				},
 				{
-					"title": "/api/og/features/route.tsx \u2014 SEO-02 OG route contract declares a 1200x630 OG image (read from source)",
+					"title": "/api/og/features/route.tsx — SEO-02 OG route contract declares a 1200x630 OG image (read from source)",
 					"status": "passed"
 				},
 				{
-					"title": "/api/og/features/route.tsx \u2014 SEO-02 OG route contract uses only hsl() color literals \u2014 no oklch (satori renders it black), no hex",
+					"title": "/api/og/features/route.tsx — SEO-02 OG route contract uses only hsl() color literals — no oklch (satori renders it black), no hex",
 					"status": "passed"
 				}
 			]
@@ -7148,7 +7180,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "pricing/page.tsx PRICE-06 reversal (Phase 5) FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 \u2014 pricing FAQ trim)",
+					"title": "pricing/page.tsx PRICE-06 reversal (Phase 5) FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)",
 					"status": "passed"
 				}
 			]
@@ -7404,11 +7436,11 @@
 					"status": "passed"
 				},
 				{
-					"title": "sitemap() \u2014 DB-failure fallback rethrows when the blog query fails, so ISR serves the last-good cached sitemap instead of a blog-less one",
+					"title": "sitemap() — DB-failure fallback rethrows when the blog query fails, so ISR serves the last-good cached sitemap instead of a blog-less one",
 					"status": "passed"
 				},
 				{
-					"title": "sitemap() \u2014 DB-failure fallback swallows the failure on the placeholder-env CI build and emits the static sitemap",
+					"title": "sitemap() — DB-failure fallback swallows the failure on the placeholder-env CI build and emits the static sitemap",
 					"status": "passed"
 				}
 			]
@@ -7536,11 +7568,19 @@
 		{
 			"name": "src/components/__tests__/no-nested-interactive.test.tsx",
 			"status": "passed",
-			"numTests": 4,
-			"numPassed": 4,
+			"numTests": 6,
+			"numPassed": 6,
 			"tests": [
 				{
 					"title": "no control nests another (static) catches each shape and passes asChild",
+					"status": "passed"
+				},
+				{
+					"title": "no control nests another (static) looks past JSX comments to the first child, and no further",
+					"status": "passed"
+				},
+				{
+					"title": "no control nests another (static) scans adversarial comment runs in linear time",
 					"status": "passed"
 				},
 				{
@@ -7700,135 +7740,135 @@
 			"numPassed": 33,
 			"tests": [
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one offers approve-and-open plus Mark reviewing on a new application",
+					"title": "ApplicationDetail — the action bar has three states, not one offers approve-and-open plus Mark reviewing on a new application",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one drops Mark reviewing once the application is already reviewing",
+					"title": "ApplicationDetail — the action bar has three states, not one drops Mark reviewing once the application is already reviewing",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one reads Open tenant form once approved, and keeps the helper",
+					"title": "ApplicationDetail — the action bar has three states, not one reads Open tenant form once approved, and keeps the helper",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one reads View tenant once converted, and says who it converted to",
+					"title": "ApplicationDetail — the action bar has three states, not one reads View tenant once converted, and says who it converted to",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one says the tenant is gone when the conversion outlived the tenant",
+					"title": "ApplicationDetail — the action bar has three states, not one says the tenant is gone when the conversion outlived the tenant",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one marks the application approved when the approve control is used",
+					"title": "ApplicationDetail — the action bar has three states, not one marks the application approved when the approve control is used",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the action bar has three states, not one moves a new application to reviewing without a reason",
+					"title": "ApplicationDetail — the action bar has three states, not one moves a new application to reviewing without a reason",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the conversion href carries the id and nothing else matches the anchored E-21 shape with no second parameter",
+					"title": "ApplicationDetail — the conversion href carries the id and nothing else matches the anchored E-21 shape with no second parameter",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the conversion href carries the id and nothing else keeps the same shape on the approved state's control",
+					"title": "ApplicationDetail — the conversion href carries the id and nothing else keeps the same shape on the approved state's control",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the record, in the applicant's own order renders the five form sections under the applicant's own headings",
+					"title": "ApplicationDetail — the record, in the applicant's own order renders the five form sections under the applicant's own headings",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the record, in the applicant's own order renders Not provided for a blank optional value rather than omitting it",
+					"title": "ApplicationDetail — the record, in the applicant's own order renders Not provided for a blank optional value rather than omitting it",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the record, in the applicant's own order renders the applicant's email in the record it was submitted with",
+					"title": "ApplicationDetail — the record, in the applicant's own order renders the applicant's email in the record it was submitted with",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the record, in the applicant's own order escapes an injection payload in a free-text answer",
+					"title": "ApplicationDetail — the record, in the applicant's own order escapes an injection payload in a free-text answer",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the record, in the applicant's own order renders a recorded decline reason through its label",
+					"title": "ApplicationDetail — the record, in the applicant's own order renders a recorded decline reason through its label",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the breadcrumb ol defeats the base rules zeroes padding-left, both vertical margins and the crumb margins",
+					"title": "ApplicationDetail — the breadcrumb ol defeats the base rules zeroes padding-left, both vertical margins and the crumb margins",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 an anonymized row is a stub, not a person renders the banner and no placeholder anywhere in the output",
+					"title": "ApplicationDetail — an anonymized row is a stub, not a person renders the banner and no placeholder anywhere in the output",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 an anonymized row is a stub, not a person offers no conversion control and no notes editor on a swept row",
+					"title": "ApplicationDetail — an anonymized row is a stub, not a person offers no conversion control and no notes editor on a swept row",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 an anonymized row is a stub, not a person renders none of the five applicant cards",
+					"title": "ApplicationDetail — an anonymized row is a stub, not a person renders none of the five applicant cards",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 declining captures a reason before it commits keeps the confirm inert until a reason is chosen, then enables it",
+					"title": "ApplicationDetail — declining captures a reason before it commits keeps the confirm inert until a reason is chosen, then enables it",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 declining captures a reason before it commits sends the chosen reason, not merely a status change",
+					"title": "ApplicationDetail — declining captures a reason before it commits sends the chosen reason, not merely a status change",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 declining captures a reason before it commits offers only the seven closed-vocabulary reasons",
+					"title": "ApplicationDetail — declining captures a reason before it commits offers only the seven closed-vocabulary reasons",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 delete is confirmed before anything happens calls no mutation until the confirm itself is clicked",
+					"title": "ApplicationDetail — delete is confirmed before anything happens calls no mutation until the confirm itself is clicked",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 delete is confirmed before anything happens makes no claim about the converted tenant in the confirm copy",
+					"title": "ApplicationDetail — delete is confirmed before anything happens makes no claim about the converted tenant in the confirm copy",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 loading, failure and a row that is not there shows skeletons while pending but not fetching, never the 404",
+					"title": "ApplicationDetail — loading, failure and a row that is not there shows skeletons while pending but not fetching, never the 404",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 loading, failure and a row that is not there renders the shared not-found page for a null row",
+					"title": "ApplicationDetail — loading, failure and a row that is not there renders the shared not-found page for a null row",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 loading, failure and a row that is not there renders an inline retry and leaks no PostgREST string",
+					"title": "ApplicationDetail — loading, failure and a row that is not there renders an inline retry and leaks no PostgREST string",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 every write invalidates what it changed keeps the factory's invalidation on the status write",
+					"title": "ApplicationDetail — every write invalidates what it changed keeps the factory's invalidation on the status write",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 every write invalidates what it changed keeps the factory's invalidation on the notes write",
+					"title": "ApplicationDetail — every write invalidates what it changed keeps the factory's invalidation on the notes write",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 every write invalidates what it changed keeps the factory's invalidation on the delete",
+					"title": "ApplicationDetail — every write invalidates what it changed keeps the factory's invalidation on the delete",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 every write invalidates what it changed puts the notes toast and draft reset on the CALL, not on the options",
+					"title": "ApplicationDetail — every write invalidates what it changed puts the notes toast and draft reset on the CALL, not on the options",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 every write invalidates what it changed never renders the not-found page for a delete that succeeded",
+					"title": "ApplicationDetail — every write invalidates what it changed never renders the not-found page for a delete that succeeded",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 every write invalidates what it changed puts the delete toast and the navigation on the CALL, not on the options",
+					"title": "ApplicationDetail — every write invalidates what it changed puts the delete toast and the navigation on the CALL, not on the options",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationDetail \u2014 the owner's private notes sends what is in the field, and only once it differs from the server",
+					"title": "ApplicationDetail — the owner's private notes sends what is in the field, and only once it differs from the server",
 					"status": "passed"
 				}
 			]
@@ -7840,111 +7880,111 @@
 			"numPassed": 27,
 			"tests": [
 				{
-					"title": "ApplicationLinkPanel \u2014 a unit with no link offers Create link and renders no URL field",
+					"title": "ApplicationLinkPanel — a unit with no link offers Create link and renders no URL field",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 a unit with no link asks for a link for the unit that was clicked",
+					"title": "ApplicationLinkPanel — a unit with no link asks for a link for the unit that was clicked",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the URL comes from the canonical origin renders the full env-derived URL in a readonly field",
+					"title": "ApplicationLinkPanel — the URL comes from the canonical origin renders the full env-derived URL in a readonly field",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the URL comes from the canonical origin selects the whole URL on focus so it is copyable without the button",
+					"title": "ApplicationLinkPanel — the URL comes from the canonical origin selects the whole URL on focus so it is copyable without the button",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the link is re-copyable, not shown once (D-03a) still holds the URL after a copy, an unmount and a fresh render",
+					"title": "ApplicationLinkPanel — the link is re-copyable, not shown once (D-03a) still holds the URL after a copy, an unmount and a fresh render",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the link is re-copyable, not shown once (D-03a) offers no affordance that would rotate the token",
+					"title": "ApplicationLinkPanel — the link is re-copyable, not shown once (D-03a) offers no affordance that would rotate the token",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 copy announces as well as shows writes the exact URL and swaps the accessible name",
+					"title": "ApplicationLinkPanel — copy announces as well as shows writes the exact URL and swaps the accessible name",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 copy announces as well as shows tells the owner to copy manually when the clipboard refuses",
+					"title": "ApplicationLinkPanel — copy announces as well as shows tells the owner to copy manually when the clipboard refuses",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 revoked beats expired labels a revoked-and-lapsed link Revoked, and dates it from the revocation",
+					"title": "ApplicationLinkPanel — revoked beats expired labels a revoked-and-lapsed link Revoked, and dates it from the revocation",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 revoked beats expired labels a merely lapsed link Expired and still offers a new one",
+					"title": "ApplicationLinkPanel — revoked beats expired labels a merely lapsed link Expired and still offers a new one",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 revoke is gated behind the confirmation does not call the mutation until the confirm button is clicked",
+					"title": "ApplicationLinkPanel — revoke is gated behind the confirmation does not call the mutation until the confirm button is clicked",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 revoke is gated behind the confirmation states that applications already received are untouched",
+					"title": "ApplicationLinkPanel — revoke is gated behind the confirmation states that applications already received are untouched",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 revoke is gated behind the confirmation closes without calling the mutation when the owner cancels",
+					"title": "ApplicationLinkPanel — revoke is gated behind the confirmation closes without calling the mutation when the owner cancels",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 a link whose unit is no longer listed surfaces it with a working Revoke, instead of dropping it",
+					"title": "ApplicationLinkPanel — a link whose unit is no longer listed surfaces it with a working Revoke, instead of dropping it",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 a link whose unit is no longer listed shows it even when the removed unit was the owner's only one",
+					"title": "ApplicationLinkPanel — a link whose unit is no longer listed shows it even when the removed unit was the owner's only one",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 a link whose unit is no longer listed promises no replacement link, because there is no row to create one on",
+					"title": "ApplicationLinkPanel — a link whose unit is no longer listed promises no replacement link, because there is no row to create one on",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 a link whose unit is no longer listed lists only the orphans an owner can still act on",
+					"title": "ApplicationLinkPanel — a link whose unit is no longer listed lists only the orphans an owner can still act on",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 a link whose unit is no longer listed leaves a link alone while its unit is still listed",
+					"title": "ApplicationLinkPanel — a link whose unit is no longer listed leaves a link alone while its unit is still listed",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the lists defeat the ul/ol base rules zeroes padding-left and BOTH vertical margins on each of the two lists",
+					"title": "ApplicationLinkPanel — the lists defeat the ul/ol base rules zeroes padding-left and BOTH vertical margins on each of the two lists",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the link URL is 12px at every viewport models the defect it is checking for, on a probe with the broken classes",
+					"title": "ApplicationLinkPanel — the link URL is 12px at every viewport models the defect it is checking for, on a probe with the broken classes",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the link URL is 12px at every viewport renders 12px at 375px AND at 1280px, not 14px above the md breakpoint",
+					"title": "ApplicationLinkPanel — the link URL is 12px at every viewport renders 12px at 375px AND at 1280px, not 14px above the md breakpoint",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the link URL is 12px at every viewport resolves sizes and breakpoints through Tailwind's design system, defaults included",
+					"title": "ApplicationLinkPanel — the link URL is 12px at every viewport resolves sizes and breakpoints through Tailwind's design system, defaults included",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 the owner has no units says so and offers no link to create",
+					"title": "ApplicationLinkPanel — the owner has no units says so and offers no link to create",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 loading and failure renders three skeleton rows while loading, never a spinner",
+					"title": "ApplicationLinkPanel — loading and failure renders three skeleton rows while loading, never a spinner",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 loading and failure shows skeletons, never the empty copy, while pending but not fetching",
+					"title": "ApplicationLinkPanel — loading and failure shows skeletons, never the empty copy, while pending but not fetching",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationLinkPanel \u2014 loading and failure degrades to an inline retry rather than removing the band",
+					"title": "ApplicationLinkPanel — loading and failure degrades to an inline retry rather than removing the band",
 					"status": "passed"
 				},
 				{
-					"title": "/applications \u2014 the queue's empty state bridges to the links band scrolls to and focuses the links band when the CTA is used",
+					"title": "/applications — the queue's empty state bridges to the links band scrolls to and focuses the links band when the CTA is used",
 					"status": "passed"
 				}
 			]
@@ -7956,99 +7996,99 @@
 			"numPassed": 24,
 			"tests": [
 				{
-					"title": "ApplicationQueue \u2014 the pager reports the corpus, not the page reads the total from the count header rather than the loaded slice",
+					"title": "ApplicationQueue — the pager reports the corpus, not the page reads the total from the count header rather than the loaded slice",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the pager reports the corpus, not the page asks plan 66-09 for page 1, which is the .range(25, 49) slice",
+					"title": "ApplicationQueue — the pager reports the corpus, not the page asks plan 66-09 for page 1, which is the .range(25, 49) slice",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the pager reports the corpus, not the page clamps the last page's upper bound to the total",
+					"title": "ApplicationQueue — the pager reports the corpus, not the page clamps the last page's upper bound to the total",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the pager reports the corpus, not the page disables Previous on the first page and Next on a single-page corpus",
+					"title": "ApplicationQueue — the pager reports the corpus, not the page disables Previous on the first page and Next on a single-page corpus",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 filters drive the query key moves to a different cache entry when the status tab changes",
+					"title": "ApplicationQueue — filters drive the query key moves to a different cache entry when the status tab changes",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 filters drive the query key returns to page 0 when a filter changes",
+					"title": "ApplicationQueue — filters drive the query key returns to page 0 when a filter changes",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the two empty states are not the same state offers the action that fixes it when the owner has no applications",
+					"title": "ApplicationQueue — the two empty states are not the same state offers the action that fixes it when the owner has no applications",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the two empty states are not the same state offers no action when the emptiness is the filter's doing",
+					"title": "ApplicationQueue — the two empty states are not the same state offers no action when the emptiness is the filter's doing",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the two empty states are not the same state renders no pager when there is nothing to page through",
+					"title": "ApplicationQueue — the two empty states are not the same state renders no pager when there is nothing to page through",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 loading and failure renders five skeleton rows while loading, never a spinner",
+					"title": "ApplicationQueue — loading and failure renders five skeleton rows while loading, never a spinner",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 loading and failure shows skeletons, never the empty copy, while pending but not fetching",
+					"title": "ApplicationQueue — loading and failure shows skeletons, never the empty copy, while pending but not fetching",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 loading and failure renders an inline retry and leaks no PostgREST string",
+					"title": "ApplicationQueue — loading and failure renders an inline retry and leaks no PostgREST string",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the rows links each row to its own detail route and nowhere else",
+					"title": "ApplicationQueue — the rows links each row to its own detail route and nowhere else",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the rows labels a rejected row Declined, never Rejected",
+					"title": "ApplicationQueue — the rows labels a rejected row Declined, never Rejected",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the rows renders the property, unit and relative date on the meta line",
+					"title": "ApplicationQueue — the rows renders the property, unit and relative date on the meta line",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the rows drops the unit segment rather than rendering a dangling separator",
+					"title": "ApplicationQueue — the rows drops the unit segment rather than rendering a dangling separator",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 the rows escapes an injection payload in an applicant name",
+					"title": "ApplicationQueue — the rows escapes an injection payload in an applicant name",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 a swept row is a stub, not a person renders no placeholder anywhere in the row",
+					"title": "ApplicationQueue — a swept row is a stub, not a person renders no placeholder anywhere in the row",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 a swept row is a stub, not a person uses the same heading the detail page shows for the same row",
+					"title": "ApplicationQueue — a swept row is a stub, not a person uses the same heading the detail page shows for the same row",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 a swept row is a stub, not a person leaves a live applicant's name alone",
+					"title": "ApplicationQueue — a swept row is a stub, not a person leaves a live applicant's name alone",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 base-rule neutralizers survive (spelling only) zeroes the list's own padding-left and BOTH vertical margins",
+					"title": "ApplicationQueue — base-rule neutralizers survive (spelling only) zeroes the list's own padding-left and BOTH vertical margins",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 base-rule neutralizers survive (spelling only) keeps the five classes that stop the base rules from reaching the queue",
+					"title": "ApplicationQueue — base-rule neutralizers survive (spelling only) keeps the five classes that stop the base rules from reaching the queue",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 base-rule neutralizers survive (spelling only) resolves the primitive's line-clamp off the meta line",
+					"title": "ApplicationQueue — base-rule neutralizers survive (spelling only) resolves the primitive's line-clamp off the meta line",
 					"status": "passed"
 				},
 				{
-					"title": "ApplicationQueue \u2014 base-rule neutralizers survive (spelling only) resolves flex-1 off the triggers and justify-center off the strip",
+					"title": "ApplicationQueue — base-rule neutralizers survive (spelling only) resolves flex-1 off the triggers and justify-center off the strip",
 					"status": "passed"
 				}
 			]
@@ -8060,107 +8100,107 @@
 			"numPassed": 26,
 			"tests": [
 				{
-					"title": "RentalApplicationForm \u2014 the D-06 forbidden-field contract renders none of the forbidden inputs, while the same query mechanism finds the fields that SHOULD exist",
+					"title": "RentalApplicationForm — the D-06 forbidden-field contract renders none of the forbidden inputs, while the same query mechanism finds the fields that SHOULD exist",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the D-06 forbidden-field contract offers no upload affordance and no field asking for a document",
+					"title": "RentalApplicationForm — the D-06 forbidden-field contract offers no upload affordance and no field asking for a document",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the A-6 honeypot renders an off-screen, untabbable, aria-hidden trap named from the shared constant",
+					"title": "RentalApplicationForm — the A-6 honeypot renders an off-screen, untabbable, aria-hidden trap named from the shared constant",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the A-6 honeypot keeps the trap out of the tab order while the real controls stay in it",
+					"title": "RentalApplicationForm — the A-6 honeypot keeps the trap out of the tab order while the real controls stay in it",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 APPLY-06 placement (E-1's DOM-order half) puts the disclaimer section before the submit control, with no floating wrapper",
+					"title": "RentalApplicationForm — APPLY-06 placement (E-1's DOM-order half) puts the disclaimer section before the submit control, with no floating wrapper",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 APPLY-06 placement (E-1's DOM-order half) attaches no acknowledgement control to the disclaimer block (UI-04)",
+					"title": "RentalApplicationForm — APPLY-06 placement (E-1's DOM-order half) attaches no acknowledgement control to the disclaimer block (UI-04)",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the UI-09 income layout (E-11's DOM-order half) renders the required source-neutral total before every employer field",
+					"title": "RentalApplicationForm — the UI-09 income layout (E-11's DOM-order half) renders the required source-neutral total before every employer field",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the UI-09 income layout (E-11's DOM-order half) gives the optional detail fields exactly one heading and no container of their own",
+					"title": "RentalApplicationForm — the UI-09 income layout (E-11's DOM-order half) gives the optional detail fields exactly one heading and no container of their own",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the UI-10 household contract asks for a count and nothing else about who lives there",
+					"title": "RentalApplicationForm — the UI-10 household contract asks for a count and nothing else about who lives there",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 no unreachable submit (A-5 state 5) still lets an applicant attempt a submit with one required field never touched",
+					"title": "RentalApplicationForm — no unreachable submit (A-5 state 5) still lets an applicant attempt a submit with one required field never touched",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 no unreachable submit (A-5 state 5) counts every missing answer, not just the first",
+					"title": "RentalApplicationForm — no unreachable submit (A-5 state 5) counts every missing answer, not just the first",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 no unreachable submit (A-5 state 5) moves focus to the first invalid control in DOM order",
+					"title": "RentalApplicationForm — no unreachable submit (A-5 state 5) moves focus to the first invalid control in DOM order",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 no unreachable submit (A-5 state 5) clears the summary and submits once the missing answer is supplied",
+					"title": "RentalApplicationForm — no unreachable submit (A-5 state 5) clears the summary and submits once the missing answer is supplied",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 no unreachable submit (A-5 state 5) keeps the UI-05 attestation genuinely required",
+					"title": "RentalApplicationForm — no unreachable submit (A-5 state 5) keeps the UI-05 attestation genuinely required",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the submitted envelope posts the honeypot and the idempotency key on the envelope, and only contract keys under `application`",
+					"title": "RentalApplicationForm — the submitted envelope posts the honeypot and the idempotency key on the envelope, and only contract keys under `application`",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the submitted envelope posts the server-minted stamp, not this device's clock",
+					"title": "RentalApplicationForm — the submitted envelope posts the server-minted stamp, not this device's clock",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the submitted envelope falls back to the device clock only when the function sent no stamp",
+					"title": "RentalApplicationForm — the submitted envelope falls back to the device clock only when the function sent no stamp",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 the submitted envelope reuses one submission id across a retry so the RPC can deduplicate (T-66-20)",
+					"title": "RentalApplicationForm — the submitted envelope reuses one submission id across a retry so the RPC can deduplicate (T-66-20)",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 a rate limit costs nothing typed (A-5 state 6) keeps every value and a live submit button on a 429",
+					"title": "RentalApplicationForm — a rate limit costs nothing typed (A-5 state 6) keeps every value and a live submit button on a 429",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 a rate limit costs nothing typed (A-5 state 6) treats a capped reason at HTTP 200 the same way, without accusing the applicant",
+					"title": "RentalApplicationForm — a rate limit costs nothing typed (A-5 state 6) treats a capped reason at HTTP 200 the same way, without accusing the applicant",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 a rate limit costs nothing typed (A-5 state 6) surfaces the failure notice when the request never reaches the server",
+					"title": "RentalApplicationForm — a rate limit costs nothing typed (A-5 state 6) surfaces the failure notice when the request never reaches the server",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 a rate limit costs nothing typed (A-5 state 6) keeps the notice on a retry whose request also never reaches the server",
+					"title": "RentalApplicationForm — a rate limit costs nothing typed (A-5 state 6) keeps the notice on a retry whose request also never reaches the server",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 a rate limit costs nothing typed (A-5 state 6) recovers on a retry once the connection comes back",
+					"title": "RentalApplicationForm — a rate limit costs nothing typed (A-5 state 6) recovers on a retry once the connection comes back",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 a rate limit costs nothing typed (A-5 state 6) reports a duplicate as success, because the row is already stored",
+					"title": "RentalApplicationForm — a rate limit costs nothing typed (A-5 state 6) reports a duplicate as success, because the row is already stored",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 nothing survives on the device holds none of the submitted answers after a success",
+					"title": "RentalApplicationForm — nothing survives on the device holds none of the submitted answers after a success",
 					"status": "passed"
 				},
 				{
-					"title": "RentalApplicationForm \u2014 nothing survives on the device writes nothing to device storage while the form is being filled and submitted",
+					"title": "RentalApplicationForm — nothing survives on the device writes nothing to device storage while the form is being filled and submitted",
 					"status": "passed"
 				}
 			]
@@ -8172,15 +8212,15 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "ChangePasswordDialog \u2014 A11Y-01 programmatic labels associates each password field with its visible label via htmlFor/id",
+					"title": "ChangePasswordDialog — A11Y-01 programmatic labels associates each password field with its visible label via htmlFor/id",
 					"status": "passed"
 				},
 				{
-					"title": "ChangePasswordDialog \u2014 A11Y-01 programmatic labels keeps the icon-only show/hide toggle aria-labels intact",
+					"title": "ChangePasswordDialog — A11Y-01 programmatic labels keeps the icon-only show/hide toggle aria-labels intact",
 					"status": "passed"
 				},
 				{
-					"title": "ChangePasswordDialog \u2014 A11Y-01 programmatic labels renders each password field as an InputGroup control with the toggle in its addon",
+					"title": "ChangePasswordDialog — A11Y-01 programmatic labels renders each password field as an InputGroup control with the toggle in its addon",
 					"status": "passed"
 				}
 			]
@@ -8220,11 +8260,11 @@
 			"numPassed": 2,
 			"tests": [
 				{
-					"title": "TwoFactorSetupDialog \u2014 no infinite loop (P1 regression) does not call reset() in an unbounded loop when mounted closed",
+					"title": "TwoFactorSetupDialog — no infinite loop (P1 regression) does not call reset() in an unbounded loop when mounted closed",
 					"status": "passed"
 				},
 				{
-					"title": "TwoFactorSetupDialog \u2014 no infinite loop (P1 regression) does not call mutate() when mounted closed",
+					"title": "TwoFactorSetupDialog — no infinite loop (P1 regression) does not call mutate() when mounted closed",
 					"status": "passed"
 				}
 			]
@@ -8864,7 +8904,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "KpiBentoRow sparkline-data-too-thin guard: data length 1 \u2192 no sparkline",
+					"title": "KpiBentoRow sparkline-data-too-thin guard: data length 1 → no sparkline",
 					"status": "passed"
 				},
 				{
@@ -8904,15 +8944,15 @@
 					"status": "passed"
 				},
 				{
-					"title": "sparklineConfigForTrend maps `up` \u2192 `--color-success-text` in both light + dark theme entries",
+					"title": "sparklineConfigForTrend maps `up` → `--color-success-text` in both light + dark theme entries",
 					"status": "passed"
 				},
 				{
-					"title": "sparklineConfigForTrend maps `down` \u2192 `--color-warning-text` in both light + dark theme entries",
+					"title": "sparklineConfigForTrend maps `down` → `--color-warning-text` in both light + dark theme entries",
 					"status": "passed"
 				},
 				{
-					"title": "sparklineConfigForTrend maps `stable` \u2192 `--color-muted-foreground` in both light + dark theme entries",
+					"title": "sparklineConfigForTrend maps `stable` → `--color-muted-foreground` in both light + dark theme entries",
 					"status": "passed"
 				},
 				{
@@ -8976,7 +9016,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "KpiSparkline uses CSS-variable tokens \u2014 no hex / oklch color literal in the rendered DOM",
+					"title": "KpiSparkline uses CSS-variable tokens — no hex / oklch color literal in the rendered DOM",
 					"status": "passed"
 				},
 				{
@@ -9028,7 +9068,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "OccupancyDonutChart computes center percent via Math.round (87/100 \u2192 87%)",
+					"title": "OccupancyDonutChart computes center percent via Math.round (87/100 → 87%)",
 					"status": "passed"
 				},
 				{
@@ -9068,7 +9108,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "OccupancyDonutChart does NOT render a tooltip (UI-SPEC \u00a7 3.6)",
+					"title": "OccupancyDonutChart does NOT render a tooltip (UI-SPEC § 3.6)",
 					"status": "passed"
 				},
 				{
@@ -9312,7 +9352,7 @@
 			"numPassed": 6,
 			"tests": [
 				{
-					"title": "getAriaSort maps unsorted \u2192 none, asc \u2192 ascending, desc \u2192 descending",
+					"title": "getAriaSort maps unsorted → none, asc → ascending, desc → descending",
 					"status": "passed"
 				},
 				{
@@ -9520,11 +9560,11 @@
 					"status": "passed"
 				},
 				{
-					"title": "DocumentsVaultClient does NOT auto-reset pageParam when on a valid page \u2014 rows guard (cycle-3 N3)",
+					"title": "DocumentsVaultClient does NOT auto-reset pageParam when on a valid page — rows guard (cycle-3 N3)",
 					"status": "passed"
 				},
 				{
-					"title": "DocumentsVaultClient does NOT auto-reset pageParam when totalCount is 0 \u2014 totalCount guard (cycle-4 P3)",
+					"title": "DocumentsVaultClient does NOT auto-reset pageParam when totalCount is 0 — totalCount guard (cycle-4 P3)",
 					"status": "passed"
 				},
 				{
@@ -9556,7 +9596,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "DocumentsVaultClient partially rejects URL categories \u2014 drops unknown values, keeps known (Phase 63)",
+					"title": "DocumentsVaultClient partially rejects URL categories — drops unknown values, keeps known (Phase 63)",
 					"status": "passed"
 				},
 				{
@@ -9620,7 +9660,7 @@
 			"numPassed": 2,
 			"tests": [
 				{
-					"title": "DocumentsSection delete confirmation does not delete on the Remove click \u2014 it opens a confirm dialog",
+					"title": "DocumentsSection delete confirmation does not delete on the Remove click — it opens a confirm dialog",
 					"status": "passed"
 				},
 				{
@@ -9700,19 +9740,19 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "Navbar \u2014 auth CTA branch renders Sign In + Start free synchronously when no auth cookie (cold-start fast-path)",
+					"title": "Navbar — auth CTA branch renders Sign In + Start free synchronously when no auth cookie (cold-start fast-path)",
 					"status": "passed"
 				},
 				{
-					"title": "Navbar \u2014 auth CTA branch renders Dashboard optimistically when cookie is present and query is still pending",
+					"title": "Navbar — auth CTA branch renders Dashboard optimistically when cookie is present and query is still pending",
 					"status": "passed"
 				},
 				{
-					"title": "Navbar \u2014 auth CTA branch downgrades to signed-out when cookie is present but resolved session is null (stale cookie)",
+					"title": "Navbar — auth CTA branch downgrades to signed-out when cookie is present but resolved session is null (stale cookie)",
 					"status": "passed"
 				},
 				{
-					"title": "Navbar \u2014 auth CTA branch renders Dashboard when cookie present and query resolves with a session",
+					"title": "Navbar — auth CTA branch renders Dashboard when cookie present and query resolves with a session",
 					"status": "passed"
 				}
 			]
@@ -10444,7 +10484,7 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "the lease page's heading for property Maple Court, unit 4B, reads Maple Court \u00b7 Unit 4B",
+					"title": "the lease page's heading for property Maple Court, unit 4B, reads Maple Court · Unit 4B",
 					"status": "passed"
 				},
 				{
@@ -11752,7 +11792,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "PricingCardStandard Max card is self-serve \u2014 renders 'Start free', not 'Contact Sales' (MKTUI-04)",
+					"title": "PricingCardStandard Max card is self-serve — renders 'Start free', not 'Contact Sales' (MKTUI-04)",
 					"status": "passed"
 				},
 				{
@@ -11900,15 +11940,15 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "EditUnitPanel \u2014 PROP-05 clearing an optional field persists sends square_feet: null (not undefined) when the field is cleared",
+					"title": "EditUnitPanel — PROP-05 clearing an optional field persists sends square_feet: null (not undefined) when the field is cleared",
 					"status": "passed"
 				},
 				{
-					"title": "EditUnitPanel \u2014 PROP-05 clearing an optional field persists preserves an edited square_feet value",
+					"title": "EditUnitPanel — PROP-05 clearing an optional field persists preserves an edited square_feet value",
 					"status": "passed"
 				},
 				{
-					"title": "EditUnitPanel \u2014 PROP-05 clearing an optional field persists uses a whole-dollar rent input and guards against cents (FORM-03)",
+					"title": "EditUnitPanel — PROP-05 clearing an optional field persists uses a whole-dollar rent input and guards against cents (FORM-03)",
 					"status": "passed"
 				}
 			]
@@ -12660,7 +12700,7 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "HomeFaq exports exactly 5 homeFaqs entries (COPY-05 \u2014 homepage trim)",
+					"title": "HomeFaq exports exactly 5 homeFaqs entries (COPY-05 — homepage trim)",
 					"status": "passed"
 				},
 				{
@@ -12680,15 +12720,15 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "LogoCloud \u2014 CONS-13 consistent logo weight renders all 4 integration logos (coverage + headline pin)",
+					"title": "LogoCloud — CONS-13 consistent logo weight renders all 4 integration logos (coverage + headline pin)",
 					"status": "passed"
 				},
 				{
-					"title": "LogoCloud \u2014 CONS-13 consistent logo weight applies no grayscale filter to any logo wrapper (CONS-13)",
+					"title": "LogoCloud — CONS-13 consistent logo weight applies no grayscale filter to any logo wrapper (CONS-13)",
 					"status": "passed"
 				},
 				{
-					"title": "LogoCloud \u2014 CONS-13 consistent logo weight applies one shared opacity-90 class to every logo wrapper (CONS-13)",
+					"title": "LogoCloud — CONS-13 consistent logo weight applies one shared opacity-90 class to every logo wrapper (CONS-13)",
 					"status": "passed"
 				}
 			]
@@ -12928,7 +12968,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "GeneralSettings (FORMFIX-06) persists all fields: phone \u2192 users, email \u2192 Auth, timezone/language \u2192 user_preferences",
+					"title": "GeneralSettings (FORMFIX-06) persists all fields: phone → users, email → Auth, timezone/language → user_preferences",
 					"status": "passed"
 				},
 				{
@@ -12948,27 +12988,27 @@
 			"numPassed": 6,
 			"tests": [
 				{
-					"title": "NotificationSettings \u2014 Enable All (FORMFIX-07) writes only email + categories in a single mutate when toggled ON",
+					"title": "NotificationSettings — Enable All (FORMFIX-07) writes only email + categories in a single mutate when toggled ON",
 					"status": "passed"
 				},
 				{
-					"title": "NotificationSettings \u2014 Enable All (FORMFIX-07) reads checked=false when a category is off",
+					"title": "NotificationSettings — Enable All (FORMFIX-07) reads checked=false when a category is off",
 					"status": "passed"
 				},
 				{
-					"title": "NotificationSettings \u2014 Enable All (FORMFIX-07) reads checked=true only when email and all categories are on",
+					"title": "NotificationSettings — Enable All (FORMFIX-07) reads checked=true only when email and all categories are on",
 					"status": "passed"
 				},
 				{
-					"title": "NotificationSettings \u2014 Enable All (FORMFIX-07) writes email + categories OFF when toggled off from the all-on state",
+					"title": "NotificationSettings — Enable All (FORMFIX-07) writes email + categories OFF when toggled off from the all-on state",
 					"status": "passed"
 				},
 				{
-					"title": "NotificationSettings \u2014 accessible switch names (C4/a11y) exposes every channel/category Switch by its visible label as accessible name",
+					"title": "NotificationSettings — accessible switch names (C4/a11y) exposes every channel/category Switch by its visible label as accessible name",
 					"status": "passed"
 				},
 				{
-					"title": "NotificationSettings \u2014 channel honesty (HONEST-01/02) renders only the honest Email channel + category toggles, never SMS/push/in-app",
+					"title": "NotificationSettings — channel honesty (HONEST-01/02) renders only the honest Email channel + category toggles, never SMS/push/in-app",
 					"status": "passed"
 				}
 			]
@@ -12996,15 +13036,15 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "UsageSection \u2014 e-sign near-cap (METER-02) shows the e-sign upgrade prompt + esign_quota CTA at 20/25",
+					"title": "UsageSection — e-sign near-cap (METER-02) shows the e-sign upgrade prompt + esign_quota CTA at 20/25",
 					"status": "passed"
 				},
 				{
-					"title": "UsageSection \u2014 Max unlimited shows Unlimited for both widgets with no Progress bar",
+					"title": "UsageSection — Max unlimited shows Unlimited for both widgets with no Progress bar",
 					"status": "passed"
 				},
 				{
-					"title": "UsageSection \u2014 storage near-cap GB rendering (METER-03) renders GB via formatBytes and shows the storage_quota_gate CTA at >=80%",
+					"title": "UsageSection — storage near-cap GB rendering (METER-03) renders GB via formatBytes and shows the storage_quota_gate CTA at >=80%",
 					"status": "passed"
 				}
 			]
@@ -13016,7 +13056,7 @@
 			"numPassed": 2,
 			"tests": [
 				{
-					"title": "OwnerEmergencyContactSection delete confirmation does not delete on the Remove Contact click \u2014 it opens a confirm dialog",
+					"title": "OwnerEmergencyContactSection delete confirmation does not delete on the Remove Contact click — it opens a confirm dialog",
 					"status": "passed"
 				},
 				{
@@ -13064,15 +13104,15 @@
 					"status": "passed"
 				},
 				{
-					"title": "SubscriptionCancelSection returns null for a DB trial (trialing, no stripeCustomerId) \u2014 BILL-16",
+					"title": "SubscriptionCancelSection returns null for a DB trial (trialing, no stripeCustomerId) — BILL-16",
 					"status": "passed"
 				},
 				{
-					"title": "SubscriptionCancelSection returns null for a trialing customer with no synced currentPeriodEnd \u2014 BILL-16",
+					"title": "SubscriptionCancelSection returns null for a trialing customer with no synced currentPeriodEnd — BILL-16",
 					"status": "passed"
 				},
 				{
-					"title": "SubscriptionCancelSection renders State 2 for a trialing Stripe subscriber with cancelAtPeriodEnd \u2014 BILL-09",
+					"title": "SubscriptionCancelSection renders State 2 for a trialing Stripe subscriber with cancelAtPeriodEnd — BILL-09",
 					"status": "passed"
 				},
 				{
@@ -13348,7 +13388,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "ErrorPage does NOT call Sentry directly \u2014 the calling boundary owns capture",
+					"title": "ErrorPage does NOT call Sentry directly — the calling boundary owns capture",
 					"status": "passed"
 				}
 			]
@@ -13680,15 +13720,15 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "WCAG 2.5.3 Label in Name \u2014 shell controls command palette trigger: accessible name starts with its visible text",
+					"title": "WCAG 2.5.3 Label in Name — shell controls command palette trigger: accessible name starts with its visible text",
 					"status": "passed"
 				},
 				{
-					"title": "WCAG 2.5.3 Label in Name \u2014 shell controls user menu trigger: accessible name starts with the visible initials and still says 'user menu'",
+					"title": "WCAG 2.5.3 Label in Name — shell controls user menu trigger: accessible name starts with the visible initials and still says 'user menu'",
 					"status": "passed"
 				},
 				{
-					"title": "WCAG 2.5.3 Label in Name \u2014 shell controls every shell button with visible text keeps that text in its accessible name",
+					"title": "WCAG 2.5.3 Label in Name — shell controls every shell button with visible text keeps that text in its accessible name",
 					"status": "passed"
 				}
 			]
@@ -14040,7 +14080,7 @@
 			"numPassed": 1,
 			"tests": [
 				{
-					"title": "ApplicationPrefillNotice \u2014 base-rule neutralizers keeps no-underline and text-foreground on the anchor Button renders",
+					"title": "ApplicationPrefillNotice — base-rule neutralizers keeps no-underline and text-foreground on the anchor Button renders",
 					"status": "passed"
 				}
 			]
@@ -14468,8 +14508,8 @@
 		{
 			"name": "src/components/ui/__tests__/blur-fade-grid-placement.test.ts",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 5,
+			"numPassed": 5,
 			"tests": [
 				{
 					"title": "BlurFade grid placement scans the BlurFade call sites",
@@ -14481,6 +14521,14 @@
 				},
 				{
 					"title": "BlurFade grid placement matches the defect shape it guards",
+					"status": "passed"
+				},
+				{
+					"title": "BlurFade grid placement looks past JSX comments to the first child, and no further",
+					"status": "passed"
+				},
+				{
+					"title": "BlurFade grid placement scans adversarial comment runs in linear time",
 					"status": "passed"
 				}
 			]
@@ -15932,31 +15980,31 @@
 			"numPassed": 7,
 			"tests": [
 				{
-					"title": "retry list \u2014 single upload per file re-uploads only the failed file and never re-uploads a succeeded file",
+					"title": "retry list — single upload per file re-uploads only the failed file and never re-uploads a succeeded file",
 					"status": "passed"
 				},
 				{
-					"title": "retry list \u2014 single upload per file never uploads a client-invalid file (file.errors non-empty)",
+					"title": "retry list — single upload per file never uploads a client-invalid file (file.errors non-empty)",
 					"status": "passed"
 				},
 				{
-					"title": "isSuccess \u2014 membership over the current batch is false for an empty file list, false until all current files succeed, true only when every current file is in successes",
+					"title": "isSuccess — membership over the current batch is false for an empty file list, false until all current files succeed, true only when every current file is in successes",
 					"status": "passed"
 				},
 				{
-					"title": "isSuccess \u2014 membership over the current batch resets successes when files are cleared so a fresh batch does not read success off a stale count",
+					"title": "isSuccess — membership over the current batch resets successes when files are cleared so a fresh batch does not read success off a stale count",
 					"status": "passed"
 				},
 				{
-					"title": "storage plan-limit \u2014 reactive Upgrade CTA + usage invalidation (METER-04) routes a storage-quota rejection to handleMutationError AND keeps the inline error entry",
+					"title": "storage plan-limit — reactive Upgrade CTA + usage invalidation (METER-04) routes a storage-quota rejection to handleMutationError AND keeps the inline error entry",
 					"status": "passed"
 				},
 				{
-					"title": "storage plan-limit \u2014 reactive Upgrade CTA + usage invalidation (METER-04) does NOT route an ordinary upload error to the plan-limit handler",
+					"title": "storage plan-limit — reactive Upgrade CTA + usage invalidation (METER-04) does NOT route an ordinary upload error to the plan-limit handler",
 					"status": "passed"
 				},
 				{
-					"title": "storage plan-limit \u2014 reactive Upgrade CTA + usage invalidation (METER-04) invalidates usageQueries.storage() after a successful upload",
+					"title": "storage plan-limit — reactive Upgrade CTA + usage invalidation (METER-04) invalidates usageQueries.storage() after a successful upload",
 					"status": "passed"
 				}
 			]
@@ -16380,8 +16428,8 @@
 		{
 			"name": "src/hooks/api/__tests__/report-mutations-have-callers.test.ts",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 4,
+			"numPassed": 4,
 			"tests": [
 				{
 					"title": "report mutations and their keys have callers calls every reportMutations factory from outside report-keys.ts",
@@ -16393,6 +16441,10 @@
 				},
 				{
 					"title": "report mutations and their keys have callers flags a member nothing calls and accepts one a hook calls",
+					"status": "passed"
+				},
+				{
+					"title": "report mutations and their keys have callers reads the object path as literal text and as a whole identifier",
 					"status": "passed"
 				}
 			]
@@ -16892,15 +16944,15 @@
 			"numPassed": 3,
 			"tests": [
 				{
-					"title": "useUploadAvatarMutation \u2014 cache-busted avatar_url (UIX-05) persists and returns a `?v=<timestamp>` versioned URL",
+					"title": "useUploadAvatarMutation — cache-busted avatar_url (UIX-05) persists and returns a `?v=<timestamp>` versioned URL",
 					"status": "passed"
 				},
 				{
-					"title": "useUploadAvatarMutation \u2014 cache-busted avatar_url (UIX-05) keeps the deterministic path + upsert (no per-upload object, no orphans)",
+					"title": "useUploadAvatarMutation — cache-busted avatar_url (UIX-05) keeps the deterministic path + upsert (no per-upload object, no orphans)",
 					"status": "passed"
 				},
 				{
-					"title": "useUploadAvatarMutation \u2014 storage plan-limit Upgrade CTA (METER-04) routes a storage-quota rejection through handleMutationError for the Upgrade toast",
+					"title": "useUploadAvatarMutation — storage plan-limit Upgrade CTA (METER-04) routes a storage-quota rejection through handleMutationError for the Upgrade toast",
 					"status": "passed"
 				}
 			]
@@ -17288,7 +17340,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "mapRentalApplicationRow returns null \u2014 never undefined, never the string 'null' \u2014 for every absent nullable",
+					"title": "mapRentalApplicationRow returns null — never undefined, never the string 'null' — for every absent nullable",
 					"status": "passed"
 				},
 				{
@@ -17364,7 +17416,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "applicationQueries.list falls back to total 0 \u2014 never rows.length \u2014 when the count header is null",
+					"title": "applicationQueries.list falls back to total 0 — never rows.length — when the count header is null",
 					"status": "passed"
 				},
 				{
@@ -17456,7 +17508,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "applicationLinkState reports 'revoked' \u2014 NOT 'expired' \u2014 when the link is both",
+					"title": "applicationLinkState reports 'revoked' — NOT 'expired' — when the link is both",
 					"status": "passed"
 				},
 				{
@@ -17496,7 +17548,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "mapApplicationLinkRow returns null \u2014 never undefined \u2014 for an absent revoked_at",
+					"title": "mapApplicationLinkRow returns null — never undefined — for an absent revoked_at",
 					"status": "passed"
 				},
 				{
@@ -17784,27 +17836,27 @@
 			"numPassed": 6,
 			"tests": [
 				{
-					"title": "mapInvoiceStatus maps paid \u2192 succeeded",
+					"title": "mapInvoiceStatus maps paid → succeeded",
 					"status": "passed"
 				},
 				{
-					"title": "mapInvoiceStatus maps open \u2192 pending",
+					"title": "mapInvoiceStatus maps open → pending",
 					"status": "passed"
 				},
 				{
-					"title": "mapInvoiceStatus maps draft \u2192 pending",
+					"title": "mapInvoiceStatus maps draft → pending",
 					"status": "passed"
 				},
 				{
-					"title": "mapInvoiceStatus maps void \u2192 cancelled",
+					"title": "mapInvoiceStatus maps void → cancelled",
 					"status": "passed"
 				},
 				{
-					"title": "mapInvoiceStatus maps uncollectible \u2192 failed",
+					"title": "mapInvoiceStatus maps uncollectible → failed",
 					"status": "passed"
 				},
 				{
-					"title": "mapInvoiceStatus maps an unknown status \u2192 pending (fail-soft, does not throw)",
+					"title": "mapInvoiceStatus maps an unknown status → pending (fail-soft, does not throw)",
 					"status": "passed"
 				}
 			]
@@ -18056,7 +18108,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "mapMaintenanceRow throws when status is absent (unconditional safeParse \u2014 no != null short-circuit)",
+					"title": "mapMaintenanceRow throws when status is absent (unconditional safeParse — no != null short-circuit)",
 					"status": "passed"
 				},
 				{
@@ -18628,7 +18680,7 @@
 			"numPassed": 1,
 			"tests": [
 				{
-					"title": "useSubscriptionStatus RPC response mapping (CANCEL-02 coverage) maps supabase.rpc(\"get_subscription_status\") response \u2192 SubscriptionStatusResponse",
+					"title": "useSubscriptionStatus RPC response mapping (CANCEL-02 coverage) maps supabase.rpc(\"get_subscription_status\") response → SubscriptionStatusResponse",
 					"status": "passed"
 				}
 			]
@@ -18732,23 +18784,23 @@
 			"numPassed": 5,
 			"tests": [
 				{
-					"title": "useIntersectionObserver \u2014 initial-visibility fallback marks an above-the-fold element intersected even when the observer never fires",
+					"title": "useIntersectionObserver — initial-visibility fallback marks an above-the-fold element intersected even when the observer never fires",
 					"status": "passed"
 				},
 				{
-					"title": "useIntersectionObserver \u2014 initial-visibility fallback does NOT mark a below-the-fold element intersected (waits for the observer)",
+					"title": "useIntersectionObserver — initial-visibility fallback does NOT mark a below-the-fold element intersected (waits for the observer)",
 					"status": "passed"
 				},
 				{
-					"title": "useIntersectionObserver \u2014 initial-visibility fallback does NOT fire on a zero-size rect (jsdom default) so the observer stays authoritative",
+					"title": "useIntersectionObserver — initial-visibility fallback does NOT fire on a zero-size rect (jsdom default) so the observer stays authoritative",
 					"status": "passed"
 				},
 				{
-					"title": "useIntersectionObserver \u2014 initial-visibility fallback honors the consumer threshold \u2014 a sub-threshold sliver does not fire",
+					"title": "useIntersectionObserver — initial-visibility fallback honors the consumer threshold — a sub-threshold sliver does not fire",
 					"status": "passed"
 				},
 				{
-					"title": "useIntersectionObserver \u2014 initial-visibility fallback honors the consumer threshold \u2014 past-threshold visibility fires",
+					"title": "useIntersectionObserver — initial-visibility fallback honors the consumer threshold — past-threshold visibility fires",
 					"status": "passed"
 				}
 			]
@@ -19064,35 +19116,35 @@
 			"numPassed": 8,
 			"tests": [
 				{
-					"title": "formatBytes \u2014 unchanged B/KB/MB/null/0 behavior returns the em-dash for null/undefined",
+					"title": "formatBytes — unchanged B/KB/MB/null/0 behavior returns the em-dash for null/undefined",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 unchanged B/KB/MB/null/0 behavior distinguishes a real zero-byte file from unknown",
+					"title": "formatBytes — unchanged B/KB/MB/null/0 behavior distinguishes a real zero-byte file from unknown",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 unchanged B/KB/MB/null/0 behavior renders raw bytes below 1 KB",
+					"title": "formatBytes — unchanged B/KB/MB/null/0 behavior renders raw bytes below 1 KB",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 unchanged B/KB/MB/null/0 behavior renders KB below the 1024 KB crossover",
+					"title": "formatBytes — unchanged B/KB/MB/null/0 behavior renders KB below the 1024 KB crossover",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 unchanged B/KB/MB/null/0 behavior renders MB from 1 MB up to the GB crossover",
+					"title": "formatBytes — unchanged B/KB/MB/null/0 behavior renders MB from 1 MB up to the GB crossover",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 GB branch (METER-03) renders exactly 1 GB",
+					"title": "formatBytes — GB branch (METER-03) renders exactly 1 GB",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 GB branch (METER-03) renders a multi-GB value in GB",
+					"title": "formatBytes — GB branch (METER-03) renders a multi-GB value in GB",
 					"status": "passed"
 				},
 				{
-					"title": "formatBytes \u2014 GB branch (METER-03) regression: a >= 1024 MB value renders as GB, never four-digit MB",
+					"title": "formatBytes — GB branch (METER-03) regression: a >= 1024 MB value renders as GB, never four-digit MB",
 					"status": "passed"
 				}
 			]
@@ -19200,79 +19252,79 @@
 			"numPassed": 19,
 			"tests": [
 				{
-					"title": "handleMutationError \u2014 plan-limit detection routes properties trigger error to upgrade toast with parsed source",
+					"title": "handleMutationError — plan-limit detection routes properties trigger error to upgrade toast with parsed source",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 plan-limit detection routes units trigger error with the units source tag",
+					"title": "handleMutationError — plan-limit detection routes units trigger error with the units source tag",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 plan-limit detection falls back to default upgrade source when DETAIL is malformed JSON",
+					"title": "handleMutationError — plan-limit detection falls back to default upgrade source when DETAIL is malformed JSON",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 plan-limit detection falls back to default upgrade source when DETAIL is missing",
+					"title": "handleMutationError — plan-limit detection falls back to default upgrade source when DETAIL is missing",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 plan-limit detection maps a 23505 unique-violation to friendly copy (no raw constraint text)",
+					"title": "handleMutationError — plan-limit detection maps a 23505 unique-violation to friendly copy (no raw constraint text)",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 plan-limit detection does NOT confuse a different P0001 error (no plan_limit_exceeded hint)",
+					"title": "handleMutationError — plan-limit detection does NOT confuse a different P0001 error (no plan_limit_exceeded hint)",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 storage plan-limit (StorageApiError message prefix) fires the 'Plan limit reached' Upgrade toast for a storage rejection (source=storage_quota_gate)",
+					"title": "handleMutationError — storage plan-limit (StorageApiError message prefix) fires the 'Plan limit reached' Upgrade toast for a storage rejection (source=storage_quota_gate)",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 storage plan-limit (StorageApiError message prefix) still routes the PostgREST hint path to its parsed source (no regression)",
+					"title": "handleMutationError — storage plan-limit (StorageApiError message prefix) still routes the PostgREST hint path to its parsed source (no regression)",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) maps a RAW Postgres constraint message to its friendly copy by SQLSTATE",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) maps a RAW Postgres constraint message to its friendly copy by SQLSTATE",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) surfaces an AUTHOR-written RAISE message verbatim even under a constraint SQLSTATE (regression)",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) surfaces an AUTHOR-written RAISE message verbatim even under a constraint SQLSTATE (regression)",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) maps an unmapped leaky class-22 code to the generic fallback",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) maps an unmapped leaky class-22 code to the generic fallback",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) maps an unmapped PGRST* code to the generic fallback",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) maps an unmapped PGRST* code to the generic fallback",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) lets a customMessage override a mapped SQLSTATE code",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) lets a customMessage override a mapped SQLSTATE code",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) keeps a non-leaky code's raw message verbatim",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) keeps a non-leaky code's raw message verbatim",
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError \u2014 leaky SQLSTATE \u2192 friendly copy (UIX-04) keeps a message with no code verbatim",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) keeps a message with no code verbatim",
 					"status": "passed"
 				},
 				{
-					"title": "userFacingErrorMessage \u2014 the one sanitizer (66.2-39 part I) shows an ApiError's product copy, never the HTTP status line",
+					"title": "userFacingErrorMessage — the one sanitizer (66.2-39 part I) shows an ApiError's product copy, never the HTTP status line",
 					"status": "passed"
 				},
 				{
-					"title": "userFacingErrorMessage \u2014 the one sanitizer (66.2-39 part I) shows the network copy for the browser's own fetch failure",
+					"title": "userFacingErrorMessage — the one sanitizer (66.2-39 part I) shows the network copy for the browser's own fetch failure",
 					"status": "passed"
 				},
 				{
-					"title": "userFacingErrorMessage \u2014 the one sanitizer (66.2-39 part I) genericizes a raw permission or missing-relation message",
+					"title": "userFacingErrorMessage — the one sanitizer (66.2-39 part I) genericizes a raw permission or missing-relation message",
 					"status": "passed"
 				},
 				{
-					"title": "userFacingErrorMessage \u2014 the one sanitizer (66.2-39 part I) keeps author copy verbatim and falls back when there is no message",
+					"title": "userFacingErrorMessage — the one sanitizer (66.2-39 part I) keeps author copy verbatim and falls back when there is no message",
 					"status": "passed"
 				}
 			]
@@ -19280,8 +19332,8 @@
 		{
 			"name": "src/lib/__tests__/no-always-empty-local-list.test.ts",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 4,
+			"numPassed": 4,
 			"tests": [
 				{
 					"title": "no local list stays the empty literal it was declared as scans the local empty-list declarations",
@@ -19289,6 +19341,10 @@
 				},
 				{
 					"title": "no local list stays the empty literal it was declared as flags a planted placeholder and passes a filled accumulator",
+					"status": "passed"
+				},
+				{
+					"title": "no local list stays the empty literal it was declared as reads a list's name as literal text and as a whole identifier",
 					"status": "passed"
 				},
 				{
@@ -19486,6 +19542,58 @@
 			]
 		},
 		{
+			"name": "src/lib/__tests__/regexp-source.test.ts",
+			"status": "passed",
+			"numTests": 11,
+			"numPassed": 11,
+			"tests": [
+				{
+					"title": "escapeRegExp matches every metacharacter as itself, alone and together",
+					"status": "passed"
+				},
+				{
+					"title": "escapeRegExp matches nothing a metacharacter would have stood for",
+					"status": "passed"
+				},
+				{
+					"title": "escapeRegExp stays valid source under the u and v flags",
+					"status": "passed"
+				},
+				{
+					"title": "escapeRegExp leaves every other character as it is",
+					"status": "passed"
+				},
+				{
+					"title": "identifierSource matches a name holding `$` after a space and at a line start",
+					"status": "passed"
+				},
+				{
+					"title": "identifierSource does not match inside a longer identifier",
+					"status": "passed"
+				},
+				{
+					"title": "identifierSource takes a member path and a list of names",
+					"status": "passed"
+				},
+				{
+					"title": "identifierSource refuses an empty list, which would match at every boundary",
+					"status": "passed"
+				},
+				{
+					"title": "JSX_CHILD_GAP skips whitespace and comments to the first child",
+					"status": "passed"
+				},
+				{
+					"title": "JSX_CHILD_GAP ends a comment at its first `*/}`, so it cannot swallow a child",
+					"status": "passed"
+				},
+				{
+					"title": "JSX_CHILD_GAP fails in linear time on adversarial comment runs",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/lib/__tests__/require-owner-user-id.test.ts",
 			"status": "passed",
 			"numTests": 4,
@@ -19516,19 +19624,19 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "TYPE-03 \u2014 zero double assertions in first-party code walks every code root, production and test files",
+					"title": "TYPE-03 — zero double assertions in first-party code walks every code root, production and test files",
 					"status": "passed"
 				},
 				{
-					"title": "TYPE-03 \u2014 zero double assertions in first-party code finds the phrase in code but not in comments or strings",
+					"title": "TYPE-03 — zero double assertions in first-party code finds the phrase in code but not in comments or strings",
 					"status": "passed"
 				},
 				{
-					"title": "TYPE-03 \u2014 zero double assertions in first-party code no double assertion in production code (src, supabase/functions, scripts)",
+					"title": "TYPE-03 — zero double assertions in first-party code no double assertion in production code (src, supabase/functions, scripts)",
 					"status": "passed"
 				},
 				{
-					"title": "TYPE-03 \u2014 zero double assertions in first-party code no double assertion in test code (unit, Deno, integration, e2e)",
+					"title": "TYPE-03 — zero double assertions in first-party code no double assertion in test code (unit, Deno, integration, e2e)",
 					"status": "passed"
 				}
 			]
@@ -19724,51 +19832,51 @@
 					"status": "passed"
 				},
 				{
-					"title": "isStoragePlanLimitError \u2014 message-prefix detector returns true for a StorageApiError-shaped object whose message begins with the prefix",
+					"title": "isStoragePlanLimitError — message-prefix detector returns true for a StorageApiError-shaped object whose message begins with the prefix",
 					"status": "passed"
 				},
 				{
-					"title": "isStoragePlanLimitError \u2014 message-prefix detector returns true for a real Error instance carrying the prefix",
+					"title": "isStoragePlanLimitError — message-prefix detector returns true for a real Error instance carrying the prefix",
 					"status": "passed"
 				},
 				{
-					"title": "isStoragePlanLimitError \u2014 message-prefix detector returns false for an unrelated error message",
+					"title": "isStoragePlanLimitError — message-prefix detector returns false for an unrelated error message",
 					"status": "passed"
 				},
 				{
-					"title": "isStoragePlanLimitError \u2014 message-prefix detector returns false when the prefix is present but not at the start",
+					"title": "isStoragePlanLimitError — message-prefix detector returns false when the prefix is present but not at the start",
 					"status": "passed"
 				},
 				{
-					"title": "isStoragePlanLimitError \u2014 message-prefix detector returns false for null / undefined / a bare string (guarded, no throw)",
+					"title": "isStoragePlanLimitError — message-prefix detector returns false for null / undefined / a bare string (guarded, no throw)",
 					"status": "passed"
 				},
 				{
-					"title": "isStoragePlanLimitError \u2014 message-prefix detector returns false when message is not a string",
+					"title": "isStoragePlanLimitError — message-prefix detector returns false when message is not a string",
 					"status": "passed"
 				},
 				{
-					"title": "wouldExceedStorageQuota \u2014 non-destructive pre-check is true when used + incoming is at or over a finite quota (>= boundary)",
+					"title": "wouldExceedStorageQuota — non-destructive pre-check is true when used + incoming is at or over a finite quota (>= boundary)",
 					"status": "passed"
 				},
 				{
-					"title": "wouldExceedStorageQuota \u2014 non-destructive pre-check is true exactly at the quota with zero incoming bytes",
+					"title": "wouldExceedStorageQuota — non-destructive pre-check is true exactly at the quota with zero incoming bytes",
 					"status": "passed"
 				},
 				{
-					"title": "wouldExceedStorageQuota \u2014 non-destructive pre-check is false when used + incoming is comfortably under a finite quota",
+					"title": "wouldExceedStorageQuota — non-destructive pre-check is false when used + incoming is comfortably under a finite quota",
 					"status": "passed"
 				},
 				{
-					"title": "wouldExceedStorageQuota \u2014 non-destructive pre-check is always false for an unlimited (Max) owner even when far over any number",
+					"title": "wouldExceedStorageQuota — non-destructive pre-check is always false for an unlimited (Max) owner even when far over any number",
 					"status": "passed"
 				},
 				{
-					"title": "wouldExceedStorageQuota \u2014 non-destructive pre-check is always false for a negative limit (-1 = unlimited/grandfathered sentinel)",
+					"title": "wouldExceedStorageQuota — non-destructive pre-check is always false for a negative limit (-1 = unlimited/grandfathered sentinel)",
 					"status": "passed"
 				},
 				{
-					"title": "wouldExceedStorageQuota \u2014 non-destructive pre-check clamps a negative incoming byte count to zero (no false pass under quota)",
+					"title": "wouldExceedStorageQuota — non-destructive pre-check clamps a negative incoming byte count to zero (no false pass under quota)",
 					"status": "passed"
 				}
 			]
@@ -19856,19 +19964,19 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "CISEC-04 \u2014 GitHub Actions are SHA-pinned finds at least one uses: line to guard",
+					"title": "CISEC-04 — GitHub Actions are SHA-pinned finds at least one uses: line to guard",
 					"status": "passed"
 				},
 				{
-					"title": "CISEC-04 \u2014 GitHub Actions are SHA-pinned every third-party uses: is pinned to a 40-char commit SHA",
+					"title": "CISEC-04 — GitHub Actions are SHA-pinned every third-party uses: is pinned to a 40-char commit SHA",
 					"status": "passed"
 				},
 				{
-					"title": "CISEC-04 \u2014 GitHub Actions are SHA-pinned every uses: (first-party included) is pinned to a 40-char commit SHA",
+					"title": "CISEC-04 — GitHub Actions are SHA-pinned every uses: (first-party included) is pinned to a 40-char commit SHA",
 					"status": "passed"
 				},
 				{
-					"title": "CISEC-04 \u2014 GitHub Actions are SHA-pinned every pinned uses: carries a trailing # vX.Y.Z version comment",
+					"title": "CISEC-04 — GitHub Actions are SHA-pinned every pinned uses: carries a trailing # vX.Y.Z version comment",
 					"status": "passed"
 				}
 			]
@@ -21252,83 +21360,83 @@
 			"numPassed": 20,
 			"tests": [
 				{
-					"title": "REPORTING_REDIRECTS \u2014 map shape source array EQUALS the seven D-32 sources, in order",
+					"title": "REPORTING_REDIRECTS — map shape source array EQUALS the seven D-32 sources, in order",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 map shape maps every source to its exact D-32 destination",
+					"title": "REPORTING_REDIRECTS — map shape maps every source to its exact D-32 destination",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 map shape holds exactly seven entries",
+					"title": "REPORTING_REDIRECTS — map shape holds exactly seven entries",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard A (identity no-ops) /reports is never a source (a self-redirect is ERR_TOO_MANY_REDIRECTS)",
+					"title": "REPORTING_REDIRECTS — Guard A (identity no-ops) /reports is never a source (a self-redirect is ERR_TOO_MANY_REDIRECTS)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard A (identity no-ops) /reports/generate is never a source (a self-redirect is ERR_TOO_MANY_REDIRECTS)",
+					"title": "REPORTING_REDIRECTS — Guard A (identity no-ops) /reports/generate is never a source (a self-redirect is ERR_TOO_MANY_REDIRECTS)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard A (identity no-ops) /reports/year-end is never a source (a self-redirect is ERR_TOO_MANY_REDIRECTS)",
+					"title": "REPORTING_REDIRECTS — Guard A (identity no-ops) /reports/year-end is never a source (a self-redirect is ERR_TOO_MANY_REDIRECTS)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics/financial is NEVER a source \u2014 it stays live under D-29",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics/financial is NEVER a source — it stays live under D-29",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics is never a source (redirecting it would break a live route)",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics is never a source (redirecting it would break a live route)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics/leases is never a source (redirecting it would break a live route)",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics/leases is never a source (redirecting it would break a live route)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics/maintenance is never a source (redirecting it would break a live route)",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics/maintenance is never a source (redirecting it would break a live route)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics/occupancy is never a source (redirecting it would break a live route)",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics/occupancy is never a source (redirecting it would break a live route)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics/overview is never a source (redirecting it would break a live route)",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics/overview is never a source (redirecting it would break a live route)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 Guard B (routes that are not moving) /analytics/property-performance is never a source (redirecting it would break a live route)",
+					"title": "REPORTING_REDIRECTS — Guard B (routes that are not moving) /analytics/property-performance is never a source (redirecting it would break a live route)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 the inversion (entry 7) exactly one entry points away from /reports, and it is /reports/analytics",
+					"title": "REPORTING_REDIRECTS — the inversion (entry 7) exactly one entry points away from /reports, and it is /reports/analytics",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 the inversion (entry 7) no destination is the bare /analytics path (308 -> 307 chain guard)",
+					"title": "REPORTING_REDIRECTS — the inversion (entry 7) no destination is the bare /analytics path (308 -> 307 chain guard)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 structural hygiene never redirects a path to itself",
+					"title": "REPORTING_REDIRECTS — structural hygiene never redirects a path to itself",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 structural hygiene sources are unique (no duplicate redirect rules)",
+					"title": "REPORTING_REDIRECTS — structural hygiene sources are unique (no duplicate redirect rules)",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 structural hygiene every source is a plain literal path \u2014 no wildcard, param or regex char",
+					"title": "REPORTING_REDIRECTS — structural hygiene every source is a plain literal path — no wildcard, param or regex char",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 proxy isolation (RPTHUB-02) PRIVATE_ROUTE_PREFIXES still gates both /analytics and /reports",
+					"title": "REPORTING_REDIRECTS — proxy isolation (RPTHUB-02) PRIVATE_ROUTE_PREFIXES still gates both /analytics and /reports",
 					"status": "passed"
 				},
 				{
-					"title": "REPORTING_REDIRECTS \u2014 proxy isolation (RPTHUB-02) every destination sits under a gated prefix",
+					"title": "REPORTING_REDIRECTS — proxy isolation (RPTHUB-02) every destination sits under a gated prefix",
 					"status": "passed"
 				}
 			]
@@ -21404,15 +21512,15 @@
 			"numPassed": 5,
 			"tests": [
 				{
-					"title": "requiresMfaStepUp returns true for an enrolled aal1 session (nextLevel aal2, currentLevel aal1) \u2192 BLOCK",
+					"title": "requiresMfaStepUp returns true for an enrolled aal1 session (nextLevel aal2, currentLevel aal1) → BLOCK",
 					"status": "passed"
 				},
 				{
-					"title": "requiresMfaStepUp returns false for an already-stepped-up aal2 session \u2192 ALLOW",
+					"title": "requiresMfaStepUp returns false for an already-stepped-up aal2 session → ALLOW",
 					"status": "passed"
 				},
 				{
-					"title": "requiresMfaStepUp returns false for a no-MFA aal1 session (nextLevel aal1) \u2192 ALLOW, no false lockout",
+					"title": "requiresMfaStepUp returns false for a no-MFA aal1 session (nextLevel aal1) → ALLOW, no false lockout",
 					"status": "passed"
 				},
 				{
@@ -21552,7 +21660,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "proxy routing subscription gate redirects to /login (NOT /pricing) when gate DB query throws on /dashboard \u2014 admin-blip safe",
+					"title": "proxy routing subscription gate redirects to /login (NOT /pricing) when gate DB query throws on /dashboard — admin-blip safe",
 					"status": "passed"
 				},
 				{
@@ -22944,175 +23052,175 @@
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field first_name is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field first_name is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field last_name is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field last_name is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field email is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field email is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field phone is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field phone is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field desired_move_in_date is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field desired_move_in_date is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field current_street is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field current_street is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field current_city is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field current_city is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field current_state is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field current_state is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field current_postal_code is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field current_postal_code is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field gross_monthly_income is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field gross_monthly_income is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field occupant_count is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field occupant_count is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field reference_1_name is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field reference_1_name is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field reference_1_phone is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field reference_1_phone is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys fails when the required field certified is absent",
+					"title": "rentalApplicationSchema — required and optional keys fails when the required field certified is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field current_landlord_name is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field current_landlord_name is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field current_landlord_phone is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field current_landlord_phone is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field reason_for_moving is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field reason_for_moving is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field employer_name is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field employer_name is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field employer_role is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field employer_role is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field employer_months is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field employer_months is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field other_income_source is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field other_income_source is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field other_income_amount is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field other_income_amount is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field pet_details is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field pet_details is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field vehicle_details is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field vehicle_details is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field reference_1_relationship is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field reference_1_relationship is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field reference_2_name is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field reference_2_name is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field reference_2_relationship is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field reference_2_relationship is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys still parses when the optional field reference_2_phone is absent",
+					"title": "rentalApplicationSchema — required and optional keys still parses when the optional field reference_2_phone is absent",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys keeps employer and other-income optional, so no source of income is privileged",
+					"title": "rentalApplicationSchema — required and optional keys keeps employer and other-income optional, so no source of income is privileged",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 required and optional keys requires exactly one money field, and it is the source-neutral total",
+					"title": "rentalApplicationSchema — required and optional keys requires exactly one money field, and it is the source-neutral total",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules rejects a state that is not a US state code",
+					"title": "rentalApplicationSchema — field rules rejects a state that is not a US state code",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules uses the UI-SPEC state error copy verbatim",
+					"title": "rentalApplicationSchema — field rules uses the UI-SPEC state error copy verbatim",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules normalizes a lowercase state code rather than rejecting it",
+					"title": "rentalApplicationSchema — field rules normalizes a lowercase state code rather than rejecting it",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules requires the attestation",
+					"title": "rentalApplicationSchema — field rules requires the attestation",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules requires at least one occupant",
+					"title": "rentalApplicationSchema — field rules requires at least one occupant",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules accepts a zero income and rejects a negative one",
+					"title": "rentalApplicationSchema — field rules accepts a zero income and rejects a negative one",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules rejects an empty required string",
+					"title": "rentalApplicationSchema — field rules rejects an empty required string",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 field rules rejects an over-long value instead of truncating it",
+					"title": "rentalApplicationSchema — field rules rejects an over-long value instead of truncating it",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 the second reference rejects a second-reference name with an empty phone",
+					"title": "rentalApplicationSchema — the second reference rejects a second-reference name with an empty phone",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 the second reference rejects a second-reference phone with an empty name",
+					"title": "rentalApplicationSchema — the second reference rejects a second-reference phone with an empty name",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 the second reference rejects a lone relationship",
+					"title": "rentalApplicationSchema — the second reference rejects a lone relationship",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 the second reference accepts all three left empty",
+					"title": "rentalApplicationSchema — the second reference accepts all three left empty",
 					"status": "passed"
 				},
 				{
-					"title": "rentalApplicationSchema \u2014 the second reference accepts a complete second reference",
+					"title": "rentalApplicationSchema — the second reference accepts a complete second reference",
 					"status": "passed"
 				}
 			]
@@ -23688,251 +23796,251 @@
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate rejects an ssn key rather than stripping it",
+					"title": "parseSubmissionPayload — the SSN gate rejects an ssn key rather than stripping it",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate rejects the forbidden key date_of_birth as unknown_field",
+					"title": "parseSubmissionPayload — the SSN gate rejects the forbidden key date_of_birth as unknown_field",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate rejects the forbidden key bank_account as unknown_field",
+					"title": "parseSubmissionPayload — the SSN gate rejects the forbidden key bank_account as unknown_field",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate rejects the forbidden key income_type as unknown_field",
+					"title": "parseSubmissionPayload — the SSN gate rejects the forbidden key income_type as unknown_field",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a ssn key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a ssn key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a social_security key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a social_security key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a date_of_birth key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a date_of_birth key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a dob key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a dob key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a government_id key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a government_id key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a drivers_license key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a drivers_license key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a passport key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a passport key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a bank_account key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a bank_account key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a routing key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a routing key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a card_number key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a card_number key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a income_type key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a income_type key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a marital_status key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a marital_status key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate never accepts a criminal_history key",
+					"title": "parseSubmissionPayload — the SSN gate never accepts a criminal_history key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the SSN gate rejects unknown keys before reporting a missing required key",
+					"title": "parseSubmissionPayload — the SSN gate rejects unknown keys before reporting a missing required key",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape accepts the required-only payload",
+					"title": "parseSubmissionPayload — shape accepts the required-only payload",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape accepts the payload with every optional key filled",
+					"title": "parseSubmissionPayload — shape accepts the payload with every optional key filled",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape rejects a non-object payload",
+					"title": "parseSubmissionPayload — shape rejects a non-object payload",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key first_name",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key first_name",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key last_name",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key last_name",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key email",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key email",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key phone",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key phone",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key desired_move_in_date",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key desired_move_in_date",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key current_street",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key current_street",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key current_city",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key current_city",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key current_state",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key current_state",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key current_postal_code",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key current_postal_code",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key gross_monthly_income",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key gross_monthly_income",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key occupant_count",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key occupant_count",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key reference_1_name",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key reference_1_name",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key reference_1_phone",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key reference_1_phone",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for absent required key certified",
+					"title": "parseSubmissionPayload — shape reports missing_field for absent required key certified",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape reports missing_field for a required string that is only whitespace",
+					"title": "parseSubmissionPayload — shape reports missing_field for a required string that is only whitespace",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 shape returns only contract keys",
+					"title": "parseSubmissionPayload — shape returns only contract keys",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects an occupant count below one",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects an occupant count below one",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a numeric field sent as a string",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a numeric field sent as a string",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a non-integer occupant count",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a non-integer occupant count",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths accepts a zero income but rejects a negative one",
+					"title": "parseSubmissionPayload — types, bounds and lengths accepts a zero income but rejects a negative one",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects an absurd income rather than overflowing the numeric column",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects an absurd income rather than overflowing the numeric column",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths requires the attestation to be the boolean true",
+					"title": "parseSubmissionPayload — types, bounds and lengths requires the attestation to be the boolean true",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects an over-long value instead of truncating it",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects an over-long value instead of truncating it",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths caps every string field in the contract",
+					"title": "parseSubmissionPayload — types, bounds and lengths caps every string field in the contract",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a state name and normalizes a lowercase state code",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a state name and normalizes a lowercase state code",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a malformed email and lowercases a valid one",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a malformed email and lowercases a valid one",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths trims surrounding whitespace out of the stored value",
+					"title": "parseSubmissionPayload — types, bounds and lengths trims surrounding whitespace out of the stored value",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a move-in date that is not an ISO calendar date",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a move-in date that is not an ISO calendar date",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a day past the end of the month before it can reach a ::date cast",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a day past the end of the month before it can reach a ::date cast",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a leap day in a common year before it can reach a ::date cast",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a leap day in a common year before it can reach a ::date cast",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a thirteenth month before it can reach a ::date cast",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a thirteenth month before it can reach a ::date cast",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a zeroth month before it can reach a ::date cast",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a zeroth month before it can reach a ::date cast",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects a zeroth day before it can reach a ::date cast",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects a zeroth day before it can reach a ::date cast",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths rejects year zero before it can reach a ::date cast",
+					"title": "parseSubmissionPayload — types, bounds and lengths rejects year zero before it can reach a ::date cast",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths still accepts the real date 2024-02-29",
+					"title": "parseSubmissionPayload — types, bounds and lengths still accepts the real date 2024-02-29",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths still accepts the real date 2026-12-31",
+					"title": "parseSubmissionPayload — types, bounds and lengths still accepts the real date 2026-12-31",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 types, bounds and lengths still accepts the real date 2026-01-01",
+					"title": "parseSubmissionPayload — types, bounds and lengths still accepts the real date 2026-01-01",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the second reference rejects a name with no phone",
+					"title": "parseSubmissionPayload — the second reference rejects a name with no phone",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the second reference rejects a phone with no name",
+					"title": "parseSubmissionPayload — the second reference rejects a phone with no name",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the second reference rejects a lone relationship",
+					"title": "parseSubmissionPayload — the second reference rejects a lone relationship",
 					"status": "passed"
 				},
 				{
-					"title": "parseSubmissionPayload \u2014 the second reference accepts the pair, and accepts all three left empty",
+					"title": "parseSubmissionPayload — the second reference accepts the pair, and accepts all three left empty",
 					"status": "passed"
 				},
 				{
@@ -24116,7 +24224,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "1. supabase/config.toml declares the function public the slicer really isolates \u2014 a block WITHOUT verify_jwt reads as such",
+					"title": "1. supabase/config.toml declares the function public the slicer really isolates — a block WITHOUT verify_jwt reads as such",
 					"status": "passed"
 				},
 				{
@@ -24196,7 +24304,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "4b. D-04b: the token-hash limit key is confined to the context action RATE-03: and it is GATED on verification \u2014 the property worth pinning",
+					"title": "4b. D-04b: the token-hash limit key is confined to the context action RATE-03: and it is GATED on verification — the property worth pinning",
 					"status": "passed"
 				},
 				{
@@ -25064,8 +25172,8 @@
 		{
 			"name": "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts",
 			"status": "passed",
-			"numTests": 2,
-			"numPassed": 2,
+			"numTests": 3,
+			"numPassed": 3,
 			"tests": [
 				{
 					"title": "Playwright support modules export only what is imported (66.2-39 fix round 1, part F) leaves no support-module export without an importer",
@@ -25073,6 +25181,10 @@
 				},
 				{
 					"title": "Playwright support modules export only what is imported (66.2-39 fix round 1, part F) flags an uncalled export and passes every import form",
+					"status": "passed"
+				},
+				{
+					"title": "Playwright support modules export only what is imported (66.2-39 fix round 1, part F) reads a namespace name holding `$` literally and as a whole identifier",
 					"status": "passed"
 				}
 			]
@@ -25112,39 +25224,39 @@
 			"numPassed": 9,
 			"tests": [
 				{
-					"title": "planNarrowedWindow \u2014 the durable seeder row installs a window that leaves the seeder row out of range while making the fixture due",
+					"title": "planNarrowedWindow — the durable seeder row installs a window that leaves the seeder row out of range while making the fixture due",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 the durable seeder row the old hardcoded window DID put that row in range \u2014 the differential",
+					"title": "planNarrowedWindow — the durable seeder row the old hardcoded window DID put that row in range — the differential",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 the invariant over every foreign age never puts the foreign row in range, and never emits a zero-day window",
+					"title": "planNarrowedWindow — the invariant over every foreign age never puts the foreign row in range, and never emits a zero-day window",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 the invariant over every foreign age still refuses a zero-day window when the table holds no foreign row at all",
+					"title": "planNarrowedWindow — the invariant over every foreign age still refuses a zero-day window when the table holds no foreign row at all",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 the invariant over every foreign age treats a future-clocked row as age zero rather than letting it shrink the window",
+					"title": "planNarrowedWindow — the invariant over every foreign age treats a future-clocked row as age zero rather than letting it shrink the window",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 when there is no safe run, it says so skips rather than sweeping a foreign row older than the live window",
+					"title": "planNarrowedWindow — when there is no safe run, it says so skips rather than sweeping a foreign row older than the live window",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 when there is no safe run, it says so skips at the boundary where the fixture would be due under the live window anyway",
+					"title": "planNarrowedWindow — when there is no safe run, it says so skips at the boundary where the fixture would be due under the live window anyway",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 when there is no safe run, it says so skips when the live window is unreadable, rather than defaulting to something narrow",
+					"title": "planNarrowedWindow — when there is no safe run, it says so skips when the live window is unreadable, rather than defaulting to something narrow",
 					"status": "passed"
 				},
 				{
-					"title": "planNarrowedWindow \u2014 when there is no safe run, it says so skips when the oldest foreign age could not be read",
+					"title": "planNarrowedWindow — when there is no safe run, it says so skips when the oldest foreign age could not be read",
 					"status": "passed"
 				}
 			]
