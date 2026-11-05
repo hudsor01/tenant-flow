@@ -45,8 +45,8 @@ export function ResultsProofSection() {
 
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 						{stats.map((stat) => (
-							<div key={stat.label} className="text-center group">
-								<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+							<div key={stat.label} className="text-center">
+								<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg">
 									<stat.icon className="size-8" />
 								</div>
 								<div className="typography-h1 text-foreground mb-2">
