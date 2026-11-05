@@ -57,7 +57,6 @@ function entry(
 		rentReceived: 2750.5,
 		totalUnits: 0,
 		occupiedUnits: 0,
-		vacantUnits: 0,
 		...overrides,
 	};
 }

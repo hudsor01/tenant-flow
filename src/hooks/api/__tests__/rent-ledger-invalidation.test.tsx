@@ -188,22 +188,22 @@ const LEDGER_READ =
 
 /**
  * The modules that read the ledger, with where their keys sit in the fan-out:
- * analytics-keys' revenue fetch (reportQueries.monthlyRevenue) under
- * `reportKeys.all`; expense-keys and financial-keys under `financialKeys.all`;
- * property-keys under `propertyQueries.details()`; property-performance-mappers
- * (read by the report and analytics queries) and report-analytics-keys under
+ * report-keys' monthly revenue under `reportKeys.all`; expense-keys and
+ * financial-keys under `financialKeys.all`; property-keys under
+ * `propertyQueries.details()`; property-performance-mappers (read by the
+ * report and analytics queries) and report-analytics-keys under
  * `reportKeys.all` and `analyticsQueries.all()`; rent-ledger-keys under
  * `rentLedgerKeys.forLease`; use-analytics under `analyticsQueries.all()`;
  * use-owner-dashboard-financial under `ownerDashboardKeys.all`.
  */
 const LEDGER_READERS = [
-	"src/hooks/api/query-keys/analytics-keys.ts",
 	"src/hooks/api/query-keys/expense-keys.ts",
 	"src/hooks/api/query-keys/financial-keys.ts",
 	"src/hooks/api/query-keys/property-keys.ts",
 	"src/hooks/api/query-keys/property-performance-mappers.ts",
 	"src/hooks/api/query-keys/rent-ledger-keys.ts",
 	"src/hooks/api/query-keys/report-analytics-keys.ts",
+	"src/hooks/api/query-keys/report-keys.ts",
 	"src/hooks/api/use-analytics.ts",
 	"src/hooks/api/use-owner-dashboard-financial.ts",
 ];

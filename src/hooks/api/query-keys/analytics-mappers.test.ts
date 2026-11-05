@@ -43,22 +43,13 @@ describe("mapOccupancyAnalytics", () => {
 		// trends are reversed to oldest->newest so the chart x-axis runs forward in
 		// time; input rows are newest-first (RPC DESC).
 		expect(mapped.trends).toEqual([
-			{
-				period: "2024-02",
-				occupancyRate: 85,
-				occupiedUnits: 17,
-				totalUnits: 20,
-			},
-			{
-				period: "2024-03",
-				occupancyRate: 90,
-				occupiedUnits: 18,
-				totalUnits: 20,
-			},
+			{ period: "2024-02", occupancyRate: 85 },
+			{ period: "2024-03", occupancyRate: 90 },
 		]);
 		// The chart's series alone: the metrics (zeros but one), per-property,
 		// seasonal and vacancy fields no source filled and no screen read went
-		// in 66.2-39.
+		// in 66.2-39, and each month's unit counts, which the chart never read,
+		// in fix round 3.
 		expect(Object.keys(mapped)).toEqual(["trends"]);
 	});
 
@@ -71,12 +62,7 @@ describe("mapOccupancyAnalytics", () => {
 				occupied_units: "15",
 			},
 		]);
-		expect(mapped.trends[0]).toEqual({
-			period: "2024-03",
-			occupancyRate: 75,
-			occupiedUnits: 15,
-			totalUnits: 20,
-		});
+		expect(mapped.trends[0]).toEqual({ period: "2024-03", occupancyRate: 75 });
 	});
 
 	it("degrades to empty trends on an empty array", () => {
@@ -100,11 +86,17 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 			},
 		});
 		expect(mapped.metrics.totalRevenue).toBe(120000);
-		expect(mapped.metrics.totalExpenses).toBe(30000);
 		expect(mapped.metrics.netIncome).toBe(90000);
 		expect(mapped.metrics.profitMargin).toBeCloseTo(75);
-		// No cash figure: the overview has no cash source (it showed netIncome).
-		expect(mapped.metrics).not.toHaveProperty("cashFlow");
+		// The four figures the stat cards show: no cash figure (the overview has
+		// no cash source; it showed netIncome) and no expense total (no card
+		// shows one; Scheduled Net is the revenue less it).
+		expect(Object.keys(mapped.metrics).sort()).toEqual([
+			"netIncome",
+			"profitMargin",
+			"totalCollected",
+			"totalRevenue",
+		]);
 	});
 
 	it("builds monthlyMetrics from the revenue rows joined with expense totals", () => {
@@ -114,17 +106,20 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 				revenueRows: [{ month: "2024-01", revenue: 40000 }],
 				expenseSummary: {
 					monthly_totals: [{ month: "2024-01", amount: 10000 }],
+					categories: [{ category: "Acme", amount: 10000, percentage: 100 }],
 				},
 			},
 		);
-		expect(mapped.monthlyMetrics).toHaveLength(1);
-		expect(mapped.monthlyMetrics[0]).toMatchObject({
-			month: "2024-01",
-			revenue: 40000,
-			expenses: 10000,
-			netIncome: 30000,
+		// Each series holds what its chart or list reads, and nothing else.
+		expect(mapped.monthlyMetrics).toEqual([
+			{ month: "2024-01", revenue: 40000, expenses: 10000, netIncome: 30000 },
+		]);
+		expect(mapped.netOperatingIncome).toEqual([
+			{ propertyName: "2024-01", noi: 30000 },
+		]);
+		expect(mapped.breakdown).toEqual({
+			expenses: [{ label: "Acme", value: 10000, change: null }],
 		});
-		expect(mapped.breakdown.expenses.length).toBeGreaterThanOrEqual(0);
 	});
 
 	it("degrades to zeroed metrics + empty charts on non-object input (never throws)", () => {
@@ -239,7 +234,6 @@ describe("mapLeaseProfitability (20261102184504)", () => {
 			window: { start_date: "2026-01-01", end_date: "2026-11-02" },
 			leases: [
 				{
-					leaseId: "l8",
 					propertyName: "South House (deleted)",
 					unitNumber: "S1",
 					tenantName: "Ed South",
@@ -248,7 +242,6 @@ describe("mapLeaseProfitability (20261102184504)", () => {
 					net: 5000,
 				},
 				{
-					leaseId: "l2",
 					propertyName: "Lot 9",
 					unitNumber: null,
 					tenantName: null,
@@ -433,12 +426,12 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 			],
 		});
 		expect(mapped.costBreakdown).toEqual([
-			{ category: "Roof Co", amount: 400, percentage: (400 / 790.5) * 100 },
-			{ category: "Plumber", amount: 260.5, percentage: (260.5 / 790.5) * 100 },
+			{ category: "Roof Co", amount: 400 },
+			{ category: "Plumber", amount: 260.5 },
 		]);
 		expect(mapped.trends).toEqual([
-			{ period: "2026-09", completed: 1, pending: 4, avgResolutionTime: 48.33 },
-			{ period: "2026-10", completed: 1, pending: 4, avgResolutionTime: null },
+			{ period: "2026-09", completed: 1, pending: 4 },
+			{ period: "2026-10", completed: 1, pending: 4 },
 		]);
 	});
 

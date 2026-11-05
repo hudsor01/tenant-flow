@@ -95,28 +95,17 @@ describe("reportQueries.monthlyRevenue", () => {
 		vi.resetAllMocks();
 	});
 
-	it("fetches monthly revenue data from get_revenue_trends_optimized", async () => {
-		// reportQueries.monthlyRevenue joins revenue with real per-month expenses via
-		// fetchRevenueWithExpenses: get_revenue_trends_optimized (revenue-only)
-		// then get_expense_summary (monthly_totals). profit = revenue - joined
-		// expenses; the phantom expenses/profit/count keys are gone (TYPE-06).
-		mockRpc
-			.mockResolvedValueOnce({
-				data: [
-					{ month: "2024-01", revenue: 40000 },
-					{ month: "2024-02", revenue: 42000 },
-				],
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: {
-					monthly_totals: [
-						{ month: "2024-01", amount: 10000 },
-						{ month: "2024-02", amount: 11000 },
-					],
-				},
-				error: null,
-			});
+	it("fetches monthly revenue data from get_revenue_trends_optimized alone", async () => {
+		// Each month's scheduled rent, which the executive report prints. Its
+		// expenses and profit (a join with get_expense_summary) were read by
+		// no report and went in 66.2-39, with the call that fed them.
+		mockRpc.mockResolvedValueOnce({
+			data: [
+				{ month: "2024-01", revenue: 40000 },
+				{ month: "2024-02", revenue: 42000 },
+			],
+			error: null,
+		});
 
 		const { result } = renderHook(
 			() => useQuery(reportQueries.monthlyRevenue(12)),
@@ -129,15 +118,13 @@ describe("reportQueries.monthlyRevenue", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		expect(result.current.data?.length).toBe(2);
-		expect(result.current.data?.[0]?.month).toBe("2024-01");
-		expect(result.current.data?.[0]?.revenue).toBe(40000);
-		expect(result.current.data?.[0]?.expenses).toBe(10000);
-		expect(result.current.data?.[0]?.profit).toBe(30000);
-		expect(mockRpc).toHaveBeenCalledWith("get_revenue_trends_optimized", {
-			p_user_id: "user-1",
-			p_months: 12,
-		});
+		expect(result.current.data).toEqual([
+			{ month: "2024-01", revenue: 40000 },
+			{ month: "2024-02", revenue: 42000 },
+		]);
+		expect(mockRpc.mock.calls).toEqual([
+			["get_revenue_trends_optimized", { p_user_id: "user-1", p_months: 12 }],
+		]);
 	});
 
 	it("returns empty array when no user", async () => {
@@ -972,19 +959,12 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		vi.resetAllMocks();
 	});
 
-	it("reportQueries.monthlyRevenue forwards revenue/expenses/profit as dollars (no cents math)", async () => {
+	it("reportQueries.monthlyRevenue forwards revenue as dollars (no cents math)", async () => {
 		// 12345.67 dollars: *100 would yield 1234567, /100 would yield 123.4567.
-		// expenses now join in from get_expense_summary.monthly_totals; profit =
-		// revenue - joined expenses = 12345.67 - 2345.89 = 9999.78 (TYPE-06).
-		mockRpc
-			.mockResolvedValueOnce({
-				data: [{ month: "2024-03", revenue: 12345.67 }],
-				error: null,
-			})
-			.mockResolvedValueOnce({
-				data: { monthly_totals: [{ month: "2024-03", amount: 2345.89 }] },
-				error: null,
-			});
+		mockRpc.mockResolvedValueOnce({
+			data: [{ month: "2024-03", revenue: 12345.67 }],
+			error: null,
+		});
 
 		const { result } = renderHook(
 			() => useQuery(reportQueries.monthlyRevenue(12)),
@@ -997,10 +977,7 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		const row = result.current.data?.[0];
-		expect(row?.revenue).toBe(12345.67);
-		expect(row?.expenses).toBe(2345.89);
-		expect(row?.profit).toBe(9999.78);
+		expect(result.current.data?.[0]?.revenue).toBe(12345.67);
 	});
 
 	it("reportAnalyticsQueries.financial keeps the expense amounts in dollars", async () => {

@@ -51,8 +51,8 @@ describe("analyticsQueries.overviewPageData", () => {
 		expect(mockRpc).toHaveBeenCalledWith("get_financial_overview", {
 			p_user_id: "owner-1",
 		});
-		expect(Object.keys(data)).toEqual(["financial"]);
-		expect(data.financial.metrics.totalRevenue).toBe(120000);
-		expect(data.financial.metrics.netIncome).toBe(90000);
+		expect(data).toEqual({
+			financial: { metrics: { totalRevenue: 120000, netIncome: 90000 } },
+		});
 	});
 });

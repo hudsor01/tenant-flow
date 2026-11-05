@@ -129,7 +129,6 @@ describe("stat rows", () => {
 					metrics={{
 						totalRevenue: 1,
 						totalCollected: 1,
-						totalExpenses: 0,
 						netIncome: 1,
 						profitMargin: 100,
 					}}

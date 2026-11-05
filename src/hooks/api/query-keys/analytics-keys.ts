@@ -7,12 +7,6 @@ import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 
-export interface MonthlyRevenueExpense {
-	month: string;
-	revenue: number;
-	expenses: number;
-}
-
 /**
  * Build a `Map<'YYYY-MM', dollars>` from `get_expense_summary.monthly_totals`.
  * `monthly_totals` is the per-month series (a fixed trailing-12-month window);
@@ -32,50 +26,6 @@ export function expenseTotalsByMonth(data: unknown): Map<string, number> {
 		map.set(String(row.month ?? ""), Number(row.amount ?? 0));
 	}
 	return map;
-}
-
-/**
- * Join monthly revenue (`get_revenue_trends_optimized`) with real per-month
- * expenses (`get_expense_summary.monthly_totals`) by 'YYYY-MM'. Both RPCs key
- * months identically and both are integer dollars, so they join cleanly via a
- * Map (never by index — the expense series is a fixed trailing-12-month window
- * while revenue honors `p_months`; missing months resolve to 0). This mirrors
- * the shipped `use-owner-dashboard-financial.ts` join and is the single source
- * of truth for the revenue+expense series of `reportQueries.monthlyRevenue()`
- * (TYPE-06).
- */
-export async function fetchRevenueWithExpenses(
-	months: number,
-): Promise<MonthlyRevenueExpense[]> {
-	const supabase = createClient();
-	const user = await getCachedUser();
-	if (!user) throw new Error("Not authenticated");
-
-	const [revenueResult, expenseResult] = await Promise.all([
-		supabase.rpc("get_revenue_trends_optimized", {
-			p_user_id: user.id,
-			p_months: months,
-		}),
-		supabase.rpc("get_expense_summary", { p_user_id: user.id }),
-	]);
-	if (revenueResult.error)
-		handlePostgrestError(revenueResult.error, "analytics");
-	if (expenseResult.error)
-		handlePostgrestError(expenseResult.error, "analytics expenses");
-
-	const revenueRows = jsonArrayOrEmpty<Record<string, unknown>>(
-		revenueResult.data,
-	);
-	const expenseByMonth = expenseTotalsByMonth(expenseResult.data);
-
-	return revenueRows.map((row): MonthlyRevenueExpense => {
-		const month = String(row.month ?? "");
-		return {
-			month,
-			revenue: Number(row.revenue ?? 0),
-			expenses: expenseByMonth.get(month) ?? 0,
-		};
-	});
 }
 
 /**

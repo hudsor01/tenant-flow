@@ -91,7 +91,6 @@ describe("the trend chart", () => {
 					period,
 					completed: 0,
 					pending: 0,
-					avgResolutionTime: null,
 				}))}
 			/>,
 		);

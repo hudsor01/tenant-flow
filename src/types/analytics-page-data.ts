@@ -1,31 +1,40 @@
 /**
  * Analytics Page Data
  * The shapes the analytics page queries return (src/hooks/api/use-analytics.ts),
- * each holding only what a screen renders. The occupancy, lease and maintenance
- * shapes carried fields no source filled, written as [] or 0 and read nowhere,
- * and page types no query returned; they went in 66.2-39 (part R).
+ * each holding only what a screen or an export renders. The occupancy, lease
+ * and maintenance shapes carried fields no source filled, written as [] or 0
+ * and read nowhere, and page types no query returned; they went in 66.2-39
+ * (part R). Fields a query wrote and nothing read (the financial page's
+ * expense total, cash flow and totals, the expense and vendor shares, the
+ * monthly unit counts and resolution times, ids no row is keyed by) went in
+ * 66.2-39 fix round 3.
  */
 
 import type {
-	FinancialAnalyticsPageResponse,
+	FinancialMetricSummary,
+	LeaseProfitability,
 	MaintenanceCategoryBreakdown,
 	MaintenanceCostBreakdownEntry,
 	MaintenanceCostSummary,
 	MaintenanceTrendPoint,
+	MonthlyFinancialMetric,
+	NetOperatingIncomeByProperty,
 	OccupancyTrendPoint,
 	PropertyPerformancePageResponse,
+	RevenueExpenseBreakdown,
 } from "./analytics";
 
 /**
- * Financial Analytics Page Data
- * Aggregates all financial analytics data for the financial analytics page
+ * The financial analytics page's data: the headline figures, the expense
+ * breakdown, the Scheduled Net and Scheduled Rent & Expenses series, and the
+ * lease profitability table.
  */
 export interface FinancialAnalyticsPageData {
-	metrics: FinancialAnalyticsPageResponse["metrics"];
-	breakdown: FinancialAnalyticsPageResponse["breakdown"];
-	netOperatingIncome: FinancialAnalyticsPageResponse["netOperatingIncome"];
-	monthlyMetrics: FinancialAnalyticsPageResponse["monthlyMetrics"];
-	leaseProfitability: FinancialAnalyticsPageResponse["leaseProfitability"];
+	metrics: FinancialMetricSummary;
+	breakdown: RevenueExpenseBreakdown;
+	netOperatingIncome: NetOperatingIncomeByProperty[];
+	monthlyMetrics: MonthlyFinancialMetric[];
+	leaseProfitability: LeaseProfitability;
 }
 
 /**

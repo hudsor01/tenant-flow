@@ -228,7 +228,7 @@ describe("the property performance page's query", () => {
 		expect(unitsRead.calls).toEqual([
 			[
 				"select",
-				"id, property_id, unit_number, status, bedrooms, bathrooms, rent_amount, square_feet, properties!inner(status)",
+				"property_id, unit_number, status, bedrooms, bathrooms, rent_amount, properties!inner(status)",
 			],
 			["eq", "owner_user_id", "owner-1"],
 			["neq", "status", "inactive"],
@@ -240,21 +240,34 @@ describe("the property performance page's query", () => {
 		expect(data.metrics.totalUnits).toBe(5);
 		expect(data.metrics.occupiedUnits).toBe(2);
 		expect(
-			data.performance.map((p) => [
-				p.totalUnits,
-				p.occupiedUnits,
-				p.vacantUnits,
-			]),
+			data.performance.map((p) => [p.totalUnits, p.occupiedUnits]),
 		).toEqual([
-			[3, 1, 1],
-			[2, 1, 0],
+			[3, 1],
+			[2, 1],
 		]);
-		expect(data.units.map((u) => [u.unit_id, u.unit_number, u.rent])).toEqual([
-			["u1", "1A", 1200],
-			["u2", "1B", 1200],
-			["u3", null, 1200],
-			["u4", "7", 1200],
-			["u5", "8", 1200],
+		expect(data.units.map((u) => [u.unit_number, u.rent])).toEqual([
+			["1A", 1200],
+			["1B", 1200],
+			[null, 1200],
+			["7", 1200],
+			["8", 1200],
+		]);
+		// What the page reads, and nothing else.
+		expect(Object.keys(data.performance[0] ?? {}).sort()).toEqual([
+			"occupancyRate",
+			"occupiedUnits",
+			"propertyName",
+			"property_id",
+			"rentReceived",
+			"totalUnits",
+		]);
+		expect(Object.keys(data.units[0] ?? {}).sort()).toEqual([
+			"bathrooms",
+			"bedrooms",
+			"property_id",
+			"rent",
+			"status",
+			"unit_number",
 		]);
 		expect(data.unitStats).toEqual([
 			{ label: "Units", value: 5 },

@@ -68,8 +68,6 @@ export function mapOccupancyAnalytics(
 		.map((row) => ({
 			period: String(row.month ?? ""),
 			occupancyRate: Number(row.occupancy_rate ?? 0),
-			occupiedUnits: Number(row.occupied_units ?? 0),
-			totalUnits: Number(row.total_units ?? 0),
 		}))
 		.reverse();
 	return { trends };
@@ -114,12 +112,11 @@ export function mapLeaseProfitability(
 		status: "ready",
 		window,
 		leases: section.leases.flatMap((entry) => {
+			// A row with no lease id is no lease's.
 			const row = asObject(entry);
-			const leaseId = text(row?.lease_id);
-			if (row === null || leaseId === null) return [];
+			if (row === null || text(row.lease_id) === null) return [];
 			return [
 				{
-					leaseId,
 					propertyName: propertyReportName(
 						text(row.property_name) ?? "",
 						row.property_deleted === true ? "inactive" : "active",
@@ -142,7 +139,6 @@ function expenseBreakdownRows(summary: unknown): FinancialBreakdownRow[] {
 	return (categories as Array<Record<string, unknown>>).map((c) => ({
 		label: expenseVendorLabel(c.category),
 		value: Number(c.amount ?? 0),
-		percentage: Number(c.percentage ?? 0),
 		change: null,
 	}));
 }
@@ -182,7 +178,6 @@ export function mapFinancialOverview(
 	const metrics: FinancialMetricSummary = {
 		totalRevenue,
 		totalCollected,
-		totalExpenses,
 		netIncome,
 		profitMargin,
 	};
@@ -196,14 +191,7 @@ export function mapFinancialOverview(
 			const month = String(row.month ?? "");
 			const revenue = Number(row.revenue ?? 0);
 			const expenses = expenseByMonth.get(month) ?? 0;
-			const monthNet = revenue - expenses;
-			return {
-				month,
-				revenue,
-				expenses,
-				netIncome: monthNet,
-				cashFlow: monthNet,
-			};
+			return { month, revenue, expenses, netIncome: revenue - expenses };
 		})
 		.reverse();
 
@@ -212,18 +200,13 @@ export function mapFinancialOverview(
 	// expense split.
 	const netOperatingIncome: NetOperatingIncomeByProperty[] = monthlyMetrics.map(
 		(m): NetOperatingIncomeByProperty => ({
-			property_id: m.month,
 			propertyName: m.month,
 			noi: m.netIncome,
-			revenue: m.revenue,
-			expenses: m.expenses,
-			margin: m.revenue > 0 ? (m.netIncome / m.revenue) * 100 : 0,
 		}),
 	);
 
 	const breakdown: RevenueExpenseBreakdown = {
 		expenses: expenseBreakdownRows(options?.expenseSummary),
-		totals: { revenue: totalRevenue, expenses: totalExpenses, netIncome },
 	};
 
 	return {
@@ -360,7 +343,6 @@ function mapMaintenanceTrends(raw: unknown): MaintenanceTrendPoint[] | null {
 				period: String(point.month ?? ""),
 				completed: Number(point.completed ?? 0),
 				pending: Number(point.pending ?? 0),
-				avgResolutionTime: finiteOrNull(point.avg_resolution_hours),
 			};
 		},
 	);
@@ -396,10 +378,6 @@ export function mapMaintenanceAnalytics(
 		costBreakdown: (costs?.vendors ?? []).map((v) => ({
 			category: v.vendorName,
 			amount: v.totalSpend,
-			percentage:
-				costs && costs.totalCost > 0
-					? (v.totalSpend / costs.totalCost) * 100
-					: 0,
 		})),
 		trends: mapMaintenanceTrends(raw),
 	};

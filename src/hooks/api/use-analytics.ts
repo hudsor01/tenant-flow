@@ -12,6 +12,7 @@ import { jsonArrayOrEmpty, jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
+	FinancialMetricSummary,
 	LeaseProfitability,
 	PropertyPerformanceEntry,
 } from "#types/analytics";
@@ -147,16 +148,19 @@ export const analyticsQueries = {
 
 	/**
 	 * The analytics overview's headline figures: it reads only
-	 * `financial.metrics` (get_financial_overview). It also fetched
-	 * get_maintenance_analytics and the occupancy series for a maintenance and
-	 * a lease slice no screen read (the lease slice's fields all [] or 0);
-	 * both went in 66.2-39.
+	 * `financial.metrics`' scheduled rent and net (get_financial_overview). It
+	 * also fetched get_maintenance_analytics and the occupancy series for a
+	 * maintenance and a lease slice no screen read (the lease slice's fields
+	 * all [] or 0); both went in 66.2-39, and the financial slice's empty
+	 * charts, lease profitability and unread figures in fix round 3.
 	 */
 	overviewPageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.overview(),
 			queryFn: async (): Promise<{
-				financial: FinancialAnalyticsPageData;
+				financial: {
+					metrics: Pick<FinancialMetricSummary, "totalRevenue" | "netIncome">;
+				};
 			}> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
@@ -166,10 +170,11 @@ export const analyticsQueries = {
 				});
 				if (error) handlePostgrestError(error, "analytics");
 				// The never-throw mapper derives `metrics` from
-				// get_financial_overview's `overview` (TYPE-02 sibling). Charts stay
-				// empty here (no chart RPCs fetched) — the dedicated financial page
-				// wires them.
-				return { financial: mapFinancialOverview(data) };
+				// get_financial_overview's `overview` (TYPE-02 sibling); the
+				// overview shows the scheduled rent and net alone (the dedicated
+				// financial page carries the rest).
+				const { totalRevenue, netIncome } = mapFinancialOverview(data).metrics;
+				return { financial: { metrics: { totalRevenue, netIncome } } };
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -241,18 +246,15 @@ export const analyticsQueries = {
 							rentReceived: received?.get(r.propertyId) ?? null,
 							totalUnits: counts?.total ?? 0,
 							occupiedUnits: counts?.occupied ?? 0,
-							vacantUnits: counts?.available ?? 0,
 						};
 					}),
 					units: units.map((u) => ({
 						property_id: u.property_id,
-						unit_id: u.id,
 						unit_number: u.unit_number,
 						status: u.status,
 						bedrooms: u.bedrooms,
 						bathrooms: u.bathrooms,
 						rent: u.rent_amount,
-						square_feet: u.square_feet,
 					})),
 					// Each status's count, under the units page's labels.
 					unitStats: [

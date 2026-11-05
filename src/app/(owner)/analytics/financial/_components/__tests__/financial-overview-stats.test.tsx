@@ -19,7 +19,6 @@ import type { FinancialMetricSummary } from "#types/analytics";
 const metrics: FinancialMetricSummary = {
 	totalRevenue: 120000,
 	totalCollected: 97500,
-	totalExpenses: 30000,
 	netIncome: 90000,
 	profitMargin: 75,
 };

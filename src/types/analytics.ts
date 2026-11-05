@@ -173,7 +173,6 @@ export interface FinancialMetricSummary {
 	 * to `totalRevenue` and never re-bases profit or NOI.
 	 */
 	totalCollected: number;
-	totalExpenses: number;
 	/** Scheduled rent less expenses: not income on a received basis. */
 	netIncome: number;
 	/** netIncome over totalRevenue, in percent: a margin on scheduled rent. */
@@ -183,26 +182,21 @@ export interface FinancialMetricSummary {
 export interface FinancialBreakdownRow {
 	label: string;
 	value: number;
-	percentage?: number | null;
 	change?: number | null;
 }
 
 export interface RevenueExpenseBreakdown {
 	expenses: FinancialBreakdownRow[];
-	totals: {
-		revenue: number;
-		expenses: number;
-		netIncome: number;
-	};
 }
 
+/**
+ * One bar of the financial page's Scheduled Net chart: `propertyName` is the
+ * month it covers (the schema has no per-property expense split) and `noi`
+ * that month's scheduled rent less expenses.
+ */
 export interface NetOperatingIncomeByProperty {
-	property_id: string;
 	propertyName: string;
 	noi: number;
-	revenue: number;
-	expenses: number;
-	margin: number;
 }
 
 export interface ExpenseCategorySummary {
@@ -211,33 +205,11 @@ export interface ExpenseCategorySummary {
 	percentage: number;
 }
 
-export interface ExpenseSummaryResponse {
-	categories: ExpenseCategorySummary[];
-	monthlyTotals: Array<{
-		month: string;
-		amount: number;
-	}>;
-	totals: {
-		amount: number;
-		monthlyAverage: number;
-		yearOverYearChange?: number | null;
-	};
-}
-
 export interface MonthlyFinancialMetric {
 	month: string;
 	revenue: number;
 	expenses: number;
 	netIncome: number;
-	cashFlow: number;
-}
-
-export interface LeaseFinancialSummary {
-	totalLeases: number;
-	activeLeases: number;
-	expiringSoon: number;
-	totalrent_amount: number;
-	averageLeaseValue: number;
 }
 
 /**
@@ -247,7 +219,6 @@ export interface LeaseFinancialSummary {
  * period on a day it ran. Dollars.
  */
 export interface LeaseProfitabilityRow {
-	leaseId: string;
 	/** As the report label map prints it: a property deleted since says so. */
 	propertyName: string;
 	unitNumber: string | null;
@@ -270,20 +241,9 @@ export type LeaseProfitability =
 	  }
 	| { readonly status: "unavailable" };
 
-export interface FinancialAnalyticsPageResponse {
-	metrics: FinancialMetricSummary;
-	breakdown: RevenueExpenseBreakdown;
-	netOperatingIncome: NetOperatingIncomeByProperty[];
-	expenseSummary: ExpenseSummaryResponse;
-	monthlyMetrics: MonthlyFinancialMetric[];
-	leaseSummary: LeaseFinancialSummary;
-	leaseProfitability: LeaseProfitability;
-}
-
 export interface MaintenanceCostBreakdownEntry {
 	category: string;
 	amount: number;
-	percentage: number;
 }
 
 export interface MaintenanceTrendPoint {
@@ -292,8 +252,6 @@ export interface MaintenanceTrendPoint {
 	completed: number;
 	/** Requests open at the month's end. */
 	pending: number;
-	/** Mean hours to resolve the month's completed requests; null with none. */
-	avgResolutionTime: number | null;
 }
 
 /**
@@ -320,8 +278,6 @@ export interface MaintenanceCategoryBreakdown {
 export interface OccupancyTrendPoint {
 	period: string;
 	occupancyRate: number;
-	occupiedUnits: number;
-	totalUnits: number;
 }
 
 /**
@@ -375,14 +331,7 @@ export interface PropertyPerformanceEntry {
 	rentReceived: number | null;
 	totalUnits: number;
 	occupiedUnits: number;
-	vacantUnits: number;
-	address?: string;
-	status?: string;
-	property_type?: string;
 }
-
-// Alias for backwards compatibility
-export type PropertyPerformanceData = PropertyPerformanceEntry;
 
 export interface PropertyPerformanceSummary {
 	totalProperties: number;
@@ -394,19 +343,16 @@ export interface PropertyPerformanceSummary {
 	/** The window rent received covers; null when it is unavailable. */
 	rentReceivedWindow: DateWindow | null;
 	bestPerformer?: string;
-	worstPerformer?: string;
 }
 
 export interface PropertyUnitDetail {
 	property_id: string;
-	unit_id: string;
 	/** NULL when the owner gave the unit none. */
 	unit_number: string | null;
 	status: string;
 	bedrooms?: number | null;
 	bathrooms?: number | null;
 	rent?: number | null;
-	square_feet?: number | null;
 }
 
 export interface UnitStatisticEntry {

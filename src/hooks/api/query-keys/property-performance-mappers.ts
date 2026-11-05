@@ -94,14 +94,12 @@ export async function fetchDeletedPropertyIds(
  * occupancy figures use (20261102184501, 20261102200501).
  */
 export interface CountedUnit {
-	readonly id: string;
 	readonly property_id: string;
 	readonly unit_number: string | null;
 	readonly status: string;
 	readonly bedrooms: number | null;
 	readonly bathrooms: number | null;
 	readonly rent_amount: number;
-	readonly square_feet: number | null;
 }
 
 /**
@@ -120,7 +118,7 @@ export async function fetchCountedUnits(
 		const { data, error } = await supabase
 			.from("units")
 			.select(
-				"id, property_id, unit_number, status, bedrooms, bathrooms, rent_amount, square_feet, properties!inner(status)",
+				"property_id, unit_number, status, bedrooms, bathrooms, rent_amount, properties!inner(status)",
 			)
 			.eq("owner_user_id", ownerId)
 			.neq("status", "inactive")
@@ -132,25 +130,22 @@ export async function fetchCountedUnits(
 		const page = data ?? [];
 		for (const row of page) {
 			units.push({
-				id: row.id,
 				property_id: row.property_id,
 				unit_number: row.unit_number,
 				status: row.status,
 				bedrooms: row.bedrooms,
 				bathrooms: row.bathrooms,
 				rent_amount: row.rent_amount,
-				square_feet: row.square_feet,
 			});
 		}
 		if (page.length < PAGE_SIZE) return { data: units, error: null };
 	}
 }
 
-/** Each property's counted units: all of them, occupied, and available. */
+/** Each property's counted units: all of them, and the occupied ones. */
 export interface PropertyUnitCounts {
 	readonly total: number;
 	readonly occupied: number;
-	readonly available: number;
 }
 
 export function unitCountsByProperty(
@@ -158,15 +153,10 @@ export function unitCountsByProperty(
 ): ReadonlyMap<string, PropertyUnitCounts> {
 	const counts = new Map<string, PropertyUnitCounts>();
 	for (const unit of units) {
-		const at = counts.get(unit.property_id) ?? {
-			total: 0,
-			occupied: 0,
-			available: 0,
-		};
+		const at = counts.get(unit.property_id) ?? { total: 0, occupied: 0 };
 		counts.set(unit.property_id, {
 			total: at.total + 1,
 			occupied: at.occupied + (unit.status === "occupied" ? 1 : 0),
-			available: at.available + (unit.status === "available" ? 1 : 0),
 		});
 	}
 	return counts;

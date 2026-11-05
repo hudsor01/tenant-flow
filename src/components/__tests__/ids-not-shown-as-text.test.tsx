@@ -149,13 +149,11 @@ describe("each record is named instead", () => {
 				units={[
 					{
 						property_id: "3f2a9c1e-0000-4000-8000-000000000001",
-						unit_id: "u1",
 						unit_number: "4B",
 						status: "occupied",
 					},
 					{
 						property_id: "3f2a9c1e-0000-4000-8000-00000000dead",
-						unit_id: "u2",
 						unit_number: "5C",
 						status: "available",
 					},

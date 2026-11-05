@@ -27,7 +27,6 @@ function makeLeases(count: number): LeaseProfitability {
 		status: "ready",
 		window: WINDOW,
 		leases: Array.from({ length: count }, (_, index) => ({
-			leaseId: `L${index}`,
 			propertyName: `Property ${index}`,
 			unitNumber: `U${index}`,
 			tenantName: `Tenant ${index}`,
@@ -129,7 +128,6 @@ describe("LeaseProfitabilityTable", () => {
 						window: WINDOW,
 						leases: [
 							{
-								leaseId: "L8",
 								propertyName: "South House (deleted)",
 								unitNumber: "S1",
 								tenantName: "Ed South",
@@ -138,7 +136,6 @@ describe("LeaseProfitabilityTable", () => {
 								net: 5000,
 							},
 							{
-								leaseId: "L1",
 								propertyName: "North Court",
 								unitNumber: "N1",
 								tenantName: "Ann North",

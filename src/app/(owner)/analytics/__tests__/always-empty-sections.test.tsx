@@ -46,19 +46,16 @@ const { pageData } = vi.hoisted(() => ({
 				rentReceived: 1200,
 				totalUnits: 3,
 				occupiedUnits: 1,
-				vacantUnits: 1,
 			},
 		],
 		units: [
 			{
 				property_id: "p1",
-				unit_id: "u1",
 				unit_number: "1A",
 				status: "occupied",
 				bedrooms: 2,
 				bathrooms: 1,
 				rent: 1200,
-				square_feet: 850,
 			},
 		],
 		unitStats: [

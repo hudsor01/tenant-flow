@@ -1,10 +1,12 @@
 import type { MaintenanceCostSummary } from "./analytics";
 
+/**
+ * One month of reportQueries.monthlyRevenue: get_revenue_trends_optimized's
+ * revenue, the month's scheduled rent (the executive report's series).
+ */
 export interface RevenueData {
 	month: string;
 	revenue: number;
-	expenses: number;
-	profit: number;
 }
 
 /**

@@ -64,7 +64,6 @@ export default function FinancialAnalyticsPage() {
 		metrics = {
 			totalRevenue: 0,
 			totalCollected: 0,
-			totalExpenses: 0,
 			netIncome: 0,
 		},
 		breakdown = { expenses: [] },

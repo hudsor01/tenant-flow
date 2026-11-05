@@ -1,5 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
+import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
@@ -11,7 +13,6 @@ import {
 	YEAR_END_REPORT_TYPE,
 } from "../../../../supabase/functions/_shared/tax-year-reports";
 import { mutationKeys } from "../mutation-keys";
-import { fetchRevenueWithExpenses } from "./analytics-keys";
 
 export const reportKeys = {
 	all: ["reports"] as const,
@@ -35,19 +36,21 @@ export const reportQueries = {
 		queryOptions({
 			queryKey: reportKeys.revenue(months),
 			queryFn: async (): Promise<RevenueData[]> => {
+				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) return [];
-				// get_revenue_trends_optimized is revenue-only; expenses/profit come
-				// from the shared join with get_expense_summary.monthly_totals
-				// (TYPE-06). Previously mapped phantom expenses/profit/count keys the
-				// RPC never emits, so the Profit series flatlined at 0.
-				const rows = await fetchRevenueWithExpenses(months);
-				return rows.map(
+				// Each month's scheduled rent, all the executive report prints. Its
+				// expenses and profit (a join with get_expense_summary's
+				// monthly_totals) were read by no report and went in 66.2-39.
+				const { data, error } = await supabase.rpc(
+					"get_revenue_trends_optimized",
+					{ p_user_id: user.id, p_months: months },
+				);
+				if (error) handlePostgrestError(error, "scheduled rent");
+				return jsonArrayOrEmpty<Record<string, unknown>>(data).map(
 					(row): RevenueData => ({
-						month: row.month,
-						revenue: row.revenue,
-						expenses: row.expenses,
-						profit: row.revenue - row.expenses,
+						month: String(row.month ?? ""),
+						revenue: Number(row.revenue ?? 0),
 					}),
 				);
 			},
