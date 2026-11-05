@@ -398,6 +398,70 @@ mutate "$REPLAY" 'daysBetween(monthStartYmd(today, -3), monthStartYmd(today, -1)
                  'a resolution is measured from the wrong hour'
 mutate "$REPLAY" 'pending: PENDING_AT_MONTH_END[at] ?? 0,' 'pending: 1,' \
                  'a request open across month ends is not expected'
+mutate "$REPLAY" '			tileOpen !== trendOpen ||' '' \
+                 'the open-maintenance tile is not compared with its trend'
+mutate "$REPLAY" '			tileOpen !== propertyOpen' '			false' \
+                 'the open-maintenance tile is not compared with the property rows'
+mutate "$REPLAY" '		["dashboard_v2_a", "dashboard_stats_a"],' '' \
+                 'owner A'"'"'s open-maintenance count is not checked'
+mutate "$REPLAY" '				amount > 20' '				amount > 1000' \
+                 'the folded-vendor expense body is not named'
+mutate "$REPLAY" '				category?.["category"] === "Other" &&' '				true &&' \
+                 'the folded-vendor diagnosis names any vendor over 20.00'
+mutate "$REPLAY" 'atPath(printed, "dashboard_v2_a.maintenance_open") === 2 &&' 'false &&' \
+                 'the status-open maintenance body is not named'
+mutate "$REPLAY" 'if (typeof tileOpen === "number" && statsOpen !== tileOpen) {' 'if (false) {' \
+                 'get_dashboard_stats'"'"' open maintenance is not compared with the tile'
+mutate "$REPLAY" '			"dashboard_stats_a.maintenance_open": 3,' '' \
+                 'owner A'"'"'s get_dashboard_stats open maintenance is not pinned'
+mutate "$REPLAY" '			"dashboard_stats_b.maintenance_open": 2,' '' \
+                 'owner B'"'"'s get_dashboard_stats open maintenance is not pinned'
+mutate "$REPLAY" 'atPath(printed, "dashboard_stats_a.maintenance_open") === 2 &&' 'false &&' \
+                 'the status-open get_dashboard_stats body is not named'
+mutate "$REPLAY" 'if (blogText === "") {' 'if (false) {' \
+                 'empty blog-banlist output is not reported as a broken fixture'
+mutate "$REPLAY" 'if (blogParsed === null) {' 'if (false) {' \
+                 'unparseable blog-banlist output is compared anyway'
+mutate "$REPLAY" 'contentCase?.["state"] === "23514" &&' 'false &&' \
+                 'the content-only blog body is not named'
+mutate "$REPLAY" 'titleCase?.["state"] === "00000" &&' '' \
+                 'the content-only diagnosis ignores the title'
+mutate "$REPLAY" 'excerptCase?.["state"] === "00000"
+	) {' 'true
+	) {' \
+                 'the content-only diagnosis ignores the excerpt'
+mutate "$REPLAY" 'contentCase?.["state"] === "23514" &&' 'true &&' \
+                 'the content-only diagnosis ignores the content'
+mutate "$REPLAY" 'for (const [label, expected] of Object.entries(EXPECTED_BLOG_BANLIST)) {' \
+                 'for (const [label, expected] of Object.entries({ "clean-published": EXPECTED_BLOG_BANLIST["clean-published"] })) {' \
+                 'only one blog-banlist case is compared'
+mutate "$REPLAY" '{ state: expected.state, message: expected.message ?? null },' \
+                 '{ state: expected.state },' \
+                 'a blog rejection'"'"'s message (phrase and field) is not compared'
+mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_PRIVILEGES,' '		{},' \
+                 'the blog trigger function'"'"'s privileges are not compared'
+mutate "$REPLAY" ': { ...privileges, config: JSON.stringify(privileges["config"]) },' \
+                 ': { ...privileges, config: '"'"'["search_path=public"]'"'"' },' \
+                 'the blog trigger function'"'"'s search_path is not compared'
+mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_TRIGGER,' '		{},' \
+                 'the blog trigger itself is not compared'
+mutate "$REPLAY" '	"update-published-to-published": ACCEPTED,' \
+                 '	"update-published-to-published": personaHit("title"),' \
+                 'the blog expectation regates an UPDATE of a published post'
+mutate "$REPLAY" '		message: `banlist hit: property owner (persona word found in ${field})`,' \
+                 '		message: `banlist hit: property owner (persona word found in content)`,' \
+                 'the blog expectation names no field for a persona hit'
+mutate "$REPLAY" 'acl: "{postgres=X/postgres}",' \
+                 'acl: "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",' \
+                 'the blog expectation keeps the EXECUTE grants the chain had before 20261102055400'
+mutate "$REPLAY" '	if (mismatches.length > 0) {
+		return {
+			ok: false,
+			message: `validate_blog_post does not decide' '	if (false) {
+		return {
+			ok: false,
+			message: `validate_blog_post does not decide' \
+                 'a blog-banlist mismatch passes'
 
 section "platform-config assertions"
 mutate "$PLATFORM" 'if (missing.length === 0 && unexpected.length === 0) {' 'if (true) {' \
@@ -489,70 +553,6 @@ mutate "$CONTRACT" 'if (typeof on === "string") return { [on]: null };' \
                    'the scalar form of on: is not understood'
 mutate "$CONTRACT" 'if (workflows.length === 0) {' 'if (false) {' \
                    'an empty workflow directory passes'
-mutate "$REPLAY" '			tileOpen !== trendOpen ||' '' \
-                 'the open-maintenance tile is not compared with its trend'
-mutate "$REPLAY" '			tileOpen !== propertyOpen' '			false' \
-                 'the open-maintenance tile is not compared with the property rows'
-mutate "$REPLAY" '		["dashboard_v2_a", "dashboard_stats_a"],' '' \
-                 'owner A'"'"'s open-maintenance count is not checked'
-mutate "$REPLAY" '				amount > 20' '				amount > 1000' \
-                 'the folded-vendor expense body is not named'
-mutate "$REPLAY" '				category?.["category"] === "Other" &&' '				true &&' \
-                 'the folded-vendor diagnosis names any vendor over 20.00'
-mutate "$REPLAY" 'atPath(printed, "dashboard_v2_a.maintenance_open") === 2 &&' 'false &&' \
-                 'the status-open maintenance body is not named'
-mutate "$REPLAY" 'if (typeof tileOpen === "number" && statsOpen !== tileOpen) {' 'if (false) {' \
-                 'get_dashboard_stats'"'"' open maintenance is not compared with the tile'
-mutate "$REPLAY" '			"dashboard_stats_a.maintenance_open": 3,' '' \
-                 'owner A'"'"'s get_dashboard_stats open maintenance is not pinned'
-mutate "$REPLAY" '			"dashboard_stats_b.maintenance_open": 2,' '' \
-                 'owner B'"'"'s get_dashboard_stats open maintenance is not pinned'
-mutate "$REPLAY" 'atPath(printed, "dashboard_stats_a.maintenance_open") === 2 &&' 'false &&' \
-                 'the status-open get_dashboard_stats body is not named'
-mutate "$REPLAY" 'if (blogText === "") {' 'if (false) {' \
-                 'empty blog-banlist output is not reported as a broken fixture'
-mutate "$REPLAY" 'if (blogParsed === null) {' 'if (false) {' \
-                 'unparseable blog-banlist output is compared anyway'
-mutate "$REPLAY" 'contentCase?.["state"] === "23514" &&' 'false &&' \
-                 'the content-only blog body is not named'
-mutate "$REPLAY" 'titleCase?.["state"] === "00000" &&' '' \
-                 'the content-only diagnosis ignores the title'
-mutate "$REPLAY" 'excerptCase?.["state"] === "00000"
-	) {' 'true
-	) {' \
-                 'the content-only diagnosis ignores the excerpt'
-mutate "$REPLAY" 'contentCase?.["state"] === "23514" &&' 'true &&' \
-                 'the content-only diagnosis ignores the content'
-mutate "$REPLAY" 'for (const [label, expected] of Object.entries(EXPECTED_BLOG_BANLIST)) {' \
-                 'for (const [label, expected] of Object.entries({ "clean-published": EXPECTED_BLOG_BANLIST["clean-published"] })) {' \
-                 'only one blog-banlist case is compared'
-mutate "$REPLAY" '{ state: expected.state, message: expected.message ?? null },' \
-                 '{ state: expected.state },' \
-                 'a blog rejection'"'"'s message (phrase and field) is not compared'
-mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_PRIVILEGES,' '		{},' \
-                 'the blog trigger function'"'"'s privileges are not compared'
-mutate "$REPLAY" ': { ...privileges, config: JSON.stringify(privileges["config"]) },' \
-                 ': { ...privileges, config: '"'"'["search_path=public"]'"'"' },' \
-                 'the blog trigger function'"'"'s search_path is not compared'
-mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_TRIGGER,' '		{},' \
-                 'the blog trigger itself is not compared'
-mutate "$REPLAY" '	"update-published-to-published": ACCEPTED,' \
-                 '	"update-published-to-published": personaHit("title"),' \
-                 'the blog expectation regates an UPDATE of a published post'
-mutate "$REPLAY" '		message: `banlist hit: property owner (persona word found in ${field})`,' \
-                 '		message: `banlist hit: property owner (persona word found in content)`,' \
-                 'the blog expectation names no field for a persona hit'
-mutate "$REPLAY" 'acl: "{postgres=X/postgres}",' \
-                 'acl: "{=X/postgres,postgres=X/postgres,service_role=X/postgres}",' \
-                 'the blog expectation keeps the EXECUTE grants the chain had before 20261102055400'
-mutate "$REPLAY" '	if (mismatches.length > 0) {
-		return {
-			ok: false,
-			message: `validate_blog_post does not decide' '	if (false) {
-		return {
-			ok: false,
-			message: `validate_blog_post does not decide' \
-                 'a blog-banlist mismatch passes'
 mutate "$CONTRACT" 'if (sortedReal.join("\n") !== sortedCompanion.join("\n")) {' 'if (false) {' \
                    'the companion job-name equality is dropped'
 

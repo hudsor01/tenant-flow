@@ -75,6 +75,35 @@ function workflowMatrix(): {
 
 const SCRIPT_ROWS = [...readFileSync(SCRIPT, "utf8").matchAll(/^mutate /gm)]
 	.length;
+
+/**
+ * The module variables each section's rows may mutate. `mutate` prints only
+ * a row's label, so a row under another module's heading points a VACUOUS
+ * reader at the wrong file. The verdict layer spans the result module and the
+ * replay CLI's exit codes.
+ */
+const SECTION_MODULES: Readonly<Record<string, readonly string[]>> = {
+	"migration-replay assertions": ["REPLAY"],
+	"platform-config assertions": ["PLATFORM"],
+	"workflow contract": ["CONTRACT"],
+	"the verdict layer: annotations, reporting, tallying, exit codes": [
+		"RESULT",
+		"REPLAY_CLI",
+	],
+};
+
+/** Every row as `[section heading, module variable, label line]`, in order. */
+function sectionRows(): ReadonlyArray<readonly [string, string, string]> {
+	const rows: [string, string, string][] = [];
+	let section = "";
+	for (const line of readFileSync(SCRIPT, "utf8").split("\n")) {
+		const heading = /^section "([^"]*)"/.exec(line);
+		if (heading) section = heading[1] ?? "";
+		const row = /^mutate "\$([A-Z_]+)"/.exec(line);
+		if (row) rows.push([section, row[1] ?? "", line]);
+	}
+	return rows;
+}
 const ALL = listing({});
 
 describe("the mutation sweep's shards", () => {
@@ -85,6 +114,17 @@ describe("the mutation sweep's shards", () => {
 			Array.from({ length: SCRIPT_ROWS }, (_, i) => i + 1),
 		);
 		expect(ALL.rows.every(([, label]) => label.trim() !== "")).toBe(true);
+	});
+
+	it("puts each row under its own module's section", () => {
+		const rows = sectionRows();
+		expect(rows).toHaveLength(SCRIPT_ROWS);
+		const misplaced = rows
+			.filter(
+				([section, module]) => !SECTION_MODULES[section]?.includes(module),
+			)
+			.map(([section, module, line]) => `${section} <- $${module}: ${line}`);
+		expect(misplaced).toEqual([]);
 	});
 
 	it("hands each matrix job its shard and the matrix size", () => {
