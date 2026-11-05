@@ -98,9 +98,11 @@ export default function TaxDocumentsPage() {
 		);
 	}
 
+	// Rent received is the ledger's for the year, so a reversal posted in it can
+	// leave it below zero: that is a figure to show, as the year-end page does.
 	const hasData =
 		data &&
-		(data.totals.totalIncome > 0 ||
+		(data.totals.totalIncome !== 0 ||
 			data.totals.totalExpenses > 0 ||
 			data.expenseCategories.length > 0);
 

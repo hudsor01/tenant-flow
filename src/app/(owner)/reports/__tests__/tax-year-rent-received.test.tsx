@@ -178,6 +178,29 @@ describe("the tax documents", () => {
 		);
 	});
 
+	// A $1,500 receipt dated 2024-12-20 reversed on 2025-01-05, nothing else in
+	// 2025: the year's rent received is -1500, and the year-end page shows it.
+	it("show a tax year whose rent received is negative, with its PDF (cycle 2, F21)", () => {
+		taxDocuments({
+			status: "ready",
+			documents: {
+				period: {
+					start_date: "2025-01-01",
+					end_date: "2025-12-31",
+					label: "Tax Year 2025",
+				},
+				taxYear: 2025,
+				totals: { totalIncome: -1500, totalExpenses: 0, netIncome: -1500 },
+				expenseCategories: [],
+			},
+		});
+		expect(screen.queryByText(/^No data for/)).not.toBeInTheDocument();
+		expect(screen.getAllByText("-$1,500.00")).toHaveLength(2);
+		expect(
+			screen.getByRole("button", { name: "Download PDF of the tax documents" }),
+		).toBeEnabled();
+	});
+
 	it("say the ledger totals are unavailable, and offer no PDF", () => {
 		taxDocuments({ status: "ledger-unavailable", taxYear: 2025 });
 		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
