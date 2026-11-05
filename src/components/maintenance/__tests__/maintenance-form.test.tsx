@@ -601,7 +601,7 @@ describe("MaintenanceForm", () => {
 
 	// FORMFIX-05a: the edit payload previously omitted unit_id/tenant_id, so
 	// reassigning the unit or tenant silently did not persist. It must now be
-	// carried into the MaintenanceRequestUpdate payload.
+	// carried into the MaintenanceRequestUpdateInput payload.
 	describe("FORMFIX-05a: edit persists unit/tenant changes", () => {
 		test("edit submit includes the reassigned unit_id and tenant_id", async () => {
 			const user = userEvent.setup();

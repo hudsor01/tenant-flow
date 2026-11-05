@@ -265,11 +265,12 @@ export function QueryProvider({
 const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // Bump when a persisted query's return shape changes (CLAUDE.md, Data layer).
 // v2: financialQueries.balanceSheet returns BalanceSheetResult
-// ({ status, sheet }), not ApiResponse<BalanceSheetData>; a v1 entry read back
-// from IndexedDB is neither shape the page knows and rendered as a $0 sheet.
+// ({ status, sheet }), not a { data, success } wrapper of BalanceSheetData; a
+// v1 entry read back from IndexedDB is neither shape the page knows and
+// rendered as a $0 sheet.
 // v3: the rent-ledger statements and rent received. financialQueries.
 // incomeStatement and .cashFlow return IncomeStatementResult / CashFlowResult
-// ({ status, statement | report }), not ApiResponse; reportAnalyticsQueries.
+// ({ status, statement | report }), not that wrapper; reportAnalyticsQueries.
 // yearEnd YearEndResult and financialTaxQueries.taxDocuments
 // TaxDocumentsResult; propertyQueries.performance a PropertyPerformanceResult;
 // and analyticsQueries.propertyPerformancePageData and reportAnalyticsQueries.

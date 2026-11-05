@@ -1,8 +1,8 @@
 /**
  * The persisted query cache is discarded when a cached return shape changes
  * (CLAUDE.md, Data layer: "bump QUERY_CACHE_BUSTER when a cached return shape
- * changes"). financialQueries.balanceSheet moved from ApiResponse<BalanceSheet
- * Data> to BalanceSheetResult (66.2-39, part K, v2); the income statement, the
+ * changes"). financialQueries.balanceSheet moved from a { data, success }
+ * wrapper to BalanceSheetResult (66.2-39, part K, v2); the income statement, the
  * cash flow, the year-end report, the tax documents and the property
  * performance queries moved to result unions and rent received (part L, v3);
  * the dashboard, expense and maintenance queries gained the trends, the year
