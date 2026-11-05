@@ -17,7 +17,13 @@
  *    `*Queries`, `*Keys` or `*Mutations` there; `<object>.<member>` (or the same
  *    through an alias such as `export const x = y`) must appear on a production
  *    line other than the member's own definition. A key read only by a live leaf
- *    in the same file counts, which is how key factories are built.
+ *    in the same file counts, which is how key factories are built;
+ *  - a NESTED MEMBER is a member of a first-level member whose value is itself
+ *    an object literal (`mutationKeys.properties.create`,
+ *    `ownerDashboardKeys.financial.chartData`); `<object>.<member>.<nested>`
+ *    must appear the same way. A first-level-only check passed while
+ *    `mutationKeys.properties.markSold` outlived its one reader, and while 23
+ *    older `mutationKeys` leaves had none at all.
  *
  * Production means every non-test `.ts`/`.tsx` file under `src/` and
  * `supabase/functions/`, minus the generated `src/types/supabase.ts`. Wholly
@@ -162,6 +168,31 @@ function sweep(): DataLayerSymbol[] {
 					{ file, line },
 				);
 				symbols.push({ name: `${object}.${member}`, file, line, callers });
+
+				const nested = /^\t[A-Za-z_$][\w$]*\s*:\s*\{/.exec(
+					body.slice(mm.index ?? 0),
+				);
+				if (nested?.index !== 0) continue;
+				const nestedOpen = open + (mm.index ?? 0) + nested[0].length - 1;
+				const nestedBody = objectBody(text, nestedOpen);
+				for (const nn of nestedBody.matchAll(
+					/^\t\t([A-Za-z_$][\w$]*)\s*[:(]/gm,
+				)) {
+					const leaf = nn[1] ?? "";
+					const leafLine = lineOf(nestedOpen + (nn.index ?? 0));
+					const leafCallers = references(
+						new RegExp(
+							`\\b(?:${objects})\\.${escapeRegExp(member)}\\.${escapeRegExp(leaf)}\\b`,
+						),
+						{ file, line: leafLine },
+					);
+					symbols.push({
+						name: `${object}.${member}.${leaf}`,
+						file,
+						line: leafLine,
+						callers: leafCallers,
+					});
+				}
 			}
 		}
 	}
@@ -181,6 +212,8 @@ describe("src/hooks/api has no code without a production caller", () => {
 				"financialQueries.balanceSheet",
 				"financialKeys.balanceSheet",
 				"analyticsQueries.ownerPaymentSummary",
+				"mutationKeys.rentLedger.recordReceipt",
+				"ownerDashboardKeys.financial.chartData",
 			]),
 		);
 	});
