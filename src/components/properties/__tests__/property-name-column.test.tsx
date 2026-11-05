@@ -16,6 +16,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { transformToPropertyItem } from "#app/(owner)/properties/components/property-transforms";
 import { TooltipProvider } from "#components/ui/tooltip";
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { PropertyTable } from "../property-table";
 import { PROPERTY_COLUMN_CLASS } from "../property-table-types";
 
@@ -96,5 +97,15 @@ describe("the properties table's Property column", () => {
 		expect(name.className).toContain("truncate");
 		const cell = name.closest("td");
 		expect(cell?.className).toContain("min-w-56");
+		// The name and its type line sit in a flex item, where the base `p`
+		// margin cannot collapse away: it put 16px between the two and 16px
+		// under the type (a 100px row in Chrome, 66.2-39 fix round 3, G2).
+		const lines = [...(name.parentElement?.querySelectorAll("p") ?? [])];
+		expect(lines).toHaveLength(2);
+		for (const line of lines) {
+			const { neutralized, baseline } = computeParagraphCascade(line);
+			expect(baseline.marginBottom).toBe("16px");
+			expect(neutralized.marginBottom).toBe("0px");
+		}
 	});
 });

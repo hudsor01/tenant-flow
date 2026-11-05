@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { expectLabelInName } from "#test/utils/label-in-name";
 
 const hooks = vi.hoisted(() => ({
@@ -198,6 +199,17 @@ describe("SubscriptionCancelSection", () => {
 			screen.getByRole("button", { name: /^reactivate plan$/i }),
 		).toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: /^cancel plan$/i })).toBeNull();
+		// The notice's two lines sit in a flex item: the base `p` margin put 16px
+		// between them (mt-1 declares 4) and 16px under the second, inside the
+		// p-4 box (66.2-39 fix round 3, G2).
+		const notice = screen.getByText(/subscription ends/i).parentElement;
+		const lines = [...(notice?.querySelectorAll("p") ?? [])];
+		expect(lines).toHaveLength(2);
+		for (const line of lines) {
+			const { neutralized, baseline } = computeParagraphCascade(line);
+			expect(baseline.marginBottom).toBe("16px");
+			expect(neutralized.marginBottom).toBe("0px");
+		}
 	});
 
 	it("renders State 1 (Cancel) for a trialing Stripe subscriber not yet scheduled to cancel", () => {

@@ -237,7 +237,7 @@ export default function UnitsPage() {
 					<h2 className="typography-large text-destructive-text">
 						Error Loading Units
 					</h2>
-					<p className="text-muted-foreground">Failed to load units</p>
+					<p className="mb-0 text-muted-foreground">Failed to load units</p>
 				</div>
 			</div>
 		);

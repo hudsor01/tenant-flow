@@ -91,12 +91,12 @@ export function PropertyTableRow({
 							{/* Truncated in its column, the whole name stays in the text
 							    (assistive technology reads it) and shows on hover. */}
 							<p
-								className="font-medium text-foreground truncate"
+								className="mb-0 font-medium text-foreground truncate"
 								title={property.name}
 							>
 								{property.name}
 							</p>
-							<p className="text-xs text-muted-foreground truncate">
+							<p className="mb-0 text-xs text-muted-foreground truncate">
 								{propertyTypeLabel(property.propertyType)}
 							</p>
 						</div>

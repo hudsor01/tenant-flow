@@ -186,10 +186,10 @@ export function SubscriptionCancelSection() {
 							aria-hidden="true"
 						/>
 						<div>
-							<p className="text-sm font-medium text-warning-text">
+							<p className="mb-0 text-sm font-medium text-warning-text">
 								Subscription ends {endDate}
 							</p>
-							<p className="text-sm text-muted-foreground mt-1">
+							<p className="mt-1 mb-0 text-sm text-muted-foreground">
 								Your plan will end on <strong>{endDate}</strong> (
 								<strong>{formatCount(daysLeft, "day")} remaining</strong>). You
 								can keep your plan active by reactivating before then.

@@ -113,7 +113,7 @@ export function ProfileCard({
 					)}
 
 					<h2 className="mt-4 text-xl font-semibold">{profile.full_name}</h2>
-					<p className="text-sm text-muted-foreground">Property Owner</p>
+					<p className="mb-0 text-sm text-muted-foreground">Property Owner</p>
 
 					{profile.created_at && (
 						<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
