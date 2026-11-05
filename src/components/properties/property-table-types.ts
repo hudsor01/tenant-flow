@@ -27,21 +27,18 @@ export const TABLE_COLUMNS: ColumnConfig[] = [
 ];
 
 /**
- * Per-column layout classes shared by the flex `<thead>` cells and the flex
- * virtualized row `<td>`s so column widths stay in lockstep and align. Each entry
- * is `display` + width + vertical centering; responsive columns (address, revenue)
- * carry their own `hidden md:flex` / `hidden lg:flex` so the header cell and the
- * row cell drop together at every breakpoint. Conditional visibility is handled
- * separately via `isColumnVisible`, which omits both cells entirely.
- */
-/**
  * Each column's box, header and body alike (the virtualized table is flex rows,
- * so one class per column keeps them aligned). The property column had no
- * floor, so the three flexible columns shared what the fixed ones left: 8.94 px
- * of name at 1280 and 6.11 px at 390. It now keeps a floor (14 rem below lg,
- * where the table scrolls in its box anyway; 10 rem from lg, so at 1280 the
- * row fits its 876 px box) and takes the remaining width; the status column is
- * sized to its badges; the address
+ * so one class per column keeps the `<thead>` cell and the row `<td>` in
+ * lockstep): `display`, width and vertical centering. The responsive columns
+ * carry their own `hidden 2xl:flex` (address) / `hidden lg:flex` (revenue), so
+ * the header and row cells drop together at every breakpoint; a column the
+ * owner hides is `isColumnVisible`'s, which omits both cells.
+ *
+ * The property column had no floor, so the three flexible columns shared what
+ * the fixed ones left: 8.94 px of name at 1280 and 6.11 px at 390. It now
+ * keeps a floor (14 rem below lg, where the table scrolls in its box anyway;
+ * 10 rem from lg, so at 1280 the row fits its 876 px box) and takes the
+ * remaining width; the status column is sized to its badges; the address
  * column shows from 2xl, where the row has room for it (the property page
  * gives the address); and the table is at least its columns' floors wide
  * (min-w-min), so below that its own scroll box scrolls, never the page.

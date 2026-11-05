@@ -1,9 +1,10 @@
 /**
  * Fetch the owner's data export from `export-user-data` and save it.
  *
- * Shared by the Settings "Account & data" section and the inline GDPR actions,
- * which each carried a copy of this fetch plus a hand-rolled anchor download
- * that revoked the object URL immediately after `click()`. The save now goes
+ * Shared by the Settings "My Data" section (`AccountDataSection`) and the
+ * inline GDPR actions, which each carried a copy of this fetch plus a
+ * hand-rolled anchor download that revoked the object URL immediately after
+ * `click()`. The save now goes
  * through `downloadBlob`, which defers the revoke so the browser can start the
  * download first.
  */

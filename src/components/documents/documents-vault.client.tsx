@@ -312,8 +312,9 @@ export function DocumentsVaultClient() {
 			);
 			if (!res.ok) {
 				// The function's own copy (a 4xx explains itself; anything
-				// unexpected is "An error occurred"), else the download copy --
-				// never the status line.
+				// unexpected is "An error occurred"); with none, a status's own
+				// copy (400, 401, 404, 429, 500, 503, as createApiErrorFromResponse
+				// maps them) or else the download copy -- never the status line.
 				const body = (await res.json().catch(() => ({}))) as {
 					error?: unknown;
 				};

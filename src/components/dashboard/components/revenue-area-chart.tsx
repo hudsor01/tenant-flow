@@ -25,8 +25,8 @@
  * Color flows through `var(--color-chart-1)` (token defined in `globals.css`
  * for both light and dark themes — 04-CONTEXT.md D-09). Entrance animation
  * gates on `useReducedMotion()` (Phase 3 canonical hook). The Y-axis tick
- * formatter divides by 1000 — that's the parent-spec § 8.2 declared
- * non-currency-arithmetic exemption; do NOT route it through `formatCurrency`.
+ * formatter states thousands through `formatCurrency` (value / 1000, then
+ * "k"), so a negative reads "-$15k", never "$-15k" (VD-73).
  */
 
 import { useState } from "react";

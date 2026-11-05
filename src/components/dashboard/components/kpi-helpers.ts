@@ -3,7 +3,7 @@
  *
  * Exports:
  * - {@link formatTrendPercent} — emits `+12%` / `−3%` (U+2212 minus) / `0%`.
- *   Used by `<StatTrend>` to render the per-tile percent chip (03-UI-SPEC § 4.3).
+ *   `describeTrend` calls it for a tile's percent chip (03-UI-SPEC § 4.3).
  * - {@link sparklineConfigForTrend} — maps trend direction → ChartConfig with
  *   `spark.theme.{light,dark}` set to the correct status token. Consumed by
  *   `KpiSparkline` (03-UI-SPEC § 6.2) so the sparkline stroke + fill resolve
@@ -32,18 +32,13 @@ type TrendDirection = MetricTrend["trend"];
  * render as `0%` with no sign (03-UI-SPEC § 4.3 honesty rule).
  *
  * NaN / Infinity guard (cycle-1 WR-02 hardening): `MetricTrend.percentChange`
- * is typed `number`, but the RPC can ship `NaN` on a stale row and
- * `Math.round(NaN)` returns `NaN` — without the guard the chip would
- * render `"NaN%"` or `"+Infinity%"`. The `Number.isFinite` short-circuit
- * is load-bearing; do NOT remove it as "defensive overkill" — it
- * defends a real failure mode.
+ * is `number | null`, `mapMetricTrend` maps a non-finite value to null, and
+ * `describeTrend` returns its no-prior chip for null or NaN before it calls
+ * this, so the chip never shows the guard's "0%". The guard protects a direct
+ * caller only: `Math.round(NaN)` is `NaN`, which would print `"NaN%"`.
  */
 export function formatTrendPercent(percentChange: number): string {
-	// WR-02 cycle-1 fix: NaN / Infinity guard. The type says `number` but
-	// `MetricTrend.percentChange` can carry NaN if the RPC ships a stale row,
-	// and `Math.round(NaN)` returns NaN — without this guard the rendered
-	// chip reads "NaN%" or "+Infinity%". Same hardening as the `safeOccupancy`
-	// guard in kpi-bento-row.tsx.
+	// For a direct caller: describeTrend never passes a non-finite value.
 	if (!Number.isFinite(percentChange)) return "0%";
 	const rounded = Math.round(percentChange);
 	// String.fromCharCode(0x2212) is the U+2212 typographic minus — distinct

@@ -23,9 +23,8 @@ export function LeaseInsightsSkeleton() {
  * The leases page's insights: each lease's rent received less its expenses.
  * The "Lease lifecycle" (renewals, expirations and notices over time) and
  * "Status breakdown" charts went: no source records a lease's renewals or
- * notices over time, and the page's stat tiles above already count each lease
- * status from the same leases, so both charts could only ever be empty
- * (lifecycle and statusBreakdown were written as []).
+ * notices over time, and lifecycle and statusBreakdown were always written as
+ * [], so both charts could only ever be empty.
  */
 export function LeaseInsightsSection() {
 	const { data: profitability } = useSuspenseQuery(

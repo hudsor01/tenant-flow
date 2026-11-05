@@ -34,7 +34,7 @@ type ViewMode = "table" | "grid";
 // Portfolio rows render ~56px (two text lines + py-2.5), so estimate to 56 while
 // never dropping below the 48px touch-target floor.
 const ESTIMATED_ROW_HEIGHT = 56;
-// Below `lg` (1024px) force the grid (card) view: the 7-column table needs the
+// Below `lg` (1024px) force the grid (card) view: the 6-column table needs the
 // desktop width to stay readable (and the column-visibility control is itself
 // lg-only), so the table view only makes sense at >=lg (W-4 / D-5).
 const FORCE_GRID_QUERY = "(max-width: 1023px)";

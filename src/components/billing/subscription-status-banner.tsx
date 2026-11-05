@@ -7,11 +7,11 @@ import { useSubscriptionStatus } from "#hooks/api/use-billing";
 /**
  * SubscriptionStatusBanner — shows warning/lock banner for subscription issues.
  *
- * - trialing: indigo banner with days-remaining counter + upgrade CTA
+ * - trialing: primary banner with days-remaining counter + upgrade CTA
  * - active: renders nothing (null)
- * - past_due: yellow warning with link to /settings?tab=billing (portal launcher)
- * - unpaid/canceled/expired: red lock banner with link to /billing/plans
- * - null (no subscription): blue info banner with link to /pricing
+ * - past_due: warning banner with link to /settings?tab=billing (portal launcher)
+ * - unpaid/canceled/expired: destructive lock banner with link to /billing/plans
+ * - null (no subscription): info banner with link to /pricing
  *
  * Include in owner layout to show across all owner pages.
  */
