@@ -412,3 +412,53 @@ describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => 
 		);
 	});
 });
+
+describe("handleMutationError — a status branch's own copy for an error with no message", () => {
+	beforeEach(() => {
+		vi.mocked(toast.error).mockClear();
+	});
+
+	// The branch copy was the `||` operand behind `displayMessage`, which can
+	// no longer be empty: `userFacingErrorMessage` returns its fallback for a
+	// blank message, so each branch passes its copy as that fallback.
+	it.each([
+		[409, "Conflict", "This item already exists or has been modified"],
+		[403, "Access Denied", "You do not have permission to perform this action"],
+		[404, "Not Found", "The requested item could not be found"],
+	])("a %i shows %s with its copy", (status, title, copy) => {
+		handleMutationError(Object.assign(new Error(""), { status }), "Load lease");
+		expect(lastToastErrorCall()).toEqual([title, { description: copy }]);
+
+		handleMutationError({ status }, "Load lease");
+		expect(lastToastErrorCall()).toEqual([title, { description: copy }]);
+	});
+
+	it("keeps the sanitized message, and the caller's copy, over the branch copy", () => {
+		handleMutationError(
+			Object.assign(new Error("Lease is already signed"), { status: 409 }),
+			"Edit lease",
+		);
+		expect(lastToastErrorCall()).toEqual([
+			"Conflict",
+			{ description: "Lease is already signed" },
+		]);
+
+		handleMutationError(
+			Object.assign(new Error(""), { status: 404 }),
+			"Load lease",
+			"That lease is gone",
+		);
+		expect(lastToastErrorCall()).toEqual([
+			"Not Found",
+			{ description: "That lease is gone" },
+		]);
+	});
+
+	it("shows the generic copy for an error with no message and no status", () => {
+		handleMutationError(new Error(""), "Save notes");
+		expect(lastToastErrorCall()).toEqual([
+			"Something went wrong. Please try again.",
+			undefined,
+		]);
+	});
+});

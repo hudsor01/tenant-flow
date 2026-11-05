@@ -245,8 +245,10 @@ export function handleMutationError(
 		});
 	}
 
-	// Show user-friendly toast notification
-	const displayMessage = customMessage || userFacingErrorMessage(error);
+	// The toast's copy: the caller's, else the sanitized message, else the
+	// branch's own copy (`fallback`) when the error carries no message.
+	const displayMessage = (fallback?: string) =>
+		customMessage || userFacingErrorMessage(error, fallback);
 
 	// Plan-limit detection — fired by the BEFORE-INSERT triggers
 	// `enforce_property_plan_limit` / `enforce_unit_plan_limit`. The PG
@@ -290,23 +292,25 @@ export function handleMutationError(
 	// Customize toast based on status code
 	if (status === 409) {
 		toast.error("Conflict", {
-			description:
-				displayMessage || "This item already exists or has been modified",
+			description: displayMessage(
+				"This item already exists or has been modified",
+			),
 		});
 	} else if (isPlanLimit) {
 		showPlanLimitUpgradeToast(
-			displayMessage,
+			displayMessage(),
 			upgradeSource,
 			isStorageQuota ? STORAGE_QUOTA_TOAST_ID : undefined,
 		);
 	} else if (status === 403) {
 		toast.error("Access Denied", {
-			description:
-				displayMessage || "You do not have permission to perform this action",
+			description: displayMessage(
+				"You do not have permission to perform this action",
+			),
 		});
 	} else if (status === 404) {
 		toast.error("Not Found", {
-			description: displayMessage || "The requested item could not be found",
+			description: displayMessage("The requested item could not be found"),
 		});
 	} else if (status && status >= 500) {
 		toast.error("Server Error", {
@@ -318,7 +322,7 @@ export function handleMutationError(
 		// network failure, a RAW Postgres/PostgREST message), so author-written
 		// RAISE EXCEPTION copy carrying a constraint SQLSTATE like 23514/42501,
 		// and P0001/P0002, surfaces verbatim.
-		toast.error(displayMessage);
+		toast.error(displayMessage());
 	}
 }
 
