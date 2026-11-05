@@ -1,6 +1,6 @@
 // Shared constant-time string compare for Edge Functions.
 //
-// Structured after the resend-webhook pattern (resend-webhook/index.ts:145-168):
+// Structured after the resend-webhook pattern (its `verifySvixSignature`):
 // a runtime feature detection for crypto.subtle.timingSafeEqual, with an
 // XOR-loop beneath it.
 //
