@@ -192,10 +192,10 @@ export async function handleRequest(
 				title: "Financial Analytics",
 				filename: `${FINANCIAL_ANALYTICS_REPORT_TYPE}-${today}`,
 				table: buildFinancialAnalyticsTable(
-						load.sources,
-						propertyReportName,
-						expenseVendorLabel,
-					),
+					load.sources,
+					propertyReportName,
+					expenseVendorLabel,
+				),
 			};
 		} else {
 			const load = await loadTaxYearSources(
