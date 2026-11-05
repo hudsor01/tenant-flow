@@ -298,7 +298,13 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // visitor analytics and revenue trends and its rows their literal trend, and
 // fills its units from the counted units. A v5 entry would read as a page with
 // no expenses or net figure, or as "0 of 0" units, until the refetch landed.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v6";
+// v7: fix round 3 dropped the fields no screen or export reads.
+// analyticsQueries' financial, overview, maintenance, occupancy, lease
+// profitability and property performance page data, reportKeys.revenue,
+// .properties and .yearEnd, and financialQueries.incomeStatement (no gross
+// profit, operating income, profit margin or previous period) all lost
+// fields. A v6 entry would carry the old shapes until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v7";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {
