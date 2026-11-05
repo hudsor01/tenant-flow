@@ -6,36 +6,30 @@ import { useBillingHistory } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
 import type { BillingHistoryItem } from "#types/api-contracts";
 
+/**
+ * An invoice's status as the owner reads it. `status` is already
+ * mapInvoiceStatus's four values (Stripe's open and draft read pending, void
+ * cancelled, uncollectible failed), so these are the only labels it can take.
+ */
+const INVOICE_STATUS_LABELS: Readonly<
+	Record<BillingHistoryItem["status"], string>
+> = {
+	succeeded: "Paid",
+	failed: "Failed",
+	cancelled: "Cancelled",
+	pending: "Pending",
+};
+
 function getStatusVisual(invoice: BillingHistoryItem) {
+	const label = INVOICE_STATUS_LABELS[invoice.status];
 	if (invoice.isSuccessful) {
-		return {
-			Icon: CheckCircle,
-			color: "text-success-text",
-			label: "Paid",
-		};
+		return { Icon: CheckCircle, color: "text-success-text", label };
 	}
 	if (invoice.status === "failed" || invoice.status === "cancelled") {
-		return {
-			Icon: XCircle,
-			color: "text-destructive-text",
-			label: invoice.status === "failed" ? "Failed" : "Cancelled",
-		};
+		return { Icon: XCircle, color: "text-destructive-text", label };
 	}
-	return {
-		Icon: Clock,
-		color: "text-muted-foreground",
-		label: INVOICE_STATUS_LABELS.get(invoice.status) ?? invoice.status,
-	};
+	return { Icon: Clock, color: "text-muted-foreground", label };
 }
-
-/** The rest of Stripe's invoice statuses, as the owner reads them. */
-const INVOICE_STATUS_LABELS: ReadonlyMap<string, string> = new Map([
-	["draft", "Draft"],
-	["open", "Open"],
-	["uncollectible", "Uncollectible"],
-	["void", "Void"],
-	["pending", "Pending"],
-]);
 
 export function BillingHistorySection() {
 	const { data: paymentHistory } = useBillingHistory();
