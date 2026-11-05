@@ -65,15 +65,18 @@ function SummaryCard({
 	value: string;
 	isLoading: boolean;
 }) {
+	// The Card's own py-6 pads it: a pt-6 here doubled the top to 48px. mb-0:
+	// CardContent is a flex item, so the base `p` margin would stay inside it,
+	// under the label and between the figure and its label.
 	return (
 		<Card>
-			<CardContent className="pt-6">
+			<CardContent>
 				{isLoading ? (
 					<Skeleton className="h-8 w-32 mb-1" />
 				) : (
-					<p className="text-2xl font-semibold">{value}</p>
+					<p className="mb-0 text-2xl font-semibold">{value}</p>
 				)}
-				<p className="text-sm text-muted-foreground mt-1">{label}</p>
+				<p className="mt-1 mb-0 text-sm text-muted-foreground">{label}</p>
 			</CardContent>
 		</Card>
 	);
