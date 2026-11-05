@@ -33,20 +33,25 @@ export function CashFlowBreakdown({
 										{item.category}
 									</span>
 									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">
-											{item.percentage.toFixed(1)}%
-										</span>
+										{item.percentage !== null && (
+											<span className="text-sm text-muted-foreground">
+												{item.percentage.toFixed(1)}%
+											</span>
+										)}
 										<span className="text-sm font-medium text-success-text tabular-nums">
 											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
-								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div
-										className="h-full bg-success-text rounded-full transition-all duration-500"
-										style={{ width: `${item.percentage}%` }}
-									/>
-								</div>
+								{/* A line below zero has no share, so no bar. */}
+								{item.percentage !== null && (
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div
+											className="h-full bg-success-text rounded-full transition-all duration-500"
+											style={{ width: `${item.percentage}%` }}
+										/>
+									</div>
+								)}
 							</div>
 						))}
 						{inflowItems.length === 0 && (
@@ -79,20 +84,24 @@ export function CashFlowBreakdown({
 										{item.category}
 									</span>
 									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">
-											{item.percentage.toFixed(1)}%
-										</span>
+										{item.percentage !== null && (
+											<span className="text-sm text-muted-foreground">
+												{item.percentage.toFixed(1)}%
+											</span>
+										)}
 										<span className="text-sm font-medium text-destructive-text tabular-nums">
 											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
-								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div
-										className="h-full bg-destructive-text rounded-full transition-all duration-500"
-										style={{ width: `${item.percentage}%` }}
-									/>
-								</div>
+								{item.percentage !== null && (
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div
+											className="h-full bg-destructive-text rounded-full transition-all duration-500"
+											style={{ width: `${item.percentage}%` }}
+										/>
+									</div>
+								)}
 							</div>
 						))}
 						{outflowItems.length === 0 && (

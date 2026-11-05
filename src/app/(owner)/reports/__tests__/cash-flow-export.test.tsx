@@ -172,6 +172,34 @@ describe("cash flow Export", () => {
 		expect(figures).toEqual(["$0.00", "$0.00"]);
 	});
 
+	it("lists a negative rent received under inflows, with no share or bar (cycle 2, F8)", () => {
+		const reversed: CashFlowData = {
+			...data,
+			operatingActivities: {
+				rentalPaymentsReceived: -1000,
+				expensesPaid: 0,
+				netOperatingCash: -1000,
+			},
+			netCashFlow: -1000,
+			beginningCash: 3000,
+			endingCash: 2000,
+		};
+		useCashFlowMock.mockReturnValue(
+			queryState({ data: { status: "ready", report: reversed } }),
+		);
+		render(<CashFlowPage />);
+		expect(
+			screen.queryByText("No inflows for this period"),
+		).not.toBeInTheDocument();
+		const line = screen.getByText("Rent Received").parentElement as HTMLElement;
+		expect(line.textContent).toBe("Rent Received-$1,000.00");
+		expect(line.parentElement?.querySelector(".h-full")).toBeNull();
+		const totals = screen
+			.getAllByText("Total Inflows")
+			.map((label) => label.nextElementSibling?.textContent);
+		expect(totals).toEqual(["-$1,000.00", "-$1,000.00"]);
+	});
+
 	it("shows only the activities and lines the ledger records", () => {
 		render(<CashFlowPage />);
 		const page = document.body.textContent ?? "";

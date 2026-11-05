@@ -61,13 +61,15 @@ export interface IncomeStatementExpenseBreakdown {
 }
 
 /**
- * Cash flow category (inflow or outflow item with percentage)
- * Used across: cash-flow.tsx, types.ts
+ * One line of the cash flow's inflows or outflows (cash-flow-view.ts): its
+ * amount and its share of the section's positive lines, in %. A line below
+ * zero (rent received when a reversal posted in the period outweighs the
+ * receipts) has no share: null.
  */
 export interface CashFlowCategory {
 	category: string;
 	amount: number;
-	percentage: number;
+	percentage: number | null;
 }
 
 /**

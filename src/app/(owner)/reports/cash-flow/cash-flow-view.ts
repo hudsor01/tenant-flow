@@ -21,14 +21,26 @@ export interface CashFlowView {
 	netFinancingCash: number;
 }
 
+/**
+ * Every line with an amount, one below zero included: rent received is the
+ * ledger's collected total as of the period's end less as of the day before
+ * it, and a reversal is dated the day it is posted, so a period whose
+ * reversals outweigh its receipts has negative rent received (OD-9). Shares
+ * (and the page's bars) are over the positive lines only; a negative line has
+ * none.
+ */
 function withShares(
 	items: { category: string; amount: number }[],
 ): CashFlowCategory[] {
-	const shown = items.filter((i) => i.amount > 0);
-	const total = shown.reduce((sum, i) => sum + i.amount, 0);
+	const shown = items.filter((i) => i.amount !== 0);
+	const positive = shown.reduce(
+		(sum, i) => (i.amount > 0 ? sum + i.amount : sum),
+		0,
+	);
 	return shown.map((i) => ({
 		...i,
-		percentage: total > 0 ? (i.amount / total) * 100 : 0,
+		percentage:
+			i.amount > 0 && positive > 0 ? (i.amount / positive) * 100 : null,
 	}));
 }
 
@@ -37,6 +49,13 @@ export function buildCashFlowView(
 ): CashFlowView {
 	// Rent received from the rent ledger, and the expenses paid, which the
 	// balance sheet carries as the owner's own funds (financialQueries.cashFlow).
+	const totalInflows = data
+		? data.operatingActivities.rentalPaymentsReceived +
+			data.financingActivities.ownerContributions
+		: 0;
+	const totalOutflows = data
+		? Math.abs(data.operatingActivities.expensesPaid)
+		: 0;
 	const inflowItems = data
 		? withShares([
 				{
@@ -65,8 +84,10 @@ export function buildCashFlowView(
 		closingBalance: data?.endingCash || 0,
 		inflowItems,
 		outflowItems,
-		totalInflows: inflowItems.reduce((sum, i) => sum + i.amount, 0),
-		totalOutflows: outflowItems.reduce((sum, i) => sum + i.amount, 0),
+		// From the data, not the listed lines: they tie, and a total never
+		// depends on which lines the list shows.
+		totalInflows,
+		totalOutflows,
 		netOperatingCash: data?.operatingActivities.netOperatingCash || 0,
 		netFinancingCash: data?.financingActivities.netFinancingCash || 0,
 	};

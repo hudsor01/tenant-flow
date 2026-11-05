@@ -149,6 +149,47 @@ describe("buildCashFlowCsv", () => {
 		expect(amountOf("Cash Outflows", "Expenses")).toBe("1234.50");
 	});
 
+	it("keeps a period's negative rent received as a line, totals from the data (cycle 2, F8)", () => {
+		// A receipt posted in March and reversed in April, nothing else received
+		// in April: the ledger's rent received for April is -1000 (OD-9).
+		const view = buildCashFlowView(
+			cashFlowData({
+				operatingActivities: {
+					rentalPaymentsReceived: -1000,
+					expensesPaid: 200,
+					netOperatingCash: -1200,
+				},
+				financingActivities: { ownerContributions: 200, netFinancingCash: 200 },
+				netCashFlow: -1000,
+			}),
+		);
+		expect(view.inflowItems).toEqual([
+			{ category: "Rent Received", amount: -1000, percentage: null },
+			{ category: "Owner Funds for Expenses", amount: 200, percentage: 100 },
+		]);
+		expect([view.totalInflows, view.totalOutflows]).toEqual([-800, 200]);
+		const rows = parse(
+			buildCashFlowCsv({
+				period: "monthly",
+				startDate: "2026-11-01",
+				endDate: "2026-11-30",
+				view,
+			}),
+		);
+		const section = (name: string) =>
+			rows.filter((r) => r[4] === name).map((r) => [r[5], r[6], r[7]]);
+		expect(section("Cash Inflows")).toEqual([
+			["Rent Received", "", "-1000.00"],
+			["Owner Funds for Expenses", "100.0", "200.00"],
+			["Total Inflows", "", "-800.00"],
+		]);
+		expect(section("Totals")).toEqual([
+			["Total Inflows", "", "-800.00"],
+			["Total Outflows", "", "200.00"],
+			["Net Cash Flow", "", "-1000.00"],
+		]);
+	});
+
 	it("neutralizes a text cell that would run as a formula", () => {
 		const view: CashFlowView = {
 			...buildCashFlowView(cashFlowData()),

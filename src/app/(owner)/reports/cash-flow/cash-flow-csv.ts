@@ -12,8 +12,9 @@ import type { CashFlowView } from "./cash-flow-view";
  * one row per entry with no amount. Every row repeats the period, the date
  * range and the currency, so a filtered or pasted row keeps its context.
  * Amounts are dollars with 2 decimals and no symbol (outflow lines positive,
- * as the page lists them; a net figure keeps its sign); a breakdown line's
- * share of its section is a percentage with 1 decimal, as shown.
+ * as the page lists them; a net figure and a negative rent received keep
+ * their sign); a breakdown line's share of its section's positive lines is a
+ * percentage with 1 decimal, as shown, and a line below zero has none.
  */
 export const CASH_FLOW_CSV_HEADER = [
 	"Period",
@@ -66,12 +67,12 @@ export function buildCashFlowCsv({
 		section: string,
 		item: string,
 		amount: number,
-		share?: number,
+		share: number | null = null,
 	): CsvCell[] => [
 		...context,
 		section,
 		item,
-		share === undefined ? "" : csvNumber(share, 1),
+		share === null ? "" : csvNumber(share, 1),
 		money(amount),
 	];
 
