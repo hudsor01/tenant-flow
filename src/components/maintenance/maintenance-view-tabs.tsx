@@ -8,7 +8,7 @@ import {
 	MaintenanceInsightsSkeleton,
 } from "#components/analytics/maintenance-insights-section";
 import { BlurFade } from "#components/ui/blur-fade";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { MaintenanceKanban } from "./kanban/maintenance-kanban.client";
 import { columns } from "./table/columns";
 import { MaintenanceTableClient } from "./table/maintenance-table.client";
@@ -20,7 +20,7 @@ interface MaintenanceOverviewTabProps {
 	onSearchChange: (value: string) => void;
 	currentView: ViewType;
 	onViewChange: (view: ViewType) => void;
-	filteredRequests: MaintenanceDisplayRequest[];
+	filteredRequests: MaintenanceListRow[];
 	onViewAnalytics: () => void;
 }
 

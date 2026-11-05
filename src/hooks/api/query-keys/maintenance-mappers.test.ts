@@ -16,7 +16,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { mapMaintenanceRow } from "./maintenance-mappers";
+import {
+	mapMaintenanceListRow,
+	mapMaintenanceRow,
+} from "./maintenance-mappers";
 
 const validRow = {
 	id: "00000000-0000-0000-0000-000000000001",
@@ -106,7 +109,7 @@ describe("mapMaintenanceRow", () => {
 		);
 	});
 
-	it("ignores an extra `units` embed key from the property_id join branch", () => {
+	it("ignores the list's `units` embed key", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
 			units: { property_id: "00000000-0000-0000-0000-0000000000aa" },
@@ -151,5 +154,103 @@ describe("mapMaintenanceRow", () => {
 				message: expect.stringContaining("mapMaintenanceRow"),
 			}),
 		);
+	});
+});
+
+/**
+ * The list names each request from its own embeds (66.2-39 fix round 3, part
+ * 6c). Its rows carried none, so every board card printed "Unknown Property ·
+ * Unit <the unit's id>" and every table row "Unassigned".
+ */
+describe("mapMaintenanceListRow", () => {
+	const listRow = {
+		...validRow,
+		units: {
+			unit_number: "4B",
+			property_id: "00000000-0000-0000-0000-0000000000aa",
+			properties: { name: "Maple Court", status: "active" },
+		},
+		tenant: { name: "Dana Rivera", first_name: "Dana", last_name: "Rivera" },
+	};
+
+	it("names the request's property, unit and tenant from the embeds", () => {
+		const mapped = mapMaintenanceListRow(listRow);
+		expect(mapped.propertyName).toBe("Maple Court");
+		expect(mapped.unitNumber).toBe("4B");
+		expect(mapped.tenantName).toBe("Dana Rivera");
+		expect(mapped.unit_id).toBe(validRow.unit_id);
+		expect(mapped).not.toHaveProperty("units");
+		expect(mapped).not.toHaveProperty("tenant");
+	});
+
+	it("names a property the owner deleted as a report does", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			units: {
+				...listRow.units,
+				properties: { name: "Gamma Flats", status: "inactive" },
+			},
+		});
+		expect(mapped.propertyName).toBe("Gamma Flats (deleted)");
+	});
+
+	it("falls back to the tenant's first and last name", () => {
+		expect(
+			mapMaintenanceListRow({
+				...listRow,
+				tenant: { name: null, first_name: "Dana", last_name: null },
+			}).tenantName,
+		).toBe("Dana");
+		expect(
+			mapMaintenanceListRow({
+				...listRow,
+				tenant: { name: "", first_name: null, last_name: null },
+			}).tenantName,
+		).toBeNull();
+	});
+
+	it("names nothing, never an id, for a unit or tenant row it cannot see", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			units: null,
+			tenant: null,
+		});
+		expect(mapped.propertyName).toBeNull();
+		expect(mapped.unitNumber).toBeNull();
+		expect(mapped.tenantName).toBeNull();
+	});
+
+	it("keeps a unit without a number unnumbered", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			units: { ...listRow.units, unit_number: null },
+		});
+		expect(mapped.unitNumber).toBeNull();
+		expect(mapped.propertyName).toBe("Maple Court");
+	});
+
+	it("throws when the select dropped an embed", () => {
+		const { units: _omitUnits, ...withoutUnits } = listRow;
+		expect(() => mapMaintenanceListRow(withoutUnits)).toThrow(/units/);
+		const { tenant: _omitTenant, ...withoutTenant } = listRow;
+		expect(() => mapMaintenanceListRow(withoutTenant)).toThrow(/tenant/);
+		expect(() =>
+			mapMaintenanceListRow({
+				...listRow,
+				units: { unit_number: "4B", property_id: "p" },
+			}),
+		).toThrow(/properties/);
+	});
+
+	it("throws on a to-many embed shape and on a property without its name", () => {
+		expect(() =>
+			mapMaintenanceListRow({ ...listRow, units: [listRow.units] }),
+		).toThrow(/single row/);
+		expect(() =>
+			mapMaintenanceListRow({
+				...listRow,
+				units: { ...listRow.units, properties: { status: "active" } },
+			}),
+		).toThrow(/name/);
 	});
 });

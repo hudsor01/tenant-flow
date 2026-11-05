@@ -28,7 +28,11 @@ import type {
 	VendorUpdateInput,
 } from "#types/domain";
 import { mutationKeys } from "../mutation-keys";
-import { mapMaintenanceRow } from "./maintenance-mappers";
+import {
+	type MaintenanceListRow,
+	mapMaintenanceListRow,
+	mapMaintenanceRow,
+} from "./maintenance-mappers";
 
 /**
  * Maintenance query filters
@@ -48,6 +52,16 @@ const MAINTENANCE_SELECT_COLUMNS =
 	"id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at";
 
 /**
+ * What the list shows each request by, embedded through the request's own
+ * foreign keys: its unit's number, the unit's property (name and status, so a
+ * property the owner deleted, which does not cascade, is named "(deleted)")
+ * and its tenant's name. No capped or filtered unit, property or tenant list
+ * can name every request.
+ */
+const UNIT_EMBED_COLUMNS = "unit_number, property_id, properties(name, status)";
+const TENANT_EMBED = "tenant:tenant_id(name, first_name, last_name)";
+
+/**
  * Maintenance query factory
  * All queryFns use supabase.from('maintenance_requests') — no apiRequest calls.
  * RLS enforces owner_user_id = auth.uid() on every query.
@@ -59,20 +73,20 @@ export const maintenanceQueries = {
 	list: (filters?: MaintenanceFilters) =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.lists(), filters ?? {}],
-			queryFn: async (): Promise<PaginatedResponse<MaintenanceRequest>> => {
+			queryFn: async (): Promise<PaginatedResponse<MaintenanceListRow>> => {
 				const supabase = createClient();
 				const limit = filters?.limit ?? 50;
 				const offset = filters?.offset ?? 0;
 
-				// Single builder so EVERY filter applies on EVERY path. When
-				// filtering by property_id we join through units (`units!inner`);
-				// mapMaintenanceRow reads only the maintenance_requests columns, so
-				// the embed is ignored and each row is field-validated at the boundary.
-				// The select string is widened to `string` (runtime-conditional) so the
-				// client returns a generic row shape mapped at the boundary.
-				const selectColumns: string = filters?.property_id
-					? `${MAINTENANCE_SELECT_COLUMNS}, units!inner(property_id)`
-					: MAINTENANCE_SELECT_COLUMNS;
+				// Single builder so EVERY filter applies on EVERY path. Filtering by
+				// property_id makes the unit embed an inner join (`units!inner`), so
+				// the filter on units.property_id drops the other requests rather
+				// than only their embedded unit. The select string is widened to
+				// `string` (runtime-conditional), so the client returns a generic row
+				// shape, field-validated at the mapMaintenanceListRow boundary.
+				const selectColumns: string = `${MAINTENANCE_SELECT_COLUMNS}, ${
+					filters?.property_id ? "units!inner" : "units"
+				}(${UNIT_EMBED_COLUMNS}), ${TENANT_EMBED}`;
 
 				let q = supabase
 					.from("maintenance_requests")
@@ -92,11 +106,9 @@ export const maintenanceQueries = {
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
 				// The widened `string` select yields an opaque row type; each row is
-				// validated field-by-field at the mapMaintenanceRow boundary.
+				// validated field-by-field at the mapMaintenanceListRow boundary.
 				const rawRows: unknown[] = rows ?? [];
-				const data = rawRows.map((row) =>
-					mapMaintenanceRow(row as Record<string, unknown>),
-				);
+				const data = rawRows.map(mapMaintenanceListRow);
 
 				const total = count ?? 0;
 				const totalPages = Math.ceil(total / limit);

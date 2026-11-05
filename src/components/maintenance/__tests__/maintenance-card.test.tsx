@@ -66,21 +66,21 @@ describe("MaintenanceCard", () => {
 			expect(screen.getByText("Today")).toBeInTheDocument();
 		});
 
-		test("renders without property when property is null", () => {
-			// Arrange
+		test("renders without property when the list names none", () => {
+			// Arrange: no property or unit row was visible to the list's embed.
 			const requestWithoutProperty = {
 				...defaultRequest,
-				property: null,
-				unit: null,
+				propertyName: null,
+				unitNumber: null,
 			};
-			// A row whose select omitted `unit_id`, so no unit suffix renders.
-			Reflect.deleteProperty(requestWithoutProperty, "unit_id");
 
 			// Act
 			render(<MaintenanceCard request={requestWithoutProperty} />);
 
-			// Assert - shows "Unknown Property" as fallback (no unit suffix when unit_id is null)
+			// Assert - "Unknown Property", and no unit suffix: the unit's id is
+			// never shown in place of its number.
 			expect(screen.getByText("Unknown Property")).toBeInTheDocument();
+			expect(document.body.textContent).not.toContain(defaultRequest.unit_id);
 		});
 
 		test("renders with title even when description is empty", () => {
@@ -232,7 +232,7 @@ describe("MaintenanceCard", () => {
 			// Arrange
 			const requestWithTenant = {
 				...defaultRequest,
-				tenant: { name: "John Doe" },
+				tenantName: "John Doe",
 			};
 
 			// Act
@@ -243,10 +243,10 @@ describe("MaintenanceCard", () => {
 		});
 
 		test("does not show tenant section when tenant is not provided", () => {
-			// Arrange - default request has no tenant
+			// Arrange - no tenant name
 			const requestWithoutTenant = {
 				...defaultRequest,
-				tenant: null,
+				tenantName: null,
 			};
 
 			// Act

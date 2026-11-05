@@ -32,11 +32,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenanceStatus } from "#types/core";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 import { MaintenanceCard } from "../cards/maintenance-card";
 import { MaintenanceSortableCard } from "../cards/maintenance-sortable-card";
 
@@ -133,7 +133,7 @@ function getDaysOpen(timestamp: string | null | undefined): number {
 
 interface KanbanColumnProps {
 	column: ColumnConfig;
-	requests: MaintenanceDisplayRequest[];
+	requests: MaintenanceListRow[];
 	columnIndex: number;
 	onView: (id: string) => void;
 }
@@ -212,7 +212,7 @@ function KanbanColumn({
 }
 
 interface MaintenanceKanbanProps {
-	initialRequests: MaintenanceDisplayRequest[];
+	initialRequests: MaintenanceListRow[];
 }
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
@@ -225,8 +225,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const [statusOverrides, setStatusOverrides] = useState<
 		Record<string, MaintenanceStatus>
 	>({});
-	const [activeRequest, setActiveRequest] =
-		useState<MaintenanceDisplayRequest | null>(null);
+	const [activeRequest, setActiveRequest] = useState<MaintenanceListRow | null>(
+		null,
+	);
 	const [, startTransition] = useTransition();
 
 	const requests = (initialRequests || []).map((request) => {
@@ -255,7 +256,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			if (status) acc[status].push(request);
 			return acc;
 		},
-		{} as Record<MaintenanceStatus, MaintenanceDisplayRequest[]>,
+		{} as Record<MaintenanceStatus, MaintenanceListRow[]>,
 	);
 
 	const clearStatusOverride = (requestId: string) => {

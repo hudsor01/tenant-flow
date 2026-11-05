@@ -36,7 +36,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { usePreferencesStore } from "#providers/preferences-provider";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 import {
 	MaintenanceInsightsTab,
 	MaintenanceOverviewTab,
@@ -83,7 +82,7 @@ export function MaintenanceViewClient() {
 			unitIdFilter ? { unit_id: unitIdFilter } : undefined,
 		),
 	);
-	const requests = (response?.data ?? []) as MaintenanceDisplayRequest[];
+	const requests = response?.data ?? [];
 	// Stat cards come from the get_maintenance_stats RPC (counts the owner's FULL
 	// set) instead of the paginated list() (capped at 50), so they stay accurate
 	// for large portfolios. `completed_this_month` is scoped to the caller's local
@@ -106,7 +105,7 @@ export function MaintenanceViewClient() {
 		return requests.filter((r) => {
 			const title = r.title?.toLowerCase() ?? "";
 			const description = r.description?.toLowerCase() ?? "";
-			const propertyName = r.property?.name?.toLowerCase() ?? "";
+			const propertyName = r.propertyName?.toLowerCase() ?? "";
 			return (
 				title.includes(query) ||
 				description.includes(query) ||

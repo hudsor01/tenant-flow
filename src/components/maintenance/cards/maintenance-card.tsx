@@ -4,8 +4,8 @@ import { Clock, MapPin, User } from "lucide-react";
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { BorderBeam } from "#components/ui/border-beam";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import type { MaintenancePriority } from "#types/core";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
 function getDaysOpen(timestamp: string | null | undefined): number {
 	if (!timestamp) return 0;
@@ -61,7 +61,7 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 }
 
 interface MaintenanceCardProps {
-	request: MaintenanceDisplayRequest;
+	request: MaintenanceListRow;
 	isDragging?: boolean;
 	onView?: ((id: string) => void) | undefined;
 }
@@ -73,9 +73,8 @@ export function MaintenanceCard({
 }: MaintenanceCardProps) {
 	const aging = getAgingDisplay(request.created_at);
 	const isUrgent = request.priority?.toLowerCase() === "urgent";
-	const propertyName = request.property?.name ?? "Unknown Property";
-	const unitNumber = request.unit?.name ?? request.unit_id ?? "";
-	const tenantName = request.tenant?.name;
+	const propertyName = request.propertyName ?? "Unknown Property";
+	const { unitNumber, tenantName } = request;
 
 	const handleClick = (e: MouseEvent) => {
 		if (onView) {

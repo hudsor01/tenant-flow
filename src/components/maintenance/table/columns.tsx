@@ -19,10 +19,10 @@ import {
 } from "#components/ui/alert-dialog";
 import { Button } from "#components/ui/button";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
 // Status badge styling aligned with design-os
 function getStatusBadge(status: MaintenanceStatus | string) {
@@ -151,7 +151,7 @@ function getAgingBadge(timestamp: string | null | undefined) {
 	);
 }
 
-export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
+export const columns: ColumnDef<MaintenanceListRow>[] = [
 	{
 		accessorKey: "title",
 		header: "Request",
@@ -173,19 +173,19 @@ export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 		},
 	},
 	{
-		accessorKey: "properties",
+		accessorKey: "propertyName",
 		header: "Location",
 		cell: ({ row }) => {
 			const request = row.original;
-			const propertyName = request.property?.name ?? "Unassigned";
-			const unitName = request.unit?.name;
+			const propertyName = request.propertyName ?? "Unknown Property";
+			const { unitNumber } = request;
 
 			return (
 				<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
 					<MapPin className="w-3.5 h-3.5 shrink-0" />
 					<span className="truncate">
 						{propertyName}
-						{unitName && ` · Unit ${unitName}`}
+						{unitNumber && ` · Unit ${unitNumber}`}
 					</span>
 				</div>
 			);
@@ -208,11 +208,7 @@ export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 	},
 ];
 
-function MaintenanceActionsCell({
-	request,
-}: {
-	request: MaintenanceDisplayRequest;
-}) {
+function MaintenanceActionsCell({ request }: { request: MaintenanceListRow }) {
 	const queryClient = useQueryClient();
 	const [isDeleting, setIsDeleting] = useState(false);
 

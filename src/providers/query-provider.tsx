@@ -303,9 +303,11 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // profitability and property performance page data, reportKeys.revenue,
 // .properties and .yearEnd, and financialQueries.incomeStatement (no gross
 // profit, operating income, profit margin or previous period) all lost
-// fields, and unitQueries.list's rows gained `propertyName`, from the
-// property the list now embeds. A v6 entry would carry the old shapes
-// until the refetch landed.
+// fields, unitQueries.list's rows gained `propertyName`, from the property
+// the list now embeds, and maintenanceQueries.list's rows gained
+// `propertyName`, `unitNumber` and `tenantName`, from the unit, property and
+// tenant it now embeds. A v6 entry would carry the old shapes until the
+// refetch landed.
 const QUERY_CACHE_BUSTER = "tenantflow-cache-v7";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
