@@ -36,8 +36,9 @@ import { ROUTES } from "./constants/routes";
 
 /**
  * SIX hub entries but FIVE tiles. Band 1's vault entry is NOT a tile — it renders
- * as an `<h2>` plus the page's only filled primary Button (`page.tsx:82-120`),
- * with its own `size-12` medallion `<div>`. Asserting six tiles fails.
+ * as an `<h2>` plus the page's only filled primary Button (`VaultBand` in the
+ * documents `page.tsx`), with its own `size-12` medallion `<div>`. Asserting
+ * six tiles fails.
  */
 const BUILD_TILE = "Lease Template Builder";
 const PRINTABLE_TILES = [
@@ -47,7 +48,7 @@ const PRINTABLE_TILES = [
 	"Tenant Notice",
 ];
 
-/** Section landmark ids — `documents-hub-entries.ts:56,62,68`. */
+/** Section landmark ids — the bands' `headingId`s in `DOCUMENTS_HUB_BANDS` (`documents-hub-entries.ts`). */
 const VAULT = "documents-vault";
 const BUILD = "documents-build";
 const PRINTABLES = "documents-printables";
@@ -70,8 +71,8 @@ function band(page: Page, headingId: string): Locator {
  * A band's medallion, located structurally rather than by class.
  *
  * Every medallion is the parent of that band's FIRST `aria-hidden` glyph — for
- * Band 1 the `size-12` div at `page.tsx:87`, for a tile the `size-10`/`size-8`
- * div at `document-hub-tile.tsx:57-62`. `.first()` matters on tiles: they also
+ * Band 1 the `size-12` div in `VaultBand` (`page.tsx`), for a tile the
+ * `size-10`/`size-8` div in `DocumentHubTile`. `.first()` matters on tiles: they also
  * render a trailing `ArrowRight`, which appears later in DOM order.
  *
  * Deliberately NOT `.size-12` etc. — asserting the rendered WIDTH of a

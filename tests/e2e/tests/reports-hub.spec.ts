@@ -63,11 +63,12 @@ function pageHeading(page: Page, name: string) {
 }
 
 /**
- * All 8 hub routes and the exact `<h1>` each renders, verified against source:
- * `page.tsx:32`, `income-statement/income-statement-page-header.tsx:29`,
- * `cash-flow/cash-flow-header.tsx:28`, `balance-sheet/page.tsx:159`,
- * `expenses/page.tsx:140`, `tax-documents/page.tsx:70` and `:105`,
- * `generate/page.tsx:120`, `year-end/page.tsx:174`.
+ * All 8 hub routes and the exact `<h1>` each renders, matched by its text in
+ * the file that renders it under `src/app/(owner)/reports/`: `page.tsx`,
+ * `income-statement/income-statement-page-header.tsx`,
+ * `cash-flow/cash-flow-header.tsx`, `balance-sheet/page.tsx`,
+ * `expenses/page.tsx`, `tax-documents/page.tsx` (in its error branch and its
+ * loaded branch), `generate/page.tsx` and `year-end/page.tsx`.
  */
 const hubRoutes = [
 	{ path: ROUTES.REPORTS, heading: "Reports" },

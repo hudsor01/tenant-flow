@@ -183,18 +183,19 @@ test.afterAll(async () => {
  * whole defect.
  *
  * A `toBeVisible()` gate was the first fix, and it is NOT sufficient. This repo
- * had already recorded why, in `public/mobile-nav-375px.spec.ts:8-11`:
+ * had already recorded why, in the `beforeEach` of
+ * `public/mobile-nav-375px.spec.ts`:
  *
- *   "observed on Vercel previews where toBeVisible() passes but boundingBox()
- *    returns null and onClick handlers aren't attached."
+ *   "observed on Vercel previews where toBeVisible() passes but the element
+ *    still has no layout box and onClick handlers aren't attached."
  *
  * Visibility and a committed layout box are different states, and the gap
  * between them is exactly the window this failure lives in. Narrowing the race
  * is not closing it.
  *
  * The measurement is therefore delegated to the shared `boxOf` in
- * `tests/e2e/lib/measure.ts`, which POLLS for a non-null box the way
- * mobile-nav-375px.spec.ts:57-64 already does for its hit-target reads. Same
+ * `tests/e2e/lib/measure.ts`, which POLLS for a non-null box, and which
+ * mobile-nav-375px.spec.ts's hit-target test reads through as well. Same
  * helper, same guarantee, one place to fix it next time.
  */
 const boxOf = measuredBoxOf;
