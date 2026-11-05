@@ -46,11 +46,6 @@ function expectRowsOneHeight() {
 }
 
 describe("stat rows", () => {
-	// "Pending Signature" (66.2-39 part P, one label per lease status) wraps to
-	// two lines at 390, measured on the production build: 113 x 40 beside a
-	// 20-high "Expiring Soon". The grid row already stretches the tiles to one
-	// height; each tile is a column with its figure row at the foot, so the two
-	// figures in the row stay on one line.
 	// "Total Tenants" and "Pending Signature" wrap at 390 (measured on the
 	// production build: 40 high beside 20-high "Active" and "Ended"). Held to
 	// the top, their figures sat 20 px below their neighbours' (part Q).
@@ -67,6 +62,11 @@ describe("stat rows", () => {
 		expectTwoLineLabels();
 	});
 
+	// "Pending Signature" (66.2-39 part P, one label per lease status) wraps to
+	// two lines at 390, measured on the production build: 113 x 40 beside a
+	// 20-high "Expiring Soon". The grid row already stretches the tiles to one
+	// height; each tile is a column with its figure row at the foot, so the two
+	// figures in the row stay on one line.
 	it("keep the leases tiles' figures on one line when a label wraps", () => {
 		render(
 			<LeasesStatCards
