@@ -5,8 +5,9 @@
  * local LM Studio embedding model (qwen3-embedding-0.6b, 1024-dim), and upserts
  * into public.blog_rag_chunks (re-runnable: a clean re-index per source).
  *
- * Prereqs (Phase 9): native n8n/LM Studio running at LM_BASE; SUPABASE_SECRET_KEY
- * (or legacy SUPABASE_SERVICE_ROLE_KEY) + NEXT_PUBLIC_SUPABASE_URL in .env.local.
+ * Prereqs (Phase 9): native n8n/LM Studio running at LM_BASE_URL (default
+ * http://localhost:1234/v1); SUPABASE_SECRET_KEY (or legacy
+ * SUPABASE_SERVICE_ROLE_KEY) + NEXT_PUBLIC_SUPABASE_URL in .env.local.
  *
  * Run:  bun scripts/rag-index-blog-corpus.ts
  */
