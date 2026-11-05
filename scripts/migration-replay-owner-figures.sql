@@ -314,7 +314,8 @@ select set_config('replay.owner_c', :'owner_c', true) as ignored \gset
 select set_config('request.jwt.claims', json_build_object('sub', :'owner_a', 'role', 'authenticated')::text, true) as ignored \gset
 set local role authenticated;
 
--- The dashboard payloads, cut to the keys the assertion reads.
+-- The dashboard payloads, cut to the keys the assertion reads (owner A's with
+-- its 30-day and 6-month series, the sparklines' and the charts').
 insert into replay_figures
 select 'dashboard_stats_a', jsonb_build_object('units', s->'units', 'revenue', s->'revenue',
   'maintenance_open', s->'maintenance'->'open')
@@ -325,7 +326,8 @@ select 'dashboard_v2_a', jsonb_build_object('units', d->'stats'->'units', 'reven
   'trend_tenants', d->'trends'->'active_tenants', 'trend_maintenance', d->'trends'->'open_maintenance',
   'maintenance_open', d->'stats'->'maintenance'->'open',
   'property_open_maintenance', (select jsonb_object_agg(pp->>'property_name', pp->'open_maintenance')
-                                from jsonb_array_elements(d->'property_performance') pp))
+                                from jsonb_array_elements(d->'property_performance') pp),
+  'time_series', d->'time_series')
 from (select public.get_dashboard_data_v2(current_setting('replay.owner_a')::uuid) as d) x;
 -- The occupancy chart's series, as the app asks for it.
 insert into replay_figures values

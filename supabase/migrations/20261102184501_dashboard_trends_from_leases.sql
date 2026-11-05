@@ -32,20 +32,36 @@
 -- production's, read 2026-11-02, on a replay of the chain without this PR's
 -- migrations), not repo copies. Unchanged in both: the signature, RETURNS,
 -- LANGUAGE plpgsql, SECURITY DEFINER, the pinned search_path, the volatility
--- (VOLATILE, the default), the auth.uid() guard as written, every other key
--- and how it is computed, and the ACL (EXECUTE for authenticated and
--- service_role only). In get_dashboard_data_v2 the `trends.occupancy_rate` and
--- `trends.monthly_revenue` objects now read the same two figures (current and
--- previous below), so `stats.units.occupancyChange` equals
--- `trends.occupancy_rate.change`, and `trends.active_tenants` reads the
--- helper's tenant count on the same two days (it compared today's active
--- leases with only the leases still active TODAY that ran 30 days ago, the
--- defect the occupancy trend had). In all four trends (occupancy_rate,
+-- (VOLATILE, the default), the auth.uid() guard as written, the ACL (EXECUTE
+-- for authenticated and service_role only), and every key this header does
+-- not name, computed as before. In get_dashboard_data_v2 the
+-- `trends.occupancy_rate` and `trends.monthly_revenue` objects now read the
+-- same two figures (current and previous below), so
+-- `stats.units.occupancyChange` equals `trends.occupancy_rate.change`, and
+-- `trends.active_tenants` reads the helper's tenant count on the same two days
+-- (it compared today's active leases with only the leases still active TODAY
+-- that ran 30 days ago, the defect the occupancy trend had). In all four trends (occupancy_rate,
 -- monthly_revenue, active_tenants, open_maintenance) `percentChange` is NULL
 -- when the earlier figure is 0 (it was 0, a figure no caller could tell from
 -- "unchanged") and each states its two days in `window`, the dashboard KPI
 -- chips' marker. `trend` and `open_maintenance`'s two counts keep their
 -- formulas.
+--
+-- THE SERIES (get_dashboard_data_v2). `time_series.occupancy_rate` and
+-- `time_series.monthly_revenue`, the dashboard's Occupancy and Scheduled Rent
+-- sparklines (drawn beside the trend chips, in the trend's color) and the
+-- 30-day Scheduled Rent chart, counted on each of the last 30 days only the
+-- leases whose status is 'active' TODAY, the defect above, so a sparkline
+-- could stay flat beside a chip that fell. Each day's point is now
+-- dashboard_lease_position on that day (its occupancy_rate and its
+-- scheduled_rent), so the last point is the trend's `current`.
+-- `time_series.monthly_revenue_6mo`, the 6-month Scheduled Rent chart, summed
+-- the rent of every 'active' lease that overlapped each calendar month; each
+-- month's point is now the helper's scheduled_rent on the month's last day
+-- (today, for this month), so a unit whose lease changed in the month counts
+-- once and this month's point is the trend's `current` too. The days (the
+-- last 30, today included) and the months (the last six calendar months, this
+-- one included) are unchanged.
 --
 -- ONE DEFINITION. dashboard_lease_position(owner, day) returns the owner's
 -- occupancy rate, scheduled monthly rent and tenants on a day, from leases,
@@ -66,10 +82,11 @@
 --   - scheduled_rent: the sum of those leases' rent_amount, the dashboard's
 --     "Revenue" (scheduled rent, never cash; CLAUDE.md, Domain model).
 --   - tenant_count: the distinct primary tenants of those leases.
--- Both ends of each comparison come from it, so today's figure is never
--- units.status (the stored occupancy the tiles display) set against a lease
--- count 30 days ago. Both callers are SECURITY DEFINER and run it as postgres,
--- so it is SECURITY INVOKER and no client role may execute it.
+-- Both ends of each comparison come from it, and so does every point of the
+-- series, so today's figure is never units.status (the stored occupancy the
+-- tiles display) set against a lease count 30 days ago. Both callers are
+-- SECURITY DEFINER and run it as postgres, so it is SECURITY INVOKER and no
+-- client role may execute it.
 --
 -- WHAT EACH KEY MEANS (both functions).
 --   units.occupancyChange: occupancy_rate today minus occupancy_rate 30 days
@@ -107,12 +124,13 @@
 -- it).
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
--- to an empty database, seeds a portfolio (scripts/migration-replay-owner-figures.sql)
--- and asserts both functions' figures, every trend's (its percentChange NULL
--- with no earlier figure, its window, the tenants by the helper's rule), that
--- they agree with each other and with the helper, that the helper equals the
--- occupancy series on every month whose leases hold, the windows, the guard
--- and the grants
+-- to an empty database, seeds a portfolio
+-- (scripts/migration-replay-owner-figures.sql) and asserts both functions'
+-- figures, every trend's (its percentChange NULL with no earlier figure, its
+-- window, the tenants by the helper's rule), every point of the three series
+-- (by the helper's rule, day by day and month by month), that they agree with
+-- each other and with the helper, that the helper equals the occupancy series
+-- on every month whose leases hold, the windows, the guard and the grants
 -- (assertOwnerFiguresComputed in scripts/migration-replay-assertions.ts).
 -- =============================================================================
 
@@ -537,69 +555,43 @@ begin
     ) d
   ),
 
-  total_unit_count as (
-    select count(*)::numeric as cnt from all_units
+  -- Each day's occupancy and scheduled rent, from dashboard_lease_position
+  -- (see the header): the rule the trends compare, on every day of the series.
+  daily_position as (
+    select ds.series_date, pos.occupancy_rate, pos.scheduled_rent
+    from date_series ds
+    cross join lateral public.dashboard_lease_position(p_user_id, ds.series_date) pos
   ),
 
   ts_occupancy as (
     select jsonb_agg(
-      jsonb_build_object('date', occ.date, 'value', occ.rate)
-      order by occ.date
+      jsonb_build_object('date', to_char(dp.series_date, 'YYYY-MM-DD'), 'value', dp.occupancy_rate)
+      order by dp.series_date
     ) as data
-    from (
-      select
-        to_char(ds.series_date, 'YYYY-MM-DD') as date,
-        case when tuc.cnt > 0
-          then coalesce(
-            round(count(distinct l.unit_id)::numeric / tuc.cnt * 100, 2), 0
-          )
-          else 0
-        end as rate
-      from date_series ds
-      cross join total_unit_count tuc
-      left join all_leases l
-        on l.lease_status = 'active'
-        and l.start_date <= ds.series_date
-        and (l.end_date is null or l.end_date >= ds.series_date)
-      group by ds.series_date, tuc.cnt
-    ) occ
+    from daily_position dp
   ),
 
   ts_revenue as (
     select jsonb_agg(
-      jsonb_build_object('date', rev.date, 'value', rev.value)
-      order by rev.date
+      jsonb_build_object('date', to_char(dp.series_date, 'YYYY-MM-DD'), 'value', dp.scheduled_rent)
+      order by dp.series_date
     ) as data
-    from (
-      select
-        to_char(ds.series_date, 'YYYY-MM-DD') as date,
-        coalesce(sum(l.rent_amount), 0)::numeric as value
-      from date_series ds
-      left join all_leases l
-        on l.lease_status = 'active'
-        and l.start_date <= ds.series_date
-        and (l.end_date is null or l.end_date >= ds.series_date)
-      group by ds.series_date
-    ) rev
+    from daily_position dp
   ),
 
+  -- Each month's scheduled rent on its last day (today, for this month), by
+  -- the same rule (see the header).
   ts_revenue_6mo as (
     select jsonb_agg(
-      jsonb_build_object('month', to_char(rev.month_start, 'YYYY-MM'),
-                         'value', rev.value)
-      order by rev.month_start
+      jsonb_build_object('month', to_char(ms.month_start, 'YYYY-MM'),
+                         'value', pos.scheduled_rent)
+      order by ms.month_start
     ) as data
-    from (
-      select
-        ms.month_start,
-        coalesce(sum(l.rent_amount), 0)::numeric as value
-      from month_series ms
-      left join all_leases l
-        on l.lease_status = 'active'
-        and l.start_date <= (ms.month_start + interval '1 month' - interval '1 day')
-        and (l.end_date is null or l.end_date >= ms.month_start)
-      group by ms.month_start
-    ) rev
+    from month_series ms
+    cross join lateral public.dashboard_lease_position(
+      p_user_id,
+      least((ms.month_start + interval '1 month' - interval '1 day')::date, current_date)
+    ) pos
   ),
 
   perf_unit_counts as (

@@ -346,6 +346,15 @@ mutate "$REPLAY" '			start <= to &&' '' \
                  'the occupancy model counts a lease before it starts'
 mutate "$REPLAY" '			end >= from' '			true' \
                  'the occupancy model counts a lease after it ends'
+mutate "$REPLAY" '		(total, lease) => total + lease.rent,' '		(total) => total,' \
+                 'the rent model sums no lease'"'"'s rent'
+mutate "$REPLAY" '(_, at) => shiftYmd(today, at - 29) ?? "",' '(_, at) => shiftYmd(today, at - 28) ?? "",' \
+                 'the 30-day series is expected a day late'
+mutate "$REPLAY" 'const day = lastDay < today ? lastDay : today;' 'const day = lastDay;' \
+                 'this month'"'"'s 6-month point is expected on its last day, not today'
+mutate "$REPLAY" 'const lastDay = shiftYmd(monthStartYmd(today, at - 4), -1) ?? "";' \
+                 'const lastDay = monthStartYmd(today, at - 5);' \
+                 'each 6-month point is expected on its month'"'"'s first day'
 mutate "$REPLAY" 'return utcYmd(year, month - 1 + months, Math.min(day, lastDay));' 'return utcYmd(year, month - 1 + months, day);' \
                  'a month shorter than the day rolls over'
 mutate "$REPLAY" 'const l12RanOnM0 = (shiftYmd(today, -2) ?? "") <= monthStartYmd(today, 0);' 'const l12RanOnM0 = (shiftYmd(today, -2) ?? "") < monthStartYmd(today, 0);' \

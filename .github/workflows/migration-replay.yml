@@ -233,7 +233,8 @@ jobs:
           set -euo pipefail
           # Until 20261102184501..20261102184504, get_dashboard_stats returned
           # occupancyChange and revenue growth as 0, get_dashboard_data_v2
-          # compared today's leases with only the leases still active today,
+          # compared today's leases with only the leases still active today
+          # and drew its 30-day and 6-month series from those alone,
           # get_expense_summary returned year_over_year_change as null,
           # get_maintenance_analytics returned every cost as 0 or [], and
           # get_financial_overview returned receivables, payables and trends as

@@ -988,30 +988,34 @@ function addMonthsYmd(ymd: string, months: number): string {
 	return utcYmd(year, month - 1 + months, Math.min(day, lastDay));
 }
 
-/** One of owner A's leases, as the fixture's header lists it: days from T. */
+/**
+ * One of owner A's leases, as the fixture's header lists it: days from T, and
+ * its monthly rent.
+ */
 interface OccupancyModelLease {
 	readonly unit: string;
 	readonly status: string;
 	readonly start: number;
 	readonly end: number;
+	readonly rent: number;
 }
 
 /** Owner A's leases, L1..L15 (L7 is unused), in the fixture's order. */
 const OWNER_A_LEASES: readonly OccupancyModelLease[] = [
-	{ unit: "N1", status: "active", start: -400, end: 300 },
-	{ unit: "N2", status: "ended", start: -400, end: -10 },
-	{ unit: "N3", status: "active", start: -5, end: 360 },
-	{ unit: "N4", status: "pending_signature", start: -60, end: 300 },
-	{ unit: "N3", status: "terminated", start: -100, end: -1 },
-	{ unit: "N4", status: "expired", start: -200, end: -20 },
-	{ unit: "S1", status: "active", start: -400, end: 300 },
-	{ unit: "N2", status: "inactive", start: -400, end: 300 },
-	{ unit: "N3", status: "ended", start: -30, end: -29 },
-	{ unit: "N2", status: "ended", start: -500, end: -30 },
-	{ unit: "N1", status: "ended", start: -2, end: 0 },
-	{ unit: "N2", status: "expired", start: 0, end: 0 },
-	{ unit: "N5", status: "expired", start: -400, end: 0 },
-	{ unit: "N4", status: "ended", start: -300, end: -250 },
+	{ unit: "N1", status: "active", start: -400, end: 300, rent: 1000 },
+	{ unit: "N2", status: "ended", start: -400, end: -10, rent: 800 },
+	{ unit: "N3", status: "active", start: -5, end: 360, rent: 1200 },
+	{ unit: "N4", status: "pending_signature", start: -60, end: 300, rent: 999 },
+	{ unit: "N3", status: "terminated", start: -100, end: -1, rent: 555 },
+	{ unit: "N4", status: "expired", start: -200, end: -20, rent: 600 },
+	{ unit: "S1", status: "active", start: -400, end: 300, rent: 5000 },
+	{ unit: "N2", status: "inactive", start: -400, end: 300, rent: 4444 },
+	{ unit: "N3", status: "ended", start: -30, end: -29, rent: 300 },
+	{ unit: "N2", status: "ended", start: -500, end: -30, rent: 50 },
+	{ unit: "N1", status: "ended", start: -2, end: 0, rent: 250 },
+	{ unit: "N2", status: "expired", start: 0, end: 0, rent: 20 },
+	{ unit: "N5", status: "expired", start: -400, end: 0, rent: 7 },
+	{ unit: "N4", status: "ended", start: -300, end: -250, rent: 450 },
 ];
 
 /**
@@ -1033,27 +1037,46 @@ const RUNNING_STATUSES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Owner A's occupancy over `from`..`to` (both 'YYYY-MM-DD', inclusive) by the
- * one rule the series and the helper share: the counted units with a lease
- * that ran on any of those days, over the counted units, in percent to two
- * decimals.
+ * Owner A's leases that ran on any day of `from`..`to` (both 'YYYY-MM-DD',
+ * inclusive) by the one rule the series and the helper share: on a counted
+ * unit, in a status of a lease that ran, and overlapping those days.
  */
-function ownerAOccupancy(today: string, from: string, to: string): number {
-	const occupied = new Set<string>();
-	for (const lease of OWNER_A_LEASES) {
+function ownerARunningLeases(
+	today: string,
+	from: string,
+	to: string,
+): readonly OccupancyModelLease[] {
+	return OWNER_A_LEASES.filter((lease) => {
 		const start = shiftYmd(today, lease.start) ?? "";
 		const end = shiftYmd(today, lease.end) ?? "";
-		if (
+		return (
 			OWNER_A_COUNTED_UNITS.has(lease.unit) &&
 			RUNNING_STATUSES.has(lease.status) &&
 			start <= to &&
 			end >= from
-		) {
-			occupied.add(lease.unit);
-		}
-	}
+		);
+	});
+}
+
+/**
+ * Owner A's occupancy over `from`..`to`: the counted units with a running
+ * lease (ownerARunningLeases), over the counted units, in percent to two
+ * decimals.
+ */
+function ownerAOccupancy(today: string, from: string, to: string): number {
+	const occupied = new Set(
+		ownerARunningLeases(today, from, to).map((lease) => lease.unit),
+	);
 	return (
 		Math.round((occupied.size / OWNER_A_COUNTED_UNITS.size) * 10_000) / 100
+	);
+}
+
+/** Owner A's scheduled rent on `day`: the rent of the leases running then. */
+function ownerARent(today: string, day: string): number {
+	return ownerARunningLeases(today, day, day).reduce(
+		(total, lease) => total + lease.rent,
+		0,
 	);
 }
 
@@ -1124,6 +1147,14 @@ interface OwnerFiguresExpectation {
  *   helper, on that first day, is the same rule on one day, so the two agree
  *   on every month in which no counted lease starts or ends. The body before
  *   counted L14 on N5 in every past month: 5 of 4 in the latest.
+ * The dashboard's series, owner A (get_dashboard_data_v2's time_series,
+ *   20261102184501): each of the last 30 days, T-29 .. T, is the rule on that
+ *   day (ownerAOccupancy over the one day, and ownerARent), the last of them
+ *   the trends' current figures, 75.00 and 2470; each of the six calendar
+ *   months to M0's is the scheduled rent on its last day, T for M0's (2470).
+ *   The body before counted only the leases active today on every day (L1
+ *   alone, 25.00 and 1000, until L3 starts on T-5) and summed every active
+ *   lease that overlapped each month.
  * Owner B: LB1 started T-3, so 100.00% today and none 30 days ago: +100.00
  *   points, and growth NULL (nothing was scheduled then), never 0. The
  *   occupancy, revenue and tenant trends have no earlier figure (no lease or
@@ -1300,6 +1331,20 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			expenses,
 		);
 	const l12RanOnM0 = (shiftYmd(today, -2) ?? "") <= monthStartYmd(today, 0);
+	// The dashboard's series: the last 30 days, and the six calendar months to
+	// M0's on their last day (T for M0's), by the helper's rule.
+	const seriesDays = Array.from(
+		{ length: 30 },
+		(_, at) => shiftYmd(today, at - 29) ?? "",
+	);
+	const monthlyRent = Array.from({ length: 6 }, (_, at) => {
+		const lastDay = shiftYmd(monthStartYmd(today, at - 4), -1) ?? "";
+		const day = lastDay < today ? lastDay : today;
+		return {
+			month: monthStartYmd(today, at - 5).slice(0, 7),
+			value: ownerARent(today, day),
+		};
+	});
 	const helperMonths = Array.from({ length: 11 }, (_, at) => {
 		const [from] = occupancySeriesMonth(today, at + 1);
 		return {
@@ -1451,6 +1496,15 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 			],
 			occupancy_series_a: seriesRows,
 			position_a_months: helperMonths,
+			"dashboard_v2_a.time_series.occupancy_rate": seriesDays.map((date) => ({
+				date,
+				value: ownerAOccupancy(today, date, date),
+			})),
+			"dashboard_v2_a.time_series.monthly_revenue": seriesDays.map((date) => ({
+				date,
+				value: ownerARent(today, date),
+			})),
+			"dashboard_v2_a.time_series.monthly_revenue_6mo": monthlyRent,
 			"expenses_b_spring_2025.categories": [
 				{ category: "Gate Co", amount: 150, percentage: 100 },
 			],
@@ -1706,17 +1760,19 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
  * one definition, and say over which days.
  *
  * Before 20261102184501..20261102184504, get_dashboard_stats returned
- * occupancyChange and growth as 0 and get_dashboard_data_v2 computed them
- * against only the leases still active today; get_expense_summary returned
- * year_over_year_change as null; get_maintenance_analytics returned every
- * cost as 0 or []; get_financial_overview returned accounts receivable and
- * payable as 0 and trends as null, and reported no lease's profitability;
+ * occupancyChange and growth as 0 and get_dashboard_data_v2 computed them,
+ * and drew its 30-day and 6-month series, from only the leases still active
+ * today; get_expense_summary returned year_over_year_change as null;
+ * get_maintenance_analytics returned every cost as 0 or [];
+ * get_financial_overview returned accounts receivable and payable as 0 and
+ * trends as null, and reported no lease's profitability;
  * get_occupancy_trends_optimized, until 20261102200501, counted a lease on a
  * soft-deleted unit outside its denominator. No job ran any of them against
- * data. This checks every computed figure, the windows and markers the app keys its
- * "unavailable" states on, that the two dashboard functions agree with each
- * other and with their helper, the period ends, the soft-deleted rows, the
- * owner scoping, the guards and the grants, against the fixture's portfolio.
+ * data. This checks every computed figure, the windows and markers the app
+ * keys its "unavailable" states on, that the two dashboard functions agree
+ * with each other and with their helper, every point of the dashboard's
+ * series, the period ends, the soft-deleted rows, the owner scoping, the
+ * guards and the grants, against the fixture's portfolio.
  */
 export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 	const text = raw.trim();
@@ -1906,7 +1962,7 @@ export function assertOwnerFiguresComputed(raw: string): AssertionResult {
 	}
 	return {
 		ok: true,
-		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend, each property and get_dashboard_stats (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
+		message: `the owner figures are computed (owner A: occupancy -25.00 points and scheduled rent -10.18% over ${expected.figures["dashboard_stats_a.units.occupancyChangeWindow"]}, the same in both dashboard functions and their helper; tenants 4 against 3, +33.33%; the occupancy series by the helper's rule, a soft-deleted unit's lease never counted, equal to the helper on every month whose leases hold; the dashboard's 30-day occupancy and scheduled rent series and its 6-month scheduled rent by the same rule, day by day and month by month; owner B's occupancy, revenue and tenant trends with no earlier figure, percentChange null; open maintenance one count in the tile, the trend, each property and get_dashboard_stats (3; 2 against 1, +100%); owners B and C's growth null; expenses +25.00% against 2024-03-01/2024-06-30 and the year to date +48.96%, an expense with no vendor under category NULL, never the vendor "Other"; maintenance 790.50 on 4 requests, 197.63 average, 4 vendors, 12 months; the financial overview's three figures, and each lease's rent received less its expenses, a deleted property's lease listed and an expense on a day two leases ran counted once), every guard refuses another owner, and the helper is no client role's`,
 	};
 }
 
