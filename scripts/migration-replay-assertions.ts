@@ -815,8 +815,9 @@ const BACKWARDS_RANGE_SQLSTATE = "22023";
  * received from the rent ledger, over the window asked for, and say which.
  *
  * From 20260528231201_repair_analytics_rpcs.sql until
- * 20261102163709_property_performance_rent_received.sql it returned
- * `0::numeric AS total_revenue`, so every property's revenue read $0 and its
+ * 20261102163709_property_performance_rent_received.sql it returned the
+ * literal 0 as `total_revenue` (`0::bigint`, and `0::numeric` from
+ * 20260708131721), so every property's revenue read $0 and its
  * net income was its expenses negated, on the analytics page, the property
  * page, the property export, the year-end report and its tax exports, while
  * the ledger held what each property received; and it could not be asked for a

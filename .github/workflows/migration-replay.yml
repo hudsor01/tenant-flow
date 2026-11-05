@@ -214,7 +214,8 @@ jobs:
         run: |
           set -euo pipefail
           # From 20260528231201 until 20261102163709 the function returned
-          # 0::numeric as every property's total_revenue, so its net income was
+          # the literal 0 (0::bigint, and 0::numeric from 20260708131721) as
+          # every property's total_revenue, so its net income was
           # its expenses negated on the analytics page, the property page, the
           # property export and the year-end report and its tax exports -- and
           # it could not be asked for a tax year at all. The fixture seeds
