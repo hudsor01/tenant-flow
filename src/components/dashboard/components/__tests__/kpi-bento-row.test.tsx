@@ -23,7 +23,10 @@ vi.mock("#components/dashboard/components/kpi-sparkline", () => ({
 	),
 }));
 
-import { KpiBentoRow } from "#components/dashboard/components/kpi-bento-row";
+import {
+	buildKpiTileConfigs,
+	KpiBentoRow,
+} from "#components/dashboard/components/kpi-bento-row";
 import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
 import type { DashboardStats } from "#types/stats";
@@ -416,6 +419,22 @@ describe("KpiBentoRow", () => {
 		expect(digits?.className.split(/\s+/)).toContain("tracking-wider");
 		const occupancyValue = items[1]?.querySelector('[data-slot="stat-value"]');
 		expect(occupancyValue?.textContent).toBe("87%");
+	});
+
+	// A tile's no-prior copy is what its chip says with no earlier figure, and
+	// only a percent chip has that branch: a points chip always states its
+	// change, a trendless tile shows no chip (66.2-39 fix round 3, F44).
+	it("carries no-prior copy exactly where a chip can show it", () => {
+		if (!mockTrends || !mockTimeSeries) throw new Error("fixtures unset");
+		const tiles = buildKpiTileConfigs(mockStats, mockTrends, mockTimeSeries);
+		expect(tiles).toHaveLength(6);
+		for (const tile of tiles) {
+			const canShow = tile.trend !== null && tile.trendUnit === "percent";
+			expect(
+				{ id: tile.id, hasCopy: tile.noPriorText !== "" },
+				tile.id,
+			).toEqual({ id: tile.id, hasCopy: canShow });
+		}
 	});
 
 	it("states the window each chip computes, never 'last month'", () => {

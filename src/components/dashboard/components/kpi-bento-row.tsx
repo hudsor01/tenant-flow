@@ -143,7 +143,8 @@ function buildSparkline(
 	};
 }
 
-function buildKpiTileConfigs(
+/** The row's six tiles, in D-01 order (exported for its test). */
+export function buildKpiTileConfigs(
 	stats: NonNullable<KpiBentoRowProps["stats"]>,
 	metricTrends: NonNullable<KpiBentoRowProps["metricTrends"]>,
 	timeSeries: NonNullable<KpiBentoRowProps["timeSeries"]>,
@@ -211,8 +212,10 @@ function buildKpiTileConfigs(
 			suffix: "%",
 			trend: occupancyTrend,
 			// In percentage points, as the analytics overview's tile states it.
+			// A points chip always states its change (describeTrend has no
+			// no-prior branch for points), so the tile has no no-prior copy.
 			trendUnit: "points",
-			noPriorText: "No units let",
+			noPriorText: "",
 			sparkline: buildSparkline(
 				timeSeries.occupancyRate,
 				occupancyTrend,
