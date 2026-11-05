@@ -245,6 +245,42 @@ describe("dashboard portfolio swap", () => {
 		});
 	});
 
+	// The stored sort is a plain SortingState, and nuqs hands a written value
+	// to the table without the parser's id check: a preset sorted by the old
+	// Lease Status column wrote `status` into the URL, and the table dropped it
+	// and rendered unsorted (cycle 2, F49). Only a column the table has is
+	// applied.
+	it("applies a preset's sort only on columns the table has", async () => {
+		const user = userEvent.setup();
+		useDashboardPresetsStore.getState().savePreset("Old status sort", {
+			filters: {},
+			sort: [
+				{ id: "status", desc: false },
+				{ id: "rent", desc: true },
+			],
+			columnVisibility: {},
+			page: 1,
+		});
+		const sorts: Array<string | null> = [];
+		render(<PortfolioPresetMenu />, {
+			wrapper: ({ children }: { children: ReactNode }) => (
+				<NuqsTestingAdapter
+					onUrlUpdate={(event) => sorts.push(event.searchParams.get("sort"))}
+				>
+					{children}
+				</NuqsTestingAdapter>
+			),
+		});
+
+		await user.click(screen.getByRole("button", { name: /^presets$/i }));
+		await user.click(await screen.findByText("Old status sort"));
+
+		await waitFor(() => {
+			expect(sorts.at(-1)).toBe('[{"id":"rent","desc":true}]');
+		});
+		expect(sorts.join(" ")).not.toContain("status");
+	});
+
 	it("apply preset RE-FILTERS the live table, not just the URL (multi-word property + occupancy)", async () => {
 		const user = userEvent.setup();
 		// Render in grid mode so the cards expose table.getRowModel().rows directly.

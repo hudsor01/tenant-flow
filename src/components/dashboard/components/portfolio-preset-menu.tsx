@@ -2,7 +2,7 @@
 
 "use no memo";
 
-import type { SortingState } from "@tanstack/react-table";
+import type { ColumnSort, SortingState } from "@tanstack/react-table";
 import { Bookmark, Save, Trash2 } from "lucide-react";
 import {
 	type inferParserType,
@@ -39,6 +39,9 @@ const ARRAY_SEPARATOR = ",";
 const PORTFOLIO_COLUMN_IDS = portfolioColumns
 	.map((column) => column.id)
 	.filter((id): id is string => Boolean(id));
+const PORTFOLIO_COLUMN_ID_SET: ReadonlySet<string> = new Set(
+	PORTFOLIO_COLUMN_IDS,
+);
 
 // Parser element type the sort nuqs key serializes (ExtendedColumnSort<PortfolioRow>[]).
 type PortfolioSort = inferParserType<
@@ -59,12 +62,21 @@ const urlStateParsers = {
 	property: parseAsString,
 };
 
-// The sort parser narrows `id` to the column-id set, so its setter expects
-// `ExtendedColumnSort<PortfolioRow>[]`. The stored snapshot's `sort` is the plain
-// TanStack `SortingState` (`id: string`); this single narrowing cast mirrors the
-// boundary cast `useClientDataTable` already performs on its own sort setter.
+/** A stored sort entry on a column the table has, as the sort parser admits. */
+function isPortfolioSortEntry(
+	entry: ColumnSort,
+): entry is NonNullable<PortfolioSort>[number] {
+	return PORTFOLIO_COLUMN_ID_SET.has(entry.id);
+}
+
+// The stored snapshot's `sort` is the plain TanStack `SortingState` (`id:
+// string`), and nuqs hands a written value to the table without the parser's
+// id check, so a preset sorted by a column that is gone (the old Lease Status,
+// `status`) would reach the table, which drops it with a dev warning and
+// renders unsorted, while the bad `sort` stays in the URL. Keep only the
+// entries the parser would accept: a column id the table has.
 function toPortfolioSort(sort: SortingState): PortfolioSort {
-	return sort as PortfolioSort;
+	return sort.filter(isPortfolioSortEntry);
 }
 
 /**
@@ -116,8 +128,9 @@ export function PortfolioPresetMenu() {
 	function handleApply(presetName: string) {
 		const preset = applyPreset(presetName);
 		if (!preset) return;
-		// A preset saved before the column was Occupancy carries `status`
-		// (the invented lease status, whose values no row has): not applied.
+		// A preset saved before the column was Occupancy carries a `status`
+		// filter (the invented lease status, whose values no row has): not
+		// applied; a sort by that column goes in toPortfolioSort.
 		const occupancy = preset.filters.occupancy;
 		const property = preset.filters.property;
 		void setUrlState({
