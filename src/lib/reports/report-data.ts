@@ -132,16 +132,32 @@ export async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	}
 }
 
-/** Only include `note` when there's a note to render — `note: undefined` is a
- *  type error under `exactOptionalPropertyTypes: true`. */
+/**
+ * The note for a section of figures whose read fell back (safeFetch), on that
+ * section and no other. Only include `note` when there's a note to render —
+ * `note: undefined` is a type error under `exactOptionalPropertyTypes: true`.
+ */
 function noteIf(available: boolean): { note?: string } {
 	return available ? {} : { note: UNAVAILABLE_NOTE };
 }
 
-// No period in it: the lease portfolio and maintenance reports, which use it,
-// have none (they are to date).
+/** The same for a table: its fallback lists no rows, so nothing shows 0. */
+function tableNoteIf(available: boolean): { note?: string } {
+	return available ? {} : { note: TABLE_UNAVAILABLE_NOTE };
+}
+
+/** A section's notes, each it has, as one. */
+function notes(...parts: Array<{ note?: string }>): { note?: string } {
+	const text = parts.flatMap((part) => (part.note ? [part.note] : []));
+	return text.length > 0 ? { note: text.join(" ") } : {};
+}
+
+// No period in either: the lease portfolio and maintenance reports, which use
+// them, have none (they are to date).
 const UNAVAILABLE_NOTE =
 	"Some figures couldn't be loaded and show as 0 here, which may not be their value. Try generating the report again.";
+const TABLE_UNAVAILABLE_NOTE =
+	"This table couldn't be loaded, so it lists nothing here. Try generating the report again.";
 
 const FINANCIAL_FALLBACK: FinancialReport = { expenseBreakdown: [] };
 
@@ -499,14 +515,14 @@ async function buildExecutiveMonthly(
 					...ledgerPeriodRows(income, cash),
 					...occupancyTodayRows(occupancy.data),
 				],
-				...ledgerNote(income, cash),
+				...notes(ledgerNote(income, cash), noteIf(occupancy.available)),
 			},
 			{
 				// get_revenue_trends_optimized sums the month's lease rent_amount:
 				// scheduled rent, not money received, so it is labelled as such.
 				heading: "Scheduled Rent (last 12 months)",
 				table: { headers: ["Month", "Scheduled Rent"], rows: monthlyRows },
-				...noteIf(occupancy.available && monthly.available),
+				...tableNoteIf(monthly.available),
 			},
 			STATEMENT_BASIS_SECTION,
 		],
@@ -577,7 +593,7 @@ async function buildFinancialPerformance(
 						value: fmtPct(occupancy.data.occupancyRate),
 					},
 				],
-				...ledgerNote(income, cash),
+				...notes(ledgerNote(income, cash), noteIf(occupancy.available)),
 			},
 			{
 				heading: "Revenue (charged)",
@@ -593,7 +609,7 @@ async function buildFinancialPerformance(
 					headers: ["Vendor", "Amount", "% of Expenses"],
 					rows: financialExpenseRows(financialResult.data, totalExpenses),
 				},
-				...noteIf(financialResult.available && occupancy.available),
+				...tableNoteIf(financialResult.available),
 			},
 			STATEMENT_BASIS_SECTION,
 		],
@@ -624,14 +640,16 @@ const RENT_RECEIVED_UNAVAILABLE_NOTE =
  * empty tables).
  */
 function propertyPortfolioSections(
-	properties: PropertyReport,
-	occupancy: OccupancyMetrics,
-	available: boolean,
+	properties: { data: PropertyReport; available: boolean },
+	occupancy: { data: OccupancyMetrics; available: boolean },
 ): ReportSection[] {
 	return [
 		{
+			// Its property count from the properties read, its units from the
+			// occupancy read.
 			heading: "Portfolio Summary",
-			rows: propertyPortfolioSummaryRows(properties, occupancy),
+			rows: propertyPortfolioSummaryRows(properties.data, occupancy.data),
+			...noteIf(properties.available && occupancy.available),
 		},
 		{
 			heading: "Property Performance",
@@ -643,11 +661,11 @@ function propertyPortfolioSections(
 					"Expenses",
 					"Net Income",
 				],
-				rows: propertyPerformanceRows(properties),
+				rows: propertyPerformanceRows(properties.data),
 			},
-			...(properties.byProperty.some((p) => p.rentReceived === null)
+			...(properties.data.byProperty.some((p) => p.rentReceived === null)
 				? { note: RENT_RECEIVED_UNAVAILABLE_NOTE }
-				: noteIf(available)),
+				: tableNoteIf(properties.available)),
 		},
 	];
 }
@@ -676,11 +694,7 @@ async function buildPropertyPortfolio(
 			start,
 			end,
 		),
-		sections: propertyPortfolioSections(
-			propertiesResult.data,
-			occupancyResult.data,
-			propertiesResult.available && occupancyResult.available,
-		),
+		sections: propertyPortfolioSections(propertiesResult, occupancyResult),
 	};
 }
 
@@ -724,20 +738,26 @@ function maintenanceOperationsSections(
 		],
 	);
 	const costs = maintenance.costs;
-	const costNote = costs ? {} : { note: MAINTENANCE_COSTS_UNAVAILABLE_NOTE };
+	// A failed read has no costs either, and it is the read that failed: the
+	// server-pending note is for a body that does not report them.
+	const pendingCostNote =
+		available && !costs ? { note: MAINTENANCE_COSTS_UNAVAILABLE_NOTE } : {};
+	const costTableNote = available ? pendingCostNote : tableNoteIf(false);
 	return [
 		{
 			heading: "Operations Summary",
 			rows: maintenanceSummaryRows(maintenance),
+			...notes(noteIf(available), pendingCostNote),
 		},
 		{
 			heading: "By Status (to date)",
 			table: { headers: ["Status", "Count"], rows: byStatusRows },
+			...tableNoteIf(available),
 		},
 		{
 			heading: "By Priority (to date)",
 			table: { headers: ["Priority", "Count"], rows: byPriorityRows },
-			...noteIf(available),
+			...tableNoteIf(available),
 		},
 		{
 			heading: "Monthly Cost (last 12 months)",
@@ -747,7 +767,7 @@ function maintenanceOperationsSections(
 					(m): Array<string | number> => [m.month, fmtCents(m.cost)],
 				),
 			},
-			...costNote,
+			...costTableNote,
 		},
 		{
 			heading: "Vendor Spend to Date",
@@ -761,7 +781,7 @@ function maintenanceOperationsSections(
 					],
 				),
 			},
-			...costNote,
+			...costTableNote,
 		},
 	];
 }
