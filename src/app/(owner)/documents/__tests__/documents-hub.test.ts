@@ -19,7 +19,8 @@
  * TWO needles — the usage and the import — because `page.tsx`'s doc block names
  * the component, so a raw-source scan of the usage alone would let someone
  * delete both the import and the island and still pass. That exact failure was
- * found and fixed in Phase 56 (`reports-hub-purity.test.ts:300-309`).
+ * found and fixed in Phase 56 (`reports-hub-purity.test.ts`, "composes the
+ * strip, which owns the index's one data dependency").
  */
 
 import { existsSync, readFileSync } from "node:fs";

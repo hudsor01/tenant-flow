@@ -29,8 +29,8 @@
  * This page adds no `error.tsx` of its own; it inherits `(owner)/error.tsx`,
  * which wraps every owner page including this one. What keeps a failed document
  * fetch from taking down "Open the vault" is `throwOnError: false`
- * (`query-provider.tsx:78`), which keeps query failures out of render entirely
- * so the recent list degrades in place (65-UI-SPEC §I-10).
+ * (`QueryProvider`'s query defaults), which keeps query failures out of
+ * render entirely so the recent list degrades in place (65-UI-SPEC §I-10).
  */
 
 import type { Metadata } from "next";

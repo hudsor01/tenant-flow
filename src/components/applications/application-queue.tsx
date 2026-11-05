@@ -11,7 +11,8 @@
  * factories that already exist: `applicationQueries.list` (plan 66-09) for the
  * rows, and `propertyQueries.listWithDetails()` for the unit filter's options.
  * The second one is called with NO arguments on purpose — that is byte-identical
- * to `/properties`' own call (`properties/page.tsx:59`), so both surfaces land
+ * to `/properties`' own call (the properties page's
+ * `propertyQueries.listWithDetails()`), so both surfaces land
  * on the same TanStack Query cache entry instead of forking one.
  *
  * WHY THE UNIT LIST COMES FROM THE PROPERTY FACTORY AND NOT `unitQueries.list`.
@@ -185,7 +186,8 @@ function QueueEmpty() {
 				</EmptyMedia>
 				<EmptyTitle>No applications yet</EmptyTitle>
 				{/*
-				 * `mb-0`: EmptyDescription is a bare `<p>` (empty.tsx:72-81) and
+				 * `mb-0`: EmptyDescription is a bare `<p>` (`EmptyDescription` in
+				 * empty.tsx) and
 				 * the `@layer base` `p` rule in globals.css gives every `<p>` a 1rem
 				 * bottom margin. Its parent EmptyHeader lays out with `gap-2`, and gap
 				 * does not cancel margins, so without this the title-to-button rhythm
@@ -317,7 +319,7 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 							<ItemContent className="min-w-0">
 								{/*
 								 * `block w-full min-w-0` is what makes `truncate` actually
-								 * fire. ItemTitle is `flex w-fit` (item.tsx:118-128): a flex
+								 * fire. ItemTitle is `flex w-fit` (item.tsx): a flex
 								 * container has no anonymous text box for
 								 * `text-overflow: ellipsis` to apply to, and `w-fit` sizes the
 								 * box to its own text so `overflow: hidden` has nothing to
@@ -331,7 +333,8 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 									{rowHeading(row)}
 								</ItemTitle>
 								{/*
-								 * `mb-0`: ItemDescription is a bare `<p>` (item.tsx:131-143)
+								 * `mb-0`: ItemDescription is a bare `<p>` (`ItemDescription`
+								 * in item.tsx)
 								 * carrying the same base 1rem bottom margin, and ItemContent
 								 * spaces its children with `gap-1`, which does not cancel
 								 * margins. Without it every row carried 16px of dead space
@@ -339,7 +342,7 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 								 *
 								 * `line-clamp-none` IS WHAT MAKES THIS COMPONENT'S OWN DOC
 								 * COMMENT TRUE. `ItemDescription`'s base string carries
-								 * `line-clamp-2` (item.tsx:131-143), and `text-xs mb-0` is in
+								 * `line-clamp-2` (item.tsx), and `text-xs mb-0` is in
 								 * no conflicting tailwind-merge group, so that clamp survived
 								 * and applied `overflow: hidden` with `-webkit-line-clamp: 2`
 								 * while the comment above claimed there was no clamp. At 375px

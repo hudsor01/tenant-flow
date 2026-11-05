@@ -163,7 +163,8 @@ describe("RecentDocumentsPanel — the shared-cache guarantee (SC-3, D-02)", () 
 	});
 
 	it("resolves to the vault's default unfiltered cache key, spelled out", () => {
-		// `documents-vault.client.tsx:230-239` produces this SAME array in its
+		// `DocumentsVaultClient`'s `documentSearchQueries.list({...})` produces
+		// this SAME array in its
 		// default unfiltered state: all five of its spreads are empty and
 		// `pageParam` is 0, so its params object reduces to `{ page: 0 }` too.
 		// This literal is the concrete form of the "cannot disagree" guarantee —
@@ -199,8 +200,8 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		mockUseQuery.mockReturnValue(loadingState());
 		const { container } = render(<RecentDocumentsPanel />);
 		// `Skeleton` sets `data-slot="skeleton"` — a stable hook independent of
-		// CSS class drift, and the same selector `documents-vault.test.tsx:232`
-		// uses.
+		// CSS class drift, and the same selector documents-vault.test.tsx's
+		// "renders skeletons during loading" uses.
 		expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(
 			5,
 		);
@@ -306,7 +307,8 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	});
 
 	// Perfect-PR cycle 1. §I-2 calls for a truncating title, but `truncate` alone
-	// on ItemTitle is INERT: the primitive is `flex w-fit` (item.tsx:118-128), and
+	// on ItemTitle is INERT: the primitive is `flex w-fit` (`ItemTitle` in
+	// item.tsx), and
 	// text-overflow:ellipsis does not apply to a flex container's anonymous text
 	// child, while w-fit sizes the box to its text so overflow:hidden never clips.
 	// The parent ItemContent is `flex flex-1` with no min-width, so the line cannot
@@ -362,7 +364,8 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	// Perfect-PR cycle 1 (third frozen state). `document_categories.label` is
 	// mutable for every row including the seeded defaults — update() gates on
 	// ownership only, with no is_default guard — and the vault reads that table
-	// (documents-vault.client.tsx:168). A panel reading the static seed map would
+	// (`DocumentsVaultClient`'s `useDocumentCategories()` call). A panel reading
+	// the static seed map would
 	// show "Insurance · 3 days ago" while the vault filter and the upload Select
 	// showed "Insurance Certificates", in the same session, for the same document.
 	describe("category labels come from the owner's table, not the seed map", () => {

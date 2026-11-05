@@ -178,8 +178,9 @@ function successState(
 
 /**
  * Radix activates a tab on `mousedown`, not on `click` — its Trigger composes
- * `onMouseDown` (react-tabs/dist/index.mjs:121), so `fireEvent.click` alone
- * changes nothing and a test written that way would pass for the wrong reason.
+ * `onMouseDown` (`TabsTrigger` in @radix-ui/react-tabs), so `fireEvent.click`
+ * alone changes nothing and a test written that way would pass for the wrong
+ * reason.
  */
 function selectTab(name: string) {
 	fireEvent.mouseDown(screen.getByRole("tab", { name }), { button: 0 });
@@ -659,7 +660,7 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 	 * A RESOLUTION CHECK, NOT A SPELLING ONE — the same shape as the `w-fit`
 	 * assertion above, and answerable without layout for the same reason.
 	 * `line-clamp-2` is written in `ItemDescription`'s own base string
-	 * (`item.tsx:131-143`) and can only be absent from a rendered attribute if a
+	 * (item.tsx) and can only be absent from a rendered attribute if a
 	 * same-group utility displaced it through tailwind-merge.
 	 *
 	 * THE ROW DECLARES NO CLAMP AND MUST NOT HAVE ONE. UI-SPEC §B-3: "no fixed

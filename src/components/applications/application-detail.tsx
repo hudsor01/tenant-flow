@@ -366,11 +366,11 @@ function DetailCard({
 			<CardHeader>
 				{/*
 				 * A REAL `<h2>`, not `CardTitle`. That primitive renders a `<div>`
-				 * (card.tsx:50), so a page of six cards would expose exactly one
+				 * (card.tsx), so a page of six cards would expose exactly one
 				 * heading — the `<h1>` — and a screen-reader user would have no way to
 				 * move between the sections of a 26-field record. The class string is
 				 * byte-identical to the applicant form's own section headings
-				 * (`application-fields-about.tsx:33`), which is the point: these cards
+				 * (`ApplicationFieldsAbout`'s `<h2>`s), which is the point: these cards
 				 * mirror those sections and should read the same way.
 				 */}
 				<h2 id={headingId} className="text-base font-semibold text-foreground">
@@ -671,7 +671,7 @@ function OwnerNotes({
  *
  * THE NEUTRALIZERS ARE NOT OPTIONAL HERE EITHER, AND THIS IS THE LIST THE PHASE
  * FORGOT. `BreadcrumbList` renders a bare `<ol>` whose own classes are all
- * layout (`ui/breadcrumb.tsx:11-21`), so every unscoped declaration of the
+ * layout (ui/breadcrumb.tsx), so every unscoped declaration of the
  * `@layer base` `ul, ol` / `li` rules in globals.css reached it:
  * `padding-left: 1.5rem`, `margin-top: 1rem`, the `margin-bottom: 1rem` half of the same
  * `margin: 1rem 0` shorthand, and `margin-bottom: 0.25rem` on each crumb.
