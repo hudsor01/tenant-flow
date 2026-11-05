@@ -7,6 +7,10 @@
  * that attribute with a `var()` never match, so the recolour rules were inert.
  * D-28 bans the hex value upstream matches on, so ChartContainer matches on the
  * attribute's PRESENCE instead: a class rule beats a presentation attribute.
+ * The sector rule matches a stroke that is not a `var()` instead, so a Pie's
+ * token stroke (the occupancy donut's wedge separator) survives it (66.2-39
+ * fix round 3, F75); occupancy-donut-chart.test.tsx matches the compiled
+ * selector against both kinds of sector.
  *
  * This file pins, in node (React SSR plus the real Tailwind engine):
  *   - the SSR class string, `data-slot="chart"`, the ChartStyle `<style>` text
@@ -35,7 +39,7 @@ const CHART_STROKE_SELECTORS = [
 	"[&_.recharts-polar-grid_[stroke]]:stroke-border",
 	"[&_.recharts-reference-line_[stroke]]:stroke-border",
 	"[&_.recharts-dot[stroke]]:stroke-transparent",
-	"[&_.recharts-sector[stroke]]:stroke-transparent",
+	"[&_.recharts-sector:not([stroke^='var('])]:stroke-transparent",
 ] as const;
 
 const [GRID, POLAR_GRID, REFERENCE_LINE, DOT, SECTOR] = CHART_STROKE_SELECTORS;
@@ -250,7 +254,7 @@ describe("ChartContainer recharts stroke selectors (D-28, C2)", () => {
 			expect(dot).toContain("stroke: transparent");
 
 			const sector = cssFor(engine, SECTOR);
-			expect(sector).toContain(".recharts-sector[stroke]");
+			expect(sector).toContain(".recharts-sector:not([stroke^='var('])");
 			expect(sector).toContain("stroke: transparent");
 		},
 		ENGINE_TIMEOUT_MS,
@@ -265,7 +269,7 @@ describe("ChartContainer recharts stroke selectors (D-28, C2)", () => {
 				".recharts-polar-grid [stroke]",
 				".recharts-reference-line [stroke]",
 				".recharts-dot[stroke]",
-				".recharts-sector[stroke]",
+				".recharts-sector:not([stroke^='var('])",
 			]) {
 				expect(compiledCss).toContain(fragment);
 			}

@@ -312,9 +312,14 @@
      "ref": "D-26"
     },
     {
-     "what": "the cartesian-grid, polar-grid, reference-line, dot and sector recolour selectors match the stroke attribute's presence ([stroke]) instead of upstream's hex attribute values",
+     "what": "the cartesian-grid, polar-grid, reference-line and dot recolour selectors match the stroke attribute's presence ([stroke]) instead of upstream's hex attribute values",
      "reason": "D-26 customization",
      "ref": "D-28; ledger C2; VD-16; VD-17"
+    },
+    {
+     "what": "the sector selector matches a stroke that is not a var() (.recharts-sector:not([stroke^='var('])) instead of upstream's [stroke='#fff'], so Recharts' default sector stroke is hidden and a Pie's token stroke (the occupancy donut's var(--color-card) wedge separator) still paints",
+     "reason": "D-26 customization",
+     "ref": "D-28; 66.2-39 fix round 3 F75; VD-53"
     },
     {
      "what": "ChartContainer adds [&_.recharts-surface:focus-visible]:outline-2, :-outline-offset-2, :outline-ring and :outline-solid after upstream's [&_.recharts-surface]:outline-hidden, so the tab-focusable recharts surface shows an inset 2px ring-colored focus outline (outline-solid because outline-hidden sets --tw-outline-style: none)",

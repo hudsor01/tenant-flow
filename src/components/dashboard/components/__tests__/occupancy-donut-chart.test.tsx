@@ -17,6 +17,7 @@
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import { OccupancyDonutChart } from "../occupancy-donut-chart";
 import { OccupancyDonutChartSkeleton } from "../occupancy-donut-chart-skeleton";
 
@@ -145,6 +146,43 @@ describe("OccupancyDonutChart", () => {
 		expect(pie.getAttribute("data-stroke")).toBe("var(--color-card)");
 		expect(Number(pie.getAttribute("data-stroke-width"))).toBeGreaterThan(0);
 	});
+
+	// The ChartContainer around the donut hides Recharts' default sector stroke
+	// with a class rule, and a class rule beats the SVG stroke attribute, so it
+	// must not reach a sector whose stroke is the card token: Recharts copies
+	// the Pie's stroke onto every path.recharts-sector (66.2-39 fix round 3,
+	// F75). The container's own compiled selector decides, matched against one
+	// sector of each kind.
+	it("leaves the card-color wedge separator to the Pie's stroke", async () => {
+		render(<OccupancyDonutChart units={populated} />);
+		const chart = document.querySelector('[data-slot="chart"]');
+		expect(chart).not.toBeNull();
+		const sectorRules = [...(chart?.classList ?? [])].filter(
+			(c) => c.includes(".recharts-sector") && c.includes(":stroke-"),
+		);
+		expect(sectorRules).toHaveLength(1);
+		const designSystem = await loadProjectDesignSystem();
+		const css = designSystem.candidatesToCss(sectorRules)[0] ?? "";
+		const selector = css.slice(css.indexOf(" ") + 1, css.indexOf("{")).trim();
+		expect(selector).toMatch(/recharts-sector/);
+		const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		const sector = (stroke: string) => {
+			const path = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"path",
+			);
+			path.setAttribute("class", "recharts-sector");
+			path.setAttribute("stroke", stroke);
+			svg.appendChild(path);
+			return path;
+		};
+		const token = sector("var(--color-card)");
+		const fallback = sector("white");
+		chart?.appendChild(svg);
+		expect(token.matches(selector)).toBe(false);
+		expect(fallback.matches(selector)).toBe(true);
+		svg.remove();
+	}, 30_000);
 
 	it("does NOT render a tooltip (UI-SPEC § 3.6)", () => {
 		render(<OccupancyDonutChart units={populated} />);
