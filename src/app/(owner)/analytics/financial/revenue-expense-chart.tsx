@@ -1,6 +1,10 @@
 import { DollarSign } from "lucide-react";
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+	moneyAxisTick,
+	moneyTooltipFormatter,
+} from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
 	ChartLegend,
@@ -138,12 +142,17 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						tickMargin={8}
 						minTickGap={32}
 					/>
-					<YAxis tickLine={false} axisLine={false} />
+					<YAxis
+						tickLine={false}
+						axisLine={false}
+						tickFormatter={moneyAxisTick}
+					/>
 					<ChartTooltip
 						cursor={false}
 						content={
 							<ChartTooltipContent
 								labelFormatter={(value) => value}
+								formatter={moneyTooltipFormatter(revenueExpenseConfig)}
 								indicator="dot"
 							/>
 						}

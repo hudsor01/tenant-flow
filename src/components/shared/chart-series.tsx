@@ -1,6 +1,7 @@
 /**
  * How a chart names its series by more than their hue, and states a money
- * series' figures as money (66.2-39 fix round 3, cycle 2, F39 and F33).
+ * series' figures as money (66.2-39 fix round 3, cycle 2, F39 and F33, and
+ * the analytics pages' money charts the F33 sweep found).
  *
  * NOT A BARREL FILE. Everything below is declared here and nothing is
  * re-exported (CLAUDE.md zero-tolerance rule 2).
@@ -44,20 +45,30 @@ export function chartLineKey(color: string, dash?: string): ComponentType {
 	return ChartLineKey;
 }
 
+/**
+ * A money axis' tick: the figure in whole dollars ("$4,000", "-$500"). The
+ * tooltip states the exact figure.
+ */
+export function moneyAxisTick(value: number): string {
+	return formatCurrency(value, {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
+	});
+}
+
 type TooltipFormatter = NonNullable<
 	ComponentProps<typeof ChartTooltipContent>["formatter"]
 >;
 
 /**
- * A ChartTooltipContent `formatter` for money series. The formatter replaces
- * the tooltip's whole row, so it draws the row as ChartTooltipContent does
- * (the series' key, its config label, its value) with the value through
- * `formatCurrency`: "Scheduled Rent  $12,800", not "12800" or, from the
- * `[value, name]` pair recharts' own tooltip takes, "$12,800Scheduled Rent".
+ * A ChartTooltipContent `formatter` that states each series' value through
+ * `formatValue`, given the value and the series' config key. The formatter
+ * replaces the tooltip's whole row, so it draws the row as
+ * ChartTooltipContent does: the series' key, its config label, its value.
  */
-export function moneyTooltipFormatter(
+export function seriesTooltipFormatter(
 	config: ChartConfig,
-	options?: CurrencyFormatOptions,
+	formatValue: (value: number, key: string) => string,
 ): TooltipFormatter {
 	return (value, name, item) => {
 		const entry = config[String(name)];
@@ -75,10 +86,24 @@ export function moneyTooltipFormatter(
 				<div className="flex flex-1 items-center justify-between gap-4 leading-none">
 					<span className="text-muted-foreground">{entry?.label ?? name}</span>
 					<span className="text-foreground font-mono font-medium tabular-nums">
-						{formatCurrency(Number(value), options)}
+						{formatValue(Number(value), String(name))}
 					</span>
 				</div>
 			</>
 		);
 	};
+}
+
+/**
+ * `seriesTooltipFormatter` for money series: every value through
+ * `formatCurrency`, "Scheduled Rent  $12,800", not "12800" or, from the
+ * `[value, name]` pair recharts' own tooltip takes, "$12,800Scheduled Rent".
+ */
+export function moneyTooltipFormatter(
+	config: ChartConfig,
+	options?: CurrencyFormatOptions,
+): TooltipFormatter {
+	return seriesTooltipFormatter(config, (value) =>
+		formatCurrency(value, options),
+	);
 }

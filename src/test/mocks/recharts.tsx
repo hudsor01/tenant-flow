@@ -43,6 +43,7 @@ interface ChartProps extends ContainerProps {
 
 interface AxisProps {
 	dataKey?: string;
+	yAxisId?: string;
 	tickFormatter?: (value: number, index: number) => string;
 }
 
@@ -96,8 +97,8 @@ export const XAxis = ({ dataKey }: AxisProps) => (
 	<g data-testid="x-axis" data-key={dataKey} />
 );
 
-export const YAxis = ({ dataKey, tickFormatter }: AxisProps) => (
-	<g data-testid="y-axis" data-key={dataKey}>
+export const YAxis = ({ dataKey, yAxisId, tickFormatter }: AxisProps) => (
+	<g data-testid="y-axis" data-key={dataKey} data-axis-id={yAxisId}>
 		{probe.yTicks?.map((tick, index) => (
 			<text key={tick} data-testid="y-tick">
 				{tickFormatter ? tickFormatter(tick, index) : String(tick)}

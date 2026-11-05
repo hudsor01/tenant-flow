@@ -2,7 +2,10 @@
 
 import { Building2 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
-
+import {
+	moneyAxisTick,
+	seriesTooltipFormatter,
+} from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
 	ChartLegend,
@@ -16,6 +19,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { formatCurrency } from "#lib/utils/currency";
 import type { PropertyPerformanceEntry } from "#types/analytics";
 
 const occupancyConfig = {
@@ -28,6 +32,13 @@ const occupancyConfig = {
 		color: "var(--color-success-text)",
 	},
 } satisfies ChartConfig;
+
+/** Rent received is dollars; occupancy keeps its figure under "Occupancy %". */
+const occupancyAndRentTooltip = seriesTooltipFormatter(
+	occupancyConfig,
+	(value, key) =>
+		key === "rentReceived" ? formatCurrency(value) : value.toLocaleString(),
+);
 
 type PropertyOccupancyChartProps = {
 	data: PropertyPerformanceEntry[];
@@ -82,9 +93,12 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 						orientation="right"
 						tickLine={false}
 						axisLine={false}
+						tickFormatter={moneyAxisTick}
 					/>
 				)}
-				<Tooltip content={<ChartTooltipContent />} />
+				<Tooltip
+					content={<ChartTooltipContent formatter={occupancyAndRentTooltip} />}
+				/>
 				<ChartLegend content={<ChartLegendContent />} />
 				<Bar
 					yAxisId="occupancy"

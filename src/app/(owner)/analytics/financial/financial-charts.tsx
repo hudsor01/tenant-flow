@@ -2,7 +2,10 @@
 
 import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-
+import {
+	moneyAxisTick,
+	moneyTooltipFormatter,
+} from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
 	ChartTooltip,
@@ -62,10 +65,19 @@ export function NetOperatingIncomeChart({
 					height={80}
 					tickMargin={8}
 				/>
-				<YAxis tickLine={false} axisLine={false} />
+				<YAxis
+					tickLine={false}
+					axisLine={false}
+					tickFormatter={moneyAxisTick}
+				/>
 				<ChartTooltip
 					cursor={false}
-					content={<ChartTooltipContent hideLabel />}
+					content={
+						<ChartTooltipContent
+							hideLabel
+							formatter={moneyTooltipFormatter(noiConfig)}
+						/>
+					}
 				/>
 				<Bar dataKey="noi" fill="var(--color-noi)" radius={[6, 6, 0, 0]} />
 			</BarChart>
