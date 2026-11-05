@@ -17,14 +17,16 @@ import { DEFAULT_NAV_ITEMS } from "#components/layout/navbar/types";
 import { escapeRegExp } from "#test/utils/regexp-source";
 
 describe("NavbarDesktopNav", () => {
-	it('emits no aria-current="page" on the homepage (CONS-03)', () => {
+	// aria-current at all, not only "page": navAriaCurrent also writes "true"
+	// for a section match (cycle 2, F55).
+	it("emits no aria-current on the homepage (CONS-03)", () => {
 		render(<NavbarDesktopNav navItems={DEFAULT_NAV_ITEMS} pathname="/" />);
 		// No top-level nav link — Compare included — may be marked current on `/`.
 		for (const item of DEFAULT_NAV_ITEMS) {
 			const link = screen.getByRole("link", {
 				name: new RegExp(`^${escapeRegExp(item.name)}`),
 			});
-			expect(link).not.toHaveAttribute("aria-current", "page");
+			expect(link).not.toHaveAttribute("aria-current");
 		}
 	});
 
@@ -41,7 +43,7 @@ describe("NavbarDesktopNav", () => {
 			<NavbarDesktopNav navItems={DEFAULT_NAV_ITEMS} pathname="/pricing" />,
 		);
 		const compare = screen.getByRole("link", { name: /^Compare/ });
-		expect(compare).not.toHaveAttribute("aria-current", "page");
+		expect(compare).not.toHaveAttribute("aria-current");
 		const pricing = screen.getByRole("link", { name: /^Pricing/ });
 		expect(pricing).toHaveAttribute("aria-current", "page");
 	});
