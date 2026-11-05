@@ -1,8 +1,15 @@
 /**
  * GlobalSyncIndicator: the tooltip trigger is a named, focusable button in both
- * states; the status text lives in one `role="status"` region that survives
- * the saved/syncing switch; focus opens the tooltip; and the tooltip text is
- * not a `p`, so the 16px `@layer base` paragraph margin cannot pad it.
+ * states; the status text is mirrored into one `role="status"` region beside
+ * the button (not inside it) that survives the saved/syncing switch; focus
+ * opens the tooltip; and the tooltip text is not a `p`, so the 16px
+ * `@layer base` paragraph margin cannot pad it.
+ *
+ * jsdom's accessible-name algorithm counts a `role="status"` descendant's
+ * text, which Chrome's does not (`status` is named by its author only), so a
+ * name assertion here could not see the empty name the nested region gave the
+ * button (66.2-39 fix round 3, F77). The structural assertions below can: the
+ * button holds no live region, and its text sits in a role-free span.
  */
 
 import { act, fireEvent, render, screen } from "@testing-library/react";
@@ -41,7 +48,11 @@ describe("GlobalSyncIndicator", () => {
 		expect(trigger).not.toBeDisabled();
 		trigger.focus();
 		expect(document.activeElement).toBe(trigger);
-		expect(screen.getByRole("status")).toHaveTextContent("Saved");
+		const status = screen.getByRole("status");
+		expect(status).toHaveTextContent("Saved");
+		expect(status).toHaveClass("sr-only");
+		expect(trigger.contains(status)).toBe(false);
+		expect(trigger.querySelectorAll("[role]")).toHaveLength(0);
 	});
 
 	it("announces 'Syncing' through the same status region it rendered while saved", () => {
@@ -78,8 +89,8 @@ describe("GlobalSyncIndicator", () => {
 		renderIndicator(true);
 
 		const trigger = screen.getByRole("button", { name: "Saved" });
-		expect(screen.getByRole("status")).toHaveClass("sr-only");
-		expect(trigger).toBeInTheDocument();
+		expect(trigger.querySelector("span")).toHaveClass("sr-only");
+		expect(trigger.querySelector("span")).toHaveTextContent("Saved");
 	});
 
 	it("opens the tooltip on keyboard focus, with no p inside it", async () => {

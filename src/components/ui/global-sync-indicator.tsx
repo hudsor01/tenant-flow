@@ -12,11 +12,15 @@
  * - The tooltip trigger is a `button`, the canonical Radix Tooltip trigger, so
  *   keyboard users reach the tooltip by focus as pointer users do by hover
  *   (WCAG 1.4.13, 2.1.1). Its name is its visible text ("Saved", "Syncing...",
- *   "Syncing (2)"); in compact mode (or below sm with `compactBelowSm`) the
- *   saved text is sr-only and still names it.
+ *   "Syncing (2)"), held in a plain `span`; in compact mode (or below sm with
+ *   `compactBelowSm`) the saved text is sr-only and still names it.
  *   It has no action, so Enter and Space do nothing beyond what focus shows.
- * - The text sits in a `role="status"` live region that stays mounted across
- *   the state switch, so "Syncing..." and the return to "Saved" are announced.
+ * - The same text is mirrored into a visually hidden `role="status"` live
+ *   region beside the trigger, which stays mounted across the state switch,
+ *   so "Syncing..." and the return to "Saved" are announced. It cannot sit in
+ *   the button: `status` takes no name from its content, so the button's name
+ *   was empty in Chrome, and a button's children are presentational, so a
+ *   region inside it may not be exposed (66.2-39 fix round 3, F77).
  * - The tooltip text is a `span`: a `p` would take the 16px `@layer base`
  *   paragraph margin and leave a blank band at the foot of the tooltip.
  */
@@ -61,39 +65,43 @@ export function GlobalSyncIndicator({
 	const Icon = isPending ? Loader2 : Cloud;
 
 	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<button
-					type="button"
-					className={cn(
-						"flex items-center gap-1.5 rounded-sm",
-						isPending ? "text-primary-text" : "text-muted-foreground",
-						className,
-					)}
-				>
-					<Icon
-						className={cn("size-4", isPending && "animate-spin")}
-						aria-hidden="true"
-					/>
-					<span
-						role="status"
-						className={
-							isPending
-								? "text-xs"
-								: compact
-									? "sr-only"
-									: compactBelowSm
-										? "text-xs max-sm:sr-only"
-										: "text-xs"
-						}
+		<>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<button
+						type="button"
+						className={cn(
+							"flex items-center gap-1.5 rounded-sm",
+							isPending ? "text-primary-text" : "text-muted-foreground",
+							className,
+						)}
 					>
-						{statusText}
-					</span>
-				</button>
-			</TooltipTrigger>
-			<TooltipContent>
-				<span className="whitespace-pre-line">{tooltipText}</span>
-			</TooltipContent>
-		</Tooltip>
+						<Icon
+							className={cn("size-4", isPending && "animate-spin")}
+							aria-hidden="true"
+						/>
+						<span
+							className={
+								isPending
+									? "text-xs"
+									: compact
+										? "sr-only"
+										: compactBelowSm
+											? "text-xs max-sm:sr-only"
+											: "text-xs"
+							}
+						>
+							{statusText}
+						</span>
+					</button>
+				</TooltipTrigger>
+				<TooltipContent>
+					<span className="whitespace-pre-line">{tooltipText}</span>
+				</TooltipContent>
+			</Tooltip>
+			<span role="status" className="sr-only">
+				{statusText}
+			</span>
+		</>
 	);
 }
