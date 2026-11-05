@@ -6,7 +6,12 @@
  * NOT A BARREL FILE. Everything below is declared here and nothing is
  * re-exported (CLAUDE.md zero-tolerance rule 2).
  */
-import type { ComponentProps, ComponentType, CSSProperties } from "react";
+import {
+	type ComponentProps,
+	type ComponentType,
+	type CSSProperties,
+	useId,
+} from "react";
 import type { ChartConfig } from "#components/ui/chart";
 import type { ChartTooltipContent } from "#components/ui/chart-tooltip";
 import {
@@ -19,6 +24,12 @@ import {
  * well as their hue (WCAG 1.4.1). The legend and tooltip keys draw it too.
  */
 export const SECOND_SERIES_DASH = "5 3";
+
+/**
+ * A third series' stroke: dotted, so three series differ by their line
+ * (solid, dashed, dotted) as well as their hue.
+ */
+export const THIRD_SERIES_DASH = "2 2";
 
 /**
  * A ChartConfig `icon` for a line or area series: a short stroke in the
@@ -43,6 +54,67 @@ export function chartLineKey(color: string, dash?: string): ComponentType {
 		);
 	}
 	return ChartLineKey;
+}
+
+/**
+ * An id for an SVG element a chart references by `url(#id)`: `name` plus
+ * React's id for this component, kept to the characters an id reference
+ * takes as written.
+ */
+export function useSvgId(name: string): string {
+	return `${name}-${useId().replace(/[^\w-]/g, "")}`;
+}
+
+/**
+ * Diagonal stripes in `color` over a light tint of it: a second bar series'
+ * fill, so two bar series differ by their fill as well as their hue (WCAG
+ * 1.4.1), as a dash does for lines. Place it in the chart's `<defs>` and fill
+ * the series' bars with `url(#id)`; `chartBarKey(color, true)` draws the same
+ * stripes in the legend and tooltip keys.
+ */
+export function ChartHatch({ id, color }: { id: string; color: string }) {
+	return (
+		<pattern
+			id={id}
+			width={4}
+			height={4}
+			patternUnits="userSpaceOnUse"
+			patternTransform="rotate(45)"
+		>
+			<rect width={4} height={4} fill={color} fillOpacity={0.3} />
+			<rect width={2} height={4} fill={color} />
+		</pattern>
+	);
+}
+
+/**
+ * A ChartConfig `icon` for a bar series: a square in the series' color,
+ * solid, or hatched as `ChartHatch` fills the series' bars. Like
+ * `chartLineKey`, it replaces the legend's and tooltip's color square.
+ */
+export function chartBarKey(color: string, hatched = false): ComponentType {
+	function ChartBarKey() {
+		const hatchId = useSvgId("key-hatch");
+		return (
+			<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+				{hatched ? (
+					<defs>
+						<ChartHatch id={hatchId} color={color} />
+					</defs>
+				) : null}
+				<rect
+					x={0.5}
+					y={0.5}
+					width={11}
+					height={11}
+					rx={2}
+					fill={hatched ? `url(#${hatchId})` : color}
+					stroke={color}
+				/>
+			</svg>
+		);
+	}
+	return ChartBarKey;
 }
 
 /**

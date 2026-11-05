@@ -3,8 +3,11 @@
 import { Building2 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 import {
+	ChartHatch,
+	chartBarKey,
 	moneyAxisTick,
 	seriesTooltipFormatter,
+	useSvgId,
 } from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
@@ -22,14 +25,21 @@ import {
 import { formatCurrency } from "#lib/utils/currency";
 import type { PropertyPerformanceEntry } from "#types/analytics";
 
+/**
+ * Occupancy's bars are solid and rent received's hatched (`ChartHatch`), and
+ * the legend and tooltip keys draw each fill, so the two differ by more than
+ * hue (WCAG 1.4.1).
+ */
 const occupancyConfig = {
 	occupancy: {
 		label: "Occupancy %",
 		color: "var(--color-chart-1)",
+		icon: chartBarKey("var(--color-occupancy)"),
 	},
 	rentReceived: {
 		label: "Rent received",
 		color: "var(--color-success-text)",
+		icon: chartBarKey("var(--color-rentReceived)", true),
 	},
 } satisfies ChartConfig;
 
@@ -45,6 +55,7 @@ type PropertyOccupancyChartProps = {
 };
 
 export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
+	const hatchId = useSvgId("rent-received-hatch");
 	if (!data.length) {
 		return (
 			<Empty className="py-12">
@@ -76,6 +87,9 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 			config={occupancyConfig}
 		>
 			<BarChart data={chartData}>
+				<defs>
+					<ChartHatch id={hatchId} color="var(--color-rentReceived)" />
+				</defs>
 				<CartesianGrid strokeDasharray="3 3" vertical={false} />
 				<XAxis
 					dataKey="property"
@@ -110,7 +124,8 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 					<Bar
 						yAxisId="rentReceived"
 						dataKey="rentReceived"
-						fill="var(--color-rentReceived)"
+						fill={`url(#${hatchId})`}
+						stroke="var(--color-rentReceived)"
 						radius={[6, 6, 0, 0]}
 					/>
 				)}

@@ -54,6 +54,7 @@ interface TooltipProps {
 interface BarProps {
 	dataKey?: string;
 	fill?: string;
+	stroke?: string;
 	name?: string;
 }
 
@@ -89,8 +90,14 @@ export const BarChart = ({ children, data }: ChartProps) => (
 	</svg>
 );
 
-export const Bar = ({ dataKey, fill, name }: BarProps) => (
-	<g data-testid="bar" data-key={dataKey} data-fill={fill} data-name={name} />
+export const Bar = ({ dataKey, fill, stroke, name }: BarProps) => (
+	<g
+		data-testid="bar"
+		data-key={dataKey}
+		data-fill={fill}
+		data-stroke={stroke}
+		data-name={name}
+	/>
 );
 
 export const XAxis = ({ dataKey }: AxisProps) => (

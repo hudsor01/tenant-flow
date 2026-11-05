@@ -2,8 +2,11 @@ import { DollarSign } from "lucide-react";
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
+	chartLineKey,
 	moneyAxisTick,
 	moneyTooltipFormatter,
+	SECOND_SERIES_DASH,
+	THIRD_SERIES_DASH,
 } from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
@@ -28,12 +31,28 @@ import {
 } from "#components/ui/select";
 import type { MonthlyFinancialMetric } from "#types/analytics";
 
+/**
+ * get_revenue_trends_optimized's revenue is the month's lease rent_amount:
+ * scheduled rent, not money received, so its net is scheduled too. The three
+ * areas' strokes are solid, dashed and dotted, and the legend and tooltip
+ * keys draw each as it is drawn, so they differ by more than hue (WCAG 1.4.1).
+ */
 const revenueExpenseConfig = {
-	// get_revenue_trends_optimized's revenue is the month's lease rent_amount:
-	// scheduled rent, not money received, so its net is scheduled too.
-	revenue: { label: "Scheduled Rent", color: "var(--color-success-text)" },
-	expenses: { label: "Expenses", color: "var(--color-destructive-text)" },
-	netIncome: { label: "Scheduled Net", color: "var(--color-chart-1)" },
+	revenue: {
+		label: "Scheduled Rent",
+		color: "var(--color-success-text)",
+		icon: chartLineKey("var(--color-revenue)"),
+	},
+	expenses: {
+		label: "Expenses",
+		color: "var(--color-destructive-text)",
+		icon: chartLineKey("var(--color-expenses)", SECOND_SERIES_DASH),
+	},
+	netIncome: {
+		label: "Scheduled Net",
+		color: "var(--color-chart-1)",
+		icon: chartLineKey("var(--color-netIncome)", THIRD_SERIES_DASH),
+	},
 } satisfies ChartConfig;
 
 type RevenueExpenseChartProps = { data: MonthlyFinancialMetric[] };
@@ -162,6 +181,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						dataKey="revenue"
 						fill="url(#fillRevenue)"
 						stroke="var(--color-revenue)"
+						strokeWidth={2}
 						stackId="a"
 					/>
 					<Area
@@ -169,6 +189,8 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						dataKey="expenses"
 						fill="url(#fillExpenses)"
 						stroke="var(--color-expenses)"
+						strokeWidth={2}
+						strokeDasharray={SECOND_SERIES_DASH}
 						stackId="b"
 					/>
 					<Area
@@ -176,6 +198,8 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						dataKey="netIncome"
 						fill="url(#fillNetIncome)"
 						stroke="var(--color-netIncome)"
+						strokeWidth={2}
+						strokeDasharray={THIRD_SERIES_DASH}
 					/>
 					<ChartLegend content={<ChartLegendContent />} />
 				</AreaChart>
