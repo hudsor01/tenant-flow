@@ -39,10 +39,7 @@ const data: IncomeStatementData = {
 		totalRevenue: 54000,
 	},
 	expenses: { totalExpenses: 1500 },
-	grossProfit: 52500,
-	operatingIncome: 52500,
 	netIncome: 52500,
-	profitMargin: 97.2,
 };
 
 function queryState(overrides: Record<string, unknown> = {}) {
@@ -124,9 +121,6 @@ describe("income statement Export", () => {
 				totalRevenue: 1260.5,
 			},
 			netIncome: -239.5,
-			grossProfit: -239.5,
-			operatingIncome: -239.5,
-			profitMargin: -19,
 		};
 		useIncomeStatementMock.mockReturnValue(
 			queryState({ data: { status: "ready", statement: ledger } }),
@@ -156,6 +150,28 @@ describe("income statement Export", () => {
 				.getByText(label ?? "")
 				.closest("div.flex.items-center.justify-between");
 			expect(row?.textContent, label).toContain(amount);
+		}
+	});
+
+	it("shows and writes no line without a source (cycle 2, F13, F14)", async () => {
+		render(<IncomeStatementPage />);
+		const summary = screen
+			.getByText("Net Income Summary")
+			.closest("div.bg-card") as HTMLElement;
+		expect(
+			[...summary.querySelectorAll(".space-y-3 > div > span:first-child")].map(
+				(label) => label.textContent,
+			),
+		).toEqual(["Total Revenue", "Total Operating Expenses"]);
+		expect(screen.queryByText("Period Comparison")).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole("button", { name: "Export" }));
+		const text = (await createdBlobs[0]?.text()) ?? "";
+		for (const gone of [
+			"Gross Profit",
+			"Operating Income",
+			"Period Comparison",
+		]) {
+			expect(text).not.toContain(gone);
 		}
 	});
 

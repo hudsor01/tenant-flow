@@ -8,13 +8,13 @@ import type { IncomeStatementView } from "./income-statement-view";
 /**
  * The income statement as CSV: one row per figure on the page, top to bottom
  * (the three stat tiles and the profit margin, the revenue and expense
- * breakdowns with their totals, the net income summary, the period
- * comparison when the page shows one). Every row repeats the period, the date
- * range and the currency, so a filtered or pasted row keeps its context.
- * Amounts are dollars with 2 decimals and no symbol, signed as the page shows
- * them (the summary's operating expenses negative, a net loss negative). The
- * percent column holds a breakdown line's share of its section, the profit
- * margin, or the change on the previous period, with 1 decimal, as shown.
+ * breakdowns with their totals, the net income summary), then the Basis of
+ * Presentation note, one row per entry with no amount. Every row repeats the
+ * period, the date range and the currency, so a filtered or pasted row keeps
+ * its context. Amounts are dollars with 2 decimals and no symbol, signed as
+ * the page shows them (the summary's operating expenses negative, a net loss
+ * negative). The percent column holds a breakdown line's share of its section
+ * or the profit margin, with 1 decimal, as shown.
  */
 export const INCOME_STATEMENT_CSV_HEADER = [
 	"Period",
@@ -90,31 +90,11 @@ export function buildIncomeStatementCsv({
 		row("Expense Breakdown", "Total Expenses", view.totalExpenses),
 		row("Net Income Summary", "Total Revenue", view.totalRevenue),
 		row("Net Income Summary", "Total Operating Expenses", -view.totalExpenses),
-	];
-	if (view.grossProfit !== undefined) {
-		rows.push(row("Net Income Summary", "Gross Profit", view.grossProfit));
-	}
-	if (view.operatingIncome !== undefined) {
-		rows.push(
-			row("Net Income Summary", "Operating Income", view.operatingIncome),
-		);
-	}
-	rows.push(row("Net Income Summary", "Net Income", view.netIncome));
-	if (view.previousPeriod) {
-		rows.push(
-			row(
-				"Period Comparison",
-				"Previous Period",
-				view.previousPeriod.netIncome,
-				view.previousPeriod.changePercent,
-			),
-		);
-	}
-	// The note under the page's figures, one row per entry, no amount.
-	rows.push(
+		row("Net Income Summary", "Net Income", view.netIncome),
+		// The note under the page's figures, one row per entry, no amount.
 		...STATEMENT_BASIS_NOTE.map((entry) =>
 			row(STATEMENT_BASIS_HEADING, entry, null),
 		),
-	);
+	];
 	return toCsv(INCOME_STATEMENT_CSV_HEADER, rows);
 }

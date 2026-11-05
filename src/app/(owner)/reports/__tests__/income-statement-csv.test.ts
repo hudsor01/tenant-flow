@@ -26,10 +26,7 @@ function incomeData(
 			totalRevenue: 54000,
 		},
 		expenses: { totalExpenses: 1500 },
-		grossProfit: 52500,
-		operatingIncome: 52500,
 		netIncome: 52500,
-		profitMargin: 97.2,
 		...overrides,
 	};
 }
@@ -70,6 +67,20 @@ describe("buildIncomeStatementView", () => {
 		expect(view.profitMargin).toBeCloseTo((52500 / 54000) * 100, 10);
 	});
 
+	it("carries only figures with a source (cycle 2, F13, F14)", () => {
+		// No gross profit or operating income: with no cost of goods or
+		// non-operating item recorded, each restated net income. No previous
+		// period: nothing produced one (OD-5, OD-6).
+		expect(Object.keys(buildIncomeStatementView(incomeData())).sort()).toEqual([
+			"expenseItems",
+			"netIncome",
+			"profitMargin",
+			"revenueItems",
+			"totalExpenses",
+			"totalRevenue",
+		]);
+	});
+
 	it("reads zero everywhere with no data, and a zero margin with no revenue", () => {
 		const view = buildIncomeStatementView(undefined);
 		expect(view).toMatchObject({
@@ -78,9 +89,6 @@ describe("buildIncomeStatementView", () => {
 			netIncome: 0,
 			profitMargin: 0,
 			expenseItems: [],
-			grossProfit: undefined,
-			operatingIncome: undefined,
-			previousPeriod: undefined,
 		});
 		expect(
 			view.revenueItems.every((i) => i.amount === 0 && i.share === 0),
@@ -112,8 +120,6 @@ describe("buildIncomeStatementCsv", () => {
 				"",
 				"-1500.00",
 			],
-			[...CONTEXT, "Net Income Summary", "Gross Profit", "", "52500.00"],
-			[...CONTEXT, "Net Income Summary", "Operating Income", "", "52500.00"],
 			[...CONTEXT, "Net Income Summary", "Net Income", "", "52500.00"],
 			...STATEMENT_BASIS_NOTE.map((entry) => [
 				...CONTEXT,
@@ -125,7 +131,7 @@ describe("buildIncomeStatementCsv", () => {
 		]);
 	});
 
-	it("keeps a net loss negative and adds the period comparison the page shows", () => {
+	it("keeps a net loss negative", () => {
 		const rows = csvFor(
 			incomeData({
 				revenue: {
@@ -136,9 +142,6 @@ describe("buildIncomeStatementCsv", () => {
 					totalRevenue: 1000,
 				},
 				netIncome: -500,
-				grossProfit: -500,
-				operatingIncome: -500,
-				previousPeriod: { netIncome: 250, change: -750, changePercent: -300 },
 			}),
 			"quarterly",
 		);
@@ -146,16 +149,15 @@ describe("buildIncomeStatementCsv", () => {
 			rows.find((r) => r[4] === section && r[5] === item);
 		expect(find("Totals", "Net Income")?.[7]).toBe("-500.00");
 		expect(find("Totals", "Profit Margin")?.[6]).toBe("-50.0");
-		expect(find("Net Income Summary", "Net Income")?.[7]).toBe("-500.00");
-		expect(rows.find((r) => r[4] === "Period Comparison")).toEqual([
+		expect(find("Net Income Summary", "Net Income")).toEqual([
 			"Quarterly",
 			"2026-11-01",
 			"2026-11-30",
 			"USD",
-			"Period Comparison",
-			"Previous Period",
-			"-300.0",
-			"250.00",
+			"Net Income Summary",
+			"Net Income",
+			"",
+			"-500.00",
 		]);
 	});
 

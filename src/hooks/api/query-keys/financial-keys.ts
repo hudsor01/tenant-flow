@@ -376,10 +376,7 @@ function buildLedgerIncomeStatement(input: {
 			totalRevenue,
 		},
 		expenses: { totalExpenses },
-		grossProfit: net,
-		operatingIncome: net,
 		netIncome: net,
-		profitMargin: totalRevenue > 0 ? (net / totalRevenue) * 100 : 0,
 	};
 }
 

@@ -229,7 +229,10 @@ export type CashFlowResult =
  * The income statement on a rent-ledger basis (financialQueries.
  * incomeStatement): revenue is what the ledger charged in the period, by
  * entry date and net of reversals, split by ledger type; opening balances are
- * not revenue (the balance sheet carries them in owner capital).
+ * not revenue (the balance sheet carries them in owner capital). There is no
+ * gross profit or operating income (no cost of goods or non-operating item is
+ * recorded, so each would restate net income) and no prior-period comparison
+ * (nothing computes one).
  */
 export interface IncomeStatementData {
 	period: { start_date: string; end_date: string; label: string };
@@ -253,15 +256,7 @@ export interface IncomeStatementData {
 	expenses: {
 		totalExpenses: number;
 	};
-	grossProfit: number;
-	operatingIncome: number;
 	netIncome: number;
-	profitMargin: number;
-	previousPeriod?: {
-		netIncome: number;
-		change: number;
-		changePercent: number;
-	};
 }
 
 /**

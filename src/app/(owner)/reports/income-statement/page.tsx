@@ -120,9 +120,6 @@ export default function IncomeStatementPage() {
 						totalRevenue={view.totalRevenue}
 						totalExpenses={view.totalExpenses}
 						netIncome={view.netIncome}
-						grossProfit={view.grossProfit}
-						operatingIncome={view.operatingIncome}
-						previousPeriod={view.previousPeriod}
 					/>
 
 					<StatementBasisNote />

@@ -187,7 +187,14 @@ describe("useIncomeStatement", () => {
 		// One expense figure: there is no category to split it by.
 		expect(data.statement.expenses).toEqual({ totalExpenses: 260.5 });
 		expect(data.statement.netIncome).toBe(1000);
-		expect(data.statement.profitMargin).toBeCloseTo((1000 / 1260.5) * 100);
+		// Only figures with a source: no gross profit or operating income (each
+		// restated net income) and no margin the page never reads (OD-5, OD-6).
+		expect(Object.keys(data.statement).sort()).toEqual([
+			"expenses",
+			"netIncome",
+			"period",
+			"revenue",
+		]);
 		// As of the period's end and of the day before it starts.
 		expect(mockRpc).toHaveBeenCalledWith("get_billing_insights", {
 			owner_id_param: "user-1",

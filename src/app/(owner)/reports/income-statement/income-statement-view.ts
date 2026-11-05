@@ -23,9 +23,6 @@ export interface IncomeStatementView {
 	revenueItems: IncomeStatementLine[];
 	/** The one expense line, when there were expenses (no category to split). */
 	expenseItems: IncomeStatementLine[];
-	grossProfit: number | undefined;
-	operatingIncome: number | undefined;
-	previousPeriod: { netIncome: number; changePercent: number } | undefined;
 }
 
 function withShares(
@@ -70,13 +67,5 @@ export function buildIncomeStatementView(
 		profitMargin: totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0,
 		revenueItems,
 		expenseItems,
-		grossProfit: data?.grossProfit,
-		operatingIncome: data?.operatingIncome,
-		previousPeriod: data?.previousPeriod
-			? {
-					netIncome: data.previousPeriod.netIncome,
-					changePercent: data.previousPeriod.changePercent,
-				}
-			: undefined,
 	};
 }
