@@ -245,6 +245,26 @@ describe("the tax preparation report", () => {
 		});
 	});
 
+	// The period's end picks the tax year; the figures are that whole calendar
+	// year, so the file is headed by it, never by the period (cycle 2, F9).
+	it("is headed by its tax year, not the period it was asked for", async () => {
+		answerTaxYear(3750.5, "2025-01-01/2025-12-31");
+		const report = await buildReportData(
+			"tax-preparation",
+			new QueryClient(),
+			"2025-11-05",
+			"2025-12-05",
+		);
+		expect(report.title).toBe("Tax Preparation — 2025");
+		expect(report.subtitle).toBe(
+			"Rent received · expenses · property breakdown · Tax year 2025",
+		);
+		expect([report.periodStart, report.periodEnd]).toEqual([
+			"2025-01-01",
+			"2025-12-31",
+		]);
+	});
+
 	it("lists a property deleted after the year, named so, and ties to the cent", async () => {
 		// Gamma Flats received 333.00 in 2025 and was deleted since: the
 		// summary (3083.50 received) counts it, so the table must list it.

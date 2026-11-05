@@ -241,6 +241,34 @@ const toDateHeader = (
 	periodEnd: asOf,
 });
 
+/**
+ * The tax year a report generated over a period ending on `end` covers: the
+ * calendar year of `end` (today, on the generate page). The tax preparation
+ * file is named (report-types.ts) and headed by it.
+ */
+export function reportTaxYear(end: string): number {
+	return parseLocalYmd(end)?.getFullYear() ?? new Date(end).getUTCFullYear();
+}
+
+/**
+ * The header of the tax preparation report: its figures are the whole tax
+ * year's, so it names the year, never the period the page offered.
+ */
+const taxYearHeader = (
+	title: string,
+	subtitle: string,
+	year: number,
+): Pick<
+	ReportData,
+	"title" | "subtitle" | "generatedAt" | "periodStart" | "periodEnd"
+> => ({
+	title,
+	subtitle: `${subtitle} · Tax year ${year}`,
+	generatedAt: new Date().toISOString(),
+	periodStart: `${year}-01-01`,
+	periodEnd: `${year}-12-31`,
+});
+
 // ─── Per-section row helpers ────────────────────────────────────────────────
 
 /** A dollar figure the server could not compute yet, written as such. */
@@ -821,11 +849,10 @@ function taxPreparationSections(
 
 async function buildTaxPreparation(
 	queryClient: QueryClient,
-	start: string,
+	_start: string,
 	end: string,
 ): Promise<ReportData> {
-	const year =
-		parseLocalYmd(end)?.getFullYear() ?? new Date(end).getUTCFullYear();
+	const year = reportTaxYear(end);
 	const fallback: YearEndResult = { status: "ledger-unavailable", year };
 	const yearEndResult = await safeFetch(
 		queryClient,
@@ -834,11 +861,10 @@ async function buildTaxPreparation(
 	);
 	const result = yearEndResult.data;
 	return {
-		...baseHeader(
+		...taxYearHeader(
 			`Tax Preparation — ${year}`,
 			"Rent received · expenses · property breakdown",
-			start,
-			end,
+			year,
 		),
 		sections:
 			result.status === "ready"

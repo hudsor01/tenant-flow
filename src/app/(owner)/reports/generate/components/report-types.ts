@@ -10,7 +10,7 @@ import {
 import { downloadBlob } from "#lib/reports/download-blob";
 import { generateExcelBlob } from "#lib/reports/generate-excel";
 import { generatePdfBlob } from "#lib/reports/generate-pdf";
-import { buildReportData } from "#lib/reports/report-data";
+import { buildReportData, reportTaxYear } from "#lib/reports/report-data";
 
 export type ReportFormat = "pdf" | "excel";
 export type ReportType =
@@ -29,11 +29,14 @@ export interface ReportCard {
 	formats: ReportFormat[];
 	category: "executive" | "financial" | "operations";
 	/**
-	 * Set when the report's RPCs take no dates: it is to date, the page's
-	 * Report Period does not apply to it, and the card says why. The file is
-	 * named and headed to date, never with the period.
+	 * Set when the page's Report Period does not apply to the report, with the
+	 * reason its card shows. `to-date`: its RPCs take no dates, so it is as of
+	 * today, and the file is named and headed to date. `tax-year`: it covers
+	 * the calendar year of the period's end (today), the tax year, and the file
+	 * is named and headed by that year. Neither is named or headed with the
+	 * period.
 	 */
-	toDateReason?: string;
+	coverage?: { kind: "to-date" | "tax-year"; reason: string };
 }
 
 export const reportCards: ReportCard[] = [
@@ -71,8 +74,11 @@ export const reportCards: ReportCard[] = [
 		icon: FileText,
 		formats: ["pdf", "excel"],
 		category: "financial",
-		toDateReason:
-			"Covers your leases as of today; the report period doesn't apply.",
+		coverage: {
+			kind: "to-date",
+			reason:
+				"Covers your leases as of today; the report period doesn't apply.",
+		},
 	},
 	{
 		id: "maintenance-operations",
@@ -82,8 +88,10 @@ export const reportCards: ReportCard[] = [
 		icon: Wrench,
 		formats: ["pdf", "excel"],
 		category: "operations",
-		toDateReason:
-			"Covers every request to date; the report period doesn't apply.",
+		coverage: {
+			kind: "to-date",
+			reason: "Covers every request to date; the report period doesn't apply.",
+		},
 	},
 	{
 		id: "tax-preparation",
@@ -93,6 +101,11 @@ export const reportCards: ReportCard[] = [
 		icon: FileSpreadsheet,
 		formats: ["excel"],
 		category: "financial",
+		coverage: {
+			kind: "tax-year",
+			reason:
+				"Covers this calendar year, the tax year; the report period doesn't apply.",
+		},
 	},
 ];
 
@@ -123,13 +136,16 @@ export const reportsClient = {
 		);
 
 		const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
-		// A report with no period is named to date, never with the period.
-		const toDate = reportCards.some(
-			(card) => card.id === reportType && card.toDateReason !== undefined,
-		);
-		const baseFilename = toDate
-			? `${reportType}_to_${params.end_date}_${stamp}`
-			: `${reportType}_${params.start_date}_${params.end_date}_${stamp}`;
+		// Named by what the file covers: to date, the tax year, or the period.
+		const coverage = reportCards.find((card) => card.id === reportType)
+			?.coverage?.kind;
+		const covered =
+			coverage === "to-date"
+				? `to_${params.end_date}`
+				: coverage === "tax-year"
+					? String(reportTaxYear(params.end_date))
+					: `${params.start_date}_${params.end_date}`;
+		const baseFilename = `${reportType}_${covered}_${stamp}`;
 
 		if (params.format === "pdf") {
 			const blob = generatePdfBlob(data);

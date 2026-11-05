@@ -45,9 +45,9 @@ export function ReportCardGrid({
 								<CardDescription>{report.description}</CardDescription>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col gap-3">
-								{report.toDateReason ? (
+								{report.coverage ? (
 									<p className="text-sm text-muted-foreground">
-										{report.toDateReason}
+										{report.coverage.reason}
 									</p>
 								) : null}
 								<div className="flex-1" />
