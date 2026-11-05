@@ -593,9 +593,7 @@ describe("reportAnalyticsQueries.properties", () => {
 
 		expect(result.current.data?.byProperty).toEqual([
 			{
-				propertyId: "p1",
 				propertyName: "Maple Court",
-				deleted: false,
 				occupancyRate: 90,
 				rentReceived: null,
 				expenses: null,
@@ -1065,6 +1063,15 @@ describe("dollar magnitude is preserved through RPC->hook boundary", () => {
 		expect(data.summary.operatingExpenses).toBe(expenses);
 		expect(data.summary.netIncome).toBe(380000.25);
 		const prop = data.summary.byProperty[0];
+		// What the page, the CSV and the PDF read: a deleted property is named
+		// so, with no separate flag.
+		expect(Object.keys(prop ?? {}).sort()).toEqual([
+			"expenses",
+			"netIncome",
+			"propertyId",
+			"propertyName",
+			"rentReceived",
+		]);
 		expect(prop?.rentReceived).toBe(250000.25);
 		expect(prop?.expenses).toBe(60000.1);
 		expect(prop?.netIncome).toBe(190000.15);

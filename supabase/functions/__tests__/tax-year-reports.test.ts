@@ -648,11 +648,10 @@ describe("a property the owner deleted after the year", () => {
 		const file = await exported(YEAR_END_REPORT_TYPE, withDeleted());
 		expect(distinct(file.calls)).toEqual(distinct(page.calls.yearEnd));
 		expect(file.rows).toEqual(expectedYearEndRows(page));
-		const names = page.yearEnd.byProperty.map((p) => [p.propertyName, p.deleted]);
-		expect(names).toEqual([
-			["Maple Court", false],
-			["Elm & Oak", false],
-			["Gamma Flats (deleted)", true],
+		expect(page.yearEnd.byProperty.map((p) => p.propertyName)).toEqual([
+			"Maple Court",
+			"Elm & Oak",
+			"Gamma Flats (deleted)",
 		]);
 		const sum = (pick: (p: YearEndSummary["byProperty"][number]) => number) =>
 			Math.round(

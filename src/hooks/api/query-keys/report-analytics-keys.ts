@@ -165,9 +165,7 @@ export const reportAnalyticsQueries = {
 						totalProperties: rows.filter((r) => !r.deleted).length,
 					},
 					byProperty: rows.map((r) => ({
-						propertyId: r.propertyId,
 						propertyName: r.propertyName,
-						deleted: r.deleted,
 						occupancyRate: r.occupancyRate,
 						rentReceived: r.rentReceived,
 						expenses: r.expenses,
@@ -323,7 +321,6 @@ export const reportAnalyticsQueries = {
 						byProperty: properties.properties.map((p) => ({
 							propertyId: p.propertyId,
 							propertyName: p.propertyName,
-							deleted: p.deleted,
 							rentReceived: p.rentReceived,
 							expenses: p.expenses,
 							netIncome: p.netIncome,

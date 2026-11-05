@@ -35,7 +35,6 @@ const SUMMARY: YearEndSummary = {
 		{
 			propertyId: "p1",
 			propertyName: "Maple Court",
-			deleted: false,
 			rentReceived: 61200.25,
 			expenses: 11120.5,
 			netIncome: 50079.75,

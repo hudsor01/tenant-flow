@@ -44,11 +44,11 @@ export interface PropertyReport {
 	 * `occupancyRate` is today's, not the period's.
 	 */
 	byProperty: Array<{
-		propertyId: string;
-		/** As the report prints it: a property deleted since says so. */
+		/**
+		 * As the report prints it: a property deleted since the period (listed
+		 * for its rent or spend in it) says so.
+		 */
 		propertyName: string;
-		/** Deleted since the period (listed for its rent or spend in it). */
-		deleted: boolean;
 		occupancyRate: number;
 		rentReceived: number | null;
 		expenses: number | null;
@@ -111,7 +111,6 @@ export interface YearEndSummary {
 		propertyId: string;
 		/** As the report prints it: a property deleted since says so. */
 		propertyName: string;
-		deleted: boolean;
 		rentReceived: number;
 		expenses: number;
 		netIncome: number;
