@@ -15,6 +15,7 @@ import {
 	STATEMENT_BASIS_HEADING,
 	STATEMENT_BASIS_NOTE,
 } from "#lib/reports/statement-basis";
+import { computeListCascade } from "#test/utils/base-rule-cascade";
 
 const ROOT = process.cwd();
 
@@ -67,6 +68,29 @@ describe("the statements' basis of presentation", () => {
 		expect(region.querySelectorAll("li")).toHaveLength(
 			STATEMENT_BASIS_NOTE.length,
 		);
+	});
+
+	// globals.css' `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` sat the
+	// entries 24px right of the heading, swallowed the heading's mb-2 and left
+	// 32px under the list against 16px above it (cycle 2, F19).
+	it("defeats the base list rules, so the entries sit under the heading", () => {
+		const { container } = render(<StatementBasisNote />);
+		const list = container.querySelector("ul");
+		if (!list) throw new Error("the note rendered no <ul>");
+		const { neutralized, baseline } = computeListCascade(list);
+		expect(baseline).toMatchObject({
+			paddingLeft: "24px",
+			marginTop: "16px",
+			marginBottom: "16px",
+			firstChildMarginBottom: "4px",
+		});
+		expect(neutralized).toEqual({
+			paddingLeft: "0px",
+			marginTop: "0px",
+			marginBottom: "0px",
+			firstChildTag: "li",
+			firstChildMarginBottom: "0px",
+		});
 	});
 
 	it("is written once: no other source file copies an entry", () => {

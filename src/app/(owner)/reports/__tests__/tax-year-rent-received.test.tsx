@@ -11,6 +11,7 @@
  */
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { render } from "#test/utils/test-render";
 import type { TaxDocumentsResult } from "#types/financial-statements";
 import type { YearEndSummary } from "#types/reports";
@@ -173,6 +174,15 @@ describe("the tax documents", () => {
 		expect(section).toHaveTextContent(
 			"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer.",
 		);
+		// The note is the last child of the header's p-4 box, so globals.css'
+		// `p { margin-bottom: 1rem }` could not collapse past the padding: 32px
+		// under it against 16px over the heading (cycle 2, F28).
+		const note = screen.getByText(
+			"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer.",
+		);
+		const { neutralized, baseline } = computeParagraphCascade(note);
+		expect(baseline.marginBottom).toBe("16px");
+		expect(neutralized.marginBottom).toBe("0px");
 		expect(section).toHaveTextContent("Acme Plumbing");
 		expect(section).toHaveTextContent("No vendor recorded");
 		expect(screen.getByText("Operating Expenses")).toBeInTheDocument();

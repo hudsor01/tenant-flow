@@ -27,6 +27,7 @@ vi.mock("#lib/reports/report-data", async (importOriginal) => ({
 	}),
 }));
 
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { ReportCardGrid } from "../report-card-grid";
 import { reportCards, reportsClient } from "../report-types";
 
@@ -41,6 +42,27 @@ describe("the generate page's report cards", () => {
 			["maintenance-operations", "to-date"],
 			["tax-preparation", "tax-year"],
 		]);
+	});
+
+	// The reason is a flex item of the card's `flex flex-col gap-3` content,
+	// so globals.css' `p { margin-bottom: 1rem }` could not collapse: it added
+	// 16px to the gap above the buttons (cycle 2, F20).
+	it("set the reason with no base paragraph margin", () => {
+		render(
+			<ReportCardGrid
+				title="Operations Reports"
+				description="Property and maintenance operations insights"
+				reports={reportCards.filter((card) => card.category === "operations")}
+				generatingReports={{}}
+				onGenerate={() => undefined}
+			/>,
+		);
+		const reason = screen.getByText(
+			"Covers every request to date; the report period doesn't apply.",
+		);
+		const { neutralized, baseline } = computeParagraphCascade(reason);
+		expect(baseline.marginBottom).toBe("16px");
+		expect(neutralized.marginBottom).toBe("0px");
 	});
 
 	it("show the tax preparation card's reason", () => {

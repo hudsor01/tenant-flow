@@ -268,7 +268,9 @@ export default function TaxDocumentsPage() {
 									>
 										{EXPENSES_BY_VENDOR_SECTION}
 									</h3>
-									<p className="mt-1 text-sm text-muted-foreground">
+									{/* mb-0: the last child of the p-4 box, where the base
+									    `p` margin cannot collapse past the padding. */}
+									<p className="mt-1 mb-0 text-sm text-muted-foreground">
 										{DEDUCTIBILITY_NOTE}
 									</p>
 								</div>

@@ -7,7 +7,9 @@ import {
 /**
  * The basis the statement above it is presented on, under its figures on the
  * balance sheet, income statement and cash flow pages. The text is
- * STATEMENT_BASIS_NOTE, the one each statement's CSV writes too.
+ * STATEMENT_BASIS_NOTE, the one each statement's CSV writes too. The list
+ * cancels globals.css' `ul, ol` margin and padding and the `li` margin
+ * (pl-0 mt-0 mb-0 [&>li]:mb-0) and spaces its entries with the flex gap.
  */
 export function StatementBasisNote() {
 	return (
@@ -22,7 +24,7 @@ export function StatementBasisNote() {
 				>
 					{STATEMENT_BASIS_HEADING}
 				</h2>
-				<ul className="space-y-1 text-sm text-muted-foreground">
+				<ul className="flex flex-col gap-1 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm text-muted-foreground">
 					{STATEMENT_BASIS_NOTE.map((entry) => (
 						<li key={entry}>{entry}</li>
 					))}

@@ -46,7 +46,8 @@ export function ReportCardGrid({
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col gap-3">
 								{report.coverage ? (
-									<p className="text-sm text-muted-foreground">
+									// mb-0: a flex item, so the base `p` margin would add to gap-3.
+									<p className="mb-0 text-sm text-muted-foreground">
 										{report.coverage.reason}
 									</p>
 								) : null}
