@@ -7,14 +7,20 @@ import { polledRead } from "./measure";
  * data table, a markdown table) may scroll there; the document may not.
  *
  * The route lists are every page in `src/app` a visitor (public) or owner A
- * (owner) can reach, taken from the `page.tsx` tree. Not here, and why:
+ * (owner) can reach, taken from the `page.tsx` tree. A page that only
+ * redirects is covered through its target (`/analytics` → `/analytics/overview`,
+ * `/settings/billing` → `/settings?tab=billing`), and a tab its URL names is
+ * listed as its own route (`?tab=insights`, each settings tab), since the page
+ * mounts only the tab the URL asks for. Not here, and why:
  * - `/admin/*`: owner A is not an admin, so the proxy sends it to /dashboard;
  * - `/auth/signout`: an action that ends the session, not a page;
  * - the `@modal/(.)…` intercepts: client-side overlays of the full-page twins
  *   listed here, which render the same form;
  * - `/sign/<token>` with a live token: no fixture mints one, so only its
  *   invalid-token state is covered; `/apply/<token>` is covered both ways;
- * - `/maintenance/<id>` and its edit page: only when owner A has a request.
+ * - the detail and edit pages (`/properties/<id>`, `/leases/<id>/edit`, …):
+ *   `owner-reflow-320.spec.ts` measures them on owner A's newest record of
+ *   each kind, and a kind owner A has no record of skips its pages.
  */
 export const REFLOW_WIDTH = 320;
 
@@ -86,6 +92,11 @@ export const OWNER_REFLOW_ROUTES = [
 	"/reports/tax-documents",
 	"/reports/year-end",
 	"/settings",
+	"/settings?tab=notifications",
+	"/settings?tab=security",
+	"/settings?tab=billing",
+	"/settings?tab=categories",
+	"/settings?tab=data",
 	"/tenants",
 	"/tenants/new",
 	"/units",
