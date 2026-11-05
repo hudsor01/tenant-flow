@@ -31,7 +31,7 @@ export function CashFlowBalanceSummary({
 						<p
 							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? "text-success-text" : "text-destructive-text"}`}
 						>
-							{netCashFlow >= 0 ? "+" : ""}
+							{netCashFlow > 0 ? "+" : ""}
 							{formatCurrency(netCashFlow)}
 						</p>
 					</div>

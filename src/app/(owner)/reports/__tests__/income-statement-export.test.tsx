@@ -175,6 +175,39 @@ describe("income statement Export", () => {
 		}
 	});
 
+	it("prints a zero figure unsigned in the net summary, as the CSV writes it (cycle 2, F15)", async () => {
+		const empty: IncomeStatementData = {
+			...data,
+			revenue: {
+				rentalIncome: 0,
+				lateFeesIncome: 0,
+				otherIncome: 0,
+				creditsIssued: 0,
+				totalRevenue: 0,
+			},
+			expenses: { totalExpenses: 0 },
+			netIncome: 0,
+		};
+		useIncomeStatementMock.mockReturnValue(
+			queryState({ data: { status: "ready", statement: empty } }),
+		);
+		render(<IncomeStatementPage />);
+		const summary = screen
+			.getByText("Net Income Summary")
+			.closest("div.bg-card") as HTMLElement;
+		expect(
+			["Total Operating Expenses", "Net Income"].map(
+				(label) =>
+					within(summary).getByText(label).nextElementSibling?.textContent,
+			),
+		).toEqual(["$0.00", "$0.00"]);
+		fireEvent.click(screen.getByRole("button", { name: "Export" }));
+		const text = (await createdBlobs[0]?.text()) ?? "";
+		expect(text).toContain(
+			"Monthly,2026-11-01,2026-11-30,USD,Net Income Summary,Total Operating Expenses,,0.00",
+		);
+	});
+
 	// The basis the figures are presented on, under them (66.2-39 part P):
 	// one copy, STATEMENT_BASIS_NOTE, which the CSV writes too.
 	it("states the basis of presentation under its figures", () => {

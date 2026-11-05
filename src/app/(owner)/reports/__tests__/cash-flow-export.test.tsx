@@ -150,6 +150,28 @@ describe("cash flow Export", () => {
 		expect(screen.getByText("Owner Funds for Expenses")).toBeInTheDocument();
 	});
 
+	it("prints a zero net cash flow unsigned in the strip and the tile (cycle 2, F16)", () => {
+		const flat: CashFlowData = {
+			...data,
+			operatingActivities: {
+				rentalPaymentsReceived: 0,
+				expensesPaid: 0,
+				netOperatingCash: 0,
+			},
+			netCashFlow: 0,
+			beginningCash: 1000,
+			endingCash: 1000,
+		};
+		useCashFlowMock.mockReturnValue(
+			queryState({ data: { status: "ready", report: flat } }),
+		);
+		render(<CashFlowPage />);
+		const figures = screen
+			.getAllByText("Net Cash Flow")
+			.map((label) => label.nextElementSibling?.textContent);
+		expect(figures).toEqual(["$0.00", "$0.00"]);
+	});
+
 	it("shows only the activities and lines the ledger records", () => {
 		render(<CashFlowPage />);
 		const page = document.body.textContent ?? "";

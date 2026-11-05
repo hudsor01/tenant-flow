@@ -28,7 +28,8 @@ export function IncomeStatementPageNetSummary({
 							Total Operating Expenses
 						</span>
 						<span className="text-sm font-medium text-destructive-text tabular-nums">
-							-{formatCurrency(totalExpenses)}
+							{/* Negated as the CSV writes it, -0 folded: never "-$0.00". */}
+							{formatCurrency(totalExpenses === 0 ? 0 : -totalExpenses)}
 						</span>
 					</div>
 				</div>
@@ -37,7 +38,7 @@ export function IncomeStatementPageNetSummary({
 					<span
 						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-success-text" : "text-destructive-text"}`}
 					>
-						{netIncome >= 0 ? "+" : ""}
+						{netIncome > 0 ? "+" : ""}
 						{formatCurrency(netIncome)}
 					</span>
 				</div>
