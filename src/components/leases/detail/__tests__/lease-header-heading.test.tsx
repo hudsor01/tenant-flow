@@ -1,7 +1,9 @@
 /**
- * The lease page's heading names the lease by its property and unit, as the
- * leases table does (66.2-39 fix round 1, part P). It printed the first eight
- * characters of the lease's id after "Lease #".
+ * The lease page's heading names the lease by its property and unit (66.2-39
+ * fix round 1, part P). It printed the first eight characters of the lease's
+ * id after "Lease #". Each row asserts the whole heading: a string
+ * toHaveTextContent only checks that the text contains it, so "Maple Court ·
+ * Unit undefined" passed the property-only row (cycle 2, F53).
  */
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -44,8 +46,7 @@ describe("the lease page's heading", () => {
 				/>,
 			);
 			const h2 = screen.getByRole("heading", { level: 2 });
-			expect(h2).toHaveTextContent(heading);
-			expect(h2.textContent).not.toMatch(/3f2a9c1e|#/);
+			expect(h2.textContent).toBe(heading);
 		},
 	);
 });
