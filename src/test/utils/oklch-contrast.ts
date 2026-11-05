@@ -8,9 +8,11 @@
  * `oklch(L C H)` value and converted OKLCH -> OKLab -> linear sRGB, clipped to
  * the sRGB gamut as the browser paints it. A translucent layer is composited in
  * gamma-encoded sRGB, as the browser paints it over its backdrop. Measured
- * against Chrome's own canvas readback under the compiled stylesheet (66.2-39
- * fix round 1), this agrees to 0.01: the light destructive pair read 4.483:1 in
- * Chrome and 4.485 here.
+ * against Chrome's own canvas readback under the compiled stylesheet, this
+ * agrees to within 0.02: the former light destructive pair,
+ * oklch(0.98 0.01 90) on --destructive, read 4.483:1 in Chrome and 4.485 here
+ * (66.2-39 fix round 1); the current one, oklch(0.99 0.006 90), reads 4.629
+ * and 4.616, and accent-foreground on accent 4.657 and 4.673 (fix round 3).
  *
  * This file sits inside the Tailwind source scan, so it names tokens only by
  * their custom property, never in a utility form.

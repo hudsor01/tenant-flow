@@ -337,9 +337,10 @@ function sub3MarkTokenViolations(rel: string, content: string): string[] {
 	return out;
 }
 
-// 66.2-39 VD-55: the vivid success (2.62:1) and warning (2.18:1) fills fail
-// 3:1 on every light surface (the card is the lightest one), so as a utility
-// they are only ever a tint (/5 to /20) behind -text companion text or icons.
+// 66.2-39 VD-55: the vivid success (2.62:1 on the card) and warning (2.18:1)
+// fills fail 3:1 on every light surface, the lightest included (the popover,
+// oklch(1 0 0): 2.69:1 and 2.24:1 in Chrome), so as a utility they are only
+// ever a tint (/5 to /20) behind -text companion text or icons.
 // A solid bg-, fill- or stroke- form (a meter fill, a status dot, a step mark,
 // a filled badge) takes the companion: success-text, warning-text.
 const SOLID_VIVID_STATUS_FILL =
@@ -555,8 +556,9 @@ describe("no chart or meter mark reads a token under 3:1 on the card (66.2-39 VD
 // (`hover:bg-accent`, `focus:bg-accent`, `data-[state=open]:bg-accent`) sets
 // `text-accent-foreground` under the same prefix, and an unprefixed one carries
 // no other text color. A row or addon takes the neutral `bg-muted` instead.
-// (The pair itself, accent-foreground on accent, reads 3.34:1 in light; that
-// token decision is open and is not what this block checks.) A literal with
+// (The pair itself, accent-foreground on accent, reads 4.66:1 in light since
+// VD-59 darkened --accent-foreground to oklch(0.24 0.01 160); it is
+// state-fill-contrast.test.ts's to measure, not this block's.) A literal with
 // the fill alone is a mark (the password-strength segments, decorative dots).
 const ACCENT_SURFACE = /(?<![\w/-])((?:[^\s"'`]*:)?)!?bg-accent!?(?![\w/-])/g;
 const TEXT_COLOR_CLASS =

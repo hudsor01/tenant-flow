@@ -46,8 +46,8 @@
  *   V9  Each desktop toggle persists through `persistSidebarOpen` from
  *       `#lib/sidebar-state` (D-36), which owns the cookie name, max-age,
  *       SameSite and the https Secure flag. This file never touches
- *       `document.cookie`; the cookie constants are imported, never redeclared
- *       (rule 3).
+ *       `document.cookie` and declares no cookie constants (rule 3): the name
+ *       and max-age live only in `#lib/sidebar-state`.
  *   V10 No manual memoization; the React Compiler memoizes `setOpen`,
  *       `toggleSidebar` and the context value. The keydown listener calls
  *       `toggleSidebar` through `useEffectEvent`, so the effect runs once
