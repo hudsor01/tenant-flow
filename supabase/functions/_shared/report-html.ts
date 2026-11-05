@@ -4,12 +4,12 @@
  * The table's first column names the row's section (`FinancialAnalyticsTable`).
  * Each run of rows with the same section becomes a heading and a table of its
  * own, and a section's table keeps only the columns that hold a value in that
- * section, so the Overview prints Item and Value while Revenue & Expenses
- * prints Item, Revenue, Expenses and Net Income. Each cell prints as its
- * format says (`formatReportCell`: `$61,200.00`, `49.1%`, text as it is), a
- * money or percentage cell is right-aligned, as the pages align their
- * amounts, and so is a column header whose cells all are. Every value is
- * escaped.
+ * section, so the financial analytics Overview prints Item and Value while
+ * Scheduled Rent & Expenses prints Item, Scheduled Rent, Expenses and
+ * Scheduled Net. Each cell prints as its format says (`formatReportCell`:
+ * `$61,200.00`, `49.1%`, text as it is), a money or percentage cell is
+ * right-aligned, as the pages align their amounts, and so is a column header
+ * whose filled cells all are. Every value is escaped.
  *
  * Callers: `export-report/index.ts` (the `pdf` format of every report type,
  * posted to generate-pdf as Mode 2 HTML) and `generate-pdf/index.ts` (Mode 1),
