@@ -15,11 +15,12 @@ import { screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ChartAreaInteractive } from "#components/dashboard/chart-area-interactive";
 import { resetRechartsProbe, setRechartsProbe } from "#test/mocks/recharts";
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import { render } from "#test/utils/test-render";
 
-vi.mock("#hooks/api/use-owner-dashboard-financial", () => ({
-	useFinancialChartData: () => ({
+const { chartState } = vi.hoisted(() => {
+	const ready = {
 		data: [
 			{
 				date: "2026-10",
@@ -28,15 +29,48 @@ vi.mock("#hooks/api/use-owner-dashboard-financial", () => ({
 				expenses: 500,
 				profit: 1500,
 			},
-		],
+		] as unknown[] | undefined,
 		isLoading: false,
-		error: null,
-	}),
+		error: null as Error | null,
+	};
+	return { chartState: { ready, current: ready } };
+});
+vi.mock("#hooks/api/use-owner-dashboard-financial", () => ({
+	useFinancialChartData: () => chartState.current,
 }));
 
 describe("the scheduled rent and expenses chart", () => {
 	afterEach(() => {
 		resetRechartsProbe();
+		chartState.current = chartState.ready;
+	});
+
+	// Each figure is the last child of a grid item and each error line a flex
+	// item: the base `p` margin stayed inside them, 16px under the totals and
+	// 16px more between the error lines (8px above centre). The G2 sweep.
+	it("holds its figures and error lines to the spacing they declare", () => {
+		const { unmount } = render(<ChartAreaInteractive />);
+		for (const figure of ["$2,000", "$500", "$1,500", "75.0%"]) {
+			const { neutralized, baseline } = computeParagraphCascade(
+				screen.getByText(figure).closest("p") as Element,
+			);
+			expect(baseline.marginBottom).toBe("16px");
+			expect(neutralized.marginBottom).toBe("0px");
+		}
+		unmount();
+		chartState.current = {
+			data: undefined,
+			isLoading: false,
+			error: new Error("network"),
+		};
+		render(<ChartAreaInteractive />);
+		for (const line of [
+			"Failed to load chart data",
+			"Unable to fetch financial data. Please try refreshing the page.",
+		]) {
+			const { neutralized } = computeParagraphCascade(screen.getByText(line));
+			expect(neutralized.marginBottom).toBe("0px");
+		}
 	});
 
 	it("names its series and totals scheduled", () => {

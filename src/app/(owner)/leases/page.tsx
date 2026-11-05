@@ -211,7 +211,9 @@ export default function LeasesPage() {
 					<h2 className="text-lg font-semibold text-destructive-text mb-2">
 						Error Loading Leases
 					</h2>
-					<p className="text-muted-foreground">Failed to load leases</p>
+					{/* mb-0: the box's last child, where the base `p` margin cannot
+					    collapse past its p-6. */}
+					<p className="mb-0 text-muted-foreground">Failed to load leases</p>
 				</div>
 			</div>
 		);

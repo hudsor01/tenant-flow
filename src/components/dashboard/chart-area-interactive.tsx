@@ -165,17 +165,19 @@ export function ChartAreaInteractive({
 
 			{/* Summary metrics: four columns only when the card itself is wide
 			    enough for four amounts (the analytics overview places it in a
-			    narrow column, where four overflowed). */}
+			    narrow column, where four overflowed). mb-0 on each figure: the
+			    last child of a grid item, where the base `p` margin stays inside
+			    the cell, 16px under the row. */}
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:@xl/chart-card:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Scheduled Rent</p>
-					<p className="typography-large text-success-text">
+					<p className="mb-0 typography-large text-success-text">
 						{formatCurrency(totalRevenue, WHOLE_DOLLARS)}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Expenses</p>
-					<p className="typography-large text-warning-text">
+					<p className="mb-0 typography-large text-warning-text">
 						{formatCurrency(totalExpenses, WHOLE_DOLLARS)}
 					</p>
 				</div>
@@ -183,7 +185,7 @@ export function ChartAreaInteractive({
 					<p className="text-muted-foreground">Scheduled Net</p>
 					<p
 						className={cn(
-							"flex items-center gap-1 typography-large",
+							"mb-0 flex items-center gap-1 typography-large",
 							netProfit >= 0 ? "text-success-text" : "text-warning-text",
 						)}
 					>
@@ -199,7 +201,7 @@ export function ChartAreaInteractive({
 					<p className="text-muted-foreground">Scheduled Margin</p>
 					<p
 						className={cn(
-							"typography-large",
+							"mb-0 typography-large",
 							profitMargin >= 0 ? "text-success-text" : "text-warning-text",
 						)}
 					>
@@ -216,11 +218,13 @@ export function ChartAreaInteractive({
 						<div className="animate-spin rounded-full size-11 border-b-2 border-primary"></div>
 					</div>
 				) : error ? (
+					// mb-0: flex items, so the base `p` margin would add 16px to the
+					// gap and hold the message 8px above centre.
 					<div className="flex flex-col items-center justify-center h-75 gap-2">
-						<p className="typography-small text-muted-foreground">
+						<p className="mb-0 typography-small text-muted-foreground">
 							Failed to load chart data
 						</p>
-						<p className="text-caption text-muted-foreground">
+						<p className="mb-0 text-caption text-muted-foreground">
 							Unable to fetch financial data. Please try refreshing the page.
 						</p>
 					</div>
