@@ -94,7 +94,7 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 					<h3 className="text-lg font-semibold text-foreground">
 						{draft.title}
 					</h3>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						<span className="font-mono">{draft.slug}</span>
 						{" · "}
 						{formatCount(wordCount, "word")}

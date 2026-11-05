@@ -267,7 +267,7 @@ export default function UnitsPage() {
 			<div className="flex-between">
 				<div>
 					<h1 className="typography-h1">Units</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Manage your rental units across all properties
 					</p>
 				</div>

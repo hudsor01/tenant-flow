@@ -159,7 +159,7 @@ export function MaintenanceInsightsSection() {
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Request trends</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Completed each month, and open at month end
 								</p>
 							</div>
@@ -174,7 +174,7 @@ export function MaintenanceInsightsSection() {
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Spend by vendor</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									{costSummaryLine(costs)}
 								</p>
 							</div>
@@ -196,7 +196,7 @@ export function MaintenanceInsightsSection() {
 							<h3 className="font-medium text-foreground">
 								Requests by status
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Request counts by status
 							</p>
 						</div>

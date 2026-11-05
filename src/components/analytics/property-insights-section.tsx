@@ -40,7 +40,7 @@ export function PropertyInsightsSection() {
 					<div className="flex items-center justify-between mb-6">
 						<div>
 							<h3 className="font-medium text-foreground">Occupancy trends</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Portfolio occupancy rate over time
 							</p>
 						</div>

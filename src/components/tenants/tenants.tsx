@@ -204,7 +204,7 @@ export function Tenants({
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Tenants</h1>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="mb-0 text-sm text-muted-foreground mt-1">
 							Manage your tenant records
 						</p>
 					</div>

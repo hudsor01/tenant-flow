@@ -73,7 +73,7 @@ export default async function SearchPage({
 			<div className="max-w-6xl mx-auto px-6 lg:px-8 section-spacing flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
 					<h1 className="typography-h2">Search the blog</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Find guides for independent landlords — leases, maintenance, tax
 						season, and the document vault.
 					</p>

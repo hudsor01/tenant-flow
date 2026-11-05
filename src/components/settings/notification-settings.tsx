@@ -76,7 +76,7 @@ export function NotificationSettings() {
 					<div className="flex items-center justify-between">
 						<div>
 							<h3 className="text-sm font-medium">Enable All Notifications</h3>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Turn on email and all notification categories
 							</p>
 						</div>

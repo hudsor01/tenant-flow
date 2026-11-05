@@ -80,7 +80,7 @@ export default function FinancialAnalyticsPage() {
 					<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 						<div>
 							<h1 className="typography-h1">Financial Analytics</h1>
-							<p className="text-muted-foreground">
+							<p className="mb-0 text-muted-foreground">
 								Scheduled rent, rent collected and expenses across your
 								portfolio.
 							</p>
@@ -115,7 +115,7 @@ export default function FinancialAnalyticsPage() {
 									<h3 className="font-medium text-foreground">
 										Scheduled Rent & Expenses
 									</h3>
-									<p className="text-sm text-muted-foreground">
+									<p className="mb-0 text-sm text-muted-foreground">
 										Each month&apos;s scheduled rent (not received) and expenses
 									</p>
 								</div>
@@ -135,7 +135,7 @@ export default function FinancialAnalyticsPage() {
 										</h3>
 										{/* get_expense_summary's categories are vendor names, over
 										    its default period: January 1 through today. */}
-										<p className="text-sm text-muted-foreground">
+										<p className="mb-0 text-sm text-muted-foreground">
 											By vendor, year to date
 										</p>
 									</div>
@@ -158,7 +158,7 @@ export default function FinancialAnalyticsPage() {
 							<div className="flex items-center justify-between mb-6">
 								<div>
 									<h3 className="font-medium text-foreground">Scheduled Net</h3>
-									<p className="text-sm text-muted-foreground">
+									<p className="mb-0 text-sm text-muted-foreground">
 										Scheduled rent less expenses, by month
 									</p>
 								</div>
@@ -175,7 +175,7 @@ export default function FinancialAnalyticsPage() {
 									<h3 className="font-medium text-foreground">
 										Lease Profitability
 									</h3>
-									<p className="text-sm text-muted-foreground">
+									<p className="mb-0 text-sm text-muted-foreground">
 										Each lease&apos;s rent received less its expenses
 									</p>
 								</div>

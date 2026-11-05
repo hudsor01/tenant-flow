@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Analytics</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Portfolio performance and insights.
 						</p>
 					</div>
@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
 								<h3 className="font-medium text-foreground">
 									Top Performing Properties
 								</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Ranked by scheduled monthly rent
 								</p>
 							</div>

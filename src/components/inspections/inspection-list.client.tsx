@@ -111,7 +111,7 @@ export function InspectionListClient() {
 					<h1 className="text-2xl font-semibold text-foreground">
 						Inspections
 					</h1>
-					<p className="text-muted-foreground text-sm mt-1">
+					<p className="mb-0 text-muted-foreground text-sm mt-1">
 						Move-in and move-out inspection reports
 					</p>
 				</div>

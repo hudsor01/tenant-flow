@@ -38,7 +38,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							<h3 className="text-sm font-semibold text-foreground">
 								Dashboard
 							</h3>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Welcome back, Sarah
 							</p>
 						</div>

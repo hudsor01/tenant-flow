@@ -40,7 +40,7 @@ export function LeaseInsightsSection() {
 							<h3 className="font-medium text-foreground">
 								Lease profitability
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Each lease&apos;s rent received less its expenses
 							</p>
 						</div>

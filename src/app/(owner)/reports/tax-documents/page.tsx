@@ -125,7 +125,7 @@ export default function TaxDocumentsPage() {
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Tax Documents</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Rent received and expenses for a tax year, for your tax preparer.
 						</p>
 					</div>

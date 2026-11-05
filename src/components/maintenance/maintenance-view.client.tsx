@@ -212,7 +212,7 @@ export function MaintenanceViewClient() {
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Maintenance</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Track and manage maintenance requests
 						</p>
 					</div>

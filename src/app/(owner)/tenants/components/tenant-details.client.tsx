@@ -76,7 +76,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		<div className="flex-between">
 			<div>
 				<h1 className="typography-h2 tracking-tight">{tenant.name}</h1>
-				<p className="text-muted-foreground mt-1">{tenant.email}</p>
+				<p className="mb-0 text-muted-foreground mt-1">{tenant.email}</p>
 			</div>
 
 			<div className="flex items-center gap-2">

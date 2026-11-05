@@ -78,7 +78,7 @@ export default function PropertyPerformancePage() {
 				<BlurFade delay={0.1}>
 					<div className="flex flex-col gap-2 mb-6">
 						<h1 className="typography-h1">Property Performance</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Monitor occupancy, units and rent received across your portfolio.
 						</p>
 					</div>
@@ -106,7 +106,7 @@ export default function PropertyPerformancePage() {
 			<BlurFade delay={0.1}>
 				<div className="flex flex-col gap-2 mb-6">
 					<h1 className="typography-h1">Property Performance</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Monitor occupancy, units and rent received across your portfolio.
 					</p>
 				</div>
@@ -122,7 +122,7 @@ export default function PropertyPerformancePage() {
 								<h3 className="font-medium text-foreground">
 									Occupancy & rent received by property
 								</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Compare current performance across the portfolio
 								</p>
 							</div>
@@ -136,7 +136,7 @@ export default function PropertyPerformancePage() {
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Portfolio KPIs</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Highlights from unit-level statistics
 								</p>
 							</div>
@@ -155,7 +155,7 @@ export default function PropertyPerformancePage() {
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Top properties</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Key metrics for high-performing assets
 								</p>
 							</div>
@@ -171,7 +171,7 @@ export default function PropertyPerformancePage() {
 					<div className="flex items-center justify-between mb-6">
 						<div>
 							<h3 className="font-medium text-foreground">Active units</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Recently updated unit information
 							</p>
 						</div>

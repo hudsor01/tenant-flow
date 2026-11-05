@@ -204,7 +204,7 @@ export default function BillingPlansPage() {
 						<h1 className="text-2xl font-bold text-foreground">
 							Subscription Plans
 						</h1>
-						<p className="text-muted-foreground mt-1">
+						<p className="mb-0 text-muted-foreground mt-1">
 							{hasSubscription && currentPlan
 								? `You are currently on the ${currentPlan.name} plan`
 								: hasSubscription

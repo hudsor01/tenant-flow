@@ -113,7 +113,7 @@ export function YearEndReportSection({
 							<FileText className="size-5 text-primary" />
 							{year} Year-End Summary
 						</h2>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							Annual income and expense summary for tax preparation
 						</p>
 					</div>
