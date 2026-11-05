@@ -106,11 +106,13 @@ export function LeaseProfitabilityTable({
 		},
 	});
 
+	// mb-0 on every paragraph below: each is a flex item, where the base `p`
+	// margin is added to the declared gap (and holds a state off centre).
 	if (profitability.status === "unavailable") {
 		return (
 			<div className="flex min-h-50 flex-col items-center justify-center gap-1 rounded-lg border border-dashed p-4 text-center">
-				<p className="font-medium">Lease profitability unavailable</p>
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 font-medium">Lease profitability unavailable</p>
+				<p className="mb-0 text-sm text-muted-foreground">
 					It comes from your rent ledger and expenses, which the server
 					can&apos;t report per lease yet.
 				</p>
@@ -122,7 +124,7 @@ export function LeaseProfitabilityTable({
 	if (!leases.length) {
 		return (
 			<div className="flex min-h-50 flex-col items-center justify-center rounded-lg border border-dashed p-4 text-center">
-				<p className="text-muted-foreground">
+				<p className="mb-0 text-muted-foreground">
 					No rent received or expenses on a lease from {period}.
 				</p>
 			</div>
@@ -131,7 +133,7 @@ export function LeaseProfitabilityTable({
 
 	return (
 		<div className="flex flex-col gap-2">
-			<p className="text-sm text-muted-foreground">
+			<p className="mb-0 text-sm text-muted-foreground">
 				Rent received less expenses, {period}
 			</p>
 			<DataTable table={table}>

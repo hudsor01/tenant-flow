@@ -4,6 +4,7 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { render } from "#test/utils/test-render";
 import type { LeaseProfitability } from "#types/analytics";
 import { LeaseProfitabilityTable } from "../lease-profitability-table";
@@ -201,4 +202,37 @@ describe("LeaseProfitabilityTable", () => {
 			),
 		).toBeInTheDocument();
 	});
+
+	// Each paragraph is a flex item, so the base `p` margin was added to its
+	// gap: 20px between the unavailable title and its line (gap-1 declares
+	// 4), 24px from the caption to the table (gap-2 declares 8), and each
+	// state held 8px above centre (cycle 2, F38).
+	it.each<[string, LeaseProfitability, ReadonlyArray<string | RegExp>]>([
+		[
+			"unavailable",
+			{ status: "unavailable" },
+			["Lease profitability unavailable", /^It comes from your rent ledger/],
+		],
+		[
+			"empty",
+			{ status: "ready", window: WINDOW, leases: [] },
+			[/^No rent received or expenses on a lease from/],
+		],
+		["ready", makeLeases(1), [/^Rent received less expenses, /]],
+	])(
+		"leaves no base paragraph margin in its %s state",
+		(_state, profitability, texts) => {
+			render(
+				<LeaseProfitabilityTable profitability={profitability} pageSize={6} />,
+				{ wrapper: Wrapper },
+			);
+			for (const text of texts) {
+				const { neutralized, baseline } = computeParagraphCascade(
+					screen.getByText(text),
+				);
+				expect(baseline.marginBottom).toBe("16px");
+				expect(neutralized.marginBottom).toBe("0px");
+			}
+		},
+	);
 });
