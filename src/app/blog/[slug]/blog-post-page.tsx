@@ -174,7 +174,7 @@ export default function BlogPostPage({
 							<p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								On this page
 							</p>
-							<ol className="space-y-2">
+							<ol className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{toc.map((item) => (
 									<li key={item.id}>
 										<a

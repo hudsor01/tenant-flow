@@ -77,7 +77,7 @@ export function ResultErrorList({
 		<div className="space-y-2">
 			<p className="text-sm font-semibold">Failed rows</p>
 			<div className="card-standard max-h-56 overflow-y-auto">
-				<ul className="divide-y divide-border/40 text-xs">
+				<ul className="divide-y divide-border/40 pl-0 mt-0 mb-0 [&>li]:mb-0 text-xs">
 					{errors.map((err) => (
 						<li key={err.row} className="px-3 py-2 flex items-start gap-2">
 							<span className="font-mono text-muted-foreground shrink-0">

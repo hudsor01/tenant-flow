@@ -666,24 +666,16 @@ function OwnerNotes({
 /**
  * §B-5's breadcrumb. The `<nav>` carries `aria-label="Breadcrumb"`.
  *
- * THE NEUTRALIZERS ARE NOT OPTIONAL HERE EITHER, AND THIS IS THE LIST THE PHASE
- * FORGOT. `BreadcrumbList` renders a bare `<ol>` whose own classes are all
- * layout (ui/breadcrumb.tsx), so every unscoped declaration of the
- * `@layer base` `ul, ol` / `li` rules in globals.css reached it:
- * `padding-left: 1.5rem`, `margin-top: 1rem`, the `margin-bottom: 1rem` half of the same
- * `margin: 1rem 0` shorthand, and `margin-bottom: 0.25rem` on each crumb.
- *
- * The page shell below is `p-6 lg:p-8 … flex flex-col gap-6` and this is its
- * FIRST flex item, so none of that collapses: the trail sat 16px lower than the
- * padding declares and started 24px to the RIGHT of the `<h1>` beneath it.
- * Passed through `className` rather than patched into the primitive, because
- * `ui/breadcrumb.tsx` is shared with the blog and compare surfaces, whose own
- * spacing was built around whatever they currently render.
+ * `BreadcrumbList` cancels the `@layer base` `ul, ol` / `li` rules itself
+ * (ui/breadcrumb.tsx). The page shell below is `p-6 lg:p-8 … flex flex-col
+ * gap-6` and this is its FIRST flex item, so nothing would collapse: with the
+ * base rules live the trail sat 16px lower than the padding declares and
+ * started 24px to the RIGHT of the `<h1>` beneath it.
  */
 function DetailBreadcrumb({ heading }: { heading: string }) {
 	return (
 		<Breadcrumb aria-label="Breadcrumb">
-			<BreadcrumbList className="pl-0 mt-0 mb-0 [&>li]:mb-0">
+			<BreadcrumbList>
 				<BreadcrumbItem>
 					<BreadcrumbLink asChild>
 						<Link href="/applications" className="no-underline">

@@ -152,6 +152,11 @@
      "ref": "D-26"
     },
     {
+     "what": "BreadcrumbList adds the base-rule neutralizers pl-0 mt-0 mb-0 [&>li]:mb-0 (every trail sat 24px right of the content it heads, with 16px base margins above and below)",
+     "reason": "D-26 customization",
+     "ref": "D-49 (the SidebarMenu V4 pattern); 66.2-39 fix round 3, part 7b"
+    },
+    {
      "what": "local export type BreadcrumbItem ({ href, label })",
      "reason": "D-26 customization",
      "ref": "D-26"

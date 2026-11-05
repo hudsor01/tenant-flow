@@ -176,7 +176,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 						<h2 className="text-2xl font-bold text-foreground mb-6">
 							Why Switch to TenantFlow
 						</h2>
-						<ul className="space-y-4">
+						<ul className="flex flex-col gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{data.whySwitch.map((reason) => (
 								<li key={reason} className="flex gap-3 text-muted-foreground">
 									<Check className="size-5 text-success mt-0.5 shrink-0" />
@@ -189,7 +189,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 						<h2 className="text-2xl font-bold text-foreground mb-6">
 							Where {data.name} Excels
 						</h2>
-						<ul className="space-y-4">
+						<ul className="flex flex-col gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{data.competitorStrengths.map((strength) => (
 								<li key={strength} className="flex gap-3 text-muted-foreground">
 									<Check className="size-5 text-info mt-0.5 shrink-0" />

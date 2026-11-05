@@ -8,12 +8,18 @@ function Breadcrumb({ ...props }: ComponentProps<"nav">) {
 	return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
 }
 
+/**
+ * The list cancels the globals.css `@layer base` `ul, ol` / `li` rules on
+ * itself (`pl-0 mt-0 mb-0 [&>li]:mb-0`, as SidebarMenu does, D-49): without
+ * them every trail sat 24px right of the content it heads, 16px lower than its
+ * container's padding declares, with 16px more below it.
+ */
 function BreadcrumbList({ className, ...props }: ComponentProps<"ol">) {
 	return (
 		<ol
 			data-slot="breadcrumb-list"
 			className={cn(
-				"text-foreground flex flex-wrap items-center gap-2 text-base font-medium sm:gap-3",
+				"text-foreground flex flex-wrap items-center gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0 text-base font-medium sm:gap-3",
 				className,
 			)}
 			{...props}

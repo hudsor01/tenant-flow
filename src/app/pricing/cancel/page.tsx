@@ -37,7 +37,7 @@ export default function CheckoutCancelPage() {
 							<h3 className="mb-4 font-semibold text-foreground">
 								What happened?
 							</h3>
-							<ul className="space-y-2 text-muted-foreground">
+							<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0 text-muted-foreground">
 								<li>You cancelled the checkout process</li>
 								<li>No payment was processed</li>
 								<li>Your account remains unchanged</li>

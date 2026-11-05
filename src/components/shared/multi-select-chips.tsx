@@ -95,7 +95,7 @@ export function MultiSelectChips<T extends string>({
 					<ul
 						role="listbox"
 						aria-multiselectable="true"
-						className="space-y-0.5"
+						className="flex flex-col gap-0.5 pl-0 mt-0 mb-0 [&>li]:mb-0"
 					>
 						{options.map((opt) => {
 							const checked = selected.has(opt.value);

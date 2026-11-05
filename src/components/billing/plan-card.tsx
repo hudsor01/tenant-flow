@@ -110,7 +110,7 @@ export function PlanCard({
 						{plan.includesPrevious}
 					</p>
 				)}
-				<ul className="space-y-3">
+				<ul className="flex flex-col gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0">
 					{plan.features.map((feature) => (
 						<li
 							key={feature.name}

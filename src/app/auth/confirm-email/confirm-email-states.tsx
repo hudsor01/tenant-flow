@@ -153,7 +153,7 @@ export function ConfirmEmailInstructions() {
 				<CheckCircle2 className="size-5 text-primary" />
 				What&apos;s next?
 			</h3>
-			<ol className="space-y-4">
+			<ol className="flex flex-col gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0">
 				{[
 					{
 						step: 1,

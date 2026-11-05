@@ -544,7 +544,7 @@ export function DocumentsVaultClient() {
 						</Empty>
 					) : (
 						<>
-							<ul className="divide-y divide-border">
+							<ul className="divide-y divide-border pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{data.rows.map((doc) => (
 									<DocumentVaultRow key={doc.id} doc={doc} />
 								))}

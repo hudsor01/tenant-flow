@@ -274,7 +274,7 @@ export function PropertyInspectionTemplate() {
 						{form.state.values.propertyName} —{" "}
 						{form.state.values.propertyAddress}
 					</p>
-					<ul className="grid gap-2 text-sm">
+					<ul className="grid gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm">
 						{(
 							form.state.values.checklist as
 								| Array<{ label: string; status: boolean }>

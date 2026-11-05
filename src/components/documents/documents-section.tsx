@@ -386,7 +386,7 @@ export function DocumentsSection({
 								displayed. Pagination arrives in a later release.
 							</p>
 						)}
-						<ul className="divide-y divide-border">
+						<ul className="divide-y divide-border pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{documents?.map((doc) => (
 								<DocumentRow
 									key={doc.id}

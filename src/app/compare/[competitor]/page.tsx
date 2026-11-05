@@ -184,7 +184,7 @@ export default async function ComparePage({ params }: PageProps) {
 							Evaluating more than one option? See how TenantFlow stacks up
 							against the alternatives landlords most often consider.
 						</p>
-						<ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+						<ul className="grid grid-cols-1 gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0 sm:grid-cols-2">
 							{otherCompetitors.map(({ slug: otherSlug, name }) => (
 								<li key={otherSlug}>
 									<Link

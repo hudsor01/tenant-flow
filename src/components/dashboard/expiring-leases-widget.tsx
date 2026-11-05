@@ -70,7 +70,7 @@ export function ExpiringLeasesWidget() {
 					</p>
 				) : (
 					<>
-						<ul className="divide-y divide-border">
+						<ul className="divide-y divide-border pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{leases.map((lease) => {
 								const days = daysUntil(lease.end_date);
 								const urgent = days <= 7;

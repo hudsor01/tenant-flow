@@ -151,7 +151,7 @@ function StepCard({ step, index }: StepCardProps) {
 				</p>
 
 				{/* Features */}
-				<ul className="space-y-2">
+				<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0">
 					{step.features.map((feature) => (
 						<li key={feature} className="flex items-center gap-2 text-sm">
 							<div className={cn("size-5 rounded-full flex-center", colors.bg)}>

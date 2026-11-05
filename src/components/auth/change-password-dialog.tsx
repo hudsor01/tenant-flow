@@ -307,7 +307,7 @@ export function ChangePasswordDialog({
 								<p className="font-semibold text-destructive-text mb-2">
 									Please fix the following errors:
 								</p>
-								<ul className="list-disc list-inside space-y-1 text-xs text-destructive-text">
+								<ul className="flex flex-col gap-1 pl-0 mt-0 mb-0 [&>li]:mb-0 list-disc list-inside text-xs text-destructive-text">
 									{validationErrors.map((error) => (
 										<li key={error}>{error}</li>
 									))}

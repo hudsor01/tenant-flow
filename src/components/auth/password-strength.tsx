@@ -134,7 +134,7 @@ function PasswordStrength({
 							Your password must contain:
 						</h4>
 
-						<ul className="space-y-2 text-sm">
+						<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm">
 							{rules.map((rule) => {
 								const passed = rule.test(password);
 								return (

@@ -151,7 +151,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 						</PieChart>
 					</ChartContainer>
 				</div>
-				<ul className="mt-4 flex items-center justify-center gap-6 text-sm">
+				<ul className="mt-4 mb-0 pl-0 [&>li]:mb-0 flex items-center justify-center gap-6 text-sm">
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"

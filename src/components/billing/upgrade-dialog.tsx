@@ -181,7 +181,7 @@ export function UpgradeDialog({
 							<h4 className="text-sm font-medium text-foreground mb-2">
 								{isNewSubscription ? "What you get" : "Features you gain"}
 							</h4>
-							<ul className="space-y-1.5">
+							<ul className="flex flex-col gap-1.5 pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{gained.map((feature) => (
 									<li
 										key={feature.name}
@@ -201,7 +201,7 @@ export function UpgradeDialog({
 							<h4 className="text-sm font-medium text-foreground mb-2">
 								Features you lose
 							</h4>
-							<ul className="space-y-1.5">
+							<ul className="flex flex-col gap-1.5 pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{lost.map((feature) => (
 									<li
 										key={feature.name}

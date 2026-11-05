@@ -35,7 +35,7 @@ export default function LeaseTemplatePage() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<ul className="grid grid-cols-1 gap-4 text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+					<ul className="grid grid-cols-1 gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0 text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
 						<li>
 							<strong className="text-foreground">1. Select clauses</strong>
 							<p>

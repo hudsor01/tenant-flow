@@ -567,19 +567,19 @@ describe("ApplicationDetail — the record, in the applicant's own order", () =>
 });
 
 /**
- * THE BREADCRUMB IS A LIST, AND IT IS THE ONE THIS PHASE FORGOT.
+ * THE BREADCRUMB IS A LIST.
  *
- * `BreadcrumbList` (`ui/breadcrumb.tsx`) renders a bare `<ol>` whose only
- * classes are layout, so all three unscoped declarations of the
- * `@layer base` `ul, ol` / `li` rules in globals.css landed on it:
- * `padding-left: 1.5rem`, `margin-top: 1rem` and — from the same `margin: 1rem 0` shorthand —
- * `margin-bottom: 1rem`, plus `margin-bottom: 0.25rem` on each `<li>`.
+ * `BreadcrumbList` (`ui/breadcrumb.tsx`) renders an `<ol>`, so all three
+ * unscoped declarations of the `@layer base` `ul, ol` / `li` rules in
+ * globals.css reach it unless it cancels them: `padding-left: 1.5rem`,
+ * `margin-top: 1rem` and — from the same `margin: 1rem 0` shorthand —
+ * `margin-bottom: 1rem`, plus `margin-bottom: 0.25rem` on each `<li>`. The
+ * primitive now carries the neutralizers (66.2-39 fix round 3, part 7b).
  *
  * The page shell is `p-6 lg:p-8 … flex flex-col gap-6` and the breadcrumb is its
- * FIRST flex item, so nothing collapses: the trail sat 16px below where the
- * padding declares, and its text started 24px to the RIGHT of the `<h1>`
- * directly beneath it. This phase neutralizes the same trap correctly on three
- * `<ul>`s; the `<ol>` got nothing.
+ * FIRST flex item, so nothing collapses: with the rules live the trail sat 16px
+ * below where the padding declares, and its text started 24px to the RIGHT of
+ * the `<h1>` directly beneath it.
  *
  * Computed values, not classes, for the reason recorded in
  * `#test/utils/base-rule-cascade`.

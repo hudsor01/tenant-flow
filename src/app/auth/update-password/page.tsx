@@ -207,7 +207,7 @@ export default function UpdatePasswordPage() {
 										<p className="text-sm font-medium text-foreground">
 											Password tips:
 										</p>
-										<ul className="text-sm text-muted-foreground space-y-1">
+										<ul className="flex flex-col gap-1 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm text-muted-foreground">
 											<li>
 												Use at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 												characters
