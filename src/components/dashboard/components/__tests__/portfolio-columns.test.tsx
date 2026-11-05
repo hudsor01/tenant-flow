@@ -6,8 +6,8 @@
  * - Sortable flags: property/units/occupancy/rent sortable; maintenance/actions not.
  * - W-3: the Property filterFn matches NAME or ADDRESS (case-insensitive substring),
  *   so an address-only match passes and a no-match fails (search-parity guard).
- * - DT-04: status column is faceted-filterable (enableColumnFilter + meta.variant +
- *   meta.options active/expiring/vacant).
+ * - DT-04: the occupancy column is faceted-filterable (enableColumnFilter +
+ *   meta.variant + meta.options occupied/partly-vacant/vacant/no-units).
  * - DT-05: every column has meta.label; actions is enableHiding:false.
  * - B-1: rendered through a real table whose <th> carry aria-sort={getAriaSort(column)},
  *   the sortable header's <th role=columnheader> exposes aria-sort (NOT the inner button);
@@ -195,11 +195,11 @@ describe("portfolioColumns", () => {
 	});
 
 	it("occupancy column is faceted-filterable from the one label map (DT-04)", () => {
-		const status = findColumn("occupancy");
-		expect(status.enableColumnFilter).toBe(true);
-		const variant = status.meta?.variant;
+		const occupancy = findColumn("occupancy");
+		expect(occupancy.enableColumnFilter).toBe(true);
+		const variant = occupancy.meta?.variant;
 		expect(variant === "select" || variant === "multiSelect").toBe(true);
-		expect(status.meta?.options).toEqual([
+		expect(occupancy.meta?.options).toEqual([
 			{ label: "Occupied", value: "occupied" },
 			{ label: "Partly vacant", value: "partly-vacant" },
 			{ label: "Vacant", value: "vacant" },
@@ -208,19 +208,19 @@ describe("portfolioColumns", () => {
 	});
 
 	it("occupancy filterFn includes rows whose occupancy is in the selected values", () => {
-		const status = findColumn("occupancy");
-		const filterFn = status.filterFn as (
+		const occupancy = findColumn("occupancy");
+		const filterFn = occupancy.filterFn as (
 			row: Row<PortfolioRow>,
 			columnId: string,
 			value: unknown,
 		) => boolean;
-		const expiringRow = {
+		const partlyVacantRow = {
 			original: makeRow({ occupancy: "partly-vacant" }),
 		} as Row<PortfolioRow>;
 		expect(
-			filterFn(expiringRow, "occupancy", ["partly-vacant", "vacant"]),
+			filterFn(partlyVacantRow, "occupancy", ["partly-vacant", "vacant"]),
 		).toBe(true);
-		expect(filterFn(expiringRow, "occupancy", ["occupied"])).toBe(false);
+		expect(filterFn(partlyVacantRow, "occupancy", ["occupied"])).toBe(false);
 	});
 
 	it("every column has meta.label and actions is not hideable (DT-05)", () => {

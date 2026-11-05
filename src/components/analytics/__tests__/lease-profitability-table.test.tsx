@@ -10,7 +10,7 @@ import type { LeaseProfitability } from "#types/analytics";
 import { LeaseProfitabilityTable } from "../lease-profitability-table";
 
 // The global unit-setup mocks nuqs (reads -> null, writes swallowed). The table
-// now drives a REAL client-side TanStack table through `useClientDataTable`, whose
+// drives a REAL client-side TanStack table through `useClientDataTable`, whose
 // filter/sort/page state IS the nuqs round-trip, so restore the real nuqs
 // implementation (Wave-1 precedent) and host it under nuqs's own testing adapter.
 vi.unmock("nuqs");
@@ -69,16 +69,15 @@ describe("LeaseProfitabilityTable", () => {
 			);
 		});
 
-		// Only pageSize (6) data rows land on page 1 — NOT all 9. This is the
-		// visible change the migration delivers (was: every row on one page).
+		// Only pageSize (6) data rows land on page 1, not all 9.
 		expect(visibleDataRowCount()).toBe(6);
 		expect(screen.getByText("Tenant 0")).toBeInTheDocument();
 		expect(screen.getByText("Tenant 5")).toBeInTheDocument();
 		// A page-2 tenant is NOT present on page 1.
 		expect(screen.queryByText("Tenant 6")).toBeNull();
 
-		// getPageCount() is TanStack-computed = ceil(9 / 6) = 2, so the footer reads
-		// a real page count — not the old frozen "Page 1 of -1".
+		// getPageCount() is TanStack-computed: ceil(9 / 6) = 2, so the footer
+		// reads "Page 1 of 2".
 		expect(screen.getByText(/Page 1 of 2/)).toBeInTheDocument();
 
 		// nextPage() advances the visible window to page 2 (the remaining 3 rows).

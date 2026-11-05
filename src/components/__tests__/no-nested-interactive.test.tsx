@@ -16,7 +16,7 @@
  * shapes the 66.2-39 part I AST sweep found (a Link or anchor whose first
  * child is a Button or button; a Button, button or Radix trigger without
  * `asChild` whose first child is a Link or anchor; a trigger without `asChild`
- * whose first child is a Button), and renders of the three components that
+ * whose first child is a Button), and renders of the two components that
  * did it differently.
  */
 

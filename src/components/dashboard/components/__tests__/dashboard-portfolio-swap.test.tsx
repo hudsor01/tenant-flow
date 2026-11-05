@@ -251,7 +251,8 @@ describe("dashboard portfolio swap", () => {
 		useDashboardStore.setState({ viewMode: "grid" }, false);
 		// A preset whose MULTI-WORD property search + occupancy narrows to one row.
 		// "maple court" must stay one string (the FIX-1 regression) and match only
-		// Maple Court; occupancy=occupied also excludes the vacant Birch Flats.
+		// Maple Court; occupancy=occupied also excludes the partly vacant Birch
+		// Flats (4 of 8 units let).
 		useDashboardPresetsStore.getState().savePreset("Active maple", {
 			filters: { occupancy: ["occupied"], property: "maple court" },
 			sort: [{ id: "property", desc: false }],
@@ -308,7 +309,7 @@ describe("dashboard portfolio swap", () => {
 		expect(screen.getByText("Maple Court")).toBeInTheDocument();
 	});
 
-	it("deletes a saved preset via the trash button (store deletePreset wired through the UI)", async () => {
+	it("deletes a saved preset via its delete menu item (store deletePreset wired through the UI)", async () => {
 		const user = userEvent.setup();
 		// Seed two presets so we can assert the clicked one is removed and the other
 		// survives (not a wholesale clear).

@@ -1,7 +1,9 @@
 // @vitest-environment node
 /**
- * Compile proof for the QuickActionsDock centering classes (D-39, D-51,
- * VD-37, PATTERNS #6).
+ * Compile proof for the QuickActionsDock's classes and tokens (D-39, D-51,
+ * VD-37, PATTERNS #6): its centering, the one token set from which its
+ * offset, its height, the main column's clearance and the root's scroll
+ * padding derive, and the sidebar width it centers against.
  *
  * The dock centers on the main column: offset by half the `--sidebar-width`
  * rail while it is docked and expanded, and at the viewport center when the
@@ -11,7 +13,8 @@
  *
  * It lives under the `@source not` rule globals.css applies to test files, so
  * the candidate strings below never reach the compiled CSS themselves; the
- * extraction check therefore proves Oxide found each class in the dock source.
+ * extraction check therefore proves Oxide found each class in its non-test
+ * source: the dock, or app-shell.tsx for the main column's clearance.
  */
 import { describe, expect, it } from "vitest";
 import {

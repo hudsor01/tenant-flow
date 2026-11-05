@@ -9,7 +9,9 @@
  *
  * C16: destructive confirmations use `variant="destructive"` instead of overriding the default
  * variant's colors, so their token set is the destructive Button's. Against the legacy
- * composition the only difference is the VD-19 destructive row (`VD19_DESTRUCTIVE_DELTA`).
+ * composition the only differences are the destructive Button's own tokens
+ * (`DESTRUCTIVE_DELTA`): VD-19's dark fill and destructive focus ring, and 66.2-39 part F's
+ * light and dark hovers.
  *
  * Radix Slot joins the child className onto the Button's classes with a plain string
  * concatenation, without twMerge. A className passed to Action or Cancel is therefore appended
@@ -40,7 +42,12 @@ const LEGACY_DESTRUCTIVE =
 
 // Signed symmetric difference, sorted: "+" = only on the current destructive Action,
 // "-" = only on the legacy `cn(buttonVariants(), LEGACY_DESTRUCTIVE)` composition.
-const VD19_DESTRUCTIVE_DELTA = [
+// VD-19: the dark fill and the destructive focus ring (+dark:bg-destructive/60,
+// +dark:focus-visible:ring-destructive/40, +focus-visible:ring-destructive/20,
+// -focus-visible:ring-ring/50). Part F: the light and dark hovers
+// (+hover:bg-destructive-text, -hover:bg-destructive/90, +dark:hover:bg-destructive/90,
+// -dark:hover:bg-primary/90).
+const DESTRUCTIVE_DELTA = [
 	"+dark:bg-destructive/60",
 	"+dark:focus-visible:ring-destructive/40",
 	"+dark:hover:bg-destructive/90",
@@ -124,8 +131,9 @@ describe("alert-dialog parts", () => {
 		);
 		const legacy = tokens(cn(buttonVariants(), LEGACY_DESTRUCTIVE));
 		const delta = signedDelta(rendered, legacy);
-		// VD-19 adds only dark and ring tokens; 66.2-39 part F moves the light
-		// hover from destructive/90 (4.39:1) to destructive-text (6.38:1).
+		// VD-19 adds the dark fill and the ring tokens; 66.2-39 part F moves the
+		// light hover from destructive/90 (4.39:1) to destructive-text (6.38:1)
+		// and the dark hover from primary/90 to destructive/90.
 		const PART_F_HOVER = new Set([
 			"hover:bg-destructive-text",
 			"hover:bg-destructive/90",
@@ -138,7 +146,7 @@ describe("alert-dialog parts", () => {
 					PART_F_HOVER.has(token),
 			).toBe(true);
 		}
-		expect(delta).toEqual(VD19_DESTRUCTIVE_DELTA);
+		expect(delta).toEqual(DESTRUCTIVE_DELTA);
 	});
 
 	it("className passthrough", () => {
