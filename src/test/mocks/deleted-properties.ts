@@ -2,8 +2,8 @@
  * `supabase.from` for a test whose code under test reads the owner's deleted
  * property ids (fetchDeletedPropertyIds: `.from("properties").select("id")
  * .eq(...).eq(...).order(...).range(...)`). Every chain resolves `rows` as the
- * page, so a read of fewer rows than a page ends in one call; `none` is an
- * owner who has deleted nothing.
+ * page, so a read of fewer rows than a page ends in one call. Called with no
+ * rows (the default `[]`), it is an owner who has deleted nothing.
  */
 export function deletedPropertiesFrom(
 	rows: readonly { id: string }[] = [],

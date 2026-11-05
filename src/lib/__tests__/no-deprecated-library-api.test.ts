@@ -6,8 +6,9 @@
  * TanStack Query 5.105 deprecates `fetchQuery`, `prefetchQuery` and
  * `ensureQueryData` (and their infinite twins) in favor of
  * `queryClient.query(options)`, with `{ staleTime: "static" }` standing in for
- * `ensureQueryData` (its cached data is returned until something invalidates
- * it), along with their option types. @types/react 19 deprecates `FormEvent`
+ * `ensureQueryData` (its cached data is returned whenever any is cached,
+ * invalidated or not; only a query with no data fetches), along with their
+ * option types. @types/react 19 deprecates `FormEvent`
  * ("doesn't actually exist": a form's submit handler takes `SubmitEvent`) and
  * `MutableRefObject` (`RefObject` is mutable since React 19). Editors flag
  * these as TS6385 / TS6387, which `tsc` never reports, so the typecheck passed

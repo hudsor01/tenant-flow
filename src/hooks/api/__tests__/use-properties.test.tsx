@@ -3,9 +3,8 @@
  *
  * Tests property hooks for:
  * - Correct query configuration (PostgREST direct via supabase-js)
- * - Mutation hooks with optimistic updates
- * - Error handling and rollback
- * - Cache invalidation patterns
+ * - The disabled state for an empty id
+ * - The property_images read behind usePropertyImages
  *
  * @vitest-environment jsdom
  */

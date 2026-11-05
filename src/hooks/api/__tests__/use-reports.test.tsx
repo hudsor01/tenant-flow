@@ -648,8 +648,7 @@ describe("reportAnalyticsQueries.tenants", () => {
 	});
 
 	it("fetches tenant report from get_dashboard_stats", async () => {
-		// tenants() issues a single get_dashboard_stats call; turnover /
-		// on-time-payment have no data source, so both stay 0.
+		// tenants() issues a single get_dashboard_stats call.
 		mockRpc.mockResolvedValueOnce({
 			data: {
 				tenants: { total: 12 },
@@ -668,7 +667,8 @@ describe("reportAnalyticsQueries.tenants", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
-		// No turnover or on-time rate: no source computes either (they read 0).
+		// No turnover or on-time rate: no source computes either, so the report
+		// carries neither.
 		expect(result.current.data).toEqual({
 			summary: { totalTenants: 12, activeLeases: 9, leasesEndingSoon: 2 },
 		});
@@ -802,15 +802,10 @@ describe("reportAnalyticsQueries.financial (error path)", () => {
 		vi.resetAllMocks();
 	});
 
-	it("surfaces isError when get_dashboard_stats RPC errors", async () => {
-		// financial() runs get_dashboard_stats + get_expense_summary in parallel;
-		// a dashResult.error must propagate through handlePostgrestError.
-		mockRpc
-			.mockResolvedValueOnce({ data: null, error: postgrestError })
-			.mockResolvedValueOnce({
-				data: { total_amount: 0, categories: [] },
-				error: null,
-			});
+	it("surfaces isError when get_expense_summary errors", async () => {
+		// financial() makes one call, get_expense_summary; its error must
+		// propagate through handlePostgrestError.
+		mockRpc.mockResolvedValueOnce({ data: null, error: postgrestError });
 
 		const { result } = renderHook(
 			() =>
@@ -825,6 +820,9 @@ describe("reportAnalyticsQueries.financial (error path)", () => {
 		expect(result.current.error).toMatchObject({
 			message: expect.stringContaining("permission denied"),
 		});
+		expect(mockRpc.mock.calls.map(([name]) => name)).toEqual([
+			"get_expense_summary",
+		]);
 	});
 });
 
@@ -868,7 +866,7 @@ describe("useYearEndSummary (error path)", () => {
 		vi.resetAllMocks();
 	});
 
-	it("surfaces isError when get_dashboard_stats RPC errors", async () => {
+	it("surfaces isError when the ledger (get_billing_insights) RPC errors", async () => {
 		// yearEnd() reads the ledger as of two dates, the year's expenses and
 		// every property page; the first ledger call's error must propagate.
 		mockRpc
@@ -891,6 +889,7 @@ describe("useYearEndSummary (error path)", () => {
 		expect(result.current.error).toMatchObject({
 			message: expect.stringContaining("permission denied"),
 		});
+		expect(mockRpc.mock.calls[0]?.[0]).toBe("get_billing_insights");
 	});
 });
 

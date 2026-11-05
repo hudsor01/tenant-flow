@@ -163,7 +163,7 @@ describe("callGeneratePdfFromHtml", () => {
 		clickSpy.mockRestore();
 	});
 
-	it("rejects with the PDF ApiError, never the response text, when fetch is not ok", async () => {
+	it("rejects with the status's ApiError (a 500 is a server error), never the response text", async () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
@@ -190,7 +190,7 @@ describe("callGeneratePdfFromHtml", () => {
 		expect(userFacingErrorMessage(error)).not.toContain("edge boom");
 	});
 
-	it("never reads the status line into the error (a 502)", async () => {
+	it("rejects a 502 with the PDF ApiError, whose copy never carries the status line", async () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
@@ -211,6 +211,7 @@ describe("callGeneratePdfFromHtml", () => {
 		expect(userFacingErrorMessage(error)).toBe(
 			"Failed to generate the PDF. Please try again.",
 		);
+		expect(userFacingErrorMessage(error)).not.toContain("Bad Gateway");
 	});
 
 	it("saves through downloadBlob: an <a download=filename> click, revoked after 1s", async () => {

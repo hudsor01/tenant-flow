@@ -81,7 +81,7 @@ describe("mapMaintenanceRow", () => {
 		expect(mapped.status).toBe("assigned");
 	});
 
-	it("accepts status='needs_reassignment' (written by vendorMutations.unassign)", () => {
+	it("accepts status='needs_reassignment' (set from the kanban or StatusSelect)", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
 			status: "needs_reassignment",
