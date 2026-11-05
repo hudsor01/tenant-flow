@@ -15,9 +15,15 @@ import { loginAsOwner } from "../auth-helpers";
  * blends element opacity) would measure a translucent foreground no user sees
  * once the page settles.
  *
- * Under `reducedMotion: "reduce"` the global reduced-motion rule in globals.css
- * runs no entrance at all, so the first poll reads 0 and this returns at once.
- * That is the expected outcome there, not a skipped wait.
+ * Under `reducedMotion: "reduce"` no entrance runs, so the first poll reads 0
+ * and this returns at once. That is the expected outcome there, not a skipped
+ * wait. The 0 comes from the components: BlurFade's preset classes carry
+ * `motion-reduce:animate-none` (blur-fade.tsx), and KpiBentoRow renders its
+ * tiles with no BlurFade under `useReducedMotion()` (kpi-bento-row.tsx). The
+ * global reduced-motion rule in globals.css would not give it: it shortens
+ * an animation to 0.01ms and leaves its `animation-delay`, so a delayed
+ * entrance (a KPI tile's, up to 480 ms) would still read `running` through
+ * its delay.
  */
 export async function waitForEntranceAnimations(page: Page): Promise<void> {
 	await expect
