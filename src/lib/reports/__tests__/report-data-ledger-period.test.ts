@@ -203,7 +203,11 @@ describe("the executive monthly export", () => {
 			{ label: "Net Income", value: "Unavailable" },
 			{ label: "Net Cash Flow", value: "Unavailable" },
 		]);
-		expect(metrics.note).toContain("rent ledger");
+		// It names every figure it blanks: Total Expenses is the income
+		// statement's too, though expenses are not on the ledger (cycle 2, F123).
+		expect(metrics.note).toBe(
+			"The income statement and the cash flow are built on your rent ledger, whose totals aren't available yet, so none of their figures is shown.",
+		);
 		expect(JSON.stringify(report)).not.toContain("$0.00");
 	});
 });

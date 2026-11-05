@@ -70,7 +70,6 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	],
 	"src/lib/reports/report-data.ts": [
 		"Total Revenue",
-		"Revenue, net income and cash flow come from your rent ledger, and its totals aren't available yet, so none is shown.",
 		"Revenue · expenses · net income · cash flow",
 		"Revenue (charged)",
 	],

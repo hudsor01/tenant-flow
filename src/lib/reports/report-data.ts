@@ -326,8 +326,13 @@ const STATEMENT_BASIS_SECTION: ReportSection = {
 	paragraphs: STATEMENT_BASIS_NOTE,
 };
 
+/**
+ * Under a section whose income statement and cash flow figures read
+ * "Unavailable": every one of them, Total Expenses included (it comes with the
+ * statement, though expenses are not on the ledger).
+ */
 const LEDGER_UNAVAILABLE_NOTE =
-	"Revenue, net income and cash flow come from your rent ledger, and its totals aren't available yet, so none is shown.";
+	"The income statement and the cash flow are built on your rent ledger, whose totals aren't available yet, so none of their figures is shown.";
 
 /** Occupancy today: no RPC reports a past period's occupancy here. */
 function occupancyTodayRows(occupancy: OccupancyMetrics): ReportRow[] {
@@ -608,8 +613,9 @@ function propertyPerformanceRows(
 	]);
 }
 
+/** Each property's three figures read "Unavailable" together. */
 const RENT_RECEIVED_UNAVAILABLE_NOTE =
-	"Rent received isn't available yet: the server's rent ledger totals for properties are pending an update.";
+	"Rent received, expenses and net income by property aren't available yet: the server's property figures are pending an update.";
 
 /**
  * The portfolio's counts and occupancy today, and each property's rent

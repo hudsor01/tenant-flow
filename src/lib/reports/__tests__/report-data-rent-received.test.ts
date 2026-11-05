@@ -155,7 +155,11 @@ describe("the property portfolio report", () => {
 		expect(table.table?.rows).toEqual([
 			["Alpha Court", "50.0%", "Unavailable", "Unavailable", "Unavailable"],
 		]);
-		expect(table.note).toContain("Rent received isn't available yet");
+		// Each of the row's three figures reads Unavailable, so the note names
+		// all three (cycle 2, F123).
+		expect(table.note).toBe(
+			"Rent received, expenses and net income by property aren't available yet: the server's property figures are pending an update.",
+		);
 	});
 });
 
