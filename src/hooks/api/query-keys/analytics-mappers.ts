@@ -350,9 +350,7 @@ export function mapMaintenanceCosts(
  * oldest first, or null with no `costed_requests` (the body before
  * 20261102184503 returns `[]`, which is no series).
  */
-export function mapMaintenanceTrends(
-	raw: unknown,
-): MaintenanceTrendPoint[] | null {
+function mapMaintenanceTrends(raw: unknown): MaintenanceTrendPoint[] | null {
 	const root = asObject(raw);
 	if (finiteOrNull(root?.costed_requests) === null) return null;
 	return (Array.isArray(root?.trendsOverTime) ? root.trendsOverTime : []).map(

@@ -33,18 +33,13 @@ import { reportKeys } from "./report-keys";
 
 const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
-/** Extract first dashboard stats row */
+/** get_dashboard_stats' tenant and lease objects, the tenant report's figures. */
 function extractDashStats(data: unknown) {
 	// get_dashboard_stats RETURNS json (a bare object, supabase.ts `Returns: Json`) —
 	// NOT a SETOF/array. supabase-js returns the object directly, so read it as-is
 	// (the old `data[0]` was always undefined → every derived value collapsed to 0).
 	const stats = data as Record<string, unknown> | null;
 	return {
-		revenue: stats?.revenue as Record<string, unknown> | undefined,
-		units: stats?.units as Record<string, unknown> | undefined,
-		// Occupancy lives under `properties.occupancyRate` (camelCase), NOT
-		// `units.occupancy_rate` — the snake_case key the RPC never emits.
-		properties: stats?.properties as Record<string, unknown> | undefined,
 		tenants: stats?.tenants as Record<string, unknown> | undefined,
 		leases: stats?.leases as Record<string, unknown> | undefined,
 	};

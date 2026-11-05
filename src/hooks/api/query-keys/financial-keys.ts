@@ -48,7 +48,7 @@ export interface ExpenseSummaryData {
  * the prior period it states. The body before returns the change as the
  * literal null with no period, which is no figure.
  */
-export function mapExpenseYearOverYear(summary: unknown): ExpenseYearOverYear {
+function mapExpenseYearOverYear(summary: unknown): ExpenseYearOverYear {
 	const s = jsonObjectOrEmpty<Record<string, unknown>>(summary, {});
 	const priorPeriod = parseStatedWindow(s["year_over_year_prior_period"]);
 	const change = s["year_over_year_change"];

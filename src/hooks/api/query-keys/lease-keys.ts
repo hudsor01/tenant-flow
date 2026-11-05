@@ -35,21 +35,6 @@ export interface SignatureStatus {
 	both_signed: boolean;
 }
 
-/** Subset of Lease columns for list/summary views (expiring leases, etc.) */
-export type LeaseListItem = Pick<
-	Lease,
-	| "id"
-	| "unit_id"
-	| "primary_tenant_id"
-	| "owner_user_id"
-	| "rent_amount"
-	| "lease_status"
-	| "start_date"
-	| "end_date"
-	| "created_at"
-	| "updated_at"
->;
-
 export const leaseQueries = {
 	all: () => ["leases"] as const,
 	lists: () => [...leaseQueries.all(), "list"] as const,
