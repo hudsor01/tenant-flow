@@ -93,7 +93,7 @@ Every phase's exit criteria are rows here. Update the "Now" column at the end of
 
 | # | Metric (source) | Baseline | Target | Now |
 |---|---|---|---|---|
-| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 937 (66.2-39 re-freeze after fix round 1: final 917 + 29 added − 9 deleted non-test `src/` files, 8 of the deletions and every addition fix round 1, `src/types/jest-dom.d.ts` from the merge `54fc50829`, `f39/m1-delta.json`; final 66.2-37: W5 914 + 5 added − 2 deleted) |
+| M1 | Files Tailwind scans (`audit.scannedFiles`) | 1,552 (whole repo: migrations, workflows, memory/) | ~914 (`src/` only) | 938 (66.2-39 re-freeze after fix round 2: final 917 + 30 added − 9 deleted non-test `src/` files; the 30th addition is fix round 2's test helper `src/test/utils/regexp-source.ts`, 29 additions and 8 deletions fix round 1, `src/types/jest-dom.d.ts` from the merge `54fc50829`, `f39/m1-delta.json`; final 66.2-37: W5 914 + 5 added − 2 deleted) |
 | M2 | Explicit `@source` globs matching 0 files | 1 (`"..*.{ts,tsx}"`) | 0 | 0 (final) |
 | M3 | Invalid `oklch()` literals | 1 (`--color-secondary`, chroma 3.51) | 0 | 0 (final) |
 | M4 | Non-inline `@theme` vars that reference other vars | 11 (3 fonts, 8 sidebar) | 0 | 0 (final) |
@@ -328,7 +328,8 @@ The B2 rule as validated:
 - [x] Migration (66.2-31..36): canonical `sidebar.tsx`, shell host, MainNav, dock and tour, owner-axe spec; proved by the final gate (66.2-37: `final/vd-register.json` 37/37, `app-shell-sidebar.spec.ts` 21/21).
 - [x] Owner checkpoints CP-1..CP-5 (66.2-38: all five owner defaults, `66.2-38-CP-DECISIONS.json`) and the owner-approved CP-4 layout follow-up (`audit/cp4-followup/`).
 - [x] Final (66.2-39): no fallback applied, re-measured and frozen (`audit/f39/freeze.json`), one PR opened for the merge gates (PR pending).
-- [x] Fix round 1 after perfect-PR cycle 1 (24 findings; 195 commits, parts A to R plus O) and the re-freeze: every Task 2 step re-run on the new state, code state `b628eb9f1` (`audit/f39/freeze.json`); the merge gates run again on the new head.
+- [x] Fix round 1 after perfect-PR cycle 1 (24 findings; 195 commits, parts A to R plus O) and the re-freeze: every Task 2 step re-run on the new state, code state `b628eb9f1`; the merge gates run again on the new head.
+- [x] Fix round 2 after CI failed on `bc54b045a` and `f8de0175e` (CodeQL alerts and the sweep timeout fixed in `74f8bd9f1` and `f8de0175e`; two production-data failures resolved by owner decision) and the re-freeze: code state `f8de0175e` (`audit/f39/freeze.json`); the merge gates run again on the new head.
 
 ---
 
@@ -466,6 +467,10 @@ New file `src/app/__tests__/tailwind-theme-integrity.test.ts`. Compile the real 
   - Cycle 1 on `4476e6450`: 24 findings, all fixed in parts A and B; parts C to R and O fixed the pre-existing and data defects the owner chose to fix here (the PR body's "Fix round 1" section). 195 commits, `4476e6450..83929ceb6`.
   - Re-run on code state `4433ca833`, then `b628eb9f1` (two test comments reworded for the no-hex check): audit M1 937, M6 chart-1/chart-4 and M8 4 (the T-1 contract tokens, option B), M10 first-party 0; css-parity 0 unclassified; tokens only VD-38/VD-59; G1-G8 + inline-structure 0; unit 454 files / 113,810 tests, coverage 71.83/63.56/70.8/73.68; validate:quick 0; E2E smoke + public + owner-axe 248 passed, 5 skipped, 0 failed; screenshots against a same-session `4476e6450` build: 28 identical, 124 intended, 0 unclassified; CSP zod probe only; replay 357/357; mutation sweep 179/0/0; deno check 17/17; Edge deploy list export-report, generate-pdf, lease-signature, n8n-blog-ingest.
   - `f39-checks.mjs --fix-round-1` (189 checks) pins it; self-test 45. Ancestry by `git rev-list` (`git merge-base` is permission-blocked).
+- **2026-11-04.** Final (66.2-39) re-freeze after fix round 2: CP decisions applied (none: all five owner defaults), fix round 2 measured, state frozen, PR head refreshed for the merge gates.
+  - CI on `bc54b045a`: CodeQL 4 high alerts in test files (1 js/redos, 3 js/incomplete-sanitization), the mutation sweep cancelled at `timeout-minutes: 45` after 155 of 179 rows, `rls-security` (cross-link blog posts deleted from production by the n8n writer's prune step); on `f8de0175e`'s first run, `e2e-smoke` (the persona word on `/blog`). `74f8bd9f1` routes every regex name in test code through `src/test/utils/regexp-source.ts` and ends the JSX-comment ReDoS; `f8de0175e` shards the sweep into 8 matrix jobs. The owner paused the writer; 139 of the 140 deleted posts were restored (the 140th had been re-created by the writer) and six posts' persona word replaced, all in production data; CI on `f8de0175e` then passed every check.
+  - Re-run on code state `f8de0175e`: audit M1 938 (the new test helper; everything else byte-identical), css-parity 0 unclassified, tokens and guards byte-identical; unit 456 files / 113,834 tests, coverage 71.85/63.58/70.81/73.69; validate:quick 0; E2E smoke + public + owner-axe 249 passed, 4 skipped, 0 failed; mutation sweep unsharded and as 8 shards 179/0/0 with the listing a disjoint cover; part A's 26 red proofs fail again. The 4433ca833, b628eb9f1 and f8de0175e builds hash identically and the compiled CSS is byte-identical, so screenshots, probes and the CSP manifest counts carry forward; replay, Deno and the vendored inventory carry forward (inputs unchanged).
+  - `f39-checks.mjs --fix-round-2` (42 checks, incl. a local CodeQL-clean scan) pins it; self-test 64.
 
 ---
 
