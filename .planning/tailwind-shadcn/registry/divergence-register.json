@@ -322,6 +322,11 @@
      "ref": "D-28; 66.2-39 fix round 3 F75; VD-53"
     },
     {
+     "what": "the axis tick text rule matches each tick label's own class ([&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground) instead of upstream's [&_.recharts-cartesian-axis-tick_text], which targets recharts 2's markup: recharts 3 draws the labels in g.recharts-cartesian-axis-tick-labels, apart from g.recharts-cartesian-axis-tick, so upstream's rule matched no label and every axis painted recharts' fill=\"#666\" (5.58:1 on the light card, 3.37:1 on the dark one); chart-recharts-classes.test.tsx matches each ChartContainer recharts rule against the installed recharts' own SVG",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 3 part 6c; recharts 3.10.1 CartesianAxis"
+    },
+    {
      "what": "ChartContainer adds [&_.recharts-surface:focus-visible]:outline-2, :-outline-offset-2, :outline-ring and :outline-solid after upstream's [&_.recharts-surface]:outline-hidden, so the tab-focusable recharts surface shows an inset 2px ring-colored focus outline (outline-solid because outline-hidden sets --tw-outline-style: none)",
      "reason": "D-26 customization",
      "ref": "D-26; WCAG 2.4.7; cycle-1 c1 A11Y (chart.tsx:75)"

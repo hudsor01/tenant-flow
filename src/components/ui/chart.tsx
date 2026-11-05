@@ -75,13 +75,19 @@ function ChartContainer({
 	// Pie sets through a token (`stroke="var(--color-card)"`, the occupancy
 	// donut's wedge separator): a class rule beats the presentation attribute,
 	// so matching every [stroke] painted that separator transparent.
+	// The axis rule matches each tick label's own class: recharts 3 draws the
+	// labels in a `g.recharts-cartesian-axis-tick-labels` group, apart from the
+	// `g.recharts-cartesian-axis-tick` that upstream's `_text` descendant rule
+	// targets (recharts 2's markup), so that rule left every label at the grey
+	// fill attribute recharts writes. chart-recharts-classes.test.tsx matches
+	// every rule here against the installed recharts' own SVG.
 	return (
 		<ChartContext.Provider value={{ config }}>
 			<div
 				data-slot="chart"
 				data-chart={chartId}
 				className={cn(
-					"[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke]]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke]]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke]]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke]]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector:not([stroke^='var('])]:stroke-transparent [&_.recharts-surface]:outline-hidden [&_.recharts-surface:focus-visible]:outline-2 [&_.recharts-surface:focus-visible]:-outline-offset-2 [&_.recharts-surface:focus-visible]:outline-ring [&_.recharts-surface:focus-visible]:outline-solid",
+					"[&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke]]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke]]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke]]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke]]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector:not([stroke^='var('])]:stroke-transparent [&_.recharts-surface]:outline-hidden [&_.recharts-surface:focus-visible]:outline-2 [&_.recharts-surface:focus-visible]:-outline-offset-2 [&_.recharts-surface:focus-visible]:outline-ring [&_.recharts-surface:focus-visible]:outline-solid",
 					className,
 				)}
 				{...props}

@@ -134,7 +134,7 @@ describe("ChartContainer recharts stroke selectors (D-28, C2)", () => {
 	it("keeps the other recharts tokens and the layout classes", () => {
 		const classes = chartRootClass(renderChart(REVENUE_CONFIG));
 		for (const token of [
-			"[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground",
+			"[&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground",
 			"[&_.recharts-curve.recharts-tooltip-cursor]:stroke-border",
 			"aspect-video",
 			"[&_.recharts-surface]:outline-hidden",
