@@ -26,8 +26,8 @@
  *   - `fixtureCss()` / `loadFixtureEngine()`: an isolated stylesheet that opts
  *     out of source detection, so a negative control compiles a few lines
  *     without scanning the repository or inheriting the project theme.
- *   - `resolveScanSources()` / `scanSources()` / `parseCss()`: the individual
- *     steps, for guards that need a custom source set or the postcss tree.
+ *   - `scanSources()` / `parseCss()`: the individual steps, for guards that
+ *     need a custom source set or the postcss tree.
  *
  * CONSTRAINTS.
  *   1. Imports are limited to `node:fs`, `node:path`, `@tailwindcss/node`,
@@ -95,7 +95,7 @@ export interface TailwindEngine {
  * scans nothing automatically, an absent root scans the repository root, and
  * an explicit root scans that root; the declared `@source` entries follow.
  */
-export function resolveScanSources(
+function resolveScanSources(
 	compiler: Pick<TailwindCompiler, "root" | "sources">,
 	repoRoot: string = REPO_ROOT,
 ): SourceEntry[] {

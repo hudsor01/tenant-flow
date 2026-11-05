@@ -98,13 +98,13 @@ export type GuardResult = {
 };
 
 /** CSS Color 4: oklch lightness runs from 0 to 1 (0% to 100%). */
-export const OKLCH_LIGHTNESS_MAX = 1;
+const OKLCH_LIGHTNESS_MAX = 1;
 
 /**
  * CSS Color 4 maps 100% chroma to 0.4. Real sRGB and P3 colors stay below 0.37,
  * so anything above it is a typo rather than a deliberate color.
  */
-export const OKLCH_CHROMA_MAX = 0.37;
+const OKLCH_CHROMA_MAX = 0.37;
 
 /** CSS Color 4 reference range: `100%` chroma equals `0.4`. */
 const OKLCH_CHROMA_PERCENT_REFERENCE = 0.4;
@@ -366,7 +366,7 @@ export function extractCustomPropertyRefs(text: string): Set<string> {
  * compiled CSS, so `app/globals.css` is excluded; test files and the
  * `src/test/` harness are excluded because they do not ship.
  */
-export function isGuardSourceFile(relPath: string): boolean {
+function isGuardSourceFile(relPath: string): boolean {
 	const path = relPath.replaceAll("\\", "/");
 	if (!/\.(ts|tsx|css)$/.test(path)) return false;
 	if (path === "app/globals.css") return false;

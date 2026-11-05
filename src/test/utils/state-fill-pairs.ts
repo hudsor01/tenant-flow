@@ -25,11 +25,10 @@ import {
 	oklchToken,
 	oklchToLinearSrgb,
 	over,
+	type Theme,
 	themeBlock,
 } from "./oklch-contrast";
 import { escapeRegExp } from "./regexp-source";
-
-export type ThemeName = "light" | "dark";
 
 /** A painted color: a theme token at an alpha, or a fixed white or black. */
 export interface Paint {
@@ -40,7 +39,7 @@ export interface Paint {
 export interface StatePair {
 	/** The state chain, sorted and joined with ":" (no `dark`). */
 	state: string;
-	theme: ThemeName;
+	theme: Theme;
 	/** null: the state paints no fill, so the label sits on the surface. */
 	fill: Paint | null;
 	/** null: the label color is inherited from the parent. */
@@ -74,11 +73,14 @@ const STATE_VARIANTS = new Set([
 ]);
 
 /** A variant names a state: one of the set, or a named group-hover. */
-export function isStateVariant(variant: string): boolean {
+function isStateVariant(variant: string): boolean {
 	return STATE_VARIANTS.has(variant) || variant.startsWith("group-hover/");
 }
 
-/** The color names globals.css defines, plus the fixed and keyword colors. */
+/**
+ * The fixed colors and the keyword colors; the theme's color names arrive as
+ * the `colors` parameter.
+ */
 const FIXED = new Set(["white", "black"]);
 const KEYWORD = new Set(["transparent", "current", "inherit"]);
 
@@ -113,7 +115,7 @@ const TEXT = "te" + "xt-";
  * undefined when it is not a color (a size, an arbitrary value) or the color
  * is not one of `colors`.
  */
-export function colorOf(
+function colorOf(
 	utility: string,
 	prefix: "bg" | "text",
 	colors: ReadonlySet<string>,
@@ -171,7 +173,7 @@ export function statePairs(
 			if (stateful) map.set(key, slot);
 		}
 	}
-	const pick = (slot: Slot | undefined, theme: ThemeName) =>
+	const pick = (slot: Slot | undefined, theme: Theme) =>
 		theme === "dark" && slot?.dark !== undefined ? slot.dark : slot?.light;
 	// The cascade, approximated: under a state chain, the slot whose chain is
 	// the largest subset of it applies (more variants compile later and win),
@@ -198,7 +200,7 @@ export function statePairs(
 	const best = (
 		map: Map<string, Slot>,
 		variants: string[],
-		theme: ThemeName,
+		theme: Theme,
 	): { paint: Paint | null | undefined; slot: Slot | undefined } => {
 		let found: Slot | undefined;
 		let size = -1;
@@ -309,12 +311,12 @@ export function classStrings(source: string): { text: string; line: number }[] {
 }
 
 /** The surfaces a state fill can sit on: the page, a card, a menu or popover. */
-export const STATE_SURFACES = ["background", "card", "popover"] as const;
+const STATE_SURFACES = ["background", "card", "popover"] as const;
 
 /** A token's linear sRGB in `theme`, following one `var(--x)` alias. */
 export function themeColor(
 	css: string,
-	theme: ThemeName,
+	theme: Theme,
 	token: string,
 ): LinearRgb {
 	if (token === "white") return [1, 1, 1];
@@ -331,7 +333,7 @@ export function themeColor(
 
 function paintOver(
 	css: string,
-	theme: ThemeName,
+	theme: Theme,
 	paint: Paint,
 	under: LinearRgb,
 ): LinearRgb {
