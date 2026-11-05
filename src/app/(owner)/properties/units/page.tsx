@@ -37,7 +37,7 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useCreateUnitMutation } from "#hooks/api/use-unit";
 import { createLogger } from "#lib/frontend-logger";
 import type { UnitInput } from "#lib/validation/units";
-import { type UnitRow, unitColumns } from "./columns";
+import { unitColumns } from "./columns";
 
 // Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
 const ChartAreaInteractive = dynamic(
@@ -69,7 +69,7 @@ export default function UnitsPage() {
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
 	const { data: unitsStats } = useQuery(unitQueries.stats());
 
-	const units = (unitsResponse?.data || []) as UnitRow[];
+	const units = unitsResponse?.data ?? [];
 	const properties = propertiesResponse?.data || [];
 
 	// Use backend statistics directly - trust the database calculations

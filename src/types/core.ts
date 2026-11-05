@@ -3,7 +3,7 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { Database, Tables, TablesInsert, TablesUpdate } from "./supabase";
+import type { Tables, TablesInsert, TablesUpdate } from "./supabase";
 
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
 // These are manually defined to match database CHECK constraints.
@@ -176,27 +176,6 @@ export type TenantWithExtras = Tenant & {
 export type MaintenanceCategory = MaintenanceCategoryFromConstants;
 export type PropertyType = PropertyTypeFromConstants;
 export type ActivityEntityType = ActivityEntityTypeFromConstants;
-
-export type UnitRowWithRelations =
-	Database["public"]["Tables"]["units"]["Row"] & {
-		property?: {
-			name: string;
-			address: string;
-		};
-		tenant?: {
-			name: string;
-			email: string;
-			phone?: string;
-		} | null;
-		lease?: {
-			start_date: string;
-			end_date: string | null;
-			rent_amount: number;
-			status: LeaseStatus;
-		} | null;
-		marketValue?: number;
-		lastUpdated?: string;
-	};
 
 // NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase'
 // Do NOT re-export here to avoid circular dependencies

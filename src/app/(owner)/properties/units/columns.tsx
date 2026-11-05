@@ -5,23 +5,22 @@
  * Component implementations are extracted into ./components/ for maintainability.
  */
 
-import { DataTableColumnHeader } from "#components/data-table/data-table-column-header";
-import type { UnitRowWithRelations, UnitStatus } from "#types/core";
-
-export type UnitRow = UnitRowWithRelations;
-
 import type { ColumnDef } from "@tanstack/react-table";
 import { Bath, Bed, MapPin, Maximize2 } from "lucide-react";
+import { DataTableColumnHeader } from "#components/data-table/data-table-column-header";
+import type { UnitListRow } from "#hooks/api/query-keys/unit-keys";
 import { formatCurrency } from "#lib/utils/currency";
+import type { UnitStatus } from "#types/core";
 import { UnitActions } from "./components/unit-actions";
 // Import extracted components
 import { statusConfig, UnitStatusBadge } from "./components/unit-status-badge";
 
 /**
- * Column definitions for the units data table
+ * Column definitions for the units data table, over the rows
+ * `unitQueries.list` returns (each with its property's name).
  * Uses TanStack Table with DiceUI DataTable enhancements
  */
-export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
+export const unitColumns: ColumnDef<UnitListRow>[] = [
 	{
 		accessorKey: "unit_number",
 		header: ({ column }) => (
@@ -34,16 +33,16 @@ export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const unit: UnitRow = row.original;
+			const { propertyName } = row.original;
 			return (
 				<div className="flex flex-col gap-1 py-2">
 					<div className="font-bold text-foreground">
 						Unit {row.getValue("unit_number")}
 					</div>
-					{unit.property && (
+					{propertyName && (
 						<div className="text-muted-foreground text-xs">
 							<MapPin className="size-3 inline mr-1" />
-							{unit.property.name}
+							{propertyName}
 						</div>
 					)}
 				</div>
@@ -160,22 +159,11 @@ export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const unit: UnitRow = row.original;
 			const status = row.getValue("status") as UnitStatus;
 
 			return (
-				<div className="space-y-2 py-2">
+				<div className="py-2">
 					<UnitStatusBadge status={status} />
-					{unit.tenant && status === "occupied" && (
-						<div className="space-y-1">
-							<div className="font-medium text-foreground text-sm">
-								{unit.tenant.name}
-							</div>
-							<div className="text-muted-foreground text-xs">
-								{unit.tenant.email}
-							</div>
-						</div>
-					)}
 				</div>
 			);
 		},

@@ -29,15 +29,16 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
+import type { UnitListRow } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
-import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
+import type { UnitStatus } from "#types/core";
 import { UnitEditDialog, UnitViewDialog } from "./unit-detail-dialogs";
 import { statusConfig } from "./unit-status-badge";
 
 interface UnitActionsProps {
-	unit: UnitRow;
+	unit: UnitListRow;
 }
 
 export function UnitActions({ unit }: UnitActionsProps) {

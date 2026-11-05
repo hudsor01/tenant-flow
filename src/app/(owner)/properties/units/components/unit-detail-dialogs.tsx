@@ -11,11 +11,11 @@ import {
 import { Label } from "#components/ui/label";
 import { formatCount } from "#lib/formatters/count";
 import { formatCurrency } from "#lib/utils/currency";
-import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
+import type { Unit, UnitStatus } from "#types/core";
 import { UnitStatusBadge } from "./unit-status-badge";
 
 interface UnitViewDialogProps {
-	unit: UnitRow;
+	unit: Unit;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
@@ -79,7 +79,7 @@ export function UnitViewDialog({
 }
 
 interface UnitEditDialogProps {
-	unit: UnitRow;
+	unit: Unit;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
