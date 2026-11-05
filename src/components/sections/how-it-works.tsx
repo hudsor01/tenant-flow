@@ -125,7 +125,7 @@ function StepCard({ step, index }: StepCardProps) {
 	const colors = colorClasses[step.color as keyof typeof colorClasses];
 
 	return (
-		<div className="relative group h-full">
+		<div className="relative h-full">
 			{/* Card */}
 			<div className="card-standard p-8 h-full">
 				{/* Step number & icon */}

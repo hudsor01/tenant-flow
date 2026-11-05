@@ -222,7 +222,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 									<DialogTrigger asChild>
 										<button
 											type="button"
-											className="overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring relative group"
+											className="overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring relative"
 											aria-label={`View ${photo.file_name}`}
 										>
 											{isVideo ? (

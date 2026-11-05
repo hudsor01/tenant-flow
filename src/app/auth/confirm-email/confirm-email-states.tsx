@@ -64,7 +64,7 @@ export function ConfirmEmailImagePanel() {
 								{ value: "E-Sign", label: ["Built-in", "Signing"] },
 								{ value: "Reports", label: ["Tax-ready", "Exports"] },
 							].map((stat) => (
-								<div key={stat.value} className="text-center group">
+								<div key={stat.value} className="text-center">
 									<div className="text-foreground font-bold text-2xl mb-1">
 										{stat.value}
 									</div>

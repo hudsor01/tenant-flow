@@ -203,7 +203,7 @@ export function InspectionRoomCard({
 								{photos.map((photo) => (
 									<div
 										key={photo.id}
-										className="aspect-square rounded-md bg-muted overflow-hidden relative group"
+										className="aspect-square rounded-md bg-muted overflow-hidden relative"
 									>
 										{photo.publicUrl ? (
 											// Signed URL from the private inspection-photos bucket is
