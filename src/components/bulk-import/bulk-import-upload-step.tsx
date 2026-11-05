@@ -104,7 +104,7 @@ export function BulkImportUploadStep<T>({
 					<Button
 						variant="outline"
 						size="sm"
-						className="gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all"
+						className="gap-2 hover:bg-primary/5 hover:border-primary/40 dark:hover:bg-primary/5 transition-all"
 						onClick={(e) => {
 							e.stopPropagation();
 							downloadTemplate();

@@ -233,7 +233,7 @@ export default function ResourcesPage() {
 							<Button
 								variant="outline"
 								size="lg"
-								className="border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-8 py-4"
+								className="border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/help">Browse Help Center</Link>

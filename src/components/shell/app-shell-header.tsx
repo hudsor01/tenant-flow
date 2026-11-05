@@ -41,7 +41,7 @@ export function AppShellHeader({
 					ref={triggerRef}
 					aria-label="Toggle navigation menu"
 					data-tour="sidebar-trigger"
-					className="text-muted-foreground hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted"
+					className="text-muted-foreground hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted dark:hover:text-muted-foreground"
 				/>
 
 				{/* Breadcrumbs */}

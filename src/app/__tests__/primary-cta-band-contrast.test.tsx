@@ -6,8 +6,10 @@
  *   with the band's foreground label it read 1.01:1 light and 4.38:1 dark.
  *   The CTA is transparent on the band instead: its label reads 4.88:1 light
  *   and 6.84:1 dark on `bg-primary`, and its hover, `primary-text` on
- *   `primary-foreground`, 6.81:1 / 9.55:1 in both themes (the variant's dark
- *   `input/50` hover and `input` border no longer win in dark).
+ *   `primary-foreground`, 6.81:1 / 9.55:1. In dark the variant's `input/50`
+ *   hover, `input` border and `foreground` hover label each lose to a `dark:`
+ *   twin the CTA sets (66.2-39 fix round 3, F7): without
+ *   `dark:hover:text-primary-text` the dark hover label was `foreground`.
  * - The 20px regular paragraph read `text-primary-foreground/90`, 4.24:1
  *   light; the full token reads 4.88:1.
  *
@@ -41,6 +43,7 @@ describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
 				"hover:bg-primary-foreground",
 				"dark:hover:bg-primary-foreground",
 				"hover:text-primary-text",
+				"dark:hover:text-primary-text",
 				"dark:border-primary-foreground/50",
 			]),
 		);
@@ -48,6 +51,7 @@ describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
 			"bg-background",
 			"dark:bg-input/30",
 			"dark:hover:bg-input/50",
+			"dark:hover:text-foreground",
 			"dark:border-input",
 		]) {
 			expect(classes).not.toContain(cls);

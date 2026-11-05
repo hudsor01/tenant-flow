@@ -252,7 +252,7 @@ export function SubscriptionCancelSection() {
 						<AlertDialogTrigger asChild>
 							<Button
 								variant="outline"
-								className="text-destructive-text border-destructive/20 hover:bg-destructive/10"
+								className="text-destructive-text border-destructive/20 hover:bg-destructive/10 hover:text-destructive-text dark:border-destructive/20 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 							>
 								Cancel Plan
 							</Button>

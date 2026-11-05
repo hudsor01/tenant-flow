@@ -72,7 +72,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							<Button
 								variant="outline"
 								size="lg"
-								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
+								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 dark:border-border/50 dark:hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
 								<Link href="/contact" aria-label="Talk to our team">

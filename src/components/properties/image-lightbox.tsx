@@ -112,9 +112,7 @@ export function ImageLightbox({
 							<Button
 								variant="ghost"
 								size="icon"
-								className={
-									"absolute top-1/2 -translate-y-1/2 left-4 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
-								}
+								className="absolute top-1/2 -translate-y-1/2 left-4 bg-black/50 hover:bg-black/70 text-white hover:text-white dark:hover:bg-black/70 dark:hover:text-white rounded-full transition-colors"
 								onClick={handlePrevious}
 								aria-label="Previous image"
 							>
@@ -125,9 +123,7 @@ export function ImageLightbox({
 							<Button
 								variant="ghost"
 								size="icon"
-								className={
-									"absolute top-1/2 -translate-y-1/2 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
-								}
+								className="absolute top-1/2 -translate-y-1/2 right-4 bg-black/50 hover:bg-black/70 text-white hover:text-white dark:hover:bg-black/70 dark:hover:text-white rounded-full transition-colors"
 								onClick={handleNext}
 								aria-label="Next image"
 							>

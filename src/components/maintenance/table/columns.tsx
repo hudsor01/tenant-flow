@@ -251,7 +251,7 @@ function MaintenanceActionsCell({
 					<Button
 						size="sm"
 						variant="ghost"
-						className="text-destructive hover:text-destructive"
+						className="text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 						disabled={isDeleting}
 						aria-label="Delete request"
 					>

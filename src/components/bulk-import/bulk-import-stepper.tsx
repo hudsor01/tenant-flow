@@ -168,7 +168,7 @@ export function BulkImportStepper<T>({
 						variant="outline"
 						onClick={handleBack}
 						disabled={isImporting}
-						className="gap-2 hover:bg-muted/50"
+						className="gap-2 hover:bg-muted/50 dark:hover:bg-muted/50"
 					>
 						<ArrowLeft className="size-4" />
 						{currentStep === "validate" ? "Back" : "Cancel"}

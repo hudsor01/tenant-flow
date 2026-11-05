@@ -79,7 +79,10 @@ export function SignLeaseButton({
 				variant="outline"
 				size={size}
 				disabled
-				className={cn("gap-2 text-success-text border-success/20", className)}
+				className={cn(
+					"gap-2 text-success-text border-success/20 dark:border-success/20",
+					className,
+				)}
 			>
 				<CheckCircle2 className="h-4 w-4" />
 				Signed

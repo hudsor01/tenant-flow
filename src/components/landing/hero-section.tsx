@@ -42,7 +42,7 @@ export function HeroSection() {
 							<Button
 								size="lg"
 								variant="outline"
-								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
+								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
 								asChild
 							>
 								<Link href="/contact">

@@ -178,7 +178,7 @@ function CategorySection({
 			<CollapsibleTrigger asChild>
 				<Button
 					variant="ghost"
-					className="w-full justify-between py-4 px-6 h-auto rounded-none border-b border-border/50 hover:bg-muted/50"
+					className="w-full justify-between py-4 px-6 h-auto rounded-none border-b border-border/50 hover:bg-muted/50 dark:hover:bg-muted/50"
 				>
 					<span className="font-semibold text-foreground">{category}</span>
 					<ChevronDown

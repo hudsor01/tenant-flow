@@ -19,7 +19,7 @@ import {
 	AlertDialogTitle,
 } from "#components/ui/alert-dialog";
 import { Badge } from "#components/ui/badge";
-import { Button, buttonVariants } from "#components/ui/button";
+import { Button } from "#components/ui/button";
 import { cardVariants } from "#components/ui/card";
 import {
 	DropdownMenu,
@@ -81,10 +81,7 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						<Button
 							variant="ghost"
 							size="sm"
-							className={cn(
-								buttonVariants({ variant: "ghost", size: "sm" }),
-								"size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all",
-							)}
+							className="size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/50 transition-all"
 						>
 							<span className="sr-only">
 								Open actions menu for unit {unit.unit_number}

@@ -81,7 +81,7 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 						<Button
 							variant="ghost"
 							size="sm"
-							className="size-9 cursor-not-allowed p-0 text-muted-foreground opacity-50 hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent"
+							className="size-9 cursor-not-allowed p-0 text-muted-foreground opacity-50 hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent dark:hover:text-muted-foreground"
 							aria-disabled="true"
 							aria-label={`Delete ${category.label}`}
 						>

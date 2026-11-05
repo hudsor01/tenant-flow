@@ -11,9 +11,18 @@
  * label must clear 4.5:1. An inherited label is read as both `foreground` and
  * `muted-foreground`.
  *
+ * A Button's element carries more than its caller's class string: Button merges
+ * the caller's `className` into the variant's classes with `cn`, so a caller
+ * that sets only a hover label keeps the variant's hover fill (66.2-39 fix
+ * round 3, F58, F60). Every Button site (`#test/utils/button-sites`, wrappers
+ * such as the sidebar trigger included) is therefore also measured on the
+ * merged class string Button renders (`buttonClasses`: `cn(buttonVariants({
+ * variant, size, className }))`), for each class string its caller can pass.
+ *
  * A class string cannot show what its element carries, so three reviewed lists
  * name the states the string alone mis-reads. Each entry must still match, and
- * an icon-only entry must clear its own 3:1 (WCAG 1.4.11):
+ * an icon-only entry must clear its own 3:1 (WCAG 1.4.11). LABEL_ELSEWHERE never
+ * applies to a merged Button string, which is the element's whole class:
  * - ICON_ONLY: the state's label is an icon, the control's only content;
  * - LABEL_ELSEWHERE: the label color is set in another class string of the
  *   same element, given here and measured;
@@ -24,6 +33,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { buttonClasses, buttonSites } from "#test/utils/button-sites";
 import {
 	classStrings,
 	type Paint,
@@ -124,6 +134,8 @@ interface Finding {
 	pair: StatePair;
 	ratio: number;
 	at: string;
+	/** Measured on a Button's merged class string, not one literal. */
+	merged: boolean;
 }
 
 function matches(entry: Reviewed, finding: Finding): boolean {
@@ -135,18 +147,42 @@ function matches(entry: Reviewed, finding: Finding): boolean {
 function stateFindings(): { checked: number; under: Finding[] } {
 	let checked = 0;
 	const under: Finding[] = [];
-	for (const { path, text } of collectG7SourceTexts(ROOT)) {
-		for (const literal of classStrings(text)) {
-			for (const pair of statePairs(literal.text, COLORS)) {
-				checked += 1;
-				const { ratio, at } = worstStateContrast(CSS, pair);
-				if (ratio < 4.5) {
-					under.push({ file: path, line: literal.line, pair, ratio, at });
-				}
+	const measure = (
+		path: string,
+		line: number,
+		text: string,
+		merged: boolean,
+	) => {
+		for (const pair of statePairs(text, COLORS)) {
+			checked += 1;
+			const { ratio, at } = worstStateContrast(CSS, pair);
+			if (ratio < 4.5) {
+				under.push({ file: path, line, pair, ratio, at, merged });
 			}
+		}
+	};
+	const sources = collectG7SourceTexts(ROOT);
+	for (const { path, text } of sources) {
+		for (const literal of classStrings(text)) {
+			measure(path, literal.line, literal.text, false);
+		}
+	}
+	const sites = buttonSites(new Map(sources.map((s) => [s.path, s.text])));
+	for (const site of sites) {
+		for (const className of site.classNames) {
+			measure(
+				site.file,
+				site.line,
+				buttonClasses(site.variant, site.size, className),
+				true,
+			);
 		}
 	}
 	return { checked, under };
+}
+
+function reviewedFor(f: Finding): Reviewed[] {
+	return [...ICON_ONLY, ...(f.merged ? [] : LABEL_ELSEWHERE), ...NO_LABEL];
 }
 
 describe("state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F)", () => {
@@ -158,12 +194,7 @@ describe("state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F)",
 
 	it("leaves no label under 4.5:1 in any state, either theme", () => {
 		const unexplained = under
-			.filter(
-				(f) =>
-					![...ICON_ONLY, ...LABEL_ELSEWHERE, ...NO_LABEL].some((entry) =>
-						matches(entry, f),
-					),
-			)
+			.filter((f) => !reviewedFor(f).some((entry) => matches(entry, f)))
 			.map(
 				(f) =>
 					`${f.file}:${f.line} ${f.pair.state} ${f.ratio.toFixed(2)} ${f.at} [${f.pair.source.join(" ")}]`,
@@ -177,7 +208,9 @@ describe("state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F)",
 			if (ICON_ONLY.some((entry) => matches(entry, f)) && f.ratio < 3) {
 				failures.push(`${f.file}:${f.line} icon ${f.ratio.toFixed(2)} ${f.at}`);
 			}
-			const elsewhere = LABEL_ELSEWHERE.find((entry) => matches(entry, f));
+			const elsewhere = f.merged
+				? undefined
+				: LABEL_ELSEWHERE.find((entry) => matches(entry, f));
 			if (elsewhere) {
 				const { ratio, at } = worstStateContrast(CSS, f.pair, elsewhere.label);
 				if (ratio < 4.5) {

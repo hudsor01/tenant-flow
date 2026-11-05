@@ -42,7 +42,7 @@ export function GoogleButton({
 					"hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10",
 					"hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]",
 					"active:scale-[0.98] active:shadow-md",
-					"border-2 border-border hover:border-primary dark:hover:border-primary",
+					"border-2 border-border hover:border-primary dark:border-border dark:hover:border-primary",
 					"focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background",
 					"disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none",
 					isLoading && "animate-pulse",

@@ -70,7 +70,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 								<Button
 									variant="ghost"
 									size="sm"
-									className="text-destructive hover:text-destructive min-h-11"
+									className="text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text min-h-11"
 									aria-label={`Delete ${vendor.name}`}
 								>
 									<Trash2 className="size-4" />

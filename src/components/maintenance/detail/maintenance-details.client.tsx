@@ -216,7 +216,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						</Button>
 						<Button
 							variant="outline"
-							className="w-full justify-start gap-2 text-destructive-text hover:text-destructive-text"
+							className="w-full justify-start gap-2 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 							disabled={deleteMutation.isPending}
 							onClick={async () => {
 								if (
