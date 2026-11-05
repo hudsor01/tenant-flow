@@ -28,6 +28,17 @@ const priorities = [
 	{ value: "urgent", label: "Urgent" },
 ];
 
+/**
+ * A priority as the request reads it, on the preview and in the generated PDF
+ * alike: its label ("Medium"), never the stored value ("medium").
+ */
+function priorityLabel(value: unknown): string {
+	return (
+		priorities.find((priority) => priority.value === value)?.label ??
+		String(value ?? "")
+	);
+}
+
 export function MaintenanceRequestTemplate() {
 	const [branding, setBranding] = useState(defaultBranding);
 	const form = useForm({
@@ -162,7 +173,7 @@ export function MaintenanceRequestTemplate() {
 					email: values.requesterEmail,
 				},
 				request: {
-					priority: values.priority,
+					priority: priorityLabel(values.priority),
 					preferredDate: values.preferredDate,
 					accessNotes: values.accessNotes,
 					description: values.description,
@@ -227,9 +238,7 @@ export function MaintenanceRequestTemplate() {
 						Requester: {form.state.values.requesterName}
 					</p>
 					<p className="text-sm">
-						Priority:{" "}
-						{priorities.find((p) => p.value === form.state.values.priority)
-							?.label ?? form.state.values.priority}
+						Priority: {priorityLabel(form.state.values.priority)}
 					</p>
 					<p className="text-sm">
 						Preferred date: {form.state.values.preferredDate}
