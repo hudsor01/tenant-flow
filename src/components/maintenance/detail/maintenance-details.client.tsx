@@ -13,8 +13,6 @@ import { DocumentsSection } from "#components/documents/documents-section";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
-import { propertyQueries } from "#hooks/api/query-keys/property-keys";
-import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
 import { formatLocalYmd } from "#lib/formatters/date";
@@ -36,18 +34,13 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const deleteMutation = useDeleteMaintenanceRequest();
+	// The request names its own unit and property (its detail embeds them):
+	// no capped or filtered unit or property list can name every request.
 	const { data: request } = useSuspenseQuery(maintenanceQueries.detail(id));
-	const { data: propertiesResponse } = useSuspenseQuery(propertyQueries.list());
-	const { data: unitsResponse } = useSuspenseQuery(unitQueries.list());
 
 	const { data: expensesData } = useQuery(maintenanceQueries.expenses(id));
 
-	const units = unitsResponse?.data ?? [];
-	const properties = propertiesResponse?.data ?? [];
 	const expenses = expensesData ?? [];
-
-	const unit = units.find((u) => u.id === request?.unit_id);
-	const property = properties.find((p) => p.id === unit?.property_id);
 
 	const handleRefresh = () => {
 		queryClient.invalidateQueries({
@@ -67,8 +60,8 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			description: request.description,
 			status: request.status,
 			priority: request.priority,
-			property: property?.name ?? "Unknown",
-			unit: unit?.unit_number ?? "Unknown",
+			property: request.propertyName ?? "Unknown",
+			unit: request.unitNumber ?? "Unknown",
 			created_at: request.created_at,
 			scheduled_date: request.scheduled_date,
 			completed_at: request.completed_at,
@@ -100,8 +93,8 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		try {
 			const html = buildWorkOrderHtml({
 				request,
-				propertyName: property?.name ?? null,
-				unitNumber: unit?.unit_number ?? null,
+				propertyName: request.propertyName,
+				unitNumber: request.unitNumber,
 				expenses: expenses.map((e) => ({
 					vendor_name: e.vendor_name ?? "Vendor",
 					amount: formatCurrency(e.amount ?? 0),
@@ -129,8 +122,6 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			<div className="lg:col-span-2 space-y-6">
 				<MaintenanceHeaderCard
 					request={request}
-					property={property}
-					unit={unit}
 					spentToDate={spentToDate}
 					onRefresh={handleRefresh}
 					onExport={handleExport}

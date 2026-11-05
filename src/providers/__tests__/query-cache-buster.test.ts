@@ -12,9 +12,10 @@
  * deduction, Schedule E and depreciation fields (part Q, v6); the analytics
  * pages, the report queries and the income statement lost the fields no
  * screen or export reads, unitQueries.list's rows gained the `propertyName`
- * their embedded property gives, and maintenanceQueries.list's rows the
+ * their embedded property gives, maintenanceQueries.list's rows the
  * `propertyName`, `unitNumber` and `tenantName` their embedded unit, property
- * and tenant give (fix round 3, v7).
+ * and tenant give, and maintenanceQueries.detail the `propertyName` and
+ * `unitNumber` (fix round 3, v7).
  * An entry persisted under an older buster would be read back by the new
  * pages as neither shape and drawn as an empty or $0 report until the refetch
  * landed. The buster is module-private, so this reads the source.

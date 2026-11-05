@@ -39,6 +39,8 @@ describe("MaintenanceHeaderCard", () => {
 					priority: "normal",
 					scheduled_date: null,
 					estimated_cost: 300,
+					propertyName: "Maple Court",
+					unitNumber: "4B",
 				}}
 				spentToDate={250.5}
 				onRefresh={() => undefined}

@@ -29,7 +29,9 @@ import type {
 } from "#types/domain";
 import { mutationKeys } from "../mutation-keys";
 import {
+	type MaintenanceDetailRow,
 	type MaintenanceListRow,
+	mapMaintenanceDetailRow,
 	mapMaintenanceListRow,
 	mapMaintenanceRow,
 } from "./maintenance-mappers";
@@ -60,6 +62,13 @@ const MAINTENANCE_SELECT_COLUMNS =
  */
 const UNIT_EMBED_COLUMNS = "unit_number, property_id, properties(name, status)";
 const TENANT_EMBED = "tenant:tenant_id(name, first_name, last_name)";
+
+/**
+ * The detail page's select, which an update also returns (its result replaces
+ * the cached detail): the request's columns and where it is, through the same
+ * unit embed as the list.
+ */
+const MAINTENANCE_DETAIL_SELECT = `${MAINTENANCE_SELECT_COLUMNS}, units(${UNIT_EMBED_COLUMNS})`;
 
 /**
  * Maintenance query factory
@@ -132,19 +141,17 @@ export const maintenanceQueries = {
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.details(), id],
-			queryFn: async (): Promise<MaintenanceRequest> => {
+			queryFn: async (): Promise<MaintenanceDetailRow> => {
 				const supabase = createClient();
-				// Include vendor relation in detail view for vendor name display
 				const { data, error } = await supabase
 					.from("maintenance_requests")
-					.select(`${MAINTENANCE_SELECT_COLUMNS}, vendors(id, name, trade)`)
+					.select(MAINTENANCE_DETAIL_SELECT)
 					.eq("id", id)
 					.single();
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				// detail() embeds `vendors(...)` — mapMaintenanceRow ignores it.
-				return mapMaintenanceRow(data as Record<string, unknown>);
+				return mapMaintenanceDetailRow(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
@@ -305,22 +312,24 @@ export const maintenanceMutations = {
 				id,
 				data,
 				version: _version,
-			}: MaintenanceUpdateMutationVariables): Promise<MaintenanceRequest> => {
+			}: MaintenanceUpdateMutationVariables): Promise<MaintenanceDetailRow> => {
 				// Note: version is intentionally unused -- optimistic locking via version
 				// is not implemented in the DB schema. The parameter is kept in the
 				// interface for future compatibility.
 				const supabase = createClient();
 
+				// The detail's select, so the cached detail this replaces
+				// (updateDetail) keeps where the request is.
 				const { data: updated, error } = await supabase
 					.from("maintenance_requests")
 					.update(omitUndefined(data))
 					.eq("id", id)
-					.select()
+					.select(MAINTENANCE_DETAIL_SELECT)
 					.single();
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return mapMaintenanceRow(updated as Record<string, unknown>);
+				return mapMaintenanceDetailRow(updated);
 			},
 		}),
 

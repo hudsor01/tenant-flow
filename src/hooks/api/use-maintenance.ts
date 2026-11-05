@@ -12,11 +12,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 // Import query keys from separate file to avoid circular dependency
-import type { MaintenanceRequest } from "#types/core";
 import {
 	maintenanceMutations,
 	maintenanceQueries,
 } from "./query-keys/maintenance-keys";
+import type { MaintenanceDetailRow } from "./query-keys/maintenance-mappers";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 /** Variables for update mutation including optional optimistic locking version */
@@ -70,7 +70,7 @@ export function useMaintenanceRequestUpdateMutation() {
 
 	return useMutation({
 		...maintenanceMutations.update(),
-		...createMutationCallbacks<MaintenanceRequest>(queryClient, {
+		...createMutationCallbacks<MaintenanceDetailRow>(queryClient, {
 			invalidate: [
 				maintenanceQueries.lists(),
 				maintenanceQueries.stats().queryKey,

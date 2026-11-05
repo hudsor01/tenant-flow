@@ -17,6 +17,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+	mapMaintenanceDetailRow,
 	mapMaintenanceListRow,
 	mapMaintenanceRow,
 } from "./maintenance-mappers";
@@ -125,7 +126,7 @@ describe("mapMaintenanceRow", () => {
 		expect(mapped).not.toHaveProperty("actual_cost");
 	});
 
-	it("ignores an extra `vendors` embed key from the detail join branch", () => {
+	it("ignores any other embed key (a `vendors` one)", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
 			vendors: { id: "v1", name: "Acme Plumbing", trade: "plumbing" },
@@ -252,5 +253,26 @@ describe("mapMaintenanceListRow", () => {
 				units: { ...listRow.units, properties: { status: "active" } },
 			}),
 		).toThrow(/name/);
+	});
+});
+
+describe("mapMaintenanceDetailRow", () => {
+	it("names the unit and property from the unit embed alone", () => {
+		const mapped = mapMaintenanceDetailRow({
+			...validRow,
+			units: {
+				unit_number: "2B",
+				property_id: "00000000-0000-0000-0000-0000000000aa",
+				properties: { name: "Gamma Flats", status: "inactive" },
+			},
+		});
+		expect(mapped.propertyName).toBe("Gamma Flats (deleted)");
+		expect(mapped.unitNumber).toBe("2B");
+		expect(mapped).not.toHaveProperty("tenantName");
+		expect(mapped).not.toHaveProperty("units");
+	});
+
+	it("throws when the select dropped the unit embed", () => {
+		expect(() => mapMaintenanceDetailRow(validRow)).toThrow(/units/);
 	});
 });

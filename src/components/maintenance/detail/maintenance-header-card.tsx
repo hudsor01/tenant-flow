@@ -12,27 +12,16 @@ import Link from "next/link";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import type { MaintenanceDetailRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
-import type {
-	MaintenancePriority,
-	MaintenanceRequest as MaintenanceRow,
-	MaintenanceStatus,
-} from "#types/core";
+import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 import { PRIORITY_CONFIG, STATUS_CONFIG } from "./maintenance-utils";
 import { ScheduleDialog } from "./schedule-dialog";
 import { StatusSelect } from "./status-select";
 
-interface PropertyInfo {
-	name?: string | null;
-}
-
-interface UnitInfo {
-	unit_number?: string | null;
-}
-
 type MaintenanceHeaderRequest = Pick<
-	MaintenanceRow,
+	MaintenanceDetailRow,
 	| "id"
 	| "title"
 	| "description"
@@ -40,12 +29,12 @@ type MaintenanceHeaderRequest = Pick<
 	| "priority"
 	| "scheduled_date"
 	| "estimated_cost"
+	| "propertyName"
+	| "unitNumber"
 >;
 
 interface MaintenanceHeaderCardProps {
 	request: MaintenanceHeaderRequest;
-	property?: PropertyInfo | null | undefined;
-	unit?: UnitInfo | null | undefined;
 	/**
 	 * The request's spend to date: its expenses (not soft-deleted) dated
 	 * through today, as get_maintenance_analytics counts total_cost
@@ -58,8 +47,6 @@ interface MaintenanceHeaderCardProps {
 
 export function MaintenanceHeaderCard({
 	request,
-	property,
-	unit,
 	spentToDate,
 	onRefresh,
 	onExport,
@@ -129,11 +116,11 @@ export function MaintenanceHeaderCard({
 							Location
 						</div>
 						<p className="mt-1 font-medium">
-							{property?.name ?? "Unassigned property"}
+							{request.propertyName ?? "Unknown Property"}
 						</p>
-						{unit && (
+						{request.unitNumber && (
 							<p className="text-sm text-muted-foreground">
-								Unit {unit.unit_number}
+								Unit {request.unitNumber}
 							</p>
 						)}
 					</div>

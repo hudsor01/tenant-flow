@@ -127,13 +127,11 @@ export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 }
 
 /**
- * A maintenance request as the list (the board, the table and its search)
- * shows it: the row and the names of what it is for, from the list's own
- * embeds (`units(unit_number, property_id, properties(name, status))` and
- * `tenant:tenant_id(name, first_name, last_name)`). A request is never shown
- * by its unit's id.
+ * A maintenance request as its detail page shows it: the row and where it is,
+ * from the request's own `units(unit_number, property_id, properties(name,
+ * status))` embed. A request is never shown by its unit's id.
  */
-export interface MaintenanceListRow extends MaintenanceRequest {
+export interface MaintenanceDetailRow extends MaintenanceRequest {
 	/**
 	 * As a report prints it (`propertyReportName`): "Gamma Flats (deleted)"
 	 * for a property the owner deleted; null with no property row.
@@ -141,6 +139,14 @@ export interface MaintenanceListRow extends MaintenanceRequest {
 	propertyName: string | null;
 	/** The unit's number; null when it has none, or with no unit row. */
 	unitNumber: string | null;
+}
+
+/**
+ * A maintenance request as the list (the board, the table and its search)
+ * shows it: where it is, as on its detail page, and its tenant's name, from
+ * the list's `tenant:tenant_id(name, first_name, last_name)` embed.
+ */
+export interface MaintenanceListRow extends MaintenanceDetailRow {
 	/** The tenant's name, else first and last; null with neither or no row. */
 	tenantName: string | null;
 }
@@ -153,7 +159,7 @@ function nullableString(value: unknown, field: string): string | null {
 	if (value === null || value === undefined) return null;
 	if (typeof value !== "string") {
 		throw new Error(
-			`mapMaintenanceListRow: '${field}' is not a string in the PostgREST response`,
+			`maintenance row: '${field}' is not a string in the PostgREST response`,
 		);
 	}
 	return value;
@@ -170,14 +176,14 @@ function toOneEmbed(
 ): Record<string, unknown> | null {
 	if (!(key in row)) {
 		throw new Error(
-			`mapMaintenanceListRow: embed '${key}' missing from PostgREST response`,
+			`maintenance row: embed '${key}' missing from PostgREST response`,
 		);
 	}
 	const value = row[key];
 	if (value === null) return null;
 	if (!isRecord(value)) {
 		throw new Error(
-			`mapMaintenanceListRow: embed '${key}' is not a single row in the PostgREST response`,
+			`maintenance row: embed '${key}' is not a single row in the PostgREST response`,
 		);
 	}
 	return value;
@@ -197,15 +203,13 @@ function tenantDisplayName(tenant: Record<string, unknown>): string | null {
 }
 
 /**
- * Map a row of the maintenance list: the request's columns through
- * `mapMaintenanceRow`, then its unit's number, its property's name and its
- * tenant's name from the embeds.
+ * Map a request row with its unit embed: the request's columns through
+ * `mapMaintenanceRow`, then its unit's number and its property's name.
  */
-export function mapMaintenanceListRow(raw: unknown): MaintenanceListRow {
+export function mapMaintenanceDetailRow(raw: unknown): MaintenanceDetailRow {
 	const row = isRecord(raw) ? raw : {};
 	const unit = toOneEmbed(row, "units");
 	const property = unit === null ? null : toOneEmbed(unit, "properties");
-	const tenant = toOneEmbed(row, "tenant");
 	return {
 		...mapMaintenanceRow(row),
 		propertyName:
@@ -217,6 +221,18 @@ export function mapMaintenanceListRow(raw: unknown): MaintenanceListRow {
 					),
 		unitNumber:
 			unit === null ? null : nullableString(unit.unit_number, "unit_number"),
+	};
+}
+
+/**
+ * Map a row of the maintenance list: where it is (`mapMaintenanceDetailRow`)
+ * and its tenant's name from the tenant embed.
+ */
+export function mapMaintenanceListRow(raw: unknown): MaintenanceListRow {
+	const row = isRecord(raw) ? raw : {};
+	const tenant = toOneEmbed(row, "tenant");
+	return {
+		...mapMaintenanceDetailRow(row),
 		tenantName: tenant === null ? null : tenantDisplayName(tenant),
 	};
 }
