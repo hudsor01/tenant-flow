@@ -2,6 +2,7 @@
 
 import { BarChart3, Download, UserPlus } from "lucide-react";
 import Link from "next/link";
+import { cn } from "#lib/utils";
 
 interface TenantQuickActionsProps {
 	onAdd: () => void;
@@ -46,7 +47,13 @@ export function TenantQuickActions({
 					<div className="text-xs text-muted-foreground">Download data</div>
 				</div>
 			</button>
-			<Link href="/analytics/overview" className={ACTION_CLASS}>
+			{/* A Link, not a Button, so the `@layer base` text-link rules reach it:
+			    text-foreground and no-underline keep it the look of the two
+			    buttons beside it, with no link color and no hover underline. */}
+			<Link
+				href="/analytics/overview"
+				className={cn(ACTION_CLASS, "text-foreground no-underline")}
+			>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
 					<BarChart3 className="w-4 h-4" aria-hidden="true" />
 				</div>

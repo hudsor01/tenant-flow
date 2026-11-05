@@ -9,6 +9,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import Papa from "papaparse";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTenantsStore } from "#stores/tenants-store";
+import { computeAnchorRuleReach } from "#test/utils/base-rule-cascade";
+import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import type { TenantItem } from "#types/sections/tenants";
 import {
 	buildTenantsCsv,
@@ -177,4 +179,23 @@ describe("tenants page Export controls", () => {
 			"/analytics/overview",
 		);
 	});
+
+	// The Analytics link is a plain Link, so the globals.css base text-link
+	// rules reach it (link color, a hover underline across both lines). Its own
+	// utilities must set both properties: utilities outrank @layer base, so
+	// the compiled class list decides (66.2-39 fix round 3, F71).
+	it("draws Analytics like the two buttons beside it", async () => {
+		await renderTenants();
+		const analytics = screen.getByRole("link", { name: /^Analytics/ });
+		const reach = computeAnchorRuleReach(analytics);
+		expect(reach.baseline).toEqual({ rest: true, hover: true });
+		expect(reach.rest).toBe(true);
+		const designSystem = await loadProjectDesignSystem();
+		const css = designSystem
+			.candidatesToCss([...analytics.classList])
+			.filter((rule): rule is string => rule !== null)
+			.join("\n");
+		expect(css).toMatch(/text-decoration-line:\s*none/);
+		expect(css).toMatch(/[{;\s]color:\s*var\(--foreground\)/);
+	}, 30_000);
 });
