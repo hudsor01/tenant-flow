@@ -53,6 +53,12 @@ export interface ButtonSite {
 	disabled: boolean;
 	/** `asChild`: the classes land on the child element (a link, a trigger). */
 	asChild: boolean;
+	/**
+	 * Under `asChild`, the child element's name and its own classes (every
+	 * string, conditional ones included), which Radix Slot appends to Button's
+	 * without merging. Null otherwise.
+	 */
+	child: { element: string; className: string } | null;
 }
 
 type ButtonOptions = NonNullable<Parameters<typeof buttonVariants>[0]>;
@@ -394,6 +400,21 @@ function resolveProp(
 	return [defaults.get(values.name) ?? "default"];
 }
 
+/** The first element child of a `<Button asChild>`, with its classes. */
+function slotChild(element: Node | undefined): ButtonSite["child"] {
+	if (!element || element.type !== "JSXElement") return null;
+	for (const c of (element.children as Node[]) ?? []) {
+		if (c.type !== "JSXElement") continue;
+		const opening = c.openingElement as Node;
+		const parts = classNameParts(opening);
+		return {
+			element: jsxName(opening.name),
+			className: [...parts.always, ...parts.optional].join(" "),
+		};
+	}
+	return null;
+}
+
 /**
  * Every Button site in `sources` (path to text). Throws on a wrapper name
  * declared in two files, or a variant or size expression it cannot read, so a
@@ -418,6 +439,7 @@ export function buttonSites(
 		props: { variants: string[]; sizes: string[] },
 		parts: ClassParts,
 		wrapper?: Wrapper,
+		child: ButtonSite["child"] = null,
 	) => {
 		for (const variant of props.variants) {
 			for (const size of props.sizes) {
@@ -431,6 +453,7 @@ export function buttonSites(
 					wrapperClasses: wrapper ? wrapper.base.join(" ") : "",
 					disabled: isSet(opening, "disabled") || (wrapper?.disabled ?? false),
 					asChild: isSet(opening, "asChild") || (wrapper?.asChild ?? false),
+					child,
 				});
 			}
 		}
@@ -453,6 +476,8 @@ export function buttonSites(
 					sizes: resolveProp(propValues(node, "size"), null, defaults),
 				},
 				parts,
+				undefined,
+				isSet(node, "asChild") ? slotChild(parents.at(-1)) : null,
 			);
 			if (!parts.forwards || !component || !names.has("className")) return;
 			if (!/^[A-Z]/.test(component.name)) return;

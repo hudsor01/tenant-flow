@@ -254,7 +254,14 @@
 		line-height: var(--leading-relaxed);
 	}
 
-	a:not([role="button"]):not(.button):not([class*="button"]) {
+	/* The text-link look. A Button-styled link (Button asChild puts
+	   data-slot="button" on its child) is a button, not a text link, so both
+	   rules pass it by and it keeps the Button's look: no underline on hover,
+	   and the color its variant sets or its parent's (66.2-39 fix round 3,
+	   F27, OD-3; D-B still defers removing the rules). */
+	a:not([role="button"]):not(.button):not([class*="button"]):not(
+		[data-slot="button"]
+	) {
 		color: var(--color-primary);
 		text-decoration: underline;
 		text-decoration-color: transparent;
@@ -262,7 +269,9 @@
 		transition: all var(--duration-200) var(--ease-out);
 	}
 
-	a:not([role="button"]):not(.button):not([class*="button"]):hover {
+	a:not([role="button"]):not(.button):not([class*="button"]):not(
+		[data-slot="button"]
+	):hover {
 		text-decoration-color: currentColor;
 		color: color-mix(in oklch, var(--color-primary) 80%, transparent);
 	}
