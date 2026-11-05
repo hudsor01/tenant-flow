@@ -379,7 +379,7 @@ export const EXPECTED_BILLING_INSIGHTS: Readonly<
  * the service role (export-report, generate-pdf), never anon. A PUBLIC grant
  * would show here as anon=true.
  */
-export const EXPECTED_BILLING_INSIGHTS_EXECUTE: Readonly<
+const EXPECTED_BILLING_INSIGHTS_EXECUTE: Readonly<
 	Record<"anon" | "authenticated" | "service_role", boolean>
 > = { anon: false, authenticated: true, service_role: true };
 
@@ -723,7 +723,7 @@ export function expectedPropertyPerformance(
 }
 
 /** The grants the migration keeps: the owner's session and the service role. */
-export const EXPECTED_PROPERTY_PERFORMANCE_EXECUTE: Readonly<
+const EXPECTED_PROPERTY_PERFORMANCE_EXECUTE: Readonly<
 	Record<"anon" | "authenticated" | "service_role", boolean>
 > = { anon: false, authenticated: true, service_role: true };
 
@@ -1567,7 +1567,7 @@ export function expectedOwnerFigures(today: string): OwnerFiguresExpectation {
 }
 
 /** The seven functions' EXECUTE grants: the helper is no client role's. */
-export const EXPECTED_OWNER_FIGURES_EXECUTE: Readonly<
+const EXPECTED_OWNER_FIGURES_EXECUTE: Readonly<
 	Record<
 		string,
 		Readonly<Record<"anon" | "authenticated" | "service_role", boolean>>
@@ -2094,7 +2094,7 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
  * The fixture's inserts run as service_role, so a rejection above also proves
  * the trigger fires without it.
  */
-export const EXPECTED_BLOG_BANLIST_PRIVILEGES: Readonly<
+const EXPECTED_BLOG_BANLIST_PRIVILEGES: Readonly<
 	Record<string, string | boolean>
 > = {
 	acl: "{postgres=X/postgres}",
@@ -2104,9 +2104,8 @@ export const EXPECTED_BLOG_BANLIST_PRIVILEGES: Readonly<
 };
 
 /** The trigger: BEFORE INSERT OR UPDATE, FOR EACH ROW (1 + 2 + 4 + 16), enabled. */
-export const EXPECTED_BLOG_BANLIST_TRIGGER: Readonly<
-	Record<string, string | number>
-> = { function: "validate_blog_post()", type: 23, enabled: "O" };
+const EXPECTED_BLOG_BANLIST_TRIGGER: Readonly<Record<string, string | number>> =
+	{ function: "validate_blog_post()", type: 23, enabled: "O" };
 
 /**
  * `validate_blog_post` must reject a banned phrase or persona word in a post's

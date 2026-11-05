@@ -9,6 +9,8 @@
  * The `t`/`f` case is the one that actually happened: see the header of
  * migration-replay-assertions.ts.
  */
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
 	assertBillingInsightsFromLedger,
@@ -2588,5 +2590,31 @@ describe("assertBlogBanlistGate", () => {
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain("privileges: absent or not an object");
 		expect(result.message).toContain("trigger: absent or not an object");
+	});
+});
+
+describe("the assertions module's exports", () => {
+	it("exports only what a script beside it imports", () => {
+		const dir = join(process.cwd(), "scripts");
+		const exported = [
+			...readFileSync(
+				join(dir, "migration-replay-assertions.ts"),
+				"utf8",
+			).matchAll(/^export (?:const|function|interface|type) (\w+)/gm),
+		].map((match) => match[1] ?? "");
+		const imported = new Set(
+			readdirSync(dir)
+				.filter((file) => file.endsWith(".ts"))
+				.flatMap((file) => [
+					...readFileSync(join(dir, file), "utf8").matchAll(
+						/import\s*\{([^}]*)\}\s*from\s*"\.\/migration-replay-assertions"/g,
+					),
+				])
+				.flatMap((match) => (match[1] ?? "").split(","))
+				.map((name) => name.trim().replace(/^type\s+/, ""))
+				.filter((name) => name !== ""),
+		);
+		expect(exported.length).toBeGreaterThan(10);
+		expect(exported.filter((name) => !imported.has(name))).toEqual([]);
 	});
 });
