@@ -5,8 +5,17 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { Edit2, Loader2, Printer, Trash2, User } from "lucide-react";
+import {
+	Edit2,
+	Loader2,
+	Mail,
+	Phone,
+	Printer,
+	Trash2,
+	User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
@@ -28,6 +37,35 @@ import { buildWorkOrderHtml } from "./work-order-template";
 
 interface MaintenanceDetailsProps {
 	id: string;
+}
+
+/**
+ * One line of the contact card: how to reach the tenant who has the request
+ * (its own tenant embed). The card showed `requested_by` and `assigned_to`,
+ * user ids nothing writes: an empty card, or an id as text on an older row.
+ */
+function ContactRow({
+	icon,
+	label,
+	value,
+}: {
+	icon: ReactNode;
+	label: string;
+	value: string | null;
+}) {
+	return (
+		<div className="flex items-start gap-3">
+			<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+				{icon}
+			</div>
+			<div className="min-w-0">
+				<p className="mb-0 text-sm text-muted-foreground">{label}</p>
+				<p className="mb-0 font-medium text-sm wrap-break-word">
+					{value ?? "Not provided"}
+				</p>
+			</div>
+		</div>
+	);
 }
 
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
@@ -144,28 +182,21 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						<CardTitle className="text-base">Contact Information</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{request.requested_by && (
-							<div className="flex items-start gap-3">
-								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-									<User className="size-4 text-primary" />
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground">Requested by</p>
-									<p className="font-medium text-sm">{request.requested_by}</p>
-								</div>
-							</div>
-						)}
-						{request.assigned_to && (
-							<div className="flex items-start gap-3">
-								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-									<User className="size-4 text-primary" />
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground">Assigned to</p>
-									<p className="font-medium text-sm">{request.assigned_to}</p>
-								</div>
-							</div>
-						)}
+						<ContactRow
+							icon={<User className="size-4 text-primary" />}
+							label="Tenant"
+							value={request.tenantName}
+						/>
+						<ContactRow
+							icon={<Mail className="size-4 text-primary" />}
+							label="Email"
+							value={request.tenantEmail}
+						/>
+						<ContactRow
+							icon={<Phone className="size-4 text-primary" />}
+							label="Phone"
+							value={request.tenantPhone}
+						/>
 					</CardContent>
 				</Card>
 

@@ -7,6 +7,11 @@
  * embeds them, and an update returns the same embed, because its result
  * replaces the cached detail.
  *
+ * Its contact card printed `requested_by` and `assigned_to`, user ids nothing
+ * writes: an empty card on every new request, a user id as text on an older
+ * one. It now reaches the request's tenant (name, email, phone) through the
+ * same detail select.
+ *
  * @vitest-environment jsdom
  */
 import { QueryClient } from "@tanstack/react-query";
@@ -39,6 +44,7 @@ import {
 import { MaintenanceDetails } from "../maintenance-details.client";
 
 const UNIT_ID = "3f2a9c1e-0000-4000-8000-00000000dead";
+const REQUESTED_BY = "11111111-0000-4000-8000-0000000000aa";
 const DETAIL_ROW = {
 	id: "req-1",
 	owner_user_id: "owner-1",
@@ -49,7 +55,8 @@ const DETAIL_ROW = {
 	priority: "medium",
 	status: "open",
 	vendor_id: null,
-	requested_by: null,
+	// An older row's user ids: nothing writes them now.
+	requested_by: REQUESTED_BY,
 	assigned_to: null,
 	estimated_cost: null,
 	scheduled_date: null,
@@ -63,6 +70,13 @@ const DETAIL_ROW = {
 		unit_number: "2B",
 		property_id: "p-2",
 		properties: { name: "Gamma Flats", status: "inactive" },
+	},
+	tenant: {
+		name: null,
+		first_name: "Sam",
+		last_name: "Lee",
+		email: "sam@example.com",
+		phone: null,
 	},
 };
 
@@ -91,6 +105,20 @@ describe("the maintenance detail page names the request's unit and property", ()
 		expect(document.body.textContent).not.toContain(UNIT_ID);
 	});
 
+	it("reaches the request's tenant on the contact card, never a user id", async () => {
+		render(
+			<Suspense fallback={null}>
+				<MaintenanceDetails id="req-1" />
+			</Suspense>,
+		);
+		expect(await screen.findByText("Contact Information")).toBeInTheDocument();
+		expect(document.body.textContent).not.toContain(REQUESTED_BY);
+		expect(screen.queryByText("Requested by")).toBeNull();
+		expect(screen.getByText("Sam Lee")).toBeInTheDocument();
+		expect(screen.getByText("sam@example.com")).toBeInTheDocument();
+		expect(screen.getByText("Not provided")).toBeInTheDocument();
+	});
+
 	it("selects the unit embed for the detail and for an update's result", async () => {
 		const detailChain = createQueryChain({ data: DETAIL_ROW, error: null });
 		mockFrom.mockReturnValue(detailChain);
@@ -100,6 +128,9 @@ describe("the maintenance detail page names the request's unit and property", ()
 		const detailSelect = String(detailChain.select?.mock.calls[0]?.[0] ?? "");
 		expect(detailSelect).toContain(
 			"units(unit_number, property_id, properties(name, status))",
+		);
+		expect(detailSelect).toContain(
+			"tenant:tenant_id(name, first_name, last_name, email, phone)",
 		);
 		expect(detail).toMatchObject({
 			propertyName: "Gamma Flats (deleted)",

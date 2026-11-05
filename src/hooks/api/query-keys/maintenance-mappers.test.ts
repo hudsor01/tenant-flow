@@ -257,22 +257,43 @@ describe("mapMaintenanceListRow", () => {
 });
 
 describe("mapMaintenanceDetailRow", () => {
-	it("names the unit and property from the unit embed alone", () => {
-		const mapped = mapMaintenanceDetailRow({
-			...validRow,
-			units: {
-				unit_number: "2B",
-				property_id: "00000000-0000-0000-0000-0000000000aa",
-				properties: { name: "Gamma Flats", status: "inactive" },
-			},
-		});
+	const detailRow = {
+		...validRow,
+		units: {
+			unit_number: "2B",
+			property_id: "00000000-0000-0000-0000-0000000000aa",
+			properties: { name: "Gamma Flats", status: "inactive" },
+		},
+		tenant: {
+			name: null,
+			first_name: "Sam",
+			last_name: "Lee",
+			email: "sam@example.com",
+			phone: null,
+		},
+	};
+
+	it("names the unit, property and tenant, and how to reach the tenant", () => {
+		const mapped = mapMaintenanceDetailRow(detailRow);
 		expect(mapped.propertyName).toBe("Gamma Flats (deleted)");
 		expect(mapped.unitNumber).toBe("2B");
-		expect(mapped).not.toHaveProperty("tenantName");
+		expect(mapped.tenantName).toBe("Sam Lee");
+		expect(mapped.tenantEmail).toBe("sam@example.com");
+		expect(mapped.tenantPhone).toBeNull();
 		expect(mapped).not.toHaveProperty("units");
+		expect(mapped).not.toHaveProperty("tenant");
 	});
 
-	it("throws when the select dropped the unit embed", () => {
-		expect(() => mapMaintenanceDetailRow(validRow)).toThrow(/units/);
+	it("reaches no one for a tenant row it cannot see", () => {
+		const mapped = mapMaintenanceDetailRow({ ...detailRow, tenant: null });
+		expect(mapped.tenantName).toBeNull();
+		expect(mapped.tenantEmail).toBeNull();
+		expect(mapped.tenantPhone).toBeNull();
+	});
+
+	it("throws when the select dropped an embed", () => {
+		expect(() => mapMaintenanceDetailRow(validRow)).toThrow(/units|tenant/);
+		const { tenant: _omitTenant, ...withoutTenant } = detailRow;
+		expect(() => mapMaintenanceDetailRow(withoutTenant)).toThrow(/tenant/);
 	});
 });

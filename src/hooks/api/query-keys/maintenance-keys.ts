@@ -61,14 +61,15 @@ const MAINTENANCE_SELECT_COLUMNS =
  * can name every request.
  */
 const UNIT_EMBED_COLUMNS = "unit_number, property_id, properties(name, status)";
-const TENANT_EMBED = "tenant:tenant_id(name, first_name, last_name)";
+
+const LIST_TENANT_COLUMNS = "name, first_name, last_name";
 
 /**
  * The detail page's select, which an update also returns (its result replaces
- * the cached detail): the request's columns and where it is, through the same
- * unit embed as the list.
+ * the cached detail): the list's embeds, and the tenant's email and phone for
+ * the page's contact card.
  */
-const MAINTENANCE_DETAIL_SELECT = `${MAINTENANCE_SELECT_COLUMNS}, units(${UNIT_EMBED_COLUMNS})`;
+const MAINTENANCE_DETAIL_SELECT = `${MAINTENANCE_SELECT_COLUMNS}, units(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS}, email, phone)`;
 
 /**
  * Maintenance query factory
@@ -95,7 +96,7 @@ export const maintenanceQueries = {
 				// shape, field-validated at the mapMaintenanceListRow boundary.
 				const selectColumns: string = `${MAINTENANCE_SELECT_COLUMNS}, ${
 					filters?.property_id ? "units!inner" : "units"
-				}(${UNIT_EMBED_COLUMNS}), ${TENANT_EMBED}`;
+				}(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS})`;
 
 				let q = supabase
 					.from("maintenance_requests")

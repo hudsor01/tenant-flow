@@ -306,9 +306,9 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // fields, unitQueries.list's rows gained `propertyName`, from the property
 // the list now embeds, maintenanceQueries.list's rows gained `propertyName`,
 // `unitNumber` and `tenantName`, from the unit, property and tenant it now
-// embeds, and maintenanceQueries.detail gained `propertyName` and
-// `unitNumber` the same way. A v6 entry would carry the old shapes until the
-// refetch landed.
+// embeds, and maintenanceQueries.detail gained the same and `tenantEmail`
+// and `tenantPhone`. A v6 entry would carry the old shapes until the refetch
+// landed.
 const QUERY_CACHE_BUSTER = "tenantflow-cache-v7";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
