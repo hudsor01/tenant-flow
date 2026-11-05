@@ -281,8 +281,9 @@ export interface OccupancyTrendPoint {
 }
 
 /**
- * The days a figure covers, both included, as an RPC states them
- * ('YYYY-MM-DD/YYYY-MM-DD', read by `#lib/stated-window`): the window
+ * The days a figure covers, both included, as local YYYY-MM-DD: a period a
+ * page requests (the income statement's, a property report's), or one an RPC
+ * states ('YYYY-MM-DD/YYYY-MM-DD', read by `#lib/stated-window`): the window
  * get_property_performance_analytics states in its `timeframe` column
  * (20261102163709), the two days the dashboard trends compare
  * (20261102184501), the prior period an expense year over year compares with
