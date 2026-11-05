@@ -64,10 +64,10 @@ export function DocumentRow({
 								aria-hidden="true"
 							/>
 							<div className="min-w-0 flex-1">
-								<p className="truncate text-sm font-medium text-foreground">
+								<p className="mb-0 truncate text-sm font-medium text-foreground">
 									{displayName}
 								</p>
-								<p className="truncate text-xs text-muted-foreground">
+								<p className="mb-0 truncate text-xs text-muted-foreground">
 									{formatBytes(doc.file_size)} ·{" "}
 									{doc.created_at
 										? new Date(doc.created_at).toLocaleDateString("en-US", {

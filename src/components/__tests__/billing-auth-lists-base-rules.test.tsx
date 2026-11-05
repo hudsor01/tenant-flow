@@ -11,7 +11,7 @@
  * values, not classes (`#test/utils/base-rule-cascade`); the source-wide
  * check of every list is `list-base-rule-neutralized.test.ts`.
  */
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import LeaseTemplatePage from "#app/(owner)/documents/lease-template/page";
 import { ConfirmEmailInstructions } from "#app/auth/confirm-email/confirm-email-states";
@@ -19,16 +19,39 @@ import CheckoutCancelPage from "#app/pricing/cancel/page";
 import { PasswordStrength } from "#components/auth/password-strength";
 import { type Plan, PlanCard } from "#components/billing/plan-card";
 import { UpgradeDialog } from "#components/billing/upgrade-dialog";
+import { ExpiringLeasesWidget } from "#components/dashboard/expiring-leases-widget";
+import { DocumentRow } from "#components/documents/document-row";
 import { HowItWorks } from "#components/sections/how-it-works";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
+import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import {
 	computeListCascade,
 	computeParagraphCascade,
 } from "#test/utils/base-rule-cascade";
 import { render } from "#test/utils/test-render";
 
-vi.mock("#lib/supabase/client", () => ({ createClient: () => ({}) }));
+// The expiring-leases widget's one read: two leases ending inside 60 days.
+const { mockFrom } = vi.hoisted(() => ({ mockFrom: vi.fn() }));
+vi.mock("#lib/supabase/client", () => ({
+	createClient: () => ({ from: mockFrom }),
+}));
+const EXPIRING = [
+	{
+		id: "l1",
+		end_date: "2026-11-20",
+		rent_amount: 1850,
+		tenants: { name: "Sam Lee" },
+		units: { unit_number: "4B", properties: { name: "Maple Court" } },
+	},
+	{
+		id: "l2",
+		end_date: "2026-12-08",
+		rent_amount: 2100,
+		tenants: { name: "Ava Patel" },
+		units: { unit_number: "2A", properties: { name: "Oak Terrace" } },
+	},
+];
 
 const TIER: Record<PricingConfig["planId"], number> = {
 	trial: 0,
@@ -164,6 +187,48 @@ describe("the billing, auth and marketing lists cancel the base list rules", () 
 		const list = screen.getByText("1. Select clauses").closest("ul");
 		expectListNeutralized(list);
 		const paragraphs = list?.querySelectorAll("li > p") ?? [];
+		expect(paragraphs.length).toBe(4);
+		for (const paragraph of paragraphs) expectParagraphNeutralized(paragraph);
+	});
+
+	it("a document row's name and size lines", () => {
+		const { container } = render(
+			<ul>
+				<DocumentRow
+					doc={{
+						id: "d1",
+						entity_type: "property",
+						entity_id: "p1",
+						document_type: "lease",
+						mime_type: "application/pdf",
+						file_path: "property/p1/1700000000-lease.pdf",
+						storage_url: "property/p1/1700000000-lease.pdf",
+						file_size: 120000,
+						title: "Lease agreement 2026",
+						tags: null,
+						description: null,
+						owner_user_id: "o1",
+						created_at: "2026-10-01T12:00:00Z",
+						signed_url: "https://example.com/signed",
+					}}
+					isOpen={false}
+					onOpenChange={() => {}}
+				/>
+			</ul>,
+		);
+		const paragraphs = container.querySelectorAll("li button p");
+		expect(paragraphs.length).toBe(2);
+		for (const paragraph of paragraphs) expectParagraphNeutralized(paragraph);
+	});
+
+	it("an expiring lease's tenant and property lines", async () => {
+		mockFrom.mockReturnValue(createQueryChain({ data: EXPIRING, error: null }));
+		const { container } = render(<ExpiringLeasesWidget />);
+		await waitFor(() =>
+			expect(container.querySelectorAll("ul li").length).toBe(2),
+		);
+		expectListNeutralized(container.querySelector("ul"));
+		const paragraphs = container.querySelectorAll("ul li a p");
 		expect(paragraphs.length).toBe(4);
 		for (const paragraph of paragraphs) expectParagraphNeutralized(paragraph);
 	});

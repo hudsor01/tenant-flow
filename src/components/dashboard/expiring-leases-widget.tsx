@@ -81,11 +81,11 @@ export function ExpiringLeasesWidget() {
 											className="flex items-center justify-between gap-3 rounded-md -mx-2 px-2 py-1.5 transition-colors hover:bg-muted"
 										>
 											<div className="min-w-0 flex-1">
-												<p className="truncate text-sm font-medium text-foreground">
+												<p className="mb-0 truncate text-sm font-medium text-foreground">
 													{lease.tenant_name ?? "Tenant"}
 													{lease.unit_name ? ` · ${lease.unit_name}` : ""}
 												</p>
-												<p className="truncate text-xs text-muted-foreground">
+												<p className="mb-0 truncate text-xs text-muted-foreground">
 													{lease.property_name ?? "Property"} · ends{" "}
 													{formatDate(lease.end_date, {
 														formatOptions: {
