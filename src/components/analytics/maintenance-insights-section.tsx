@@ -60,9 +60,12 @@ function CategoryBreakdownTable({
 	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
 		{
 			// get_maintenance_analytics has no category taxonomy: each row is a
-			// request status (by_status), so the column says so and names it.
+			// request status (by_status), so the column says so and names it. It
+			// filters and sorts on the label it shows ("In Progress"), not the
+			// stored slug ("in_progress"), so a search for what is on screen
+			// finds it.
 			id: "category",
-			accessorKey: "category",
+			accessorFn: (row) => maintenanceStatusLabel(row.category),
 			header: "Status",
 			meta: {
 				label: "Status",
