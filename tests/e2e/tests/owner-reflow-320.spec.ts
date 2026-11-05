@@ -6,6 +6,8 @@ import {
 } from "../lib/application-fixtures";
 import {
 	expectNoPageOverflow,
+	type NewestRecord,
+	newestRecord,
 	OWNER_REFLOW_ROUTES,
 	REFLOW_WIDTH,
 } from "../lib/reflow";
@@ -17,7 +19,8 @@ import {
  * for the reasons `reports-hub.spec.ts` gives. The route list and the
  * measurement are in `tests/e2e/lib/reflow.ts`. The detail and edit pages take
  * owner A's newest record of each kind, read over PostgREST as owner A; a kind
- * with no record skips its pages, with the reason.
+ * with no record skips its pages, with the reason, and a lookup that fails
+ * (or a REST sign-in that fails) fails them with its error (`newestRecord`).
  */
 test.use({ viewport: { width: REFLOW_WIDTH, height: 800 } });
 
@@ -92,15 +95,20 @@ const DETAIL_ROUTES: DetailRoute[] = [
 	},
 ];
 
-const ids = new Map<string, string | null>();
-let idReason: string | null = "id resolution has not run";
+const records = new Map<string, NewestRecord>();
+let setupFailure: string | null = "the id lookup has not run";
 
 test.describe("detail and edit pages", () => {
 	test.beforeAll(async () => {
 		const credentials = readSeedCredentials();
-		const client = credentials ? await signInAsOwner(credentials) : null;
+		if (!credentials) {
+			setupFailure =
+				"no seed credentials: the Supabase URL, the publishable key and E2E_OWNER_PASSWORD are needed";
+			return;
+		}
+		const client = await signInAsOwner(credentials);
 		if (!client) {
-			idReason = "could not sign owner A in over the REST API";
+			setupFailure = "could not sign owner A in over the REST API";
 			return;
 		}
 		for (const route of DETAIL_ROUTES) {
@@ -111,13 +119,9 @@ test.describe("detail and edit pages", () => {
 				.limit(1);
 			if (route.statusColumn) query = query.neq(route.statusColumn, "inactive");
 			const { data, error } = await query;
-			const row = data?.[0] as { id?: unknown } | undefined;
-			ids.set(
-				route.kind,
-				!error && typeof row?.id === "string" ? row.id : null,
-			);
+			records.set(route.kind, newestRecord(route.kind, { data, error }));
 		}
-		idReason = null;
+		setupFailure = null;
 		// Local scope only: a global sign-out would revoke the RLS suite's
 		// sessions (see apply-token.spec.ts).
 		await client.auth.signOut({ scope: "local" });
@@ -128,10 +132,16 @@ test.describe("detail and edit pages", () => {
 			page,
 		}) => {
 			test.setTimeout(90_000);
-			const id = ids.get(route.kind);
-			test.skip(!id, idReason ?? `owner A has no ${route.kind}`);
-			for (const path of route.paths(id ?? "")) {
-				await expectNoPageOverflow(page, path);
+			if (setupFailure) throw new Error(setupFailure);
+			const record = records.get(route.kind);
+			if (!record) throw new Error(`no lookup ran for ${route.kind}`);
+			if (record.state === "failed") throw new Error(record.reason);
+			if (record.state === "none") {
+				test.skip(true, record.reason);
+			} else {
+				for (const path of route.paths(record.id)) {
+					await expectNoPageOverflow(page, path);
+				}
 			}
 		});
 	}

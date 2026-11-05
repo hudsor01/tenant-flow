@@ -171,3 +171,47 @@ export async function expectNoPageOverflow(
 		`${path} scrolls sideways at ${width.clientWidth}px (document ${width.scrollWidth}px wide)`,
 	).toBeLessThanOrEqual(width.clientWidth);
 }
+
+/** What a lookup of owner A's newest record of one kind came back with. */
+export type NewestRecord =
+	| { state: "found"; id: string }
+	| { state: "none"; reason: string }
+	| { state: "failed"; reason: string };
+
+/**
+ * Classifies one newest-record lookup (`select("id")…limit(1)` over
+ * PostgREST) for `owner-reflow-320.spec.ts`: an id; no record, which skips
+ * the kind's pages with that reason; or a failed query, which fails them with
+ * the error. A network error, a 5xx or a renamed column is not "owner A has
+ * no <kind>", and a skip saying so would hide it.
+ */
+export function newestRecord(
+	kind: string,
+	result: { data: unknown; error: { message: string } | null },
+): NewestRecord {
+	if (result.error) {
+		return {
+			state: "failed",
+			reason: `owner A's newest ${kind} could not be read: ${result.error.message}`,
+		};
+	}
+	if (!Array.isArray(result.data)) {
+		return {
+			state: "failed",
+			reason: `owner A's newest ${kind}: the lookup returned no rows array`,
+		};
+	}
+	if (result.data.length === 0) {
+		return { state: "none", reason: `owner A has no ${kind}` };
+	}
+	const row: unknown = result.data[0];
+	const id =
+		typeof row === "object" && row !== null && "id" in row ? row.id : undefined;
+	if (typeof id !== "string") {
+		return {
+			state: "failed",
+			reason: `owner A's newest ${kind}: the row has no string id`,
+		};
+	}
+	return { state: "found", id };
+}
