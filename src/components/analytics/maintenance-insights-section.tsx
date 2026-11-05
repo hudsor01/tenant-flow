@@ -117,7 +117,7 @@ function CategoryBreakdownTable({
 	if (!entries.length) {
 		return (
 			<div className="text-center text-muted-foreground py-8">
-				No category breakdown data available
+				No maintenance requests yet
 			</div>
 		);
 	}
@@ -188,14 +188,16 @@ export function MaintenanceInsightsSection() {
 				</BlurFade>
 			</div>
 
-			{/* Category Breakdown Table */}
+			{/* Requests by status (get_maintenance_analytics' by_status) */}
 			<BlurFade delay={0.3}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<div className="flex items-center justify-between mb-6">
 						<div>
-							<h3 className="font-medium text-foreground">Category analysis</h3>
+							<h3 className="font-medium text-foreground">
+								Requests by status
+							</h3>
 							<p className="text-sm text-muted-foreground">
-								Request counts by category
+								Request counts by status
 							</p>
 						</div>
 						<Wrench className="w-5 h-5 text-muted-foreground" />

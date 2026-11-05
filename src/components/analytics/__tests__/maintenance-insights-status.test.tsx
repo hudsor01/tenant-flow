@@ -1,12 +1,13 @@
 /**
  * @vitest-environment jsdom
  * The maintenance insights' status card (get_maintenance_analytics'
- * by_status, 66.2-39 fix round 3, cycle 2, F31).
+ * by_status, 66.2-39 fix round 3, cycle 2, F31 and F32).
  *
  * The PR showed each row's status through its label ("In Progress") but the
  * column still filtered on the stored slug, so typing the visible "In
  * Progress" into "Search status..." hid that row ("in_progress" does not
- * contain "in progress").
+ * contain "in progress"); and once the PR named the column Status, the card
+ * still said "Category analysis" and "Request counts by category" over it.
  */
 import { fireEvent, screen, within } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
@@ -64,5 +65,26 @@ describe("the maintenance insights' status card", () => {
 		});
 		const rows = within(card).getAllByRole("row").slice(1);
 		expect(rows.map((row) => row.textContent)).toEqual(["In Progress3"]);
+	});
+
+	it("names its rows by status, never by category", async () => {
+		render(<MaintenanceInsightsSection />, { wrapper: Wrapper });
+		const card = await statusCard();
+		expect(
+			within(card).getByRole("heading", { name: "Requests by status" }),
+		).toBeInTheDocument();
+		expect(
+			within(card).getByText("Request counts by status"),
+		).toBeInTheDocument();
+		expect(card.textContent).not.toMatch(/categor/i);
+	});
+
+	it("says there are no requests when no status has any", async () => {
+		pageData.current = { ...pageData.current, categoryBreakdown: [] };
+		render(<MaintenanceInsightsSection />, { wrapper: Wrapper });
+		expect(
+			await screen.findByText("No maintenance requests yet"),
+		).toBeInTheDocument();
+		expect(document.body.textContent).not.toMatch(/categor/i);
 	});
 });
