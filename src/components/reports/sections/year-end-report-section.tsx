@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, FileText } from "lucide-react";
+import { useId } from "react";
 import { Button } from "#components/ui/button";
 import {
 	Card,
@@ -20,7 +21,10 @@ import {
 } from "#components/ui/table";
 import { formatCurrency } from "#lib/utils/currency";
 import type { YearEndSummary } from "#types/reports";
-import { sortExpenseCategoriesDesc } from "./year-end-report-section-utils";
+import {
+	sortExpenseCategoriesDesc,
+	yearEndUnavailableReason,
+} from "./year-end-report-section-utils";
 
 interface YearEndReportSectionProps {
 	year: number;
@@ -90,6 +94,15 @@ export function YearEndReportSection({
 	onDownloadYearEndCsv,
 	isExportingYearEnd,
 }: YearEndReportSectionProps) {
+	// The click is ignored while Download CSV is off or exporting.
+	const csvUnavailableReason = yearEndUnavailableReason({
+		year,
+		yearEndData,
+		ledgerUnavailable,
+		isLoadingYearEnd,
+	});
+	const csvBlocked = isExportingYearEnd || !yearEndData;
+	const csvReasonId = useId();
 	return (
 		<section className="flex flex-col gap-6">
 			{/* Year-End Summary */}
@@ -107,13 +120,21 @@ export function YearEndReportSection({
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={onDownloadYearEndCsv}
-						disabled={isExportingYearEnd || !yearEndData}
-						className="gap-1.5 min-h-11"
+						onClick={csvBlocked ? undefined : onDownloadYearEndCsv}
+						aria-disabled={csvBlocked || undefined}
+						aria-describedby={
+							csvUnavailableReason !== null ? csvReasonId : undefined
+						}
+						className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
 					>
 						<Download className="size-4" />
 						{isExportingYearEnd ? "Exporting..." : "Download CSV"}
 					</Button>
+					{csvUnavailableReason !== null ? (
+						<span id={csvReasonId} className="sr-only">
+							{csvUnavailableReason}
+						</span>
+					) : null}
 				</div>
 
 				{ledgerUnavailable ? (

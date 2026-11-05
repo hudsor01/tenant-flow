@@ -2,8 +2,9 @@
 
 import { ChevronLeft, Download, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { YearEndReportSection } from "#components/reports/sections/year-end-report-section";
+import { yearEndUnavailableReason } from "#components/reports/sections/year-end-report-section-utils";
 import { Button } from "#components/ui/button";
 import {
 	Select,
@@ -55,6 +56,25 @@ export default function YearEndReportsPage() {
 		(yearEndResponse.rentReceived !== 0 ||
 			yearEndResponse.operatingExpenses > 0 ||
 			yearEndResponse.byProperty.length > 0);
+
+	// Why Download PDF is off: the year's reason, or a year with nothing
+	// recorded (OD-12). The click is ignored while it is off, while the year
+	// loads, and while a PDF generates.
+	const pdfUnavailableReason =
+		yearEndUnavailableReason({
+			year: selectedYear,
+			yearEndData: yearEndResponse,
+			ledgerUnavailable: yearEndResult?.status === "ledger-unavailable",
+			isLoadingYearEnd,
+		}) ??
+		(!isLoadingYearEnd && !hasData
+			? `No rent received or expenses recorded for ${selectedYear}.`
+			: null);
+	const pdfBlocked =
+		isLoadingYearEnd ||
+		downloadPdfMutation.isPending ||
+		pdfUnavailableReason !== null;
+	const pdfReasonId = useId();
 
 	const handleDownloadYearEndCsv = () => {
 		if (!yearEndResponse) return;
@@ -124,10 +144,15 @@ export default function YearEndReportsPage() {
 					<Button
 						variant="outline"
 						size="sm"
-						className="gap-1.5 min-h-11"
-						onClick={() => downloadPdfMutation.mutate(selectedYear)}
-						disabled={
-							downloadPdfMutation.isPending || isLoadingYearEnd || !hasData
+						className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+						onClick={
+							pdfBlocked
+								? undefined
+								: () => downloadPdfMutation.mutate(selectedYear)
+						}
+						aria-disabled={pdfBlocked || undefined}
+						aria-describedby={
+							pdfUnavailableReason !== null ? pdfReasonId : undefined
 						}
 						aria-label={
 							downloadPdfMutation.isPending
@@ -142,6 +167,11 @@ export default function YearEndReportsPage() {
 						)}
 						{downloadPdfMutation.isPending ? "Generating..." : "Download PDF"}
 					</Button>
+					{pdfUnavailableReason !== null ? (
+						<span id={pdfReasonId} className="sr-only">
+							{pdfUnavailableReason}
+						</span>
+					) : null}
 				</div>
 			</div>
 
