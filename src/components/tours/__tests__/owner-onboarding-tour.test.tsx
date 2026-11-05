@@ -129,4 +129,20 @@ describe("OwnerOnboardingTour step 5 (D-39)", () => {
 			within(steps[4]!).getByRole("heading", { level: 2 }),
 		).toHaveTextContent("Navigate Your Portal");
 	});
+
+	// Step 2 spotlights the trends section: the scheduled rent chart (30
+	// days or 6 months), today's occupancy and the quick actions. Its copy
+	// said to compare each metric against 30 days ago and named maintenance,
+	// neither of which it shows; the "30 days ago" chips are on step 1's tiles
+	// (cycle 2, F73).
+	it("describes only what steps 1 and 2 spotlight", async () => {
+		const steps = await renderSteps({ isMobile: false, state: "expanded" });
+		const [stats, trends] = steps.map(
+			(step) => within(step).getByTestId("tour-description").textContent,
+		);
+		expect(stats).toMatch(/compare against 30 days ago/);
+		expect(trends).toMatch(/scheduled rent over the last 30 days or 6 months/);
+		expect(trends).toMatch(/occupied today/);
+		expect(trends).not.toMatch(/maintenance|compare/i);
+	});
 });

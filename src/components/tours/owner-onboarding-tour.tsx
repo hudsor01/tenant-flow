@@ -198,7 +198,7 @@ export function OwnerOnboardingTour({
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
 								? "View your portfolio overview: scheduled rent, occupancy, and tenant status."
-								: "Your property management dashboard gives you a complete overview of your portfolio. See scheduled rent, occupancy, and tenant status at a glance."}
+								: "Your property management dashboard gives you a complete overview of your portfolio. See scheduled rent, occupancy, and tenant status at a glance; scheduled rent, occupancy, and open maintenance each compare against 30 days ago."}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>
@@ -214,8 +214,8 @@ export function OwnerOnboardingTour({
 						<TourTitle>Track Your Performance</TourTitle>
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
-								? "Monitor occupancy, scheduled rent, and maintenance trends."
-								: "Monitor key metrics like occupancy rate, scheduled rent, and maintenance activity. Compare each against 30 days ago to spot trends."}
+								? "Follow scheduled rent over time and see today's occupancy."
+								: "Follow your scheduled rent over the last 30 days or 6 months, and see how many of your units are occupied today."}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>
