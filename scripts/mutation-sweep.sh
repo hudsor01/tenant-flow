@@ -591,6 +591,9 @@ mutate "$REPLAY_CLI" 'finish(assertBillingInsightsFromLedger(readFileSync(0, "ut
 mutate "$REPLAY_CLI" 'finish(assertPropertyPerformanceRentReceived(readFileSync(0, "utf8")));' \
                      'finish({ ok: true, message: "property-performance" });' \
                      'the replay CLI ignores the property-performance input'
+mutate "$REPLAY_CLI" 'finish(assertOwnerFiguresComputed(readFileSync(0, "utf8")));' \
+                     'finish({ ok: true, message: "owner-figures" });' \
+                     'the replay CLI ignores the owner-figures input'
 mutate "$REPLAY_CLI" 'finish(assertBlogBanlistGate(readFileSync(0, "utf8")));' \
                      'finish({ ok: true, message: "blog-banlist" });' \
                      'the replay CLI ignores the blog-banlist input'
