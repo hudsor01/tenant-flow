@@ -38,8 +38,13 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 			: tenant?.name;
 
 	return (
+		// The Card pads itself (py-6, CardContent px-6); a v3 p-6 here doubled
+		// the top and bottom to 48px. mb-0 on every paragraph: each row's lines
+		// sit in a flex item, where the base `p` margin stays inside it (16px
+		// between the two lines and under them), and the last section's
+		// paragraph would stand 16px above the card's own padding.
 		<Card>
-			<CardContent className="p-6 space-y-6">
+			<CardContent className="space-y-6">
 				{/* Lease Period */}
 				<section>
 					<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
@@ -48,13 +53,13 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 					<div className="flex items-center gap-4 p-4 rounded-lg border bg-muted/20">
 						<Calendar className="w-8 h-8 text-primary" />
 						<div>
-							<p className="font-medium">
+							<p className="mb-0 font-medium">
 								{formatDate(lease.start_date)} - {formatDate(lease.end_date)}
 							</p>
 							{daysUntilExpiry !== null && (
 								<p
 									className={cn(
-										"text-sm",
+										"mb-0 text-sm",
 										isExpiringSoon
 											? "text-warning-text"
 											: "text-muted-foreground",
@@ -82,12 +87,16 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 								<User className="w-5 h-5 text-primary" />
 							</div>
 							<div>
-								<p className="font-medium">{tenantFullName || "Unknown"}</p>
-								<p className="text-sm text-muted-foreground">{tenant.email}</p>
+								<p className="mb-0 font-medium">
+									{tenantFullName || "Unknown"}
+								</p>
+								<p className="mb-0 text-sm text-muted-foreground">
+									{tenant.email}
+								</p>
 							</div>
 						</div>
 					) : (
-						<p className="text-muted-foreground p-4 border rounded-lg bg-muted/10">
+						<p className="mb-0 text-muted-foreground p-4 border rounded-lg bg-muted/10">
 							No tenant assigned to this lease
 						</p>
 					)}
@@ -104,8 +113,8 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 								<Building className="w-5 h-5 text-primary" />
 							</div>
 							<div>
-								<p className="font-medium">Unit {unit.unit_number}</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 font-medium">Unit {unit.unit_number}</p>
+								<p className="mb-0 text-sm text-muted-foreground">
 									{unit.bedrooms} bed, {unit.bathrooms} bath
 									{unit.square_feet
 										? ` | ${unit.square_feet.toLocaleString()} sq ft`
@@ -114,7 +123,7 @@ export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
 							</div>
 						</div>
 					) : (
-						<p className="text-muted-foreground p-4 border rounded-lg bg-muted/10">
+						<p className="mb-0 text-muted-foreground p-4 border rounded-lg bg-muted/10">
 							No unit linked to this lease
 						</p>
 					)}

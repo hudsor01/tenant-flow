@@ -61,9 +61,14 @@ function MetricCard({
 	// conditional tiles below pass `undefined` for the neutral default.
 	valueClassName?: string | undefined;
 }) {
+	// The v4 Card pads itself (py-6) and CardContent pads its sides (px-6): a
+	// 16px tile sets py-4 on the Card and px-4 here, not a v3 p-4 on top of
+	// the Card's own padding. mb-0: the figure is the content's last child,
+	// where the base `p` margin would stand under it (and make the loaded
+	// tile 16px taller than its skeleton).
 	return (
-		<Card>
-			<CardContent className="p-4">
+		<Card className="py-4">
+			<CardContent className="px-4">
 				<div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
 					<Icon className="h-4 w-4" aria-hidden="true" />
 					{label}
@@ -73,7 +78,7 @@ function MetricCard({
 				) : (
 					<p
 						className={cn(
-							"text-xl font-semibold tabular-nums leading-snug",
+							"mb-0 text-xl font-semibold tabular-nums leading-snug",
 							valueClassName,
 						)}
 					>

@@ -35,11 +35,13 @@ export function LeaseSignatureStatus({
 
 	if (error) {
 		return (
+			// 16px above and below the line: py-4 on the Card, whose own py-6 a
+			// v3 py-4 on CardContent added to (40px each).
 			<Card
-				className={cn("border-destructive/50", className)}
+				className={cn("border-destructive/50 py-4", className)}
 				data-testid="signature-status-error"
 			>
-				<CardContent className="py-4">
+				<CardContent>
 					<div className="flex items-center gap-2 text-destructive-text">
 						<AlertCircle className="h-4 w-4" />
 						<span className="text-sm">

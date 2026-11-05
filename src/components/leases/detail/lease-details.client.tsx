@@ -102,13 +102,15 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			: "Something went wrong while loading this lease. Please refresh and try again.";
 
 		return (
+			// The Card pads itself (py-6, CardContent px-6): a v3 p-6 here doubled
+			// the top and bottom. mb-0: the message is the last child.
 			<Card className="border-destructive/50 bg-destructive/10">
-				<CardContent className="p-6 text-center">
+				<CardContent className="text-center">
 					<AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-3" />
 					<h3 className="text-lg font-semibold text-destructive-text mb-2">
 						Unable to load lease
 					</h3>
-					<p className="text-muted-foreground">{errorMessage}</p>
+					<p className="mb-0 text-muted-foreground">{errorMessage}</p>
 				</CardContent>
 			</Card>
 		);
@@ -137,50 +139,52 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Left column - Main details */}
 				<div className="lg:col-span-2 space-y-6">
-					{/* Key metrics */}
+					{/* Key metrics: 16px tiles, py-4 on the Card and px-4 on its
+					    content (the v4 Card pads itself; a v3 p-4 here added to
+					    it). mb-0: each figure is its tile's last child. */}
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<DollarSign className="w-4 h-4" />
 									Monthly Rent
 								</div>
-								<p className="text-xl font-semibold tabular-nums">
+								<p className="mb-0 text-xl font-semibold tabular-nums">
 									{formatCurrency(lease.rent_amount)}
 								</p>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<CreditCard className="w-4 h-4" />
 									Security Deposit
 								</div>
-								<p className="text-xl font-semibold tabular-nums">
+								<p className="mb-0 text-xl font-semibold tabular-nums">
 									{formatCurrency(lease.security_deposit)}
 								</p>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<CalendarDays className="w-4 h-4" />
 									Payment Day
 								</div>
-								<p className="text-xl font-semibold">
+								<p className="mb-0 text-xl font-semibold">
 									{lease.payment_day
 										? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
 										: "N/A"}
 								</p>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<Clock className="w-4 h-4" />
 									Grace Period
 								</div>
-								<p className="text-xl font-semibold">
+								<p className="mb-0 text-xl font-semibold">
 									{lease.grace_period_days
 										? formatCount(lease.grace_period_days, "day")
 										: "None"}
