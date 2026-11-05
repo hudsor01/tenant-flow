@@ -11,7 +11,12 @@
  *
  * Callers: `generate-pdf/index.ts` (Mode 1: the year-end page's and the tax
  * documents page's "Download PDF") and `export-report/index.ts` (the same
- * report types as CSV, XLSX and PDF).
+ * report types as CSV, XLSX and PDF). The app imports it too: its query
+ * functions and mappers name vendors and properties through
+ * `expenseVendorLabel` and `propertyReportName`, the tax documents page and
+ * the generated reports print `EXPENSES_BY_VENDOR_SECTION` and
+ * `DEDUCTIBILITY_NOTE`, and `report-keys.ts` sends the report types and names
+ * the PDF with `taxYearReportFilename`.
  *
  * THE SCREEN IS THE SPEC. Each report makes the calls its page makes, with the
  * same arguments, and derives each figure the same way:
