@@ -85,7 +85,10 @@ describe("Mobile-First Responsive Design", () => {
 			);
 		});
 
-		test("owner loading stat grid auto-fits 20rem columns with utility classes only", () => {
+		// Each track is min(20rem, 100%) wide at least, so the grid never
+		// overflows a row narrower than 20rem: at 320px main leaves 288px, and a
+		// 320px track scrolled the page sideways (66.2-39 fix round 3, F3).
+		test("owner loading stat grid auto-fits columns no wider than its row", () => {
 			const { container } = render(<OwnerLoading />);
 
 			expect(container.querySelectorAll('[class*="dashboard-"]')).toHaveLength(
@@ -96,7 +99,9 @@ describe("Mobile-First Responsive Design", () => {
 			);
 
 			const grid = Array.from(container.querySelectorAll("div")).find((el) =>
-				el.classList.contains("grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]"),
+				el.classList.contains(
+					"grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),1fr))]",
+				),
 			);
 			expect(grid).toBeDefined();
 			const cards = Array.from(grid?.children ?? []);

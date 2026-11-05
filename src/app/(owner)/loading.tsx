@@ -25,8 +25,10 @@ export default function OwnerLoading() {
 				<Skeleton className="h-10 w-36" />
 			</div>
 
-			{/* Stats Cards Skeleton */}
-			<div className="grid grid-cols-[repeat(auto-fit,minmax(20rem,1fr))] gap-6">
+			{/* Stats Cards Skeleton. A track never exceeds the row: below 20rem of
+			    room (a 320px phone, 400% zoom) the one column takes the row's
+			    width instead of overflowing it (WCAG 1.4.10). */}
+			<div className="grid grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),1fr))] gap-6">
 				{Array.from({ length: 4 }).map((_, i) => (
 					<div
 						key={i}
