@@ -8,11 +8,13 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { moneyTooltipFormatter } from "#components/shared/chart-series";
 import { Badge } from "#components/ui/badge";
 
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import { ChartTooltipContent } from "#components/ui/chart-tooltip";
 import { Empty, EmptyDescription, EmptyHeader } from "#components/ui/empty";
+import { formatCurrency } from "#lib/utils/currency";
 import type {
 	MaintenanceCostBreakdownEntry,
 	MaintenanceTrendPoint,
@@ -35,6 +37,9 @@ const costConfig = {
 		color: "var(--color-chart-1)",
 	},
 } satisfies ChartConfig;
+
+/** The cost chart's figures are dollars; its axis states them whole. */
+const WHOLE_DOLLARS = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
 
 type MaintenanceTrendChartProps = {
 	/** null: the server cannot report the trends yet (no series, not zeros). */
@@ -180,8 +185,20 @@ export function MaintenanceCostChart({
 					textAnchor="end"
 					height={80}
 				/>
-				<YAxis tickLine={false} axisLine={false} />
-				<Tooltip content={<ChartTooltipContent />} />
+				<YAxis
+					tickLine={false}
+					axisLine={false}
+					tickFormatter={(value: number) =>
+						formatCurrency(value, WHOLE_DOLLARS)
+					}
+				/>
+				<Tooltip
+					content={
+						<ChartTooltipContent
+							formatter={moneyTooltipFormatter(costConfig)}
+						/>
+					}
+				/>
 				<Bar
 					dataKey="amount"
 					fill="var(--color-amount)"

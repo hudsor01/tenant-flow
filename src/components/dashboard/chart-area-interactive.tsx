@@ -3,6 +3,7 @@
 import { DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { moneyTooltipFormatter } from "#components/shared/chart-series";
 import {
 	Card,
 	CardContent,
@@ -273,12 +274,10 @@ export function ChartAreaInteractive({
 								content={
 									<ChartTooltipContent
 										labelFormatter={(value) => value}
-										formatter={(value, name) => [
-											formatCurrency(Number(value), WHOLE_DOLLARS),
-											name === "revenue"
-												? chartConfig.revenue.label
-												: chartConfig.expenses.label,
-										]}
+										formatter={moneyTooltipFormatter(
+											chartConfig,
+											WHOLE_DOLLARS,
+										)}
 										indicator="dot"
 									/>
 								}

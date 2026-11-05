@@ -10,12 +10,13 @@
  * literals.
  */
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
 	MaintenanceCostChart,
 	MaintenanceTrendChart,
 } from "#components/analytics/maintenance-charts";
 import { costSummaryLine } from "#components/analytics/maintenance-insights-section";
+import { resetRechartsProbe, setRechartsProbe } from "#test/mocks/recharts";
 
 const COSTS = {
 	totalCost: 790.5,
@@ -58,6 +59,42 @@ describe("the cost card's line", () => {
 });
 
 describe("the cost chart", () => {
+	afterEach(() => {
+		resetRechartsProbe();
+	});
+
+	// A vendor's spend is dollars (cycle 2, F33): the axis read "0 / 200 /
+	// 400" and the tooltip "Cost 790.5", with no $ and no cents.
+	it("states its axis and tooltip in dollars", async () => {
+		setRechartsProbe({
+			yTicks: [0, 400],
+			tooltip: {
+				active: true,
+				label: "Acme Plumbing",
+				payload: [
+					{
+						dataKey: "amount",
+						name: "amount",
+						value: 790.5,
+						color: "var(--color-amount)",
+						payload: { category: "Acme Plumbing", amount: 790.5 },
+					},
+				],
+			},
+		});
+		render(
+			<MaintenanceCostChart
+				entries={[{ category: "Acme Plumbing", amount: 790.5 }]}
+				available={true}
+			/>,
+		);
+		const ticks = await screen.findAllByTestId("y-tick");
+		expect(ticks.map((tick) => tick.textContent)).toEqual(["$0", "$400"]);
+		const tooltip = screen.getByTestId("tooltip");
+		expect(tooltip).toHaveTextContent(/^Acme PlumbingCost\$790\.50$/);
+		expect(tooltip.textContent).not.toContain("790.5C");
+	});
+
 	it("says the costs are unavailable, not that there are none", () => {
 		render(<MaintenanceCostChart entries={[]} available={false} />);
 		expect(screen.getByText("Unavailable")).toBeInTheDocument();

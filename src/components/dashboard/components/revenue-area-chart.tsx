@@ -32,6 +32,7 @@
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { moneyTooltipFormatter } from "#components/shared/chart-series";
 import {
 	Card,
 	CardContent,
@@ -135,16 +136,6 @@ function toTooltipLabelFormatter(
 		formatter(typeof label === "string" ? label : String(label));
 }
 
-function formatTooltipValue(value: unknown): [string, string] {
-	return [
-		formatCurrency(Number(value), {
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}),
-		"Scheduled Rent",
-	];
-}
-
 export function RevenueAreaChart({
 	monthlyRevenue,
 	monthlyRevenue6mo,
@@ -235,12 +226,16 @@ export function RevenueAreaChart({
 								content={
 									<ChartTooltipContent
 										labelFormatter={toTooltipLabelFormatter(tickFormatter)}
-										formatter={formatTooltipValue}
+										formatter={moneyTooltipFormatter(revenueConfig, {
+											minimumFractionDigits: 0,
+											maximumFractionDigits: 0,
+										})}
 									/>
 								}
 							/>
 							<Area
 								dataKey="value"
+								name="revenue"
 								type="monotone"
 								fill="url(#fillRevenue)"
 								stroke="var(--color-chart-1)"

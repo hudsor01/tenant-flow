@@ -18,9 +18,10 @@
  * (`<area-chart>`, `<area>`) wait via `findBy*` or `waitFor`.
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRechartsProbe, setRechartsProbe } from "#test/mocks/recharts";
 import type {
 	MonthlyRevenuePoint,
 	TimeSeriesDataPoint,
@@ -63,6 +64,10 @@ async function findAreaChartData(): Promise<unknown> {
 
 beforeEach(() => {
 	useReducedMotionMock.mockReturnValue(false);
+});
+
+afterEach(() => {
+	resetRechartsProbe();
 });
 
 describe("RevenueAreaChart", () => {
@@ -210,6 +215,39 @@ describe("RevenueAreaChart", () => {
 		);
 		const area = await screen.findByTestId("area");
 		expect(area.getAttribute("data-stroke")).toBe("var(--color-chart-1)");
+	});
+
+	// The tooltip's formatter returned recharts' [value, name] pair, which
+	// ChartTooltipContent renders in place of the whole row: "$12,346Scheduled
+	// Rent", no key and no space (66.2-39 fix round 3, F33's sweep).
+	it("names the tooltip's series apart from its whole dollars", async () => {
+		setRechartsProbe({
+			tooltip: {
+				active: true,
+				label: "2026-05-22T00:00:00.000Z",
+				payload: [
+					{
+						dataKey: "value",
+						name: "revenue",
+						value: 12345.67,
+						color: "var(--color-chart-1)",
+						payload: daily30d[0],
+					},
+				],
+			},
+		});
+		render(
+			<RevenueAreaChart
+				monthlyRevenue={daily30d}
+				monthlyRevenue6mo={monthly6mo}
+			/>,
+		);
+		const tooltip = await screen.findByTestId("tooltip");
+		const name = within(tooltip).getByText("Scheduled Rent");
+		expect(name.nextElementSibling?.textContent).toBe("$12,346");
+		expect((await screen.findByTestId("area")).getAttribute("data-name")).toBe(
+			"revenue",
+		);
 	});
 });
 

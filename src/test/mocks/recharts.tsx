@@ -1,8 +1,35 @@
 /**
  * Recharts mock for Vitest tests
  * Provides mock implementations of recharts components that render as simple divs
+ *
+ * A test that needs what recharts would draw from a function or element prop
+ * (an axis tick formatter, the tooltip or legend `content`) sets a probe with
+ * `setRechartsProbe`: YAxis then prints each probe tick through its
+ * `tickFormatter`, Tooltip renders its `content` with the probe's tooltip
+ * state, and Legend its `content` with the probe's payload, inside the chart's
+ * own ChartContainer context. `resetRechartsProbe` clears it.
  */
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactNode } from "react";
+
+interface RechartsProbe {
+	yTicks?: number[];
+	tooltip?: {
+		active: boolean;
+		label?: string;
+		payload: Array<Record<string, unknown>>;
+	};
+	legend?: Array<Record<string, unknown>>;
+}
+
+let probe: RechartsProbe = {};
+
+export function setRechartsProbe(next: RechartsProbe) {
+	probe = next;
+}
+
+export function resetRechartsProbe() {
+	probe = {};
+}
 
 interface ContainerProps {
 	children?: ReactNode;
@@ -16,6 +43,7 @@ interface ChartProps extends ContainerProps {
 
 interface AxisProps {
 	dataKey?: string;
+	tickFormatter?: (value: number, index: number) => string;
 }
 
 interface TooltipProps {
@@ -47,6 +75,7 @@ interface PieProps {
 
 interface LegendProps {
 	verticalAlign?: string;
+	content?: unknown;
 }
 
 export const ResponsiveContainer = ({ children }: ContainerProps) => (
@@ -67,16 +96,30 @@ export const XAxis = ({ dataKey }: AxisProps) => (
 	<g data-testid="x-axis" data-key={dataKey} />
 );
 
-export const YAxis = ({ dataKey }: AxisProps) => (
-	<g data-testid="y-axis" data-key={dataKey} />
+export const YAxis = ({ dataKey, tickFormatter }: AxisProps) => (
+	<g data-testid="y-axis" data-key={dataKey}>
+		{probe.yTicks?.map((tick, index) => (
+			<text key={tick} data-testid="y-tick">
+				{tickFormatter ? tickFormatter(tick, index) : String(tick)}
+			</text>
+		))}
+	</g>
 );
 
 export const Tooltip = ({ content }: TooltipProps) => (
-	<div data-testid="tooltip" data-has-content={!!content} />
+	<div data-testid="tooltip" data-has-content={!!content}>
+		{probe.tooltip && isValidElement<Record<string, unknown>>(content)
+			? cloneElement(content, probe.tooltip)
+			: null}
+	</div>
 );
 
-export const Legend = ({ verticalAlign }: LegendProps) => (
-	<g data-testid="legend" data-align={verticalAlign} />
+export const Legend = ({ verticalAlign, content }: LegendProps) => (
+	<g data-testid="legend" data-align={verticalAlign}>
+		{probe.legend && isValidElement<Record<string, unknown>>(content)
+			? cloneElement(content, { payload: probe.legend })
+			: null}
+	</g>
 );
 
 export const PieChart = ({ children }: ChartProps) => (
@@ -155,16 +198,19 @@ export const Line = ({
 	dataKey,
 	stroke,
 	name,
+	strokeDasharray,
 }: {
 	dataKey?: string;
 	stroke?: string;
 	name?: string;
+	strokeDasharray?: string;
 }) => (
 	<g
 		data-testid="line"
 		data-key={dataKey}
 		data-stroke={stroke}
 		data-name={name}
+		data-stroke-dasharray={strokeDasharray}
 	/>
 );
 
@@ -183,6 +229,7 @@ export const Area = ({
 	isAnimationActive,
 	dot,
 	activeDot,
+	strokeDasharray,
 }: {
 	dataKey?: string;
 	fill?: string;
@@ -192,6 +239,7 @@ export const Area = ({
 	isAnimationActive?: boolean;
 	dot?: boolean | object;
 	activeDot?: boolean | object;
+	strokeDasharray?: string;
 }) => (
 	<g
 		data-testid="area"
@@ -199,6 +247,7 @@ export const Area = ({
 		data-fill={fill}
 		data-stroke={stroke}
 		data-name={name}
+		data-stroke-dasharray={strokeDasharray}
 		data-stroke-width={
 			typeof strokeWidth === "number" ? String(strokeWidth) : undefined
 		}
