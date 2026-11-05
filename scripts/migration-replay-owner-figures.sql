@@ -20,9 +20,16 @@
 --
 -- Every amount is dollars. T below is the day the gate runs (current_date),
 -- M0 the first day of T's month. T is never earlier than 2026-11-02 (the day
--- this was written), so no date relative to T falls in 2024 or the first half
--- of 2025, where owner B's fixed dates are. The fixture prints T as `today`,
--- from which the assertion computes every window and month it expects.
+-- this was written). Every function is owner-scoped, so only owner B's own
+-- rows reach owner B's figures, and of the dates this sets for owner B only
+-- LB1's (from T-3) and its requests RB1's (created on T) and RB2's (on T-40)
+-- are relative to T: all after 2025, and none an expense's, so owner B's
+-- calls over fixed dates (2024, 2025, and its expenses from 2025-03-01 on)
+-- see only its fixed dates. Other owners' rows dated relative to T can fall
+-- in 2025 (L11 from T-500, owner C's expense on January 1 of the year before
+-- T's) and reach only their own owner's figures. The fixture prints T as
+-- `today`, from which the assertion computes every window and month it
+-- expects.
 --
 -- OWNER A, North Court (units N1..N4, and N5 inactive) and South House
 -- (INACTIVE property, unit S1):
