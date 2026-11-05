@@ -5,13 +5,9 @@
  * `useBulkImportMutation.onError` populates a synthetic `row: 0` error,
  * the previous buildFailedRowsCsv branched on `parseResult` non-null and
  * emitted a header-only CSV (filter on `r.row === 0` matched zero data
- * rows). This test asserts the helper now falls through to the synthetic
- * `row,error` shape when every error is row-0.
- *
- * The helper is module-internal — we re-implement the contract here via
- * a tiny re-export for testing. Alternative would be to extract
- * buildFailedRowsCsv to its own module; the inline form is fine for now
- * given the helper is short and only called from one component.
+ * rows). These tests call the exported helper: it falls through to the
+ * synthetic `row,error` shape when every error is row-0, and keeps the
+ * original headers for a real row's error.
  */
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -25,9 +21,6 @@ const mapRow = (raw: Record<string, string>) => ({
 });
 
 describe("failed-rows CSV download", () => {
-	// Verify the synthetic-row contract by simulating the buildFailedRowsCsv
-	// logic via Papa parse round-trip. If a synthetic error is the only
-	// entry, we'd otherwise emit a 1-line file (just the header).
 	it("with parseResult and a real per-row error, emits original headers + cells + _error column", () => {
 		const csv = buildCsvTemplate(
 			["name", "count"],
@@ -37,24 +30,23 @@ describe("failed-rows CSV download", () => {
 			],
 		);
 		const result = parseCsvWithSchema(csv, { schema, mapRow });
-		// Simulate the failed-rows export: pretend row 3 (CSV line 3 = beta) failed
-		const errors = [{ row: 3, error: "simulated DB error" }];
-		const errorByLine = new Map(errors.map((e) => [e.row, e.error]));
-		const failedRows = result.rows.filter((r) => errorByLine.has(r.row));
-		expect(failedRows).toHaveLength(1);
-		expect(failedRows[0]?.data).toMatchObject({ name: "beta", count: "2" });
+		// Row 3 (CSV line 3 = beta) failed.
+		expect(
+			buildFailedRowsCsv(
+				[{ row: 3, error: "simulated DB error" }],
+				result,
+			).split("\n"),
+		).toEqual(['"name","count","_error"', '"beta","2","simulated DB error"']);
 	});
 
-	it("with synthetic row-0 errors, the same filter would emit zero rows (regression scenario)", () => {
+	it("with only synthetic row-0 errors, falls through to the row,error shape (regression scenario)", () => {
 		const csv = buildCsvTemplate(["name", "count"], [["alpha", "1"]]);
 		const result = parseCsvWithSchema(csv, { schema, mapRow });
-		const syntheticErrors = [{ row: 0, error: "network blowup" }];
-		const errorByLine = new Map(syntheticErrors.map((e) => [e.row, e.error]));
-		const failedRows = result.rows.filter((r) => errorByLine.has(r.row));
-		// This is the bug condition: zero matching rows. The fix in
-		// bulk-import-result-error-list.ts falls through to a synthetic
-		// `row,error` CSV in this case so the user gets a non-empty download.
-		expect(failedRows).toHaveLength(0);
+		// No parsed row has line 0, so the original-headers shape would be the
+		// header alone; the helper writes each synthetic error instead.
+		expect(
+			buildFailedRowsCsv([{ row: 0, error: "network blowup" }], result),
+		).toBe('"row","error"\n"0","network blowup"\n');
 	});
 });
 
