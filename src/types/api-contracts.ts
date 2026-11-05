@@ -143,20 +143,6 @@ export type TenantDetail = Tables<"tenants"> & {
 	>[];
 };
 
-/** Lease detail - full row with relations */
-export type LeaseDetail = Tables<"leases"> & {
-	unit?: Pick<Tables<"units">, "id" | "unit_number" | "property_id"> & {
-		property?: Pick<
-			Tables<"properties">,
-			"id" | "name" | "address_line1" | "city" | "state"
-		>;
-	};
-	tenant?: Pick<
-		Tables<"users">,
-		"id" | "email" | "first_name" | "last_name" | "phone"
-	>;
-};
-
 /** Maintenance request list item - minimal fields for list views */
 export type MaintenanceRequestListItem = Pick<
 	Tables<"maintenance_requests">,
