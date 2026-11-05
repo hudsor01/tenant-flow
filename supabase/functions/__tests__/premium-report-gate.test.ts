@@ -33,7 +33,7 @@
  * rest of the unit suite.
  *
  * WHY COMPARE THE SOURCES TO EACH OTHER RATHER THAN TO A LITERAL: a test that
- * asserted the current five members against a hardcoded list would pass today
+ * asserted the current members against a hardcoded list would pass today
  * and still let the three sources diverge tomorrow — editing any one of them
  * would leave the other two, and the test, untouched. Every equality assertion
  * below is source-against-source, so editing any single source fails the suite.
