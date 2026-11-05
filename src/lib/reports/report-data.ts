@@ -866,10 +866,7 @@ function taxPreparationUnavailableSections(year: number): ReportSection[] {
 	];
 }
 
-function taxPreparationSections(
-	yearEnd: YearEndSummary,
-	available: boolean,
-): ReportSection[] {
+function taxPreparationSections(yearEnd: YearEndSummary): ReportSection[] {
 	// Every property with rent or spend in the year, one deleted since named
 	// as deleted (the label map), to the cent: they sum to the summary.
 	const byPropertyRows = yearEnd.byProperty.map(
@@ -902,9 +899,7 @@ function taxPreparationSections(
 				emptyText: `No expenses in ${yearEnd.year}.`,
 			},
 			// TenantFlow does not decide which expenses are deductible.
-			note: available
-				? DEDUCTIBILITY_NOTE
-				: `${UNAVAILABLE_NOTE} ${DEDUCTIBILITY_NOTE}`,
+			note: DEDUCTIBILITY_NOTE,
 		},
 	];
 }
@@ -921,6 +916,8 @@ async function buildTaxPreparation(
 		reportAnalyticsQueries.yearEnd(year),
 		fallback,
 	);
+	// safeFetch falls back only to the ledger-unavailable result, which writes
+	// the unavailable sections: a ready summary is always a loaded one.
 	const result = yearEndResult.data;
 	return {
 		...taxYearHeader(
@@ -930,7 +927,7 @@ async function buildTaxPreparation(
 		),
 		sections:
 			result.status === "ready"
-				? taxPreparationSections(result.summary, yearEndResult.available)
+				? taxPreparationSections(result.summary)
 				: taxPreparationUnavailableSections(year),
 	};
 }

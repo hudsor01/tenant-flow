@@ -191,6 +191,21 @@ describe("safeFetch", () => {
 	});
 });
 
+// buildTaxPreparation builds these sections only for a ready summary, and
+// safeFetch's one fallback is a ledger-unavailable result, which takes the
+// unavailable sections instead: an `available` parameter here could never be
+// false, and its branch wrote a note no export could carry (cycle 2, F120).
+describe("the tax preparation export's vendor note", () => {
+	it("is the deductibility note alone, with no failed-read branch", () => {
+		const body = functionBody(REPORT_DATA_CODE, "taxPreparationSections");
+		expect(body).toContain("note: DEDUCTIBILITY_NOTE");
+		expect(body).not.toContain("UNAVAILABLE_NOTE");
+		expect(REPORT_DATA_CODE).toMatch(
+			/function taxPreparationSections\(yearEnd: YearEndSummary\)/,
+		);
+	});
+});
+
 describe("D-37: the permanently-zero payment counts stay excised", () => {
 	it.each([
 		"Total Payments",

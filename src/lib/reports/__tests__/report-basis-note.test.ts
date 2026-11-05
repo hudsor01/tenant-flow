@@ -6,7 +6,8 @@
  * the income statement and the cash flow carry STATEMENT_BASIS_NOTE; neither
  * did. And the PDF wrote each section note as ONE line (doc.text(note, x, y)),
  * so a note longer than the page ran past the right margin and off the page
- * (the tax-preparation export's deductibility note, part Q, is one).
+ * (the executive and financial performance Summary's, with the ledger totals
+ * unavailable and a failed occupancy read, is one).
  */
 import jsPDF from "jspdf";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -44,8 +45,12 @@ import {
 	STATEMENT_BASIS_NOTE,
 } from "../statement-basis";
 
+/**
+ * The longest note a builder writes: the Summary's ledger note and its
+ * failed-occupancy note together (report-data.ts `notes()`), 887pt at 8pt.
+ */
 const LONG_NOTE =
-	"TenantFlow doesn't decide which expenses are deductible; review them with your tax preparer. Some figures couldn't be loaded and show as 0 here, which may not be their value. Try generating the report again.";
+	"The income statement and the cash flow are built on your rent ledger, whose totals aren't available yet, so none of their figures is shown. Some figures couldn't be loaded and show as 0 here, which may not be their value. Try generating the report again.";
 
 function report(): ReportData {
 	return {
@@ -56,13 +61,20 @@ function report(): ReportData {
 		periodEnd: "2026-10-31",
 		sections: [
 			{
+				heading: "Summary",
+				rows: [
+					{ label: "Total Revenue", value: "Unavailable" },
+					{ label: "Occupancy Rate (today)", value: "0.0%" },
+				],
+				note: LONG_NOTE,
+			},
+			{
 				heading: "Expenses by Vendor",
 				table: {
-					headers: ["Vendor", "Amount"],
-					rows: [["Acme", "$10.00"]],
+					headers: ["Vendor", "Amount", "% of Expenses"],
+					rows: [["Acme", "$10.00", "100.0%"]],
 					emptyText: "No expenses in the period.",
 				},
-				note: LONG_NOTE,
 			},
 			{ heading: STATEMENT_BASIS_HEADING, paragraphs: STATEMENT_BASIS_NOTE },
 		],
@@ -107,7 +119,7 @@ describe("the PDF keeps every note and paragraph inside its margins", () => {
 				expect(written).toContain(word);
 			}
 		}
-		expect(written).toContain("review them with your tax preparer.");
+		expect(written).toContain("Try generating the report again.");
 	});
 });
 
