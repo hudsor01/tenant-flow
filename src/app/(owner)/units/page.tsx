@@ -111,6 +111,7 @@ export default function UnitsPage() {
 			// properties only) left a deleted property's units with none.
 			accessorKey: "property_id",
 			header: "Property",
+			meta: { label: "Property" },
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
 					{row.original.propertyName ?? "-"}

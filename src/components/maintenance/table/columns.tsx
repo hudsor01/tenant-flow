@@ -155,6 +155,7 @@ export const columns: ColumnDef<MaintenanceListRow>[] = [
 	{
 		accessorKey: "title",
 		header: "Request",
+		meta: { label: "Request" },
 		cell: ({ row }) => {
 			const request = row.original;
 			return (
@@ -175,6 +176,7 @@ export const columns: ColumnDef<MaintenanceListRow>[] = [
 	{
 		accessorKey: "propertyName",
 		header: "Location",
+		meta: { label: "Location" },
 		cell: ({ row }) => {
 			const request = row.original;
 			const propertyName = request.propertyName ?? "Unknown Property";
@@ -194,11 +196,13 @@ export const columns: ColumnDef<MaintenanceListRow>[] = [
 	{
 		accessorKey: "status",
 		header: "Status",
+		meta: { label: "Status" },
 		cell: ({ row }) => getStatusBadge(row.getValue("status") as string),
 	},
 	{
 		accessorKey: "priority",
 		header: "Priority",
+		meta: { label: "Priority" },
 		cell: ({ row }) => getPriorityBadge(row.getValue("priority") as string),
 	},
 	{

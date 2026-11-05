@@ -100,6 +100,7 @@ export const unitColumns: ColumnDef<UnitListRow>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Size" />
 		),
+		meta: { label: "Size" },
 		cell: ({ row }) => {
 			const sqft = row.getValue("square_feet") as number | null;
 			if (!sqft) return <span className="text-muted-foreground">-</span>;
