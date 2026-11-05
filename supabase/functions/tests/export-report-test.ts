@@ -13,8 +13,9 @@
 //     runs;
 //   - every RPC error is a 500 and never a file;
 //   - type, format and year are validated: a type the function does not build
-//     (the deleted maintenance and revenue row dumps, income-statement,
-//     cash-flow, none) is a 400 before the gate and any RPC;
+//     (the deleted maintenance and revenue row dumps, the removed 1099-NEC
+//     report, income-statement, cash-flow, none) is a 400 before the gate and
+//     any RPC;
 //   - year-end and financial (the tax-documents page) write the leaf's
 //     table of their page's figures for the year asked for, in every format
 //     (`_shared/tax-year-reports.ts`; the Vitest `__tests__/tax-year-reports

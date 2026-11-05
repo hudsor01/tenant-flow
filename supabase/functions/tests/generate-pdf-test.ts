@@ -3,9 +3,10 @@
 // (mirrors lease-signature-metering-test.ts).
 //
 // What it pins: a reportType the function does not build (the deleted
-// maintenance and revenue row dumps, income-statement, cash-flow) is a 400
-// before the gate and any RPC, and so is a `{ leaseId }` body (the deleted
-// lease-preview mode no caller sent); each page-backed report type is gated like
+// maintenance and revenue row dumps, the removed 1099-NEC report,
+// income-statement, cash-flow) is a 400 before the gate and any RPC, and so
+// is a `{ leaseId }` body (the deleted lease-preview mode no caller sent);
+// each page-backed report type is gated like
 // export-report's (the 402 with upgrade_url, no RPC), its RPC errors are a
 // 500, and a paid owner's PDF is printed from the same document
 // export-report's pdf format posts here (`sectionedReportHtml` over the
