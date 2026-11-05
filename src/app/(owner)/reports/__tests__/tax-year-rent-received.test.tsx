@@ -9,20 +9,24 @@
  * summary was missing. They now say "Rent Received", and say the ledger
  * totals are unavailable, with no $0, when the server cannot report them yet.
  */
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "#test/utils/test-render";
 import type { TaxDocumentsResult } from "#types/financial-statements";
 import type { YearEndSummary } from "#types/reports";
 
-const { useTaxDocumentsMock } = vi.hoisted(() => ({
+const { useTaxDocumentsMock, downloadPdfMock } = vi.hoisted(() => ({
 	useTaxDocumentsMock: vi.fn(),
+	downloadPdfMock: vi.fn(),
 }));
 vi.mock("#hooks/api/use-expense-mutations", () => ({
 	useTaxDocuments: useTaxDocumentsMock,
 }));
 vi.mock("#hooks/api/use-report-mutations", () => ({
-	useDownloadTaxDocumentPdf: () => ({ mutate: vi.fn(), isPending: false }),
+	useDownloadTaxDocumentPdf: () => ({
+		mutate: downloadPdfMock,
+		isPending: false,
+	}),
 }));
 
 import TaxDocumentsPage from "#app/(owner)/reports/tax-documents/page";
@@ -201,12 +205,72 @@ describe("the tax documents", () => {
 		).toBeEnabled();
 	});
 
-	it("say the ledger totals are unavailable, and offer no PDF", () => {
+	// Download PDF keeps its tab stop and says why it is off, as the
+	// statements' Export does (cycle 2, F22, OD-12).
+	it("say the ledger totals are unavailable, and say why there is no PDF", () => {
+		downloadPdfMock.mockReset();
 		taxDocuments({ status: "ledger-unavailable", taxYear: 2025 });
 		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
 		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
-		expect(
-			screen.getByRole("button", { name: "Download PDF of the tax documents" }),
-		).toBeDisabled();
+		const button = screen.getByRole("button", {
+			name: "Download PDF of the tax documents",
+		});
+		expect(button).not.toBeDisabled();
+		expect(button).toHaveAttribute("aria-disabled", "true");
+		expect(button).toHaveAccessibleDescription(
+			"The rent ledger totals the tax documents are built on aren't available yet.",
+		);
+		fireEvent.click(button);
+		expect(downloadPdfMock).not.toHaveBeenCalled();
+	});
+
+	it("say why there is no PDF for a year with nothing recorded", () => {
+		downloadPdfMock.mockReset();
+		taxDocuments({
+			status: "ready",
+			documents: {
+				period: {
+					start_date: "2026-01-01",
+					end_date: "2026-12-31",
+					label: "Tax Year 2026",
+				},
+				taxYear: 2026,
+				totals: { totalIncome: 0, totalExpenses: 0, netIncome: 0 },
+				expenseCategories: [],
+			},
+		});
+		const button = screen.getByRole("button", {
+			name: "Download PDF of the tax documents",
+		});
+		expect(button).toHaveAttribute("aria-disabled", "true");
+		expect(button).toHaveAccessibleDescription(
+			`No rent received or expenses recorded for tax year ${new Date().getFullYear()}.`,
+		);
+		fireEvent.click(button);
+		expect(downloadPdfMock).not.toHaveBeenCalled();
+	});
+
+	it("download the PDF of a year with figures", () => {
+		downloadPdfMock.mockReset();
+		taxDocuments({
+			status: "ready",
+			documents: {
+				period: {
+					start_date: "2026-01-01",
+					end_date: "2026-12-31",
+					label: "Tax Year 2026",
+				},
+				taxYear: 2026,
+				totals: { totalIncome: 1000, totalExpenses: 0, netIncome: 1000 },
+				expenseCategories: [],
+			},
+		});
+		const button = screen.getByRole("button", {
+			name: "Download PDF of the tax documents",
+		});
+		expect(button).not.toHaveAttribute("aria-disabled");
+		expect(button).not.toHaveAttribute("aria-describedby");
+		fireEvent.click(button);
+		expect(downloadPdfMock).toHaveBeenCalledWith(new Date().getFullYear());
 	});
 });

@@ -10,7 +10,7 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
 import {
@@ -47,6 +47,7 @@ export default function TaxDocumentsPage() {
 	const ledgerUnavailable = result?.status === "ledger-unavailable";
 	const data = result?.status === "ready" ? result.documents : undefined;
 	const downloadPdfMutation = useDownloadTaxDocumentPdf();
+	const pdfReasonId = useId();
 
 	if (isLoading) {
 		return (
@@ -106,6 +107,17 @@ export default function TaxDocumentsPage() {
 			data.totals.totalExpenses > 0 ||
 			data.expenseCategories.length > 0);
 
+	// aria-disabled, not disabled, keeps the tab stop so the reason stays
+	// reachable (as the statements' ReportExportButton does); the click is
+	// ignored while it is set, and while a PDF is generating.
+	const pdfUnavailableReason = ledgerUnavailable
+		? "The rent ledger totals the tax documents are built on aren't available yet."
+		: !hasData
+			? `No rent received or expenses recorded for tax year ${taxYear}.`
+			: null;
+	const pdfBlocked =
+		pdfUnavailableReason !== null || downloadPdfMutation.isPending;
+
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
@@ -140,9 +152,16 @@ export default function TaxDocumentsPage() {
 						<Button
 							variant="outline"
 							size="sm"
-							className="gap-1.5 min-h-11"
-							onClick={() => downloadPdfMutation.mutate(taxYear)}
-							disabled={downloadPdfMutation.isPending || isLoading || !hasData}
+							className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+							onClick={
+								pdfBlocked
+									? undefined
+									: () => downloadPdfMutation.mutate(taxYear)
+							}
+							aria-disabled={pdfBlocked || undefined}
+							aria-describedby={
+								pdfUnavailableReason !== null ? pdfReasonId : undefined
+							}
 							aria-label={
 								downloadPdfMutation.isPending
 									? "Generating..."
@@ -156,6 +175,11 @@ export default function TaxDocumentsPage() {
 							)}
 							{downloadPdfMutation.isPending ? "Generating..." : "Download PDF"}
 						</Button>
+						{pdfUnavailableReason !== null ? (
+							<span id={pdfReasonId} className="sr-only">
+								{pdfUnavailableReason}
+							</span>
+						) : null}
 					</div>
 				</div>
 			</BlurFade>

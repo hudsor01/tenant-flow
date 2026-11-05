@@ -13,17 +13,18 @@ import {
 } from "#components/ui/empty";
 
 /**
- * In place of a statement's figures when the server returns none of the rent
- * ledger totals it is built on (get_billing_insights before 20261102055449).
- * The page's selectors and Export button stay, so the owner can still pick
- * another period; every period is unavailable in that state, and Export says
- * why.
+ * In place of a statement's or the tax documents' figures when the server
+ * returns none of the rent ledger totals they are built on
+ * (get_billing_insights before 20261102055449). The page's selectors and its
+ * export control (a statement's Export, the tax documents' Download PDF) stay,
+ * so the owner can still pick another period or year; every one is
+ * unavailable in that state, and the control says why.
  */
 export function LedgerTotalsUnavailable({
 	description,
 	onRetryAction,
 }: {
-	/** What on this statement comes from the ledger, ending in a full stop. */
+	/** What on this page comes from the ledger, ending in a full stop. */
 	description: string;
 	onRetryAction: () => void;
 }) {
