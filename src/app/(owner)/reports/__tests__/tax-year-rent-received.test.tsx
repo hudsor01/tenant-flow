@@ -12,6 +12,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
+import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import { render } from "#test/utils/test-render";
 import type { TaxDocumentsResult } from "#types/financial-statements";
 import type { YearEndSummary } from "#types/reports";
@@ -104,6 +105,29 @@ describe("the year-end summary", () => {
 		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
 		expect(screen.queryByText("Rent Received")).not.toBeInTheDocument();
 	});
+
+	// The v4 Card pads itself (py-6); the card's CardContent added the v3
+	// pt-6 on top (48px above its title), and globals.css' `p` margin, which
+	// cannot leave a flex item, added 16px under it and between its two lines
+	// (cycle 2, F67).
+	it("pads the unavailable card only as the Card does, with no base paragraph margin", async () => {
+		render(section({ yearEndData: undefined, ledgerUnavailable: true }));
+		const content = document.querySelector("[data-slot=card-content]");
+		if (!content) throw new Error("the card rendered no content");
+		const designSystem = await loadProjectDesignSystem();
+		const css = designSystem
+			.candidatesToCss([...content.classList])
+			.filter((rule): rule is string => rule !== null)
+			.join("\n");
+		expect(css).not.toMatch(/padding(-top|-block)?\s*:/);
+		const lines = [...content.querySelectorAll("p")];
+		expect(lines).toHaveLength(2);
+		for (const line of lines) {
+			const { neutralized, baseline } = computeParagraphCascade(line);
+			expect(baseline.marginBottom).toBe("16px");
+			expect(neutralized.marginBottom).toBe("0px");
+		}
+	}, 30_000);
 
 	it("writes Unavailable, not $0.00, on a card it has no summary for", () => {
 		render(section({ yearEndData: undefined, ledgerUnavailable: false }));

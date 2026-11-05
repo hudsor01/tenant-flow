@@ -41,11 +41,13 @@ const UNAVAILABLE = "Unavailable";
  * no summary, so the By Property and Expense Breakdown cards have no rows.
  */
 function LedgerTotalsUnavailableCard({ year }: { year: number }) {
+	// The Card's own py-6 pads it. mb-0: CardContent is a flex item, so the
+	// base `p` margin would stay inside it, under the text and between the lines.
 	return (
 		<Card>
-			<CardContent className="pt-6">
-				<p className="font-medium">Ledger totals unavailable</p>
-				<p className="text-sm text-muted-foreground mt-1">
+			<CardContent>
+				<p className="mb-0 font-medium">Ledger totals unavailable</p>
+				<p className="mt-1 mb-0 text-sm text-muted-foreground">
 					Rent received in {year} comes from your rent ledger, and its totals
 					aren&apos;t available yet. Try again later.
 				</p>
