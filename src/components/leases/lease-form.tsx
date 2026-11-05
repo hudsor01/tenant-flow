@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
 import { Button } from "#components/ui/button";
-import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
+import {
+	type LeaseDetailRow,
+	leaseQueries,
+} from "#hooks/api/query-keys/lease-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
@@ -19,7 +22,6 @@ import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
 import type { LeaseCreate } from "#lib/validation/leases";
-import type { LeaseWithExtras } from "#types/core";
 import { LeaseFormFinancialFields } from "./lease-form-financial-fields";
 import { leaseFormOptions } from "./lease-form-options";
 import { LeaseFormPropertyUnitFields } from "./lease-form-property-unit-fields";
@@ -27,7 +29,7 @@ import { LeaseFormTenantDateFields } from "./lease-form-tenant-date-fields";
 
 interface LeaseFormProps {
 	mode: "create" | "edit";
-	lease?: LeaseWithExtras;
+	lease?: LeaseDetailRow;
 	onSuccess?: () => void;
 }
 
@@ -115,6 +117,9 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		},
 	});
 
+	// The lease's unit as the detail maps it. The detail returned its raw
+	// `units` embed, so `unit` was always absent and the edit form opened with
+	// no property chosen and no units to show the lease's unit by.
 	const [selectedPropertyId, setSelectedPropertyId] = useState(
 		lease?.unit?.property_id ?? "",
 	);

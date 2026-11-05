@@ -9,11 +9,74 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse } from "#types/api-contracts";
-import type { Lease, LeaseStatsResponse } from "#types/core";
+import type {
+	Lease,
+	LeaseStatsResponse,
+	Property,
+	Tenant,
+	Unit,
+} from "#types/core";
 import {
 	type ExpiringLeaseRow,
 	mapExpiringLeaseRow,
 } from "./expiring-leases-mapper";
+
+/**
+ * The detail's select: the lease's columns, its primary tenant and its unit
+ * with the unit's property, each embedded through the lease's own foreign
+ * key. No capped or filtered tenant or unit list can name a lease's 51st
+ * tenant or unit, or a deleted one; the embed always does.
+ */
+const LEASE_DETAIL_SELECT =
+	"*, tenants:primary_tenant_id(id, name, first_name, last_name, email), units(id, unit_number, bedrooms, bathrooms, square_feet, property_id, properties(name, address_line1, city, state))" as const;
+
+type LeaseDetailTenant = Pick<
+	Tenant,
+	"id" | "name" | "first_name" | "last_name" | "email"
+>;
+
+type LeaseDetailProperty = Pick<
+	Property,
+	"name" | "address_line1" | "city" | "state"
+>;
+
+type LeaseDetailUnit = Pick<
+	Unit,
+	| "id"
+	| "unit_number"
+	| "bedrooms"
+	| "bathrooms"
+	| "square_feet"
+	| "property_id"
+> & { property: LeaseDetailProperty | null };
+
+/**
+ * A lease as its detail page and its edit form read it: the row, its primary
+ * tenant and its unit with the unit's property, from the detail's own embeds
+ * (each null with no row).
+ */
+export interface LeaseDetailRow extends Lease {
+	tenant: LeaseDetailTenant | null;
+	unit: LeaseDetailUnit | null;
+}
+
+/** The detail's embeds under the names its readers use. */
+function mapLeaseDetailRow({
+	tenants,
+	units,
+	...lease
+}: Lease & {
+	tenants: LeaseDetailTenant | null;
+	units:
+		| (Omit<LeaseDetailUnit, "property"> & {
+				properties: LeaseDetailProperty | null;
+		  })
+		| null;
+}): LeaseDetailRow {
+	if (units === null) return { ...lease, tenant: tenants, unit: null };
+	const { properties, ...unit } = units;
+	return { ...lease, tenant: tenants, unit: { ...unit, property: properties } };
+}
 
 export interface LeaseFilters {
 	unit_id?: string;
@@ -84,17 +147,15 @@ export const leaseQueries = {
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...leaseQueries.details(), id],
-			queryFn: async (): Promise<Lease> => {
+			queryFn: async (): Promise<LeaseDetailRow> => {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("leases")
-					.select(
-						"*, tenants:primary_tenant_id(id, name, email, phone), units(id, unit_number, bedrooms, bathrooms, square_feet, property_id, properties(id, name, address_line1, city, state, postal_code))",
-					)
+					.select(LEASE_DETAIL_SELECT)
 					.eq("id", id)
 					.single();
 				if (error) handlePostgrestError(error, "leases");
-				return data as Lease;
+				return mapLeaseDetailRow(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,

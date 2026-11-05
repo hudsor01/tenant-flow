@@ -6,20 +6,28 @@
  * The heading took its unit from `useUnitList()`, which holds only the 50
  * newest non-inactive units, so a lease on an owner's 51st-newest unit, or
  * on a deleted one, was headed by its property alone ("Maple Court"), the
- * same for every lease there. The detail query already embeds the unit.
+ * same for every lease there. The detail query already embeds the unit, and
+ * `leaseQueries.detail` maps it onto the lease (`LeaseDetailRow.unit`).
  */
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import { DEFAULT_LEASE } from "#test/utils/test-data";
 import { render } from "#test/utils/test-render";
 
-const LEASE = {
+/** The detail row as PostgREST returns it, with its unit embed. */
+const LEASE_ROW = {
 	...DEFAULT_LEASE,
 	id: "lease-51",
 	unit_id: "unit-51",
+	tenants: null,
 	units: {
 		id: "unit-51",
 		unit_number: "4B",
+		bedrooms: 1,
+		bathrooms: 1,
+		square_feet: null,
+		property_id: "property-1",
 		properties: {
 			name: "Maple Court",
 			address_line1: "1 Maple Ave",
@@ -29,25 +37,10 @@ const LEASE = {
 	},
 };
 
-vi.mock("#hooks/api/query-keys/lease-keys", () => ({
-	leaseQueries: {
-		detail: () => ({
-			queryKey: ["lease-details-heading-test"],
-			queryFn: async () => LEASE,
-		}),
-	},
-}));
-vi.mock("#hooks/api/query-keys/tenant-keys", () => ({
-	tenantQueries: {
-		list: () => ({
-			queryKey: ["lease-details-heading-tenants"],
-			queryFn: async () => ({ data: [] }),
-		}),
-	},
-}));
-// The unit is not among the unit list's 50 newest.
-vi.mock("#hooks/api/use-unit", () => ({
-	useUnitList: () => ({ data: [] }),
+vi.mock("#lib/supabase/client", () => ({
+	createClient: () => ({
+		from: () => createQueryChain({ data: LEASE_ROW, error: null }),
+	}),
 }));
 vi.mock("#hooks/api/use-lease-signature-mutations", () => ({
 	useCancelSignatureRequestMutation: () => ({

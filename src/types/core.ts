@@ -126,30 +126,6 @@ export type TenantUpdate = Partial<TenantInput>;
 export type UserInsert = TablesInsert<"users">;
 export type UserUpdate = TablesUpdate<"users">;
 
-export type LeaseWithExtras = Lease & {
-	version?: number;
-	tenant_id?: string;
-	property_id?: string;
-	status?: string;
-	terms?: string;
-	unit?: {
-		id: string;
-		unit_number: string | null;
-		property_id: string;
-	};
-	tenant?: {
-		id: string;
-		name?: string;
-		email?: string;
-	};
-	property?: {
-		id: string;
-		name: string;
-		address_line1: string;
-	};
-	signed_at?: string | null;
-};
-
 export type MaintenanceRequestWithExtras = MaintenanceRequest & {
 	version?: number;
 	property_id?: string;

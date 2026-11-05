@@ -24,22 +24,11 @@ vi.mock("#hooks/api/query-keys/lease-keys", () => ({
 			queryKey: ["lease-card-padding", detail.fail],
 			queryFn: async () => {
 				if (detail.fail) throw new Error("network");
-				return { ...DEFAULT_LEASE, id: "lease-1" };
+				return { ...DEFAULT_LEASE, id: "lease-1", tenant: null, unit: null };
 			},
 			retry: false,
 		}),
 	},
-}));
-vi.mock("#hooks/api/query-keys/tenant-keys", () => ({
-	tenantQueries: {
-		list: () => ({
-			queryKey: ["lease-card-padding-tenants"],
-			queryFn: async () => ({ data: [] }),
-		}),
-	},
-}));
-vi.mock("#hooks/api/use-unit", () => ({
-	useUnitList: () => ({ data: [] }),
 }));
 vi.mock("#hooks/api/use-lease-signature-mutations", () => ({
 	useCancelSignatureRequestMutation: () => ({

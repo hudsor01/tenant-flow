@@ -14,7 +14,7 @@ import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { logger } from "#lib/frontend-logger";
 import type { LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
-import { leaseQueries } from "./query-keys/lease-keys";
+import { type LeaseDetailRow, leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { tenantQueries } from "./query-keys/tenant-keys";
@@ -33,7 +33,7 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		string,
 		string,
 		{
-			previousDetail: Lease | undefined;
+			previousDetail: LeaseDetailRow | undefined;
 			previousLists: [
 				readonly unknown[],
 				(
@@ -64,9 +64,7 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		optimistic: {
 			cancel: (id) => [leaseQueries.detail(id).queryKey, leaseQueries.lists()],
 			snapshot: (qc, id) => ({
-				previousDetail: qc.getQueryData<Lease>(
-					leaseQueries.detail(id).queryKey,
-				),
+				previousDetail: qc.getQueryData(leaseQueries.detail(id).queryKey),
 				previousLists: qc.getQueriesData<{
 					data: Lease[];
 					total?: number;

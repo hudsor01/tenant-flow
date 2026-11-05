@@ -13,12 +13,13 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import type { LeaseDetailRow } from "#hooks/api/query-keys/lease-keys";
 import { render } from "#test/utils/test-render";
-import type { Lease } from "#types/core";
 import { LeaseDetails } from "../detail/lease-details.client";
 
-// Mock the hooks
-const mockLease: Lease = {
+// The detail carries its tenant and its unit (no property: the heading
+// reads "Unit 101").
+const mockLease: LeaseDetailRow = {
 	id: "lease-test-123",
 	unit_id: "unit-101",
 	primary_tenant_id: "tenant-123",
@@ -63,29 +64,22 @@ const mockLease: Lease = {
 	property_built_before_1978: true,
 	lead_paint_disclosure_acknowledged: true,
 	governing_state: "TX",
-};
-
-const mockTenant = {
-	id: "tenant-123",
-	first_name: "John",
-	last_name: "Doe",
-	email: "john.doe@example.com",
-	user_id: "user-123",
-	created_at: "2023-01-01T00:00:00Z",
-	updated_at: "2023-01-01T00:00:00Z",
-};
-
-const mockUnit = {
-	id: "unit-101",
-	property_id: "prop-123",
-	unit_number: "101",
-	bedrooms: 2,
-	bathrooms: 1,
-	square_feet: 900,
-	status: "occupied",
-	rent_amount: 2500,
-	created_at: "2023-01-01T00:00:00Z",
-	updated_at: "2023-01-01T00:00:00Z",
+	tenant: {
+		id: "tenant-123",
+		name: null,
+		first_name: "John",
+		last_name: "Doe",
+		email: "john.doe@example.com",
+	},
+	unit: {
+		id: "unit-101",
+		property_id: "prop-123",
+		unit_number: "101",
+		bedrooms: 2,
+		bathrooms: 1,
+		square_feet: 900,
+		property: null,
+	},
 };
 
 // Mock the query hooks
@@ -106,15 +100,6 @@ vi.mock("@tanstack/react-query", async () => {
 				};
 			}
 
-			// Mock tenant list query
-			if (queryKey.includes("tenants") && queryKey.includes("list")) {
-				return {
-					data: { data: [mockTenant] },
-					isLoading: false,
-					isError: false,
-				};
-			}
-
 			// Default
 			return {
 				data: null,
@@ -124,14 +109,6 @@ vi.mock("@tanstack/react-query", async () => {
 		}),
 	};
 });
-
-vi.mock("#hooks/api/use-unit", () => ({
-	useUnitList: () => ({
-		data: [mockUnit],
-		isLoading: false,
-		error: null,
-	}),
-}));
 
 vi.mock("#hooks/api/use-lease", () => ({
 	leaseQueries: {

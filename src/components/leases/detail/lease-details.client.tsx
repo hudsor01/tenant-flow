@@ -12,15 +12,15 @@ import { DocumentsSection } from "#components/documents/documents-section";
 import { LedgerTab } from "#components/ledger/ledger-tab";
 import { Card, CardContent } from "#components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
-import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
-import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import {
+	type LeaseDetailRow,
+	leaseQueries,
+} from "#hooks/api/query-keys/lease-keys";
 import { useCancelSignatureRequestMutation } from "#hooks/api/use-lease-signature-mutations";
-import { useUnitList } from "#hooks/api/use-unit";
 import { formatCount } from "#lib/formatters/count";
 import { getOrdinalSuffix } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
-import type { Lease } from "#types/core";
 import { generateTimelineEvents } from "./lease-detail-utils";
 import { LeaseDetailsSkeleton } from "./lease-details-skeleton";
 import { LeaseDetailsTab } from "./lease-details-tab";
@@ -35,29 +35,12 @@ interface LeaseDetailsProps {
 
 const logger = createLogger({ component: "LeaseDetails" });
 
-/**
- * The detail lease embeds units→properties (leaseQueries.detail select). The
- * base Lease type doesn't model that embed, so narrow it with an optional-field
- * interface (no `any` / `as unknown as`) to read the unit's number and its
- * property's name and street address.
- */
-interface LeaseWithPropertyEmbed {
-	units?: {
-		unit_number?: string | null;
-		properties?: {
-			name?: string | null;
-			address_line1?: string | null;
-			city?: string | null;
-			state?: string | null;
-		} | null;
-	} | null;
-}
-
-function getPropertyAddress(lease: Lease): string | null {
-	const property = (lease as Lease & LeaseWithPropertyEmbed).units?.properties;
+/** The unit's property's street address, for the rent-increase notice. */
+function propertyAddress(unit: LeaseDetailRow["unit"]): string | null {
+	const property = unit?.property;
 	if (!property) return null;
-	const line1 = property.address_line1?.trim();
-	const cityState = [property.city?.trim(), property.state?.trim()]
+	const line1 = property.address_line1.trim();
+	const cityState = [property.city.trim(), property.state.trim()]
 		.filter(Boolean)
 		.join(", ");
 	const parts = [line1, cityState].filter(Boolean);
@@ -72,18 +55,6 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		error,
 	} = useQuery(leaseQueries.detail(id));
 	const cancelSignature = useCancelSignatureRequestMutation();
-
-	const { data: tenantsResponse } = useQuery(tenantQueries.list());
-	const { data: units } = useUnitList();
-
-	const tenant = tenantsResponse?.data?.find(
-		(t) => t.id === lease?.primary_tenant_id,
-	);
-	const unit = units?.find((u) => u.id === lease?.unit_id);
-	// The heading's unit from the lease's own embed: the unit list holds only
-	// the 50 newest non-inactive units, so a lease on an older or a deleted
-	// unit found none there and was headed by its property alone.
-	const embed = lease ? (lease as Lease & LeaseWithPropertyEmbed).units : null;
 
 	if (isLoading) {
 		return <LeaseDetailsSkeleton />;
@@ -121,6 +92,11 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	};
 
 	const timelineEvents = generateTimelineEvents(lease);
+	// The tenant and the unit come from the lease's own embeds. The tenant and
+	// unit lists hold only the 50 newest non-inactive rows, so a lease on an
+	// owner's 51st tenant or unit, or a deleted one, found neither there: no
+	// tenant, unit card or View Unit link, no Send for Signature on a draft.
+	const { tenant, unit } = lease;
 
 	return (
 		<div className="space-y-6">
@@ -128,9 +104,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<LeaseHeader
 				lease={lease}
 				tenant={tenant}
-				unitName={embed?.unit_number ?? unit?.unit_number ?? null}
-				propertyName={embed?.properties?.name ?? null}
-				propertyAddress={getPropertyAddress(lease)}
+				unitName={unit?.unit_number ?? null}
+				propertyName={unit?.property?.name ?? null}
+				propertyAddress={propertyAddress(unit)}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}
 			/>
