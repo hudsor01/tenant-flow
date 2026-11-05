@@ -96,10 +96,13 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 			</ChartEmpty>
 		);
 	}
+	// Both series leave out cancelled requests, and a completed request with
+	// no completion date (20261102184503), so all zeros means none completed
+	// or open, not none at all: the status table can still list a cancelled one.
 	if (points.every((point) => point.completed === 0 && point.pending === 0)) {
 		return (
 			<ChartEmpty badge="No data">
-				No maintenance requests in the last 12 months.
+				No requests completed or open in the last 12 months.
 			</ChartEmpty>
 		);
 	}

@@ -121,7 +121,9 @@ describe("the trend chart", () => {
 		).toBeInTheDocument();
 	});
 
-	it("says there were no requests when every month is empty", () => {
+	// Both series leave out cancelled requests (cycle 2, F34): an owner whose
+	// only request was cancelled was told there were none.
+	it("says none were completed or open when every month is empty", () => {
 		render(
 			<MaintenanceTrendChart
 				points={["2026-09", "2026-10"].map((period) => ({
@@ -132,7 +134,7 @@ describe("the trend chart", () => {
 			/>,
 		);
 		expect(
-			screen.getByText("No maintenance requests in the last 12 months."),
+			screen.getByText("No requests completed or open in the last 12 months."),
 		).toBeInTheDocument();
 	});
 });
