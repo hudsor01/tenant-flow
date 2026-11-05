@@ -111,8 +111,15 @@ describe("the generate page's report cards", () => {
 			"vacancy analysis",
 			"NOI by property",
 			"monthly trends",
+			// An expense has no category: get_expense_summary groups by vendor,
+			// and the file's section is Expenses by Vendor (cycle 2, F10).
+			"expense categories",
 		]) {
 			expect(descriptions).not.toContain(claim);
 		}
+		expect(
+			reportCards.find((card) => card.id === "financial-performance")
+				?.description,
+		).toContain("expenses by vendor");
 	});
 });

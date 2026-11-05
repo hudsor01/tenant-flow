@@ -53,7 +53,7 @@ export const reportCards: ReportCard[] = [
 		id: "financial-performance",
 		title: "Financial Performance",
 		description:
-			"Rent and fees charged, expenses, net income and cash flow for the period, with the charges by type and the expense categories",
+			"Rent and fees charged, expenses, net income and cash flow for the period, with the charges by type and the expenses by vendor",
 		icon: TrendingUp,
 		formats: ["pdf", "excel"],
 		category: "financial",
