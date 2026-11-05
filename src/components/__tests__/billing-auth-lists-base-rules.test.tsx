@@ -1,12 +1,15 @@
 /**
  * @vitest-environment jsdom
- * Lists part 7b neutralized, rendered and read through the base-rule harness
- * (66.2-39 fix round 3, part 7b).
+ * Lists part 7b neutralized, and the paragraphs inside and beside them,
+ * rendered and read through the base-rule harness (66.2-39 fix round 3,
+ * part 7b).
  *
  * Each list carried `space-y-*` alone, so the globals.css `@layer base`
  * `ul, ol` / `li` rules reached it: 24px of inset with no marker, 16px above
- * and below. Computed values, not classes (`#test/utils/base-rule-cascade`);
- * the source-wide check of every list is `list-base-rule-neutralized.test.ts`.
+ * and below. The paragraphs are flex or grid items, or the last child of a
+ * padded box, where `p { margin-bottom: 1rem }` cannot collapse. Computed
+ * values, not classes (`#test/utils/base-rule-cascade`); the source-wide
+ * check of every list is `list-base-rule-neutralized.test.ts`.
  */
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -19,7 +22,10 @@ import { UpgradeDialog } from "#components/billing/upgrade-dialog";
 import { HowItWorks } from "#components/sections/how-it-works";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
-import { computeListCascade } from "#test/utils/base-rule-cascade";
+import {
+	computeListCascade,
+	computeParagraphCascade,
+} from "#test/utils/base-rule-cascade";
 import { render } from "#test/utils/test-render";
 
 vi.mock("#lib/supabase/client", () => ({ createClient: () => ({}) }));
@@ -66,6 +72,13 @@ function expectListNeutralized(list: Element | null) {
 	});
 }
 
+function expectParagraphNeutralized(paragraph: Element | null) {
+	if (!paragraph) throw new Error("no paragraph rendered");
+	const { neutralized, baseline } = computeParagraphCascade(paragraph);
+	expect(baseline.marginBottom).toBe("16px");
+	expect(neutralized.marginBottom).toBe("0px");
+}
+
 describe("the billing, auth and marketing lists cancel the base list rules", () => {
 	it("the password checklist", () => {
 		const { container } = render(
@@ -84,7 +97,7 @@ describe("the billing, auth and marketing lists cancel the base list rules", () 
 		for (const list of lists) expectListNeutralized(list);
 	});
 
-	it("a plan card's features", () => {
+	it("a plan card's features, and its description in the header grid", () => {
 		const { container } = render(
 			<PlanCard
 				plan={plan("growth")}
@@ -95,31 +108,43 @@ describe("the billing, auth and marketing lists cancel the base list rules", () 
 			/>,
 		);
 		expectListNeutralized(container.querySelector("ul"));
+		expectParagraphNeutralized(
+			container.querySelector("[data-slot=card-header] p"),
+		);
 	});
 
 	it.each([
 		["gained", "max"],
 		["lost", "starter"],
-	])("the upgrade dialog's %s features", (_kind, target) => {
-		render(
-			<UpgradeDialog
-				targetPlan={plan(target)}
-				currentPlan={plan("growth")}
-				hasActiveSubscription
-				isOpen
-				onClose={() => {}}
-				onConfirm={async () => {}}
-			/>,
-		);
-		const dialog = screen.getByRole("dialog");
-		const lists = dialog.querySelectorAll("ul");
-		expect(lists.length).toBeGreaterThan(0);
-		for (const list of lists) expectListNeutralized(list);
-	});
+	])(
+		"the upgrade dialog's %s features and its closing note",
+		(_kind, target) => {
+			render(
+				<UpgradeDialog
+					targetPlan={plan(target)}
+					currentPlan={plan("growth")}
+					hasActiveSubscription
+					isOpen
+					onClose={() => {}}
+					onConfirm={async () => {}}
+				/>,
+			);
+			const dialog = screen.getByRole("dialog");
+			const lists = dialog.querySelectorAll("ul");
+			expect(lists.length).toBeGreaterThan(0);
+			for (const list of lists) expectListNeutralized(list);
+			expectParagraphNeutralized(
+				screen.getByText(/prorated difference|remain active/i),
+			);
+		},
+	);
 
-	it("the confirm-email steps", () => {
+	it("the confirm-email steps, and each step's title and line", () => {
 		const { container } = render(<ConfirmEmailInstructions />);
 		expectListNeutralized(container.querySelector("ol"));
+		const paragraphs = container.querySelectorAll("ol li p");
+		expect(paragraphs.length).toBe(6);
+		for (const paragraph of paragraphs) expectParagraphNeutralized(paragraph);
 	});
 
 	it("the checkout-cancelled panel's list", () => {
@@ -130,7 +155,7 @@ describe("the billing, auth and marketing lists cancel the base list rules", () 
 		);
 	});
 
-	it("the lease template workflow steps", () => {
+	it("the lease template workflow steps, and each step's paragraph", () => {
 		render(
 			<TooltipProvider>
 				<LeaseTemplatePage />
@@ -138,5 +163,8 @@ describe("the billing, auth and marketing lists cancel the base list rules", () 
 		);
 		const list = screen.getByText("1. Select clauses").closest("ul");
 		expectListNeutralized(list);
+		const paragraphs = list?.querySelectorAll("li > p") ?? [];
+		expect(paragraphs.length).toBe(4);
+		for (const paragraph of paragraphs) expectParagraphNeutralized(paragraph);
 	});
 });

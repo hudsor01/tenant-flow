@@ -176,8 +176,8 @@ export function ConfirmEmailInstructions() {
 							{item.step}
 						</span>
 						<div className="pt-0.5">
-							<p className="text-foreground font-medium">{item.title}</p>
-							<p className="text-muted-foreground">{item.desc}</p>
+							<p className="mb-0 text-foreground font-medium">{item.title}</p>
+							<p className="mb-0 text-muted-foreground">{item.desc}</p>
 						</div>
 					</li>
 				))}

@@ -81,7 +81,7 @@ export function PlanCard({
 
 			<CardHeader className="pt-8 pb-4">
 				<h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-				<p className="text-sm text-muted-foreground">{plan.description}</p>
+				<p className="mb-0 text-sm text-muted-foreground">{plan.description}</p>
 			</CardHeader>
 
 			<CardContent className="flex-1">

@@ -217,7 +217,7 @@ export function UpgradeDialog({
 
 					{/* Info for existing subscribers */}
 					{currentPlan && (
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							{isUpgrade
 								? "Your card will be charged the prorated difference immediately."
 								: "Your current features will remain active until the end of your billing period."}
