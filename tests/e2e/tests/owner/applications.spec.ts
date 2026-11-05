@@ -20,8 +20,10 @@ import { boxesOf, polledRead, widthOf } from "../../lib/measure";
  * DETECT, and all three are computed-style or geometric assertions rather than
  * class checks for precisely that reason:
  *   - E-18 catches the unscoped base rule
- *     `a:not([role="button"]):not(.button):not([class*="button"])`
- *     tinting a whole-row link accent-blue and drawing a
+ *     `a:not([role="button"]):not(.button):not([class*="button"]):not([data-slot="button"])`
+ *     (its last guard added in 66.2-39 fix round 3, OD-3, for Button-styled
+ *     links; a whole-row link is not one) tinting a whole-row link accent-blue
+ *     and drawing a
  *     hover underline across it. Phase 65 shipped that. A test asserting
  *     `no-underline text-foreground` are PRESENT passes against the broken build
  *     too, because the classes were present there as well — the question is only
