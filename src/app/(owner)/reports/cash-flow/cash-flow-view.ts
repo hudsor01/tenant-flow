@@ -49,7 +49,7 @@ export function buildCashFlowView(
 				},
 			])
 		: [];
-	// One label for expenses on every statement and the expenses page.
+	// One label for expenses on the income statement and here (EXPENSES_LABEL).
 	const outflowItems = data
 		? withShares([
 				{

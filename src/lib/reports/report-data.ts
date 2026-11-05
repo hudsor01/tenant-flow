@@ -7,9 +7,6 @@
  * inside the `handleGenerateReport` click handler (which is not a React hook
  * context). They reuse the same query factories the existing report pages
  * already consume so cache + dedup are shared.
- *
- * Each `build*` function is kept under the 50-line CLAUDE.md cap by
- * delegating the per-section row literals to `*Rows()` helpers.
  */
 
 import type { QueryClient, QueryExecuteOptions } from "@tanstack/react-query";
@@ -244,7 +241,7 @@ const toDateHeader = (
 	periodEnd: asOf,
 });
 
-// ─── Per-section row helpers (keep build* under the 50-line cap) ────────────
+// ─── Per-section row helpers ────────────────────────────────────────────────
 
 /** A dollar figure the server could not compute yet, written as such. */
 const UNAVAILABLE = "Unavailable";

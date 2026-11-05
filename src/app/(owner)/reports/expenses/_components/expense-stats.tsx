@@ -12,7 +12,6 @@ import { formatDateWindow } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { ExpenseYearOverYear } from "#types/analytics";
 
-// Match financials-summary-stats: dollars, two decimals, no /100 mis-conversion.
 // There is no "Maintenance" tile: get_expense_summary's categories are vendor
 // names, and every expense is on a maintenance request
 // (expenses.maintenance_request_id is NOT NULL), so all of it is maintenance

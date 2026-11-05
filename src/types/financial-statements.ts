@@ -191,12 +191,9 @@ export type BalanceSheetResult =
  * received in the period in, the period's expenses out, and the expenses paid
  * as owner funds in, as the balance sheet carries them, so `beginningCash` and
  * `endingCash` are the balance sheet's Cash the day before the period and on
- * its last day.
- */
-/**
- * The cash flow on the rent ledger's basis. Only the flows the data model
- * records: no purchase, improvement, loan, mortgage payment or distribution is
- * recorded, so there is no investing section and no such line (each read $0).
+ * its last day. Only the flows the data model records: no purchase,
+ * improvement, loan, mortgage payment or distribution is recorded, so there is
+ * no investing section and no such line (each read $0).
  */
 export interface CashFlowData {
 	period: { start_date: string; end_date: string; label: string };

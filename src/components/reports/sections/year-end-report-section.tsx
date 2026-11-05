@@ -36,8 +36,9 @@ interface YearEndReportSectionProps {
 const UNAVAILABLE = "Unavailable";
 
 /**
- * In place of the summary when the server cannot report the year's rent
- * received yet; the expense breakdown is below.
+ * In place of the year's figures when the server cannot report the year's
+ * rent received yet. Nothing renders below it: an unavailable result carries
+ * no summary, so the By Property and Expense Breakdown cards have no rows.
  */
 function LedgerTotalsUnavailableCard({ year }: { year: number }) {
 	return (

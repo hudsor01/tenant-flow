@@ -41,8 +41,9 @@ const CENT_TOLERANCE = 0.005;
  * annual tiles (Tax Documents, Year-End) — so an unqualified "$2,000.00" next
  * to them reads as portfolio- or year-scope. The sibling surface on this exact
  * payload already discloses it (`collection-rate-kpi.tsx`: "Collected ÷
- * scheduled, this month"), and this component's own error copy says "this
- * period's". Only the success path was silent.
+ * scheduled, this month"), and this component's own error copy says
+ * "Couldn't load this month's collection figures". Only the success path was
+ * silent.
  */
 const PERIOD_LABEL = "this month";
 

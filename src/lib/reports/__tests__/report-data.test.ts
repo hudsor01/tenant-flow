@@ -7,18 +7,16 @@ import { isMissingRelationError, safeFetch } from "../report-data";
 /**
  * D-37 regression pin.
  *
- * `executiveKeyMetricsRows` is module-private, so this scans source rather than
- * calling it — the same mechanism `reports-hub-purity.test.ts` uses, which
- * cannot cover this file because its REPORTS_ROOT is `src/app/(owner)/reports`
- * and this lives under `src/lib/reports`.
+ * `ledgerPeriodRows` and `occupancyTodayRows`, the executive key metrics' rows,
+ * are module-private, so this scans source rather than calling them — the
+ * same mechanism `reports-hub-purity.test.ts` uses, which cannot cover this
+ * file because its REPORTS_ROOT is `src/app/(owner)/reports` and this lives
+ * under `src/lib/reports`.
  *
- * Without this, the excision was pinned by nothing but a prose comment, while
- * its sibling D-35 excision DID carry an absence assertion
- * (`use-financial-overview.test.ts`: `.not.toContain("accounts_receivable")`).
- * That asymmetry reads as coverage that is not there: re-adding the rows would
- * pass the entire suite and put permanently-zero counts back into a
- * customer-facing generated file on every tier, since `executive-monthly` is
- * deliberately not premium.
+ * Without this, the excision would be pinned by nothing but a prose comment:
+ * re-adding the rows would pass the entire suite and put permanently-zero
+ * counts back into a customer-facing generated file on every tier, since
+ * `executive-monthly` is deliberately not premium.
  */
 const REPORT_DATA_SRC = readFileSync(
 	join(process.cwd(), "src/lib/reports/report-data.ts"),
@@ -209,9 +207,9 @@ describe("D-37: the permanently-zero payment counts stay excised", () => {
 		"payments_by_method",
 		"payments_by_status",
 	])("does not read the broken snake_case key %s", (key) => {
-		// The mapper at report-analytics-keys.ts still parses these off a payload
-		// that returns only camelCase, so every lookup resolves undefined. It is
-		// still live for other consumers; this file must not become one again.
+		// get_billing_insights returns only camelCase, so each lookup resolved
+		// undefined. Nothing in src/ reads these keys any more (the mapper that
+		// parsed them is gone); this file must not read them again.
 		expect(REPORT_DATA_CODE).not.toContain(key);
 	});
 
