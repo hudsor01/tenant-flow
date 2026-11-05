@@ -21,6 +21,7 @@ import type { UnitInput, UnitUpdateInput } from "#lib/validation/units";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Unit } from "#types/core";
 import type { UnitStats } from "#types/stats";
+import { propertyReportName } from "../../../../supabase/functions/_shared/tax-year-reports";
 import { mutationKeys } from "../mutation-keys";
 import { mapUnitStats } from "./unit-mappers";
 
@@ -37,6 +38,39 @@ export interface UnitFilters {
 
 const UNIT_SELECT_COLUMNS =
 	"id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status, created_at, updated_at";
+
+/**
+ * The list's select: each unit's columns and its property's name and status,
+ * embedded through the unit's own foreign key. A property the owner deleted
+ * (status 'inactive', which does not cascade to its units) still names its
+ * units, as no capped or filtered property list can.
+ */
+const UNIT_LIST_SELECT =
+	`${UNIT_SELECT_COLUMNS}, properties(name, status)` as const;
+
+/** A unit as the unit list returns it: the row and its property's name. */
+export interface UnitListRow extends Unit {
+	/**
+	 * As a report prints it (`propertyReportName`): "Gamma Flats (deleted)"
+	 * for a property the owner deleted; null with no property row.
+	 */
+	propertyName: string | null;
+}
+
+function mapUnitListRow({
+	properties,
+	...unit
+}: Unit & {
+	properties: { name: string; status: string } | null;
+}): UnitListRow {
+	return {
+		...unit,
+		propertyName:
+			properties === null
+				? null
+				: propertyReportName(properties.name, properties.status),
+	};
+}
 
 /** Minimal unit shape for lease-wizard select options. */
 type UnitSelectOption = Pick<
@@ -65,14 +99,14 @@ export const unitQueries = {
 	list: (filters?: UnitFilters) =>
 		queryOptions({
 			queryKey: [...unitQueries.lists(), filters ?? {}],
-			queryFn: async (): Promise<PaginatedResponse<Unit>> => {
+			queryFn: async (): Promise<PaginatedResponse<UnitListRow>> => {
 				const supabase = createClient();
 				const limit = filters?.limit ?? 50;
 				const offset = filters?.offset ?? 0;
 
 				let q = supabase
 					.from("units")
-					.select(UNIT_SELECT_COLUMNS, { count: "exact" })
+					.select(UNIT_LIST_SELECT, { count: "exact" })
 					.order("created_at", { ascending: false });
 
 				// Filter inactive by default unless a specific status is requested
@@ -100,7 +134,7 @@ export const unitQueries = {
 				if (error) handlePostgrestError(error, "units");
 
 				return {
-					data: (data as Unit[]) ?? [],
+					data: (data ?? []).map(mapUnitListRow),
 					total: count ?? 0,
 					pagination: {
 						page: Math.floor(offset / limit) + 1,

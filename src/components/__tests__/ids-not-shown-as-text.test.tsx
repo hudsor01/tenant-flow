@@ -185,34 +185,39 @@ describe("each record is named instead", () => {
 						status: "occupied",
 						created_at: "2026-01-01T00:00:00Z",
 						updated_at: "2026-01-01T00:00:00Z",
+						propertyName: "Maple Court",
+					},
+					{
+						id: "u2",
+						property_id: "3f2a9c1e-0000-4000-8000-00000000dead",
+						owner_user_id: "owner-1",
+						unit_number: "2B",
+						bedrooms: 1,
+						bathrooms: 1,
+						square_feet: 600,
+						rent_amount: 1100,
+						rent_currency: "USD",
+						rent_period: "month",
+						status: "available",
+						created_at: "2026-01-01T00:00:00Z",
+						updated_at: "2026-01-01T00:00:00Z",
+						propertyName: "Gamma Flats (deleted)",
 					},
 				],
-				total: 1,
+				total: 2,
 			},
 			isLoading: false,
 			error: null,
 		};
-		const optionsResult = {
-			data: [
-				{
-					id: "3f2a9c1e-0000-4000-8000-000000000001",
-					name: "Maple Court",
-					address_line1: "1 Main St",
-					city: "Austin",
-					state: "TX",
-				},
-			],
-		};
+		// The list's own embed names each unit's property (cycle 2, F23): no
+		// second lookup, so a deleted property's unit keeps its property.
 		vi.doMock("@tanstack/react-query", async () => {
 			const actual = await vi.importActual<
 				typeof import("@tanstack/react-query")
 			>("@tanstack/react-query");
 			return {
 				...actual,
-				useQuery: (options: { queryKey: readonly unknown[] }) =>
-					options.queryKey.includes("select-options")
-						? optionsResult
-						: unitsResult,
+				useQuery: () => unitsResult,
 			};
 		});
 		vi.doMock("#hooks/api/use-unit", () => ({
@@ -221,6 +226,7 @@ describe("each record is named instead", () => {
 		const { default: UnitsPage } = await import("#app/(owner)/units/page");
 		render(<UnitsPage />);
 		expect(screen.getByText("Maple Court")).toBeInTheDocument();
+		expect(screen.getByText("Gamma Flats (deleted)")).toBeInTheDocument();
 		expect(document.body.textContent).not.toMatch(/3f2a9c1e/);
 		vi.doUnmock("@tanstack/react-query");
 		vi.doUnmock("#hooks/api/use-unit");

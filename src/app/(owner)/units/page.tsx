@@ -35,8 +35,7 @@ import {
 	EmptyTitle,
 } from "#components/ui/empty";
 import { Skeleton } from "#components/ui/skeleton";
-import { propertyQueries } from "#hooks/api/query-keys/property-keys";
-import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { type UnitListRow, unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { useClientDataTable } from "#hooks/use-client-data-table";
 import { formatCurrency } from "#lib/utils/currency";
@@ -54,12 +53,6 @@ export default function UnitsPage() {
 	} = useQuery(unitQueries.list({ limit: 100 }));
 
 	const units = unitsResponse?.data ?? [];
-	// Each unit's property by name: the column printed the first eight
-	// characters of its id ("Property ID: 3f2a9c1e...").
-	const { data: propertyOptions } = useQuery(propertyQueries.selectOptions());
-	const propertyNames = new Map(
-		(propertyOptions ?? []).map((property) => [property.id, property.name]),
-	);
 
 	const handleDeleteClick = (unit_id: string) => {
 		setDeleteunit_id(unit_id);
@@ -96,7 +89,7 @@ export default function UnitsPage() {
 		return <Badge variant={variants[status]}>{labels[status]}</Badge>;
 	};
 
-	const columns: ColumnDef<Unit>[] = [
+	const columns: ColumnDef<UnitListRow>[] = [
 		{
 			id: "unit_number",
 			accessorKey: "unit_number",
@@ -112,11 +105,15 @@ export default function UnitsPage() {
 			),
 		},
 		{
+			// Each unit's property by name, from the list's own embed: the column
+			// printed the first eight characters of its id ("Property ID:
+			// 3f2a9c1e..."), and a lookup in the select options (active
+			// properties only) left a deleted property's units with none.
 			accessorKey: "property_id",
 			header: "Property",
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
-					{propertyNames.get(row.original.property_id) ?? "—"}
+					{row.original.propertyName ?? "-"}
 				</span>
 			),
 		},
