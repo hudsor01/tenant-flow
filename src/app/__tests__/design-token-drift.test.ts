@@ -647,51 +647,64 @@ describe("no row hover or addon reads text on the emerald accent fill (66.2-39 V
  * reviewed list below names with what it colors. `vividTextUses` parses the
  * source, so the element and its children decide, not the class string.
  */
-const VIVID_TEXT_REVIEWED: Record<string, { kinds: string[]; reason: string }> =
+const VIVID_TEXT_REVIEWED: Record<
+	string,
 	{
-		"src/components/settings/sections/active-sessions-section.tsx": {
-			kinds: ["text"],
-			reason:
-				"the sign-out button shows only a LogOut or Loader2 icon (an icon ternary); its name is its aria-label",
-		},
-		"src/components/tenants/tenant-table-row.tsx": {
-			kinds: ["text"],
-			reason: "the delete button shows only a Trash2 icon; its text is sr-only",
-		},
-		"src/components/sections/how-it-works.tsx": {
-			kinds: ["config"],
-			reason:
-				"colors.text tints each step's icon tile and its decorative step number, drawn at opacity-20 beside the step's own heading",
-		},
-		"src/lib/utils/currency.ts": {
-			kinds: ["config"],
-			reason:
-				"getCollectionRateStatus colors the collection-rate KPI icon, beside the status text it names",
-		},
-		"src/app/resources/page.tsx": {
-			kinds: ["config"],
-			reason: "iconColor tints each resource card's icon, beside its title",
-		},
-		"src/components/leases/table/leases-table-columns.tsx": {
-			kinds: ["leaf"],
-			reason:
-				"a native checkbox: with no forms plugin its text color paints nothing",
-		},
-		"src/components/leases/table/leases-table.tsx": {
-			kinds: ["leaf"],
-			reason:
-				"a native checkbox: with no forms plugin its text color paints nothing",
-		},
-		"src/components/tenants/tenant-grid.tsx": {
-			kinds: ["leaf"],
-			reason:
-				"a native checkbox: with no forms plugin its text color paints nothing",
-		},
-		"src/app/(owner)/leases/leases-stat-cards.tsx": {
-			kinds: ["leaf"],
-			reason: "<card.icon>, a lucide component held in the card data",
-		},
-	};
+		kinds: string[];
+		/** When set, the review covers only these tokens of those kinds. */
+		tokens?: string[];
+		reason: string;
+	}
+> = {
+	"src/components/settings/sections/active-sessions-section.tsx": {
+		kinds: ["text"],
+		reason:
+			"the sign-out button shows only a LogOut or Loader2 icon (an icon ternary); its name is its aria-label",
+	},
+	"src/components/tenants/tenant-table-row.tsx": {
+		kinds: ["text"],
+		reason: "the delete button shows only a Trash2 icon; its text is sr-only",
+	},
+	"src/components/sections/how-it-works.tsx": {
+		kinds: ["config"],
+		reason:
+			"colors.text tints each step's icon tile and its decorative step number, drawn at opacity-20 beside the step's own heading",
+	},
+	"src/lib/utils/currency.ts": {
+		kinds: ["config"],
+		reason:
+			"getCollectionRateStatus colors the collection-rate KPI icon, beside the status text it names",
+	},
+	"src/app/resources/page.tsx": {
+		kinds: ["config"],
+		reason: "iconColor tints each resource card's icon, beside its title",
+	},
+	"src/components/leases/table/leases-table-columns.tsx": {
+		kinds: ["leaf"],
+		reason:
+			"a native checkbox: with no forms plugin its text color paints nothing",
+	},
+	"src/components/leases/table/leases-table.tsx": {
+		kinds: ["leaf"],
+		reason:
+			"a native checkbox: with no forms plugin its text color paints nothing",
+	},
+	"src/components/tenants/tenant-grid.tsx": {
+		kinds: ["leaf"],
+		reason:
+			"a native checkbox: with no forms plugin its text color paints nothing",
+	},
+	"src/app/(owner)/leases/leases-stat-cards.tsx": {
+		kinds: ["leaf"],
+		reason: "<card.icon>, a lucide component held in the card data",
+	},
+	"src/components/maintenance/maintenance-view.client.tsx": {
+		kinds: ["text"],
+		tokens: ["text-destructive"],
+		reason:
+			"the Urgent stat's 32px semibold count: AA-large 3:1, and vivid text-destructive reads 4.62:1 light and 3.21:1 dark on the stat's card in Chrome",
+	},
+};
 
 function vividTextViolations(rel: string, content: string): string[] {
 	const reviewed = VIVID_TEXT_REVIEWED[rel];
@@ -700,7 +713,11 @@ function vividTextViolations(rel: string, content: string): string[] {
 			(use) =>
 				use.kind === "text" || use.kind === "leaf" || use.kind === "config",
 		)
-		.filter((use) => !reviewed?.kinds.includes(use.kind))
+		.filter(
+			(use) =>
+				!reviewed?.kinds.includes(use.kind) ||
+				(reviewed.tokens !== undefined && !reviewed.tokens.includes(use.token)),
+		)
 		.map(
 			(use) => `${rel}:${use.line}: ${use.token} on ${use.kind} ${use.host}`,
 		);
@@ -738,6 +755,7 @@ describe("no vivid status color on an element that shows text (66.2-39 part F)",
 			'      <p className={cn("text-sm", ok ? "text-destructive" : "")}>{label}</p>',
 			'      <span className="text-success-text">Saved</span>',
 			'      <div className="[&_svg]:text-info">x</div>',
+			'      <div className="text-warning"><NumberTicker value={n} /></div>',
 			"    </div>",
 			"  );",
 			"}",
@@ -753,12 +771,14 @@ describe("no vivid status color on an element that shows text (66.2-39 part F)",
 			"7 text-warning icon-container",
 			"8 text-destructive text",
 			"10 [&_svg]:text-info icon",
-			"14 text-primary config",
+			"11 text-warning text",
+			"15 text-primary config",
 		]);
 		expect(vividTextViolations("x.tsx", fixture)).toEqual([
 			"x.tsx:5: text-success on text span",
 			"x.tsx:8: text-destructive on text p",
-			"x.tsx:14: text-primary on config ok",
+			"x.tsx:11: text-warning on text div",
+			"x.tsx:15: text-primary on config ok",
 		]);
 	});
 });

@@ -131,7 +131,7 @@ export function ProfileCard({
 					<div className="mt-6 grid grid-cols-2 gap-4 border-t pt-6">
 						<BlurFade delay={0.2}>
 							<Stat className="text-center">
-								<StatValue className="flex items-center justify-center text-primary">
+								<StatValue className="flex items-center justify-center text-primary-text">
 									<NumberTicker
 										value={profile.owner_profile.properties_count}
 										duration={1000}
@@ -144,7 +144,7 @@ export function ProfileCard({
 						</BlurFade>
 						<BlurFade delay={0.25}>
 							<Stat className="text-center">
-								<StatValue className="flex items-center justify-center text-primary">
+								<StatValue className="flex items-center justify-center text-primary-text">
 									<NumberTicker
 										value={profile.owner_profile.units_count}
 										duration={1200}

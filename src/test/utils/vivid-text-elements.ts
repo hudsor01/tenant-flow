@@ -16,7 +16,9 @@
  *   aimed at descendant svgs (`[&_svg]:`, `*:[svg]:`);
  * - "icon-container": an element with children but no visible text below it
  *   (an icon tile, an icon-only button), so the color reaches only icons;
- * - "text": an element that shows text;
+ * - "text": an element that shows text: a text node, an expression that is not
+ *   an icon, or a childless component child, which renders content of its own
+ *   (`<NumberTicker value={n} />`; 66.2-39 fix round 3, F86);
  * - "leaf": a childless non-icon element (an input);
  * - "config": a string outside any JSX attribute (a color map, a cva table).
  */
@@ -115,7 +117,17 @@ export function vividTextUses(path: string, source: string): VividUse[] {
 				if (expression.type === "JSXEmptyExpression") return false;
 				return !/icon/i.test(source.slice(expression.start, expression.end));
 			}
-			if (c.type === "JSXElement") return !isIconElement(c) && showsText(c);
+			if (c.type === "JSXElement") {
+				if (isIconElement(c)) return false;
+				// A childless component renders content of its own: a
+				// NumberTicker prints its number in a span that takes this
+				// element's color. A childless lowercase element (an input, an
+				// img, a br) shows none.
+				if (((c.children as Node[] | undefined) ?? []).length === 0) {
+					return /^[A-Z]/.test(jsxName((c.openingElement as Node).name));
+				}
+				return showsText(c);
+			}
 			if (c.type === "JSXFragment") return showsText(c);
 			return false;
 		});
