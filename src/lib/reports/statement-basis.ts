@@ -25,6 +25,3 @@ export const STATEMENT_BASIS_NOTE: readonly string[] = [
 	"TenantFlow doesn't record which account paid an expense, so expenses are shown as paid from your own funds: the cash flow's Owner Funds for Expenses line and the balance sheet's Owner Capital.",
 	"The income statement counts each charge in the period it was entered, net of reversals and credits. Opening balances are carried in Owner Capital.",
 ];
-
-/** The note as one paragraph, for a report section's note. */
-export const STATEMENT_BASIS_TEXT = STATEMENT_BASIS_NOTE.join(" ");

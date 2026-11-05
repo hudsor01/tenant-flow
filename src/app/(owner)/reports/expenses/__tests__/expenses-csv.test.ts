@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { ExpenseRow } from "#hooks/api/query-keys/expense-keys";
+import * as expensesCsv from "../expenses-csv";
 import { buildExpensesCsv } from "../expenses-csv";
 
 const row = (overrides: Partial<ExpenseRow> = {}): ExpenseRow => ({
@@ -17,6 +18,10 @@ const row = (overrides: Partial<ExpenseRow> = {}): ExpenseRow => ({
 });
 
 describe("buildExpensesCsv", () => {
+	it("is the module's one export: the header is its own (cycle 2, F18)", () => {
+		expect(Object.keys(expensesCsv)).toEqual(["buildExpensesCsv"]);
+	});
+
 	it("emits a header row", () => {
 		const csv = buildExpensesCsv([row()]);
 		expect(csv.split("\r\n")[0]).toBe(

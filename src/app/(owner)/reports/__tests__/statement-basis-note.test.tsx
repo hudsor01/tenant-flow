@@ -10,10 +10,10 @@ import { join, relative } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { StatementBasisNote } from "#app/(owner)/reports/statement-basis-note";
+import * as statementBasis from "#lib/reports/statement-basis";
 import {
 	STATEMENT_BASIS_HEADING,
 	STATEMENT_BASIS_NOTE,
-	STATEMENT_BASIS_TEXT,
 } from "#lib/reports/statement-basis";
 
 const ROOT = process.cwd();
@@ -36,11 +36,19 @@ describe("the statements' basis of presentation", () => {
 			"TenantFlow doesn't record which account paid an expense, so expenses are shown as paid from your own funds: the cash flow's Owner Funds for Expenses line and the balance sheet's Owner Capital.",
 			"The income statement counts each charge in the period it was entered, net of reversals and credits. Opening balances are carried in Owner Capital.",
 		]);
-		expect(STATEMENT_BASIS_TEXT).toBe(STATEMENT_BASIS_NOTE.join(" "));
+	});
+
+	it("exports the heading and the entries, the two things a reader uses", () => {
+		// Every page, CSV and generated report reads the entries one by one;
+		// a one-paragraph copy of the note had no reader (cycle 2, F6).
+		expect(Object.keys(statementBasis).sort()).toEqual([
+			"STATEMENT_BASIS_HEADING",
+			"STATEMENT_BASIS_NOTE",
+		]);
 	});
 
 	it("names the lines the statements now carry, and none part N removed", () => {
-		const text = STATEMENT_BASIS_TEXT;
+		const text = STATEMENT_BASIS_NOTE.join(" ");
 		expect(text).toContain("Owner Funds for Expenses");
 		expect(text).toContain("Owner Capital");
 		expect(text).not.toMatch(

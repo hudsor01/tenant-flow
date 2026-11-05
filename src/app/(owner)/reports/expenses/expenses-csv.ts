@@ -1,7 +1,7 @@
 import type { ExpenseRow } from "#hooks/api/query-keys/expense-keys";
 import { csvNumber, toCsv } from "#lib/reports/csv";
 
-export const EXPENSES_CSV_HEADER = [
+const EXPENSES_CSV_HEADER = [
 	"Date",
 	"Description",
 	"Vendor",
