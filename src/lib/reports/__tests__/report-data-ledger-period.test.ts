@@ -146,7 +146,7 @@ beforeEach(() => {
 describe("the statements' basis of presentation in the generated reports", () => {
 	// statement-basis.ts said both reports carry it; neither did (part Q).
 	it.each(["executive-monthly", "financial-performance"] as const)(
-		"%s closes with the basis, one paragraph a sentence",
+		"%s closes with the basis, one paragraph an entry",
 		async (type) => {
 			answer("ready");
 			const report = await buildReportData(type, new QueryClient(), START, END);

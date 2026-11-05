@@ -152,12 +152,12 @@ describe("buildBalanceSheetCsv", () => {
 			[...CONTEXT, "Equity", "", "Retained Earnings", "40000.00"],
 			[...CONTEXT, "Equity", "", "Year-to-Date Income", "11200.50"],
 			[...CONTEXT, "Equity", "", "Total Equity", "54500.50"],
-			// The note under the page's figures, one row per sentence.
-			...STATEMENT_BASIS_NOTE.map((sentence) => [
+			// The note under the page's figures, one row per entry.
+			...STATEMENT_BASIS_NOTE.map((entry) => [
 				...CONTEXT,
 				"Basis of Presentation",
 				"",
-				sentence,
+				entry,
 				"",
 			]),
 		]);

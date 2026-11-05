@@ -98,8 +98,8 @@ describe("the PDF keeps every note and paragraph inside its margins", () => {
 		}
 		expect(prose.length).toBeGreaterThan(4);
 		const written = calls.map((c) => c.text).join(" ");
-		for (const sentence of STATEMENT_BASIS_NOTE) {
-			for (const word of sentence.split(" ")) {
+		for (const entry of STATEMENT_BASIS_NOTE) {
+			for (const word of entry.split(" ")) {
 				expect(written).toContain(word);
 			}
 		}
@@ -108,7 +108,7 @@ describe("the PDF keeps every note and paragraph inside its margins", () => {
 });
 
 describe("the XLSX writes the basis one paragraph a row", () => {
-	it("lists each sentence under the heading", () => {
+	it("lists each entry under the heading", () => {
 		expect(
 			buildSectionSheetData({
 				heading: STATEMENT_BASIS_HEADING,
@@ -117,7 +117,7 @@ describe("the XLSX writes the basis one paragraph a row", () => {
 		).toEqual([
 			[STATEMENT_BASIS_HEADING],
 			[],
-			...STATEMENT_BASIS_NOTE.map((sentence) => [sentence]),
+			...STATEMENT_BASIS_NOTE.map((entry) => [entry]),
 		]);
 	});
 });

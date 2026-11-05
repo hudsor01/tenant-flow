@@ -73,10 +73,10 @@ describe("buildCashFlowCsv", () => {
 				"3000.00",
 			],
 			[...CONTEXT, "Cash Flow by Activity", "Financing Activities", "", "0.00"],
-			...STATEMENT_BASIS_NOTE.map((sentence) => [
+			...STATEMENT_BASIS_NOTE.map((entry) => [
 				...CONTEXT,
 				"Basis of Presentation",
-				sentence,
+				entry,
 				"",
 				"",
 			]),
@@ -204,9 +204,9 @@ describe("buildCashFlowCsv", () => {
 			["Cash Outflows", "Total Outflows", "", "0.00"],
 			["Cash Flow by Activity", "Operating Activities", "", "0.00"],
 			["Cash Flow by Activity", "Financing Activities", "", "0.00"],
-			...STATEMENT_BASIS_NOTE.map((sentence) => [
+			...STATEMENT_BASIS_NOTE.map((entry) => [
 				"Basis of Presentation",
-				sentence,
+				entry,
 				"",
 				"",
 			]),

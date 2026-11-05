@@ -5,7 +5,8 @@
  * writes it under STATEMENT_BASIS_HEADING, and the two generated reports built
  * from the income statement and the cash flow (the executive summary and the
  * financial performance report) close with it as a section of its own, one
- * paragraph a sentence, in their PDF and XLSX.
+ * paragraph per entry, in their PDF and XLSX. An entry is a sentence or two:
+ * the third holds two.
  *
  * What it states, from the builders in src/hooks/api/query-keys/financial-keys.ts
  * as part N left them (no investing section, no line without a source):

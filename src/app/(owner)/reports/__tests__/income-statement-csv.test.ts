@@ -115,10 +115,10 @@ describe("buildIncomeStatementCsv", () => {
 			[...CONTEXT, "Net Income Summary", "Gross Profit", "", "52500.00"],
 			[...CONTEXT, "Net Income Summary", "Operating Income", "", "52500.00"],
 			[...CONTEXT, "Net Income Summary", "Net Income", "", "52500.00"],
-			...STATEMENT_BASIS_NOTE.map((sentence) => [
+			...STATEMENT_BASIS_NOTE.map((entry) => [
 				...CONTEXT,
 				"Basis of Presentation",
-				sentence,
+				entry,
 				"",
 				"",
 			]),

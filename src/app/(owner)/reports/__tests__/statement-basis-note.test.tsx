@@ -2,7 +2,7 @@
  * The basis the three statements are presented on is stated once (66.2-39 fix
  * round 1, part P): STATEMENT_BASIS_NOTE in #lib/reports/statement-basis,
  * rendered by StatementBasisNote under each statement's figures and written by
- * each statement's CSV. A copy of a sentence anywhere else in src/ fails here,
+ * each statement's CSV. A copy of an entry anywhere else in src/ fails here,
  * so the screens and the files cannot drift apart.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -56,7 +56,7 @@ describe("the statements' basis of presentation", () => {
 		);
 	});
 
-	it("renders as a named region with its heading and each sentence", () => {
+	it("renders as a named region with its heading and each entry", () => {
 		render(<StatementBasisNote />);
 		const region = screen.getByRole("region", {
 			name: STATEMENT_BASIS_HEADING,
@@ -69,7 +69,7 @@ describe("the statements' basis of presentation", () => {
 		);
 	});
 
-	it("is written once: no other source file copies a sentence", () => {
+	it("is written once: no other source file copies an entry", () => {
 		const copies = collect(join(ROOT, "src"))
 			.filter(
 				(f) =>
@@ -79,8 +79,8 @@ describe("the statements' basis of presentation", () => {
 			)
 			.filter((f) => {
 				const source = readFileSync(join(ROOT, f), "utf8");
-				return STATEMENT_BASIS_NOTE.some((sentence) =>
-					source.includes(sentence.slice(0, 40)),
+				return STATEMENT_BASIS_NOTE.some((entry) =>
+					source.includes(entry.slice(0, 40)),
 				);
 			});
 		expect(copies).toEqual([]);

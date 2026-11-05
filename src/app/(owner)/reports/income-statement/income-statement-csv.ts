@@ -110,10 +110,10 @@ export function buildIncomeStatementCsv({
 			),
 		);
 	}
-	// The note under the page's figures, one row per sentence, no amount.
+	// The note under the page's figures, one row per entry, no amount.
 	rows.push(
-		...STATEMENT_BASIS_NOTE.map((sentence) =>
-			row(STATEMENT_BASIS_HEADING, sentence, null),
+		...STATEMENT_BASIS_NOTE.map((entry) =>
+			row(STATEMENT_BASIS_HEADING, entry, null),
 		),
 	);
 	return toCsv(INCOME_STATEMENT_CSV_HEADER, rows);

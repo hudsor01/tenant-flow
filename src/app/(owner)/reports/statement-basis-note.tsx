@@ -23,8 +23,8 @@ export function StatementBasisNote() {
 					{STATEMENT_BASIS_HEADING}
 				</h2>
 				<ul className="space-y-1 text-sm text-muted-foreground">
-					{STATEMENT_BASIS_NOTE.map((sentence) => (
-						<li key={sentence}>{sentence}</li>
+					{STATEMENT_BASIS_NOTE.map((entry) => (
+						<li key={entry}>{entry}</li>
 					))}
 				</ul>
 			</section>

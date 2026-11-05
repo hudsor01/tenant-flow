@@ -164,8 +164,8 @@ describe("income statement Export", () => {
 	it("states the basis of presentation under its figures", () => {
 		render(<IncomeStatementPage />);
 		const note = screen.getByRole("region", { name: "Basis of Presentation" });
-		for (const sentence of STATEMENT_BASIS_NOTE) {
-			expect(within(note).getByText(sentence)).toBeInTheDocument();
+		for (const entry of STATEMENT_BASIS_NOTE) {
+			expect(within(note).getByText(entry)).toBeInTheDocument();
 		}
 	});
 

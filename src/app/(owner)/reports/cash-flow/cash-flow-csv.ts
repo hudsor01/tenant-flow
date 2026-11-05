@@ -9,7 +9,7 @@ import type { CashFlowView } from "./cash-flow-view";
  * The cash-flow report as CSV: one row per figure on the page, top to bottom
  * (balance strip, the three stat tiles, the inflow and outflow breakdowns with
  * their totals, cash flow by activity), then the Basis of Presentation note,
- * one row per sentence with no amount. Every row repeats the period, the date
+ * one row per entry with no amount. Every row repeats the period, the date
  * range and the currency, so a filtered or pasted row keeps its context.
  * Amounts are dollars with 2 decimals and no symbol (outflow lines positive,
  * as the page lists them; a net figure keeps its sign); a breakdown line's
@@ -100,11 +100,11 @@ export function buildCashFlowCsv({
 			"Financing Activities",
 			view.netFinancingCash,
 		),
-		// The note under the page's figures, one row per sentence, no amount.
-		...STATEMENT_BASIS_NOTE.map((sentence): CsvCell[] => [
+		// The note under the page's figures, one row per entry, no amount.
+		...STATEMENT_BASIS_NOTE.map((entry): CsvCell[] => [
 			...context,
 			STATEMENT_BASIS_HEADING,
-			sentence,
+			entry,
 			"",
 			"",
 		]),

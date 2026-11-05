@@ -13,7 +13,7 @@ import type { BalanceSheetGroup, BalanceSheetView } from "./balance-sheet-view";
  * rather than a range. Amounts are dollars with 2 decimals and no symbol,
  * signed as the page shows them. The balance check row names its outcome and
  * carries no amount, and so do the closing Basis of Presentation rows, one per
- * sentence of the note under the page's figures (STATEMENT_BASIS_NOTE).
+ * entry of the note under the page's figures (STATEMENT_BASIS_NOTE).
  */
 export const BALANCE_SHEET_CSV_HEADER = [
 	"As Of Date",
@@ -70,8 +70,8 @@ export function buildBalanceSheetCsv({
 		row("Liabilities", "", "Total Liabilities", view.totalLiabilities),
 		...view.equityItems.map((i) => row("Equity", "", i.name, i.amount)),
 		row("Equity", "", "Total Equity", view.totalEquity),
-		...STATEMENT_BASIS_NOTE.map((sentence) =>
-			row(STATEMENT_BASIS_HEADING, "", sentence, null),
+		...STATEMENT_BASIS_NOTE.map((entry) =>
+			row(STATEMENT_BASIS_HEADING, "", entry, null),
 		),
 	];
 	return toCsv(BALANCE_SHEET_CSV_HEADER, rows);
