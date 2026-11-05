@@ -37,7 +37,7 @@ export function LogoCloud({
 					<div className="grid grid-cols-2 sm:grid-cols-4 place-items-center gap-x-8 gap-y-10">
 						{stack.map((item, index) => (
 							<BlurFade key={item.name} delay={0.1 + index * 0.05}>
-								<div className="group relative flex flex-col items-center gap-2">
+								<div className="relative flex flex-col items-center gap-2">
 									{/* Uniform 40px height, width auto — logos render at their
 									    natural aspect ratio (no per-logo fixed width letterboxing
 									    them to sub-32px optical heights). */}

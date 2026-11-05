@@ -81,7 +81,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 	const panelId = useId();
 
 	return (
-		<div className="group overflow-hidden rounded-lg border border-border bg-card">
+		<div className="overflow-hidden rounded-lg border border-border bg-card">
 			<button
 				onClick={onToggle}
 				aria-expanded={isOpen}

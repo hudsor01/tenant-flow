@@ -206,7 +206,7 @@ export function TestimonialsSection({
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 	return (
-		<div className="relative group h-full">
+		<div className="relative h-full">
 			<div className="card-standard p-8 h-full flex flex-col">
 				<Quote className="size-8 text-primary/20 mb-4" />
 
