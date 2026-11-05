@@ -1,11 +1,5 @@
 import type { PropertyStatus } from "#types/core";
 
-export interface PropertyImage {
-	id: string;
-	url: string;
-	displayOrder: number;
-}
-
 export interface PortfolioSummary {
 	totalProperties: number;
 	totalUnits: number;
