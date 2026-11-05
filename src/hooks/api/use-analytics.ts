@@ -60,10 +60,11 @@ export const analyticsQueries = {
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
 				const userId = user.id;
-				// get_financial_overview carries only headline totals; the page's four
-				// charts need the revenue-trend + expense series joined by month
-				// (TYPE-02). Fetch all three in one round-trip, then map at the
-				// boundary — no blind cast to a shape the RPC never returns.
+				// get_financial_overview carries the headline totals and the lease
+				// profitability; the monthly chart, the expense breakdown and the
+				// Scheduled Net chart need the revenue-trend + expense series joined
+				// by month (TYPE-02). Fetch all three in one round-trip, then map at
+				// the boundary — no blind cast to a shape the RPC never returns.
 				const [overviewResult, revenueResult, expenseResult] =
 					await Promise.all([
 						supabase.rpc("get_financial_overview", { p_user_id: userId }),

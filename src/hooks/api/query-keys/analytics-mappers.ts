@@ -77,18 +77,19 @@ export function mapOccupancyAnalytics(
 
 // --- Financial analytics (TYPE-02) -----------------------------------------
 // `get_financial_overview` returns `{ overview: { total_revenue, total_expenses,
-// net_income, ... }, highlights: [...] }` (dollars) — NOT the page-data shape the
-// old `jsonObject<FinancialAnalyticsPageData>` blind-cast asserted, so every
-// declared field was `undefined` at runtime and the page rendered zeroed KPIs.
-// This never-throw mapper derives `metrics` from `overview`; the four chart
-// sub-shapes (`monthlyMetrics`, `breakdown.expenses`, `netOperatingIncome`) are
-// built from the caller-supplied `get_revenue_trends_optimized` +
-// `get_expense_summary` join. There is no revenue breakdown: received rent is
-// not split by type anywhere, and the charged split is the income statement's
-// (do NOT invent one; matches the DATA-01 discipline). Its card, always empty,
-// went in 66.2-39 part P. The lease profitability is get_financial_overview's own
-// `lease_profitability` (20261102184504), through mapLeaseProfitability. The billing timeline and invoice summary,
-// which had no source either, were deleted with their cards (66.2-39).
+// net_income }, lease_profitability }` (dollars, 20261102184504) — NOT the
+// page-data shape the old `jsonObject<FinancialAnalyticsPageData>` blind-cast
+// asserted, so every declared field was `undefined` at runtime and the page
+// rendered zeroed KPIs. This never-throw mapper derives `metrics` from
+// `overview` and the lease profitability from `lease_profitability`
+// (mapLeaseProfitability); the three series sub-shapes (`monthlyMetrics`,
+// `breakdown.expenses`, `netOperatingIncome`) are built from the
+// caller-supplied `get_revenue_trends_optimized` + `get_expense_summary` join.
+// There is no revenue breakdown: received rent is not split by type anywhere,
+// and the charged split is the income statement's (do NOT invent one; matches
+// the DATA-01 discipline). Its card, always empty, went in 66.2-39 part P. The
+// billing timeline and invoice summary, which had no source either, were
+// deleted with their cards (66.2-39).
 
 /**
  * get_financial_overview's `lease_profitability` (20261102184504): each lease
@@ -206,8 +207,9 @@ export function mapFinancialOverview(
 		})
 		.reverse();
 
-	// Per-month NOI (card renders "Revenue minus operating expenses over time",
-	// x-axis labeled by month). The schema has no per-property expense split.
+	// Per-month Scheduled Net (the card's "Scheduled rent less expenses, by
+	// month"), each month as its bar's label: the schema has no per-property
+	// expense split.
 	const netOperatingIncome: NetOperatingIncomeByProperty[] = monthlyMetrics.map(
 		(m): NetOperatingIncomeByProperty => ({
 			property_id: m.month,

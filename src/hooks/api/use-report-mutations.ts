@@ -27,8 +27,9 @@ import {
  * Report download mutation error handler. When the Edge Function returned 402,
  * surface an "Upgrade" toast CTA that navigates to /billing/plans?source=...
  * so the Stripe checkout keeps the source attribution for admin analytics
- * (REQ-45-00 / REQ-46-03). Any other error falls through to the shared
- * handler so generic network failures still toast the underlying message.
+ * (REQ-45-00 / REQ-46-03). Any other error goes to `handleMutationError`,
+ * which toasts the sanitized copy (`userFacingErrorMessage`), never the
+ * browser's network text or an HTTP status line.
  */
 function handleReportMutationError(err: unknown, action: string): void {
 	if (err instanceof PaywallError) {

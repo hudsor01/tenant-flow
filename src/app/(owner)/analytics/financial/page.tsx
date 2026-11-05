@@ -152,7 +152,7 @@ export default function FinancialAnalyticsPage() {
 					</div>
 				</div>
 
-				{/* Charts Row 2: NOI & Lease Profitability */}
+				{/* Charts Row 2: Scheduled Net & Lease Profitability */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 					<BlurFade delay={0.9}>
 						<div className="bg-card border border-border rounded-lg p-6">
