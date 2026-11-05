@@ -21,8 +21,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *
  *  2. On a PRIVATE route the proxy forwards the per-request nonce CSP on
  *     the REQUEST `Content-Security-Policy` header passed to
- *     `updateSession` (the load-bearing path Next 16.2.6 parses for the
- *     hydration-script nonce — app-render.js:167-168), NOT only on the
+ *     `updateSession` (the load-bearing path Next parses for the
+ *     hydration-script nonce — `getScriptNonceFromHeader`), NOT only on the
  *     response, and the request-side nonce token is byte-for-byte equal
  *     to the response-side nonce token. The request-side assertion is
  *     the one that FAILS under a naive response-only wiring.

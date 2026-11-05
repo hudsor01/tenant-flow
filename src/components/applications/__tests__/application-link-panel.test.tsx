@@ -736,14 +736,15 @@ describe("ApplicationLinkPanel — the lists defeat the ul/ol base rules", () =>
 /**
  * THE URL FIELD IS 12px AT EVERY WIDTH, AND `text-xs` ALONE DOES NOT DELIVER IT.
  *
- * `Input`'s cva base ends `… text-base … md:text-sm …` (`ui/input.tsx:8`) — the
- * shadcn 16px-on-mobile / 14px-on-desktop pattern that stops iOS zooming on
- * focus. The panel passes `font-mono text-xs` for §C row "Active", and
- * `tailwind-merge` puts an unmodified utility and a variant-modified one in
- * DIFFERENT buckets: running the real strings through the repo's own `cn()`
- * yields `… md:text-sm … font-mono text-xs`. `text-base` was dropped;
- * `md:text-sm` was not. Above 768px the variant wins and the field renders 14px,
- * not the 12px `66-UI-SPEC.md:975` declares.
+ * `Input`'s cva base (`inputVariants`, `ui/input.tsx`) holds `… text-base …
+ * md:text-sm …` — the shadcn 16px-on-mobile / 14px-on-desktop pattern that
+ * stops iOS zooming on focus. The panel passes `font-mono text-xs` for §C row
+ * "Active", and `tailwind-merge` puts an unmodified utility and a
+ * variant-modified one in DIFFERENT buckets: running the real strings through
+ * the repo's own `cn()` yields `… md:text-sm … font-mono text-xs`. `text-base`
+ * was dropped; `md:text-sm` was not. Above 768px the variant wins and the
+ * field renders 14px, not the 12px that row declares (66-UI-SPEC.md §C, the
+ * link-state table).
  *
  * NO ASSERTION IN THIS REPO COULD SEE THAT. E-19 reads `inputValue()` at 1280px
  * and never a computed size, and every other check here is about text or roles.

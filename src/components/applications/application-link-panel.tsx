@@ -495,7 +495,7 @@ function PanelEmpty() {
 			<EmptyHeader>
 				<EmptyTitle>No units yet</EmptyTitle>
 				{/*
-				 * `mb-0`: EmptyDescription is a bare `<p>` (empty.tsx:72) carrying the
+				 * `mb-0`: EmptyDescription (`ui/empty.tsx`) is a bare `<p>` carrying the
 				 * base 1rem bottom margin, and EmptyHeader lays out with `gap-2`, which
 				 * does not cancel margins.
 				 */}
