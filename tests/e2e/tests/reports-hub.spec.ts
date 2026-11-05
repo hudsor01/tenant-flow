@@ -43,10 +43,13 @@ import { ROUTES } from "./constants/routes";
  * `workers: 2` and `timeout: 30_000` under a 9-minute `globalTimeout` (the real
  * ceiling, inside a 15-minute job), so every route test does exactly three
  * things — navigate, prove it did not land on `/login`, prove the page's `<h1>`
- * rendered. No fixed-value assertions: an owner fixture with no ledger data
- * legitimately renders `$0.00`, and asserting on figures would be flaky. The
- * export tests below compare each downloaded file with what the page itself
- * shows, which holds for any data, and seed nothing.
+ * rendered — and none asserts a figure, since owner A's own data is no
+ * fixture. The export tests below answer the statements' only data sources in
+ * the browser instead (`get_billing_insights` and `get_expense_summary`,
+ * through `answerStatementRpcs` and `answerBalanceSheetRpcs`) with fixed
+ * figures, so the tiles on screen and the downloaded file must both equal
+ * known values; the "unavailable" tests answer with `get_billing_insights`'
+ * body from before 20261102055449. They write nothing to the database.
  */
 
 /**
@@ -127,9 +130,12 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
  *
  * Each Export button downloads its cached `financialQueries` data through the
  * view the page renders (`cash-flow-csv.ts`, `income-statement-csv.ts`,
- * `balance-sheet-csv.ts`), so the file's totals must equal the stat tiles on
- * screen, whatever the owner's data is. Nothing is seeded: the comparison is
- * page against file.
+ * `balance-sheet-csv.ts`). The ledger and expense RPCs those queries call are
+ * answered in the browser with fixed figures (`STATEMENT_LEDGER`,
+ * `LEDGER_FIGURES`), so the stat tiles and the file must both show known
+ * values ("Total Inflows" 1735.50, a 4515.00 closing balance); the
+ * unavailable-state tests answer with the body from before 20261102055449
+ * (`BEFORE_LEDGER_KEYS`). Nothing is written to the database.
  *
  * Settling: the button is `aria-disabled` until the selected period's data is
  * on screen (it stays so while `isPlaceholderData` shows the previous period),
