@@ -108,18 +108,21 @@ export function MaintenanceHeaderCard({
 					</p>
 				</section>
 
-				{/* Location & Schedule */}
+				{/* Location & Schedule. mb-0 on every line in these boxes and the
+				    cost boxes below: the base `p` margin stood 16px between the
+				    property and its unit and 16px under each box's last line,
+				    inside its p-4. */}
 				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<MapPin className="size-4" />
 							Location
 						</div>
-						<p className="mt-1 font-medium">
+						<p className="mt-1 mb-0 font-medium">
 							{request.propertyName ?? "Unknown Property"}
 						</p>
 						{request.unitNumber && (
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Unit {request.unitNumber}
 							</p>
 						)}
@@ -137,7 +140,7 @@ export function MaintenanceHeaderCard({
 								onSuccess={onRefresh}
 							/>
 						</div>
-						<p className="mt-1 font-medium">
+						<p className="mt-1 mb-0 font-medium">
 							{request.scheduled_date
 								? formatDate(request.scheduled_date, {
 										formatOptions: {
@@ -160,7 +163,7 @@ export function MaintenanceHeaderCard({
 							<DollarSign className="size-4" />
 							Estimated Cost
 						</div>
-						<p className="mt-1 font-medium text-lg">
+						<p className="mt-1 mb-0 font-medium text-lg">
 							{request.estimated_cost
 								? formatCurrency(request.estimated_cost)
 								: "-"}
@@ -171,7 +174,7 @@ export function MaintenanceHeaderCard({
 							<DollarSign className="size-4" />
 							Spent to Date
 						</div>
-						<p className="mt-1 font-medium text-lg">
+						<p className="mt-1 mb-0 font-medium text-lg">
 							{spentToDate > 0 ? formatCurrency(spentToDate) : "-"}
 						</p>
 					</div>
