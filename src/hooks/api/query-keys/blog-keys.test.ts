@@ -9,34 +9,19 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Supabase mock using vi.hoisted() (project convention)
-const {
-	mockFrom,
-	mockSelect,
-	mockEq,
-	mockNeq,
-	mockOrder,
-	mockLimit,
-	mockRange,
-	mockSingle,
-	mockContains,
-	mockRpc,
-} = vi.hoisted(() => ({
-	mockFrom: vi.fn(),
-	mockSelect: vi.fn(),
-	mockEq: vi.fn(),
-	mockNeq: vi.fn(),
-	mockOrder: vi.fn(),
-	mockLimit: vi.fn(),
-	mockRange: vi.fn(),
-	mockSingle: vi.fn(),
-	mockContains: vi.fn(),
-	mockRpc: vi.fn(),
-}));
+const { mockFrom, mockSelect, mockEq, mockNeq, mockOrder, mockLimit } =
+	vi.hoisted(() => ({
+		mockFrom: vi.fn(),
+		mockSelect: vi.fn(),
+		mockEq: vi.fn(),
+		mockNeq: vi.fn(),
+		mockOrder: vi.fn(),
+		mockLimit: vi.fn(),
+	}));
 
 vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		from: mockFrom,
-		rpc: mockRpc,
 	}),
 }));
 
@@ -81,31 +66,21 @@ function callQueryFn<T>(opts: {
 	return (opts.queryFn as (c: MockQueryContext) => T | Promise<T>)(ctx);
 }
 
-// Helper to set up chained query mock using createQueryChain with hoisted mocks for assertions
-function setupChainedMock(result: {
-	data: unknown;
-	error: unknown;
-	count?: number | null;
-}) {
+// The related-posts chain (from → select → eq → neq → eq → order → limit),
+// built on createQueryChain with the hoisted mocks wired in for assertions.
+function setupChainedMock(result: { data: unknown; error: unknown }) {
 	const chain = createQueryChain(result);
-	// Wire hoisted mocks onto the chain so expect(mockEq) etc. assertions work
 	mockSelect.mockReturnValue(chain);
 	mockEq.mockReturnValue(chain);
 	mockNeq.mockReturnValue(chain);
 	mockOrder.mockReturnValue(chain);
-	mockContains.mockReturnValue(chain);
 	mockLimit.mockReturnValue(result);
-	mockRange.mockReturnValue(result);
-	mockSingle.mockReturnValue(result);
 	Object.assign(chain, {
 		select: mockSelect,
 		eq: mockEq,
 		neq: mockNeq,
 		order: mockOrder,
 		limit: mockLimit,
-		range: mockRange,
-		single: mockSingle,
-		contains: mockContains,
 	});
 	mockFrom.mockReturnValue(chain);
 	return chain;
