@@ -220,9 +220,10 @@ jobs:
           # property export and the year-end report and its tax exports -- and
           # it could not be asked for a tax year at all. The fixture seeds
           # properties, leases, receipts and expenses for the two seeded owners
-          # (so it runs after the cast step), calls the function as each owner
-          # for a tax year and a trailing window, prints ONE JSON line and rolls
-          # back. The expected rows, and the arithmetic behind each, live in
+          # and 101 properties for the seeded admin (so it runs after the cast
+          # step), calls the function as each of them for a tax year and a
+          # trailing window, prints ONE JSON line and rolls back. The expected
+          # rows, and the arithmetic behind each, live in
           # scripts/migration-replay-assertions.ts. A herestring, as above.
           result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
             -v ON_ERROR_STOP=1 < scripts/migration-replay-property-performance.sql)

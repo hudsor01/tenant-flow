@@ -8,8 +8,9 @@
 --     -v ON_ERROR_STOP=1 < scripts/migration-replay-property-performance.sql
 --
 -- It seeds properties, leases, rent receipts and expenses for e2e-owner-a and
--- e2e-owner-b, calls the function the way the app does (as the authenticated
--- owner), prints ONE line of JSON, and rolls everything back.
+-- e2e-owner-b, and 101 properties with no units for e2e-admin (owner C below),
+-- calls the function the way the app does (as the authenticated owner),
+-- prints ONE line of JSON, and rolls everything back.
 -- scripts/migration-replay-assertions.ts (assertPropertyPerformanceRentReceived)
 -- holds the expected rows and the arithmetic behind each; keep the two in step.
 --
@@ -97,7 +98,9 @@ create temp table replay_performance (label text primary key, payload jsonb not 
 grant insert, select on replay_performance to authenticated;
 
 -- The seeded owners have no plan, which allows one property
--- (get_user_plan_limits); this portfolio needs five. Rolled back with the rest.
+-- (get_user_plan_limits); owner A needs six and owner B two, so each gets
+-- 'max' (unlimited), and so does owner C (an admin, whom the limit never
+-- stops). Rolled back with the rest.
 select id as owner_c from auth.users where email = 'e2e-admin@tenantflow.app' \gset
 update public.users set subscription_plan = 'max' where id in (:'owner_a', :'owner_b', :'owner_c');
 
