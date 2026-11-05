@@ -18,7 +18,7 @@
 -- THE DEFECT. The body returns
 --     'accounts_receivable', 0, 'accounts_payable', 0
 -- and a `highlights` array whose three `trend`s are the literal NULL
--- (latest repo copy: 20260528231201). Nothing reads any of them: the analytics
+-- (latest repo copy: 20260708132045). Nothing reads any of them: the analytics
 -- pages, the financial-analytics export and the tax reports read `overview`'s
 -- total_revenue, total_expenses and net_income only (swept 2026-11-02 over
 -- src/, supabase/functions/ and tests/e2e/). The highlights' labels were wrong

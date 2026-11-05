@@ -13,7 +13,7 @@
 --
 -- THE DEFECT. The body returns the literal
 --     'year_over_year_change', null
--- (latest repo copy: 20260621033856), so the expenses page's YoY tile could
+-- (latest repo copy: 20260708132045), so the expenses page's YoY tile could
 -- only ever read "--", and a caller cannot tell "no prior-year expenses" from
 -- "never computed". And with no p_end_date the period had no end at all, so
 -- the expenses page's "Total Expenses, year to date" counted an expense dated
