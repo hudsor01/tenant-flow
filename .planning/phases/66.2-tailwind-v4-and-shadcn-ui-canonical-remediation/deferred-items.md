@@ -70,3 +70,80 @@ Out-of-scope discoveries logged by executors. Each entry names the plan that fou
 - **Found during:** part O stage 2, reading the 34 production bodies that 20261102055400 now writes to the chain.
 - **Observed:** production's body returns `'revenue', 0` for each of the 12 months, with net income and cash flow equal to the expenses negated. Authenticated holds EXECUTE. Nothing in `src/` or `supabase/functions/` calls it.
 - **Why out of scope:** the task is to reproduce production's body. The function has no reader.
+
+## 66.2-39 (fix round 2): the blog writer's prune-to-100 step
+
+- **Found during:** fix round 2, the `rls-security` failure on `bc54b045a` (PR body, "Fix round 2", item 3).
+- **Observed:** since 2026-11-02 the n8n workflow "TenantFlow AI Blog Writer" also pruned `public.blogs` to 100 rows with service-role REST DELETEs (140 published posts, restored 2026-11-04). The workflow is unpublished in n8n until this PR merges.
+- **Why deferred:** the step lives in the n8n workflow, not in this repository. Before the writer is re-enabled its prune step must be removed, or it deletes the restored posts again (PR body, "After merge" step 6).
+
+## 66.2-39 (fix round 3): the scope rule for what this round fixes
+
+- **Main-session decision (2026-11-05, after Part 7b):** a line that is identical at `d9c7329f0` and that this PR does not make wrong is not a finding by the perfect-PR gate's own definition (cycle 2's verifiers refuted that kind). Such items are recorded here and in the PR body's Known follow-ups, not sent to another fix part. Each entry below names its file, the defect, and why it is deferred: the file is not in this PR's diff, or the line predates the PR and the PR does not make it wrong.
+
+## 66.2-39 (fix round 3, Part 4): export-report and generate-pdf branches with no in-app caller (OD-15)
+
+- **Observed:** the app's only `export-report` caller is `callExportEdgeFunction(FINANCIAL_ANALYTICS_REPORT_TYPE, format)` (`src/hooks/api/query-keys/report-keys.ts`), for `/analytics/financial`'s CSV, XLSX and PDF; that PDF goes `export-report` -> `generate-pdf` Mode 2 (`{ html }`). `/reports/year-end` and `/reports/tax-documents` print their PDFs through `generate-pdf` Mode 1 (`callGeneratePdfEdgeFunction`, `year-end` and `financial`), and the year-end CSV is built in the browser. So `export-report`'s `year-end` and `financial` branches (CSV, XLSX, PDF) and `generate-pdf`'s Mode 1 `financial-analytics` branch are reachable only by a direct request.
+- **Why deferred:** owner default OD-15: removing Edge code paths is outside this PR's scope and changes the deployed functions. The live check reaches those branches with a direct GET (PR body, "After merge" step 5).
+
+## 66.2-39 (fix round 3, Part 2): page-shape fields a screen reads but nothing fills
+
+- **Observed:** `PropertyPerformanceSummary.bestPerformer` (`src/types/analytics.ts`; the property performance stat card prints `metrics.bestPerformer ?? "-"`, so it always reads "-"), `UnitStatisticEntry.trend` (read by `portfolio-kpis.tsx`, never set by `analyticsQueries.propertyPerformancePageData`) and `FinancialBreakdownRow.change` (read by the financial page's `breakdown-list.tsx`; `expenseBreakdownRows` (`analytics-mappers.ts`) sets it to `null`).
+- **Why deferred:** all three are in `d9c7329f0`'s types with the same readers and no writer; this PR does not make them wrong (Part 2 removed only the fields nothing read).
+
+## 66.2-39 (fix round 3, Part 6): the maintenance form's unit picker reads the 50-capped unit list
+
+- **File:** `src/components/maintenance/maintenance-form.client.tsx` (not in this PR's diff).
+- **Observed:** the unit picker reads `useUnitList()` with no filters, so `unitQueries.list` returns the 50 newest units (`limit ?? 50`). Editing a request whose unit is not among them shows a blank unit.
+- **Why deferred:** the file is not in this PR.
+
+## 66.2-39 (fix round 3, Part 6b): heading subtitles with the base margin in files this PR does not change
+
+- **Files:** `src/app/(owner)/reports/generate/page.tsx`, `src/app/marketing-home.tsx`, `src/app/pricing/page.tsx`, `src/components/error-boundary/error-fallback.tsx`, one each (the ratchet in `src/components/__tests__/heading-block-paragraph-margin.test.ts`).
+- **Observed:** a heading's `<p>` subtitle inside a flex item keeps the 16px `@layer base` paragraph margin (the G2h shape `df80082ec` fixed in 37 places in this PR's files, VD-142).
+- **Why deferred:** the files are not in this PR; the guard holds them as a ratchet, so the count can only fall.
+
+## 66.2-39 (fix round 3, Parts 6b and 7): comments that cite another file by line, in files this PR does not change
+
+- **Observed:** A1 at `81fdadd71` finds 28 such cites, none in a file this PR changes: `.github` 1, `scripts` 2 (two comment lines of `seed-test-users.ts`, citing `tests/e2e/auth-helpers.ts` and `dashboard-rpc-helpers.ts`), `src` 4 (`stripe-webhook-signature.test.ts`, `seo-title-separator-drift.test.ts`, `auth/layout.tsx`, `application-status-badge.tsx`), `supabase/functions` 3, `supabase/migrations` 17, `tests` 1. Parts 6b and 7 found the `src` and `scripts` ones stale; `supabase/functions/_shared/rate-limit.ts`'s and `apply-token/index.ts`'s still name the right lines. Also `src/proxy.ts` (twice) and `src/lib/supabase/middleware.ts` cite `app-render.js:167-168`, where Next 16.4.3 no longer parses the request CSP (it does so in `parse-request-headers` through `getScriptNonceFromHeader`).
+- **Why deferred:** the files are not in this PR. Applied migration files are history and are not rewritten.
+
+## 66.2-39 (fix round 3, Part 6b): the new-inspection form's lease list
+
+- **File:** `src/components/inspections/new-inspection-form.client.tsx` (in this PR's diff for one other line).
+- **Observed:** it offers the 100 newest active leases only (`limit: 100`), and it casts the list's rows to `LeaseWithRelations[]` (the lease list's own `data as Lease[]` boundary; the fields it reads are filled).
+- **Why deferred:** both lines are identical at `d9c7329f0` and this PR does not make them wrong (the scope rule above).
+
+## 66.2-39 (fix round 3, Part 6c): records named from fields their queries never fill
+
+- `src/components/inspections/inspection-detail.client.tsx` casts the inspection to `{ property?: { name } }` and `{ unit?: { name } }`, but `INSPECTION_DETAIL_SELECT` (`inspection-keys.ts`) embeds neither and units have no `name`, so the heading always reads "Property" and never names the unit.
+- `src/components/maintenance/detail/work-order-template.ts` prints `request.assigned_to`, a user id that nothing writes.
+- `src/components/leases/table/lease-utils.ts` keeps dead `tenant.user` / `tenant.User` fallbacks.
+- **Why deferred:** none of the three files is in this PR.
+- **Kept on purpose:** `66.2-25-PLAN.md` and the audit snapshots under `.planning/tailwind-shadcn/audit/` (w1, w5, f39, final) still quote the old chart axis selector; they are point-in-time evidence, and the re-freeze regenerates the snapshots it owns.
+
+## 66.2-39 (fix round 3, Part 7): fixed sleeps and emoji in E2E specs
+
+- **Files:** `tests/e2e/tests/smoke/critical-paths.smoke.spec.ts` (CI's `smoke` project runs it): two `page.waitForTimeout(1000)` calls in "No console errors on critical pages", and emoji in its `describe` and `test` titles (13 lines), against the E2E no-fixed-sleeps rule and CLAUDE.md rule 7. Nine other spec files outside CI's three projects hold 55 more `waitForTimeout` calls (`owner-tenants.e2e.spec.ts` 18, `owner-properties.e2e.spec.ts` 15, `owner-leases.e2e.spec.ts` 7, `owner-dashboard.e2e.spec.ts` 4, `owner-maintenance.e2e.spec.ts` 4, `visual-regression.e2e.spec.ts` 3, `owner-authentication.e2e.spec.ts` 2, `health-check.spec.ts` 1, `owner-settings.e2e.spec.ts` 1).
+- **Why deferred:** none of these files is in this PR.
+
+## 66.2-39 (fix round 3, Part 7): the geometry-read guard reads the working tree
+
+- **File:** `tests/e2e/lib/__tests__/measure-is-the-only-geometry-read.test.ts`.
+- **Observed:** it lists the specs with `readdirSync` / `readFileSync`, so an untracked file in the working tree is scanned too (it can only add failures; the e2e exports guard reads `git ls-files` since `476170760`).
+- **Why deferred:** the directory walk is identical at `d9c7329f0` and this PR does not make it wrong.
+
+## 66.2-39 (fix round 3, Part 7b): capped or unbounded picker reads in this PR's files
+
+- `src/app/(owner)/properties/units/page.tsx`: `NewUnitButton` gets the properties from `propertyQueries.list()` (the 50 newest), so a new unit cannot be put on the 51st property.
+- `propertyQueries.selectOptions`, `tenantQueries.listForLease` and `unitQueries.availableByProperty` set no `.limit()` / `.range()` (CLAUDE.md's data-access rule: PostgREST truncates at 1000 rows).
+- `src/components/documents/documents-vault.client.tsx`: the card header's "Showing X-Y of N" `<p>` is a flex item with the 16px base paragraph margin.
+- **Why deferred:** each line is identical at `d9c7329f0` and this PR does not make it wrong (the scope rule above).
+
+## 66.2-39 (fix round 3, Part 7b): base-rule and cap defects in files this PR does not change
+
+- The list ratchet in `src/components/__tests__/list-base-rule-neutralized.test.ts`: lists the base `ul, ol` / `li` rules still reach in `src/app/privacy/page.tsx` (11), `src/app/security-policy/page.tsx` (6), `src/app/terms/page.tsx` (16), `dashboard-activity-card.tsx`, `layout/footer.tsx`, `leases/template/state-rule-summary.tsx`, `notification-popover-list.tsx`, `notifications-inbox.client.tsx` and `ui/field.tsx`'s `FieldError` (1 each).
+- `src/components/ui/dialog.tsx`: `DialogDescription` renders a bare `<p>`, so every dialog description carries the 16px base margin below it.
+- `src/components/units/unit-form.client.tsx`: the edit form's property picker reads `propertyQueries.list({ limit: 100 })`, so a unit on the 101st property, or on a deleted one, opens with no property.
+- Exported names in `src/types` that no other tracked file under `src`, `supabase/functions`, `scripts` or `tests` names (raw counts at `81fdadd71`, a type used only in its own file's signatures included): `financial-statements.ts` 27, `core.ts` 26, `domain.ts` 16, `relations.ts` 15, `notifications.ts` 15, `sections/maintenance.ts` 14, `analytics.ts` 13, `stats.ts` 12, `stripe.ts` 9, `frontend.ts` 6, `data-table.ts` 6, `activity.ts` 5, and 1-3 in eight more.
+- **Why deferred:** none of these files is in this PR (`api-contracts.ts`, which is, lost its 43 unimported exports in `fc4fdd3dc` and is guarded).
