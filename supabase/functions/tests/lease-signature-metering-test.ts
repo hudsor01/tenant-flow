@@ -28,7 +28,8 @@ import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 // THE LIMITER IS POSTGRES-BACKED AND FAIL-CLOSED (66.1-03, D-02). It has no
 // admitting error path left, so every send/resend/finalize branch below reaches
 // `public.check_rate_limit` over PostgREST at SUPABASE_URL. Unstubbed, that
-// connection is refused and all four cases get a 429 instead of their 402/200.
+// connection is refused and all five cases get a 429 instead of their 402, 200
+// or 500.
 // The fetch stub therefore intercepts the RPC and answers "allowed" — see
 // checkRateLimitResponse(). Note this exercises the REAL limiter end to end,
 // including its row-shape read; adding a test-only injection seam to
@@ -283,7 +284,7 @@ function checkRateLimitResponse(init?: RequestInit): Response {
  * network.
  *
  * `fetchCount` counts EMAIL sends only. The RPC deliberately does not increment
- * it: the four cases below assert on how many emails were sent, and folding the
+ * it: the five cases below assert on how many emails were sent, and folding the
  * limiter's own call into that number would silently change what every one of
  * those assertions means.
  */

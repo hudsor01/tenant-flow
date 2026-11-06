@@ -719,9 +719,10 @@ describe("5. decideForwardedClientIp -- the trust matrix, against the real compa
 	});
 
 	it("row 4: a valid secret with a valid address IS trusted", () => {
-		// The non-vacuity row. Without it every denial below is satisfied by a
-		// mechanism that never grants anything -- which is a real failure mode, not
-		// a hypothetical one: an inert trust boundary passes all six other rows.
+		// The non-vacuity row. Without it every denial in this block is satisfied by
+		// a mechanism that never grants anything -- which is a real failure mode, not
+		// a hypothetical one: an inert trust boundary passes all eight rows that
+		// expect `trusted` false (only this row and row 11 expect it true).
 		const decision = decide({
 			configuredSecret: CONFIGURED,
 			presentedSecret: CONFIGURED,
