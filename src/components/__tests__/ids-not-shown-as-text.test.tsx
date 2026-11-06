@@ -39,6 +39,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActiveUnitsTable } from "#app/(owner)/analytics/property-performance/active-units-table";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import type { BillingHistoryItem } from "#types/api-contracts";
 
 // The global nuqs mock leaves the client table's page size unset ("Page 0 of
@@ -147,10 +148,6 @@ function idNames(lines: readonly string[]): Set<string> {
 	return names;
 }
 
-function escapeName(name: string): string {
-	return name.replace(/\$/g, "\\$");
-}
-
 /**
  * JSX renders the name: a child `{name}` (or behind a fallback), or `${name}`
  * in a child's template. A declaration line is not JSX, and `{ name }`
@@ -158,7 +155,7 @@ function escapeName(name: string): string {
  */
 function rendersName(text: string, name: string): boolean {
 	if (DECLARATION.test(text) || DESTRUCTURING.test(text)) return false;
-	const n = escapeName(name);
+	const n = escapeRegExp(name);
 	return (
 		new RegExp(
 			String.raw`(?:^\s*|[^=$\s]\s*)\{\s*${n}\s*(?:\}(?!\s*[=:),])|\|\||\?\?)`,

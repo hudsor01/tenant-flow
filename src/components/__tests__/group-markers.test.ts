@@ -12,6 +12,7 @@
 import { readFileSync } from "node:fs";
 import { parseSync } from "rolldown/utils";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const FILES = [
 	"src/app/auth/confirm-email/confirm-email-states.tsx",
@@ -68,7 +69,7 @@ function orphanMarkers(path: string, source: string): string[] {
 			for (const marker of tokens.filter((t) => /^group(\/[\w-]+)?$/.test(t))) {
 				const name = marker.slice("group".length);
 				const consumer = new RegExp(
-					`(?<![\\w-])group-[\\w\\[\\]=-]+${name.replace("/", "\\/")}:`,
+					`(?<![\\w-])group-[\\w\\[\\]=-]+${escapeRegExp(name)}:`,
 				);
 				const inner = source.slice((node.openingElement as Node).end, node.end);
 				if (!consumer.test(inner)) {
