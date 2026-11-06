@@ -129,12 +129,12 @@ function measureInPage(arg: MeasureArg): Measured {
 	const root = arg.mode === "harness" ? document.querySelector("#probe-root > div") : findLive();
 	if (!root) return { found: false };
 	const measure = (rootEl: Element) => {
-		const props = ["display", "flexDirection", "rowGap", "columnGap", "paddingTop", "paddingBottom", "paddingLeft", "marginBottom", "borderTopLeftRadius", "borderTopWidth", "borderBottomWidth", "borderTopColor", "backgroundColor", "boxShadow", "overflow", "gridTemplateColumns"];
+		const props = ["display", "flexDirection", "rowGap", "columnGap", "paddingTop", "paddingBottom", "paddingLeft", "marginBottom", "borderTopLeftRadius", "borderTopWidth", "borderBottomWidth", "borderTopColor", "backgroundColor", "boxShadow", "overflow", "gridTemplateColumns"] as const satisfies readonly (keyof CSSStyleDeclaration)[];
 		const read = (el: Element | undefined | null) => {
 			const out: Record<string, string> = {};
 			if (!el) return out;
 			const cs = getComputedStyle(el);
-			for (const p of props) out[p] = String((cs as unknown as Record<string, string>)[p]);
+			for (const p of props) out[p] = String(cs[p]);
 			return out;
 		};
 		const section = rootEl.children[0];
