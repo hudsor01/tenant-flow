@@ -59,6 +59,8 @@ describe("RentAdjustment change value", () => {
 		["900", "-$100.00 (-10.0%)", "text-destructive-text"],
 		["1000.004", "$0.00 (0.0%)", "text-success-text"],
 		["999.996", "$0.00 (0.0%)", "text-success-text"],
+		// A cent's decrease is -0.001%: its percent read "-0.0%" (cycle 3, I1).
+		["999.99", "-$0.01 (0.0%)", "text-destructive-text"],
 	])("prints the change to %s as %s in %s", (newRent, text, color) => {
 		const value = renderAdjustment(newRent);
 		expect(value.textContent).toBe(text);

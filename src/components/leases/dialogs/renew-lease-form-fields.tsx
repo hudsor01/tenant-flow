@@ -3,6 +3,7 @@ import { Calendar, DollarSign, Info, TrendingUp } from "lucide-react";
 import { Button } from "#components/ui/button";
 import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
+import { formatFixed } from "#lib/formatters/signed";
 import { formatCurrency } from "#lib/utils/currency";
 
 interface CurrentLeaseInfoProps {
@@ -132,7 +133,8 @@ export function RentAdjustment({
 	// "$0.00 (0.0%)", never "+$0.00" or "-$0.00" (-0 folded), as the
 	// statements' zero figures do. The percent and the color are the printed
 	// change's: a decrease is destructive, and zero an increase's success, as
-	// the statements color a zero net figure.
+	// the statements color a zero net figure. A percent that rounds to zero
+	// reads "0.0%" (formatFixed), a cent's decrease included.
 	const changeCents = Math.round(rentIncreaseAmount * 100);
 	const shownChange = changeCents === 0 ? 0 : changeCents / 100;
 	const rentIncreasePercent =
@@ -224,7 +226,7 @@ export function RentAdjustment({
 									>
 										{shownChange > 0 ? "+" : ""}
 										{formatCurrency(shownChange)} (
-										{rentIncreasePercent.toFixed(1)}%)
+										{formatFixed(rentIncreasePercent, 1)}%)
 									</span>
 								</div>
 							</div>
