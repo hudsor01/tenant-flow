@@ -1641,8 +1641,11 @@ function hasKey(object: unknown, key: string): boolean {
 /**
  * The bodies before 20261102184501..20261102184504 and 20261102200501 (and
  * the bodies this PR had before part N extended them), named by what only they
- * return. One line per function, so a body left behind is named, never read
- * as an arithmetic slip.
+ * return. One line per such marker, so a body left behind is named, never read
+ * as an arithmetic slip; a function can be named twice, as production's
+ * get_dashboard_stats, get_dashboard_data_v2 and get_expense_summary are (each
+ * returns two markers, and migration-replay-assertions.test.ts requires both
+ * lines).
  */
 function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 	const found: string[] = [];
