@@ -7,12 +7,13 @@
  * via Zod `safeParse`, and nullable-in-DB fields stay nullable.
  *
  * The critical pins here: persisted `status` is validated against the FULL
- * 7-value DB CHECK set (migration 20260221120000), NOT the stale 5-value input
- * `maintenanceStatusSchema`. So `status: "assigned"` and `status:
- * "needs_reassignment"` (set from the kanban and the detail StatusSelect) MUST
- * map cleanly — validating against the 5-value input enum would throw on those
- * rows and break the maintenance list/detail/kanban surfaces in prod. The
- * `status` safeParse is unconditional, so an absent/null status throws too.
+ * 7-value DB CHECK set (migration 20260221120000), through the mapper's own
+ * persisted-status schema rather than the input `maintenanceStatusSchema`, so a
+ * narrowing of the input schema cannot reject a stored row. `status:
+ * "assigned"` and `status: "needs_reassignment"` (set from the kanban and the
+ * detail StatusSelect) MUST map cleanly, or the maintenance list, detail and
+ * kanban would throw on those rows. The `status` safeParse is unconditional,
+ * so an absent/null status throws too.
  */
 
 import { describe, expect, it } from "vitest";

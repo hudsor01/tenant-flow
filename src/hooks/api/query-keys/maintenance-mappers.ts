@@ -2,8 +2,8 @@
  * Maintenance Row Mapper (TYPE-02, Phase 2 — typed RPC/PostgREST boundaries).
  *
  * `mapMaintenanceRow` maps a `maintenance_requests` PostgREST row into the
- * strictly-typed `MaintenanceRequest` (= Tables<"maintenance_requests">),
- * field-validating at the boundary. Mirrors `mapDocumentRow` in
+ * strictly-typed `MaintenanceRequest` (#types/core: the table's row without
+ * `actual_cost`, which nothing reads), field-validating at the boundary. Mirrors `mapDocumentRow` in
  * `document-keys.ts` (CLAUDE.md's cited reference for the "RPC / PostgREST
  * Return Typing" rule): `requireString` throws on a missing NOT-NULL column so
  * a dropped `.select(...)` field surfaces immediately rather than silently
@@ -94,10 +94,10 @@ function requirePersistedPriority(value: unknown): string {
 
 /**
  * Map a `maintenance_requests` PostgREST row to the strictly-typed
- * `MaintenanceRequest`. Accepts a row that may carry embed keys (the list's
- * `units` and `tenant`, which `mapMaintenanceListRow` reads, or the detail()
- * `vendors(...)` embed): only the maintenance_requests columns are read, so
- * the embed keys never appear on the output.
+ * `MaintenanceRequest`. Accepts a row that carries the list's or the detail's
+ * `units` and `tenant` embeds (which `mapMaintenanceListRow` and
+ * `mapMaintenanceDetailRow` read): only the maintenance_requests columns are
+ * read, so the embed keys never appear on the output.
  */
 export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 	const row = (raw ?? {}) as Record<string, unknown>;
