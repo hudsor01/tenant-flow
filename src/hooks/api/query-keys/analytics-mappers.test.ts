@@ -18,8 +18,8 @@ import {
 /**
  * DATA-01: `get_occupancy_trends_optimized` returns a jsonb ARRAY ordered
  * month DESC — element[0] is the latest month. These tests pin the trend
- * mapping (one OccupancyTrendPoint per row) and the element[0] metric
- * derivation, plus the degrade-to-empty contract on non-array / empty input.
+ * mapping (one OccupancyTrendPoint per row, oldest first, and nothing beside
+ * the trends) and the degrade-to-empty contract on non-array / empty input.
  */
 describe("mapOccupancyAnalytics", () => {
 	const rows = [
