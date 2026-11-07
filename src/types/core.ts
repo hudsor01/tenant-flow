@@ -341,14 +341,6 @@ export interface MaintenanceMetrics {
 	averageResolutionTime: number;
 }
 
-export interface MaintenanceCostSummary {
-	totalCost: number;
-	avgCost: number;
-	totalRequests: number;
-	emergencyCount: number;
-	highPriorityCount: number;
-}
-
 export interface MaintenancePerformance {
 	propertyId: string;
 	propertyName: string;
