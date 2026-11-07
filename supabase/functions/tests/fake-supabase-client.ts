@@ -1,7 +1,8 @@
 // A hand-rolled fake SupabaseClient for the in-process Deno tests.
 //
-// Each test's fake implements only the members its handler calls (`from`,
-// `rpc`, and `auth` or `storage`), so it is not structurally a SupabaseClient.
+// Each test's fake implements only the members its handler calls (`from` and
+// `rpc`, plus `auth` or `storage` where the handler calls it), so it is not
+// structurally a SupabaseClient.
 // `fakeSupabaseClient` checks the two members every handler reaches for and
 // narrows through a type guard, which is how a fake stands in for the client
 // without a double assertion (CLAUDE.md Zero Tolerance Rule 8).
