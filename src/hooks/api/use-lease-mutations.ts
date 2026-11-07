@@ -51,8 +51,8 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		invalidate: [
 			leaseQueries.lists(),
 			leaseQueries.stats().queryKey,
-			// Soft-deleting an active lease frees its unit (sync_unit_status_from_lease
-			// trigger), so refresh the units views like the sibling delete mutation.
+			// Soft-deleting an active lease frees its unit (the
+			// sync_unit_status_from_lease trigger), so the units views refresh.
 			unitQueries.all(),
 			ownerDashboardKeys.all,
 		],
