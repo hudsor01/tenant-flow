@@ -1124,12 +1124,13 @@ interface OwnerFiguresExpectation {
  *
  * Dashboard trends, owner A (both functions, and the helper): on T the
  *   running leases are L1, L3, L12 (ends on T) and L13 (starts on T), on N1,
- *   N2 and N3, 3 of the 4 units that are not inactive (N5 is), 75.00%, and
- *   1000 + 1200 + 250 + 20 = 2470 of scheduled rent; on T-30 L1, L2 (ended
- *   T-10), L5 (terminated, ended T-1), L6 (expired T-20), L10 (starts on
- *   T-30) and L11 (ends on T-30), on all 4, 100.00%, and 1000 + 800 + 555 +
- *   600 + 300 + 50 = 3305. Not L4 (pending), L8 (its property is inactive),
- *   L9 (soft-deleted). So occupancyChange 75 - 100 = -25.00 points and growth
+ *   N2 and N3, 3 of the 4 counted units (N5 is inactive; S1 is on the
+ *   inactive South House), 75.00%, and 1000 + 1200 + 250 + 20 = 2470 of
+ *   scheduled rent; on T-30 L1, L2 (ended T-10), L5 (terminated, ended
+ *   T-1), L6 (expired T-20), L10 (starts on T-30) and L11 (ends on T-30), on
+ *   all 4, 100.00%, and 1000 + 800 + 555 + 600 + 300 + 50 = 3305. Not L4
+ *   (pending), L8 (its property is inactive), L9 (soft-deleted). So
+ *   occupancyChange 75 - 100 = -25.00 points and growth
  *   (2470 - 3305) / 3305 = -25.26%. The body before compares only leases
  *   active TODAY on T-30 (L1 alone: +25.00 and, in integer division, +100%)
  *   and get_dashboard_stats returns 0 and 0. In get_dashboard_data_v2 the
